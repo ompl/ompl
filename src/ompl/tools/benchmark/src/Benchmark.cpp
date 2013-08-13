@@ -67,50 +67,6 @@ namespace ompl
             return true;
         }
 
-        struct PlannerProgressPropertyCollector
-        {
-            // \TODO consider allowing specification of intervals in
-            // units other than milliseconds
-            PlannerProgressPropertyCollector(const base::Planner::PlannerProgressProperties& properties, 
-                                             boost::int_least64_t milliseconds) :
-                properties(properties),
-                updatePeriod(boost::chrono::milliseconds(milliseconds)) {}
-
-            // \TODO re-implement this with condition variables
-            void operator()()
-            {
-                try
-                {
-                    time::point timeStart = time::now();
-                    while (true)
-                    {
-                        double timeInSeconds = time::seconds(time::now() - timeStart);
-                        std::string timeStamp = 
-                            boost::lexical_cast<std::string>(timeInSeconds);
-                        std::map<std::string, std::string> data;
-                        data["time REAL"] = timeStamp;
-                        for (base::Planner::PlannerProgressProperties::const_iterator item = properties.begin();
-                             item != properties.end();
-                             ++item)
-                        {
-                            data[item->first] = item->second();
-                        }
-                        runProgressData.push_back(data);
-                        boost::this_thread::sleep_for(updatePeriod);
-                    }
-                }
-                catch (boost::thread_interrupted& e)
-                {
-                    // Catch interrupts so that threads running this
-                    // function can exit gracefully
-                }
-            }
-              
-            const base::Planner::PlannerProgressProperties& properties;
-            Benchmark::RunProgressData runProgressData;
-            boost::chrono::milliseconds updatePeriod;
-        };
-
         class RunPlanner
         {
         public:
@@ -120,15 +76,15 @@ namespace ompl
             {
             }
 
-            void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime, PlannerProgressPropertyCollector* collector)
+            void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime, const boost::int_least64_t msBetweenProgressUpdates)
             {
                 if (!useThreads_)
                 {
-                    runThread(planner, memStart + maxMem, time::seconds(maxTime), collector);
+                    runThread(planner, memStart + maxMem, time::seconds(maxTime), msBetweenProgressUpdates);
                     return;
                 }
 
-                boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime), collector));
+                boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime), msBetweenProgressUpdates));
 
                 // allow 25% more time than originally specified, in order to detect planner termination
                 if (!t.try_join_for(boost::chrono::duration<double>(maxTime * 1.25)))
@@ -170,15 +126,21 @@ namespace ompl
                 return status_;
             }
 
+            const Benchmark::RunProgressData& getRunProgressData(void) const
+            {
+                return runProgressData_;
+            }
+
         private:
 
-            void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem, const time::duration &maxDuration, PlannerProgressPropertyCollector* collector)
+            void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem, const time::duration &maxDuration, const boost::int_least64_t msBetweenProgressUpdates)
             {
                 time::point timeStart = time::now();
 
                 try
                 {
                     base::PlannerTerminationConditionFn ptc = boost::bind(&terminationCondition, maxMem, time::now() + maxDuration);
+                    solved_ = false;
                     // Only launch the planner progress property
                     // collector if there is any data for it to report
                     //
@@ -188,11 +150,17 @@ namespace ompl
                     // collector begins sampling
                     boost::thread* t = 0;
                     if (planner->getPlannerProgressProperties().size() > 0)
-                        t = new boost::thread(boost::ref(*collector));
+                        t = new boost::thread(boost::bind(&RunPlanner::collectProgressProperties, this,
+                                                          planner->getPlannerProgressProperties(),
+                                                          msBetweenProgressUpdates));
                     status_ = planner->solve(ptc, 0.1);
+                    solvedFlag_.lock();
+                    solved_ = true;
+                    solvedCondition_.notify_all();
+                    solvedFlag_.unlock();
                     if (t)
                     {
-                        t->interrupt(); // maybe look into interrupting even if planner throws an exception
+                        t->join(); // maybe look into interrupting even if planner throws an exception
                         delete t;
                     }
                 }
@@ -209,11 +177,46 @@ namespace ompl
                 memUsed_ = machine::getProcessMemoryUsage();
             }
 
+            void collectProgressProperties(const base::Planner::PlannerProgressProperties& properties,
+                                           boost::int_least64_t milliseconds)
+            {
+                boost::chrono::milliseconds updatePeriod(milliseconds);
+                time::point timeStart = time::now();
+
+                boost::unique_lock<boost::mutex> ulock(solvedFlag_);
+                while (!solved_)
+                {
+                    if (solvedCondition_.wait_for(ulock, updatePeriod) == boost::cv_status::no_timeout)
+                        return;
+                    else
+                    {
+                        double timeInSeconds = time::seconds(time::now() - timeStart);
+                        std::string timeStamp = 
+                            boost::lexical_cast<std::string>(timeInSeconds);
+                        std::map<std::string, std::string> data;
+                        data["time REAL"] = timeStamp;
+                        for (base::Planner::PlannerProgressProperties::const_iterator item = properties.begin();
+                             item != properties.end();
+                             ++item)
+                        {
+                            data[item->first] = item->second();
+                        }
+                        runProgressData_.push_back(data);
+                    }
+                }
+            }
+                                           
             const Benchmark    *benchmark_;
             double              timeUsed_;
             machine::MemUsage_t memUsed_;
             base::PlannerStatus status_;
             bool                useThreads_;
+            Benchmark::RunProgressData runProgressData_;
+
+            // variables needed for progress property collection
+            bool solved_;
+            boost::mutex solvedFlag_;
+            boost::condition_variable solvedCondition_;            
         };
 
     }
@@ -552,14 +555,8 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 OMPL_ERROR(es.str().c_str());
             }
 
-            // Create our PlannerProgressPropertyCollector to collect
-            // data about this planner throughout its execution
-            PlannerProgressPropertyCollector 
-                collector(planners_[i]->getPlannerProgressProperties(),
-                          req.msBetweenProgressUpdates);
-
             RunPlanner rp(this, req.useThreads);
-            rp.run(planners_[i], memStart, maxMemBytes, req.maxTime, &collector);
+            rp.run(planners_[i], memStart, maxMemBytes, req.maxTime, req.msBetweenProgressUpdates);
             bool solved = gsetup_ ? gsetup_->haveSolutionPath() : csetup_->haveSolutionPath();
 
             // store results
@@ -655,7 +652,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 // Add planner progress data from the planner progress
                 // collector if there was anything to report
                 if (planners_[i]->getPlannerProgressProperties().size() > 0)
-                    exp_.planners[i].runsProgressData.push_back(collector.runProgressData);
+                    exp_.planners[i].runsProgressData.push_back(rp.getRunProgressData());
             }
             catch(std::runtime_error &e)
             {
