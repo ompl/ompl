@@ -71,9 +71,9 @@ namespace ompl
         {
             // \TODO consider allowing specification of intervals in
             // units other than milliseconds
-            PlannerProgressPropertyCollector(const std::map<std::string, base::Planner::PlannerProgressFunction>& callbackMap, 
+            PlannerProgressPropertyCollector(const base::Planner::PlannerProgressProperties& properties, 
                                              boost::int_least64_t milliseconds) :
-                callbackMap(callbackMap),
+                properties(properties),
                 updatePeriod(boost::chrono::milliseconds(milliseconds)) {}
 
             // \TODO re-implement this with condition variables
@@ -89,14 +89,13 @@ namespace ompl
                             boost::lexical_cast<std::string>(timeInSeconds);
                         std::map<std::string, std::string> data;
                         data["time REAL"] = timeStamp;
-                        for (std::map<std::string, base::Planner::PlannerProgressFunction>::const_iterator item = callbackMap.begin();
-                             item != callbackMap.end();
+                        for (base::Planner::PlannerProgressProperties::const_iterator item = properties.begin();
+                             item != properties.end();
                              ++item)
                         {
-                            // properties[item->first].push_back(item->second());
                             data[item->first] = item->second();
                         }
-                        properties.push_back(data);
+                        runProgressData.push_back(data);
                         boost::this_thread::sleep_for(updatePeriod);
                     }
                 }
@@ -107,8 +106,8 @@ namespace ompl
                 }
             }
               
-            const std::map<std::string, base::Planner::PlannerProgressFunction>& callbackMap;
-            Benchmark::RunProgressData properties;
+            const base::Planner::PlannerProgressProperties& properties;
+            Benchmark::RunProgressData runProgressData;
             boost::chrono::milliseconds updatePeriod;
         };
 
@@ -188,7 +187,7 @@ namespace ompl
                     // might be worth adding a short wait time before
                     // collector begins sampling
                     boost::thread* t = 0;
-                    if (planner->getPlannerProgressPropertyFunctions().size() > 0)
+                    if (planner->getPlannerProgressProperties().size() > 0)
                         t = new boost::thread(boost::ref(*collector));
                     status_ = planner->solve(ptc, 0.1);
                     if (t)
@@ -556,7 +555,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             // Create our PlannerProgressPropertyCollector to collect
             // data about this planner throughout its execution
             PlannerProgressPropertyCollector 
-                collector(planners_[i]->getPlannerProgressPropertyFunctions(),
+                collector(planners_[i]->getPlannerProgressProperties(),
                           req.msBetweenProgressUpdates);
 
             RunPlanner rp(this, req.useThreads);
@@ -655,8 +654,8 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
                 // Add planner progress data from the planner progress
                 // collector if there was anything to report
-                if (planners_[i]->getPlannerProgressPropertyFunctions().size() > 0)
-                    exp_.planners[i].runsProgressData.push_back(collector.properties);
+                if (planners_[i]->getPlannerProgressProperties().size() > 0)
+                    exp_.planners[i].runsProgressData.push_back(collector.runProgressData);
             }
             catch(std::runtime_error &e)
             {

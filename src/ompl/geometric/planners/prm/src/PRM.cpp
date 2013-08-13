@@ -117,7 +117,6 @@ void ompl::geometric::PRM::setup(void)
         opt_ = pdef_->getOptimizationObjective();
     else
     {
-        OMPL_INFORM("Defaulting to optimizing path length.");
         opt_.reset(new base::PathLengthOptimizationObjective(si_));
         opt_->setCostThreshold(opt_->infiniteCost());
     }
@@ -326,7 +325,7 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                 {
                     // Check if optimization objective is satisfied
                     base::Cost pathCost = p->cost(opt_);
-                    if (opt_->isSatisfied(p->cost(opt_)))
+                    if (opt_->isSatisfied(pathCost))
                     {
                         solution = p;
                         return true;

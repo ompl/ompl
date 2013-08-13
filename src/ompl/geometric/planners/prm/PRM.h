@@ -392,6 +392,7 @@ namespace ompl
             /** \brief Objective cost function for PRM graph edges */
             base::OptimizationObjectivePtr                         opt_;
 
+            /** \brief Given two vertices, returns a heuristic on the cost of the path connecting them. This method wraps OptimizationObjective::motionCostHeuristic */
             base::Cost costHeuristic(Vertex u, Vertex v) const;
         };
 

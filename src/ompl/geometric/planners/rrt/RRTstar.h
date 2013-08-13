@@ -149,19 +149,14 @@ namespace ompl
 
             virtual void setup(void);
 
+            ///////////////////////////////////////
             // Planner progress property functions
-            std::string getIterations() const
-            {
-                return boost::lexical_cast<std::string>(iterations_);
-            }
-            std::string getCollisionChecks() const
-            {
-                return boost::lexical_cast<std::string>(collisionChecks_);
-            }
-            std::string getBestCost() const
-            {
-                return boost::lexical_cast<std::string>(bestCost_.v);
-            }
+            std::string getIterations(void) const;
+
+            std::string getCollisionChecks(void) const;
+
+            std::string getBestCost(void) const;
+            ///////////////////////////////////////
 
         protected:
 
@@ -256,11 +251,13 @@ namespace ompl
             //////////////////////////////
             // Planner progress properties
 
-            /** \brief The number of iterations the algorithm performed */
+            /** \brief Number of iterations the algorithm performed */
             unsigned int                                   iterations_;
 
+            /** \brief Number of collisions checks performed by the algorithm */
             unsigned int                                   collisionChecks_;
             
+            /** \brief Best cost found so far by algorithm */
             base::Cost                                     bestCost_;
         };
 

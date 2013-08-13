@@ -364,18 +364,13 @@ namespace ompl
                 return params_;
             }
 
-            typedef boost::function<std::string ()> PlannerProgressFunction;
+            typedef boost::function<std::string ()> PlannerProgressProperty;
+            typedef std::map<std::string, PlannerProgressProperty> PlannerProgressProperties;
 
-            void addPlannerProgressFunction(const std::string& progressPropertyName,
-                                            const PlannerProgressFunction& func)
+            const PlannerProgressProperties&
+            getPlannerProgressProperties() const
             {
-                plannerProgressFunctionsMap_[progressPropertyName] = func;
-            }
-
-            const std::map<std::string, PlannerProgressFunction>&
-            getPlannerProgressPropertyFunctions() const
-            {
-                return plannerProgressFunctionsMap_;
+                return plannerProgressProperties_;
             }
 
             /** \brief Print properties of the motion planner */
@@ -404,6 +399,12 @@ namespace ompl
                     params_[name].setRangeSuggestion(rangeSuggestion);
             }
 
+            void addPlannerProgressProperty(const std::string& progressPropertyName,
+                                            const PlannerProgressProperty& prop)
+            {
+                plannerProgressProperties_[progressPropertyName] = prop;
+            }
+
             /** \brief The space information for which planning is done */
             SpaceInformationPtr  si_;
 
@@ -422,7 +423,7 @@ namespace ompl
             /** \brief A map from parameter names to parameter instances for this planner. This field is populated by the declareParam() function */
             ParamSet             params_;
 
-            std::map<std::string, PlannerProgressFunction> plannerProgressFunctionsMap_;
+            PlannerProgressProperties plannerProgressProperties_;
 
             /** \brief Flag indicating whether setup() has been called */
             bool                 setup_;

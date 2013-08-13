@@ -64,11 +64,11 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
     Planner::declareParam<bool>("delay_collision_checking", this, &RRTstar::setDelayCC, &RRTstar::getDelayCC, "0,1");
 
-    Planner::addPlannerProgressFunction("iterations INTEGER",
+    Planner::addPlannerProgressProperty("iterations INTEGER",
                                         boost::bind(&RRTstar::getIterations, this));
-    Planner::addPlannerProgressFunction("collision checks INTEGER",
+    Planner::addPlannerProgressProperty("collision checks INTEGER",
                                         boost::bind(&RRTstar::getCollisionChecks, this));
-    Planner::addPlannerProgressFunction("best cost REAL",
+    Planner::addPlannerProgressProperty("best cost REAL",
                                         boost::bind(&RRTstar::getBestCost, this));
 }
 
@@ -188,9 +188,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     // our functor for sorting nearest neighbors
     CostIndexCompare compareFn(costs, *opt_);
-
-    // our planner progress data which we'll pass out to the user
-    std::map<std::string, std::string> plannerProgressData;
 
     while (ptc == false)
     {
@@ -550,4 +547,17 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
     data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
     data.properties["collision_checks INTEGER"] = 
 	boost::lexical_cast<std::string>(collisionChecks_);
+}
+
+std::string ompl::geometric::RRTstar::getIterations(void) const
+{
+  return boost::lexical_cast<std::string>(iterations_);
+}
+std::string ompl::geometric::RRTstar::getCollisionChecks(void) const
+{
+  return boost::lexical_cast<std::string>(collisionChecks_);
+}
+std::string ompl::geometric::RRTstar::getBestCost(void) const
+{
+  return boost::lexical_cast<std::string>(bestCost_.v);
 }
