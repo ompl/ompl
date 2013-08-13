@@ -140,6 +140,7 @@ namespace ompl
                 try
                 {
                     base::PlannerTerminationConditionFn ptc = boost::bind(&terminationCondition, maxMem, time::now() + maxDuration);
+                    solved_ = false;
                     // Only launch the planner progress property
                     // collector if there is any data for it to report
                     //
@@ -153,9 +154,13 @@ namespace ompl
                                                           planner->getPlannerProgressProperties(),
                                                           msBetweenProgressUpdates));
                     status_ = planner->solve(ptc, 0.1);
+                    solvedFlag_.lock();
+                    solved_ = true;
+                    solvedCondition_.notify_all();
+                    solvedFlag_.unlock();
                     if (t)
                     {
-                        t->interrupt(); // maybe look into interrupting even if planner throws an exception
+                        t->join(); // maybe look into interrupting even if planner throws an exception
                         delete t;
                     }
                 }
@@ -176,10 +181,14 @@ namespace ompl
                                            boost::int_least64_t milliseconds)
             {
                 boost::chrono::milliseconds updatePeriod(milliseconds);
-                try
+                time::point timeStart = time::now();
+
+                boost::unique_lock<boost::mutex> ulock(solvedFlag_);
+                while (!solved_)
                 {
-                    time::point timeStart = time::now();
-                    while (true)
+                    if (solvedCondition_.wait_for(ulock, updatePeriod) == boost::cv_status::no_timeout)
+                        return;
+                    else
                     {
                         double timeInSeconds = time::seconds(time::now() - timeStart);
                         std::string timeStamp = 
@@ -193,23 +202,21 @@ namespace ompl
                             data[item->first] = item->second();
                         }
                         runProgressData_.push_back(data);
-                        boost::this_thread::sleep_for(updatePeriod);
                     }
-                }
-                catch (boost::thread_interrupted& e)
-                {
-                    // Catch interrupts so that threads running this
-                    // function can exit gracefully
                 }
             }
                                            
-
             const Benchmark    *benchmark_;
             double              timeUsed_;
             machine::MemUsage_t memUsed_;
             base::PlannerStatus status_;
             bool                useThreads_;
             Benchmark::RunProgressData runProgressData_;
+
+            // variables needed for progress property collection
+            bool solved_;
+            boost::mutex solvedFlag_;
+            boost::condition_variable solvedCondition_;            
         };
 
     }
