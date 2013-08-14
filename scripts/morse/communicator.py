@@ -131,7 +131,12 @@ def goalRegionSatisfied():
     for obj in goalRegionObjects:
         sensor = obj.sensors["__collision"]
         if not sensor.hitObject:
-            return False
+            # body not in collision, so we'll check if it's entirely inside
+            (hit, point, normal) = obj.rayCast(obj, bge.logic.getCurrentScene().objects[sensor.propName],
+                                               0, sensor.propName, 1, 1, 0)
+            # if we're on the inside, the first face we hit should be facing away from us
+            if not hit or sum(normal[i]*(obj.worldPosition[i]-point[i]) for i in range(3)) > 0:
+                return False
     return True
 
 def getControlDescription():
@@ -250,18 +255,19 @@ def endSimulation():
     if mode == 'PLAY':
         # Clean up:
         
+        animpath = bpy.data.objects['__planner'].game.properties['Animpath'].value
+        
         # no autostart
         bpy.context.scene.game_settings.use_auto_start = False
         
         # remove unwanted objects
+        # TODO delete more objects
         for obj in bpy.context.scene.objects[:]:
             if obj.name in ['__planner','Scene_Script_Holder']:
                 bpy.context.scene.objects.unlink(obj)
                 
         # save animation curves to file
-        # TODO let user pick the file
-        bpy.ops.wm.save_mainfile(filepath="/home/caleb/repos/ompl_morse/scripts/morse/iposave.blend",
-                                 check_existing=False)
+        bpy.ops.wm.save_mainfile(filepath=animpath, check_existing=False)
     
     # signal to exit loop
     return False
@@ -273,7 +279,7 @@ def stepRes(res):
     # null response
     sock.sendall(b'\x06')
     
-    bge.logic.setPropagateTics(int(res*60))
+    #bge.logic.setPropagateTics(int(res*60))
     
     return True
 
@@ -386,14 +392,17 @@ def communicate():
         # crash and traceback happen elsewhere with Errno 104
         if str(msg) != '[Errno 104] Connection reset by peer':
             raise
-
+#last_time=None
 def main():
     """
     Called once every tick.
     Spawn the planner when tickcount reaches 0. Communicate with an
     existing one when tickcount is positive.
     """
-
+    #global last_time
+    #t = bge.logic.getElapsedTime()
+    #print("Elapsed since last frame: %f" % t-last_time)
+    #last_time = t
     # wait a second for MORSE to finish initializing
     global tickcount
     tickcount += 1
@@ -442,7 +451,7 @@ def main():
         # start the external planning script
         spawn_planner()
 
-    if sock and bge.logic.getPropagateTics()==0:
+    if sock: #and bge.logic.getPropagateTics()==0:
         # handle requests from the planner
         communicate()
 

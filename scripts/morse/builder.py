@@ -122,6 +122,10 @@ obj.game.properties['Mode'].value = mode
 # Mode specific configuration:
 if mode == 'PLAY':
     bpy.context.scene.game_settings.use_animation_record = True
+    # Determine the animation file to write to (fourth argument)
+    animpath = sys.argv[sys.argv.index('--') + 4]
+    bpy.ops.object.game_property_new(type='STRING', name="Animpath")
+    obj.game.properties['Animpath'].value = animpath
 
 # Add 'Tick' sensor
 bpy.ops.logic.sensor_add(type='DELAY', name='Tick')

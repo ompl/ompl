@@ -238,7 +238,7 @@ class MyGoal(om.MorseGoal):
         """
         For every goal object, check if the rigid body object is close
         """
-        self.distance = 0
+        self.distance_ = 0
         sat = True
         for crit in self.criteria:
             if len(crit) == 4:
@@ -249,7 +249,7 @@ class MyGoal(om.MorseGoal):
                 # Check tolerances for satisfaction
                 if dl > crit[2] or dr > crit[3]:
                     sat = False
-                self.distance += dl + dr
+                self.distance_ += dl + dr
             elif len(crit) == 3:
                 # this is a Rot goal
                 quat = state[4*crit[0]+3]
@@ -258,15 +258,15 @@ class MyGoal(om.MorseGoal):
                 # Check tolerance for satisfaction
                 if dr > crit[2]:
                     sat = False
-                self.distance += dr
+                self.distance_ += dr
             else:
                 # this is a Region goal, don't alter sat here
                 stateTup = state[4*crit[0]+0]
-                self.distance += self.distLoc(stateTup, crit[1])
+                self.distance_ += self.distLoc(stateTup, crit[1])
         
         # finally, check the goalRegionSat flag
         if not state[4*self.rigidBodies_].value:
             sat = False
-        
+        print(self.distance_)
         return sat
 
