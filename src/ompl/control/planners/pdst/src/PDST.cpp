@@ -380,7 +380,7 @@ void ompl::control::PDST::getPlannerData(ompl::base::PlannerData &data) const
                     // the start state of the ancestor motion, which lies somewhere on
                     // the parent ancestor motion.
                     cur = ancestor;
-                    duration = findDurationAndAncestor(cur->parent_, cur->startState_, scratch, ancestor);
+                    findDurationAndAncestor(cur->parent_, cur->startState_, scratch, ancestor);
                     data.addEdge(base::PlannerDataVertex(ancestor->startState_),
                         base::PlannerDataVertex(cur->startState_));
                 }
