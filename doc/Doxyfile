@@ -654,7 +654,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = ./dox/ \
+INPUT                  = ./markdown/ \
                          ../src/ompl \
                          ../demos
 
@@ -722,7 +722,7 @@ EXCLUDE_SYMBOLS        =
 # the \include command).
 
 EXAMPLE_PATH           = ../demos \
-                         dox/code
+                         markdown/code
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp
