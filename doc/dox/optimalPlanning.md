@@ -15,29 +15,44 @@ Defining an optimal motion planning problem is almost exactly the same as defini
 
 ## Finding the shortest path
 
-We'll demonstrate OMPL's optimal planning framework with an example. In this example, our robot is represented as a (x,y) coordinate on a square, where (0,0) is the square's bottom-left corner and (1,1) is the square's top-right corner. There is also an obstacle in this square that the robot cannot pass through; this obstacle is a circle of radius 0.25 centered at (0.5,0.5). To reflect this environment, we use a two-dimensional `RealVectorStateSpace` and define our state validity function as follows:
+We'll demonstrate OMPL's optimal planning framework with an example. In this example, our robot is represented as a (x,y) coordinate on a square, where (0,0) is the square's bottom-left corner and (1,1) is the square's top-right corner. There is also an obstacle in this square that the robot cannot pass through; this obstacle is a circle of radius 0.25 centered at (0.5,0.5). To reflect this environment, we use a two-dimensional `RealVectorStateSpace` and define our state validity checker as follows:
 
 ~~~{.cpp}
-// Our "collision checker". For this demo, our robot's state space
+// Our collision checker. For this demo, our robot's state space
 // lies in [0,1]x[0,1], with a circular obstacle of radius 0.25
 // centered at (0.5,0.5). Any states lying in this circular region are
 // considered "in collision".
-bool isStateValid(const ob::State* state)
+class ValidityChecker : public ob::StateValidityChecker
 {
-    // We know we're working with a RealVectorStateSpace in this
-    // example, so we downcast state into the specific type.
-    const ob::RealVectorStateSpace::StateType* state2D = 
-        state->as<ob::RealVectorStateSpace::StateType>();
+public:
+    ValidityChecker(const ob::SpaceInformationPtr& si) :
+        ob::StateValidityChecker(si) {}
 
-    // Extract the robot's (x,y) position from its state
-    double x = state2D->values[0];
-    double y = state2D->values[1];
+    // Returns whether the given state's position overlaps the
+    // circular obstacle
+    bool isValid(const ob::State* state) const
+    {
+        return this->clearance(state) > 0.0;
+    }
 
-    // Check whether (x,y) is within the circular obstacle of radius 0.25
-    // centered at (0.5,0.5); equivalently, we check whether the squared
-    // distance between (x,y) and (0.5,0.5) is greater than 0.25^2.
-    return (x-0.5)*(x-0.5) + (y-0.5)*(y-0.5) >= 0.25*0.25;
-}
+    // Returns the distance from the given state's position to the
+    // boundary of the circular obstacle.
+    double clearance(const ob::State* state) const
+    {
+        // We know we're working with a RealVectorStateSpace in this
+        // example, so we downcast state into the specific type.
+        const ob::RealVectorStateSpace::StateType* state2D = 
+            state->as<ob::RealVectorStateSpace::StateType>();
+
+        // Extract the robot's (x,y) position from its state
+        double x = state2D->values[0];
+        double y = state2D->values[1];
+
+        // Distance formula between two points, offset by the circle's
+        // radius
+        return sqrt((x-0.5)*(x-0.5) + (y-0.5)*(y-0.5)) - 0.25;
+    }
+};
 ~~~
 
 In our planning code, we then define our state space, its bounds, and our start and goal states. In this example, the start state is at (0,0) and our goal state is (1,1) - i.e. the bottom-left and top-right corners, respectively. This code should be familiar if you've worked with regular motion planning in OMPL.
@@ -53,8 +68,10 @@ space->as<ob::RealVectorStateSpace>()->setBounds(0.0, 1.0);
 // Construct a space information instance for this state space
 ob::SpaceInformationPtr si(new ob::SpaceInformation(space));
 
-// Set the function used to check which states in the space are valid
-si->setStateValidityChecker(boost::bind(&isStateValid, _1));
+// Set the object used to check which states in the space are valid
+si->setStateValidityChecker(ob::StateValidityCheckerPtr(new ValidityChecker(si)));
+
+si->setup();
 
 // Set our robot's starting state to be the bottom-left corner of
 // the environment, or (0,0).

@@ -338,7 +338,7 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
     
     if (b)
     {
-        if (MultiOptimizationObjective* mult = dynamic_cast<MultiOptimizationObjective*>(a.get()))
+        if (MultiOptimizationObjective* mult = dynamic_cast<MultiOptimizationObjective*>(b.get()))
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {
