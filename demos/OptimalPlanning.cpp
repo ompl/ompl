@@ -104,19 +104,13 @@ void plan(int argc, char** argv)
     pdef->setStartAndGoalStates(start, goal);
 
     // Since we want to find an optimal plan, we need to define what
-    // is optimal with an OptimizationObjective structure. This method
-    // returns an objective where the optimal path is the one that is
-    // shortest in length.
-    //
-    // NOTE: The optimal planner we're using, RRTstar, actually
-    // defaults to optimizing path length if no objective is specified
-    // to the ProblemDefinition, meaning this next statement is not
-    // actually necessary.
+    // is optimal with an OptimizationObjective structure.
     // pdef->setOptimizationObjective(getPathLengthObjective(si));
     // pdef->setOptimizationObjective(getThresholdPathLengthObj(si));
     // pdef->setOptimizationObjective(getClearanceObjective(si));
     // pdef->setOptimizationObjective(getBalancedObjective1(si));
-    pdef->setOptimizationObjective(getBalancedObjective2(si));
+    // pdef->setOptimizationObjective(getBalancedObjective2(si));
+    pdef->setOptimizationObjective(ob::OptimizationObjectivePtr(new ob::MaximizeMinClearanceObjective(si)));
 
     // Construct our optimal planner using the RRTstar algorithm.
     ob::PlannerPtr optimalPlanner(new og::RRTstar(si));

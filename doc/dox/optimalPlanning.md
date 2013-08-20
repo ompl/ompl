@@ -111,7 +111,7 @@ We can then set this as our objective in our planning code:
 pdef->setOptimizationObjective(getPathLengthObjective(si));
 ~~~
 
-> __Note:__ The optimal planner we're about to use, RRTstar, actually defaults to optimizing for path length if no optimization objective is specified to the `ProblemDefinition`. This means that, in this case, the above statement isn't required. But if you want to optimize a metric other than path length, you have to manually specify it to the `ProblemDefinition`.
+> Note: The optimal planner we're about to use, RRTstar, actually defaults to optimizing for path length if no optimization objective is specified to the `ProblemDefinition`. This means that, in this case, the above statement isn't required. But if you want to optimize a metric other than path length, you have to manually specify it to the `ProblemDefinition`.
 
 Next, we define our optimal planner and attempt to solve the optimal planning problem:
 
