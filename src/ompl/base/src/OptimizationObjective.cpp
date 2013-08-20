@@ -97,8 +97,59 @@ ompl::base::OptimizationObjective::getSpaceInformation(void) const
     return si_;
 }
 
+// \TODO Make this more efficient. Right now it's easy to understand,
+// but it computes state costs twice.
 ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State *s1, 
                                                                     const State *s2) const
+{
+    if (interpolateMotionCost_)
+    {
+        Cost totalCost = this->identityCost();
+
+        // \TODO shouldn't we be able to use some method in SpaceInformation
+        // for this instead?
+        int nd = si_->getStateSpace()->validSegmentCount(s1, s2);
+  
+        State *test1 = si_->cloneState(s1);
+        if (nd > 1)
+        {
+            State *test2 = si_->allocState();
+            for (int j = 1; j < nd; ++j)
+            {
+                si_->getStateSpace()->interpolate(s1, s2, (double) j / (double) nd, test2);
+                totalCost = this->combineCosts(totalCost, this->trapezoid(test1, test2));
+                si_->copyState(test1, test2);
+            }
+            si_->freeState(test2);
+        }
+
+        // Lastly, add s2
+        totalCost = this->combineCosts(totalCost, this->trapezoid(test1, s2));
+
+        si_->freeState(test1);
+
+        return totalCost;
+    }
+    else
+        return this->trapezoid(s1, s2);
+}
+
+void ompl::base::StateCostIntegralObjective::enableMotionCostInterpolation(void)
+{
+    interpolateMotionCost_ = true;
+}
+
+void ompl::base::StateCostIntegralObjective::disableMotionCostInterpolation(void)
+{
+    interpolateMotionCost_ = false;
+}
+
+bool ompl::base::StateCostIntegralObjective::isMotionCostInterpolationEnabled(void) const
+{
+    return interpolateMotionCost_;
+}
+
+ompl::base::Cost ompl::base::StateCostIntegralObjective::trapezoid(const State* s1, const State* s2) const
 {
     return Cost(0.5 * si_->distance(s1, s2) * (this->stateCost(s1).v + this->stateCost(s2).v));
 }
@@ -287,7 +338,7 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
     
     if (b)
     {
-        if (MultiOptimizationObjective* mult = dynamic_cast<MultiOptimizationObjective*>(a.get()))
+        if (MultiOptimizationObjective* mult = dynamic_cast<MultiOptimizationObjective*>(b.get()))
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {

@@ -231,8 +231,52 @@ namespace ompl
 		\f{eqnarray*}{
 		\mbox{cost} &=& \frac{cost(s_1) + cost(s_2)}{2}\vert s_1 - s_2 \vert
 		\f}
+                
+                If enableMotionCostInterpolation() has been called on
+                this objective, the cost will be computed by
+                separating the motion into
+                StateSpace::validSegmentCount() segments, using the
+                above formula to compute the cost of each of those
+                segments, and adding them up.
 	    */
 	    virtual Cost motionCost(const State *s1, const State *s2) const;
+
+            /** \brief Causes calls to motionCost() to divide the
+                motion segment into smaller parts (the number of parts
+                defined by StateSpace::validSegmentCount()) for more
+                accurate cost integral computation. Trades off
+                efficiency for accuracy.
+             */
+            void enableMotionCostInterpolation(void);
+
+            /** \brief Causes calls to motionCost() to only use the
+                endpoints of a motion to compute the cost. This is
+                efficient, but for some objectives it may be an
+                inaccurate approximation.
+             */
+            void disableMotionCostInterpolation(void);
+
+            /** \brief Returns whether this objective subdivides
+                motions into smaller segments for more accurate motion
+                cost computation. Motion cost interpolation is
+                disabled by default.
+             */
+            bool isMotionCostInterpolationEnabled(void) const;
+        protected:
+
+            // If true, then motionCost() will more accurately compute
+            // the cost of a motion by taking small steps along the
+            // motion and accumulating the cost. This sacrifices speed
+            // for accuracy. If false, the motion cost will be
+            // approximated by taking the average of the costs at the
+            // two end points, and normalizing by the distance between
+            // the two end points.
+            bool interpolateMotionCost_;
+
+            /** \brief Helper method which uses the trapezoidal rule
+             to approximate the integral of the cost between states \e
+             s1 and \e s2 **/
+            Cost trapezoid(const State* s1, const State* s2) const;
 	};
 
 	class MechanicalWorkOptimizationObjective : public OptimizationObjective
@@ -337,8 +381,6 @@ namespace ompl
             friend OptimizationObjectivePtr operator*(const OptimizationObjectivePtr &a, double w);
         };
 
-        // For now, assume that the SpaceInformation to be associated
-        // with the new objective is that of a
         OptimizationObjectivePtr operator+(const OptimizationObjectivePtr &a,
                                            const OptimizationObjectivePtr &b);
 
