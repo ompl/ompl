@@ -98,11 +98,26 @@ void ompl::geometric::TRRT::setup(void)
     Planner::setup();
     tools::SelfConfig selfConfig(si_, getName());
 
-    base::MechanicalWorkOptimizationObjective *opt = dynamic_cast<base::MechanicalWorkOptimizationObjective*>(pdef_->getOptimizationObjective().get());
-    if (!opt)
+    bool usingDefaultObjective = false;
+    if (!pdef_->hasOptimizationObjective())
     {
-	OMPL_ERROR("TRRT was supplied an inappropriate optimization objective; it can only handle types of MechanicalWorkOptimizationObjective.");
+        OMPL_INFORM("%s: No optimization objective specified.", getName().c_str());
+        usingDefaultObjective = true;
     }
+    else if (!boost::dynamic_pointer_cast<
+             base::MechanicalWorkOptimizationObjective>(pdef_->getOptimizationObjective()))
+    {
+        OMPL_INFORM("%s: TRRT was supplied an inappropriate optimization objective; it can only handle types of ompl::base::MechanicalWorkOptimizationObjective.", getName().c_str());
+        usingDefaultObjective = true;
+    }
+
+    if (usingDefaultObjective)
+    {
+        opt_.reset(new base::MechanicalWorkOptimizationObjective(si_));
+        OMPL_INFORM("%s: Defaulting to optimizing path length.", getName().c_str());
+    }
+    else
+        opt_ = pdef_->getOptimizationObjective();
 
     // Set maximum distance a new node can be from its nearest neighbor
     if (maxDistance_ < std::numeric_limits<double>::epsilon())
@@ -122,7 +137,7 @@ void ompl::geometric::TRRT::setup(void)
     if (kConstant_ < std::numeric_limits<double>::epsilon())
     {
         // Find the average cost of states by sampling
-        double averageCost = opt->averageStateCost(magic::TEST_STATE_COUNT).v;
+        double averageCost = opt_->averageStateCost(magic::TEST_STATE_COUNT).v;
         kConstant_ = averageCost;
         OMPL_DEBUG("%s: K constant detected to be %lf", getName().c_str(), kConstant_);
     }
@@ -167,9 +182,6 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goalRegion = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
-    // Optimization Objective information
-    base::OptimizationObjectivePtr opt = pdef_->getOptimizationObjective();
-
     // Input States ---------------------------------------------------------------------------------
 
     // Loop through valid input states and add to tree
@@ -182,7 +194,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         si_->copyState(motion->state, state);
 
         // Set cost for this start state
-        motion->cost = opt->stateCost(motion->state);
+        motion->cost = opt_->stateCost(motion->state);
 
         // Add start motion to the tree
         nearestNeighbors_->add(motion);
@@ -300,7 +312,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
             continue; // give up on this one and try a new sample
         }
 
-        base::Cost childCost = opt->stateCost(newState);
+        base::Cost childCost = opt_->stateCost(newState);
 
         // Only add this motion to the tree if the tranistion test accepts it
         if(!transitionTest(childCost.v, nearMotion->cost.v, motionDistance))

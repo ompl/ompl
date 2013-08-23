@@ -83,7 +83,7 @@ ompl::base::Cost ompl::base::OptimizationObjective::averageStateCost(unsigned in
     for (unsigned int i = 0 ; i < numStates ; ++i)
     {
         ss->sampleUniform(state);
-        this->combineCosts(totalCost, this->stateCost(state));
+        totalCost = this->combineCosts(totalCost, this->stateCost(state));
     }
 
     si_->freeState(state);

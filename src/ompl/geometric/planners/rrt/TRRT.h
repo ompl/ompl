@@ -341,6 +341,8 @@ namespace ompl
             /// Target ratio of nonfrontier nodes to frontier nodes. rho
             double                                          frontierNodeRatio_;
 
+            /// The optimization objective being optimized by TRRT
+            ompl::base::OptimizationObjectivePtr            opt_;
         };
     }
 }
