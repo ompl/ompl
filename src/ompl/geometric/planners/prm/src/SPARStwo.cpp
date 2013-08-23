@@ -260,7 +260,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
 
     if (!goal)
     {
-        OMPL_ERROR("Goal undefined or unknown type of goal");
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -269,13 +269,13 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
         startM_.push_back(addGuard(si_->cloneState(st), START));
     if (startM_.empty())
     {
-        OMPL_ERROR("There are no valid initial states!");
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        OMPL_ERROR("Insufficient states in sampleable goal region");
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -284,12 +284,12 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
         goalM_.push_back(addGuard(si_->cloneState(st), GOAL));
     if (goalM_.empty())
     {
-        OMPL_ERROR("Unable to find any valid goal states");
+        OMPL_ERROR("%s: Unable to find any valid goal states", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
 
     unsigned int nrStartStates = boost::num_vertices(g_) - 1;  // don't count query vertex
-    OMPL_INFORM("Starting with %u states", nrStartStates);
+    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nrStartStates);
 
     // Reset addedSolution_ member
     addedSolution_ = false;
@@ -305,7 +305,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
     // Ensure slnThread is ceased before exiting solve
     slnThread.join();
 
-    OMPL_INFORM("Created %u states", boost::num_vertices(g_) - nrStartStates);
+    OMPL_INFORM("%s: Created %u states", getName().c_str(), boost::num_vertices(g_) - nrStartStates);
 
     if (sol)
         pdef_->addSolutionPath(sol, false);
@@ -783,26 +783,20 @@ void ompl::geometric::SPARStwo::getPlannerData(base::PlannerData &data) const
     if (boost::num_edges( g_ ) > 0)
     {
         // Adding edges and all other vertices simultaneously
-        foreach(const Edge e, boost::edges(g_))
+        foreach (const Edge e, boost::edges(g_))
         {
             const Vertex v1 = boost::source(e, g_);
             const Vertex v2 = boost::target(e, g_);
-            unsigned long size = boost::num_vertices( g_ );
-            if (v1 < size || v2 < size)
-            {
-                data.addEdge(base::PlannerDataVertex(stateProperty_[v1], (int)colorProperty_[v1]),
-                             base::PlannerDataVertex(stateProperty_[v2], (int)colorProperty_[v2]));
+            data.addEdge(base::PlannerDataVertex(stateProperty_[v1], (int)colorProperty_[v1]),
+                         base::PlannerDataVertex(stateProperty_[v2], (int)colorProperty_[v2]));
 
-                // Add the reverse edge, since we're constructing an undirected roadmap
-                data.addEdge(base::PlannerDataVertex(stateProperty_[v2], (int)colorProperty_[v2]),
-                             base::PlannerDataVertex(stateProperty_[v1], (int)colorProperty_[v1]));
-            }
-            else
-                OMPL_ERROR("Edge Vertex Error: [%lu][%lu] > %lu\n", v1, v2, size);
+            // Add the reverse edge, since we're constructing an undirected roadmap
+            data.addEdge(base::PlannerDataVertex(stateProperty_[v2], (int)colorProperty_[v2]),
+                         base::PlannerDataVertex(stateProperty_[v1], (int)colorProperty_[v1]));
         }
     }
     else
-        OMPL_INFORM("There are no edges in the graph!\n");
+        OMPL_INFORM("%s: There are no edges in the graph!", getName().c_str());
 
     // Make sure to add edge-less nodes as well
     foreach (const Vertex n, boost::vertices(g_))

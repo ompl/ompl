@@ -97,7 +97,7 @@ void ompl::geometric::RRTstar::setup(void)
 	opt_ = pdef_->getOptimizationObjective();
     else
     {
-        OMPL_INFORM("Defaulting to optimizing path length.");
+        OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length for the allowed planning time.", getName().c_str());
         opt_.reset(new base::PathLengthOptimizationObjective(si_));
     }
 }
@@ -145,14 +145,14 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     if (nn_->size() == 0)
     {
-        OMPL_ERROR("There are no valid initial states!");
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("Starting with %u states", nn_->size());
+    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nn_->size());
 
     Motion *solution       = lastGoalMotion_;
 
@@ -181,9 +181,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     unsigned int               rewireTest = 0;
     unsigned int               statesGenerated = 0;
 
-    if(solution)
-        OMPL_INFORM("Starting with existing solution of cost %.5f", solution->cost.v);
-    OMPL_INFORM("Initial k-nearest value of %u", (unsigned int)std::ceil(k_rrg * log((double)nn_->size()+1)));
+    if (solution)
+        OMPL_INFORM("%s: Starting with existing solution of cost %.5f", getName().c_str(), solution->cost.v);
+    OMPL_INFORM("%s: Initial k-nearest value of %u", getName().c_str(), (unsigned int)std::ceil(k_rrg * log((double)(nn_->size()+1))));
 
 
     // our functor for sorting nearest neighbors
@@ -228,7 +228,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 		nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
 
             // Find nearby neighbors of the new motion - k-nearest RRT*
-            unsigned int k = std::ceil(k_rrg * log((double)nn_->size()+1));
+            unsigned int k = std::ceil(k_rrg * log((double)(nn_->size()+1)));
             nn_->nearestK(motion, k, nbh);
             rewireTest += nbh.size();
             statesGenerated++;
@@ -481,7 +481,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         si_->freeState(rmotion->state);
     delete rmotion;
 
-    OMPL_INFORM("Created %u new states. Checked %lu rewire options. %u goal states in tree.", statesGenerated, rewireTest, goalMotions_.size());
+    OMPL_INFORM("%s: Created %u new states. Checked %lu rewire options. %u goal states in tree.", getName().c_str(), statesGenerated, rewireTest, goalMotions_.size());
 
     return base::PlannerStatus(addedSolution, approximate);
 }

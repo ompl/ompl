@@ -356,7 +356,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
     if (!goal)
     {
-        OMPL_ERROR("Goal undefined or unknown type of goal");
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -391,7 +391,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     }
 
     unsigned int nrStartStates = boost::num_vertices(g_);
-    OMPL_INFORM("Starting with %u states", nrStartStates);
+    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nrStartStates);
 
     // Reset addedSolution_ member and create solution checking thread
     addedSolution_ = false;
@@ -407,7 +407,7 @@ base::PlannerTerminationCondition(boost::bind(&PRM::addedNewSolution, this)));
     // Ensure slnThread is ceased before exiting solve
     slnThread.join();
 
-    OMPL_INFORM("Created %u states", boost::num_vertices(g_) - nrStartStates);
+    OMPL_INFORM("%s: Created %u states", getName().c_str(), boost::num_vertices(g_) - nrStartStates);
 
     if (sol)
     {

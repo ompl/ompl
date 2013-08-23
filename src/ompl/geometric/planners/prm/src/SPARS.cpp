@@ -261,7 +261,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
 
     if (!goal)
     {
-        OMPL_ERROR("Goal undefined or unknown type of goal");
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -273,13 +273,13 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     }
     if (startM_.empty())
     {
-        OMPL_ERROR("There are no valid initial states!");
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
 
     if (goalM_.empty() && !goal->couldSample())
     {
-        OMPL_ERROR("Insufficient states in sampleable goal region");
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -291,13 +291,13 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     }
     if (goalM_.empty())
     {
-        OMPL_ERROR("Unable to find any valid goal states");
+        OMPL_ERROR("%s: Unable to find any valid goal states", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
 
     unsigned int nrStartStatesDense = boost::num_vertices(g_) - 1; // don't count query vertex
     unsigned int nrStartStatesSparse = boost::num_vertices(s_) - 1; // don't count query vertex
-    OMPL_INFORM("Starting with %u dense states, %u sparse states", nrStartStatesDense, nrStartStatesSparse);
+    OMPL_INFORM("%s: Starting with %u dense states, %u sparse states", getName().c_str(), nrStartStatesDense, nrStartStatesSparse);
 
     // Reset addedSolution_ member
     addedSolution_ = false;
@@ -316,7 +316,8 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     if (sol)
         pdef_->addSolutionPath(sol, false);
 
-    OMPL_INFORM("Created %u dense states, %u sparse states", (unsigned int)(boost::num_vertices(g_) - nrStartStatesDense),
+    OMPL_INFORM("%s: Created %u dense states, %u sparse states", getName().c_str(),
+                (unsigned int)(boost::num_vertices(g_) - nrStartStatesDense),
                 (unsigned int)(boost::num_vertices(s_) - nrStartStatesSparse));
 
     // Return true if any solution was found.
@@ -926,7 +927,7 @@ void ompl::geometric::SPARS::computeDensePath(const DenseVertex start, const Den
     }
 
     if (prev[goal] == goal)
-        OMPL_WARN("No dense path was found?");
+        OMPL_WARN("%s: No dense path was found?", getName().c_str());
     else
     {
         for (DenseVertex pos = goal; prev[pos] != pos; pos = prev[pos])

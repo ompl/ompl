@@ -115,7 +115,7 @@ void ompl::geometric::TRRT::setup(void)
     if (frontierThreshold_ < std::numeric_limits<double>::epsilon())
     {
         frontierThreshold_ = si_->getMaximumExtent() * 0.01;
-        OMPL_DEBUG("Frontier threshold detected to be %lf", frontierThreshold_);
+        OMPL_DEBUG("%s: Frontier threshold detected to be %lf", getName().c_str(), frontierThreshold_);
     }
 
     // Autoconfigure the K constant
@@ -124,7 +124,7 @@ void ompl::geometric::TRRT::setup(void)
         // Find the average cost of states by sampling
         double averageCost = opt->averageStateCost(magic::TEST_STATE_COUNT).v;
         kConstant_ = averageCost;
-        OMPL_DEBUG("K constant detected to be %lf", kConstant_);
+        OMPL_DEBUG("%s: K constant detected to be %lf", getName().c_str(), kConstant_);
     }
 
     // Create the nearest neighbor function the first time setup is run
@@ -178,7 +178,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         // Allocate memory for a new start state motion based on the "space-information"-size
         Motion *motion = new Motion(si_);
 
-        // Copy destination <= source (backwards???)
+        // Copy destination <= source
         si_->copyState(motion->state, state);
 
         // Set cost for this start state
@@ -191,7 +191,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
     // Check that input states exist
     if (nearestNeighbors_->size() == 0)
     {
-        OMPL_ERROR("There are no valid initial states!");
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
 
@@ -200,7 +200,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         sampler_ = si_->allocStateSampler();
 
     // Debug
-    OMPL_INFORM("Starting with %u states", nearestNeighbors_->size());
+    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nearestNeighbors_->size());
 
 
     // Solver variables ------------------------------------------------------------------------------------
@@ -382,7 +382,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         si_->freeState(randMotion->state);
     delete randMotion;
 
-    OMPL_INFORM("Created %u states", nearestNeighbors_->size());
+    OMPL_INFORM("%s: Created %u states", getName().c_str(), nearestNeighbors_->size());
 
     return base::PlannerStatus(solved, approximate);
 }
