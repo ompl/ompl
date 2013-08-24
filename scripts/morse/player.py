@@ -17,11 +17,11 @@ def playWithMorse(sockS, sockC):
     try:
         # create a MORSE environment representation
         env = MyEnvironment(sockS, sockC)
+        env.worldStepRes(1.0/60)
         
         # play
-        f = open(sys.argv[1], 'rb')
-        (st,con,dur) = pickle.load(f)
-        env.worldStepRes(1.0/60)
+        with open(sys.argv[1], 'rb') as f:
+            (st,con,dur) = pickle.load(f)
         for i in range(len(con)):
             # load state
             env.call('submitState()', pickle.dumps(st[i]))
@@ -29,9 +29,9 @@ def playWithMorse(sockS, sockC):
             print(con[i])
             env.applyControl(con[i])
             # simulate
-            for _ in range(round(dur[i]/(1.0/60))):
+            for _ in range(round(dur[i]/(1.0/60)/5)-10):
                 env.worldStep(1.0/60)
-                time.sleep(1.0/60)  # to pace the playback
+                #time.sleep(1.0/60)  # to pace the playback
         # last state
         env.call('submitState()', pickle.dumps(st[len(con)]))
     

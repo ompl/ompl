@@ -31,11 +31,15 @@ def planWithMorse(sockS, sockC):
         
         # choose a planner
         planner = oc.RRT(si)
-        # use a specific projection
-        #space = si.getStateSpace()
-        #proj = MyProjection(space)
-        #space.registerProjection("MyProjection", proj)
-        #planner.setProjectionEvaluator("MyProjection")
+        """
+        planner = oc.KPIECE1(si)
+        # requires a projection (there is a default, but it uses x,y positions of
+        #  all rigid bodies; that could be a lot of dimensions)
+        space = si.getStateSpace()
+        proj = ExampleProjection(space)
+        space.registerProjection("ExampleProjection", proj)
+        planner.setProjectionEvaluator("ExampleProjection")
+        """
         ss.setPlanner(planner)
         
         # solve
@@ -54,9 +58,8 @@ def planWithMorse(sockS, sockC):
                 con.append(tuple(cpath.getControl(i)[j] for j in range(env.cdesc[0])))
                 dur.append(cpath.getControlDuration(i))
             st.append(env.stateToList(cpath.getState(cpath.getControlCount())))
-            f = open(sys.argv[1], 'wb')
-            pickle.dump((st,con,dur), f)
-            f.close()
+            with open(sys.argv[1], 'wb') as f:
+                pickle.dump((st,con,dur), f)
         else:
             print("No solution found.")
     

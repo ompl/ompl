@@ -15,7 +15,7 @@ import bge
 import mathutils
 
 OMPL_DIR=os.path.dirname(__file__)
-GOALSTRINGS=['.goalLocRot','.goalRot','.goalRegion']
+GOALSTRINGS=['.goalPose','.goalRot','.goalRegion']
 
 # Routines for accessing Blender internal data
 
@@ -106,7 +106,7 @@ def getGoalCriteria():
             # which rigid body does this goal body correspond to?
             j = gbody.name.rfind('.')
             i = list(map(lambda o: o.name, rigidObjects)).index(gbody.name[:j])
-            if gbody.name.endswith('.goalLocRot'):
+            if gbody.name.endswith('.goalPose'):
                 crit.append((i,getGoalLocRotState(gbody),gbody['locTol'],gbody['rotTol']))
             elif gbody.name.endswith('.goalRot'):
                 crit.append((i,getGoalRotState(gbody),gbody['rotTol']))
@@ -145,7 +145,7 @@ def getControlDescription():
     control dimension and the control bounds.
     Returns [sum_of_nargs, [cbm0, cbM0, ...], (component_name,service_name,nargs), ...]
     """
-    settings = bpy.context.scene.objects['__settings'].game.properties
+    settings = bpy.context.scene.objects['__settings']
     desc = [0, []]
     # query the request_manager for a list of services
     for name, inst in bge.logic.morsedata.morse_services.request_managers().items():
@@ -161,7 +161,7 @@ def getControlDescription():
     
     # fill in the control bounds
     for i in range(min(16,desc[0])):
-        desc[1] += [settings['cbm%i'%i].value, settings['cbM%i'%i].value]
+        desc[1] += [settings['cbm%i'%i], settings['cbM%i'%i]]
     
     # send the encoded list
     sock.sendall(pickle.dumps(desc))
@@ -173,8 +173,8 @@ def getRigidBodiesBounds():
     Return the number of rigid bodies and positional bounds for them.
     """
     # Check whether user set the autopb flag
-    settings = bpy.context.scene.objects['__settings'].game.properties
-    if settings['autopb'].value:
+    settings = bpy.context.scene.objects['__settings']
+    if settings['autopb']:
         # Find min and max values for all objects' bound box vertices
         mX = mY = mZ = float('inf')
         MX = MY = MZ = float('-inf')
@@ -208,17 +208,17 @@ def getRigidBodiesBounds():
         
     else:
         # Use user-specified positional bounds
-        mX = settings['pbx'].value
-        MX = settings['pbX'].value
-        mY = settings['pby'].value
-        MY = settings['pbY'].value
-        mZ = settings['pbz'].value
-        MZ = settings['pbZ'].value
+        mX = settings['pbx']
+        MX = settings['pbX']
+        mY = settings['pby']
+        MY = settings['pbY']
+        mZ = settings['pbz']
+        MZ = settings['pbZ']
     
     # Get lin and ang bounds
-    lb = [settings['lbm'].value, settings['lbM'].value]
+    lb = [settings['lbm'], settings['lbM']]
     lb += lb + lb
-    ab = [settings['abm'].value, settings['abM'].value]
+    ab = [settings['abm'], settings['abM']]
     ab += ab + ab
     
     # gather the information
@@ -250,12 +250,12 @@ def endSimulation():
     
     bge.logic.endGame()
     
-    mode = bpy.data.objects['__planner'].game.properties['Mode'].value
+    mode = bpy.data.objects['__settings']['Mode']
     
     if mode == 'PLAY':
         # Clean up:
         
-        animpath = bpy.data.objects['__planner'].game.properties['Animpath'].value
+        animpath = bpy.data.objects['__settings']['Animpath']
         
         # no autostart
         bpy.context.scene.game_settings.use_auto_start = False
@@ -263,7 +263,7 @@ def endSimulation():
         # remove unwanted objects
         # TODO delete more objects
         for obj in bpy.context.scene.objects[:]:
-            if obj.name in ['__planner','Scene_Script_Holder']:
+            if obj.name in ['Scene_Script_Holder']:
                 bpy.context.scene.objects.unlink(obj)
                 
         # save animation curves to file
@@ -346,7 +346,7 @@ def spawn_planner():
     # freeze time, so only nextTick() can advance it
     #bge.logic.freezeTime(True)
     
-    mode = bpy.data.objects['__planner'].game.properties['Mode'].value
+    mode = bpy.data.objects['__settings']['Mode']
     
     if mode == 'PLAN':
         # spawn planner.py
@@ -357,7 +357,7 @@ def spawn_planner():
     
     if mode != 'QUERY':
         # pass the name of the output (or input) file
-        subprocess.Popen([OMPL_DIR + f, bpy.data.objects['__planner'].game.properties['Outpath'].value])
+        subprocess.Popen([OMPL_DIR + f, bpy.data.objects['__settings']['Outpath']])
     
     # make a connection
     s.listen(0)
@@ -420,6 +420,9 @@ def main():
         objects = scn.objects
         for gameobj in sorted(objects, key=lambda o: o.name):
             
+            # make invisible for simulation speed up
+            #gameobj.visible = False
+            
             # get the corresponding Blender object, if there is one
             obj = bpy.data.objects.get(gameobj.name)
             if not obj:
@@ -427,12 +430,12 @@ def main():
             
             # check if it's a rigid body
             if obj.game.physics_type == 'RIGID_BODY':
-                print("rigid body " + gameobj.name)
+                print("[%i] rigid body %s" % (len(rigidObjects),gameobj.name))
                 rigidObjects.append(gameobj)
             
             # check if it's a goal criterion
             elif [True for goalStr in GOALSTRINGS if gameobj.name.endswith(goalStr)]:
-                print("goal state " + gameobj.name)
+                print("\t> goal criterion " + gameobj.name)
                 
                 if gameobj.name.endswith('.goalRegion'):
                     # make sure the corresponding body is linked to this collision sensor
@@ -443,8 +446,6 @@ def main():
                     goalRegionObjects.append(gameobj)
                 
                 goalObjects.append(gameobj)
-                
-                
         
         print('\033[0m')
         

@@ -60,7 +60,7 @@ class MyEnvironment(om.MorseEnvironment):
         for i in [1,2,3]:
             rb[i] = list2vec(rb[i])
         
-        envArgs = cb + rb + [0.1, 5, 10]    # add step size, min/max control durations
+        envArgs = cb + rb + [0.1, 20, 40]    # add step size, min/max control durations
         super(MyEnvironment, self).__init__(*envArgs)
         
         # tell MORSE to reset the simulation, because it was running while it was initializing
@@ -173,32 +173,31 @@ class MyEnvironment(om.MorseEnvironment):
             self.call('endSimulation()')
         self.sockC.sendall(b"id simulation quit\n")
 
-class MyProjection(om.MorseProjection):
+class ExampleProjection(om.MorseProjection):
     """
-    The projection evaluator for the simulation. Uses the x and y coordinates
-    in the position component of the robot.
+    The projection for the simulation. Uses the x and y coordinates
+    in the position component of the the first rigid body
     """
     
     def __init__(self, space):
         super(MyProjection, self).__init__(space)
         self.bounds_ = ob.RealVectorBounds(self.getDimension())
-        self.robotPosSpaceIndex = 4 # TODO: figure out automatically which components are the robot positions
+        self.subspaceIndex = 0  # first rigid body's position space
         for i in range(self.getDimension()):
-            self.bounds_.low[i] = space.getSubspace(self.robotPosSpaceIndex).getBounds().low[i]
-            self.bounds_.high[i] = space.getSubspace(self.robotPosSpaceIndex).getBounds().high[i]
+            self.bounds_.low[i] = space.getSubspace(self.subspaceIndex).getBounds().low[i]
+            self.bounds_.high[i] = space.getSubspace(self.subspaceIndex).getBounds().high[i]
         self.defaultCellSizes()
     
     def getDimension(self):
         return 2
     
     def defaultCellSizes(self):
-        # grid for robot x,y locations
-        self.cellSizes_ = list2vec([2,2])
+        self.cellSizes_ = list2vec([1,1])
     
     def project(self, state, projection):
-        # use x and y coords of the robots
-        projection[0] = state[self.robotPosSpaceIndex][0]
-        projection[1] = state[self.robotPosSpaceIndex][1]
+        # use x and y coords of the subspace
+        projection[0] = state[self.subspaceIndex][0]
+        projection[1] = state[self.subspaceIndex][1]
 
 class MyGoal(om.MorseGoal):
     """
