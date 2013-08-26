@@ -96,6 +96,12 @@ namespace ompl
                 /// Data collected for each run
                 std::vector<RunProperties> runs;
 
+                /// Names of each of the planner progress properties
+                /// reported by planner
+                std::vector<std::string>     progressPropertyNames;
+
+                /// For each run of the planner, this stores the set
+                /// of planner progress data reported by the planner
                 std::vector<RunProgressData> runsProgressData;
 
                 /// Some common properties for all the runs

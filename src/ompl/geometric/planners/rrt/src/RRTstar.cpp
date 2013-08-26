@@ -54,22 +54,18 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
 
     iterations_ = 0;
     collisionChecks_ = 0;
-    bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN()); // \TODO
-                                                          // make sure
-                                                          // this does
-                                                          // what is
-                                                          // expected
+    bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
 
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
     Planner::declareParam<bool>("delay_collision_checking", this, &RRTstar::setDelayCC, &RRTstar::getDelayCC, "0,1");
 
-    Planner::addPlannerProgressProperty("iterations INTEGER",
-                                        boost::bind(&RRTstar::getIterations, this));
-    Planner::addPlannerProgressProperty("collision checks INTEGER",
-                                        boost::bind(&RRTstar::getCollisionChecks, this));
-    Planner::addPlannerProgressProperty("best cost REAL",
-                                        boost::bind(&RRTstar::getBestCost, this));
+    addPlannerProgressProperty("iterations INTEGER",
+                               boost::bind(&RRTstar::getIterationCount, this));
+    addPlannerProgressProperty("collision checks INTEGER",
+                               boost::bind(&RRTstar::getCollisionCheckCount, this));
+    addPlannerProgressProperty("best cost REAL",
+                               boost::bind(&RRTstar::getBestCost, this));
 }
 
 ompl::geometric::RRTstar::~RRTstar(void)
@@ -128,12 +124,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     bool symDist = si_->getStateSpace()->hasSymmetricDistance();
     bool symInterp = si_->getStateSpace()->hasSymmetricInterpolate();
     bool symCost = opt_->isSymmetric();
-
-    if (!goal)
-    {
-        OMPL_ERROR("Goal undefined");
-        return base::PlannerStatus::INVALID_GOAL;
-    }
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -549,11 +539,11 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
 	boost::lexical_cast<std::string>(collisionChecks_);
 }
 
-std::string ompl::geometric::RRTstar::getIterations(void) const
+std::string ompl::geometric::RRTstar::getIterationCount(void) const
 {
   return boost::lexical_cast<std::string>(iterations_);
 }
-std::string ompl::geometric::RRTstar::getCollisionChecks(void) const
+std::string ompl::geometric::RRTstar::getCollisionCheckCount(void) const
 {
   return boost::lexical_cast<std::string>(collisionChecks_);
 }

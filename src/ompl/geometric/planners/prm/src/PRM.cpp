@@ -366,13 +366,13 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
     if (startM_.size() == 0)
     {
-        OMPL_ERROR("There are no valid initial states!");
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        OMPL_ERROR("Insufficient states in sampleable goal region");
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -385,7 +385,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 
         if (goalM_.empty())
         {
-            OMPL_ERROR("Unable to find any valid goal states");
+            OMPL_ERROR("%s: Unable to find any valid goal states", getName().c_str());
             return base::PlannerStatus::INVALID_GOAL;
         }
     }

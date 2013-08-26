@@ -138,7 +138,12 @@ public:
                 {
                     geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
                     base::Cost new_cost = path->cost(pdef->getOptimizationObjective());
+
+                    // We don't use opt->isCostBetterThan() because
+                    // isCostBetterThan() defaults to '<', which can
+                    // cause this test to fail
                     BOOST_CHECK(new_cost.v <= prev_cost.v);
+
                     prev_cost = new_cost;
                     BOOST_CHECK(!pdef->hasOptimizedSolution());
                     BOOST_CHECK(!pdef->hasApproximateSolution());

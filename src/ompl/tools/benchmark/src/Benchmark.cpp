@@ -148,21 +148,18 @@ namespace ompl
                     // always gets taken before planner even starts;
                     // might be worth adding a short wait time before
                     // collector begins sampling
-                    boost::thread* t = 0;
+                    boost::scoped_ptr<boost::thread> t;
                     if (planner->getPlannerProgressProperties().size() > 0)
-                        t = new boost::thread(boost::bind(&RunPlanner::collectProgressProperties, this,
-                                                          planner->getPlannerProgressProperties(),
-                                                          msBetweenProgressUpdates));
+                        t.reset(new boost::thread(boost::bind(&RunPlanner::collectProgressProperties,                                                               this,
+                                                              planner->getPlannerProgressProperties(),
+                                                              msBetweenProgressUpdates)));
                     status_ = planner->solve(ptc, 0.1);
                     solvedFlag_.lock();
                     solved_ = true;
                     solvedCondition_.notify_all();
                     solvedFlag_.unlock();
                     if (t)
-                    {
                         t->join(); // maybe look into interrupting even if planner throws an exception
-                        delete t;
-                    }
                 }
                 catch(std::runtime_error &e)
                 {
@@ -339,21 +336,21 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
         if (exp_.planners[i].runsProgressData.size() > 0)
         {
             // Print number of progress properties
-            out << exp_.planners[i].runsProgressData[0][0].size() << " progress properties for each run" << std::endl;
+            out << exp_.planners[i].progressPropertyNames.size() << " progress properties for each run" << std::endl;
             // Print progress property names
-            for (std::map<std::string, std::string>::const_iterator iter =
-                     exp_.planners[i].runsProgressData[0][0].begin();
-                 iter != exp_.planners[i].runsProgressData[0][0].end();
+            for (std::vector<std::string>::const_iterator iter =
+                     exp_.planners[i].progressPropertyNames.begin();
+                 iter != exp_.planners[i].progressPropertyNames.end();
                  ++iter)
             {
-                out << iter->first << std::endl;
+                out << *iter << std::endl;
             }
             // Print progress properties for each run
             out << exp_.planners[i].runsProgressData.size() << " runs" << std::endl;
-            for (unsigned int r = 0; r < exp_.planners[i].runsProgressData.size(); ++r)
+            for (std::size_t r = 0; r < exp_.planners[i].runsProgressData.size(); ++r)
             {
                 // For each time point
-                for (unsigned int t = 0; t < exp_.planners[i].runsProgressData[r].size(); ++t)
+                for (std::size_t t = 0; t < exp_.planners[i].runsProgressData[r].size(); ++t)
                 {
                     // Print each of the properties at that time point
                     for (std::map<std::string, std::string>::const_iterator iter = 
@@ -499,6 +496,18 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             csetup_->setup();
         planners_[i]->params().getParams(exp_.planners[i].common);
         planners_[i]->getSpaceInformation()->params().getParams(exp_.planners[i].common);
+
+        // Add planner progress property names to struct
+        exp_.planners[i].progressPropertyNames.push_back("time REAL");
+        base::Planner::PlannerProgressProperties::const_iterator iter;
+        for (iter = planners_[i]->getPlannerProgressProperties().begin();
+             iter != planners_[i]->getPlannerProgressProperties().end();
+             ++iter)
+        {
+            exp_.planners[i].progressPropertyNames.push_back(iter->first);
+        }
+        std::sort(exp_.planners[i].progressPropertyNames.begin(),
+                  exp_.planners[i].progressPropertyNames.end());
 
         // run the planner
         for (unsigned int j = 0 ; j < req.runCount ; ++j)
@@ -652,7 +661,9 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 // Add planner progress data from the planner progress
                 // collector if there was anything to report
                 if (planners_[i]->getPlannerProgressProperties().size() > 0)
+                {
                     exp_.planners[i].runsProgressData.push_back(rp.getRunProgressData());
+                }
             }
             catch(std::runtime_error &e)
             {

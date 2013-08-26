@@ -1,4 +1,4 @@
-# Optimal Planning
+# Optimal Planning Tutorial
 
 In some motion planning problems, you might not want just _any_ valid path between your start and goal states. You might be interested in the shortest path, or perhaps the path that steers the farthest away from obstacles. In these cases you're looking for an _optimal_ path: a path which satisfies your constraints (connects start and goal states without collisions) and also optimizes some path quality metric. Path length and path clearance are two examples of path quality metrics. Motion planners which attempt to optimize path quality metrics are known as _optimal planners_.
 

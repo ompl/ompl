@@ -1,4 +1,4 @@
-# Optimization Objectives
+# Optimization Objectives Tutorial
 
 In this tutorial, we'll discuss how to implement your own customized `OptimizationObjective`s for optimal planning. We'll continue using the previous tutorial's example planning problem with the 2D robot and circular obstacle.
 

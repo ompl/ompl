@@ -1,43 +1,76 @@
 /*********************************************************************
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2008, Willow Garage, Inc.
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *********************************************************************/
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2008, Willow Garage, Inc.
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Willow Garage nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
 
-/* Author: Ioan Sucan, Luis G. Torres */
+/* Author: Luis G. Torres, Ioan Sucan */
 
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/tools/config/MagicConstants.h"
-#include "ompl/base/Goals/GoalRegion.h"
+#include "ompl/base/goals/GoalRegion.h"
+#include <limits>
+
+std::ostream& ompl::base::operator<<(std::ostream& stream, Cost c)
+{
+    stream << c.v;
+    return stream;
+}
+
+ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationPtr &si) :
+    si_(si),
+    threshold_(0.0)
+{
+}
+
+const std::string& ompl::base::OptimizationObjective::getDescription(void) const
+{
+    return description_;
+}
+
+bool ompl::base::OptimizationObjective::isSatisfied(Cost c) const
+{
+    return this->isCostBetterThan(c, threshold_);
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::getCostThreshold(void) const
+{
+    return threshold_;
+}
+
+void ompl::base::OptimizationObjective::setCostThreshold(Cost c)
+{
+    threshold_ = c;
+}
 
 ompl::base::Cost ompl::base::OptimizationObjective::getCost(const Path &path) const
 {
@@ -47,7 +80,7 @@ ompl::base::Cost ompl::base::OptimizationObjective::getCost(const Path &path) co
     // Give up if this isn't a PathGeometric or if the path is empty.
     if (!pathGeom)
     {
-	OMPL_ERROR("Could not cast Path* to PathGeometric* in ompl::base::OptimizationObjective::getCost()");
+	OMPL_ERROR("Error: Cost computation is only implemented for paths of type PathGeometric.");
         return this->identityCost();
     }
     else
@@ -74,6 +107,46 @@ ompl::base::Cost ompl::base::OptimizationObjective::getCost(const Path &path) co
     }
 }
 
+bool ompl::base::OptimizationObjective::isCostBetterThan(Cost c1, Cost c2) const
+{
+    return c1.v + magic::BETTER_PATH_COST_MARGIN < c2.v;
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::stateCost(const State *s) const
+{
+    return Cost(1.0);
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::combineCosts(Cost c1, Cost c2) const
+{
+    return Cost(c1.v + c2.v);
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::identityCost() const
+{
+    return Cost(0.0);
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::infiniteCost() const
+{
+    return Cost(std::numeric_limits<double>::infinity());
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::initialCost(const State *s) const
+{
+    return identityCost();
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::terminalCost(const State *s) const
+{
+    return identityCost();
+}
+
+bool ompl::base::OptimizationObjective::isSymmetric(void) const
+{
+    return si_->getStateSpace()->hasSymmetricInterpolate();
+}
+
 ompl::base::Cost ompl::base::OptimizationObjective::averageStateCost(unsigned int numStates) const
 {
     StateSamplerPtr ss = si_->allocStateSampler();
@@ -91,10 +164,59 @@ ompl::base::Cost ompl::base::OptimizationObjective::averageStateCost(unsigned in
     return Cost(totalCost.v / (double)numStates);
 }
 
+void ompl::base::OptimizationObjective::setCostToGoHeuristic(const CostToGoHeuristic& costToGo)
+{
+    costToGoFn_ = costToGo;
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State* state, 
+                                                             const Goal* goal) const
+{
+    if (costToGoFn_)
+        return costToGoFn_(state, goal);
+    else
+        return this->identityCost(); // assumes that identity < all costs
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const State* s1, 
+                                                                        const State* s2) const
+{
+    return this->identityCost(); // assumes that identity < all costs
+}
+
 const ompl::base::SpaceInformationPtr& 
 ompl::base::OptimizationObjective::getSpaceInformation(void) const
 {
     return si_;
+}
+
+ompl::base::PathLengthOptimizationObjective::
+PathLengthOptimizationObjective(const SpaceInformationPtr &si) :
+    ompl::base::OptimizationObjective(si) 
+{ 
+    description_ = "Path Length"; 
+}
+
+ompl::base::Cost 
+ompl::base::PathLengthOptimizationObjective::motionCost(const State *s1, const State *s2) const
+{
+    return Cost(si_->distance(s1, s2));
+}
+
+ompl::base::Cost
+ompl::base::PathLengthOptimizationObjective::motionCostHeuristic(const State *s1, 
+                                                                 const State *s2) const
+{
+    return motionCost(s1, s2);
+}
+
+ompl::base::StateCostIntegralObjective::
+StateCostIntegralObjective(const SpaceInformationPtr &si,
+                           bool enableMotionCostInterpolation) :
+    OptimizationObjective(si),
+    interpolateMotionCost_(enableMotionCostInterpolation)
+{ 
+    description_ = "State Cost Integral"; 
 }
 
 // \TODO Make this more efficient. Right now it's easy to understand,
@@ -106,8 +228,6 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
     {
         Cost totalCost = this->identityCost();
 
-        // \TODO shouldn't we be able to use some method in SpaceInformation
-        // for this instead?
         int nd = si_->getStateSpace()->validSegmentCount(s1, s2);
   
         State *test1 = si_->cloneState(s1);
@@ -134,16 +254,6 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
         return this->trapezoid(s1, s2);
 }
 
-void ompl::base::StateCostIntegralObjective::enableMotionCostInterpolation(void)
-{
-    interpolateMotionCost_ = true;
-}
-
-void ompl::base::StateCostIntegralObjective::disableMotionCostInterpolation(void)
-{
-    interpolateMotionCost_ = false;
-}
-
 bool ompl::base::StateCostIntegralObjective::isMotionCostInterpolationEnabled(void) const
 {
     return interpolateMotionCost_;
@@ -152,6 +262,15 @@ bool ompl::base::StateCostIntegralObjective::isMotionCostInterpolationEnabled(vo
 ompl::base::Cost ompl::base::StateCostIntegralObjective::trapezoid(const State* s1, const State* s2) const
 {
     return Cost(0.5 * si_->distance(s1, s2) * (this->stateCost(s1).v + this->stateCost(s2).v));
+}
+
+ompl::base::MechanicalWorkOptimizationObjective::
+MechanicalWorkOptimizationObjective(const SpaceInformationPtr &si,
+                                    double pathLengthWeight) :
+    OptimizationObjective(si), 
+    pathLengthWeight_(pathLengthWeight) 
+{
+    description_ = "Mechanical Work"; 
 }
 
 double ompl::base::MechanicalWorkOptimizationObjective::getPathLengthWeight(void) const
@@ -172,12 +291,15 @@ ompl::base::Cost ompl::base::MechanicalWorkOptimizationObjective::motionCost(con
     return Cost(positiveCostAccrued + pathLengthWeight_*si_->distance(s1,s2));
 }
 
+ompl::base::MinimaxObjective::MinimaxObjective(const SpaceInformationPtr &si) :
+    OptimizationObjective(si)
+{
+}
+
 ompl::base::Cost ompl::base::MinimaxObjective::motionCost(const State *s1, const State *s2) const
 {
     Cost worstCost = this->identityCost();
 
-    // \TODO shouldn't we be able to use some method in SpaceInformation
-    // for this instead?
     int nd = si_->getStateSpace()->validSegmentCount(s1, s2);
   
     if (nd > 1)
@@ -209,6 +331,13 @@ ompl::base::Cost ompl::base::MinimaxObjective::combineCosts(Cost c1, Cost c2) co
         return c1;
 }
 
+ompl::base::MaximizeMinClearanceObjective::
+MaximizeMinClearanceObjective(const SpaceInformationPtr &si) :
+    MinimaxObjective(si) 
+{ 
+    this->setCostThreshold(Cost(std::numeric_limits<double>::infinity()));
+}
+
 ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::stateCost(const State* s) const
 {
     return Cost(si_->getStateValidityChecker()->clearance(s));
@@ -216,7 +345,7 @@ ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::stateCost(const Stat
 
 bool ompl::base::MaximizeMinClearanceObjective::isCostBetterThan(Cost c1, Cost c2) const
 {
-    return c1.v > c2.v;
+    return c1.v > c2.v + magic::BETTER_PATH_COST_MARGIN;
 }
 
 ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::identityCost(void) const
@@ -229,12 +358,27 @@ ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::infiniteCost(void) c
     return Cost(-std::numeric_limits<double>::infinity());
 }
 
-ompl::base::Cost 
-ompl::base::GoalRegionDistanceCostToGo::operator()(const State* state, const Goal* goal) const
+ompl::base::Cost ompl::base::goalRegionCostToGo(const State* state, const Goal* goal)
 {
     const GoalRegion* goalRegion = goal->as<GoalRegion>();
+
+    // Ensures that all states within the goal region's threshold to
+    // have a cost-to-go of exactly zero.
     return Cost(std::max(goalRegion->distanceGoal(state) - goalRegion->getThreshold(),
                          0.0));
+}
+
+ompl::base::MultiOptimizationObjective::
+MultiOptimizationObjective(const SpaceInformationPtr &si) :
+    OptimizationObjective(si),
+    locked_(false) 
+{
+}
+
+ompl::base::MultiOptimizationObjective::Component::
+Component(const OptimizationObjectivePtr& obj, double weight) :
+    objective(obj), weight(weight) 
+{
 }
 
 void ompl::base::MultiOptimizationObjective::addObjective(const OptimizationObjectivePtr& objective,
