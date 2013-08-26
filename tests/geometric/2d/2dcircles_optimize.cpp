@@ -43,6 +43,7 @@
 #include "ompl/geometric/planners/rrt/TRRT.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
 #include "../../BoostTestTeamCityReporter.h"
 #include "../../base/PlannerTest.h"

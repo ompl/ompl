@@ -37,7 +37,7 @@
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/base/OptimizationObjective.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/datastructures/PDF.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/tools/config/MagicConstants.h"

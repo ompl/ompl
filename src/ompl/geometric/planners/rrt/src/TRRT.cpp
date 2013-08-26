@@ -35,7 +35,7 @@
 /* Author: Dave Coleman */
 
 #include "ompl/geometric/planners/rrt/TRRT.h"
-#include "ompl/base/OptimizationObjective.h"
+#include "ompl/base/objectives/MechanicalWorkOptimizationObjective.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/tools/config/MagicConstants.h"

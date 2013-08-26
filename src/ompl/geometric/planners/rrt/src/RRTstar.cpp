@@ -37,6 +37,7 @@
 #include "ompl/geometric/planners/rrt/RRTstar.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include <algorithm>
 #include <limits>
 #include <map>
