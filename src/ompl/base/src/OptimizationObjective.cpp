@@ -231,27 +231,33 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
         int nd = si_->getStateSpace()->validSegmentCount(s1, s2);
   
         State *test1 = si_->cloneState(s1);
+        Cost prevStateCost = this->stateCost(test1);
         if (nd > 1)
         {
             State *test2 = si_->allocState();
             for (int j = 1; j < nd; ++j)
             {
                 si_->getStateSpace()->interpolate(s1, s2, (double) j / (double) nd, test2);
-                totalCost = this->combineCosts(totalCost, this->trapezoid(test1, test2));
+                Cost nextStateCost = this->stateCost(test2);
+                totalCost.v += this->trapezoid(prevStateCost, nextStateCost,
+                                               si_->distance(test1, test2)).v;
                 si_->copyState(test1, test2);
+                prevStateCost = nextStateCost;
             }
             si_->freeState(test2);
         }
 
         // Lastly, add s2
-        totalCost = this->combineCosts(totalCost, this->trapezoid(test1, s2));
+        totalCost.v += this->trapezoid(prevStateCost, this->stateCost(s2),
+                                       si_->distance(test1, s2)).v;
 
         si_->freeState(test1);
 
         return totalCost;
     }
     else
-        return this->trapezoid(s1, s2);
+        return this->trapezoid(this->stateCost(s1), this->stateCost(s2),
+                               si_->distance(s1, s2));
 }
 
 bool ompl::base::StateCostIntegralObjective::isMotionCostInterpolationEnabled(void) const
@@ -259,9 +265,9 @@ bool ompl::base::StateCostIntegralObjective::isMotionCostInterpolationEnabled(vo
     return interpolateMotionCost_;
 }
 
-ompl::base::Cost ompl::base::StateCostIntegralObjective::trapezoid(const State* s1, const State* s2) const
+ompl::base::Cost ompl::base::StateCostIntegralObjective::trapezoid(Cost c1, Cost c2, double d) const
 {
-    return Cost(0.5 * si_->distance(s1, s2) * (this->stateCost(s1).v + this->stateCost(s2).v));
+    return Cost(0.5 * d * (c1.v + c2.v));
 }
 
 ompl::base::MechanicalWorkOptimizationObjective::

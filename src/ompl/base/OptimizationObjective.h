@@ -236,9 +236,10 @@ namespace ompl
             bool interpolateMotionCost_;
 
             /** \brief Helper method which uses the trapezoidal rule
-             to approximate the integral of the cost between states \e
-             s1 and \e s2 **/
-            Cost trapezoid(const State* s1, const State* s2) const;
+             to approximate the integral of the cost between two
+             states of distance \e distance and costs \e c1 and \e
+             c2 **/
+            Cost trapezoid(Cost c1, Cost c2, double distance) const;
 	};
 
 	class MechanicalWorkOptimizationObjective : public OptimizationObjective
