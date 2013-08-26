@@ -284,11 +284,6 @@ double ompl::base::MechanicalWorkOptimizationObjective::getPathLengthWeight(void
     return pathLengthWeight_;
 }
 
-void ompl::base::MechanicalWorkOptimizationObjective::setPathLengthWeight(double weight)
-{
-    pathLengthWeight_ = weight;
-}
-
 ompl::base::Cost ompl::base::MechanicalWorkOptimizationObjective::motionCost(const State *s1, 
                                                                              const State *s2) const
 {

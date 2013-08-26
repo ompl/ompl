@@ -242,73 +242,106 @@ namespace ompl
             Cost trapezoid(Cost c1, Cost c2, double distance) const;
 	};
 
+        /** \brief An optimization objective which defines path cost using the idea of mechanical work. To be used in conjunction with TRRT. */
 	class MechanicalWorkOptimizationObjective : public OptimizationObjective
 	{
 	public:
+            /** \brief The mechanical work formulation requires a weighing factor to use for the length of a path in order to disambiguate optimal paths. This weighing factor should be small. The default value for this weight is 0.00001. */
 	    MechanicalWorkOptimizationObjective(const SpaceInformationPtr &si,
                                                 double pathLengthWeight = 0.00001);
 
+            /** \brief Set the factor to use for weighing path length in the mechanical work objective formulation. */
 	    virtual double getPathLengthWeight(void) const;
-	    virtual void setPathLengthWeight(double weight);
 
+            /** \brief Defines motion cost in terms of the mechanical work formulation used for TRRT. */
 	    virtual Cost motionCost(const State *s1, const State *s2) const;
 
 	protected:
+            /** \brief The weighing factor for the path length in the mechanical work objective formulation. */
 	    double pathLengthWeight_;
 	};
 
-        // The cost of a path is defined as the worst state cost over
-        // the entire path. This objective attempts to find the path
-        // with the "best worst cost" over all paths.
+        /** \brief The cost of a path is defined as the worst state
+         cost over the entire path. This objective attempts to find
+         the path with the "best worst cost" over all paths. */
         class MinimaxObjective : public OptimizationObjective
         {
         public:
             MinimaxObjective(const SpaceInformationPtr &si);
 
-            // assumes all costs are worse than identity
+            /** \brief Interpolates between \e s1 and \e s2 to check for
+                state costs along the motion between the two
+                states. Assumes all costs are worse than identity */
             virtual Cost motionCost(const State *s1, const State *s2) const;
+
+            /** \brief Since we're only concerned about the "worst"
+                state cost in the path, combining two costs just
+                returns the worse of the two. */
             virtual Cost combineCosts(Cost c1, Cost c2) const;
         };
 
+        /** \brief Objective for attempting to maximize the minimum clearance along a path. */
         class MaximizeMinClearanceObjective : public MinimaxObjective
         {
         public:
             MaximizeMinClearanceObjective(const SpaceInformationPtr &si);
 
+            /** \brief Defined as the clearance of the state \e s, which is computed using the StateValidityChecker in this objective's SpaceInformation */
             virtual Cost stateCost(const State* s) const;
+
+            /** \brief Since we wish to maximize clearance, and costs are equivalent to path clearance, we return the greater of the two cost values. */
             virtual bool isCostBetterThan(Cost c1, Cost c2) const;
+
+            /** \brief Returns +infinity, since any cost combined with +infinity under this objective will always return the other cost. */
             virtual Cost identityCost(void) const;
+
+            /** \brief Returns -infinity, since no path clearance value can be considered worse than this. */
             virtual Cost infiniteCost(void) const;
         };
 
+        /** \brief This class allows for the definition of multiobjective optimal planning problems. Objectives are added to this compound object, and motion costs are computed by taking a weighted sum of the individual objective costs. */
         class MultiOptimizationObjective : public OptimizationObjective
         {
         public:
             MultiOptimizationObjective(const SpaceInformationPtr &si);
 
+            /** \brief Adds a new objective for this multiobjective. A weight must also be specified for specifying importance of this objective in planning. */
             void addObjective(const OptimizationObjectivePtr& objective, 
                               double weight);
 
+            /** \brief Returns the number of objectives that make up this multiobjective. */
             std::size_t getObjectiveCount(void) const;
 
+            /** \brief Returns a specific objective from this multiobjective, where the individual objectives are in order of addition to the multiobjective, and \e idx is the zero-based index into this ordering. */
             const OptimizationObjectivePtr& getObjective(unsigned int idx) const;
 
+            /** \brief Returns the weighing factor of a specific objective */
             double getObjectiveWeight(unsigned int idx) const;
+
+            /** \brief Sets the weighing factor of a specific objective */
             void setObjectiveWeight(unsigned int idx, double weight);
 
+            /** \brief This method "freezes" this multiobjective so that no more objectives can be added to it */
             void lock(void);
+            
+            /** \brief Returns whether this multiobjective has been locked from adding further objectives */
             bool isLocked(void) const;
 
-            // For now, assumes we simply use addition to add up all
-            // objective cost values, where each individual value is
-            // scaled by its weight
+            /** The default implementation of this method is to use
+              addition to add up all the individual objectives' state cost
+              values, where each individual value is scaled by its
+              weight */
             virtual Cost stateCost(const State* s) const;
 
-            // Same as stateCost
+            /** The default implementation of this method is to use
+              addition to add up all the individual objectives' motion
+              cost values, where each individual value is scaled by
+              its weight */
             virtual Cost motionCost(const State* s1, const State* s2) const;
 
         protected:
-
+            
+            /** \brief Defines a pairing of an objective and its weight */
             struct Component
             {
                 Component(const OptimizationObjectivePtr& obj, double weight);
@@ -316,9 +349,13 @@ namespace ompl
                 double weight;
             };
 
+            /** \brief List of objective/weight pairs */
             std::vector<Component> components_;
+            
+            /** \brief Whether this multiobjective is locked from further additions */
             bool locked_;
 
+            // Friend functions for operator overloads for easy multiobjective creation
             friend OptimizationObjectivePtr operator+(const OptimizationObjectivePtr &a,
                                                       const OptimizationObjectivePtr &b);
 
@@ -327,11 +364,14 @@ namespace ompl
             friend OptimizationObjectivePtr operator*(const OptimizationObjectivePtr &a, double w);
         };
 
+        /** \brief Given two optimization objectives, returns a MultiOptimizationObjective that combines the two objectives with both weights equal to 1.0. */
         OptimizationObjectivePtr operator+(const OptimizationObjectivePtr &a,
                                            const OptimizationObjectivePtr &b);
 
+        /** \brief Given a weighing factor and an optimization objective, returns a MultiOptimizationObjective containing only this objective weighted by the given weight */
         OptimizationObjectivePtr operator*(double w, const OptimizationObjectivePtr &a);
-      
+
+        /** \brief Given a weighing factor and an optimization objective, returns a MultiOptimizationObjective containing only this objective weighted by the given weight */      
         OptimizationObjectivePtr operator*(const OptimizationObjectivePtr &a, double w);
     }
 }
