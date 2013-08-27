@@ -46,6 +46,7 @@ namespace ompl
 {
     namespace base
     {   
+        /** \brief Definition of a cost value. Can represent the cost of a motion or the cost of a state. */
         struct Cost
         {
             explicit Cost(double v = 0.0) : v(v) {}
