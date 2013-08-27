@@ -45,8 +45,6 @@ StateCostIntegralObjective(const SpaceInformationPtr &si,
     description_ = "State Cost Integral"; 
 }
 
-// \TODO Make this more efficient. Right now it's easy to understand,
-// but it computes state costs twice.
 ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State *s1, 
                                                                     const State *s2) const
 {
@@ -67,7 +65,7 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
                 Cost nextStateCost = this->stateCost(test2);
                 totalCost.v += this->trapezoid(prevStateCost, nextStateCost,
                                                si_->distance(test1, test2)).v;
-                si_->copyState(test1, test2);
+                std::swap(test1, test2);
                 prevStateCost = nextStateCost;
             }
             si_->freeState(test2);
