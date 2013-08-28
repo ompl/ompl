@@ -4,5 +4,5 @@ install(FILES builder.py communicator.py environment.py planner.py player.py
 
 configure_file(ompl_addon.py.in ompl_addon.py @ONLY)
 
-# need to have FindBlender module
+# TODO need to have FindBlender module
 #install(FILES ompl_addon.py DESTINATION "${BLENDER_PLUGIN_DIR}")

@@ -94,6 +94,9 @@ bpy.context.scene.game_settings.show_framerate_profile = True
 
 # Get '__settings' object so we can set up some properties
 settings = bpy.data.objects['__settings']
+settings.hide = False
+settings.hide_render = False
+settings.hide_select = False
 
 # Determine the solution path file to use (second argument)
 outpath = sys.argv[sys.argv.index('--') + 2]

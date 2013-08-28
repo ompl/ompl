@@ -420,9 +420,6 @@ def main():
         objects = scn.objects
         for gameobj in sorted(objects, key=lambda o: o.name):
             
-            # make invisible for simulation speed up
-            #gameobj.visible = False
-            
             # get the corresponding Blender object, if there is one
             obj = bpy.data.objects.get(gameobj.name)
             if not obj:

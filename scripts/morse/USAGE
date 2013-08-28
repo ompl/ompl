@@ -3,11 +3,11 @@ I) Installation
 
 II) Quickstart
 
-    Modelling and solving a planning problem is a multi-step process. The next
+    Modeling and solving a planning problem is a multi-step process. The next
     several sections will take you through this process from start to finish;
     however, you may wish to jump in a little further down so you can see some
     results right away. If you would like to use a pre-designed demo
-    environment instead of modelling your own the first time, start at section
+    environment instead of modeling your own the first time, start at section
     IV) Adding Robots and Goals, with ompl/demos/morse/rampjump_starter.blend
     as your environment file. If you would like to get to the planning phase
     immediately, you can start at section VI) Planning, with
@@ -102,9 +102,10 @@ V) Defining the goal
     enter a pre-defined region. A goal requirement is conveyed to OMPL via the
     existence of an object that shares the same name as the object for which we
     are specifying the goal, but ends in the suffix '.goalPose', '.goalRegion',
-    or '.goalRot'. To add a new goal specification for an object, first select
-    it, and then navigate to Game -> OMPL -> Add Goal... Here you can choose
-    which of the three goal types you would like to add.
+    or '.goalRot'. To add a new pose or rotation goal specification for an
+    object navigate to Game -> OMPL -> Add Goal... Here you can choose which
+    goal type you would like to add. Adding a region goal specification simply
+    requires appropriately renaming an existing object representing the region.
     
     Goal Poses: To specify that an object needs to reach a certain location and
     rotation, add a new Goal Pose for it. This "goal object" will look just
@@ -118,14 +119,11 @@ V) Defining the goal
     0.0 means it should be identical, and 1.0 means the rotation is irrelevant.
     
     Goal Regions: To specify that an object needs to enter a certain region,
-    add a new Goal Region for it. This creates a new cube object. You can
-    reposition and edit the mesh for this object as desired so that its shape
-    represents the region the specified object must enter. Alternatively you
-    can substitute in another object as the region, e.g. if you want to start
-    from a sphere instead of a cube. This can be done by naming your existing
-    region object correctly, instead of using the Add Goal tool. The name
-    should be the same as the object for which this goal is specified, but with
-    the suffix '.goalRegion'.
+    create a closed object (i.e., one that has a clear "inside" and "outside"),
+    whose shape and location define the region that must be entered. You must
+    name this Goal Region object correctly for it to work: it should have the
+    same name as the object for which you are specify a goal, but with the
+    suffix '.goalRegion'.
     
     Goal Rotations: To accompany a goal region, you may wish also to specify a
     desired rotation (independent of location since that is accounted for by
@@ -138,7 +136,7 @@ V) Defining the goal
     by the robot. Don't set the tolerance too small, or the goal will not be
     reached in a reasonable time.
     
-    Tip: to keep your modelling environment clean and easy to work with,
+    Tip: to keep your modeling environment clean and easy to work with,
     consider moving all these goal specification objects to another layer.
     Press <M> then <2>, for example, to move selected items to layer 2. You can
     then switch between layers by pressing <1> or <2>, and display multiple

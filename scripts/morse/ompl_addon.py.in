@@ -87,11 +87,11 @@ class Plan(bpy.types.Operator):
             bpy.ops.ompl.boundsconfig('INVOKE_DEFAULT')
         else:
             settings = context.scene.objects['__settings']
-            # TODO we're assuming that the user hasn't deleted any of the other properties...
             if not settings.get('autopb'):
                 # Bounds Configuration hasn't been setup for this file yet
                 bpy.ops.ompl.boundsconfig('INVOKE_DEFAULT')
         
+        # save any changes so MORSE sees them when it loads the file
         bpy.ops.wm.save_mainfile()
         
         # File selector for the path file
@@ -131,6 +131,9 @@ class Play(bpy.types.Operator):
             # Animation file hasn't been selected yet
             bpy.ops.ompl.animfile('INVOKE_DEFAULT')
         
+        # save any changes so MORSE sees them when it loads the file
+        bpy.ops.wm.save_mainfile()
+        
         # File selector for the path file
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -163,7 +166,7 @@ def getControllers():
     Compile list of controllers valid for the selected robot.
     """
     # exclude controllers that have non-numeric parameters, don't have a socket interface, or are irrelevant
-    excluded_controllers = ['Armature','Destination','ForceTorque','Gripper','Keyboard','KukaLWR',
+    excluded_controllers = ['Armature','Destination','ForceTorque','Gripper','Joystick','Keyboard','KukaLWR',
         'Light','Mocap','MocapControl','MotionXYW','Orientation','PTU','RotorcraftAttitude','SteerForce']
     controllerEnum = []
     i=0
@@ -212,14 +215,7 @@ class AddRobot(bpy.types.Operator):
         
         # add model for robot_type
         robot = getattr(morse.builder, self.robot_type)()
-        robotObj = bpy.context.object
-        
-        # join all it's children
-        bpy.ops.object.select_all(action='DESELECT')
-        for child in robotObj.children:
-            bpy.ops.object.select_pattern(pattern=child.name, case_sensitive=True)
-        bpy.ops.object.select_pattern(pattern=robotObj.name, case_sensitive=True)
-        bpy.ops.object.join()
+        robotObj = context.object
         
         # make visible in a render
         robotObj.hide_render = False
@@ -240,66 +236,75 @@ class AddRobot(bpy.types.Operator):
         """
         
         # choose robot and controller
-        return bpy.context.window_manager.invoke_props_dialog(self)
+        return context.window_manager.invoke_props_dialog(self)
 
 
-#def getRigidBodies():
-    #return [('a','b','c'),('d','e','f')]
+def getRigidBodies():
+    bodies = []
+    for obj in bpy.data.objects:
+        if obj.game.physics_type == 'RIGID_BODY':
+            bodies.append((obj.name,obj.name,''))
+    return bodies
 
-#class AddGoal(bpy.types.Operator):
-    #"""Add a goal to the Scene"""
-    #bl_idname = "ompl.addgoal"
-    #bl_label = "Add Goal..."
+class AddGoal(bpy.types.Operator):
+    """Add a goal to the Scene"""
+    bl_idname = "ompl.addgoal"
+    bl_label = "Add Goal..."
     
-    ## automatically set by the Blender properties dialog
-    #rigidEnum = getRigidBodies()
-    #body = bpy.props.EnumProperty(items=rigidEnum, name="Rigid Body",
-        #description="The body to define a goal for", default=rigidEnum[-1][0])
-    #goal_type = bpy.props.EnumProperty(items=[('Pose','locrot','hiya'),
-        #('Rotation Only','rot','hello'),('Region','region','ahoy')],
-        #name="Goal Type", description="The kind of goal specification", default='Pose')
+    # automatically set by the Blender properties dialog
+    rigidEnum = getRigidBodies()
+    body = bpy.props.EnumProperty(items=rigidEnum, name="Rigid Body",
+        description="The body to define a goal for", default=rigidEnum[-1][0])
+    goal_type = bpy.props.EnumProperty(items=[
+        ('goalRot','Rotation','Rotation only'),('goalPose','Pose','Position and Rotation')],
+        name="Goal Type", description="The kind of goal specification", default='goalPose')
     
-    #@classmethod
-    #def poll(cls, context):
-        #"""
-        #Operator refuses to run if this returns false. Use this to prevent operator from running
-        #in a setting that causes it to crash.
-        #"""
-        #return context.mode == 'OBJECT'
+    @classmethod
+    def poll(cls, context):
+        """
+        Operator refuses to run if this returns false. Use this to prevent operator from running
+        in a setting that causes it to crash.
+        """
+        return context.mode == 'OBJECT'
     
-    #def execute(self, context):
-        #"""
-        #Called when this operator is run.
-        #"""
+    def execute(self, context):
+        """
+        Called when this operator is run.
+        """
         
-        #return {'FINISHED'}
-
-    #def invoke(self, context, event):
-        #"""
-        #Called when the button is pressed.
-        #"""
-        ## choose goal settings
-        #return bpy.context.window_manager.invoke_props_dialog(self)
-    
-    #def draw(self, context):
-        #"""
-        #Define the UI layout of the popup dialog.
-        #"""
+        goalname = self.body + '.' + self.goal_type
+        bpy.ops.object.select_all(action='DESELECT')
         
-        #layout = self.layout
-        #layout.prop(self, 'body')
-        #layout.prop(self, 'goal_type')
-    
-    #def check(self, context):
-        #"""
-        #Return True to redraw.
-        #"""
-        #if self.goal_type == 'Pose':
-            #bpy.ops.ompl.poseparams('INVOKE_DEFAULT')
-        #elif self.goal_type == 'Rotation Only':
-            #bpy.ops.ompl.rotparams('INVOKE_DEFAULT')
-        #else:
-            #bpy.ops.ompl.regionparams('INVOKE_DEFAULT')
+        # duplicate object
+        bpy.ops.object.select_pattern(pattern=self.body, case_sensitive=True)
+        bpy.ops.object.duplicate()
+        goalobj = context.selected_objects[0]
+        # remove old custom properties
+        for prop in goalobj.keys():
+            del goalobj[prop]
+        
+        if self.goal_type == 'goalPose':
+            # add default locTol
+            goalobj['locTol'] = 0.5
+        
+        # add default rotTol
+        goalobj['rotTol'] = 0.2
+        
+        # rename goal object
+        goalobj.name = goalname
+        
+        # move object to cursor
+        goalobj.location = context.scene.cursor_location
+        
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        """
+        Called when the button is pressed.
+        """
+        # choose goal setting
+        return context.window_manager.invoke_props_dialog(self)
+
 
 class AnimFile(bpy.types.Operator):
     """Choose animation save file"""
@@ -307,14 +312,14 @@ class AnimFile(bpy.types.Operator):
     bl_label = "Choose animation save file..."
     
     # automatically set by the Blender file selector dialog
-    animpath = bpy.props.StringProperty(subtype="FILE_PATH")
+    filepath = bpy.props.StringProperty(name="Animation Save file",
+        description="*.blend file where the animation curves should be saved to", subtype="FILE_PATH")
     
     def execute(self, context):
         """
         Called when the dialogs finish.
         """
-        print("Animfile invoked; chose %s" % self.animpath)
-        context.scene.objects['__settings']['Animpath'] = self.animpath
+        context.scene.objects['__settings']['Animpath'] = self.filepath
         
         return {'FINISHED'}
 
@@ -326,10 +331,15 @@ class AnimFile(bpy.types.Operator):
         # add the settings object if it doesn't exist
         if not context.scene.objects.get('__settings'):
             bpy.ops.object.add()
-            bpy.context.object.name = '__settings'
+            context.object.name = '__settings'
         settings = context.scene.objects['__settings']
+        # the settings object should not be directly edited by the user, so make it
+        #  really hard to find
+        settings.hide = True
+        settings.hide_render = True
+        settings.hide_select = True
         if not settings.get('Animpath'):
-            settings['Animpath'] = self.animpath
+            settings['Animpath'] = self.filepath
             
         # File selector for the path file
         context.window_manager.fileselect_add(self)
@@ -450,7 +460,7 @@ class BoundsConfiguration(bpy.types.Operator):
         # If the settings have not been set before
         if not context.scene.objects.get('__settings'):
             bpy.ops.object.add()
-            settings = bpy.context.object
+            settings = context.object
             settings.name = '__settings'
             settings['autopb'] = True
             settings['pbx'] = -1000
@@ -467,6 +477,7 @@ class BoundsConfiguration(bpy.types.Operator):
                 settings['cbm%i'%i] = -10
                 settings['cbM%i'%i] = 10
         
+        # save any changes so MORSE sees them when it loads the file
         bpy.ops.wm.save_mainfile()
         
         # Query MORSE for cdesc by starting it up temporarily (clunky, but it needs to be done)
@@ -490,7 +501,7 @@ class BoundsConfiguration(bpy.types.Operator):
             raise Exception("Control dimension exceeds 16! This dialog won't be able to accomdate that many.")
         
         # Set bounds dialog
-        return bpy.context.window_manager.invoke_props_dialog(self, width=1100)
+        return context.window_manager.invoke_props_dialog(self, width=1100)
     
         
     def draw(self, context):
@@ -575,7 +586,7 @@ class OMPLMenu(bpy.types.Menu):
         self.layout.operator(AnimFile.bl_idname)
         self.layout.operator(Play.bl_idname)
         self.layout.operator(AddRobot.bl_idname)
-        #self.layout.operator(AddGoal.bl_idname)
+        self.layout.operator(AddGoal.bl_idname)
         self.layout.operator(BoundsConfiguration.bl_idname)
 
 def menu_func(self, context):
@@ -612,7 +623,7 @@ def register():
     bpy.utils.register_class(AnimFile)
     bpy.utils.register_class(Play)
     bpy.utils.register_class(AddRobot)
-    #bpy.utils.register_class(AddGoal)
+    bpy.utils.register_class(AddGoal)
     bpy.utils.register_class(BoundsConfiguration)
     bpy.utils.register_class(OMPLMenu)
     bpy.types.INFO_MT_game.prepend(menu_func)
@@ -625,7 +636,7 @@ def unregister():
     bpy.utils.unregister_class(AnimFile)
     bpy.utils.unregister_class(Play)
     bpy.utils.unregister_class(AddRobot)
-    #bpy.utils.unregister_class(AddGoal)
+    bpy.utils.unregister_class(AddGoal)
     bpy.utils.unregister_class(BoundsConfiguration)
     bpy.utils.unregister_class(OMPLMenu)
     bpy.types.INFO_MT_game.remove(menu_func)
