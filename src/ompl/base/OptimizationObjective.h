@@ -156,10 +156,14 @@ namespace ompl
             CostToGoHeuristic costToGoFn_;
         };
 
-        // For use when goal region's distanceGoal() is equivalent to
-        // the cost-to-go of a state under the optimization
-        // objective. This function assumes that all states within the
-        // goal region's threshold have a cost-to-go of exactly zero.
+        /** 
+            \brief For use when goal region's distanceGoal() is
+            equivalent to the cost-to-go of a state under the
+            optimization objective. This function assumes that all states
+            within the goal region's threshold have a cost-to-go of
+            exactly zero. Note: \e goal is assumed to be of type
+            ompl::base::GoalRegion 
+        */
         inline Cost goalRegionCostToGo(const State* state, const Goal* goal);
 
         /** \brief This class allows for the definition of multiobjective optimal planning problems. Objectives are added to this compound object, and motion costs are computed by taking a weighted sum of the individual objective costs. */

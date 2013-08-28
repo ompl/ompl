@@ -41,15 +41,15 @@ ob::OptimizationObjectivePtr getBalancedObjective(const ob::SpaceInformationPtr&
 
     ob::MultiOptimizationObjective* opt = new ob::MultiOptimizationObjective(si);
     opt->addObjective(lengthObj, 5.0);
-    opt->addObjective(clearObj);
+    opt->addObjective(clearObj, 1.0);
 
     return ob::OptimizationObjectivePtr(opt);
 }
 ~~~
 
-The above code fragment creates and optimization objective which attempts to optimize both path length and clearance. We begin by defining each of the individual objectives, and then we add them to a `MultiOptimizationObjective` object. This results in an optimization objective where path cost is equivalent to summing up each of the individual objectives' path costs. When we add objectives to `MultiOptimizationObjective`, we can also optionally specify each objective's weighting factor to signify how important it is in optimal planning. If no weight is specified, the weight defaults to 1.0. In the above example, we weigh the length with a factor of 5.0 to try to balance more in favor of minimizing path length in planning. This objective results in a path which still maintains clearance from the circle, but not as much as before.
+The above code fragment creates and optimization objective which attempts to optimize both path length and clearance. We begin by defining each of the individual objectives, and then we add them to a `MultiOptimizationObjective` object. This results in an optimization objective where path cost is equivalent to summing up each of the individual objectives' path costs. When we add objectives to `MultiOptimizationObjective`, we must also optionally specify each objective's weighting factor to signify how important it is in optimal planning. In the above example, we weigh the length with a factor of 5.0 and the clearance with a factor of 1.0 to try to balance more in favor of minimizing path length in planning. This objective results in a path which still maintains clearance from the circle, but not as much as before.
 
-We also provide another, more concise way to define multiple optimization objectives using operator overloading:
+We also provide a more concise way to define multiple optimization objectives using operator overloading:
 
 ~~~{.cpp}
 ob::OptimizationObjectivePtr getBalancedObjective(const ob::SpaceInformationPtr& si)
@@ -65,7 +65,7 @@ This function defines exactly the same optimization objective as the previous on
 
 ## Specifying a new objective (part 2): maximize minimum clearance
 
-Now we'll implement an objective which will require a lot more tinkering with the rest of the methods in `OptimizationObjective`. This objective attemps to _maximize the minimum path clearance_; that is, the cost of a given path is only a function of the closest distance between the path and an obstacle.
+Now we'll implement an objective which will require a lot more tinkering with the rest of the methods in `OptimizationObjective`. This objective attemps to _maximize the minimum path clearance_; that is, the cost of a given path is only a function of the closest distance between the path and an obstacle. This objective has already been implemented for you as `ompl::base::MaximizeMinClearanceObjective`, but we'll walk you through your own implementation of it.
 
 Here's the interface of our new objective, `MaximizeMinClearance`:
 ~~~{.cpp}
@@ -100,11 +100,11 @@ You'll notice that we didn't use the reciprocal of the clearance as before. This
 ~~~{.cpp}
 bool MaximizeMinClearance::isCostBetterThan(ob::Cost c1, ob::Cost c2) const
 {
-    return c1.v > c2.v;
+    return c1.v > c2.v + ompl::magic::BETTER_PATH_COST_MARGIN;
 }
 ~~~
 
-This method is how optimal planners decide whether one path is better than another. It takes two cost values, `c1` and `c2`, and returns `true` if `c1` is considered a better cost than `c2`. The objects of type `Cost` are simply wrappers for `double` values which can be accessed with `Cost::v`; so, cost `c1` is considered better than cost `c2` if `c1`'s value (path clearance) is greater than that of `c2`.
+This method is how optimal planners decide whether one path is better than another. It takes two cost values, `c1` and `c2`, and returns `true` if `c1` is considered a better cost than `c2` by some threshold. The objects of type `Cost` are simply wrappers for `double` values which can be accessed with `Cost::v`; so, cost `c1` is considered better than cost `c2` if `c1`'s value (path clearance) is greater than that of `c2`. We add the threshold `ompl::magic::BETTER_PATH_COST_MARGIN` to ensure numerical robustness in the optimal planners. We recommend you use this threshold too if you override `ompl::base::OptimizationObjective::isCostBetterThan`.
 
 > Note: You might be wondering why we took the trouble of wrapping `double` values in a class to represent costs (instead of using a `typedef` for instance). The reason why is _type safety_. If `Cost` were simply a `typedef` of `double`, a user might accidentally use the `<` operator instead of `isCostBetterThan`, which could cause some hard-to-find errors (this author knows from experience!). By using an object to represent costs, this mistake will be caught by the compiler.
 
@@ -122,7 +122,7 @@ ob::Cost MaximizeMinClearance::combineCosts(ob::Cost c1, ob::Cost c2) const
 
 The base class's default implementation of `combineCosts` simply sums the two costs given as arguments. In our case, we return the minimum of the two costs, which is equivalent to returning the minimum clearance of the two. If we accumulate the cost of a path using this operation instead of addition, we'll get the minimum clearance of the entire path as desired.
 
-Next, we need to specify how to compute the cost of a _motion_ defined by the two endpoints of the motion. Technically, the cost of the motion comes from the minimum clearance over all states along that motion. In most real-world motion planning problems this is very difficult to compute, so we have to settle for an approximation. One approximation is to simply take the the minimum of the clearances of the two endpoints; we'll implement this approximation as an example for simplicity, but it's a much better idea to sample some interpolating states along the motion for more accuracy, as is done in `ompl::base::MinimaxObjective::motionCost`. Here's how we implement the two-endpoint approximation of motion cost:
+Next, we need to specify how to compute the cost of a _motion_ defined by the two endpoints of the motion. Technically, the cost of the motion comes from the minimum clearance over the entire continuum of states along that motion. In most real-world motion planning problems this is very difficult to compute, so we have to settle for an approximation. One approximation is to simply take the the minimum of the clearances of the two endpoints; we'll implement this approximation as an example for simplicity, but it's a much better idea to sample some interpolating states along the motion for more accuracy, as is done in `ompl::base::MinimaxObjective::motionCost`. Here's how we implement the two-endpoint approximation of motion cost:
 
 ~~~{.cpp}
 ob::Cost MaximizeMinClearance::motionCost(ob::State *s1, ob::State *s2) const
@@ -161,3 +161,31 @@ planner->setProblemDefinition(pdef);
 planner->setup();
 ob::PlannerStatus solved = planner->solve(timeLimit);
 ~~~
+
+## Cost Heuristics
+
+Some optimal motion planners such as `ompl::geometric::PRMstar` can be made more efficient if they're supplied with _cost heuristics_. A heuristic is a function which quickly computes an approximation of some value. There are two kinds of cost heuristics defined in OMPL:
+
+- _Cost-to-go heuristics_: approximate the cost of the optimal path between a given state and the goal
+- _Motion cost heuristics_: approximate the cost of the optimal path between two given states
+
+Specifying cost heuristics for an optimization objective can speed up the optimal planning process by providing optimal planners a fast way to get more information about a planning problem.
+
+### Admissible heuristics
+
+In order for optimal planners to most effectively use a cost heuristic, the cost heuristic must have an important property called _admissibility_. An admissible cost heuristic always _underestimates_ the cost of a path. That is, if the true optimal cost of a path is `c_o`, an admissible heuristic _never_ returns a cost `c_h` such that `isCostBetterThan(c_o, c_h)` is true.
+
+### Motion cost heuristics
+
+Let's consider what an admissible motion cost heuristic would look like when planning to minimize path length for a 2D point robot. The shortest possible path between two points is a straight line. We can quickly compute the length of this path with `ompl::base::SpaceInformation::distance`. Note that the true optimal path between the two points might be longer because of obstacles in the environment; however, we can at least guarantee that the value returned by `ompl::base::SpaceInformation::distance` is never longer than length of the truly optimal path. Therefore, `ompl::base::SpaceInformation::distance` is an admissible heuristic! In fact, this is precisely how we implemented `ompl::base::PathLengthOptimizationObjective::motionCostHeuristic`:
+
+~~~{.cpp}
+ompl::base::Cost
+ompl::base::PathLengthOptimizationObjective::motionCostHeuristic(const State *s1, 
+                                                                 const State *s2) const
+{
+    return Cost(si_->distance(s1, s2));
+}
+~~~
+
+Note that the default implementation of `ompl::base::OptimizationObjective::motionCostHeuristic` simply returns the objective's identity cost, which is guaranteed to be an admissible heuristic for most objectives. However, this isn't a very accurate approximation of motion cost, and motion planners typically experience greater speedups when heuristics more accurately approximate motion cost. Therefore, if your optimal planning problem allows for a more accurate and quick-to-compute admissible heuristic, we recommend you provide one by implementing `ompl::base::OptimizationObjective::motionCostHeuristic`.

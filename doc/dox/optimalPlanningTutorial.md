@@ -92,7 +92,7 @@ ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
 pdef->setStartAndGoalStates(start, goal);
 ~~~
 
-Next, we want to define an `OptimizationObjective` for optimal planning. For now, we can specify an objective that corresponds to finding the shortest path between the start and goal states. We'll define another function which returns this particular objective:
+Next, we want to define an `OptimizationObjective` for optimal planning. For now, we can specify an objective that corresponds to finding the shortest path between the start and goal states. We'll define another function that returns this particular objective:
 
 ~~~{.cpp}
 // Returns a structure representing the optimization objective to use
