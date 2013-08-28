@@ -1,21 +1,26 @@
 # Optimal Planning
 
-In some motion planning problems, you might not want just _any_ valid path between your start and goal states. You might be interested in the shortest path, or perhaps the path that steers the farthest away from obstacles. In these cases you're looking for an _optimal_ path: a path which satisfies your constraints (connects start and goal states without collisions) and also optimizes some path quality metric. Path length and path clearance are two examples of path quality metrics. Motion planners which attempt to optimize path quality metrics are known as _optimal planners_.
+In some motion planning problems, you might not want just _any_ valid path between your start and states goal. You might be interested in the shortest path, or perhaps the path that steers the farthest away from obstacles. In these cases you're looking for an _optimal_ path: a path which satisfies your constraints (connects start and goal states without collisions) and also optimizes some path quality metric. Path length and path clearance are two examples of path quality metrics. Motion planners which attempt to optimize path quality metrics are known as _optimizing planners_.
 
 In order to perform optimal planning, you need two things:
 
 1. A path quality metric, or _optimization objective_.
-2. An optimal motion planner
+2. An optimizing motion planner
 
-You can specify a path quality metric using the `ompl::base::OptimizationObjective` class. As for the optimal planner, OMPL currently provides three optimal motion planners: 
+You can specify a path quality metric using the `ompl::base::OptimizationObjective` class. As for the optimizing planner, OMPL currently provides two optimizing planners that guarantee _asymptotic optimality_ of returned solutions: 
 
-- PRMstar
-- RRTstar
-- TRRT
+- `ompl::geometric::PRMstar`
+- `ompl::geometric::RRTstar`
 
-Defining an optimal motion planning problem is almost exactly the same as defining a regular motion planning problem, with two main differences:
-1. You need to specify an `OptimizationObjective` to the `ProblemDefinition`.
-2. You need to use an optimal planner for the actual motion planning.
+You can find out more about asymptotic optimality in motion planning by checking out <a href=http://sertac.scripts.mit.edu/web/wp-content/papercite-data/pdf/karaman.frazzoli-ijrr11.pdf>this paper</a> by Karaman and Frazzoli. The following planners also support `ompl::base::OptimizationObjective`, but do not provide theoretical guarantees on solution optimality:
+
+- `ompl::geometric::PRM`
+- `ompl::geometric::TRRT`
+
+Lastly, the following two planners provide a theoretical guarantee of _asymptotic near optimality_, but currently do not support user-specified objectives:
+
+- `ompl::geometric::SPARS`
+- `ompl::geometric::SPARStwo`
 
 ## Optimization Objectives
 
@@ -32,11 +37,22 @@ OMPL also provides users with the ability to combine objectives for multiobjecti
 
 ## Limitations
 
-OMPL assumes that the cost of a path can be represented with one `double` value. In many problems one value will suffice to fully define the optimization objective, even if we're working with a multiobjective problem. In these cases, the cost of a path can be represented as a weighted sum of the costs of the path under each of the individual objectives which make up the multiobjective.
+To maximize computational efficiency, OMPL assumes that the cost of a path can be represented with one `double` value. In many problems one value will suffice to fully define the optimization objective, even if we're working with a multiobjective problem. In these cases, the cost of a path can be represented as a weighted sum of the costs of the path under each of the individual objectives which make up the multiobjective.
 
-However, there are problems that cannot be represented with this assumption. For instance, OMPL cannot represent a multiobjective which combines the following two objectives:
+However, there are problems that cannot be exactly represented with this assumption. For instance, OMPL cannot represent a multiobjective which combines the following two objectives:
 
-- Path length
-- minimum clearance
+- minimizing path length
+- maximizing minimum clearance
 
-The reason why these two objectives cannot be combined is because we need more than one value to perform the accumulation of the path cost. We need one value to hold the accumulation of length along the path, and another value to hold the the minimum clearance value encountered so far in the path. Therefore, the multiobjective problems that cannot be represented in OMPL are those where the individual objectives do not share a cost accumulation function.
+The reason why these two objectives cannot be combined is because we need more than one value to perform the accumulation of the path cost. We need one value to hold the accumulation of length along the path, and another value to hold the the minimum clearance value encountered so far in the path. Therefore, _the multiobjective problems that cannot be represented in OMPL are those where the individual objectives do not share a cost accumulation function_. We note that the above objective can be approximated by combining a path length objective with a state cost integral objective where state cost is a function of clearance.
+
+OMPL currently does not support control planning with general optimization objectives.
+
+## Wanna learn more?
+
+Check out these tutorials:
+
+- [Optimal planning](optimalPlanningTutorial.html)
+- [Defining optimization objectives for optimal planning](optimizationObjectivesTutorial.html)
+
+and the [optimal planning demo](OptimalPlanning_8cpp_source.html).

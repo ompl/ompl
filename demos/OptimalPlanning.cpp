@@ -141,15 +141,15 @@ void plan(int argc, char** argv)
     // pdef->setOptimizationObjective(getPathLengthObjWithCostToGo(si));
 
     // Construct our optimal planner using the RRTstar algorithm.
-    ob::PlannerPtr optimalPlanner(new og::RRTstar(si));
+    ob::PlannerPtr optimizingPlanner(new og::RRTstar(si));
 
     // Set the problem instance for our planner to solve
-    optimalPlanner->setProblemDefinition(pdef);
-    optimalPlanner->setup();
+    optimizingPlanner->setProblemDefinition(pdef);
+    optimizingPlanner->setup();
 
     // attempt to solve the planning problem within one second of
     // planning time
-    ob::PlannerStatus solved = optimalPlanner->solve(1.0);
+    ob::PlannerStatus solved = optimizingPlanner->solve(1.0);
 
     if (solved)
     {

@@ -1,21 +1,12 @@
 # Optimal Planning Tutorial
 
-In some motion planning problems, you might not want just _any_ valid path between your start and goal states. You might be interested in the shortest path, or perhaps the path that steers the farthest away from obstacles. In these cases you're looking for an _optimal_ path: a path which satisfies your constraints (connects start and goal states without collisions) and also optimizes some path quality metric. Path length and path clearance are two examples of path quality metrics. Motion planners which attempt to optimize path quality metrics are known as _optimal planners_.
-
-In order to perform optimal planning, you need two things:
-
-1. A path quality metric
-2. An optimal motion planner
-
-You can specify a path quality metric using the `OptimizationObjective` class in the namespace `ompl::base`. As for the optimal planner, OMPL currently provides two optimal motion planners: PRMstar and RRTstar.
-
 Defining an optimal motion planning problem is almost exactly the same as defining a regular motion planning problem, with two main differences:
-1. You need to specify an `OptimizationObjective` to the `ProblemDefinition`.
-2. You need to use an optimal planner for the actual motion planning.
+1. You need to specify an optimization objective to `ompl::base::ProblemDefinition`.
+2. You need to use an optimizing planner for the actual motion planning.
 
 ## Finding the shortest path
 
-We'll demonstrate OMPL's optimal planning framework with an example. In this example, our robot is represented as a (x,y) coordinate on a square, where (0,0) is the square's bottom-left corner and (1,1) is the square's top-right corner. There is also an obstacle in this square that the robot cannot pass through; this obstacle is a circle of radius 0.25 centered at (0.5,0.5). To reflect this environment, we use a two-dimensional `RealVectorStateSpace` and define our state validity checker as follows:
+We'll demonstrate OMPL's optimal planning framework with an example. In this example, our robot is represented as a (x,y) coordinate on a square, where (0,0) is the square's bottom-left corner and (1,1) is the square's top-right corner. There is also an obstacle in this square that the robot cannot pass through; this obstacle is a circle of radius 0.25 centered at (0.5,0.5). To reflect this environment, we use a two-dimensional `ompl::base::RealVectorStateSpace` and define our state validity checker as follows:
 
 ~~~{.cpp}
 // Our collision checker. For this demo, our robot's state space
@@ -92,7 +83,7 @@ ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
 pdef->setStartAndGoalStates(start, goal);
 ~~~
 
-Next, we want to define an `OptimizationObjective` for optimal planning. For now, we can specify an objective that corresponds to finding the shortest path between the start and goal states. We'll define another function that returns this particular objective:
+Next, we want to define an `ompl::base::OptimizationObjective` for optimal planning. For now, we can specify an objective that corresponds to finding the shortest path between the start and goal states. We'll define another function that returns this particular objective:
 
 ~~~{.cpp}
 // Returns a structure representing the optimization objective to use
@@ -111,28 +102,28 @@ We can then set this as our objective in our planning code:
 pdef->setOptimizationObjective(getPathLengthObjective(si));
 ~~~
 
-> Note: The optimal planner we're about to use, RRTstar, actually defaults to optimizing for path length if no optimization objective is specified to the `ProblemDefinition`. This means that, in this case, the above statement isn't required. But if you want to optimize a metric other than path length, you have to manually specify it to the `ProblemDefinition`.
+> Note: The optimizing planner we're about to use, `ompl::geometric::RRTstar`, actually defaults to optimizing for path length if no optimization objective is specified to the `ompl::base::ProblemDefinition`. This means that, in this case, the above statement isn't required. But if you want to optimize a metric other than path length, you have to manually specify it to the `ompl::base::ProblemDefinition`.
 
-Next, we define our optimal planner and attempt to solve the optimal planning problem:
+Next, we define our optimizing planner and attempt to solve the optimal planning problem:
 
 ~~~{.cpp}
-// Construct our optimal planner using the RRTstar algorithm.
-ob::PlannerPtr optimalPlanner(new og::RRTstar(si));
+// Construct our optimizing planner using the RRTstar algorithm.
+ob::PlannerPtr optimizingPlanner(new og::RRTstar(si));
 
 // Set the problem instance for our planner to solve
-optimalPlanner->setProblemDefinition(pdef);
-optimalPlanner->setup();
+optimizingPlanner->setProblemDefinition(pdef);
+optimizingPlanner->setup();
 
 // attempt to solve the planning problem within one second of
 // planning time
-ob::PlannerStatus solved = optimalPlanner->solve(1.0);
+ob::PlannerStatus solved = optimizingPlanner->solve(1.0);
 ~~~
 
-Note that when attempting to solve the planning problem, we specify a time limit of 1 second. In regular motion planning, the planner will stop as soon as a path between the start and goal states has been found - this can take far less than 1 second of planning. However, if you execute this example you'll notice that the planner always takes the full planning time of 1 second. This is because optimal planners have a stricter stopping requirement than regular planners. Regular planners stop when they've found a path from start to goal; on the other hand, optimal planners stop when they've found a path from start to goal that _satisfies the optimization objective_.
+Note that when attempting to solve the planning problem, we specify a time limit of 1 second. In regular motion planning, the planner will stop as soon as a path between the start and goal states has been found - this can take far less than 1 second of planning. However, if you execute this example you'll notice that the planner always takes the full planning time of 1 second. This is because optimizing planners have a stricter stopping requirement than regular planners. Regular planners stop when they've found a path from start to goal; on the other hand, optimizing planners stop when they've found a path from start to goal that _satisfies the optimization objective_.
 
 ## Specifying an optimality threshold
 
-What does satisfying an optimization objective mean? This behaviour can be customized, but by default, it means finding a path that passes some quality threshold. For shortest path planning, it means finding a path that is shorter than some given length. You'll notice we never specified this threshold; the default behaviour for `PathLengthOptimizationObjective` is to set the threshold to 0.0 if a threshold wasn't specified. This means that the objective is only satisfied by paths of length less than 0.0, which means this objective will never be satisfied! Our reasoning for doing this is that, if you don't specify a threshold, we assume that you want the planner to return the best possible path it can find in the time limit. Therefore, setting a threshold of 0.0 means that the objective will never be satisfied, and guarantee that the planner runs all the way until the specified time limit and returns the best path it could find.
+What does satisfying an optimization objective mean? This behaviour can be customized, but by default, it means finding a path that passes some quality threshold. For shortest path planning, it means finding a path that is shorter than some given length. You'll notice we never specified this threshold; the default behaviour for `ompl::base::PathLengthOptimizationObjective` is to set the threshold to 0.0 if a threshold wasn't specified. This means that the objective is only satisfied by paths of length less than 0.0, which means this objective will never be satisfied! Our reasoning for doing this is that, if you don't specify a threshold, we assume that you want the planner to return the best possible path it can find in the time limit. Therefore, setting a threshold of 0.0 means that the objective will never be satisfied, and guarantee that the planner runs all the way until the specified time limit and returns the best path it could find.
 
 We can create an `OptimizationObjective` with a quality threshold of 1.51 by using the `setCostThreshold` method:
 ~~~{.cpp}
@@ -144,4 +135,4 @@ ob::OptimizationObjectivePtr getThresholdPathLengthObj(const ob::SpaceInformatio
 }
 ~~~
 
-If you set this as the objective for the `ProblemDefinition` you'll find that the planner will terminate far more quickly, since it stops planning as soon as it has found a path shorter than the given threshold. Note that when calling `setCostThreshold`, we wrap our threshold value in an `ompl::base::Cost` object. We'll talk more about the `Cost` object later, but for now you can think of them as a wrapper for `double` values that represent the cost of a path.
+If you set this as the objective for the `ompl::base::ProblemDefinition` you'll find that the planner will terminate far more quickly, since it stops planning as soon as it has found a path shorter than the given threshold. Note that when calling `ompl::base::OptimizationObjective::setCostThreshold`, we wrap our threshold value in an `ompl::base::Cost` object. We'll talk more about the `ompl::base::Cost` object later, but for now you can think of them as a wrapper for `double` values that represent the cost of a path.
