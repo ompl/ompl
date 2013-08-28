@@ -164,7 +164,7 @@ namespace ompl
             exactly zero. Note: \e goal is assumed to be of type
             ompl::base::GoalRegion 
         */
-        inline Cost goalRegionCostToGo(const State* state, const Goal* goal);
+        Cost goalRegionCostToGo(const State* state, const Goal* goal);
 
         /** \brief This class allows for the definition of multiobjective optimal planning problems. Objectives are added to this compound object, and motion costs are computed by taking a weighted sum of the individual objective costs. */
         class MultiOptimizationObjective : public OptimizationObjective

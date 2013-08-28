@@ -82,27 +82,17 @@ public:
     }
 };
 
-// Returns a structure representing the optimization objective to use
-// for optimal motion planning. This method returns an objective which
-// attempts to minimize the length in configuration space of computed
-// paths.
-ob::OptimizationObjectivePtr getPathLengthObjective(const ob::SpaceInformationPtr& si)
-{
-    return ob::OptimizationObjectivePtr(new ob::PathLengthOptimizationObjective(si));
-}
+ob::OptimizationObjectivePtr getPathLengthObjective(const ob::SpaceInformationPtr& si);
 
-ob::OptimizationObjectivePtr getThresholdPathLengthObj(const ob::SpaceInformationPtr& si)
-{
-    ob::OptimizationObjectivePtr obj(new ob::PathLengthOptimizationObjective(si));
-    obj->setCostThreshold(ob::Cost(1.51));
-    return obj;
-}
+ob::OptimizationObjectivePtr getThresholdPathLengthObj(const ob::SpaceInformationPtr& si);
 
 ob::OptimizationObjectivePtr getClearanceObjective(const ob::SpaceInformationPtr& si);
 
 ob::OptimizationObjectivePtr getBalancedObjective1(const ob::SpaceInformationPtr& si);
 
 ob::OptimizationObjectivePtr getBalancedObjective2(const ob::SpaceInformationPtr& si);
+
+ob::OptimizationObjectivePtr getPathLengthObjWithCostToGo(const ob::SpaceInformationPtr& si);
 
 void plan(int argc, char** argv)
 {
@@ -140,13 +130,15 @@ void plan(int argc, char** argv)
     pdef->setStartAndGoalStates(start, goal);
 
     // Since we want to find an optimal plan, we need to define what
-    // is optimal with an OptimizationObjective structure.
-    // pdef->setOptimizationObjective(getPathLengthObjective(si));
+    // is optimal with an OptimizationObjective structure. Un-comment
+    // exactly one of the following 6 lines to see some examples of
+    // optimization objectives.
+    pdef->setOptimizationObjective(getPathLengthObjective(si));
     // pdef->setOptimizationObjective(getThresholdPathLengthObj(si));
     // pdef->setOptimizationObjective(getClearanceObjective(si));
     // pdef->setOptimizationObjective(getBalancedObjective1(si));
     // pdef->setOptimizationObjective(getBalancedObjective2(si));
-    pdef->setOptimizationObjective(ob::OptimizationObjectivePtr(new ob::MaximizeMinClearanceObjective(si)));
+    // pdef->setOptimizationObjective(getPathLengthObjWithCostToGo(si));
 
     // Construct our optimal planner using the RRTstar algorithm.
     ob::PlannerPtr optimalPlanner(new og::RRTstar(si));
@@ -187,6 +179,25 @@ int main(int argc, char** argv)
     return 0;
 }
 
+/** Returns a structure representing the optimization objective to use
+    for optimal motion planning. This method returns an objective
+    which attempts to minimize the length in configuration space of
+    computed paths. */
+ob::OptimizationObjectivePtr getPathLengthObjective(const ob::SpaceInformationPtr& si)
+{
+    return ob::OptimizationObjectivePtr(new ob::PathLengthOptimizationObjective(si));
+}
+
+/** Returns an optimization objective which attempts to minimize path
+    length that is satisfied when a path of length shorter than 1.51
+    is found. */
+ob::OptimizationObjectivePtr getThresholdPathLengthObj(const ob::SpaceInformationPtr& si)
+{
+    ob::OptimizationObjectivePtr obj(new ob::PathLengthOptimizationObjective(si));
+    obj->setCostThreshold(ob::Cost(1.51));
+    return obj;
+}
+
 /** Defines an optimization objective which attempts to steer the
     robot away from obstacles. To formulate this objective as a
     minimization of path cost, we can define the cost of a path as a
@@ -218,6 +229,8 @@ public:
     }
 };
 
+/** Return an optimization objective which attempts to steer the robot
+    away from obstacles. */
 ob::OptimizationObjectivePtr getClearanceObjective(const ob::SpaceInformationPtr& si)
 {
     return ob::OptimizationObjectivePtr(new ClearanceObjective(si));
@@ -247,10 +260,23 @@ ob::OptimizationObjectivePtr getBalancedObjective1(const ob::SpaceInformationPtr
     return ob::OptimizationObjectivePtr(opt);
 }
 
+/** Create an optimization objective equivalent to the one returned by
+    getBalancedObjective1(), but use an alternate syntax.
+ */
 ob::OptimizationObjectivePtr getBalancedObjective2(const ob::SpaceInformationPtr& si)
 {
     ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(si));
     ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
 
     return 5.0*lengthObj + clearObj;
+}
+
+/** Create an optimization objective for minimizing path length, and
+    specify a cost-to-go heuristic suitable for this optimal planning
+    problem. */
+ob::OptimizationObjectivePtr getPathLengthObjWithCostToGo(const ob::SpaceInformationPtr& si)
+{
+    ob::OptimizationObjectivePtr obj(new ob::PathLengthOptimizationObjective(si));
+    obj->setCostToGoHeuristic(&ob::goalRegionCostToGo);
+    return obj;
 }
