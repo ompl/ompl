@@ -116,14 +116,14 @@ namespace ompl
                 bool& firstTime, DubinsPath& path, State *state) const;
 
             virtual bool hasSymmetricDistance(void) const
-	    {
-	        return isSymmetric_;
+            {
+                return isSymmetric_;
             }
 
-	    virtual bool hasSymmetricInterpolate(void) const
-	    {
-		return isSymmetric_;
-	    }
+            virtual bool hasSymmetricInterpolate(void) const
+            {
+                return isSymmetric_;
+            }
 
             virtual void sanityChecks(void) const
             {

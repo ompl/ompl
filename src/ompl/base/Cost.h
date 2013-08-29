@@ -46,11 +46,13 @@ namespace ompl
         /** \brief Definition of a cost value. Can represent the cost of a motion or the cost of a state. */
         struct Cost
         {
+            /** \brief Construct cost with a specified value */
             explicit Cost(double v = 0.0) : v(v) {}
+            /** \brief The value of the cost */
             double v;
         };
 
-        /** \brief Output operator for Cost*/
+        /** \brief Output operator for Cost */
         std::ostream& operator<<(std::ostream& stream, Cost c);
     }
 }

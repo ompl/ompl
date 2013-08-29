@@ -74,30 +74,30 @@ ompl::base::Cost ompl::base::OptimizationObjective::getCost(const Path &path) co
     // Give up if this isn't a PathGeometric or if the path is empty.
     if (!pathGeom)
     {
-	OMPL_ERROR("Error: Cost computation is only implemented for paths of type PathGeometric.");
+        OMPL_ERROR("Error: Cost computation is only implemented for paths of type PathGeometric.");
         return this->identityCost();
     }
     else
     {
         std::size_t numStates = pathGeom->getStateCount();
-	if (numStates == 0)
+        if (numStates == 0)
         {
-	    OMPL_ERROR("Cannot compute cost of an empty path.");
+            OMPL_ERROR("Cannot compute cost of an empty path.");
             return this->identityCost();
         }
-	else
-	{
-	    // Compute path cost by accumulating the cost along the path
+        else
+        {
+            // Compute path cost by accumulating the cost along the path
             Cost cost(this->identityCost());
-	    for (std::size_t i = 1; i < numStates; ++i)
-	    {
-		const State *s1 = pathGeom->getState(i-1);
-		const State *s2 = pathGeom->getState(i);
+            for (std::size_t i = 1; i < numStates; ++i)
+            {
+                const State *s1 = pathGeom->getState(i-1);
+                const State *s2 = pathGeom->getState(i);
                 cost = this->combineCosts(cost, this->motionCost(s1, s2));
-	    }
+            }
 
             return cost;
-	}
+        }
     }
 }
 
@@ -163,7 +163,7 @@ void ompl::base::OptimizationObjective::setCostToGoHeuristic(const CostToGoHeuri
     costToGoFn_ = costToGo;
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State* state, 
+ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State* state,
                                                              const Goal* goal) const
 {
     if (costToGoFn_)
@@ -172,13 +172,13 @@ ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State* state,
         return this->identityCost(); // assumes that identity < all costs
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const State* s1, 
+ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const State* s1,
                                                                         const State* s2) const
 {
     return this->identityCost(); // assumes that identity < all costs
 }
 
-const ompl::base::SpaceInformationPtr& 
+const ompl::base::SpaceInformationPtr&
 ompl::base::OptimizationObjective::getSpaceInformation(void) const
 {
     return si_;
@@ -197,13 +197,13 @@ ompl::base::Cost ompl::base::goalRegionCostToGo(const State* state, const Goal* 
 ompl::base::MultiOptimizationObjective::
 MultiOptimizationObjective(const SpaceInformationPtr &si) :
     OptimizationObjective(si),
-    locked_(false) 
+    locked_(false)
 {
 }
 
 ompl::base::MultiOptimizationObjective::Component::
 Component(const OptimizationObjectivePtr& obj, double weight) :
-    objective(obj), weight(weight) 
+    objective(obj), weight(weight)
 {
 }
 
@@ -211,7 +211,7 @@ void ompl::base::MultiOptimizationObjective::addObjective(const OptimizationObje
                                                           double weight)
 {
     if (locked_)
-    {    
+    {
         throw Exception("This optimization objective is locked. No further objectives can be added.");
     }
     else
@@ -223,7 +223,7 @@ std::size_t ompl::base::MultiOptimizationObjective::getObjectiveCount(void) cons
     return components_.size();
 }
 
-const ompl::base::OptimizationObjectivePtr& 
+const ompl::base::OptimizationObjectivePtr&
 ompl::base::MultiOptimizationObjective::getObjective(unsigned int idx) const
 {
     if (components_.size() > idx)
@@ -240,7 +240,7 @@ double ompl::base::MultiOptimizationObjective::getObjectiveWeight(unsigned int i
         throw Exception("Objective index does not exist.");
 }
 
-void ompl::base::MultiOptimizationObjective::setObjectiveWeight(unsigned int idx, 
+void ompl::base::MultiOptimizationObjective::setObjectiveWeight(unsigned int idx,
                                                                 double weight)
 {
     if (components_.size() > idx)
@@ -268,7 +268,7 @@ ompl::base::Cost ompl::base::MultiOptimizationObjective::stateCost(const State* 
     {
         c.v += comp->weight*(comp->objective->stateCost(s).v);
     }
-    
+
     return c;
 }
 
@@ -282,7 +282,7 @@ ompl::base::Cost ompl::base::MultiOptimizationObjective::motionCost(const State*
      {
          c.v += comp->weight*(comp->objective->motionCost(s1, s2).v);
      }
-     
+
      return c;
 }
 
@@ -303,9 +303,9 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
             }
         }
         else
-            components.push_back(MultiOptimizationObjective::Component(a, 1.0));            
+            components.push_back(MultiOptimizationObjective::Component(a, 1.0));
     }
-    
+
     if (b)
     {
         if (MultiOptimizationObjective* mult = dynamic_cast<MultiOptimizationObjective*>(b.get()))

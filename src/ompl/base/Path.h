@@ -87,9 +87,9 @@ namespace ompl
             /** \brief Return the length of a path */
             virtual double length(void) const = 0;
 
-	    /** \brief Return the cost of the path with respect to a
-		specified optimization objective. */
-	    virtual Cost cost(const OptimizationObjectivePtr& obj) const;
+            /** \brief Return the cost of the path with respect to a
+                specified optimization objective. */
+            virtual Cost cost(const OptimizationObjectivePtr& obj) const;
 
             /** \brief Check if the path is valid */
             virtual bool check(void) const = 0;

@@ -41,11 +41,11 @@ StateCostIntegralObjective(const SpaceInformationPtr &si,
                            bool enableMotionCostInterpolation) :
     OptimizationObjective(si),
     interpolateMotionCost_(enableMotionCostInterpolation)
-{ 
-    description_ = "State Cost Integral"; 
+{
+    description_ = "State Cost Integral";
 }
 
-ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State *s1, 
+ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State *s1,
                                                                     const State *s2) const
 {
     if (interpolateMotionCost_)
@@ -53,7 +53,7 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
         Cost totalCost = this->identityCost();
 
         int nd = si_->getStateSpace()->validSegmentCount(s1, s2);
-  
+
         State *test1 = si_->cloneState(s1);
         Cost prevStateCost = this->stateCost(test1);
         if (nd > 1)
@@ -87,9 +87,4 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
 bool ompl::base::StateCostIntegralObjective::isMotionCostInterpolationEnabled(void) const
 {
     return interpolateMotionCost_;
-}
-
-ompl::base::Cost ompl::base::StateCostIntegralObjective::trapezoid(Cost c1, Cost c2, double d) const
-{
-    return Cost(0.5 * d * (c1.v + c2.v));
 }

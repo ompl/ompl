@@ -41,22 +41,22 @@ namespace ompl
     namespace base
     {
         /** \brief An optimization objective which defines path cost using the idea of mechanical work. To be used in conjunction with TRRT. */
-	class MechanicalWorkOptimizationObjective : public OptimizationObjective
-	{
-	public:
+        class MechanicalWorkOptimizationObjective : public OptimizationObjective
+        {
+        public:
             /** \brief The mechanical work formulation requires a weighing factor to use for the length of a path in order to disambiguate optimal paths. This weighing factor should be small. The default value for this weight is 0.00001. */
-	    MechanicalWorkOptimizationObjective(const SpaceInformationPtr &si,
+            MechanicalWorkOptimizationObjective(const SpaceInformationPtr &si,
                                                 double pathLengthWeight = 0.00001);
 
             /** \brief Set the factor to use for weighing path length in the mechanical work objective formulation. */
-	    virtual double getPathLengthWeight(void) const;
+            virtual double getPathLengthWeight(void) const;
 
             /** \brief Defines motion cost in terms of the mechanical work formulation used for TRRT. */
-	    virtual Cost motionCost(const State *s1, const State *s2) const;
+            virtual Cost motionCost(const State *s1, const State *s2) const;
 
-	protected:
+        protected:
             /** \brief The weighing factor for the path length in the mechanical work objective formulation. */
-	    double pathLengthWeight_;
-	};
+            double pathLengthWeight_;
+        };
     }
 }

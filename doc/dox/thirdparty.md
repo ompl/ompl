@@ -33,10 +33,6 @@ This page includes a list of extensions to OMPL provided by the community. Pleas
     - S. Karaman and E. Frazzoli, _Sampling-based algorithms for optimal motion planning_ Int. Journal of Robotics Research, 2011. Also available at http://arxiv.org/abs/1105.1186.
 
   For more information on RRT* and its variants see http://ares.lids.mit.edu/rrtstar.
-- [Ball Tree RRT*](\ref gBallTreeRRTstar) is an implementation of RRT* that incorporates Ball Trees to approximate connected regions of free space with volumes in configuration space instead of points. Every vertex added to the tree has an initial volume of an infinite radius associated with it. This radius is gradually reduced as collisions are found. All samples within any of the existing volumes are discarded. However, discarded samples are collision checked. If a collision is found, the nearest volume is trimmed at the collision point. Information from all collision checking procedures within iterations is also used to trim volumes accordingly. The Ball Tree RRT* was introduced in:
-
-    - A. Perez, S. Karaman, M. Walter, A. Shkolnik, E. Frazzoli, and S. Teller, _Asymptotically-optimal manipulation planning using incremental sampling-based algorithms,_ in IEEE/RSJ Int. Conf. on Intelligent Robots and Systems (IROS), 2011.
-
 
 # PRM extensions
 

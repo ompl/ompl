@@ -165,11 +165,11 @@ namespace ompl
             {
             public:
                 /** \brief Constructor that allocates memory for the state. This constructor automatically allocates memory for \e state, \e cost, and \e incCost */
-                Motion(const base::SpaceInformationPtr &si) : 
-		    state(si->allocState()), 
-		    parent(NULL)
-		{
-		}
+                Motion(const base::SpaceInformationPtr &si) :
+                    state(si->allocState()),
+                    parent(NULL)
+                {
+                }
 
                 ~Motion(void)
                 {
@@ -182,10 +182,10 @@ namespace ompl
                 Motion            *parent;
 
                 /** \brief The cost up to this motion */
-		base::Cost        cost;
+                base::Cost        cost;
 
                 /** \brief The incremental cost of this motion's parent to this motion (this is stored to save distance computations in the updateChildCosts() method) */
-		base::Cost        incCost;
+                base::Cost        incCost;
 
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion*> children;
@@ -194,20 +194,20 @@ namespace ompl
             /** \brief Free the memory allocated by this planner */
             void freeMemory(void);
 
-	    // For sorting a list of costs and getting only their sorted indices
-	    struct CostIndexCompare
-	    {
-		CostIndexCompare(const std::vector<base::Cost>& costs,
-				 const base::OptimizationObjective& opt) : 
-		    costs_(costs), opt_(opt) 
-		{}
-		bool operator()(unsigned i, unsigned j)
-		{
-		    return opt_.isCostBetterThan(costs_[i],costs_[j]);
-		}
-		const std::vector<base::Cost>& costs_;
-		const base::OptimizationObjective& opt_;
-	    };
+            // For sorting a list of costs and getting only their sorted indices
+            struct CostIndexCompare
+            {
+                CostIndexCompare(const std::vector<base::Cost>& costs,
+                                 const base::OptimizationObjective& opt) :
+                    costs_(costs), opt_(opt)
+                {}
+                bool operator()(unsigned i, unsigned j)
+                {
+                    return opt_.isCostBetterThan(costs_[i],costs_[j]);
+                }
+                const std::vector<base::Cost>& costs_;
+                const base::OptimizationObjective& opt_;
+            };
 
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion* a, const Motion* b) const
@@ -240,7 +240,7 @@ namespace ompl
             bool                                           delayCC_;
 
             /** \brief Objective we're optimizing */
-	    base::OptimizationObjectivePtr opt_;
+            base::OptimizationObjectivePtr opt_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
             Motion                                         *lastGoalMotion_;
@@ -256,7 +256,7 @@ namespace ompl
 
             /** \brief Number of collisions checks performed by the algorithm */
             unsigned int                                   collisionChecks_;
-            
+
             /** \brief Best cost found so far by algorithm */
             base::Cost                                     bestCost_;
         };

@@ -118,7 +118,7 @@ namespace ompl
             bool    optimized_;
         };
 
-	OMPL_CLASS_FORWARD(OptimizationObjective);
+        OMPL_CLASS_FORWARD(OptimizationObjective);
 
         /** \brief Definition of a problem to be solved. This includes
             the start state(s) for the system and a goal specification.

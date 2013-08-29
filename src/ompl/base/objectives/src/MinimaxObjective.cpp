@@ -46,7 +46,7 @@ ompl::base::Cost ompl::base::MinimaxObjective::motionCost(const State *s1, const
     Cost worstCost = this->identityCost();
 
     int nd = si_->getStateSpace()->validSegmentCount(s1, s2);
-  
+
     if (nd > 1)
     {
         State *test = si_->allocState();
@@ -63,7 +63,7 @@ ompl::base::Cost ompl::base::MinimaxObjective::motionCost(const State *s1, const
     // Lastly, check s2
     Cost lastCost = this->stateCost(s2);
     if (this->isCostBetterThan(worstCost, lastCost))
-        worstCost = lastCost; 
+        worstCost = lastCost;
 
     return worstCost;
 }

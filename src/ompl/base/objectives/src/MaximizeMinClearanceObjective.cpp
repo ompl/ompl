@@ -40,8 +40,8 @@
 
 ompl::base::MaximizeMinClearanceObjective::
 MaximizeMinClearanceObjective(const SpaceInformationPtr &si) :
-    MinimaxObjective(si) 
-{ 
+    MinimaxObjective(si)
+{
     this->setCostThreshold(Cost(std::numeric_limits<double>::infinity()));
 }
 
