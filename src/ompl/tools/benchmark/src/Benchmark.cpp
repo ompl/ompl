@@ -76,18 +76,24 @@ namespace ompl
             {
             }
 
-            void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime, const boost::int_least64_t msBetweenProgressUpdates)
+            void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime, const double timeBetweenUpdates)
             {
                 if (!useThreads_)
                 {
-                    runThread(planner, memStart + maxMem, time::seconds(maxTime), msBetweenProgressUpdates);
+                    runThread(planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates));
                     return;
                 }
 
-                boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime), msBetweenProgressUpdates));
+                boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates)));
 
                 // allow 25% more time than originally specified, in order to detect planner termination
+#ifdef USE_BOOST_TIMED_JOIN
+                // For older versions of boost, we have to use this
+                // deprecated form of the timed join
+                if (!t.timed_join(time::seconds(maxTime * 1.25)))
+#else
                 if (!t.try_join_for(boost::chrono::duration<double>(maxTime * 1.25)))
+#endif
                 {
                     status_ = base::PlannerStatus::CRASH;
 
@@ -133,7 +139,7 @@ namespace ompl
 
         private:
 
-            void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem, const time::duration &maxDuration, const boost::int_least64_t msBetweenProgressUpdates)
+            void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem, const time::duration &maxDuration, const time::duration &timeBetweenUpdates)
             {
                 time::point timeStart = time::now();
 
@@ -152,7 +158,7 @@ namespace ompl
                     if (planner->getPlannerProgressProperties().size() > 0)
                         t.reset(new boost::thread(boost::bind(&RunPlanner::collectProgressProperties,                                                               this,
                                                               planner->getPlannerProgressProperties(),
-                                                              msBetweenProgressUpdates)));
+                                                              timeBetweenUpdates)));
                     status_ = planner->solve(ptc, 0.1);
                     solvedFlag_.lock();
                     solved_ = true;
@@ -175,15 +181,14 @@ namespace ompl
             }
 
             void collectProgressProperties(const base::Planner::PlannerProgressProperties& properties,
-                                           boost::int_least64_t milliseconds)
+                                           const time::duration &timePerUpdate)
             {
-                boost::chrono::milliseconds updatePeriod(milliseconds);
                 time::point timeStart = time::now();
 
                 boost::unique_lock<boost::mutex> ulock(solvedFlag_);
                 while (!solved_)
                 {
-                    if (solvedCondition_.wait_for(ulock, updatePeriod) == boost::cv_status::no_timeout)
+                    if (solvedCondition_.timed_wait(ulock, time::now() + timePerUpdate))
                         return;
                     else
                     {
@@ -565,7 +570,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             }
 
             RunPlanner rp(this, req.useThreads);
-            rp.run(planners_[i], memStart, maxMemBytes, req.maxTime, req.msBetweenProgressUpdates);
+            rp.run(planners_[i], memStart, maxMemBytes, req.maxTime, req.timeBetweenUpdates);
             bool solved = gsetup_ ? gsetup_->haveSolutionPath() : csetup_->haveSolutionPath();
 
             // store results

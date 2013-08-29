@@ -153,7 +153,7 @@ namespace ompl
                 /** \brief Constructor that provides default values for all members */
                 Request(double maxTime = 5.0, double maxMem = 4096.0,
                         unsigned int runCount = 100,
-                        boost::int_least64_t msBetweenProgressUpdates = 1,
+                        double timeBetweenUpdates = 0.001,
                         bool displayProgress = true,
                         bool saveConsoleOutput = true, bool useThreads = true)
                     : maxTime(maxTime), maxMem(maxMem), runCount(runCount),
@@ -171,8 +171,8 @@ namespace ompl
                 /// \brief the number of times to run each planner; 100 by default
                 unsigned int runCount;
 
-                /// \brief When collecting time-varying data from a planner during its execution, the planner's progress will be queried every \c msBetweenProgressUpdates milliseconds.
-                boost::int_least64_t msBetweenProgressUpdates;
+                /// \brief When collecting time-varying data from a planner during its execution, the planner's progress will be queried every \c timeBetweenUpdates seconds.
+                double       timeBetweenUpdates;
 
                 /// \brief flag indicating whether progress is to be displayed or not; true by default
                 bool         displayProgress;
