@@ -103,7 +103,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
     {
         Motion *motion = new Motion(si_);
         si_->copyState(motion->state, st);
-	nn_->add(motion);
+        nn_->add(motion);
     }
 
     if (nn_->size() == 0)

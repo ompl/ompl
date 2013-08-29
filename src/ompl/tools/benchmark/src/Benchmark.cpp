@@ -188,7 +188,7 @@ namespace ompl
                     else
                     {
                         double timeInSeconds = time::seconds(time::now() - timeStart);
-                        std::string timeStamp = 
+                        std::string timeStamp =
                             boost::lexical_cast<std::string>(timeInSeconds);
                         std::map<std::string, std::string> data;
                         data["time REAL"] = timeStamp;
@@ -202,7 +202,7 @@ namespace ompl
                     }
                 }
             }
-                                           
+
             const Benchmark    *benchmark_;
             double              timeUsed_;
             machine::MemUsage_t memUsed_;
@@ -213,7 +213,7 @@ namespace ompl
             // variables needed for progress property collection
             bool solved_;
             boost::mutex solvedFlag_;
-            boost::condition_variable solvedCondition_;            
+            boost::condition_variable solvedCondition_;
         };
 
     }
@@ -353,7 +353,7 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
                 for (std::size_t t = 0; t < exp_.planners[i].runsProgressData[r].size(); ++t)
                 {
                     // Print each of the properties at that time point
-                    for (std::map<std::string, std::string>::const_iterator iter = 
+                    for (std::map<std::string, std::string>::const_iterator iter =
                              exp_.planners[i].runsProgressData[r][t].begin();
                          iter != exp_.planners[i].runsProgressData[r][t].end();
                          ++iter)
@@ -362,9 +362,9 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
                     }
 
                     // Separate time points by semicolons
-                    out << ";"; 
+                    out << ";";
                 }
-                
+
                 // Separate runs by newlines
                 out << std::endl;
             }
@@ -635,7 +635,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 run["graph motions INTEGER"] = boost::lexical_cast<std::string>(pd.numEdges());
 
                 for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
-                    run[it->first] = it->second;               
+                    run[it->first] = it->second;
 
                 // execute post-run event, if set
                 try

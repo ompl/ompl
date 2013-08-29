@@ -39,10 +39,10 @@
 ompl::base::MechanicalWorkOptimizationObjective::
 MechanicalWorkOptimizationObjective(const SpaceInformationPtr &si,
                                     double pathLengthWeight) :
-    OptimizationObjective(si), 
-    pathLengthWeight_(pathLengthWeight) 
+    OptimizationObjective(si),
+    pathLengthWeight_(pathLengthWeight)
 {
-    description_ = "Mechanical Work"; 
+    description_ = "Mechanical Work";
 }
 
 double ompl::base::MechanicalWorkOptimizationObjective::getPathLengthWeight(void) const
@@ -50,7 +50,7 @@ double ompl::base::MechanicalWorkOptimizationObjective::getPathLengthWeight(void
     return pathLengthWeight_;
 }
 
-ompl::base::Cost ompl::base::MechanicalWorkOptimizationObjective::motionCost(const State *s1, 
+ompl::base::Cost ompl::base::MechanicalWorkOptimizationObjective::motionCost(const State *s1,
                                                                              const State *s2) const
 {
     // Only accrue positive changes in cost

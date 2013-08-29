@@ -45,7 +45,7 @@
 namespace ompl
 {
     namespace base
-    {   
+    {
         /** \brief Definition of a cost value. Can represent the cost of a motion or the cost of a state. */
         struct Cost
         {
@@ -59,7 +59,7 @@ namespace ompl
 
         /** \brief The definition of a function which returns an admissible estimate of the optimal path cost from a given state to a goal. */
         typedef boost::function<Cost (const State*, const Goal*)> CostToGoHeuristic;
-      
+
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::OptimizationObjective */
         OMPL_CLASS_FORWARD(OptimizationObjective);
@@ -67,7 +67,7 @@ namespace ompl
 
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(Path);
-        /// @endcond	
+        /// @endcond
 
         /** \class ompl::base::OptimizationObjectivePtr
             \brief A boost shared pointer wrapper for ompl::base::OptimizationObjective */
@@ -100,23 +100,23 @@ namespace ompl
             /** \brief Get the cost that corresponds to an entire path. This implementation assumes \e Path is of type \e PathGeometric.*/
             virtual Cost getCost(const Path &path) const;
 
-	    /** \brief Check whether the the cost \e c1 is considered better than the cost \e c2. By default, this returns true only if c1 is less by at least some threshold amount, for numerical robustness. */
-	    virtual bool isCostBetterThan(Cost c1, Cost c2) const;
-	 
-	    /** \brief Evaluate a cost map defined on the state space at a state \e s. Default implementation maps all states to 1.0. */
-	    virtual Cost stateCost(const State *s) const;
+            /** \brief Check whether the the cost \e c1 is considered better than the cost \e c2. By default, this returns true only if c1 is less by at least some threshold amount, for numerical robustness. */
+            virtual bool isCostBetterThan(Cost c1, Cost c2) const;
 
-	    /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
+            /** \brief Evaluate a cost map defined on the state space at a state \e s. Default implementation maps all states to 1.0. */
+            virtual Cost stateCost(const State *s) const;
+
+            /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
             virtual Cost motionCost(const State *s1, const State *s2) const = 0;
 
             /** \brief Get the cost that corresponds to combining the costs \e c1 and \e c2. Default implementation defines this combination as an addition. */
             virtual Cost combineCosts(Cost c1, Cost c2) const;
-            
+
             /** \brief Get the identity cost value. The identity cost value is the cost c_i such that, for all costs c, combineCosts(c, c_i) = combineCosts(c_i, c) = c. In other words, combining a cost with the identity cost does not change the original cost. By default, a cost with the value 0.0 is returned. It's very important to override this with the proper identity value for your optimization objectives, or else optimal planners may not work. */
             virtual Cost identityCost() const;
 
-	    /** \brief Get a cost which is greater than all other costs in this OptimizationObjective; required for use in Dijkstra/Astar. Defaults to returning the double value inf.*/
-	    virtual Cost infiniteCost() const;
+            /** \brief Get a cost which is greater than all other costs in this OptimizationObjective; required for use in Dijkstra/Astar. Defaults to returning the double value inf.*/
+            virtual Cost infiniteCost() const;
 
             /** \brief Returns a cost value corresponding to starting at a state \e s. No optimal planners currently support this method. Defaults to returning the objective's identity cost. */
             virtual Cost initialCost(const State *s) const;
@@ -124,11 +124,11 @@ namespace ompl
             /** \brief Returns a cost value corresponding to a path ending at a state \e s. No optimal planners currently support this method. Defaults to returning the objective's identity cost. */
             virtual Cost terminalCost(const State *s) const;
 
-	    /** \brief Check if this objective has a symmetric cost metric, i.e. motionCost(s1, s2) = motionCost(s2, s1). Default implementation returns whether the underlying state space has symmetric interpolation. */
-	    virtual bool isSymmetric(void) const;
+            /** \brief Check if this objective has a symmetric cost metric, i.e. motionCost(s1, s2) = motionCost(s2, s1). Default implementation returns whether the underlying state space has symmetric interpolation. */
+            virtual bool isSymmetric(void) const;
 
-	    /** \brief Compute the average state cost of this objective by taking a sample of \e numStates states */
-	    virtual Cost averageStateCost(unsigned int numStates) const;
+            /** \brief Compute the average state cost of this objective by taking a sample of \e numStates states */
+            virtual Cost averageStateCost(unsigned int numStates) const;
 
             /** \brief Set the cost-to-go heuristic function for this objective. The cost-to-go heuristic is a function which returns an admissible estimate of the optimal path cost from a given state to a goal, where "admissible" means that the estimated cost is always less than the true optimal cost. */
             void setCostToGoHeuristic(const CostToGoHeuristic& costToGo);
@@ -156,13 +156,13 @@ namespace ompl
             CostToGoHeuristic costToGoFn_;
         };
 
-        /** 
+        /**
             \brief For use when goal region's distanceGoal() is
             equivalent to the cost-to-go of a state under the
             optimization objective. This function assumes that all states
             within the goal region's threshold have a cost-to-go of
             exactly zero. Note: \e goal is assumed to be of type
-            ompl::base::GoalRegion 
+            ompl::base::GoalRegion
         */
         Cost goalRegionCostToGo(const State* state, const Goal* goal);
 
@@ -173,7 +173,7 @@ namespace ompl
             MultiOptimizationObjective(const SpaceInformationPtr &si);
 
             /** \brief Adds a new objective for this multiobjective. A weight must also be specified for specifying importance of this objective in planning. */
-            void addObjective(const OptimizationObjectivePtr& objective, 
+            void addObjective(const OptimizationObjectivePtr& objective,
                               double weight);
 
             /** \brief Returns the number of objectives that make up this multiobjective. */
@@ -190,7 +190,7 @@ namespace ompl
 
             /** \brief This method "freezes" this multiobjective so that no more objectives can be added to it */
             void lock(void);
-            
+
             /** \brief Returns whether this multiobjective has been locked from adding further objectives */
             bool isLocked(void) const;
 
@@ -207,7 +207,7 @@ namespace ompl
             virtual Cost motionCost(const State* s1, const State* s2) const;
 
         protected:
-            
+
             /** \brief Defines a pairing of an objective and its weight */
             struct Component
             {
@@ -218,7 +218,7 @@ namespace ompl
 
             /** \brief List of objective/weight pairs */
             std::vector<Component> components_;
-            
+
             /** \brief Whether this multiobjective is locked from further additions */
             bool locked_;
 
@@ -238,7 +238,7 @@ namespace ompl
         /** \brief Given a weighing factor and an optimization objective, returns a MultiOptimizationObjective containing only this objective weighted by the given weight */
         OptimizationObjectivePtr operator*(double w, const OptimizationObjectivePtr &a);
 
-        /** \brief Given a weighing factor and an optimization objective, returns a MultiOptimizationObjective containing only this objective weighted by the given weight */      
+        /** \brief Given a weighing factor and an optimization objective, returns a MultiOptimizationObjective containing only this objective weighted by the given weight */
         OptimizationObjectivePtr operator*(const OptimizationObjectivePtr &a, double w);
     }
 }

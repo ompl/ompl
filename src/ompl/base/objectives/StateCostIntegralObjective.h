@@ -45,9 +45,9 @@ namespace ompl
             be represented as a path integral over a cost function
             defined over the state space. This cost function is
             specified by implementing the stateCost() method. */
-	class StateCostIntegralObjective : public OptimizationObjective
-	{
-	public:	
+        class StateCostIntegralObjective : public OptimizationObjective
+        {
+        public:
             /** \brief If enableMotionCostInterpolation is set to
                 true, then calls to motionCost() will divide the
                 motion segment into smaller parts (the number of parts
@@ -58,27 +58,27 @@ namespace ompl
                 only the two endpoint states are used for motion cost
                 computation.
             */
-	    StateCostIntegralObjective(const SpaceInformationPtr &si, 
+            StateCostIntegralObjective(const SpaceInformationPtr &si,
                                        bool enableMotionCostInterpolation = false);
 
-	    /** \brief Compute the cost of a path segment from \e s1 to \e s2 (including endpoints)
-		\param s1 start state of the motion to be evaluated
-		\param s2 final state of the motion to be evaluated
-		\param cost the cost of the motion segment
+            /** \brief Compute the cost of a path segment from \e s1 to \e s2 (including endpoints)
+                \param s1 start state of the motion to be evaluated
+                \param s2 final state of the motion to be evaluated
+                \param cost the cost of the motion segment
 
-		By default, this function computes
-		\f{eqnarray*}{
-		\mbox{cost} &=& \frac{cost(s_1) + cost(s_2)}{2}\vert s_1 - s_2 \vert
-		\f}
-                
+                By default, this function computes
+                \f{eqnarray*}{
+                \mbox{cost} &=& \frac{cost(s_1) + cost(s_2)}{2}\vert s_1 - s_2 \vert
+                \f}
+
                 If enableMotionCostInterpolation was specified as true
                 in constructing this object, the cost will be computed
                 by separating the motion into
                 StateSpace::validSegmentCount() segments, using the
                 above formula to compute the cost of each of those
                 segments, and adding them up.
-	    */
-	    virtual Cost motionCost(const State *s1, const State *s2) const;
+            */
+            virtual Cost motionCost(const State *s1, const State *s2) const;
 
             /** \brief Returns whether this objective subdivides
                 motions into smaller segments for more accurate motion
@@ -102,6 +102,6 @@ namespace ompl
                 states of distance \e distance and costs \e c1 and \e
                 c2 **/
             Cost trapezoid(Cost c1, Cost c2, double distance) const;
-	};
+        };
     }
 }

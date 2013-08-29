@@ -399,7 +399,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     boost::thread slnThread(boost::bind(&PRM::checkForSolution, this, ptc, boost::ref(sol)));
 
     // construct new planner termination condition that fires when the given ptc is true, or a solution is found
-    base::PlannerOrTerminationCondition ptcOrSolutionFound(ptc, 
+    base::PlannerOrTerminationCondition ptcOrSolutionFound(ptc,
 base::PlannerTerminationCondition(boost::bind(&PRM::addedNewSolution, this)));
 
     constructRoadmap(ptcOrSolutionFound);
