@@ -63,10 +63,8 @@ if (${Boost_FOUND})
   # we're using chrono
   find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework chrono REQUIRED)
 else()
-  # don't use chrono, set a flag to notify that we're using the
-  # deprecated timed_join() call
+  # don't use chrono
   find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework REQUIRED)
-  add_definitions(-DUSE_BOOST_TIMED_JOIN)
 endif()
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
