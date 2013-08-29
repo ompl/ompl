@@ -230,7 +230,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 	    // resized if they can't fit the current neighborhood
 	    if (costs.size() < nbh.size())
 	    {
-	        std::size_t prevSize = costs.size();
 		costs.resize(nbh.size());
 		incCosts.resize(nbh.size());
 		sortedCostIndices.resize(nbh.size());
