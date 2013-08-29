@@ -86,22 +86,26 @@ namespace ompl
                 disabled by default.
             */
             bool isMotionCostInterpolationEnabled(void) const;
+
         protected:
 
-            // If true, then motionCost() will more accurately compute
-            // the cost of a motion by taking small steps along the
-            // motion and accumulating the cost. This sacrifices speed
-            // for accuracy. If false, the motion cost will be
-            // approximated by taking the average of the costs at the
-            // two end points, and normalizing by the distance between
-            // the two end points.
+            /** \brief If true, then motionCost() will more accurately compute
+                the cost of a motion by taking small steps along the
+                motion and accumulating the cost. This sacrifices speed
+                for accuracy. If false, the motion cost will be
+                approximated by taking the average of the costs at the
+                two end points, and normalizing by the distance between
+                the two end points. */
             bool interpolateMotionCost_;
 
             /** \brief Helper method which uses the trapezoidal rule
                 to approximate the integral of the cost between two
-                states of distance \e distance and costs \e c1 and \e
-                c2 **/
-            Cost trapezoid(Cost c1, Cost c2, double distance) const;
+                states of distance \e dist and costs \e c1 and \e
+                c2 */
+            Cost trapezoid(Cost c1, Cost c2, double dist) const
+            {
+                return Cost(0.5 * dist * (c1.v + c2.v));
+            }
         };
     }
 }

@@ -45,7 +45,7 @@
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
-
+/// @cond IGNORE
 // Our "collision checker". For this demo, our robot's state space
 // lies in [0,1]x[0,1], with a circular obstacle of radius 0.25
 // centered at (0.5,0.5). Any states lying in this circular region are
@@ -280,3 +280,4 @@ ob::OptimizationObjectivePtr getPathLengthObjWithCostToGo(const ob::SpaceInforma
     obj->setCostToGoHeuristic(&ob::goalRegionCostToGo);
     return obj;
 }
+/// @endcond

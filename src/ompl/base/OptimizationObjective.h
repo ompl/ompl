@@ -49,7 +49,10 @@ namespace ompl
         /** \brief Definition of a cost value. Can represent the cost of a motion or the cost of a state. */
         struct Cost
         {
+            /** \brief Construct cost with a specified value */
             explicit Cost(double v = 0.0) : v(v) {}
+
+            /** \brief The value of the cost */
             double v;
         };
 
@@ -133,13 +136,13 @@ namespace ompl
             /** \brief Set the cost-to-go heuristic function for this objective. The cost-to-go heuristic is a function which returns an admissible estimate of the optimal path cost from a given state to a goal, where "admissible" means that the estimated cost is always less than the true optimal cost. */
             void setCostToGoHeuristic(const CostToGoHeuristic& costToGo);
 
-            /** Uses a cost-to-go heuristic to calculate an admissible estimate of the optimal cost from a given state to a given goal. If no cost-to-go heuristic has been specified with setCostToGoHeuristic(), this function just returns the identity cost, which is sure to be an admissible heuristic if there are no negative costs. */
+            /** \brief Uses a cost-to-go heuristic to calculate an admissible estimate of the optimal cost from a given state to a given goal. If no cost-to-go heuristic has been specified with setCostToGoHeuristic(), this function just returns the identity cost, which is sure to be an admissible heuristic if there are no negative costs. */
             Cost costToGo(const State* state, const Goal* goal) const;
 
-            /** Defines an admissible estimate on the optimal cost on the motion between states \e s1 and \e s2. An admissible estimate always undervalues the true optimal cost of the motion. Used by some planners to speed up planning. The default implementation of this method returns this objective's identity cost, which is sure to be an admissible heuristic if there are no negative costs. */
+            /** \brief Defines an admissible estimate on the optimal cost on the motion between states \e s1 and \e s2. An admissible estimate always undervalues the true optimal cost of the motion. Used by some planners to speed up planning. The default implementation of this method returns this objective's identity cost, which is sure to be an admissible heuristic if there are no negative costs. */
             virtual Cost motionCostHeuristic(const State* s1, const State* s2) const;
 
-            // Returns this objective's SpaceInformation. Needed for operators in MultiOptimizationObjective
+            /** \brief Returns this objective's SpaceInformation. Needed for operators in MultiOptimizationObjective */
             const SpaceInformationPtr& getSpaceInformation(void) const;
 
         protected:
@@ -147,13 +150,13 @@ namespace ompl
             SpaceInformationPtr si_;
 
             /** \brief The description of this optimization objective */
-            std::string description_;
+            std::string         description_;
 
             /** \brief The cost threshold used for checking whether this objective has been satisfied during planning */
-            Cost threshold_;
+            Cost                threshold_;
 
             /** \brief The function used for returning admissible estimates on the optimal cost of the path between a given state and goal */
-            CostToGoHeuristic costToGoFn_;
+            CostToGoHeuristic   costToGoFn_;
         };
 
         /**
@@ -220,7 +223,7 @@ namespace ompl
             std::vector<Component> components_;
 
             /** \brief Whether this multiobjective is locked from further additions */
-            bool locked_;
+            bool                   locked_;
 
             // Friend functions for operator overloads for easy multiobjective creation
             friend OptimizationObjectivePtr operator+(const OptimizationObjectivePtr &a,

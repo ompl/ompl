@@ -88,8 +88,3 @@ bool ompl::base::StateCostIntegralObjective::isMotionCostInterpolationEnabled(vo
 {
     return interpolateMotionCost_;
 }
-
-ompl::base::Cost ompl::base::StateCostIntegralObjective::trapezoid(Cost c1, Cost c2, double d) const
-{
-    return Cost(0.5 * d * (c1.v + c2.v));
-}
