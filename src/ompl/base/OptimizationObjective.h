@@ -37,6 +37,7 @@
 #ifndef OMPL_BASE_OPTIMIZATION_OBJECTIVE_
 #define OMPL_BASE_OPTIMIZATION_OBJECTIVE_
 
+#include "ompl/base/Cost.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/noncopyable.hpp>
@@ -46,15 +47,6 @@ namespace ompl
 {
     namespace base
     {   
-        /** \brief Definition of a cost value. Can represent the cost of a motion or the cost of a state. */
-        struct Cost
-        {
-            explicit Cost(double v = 0.0) : v(v) {}
-            double v;
-        };
-
-        std::ostream& operator<<(std::ostream& stream, Cost c);
-
         class Goal;
 
         /** \brief The definition of a function which returns an admissible estimate of the optimal path cost from a given state to a goal. */

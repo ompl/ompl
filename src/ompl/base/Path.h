@@ -38,9 +38,8 @@
 #define OMPL_BASE_PATH_
 
 #include "ompl/util/ClassForward.h"
-
+#include "ompl/base/Cost.h"
 #include <iostream>
-
 #include <boost/noncopyable.hpp>
 
 namespace ompl
@@ -55,8 +54,6 @@ namespace ompl
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
-
-	struct Cost;
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::Path */

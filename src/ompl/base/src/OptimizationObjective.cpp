@@ -40,12 +40,6 @@
 #include "ompl/base/goals/GoalRegion.h"
 #include <limits>
 
-std::ostream& ompl::base::operator<<(std::ostream& stream, Cost c)
-{
-    stream << c.v;
-    return stream;
-}
-
 ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationPtr &si) :
     si_(si),
     threshold_(0.0)
