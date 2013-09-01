@@ -34,6 +34,9 @@
 
 /* Author: Luis G. Torres */
 
+#ifndef OMPL_BASE_OBJECTIVES_MINIMAX_OBJECTIVE_
+#define OMPL_BASE_OBJECTIVES_MINIMAX_OBJECTIVE_
+
 #include "ompl/base/OptimizationObjective.h"
 
 namespace ompl
@@ -60,3 +63,5 @@ namespace ompl
         };
     }
 }
+
+#endif

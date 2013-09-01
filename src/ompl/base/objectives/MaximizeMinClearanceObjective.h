@@ -34,6 +34,9 @@
 
 /* Author: Luis G. Torres */
 
+#ifndef OMPL_BASE_OBJECTIVES_MAXIMIZE_MIN_CLEARANCE_OBJECTIVE_
+#define OMPL_BASE_OBJECTIVES_MAXIMIZE_MIN_CLEARANCE_OBJECTIVE_
+
 #include "ompl/base/objectives/MinimaxObjective.h"
 
 namespace ompl
@@ -60,3 +63,5 @@ namespace ompl
         };
     }
 }
+
+#endif
