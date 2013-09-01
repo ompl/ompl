@@ -15,7 +15,6 @@ import bge
 import mathutils
 
 OMPL_DIR=os.path.dirname(__file__)
-GOALSTRINGS=['.goalPose','.goalRot','.goalRegion']
 
 # Routines for accessing Blender internal data
 
@@ -229,6 +228,16 @@ def getRigidBodiesBounds():
     
     return True
 
+def _recurseDelete(obj):
+    """
+    Delete an object and all its children recursively.
+    """
+    for child in obj.children[:]:
+        _recurseDelete(child)
+    
+    bpy.ops.object.select_pattern(pattern=obj.name, case_sensitive=True, extend=False)
+    bpy.ops.object.delete()
+
 def endSimulation():
     """
     Close the socket and tell Blender to stop the game engine.
@@ -252,8 +261,8 @@ def endSimulation():
     
     mode = bpy.data.objects['__settings']['Mode']
     
+    # we'll need to clean up the created animation file
     if mode == 'PLAY':
-        # Clean up:
         
         animpath = bpy.data.objects['__settings']['Animpath']
         
@@ -261,10 +270,17 @@ def endSimulation():
         bpy.context.scene.game_settings.use_auto_start = False
         
         # remove unwanted objects
-        # TODO delete more objects
-        for obj in bpy.context.scene.objects[:]:
-            if obj.name in ['Scene_Script_Holder']:
-                bpy.context.scene.objects.unlink(obj)
+        toDelete = []
+        for obj in bpy.context.scene.objects:
+            if obj.name in ['Scene_Script_Holder','CameraFP','__settings'] or \
+              obj.name.endswith('.goalPose') or obj.name.endswith('.goalRegion') or \
+              obj.name.endswith('.goalRot'):
+                toDelete.append(obj)
+            for child in obj.children:
+                if child.name.endswith('Motion'):
+                    toDelete.append(obj)
+        for obj in toDelete:
+            _recurseDelete(obj)
                 
         # save animation curves to file
         bpy.ops.wm.save_mainfile(filepath=animpath, check_existing=False)
@@ -431,7 +447,7 @@ def main():
                 rigidObjects.append(gameobj)
             
             # check if it's a goal criterion
-            elif [True for goalStr in GOALSTRINGS if gameobj.name.endswith(goalStr)]:
+            elif [True for goalStr in ['.goalPose','.goalRegion','.goalRot'] if gameobj.name.endswith(goalStr)]:
                 print("\t> goal criterion " + gameobj.name)
                 
                 if gameobj.name.endswith('.goalRegion'):

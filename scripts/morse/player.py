@@ -5,7 +5,7 @@ import pickle
 import sys
 import time
 
-from environment import *
+from ompl.morse.environment import *
 
 def playWithMorse(sockS, sockC):
     """

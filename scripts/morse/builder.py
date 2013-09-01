@@ -10,7 +10,6 @@ import bpy
 import morse.builder
 
 OMPL_DIR=os.path.dirname(__file__)
-GOALSTRINGS=['.goalPose','.goalRot','.goalRegion']
 
 # Determine the mode to use (third argument)
 mode = sys.argv[sys.argv.index('--') + 3]
@@ -49,7 +48,7 @@ for obj in bpy.context.scene.objects:
     print(obj.name)
     # if this object has the marks of a robot, but not a goal
     if obj.get('RobotType') and \
-        not [True for goalStr in GOALSTRINGS if obj.name.endswith(goalStr)]:
+        not [True for goalStr in ['.goalPose','.goalRegion','.goalRot'] if obj.name.endswith(goalStr)]:
         rtype = obj['RobotType']
         ctype = obj['ControllerType']
         pos = obj.location
@@ -60,7 +59,7 @@ for obj in bpy.context.scene.objects:
         if rname != rnameSafe:
             print("WARNING: had to rename robot %s to %s because dots not allowed in MORSE names"
                   % (rname, rnameSafe))
-            for goalStr in GOALSTRINGS:
+            for goalStr in ['.goalPose','.goalRegion','.goalRot']:
                 goal = bpy.context.scene.objects.get(obj.name + goalStr)
                 if goal:
                     print("\t> also renamed goal %s" % goal.name)

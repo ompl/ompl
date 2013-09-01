@@ -6,7 +6,7 @@ import sys
 
 from ompl import control as oc
 
-from environment import *
+from ompl.morse.environment import *
 
 def planWithMorse(sockS, sockC):
     """

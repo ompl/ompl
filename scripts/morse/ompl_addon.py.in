@@ -19,14 +19,11 @@ import time
 import bpy
 import mathutils
 
-# the following path is in sys.path when you start python3 normally, but not when in Blender?!?
-sys.path.append('/usr/local/lib/python3.2/site-packages')
 import morse.builder
 
-import environment
+import ompl.morse.environment
 
 OMPL_DIR='@CMAKE_INSTALL_PREFIX@/@OMPL_MORSE_PYTHON_INSTALL_DIR@'
-GOALSTRINGS=['.goalPose','.goalRot','.goalRegion']
 
 inf = float('inf')
 
@@ -59,7 +56,7 @@ class Plan(bpy.types.Operator):
         """
         # Double-check goal object properties
         for obj in bpy.data.objects:
-            if [True for goalStr in GOALSTRINGS if obj.name.endswith(goalStr)]:
+            if [True for goalStr in ['.goalPose','.goalRegion','.goalRot'] if obj.name.endswith(goalStr)]:
                 obj.hide_render = True
                 if obj.name.endswith('.goalRegion'):
                     obj.game.physics_type = 'SENSOR'
