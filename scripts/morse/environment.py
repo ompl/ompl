@@ -35,21 +35,28 @@ def unpickleFromSocket(s):
 class MyEnvironment(om.MorseEnvironment):
     """
     Represents the MORSE environment we will be planning in.
-    Inherits from the C++ OMPL class ob.MorseEnvironment and
-    implements pure virtual functions readState(),
-    writeState(), applyControl(), and worldStep().
+    Inherits from the C++ OMPL class ob.MorseEnvironment.
     """
     
     def __init__(self, state_socket, control_socket, query_only=False):
         """
         Get information from Blender about the scene.
         """
-        self.simRunning = True
+        print('environment initializing')
+        self.initState = None
         self.sockS = state_socket
         self.sockC = control_socket
+        print('calling for control description')
         self.cdesc = self.call('getControlDescription()', b'')   # get info for applying controls
+        if not self.cdesc:
+            raise Exception("Can't communicate with MORSE process")
         if query_only:
-            self.endSimulation()
+            print('query done, ending simulation')
+            self.call('endSimulation()')
+            try:
+                self.sockC.sendall(b"id simulation quit\n")
+            except:
+                pass
             return
         
         self.con = [0 for _ in range(self.cdesc[0])]    # cache of the last control set to MORSE
@@ -57,6 +64,8 @@ class MyEnvironment(om.MorseEnvironment):
         cb.append(list2vec(self.cdesc[1]))   # control bounds
         
         rb = self.call('getRigidBodiesBounds()', b'')   # number of bodies and pos, lin, ang bounds
+        if not rb:
+            raise Exception("Can't communicate with MORSE process")
         for i in [1,2,3]:
             rb[i] = list2vec(rb[i])
         
@@ -64,7 +73,10 @@ class MyEnvironment(om.MorseEnvironment):
         super(MyEnvironment, self).__init__(*envArgs)
         
         # tell MORSE to reset the simulation, because it was running while it was initializing
-        self.sockC.sendall(b'id simulation reset_objects')
+        try:
+            self.sockC.sendall(b'id simulation reset_objects')
+        except:
+            raise Exception("Can't communicate with MORSE process")
 
     def call(self, cmd, pickdata=None):
         """
@@ -84,8 +96,11 @@ class MyEnvironment(om.MorseEnvironment):
             assert self.sockS.recv(1) == b'\x06', NO_ACK_MSG
             return
         except:
-            self.simRunning = False
-            raise
+            try:
+                self.simRunning_ = False
+            except:
+                pass
+            return
     
     def getGoalCriteria(self):
         """
@@ -93,13 +108,25 @@ class MyEnvironment(om.MorseEnvironment):
         the index of a rigid body in the world state and
         state_n is its goal position.
         """
-        return self.call('getGoalCriteria()', b'')  # special receive pickled bytes
+        ret = self.call('getGoalCriteria()', b'')  # special receive pickled bytes
+        if not ret:
+            raise Exception("Can't communicate with MORSE process")
+        return ret
     
     def readState(self, state):
         """
         Get the state from the simulation so OMPL can use it.
         """
         simState = self.call('extractState()', b'') # special receive pickled bytes
+        if not simState:
+            # we MUST continue somehow, so just return the initial state if possible
+            simState = self.initState
+            if not simState:
+                # then no planning has actually happened yet, so just leave
+                raise Exception("Can't communicate with MORSE process")
+        
+        if not self.initState:
+            self.initState = simState[:]
         
         i = 0
         for obj in simState[:-1]:
@@ -150,28 +177,28 @@ class MyEnvironment(om.MorseEnvironment):
             for controller in self.cdesc[2:]:
                 req = 'id %s %s %s\n' % (controller[0], controller[1], con[i:i+controller[2]])
                 i += controller[2]
-                self.sockC.sendall(req.encode())
-    
-    def worldStepRes(self, dur):
-        """
-        Configure simulation to run in dur second intervals.
-        """
-        self.call('stepRes(%f)'%dur)
+                try:
+                    self.sockC.sendall(req.encode())
+                except:
+                    raise Exception("Can't communicate with MORSE process")
         
     def worldStep(self, dur):
         """
-        Run the simulation for worldStepRes seconds (not dur!).
+        Run the simulation for dur seconds.
         """
-        #for _ in range(round(dur/(0.1))):
-        self.call('nextTick()')
+        for _ in range(round(dur/(1/60))):
+            self.call('nextTick()')
         
     def endSimulation(self):
         """
         Let the simulation know to shut down.
         """
-        if self.simRunning:
+        if self.simRunning_:
             self.call('endSimulation()')
-        self.sockC.sendall(b"id simulation quit\n")
+        try:
+            self.sockC.sendall(b"id simulation quit\n")
+        except:
+            pass
 
 class ExampleProjection(om.MorseProjection):
     """
@@ -211,7 +238,6 @@ class MyGoal(om.MorseGoal):
         self.criteria = env.getGoalCriteria()
         self.rigidBodies_ = env.rigidBodies_
     
-    #TODO clean these up a little
     def distLocRot(self, st, locrot):
         """
         How close are these rigid body states in position and orientation)?

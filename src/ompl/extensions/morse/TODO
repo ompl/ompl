@@ -1,3 +1,0 @@
-
--Only compile MORSE extension if Python and Boost.Python are found
-

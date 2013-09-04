@@ -235,26 +235,17 @@ class AddRobot(bpy.types.Operator):
         # choose robot and controller
         return context.window_manager.invoke_props_dialog(self)
 
-
-def getRigidBodies():
-    bodies = []
-    for obj in bpy.data.objects:
-        if obj.game.physics_type == 'RIGID_BODY':
-            bodies.append((obj.name,obj.name,''))
-    return bodies
-
 class AddGoal(bpy.types.Operator):
     """Add a goal to the Scene"""
     bl_idname = "ompl.addgoal"
     bl_label = "Add Goal..."
     
     # automatically set by the Blender properties dialog
-    rigidEnum = getRigidBodies()
-    body = bpy.props.EnumProperty(items=rigidEnum, name="Rigid Body",
-        description="The body to define a goal for", default=rigidEnum[-1][0])
-    goal_type = bpy.props.EnumProperty(items=[
-        ('goalRot','Rotation','Rotation only'),('goalPose','Pose','Position and Rotation')],
-        name="Goal Type", description="The kind of goal specification", default='goalPose')
+    body = bpy.props.StringProperty(name="Rigid Body",
+        description="The body to define a goal for", default="")
+    goal_type = bpy.props.EnumProperty(items=[('goalRot','Rotation','Rotation only'),
+        ('goalPose','Pose','Position and Rotation')], name="Goal Type",
+        description="The kind of goal specification", default='goalPose')
     
     @classmethod
     def poll(cls, context):
@@ -268,6 +259,9 @@ class AddGoal(bpy.types.Operator):
         """
         Called when this operator is run.
         """
+        if not bpy.data.objects.get(self.body):
+            print("No such object: '%s'" % self.body)
+            return {'FINISHED'}
         
         goalname = self.body + '.' + self.goal_type
         bpy.ops.object.select_all(action='DESELECT')
@@ -483,19 +477,26 @@ class BoundsConfiguration(bpy.types.Operator):
         subprocess.Popen(['morse', '-c', 'run', 'ompl', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, ".", 'QUERY'],
                          )#stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+        sockS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sockC = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
             try:
-                sockS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sockC = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sockS.connect(('localhost', 50007))
-                sockC.connect(('localhost', 4000))
             except:
-                time.sleep(1)
+                time.sleep(0.5)
                 continue
             break
-        self.cdesc = environment.MyEnvironment(sockS, sockC, True).cdesc
+        while True:
+            try:
+                sockC.connect(('localhost', 4000))
+            except:
+                time.sleep(0.5)
+                continue
+            break
+        self.cdesc = ompl.morse.environment.MyEnvironment(sockS, sockC, True).cdesc
         if self.cdesc[0] > 16:
-            raise Exception("Control dimension exceeds 16! This dialog won't be able to accomdate that many.")
+            print("Control dimension exceeds 16! This dialog won't be able to accomdate that many.")
+            return {'FINISHED'}
         
         # Set bounds dialog
         return context.window_manager.invoke_props_dialog(self, width=1100)
@@ -505,7 +506,7 @@ class BoundsConfiguration(bpy.types.Operator):
         """
         Defines how the popup should look.
         """
-        
+        print('draw popup called')
         mainlayout = self.layout.row()
         # 3 sections in first column:
         sections = mainlayout.column()

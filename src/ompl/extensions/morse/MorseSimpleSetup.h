@@ -20,6 +20,8 @@ namespace ompl
         {
         public:
 
+            const base::MorseEnvironmentPtr env_;
+            
             /** \brief The control space is assumed to be
                 MorseControlSpace. The state space is assumed to
                 be MorseStateSpace. Constructor only needs the MORSE
@@ -34,7 +36,7 @@ namespace ompl
             /** \brief Get the MORSE environment associated to the state and control spaces */
             const base::MorseEnvironmentPtr& getEnvironment(void) const
             {
-                return getStateSpace()->as<base::MorseStateSpace>()->getEnvironment();
+                return env_;
             }
 
             /** \brief Get the current MORSE state (read parameters from MORSE bodies) */
@@ -48,7 +50,7 @@ namespace ompl
 
             void setup(void);
             
-            base::PlannerStatus solve(double time = 1.0);
+            base::PlannerStatus solve(void);
             
             /** \brief Set the MORSE world to the states that are
                 contained in a given path, sequentially. */

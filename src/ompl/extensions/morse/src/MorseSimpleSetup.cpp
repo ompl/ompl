@@ -2,11 +2,13 @@
 
 #include "ompl/extensions/morse/MorseSimpleSetup.h"
 #include "ompl/extensions/morse/MorseProjection.h"
+#include "ompl/extensions/morse/MorseTerminationCondition.h"
 #include "ompl/util/Console.h"
 #include <boost/thread.hpp>
 
 ompl::control::MorseSimpleSetup::MorseSimpleSetup(const base::MorseEnvironmentPtr &env) :
-    SimpleSetup(ControlSpacePtr(new MorseControlSpace(base::StateSpacePtr(new base::MorseStateSpace(env)))))
+    SimpleSetup(ControlSpacePtr(new MorseControlSpace(base::StateSpacePtr(new base::MorseStateSpace(env))))),
+    env_(env)
 {
     useEnvParams();
 }
@@ -57,10 +59,10 @@ void ompl::control::MorseSimpleSetup::setup(void)
     SimpleSetup::setup();
 }
 
-ompl::base::PlannerStatus ompl::control::MorseSimpleSetup::solve(double time)
+ompl::base::PlannerStatus ompl::control::MorseSimpleSetup::solve(void)
 {
     setup();
-    return SimpleSetup::solve(time);
+    return SimpleSetup::solve(base::MorseTerminationCondition(env_));
 }
 
 void ompl::control::MorseSimpleSetup::playSolutionPath(void) const

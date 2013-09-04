@@ -52,6 +52,8 @@ namespace ompl
             /** \brief The maximum number of times a control is applies in sequence */
             unsigned int maxControlSteps_;
             
+            bool simRunning_;
+            
             /** \brief Lock to use when performing simulations in the world */
             mutable boost::mutex mutex_;
 
@@ -61,7 +63,8 @@ namespace ompl
                 const double stepSize, const unsigned int minControlSteps, const unsigned int maxControlSteps)
                  : controlDim_(controlDim), controlBounds_(controlBounds), rigidBodies_(rigidBodies),
                    positionBounds_(positionBounds), linvelBounds_(linvelBounds), angvelBounds_(angvelBounds),
-                   stepSize_(stepSize), minControlSteps_(minControlSteps), maxControlSteps_(maxControlSteps)
+                   stepSize_(stepSize), minControlSteps_(minControlSteps), maxControlSteps_(maxControlSteps),
+                   simRunning_(true)
             {
                 for (unsigned int i = 0; i < positionBounds_.size(); i++)
                 {

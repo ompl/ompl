@@ -62,13 +62,15 @@ III) Setting up an environment
                 settings regarding objects' behavior in the physics engine
             - select the cube (right click) and look in the 'Properties' pane
                 on the far right for an icon showing a bouncing ball; clicking
-                it should open the physics settings for the cube
+                it should open the physics settings for the cube (you may have
+                to scroll right in the menu of buttons to find it)
             - set the 'Physics Type' to 'Rigid Body'; this allows the cube to
                 participate in the physics simulation as a movable, collidable
                 object
-            - now select the plane; this time set the physics type to 'Static'
-                since the plane should be immovable, but still collidable
-            - it may also be a good idea to enable the 'Collision Bounds'
+            - now select the plane; its physics type should already be 'Static'
+                by default; leave it as such since the plane should be
+                immovable, but still collidable
+            - it may also be a good idea to check the 'Collision Bounds'
                 setting on both objects; 'Convex Hull' or 'Triangle Mesh' for
                 more complicated objects are good choices, though it won't make
                 a difference for a very simple object
@@ -90,10 +92,10 @@ IV) Adding robot(s)
     care of converted these inputs into appropriate forces to be applied to the
     wheels during simulation.
     
-    After adding a robot to the scene, you can position it using the grab,
-    rotate, and scale tools (<g>, <r>, and <s>). If you would like more than
-    one robot of the same type, you can use the duplicate tool (<Shift> + <d>)
-    instead of returning to the Add Robot dialog.
+    After adding a robot to the scene, you can position it using the grab and
+    rotate tools (<g>, and <r>). If you would like more than one robot of the
+    same type, you can use the duplicate tool (<Shift> + <d>) instead of
+    returning to the Add Robot dialog.
 
 V) Defining the goal
 
@@ -103,7 +105,7 @@ V) Defining the goal
     existence of an object that shares the same name as the object for which we
     are specifying the goal, but ends in the suffix '.goalPose', '.goalRegion',
     or '.goalRot'. To add a new pose or rotation goal specification for an
-    object navigate to Game -> OMPL -> Add Goal... Here you can choose which
+    object, navigate to Game -> OMPL -> Add Goal... Here you can choose which
     goal type you would like to add. Adding a region goal specification simply
     requires appropriately renaming an existing object representing the region.
     
@@ -151,7 +153,7 @@ VI) Bounds configuration and planning
     terminal so that you can see the output it produces, especially if anything
     goes wrong.
 
-    When you have added all the robots to the scene you would like, its time to
+    When you have finished setting up the scene as you like, its time to
     configure the planning bounds. This includes limits on the locations and
     velocities of all rigid body objects, as well as limits on the inputs to
     the robots' controllers. Bring up the menu for these settings by navigating
@@ -163,7 +165,7 @@ VI) Bounds configuration and planning
     bounds for location in the x, y, and z dimensions, and for linear and
     angular velocities. The 'Automatic position bounds' will ignore
     user-specifed bounds on the location and will use the current locations
-    of all objects to determine how large the bounds should be. This is useful
+    of all objects to estimate how large the bounds should be. This is useful
     if you are in a hurry.
     
     On the right side of the menu you will find settings for upper and lower
@@ -172,19 +174,25 @@ VI) Bounds configuration and planning
     the documentation for specific controllers to determine what each argument
     does. (E.g., in the MotionVWDiff controller, the first argument specifies
     desired velocity, and the second specifies desired turning speed.)
+
+    If you have been following along from section III, a good choice is to use
+    the automatic position bounds and leave the min/max velocities at their
+    defaults. Also, for the robot set_speed control, use plus/minus 5.0 as the
+    bounds for arg0 and plus/minus 2.0 as the bounds for arg1.
     
     After you have configured the planning bounds, you are ready to plan.
     Navigate to Game -> OMPL -> Plan... Choose a (possibly new) file in which
     you would like OMPL to save the solution, like 'path.out'. On the terminal
-    you should see MORSE starting up, followed by a list of ribid body and goal
-    bjects, followed by OMPL starting up. If everything was successful, the
+    you should see MORSE starting up, followed by a list of rigid body and goal
+    objects, followed by OMPL starting up. If everything was successful, the
     final message before planning should be "Starting with 1 states". If you
     have wmctrl installed, the planning window will be "shaded" to keep it out
     of the way, but you can unshade it to watch if you would like. To stop a
-    plan, with the window unshaded, press <Esc>; the best approximate solution
-    found so far will be saved.
+    plan before a solution is found, close the planning window (or with it
+    unshaded, press <Esc>); the best approximate solution found so far will be
+    saved. Otherwise, OMPL will plan as long as it takes to find a solution.
 
-VII) Playback and saving
+VII) Playback and animation saving
 
     After planning is completed, you'll want to review the solution path by
     playing it back. At the same time, the path will be saved into a format
@@ -192,7 +200,7 @@ VII) Playback and saving
     videos. To choose the destination file for this, run Game -> OMPL ->
     Choose animation save file... This file will be a copy of your environment
     *.blend file, but with a record of the changes to the poses of all the
-    rigid body objects, including each part of the robot.
+    rigid body objects throughout the solution path.
     
     To play back the solution and record the animation to file, run Game ->
     OMPL -> Play..., selecting the same file you chose in the Plan phase, e.g.

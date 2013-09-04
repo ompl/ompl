@@ -8,6 +8,7 @@ import sys
 import bpy
 
 import morse.builder
+import morse.blender
 
 OMPL_DIR=os.path.dirname(__file__)
 
@@ -45,7 +46,6 @@ env = morse.builder.Environment(envpath)
 to_delete = []
 i = 0
 for obj in bpy.context.scene.objects:
-    print(obj.name)
     # if this object has the marks of a robot, but not a goal
     if obj.get('RobotType') and \
         not [True for goalStr in ['.goalPose','.goalRegion','.goalRot'] if obj.name.endswith(goalStr)]:
