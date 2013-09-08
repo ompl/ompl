@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-# This script makes the boost::numeric::odeint source future proof by 
+# This script makes the boost::numeric::odeint source future proof by
 # changing the namespace and include directory to something OMPL specific.
-# 
+#
 # It modifies the current directory (and subdirectories) by changing all
 # instances of the namespace odeint to omplext_odeint, and all include
 # paths of <boost/numeric/odeint/...> to <omplext_odeint/boost/numeric/odeint/...>
@@ -45,8 +45,8 @@ def FixupSource(headerFilename):
             newlines.append(line)
         else:
             newlines.append(l)
-    header.close()     
-    
+    header.close()
+
     # Writing the revised source code
     header = open(headerFilename, 'w')
     for l in newlines:
@@ -61,11 +61,11 @@ def main(searchDirectory):
             if f.endswith('.hpp'):
                 ret = FixupSource(os.path.join(root, f))
 
-            
+
 if __name__ == '__main__':
     searchDirectory = "."
     if len(sys.argv) == 2:
         searchDirectory = str(sys.argv[1])
     main (searchDirectory)
-                
-            
+
+

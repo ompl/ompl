@@ -411,7 +411,7 @@ namespace ompl
                 }
 
                 /** \brief Syclop will not sample from the CoverageGrid. */
-                virtual void sampleFullState(const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State* s) const
+                virtual void sampleFullState(const base::StateSamplerPtr& /*sampler*/, const std::vector<double>& /*coord*/, base::State* /*s*/) const
                 {
                 }
 
@@ -453,7 +453,7 @@ namespace ompl
                 GoalVisitor(const unsigned int goal) : goalRegion(goal)
                 {
                 }
-                void examine_vertex(Vertex v, const RegionGraph& g)
+                void examine_vertex(Vertex v, const RegionGraph& /*g*/)
                 {
                     if (v == goalRegion)
                         throw found_goal();

@@ -100,7 +100,6 @@ void ompl::geometric::pRRT::freeMemory(void)
 
 void ompl::geometric::pRRT::threadSolve(unsigned int tid, const base::PlannerTerminationCondition &ptc, SolutionInfo *sol)
 {
-    checkValidity();
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
     RNG                         rng;
@@ -173,11 +172,13 @@ void ompl::geometric::pRRT::threadSolve(unsigned int tid, const base::PlannerTer
 
 ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTerminationCondition &ptc)
 {
+    checkValidity();
+
     base::GoalRegion *goal = dynamic_cast<base::GoalRegion*>(pdef_->getGoal().get());
 
     if (!goal)
     {
-        OMPL_ERROR("Goal undefined");
+        OMPL_ERROR("%s: Unknow type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -192,11 +193,11 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
 
     if (nn_->size() == 0)
     {
-        OMPL_ERROR("There are no valid initial states!");
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
 
-    OMPL_INFORM("Starting with %u states", nn_->size());
+    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nn_->size());
 
     SolutionInfo sol;
     sol.solution = NULL;
@@ -241,7 +242,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
         solved = true;
     }
 
-    OMPL_INFORM("Created %u states", nn_->size());
+    OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
     return base::PlannerStatus(solved, approximate);
 }

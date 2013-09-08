@@ -64,8 +64,8 @@ unsigned int ompl::control::SimpleDirectedControlSampler::getBestControl (Contro
     else
         cs_->sample(control, source);
 
-    const double minDuration = si_->getMinControlDuration();
-    const double maxDuration = si_->getMaxControlDuration();
+    const unsigned int minDuration = si_->getMinControlDuration();
+    const unsigned int maxDuration = si_->getMaxControlDuration();
 
     unsigned int steps = cs_->sampleStepCount(minDuration, maxDuration);
     // Propagate the first control, and find how far it is from the target state

@@ -60,7 +60,7 @@ bool isStateValid(const ob::State *state)
 
 
     // return a value that is always true but uses the two variables we define, so we avoid compiler warnings
-    return (void*)rot != (void*)pos;
+    return (const void*)rot != (const void*)pos;
 }
 
 void plan(void)

@@ -90,7 +90,7 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 
 
     // return a value that is always true but uses the two variables we define, so we avoid compiler warnings
-    return si->satisfiesBounds(state) && (void*)rot != (void*)pos;
+    return si->satisfiesBounds(state) && (const void*)rot != (const void*)pos;
 }
 
 void propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result)
@@ -262,9 +262,9 @@ int main(int, char **)
     std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 
     // plan();
-    // 
+    //
     // std::cout << std::endl << std::endl;
-    // 
+    //
     planWithSimpleSetup();
 
     return 0;

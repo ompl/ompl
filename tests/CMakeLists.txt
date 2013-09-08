@@ -26,6 +26,7 @@ add_ompl_test(test_machine_specs benchmark/machine_specs.cpp)
 add_ompl_test(test_state_operations base/state_operations.cpp)
 add_ompl_test(test_state_spaces base/state_spaces.cpp)
 add_ompl_test(test_state_storage base/state_storage.cpp)
+add_ompl_test(test_ptc base/ptc.cpp)
 # Only build the PlannerData test on Boost >= 1.44
 if(NOT "${Boost_VERSION}" LESS 104400)
     add_ompl_test(test_planner_data base/planner_data.cpp)

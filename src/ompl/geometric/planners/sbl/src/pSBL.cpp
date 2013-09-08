@@ -105,8 +105,7 @@ void ompl::geometric::pSBL::freeGridMotions(Grid<MotionInfo> &grid)
 
 void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTerminationCondition &ptc, SolutionInfo *sol)
 {
-    checkValidity();
-    RNG              rng;
+    RNG rng;
 
     std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
@@ -193,11 +192,13 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTer
 
 ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTerminationCondition &ptc)
 {
+    checkValidity();
+
     base::GoalState *goal = dynamic_cast<base::GoalState*>(pdef_->getGoal().get());
 
     if (!goal)
     {
-        OMPL_ERROR("Unknown type of goal (or goal undefined)");
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -221,23 +222,23 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
             addMotion(tGoal_, motion);
         }
         else
-            OMPL_ERROR("Goal state is invalid!");
+            OMPL_ERROR("%s: Goal state is invalid!", getName().c_str());
     }
 
     if (tStart_.size == 0)
     {
-        OMPL_ERROR("Motion planning start tree could not be initialized!");
+        OMPL_ERROR("%s: Motion planning start tree could not be initialized!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
     if (tGoal_.size == 0)
     {
-        OMPL_ERROR("Motion planning goal tree could not be initialized!");
+        OMPL_ERROR("%s: Motion planning goal tree could not be initialized!", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
 
     samplerArray_.resize(threadCount_);
 
-    OMPL_INFORM("Starting with %d states", (int)(tStart_.size + tGoal_.size));
+    OMPL_INFORM("%s: Starting with %d states", getName().c_str(), (int)(tStart_.size + tGoal_.size));
 
     SolutionInfo sol;
     sol.found = false;
@@ -252,8 +253,9 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
         delete th[i];
     }
 
-    OMPL_INFORM("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
-             tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
+    OMPL_INFORM("%s: Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)",
+                getName().c_str(), tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
+                tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
 
     return sol.found ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

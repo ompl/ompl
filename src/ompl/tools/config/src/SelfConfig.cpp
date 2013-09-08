@@ -86,7 +86,7 @@ namespace ompl
                     attempts = magic::MAX_VALID_SAMPLE_ATTEMPTS;
             }
 
-            void configurePlannerRange(double &range)
+            void configurePlannerRange(double &range, const std::string &context)
             {
                 if (range < std::numeric_limits<double>::epsilon())
                 {
@@ -94,20 +94,20 @@ namespace ompl
                     if (si)
                     {
                         range = si->getMaximumExtent() * magic::MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
-                        OMPL_DEBUG("Planner range detected to be %lf", range);
+                        OMPL_DEBUG("%sPlanner range detected to be %lf", context.c_str(), range);
                     }
                     else
-                        OMPL_ERROR("Unable to detect planner range. SpaceInformation instance has expired.");
+                        OMPL_ERROR("%sUnable to detect planner range. SpaceInformation instance has expired.", context.c_str());
                 }
             }
 
-            void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
+            void configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj, const std::string &context)
             {
                 base::SpaceInformationPtr si = wsi_.lock();
                 checkSetup(si);
                 if (!proj && si)
                 {
-                    OMPL_INFORM("Attempting to use default projection.");
+                    OMPL_INFORM("%sAttempting to use default projection.", context.c_str());
                     proj = si->getStateSpace()->getDefaultProjection();
                 }
                 if (!proj)
@@ -168,7 +168,8 @@ namespace ompl
 
 /// @endcond
 
-ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const std::string &context) : context_(context)
+ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const std::string &context) :
+    context_(context.empty() ? "" : context + ": ")
 {
     typedef std::map<base::SpaceInformation*, boost::shared_ptr<SelfConfigImpl> > ConfigMap;
 
@@ -225,13 +226,13 @@ void ompl::tools::SelfConfig::configureValidStateSamplingAttempts(unsigned int &
 void ompl::tools::SelfConfig::configurePlannerRange(double &range)
 {
     boost::mutex::scoped_lock iLock(impl_->lock_);
-    impl_->configurePlannerRange(range);
+    impl_->configurePlannerRange(range, context_);
 }
 
 void ompl::tools::SelfConfig::configureProjectionEvaluator(base::ProjectionEvaluatorPtr &proj)
 {
     boost::mutex::scoped_lock iLock(impl_->lock_);
-    return impl_->configureProjectionEvaluator(proj);
+    return impl_->configureProjectionEvaluator(proj, context_);
 }
 
 void ompl::tools::SelfConfig::print(std::ostream &out) const
