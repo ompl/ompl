@@ -15,25 +15,25 @@ namespace ompl
     {
 
         /** \brief Create the set of classes typically needed to solve a
-            control problem when forward propagation is computed with OpenDE. */
+            control problem when forward propagation is computed with MORSE */
         class MorseSimpleSetup : public SimpleSetup
         {
         public:
 
+            /** \brief Pointer to the environment representing the MORSE simulation */
             const base::MorseEnvironmentPtr env_;
             
             /** \brief The control space is assumed to be
                 MorseControlSpace. The state space is assumed to
                 be MorseStateSpace. Constructor only needs the MORSE
                 environment. */
-            explicit
             MorseSimpleSetup(const base::MorseEnvironmentPtr &env);
 
             virtual ~MorseSimpleSetup(void)
             {
             }
 
-            /** \brief Get the MORSE environment associated to the state and control spaces */
+            /** \brief Get the MORSE environment associated with this setup */
             const base::MorseEnvironmentPtr& getEnvironment(void) const
             {
                 return env_;
@@ -48,8 +48,12 @@ namespace ompl
             /** \brief Set the current MORSE state (set parameters for MORSE bodies) */
             void setCurrentState(const base::State *state);
 
+            /** \brief This method will create the necessary classes
+                for planning. The solve() method will call this
+                function automatically. */
             void setup(void);
             
+            /** \brief Run the planner until solution is found or user shuts down MORSE */
             base::PlannerStatus solve(void);
             
             /** \brief Set the MORSE world to the states that are
@@ -73,12 +77,8 @@ namespace ompl
                 Construct a path representing this action. */
             base::PathPtr simulate(unsigned int steps) const;
 
-        private:
-
-            void useEnvParams(void);
-
         };
     }
-
 }
+
 #endif

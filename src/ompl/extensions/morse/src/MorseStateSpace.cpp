@@ -56,7 +56,6 @@ void ompl::base::MorseStateSpace::setBounds(void)
 void ompl::base::MorseStateSpace::copyState(State *destination, const State *source) const
 {
     CompoundStateSpace::copyState(destination, source);
-    destination->as<StateType>()->validCollision = source->as<StateType>()->validCollision;
 }
 
 bool ompl::base::MorseStateSpace::satisfiesBounds(const State *state) const
@@ -98,12 +97,10 @@ void ompl::base::MorseStateSpace::freeState(State *state) const
     CompoundStateSpace::freeState(state);
 }
 
-// this function should most likely not be used with MORSE propagations, but just in case it is called, we need to make sure the collision information
-// is cleared from the resulting state
+// this function should most likely not be used with MORSE propagations
 void ompl::base::MorseStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
     CompoundStateSpace::interpolate(from, to, t, state);
-    state->as<StateType>()->validCollision = true;
 }
 
 /// @cond IGNORE
@@ -111,7 +108,6 @@ namespace ompl
 {
     namespace base
     {
-        // we need to make sure any collision information is cleared when states are sampled (just in case this ever happens)
         class WrapperForMorseSampler : public StateSampler
         {
         public:
@@ -122,19 +118,16 @@ namespace ompl
             virtual void sampleUniform(State *state)
             {
                 wrapped_->sampleUniform(state);
-                state->as<MorseStateSpace::StateType>()->validCollision = true;
             }
 
             virtual void sampleUniformNear(State *state, const State *near, const double distance)
             {
                 wrapped_->sampleUniformNear(state, near, distance);
-                state->as<MorseStateSpace::StateType>()->validCollision = true;
             }
 
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev)
             {
                 wrapped_->sampleGaussian(state, mean, stdDev);
-                state->as<MorseStateSpace::StateType>()->validCollision = true;
             }
         private:
             StateSamplerPtr wrapped_;
@@ -161,15 +154,11 @@ ompl::base::StateSamplerPtr ompl::base::MorseStateSpace::allocStateSampler(void)
 void ompl::base::MorseStateSpace::readState(State *state) const
 {
     env_->readState(state);
-    // Bullet can get a little imprecise with the quaternions for OMPL's tastes
-    // TODO: if we can trust Bullet not to get too crazy with them, maybe we can make a QuickSO3StateSpace that
-    //   doesn't ever check the bounds, to save time
     for (unsigned int i = 0; i < env_->rigidBodies_*4; i+=4)
     {
         SO3StateSpace::StateType *quat = state->as<StateType>()->as<SO3StateSpace::StateType>(i+3);
         getSubspace(i+3)->as<SO3StateSpace>()->enforceBounds(quat);
     }
-    state->as<StateType>()->validCollision = true;
 }
 
 void ompl::base::MorseStateSpace::writeState(const State *state) const

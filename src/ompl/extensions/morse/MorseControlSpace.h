@@ -11,9 +11,9 @@ namespace ompl
 
     namespace control
     {
-
+        // TODO is this forward declaration necessary?
         /// @cond IGNORE
-        /** \brief Forward declaration of ompl::base::MorseEnvironment */
+        /** \brief Forward declaration of ompl::base::MorseControlSpace */
         OMPL_CLASS_FORWARD(MorseControlSpace);
         /// @endcond
         
@@ -40,8 +40,6 @@ namespace ompl
 
         };
     }
-
 }
-
 
 #endif

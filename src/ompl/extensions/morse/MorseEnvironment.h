@@ -12,7 +12,7 @@
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/Console.h"
 
-#include "boost/thread.hpp"
+#include "boost/thread/mutex.hpp"
 
 #include <limits>
 #include <vector>
@@ -35,23 +35,34 @@ namespace ompl
         {
         public:
             
+            /** \brief The dimension of the control space for this simulation */
             const unsigned int controlDim_;
             
+            /** \brief Upper and lower bounds for each control dimension */
             const std::vector<double> controlBounds_;
             
+            /** \brief The number of rigid bodies in the simulation */
             const unsigned int rigidBodies_;
             
-            std::vector<double> positionBounds_, linvelBounds_, angvelBounds_;
+            /** \brief Upper and lower bounds on position in each spatial dimension */
+            std::vector<double> positionBounds_;
+            
+            /** \brief Upper and lower bounds on linear velocity in each spatial dimension */
+            std::vector<double> linvelBounds_;
+            
+            /** \brief Upper and lower bounds on angular velocity in each spatial dimension */
+            std::vector<double> angvelBounds_;
             
             /** \brief The simulation step size */
             double stepSize_;
 
-            /** \brief The minimum number of times a control is applies in sequence */
+            /** \brief The minimum number of times a control is applied in sequence */
             unsigned int minControlSteps_;
 
-            /** \brief The maximum number of times a control is applies in sequence */
+            /** \brief The maximum number of times a control is applied in sequence */
             unsigned int maxControlSteps_;
             
+            /** \brief Indicates whether the simulation has been shut down externally */
             bool simRunning_;
             
             /** \brief Lock to use when performing simulations in the world */
@@ -66,12 +77,13 @@ namespace ompl
                    stepSize_(stepSize), minControlSteps_(minControlSteps), maxControlSteps_(maxControlSteps),
                    simRunning_(true)
             {
+                // Replace infinite bounds with very large bounds, so, e.g., sampling can still work
                 for (unsigned int i = 0; i < positionBounds_.size(); i++)
                 {
                     if (positionBounds_[i]==std::numeric_limits<double>::infinity())
-                        positionBounds_[i] = std::numeric_limits<double>::max();
+                        positionBounds_[i] = std::numeric_limits<double>::max()/2;
                     else if (positionBounds_[i]==-std::numeric_limits<double>::infinity())
-                        positionBounds_[i] = std::numeric_limits<double>::min();
+                        positionBounds_[i] = -std::numeric_limits<double>::max()/2;
                 }
                 for (unsigned int i = 0; i < linvelBounds_.size(); i++)
                 {
@@ -95,11 +107,20 @@ namespace ompl
 
             /** \brief Get the control bounds -- the bounding box in which to sample controls */
             void getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const;
-
-            // These IPC functions are left to be implemented in Python
+            
+            
+            // These functions require interprocess communication and are left to be implemented in Python
+            
+            /** \brief Query the internal state of the simulation */
             virtual void readState(State *state) = 0;
+            
+            /** \brief Overwrite the internal state of the simulation */
             virtual void writeState(const State *state) = 0;
+            
+            /** \brief Configure simulation to proceed under a new control */
             virtual void applyControl(const std::vector<double> &control) = 0;
+            
+            /** \brief Proceed with the simulation for the given number of seconds */
             virtual void worldStep(const double dur) = 0;
         };
     }

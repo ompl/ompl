@@ -22,8 +22,8 @@ namespace ompl
         {
         public:
 
-            /** \brief Construct a representation of MORSE state propagator.
-                If \e si->getStateSpace() does not cast to an
+            /** \brief Construct representation of a MORSE state propagator.
+                If \e si->getStateSpace() does not cast to a
                 MorseStateSpace, an exception is thrown. */
             MorseStatePropagator(const SpaceInformationPtr &si);
 
@@ -37,8 +37,10 @@ namespace ompl
                 return env_;
             }
 
+            /** \brief Will always return false, as the simulation can only proceed forward in time */
             virtual bool canPropagateBackward(void) const;
 
+            /** \brief Propagate from a state, under a given control, for some specified amount of time */
             virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
 
         protected:
@@ -48,7 +50,6 @@ namespace ompl
 
         };
     }
-
 }
 
 #endif

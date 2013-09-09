@@ -22,13 +22,9 @@ namespace ompl
             class StateType : public CompoundStateSpace::StateType
             {
             public:
-                StateType(void) : CompoundStateSpace::StateType(), validCollision(true)
+                StateType(void) : CompoundStateSpace::StateType()
                 {
                 }
-
-                /** \brief Flag containing information about state validity */
-                mutable bool validCollision;
-
             };
 
             /** \brief Construct a state space representing MORSE states.
@@ -60,13 +56,13 @@ namespace ompl
                 return env_;
             }
 
-            /** \brief Get the number of bodies state is maintained for */
+            /** \brief Get the number of bodies this state space represents */
             unsigned int getNrBodies(void) const
             {
                 return env_->rigidBodies_;
             }
 
-            /** \brief Set the bounds given by MorseEnvironment */
+            /** \brief Set the bounds given by the MorseEnvironment */
             void setBounds(void);
 
             /** \brief Set the bounds for each of the position subspaces */
@@ -86,13 +82,7 @@ namespace ompl
                 ones read from \e state. */
             void writeState(const State *state) const;
 
-            /** \brief This is a convenience function provided for
-                optimization purposes. It checks whether a state
-                satisfies its bounds. Typically, in the process of
-                simulation the rotations remain valid (very slightly
-                out of bounds), so there is no point in updating or
-                checking them. This function checks all other bounds
-                (position, linear and angular velocities) */
+            /** \brief This function checks whether a state satisfies its bounds */
             bool satisfiesBounds(const State *state) const;
 
             State* allocState(void) const;

@@ -10,14 +10,8 @@ ompl::control::MorseSimpleSetup::MorseSimpleSetup(const base::MorseEnvironmentPt
     SimpleSetup(ControlSpacePtr(new MorseControlSpace(base::StateSpacePtr(new base::MorseStateSpace(env))))),
     env_(env)
 {
-    useEnvParams();
-}
-
-void ompl::control::MorseSimpleSetup::useEnvParams(void)
-{
-    si_->setPropagationStepSize(getStateSpace()->as<base::MorseStateSpace>()->getEnvironment()->stepSize_);
-    si_->setMinMaxControlDuration(getStateSpace()->as<base::MorseStateSpace>()->getEnvironment()->minControlSteps_,
-                                  getStateSpace()->as<base::MorseStateSpace>()->getEnvironment()->maxControlSteps_);
+    si_->setPropagationStepSize(env_->stepSize_);
+    si_->setMinMaxControlDuration(env_->minControlSteps_, env_->maxControlSteps_);
     si_->setStatePropagator(StatePropagatorPtr(new MorseStatePropagator(si_)));
 }
 
