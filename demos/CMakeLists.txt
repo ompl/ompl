@@ -27,6 +27,8 @@ if (OMPL_BUILD_DEMOS)
   aux_source_directory(Koules Koules_SRC)
   add_ompl_demo(demo_Koules ${Koules_SRC})
 
+  add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
+
   if (OMPL_EXTENSION_OPENDE)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)
   endif()

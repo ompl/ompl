@@ -69,7 +69,7 @@ namespace ompl
                 BOUNDED_APPROXIMATE,
             };
 
-            StateValidityCheckerSpecs(void) : clearanceComputationType(NONE), hasValidDirectionComputation(false), hasCostComputation(false)
+            StateValidityCheckerSpecs(void) : clearanceComputationType(NONE), hasValidDirectionComputation(false)
             {
             }
 
@@ -80,9 +80,6 @@ namespace ompl
             /** \brief Flag indicating that this state validity checker can return
                 a direction that moves a state away from being invalid. */
             bool                     hasValidDirectionComputation;
-
-            /** \brief Flag indicating whether this state validity checker can compute costs for states */
-            bool                     hasCostComputation;
         };
 
         /** \brief Abstract definition for a class checking the
@@ -142,12 +139,6 @@ namespace ompl
             {
                 validStateAvailable = false;
                 return clearance(state);
-            }
-
-            /** \brief Return the cost of a particular state */
-            virtual double cost(const State* /*state*/) const
-            {
-                return 0.0;
             }
 
             /** \brief Return the specifications (capabilities of this state validity checker) */

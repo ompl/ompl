@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Rice University
+*  Copyright (c) 2010, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,36 +32,36 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Beck Chen, Mark Moll */
+/* Author: Luis G. Torres */
 
-#ifndef DEMOS_KOULES_STATESPACE_
-#define DEMOS_KOULES_STATESPACE_
+#ifndef OMPL_BASE_OBJECTIVES_MAXIMIZE_MIN_CLEARANCE_OBJECTIVE_
+#define OMPL_BASE_OBJECTIVES_MAXIMIZE_MIN_CLEARANCE_OBJECTIVE_
 
-#include "KoulesConfig.h"
-#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include "ompl/base/objectives/MinimaxObjective.h"
 
-/// @cond IGNORE
-class KoulesStateSpace : public ompl::base::RealVectorStateSpace
+namespace ompl
 {
-public:
-    KoulesStateSpace(unsigned int numKoules);
-
-    virtual void registerProjections(void);
-
-    double getMass(unsigned int i) const
+    namespace base
     {
-        return mass_[i];
-    }
-    double getRadius(unsigned int i) const
-    {
-        return radius_[i];
-    }
-    bool isDead(const ompl::base::State* state, unsigned int i) const;
+        /** \brief Objective for attempting to maximize the minimum clearance along a path. */
+        class MaximizeMinClearanceObjective : public MinimaxObjective
+        {
+        public:
+            MaximizeMinClearanceObjective(const SpaceInformationPtr &si);
 
-protected:
-    std::vector<double> mass_;
-    std::vector<double> radius_;
-};
-/// @endcond
+            /** \brief Defined as the clearance of the state \e s, which is computed using the StateValidityChecker in this objective's SpaceInformation */
+            virtual Cost stateCost(const State* s) const;
+
+            /** \brief Since we wish to maximize clearance, and costs are equivalent to path clearance, we return the greater of the two cost values. */
+            virtual bool isCostBetterThan(Cost c1, Cost c2) const;
+
+            /** \brief Returns +infinity, since any cost combined with +infinity under this objective will always return the other cost. */
+            virtual Cost identityCost(void) const;
+
+            /** \brief Returns -infinity, since no path clearance value can be considered worse than this. */
+            virtual Cost infiniteCost(void) const;
+        };
+    }
+}
 
 #endif

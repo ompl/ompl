@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Rice University
+*  Copyright (c) 2010, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,36 +32,35 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Beck Chen, Mark Moll */
+/* Author: Luis G. Torres */
 
-#ifndef DEMOS_KOULES_STATESPACE_
-#define DEMOS_KOULES_STATESPACE_
+#ifndef OMPL_BASE_OBJECTIVES_PATH_LENGTH_OPTIMIZATION_OBJECTIVE_
+#define OMPL_BASE_OBJECTIVES_PATH_LENGTH_OPTIMIZATION_OBJECTIVE_
 
-#include "KoulesConfig.h"
-#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include "ompl/base/OptimizationObjective.h"
 
-/// @cond IGNORE
-class KoulesStateSpace : public ompl::base::RealVectorStateSpace
+namespace ompl
 {
-public:
-    KoulesStateSpace(unsigned int numKoules);
-
-    virtual void registerProjections(void);
-
-    double getMass(unsigned int i) const
+    namespace base
     {
-        return mass_[i];
-    }
-    double getRadius(unsigned int i) const
-    {
-        return radius_[i];
-    }
-    bool isDead(const ompl::base::State* state, unsigned int i) const;
+        /** \brief An optimization objective which corresponds to optimizing path length. */
+        class PathLengthOptimizationObjective : public OptimizationObjective
+        {
+        public:
+            PathLengthOptimizationObjective(const SpaceInformationPtr &si);
 
-protected:
-    std::vector<double> mass_;
-    std::vector<double> radius_;
-};
-/// @endcond
+            /** \brief Motion cost for this objective is defined as
+                the configuration space distance between \e s1 and \e
+                s2, using the method SpaceInformation::distance(). */
+            virtual Cost motionCost(const State *s1, const State *s2) const;
+
+            /** \brief the motion cost heuristic for this objective is
+                simply the configuration space distance between \e s1
+                and \e s2, since this is the optimal cost between any
+                two states assuming no obstacles. */
+            virtual Cost motionCostHeuristic(const State *s1, const State *s2) const;
+        };
+    }
+}
 
 #endif

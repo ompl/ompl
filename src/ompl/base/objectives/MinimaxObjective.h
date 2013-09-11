@@ -32,16 +32,36 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Luis G. Torres */
 
-#include "ompl/base/MotionValidator.h"
-#include "ompl/base/SpaceInformation.h"
+#ifndef OMPL_BASE_OBJECTIVES_MINIMAX_OBJECTIVE_
+#define OMPL_BASE_OBJECTIVES_MINIMAX_OBJECTIVE_
 
-void ompl::base::MotionValidator::computeMotionCost(const State *s1, const State *s2, double &cost, std::pair<double, double> &bounds) const
+#include "ompl/base/OptimizationObjective.h"
+
+namespace ompl
 {
-    bounds.first = si_->getStateValidityChecker()->cost(s1);
-    bounds.second = si_->getStateValidityChecker()->cost(s2);
-    if (bounds.first > bounds.second)
-        std::swap(bounds.first, bounds.second);
-    cost = si_->distance(s1, s2) * (bounds.first + bounds.second) / 2.0;
+    namespace base
+    {
+        /** \brief The cost of a path is defined as the worst state
+            cost over the entire path. This objective attempts to find
+            the path with the "best worst cost" over all paths. */
+        class MinimaxObjective : public OptimizationObjective
+        {
+        public:
+            MinimaxObjective(const SpaceInformationPtr &si);
+
+            /** \brief Interpolates between \e s1 and \e s2 to check for
+                state costs along the motion between the two
+                states. Assumes all costs are worse than identity */
+            virtual Cost motionCost(const State *s1, const State *s2) const;
+
+            /** \brief Since we're only concerned about the "worst"
+                state cost in the path, combining two costs just
+                returns the worse of the two. */
+            virtual Cost combineCosts(Cost c1, Cost c2) const;
+        };
+    }
 }
+
+#endif

@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Rice University
+*  Copyright (c) 2010, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,36 +32,28 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Beck Chen, Mark Moll */
+/* Author: Luis G. Torres */
 
-#ifndef DEMOS_KOULES_STATESPACE_
-#define DEMOS_KOULES_STATESPACE_
+#include "ompl/base/objectives/MechanicalWorkOptimizationObjective.h"
 
-#include "KoulesConfig.h"
-#include <ompl/base/spaces/RealVectorStateSpace.h>
-
-/// @cond IGNORE
-class KoulesStateSpace : public ompl::base::RealVectorStateSpace
+ompl::base::MechanicalWorkOptimizationObjective::
+MechanicalWorkOptimizationObjective(const SpaceInformationPtr &si,
+                                    double pathLengthWeight) :
+    OptimizationObjective(si),
+    pathLengthWeight_(pathLengthWeight)
 {
-public:
-    KoulesStateSpace(unsigned int numKoules);
+    description_ = "Mechanical Work";
+}
 
-    virtual void registerProjections(void);
+double ompl::base::MechanicalWorkOptimizationObjective::getPathLengthWeight(void) const
+{
+    return pathLengthWeight_;
+}
 
-    double getMass(unsigned int i) const
-    {
-        return mass_[i];
-    }
-    double getRadius(unsigned int i) const
-    {
-        return radius_[i];
-    }
-    bool isDead(const ompl::base::State* state, unsigned int i) const;
-
-protected:
-    std::vector<double> mass_;
-    std::vector<double> radius_;
-};
-/// @endcond
-
-#endif
+ompl::base::Cost ompl::base::MechanicalWorkOptimizationObjective::motionCost(const State *s1,
+                                                                             const State *s2) const
+{
+    // Only accrue positive changes in cost
+    double positiveCostAccrued = std::max(stateCost(s2).v - stateCost(s1).v, 0.0);
+    return Cost(positiveCostAccrued + pathLengthWeight_*si_->distance(s1,s2));
+}

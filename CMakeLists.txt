@@ -53,7 +53,19 @@ else(IS_ICPC)
     add_definitions(-DBOOST_TEST_DYN_LINK)
 endif(IS_ICPC)
 
-find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework REQUIRED)
+# Do one quiet find_package on Boost to see if it is recent enough to
+# have the try_join_for call
+find_package(Boost QUIET 1.50)
+
+# try_join_for requires the chrono library, so if we will use
+# try_join_for, we need to include the chrono component
+if (${Boost_FOUND})
+  # we're using chrono
+  find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework chrono REQUIRED)
+else()
+  # don't use chrono
+  find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework REQUIRED)
+endif()
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 if (NOT ${Boost_VERSION} LESS 104400)

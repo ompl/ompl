@@ -11,6 +11,7 @@ Below we include a number of tutorials we believe are useful for understanding h
 - [Using existing samplers and creating new ones](samplers.html)
 - [Visualizing solution paths](pathVisualization.html)
 - [Benchmarking planners](benchmark.html)
+- [Optimal planning](optimalPlanningTutorial.html)
 
 
 ### Intermediate
@@ -19,6 +20,7 @@ Below we include a number of tutorials we believe are useful for understanding h
 - [Implementing new state spaces](implementingStateSpaces.html)
 - [Representing goals](goalRepresentation.html)
 - [Using ODESolver for Planning with Controls](odeint.html)
+- [Defining optimization objectives for optimal planning](optimizationObjectivesTutorial.html)
 
 
 ### Advanced

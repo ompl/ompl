@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Rice University
+*  Copyright (c) 2010, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,36 +32,26 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Beck Chen, Mark Moll */
+/* Author: Luis G. Torres */
 
-#ifndef DEMOS_KOULES_STATESPACE_
-#define DEMOS_KOULES_STATESPACE_
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
-#include "KoulesConfig.h"
-#include <ompl/base/spaces/RealVectorStateSpace.h>
-
-/// @cond IGNORE
-class KoulesStateSpace : public ompl::base::RealVectorStateSpace
+ompl::base::PathLengthOptimizationObjective::
+PathLengthOptimizationObjective(const SpaceInformationPtr &si) :
+    ompl::base::OptimizationObjective(si)
 {
-public:
-    KoulesStateSpace(unsigned int numKoules);
+    description_ = "Path Length";
+}
 
-    virtual void registerProjections(void);
+ompl::base::Cost
+ompl::base::PathLengthOptimizationObjective::motionCost(const State *s1, const State *s2) const
+{
+    return Cost(si_->distance(s1, s2));
+}
 
-    double getMass(unsigned int i) const
-    {
-        return mass_[i];
-    }
-    double getRadius(unsigned int i) const
-    {
-        return radius_[i];
-    }
-    bool isDead(const ompl::base::State* state, unsigned int i) const;
-
-protected:
-    std::vector<double> mass_;
-    std::vector<double> radius_;
-};
-/// @endcond
-
-#endif
+ompl::base::Cost
+ompl::base::PathLengthOptimizationObjective::motionCostHeuristic(const State *s1,
+                                                                 const State *s2) const
+{
+    return motionCost(s1, s2);
+}

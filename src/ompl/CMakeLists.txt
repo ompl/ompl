@@ -55,6 +55,7 @@ target_link_libraries(ompl
   ${Boost_SERIALIZATION_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
+  ${Boost_CHRONO_LIBRARY}
   ${CMAKE_THREAD_LIBS_INIT})
 
 if(MSVC)

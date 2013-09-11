@@ -37,6 +37,7 @@
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/datastructures/PDF.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/tools/config/MagicConstants.h"
@@ -111,6 +112,14 @@ void ompl::geometric::PRM::setup(void)
     }
     if (!connectionFilter_)
         connectionFilter_ = boost::lambda::constant(true);
+
+    if (pdef_->hasOptimizationObjective())
+        opt_ = pdef_->getOptimizationObjective();
+    else
+    {
+        opt_.reset(new base::PathLengthOptimizationObjective(si_));
+        opt_->setCostThreshold(opt_->infiniteCost());
+    }
 }
 
 void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
@@ -206,7 +215,7 @@ void ompl::geometric::PRM::expandRoadmap(const base::PlannerTerminationCondition
                 disjointSets_.make_set(m);
 
                 // add the edge to the parent vertex
-                const double weight = distanceFunction(v, m);
+                const base::Cost weight = opt_->motionCost(stateProperty_[v], stateProperty_[m]);
                 const unsigned int id = maxEdgeID_++;
                 const Graph::edge_property_type properties(weight, id);
                 boost::add_edge(v, m, properties, g_);
@@ -222,7 +231,7 @@ void ompl::geometric::PRM::expandRoadmap(const base::PlannerTerminationCondition
             if (s > 0 || !sameComponent(v, last))
             {
                 // add the edge to the parent vertex
-                const double weight = distanceFunction(v, last);
+                const base::Cost weight = opt_->motionCost(stateProperty_[v], stateProperty_[last]);
                 const unsigned int id = maxEdgeID_++;
                 const Graph::edge_property_type properties(weight, id);
                 boost::add_edge(v, last, properties, g_);
@@ -298,7 +307,7 @@ void ompl::geometric::PRM::checkForSolution(const base::PlannerTerminationCondit
 bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
-    double sol_cost = -1.0;
+    base::Cost sol_cost(0.0);
     bool sol_cost_set = false;
     foreach (Vertex start, starts)
     {
@@ -311,42 +320,21 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
 
             if (same_component && g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
             {
-                // If there is an optimization objective, check it
-                if (pdef_->hasOptimizationObjective())
+                base::PathPtr p = constructSolution(start, goal);
+                if (p)
                 {
-                    base::PathPtr p = constructSolution(start, goal);
-                    if (p)
-                    {
-                        double obj_cost = pdef_->getOptimizationObjective()->getCost(p);
-                        if (pdef_->getOptimizationObjective()->isSatisfied(obj_cost)) // Sufficient solution
-                        {
-                            solution = p;
-                            return true;
-                        }
-                        else
-                        {
-                            if (solution && !sol_cost_set)
-                            {
-                                sol_cost = pdef_->getOptimizationObjective()->getCost(solution);
-                                sol_cost_set = true;
-                            }
-
-                            if (!solution || obj_cost < sol_cost)
-                            {
-                                solution = p;
-                                sol_cost = obj_cost;
-                                sol_cost_set = true;
-                            }
-                        }
-                    }
-                }
-                else // Accept the solution, regardless of cost
-                {
-                    base::PathPtr p = constructSolution(start, goal);
-                    if (p)
+                    // Check if optimization objective is satisfied
+                    base::Cost pathCost = p->cost(opt_);
+                    if (opt_->isSatisfied(pathCost))
                     {
                         solution = p;
                         return true;
+                    }
+                    else if (!sol_cost_set || opt_->isCostBetterThan(pathCost, sol_cost))
+                    {
+                        solution = p;
+                        sol_cost = pathCost;
+                        sol_cost_set = true;
                     }
                 }
             }
@@ -411,7 +399,8 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     boost::thread slnThread(boost::bind(&PRM::checkForSolution, this, ptc, boost::ref(sol)));
 
     // construct new planner termination condition that fires when the given ptc is true, or a solution is found
-    base::PlannerOrTerminationCondition ptcOrSolutionFound(ptc, base::PlannerTerminationCondition(boost::bind(&PRM::addedNewSolution, this)));
+    base::PlannerOrTerminationCondition ptcOrSolutionFound(ptc,
+base::PlannerTerminationCondition(boost::bind(&PRM::addedNewSolution, this)));
 
     constructRoadmap(ptcOrSolutionFound);
 
@@ -486,7 +475,7 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
             {
                 successfulConnectionAttemptsProperty_[m]++;
                 successfulConnectionAttemptsProperty_[n]++;
-                const double weight = distanceFunction(m, n);
+                const base::Cost weight = opt_->motionCost(stateProperty_[m], stateProperty_[n]);
                 const unsigned int id = maxEdgeID_++;
                 const Graph::edge_property_type properties(weight, id);
                 boost::add_edge(m, n, properties, g_);
@@ -514,9 +503,16 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start,
 
     try
     {
+        // Consider using a persistent distance_map if it's slow
         boost::astar_search(g_, start,
-                            boost::bind(&PRM::distanceFunction, this, _1, goal),
+                            boost::bind(&PRM::costHeuristic, this, _1, goal),
                             boost::predecessor_map(prev).
+                            distance_compare(boost::bind(&base::OptimizationObjective::
+                                                         isCostBetterThan, opt_.get(), _1, _2)).
+                            distance_combine(boost::bind(&base::OptimizationObjective::
+                                                         combineCosts, opt_.get(), _1, _2)).
+                            distance_inf(opt_->infiniteCost()).
+                            distance_zero(opt_->identityCost()).
                             visitor(AStarGoalVisitor<Vertex>(goal)));
     }
     catch (AStarFoundGoal&)
@@ -567,4 +563,9 @@ void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
         data.tagState(stateProperty_[v1], const_cast<PRM*>(this)->disjointSets_.find_set(v1));
         data.tagState(stateProperty_[v2], const_cast<PRM*>(this)->disjointSets_.find_set(v2));
     }
+}
+
+ompl::base::Cost ompl::geometric::PRM::costHeuristic(Vertex u, Vertex v) const
+{
+    return opt_->motionCostHeuristic(stateProperty_[u], stateProperty_[v]);
 }

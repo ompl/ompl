@@ -50,6 +50,12 @@
 namespace ompl
 {
 
+    namespace base
+    {
+        // Forward declare for use in implementation
+        OMPL_CLASS_FORWARD(OptimizationObjective);
+    }
+
     namespace geometric
     {
 
@@ -120,7 +126,7 @@ namespace ompl
                 boost::property < vertex_flags_t, unsigned int,
                 boost::property < boost::vertex_predecessor_t, unsigned long int,
                 boost::property < boost::vertex_rank_t, unsigned long int > > > > > >,
-                boost::property < boost::edge_weight_t, double,
+                boost::property < boost::edge_weight_t, base::Cost,
                 boost::property < boost::edge_index_t, unsigned int,
                 boost::property < edge_flags_t, unsigned int > > >
             > Graph;
@@ -382,6 +388,12 @@ namespace ompl
 
             /** \brief Mutex to guard access to the Graph member (g_) */
             mutable boost::mutex                                   graphMutex_;
+
+            /** \brief Objective cost function for PRM graph edges */
+            base::OptimizationObjectivePtr                         opt_;
+
+            /** \brief Given two vertices, returns a heuristic on the cost of the path connecting them. This method wraps OptimizationObjective::motionCostHeuristic */
+            base::Cost costHeuristic(Vertex u, Vertex v) const;
         };
 
     }

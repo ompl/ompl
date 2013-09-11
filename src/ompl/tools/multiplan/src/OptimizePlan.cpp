@@ -36,6 +36,7 @@
 
 #include "ompl/tools/multiplan/OptimizePlan.h"
 #include "ompl/geometric/PathSimplifier.h"
+#include "ompl/base/OptimizationObjective.h"
 
 void ompl::tools::OptimizePlan::addPlanner(const base::PlannerPtr &planner)
 {
@@ -86,7 +87,7 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
                 break;
             }
 
-            double obj_cost = pdef->getOptimizationObjective()->getCost(pdef->getSolutionPath());
+            base::Cost obj_cost = pdef->getSolutionPath()->cost(pdef->getOptimizationObjective());
 
             if (pdef->getOptimizationObjective()->isSatisfied(obj_cost))
             {

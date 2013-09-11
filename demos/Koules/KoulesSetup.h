@@ -41,6 +41,7 @@
 
 OMPL_CLASS_FORWARD(KoulesSetup);
 
+/// @cond IGNORE
 class KoulesSetup : public ompl::control::SimpleSetup
 {
 public:
@@ -55,5 +56,6 @@ private:
     void initialize(unsigned int numKoules, const std::string& plannerName,
         const std::vector<double>& stateVec = std::vector<double>());
 };
+/// @endcond
 
 #endif

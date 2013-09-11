@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Rice University
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,36 +32,28 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Beck Chen, Mark Moll */
+/* Author: Luis G. Torres, Ioan Sucan */
 
-#ifndef DEMOS_KOULES_STATESPACE_
-#define DEMOS_KOULES_STATESPACE_
+#ifndef OMPL_BASE_COST_
+#define OMPL_BASE_COST_
 
-#include "KoulesConfig.h"
-#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include <iostream>
 
-/// @cond IGNORE
-class KoulesStateSpace : public ompl::base::RealVectorStateSpace
+namespace ompl
 {
-public:
-    KoulesStateSpace(unsigned int numKoules);
+    namespace base
+    {   
+        /** \brief Definition of a cost value. Can represent the cost of a motion or the cost of a state. */
+        struct Cost
+        {
+            /** \brief Construct cost with a specified value */
+            explicit Cost(double v = 0.0) : v(v) {}
+            /** \brief The value of the cost */
+            double v;
+        };
 
-    virtual void registerProjections(void);
-
-    double getMass(unsigned int i) const
-    {
-        return mass_[i];
+        /** \brief Output operator for Cost */
+        std::ostream& operator<<(std::ostream& stream, Cost c);
     }
-    double getRadius(unsigned int i) const
-    {
-        return radius_[i];
-    }
-    bool isDead(const ompl::base::State* state, unsigned int i) const;
-
-protected:
-    std::vector<double> mass_;
-    std::vector<double> radius_;
-};
-/// @endcond
-
+}
 #endif

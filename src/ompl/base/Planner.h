@@ -364,6 +364,19 @@ namespace ompl
                 return params_;
             }
 
+            /** \brief Definition of a function which returns a property about the planner's progress that can be queried by a benchmarking routine */
+            typedef boost::function<std::string ()> PlannerProgressProperty;
+
+            /** \brief A dictionary which maps the name of a progress property to the function to be used for querying that property */
+            typedef std::map<std::string, PlannerProgressProperty> PlannerProgressProperties;
+
+            /** \brief Retrieve a planner's planner progress property map */
+            const PlannerProgressProperties&
+            getPlannerProgressProperties() const
+            {
+                return plannerProgressProperties_;
+            }
+
             /** \brief Print properties of the motion planner */
             virtual void printProperties(std::ostream &out) const;
 
@@ -390,6 +403,13 @@ namespace ompl
                     params_[name].setRangeSuggestion(rangeSuggestion);
             }
 
+            /** \brief Add a planner progress property called \e progressPropertyName with a property querying function \e prop to this planner's progress property map */
+            void addPlannerProgressProperty(const std::string& progressPropertyName,
+                                            const PlannerProgressProperty& prop)
+            {
+                plannerProgressProperties_[progressPropertyName] = prop;
+            }
+
             /** \brief The space information for which planning is done */
             SpaceInformationPtr  si_;
 
@@ -407,6 +427,9 @@ namespace ompl
 
             /** \brief A map from parameter names to parameter instances for this planner. This field is populated by the declareParam() function */
             ParamSet             params_;
+
+            /** \brief A mapping between this planner's progress property names and the functions used for querying those progress properties */
+            PlannerProgressProperties plannerProgressProperties_;
 
             /** \brief Flag indicating whether setup() has been called */
             bool                 setup_;

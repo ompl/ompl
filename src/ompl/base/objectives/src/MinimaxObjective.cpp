@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Rice University
+*  Copyright (c) 2010, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,36 +32,46 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Beck Chen, Mark Moll */
+/* Author: Luis G. Torres */
 
-#ifndef DEMOS_KOULES_STATESPACE_
-#define DEMOS_KOULES_STATESPACE_
+#include "ompl/base/objectives/MinimaxObjective.h"
 
-#include "KoulesConfig.h"
-#include <ompl/base/spaces/RealVectorStateSpace.h>
-
-/// @cond IGNORE
-class KoulesStateSpace : public ompl::base::RealVectorStateSpace
+ompl::base::MinimaxObjective::MinimaxObjective(const SpaceInformationPtr &si) :
+    OptimizationObjective(si)
 {
-public:
-    KoulesStateSpace(unsigned int numKoules);
+}
 
-    virtual void registerProjections(void);
+ompl::base::Cost ompl::base::MinimaxObjective::motionCost(const State *s1, const State *s2) const
+{
+    Cost worstCost = this->identityCost();
 
-    double getMass(unsigned int i) const
+    int nd = si_->getStateSpace()->validSegmentCount(s1, s2);
+
+    if (nd > 1)
     {
-        return mass_[i];
+        State *test = si_->allocState();
+        for (int j = 1; j < nd; ++j)
+        {
+            si_->getStateSpace()->interpolate(s1, s2, (double) j / (double) nd, test);
+            Cost testStateCost = this->stateCost(test);
+            if (this->isCostBetterThan(worstCost, testStateCost))
+                worstCost = testStateCost;
+        }
+        si_->freeState(test);
     }
-    double getRadius(unsigned int i) const
-    {
-        return radius_[i];
-    }
-    bool isDead(const ompl::base::State* state, unsigned int i) const;
 
-protected:
-    std::vector<double> mass_;
-    std::vector<double> radius_;
-};
-/// @endcond
+    // Lastly, check s2
+    Cost lastCost = this->stateCost(s2);
+    if (this->isCostBetterThan(worstCost, lastCost))
+        worstCost = lastCost;
 
-#endif
+    return worstCost;
+}
+
+ompl::base::Cost ompl::base::MinimaxObjective::combineCosts(Cost c1, Cost c2) const
+{
+    if (this->isCostBetterThan(c1, c2))
+        return c2;
+    else
+        return c1;
+}

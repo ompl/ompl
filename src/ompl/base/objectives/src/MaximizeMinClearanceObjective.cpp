@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Rice University
+*  Copyright (c) 2010, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,36 +32,35 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Beck Chen, Mark Moll */
+/* Author: Luis G. Torres */
 
-#ifndef DEMOS_KOULES_STATESPACE_
-#define DEMOS_KOULES_STATESPACE_
+#include "ompl/base/objectives/MaximizeMinClearanceObjective.h"
+#include "ompl/tools/config/MagicConstants.h"
+#include <limits>
 
-#include "KoulesConfig.h"
-#include <ompl/base/spaces/RealVectorStateSpace.h>
-
-/// @cond IGNORE
-class KoulesStateSpace : public ompl::base::RealVectorStateSpace
+ompl::base::MaximizeMinClearanceObjective::
+MaximizeMinClearanceObjective(const SpaceInformationPtr &si) :
+    MinimaxObjective(si)
 {
-public:
-    KoulesStateSpace(unsigned int numKoules);
+    this->setCostThreshold(Cost(std::numeric_limits<double>::infinity()));
+}
 
-    virtual void registerProjections(void);
+ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::stateCost(const State* s) const
+{
+    return Cost(si_->getStateValidityChecker()->clearance(s));
+}
 
-    double getMass(unsigned int i) const
-    {
-        return mass_[i];
-    }
-    double getRadius(unsigned int i) const
-    {
-        return radius_[i];
-    }
-    bool isDead(const ompl::base::State* state, unsigned int i) const;
+bool ompl::base::MaximizeMinClearanceObjective::isCostBetterThan(Cost c1, Cost c2) const
+{
+    return c1.v > c2.v + magic::BETTER_PATH_COST_MARGIN;
+}
 
-protected:
-    std::vector<double> mass_;
-    std::vector<double> radius_;
-};
-/// @endcond
+ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::identityCost(void) const
+{
+    return Cost(std::numeric_limits<double>::infinity());
+}
 
-#endif
+ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::infiniteCost(void) const
+{
+    return Cost(-std::numeric_limits<double>::infinity());
+}

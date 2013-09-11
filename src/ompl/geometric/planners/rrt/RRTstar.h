@@ -32,15 +32,17 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Alejandro Perez, Sertac Karaman, Ioan Sucan */
+/* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Luis G. Torres, Ioan Sucan */
 
 #ifndef OMPL_CONTRIB_RRT_STAR_RRTSTAR_
 #define OMPL_CONTRIB_RRT_STAR_RRTSTAR_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
+#include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 #include <limits>
 #include <vector>
+#include <utility>
 
 
 namespace ompl
@@ -147,20 +149,25 @@ namespace ompl
 
             virtual void setup(void);
 
-        protected:
+            ///////////////////////////////////////
+            // Planner progress property functions
+            std::string getIterationCount(void) const;
 
+            std::string getCollisionCheckCount(void) const;
+
+            std::string getBestCost(void) const;
+            ///////////////////////////////////////
+
+        protected:
 
             /** \brief Representation of a motion */
             class Motion
             {
             public:
-
-                Motion(void) : state(NULL), parent(NULL), cost(0.0)
-                {
-                }
-
-                /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), cost(0.0)
+                /** \brief Constructor that allocates memory for the state. This constructor automatically allocates memory for \e state, \e cost, and \e incCost */
+                Motion(const base::SpaceInformationPtr &si) :
+                    state(si->allocState()),
+                    parent(NULL)
                 {
                 }
 
@@ -174,8 +181,11 @@ namespace ompl
                 /** \brief The parent motion in the exploration tree */
                 Motion            *parent;
 
-                /** \brief The cost of this motion */
-                double             cost;
+                /** \brief The cost up to this motion */
+                base::Cost        cost;
+
+                /** \brief The incremental cost of this motion's parent to this motion (this is stored to save distance computations in the updateChildCosts() method) */
+                base::Cost        incCost;
 
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion*> children;
@@ -185,16 +195,18 @@ namespace ompl
             void freeMemory(void);
 
             // For sorting a list of costs and getting only their sorted indices
-            struct NeighborIndexCompare
+            struct CostIndexCompare
             {
-                NeighborIndexCompare(const std::vector<Motion*>& nbh) :
-                    nbh_(nbh)
+                CostIndexCompare(const std::vector<base::Cost>& costs,
+                                 const base::OptimizationObjective& opt) :
+                    costs_(costs), opt_(opt)
                 {}
                 bool operator()(unsigned i, unsigned j)
                 {
-                    return nbh_[i]->cost < nbh_[j]->cost;
+                    return opt_.isCostBetterThan(costs_[i],costs_[j]);
                 }
-                const std::vector<Motion*>& nbh_;
+                const std::vector<base::Cost>& costs_;
+                const base::OptimizationObjective& opt_;
             };
 
             /** \brief Compute distance between motions (actually distance between contained states) */
@@ -206,8 +218,8 @@ namespace ompl
             /** \brief Removes the given motion from the parent's child list */
             void removeFromParent(Motion *m);
 
-            /** \brief Updates the cost of the children of this node by adding the delta */
-            void updateChildCosts(Motion *m, double delta);
+            /** \brief Updates the cost of the children of this node if the cost up to this node has changed */
+            void updateChildCosts(Motion *m);
 
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;
@@ -227,14 +239,26 @@ namespace ompl
             /** \brief Option to delay and reduce collision checking within iterations */
             bool                                           delayCC_;
 
-            /** \brief The number of iterations the algorithm performed */
-            unsigned int                                   iterations_;
+            /** \brief Objective we're optimizing */
+            base::OptimizationObjectivePtr opt_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
             Motion                                         *lastGoalMotion_;
 
             /** \brief A list of states in the tree that satisfy the goal condition */
             std::vector<Motion*>                           goalMotions_;
+
+            //////////////////////////////
+            // Planner progress properties
+
+            /** \brief Number of iterations the algorithm performed */
+            unsigned int                                   iterations_;
+
+            /** \brief Number of collisions checks performed by the algorithm */
+            unsigned int                                   collisionChecks_;
+
+            /** \brief Best cost found so far by algorithm */
+            base::Cost                                     bestCost_;
         };
 
     }

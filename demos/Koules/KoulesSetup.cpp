@@ -49,6 +49,7 @@
 namespace ob = ompl::base;
 namespace oc = ompl::control;
 
+/// @cond IGNORE
 class KoulesStateValidityChecker : public ompl::base::StateValidityChecker
 {
 public:
@@ -61,6 +62,7 @@ public:
         return si_->satisfiesBounds(state);
     }
 };
+/// @endcond
 
 ompl::control::DirectedControlSamplerPtr KoulesDirectedControlSamplerAllocator(
     const ompl::control::SpaceInformation *si, const ompl::base::GoalPtr &goal, bool propagateMax)

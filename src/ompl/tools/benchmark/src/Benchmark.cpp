@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Luis G. Torres */
 
 #include "ompl/tools/benchmark/Benchmark.h"
 #include "ompl/tools/benchmark/MachineSpecs.h"
@@ -76,18 +76,24 @@ namespace ompl
             {
             }
 
-            void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime)
+            void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime, const double timeBetweenUpdates)
             {
                 if (!useThreads_)
                 {
-                    runThread(planner, memStart + maxMem, time::seconds(maxTime));
+                    runThread(planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates));
                     return;
                 }
 
-                boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime)));
+                boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates)));
 
                 // allow 25% more time than originally specified, in order to detect planner termination
+#if BOOST_VERSION < 105000
+                // For older versions of boost, we have to use this
+                // deprecated form of the timed join
                 if (!t.timed_join(time::seconds(maxTime * 1.25)))
+#else
+                if (!t.try_join_for(boost::chrono::duration<double>(maxTime * 1.25)))
+#endif
                 {
                     status_ = base::PlannerStatus::CRASH;
 
@@ -126,16 +132,40 @@ namespace ompl
                 return status_;
             }
 
+            const Benchmark::RunProgressData& getRunProgressData(void) const
+            {
+                return runProgressData_;
+            }
+
         private:
 
-            void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem, const time::duration &maxDuration)
+            void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem, const time::duration &maxDuration, const time::duration &timeBetweenUpdates)
             {
                 time::point timeStart = time::now();
 
                 try
                 {
                     base::PlannerTerminationConditionFn ptc = boost::bind(&terminationCondition, maxMem, time::now() + maxDuration);
+                    solved_ = false;
+                    // Only launch the planner progress property
+                    // collector if there is any data for it to report
+                    //
+                    // \TODO issue here is that at least one sample
+                    // always gets taken before planner even starts;
+                    // might be worth adding a short wait time before
+                    // collector begins sampling
+                    boost::scoped_ptr<boost::thread> t;
+                    if (planner->getPlannerProgressProperties().size() > 0)
+                        t.reset(new boost::thread(boost::bind(&RunPlanner::collectProgressProperties,                                                               this,
+                                                              planner->getPlannerProgressProperties(),
+                                                              timeBetweenUpdates)));
                     status_ = planner->solve(ptc, 0.1);
+                    solvedFlag_.lock();
+                    solved_ = true;
+                    solvedCondition_.notify_all();
+                    solvedFlag_.unlock();
+                    if (t)
+                        t->join(); // maybe look into interrupting even if planner throws an exception
                 }
                 catch(std::runtime_error &e)
                 {
@@ -150,11 +180,45 @@ namespace ompl
                 memUsed_ = machine::getProcessMemoryUsage();
             }
 
+            void collectProgressProperties(const base::Planner::PlannerProgressProperties& properties,
+                                           const time::duration &timePerUpdate)
+            {
+                time::point timeStart = time::now();
+
+                boost::unique_lock<boost::mutex> ulock(solvedFlag_);
+                while (!solved_)
+                {
+                    if (solvedCondition_.timed_wait(ulock, time::now() + timePerUpdate))
+                        return;
+                    else
+                    {
+                        double timeInSeconds = time::seconds(time::now() - timeStart);
+                        std::string timeStamp =
+                            boost::lexical_cast<std::string>(timeInSeconds);
+                        std::map<std::string, std::string> data;
+                        data["time REAL"] = timeStamp;
+                        for (base::Planner::PlannerProgressProperties::const_iterator item = properties.begin();
+                             item != properties.end();
+                             ++item)
+                        {
+                            data[item->first] = item->second();
+                        }
+                        runProgressData_.push_back(data);
+                    }
+                }
+            }
+
             const Benchmark    *benchmark_;
             double              timeUsed_;
             machine::MemUsage_t memUsed_;
             base::PlannerStatus status_;
             bool                useThreads_;
+            Benchmark::RunProgressData runProgressData_;
+
+            // variables needed for progress property collection
+            bool solved_;
+            boost::mutex solvedFlag_;
+            boost::condition_variable solvedCondition_;
         };
 
     }
@@ -271,6 +335,44 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
                 out << "; ";
             }
             out << std::endl;
+        }
+
+        // print the run progress data if it was reported
+        if (exp_.planners[i].runsProgressData.size() > 0)
+        {
+            // Print number of progress properties
+            out << exp_.planners[i].progressPropertyNames.size() << " progress properties for each run" << std::endl;
+            // Print progress property names
+            for (std::vector<std::string>::const_iterator iter =
+                     exp_.planners[i].progressPropertyNames.begin();
+                 iter != exp_.planners[i].progressPropertyNames.end();
+                 ++iter)
+            {
+                out << *iter << std::endl;
+            }
+            // Print progress properties for each run
+            out << exp_.planners[i].runsProgressData.size() << " runs" << std::endl;
+            for (std::size_t r = 0; r < exp_.planners[i].runsProgressData.size(); ++r)
+            {
+                // For each time point
+                for (std::size_t t = 0; t < exp_.planners[i].runsProgressData[r].size(); ++t)
+                {
+                    // Print each of the properties at that time point
+                    for (std::map<std::string, std::string>::const_iterator iter =
+                             exp_.planners[i].runsProgressData[r][t].begin();
+                         iter != exp_.planners[i].runsProgressData[r][t].end();
+                         ++iter)
+                    {
+                        out << iter->second << ",";
+                    }
+
+                    // Separate time points by semicolons
+                    out << ";";
+                }
+
+                // Separate runs by newlines
+                out << std::endl;
+            }
         }
 
         out << '.' << std::endl;
@@ -400,6 +502,18 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         planners_[i]->params().getParams(exp_.planners[i].common);
         planners_[i]->getSpaceInformation()->params().getParams(exp_.planners[i].common);
 
+        // Add planner progress property names to struct
+        exp_.planners[i].progressPropertyNames.push_back("time REAL");
+        base::Planner::PlannerProgressProperties::const_iterator iter;
+        for (iter = planners_[i]->getPlannerProgressProperties().begin();
+             iter != planners_[i]->getPlannerProgressProperties().end();
+             ++iter)
+        {
+            exp_.planners[i].progressPropertyNames.push_back(iter->first);
+        }
+        std::sort(exp_.planners[i].progressPropertyNames.begin(),
+                  exp_.planners[i].progressPropertyNames.end());
+
         // run the planner
         for (unsigned int j = 0 ; j < req.runCount ; ++j)
         {
@@ -456,7 +570,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             }
 
             RunPlanner rp(this, req.useThreads);
-            rp.run(planners_[i], memStart, maxMemBytes, req.maxTime);
+            rp.run(planners_[i], memStart, maxMemBytes, req.maxTime, req.timeBetweenUpdates);
             bool solved = gsetup_ ? gsetup_->haveSolutionPath() : csetup_->haveSolutionPath();
 
             // store results
@@ -548,6 +662,13 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 }
 
                 exp_.planners[i].runs.push_back(run);
+
+                // Add planner progress data from the planner progress
+                // collector if there was anything to report
+                if (planners_[i]->getPlannerProgressProperties().size() > 0)
+                {
+                    exp_.planners[i].runsProgressData.push_back(rp.getRunProgressData());
+                }
             }
             catch(std::runtime_error &e)
             {
