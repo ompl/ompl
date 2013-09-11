@@ -1,6 +1,13 @@
 # Release Notes
 
 
+# OMPL 0.14.0 (??)
+
+- Added new cost infrastructure to plan optimal paths with respect to arbitrary cost functions.
+- RRT*, PRM*, TRRT, and PRM have been updated to use this cost infrastructure.
+- BallTreeRRT* has been removed since it assumed that the path cost is equal to the path length.
+
+
 # OMPL 0.13.0 (August 5, 2013)
 
 - Added several new planners:

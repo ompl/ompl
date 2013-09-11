@@ -34,7 +34,7 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 ######################################################################
 
-# Author: Mark Moll, Luis G. Torres
+# Author: Mark Moll, Ioan Sucan, Luis G. Torres
 
 from sys import argv, exit
 from os.path import basename, splitext
