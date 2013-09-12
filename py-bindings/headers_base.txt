@@ -14,6 +14,7 @@
 ../src/ompl/base/SpaceInformation.h
 ../src/ompl/base/StateSamplerArray.h
 ../src/ompl/base/ScopedState.h
+../src/ompl/base/Cost.h
 ../src/ompl/base/Path.h
 ../src/ompl/base/GoalTypes.h
 ../src/ompl/base/Goal.h
@@ -24,6 +25,11 @@
 ../src/ompl/base/goals/GoalLazySamples.h
 ../src/ompl/base/DiscreteMotionValidator.h
 ../src/ompl/base/OptimizationObjective.h
+../src/ompl/base/objectives/MinimaxObjective.h
+../src/ompl/base/objectives/MaximizeMinClearanceObjective.h
+../src/ompl/base/objectives/MechanicalWorkOptimizationObjective.h
+../src/ompl/base/objectives/PathLengthOptimizationObjective.h
+../src/ompl/base/objectives/StateCostIntegralObjective.h
 ../src/ompl/base/PlannerData.h
 ../src/ompl/base/PlannerDataStorage.h
 ../src/ompl/base/PlannerStatus.h

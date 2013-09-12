@@ -300,6 +300,10 @@ class ompl_base_generator_t(code_generator_t):
             'ValidStateSamplerAllocator', 'Valid state allocator function')
         self.add_boost_function('double(const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataEdge&)',
             'EdgeWeightFn', 'Edge weight function')
+        self.add_boost_function('ompl::base::Cost(const ompl::base::State*, const ompl::base::Goal*)',
+            'CostToGoHeuristic', 'Cost-to-go heuristic for optimizing planners')
+        self.add_boost_function('std::string()', 'PlannerProgressProperty',
+            'Function that returns stringified value of a property while a planner is running')
 
         # exclude solve() methods that take a "const PlannerTerminationConditionFn &"
         # as first argument; only keep the solve() that just takes a double argument
@@ -533,7 +537,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'PRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'BallTreeRRTstar', 'SBL', 'SPARS', 'SPARStwo']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'PRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'SBL', 'SPARS', 'SPARStwo']:
             if planner!='PRM':
                 # PRM overrides setProblemDefinition, so we don't need to add this code
                 self.ompl_ns.class_(planner).add_registration_code("""
@@ -572,12 +576,12 @@ class ompl_tools_generator_t(code_generator_t):
         """)
 
         code_generator_t.__init__(self, 'tools',
-            ['bindings/util', 'bindings/base', 'bindings/geometric', 'bindings/control'], replacement)
+            ['bindings/util', 'bindings/base', 'bindings/geometric', 'bindings/control'], replacement, 1)
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
         # rename STL vectors/maps of certain types
         self.std_ns.class_('vector< ompl::tools::Benchmark::PlannerExperiment >').rename('vectorPlannerExperiment')
-
+        self.std_ns.class_('vector< std::vector< std::map<std::string, std::string> > >').rename('vectorRunProgressData')
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
 

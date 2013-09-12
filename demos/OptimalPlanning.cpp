@@ -69,7 +69,7 @@ public:
     {
         // We know we're working with a RealVectorStateSpace in this
         // example, so we downcast state into the specific type.
-        const ob::RealVectorStateSpace::StateType* state2D = 
+        const ob::RealVectorStateSpace::StateType* state2D =
             state->as<ob::RealVectorStateSpace::StateType>();
 
         // Extract the robot's (x,y) position from its state
@@ -154,8 +154,8 @@ void plan(int argc, char** argv)
     if (solved)
     {
         // Output the length of the path found
-        std::cout 
-            << "Found solution of path length " 
+        std::cout
+            << "Found solution of path length "
             << pdef->getSolutionPath()->length() << std::endl;
 
         // If a filename was specified, output the path as a matrix to
@@ -222,7 +222,7 @@ public:
     // but we want to represent the objective as a path cost
     // minimization. Therefore, we set each state's cost to be the
     // reciprocal of its clearance, so that as state clearance
-    // increases, the state cost decreases.    
+    // increases, the state cost decreases.
     ob::Cost stateCost(const ob::State* s) const
     {
         return ob::Cost(1 / si_->getStateValidityChecker()->clearance(s));
@@ -241,7 +241,7 @@ ob::OptimizationObjectivePtr getClearanceObjective(const ob::SpaceInformationPtr
     objectives, then adding them to a MultiOptimizationObjective
     object. This results in an optimization objective where path cost
     is equivalent to adding up each of the individual objectives' path
-    costs. 
+    costs.
 
     When adding objectives, we can also optionally specify each
     objective's weighting factor to signify how important it is in
