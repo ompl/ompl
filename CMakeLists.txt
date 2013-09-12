@@ -121,7 +121,7 @@ if (NOT MSVC)
   install(FILES "${pkg_conf_file}" DESTINATION lib/pkgconfig/
     COMPONENT pkgconfig RENAME "ompl${OMPL_INSTALL_SUFFIX}.pc")
 
-  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/dox/FindOMPL.cmake"
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/markdown/FindOMPL.cmake"
     DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}"
     RENAME ompl-config.cmake)
   if (NOT ${CMAKE_VERSION} VERSION_LESS 2.8.6)
