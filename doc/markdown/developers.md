@@ -8,6 +8,7 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 - [Ioan Șucan](http://ioan.sucan.ro), Willow Garage (formerly Rice University)
 - [Ryan Luna](http://www.ryanluna.com), Rice University
 - [Matt Maly](http://kavrakilab.org/profiles/mmaly), Rice University
+- [Luis Torres](http://www.cs.unc.edu/~luis), University of North Carolina at Chapel Hill
 
 # Contributors:
 

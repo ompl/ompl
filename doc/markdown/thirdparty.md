@@ -2,6 +2,11 @@
 
 This page includes a list of extensions to OMPL provided by the community. Please read the [directions on writing a contribution](contrib.html) and the suggested [style guide](styleGuide.html) if you would like to submit your own contribution.
 
+# Generalized Optimal Path Planning Framework
+
+### Author: Luis Torres (University of North Carolina at Chapel Hill)
+
+Extend OMPL's support for optimal path planning. Users can plan robot paths that optimize a variety of ready-to-use metrics such as path length and clearance from obstacles. Users can also plan optimal paths under their own customized path metrics without changing OMPL's optimizing planners. Additional benchmarking data has also been added so users can efficiently track the progress of an optimizing planner on their planning problem. Tutorials for use of the framework can be found [here](optimalPlanning.html).
 
 # SPARS and SPARS2 contribution
 
