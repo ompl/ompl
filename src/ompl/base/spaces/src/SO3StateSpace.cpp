@@ -124,11 +124,9 @@ void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mea
         return;
     }
     
-    // We scale the input stdDev by 1/sqrt(3), as given in Section
-    // 2.2, Proposition 1 in Yu Qiu's thesis:
-    //
-    // http://lib.dr.iastate.edu/cgi/viewcontent.cgi?article=4014&context=etd
-    double rotDev = stdDev / boost::math::constants::root_three<double>();
+    // We scale the input stdDev by 2/sqrt(3), a constant we found empirically 
+    // to fit the LLN for SO3 rotations under our distance measure.
+    double rotDev = (2 * stdDev) / boost::math::constants::root_three<double>();
 
     double x = rng_.gaussian(0, rotDev), y = rng_.gaussian(0, rotDev), z = rng_.gaussian(0, rotDev),
         theta = std::sqrt(x*x + y*y + z*z);
