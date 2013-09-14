@@ -77,7 +77,16 @@ namespace ompl
             public:
                 /** \brief Creates a State without any assigned PropositionalDecomposition
                     region or Automaton states. All of these values are initialized to -1. */
-                State(void);
+                State(void)
+                    : decompRegion(-1),
+                      cosafeState(-1),
+                      safeState(-1) { }
+
+                /** \brief Basic copy constructor for State. */
+                State(const State& s)
+                    : decompRegion(s.decompRegion),
+                      cosafeState(s.cosafeState),
+                      safeState(s.safeState) { }
 
                 /** \brief Returns whether this State is equivalent to a given State,
                     by comparing their PropositionalDecomposition regions and
@@ -188,6 +197,11 @@ namespace ompl
                 a given base::State. */
 			State* getState(const base::State* cs) const;
 
+            /** \brief Returns a ProductGraph State with given co-safety and safety
+                Automaton states, and the PropositionalDecomposition region that contains
+                a given base::State. */
+            State* getState(const base::State* cs, int cosafe, int safe) const;
+
             /** \brief Returns a ProductGraph State with a given PropositionalDecomposition region.
                 The co-safety and safety Automaton states are calculated using a given parent
                 ProductGraph State and the decomposition region. */
@@ -198,6 +212,19 @@ namespace ompl
                 The co-safety and safety Automaton states are calculated using a given parent
                 ProductGraph State and the decomposition region. */
             State* getState(const State* parent, const base::State* cs) const;
+
+            /** \brief Returns the ProductGraph state corresponding to the given region,
+                co-safety state, and safety state. */
+            State* getState(unsigned int region, int cosafe, int safe) const
+            {
+                State s;
+                s.decompRegion = region;
+                s.cosafeState = cosafe;
+                s.safeState = safe;
+                State*& ret = stateToPtr_[s];
+                if (ret == NULL) ret = new State(s);
+                return ret;
+            }
 
         protected:
             static void noInit(State* s)

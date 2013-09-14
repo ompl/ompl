@@ -1,6 +1,7 @@
 #include "ompl/control/planners/ltl/LTLPlanner.h"
 #include "ompl/control/planners/PlannerIncludes.h"
 #include "ompl/control/planners/ltl/ProductGraph.h"
+#include "ompl/control/planners/ltl/LTLProblemDefinition.h"
 #include "ompl/datastructures/PDF.h"
 #include "ompl/util/Console.h"
 #include <algorithm>
@@ -9,9 +10,11 @@
 #include <map>
 #include <vector>
 
-ompl::control::LTLPlanner::LTLPlanner(const SpaceInformationPtr& si, const ProductGraphPtr& a, double exploreTime) :
-    ompl::base::Planner(si, "LTLPlanner"),
-    siC_(si.get()),
+#include <stdio.h>
+
+ompl::control::LTLPlanner::LTLPlanner(const LTLSpaceInformationPtr& ltlsi, const ProductGraphPtr& a, double exploreTime) :
+    ompl::base::Planner(ltlsi, "LTLPlanner"),
+    ltlsi_(ltlsi.get()),
     abstraction_(a),
     exploreTime_(exploreTime)
 {
@@ -47,14 +50,14 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
     //TODO for now, we are only taking the first start state
     //TODO add OMPL_WARN message if >1 start state given, that only the first one will be used
     const base::State* s = pis_.nextStart();
-    Motion *motion = new Motion(siC_);
+    Motion *motion = new Motion(ltlsi_);
     si_->copyState(motion->state, s);
-    siC_->nullControl(motion->control);
+    ltlsi_->nullControl(motion->control);
     motions_.push_back(motion);
 
     ProductGraph::State* a = highLevelStart;
     if (a == NULL)
-        a = abstraction_->getState(s);
+        a = ltlsi_->getProdGraphState(s);
     starts_.push_back(a);
 
     ompl::time::point start = ompl::time::now();
@@ -69,7 +72,7 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
     if (!controlSampler_)
-        controlSampler_ = siC_->allocControlSampler();
+        controlSampler_ = ltlsi_->allocControlSampler();
 
     bool solved = false;
     Motion* soln;
@@ -93,10 +96,12 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
         PathControl* pc = new PathControl(si_);
         for (int i = path.size()-1; i >= 0; --i)
         {
-            if (path[i]->parent != NULL)
-                pc->append(path[i]->state, path[i]->control, path[i]->steps * siC_->getPropagationStepSize());
-            else
+            if (path[i]->parent != NULL) {
+                pc->append(path[i]->state, path[i]->control, path[i]->steps * ltlsi_->getPropagationStepSize());
+            }
+            else {
                 pc->append(path[i]->state);
+            }
         }
         pdef_->addSolutionPath(base::PathPtr(pc));
     }
@@ -115,10 +120,10 @@ void ompl::control::LTLPlanner::getTree(std::vector<base::State*>& tree) const
 std::vector<ompl::control::ProductGraph::State*> ompl::control::LTLPlanner::getHighLevelPath(const std::vector<base::State*>& path, ProductGraph::State* start) const
 {
     std::vector<ProductGraph::State*> hlPath(path.size());
-    hlPath[0] = (start != NULL ? start : abstraction_->getState(path[0]));
+    hlPath[0] = (start != NULL ? start : ltlsi_->getProdGraphState(path[0]));
     for (unsigned int i = 1; i < path.size(); ++i)
     {
-        hlPath[i] = abstraction_->getState(hlPath[i-1], path[i]);
+        hlPath[i] = ltlsi_->getProdGraphState(path[i]);
         if (!hlPath[i]->isValid())
             OMPL_WARN("High-level path fails automata");
     }
@@ -214,35 +219,26 @@ bool ompl::control::LTLPlanner::explore(const std::vector<ProductGraph::State*>&
         if (vweight > 1e-20)
             motions.update(velem, vweight/(vweight+1.));
 
-        Control* rctrl = siC_->allocControl();
+        Control* rctrl = ltlsi_->allocControl();
         controlSampler_->sampleNext(rctrl, v->control, v->state);
-        unsigned int cd = controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
+        unsigned int cd = controlSampler_->sampleStepCount(ltlsi_->getMinControlDuration(), ltlsi_->getMaxControlDuration());
 
         base::State* newState = si_->allocState();
-        cd = siC_->propagateWhileValid(v->state, rctrl, cd, newState);
-        if (cd < siC_->getMinControlDuration())
+        cd = ltlsi_->propagateWhileValid(v->state, rctrl, cd, newState);
+        if (cd < ltlsi_->getMinControlDuration())
         {
             si_->freeState(newState);
-            siC_->freeControl(rctrl);
+            ltlsi_->freeControl(rctrl);
 			continue;
         }
         Motion* m = new Motion();
         m->state = newState;
-        m->control = siC_->allocControl();
-        siC_->copyControl(m->control, rctrl);
+        m->control = ltlsi_->allocControl();
+        ltlsi_->copyControl(m->control, rctrl);
         m->steps = cd;
         m->parent = v;
-		m->abstractState = abstraction_->getState(m->parent->abstractState, m->state);
-        // If we have created a state that will violate either automaton,
-        // disregard the propagation.
-        if (!m->abstractState->isValid())
-        {
-            siC_->freeControl(m->control);
-            delete m;
-            si_->freeState(newState);
-            siC_->freeControl(rctrl);
-			continue;
-        }
+        // Since the state was determined to be valid by SpaceInformation, we don't need to check automaton states
+        m->abstractState = ltlsi_->getProdGraphState(m->state);
         motions_.push_back(m);
         
         abstractInfo_[m->abstractState].addMotion(m);
@@ -260,13 +256,13 @@ bool ompl::control::LTLPlanner::explore(const std::vector<ProductGraph::State*>&
             }
         }
 
-        solved = abstraction_->isSolution(m->abstractState);
+        solved = static_cast<base::LTLProblemDefinition*>(pdef_.get())->getGoal()->isSatisfied(m->state);
         if (solved)
         {
             soln = m;
             break;
         }
-        siC_->freeControl(rctrl);
+        ltlsi_->freeControl(rctrl);
     }
     return solved;
 }
@@ -287,7 +283,7 @@ void ompl::control::LTLPlanner::clearMotions(void)
         if (m->state != NULL)
             si_->freeState(m->state);
         if (m->control != NULL)
-            siC_->freeControl(m->control);
+            ltlsi_->freeControl(m->control);
         delete m;
     }
     motions_.clear();

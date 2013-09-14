@@ -47,6 +47,7 @@
 #include <ompl/control/planners/ltl/Automaton.h>
 #include <ompl/control/planners/ltl/ProductGraph.h>
 #include <ompl/control/planners/ltl/LTLPlanner.h>
+#include <ompl/control/planners/ltl/LTLProblemDefinition.h>
 
 namespace ob = ompl::base;
 namespace oc = ompl::control;
@@ -60,13 +61,8 @@ class MyDecomposition : public oc::PropositionalTriangularDecomposition
 {
 public:
     MyDecomposition(const ob::RealVectorBounds& bounds)
-        : oc::PropositionalTriangularDecomposition(bounds)
-
-    {
-    }
-
-    virtual ~MyDecomposition() {
-    }
+        : oc::PropositionalTriangularDecomposition(bounds) { }
+    virtual ~MyDecomposition() { }
 
     virtual void project(const ob::State* s, std::vector<double>& coord) const
     {
@@ -168,7 +164,7 @@ void propagate(const ob::State *start, const oc::Control *control, const double 
     SO2.enforceBounds (so2out);
 }
 
-void planWithSimpleSetup(void)
+void plan(void)
 {
     // construct the state space we are planning in
     ob::StateSpacePtr space(new ob::SE2StateSpace());
@@ -180,14 +176,13 @@ void planWithSimpleSetup(void)
 
     space->as<ob::SE2StateSpace>()->setBounds(bounds);
 
-    //create triangulation that ignores obstacle and respects propositions
+    // create triangulation that ignores obstacle and respects propositions
     MyDecomposition* ptd = new MyDecomposition(bounds);
     addObstaclesAndPropositions(ptd);
     ptd->setup();
-    oc::PropositionalDecompositionPtr pd(ptd);
-
-    //print the triangulation to stdout
+    // print the triangulation, with proposition information, to stdout
     ptd->print(std::cout);
+    oc::PropositionalDecompositionPtr pd(ptd);
 
     // create a control space
     oc::ControlSpacePtr cspace(new oc::RealVectorControlSpace(space, 2));
@@ -199,21 +194,10 @@ void planWithSimpleSetup(void)
 
     cspace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
 
-    oc::SimpleSetup ss(cspace);
-    ss.setStateValidityChecker(boost::bind(&isStateValid, ss.getSpaceInformation().get(), ptd, _1));
-    ss.setStatePropagator(boost::bind(&propagate, _1, _2, _3, _4));
-    ss.getSpaceInformation()->setPropagationStepSize(0.025);
-
-    // create a start state
-    ob::ScopedState<ob::SE2StateSpace> start(space);
-    start->setX(0.2);
-    start->setY(0.2);
-    start->setYaw(0.0);
-
-    // create a goal state - this is a dummy goal state that won't get used
-    ob::ScopedState<ob::SE2StateSpace> goal(start);
-
-    ss.setStartAndGoalStates(start, goal, 0.);
+    oc::SpaceInformationPtr si(new oc::SpaceInformation(space, cspace));
+    si->setStateValidityChecker(boost::bind(&isStateValid, si.get(), ptd, _1));
+    si->setStatePropagator(boost::bind(&propagate, _1, _2, _3, _4));
+    si->setPropagationStepSize(0.025);
 
     //LTL co-safety sequencing formula: visit p2,p0 in that order
     std::vector<unsigned int> sequence(2);
@@ -228,20 +212,30 @@ void planWithSimpleSetup(void)
     
     //construct product graph (propDecomp x A_{cosafety} x A_{safety})
     oc::ProductGraphPtr product(new oc::ProductGraph(pd, cosafety, safety));
+    oc::LTLSpaceInformationPtr ltlsi(new oc::LTLSpaceInformation(si, product));
+
+    ob::LTLProblemDefinitionPtr pdef(new ob::LTLProblemDefinition(ltlsi));
+
+    // create a start state
+    ob::ScopedState<ob::SE2StateSpace> start(space);
+    start->setX(0.2);
+    start->setY(0.2);
+    start->setYaw(0.0);
+
+    pdef->addLowerStartState(start.get());
 
     //LTL planner (input: state information, product automaton)
-    oc::LTLPlanner* ltlPlanner = new oc::LTLPlanner(ss.getSpaceInformation(), product);
+    oc::LTLPlanner* ltlPlanner = new oc::LTLPlanner(ltlsi, product);
 
-    //hand the planner to SimpleSetup
-    ss.setPlanner(ob::PlannerPtr(ltlPlanner));
+    ltlPlanner->setProblemDefinition(pdef);
 
     // attempt to solve the problem within thirty seconds of planning time
-    ob::PlannerStatus solved = ss.solve(30);
+    ob::PlannerStatus solved = ltlPlanner->as<ob::Planner>()->solve(30.0);
 
     if (solved)
     {
         std::cout << "Found solution:" << std::endl;
-        ss.getSolutionPath().print(std::cout);
+        pdef->getLowerSolutionPath()->print(std::cout);
     }
     else
         std::cout << "No solution found" << std::endl;
@@ -249,7 +243,6 @@ void planWithSimpleSetup(void)
 
 int main(int, char **)
 {
-    std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
-    planWithSimpleSetup();
+    plan();
     return 0;
 }

@@ -39,6 +39,7 @@
 
 #include "ompl/control/planners/PlannerIncludes.h"
 #include "ompl/control/planners/ltl/ProductGraph.h"
+#include "ompl/control/planners/ltl/LTLSpaceInformation.h"
 #include "ompl/datastructures/PDF.h"
 #include <boost/unordered_map.hpp>
 #include <map>
@@ -59,7 +60,7 @@ namespace ompl
             /** \brief Create an LTLPlanner with a given space and product graph.
                 Accepts an optional third parameter to control how much time is spent
                 promoting low-level tree exploration along a given high-level lead. */
-            LTLPlanner(const SpaceInformationPtr& si, const ProductGraphPtr& a, double exploreTime = 0.5);
+            LTLPlanner(const LTLSpaceInformationPtr& si, const ProductGraphPtr& a, double exploreTime = 0.5);
 
             /** \brief Clears all memory belonging to this LTLPlanner .*/
             virtual ~LTLPlanner(void);
@@ -180,7 +181,7 @@ namespace ompl
             ControlSamplerPtr controlSampler_;
 
             /** \brief Handle to the control::SpaceInformation object */
-            const SpaceInformation* siC_;
+            const LTLSpaceInformation* ltlsi_;
 
             /** \brief The high level abstaction used to grow the tree structure */
             ProductGraphPtr abstraction_;

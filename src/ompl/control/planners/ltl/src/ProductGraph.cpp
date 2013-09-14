@@ -18,13 +18,6 @@
 #include <stack>
 #include <vector>
 
-ompl::control::ProductGraph::State::State(void) :
-    decompRegion(-1),
-    cosafeState(-1),
-    safeState(-1)
-{
-}
-
 bool ompl::control::ProductGraph::State::operator==(const State& s) const
 {
     return decompRegion==s.decompRegion
@@ -320,10 +313,15 @@ unsigned int ompl::control::ProductGraph::getSafeAutDistance(const State* s) con
 
 ompl::control::ProductGraph::State* ompl::control::ProductGraph::getState(const base::State* cs) const
 {
+    return getState(cs, cosafety_->getStartState(), safety_->getStartState());
+}
+
+ompl::control::ProductGraph::State* ompl::control::ProductGraph::getState(const base::State* cs, int cosafe, int safe) const
+{
     State s;
     s.decompRegion = decomp_->locateRegion(cs);
-    s.cosafeState = cosafety_->getStartState();
-    s.safeState = safety_->getStartState();
+    s.cosafeState = cosafe;
+    s.safeState = safe;
 	State*& ret = stateToPtr_[s];
 	if (ret == NULL)
 		ret = new State(s);

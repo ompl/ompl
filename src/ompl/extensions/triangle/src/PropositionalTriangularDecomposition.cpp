@@ -70,6 +70,7 @@ ompl::control::World ompl::control::PropositionalTriangularDecomposition::worldA
     World world(numProps);
     for (unsigned int p = 0; p < numProps; ++p)
         world[p] = false;
+    if (triID == -1) return world;
     const std::set<unsigned int>& props = triDecomp_->getRegionsOfInterestAt(triID);
     typedef std::set<unsigned int>::const_iterator PropIter;
     for (PropIter pi = props.begin(); pi != props.end(); ++pi)
