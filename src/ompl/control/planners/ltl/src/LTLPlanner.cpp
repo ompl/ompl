@@ -16,6 +16,7 @@ ompl::control::LTLPlanner::LTLPlanner(const LTLSpaceInformationPtr& ltlsi, const
     ompl::base::Planner(ltlsi, "LTLPlanner"),
     ltlsi_(ltlsi.get()),
     abstraction_(a),
+    prodStart_(NULL),
     exploreTime_(exploreTime)
 {
     specs_.approximateSolutions = true;
@@ -33,41 +34,32 @@ void ompl::control::LTLPlanner::setup()
 void ompl::control::LTLPlanner::clear()
 {
     base::Planner::clear();
-    starts_.clear();
     availDist_.clear();
     abstractInfo_.clear();
     clearMotions();
 }
 
-ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const base::PlannerTerminationCondition& ptc)
+ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::PlannerTerminationCondition& ptc)
 {
-    return solve(ptc, NULL);
-}
-
-ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::PlannerTerminationCondition& ptc, ProductGraph::State* highLevelStart)
-{
+    // TODO make solve work when called more than once!
     checkValidity();
-    //TODO for now, we are only taking the first start state
-    //TODO add OMPL_WARN message if >1 start state given, that only the first one will be used
-    const base::State* s = pis_.nextStart();
-    Motion *motion = new Motion(ltlsi_);
-    si_->copyState(motion->state, s);
-    ltlsi_->nullControl(motion->control);
-    motions_.push_back(motion);
+    const base::State* start = pis_.nextStart();
+    prodStart_ = ltlsi_->getProdGraphState(start);
 
-    ProductGraph::State* a = highLevelStart;
-    if (a == NULL)
-        a = ltlsi_->getProdGraphState(s);
-    starts_.push_back(a);
+    if (pis_.haveMoreStartStates())
+        OMPL_WARN("Multiple start states given. Using only the first start state.");
 
-    ompl::time::point start = ompl::time::now();
-    abstraction_->buildGraph(starts_[0], boost::bind(&LTLPlanner::initAbstractInfo, this, _1));
+    Motion* startMotion = new Motion(ltlsi_);
+    si_->copyState(startMotion->state, start);
+    ltlsi_->nullControl(startMotion->control);
+    startMotion->abstractState = prodStart_;
 
-    abstractInfo_[a].addMotion(motion);
-    updateWeight(a);
-    availDist_.add(a, abstractInfo_[a].weight);
-    motion->abstractState = a;
-    //TODO consider moving estimates and weights into here instead of in abstraction state
+    motions_.push_back(startMotion);
+    abstractInfo_[prodStart_].addMotion(startMotion);
+    updateWeight(prodStart_);
+    availDist_.add(prodStart_, abstractInfo_[prodStart_].weight);
+
+    abstraction_->buildGraph(prodStart_, boost::bind(&LTLPlanner::initAbstractInfo, this, _1));
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
@@ -79,7 +71,7 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
 
     while (ptc()==false && !solved)
     {
-        const std::vector<ProductGraph::State*> lead = abstraction_->computeLead(starts_[0], boost::bind(&LTLPlanner::abstractEdgeWeight, this, _1, _2));
+        const std::vector<ProductGraph::State*> lead = abstraction_->computeLead(prodStart_, boost::bind(&LTLPlanner::abstractEdgeWeight, this, _1, _2));
         buildAvail(lead);
         solved = explore(lead, soln, exploreTime_);
     }
@@ -287,8 +279,6 @@ void ompl::control::LTLPlanner::clearMotions(void)
         delete m;
     }
     motions_.clear();
-    //TODO we've accepted that we'll only use one start state - do we even need starts_?
-    starts_.clear();
     pis_.clear();
     pis_.update();
 }

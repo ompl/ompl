@@ -80,12 +80,6 @@ namespace ompl
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition& ptc);
             /// @}
 
-            /** \brief Continues solving until a solution is found or
-                a given termination condition is met, beginning from an optional
-                initial high-level state.
-                Returns true if a solution was found. */
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition& ptc, ProductGraph::State* highLevelStart);
-
             /** \brief Helper debug method to access this planner's
                 underlying tree of states. */
             void getTree(std::vector<base::State*>& tree) const;
@@ -195,8 +189,8 @@ namespace ompl
             /** \brief Set of all motions. */
             std::vector<Motion*> motions_;
 
-            /** \brief Set of start states in abstraction. */
-            std::vector<ProductGraph::State*> starts_;
+            /** \brief Start state in product graph. */
+            ProductGraph::State* prodStart_;
 
             /** \brief Time to spend exploring each lead. */
             double exploreTime_;
