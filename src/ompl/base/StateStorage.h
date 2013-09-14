@@ -162,7 +162,7 @@ namespace ompl
 
                 /** \brief boost::serialization routine */
                 template<typename Archive>
-                void serialize(Archive & ar, const unsigned int version)
+                void serialize(Archive & ar, const unsigned int /*version*/)
                 {
                     ar & marker;
                     ar & state_count;
@@ -255,12 +255,12 @@ namespace ompl
 
         protected:
 
-            virtual void loadMetadata(const Header &h, boost::archive::binary_iarchive &ia)
+            virtual void loadMetadata(const Header& /*h*/, boost::archive::binary_iarchive &ia)
             {
                 ia >> metadata_;
             }
 
-            virtual void storeMetadata(const Header &h, boost::archive::binary_oarchive &oa)
+            virtual void storeMetadata(const Header& /*h*/, boost::archive::binary_oarchive &oa)
             {
                 oa << metadata_;
             }

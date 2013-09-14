@@ -79,7 +79,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
 
     if (!goal)
     {
-        OMPL_ERROR("Unknown type of goal (or goal undefined)");
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -97,20 +97,20 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
 
     if (dStart_.getMotionCount() == 0)
     {
-        OMPL_ERROR("Motion planning start tree could not be initialized!");
+        OMPL_ERROR("%s: Motion planning start tree could not be initialized!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        OMPL_ERROR("Insufficient states in sampleable goal region");
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("Starting with %d states", (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
+    OMPL_INFORM("%s: Starting with %d states", getName().c_str(), (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
 
     base::State *xstate = si_->allocState();
     bool      startTree = true;
@@ -138,7 +138,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
             }
             if (dGoal_.getMotionCount() == 0)
             {
-                OMPL_ERROR("Unable to sample any valid states for goal tree");
+                OMPL_ERROR("%s: Unable to sample any valid states for goal tree", getName().c_str());
                 break;
             }
         }
@@ -217,7 +217,8 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
 
     si_->freeState(xstate);
 
-    OMPL_INFORM("Created %u (%u start + %u goal) states in %u cells (%u start (%u on boundary) + %u goal (%u on boundary))",
+    OMPL_INFORM("%s: Created %u (%u start + %u goal) states in %u cells (%u start (%u on boundary) + %u goal (%u on boundary))",
+                getName().c_str(),
                 dStart_.getMotionCount() + dGoal_.getMotionCount(), dStart_.getMotionCount(), dGoal_.getMotionCount(),
                 dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getGrid().countExternal(),
                 dGoal_.getCellCount(), dGoal_.getGrid().countExternal());

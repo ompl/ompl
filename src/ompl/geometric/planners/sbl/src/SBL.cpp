@@ -85,7 +85,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
     if (!goal)
     {
-        OMPL_ERROR("Unknown type of goal (or goal undefined)");
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -100,20 +100,20 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
     if (tStart_.size == 0)
     {
-        OMPL_ERROR("Motion planning start tree could not be initialized!");
+        OMPL_ERROR("%s: Motion planning start tree could not be initialized!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        OMPL_ERROR("Insufficient states in sampleable goal region");
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
 
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    OMPL_INFORM("Starting with %d states", (int)(tStart_.size + tGoal_.size));
+    OMPL_INFORM("%s: Starting with %d states", getName().c_str(), (int)(tStart_.size + tGoal_.size));
 
     std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
@@ -141,7 +141,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
             }
             if (tGoal_.size == 0)
             {
-                OMPL_ERROR("Unable to sample any valid states for goal tree");
+                OMPL_ERROR("%s: Unable to sample any valid states for goal tree", getName().c_str());
                 break;
             }
         }
@@ -174,8 +174,9 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
     si_->freeState(xstate);
 
-    OMPL_INFORM("Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)", tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
-                 tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
+    OMPL_INFORM("%s: Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)",
+                getName().c_str(), tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
+                tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
 
     return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

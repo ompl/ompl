@@ -130,7 +130,7 @@ namespace ompl
 
             /** \brief Report the distance to the nearest invalid state when starting from \e state. If the distance is
                 negative, the value of clearance is the penetration depth.*/
-            virtual double clearance(const State *state) const
+            virtual double clearance(const State* /*state*/) const
             {
                 return 0.0;
             }
@@ -138,14 +138,14 @@ namespace ompl
             /** \brief Report the distance to the nearest invalid state when starting from \e state, and if possible,
                 also specify a valid state \e validState in the direction that moves away from the colliding
                 state. The \e validStateAvailable flag is set to true if \e validState is updated. */
-            virtual double clearance(const State *state, State *validState, bool &validStateAvailable) const
+            virtual double clearance(const State *state, State* /*validState*/, bool &validStateAvailable) const
             {
                 validStateAvailable = false;
                 return clearance(state);
             }
 
             /** \brief Return the cost of a particular state */
-            virtual double cost(const State *state) const
+            virtual double cost(const State* /*state*/) const
             {
                 return 0.0;
             }

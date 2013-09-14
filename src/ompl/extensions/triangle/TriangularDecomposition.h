@@ -152,7 +152,7 @@ namespace ompl
                     triDecomp->project(s, coord);
                 }
 
-                virtual void sampleFullState(const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State* s) const
+                virtual void sampleFullState(const base::StateSamplerPtr& /*sampler*/, const std::vector<double>& /*coord*/, base::State* /*s*/) const
                 {
                 }
 

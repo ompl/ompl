@@ -37,17 +37,17 @@
 #include "ompl/extensions/opende/OpenDEEnvironment.h"
 #include <boost/lexical_cast.hpp>
 
-unsigned int ompl::control::OpenDEEnvironment::getMaxContacts(dGeomID geom1, dGeomID geom2) const
+unsigned int ompl::control::OpenDEEnvironment::getMaxContacts(dGeomID /*geom1*/, dGeomID /*geom2*/) const
 {
     return maxContacts_;
 }
 
-bool ompl::control::OpenDEEnvironment::isValidCollision(dGeomID geom1, dGeomID geom2, const dContact& contact) const
+bool ompl::control::OpenDEEnvironment::isValidCollision(dGeomID /*geom1*/, dGeomID /*geom2*/, const dContact& /*contact*/) const
 {
     return false;
 }
 
-void ompl::control::OpenDEEnvironment::setupContact(dGeomID geom1, dGeomID geom2, dContact &contact) const
+void ompl::control::OpenDEEnvironment::setupContact(dGeomID /*geom1*/, dGeomID /*geom2*/, dContact &contact) const
 {
     contact.surface.mode = dContactBounce | dContactSoftCFM;
     contact.surface.mu = 0.1;

@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(SimpleIK)
     gstate->values[0] = env.goal.first;
     gstate->values[1] = env.goal.second;
     goal.setState(gstate);
-    goal.setThreshold(1e-3); // this is basically 0, but we want to account for numerical instabilities
+    goal.setThreshold(0.1);
 
     geometric::GeneticSearch gaik(si);
     gaik.setRange(5.0);
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(SimpleIK)
         ompl::time::duration elapsed = ompl::time::now() - startTime;
         time += ompl::time::seconds(elapsed);
         BOOST_CHECK(solved);
-        BOOST_CHECK(si->distance(found.get(), gstate.get()) < 1e-3);
+        BOOST_CHECK(si->distance(found.get(), gstate.get()) < goal.getThreshold());
     }
     time = time / (double)N;
     BOOST_CHECK(time < 0.01);

@@ -1,0 +1,7 @@
+/**
+\page teamcity TeamCity Build Server
+\htmlonly
+<iframe src="http://teamcity.kavrakilab.org/guestLogin.html?guest=1" id="externalpagewrapper"></iframe>
+<style type="text/css">footer {position: fixed; bottom: 0px; left: 0px; right: 0px}</style>
+\endhtmlonly
+*/

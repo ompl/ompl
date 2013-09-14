@@ -90,7 +90,7 @@ namespace ompl
 
                 /// \brief boost::serialization routine
                 template<typename Archive>
-                void serialize(Archive & ar, const unsigned int version)
+                void serialize(Archive & ar, const unsigned int /*version*/)
                 {
                     ar & boost::serialization::base_object<base::PlannerDataStorage::Header>(*this);
                     ar & control_signature;
@@ -101,7 +101,7 @@ namespace ompl
             struct PlannerDataEdgeControlData : base::PlannerDataStorage::PlannerDataEdgeData
             {
                 template<typename Archive>
-                void serialize(Archive & ar, const unsigned int version)
+                void serialize(Archive & ar, const unsigned int /*version*/)
                 {
                     ar & boost::serialization::base_object<base::PlannerDataStorage::PlannerDataEdgeData>(*this);
                     ar & control_;

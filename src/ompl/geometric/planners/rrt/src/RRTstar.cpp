@@ -100,7 +100,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     if (opt && !dynamic_cast<base::PathLengthOptimizationObjective*>(opt))
     {
         opt = NULL;
-        OMPL_WARN("Optimization objective '%s' specified, but such an objective is not appropriate for %s. Only path length can be optimized.", getName().c_str(), opt->getDescription().c_str());
+        OMPL_WARN("%s: Optimization objective '%s' specified, but such an objective is not appropriate. Only path length can be optimized.", getName().c_str(), opt->getDescription().c_str());
     }
 
     if (!opt)
@@ -108,13 +108,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         // by default, optimize path length and run until completion
         opt = new base::PathLengthOptimizationObjective(si_, std::numeric_limits<double>::epsilon());
         temporaryOptimizationObjective.reset(opt);
-        OMPL_INFORM("No optimization objective specified. Defaulting to optimization of path length for the allowed planning time.");
-    }
-
-    if (!goal)
-    {
-        OMPL_ERROR("Goal undefined");
-        return base::PlannerStatus::INVALID_GOAL;
+        OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimization of path length for the allowed planning time.", getName().c_str());
     }
 
     while (const base::State *st = pis_.nextStart())
@@ -126,14 +120,14 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     if (nn_->size() == 0)
     {
-        OMPL_ERROR("There are no valid initial states!");
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("Starting with %u states", nn_->size());
+    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nn_->size());
 
     Motion *solution       = lastGoalMotion_;
     Motion *approximation  = NULL;
@@ -154,9 +148,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     unsigned int               rewireTest = 0;
     unsigned int               statesGenerated = 0;
 
-    if(solution)
-        OMPL_INFORM("Starting with existing solution of cost %.5f", solution->cost);
-    OMPL_INFORM("Initial k-nearest value of %u", (unsigned int)std::ceil(k_rrg * log((double)nn_->size()+1)));
+    if (solution)
+        OMPL_INFORM("%s: Starting with existing solution of cost %.5f", getName().c_str(), solution->cost);
+    OMPL_INFORM("%s: Initial k-nearest value of %u", getName().c_str(), (unsigned int)std::ceil(k_rrg * log((double)(nn_->size()+1))));
 
     NeighborIndexCompare compareFn(nbh);
 
@@ -193,7 +187,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             motion->parent = nmotion;
 
             // Find nearby neighbors of the new motion - k-nearest RRT*
-            unsigned int k = std::ceil(k_rrg * log((double)nn_->size()+1));
+            unsigned int k = std::ceil(k_rrg * log((double)(nn_->size()+1)));
             nn_->nearestK(motion, k, nbh);
             rewireTest += nbh.size();
             statesGenerated++;
@@ -245,7 +239,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
             else
             {
-                motion->cost = distN;
+                motion->cost = nmotion->cost + distN;
                 // find which one we connect the new state to
                 for (unsigned int i = 0 ; i < nbh.size() ; ++i)
                 {
@@ -293,16 +287,19 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     {
                         // Need to subtract the difference in cost from all of the node's in the neighbor's subtree
                         double delta = newcost - nbh[i]->cost;
-                        // Remove the neighbor node from it's parent's child list
-                        removeFromParent(nbh[i]);
+                        if (delta < -magic::BETTER_PATH_COST_MARGIN)
+                        {
+                            // Remove the neighbor node from it's parent's child list
+                            removeFromParent(nbh[i]);
 
-                        // Add the neighbor node as a child of motion
-                        nbh[i]->parent = motion;
-                        nbh[i]->cost = newcost;
-                        motion->children.push_back(nbh[i]);
+                            // Add the neighbor node as a child of motion
+                            nbh[i]->parent = motion;
+                            nbh[i]->cost = newcost;
+                            motion->children.push_back(nbh[i]);
 
-                        updateChildCosts(nbh[i], delta);
-                        checkForSolution = true;
+                            updateChildCosts(nbh[i], delta);
+                            checkForSolution = true;
+                        }
                     }
                 }
             }
@@ -316,19 +313,20 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
 
             // Checking for solution or iterative improvement
-            for (size_t i = 0; i < goalMotions_.size() && checkForSolution; ++i)
-            {
-                sufficientlyShort = opt->isSatisfied(goalMotions_[i]->cost);
-                if (sufficientlyShort)
+            if (checkForSolution)
+                for (std::size_t i = 0; i < goalMotions_.size() ; ++i)
                 {
-                    solution = goalMotions_[i];
-                    break;
+                    sufficientlyShort = opt->isSatisfied(goalMotions_[i]->cost);
+                    if (sufficientlyShort)
+                    {
+                        solution = goalMotions_[i];
+                        break;
+                    }
+                    else if (!solution || goalMotions_[i]->cost < solution->cost)
+                    {
+                        solution = goalMotions_[i];
+                    }
                 }
-                else if (!solution || goalMotions_[i]->cost < solution->cost)
-                {
-                    solution = goalMotions_[i];
-                }
-            }
 
             // Checking for approximate solution (closest state found to the goal)
             if (goalMotions_.size() == 0 && distanceFromGoal < approximatedist)
@@ -382,7 +380,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         si_->freeState(rmotion->state);
     delete rmotion;
 
-    OMPL_INFORM("Created %u new states. Checked %lu rewire options. %u goal states in tree.", statesGenerated, rewireTest, goalMotions_.size());
+    OMPL_INFORM("%s: Created %u new states. Checked %lu rewire options. %u goal states in tree.", getName().c_str(), statesGenerated, rewireTest, goalMotions_.size());
 
     return base::PlannerStatus(addedSolution, approximate);
 }

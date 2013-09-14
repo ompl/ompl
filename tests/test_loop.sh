@@ -16,18 +16,36 @@ then
     COUNT=$1
 fi
 
+USE_GDB=false
+if [ $# -gt 1 ]
+then
+    USE_GDB=true
+    echo "Using gdb."
+fi
+
+ulimit -c unlimited
+
 trap control_c SIGINT
 rm -f ompl_run_test_codes
 
 for i in $(seq $COUNT)
 do
     echo "Running test $i of $COUNT" > ompl_run_test_count
-    gdb --return-child-result --batch --ex run --args $TEST_EXE
+    if $USE_GDB ; then
+	gdb --return-child-result --batch --ex run --args $TEST_EXE
+    else
+	$TEST_EXE
+    fi
     RET_CODE=$?
     echo $RET_CODE >> ompl_run_test_codes
     if [ $RET_CODE -ne 0 ]
     then
-	echo "Error found!"
+        echo "Error found!"
+	if [ -e core ]
+	then
+	    echo "Renaming core file."
+	    mv core core.$i
+	fi
     fi
 done
 rm -f ompl_run_test_count

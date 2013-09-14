@@ -274,15 +274,6 @@ namespace ompl
             /// selected state.
             Motion* propagateFrom(Motion* motion, base::State*, base::State*);
 
-            void freeMotion(Motion* m)
-            {
-                if (m->parent_ && m->startState_ != m->parent_->endState_)
-                    si_->freeState(m->startState_);
-                if (!m->isSplit_)
-                    si_->freeState(m->endState_);
-                delete m;
-            }
-
             void freeMemory(void);
 
             /// State sampler

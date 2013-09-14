@@ -63,10 +63,8 @@ namespace ompl
 
             virtual double distance(const base::State *state1, const base::State *state2) const
             {
-                int x1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[0]);
-                int x2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[0]);
-
-                return abs(x1 - x2);
+                return fabs(state1->as<base::RealVectorStateSpace::StateType>()->values[0] -
+                            state2->as<base::RealVectorStateSpace::StateType>()->values[0]);
             }
         };
 

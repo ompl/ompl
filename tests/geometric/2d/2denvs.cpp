@@ -58,6 +58,8 @@
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/prm/LazyPRM.h"
+#include "ompl/geometric/planners/prm/SPARS.h"
+#include "ompl/geometric/planners/prm/SPARStwo.h"
 
 
 #include "../../BoostTestTeamCityReporter.h"
@@ -492,6 +494,28 @@ protected:
 
 };
 
+class SPARSTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::SPARS *spars = new geometric::SPARS(si);
+        return base::PlannerPtr(spars);
+    }
+};
+
+class SPARStwoTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::SPARStwo *sparstwo = new geometric::SPARStwo(si);
+        return base::PlannerPtr(sparstwo);
+    }
+};
+
 class PlanTest
 {
 public:
@@ -503,6 +527,49 @@ public:
         s.setup();
         base::PlannerTest pt(s.getPlanner());
         pt.test();
+    }
+
+    void terminationTest(TestPlanner *p)
+    {
+        class NeverValidStateValidityChecker : public base::StateValidityChecker
+        {
+        public:
+            NeverValidStateValidityChecker(const base::SpaceInformationPtr &si,
+                                           const base::State *start,
+                                           const base::State *goal) :
+                StateValidityChecker(si),
+                start_(start),
+                goal_(goal)
+            {
+            }
+
+            virtual bool isValid(const base::State *state) const
+            {
+                return si_->equalStates(state, start_) || si_->equalStates(state, goal_);
+            }
+
+        private:
+          const base::State *start_;
+          const base::State *goal_;
+        };
+
+        geometric::SimpleSetup2DMap s(env_);
+        s.setPlanner(p->newPlanner(s.getSpaceInformation()));
+
+        // change the state validity checker to one that reports true only for the query states (no sampling will succeed)
+        s.getSpaceInformation()->setStateValidityChecker(base::StateValidityCheckerPtr
+                                                         (static_cast<base::StateValidityChecker*>
+                                                          (new NeverValidStateValidityChecker
+                                                           (s.getSpaceInformation(),
+                                                            s.getProblemDefinition()->getStartState(0),
+                                                            s.getProblemDefinition()->getGoal()->as<base::GoalState>()->getState()))));
+        s.setup();
+        if (verbose_)
+            printf("Testing planner termination for %s. The planner should terminate within 0.1s; "
+                   "If the test now hangs, it likely means there is an infinite loop in the planner.\n", s.getPlanner()->getName().c_str());
+        s.solve(0.1);
+        if (verbose_)
+            printf("Terminated! Seeing this message means the test has passed!\n");
     }
 
     void run2DMapTest(TestPlanner *p, double *success, double *avgruntime, double *avglength)
@@ -549,6 +616,9 @@ public:
         if (verbose_)
             printf("\n========= Running simple test\n\n");
         simpleTest(p);
+        if (verbose_)
+            printf("\n========= Running termination test\n\n");
+        terminationTest(p);
 
         if (verbose_)
             printf("\n========= Running 2D map test\n\n");
@@ -623,6 +693,8 @@ OMPL_PLANNER_TEST(pRRT, 99.0, 0.02)
 // LazyRRT is a not so great, so we use more relaxed bounds
 OMPL_PLANNER_TEST(LazyRRT, 90.0, 0.2)
 
+OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
+
 OMPL_PLANNER_TEST(PDST, 99.0, 0.03)
 
 OMPL_PLANNER_TEST(pSBL, 99.0, 0.02)
@@ -634,10 +706,10 @@ OMPL_PLANNER_TEST(BKPIECE1, 99.0, 0.01)
 
 OMPL_PLANNER_TEST(EST, 99.0, 0.02)
 
-OMPL_PLANNER_TEST(PRM, 99.0, 0.02)
-OMPL_PLANNER_TEST(PRMstar, 99.0, 0.02)
-OMPL_PLANNER_TEST(LazyPRM, 99.0, 0.02)
-
-// OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
+OMPL_PLANNER_TEST(PRM, 98.0, 0.02)
+OMPL_PLANNER_TEST(PRMstar, 98.0, 0.02)
+OMPL_PLANNER_TEST(LazyPRM, 98.0, 0.02)
+OMPL_PLANNER_TEST(SPARS, 95.0, 0.02)
+OMPL_PLANNER_TEST(SPARStwo, 99.0, 0.02)
 
 BOOST_AUTO_TEST_SUITE_END()
