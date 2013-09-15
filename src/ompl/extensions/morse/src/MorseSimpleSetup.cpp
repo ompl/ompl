@@ -1,10 +1,46 @@
-/* MorseSimpleSetup.cpp */
+/*********************************************************************
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2010, Rice University
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Rice University nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
+
+/* Authors: Ioan Sucan, Caleb Voss */
 
 #include "ompl/extensions/morse/MorseSimpleSetup.h"
+#include "ompl/extensions/morse/MorseControlSpace.h"
 #include "ompl/extensions/morse/MorseProjection.h"
+#include "ompl/extensions/morse/MorseStatePropagator.h"
+#include "ompl/extensions/morse/MorseStateValidityChecker.h"
 #include "ompl/extensions/morse/MorseTerminationCondition.h"
 #include "ompl/util/Console.h"
-#include <boost/thread.hpp>
 
 ompl::control::MorseSimpleSetup::MorseSimpleSetup(const base::MorseEnvironmentPtr &env) :
     SimpleSetup(ControlSpacePtr(new MorseControlSpace(base::StateSpacePtr(new base::MorseStateSpace(env))))),
@@ -56,6 +92,7 @@ void ompl::control::MorseSimpleSetup::setup(void)
 ompl::base::PlannerStatus ompl::control::MorseSimpleSetup::solve(void)
 {
     setup();
+    // terminate if user exits MORSE
     return SimpleSetup::solve(base::MorseTerminationCondition(env_));
 }
 
@@ -74,8 +111,6 @@ void ompl::control::MorseSimpleSetup::playPath(const base::PathPtr &path) const
         base::State *result = si_->allocState();
         for (i = 0; i < pc->getControlCount(); i++)
         {
-            //double *con = pc->getControl(i)->as<RealVectorControlSpace::ControlType>()->values;
-            //OMPL_INFORM("Applying control (%f,%f) for %f seconds", con[0], con[1], pc->getControlDuration(i));
             si_->getStatePropagator()->propagate(pc->getState(i), pc->getControl(i), pc->getControlDuration(i), result);
         }
         getStateSpace()->as<base::MorseStateSpace>()->writeState(pc->getState(i));
@@ -87,8 +122,6 @@ void ompl::control::MorseSimpleSetup::playPath(const base::PathPtr &path) const
             throw Exception("Unknown type of path");
         if (pg->getStateCount() > 0)
         {
-            OMPL_INFORM("Playing through %u states (%0.3f seconds)", (unsigned int)pg->getStateCount(),
-                       si_->getPropagationStepSize() * (double)(pg->getStateCount() - 1));
             double d = si_->getPropagationStepSize();
             getStateSpace()->as<base::MorseStateSpace>()->writeState(pg->getState(0));
             for (unsigned int i = 1 ; i < pg->getStateCount() ; ++i)

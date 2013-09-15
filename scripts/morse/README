@@ -1,6 +1,6 @@
 INSTALLATION: (Notice: I also changed my speed hack interface for Blender; this code won't run
     without my updated version, which I will commit soon)
--Install MORSE and it's dependencies (preferably version 1.0_STABLE)
+-Install MORSE and it's dependencies (preferably version 1.0_STABLE or later)
 -(optional) Run 'morse check' to verify the installation
 -Build and install OMPL and the Python bindings (see README.md in toplevel directory)
   with Python3 and the Python3 version of Boost.Python using CMake variables PYTHON_EXEC,
@@ -10,11 +10,6 @@ INSTALLATION: (Notice: I also changed my speed hack interface for Blender; this 
   Open Blender, go to File > User Preferences > Addons > Install from File..., navigate to
   build/scripts/morse/ompl_addon.py, press Install from File..., check the box for OMPL Interface,
   then press Save User Settings and exit the User Preferences dialog.
-
-NOTE: This build works with MORSE 1.0_STABLE, but the latest branch of MORSE has a slightly
-different command line interface. If you would like to use the latest MORSE version, check lines
-50 and 471 in ompl_addon.py.in.
-
 
 Files in this directory:
     communicator.py
