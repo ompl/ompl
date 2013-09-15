@@ -178,6 +178,7 @@ void plan(void)
 
     // create triangulation that ignores obstacle and respects propositions
     MyDecomposition* ptd = new MyDecomposition(bounds);
+    // helper method that adds an obstacle, as well as three propositions p0,p1,p2
     addObstaclesAndPropositions(ptd);
     ptd->setup();
     oc::PropositionalDecompositionPtr pd(ptd);
@@ -210,8 +211,19 @@ void plan(void)
     
     //construct product graph (propDecomp x A_{cosafety} x A_{safety})
     oc::ProductGraphPtr product(new oc::ProductGraph(pd, cosafety, safety));
+
+    // LTLSpaceInformation creates a hybrid space of robot state space x product graph.
+    // It takes the validity checker from SpaceInformation and expands it to one that also
+    // rejects any hybrid state containing rejecting automaton states.
+    // It takes the state propagator from SpaceInformation and expands it to one that
+    // follows continuous propagation with setting the next decomposition region
+    // and automaton states accordingly.
+    //
+    // The robot state space, given by SpaceInformation, is referred to as the "lower space".
     oc::LTLSpaceInformationPtr ltlsi(new oc::LTLSpaceInformation(si, product));
 
+    // LTLProblemDefinition creates a goal in hybrid space, corresponding to any
+    // state in which both automata are accepting
     ob::LTLProblemDefinitionPtr pdef(new ob::LTLProblemDefinition(ltlsi));
 
     // create a start state
@@ -220,19 +232,26 @@ void plan(void)
     start->setY(0.2);
     start->setYaw(0.0);
 
+    // addLowerStartState accepts a state in lower space, expands it to its
+    // corresponding hybrid state (decomposition region containing the state, and
+    // starting states in both automata), and adds that as an official start state.
     pdef->addLowerStartState(start.get());
 
-    //LTL planner (input: state information, product automaton)
+    //LTL planner (input: LTL space information, product automaton)
     oc::LTLPlanner* ltlPlanner = new oc::LTLPlanner(ltlsi, product);
-
     ltlPlanner->setProblemDefinition(pdef);
 
     // attempt to solve the problem within thirty seconds of planning time
+    // considering the above cosafety/safety automata, a solution path is any
+    // path that visits p2 followed by p0 while avoiding obstacles and avoiding p1.
     ob::PlannerStatus solved = ltlPlanner->as<ob::Planner>()->solve(30.0);
 
     if (solved)
     {
         std::cout << "Found solution:" << std::endl;
+        // The path returned by LTLProblemDefinition is through hybrid space.
+        // getLowerSolutionPath() projects it down into the original robot state space
+        // that we handed to LTLSpaceInformation.
         pdef->getLowerSolutionPath()->print(std::cout);
     }
     else
