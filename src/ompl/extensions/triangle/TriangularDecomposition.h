@@ -93,6 +93,8 @@ namespace ompl
 
             virtual ~TriangularDecomposition(void);
 
+            virtual unsigned int getNumRegions(void) const { return triangles_.size(); }
+
             virtual double getRegionVolume(unsigned int triID);
 
             virtual void getNeighbors(unsigned int triID, std::vector<unsigned int>& neighbors) const;

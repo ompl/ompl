@@ -76,7 +76,6 @@ void ompl::control::TriangularDecomposition::setup(void)
 {
     unsigned int numTriangles = createTriangles();
     OMPL_INFORM("Created %u triangles", numTriangles);
-    setNumRegions(numTriangles);
     buildLocatorGrid();
 }
 

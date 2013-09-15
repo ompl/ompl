@@ -62,6 +62,8 @@ namespace ompl
             {
             }
 
+            virtual unsigned int getNumRegions(void) const { return numGridCells_; }
+
             virtual double getRegionVolume(unsigned int /*rid*/)
             {
                 return cellVolume_;
@@ -101,8 +103,7 @@ namespace ompl
             mutable boost::unordered_map<int, boost::shared_ptr<base::RealVectorBounds> > regToBounds_;
 
         private:
-            /** \brief Helper method to return len^dim in call to super-constructor. */
-            unsigned int calcNumRegions(unsigned int len, unsigned int dim) const;
+            const unsigned int numGridCells_;
         };
     }
 }

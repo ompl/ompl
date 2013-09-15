@@ -73,9 +73,6 @@ namespace ompl
             /** \brief Returns the World corresponding to a given region. */
             virtual World worldAtRegion(unsigned int rid) = 0;
 
-            //TODO if someone calls setNumRegions() on propDecomp, the underlying decomp is not updated.
-            //shouldn't getNumRegions() be pure-virtual?
-
             /* TODO section off the below methods with a general description of
                 "wrapper methods that simply call the underlying decomposition */
 

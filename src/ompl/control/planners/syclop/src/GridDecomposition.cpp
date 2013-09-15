@@ -36,8 +36,14 @@
 
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
-ompl::control::GridDecomposition::GridDecomposition(unsigned int len, unsigned int dim, const base::RealVectorBounds& b) :
-    Decomposition(dim, b, calcNumRegions(len,dim)), length_(len), cellVolume_(b.getVolume())
+namespace
+{
+    /** \brief Helper method to return len^dim for calculating number of regions. */
+    static unsigned int calcNumGridCells(unsigned int len, unsigned int dim);
+}
+
+ompl::control::GridDecomposition::GridDecomposition(unsigned int len, unsigned int dim, const base::RealVectorBounds& b)
+    : Decomposition(dim, b), length_(len), cellVolume_(b.getVolume()), numGridCells_(calcNumGridCells(len, dim))
 {
     double lenInv = 1.0 / len;
     for (unsigned int i = 0; i < dim; ++i)
@@ -269,10 +275,13 @@ const ompl::base::RealVectorBounds& ompl::control::GridDecomposition::getRegionB
     return *regToBounds_[rid].get();
 }
 
-unsigned int ompl::control::GridDecomposition::calcNumRegions(unsigned int len, unsigned int dim) const
+namespace
 {
-    unsigned int numRegions = 1;
-    for (unsigned int i = 0; i < dim; ++i)
-        numRegions *= len;
-    return numRegions;
+    unsigned int calcNumGridCells(unsigned int len, unsigned int dim)
+    {
+        unsigned int numCells = 1;
+        for (unsigned int i = 0; i < dim; ++i)
+            numCells *= len;
+        return numCells;
+    }
 }

@@ -66,7 +66,7 @@ namespace ompl
             /** \brief Constructor. Creates a Decomposition with a given dimension
                 and a given set of bounds. Accepts as an optional argument a given
                 number of regions. */
-            Decomposition(unsigned int dim, const base::RealVectorBounds& b, unsigned int nreg = 0) : numRegions_(nreg), dimension_(dim), bounds_(b)
+            Decomposition(unsigned int dim, const base::RealVectorBounds& b) : dimension_(dim), bounds_(b)
             {
                 if (dim > b.low.size())
                     throw Exception("Decomposition", "argument 'dim' exceeds dimension of given bounds");
@@ -79,10 +79,7 @@ namespace ompl
             }
 
             /** \brief Returns the number of regions in this Decomposition. */
-            virtual unsigned int getNumRegions() const
-            {
-                return numRegions_;
-            }
+            virtual unsigned int getNumRegions() const = 0;
 
             /** \brief Returns the dimension of this Decomposition. */
             virtual unsigned int getDimension() const
@@ -117,12 +114,6 @@ namespace ompl
             virtual void sampleFullState(const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State* s) const = 0;
 
         protected:
-            virtual void setNumRegions(unsigned int n)
-            {
-                numRegions_ = n;
-            }
-
-            unsigned int numRegions_;
             unsigned int dimension_;
             base::RealVectorBounds bounds_;
         };
