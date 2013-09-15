@@ -177,15 +177,6 @@ void ompl::control::ProductGraph::buildGraph(State* start, const boost::function
     boost::unordered_set<State*> processed;
     std::vector<unsigned int> regNeighbors;
     VertexIndexMap index = get(boost::vertex_index, graph_);
-    /* Holds states that are closest to accepting in cosafety automaton.
-       If the automaton can be satisfied, then this vector
-       will end up being equivalent to solutionStates_.
-       Otherwise, it will hold the states that have the smallest distance
-       from an accepting state in the cosafety automaton, measured in number of
-       transitions.
-       If the safety automaton cannot be satisfied, then this vector will be empty,
-       as no solution is possible in such cases. */
-    std::vector<State*> closeStates;
 
     GraphType::vertex_descriptor next = boost::add_vertex(graph_);
     startState_ = start;
@@ -204,33 +195,10 @@ void ompl::control::ProductGraph::buildGraph(State* start, const boost::function
         //Initialize each state using the supplied state initializer function
         initialize(current);
         q.pop();
-        /* We only consider a state to be a solution or a close-solution if it is
-           accepted by the safety automaton. We are less strict with the cosafety automaton. */
-        if (safety_->isAccepting(current->safeState))
+
+        if (safety_->isAccepting(current->safeState) && cosafety_->isAccepting(current->cosafeState))
         {
-            if (cosafety_->isAccepting(current->cosafeState))
-            {
-                /* Since we have found an actual accepting state,
-                   we no longer need to keep track of close states. */
-                closeStates.clear();
-                solutionStates_.push_back(current);
-            }
-            else if (solutionStates_.empty())
-            {
-                if (closeStates.empty())
-                    closeStates.push_back(current);
-                else
-                {
-                    unsigned int closeness = cosafety_->distFromAccepting(current->cosafeState);
-                    unsigned int best = cosafety_->distFromAccepting(closeStates.front()->cosafeState);
-                    //TODO we are only allowing one state in closeStates...
-                    if (closeness < best)
-                    {
-                        closeStates.clear();
-                        closeStates.push_back(current);
-                    }
-                }
-            }
+            solutionStates_.push_back(current);
         }
 
         GraphType::vertex_descriptor v = boost::vertex(stateToIndex_[current], graph_);
@@ -267,16 +235,7 @@ void ompl::control::ProductGraph::buildGraph(State* start, const boost::function
     }
     if (solutionStates_.empty())
     {
-        OMPL_INFORM("No solution states found in abstraction.");
-        if (closeStates.empty())
-        {
-            OMPL_ERROR("Since no states were found that satisfy the safety automaton, no close states were found either.");
-            return;
-        }
-        OMPL_INFORM("Instead, using states that come closest to satisfying the cosafety automaton.");
-        unsigned int best = cosafety_->distFromAccepting(closeStates.front()->cosafeState);
-        OMPL_INFORM("These states are %u transitions away from an accepting state.", best);
-        solutionStates_.assign(closeStates.begin(), closeStates.end());
+        OMPL_ERROR("No solution path found in product graph.");
     }
 
     OMPL_INFORM("Number of decomposition regions: %u", decomp_->getNumRegions());
