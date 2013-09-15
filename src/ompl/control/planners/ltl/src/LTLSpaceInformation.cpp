@@ -83,12 +83,10 @@ void oc::LTLSpaceInformation::extendPropagator(const oc::SpaceInformationPtr& ol
         LTLStatePropagator(oc::LTLSpaceInformation* ltlsi,
                            const oc::ProductGraphPtr& prod,
                            const oc::StatePropagatorPtr& lowProp)
-            : oc::StatePropagator(ltlsi), prod_(prod), lowProp_(lowProp), ltlsi_(ltlsi)
-        {
-        }
-        virtual ~LTLStatePropagator() { }
+            : oc::StatePropagator(ltlsi),
+              prod_(prod), lowProp_(lowProp), ltlsi_(ltlsi) {}
+        virtual ~LTLStatePropagator() {}
 
-        // TODO what to do with other methods defined in statePropagator?
         virtual void propagate(const ob::State* state, const oc::Control* control,
                                const double duration, ob::State* result) const
         {
@@ -103,6 +101,11 @@ void oc::LTLSpaceInformation::extendPropagator(const oc::SpaceInformationPtr& ol
                 <ob::DiscreteStateSpace::StateType>(COSAFE)->value = nextHigh->getCosafeState();
             result->as<ob::CompoundState>()->as
                 <ob::DiscreteStateSpace::StateType>(SAFE)->value = nextHigh->getSafeState();
+        }
+
+        virtual bool canPropagateBackward(void) const
+        {
+            return lowProp_->canPropagateBackward();
         }
     private:
         const oc::ProductGraphPtr prod_;
@@ -155,8 +158,14 @@ namespace
         ob::StateSpacePtr regionSpace(new ob::DiscreteStateSpace(0, prod->getDecomp()->getNumRegions()-1));
         ob::StateSpacePtr cosafeSpace (new ob::DiscreteStateSpace(0, cosafe->numStates()-1));
         ob::StateSpacePtr safeSpace (new ob::DiscreteStateSpace(0, safe->numStates()-1));
-        //TODO this may not work correctly if lowSpace is compound and lock() has not been called
-        // if dyn_cast<Compound>(lowSpace), then ensure lock() has been called
-        return lowSpace + regionSpace + cosafeSpace + safeSpace;
+
+        ob::CompoundStateSpace* compound = new ob::CompoundStateSpace();
+        compound->addSubspace(lowSpace, 1.);
+        compound->addSubspace(regionSpace, 0.);
+        compound->addSubspace(cosafeSpace, 0.);
+        compound->addSubspace(safeSpace, 0.);
+        compound->lock();
+
+        return ob::StateSpacePtr(compound);
     }
 }
