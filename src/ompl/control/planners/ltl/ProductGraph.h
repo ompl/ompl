@@ -107,7 +107,7 @@ namespace ompl
                 friend std::ostream& operator<<(std::ostream& out, const State& s);
 
                 /** \brief Returns this State's PropositionalDecomposition region component. */
-                unsigned int getDecompRegion(void) const;
+                int getDecompRegion(void) const;
 
                 /** \brief Returns this State's co-safe Automaton state component. */
                 int getCosafeState(void) const;
@@ -116,7 +116,7 @@ namespace ompl
                 int getSafeState(void) const;
 
             private:
-                unsigned int decompRegion;
+                int decompRegion;
                 int cosafeState;
                 int safeState;
             };
@@ -186,11 +186,11 @@ namespace ompl
 
             /** \brief Helper method to return the distance from a given State's
                 co-safety state to an accepting state in the co-safety Automaton. */
-            unsigned int getCosafeAutDistance(const State* s) const;
+            int getCosafeAutDistance(const State* s) const;
 
             /** \brief Helper method to return the distance from a given State's
                 safety state to an accepting state in the safety Automaton. */
-            unsigned int getSafeAutDistance(const State* s) const;
+            int getSafeAutDistance(const State* s) const;
 
             /** \brief Returns a ProductGraph State with initial co-safety and safety
                 Automaton states, and the PropositionalDecomposition region that contains
@@ -205,7 +205,7 @@ namespace ompl
             /** \brief Returns a ProductGraph State with a given PropositionalDecomposition region.
                 The co-safety and safety Automaton states are calculated using a given parent
                 ProductGraph State and the decomposition region. */
-            State* getState(const State* parent, unsigned int nextRegion) const;
+            State* getState(const State* parent, int nextRegion) const;
 
             /** \brief Returns a ProductGraph state with the PropositionalDecomposition region
                 that contains a given base::State.
@@ -215,7 +215,7 @@ namespace ompl
 
             /** \brief Returns the ProductGraph state corresponding to the given region,
                 co-safety state, and safety state. */
-            State* getState(unsigned int region, int cosafe, int safe) const
+            State* getState(int region, int cosafe, int safe) const
             {
                 State s;
                 s.decompRegion = region;
@@ -257,7 +257,7 @@ namespace ompl
 
             /* Map from State pointer to the index of the corresponding vertex
                in the graph. */
-            boost::unordered_map<State*, unsigned int> stateToIndex_;
+            boost::unordered_map<State*, int> stateToIndex_;
         };
     }
 }

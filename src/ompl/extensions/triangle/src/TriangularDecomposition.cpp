@@ -76,7 +76,7 @@ ompl::control::TriangularDecomposition::~TriangularDecomposition(void)
 
 void ompl::control::TriangularDecomposition::setup(void)
 {
-    unsigned int numTriangles = createTriangles();
+    int numTriangles = createTriangles();
     OMPL_INFORM("Created %u triangles", numTriangles);
     buildLocatorGrid();
 }
@@ -91,12 +91,12 @@ void ompl::control::TriangularDecomposition::addRegionOfInterest(const Polygon& 
     intRegs_.push_back(region);
 }
 
-unsigned int ompl::control::TriangularDecomposition::getNumHoles(void) const
+int ompl::control::TriangularDecomposition::getNumHoles(void) const
 {
     return holes_.size();
 }
 
-unsigned int ompl::control::TriangularDecomposition::getNumRegionsOfInterest(void) const
+int ompl::control::TriangularDecomposition::getNumRegionsOfInterest(void) const
 {
     return intRegs_.size();
 }
@@ -113,12 +113,12 @@ const std::vector<ompl::control::TriangularDecomposition::Polygon>&
     return intRegs_;
 }
 
-int ompl::control::TriangularDecomposition::getRegionOfInterestAt(unsigned int triID) const
+int ompl::control::TriangularDecomposition::getRegionOfInterestAt(int triID) const
 {
     return intRegInfo_[triID];
 }
 
-double ompl::control::TriangularDecomposition::getRegionVolume(unsigned int triID)
+double ompl::control::TriangularDecomposition::getRegionVolume(int triID)
 {
     Triangle& tri = triangles_[triID];
     if (tri.volume < 0)
@@ -133,7 +133,7 @@ double ompl::control::TriangularDecomposition::getRegionVolume(unsigned int triI
     return tri.volume;
 }
 
-void ompl::control::TriangularDecomposition::getNeighbors(unsigned int triID, std::vector<unsigned int>& neighbors) const
+void ompl::control::TriangularDecomposition::getNeighbors(int triID, std::vector<int>& neighbors) const
 {
     neighbors = triangles_[triID].neighbors;
 }
@@ -142,11 +142,11 @@ int ompl::control::TriangularDecomposition::locateRegion(const base::State* s) c
 {
     std::vector<double> coord(2);
     project(s, coord);
-    const std::vector<unsigned int>& gridTriangles = locator.locateTriangles(s);
+    const std::vector<int>& gridTriangles = locator.locateTriangles(s);
     int triangle = -1;
-    for (std::vector<unsigned int>::const_iterator i = gridTriangles.begin(); i != gridTriangles.end(); ++i)
+    for (std::vector<int>::const_iterator i = gridTriangles.begin(); i != gridTriangles.end(); ++i)
     {
-        unsigned int triID = *i;
+        int triID = *i;
         if (triContains(triangles_[triID], coord))
         {
             if (triangle >= 0)
@@ -159,7 +159,7 @@ int ompl::control::TriangularDecomposition::locateRegion(const base::State* s) c
     return triangle;
 }
 
-void ompl::control::TriangularDecomposition::sampleFromRegion(unsigned int triID, RNG& rng, std::vector<double>& coord) const
+void ompl::control::TriangularDecomposition::sampleFromRegion(int triID, RNG& rng, std::vector<double>& coord) const
 {
     /* Uniformly sample a point from within a triangle, using the approach discussed in
      * http://math.stackexchange.com/questions/18686/uniform-random-point-in-triangle */
@@ -182,7 +182,7 @@ void ompl::control::TriangularDecomposition::print(std::ostream& out) const
     {
         out << i << " ";
         const Triangle& tri = triangles_[i];
-        for (unsigned int v = 0; v < 3; ++v)
+        for (int v = 0; v < 3; ++v)
             out << tri.pts[v].x << " " << tri.pts[v].y << " ";
         if (intRegInfo_[i] > -1) out << intRegInfo_[i] << " ";
         out << "-1" << std::endl;
@@ -212,7 +212,7 @@ namespace ompl
     }
 }
 
-unsigned int ompl::control::TriangularDecomposition::createTriangles()
+int ompl::control::TriangularDecomposition::createTriangles()
 {
     /* create a conforming Delaunay triangulation
        where each triangle takes up no more than triAreaPct_ percentage of
@@ -228,7 +228,7 @@ unsigned int ompl::control::TriangularDecomposition::createTriangles()
        so, to prevent duplicate vertices, we use a hashmap from Vertex to the index for
        that Vertex in the pointlist. We'll fill the map with Vertex objects,
        and then we'll actually add them to the pointlist. */
-    boost::unordered_map<Vertex, unsigned int> pointIndex;
+    boost::unordered_map<Vertex, int> pointIndex;
 
     // First, add the points from the bounding box
     pointIndex[Vertex(bounds.low[0], bounds.low[1])] = 0;
@@ -274,11 +274,11 @@ unsigned int ompl::control::TriangularDecomposition::createTriangles()
     in.pointlist = (REAL*) malloc(2*in.numberofpoints*sizeof(REAL));
 
     //add unique vertices from our map, using their assigned indices
-    typedef boost::unordered_map<Vertex, unsigned int>::const_iterator IndexIter;
+    typedef boost::unordered_map<Vertex, int>::const_iterator IndexIter;
     for (IndexIter i = pointIndex.begin(); i != pointIndex.end(); ++i)
     {
         const Vertex& v = i->first;
-        unsigned int index = i->second;
+        int index = i->second;
         in.pointlist[2*index] = v.x;
         in.pointlist[2*index+1] = v.y;
     }
@@ -288,7 +288,7 @@ unsigned int ompl::control::TriangularDecomposition::createTriangles()
     in.segmentlist = (int*) malloc(2*in.numberofsegments*sizeof(int));
 
     //First, add segments for the bounding box
-    for (unsigned int i = 0; i < 4; ++i)
+    for (int i = 0; i < 4; ++i)
     {
         in.segmentlist[2*i] = i;
         in.segmentlist[2*i+1] = (i+1) % 4;
@@ -296,7 +296,7 @@ unsigned int ompl::control::TriangularDecomposition::createTriangles()
 
     /* segIndex keeps track of where we are in in.segmentlist,
        as we fill it from multiple sources of data. */
-    unsigned int segIndex = 4;
+    int segIndex = 4;
 
     /* Now, add segments for each obstacle in holes_, using our index map
        from before to get the pointlist index for each vertex */
@@ -435,7 +435,7 @@ void ompl::control::TriangularDecomposition::LocatorGrid::buildTriangleMap(const
     regToTriangles_.resize(getNumRegions());
     std::vector<double> bboxLow(2);
     std::vector<double> bboxHigh(2);
-    std::vector<unsigned int> gridCoord[2];
+    std::vector<int> gridCoord[2];
     for (unsigned int i = 0; i < triangles.size(); ++i)
     {
         /* for Triangle tri, compute the smallest rectangular
@@ -446,7 +446,7 @@ void ompl::control::TriangularDecomposition::LocatorGrid::buildTriangleMap(const
         bboxHigh[0] = bboxLow[0];
         bboxHigh[1] = bboxLow[1];
 
-        for (unsigned int j = 1; j < 3; ++j)
+        for (int j = 1; j < 3; ++j)
         {
             if (tri.pts[j].x < bboxLow[0])
                 bboxLow[0] = tri.pts[j].x;
@@ -465,14 +465,14 @@ void ompl::control::TriangularDecomposition::LocatorGrid::buildTriangleMap(const
 
         /* Every grid cell within bounding box gets
            tri added to its map entry */
-        std::vector<unsigned int> c(2);
-        for (unsigned int x = gridCoord[0][0]; x <= gridCoord[1][0]; ++x)
+        std::vector<int> c(2);
+        for (int x = gridCoord[0][0]; x <= gridCoord[1][0]; ++x)
         {
-            for (unsigned int y = gridCoord[0][1]; y <= gridCoord[1][1]; ++y)
+            for (int y = gridCoord[0][1]; y <= gridCoord[1][1]; ++y)
             {
                 c[0] = x;
                 c[1] = y;
-                unsigned int cellID = gridCoordToRegion(c);
+                int cellID = gridCoordToRegion(c);
                 regToTriangles_[cellID].push_back(i);
             }
         }

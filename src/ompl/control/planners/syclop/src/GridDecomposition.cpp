@@ -39,18 +39,18 @@
 namespace
 {
     /** \brief Helper method to return len^dim for calculating number of regions. */
-    static unsigned int calcNumGridCells(unsigned int len, unsigned int dim);
+    static int calcNumGridCells(int len, int dim);
 }
 
-ompl::control::GridDecomposition::GridDecomposition(unsigned int len, unsigned int dim, const base::RealVectorBounds& b)
+ompl::control::GridDecomposition::GridDecomposition(int len, int dim, const base::RealVectorBounds& b)
     : Decomposition(dim, b), length_(len), cellVolume_(b.getVolume()), numGridCells_(calcNumGridCells(len, dim))
 {
     double lenInv = 1.0 / len;
-    for (unsigned int i = 0; i < dim; ++i)
+    for (int i = 0; i < dim; ++i)
         cellVolume_ *= lenInv;
 }
 
-void ompl::control::GridDecomposition::getNeighbors(unsigned int rid, std::vector<unsigned int>& neighbors) const
+void ompl::control::GridDecomposition::getNeighbors(int rid, std::vector<int>& neighbors) const
 {
     //We efficiently compute neighbors for dim = 1, 2, or 3; for higher dimensions we use a general approach.
     if (dimension_ == 1)
@@ -72,15 +72,15 @@ void ompl::control::GridDecomposition::getNeighbors(unsigned int rid, std::vecto
              0, +1,
             +1, +1
         };
-        std::vector<unsigned int> coord(2);
+        std::vector<int> coord(2);
         regionToGridCoord(rid, coord);
         std::vector<int> nc(2);
         for (std::size_t i = 0; i < 16; i += 2)
         {
             nc[0] = coord[0] + offset[i];
             nc[1] = coord[1] + offset[i+1];
-            if (nc[0] >= 0 && (unsigned int) nc[0] < length_ && nc[1] >= 0
-               && (unsigned int) nc[1] < length_)
+            if (nc[0] >= 0 && (int) nc[0] < length_ && nc[1] >= 0
+               && (int) nc[1] < length_)
                 neighbors.push_back(nc[0]*length_ + nc[1]);
         }
     }
@@ -114,17 +114,17 @@ void ompl::control::GridDecomposition::getNeighbors(unsigned int rid, std::vecto
             0, 0, -1,
             0, 0, +1
         };
-        std::vector<unsigned int> coord(3);
+        std::vector<int> coord(3);
         regionToGridCoord(rid, coord);
         std::vector<int> nc(3);
-        for (unsigned int i = 0; i < 78; i += 3)
+        for (int i = 0; i < 78; i += 3)
         {
             nc[0] = coord[0] + offset[i];
             nc[1] = coord[1] + offset[i+1];
             nc[2] = coord[2] + offset[i+2];
-            if (nc[0] >= 0 && (unsigned int) nc[0] < length_
-              && nc[1] >= 0 && (unsigned int) nc[1] < length_
-              && nc[2] >= 0 && (unsigned int) nc[2] < length_)
+            if (nc[0] >= 0 && (int) nc[0] < length_
+              && nc[1] >= 0 && (int) nc[1] < length_
+              && nc[2] >= 0 && (int) nc[2] < length_)
                 neighbors.push_back(nc[0]*length_*length_ + nc[1]*length_ + nc[2]);
         }
     }
@@ -141,34 +141,34 @@ int ompl::control::GridDecomposition::locateRegion(const base::State* s) const
     return coordToRegion(coord);
 }
 
-void ompl::control::GridDecomposition::sampleFromRegion(unsigned int rid, RNG& rng, std::vector<double>& coord) const
+void ompl::control::GridDecomposition::sampleFromRegion(int rid, RNG& rng, std::vector<double>& coord) const
 {
     coord.resize(dimension_);
     const base::RealVectorBounds& regionBounds(getRegionBounds(rid));
-    for (unsigned int i = 0; i < dimension_; ++i)
+    for (int i = 0; i < dimension_; ++i)
         coord[i] = rng.uniformReal(regionBounds.low[i], regionBounds.high[i]);
 }
 
-void ompl::control::GridDecomposition::computeGridNeighbors (unsigned int rid, std::vector <unsigned int> &neighbors) const
+void ompl::control::GridDecomposition::computeGridNeighbors (int rid, std::vector <int> &neighbors) const
 {
-    std::vector <unsigned int> candidate (dimension_, -1);
-    std::vector <unsigned int> coord;
+    std::vector <int> candidate (dimension_, -1);
+    std::vector <int> coord;
     regionToGridCoord (rid, coord);
 
     computeGridNeighborsSub (coord, neighbors, 0, candidate);
 }
 
-void ompl::control::GridDecomposition::computeGridNeighborsSub (const std::vector <unsigned int> &coord,
-                                                                std::vector <unsigned int> &neighbors,
-                                                                unsigned int dim,
-                                                                std::vector <unsigned int> &candidate) const
+void ompl::control::GridDecomposition::computeGridNeighborsSub (const std::vector <int> &coord,
+                                                                std::vector <int> &neighbors,
+                                                                int dim,
+                                                                std::vector <int> &candidate) const
 {
     // Stopping condition for recursive method.
     if (dim == dimension_)
     {
         // Make sure we don't push back ourselves as a neighbor
         bool same = true;
-        for (unsigned int i = 0; i < coord.size () && same; ++i)
+        for (unsigned int i = 0; i < coord.size() && same; ++i)
             same = (coord[i] == candidate[i]);
 
         if (!same)
@@ -198,24 +198,24 @@ void ompl::control::GridDecomposition::computeGridNeighborsSub (const std::vecto
     }
 }
 
-void ompl::control::GridDecomposition::regionToGridCoord(unsigned int rid, std::vector<unsigned int>& coord) const
+void ompl::control::GridDecomposition::regionToGridCoord(int rid, std::vector<int>& coord) const
 {
     coord.resize(dimension_);
     for (int i = dimension_-1; i >= 0; --i)
     {
-        unsigned int remainder = rid % length_;
+        int remainder = rid % length_;
         coord[i] = remainder;
         rid /= length_;
     }
 }
 
-unsigned int ompl::control::GridDecomposition::gridCoordToRegion (const std::vector <unsigned int> &coord) const
+int ompl::control::GridDecomposition::gridCoordToRegion (const std::vector <int> &coord) const
 {
-    unsigned int region = 0;
+    int region = 0;
     for (unsigned int i = 0; i < coord.size (); i++)
     {
         // Computing length_^(dimension of coord -1)
-        unsigned int multiplicand = 1;
+        int multiplicand = 1;
         for (unsigned int j = 1; j < coord.size () - i; j++)
             multiplicand *= length_;
 
@@ -224,14 +224,14 @@ unsigned int ompl::control::GridDecomposition::gridCoordToRegion (const std::vec
     return region;
 }
 
-unsigned int ompl::control::GridDecomposition::coordToRegion(const std::vector<double>& coord) const
+int ompl::control::GridDecomposition::coordToRegion(const std::vector<double>& coord) const
 {
-    unsigned int region = 0;
-    unsigned int factor = 1;
-    unsigned int index;
+    int region = 0;
+    int factor = 1;
+    int index;
     for (int i = dimension_-1; i >= 0; --i)
     {
-        index = (unsigned int) (length_*(coord[i]-bounds_.low[i])/(bounds_.high[i]-bounds_.low[i]));
+        index = (int) (length_*(coord[i]-bounds_.low[i])/(bounds_.high[i]-bounds_.low[i]));
 
         // There is an edge case when the coordinate lies exactly on the upper bound where
         // the region index will be out of bounds.  Ensure index lies within [0, length_)
@@ -244,12 +244,12 @@ unsigned int ompl::control::GridDecomposition::coordToRegion(const std::vector<d
     return region;
 }
 
-void ompl::control::GridDecomposition::coordToGridCoord(const std::vector<double>& coord, std::vector<unsigned int>& gridCoord) const
+void ompl::control::GridDecomposition::coordToGridCoord(const std::vector<double>& coord, std::vector<int>& gridCoord) const
 {
     gridCoord.resize(dimension_);
-    for (unsigned int i = 0; i < dimension_; ++i)
+    for (int i = 0; i < dimension_; ++i)
     {
-        gridCoord[i] = (unsigned int) (length_*(coord[i]-bounds_.low[i])/(bounds_.high[i]-bounds_.low[i]));
+        gridCoord[i] = (int) (length_*(coord[i]-bounds_.low[i])/(bounds_.high[i]-bounds_.low[i]));
 
         // There is an edge case when the coordinate lies exactly on the upper bound where
         // the region index will be out of bounds.  Ensure index lies within [0, length_)
@@ -258,14 +258,14 @@ void ompl::control::GridDecomposition::coordToGridCoord(const std::vector<double
     }
 }
 
-const ompl::base::RealVectorBounds& ompl::control::GridDecomposition::getRegionBounds(unsigned int rid) const
+const ompl::base::RealVectorBounds& ompl::control::GridDecomposition::getRegionBounds(int rid) const
 {
     if (regToBounds_.count(rid) > 0)
         return *regToBounds_[rid].get();
     ompl::base::RealVectorBounds* regionBounds = new ompl::base::RealVectorBounds(dimension_);
-    std::vector<unsigned int> rc(dimension_);
+    std::vector<int> rc(dimension_);
     regionToGridCoord(rid, rc);
-    for (unsigned int i = 0; i < dimension_; ++i)
+    for (int i = 0; i < dimension_; ++i)
     {
         const double length = (bounds_.high[i] - bounds_.low[i]) / length_;
         regionBounds->low[i] = bounds_.low[i] + length*rc[i];
@@ -277,10 +277,10 @@ const ompl::base::RealVectorBounds& ompl::control::GridDecomposition::getRegionB
 
 namespace
 {
-    unsigned int calcNumGridCells(unsigned int len, unsigned int dim)
+    int calcNumGridCells(int len, int dim)
     {
-        unsigned int numCells = 1;
-        for (unsigned int i = 0; i < dim; ++i)
+        int numCells = 1;
+        for (int i = 0; i < dim; ++i)
             numCells *= len;
         return numCells;
     }

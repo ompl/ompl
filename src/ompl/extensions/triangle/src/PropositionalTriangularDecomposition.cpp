@@ -66,7 +66,7 @@ namespace
                              const std::vector<Polygon>& props);
         virtual ~WrapperDecomposition(void) {}
         virtual void project(const ob::State* s, std::vector<double>& coord) const;
-        virtual void sampleFromRegion(unsigned int rid, ompl::RNG& rng, std::vector<double>& coord) const;
+        virtual void sampleFromRegion(int rid, ompl::RNG& rng, std::vector<double>& coord) const;
         virtual void sampleFullState(const ob::StateSamplerPtr& sampler,
             const std::vector<double>& coord, ob::State* s) const;
     protected:
@@ -81,16 +81,16 @@ oc::PropositionalTriangularDecomposition::PropositionalTriangularDecomposition(
 {
 }
 
-unsigned int oc::PropositionalTriangularDecomposition::getNumProps(void) const
+int oc::PropositionalTriangularDecomposition::getNumProps(void) const
 {
     return triDecomp_->getNumRegionsOfInterest();
 }
 
-oc::World oc::PropositionalTriangularDecomposition::worldAtRegion(unsigned int triID)
+oc::World oc::PropositionalTriangularDecomposition::worldAtRegion(int triID)
 {
-    unsigned int numProps = getNumProps();
+    int numProps = getNumProps();
     World world(numProps);
-    for (unsigned int p = 0; p < numProps; ++p)
+    for (int p = 0; p < numProps; ++p)
         world[p] = false;
     if (triID == -1) return world;
     int prop = triDecomp_->getRegionOfInterestAt(triID);
@@ -146,7 +146,7 @@ namespace
         decomp_->project(s, coord);
     }
 
-    void WrapperDecomposition::sampleFromRegion(unsigned int rid,
+    void WrapperDecomposition::sampleFromRegion(int rid,
                                                 ompl::RNG& rng,
                                                 std::vector<double>& coord) const
     {

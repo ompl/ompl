@@ -69,7 +69,7 @@ namespace ompl
             //A polygon is a list of vertices in counter-clockwise order.
             struct Polygon
             {
-                Polygon(unsigned int nv) : pts(nv) {}
+                Polygon(int nv) : pts(nv) {}
                 virtual ~Polygon() {}
                 std::vector<Vertex> pts;
             };
@@ -78,7 +78,7 @@ namespace ompl
             {
                 Triangle(void) : Polygon(3) {}
                 virtual ~Triangle() {}
-                std::vector<unsigned int> neighbors;
+                std::vector<int> neighbors;
                 double volume;
             };
 
@@ -95,15 +95,15 @@ namespace ompl
 
             virtual ~TriangularDecomposition(void);
 
-            virtual unsigned int getNumRegions(void) const { return triangles_.size(); }
+            virtual int getNumRegions(void) const { return triangles_.size(); }
 
-            virtual double getRegionVolume(unsigned int triID);
+            virtual double getRegionVolume(int triID);
 
-            virtual void getNeighbors(unsigned int triID, std::vector<unsigned int>& neighbors) const;
+            virtual void getNeighbors(int triID, std::vector<int>& neighbors) const;
 
             virtual int locateRegion(const base::State* s) const;
 
-            virtual void sampleFromRegion(unsigned int triID, RNG& rng, std::vector<double>& coord) const;
+            virtual void sampleFromRegion(int triID, RNG& rng, std::vector<double>& coord) const;
 
             void setup(void);
 
@@ -111,9 +111,9 @@ namespace ompl
 
             void addRegionOfInterest(const Polygon& region);
 
-            unsigned int getNumHoles(void) const;
+            int getNumHoles(void) const;
 
-            unsigned int getNumRegionsOfInterest(void) const;
+            int getNumRegionsOfInterest(void) const;
 
             const std::vector<Polygon>& getHoles(void) const;
 
@@ -121,14 +121,14 @@ namespace ompl
 
             /** \brief Returns the region of interest that contains the given triangle ID.
                 Returns -1 if the triangle ID is not within a region of interest. */
-            int getRegionOfInterestAt(unsigned int triID) const;
+            int getRegionOfInterestAt(int triID) const;
 
             //Debug method: prints this decomposition as a list of polygons
             void print(std::ostream& out) const;
 
         protected:
             /** \brief Helper method to triangulate the space and return the number of triangles. */
-            virtual unsigned int createTriangles();
+            virtual int createTriangles();
 
             std::vector<Triangle> triangles_;
             std::vector<Polygon> holes_;
@@ -143,7 +143,7 @@ namespace ompl
             class LocatorGrid : public GridDecomposition
             {
             public:
-                LocatorGrid(unsigned int len, const Decomposition* d) :
+                LocatorGrid(int len, const Decomposition* d) :
                     GridDecomposition(len, d->getDimension(), d->getBounds()),
                     triDecomp(d)
                 {
@@ -162,7 +162,7 @@ namespace ompl
                 {
                 }
 
-                const std::vector<unsigned int>& locateTriangles(const base::State* s) const
+                const std::vector<int>& locateTriangles(const base::State* s) const
                 {
                     return regToTriangles_[locateRegion(s)];
                 }
@@ -173,7 +173,7 @@ namespace ompl
                 const Decomposition* triDecomp;
                 /* map from locator grid cell ID to set of triangles with which
                  * that cell intersects */
-                std::vector<std::vector<unsigned int> > regToTriangles_;
+                std::vector<std::vector<int> > regToTriangles_;
             };
 
             /** \brief Helper method to build a locator grid to help locate states in triangles. */

@@ -52,7 +52,7 @@ namespace ompl
     }
 }
 
-unsigned int ompl::control::ProductGraph::State::getDecompRegion(void) const
+int ompl::control::ProductGraph::State::getDecompRegion(void) const
 {
     return decompRegion;
 }
@@ -113,7 +113,7 @@ ompl::control::ProductGraph::computeLead(
         GraphType::vertex_descriptor target = boost::target(*ei, graph_);
         graph_[*ei].cost = edgeWeight(graph_[src], graph_[target]);
     }
-    unsigned int startIndex = stateToIndex_[start];
+    int startIndex = stateToIndex_[start];
 	boost::dijkstra_shortest_paths(graph_, boost::vertex(startIndex,graph_),
 		boost::weight_map(get(&Edge::cost, graph_)).distance_map(
 			boost::make_iterator_property_map(distances.begin(), get(boost::vertex_index, graph_)
@@ -175,7 +175,7 @@ void ompl::control::ProductGraph::buildGraph(State* start, const boost::function
     solutionStates_.clear();
     std::queue<State*> q;
     boost::unordered_set<State*> processed;
-    std::vector<unsigned int> regNeighbors;
+    std::vector<int> regNeighbors;
     VertexIndexMap index = get(boost::vertex_index, graph_);
 
     GraphType::vertex_descriptor next = boost::add_vertex(graph_);
@@ -205,7 +205,7 @@ void ompl::control::ProductGraph::buildGraph(State* start, const boost::function
 
         //enqueue each neighbor of current
         decomp_->getNeighbors(current->decompRegion, regNeighbors);
-        for (std::vector<unsigned int>::const_iterator r = regNeighbors.begin(); r != regNeighbors.end(); ++r)
+        for (std::vector<int>::const_iterator r = regNeighbors.begin(); r != regNeighbors.end(); ++r)
         {
             State* nextState = getState(current, *r);
             if (!nextState->isValid())
@@ -260,12 +260,12 @@ double ompl::control::ProductGraph::getRegionVolume(const State* s)
     return decomp_->getRegionVolume(s->decompRegion);
 }
 
-unsigned int ompl::control::ProductGraph::getCosafeAutDistance(const State* s) const
+int ompl::control::ProductGraph::getCosafeAutDistance(const State* s) const
 {
     return cosafety_->distFromAccepting(s->cosafeState);
 }
 
-unsigned int ompl::control::ProductGraph::getSafeAutDistance(const State* s) const
+int ompl::control::ProductGraph::getSafeAutDistance(const State* s) const
 {
     return safety_->distFromAccepting(s->safeState);
 }
@@ -287,7 +287,7 @@ ompl::control::ProductGraph::State* ompl::control::ProductGraph::getState(const 
     return ret;
 }
 
-ompl::control::ProductGraph::State* ompl::control::ProductGraph::getState(const State* parent, unsigned int nextRegion) const
+ompl::control::ProductGraph::State* ompl::control::ProductGraph::getState(const State* parent, int nextRegion) const
 {
     State s;
     s.decompRegion = nextRegion;

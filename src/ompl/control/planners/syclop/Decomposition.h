@@ -66,11 +66,11 @@ namespace ompl
             /** \brief Constructor. Creates a Decomposition with a given dimension
                 and a given set of bounds. Accepts as an optional argument a given
                 number of regions. */
-            Decomposition(unsigned int dim, const base::RealVectorBounds& b) : dimension_(dim), bounds_(b)
+            Decomposition(int dim, const base::RealVectorBounds& b) : dimension_(dim), bounds_(b)
             {
-                if (dim > b.low.size())
+                if (dim > static_cast<int>(b.low.size()))
                     throw Exception("Decomposition", "argument 'dim' exceeds dimension of given bounds");
-                else if (dim < b.low.size())
+                else if (dim < static_cast<int>(b.low.size()))
                     OMPL_WARN("Decomposition: dimension of given bounds exceeds argument 'dim'. Using the first 'dim' values of bounds");
             }
 
@@ -79,10 +79,10 @@ namespace ompl
             }
 
             /** \brief Returns the number of regions in this Decomposition. */
-            virtual unsigned int getNumRegions() const = 0;
+            virtual int getNumRegions() const = 0;
 
             /** \brief Returns the dimension of this Decomposition. */
-            virtual unsigned int getDimension() const
+            virtual int getDimension() const
             {
                 return dimension_;
             }
@@ -94,7 +94,7 @@ namespace ompl
             }
 
             /** \brief Returns the volume of a given region in this Decomposition. */
-            virtual double getRegionVolume(unsigned int rid) = 0;
+            virtual double getRegionVolume(int rid) = 0;
 
             /** \brief Returns the index of the region containing a given State.
              * Most often, this is obtained by first calling project().
@@ -105,16 +105,16 @@ namespace ompl
             virtual void project(const base::State* s, std::vector<double>& coord) const = 0;
 
             /** \brief Stores a given region's neighbors into a given vector. */
-            virtual void getNeighbors(unsigned int rid, std::vector<unsigned int>& neighbors) const = 0;
+            virtual void getNeighbors(int rid, std::vector<int>& neighbors) const = 0;
 
             /** \brief Samples a projected coordinate from a given region. */
-            virtual void sampleFromRegion(unsigned int rid, RNG& rng, std::vector<double>& coord) const = 0;
+            virtual void sampleFromRegion(int rid, RNG& rng, std::vector<double>& coord) const = 0;
 
             /** \brief Samples a State using a projected coordinate and a StateSampler. */
             virtual void sampleFullState(const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State* s) const = 0;
 
         protected:
-            unsigned int dimension_;
+            int dimension_;
             base::RealVectorBounds bounds_;
         };
     }

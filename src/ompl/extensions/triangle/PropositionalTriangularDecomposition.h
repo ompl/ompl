@@ -75,9 +75,9 @@ namespace ompl
 
             virtual ~PropositionalTriangularDecomposition(void) {}
 
-            virtual unsigned int getNumProps(void) const;
+            virtual int getNumProps(void) const;
 
-            virtual World worldAtRegion(unsigned int triID);
+            virtual World worldAtRegion(int triID);
 
             void setup(void);
 

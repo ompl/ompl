@@ -17,12 +17,12 @@ ompl::control::PropositionalDecomposition::~PropositionalDecomposition(void)
 {
 }
 
-unsigned int ompl::control::PropositionalDecomposition::getNumRegions(void) const
+int ompl::control::PropositionalDecomposition::getNumRegions(void) const
 {
     return decomp_->getNumRegions();
 }
 
-double ompl::control::PropositionalDecomposition::getRegionVolume(unsigned int rid)
+double ompl::control::PropositionalDecomposition::getRegionVolume(int rid)
 {
     return decomp_->getRegionVolume(rid);
 }
@@ -37,12 +37,12 @@ void ompl::control::PropositionalDecomposition::project(const base::State* s, st
     return decomp_->project(s, coord);
 }
 
-void ompl::control::PropositionalDecomposition::getNeighbors(unsigned int rid, std::vector<unsigned int>& neighbors) const
+void ompl::control::PropositionalDecomposition::getNeighbors(int rid, std::vector<int>& neighbors) const
 {
     decomp_->getNeighbors(rid, neighbors);
 }
 
-void ompl::control::PropositionalDecomposition::sampleFromRegion(unsigned int rid, RNG& rng, std::vector<double>& coord) const
+void ompl::control::PropositionalDecomposition::sampleFromRegion(int rid, RNG& rng, std::vector<double>& coord) const
 {
     decomp_->sampleFromRegion(rid, rng, coord);
 }

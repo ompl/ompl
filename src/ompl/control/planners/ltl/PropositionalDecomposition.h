@@ -71,20 +71,20 @@ namespace ompl
             virtual ~PropositionalDecomposition(void);            
 
             /** \brief Returns the World corresponding to a given region. */
-            virtual World worldAtRegion(unsigned int rid) = 0;
+            virtual World worldAtRegion(int rid) = 0;
 
             /* TODO section off the below methods with a general description of
                 "wrapper methods that simply call the underlying decomposition */
 
             /** \brief Returns the number of regions in this propositional decomposition's
                 underlying decomposition. */
-            virtual unsigned int getNumRegions(void) const;
+            virtual int getNumRegions(void) const;
 
             /** \brief Returns the number of propositions in this propositional decomposition. */
-            virtual unsigned int getNumProps(void) const = 0;
+            virtual int getNumProps(void) const = 0;
 
             /** \brief Returns the volume of a given region. */
-            virtual double getRegionVolume(unsigned int rid);
+            virtual double getRegionVolume(int rid);
 
             /** \brief Returns the region of the underlying decomposition that contains
                 a given State. */
@@ -92,9 +92,9 @@ namespace ompl
 
             virtual void project(const base::State* s, std::vector<double>& coord) const;
 
-            virtual void getNeighbors(unsigned int rid, std::vector<unsigned int>& neighbors) const;
+            virtual void getNeighbors(int rid, std::vector<int>& neighbors) const;
 
-            virtual void sampleFromRegion(unsigned int rid, RNG& rng, std::vector<double>& coord) const;
+            virtual void sampleFromRegion(int rid, RNG& rng, std::vector<double>& coord) const;
 
             virtual void sampleFullState(
                 const base::StateSamplerPtr& sampler,
