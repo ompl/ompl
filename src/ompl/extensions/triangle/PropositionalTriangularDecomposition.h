@@ -73,7 +73,7 @@ namespace ompl
                 const std::vector<Polygon>& props = std::vector<Polygon>()
             );
 
-            virtual ~PropositionalTriangularDecomposition(void);
+            virtual ~PropositionalTriangularDecomposition(void) {}
 
             virtual unsigned int getNumProps(void) const;
 

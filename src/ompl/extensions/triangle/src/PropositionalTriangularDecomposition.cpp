@@ -51,7 +51,9 @@ namespace oc = ompl::control;
 
 namespace
 {
-    /* PropositionalTriangularDecomposition creates a WrapperDecomposition under-the-hood,
+    /* PropositionalTriangularDecomposition creates a WrapperDecomposition under-the-hood
+       (which represents a triangulation over the given bounds that uses
+       PropositionalTriangularDecomposition's user-defined project and sample methods)
        and hands it upward to the PropositionalDecomposition superclass constructor. */
     class WrapperDecomposition : public oc::TriangularDecomposition
     {
@@ -72,25 +74,19 @@ namespace
     };
 }
 
-ompl::control::PropositionalTriangularDecomposition::PropositionalTriangularDecomposition(
-    const base::RealVectorBounds& bounds, const std::vector<Polygon>& holes, const std::vector<Polygon>& props) :
-    PropositionalDecomposition(
-        DecompositionPtr(new WrapperDecomposition(this, bounds, holes, props))
-    ),
-    triDecomp_(static_cast<TriangularDecomposition*>(decomp_.get()))
+oc::PropositionalTriangularDecomposition::PropositionalTriangularDecomposition(
+    const ob::RealVectorBounds& bounds, const std::vector<Polygon>& holes, const std::vector<Polygon>& props)
+    : PropositionalDecomposition(DecompositionPtr(new WrapperDecomposition(this, bounds, holes, props))),
+      triDecomp_(static_cast<TriangularDecomposition*>(decomp_.get()))
 {
 }
 
-ompl::control::PropositionalTriangularDecomposition::~PropositionalTriangularDecomposition(void)
-{
-}
-
-unsigned int ompl::control::PropositionalTriangularDecomposition::getNumProps(void) const
+unsigned int oc::PropositionalTriangularDecomposition::getNumProps(void) const
 {
     return triDecomp_->getNumRegionsOfInterest();
 }
 
-ompl::control::World ompl::control::PropositionalTriangularDecomposition::worldAtRegion(unsigned int triID)
+oc::World oc::PropositionalTriangularDecomposition::worldAtRegion(unsigned int triID)
 {
     unsigned int numProps = getNumProps();
     World world(numProps);
@@ -104,34 +100,34 @@ ompl::control::World ompl::control::PropositionalTriangularDecomposition::worldA
     return world;
 }
 
-void ompl::control::PropositionalTriangularDecomposition::setup(void)
+void oc::PropositionalTriangularDecomposition::setup(void)
 {
     triDecomp_->setup();
 }
 
-void ompl::control::PropositionalTriangularDecomposition::addHole(const Polygon& hole)
+void oc::PropositionalTriangularDecomposition::addHole(const Polygon& hole)
 {
     triDecomp_->addHole(hole);
 }
 
-void ompl::control::PropositionalTriangularDecomposition::addProposition(const Polygon& prop)
+void oc::PropositionalTriangularDecomposition::addProposition(const Polygon& prop)
 {
     triDecomp_->addRegionOfInterest(prop);
 }
 
-const std::vector<ompl::control::PropositionalTriangularDecomposition::Polygon>&
-    ompl::control::PropositionalTriangularDecomposition::getHoles(void) const
+const std::vector<oc::PropositionalTriangularDecomposition::Polygon>&
+    oc::PropositionalTriangularDecomposition::getHoles(void) const
 {
     return triDecomp_->getHoles();
 }
 
-const std::vector<ompl::control::PropositionalTriangularDecomposition::Polygon>&
-    ompl::control::PropositionalTriangularDecomposition::getPropositions(void) const
+const std::vector<oc::PropositionalTriangularDecomposition::Polygon>&
+    oc::PropositionalTriangularDecomposition::getPropositions(void) const
 {
     return triDecomp_->getAreasOfInterest();
 }
 
-void ompl::control::PropositionalTriangularDecomposition::print(std::ostream& out) const
+void oc::PropositionalTriangularDecomposition::print(std::ostream& out) const
 {
     triDecomp_->print(out);
 }
