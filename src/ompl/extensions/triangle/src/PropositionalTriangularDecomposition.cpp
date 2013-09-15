@@ -46,6 +46,32 @@
 #include <set>
 #include <vector>
 
+namespace ob = ompl::base;
+namespace oc = ompl::control;
+
+namespace
+{
+    /* PropositionalTriangularDecomposition creates a WrapperDecomposition under-the-hood,
+       and hands it upward to the PropositionalDecomposition superclass constructor. */
+    class WrapperDecomposition : public oc::TriangularDecomposition
+    {
+    public:
+        typedef TriangularDecomposition::Polygon Polygon;
+        typedef TriangularDecomposition::Vertex Vertex;
+        WrapperDecomposition(const oc::Decomposition* decomp,
+                             const ob::RealVectorBounds& bounds,
+                             const std::vector<Polygon>& holes,
+                             const std::vector<Polygon>& props);
+        virtual ~WrapperDecomposition(void) {}
+        virtual void project(const ob::State* s, std::vector<double>& coord) const;
+        virtual void sampleFromRegion(unsigned int rid, ompl::RNG& rng, std::vector<double>& coord) const;
+        virtual void sampleFullState(const ob::StateSamplerPtr& sampler,
+            const std::vector<double>& coord, ob::State* s) const;
+    protected:
+        const oc::Decomposition* decomp_;
+    };
+}
+
 ompl::control::PropositionalTriangularDecomposition::PropositionalTriangularDecomposition(
     const base::RealVectorBounds& bounds, const std::vector<Polygon>& holes, const std::vector<Polygon>& props) :
     PropositionalDecomposition(
@@ -110,34 +136,33 @@ void ompl::control::PropositionalTriangularDecomposition::print(std::ostream& ou
     triDecomp_->print(out);
 }
 
-ompl::control::PropositionalTriangularDecomposition::WrapperDecomposition::WrapperDecomposition(
-    const Decomposition* decomp,
-    const base::RealVectorBounds& bounds,
-    const std::vector<Polygon>& holes,
-    const std::vector<Polygon>& props
-) : TriangularDecomposition(bounds, holes, props),
-    decomp_(decomp)
+namespace
 {
-}
+    WrapperDecomposition::WrapperDecomposition(const oc::Decomposition* decomp,
+                                               const ob::RealVectorBounds& bounds,
+                                               const std::vector<Polygon>& holes,
+                                               const std::vector<Polygon>& props)
+        : oc::TriangularDecomposition(bounds, holes, props),
+          decomp_(decomp)
+    {
+    }
 
-ompl::control::PropositionalTriangularDecomposition::WrapperDecomposition::~WrapperDecomposition(void)
-{
-}
+    void WrapperDecomposition::project(const ob::State* s, std::vector<double>& coord) const
+    {
+        decomp_->project(s, coord);
+    }
 
-void ompl::control::PropositionalTriangularDecomposition::WrapperDecomposition::project(
-    const base::State* s, std::vector<double>& coord) const
-{
-    decomp_->project(s, coord);
-}
+    void WrapperDecomposition::sampleFromRegion(unsigned int rid,
+                                                ompl::RNG& rng,
+                                                std::vector<double>& coord) const
+    {
+        decomp_->sampleFromRegion(rid, rng, coord);
+    }
 
-void ompl::control::PropositionalTriangularDecomposition::WrapperDecomposition::sampleFromRegion(
-    unsigned int rid, RNG& rng, std::vector<double>& coord) const
-{
-    decomp_->sampleFromRegion(rid, rng, coord);
-}
-
-void ompl::control::PropositionalTriangularDecomposition::WrapperDecomposition::sampleFullState(
-    const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State* s) const
-{
-    decomp_->sampleFullState(sampler, coord, s);
+    void WrapperDecomposition::sampleFullState(const ob::StateSamplerPtr& sampler,
+                                               const std::vector<double>& coord,
+                                               ob::State* s) const
+    {
+        decomp_->sampleFullState(sampler, coord, s);
+    }
 }

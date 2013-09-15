@@ -51,7 +51,10 @@ namespace ompl
 {
     namespace control
     {
-        /** \brief A TriangularDecomposition is a triangulation that ignores obstacles. */
+        /** \brief A PropositionalTriangularDecomposition is a triangulation that ignores
+            obstacles and respects propositional regions of interest. Practically speaking,
+            it is both a TriangularDecomposition and a PropositionalDecomposition, but it is
+            implemented without using multiple inheritance. */
         class PropositionalTriangularDecomposition : public PropositionalDecomposition
         {
         public:
@@ -91,26 +94,6 @@ namespace ompl
 
         protected:
             TriangularDecomposition* triDecomp_;
-
-        private:
-            class WrapperDecomposition : public TriangularDecomposition
-            {
-            public:
-                WrapperDecomposition(
-                    const Decomposition* decomp,
-                    const base::RealVectorBounds& bounds,
-                    const std::vector<Polygon>& holes,
-                    const std::vector<Polygon>& props
-                );
-
-                virtual ~WrapperDecomposition(void);
-                virtual void project(const base::State* s, std::vector<double>& coord) const;
-                virtual void sampleFromRegion(unsigned int rid, RNG& rng, std::vector<double>& coord) const;
-                virtual void sampleFullState(const base::StateSamplerPtr& sampler,
-                    const std::vector<double>& coord, base::State* s) const;
-            protected:
-                const Decomposition* decomp_;
-            };
         };
     }
 }
