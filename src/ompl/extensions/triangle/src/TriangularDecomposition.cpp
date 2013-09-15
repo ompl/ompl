@@ -66,6 +66,8 @@ ompl::control::TriangularDecomposition::TriangularDecomposition(const base::Real
     triAreaPct_(0.005),
     locator(64, this)
 {
+    // TODO: Ensure that no two holes overlap and no two regions of interest overlap.
+    // Report an error otherwise.
 }
 
 ompl::control::TriangularDecomposition::~TriangularDecomposition(void)
@@ -111,7 +113,7 @@ const std::vector<ompl::control::TriangularDecomposition::Polygon>&
     return intRegs_;
 }
 
-const std::set<unsigned int>& ompl::control::TriangularDecomposition::getRegionsOfInterestAt(unsigned int triID) const
+int ompl::control::TriangularDecomposition::getRegionOfInterestAt(unsigned int triID) const
 {
     return intRegInfo_[triID];
 }
@@ -182,10 +184,7 @@ void ompl::control::TriangularDecomposition::print(std::ostream& out) const
         const Triangle& tri = triangles_[i];
         for (unsigned int v = 0; v < 3; ++v)
             out << tri.pts[v].x << " " << tri.pts[v].y << " ";
-        const std::set<unsigned int>& regions = intRegInfo_[i];
-        typedef std::set<unsigned int>::const_iterator RegionIter;
-        for (RegionIter r = regions.begin(); r != regions.end(); ++r)
-            out << *r << " ";
+        if (intRegInfo_[i] > -1) out << intRegInfo_[i] << " ";
         out << "-1" << std::endl;
     }
 }
@@ -409,8 +408,7 @@ unsigned int ompl::control::TriangularDecomposition::createTriangles()
         {
             int attribute = (int) out.triangleattributelist[i];
             /* Shift the region-of-interest ID's down to start from zero. */
-            if (attribute > 0)
-                intRegInfo_[i].insert(attribute-1);
+            intRegInfo_[i] = (attribute > 0 ? attribute-1 : -1);
         }
     }
 

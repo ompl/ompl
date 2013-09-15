@@ -93,10 +93,8 @@ oc::World oc::PropositionalTriangularDecomposition::worldAtRegion(unsigned int t
     for (unsigned int p = 0; p < numProps; ++p)
         world[p] = false;
     if (triID == -1) return world;
-    const std::set<unsigned int>& props = triDecomp_->getRegionsOfInterestAt(triID);
-    typedef std::set<unsigned int>::const_iterator PropIter;
-    for (PropIter pi = props.begin(); pi != props.end(); ++pi)
-        world[*pi] = true;
+    int prop = triDecomp_->getRegionOfInterestAt(triID);
+    if (prop >= 0) world[prop] = true;
     return world;
 }
 

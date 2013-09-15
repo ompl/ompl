@@ -54,6 +54,8 @@ namespace ompl
         /** \brief A TriangularDecomposition is a triangulation that ignores obstacles. */
         class TriangularDecomposition : public Decomposition
         {
+            // TODO: Switch all geometry code to use boost::geometry.
+            // This requires that we use boost version 1.47 or greater.
         public:
             struct Vertex
             {
@@ -84,7 +86,7 @@ namespace ompl
                 The underlying mesh will be a conforming Delaunay triangulation.
                 The triangulation will ignore any obstacles, given as a list of polygons.
                 The triangulation will respect the boundaries of any regions of interest, given as a list of
-                polygons. */
+                polygons. No two obstacles may overlap, and no two regions of interest may overlap.*/
             TriangularDecomposition(
                 const base::RealVectorBounds& bounds,
                 const std::vector<Polygon>& holes = std::vector<Polygon>(),
@@ -117,8 +119,9 @@ namespace ompl
 
             const std::vector<Polygon>& getAreasOfInterest(void) const;
 
-            /** \brief Returns the set of regions of interest that contain the given triangle ID. */
-            const std::set<unsigned int>& getRegionsOfInterestAt(unsigned int triID) const;
+            /** \brief Returns the region of interest that contains the given triangle ID.
+                Returns -1 if the triangle ID is not within a region of interest. */
+            int getRegionOfInterestAt(unsigned int triID) const;
 
             //Debug method: prints this decomposition as a list of polygons
             void print(std::ostream& out) const;
@@ -130,9 +133,10 @@ namespace ompl
             std::vector<Triangle> triangles_;
             std::vector<Polygon> holes_;
             std::vector<Polygon> intRegs_;
-            /** \brief Maps from triangle ID to set of indices of Polygons in intRegs_
-                which contain the triangle ID, if any. */
-            std::vector<std::set<unsigned int> > intRegInfo_;
+            /** \brief Maps from triangle ID to index of Polygon in intReg_ that
+                contains the triangle ID. Maps to -1 if the triangle ID is not in
+                a region of interest. */
+            std::vector<int> intRegInfo_;
             double triAreaPct_;
 
         private:
