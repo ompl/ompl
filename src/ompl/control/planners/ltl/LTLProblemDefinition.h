@@ -57,7 +57,7 @@ namespace ompl
         public:
             LTLProblemDefinition(const control::LTLSpaceInformationPtr& ltlsi);
 
-            virtual ~LTLProblemDefinition(void);
+            virtual ~LTLProblemDefinition(void) {}
 
             void addLowerStartState(const base::State* s);
 
@@ -65,6 +65,7 @@ namespace ompl
 
         protected:
             void createGoal(void);
+
             control::LTLSpaceInformationPtr ltlsi_;
         };
     }

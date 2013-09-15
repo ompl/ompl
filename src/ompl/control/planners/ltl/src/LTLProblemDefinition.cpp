@@ -12,39 +12,11 @@ ob::LTLProblemDefinition::LTLProblemDefinition(const oc::LTLSpaceInformationPtr&
     createGoal();
 }
 
-ob::LTLProblemDefinition::~LTLProblemDefinition(void)
-{
-}
-
 void ob::LTLProblemDefinition::addLowerStartState(const base::State* s)
 {
     base::ScopedState<base::CompoundStateSpace> fullStart(si_);
     ltlsi_->getFullState(s, fullStart.get());
     addStartState(fullStart);
-}
-
-void ob::LTLProblemDefinition::createGoal(void)
-{
-    class LTLGoal : public Goal
-    {
-    public:
-        LTLGoal(const oc::LTLSpaceInformationPtr& ltlsi)
-            : Goal(ltlsi), ltlsi_(ltlsi), prod_(ltlsi->getProductGraph())
-        {
-        }
-        virtual ~LTLGoal(void) { }
-        virtual bool isSatisfied(const base::State* s) const
-        {
-            return prod_->isSolution(ltlsi_->getProdGraphState(s));
-        }
-    protected:
-        const oc::LTLSpaceInformationPtr ltlsi_;
-        const oc::ProductGraphPtr prod_;
-    };
-
-    // Some compilers have trouble with LTLGoal being hidden in this function,
-    // and so we explicitly cast it to its base type.
-    setGoal(ob::GoalPtr(static_cast<ob::Goal*>(new LTLGoal(ltlsi_))));
 }
 
 ob::PathPtr ob::LTLProblemDefinition::getLowerSolutionPath(void) const
@@ -62,4 +34,26 @@ ob::PathPtr ob::LTLProblemDefinition::getLowerSolutionPath(void) const
             ltlsi_->getLowLevelState(fullPath->getState(i)));
     }
     return lowPathPtr;
+}
+
+void ob::LTLProblemDefinition::createGoal(void)
+{
+    class LTLGoal : public Goal
+    {
+    public:
+        LTLGoal(const oc::LTLSpaceInformationPtr& ltlsi)
+            : Goal(ltlsi), ltlsi_(ltlsi), prod_(ltlsi->getProductGraph()) {}
+        virtual ~LTLGoal(void) {}
+        virtual bool isSatisfied(const base::State* s) const
+        {
+            return prod_->isSolution(ltlsi_->getProdGraphState(s));
+        }
+    protected:
+        const oc::LTLSpaceInformationPtr ltlsi_;
+        const oc::ProductGraphPtr prod_;
+    };
+
+    // Some compilers have trouble with LTLGoal being hidden in this function,
+    // and so we explicitly cast it to its base type.
+    setGoal(ob::GoalPtr(static_cast<ob::Goal*>(new LTLGoal(ltlsi_))));
 }
