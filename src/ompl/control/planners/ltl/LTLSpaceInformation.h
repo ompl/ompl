@@ -57,56 +57,20 @@ namespace ompl
         public:
             LTLSpaceInformation(const SpaceInformationPtr& si, const ProductGraphPtr& prod);
 
-            virtual ~LTLSpaceInformation(void);
+            virtual ~LTLSpaceInformation(void) {}
 
-            virtual void setup(void)
-            {
-                // Set up the low space, then match our parameters to it.
-                if (!lowSpace_->isSetup()) lowSpace_->setup();
-                // We never actually use the below parameters in LTLSpaceInformation while planning.
-                // All integrating is done in lowSpace. However, we will need these parameters when
-                // printing the path - PathControl::print() will convert path steps using these parameters.
-                setMinMaxControlDuration(lowSpace_->getMinControlDuration(),
-                                         lowSpace_->getMaxControlDuration());
-                setPropagationStepSize(lowSpace_->getPropagationStepSize());
-                setup_ = true;
-            }
+            virtual void setup(void);
 
-            const ProductGraphPtr& getProductGraph(void) const
-            {
-                return prod_;
-            }
+            const ProductGraphPtr& getProductGraph(void) const { return prod_; }
 
             const SpaceInformationPtr& getLowSpace() { return lowSpace_; }
 
-            void getFullState(const base::State* low, base::State* full)
-            {
-                const ProductGraph::State* high = prod_->getState(low);
-                base::CompoundState& cs = *full->as<base::CompoundState>();
-                stateSpace_->as<base::CompoundStateSpace>()->getSubspace(LOW_LEVEL)->copyState(cs[LOW_LEVEL], low);
-                cs[REGION]->as<base::DiscreteStateSpace::StateType>()->value = high->getDecompRegion();
-                cs[COSAFE]->as<base::DiscreteStateSpace::StateType>()->value = high->getCosafeState();
-                cs[SAFE]->as<base::DiscreteStateSpace::StateType>()->value = high->getSafeState();
-            }
+            void getFullState(const base::State* low, base::State* full);
 
-            base::State* getLowLevelState(base::State* s)
-            {
-                //TODO prevent code duplication
-                return s->as<base::CompoundState>()->operator[](LOW_LEVEL);
-            }
+            base::State* getLowLevelState(base::State* s);
+            const base::State* getLowLevelState(const base::State* s);
 
-            const base::State* getLowLevelState(const base::State* s)
-            {
-                return s->as<base::CompoundState>()->operator[](LOW_LEVEL);
-            }
-
-            ProductGraph::State* getProdGraphState(const base::State* s) const
-            {
-                const base::CompoundState& cs = *s->as<base::CompoundState>();
-                return prod_->getState(cs[REGION]->as<base::DiscreteStateSpace::StateType>()->value,
-                                       cs[COSAFE]->as<base::DiscreteStateSpace::StateType>()->value,
-                                       cs[SAFE]->as<base::DiscreteStateSpace::StateType>()->value);
-            }
+            ProductGraph::State* getProdGraphState(const base::State* s) const;
 
         protected:
             enum SpaceIndex { LOW_LEVEL = 0, REGION = 1, COSAFE = 2, SAFE = 3 };

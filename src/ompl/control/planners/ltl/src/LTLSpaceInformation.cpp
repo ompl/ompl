@@ -10,6 +10,8 @@ namespace oc = ompl::control;
 
 namespace
 {
+    // Helper method to take a robot state space and product graph and return
+    // the hybrid state space representing their product.
     static ob::StateSpacePtr extendStateSpace(const ob::StateSpacePtr& lowSpace,
                                               const oc::ProductGraphPtr& prod);
 }
@@ -19,15 +21,58 @@ oc::LTLSpaceInformation::LTLSpaceInformation(const oc::SpaceInformationPtr& si,
     : oc::SpaceInformation(extendStateSpace(si->getStateSpace(), prod),
                            si->getControlSpace()), prod_(prod), lowSpace_(si)
 {
-    //TODO bug - control space points to old SI instead of new SI!
-    // In practice, this is fine, since control space never actually uses
-    // the SI that was passed to it in its constructor.
+    //TODO: Technically there's a bug here, as we've assigning LTLSpaceInformation's
+    //      control space to be si->getControlSpace(), which internally holds a pointer
+    //      to si->getStateSpace() instead of this->getStateSpace(). In practice, this
+    //      is fine for now, since control space never actually uses its internal state
+    //      space pointer.
     extendPropagator(si);
     extendValidityChecker(si);
 }
 
-oc::LTLSpaceInformation::~LTLSpaceInformation(void)
+void oc::LTLSpaceInformation::setup(void)
 {
+    // Set up the low space, then match our parameters to it.
+    if (!lowSpace_->isSetup()) lowSpace_->setup();
+    // We never actually use the below parameters in LTLSpaceInformation while planning.
+    // All integrating is done in lowSpace. However, we will need these parameters when
+    // printing the path - PathControl::print() will convert path steps using these
+    // parameters.
+    setMinMaxControlDuration(lowSpace_->getMinControlDuration(),
+                             lowSpace_->getMaxControlDuration());
+    setPropagationStepSize(lowSpace_->getPropagationStepSize());
+    setup_ = true;
+}
+
+void oc::LTLSpaceInformation::getFullState(const ob::State* low, ob::State* full)
+{
+    const ProductGraph::State* high = prod_->getState(low);
+    ob::CompoundState& cs = *full->as<ob::CompoundState>();
+    stateSpace_->as<ob::CompoundStateSpace>()->getSubspace(LOW_LEVEL)->
+        copyState(cs[LOW_LEVEL], low);
+    typedef ob::DiscreteStateSpace::StateType DiscreteState;
+    cs[REGION]->as<DiscreteState>()->value = high->getDecompRegion();
+    cs[COSAFE]->as<DiscreteState>()->value = high->getCosafeState();
+    cs[SAFE]->as<DiscreteState>()->value = high->getSafeState();
+}
+
+ob::State* oc::LTLSpaceInformation::getLowLevelState(ob::State* s)
+{
+    return const_cast<ob::State*>(getLowLevelState(const_cast<const ob::State*>(s)));
+}
+
+const ob::State* oc::LTLSpaceInformation::getLowLevelState(const ob::State* s)
+{
+    return s->as<ob::CompoundState>()->operator[](LOW_LEVEL);
+}
+
+oc::ProductGraph::State* oc::LTLSpaceInformation::getProdGraphState(const ob::State* s) const
+{
+    const ob::CompoundState& cs = *s->as<ob::CompoundState>();
+    typedef ob::DiscreteStateSpace::StateType DiscreteState;
+    return prod_->getState(cs[REGION]->as<DiscreteState>()->value,
+                           cs[COSAFE]->as<DiscreteState>()->value,
+                           cs[SAFE]->as<DiscreteState>()->value);
 }
 
 void oc::LTLSpaceInformation::extendPropagator(const oc::SpaceInformationPtr& oldsi)
@@ -83,7 +128,7 @@ void oc::LTLSpaceInformation::extendValidityChecker(const oc::SpaceInformationPt
         {
         }
         virtual ~LTLStateValidityChecker() { }
-        virtual bool isValid(const base::State* s) const
+        virtual bool isValid(const ob::State* s) const
         {
             return ltlsi_->getProdGraphState(s)->isValid()
                 && lowChecker_->isValid(ltlsi_->getLowLevelState(s));
