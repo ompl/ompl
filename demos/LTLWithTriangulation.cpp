@@ -180,8 +180,6 @@ void plan(void)
     MyDecomposition* ptd = new MyDecomposition(bounds);
     addObstaclesAndPropositions(ptd);
     ptd->setup();
-    // print the triangulation, with proposition information, to stdout
-    ptd->print(std::cout);
     oc::PropositionalDecompositionPtr pd(ptd);
 
     // create a control space
