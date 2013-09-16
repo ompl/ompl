@@ -8,6 +8,14 @@ This page includes a list of extensions to OMPL provided by the community. Pleas
 
 Extend OMPL's support for optimal path planning. Users can plan robot paths that optimize a variety of ready-to-use metrics such as path length and clearance from obstacles. Users can also plan optimal paths under their own customized path metrics without changing OMPL's optimizing planners. Additional benchmarking data has also been added so users can efficiently track the progress of an optimizing planner on their planning problem. Tutorials for use of the framework can be found [here](optimalPlanning.html).
 
+# LBT-RRT contribution
+
+### Author: Oren Salzman (Tel Aviv University)
+
+[LBT-RRT](\ref gLBTRRT) (Lower Bound Tree RRT) is an near-asymptotically optimal incremental sampling-based motion planning algorithm. LBT-RRT is guaranteed to converge to a solution that is within a constant factor of the optimal solution. The notion of optimality is with respect to the distance function defined on the state space we are operating on. The algorithm is described in:
+- Oren Salzman and Dan Halperin, Asymptotically near-optimal RRT for fast, high-quality, motion planning,
+_arXiv_, 2013 [[PDF]](http://arxiv.org/pdf/1308.0189.pdf)
+
 # SPARS and SPARS2 contribution
 
 ### Author: Andrew Dobson (Rutgers University)
