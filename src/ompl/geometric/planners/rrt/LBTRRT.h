@@ -63,7 +63,7 @@ namespace ompl
            @par External documentation
            O. Salzman and D. Halperin, Sampling-based
            Asymptotically near-optimal RRT for fast, high-quality, motion planning, 2013.
-           <a href="http://arxiv.org/abs/1308.0189"</a>
+           [[PDF]](http://arxiv.org/abs/1308.0189)
         */
 
         /** \brief Lower Bound Tree Rapidly-exploring Random Trees */
