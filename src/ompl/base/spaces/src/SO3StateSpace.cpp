@@ -123,7 +123,23 @@ void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mea
         sampleUniform(state);
         return;
     }
-    double x = rng_.gaussian(0, stdDev), y = rng_.gaussian(0, stdDev), z = rng_.gaussian(0, stdDev),
+    
+    // To explain the scaling factor of (2 / sqrt(3)):
+    // The (1 / sqrt(3)) comes from Section 2, Proposition 1 of Yu Qiu's thesis:
+    //
+    // http://lib.dr.iastate.edu/cgi/viewcontent.cgi?article=4014&amp;context=etd
+    //
+    // the additional factor of 2 comes from our particular definition of SO3
+    // distance, which is one of two distance metrics that differ by exactly a factor
+    // of 2:
+    //
+    // http://fgiesen.wordpress.com/2013/01/07/small-note-on-quaternion-distance-metrics/#comment-872
+    //
+    // We have also empirically confirmed that this scaling factor fits the LLN for
+    // SO3 under our distance metric.
+    double rotDev = (2 * stdDev) / boost::math::constants::root_three<double>();
+
+    double x = rng_.gaussian(0, rotDev), y = rng_.gaussian(0, rotDev), z = rng_.gaussian(0, rotDev),
         theta = std::sqrt(x*x + y*y + z*z);
     if (theta < std::numeric_limits<double>::epsilon())
         space_->copyState(state, mean);
