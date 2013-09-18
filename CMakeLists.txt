@@ -59,7 +59,9 @@ find_package(Boost QUIET 1.50)
 
 # try_join_for requires the chrono library, so if we will use
 # try_join_for, we need to include the chrono component
-if (${Boost_FOUND})
+# Must recheck the Boost version, since update_bindings will re-run CMake
+# and this will pass for versions of Boost < 1.50
+if (${Boost_FOUND} AND ${Boost_VERSION} GREATER 104900) # Boost version is at least 1.50
   # we're using chrono
   find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework chrono REQUIRED)
 else()

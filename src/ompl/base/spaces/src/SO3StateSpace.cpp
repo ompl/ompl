@@ -41,13 +41,16 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/math/constants/constants.hpp>
 #include <boost/version.hpp>
+#include <boost/assert.hpp>
 
-#if BOOST_VERSION < 104700
+#ifndef BOOST_ASSERT_MSG
 #define BOOST_ASSERT_MSG(expr, msg) assert(expr)
 #endif
 
 #if BOOST_VERSION < 105000
-BOOST_DEFINE_MATH_CONSTANT(root_three, 1.732050807568877293527446341505872366e+00, "1.73205080756887729352744634150587236694280525381038062805580697945193301690880003708114618675724857567562614142e+00")
+namespace boost{ namespace math{ namespace constants{
+BOOST_DEFINE_MATH_CONSTANT(root_three, 1.732050807568877293527446341505872366, 1.73205080756887729352744634150587236694280525381038062805580697945193301690880003708114618675724857567562614142, 0)
+}}}
 #endif
 
 static const double MAX_QUATERNION_NORM_ERROR = 1e-9;
@@ -127,7 +130,7 @@ void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mea
         sampleUniform(state);
         return;
     }
-    
+
     // To explain the scaling factor of (2 / sqrt(3)):
     // The (1 / sqrt(3)) comes from Section 2, Proposition 1 of Yu Qiu's thesis:
     //
