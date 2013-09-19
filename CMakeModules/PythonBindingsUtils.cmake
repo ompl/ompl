@@ -8,11 +8,15 @@ find_python_module(pygccxml QUIET)
 find_package(GCCXML QUIET)
 
 if(APPLE)
-    # The latest gccxml can be compiled with clang, but cannot be run by
-    # pretending to be clang. Instead, we have to explicitly tell it to
-    # pretend to be g++. Gccxml also mistakenly thinks that OS X is a 32-bit
-    # architecture.
-    set(PYOMPL_EXTRA_CFLAGS "--gccxml-compiler g++ -m64")
+    # The latest gccxml can be *compiled* with clang, but cannot *simulate*
+    # clang. If you compiled gccxml with clang, then you have to specify a
+    # g++ compiler by adding the following to PYOMPL_EXTRA_CFLAGS:
+    #   --gccxml-compiler /opt/local/bin/g++-mp-4.8
+    # (You can use other versions of g++ as well.) Note that /usr/bin/g++
+    # is actually clang++ in Xcode 5.0, so that won't work.
+    #
+    # Gccxml mistakenly thinks that OS X is a 32-bit architecture.
+    set(PYOMPL_EXTRA_CFLAGS "-m64")
 endif(APPLE)
 
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
