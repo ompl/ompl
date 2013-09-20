@@ -49,7 +49,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         OUTPUT_VARIABLE UBUNTU_RELEASE
         OUTPUT_STRIP_TRAILING_WHITESPACE)
     set(CPACK_PACKAGE_FILE_NAME "omplapp_${OMPL_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}-Ubuntu${UBUNTU_RELEASE}")
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "python${PYTHON_VERSION}, libboost-all-dev, libode-dev")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "python${PYTHON_VERSION}, libboost-all-dev, libode-dev, libtriangle-dev")
 endif()
 
 if(WIN32)
