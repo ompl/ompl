@@ -1,19 +1,19 @@
 
 I) Installation
 
-    First, you'll need to install MORSE (version 1.0 or later). Follow the
-    instructions here at <TODO.org>. You should end up with a working copy of
-    both Blender and MORSE. You can check if this was successful by running
+    First, you'll need to install MORSE (version 1.0 or later):
+        <http://www.openrobots.org/morse/doc/stable/user/installation.html>
+    After doing so, you should have a working copy of both Blender and MORSE.
+    You can check if this was successful by running
     
         $ morse check
     
     Second, follow the general instructions for installing OMPL with the
-    Python bindings in the README.md file. But take care to ensure to set the
-    variables Boost_PYTHON_LIBRARY_DEBUG and Boost_PYTHON_LIBRARY_RELEASE to
-    the Python3 version of these libraries (for example, you might use
-    /usr/lib/libboost_python-3.2-mt.so). Also, it will try to find the MORSE
-    executable automatically; but if it's in an unusual location, you should
-    manually set the MORSE_EXEC variable.
+    Python bindings in the README.md file. But take care to set the variables
+    Boost_PYTHON_LIBRARY_DEBUG and Boost_PYTHON_LIBRARY_RELEASE to the Python3
+    version of these libraries (for example, you might use
+    /usr/lib/libboost_python-3.2-mt.so). And ensure OMPL_PYTHON_INSTALL_DIR,
+    PYTHON_INCLUDE_DIRS, and PYTHON_LIBRARIES use Python3.
     
     At the moment, there is one Python script that should be installed as a
     Blender add-on, and this is not done automatically. You'll find it located
@@ -89,14 +89,12 @@ III) Setting up an environment
                 to scroll right in the menu of buttons to find it)
             - set the 'Physics Type' to 'Rigid Body'; this allows the cube to
                 participate in the physics simulation as a movable, collidable
-                object
+                object; also check the 'Collision Bounds' setting, and make sure
+                it's using the 'Box' bounds (for more complicated objects, it
+                may be appropriate to use 'Convex Hull' or 'Triangle Mesh')
             - now select the plane; its physics type should already be 'Static'
                 by default; leave it as such since the plane should be
                 immovable, but still collidable
-            - it may also be a good idea to check the 'Collision Bounds'
-                setting on both objects; 'Convex Hull' or 'Triangle Mesh' for
-                more complicated objects are good choices, though it won't make
-                a difference for a very simple object
 
 IV) Adding robot(s)
 
