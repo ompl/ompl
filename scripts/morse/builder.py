@@ -115,17 +115,12 @@ for obj in bpy.context.scene.objects:
         i += 1
 # delete the stand-in models
 for obj in to_delete:
-    bpy.context.scene.objects.unlink(obj)
+    bpy.ops.object.select_pattern(pattern=obj.name, case_sensitive=True, extend=False)
+    bpy.ops.object.delete()
 # disallow sleeping
 for obj in bpy.context.scene.objects:
     if obj.game.physics_type == 'RIGID_BODY':
             obj.game.use_sleep = True   # backwards; True means "no sleeping"
-
-# Fix the timestep physics is advanced by each frame
-#bpy.context.scene.game_settings.fps = 60
-#bpy.context.scene.game_settings.use_frame_rate = True
-#bpy.context.scene.game_settings.restrict_animation_updates = True
-bpy.context.scene.game_settings.show_framerate_profile = True
 
 # Get '__settings' object so we can set up some properties
 settings = bpy.data.objects['__settings']
