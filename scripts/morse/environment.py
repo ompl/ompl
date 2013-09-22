@@ -77,11 +77,9 @@ class MyEnvironment(om.MorseEnvironment):
         """
         Get information from Blender about the scene.
         """
-        print('environment initializing')
         self.initState = None
         self.sockS = state_socket
         self.sockC = control_socket
-        print('calling for control description')
         self.cdesc = self.call('getControlDescription()', b'')   # get info for applying controls
         if not self.cdesc:
             raise Exception("Can't communicate with MORSE process")
@@ -104,7 +102,7 @@ class MyEnvironment(om.MorseEnvironment):
         for i in [1,2,3]:
             rb[i] = list2vec(rb[i])
         
-        envArgs = cb + rb + [0.1, 20, 40]    # add step size, min/max control durations
+        envArgs = cb + rb + [0.1, 10, 20]    # add step size, min/max control durations
         super(MyEnvironment, self).__init__(*envArgs)
         
         # tell MORSE to reset the simulation, because it was running while it was initializing
@@ -221,7 +219,7 @@ class MyEnvironment(om.MorseEnvironment):
         """
         Run the simulation for dur seconds.
         """
-        for _ in range(round(dur/(1/60))):
+        for _ in range(round(dur/(1.0/60))):
             self.call('nextTick()')
         
     def endSimulation(self):
@@ -327,6 +325,5 @@ class MyGoal(om.MorseGoal):
         # finally, check the goalRegionSat flag
         if not state[4*self.rigidBodies_].value:
             sat = False
-        print(self.distance_)
         return sat
 
