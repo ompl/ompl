@@ -79,8 +79,6 @@ class Plan(bpy.types.Operator):
         
         print('Starting planner...')
         print("Planning on %s, saving to %s" % (bpy.data.filepath, self.filepath))
-        #subprocess.Popen(['morse', '-c', 'run', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAN'])
-        # for the newer MORSE interface, use this instead of the above line:
         subprocess.Popen(['morse', '-c', 'run', 'ompl', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAN'])
         
         return {'FINISHED'}
@@ -146,8 +144,6 @@ class Play(bpy.types.Operator):
         
         print('Starting player...')
         print("Playing %s with %s" % (bpy.data.filepath, self.filepath))
-        #subprocess.Popen(['morse', '-c', 'run', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAY'])
-        # for the newer MORSE interface, use this instead of the above line:
         subprocess.Popen(['morse', '-c', 'run', 'ompl', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAY'])
         
         return {'FINISHED'}
@@ -175,9 +171,12 @@ class Play(bpy.types.Operator):
 
 def getRobots():
     """
-    Compile list of valid MORSE robots.
+    Compile list of usable MORSE robots.
     """
-    excluded_robots = []    #TODO
+    # This is a list of incompatible robots (e.g., some controllers require you to name the part
+    #   to move instead of merely accepting a list of control values). If you write your own
+    #   controller that is compatible, feel free to take the robot out of this blacklist
+    excluded_robots = ['B21','BarePR2','BasePR2','Human','Hummer','Jido','LocalizedPR2','NavPR2','Victim']
     robotEnum = []
     i=0
     for cname in dir(morse.builder.robots):
@@ -197,9 +196,11 @@ def getControllers():
     """
     Compile list of controllers valid for the selected robot.
     """
-    # exclude controllers that have non-numeric parameters, don't have a socket interface, or are irrelevant
+    # Exclude controllers that require non-numeric parameters, don't have a socket interface, or are irrelevant;
+    #   you may be able to rewrite some of these (e.g., SteerForce) with little modification so that they do
+    #   accept purely numeric inputs
     excluded_controllers = ['Armature','Destination','ForceTorque','Gripper','Joystick','Keyboard','KukaLWR',
-        'Light','Mocap','MocapControl','MotionXYW','Orientation','PTU','RotorcraftAttitude','SteerForce']
+        'Light','Mocap','MocapControl','MotionXYW','Orientation','PTU','RotorcraftAttitude','Sound','SteerForce']
     controllerEnum = []
     i=0
     for cname in dir(morse.builder.actuators):
@@ -270,6 +271,15 @@ class AddRobot(bpy.types.Operator):
         # choose robot and controller
         return context.window_manager.invoke_props_dialog(self)
 
+def _recurseSelectChildren(obj):
+    """
+    Recursively add children to the selection.
+    """
+    for child in obj.children:
+        _recurseSelectChildren(child)
+    
+    bpy.ops.object.select_pattern(pattern=obj.name, case_sensitive=True)
+
 class AddGoal(bpy.types.Operator):
     """Add a goal to the Scene"""
     bl_idname = "ompl.addgoal"
@@ -278,7 +288,7 @@ class AddGoal(bpy.types.Operator):
     # automatically set by the Blender properties dialog
     body = bpy.props.StringProperty(name="Rigid Body",
         description="The body to define a goal for", default="")
-    goal_type = bpy.props.EnumProperty(items=[('goalRot','Rotation','Rotation only'),
+    goal_type = bpy.props.EnumProperty(items=[('goalRot','Rotation only','Rotation'),
         ('goalPose','Pose','Position and Rotation')], name="Goal Type",
         description="The kind of goal specification", default='goalPose')
     
@@ -303,6 +313,7 @@ class AddGoal(bpy.types.Operator):
         
         # duplicate object
         bpy.ops.object.select_pattern(pattern=self.body, case_sensitive=True)
+        _recurseSelectChildren(bpy.data.objects.get(self.body))
         bpy.ops.object.duplicate()
         goalobj = context.selected_objects[0]
         # remove old custom properties
@@ -507,10 +518,7 @@ class BoundsConfiguration(bpy.types.Operator):
         bpy.ops.wm.save_mainfile()
         
         # Query MORSE for cdesc by starting it up temporarily (clunky, but it needs to be done)
-        #subprocess.Popen(['morse', '-c', 'run', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, ".", 'QUERY'],
-        #                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        subprocess.Popen(['morse', '-c', 'run', 'ompl', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, ".", 'QUERY'],
-                         )#stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.Popen(['morse', '-c', 'run', 'ompl', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, ".", 'QUERY'])
 
         sockS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sockC = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -615,12 +623,12 @@ class OMPLMenu(bpy.types.Menu):
     
     def draw(self, context):
         self.layout.operator_context = 'INVOKE_DEFAULT'
-        self.layout.operator(Plan.bl_idname)
-        self.layout.operator(AnimFile.bl_idname)
-        self.layout.operator(Play.bl_idname)
         self.layout.operator(AddRobot.bl_idname)
         self.layout.operator(AddGoal.bl_idname)
         self.layout.operator(BoundsConfiguration.bl_idname)
+        self.layout.operator(Plan.bl_idname)
+        self.layout.operator(AnimFile.bl_idname)
+        self.layout.operator(Play.bl_idname)
 
 def menu_func(self, context):
     self.layout.menu(OMPLMenu.bl_idname)
