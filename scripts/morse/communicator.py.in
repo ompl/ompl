@@ -49,7 +49,7 @@ import bpy
 import bge
 import mathutils
 
-OMPL_DIR=os.path.dirname(__file__)
+OMPL_DIR='@CMAKE_INSTALL_PREFIX@/@OMPL_MORSE_PYTHON_INSTALL_DIR@'
 
 # Routines for accessing Blender internal data
 
@@ -135,22 +135,23 @@ def getGoalCriteria():
     Also destroys goal objects that are not regions since they will no longer be needed.
     """
     crit = []
-    for gbody in goalObjects:
+    rigidNames = list(map(lambda o: o.name, rigidObjects))
+    for (gbody,gameobj) in goalObjects:
         try:
             # which rigid body does this goal body correspond to?
             j = gbody.name.rfind('.')
-            i = list(map(lambda o: o.name, rigidObjects)).index(gbody.name[:j])
+            i = rigidNames.index(gbody.name[:j])
             if gbody.name.endswith('.goalPose'):
-                crit.append((i,getGoalLocRotState(gbody),gbody['locTol'],gbody['rotTol']))
+                crit.append((i,getGoalLocRotState(gameobj),gbody['locTol'],gbody['rotTol']))
             elif gbody.name.endswith('.goalRot'):
-                crit.append((i,getGoalRotState(gbody),gbody['rotTol']))
+                crit.append((i,getGoalRotState(gameobj),gbody['rotTol']))
             else:
-                crit.append((i,getGoalRegionState(gbody)))
+                crit.append((i,getGoalRegionState(gameobj)))
         except ValueError:
             print("Ignoring stray goal criterion %s" % gbody.name)
         
-        if not gbody in goalRegionObjects:
-            gbody.endObject()
+        if not gameobj in goalRegionObjects:
+            gameobj.endObject()
     
     # send the pickled response
     sock.sendall(pickle.dumps(crit))
@@ -304,16 +305,18 @@ def endSimulation():
         # no autostart
         bpy.context.scene.game_settings.use_auto_start = False
         
-        # remove unwanted objects
+        # remove unwanted objects; set the active camera
         toDelete = []
         for obj in bpy.context.scene.objects:
             if obj.name in ['Scene_Script_Holder','CameraFP','__settings'] or \
               obj.name.endswith('.goalPose') or obj.name.endswith('.goalRegion') or \
               obj.name.endswith('.goalRot'):
                 toDelete.append(obj)
+            elif obj.name == "Camera":
+                bpy.context.scene.camera = obj
             for child in obj.children:
                 if child.name.endswith('Motion'):
-                    toDelete.append(obj)
+                    toDelete.append(child)
         for obj in toDelete:
             _recurseDelete(obj)
                 
@@ -396,7 +399,6 @@ def spawn_planner():
         f = '/player.py'
     
     if mode != 'QUERY':
-        print("OMPL_DIR is " + OMPL_DIR)
         # pass the name of the output (or input) file
         subprocess.Popen([OMPL_DIR + f, bpy.data.objects['__settings']['Outpath']])
     
@@ -478,7 +480,7 @@ def main():
                     body[body.name] = True
                     goalRegionObjects.append(gameobj)
                 
-                goalObjects.append(gameobj)
+                goalObjects.append((obj,gameobj))
             
             # check if it's a rigid body
             elif obj.game.physics_type == 'RIGID_BODY':
