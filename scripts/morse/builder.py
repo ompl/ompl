@@ -51,18 +51,18 @@ OMPL_DIR=os.path.dirname(__file__)
 # Determine the mode to use (third argument)
 mode = sys.argv[sys.argv.index('--') + 3]
 
-# Hide the Blender window if we're planning
+# Use wmctrl for window manipulation
 # (fails silently if wmctrl not installed)
 winID = subprocess.check_output(['bash', '-c',
     'wmctrl -l | grep morse_default_autorun | awk \'{ print $1 }\'']).decode()[:-1]
-
+# Set a meaningful title
 if mode == 'PLAN':
     subprocess.call(['bash', '-c', 'wmctrl -i -r %s -T "OMPL MORSE Planner"' % winID])
 elif mode == 'PLAY':
     subprocess.call(['bash', '-c', 'wmctrl -i -r %s -T "OMPL MORSE Player"' % winID])
 elif mode == 'QUERY':
     subprocess.call(['bash', '-c', 'wmctrl -i -r %s -T "OMPL MORSE Control Query"' % winID])
-
+# Hide the Blender window if we're planning or querying
 if mode == 'PLAN' or mode == 'QUERY':
     subprocess.call(['bash', '-c', 'wmctrl -i -r %s -b add,shaded' % winID])
     subprocess.call(['bash', '-c', 'wmctrl -i -r %s -e 0,100,100,600,200' % winID])
@@ -78,18 +78,20 @@ envpath = sys.argv[sys.argv.index('--') + 1]
 print("\n* Loading scene <%s>.\n" % envpath)
 env = morse.builder.Environment(envpath)
 
-# Replace the robot(s)
+# Replace the robot(s) stand-in models with actual MORSE robot objects
 to_delete = []
 i = 0
 for obj in bpy.context.scene.objects:
-    # if this object has the marks of a robot, but not a goal
+    
+    # If this object has the marks of a robot, but not a goal
     if obj.get('RobotType') and \
         not [True for goalStr in ['.goalPose','.goalRegion','.goalRot'] if obj.name.endswith(goalStr)]:
         rtype = obj['RobotType']
         ctype = obj['ControllerType']
         pos = obj.location
         rot = obj.rotation_euler
-        # make names acceptable for MORSE
+        
+        # Make names acceptable for MORSE
         rname = obj.name
         rnameSafe = rname.replace('.','_')
         if rname != rnameSafe:
@@ -101,26 +103,32 @@ for obj in bpy.context.scene.objects:
                     print("\t> also renamed goal %s" % goal.name)
                     goal.name = rnameSafe + goalStr
             rname = rnameSafe
-        # avoid name collision and mark for deletion
+        
+        # Avoid name collision and mark for deletion
         obj.name += '_'
         to_delete.append(obj)
-        # add the MORSE components
+        
+        # Add the MORSE components
         robot = getattr(morse.builder, rtype)(rname)
         motion = getattr(morse.builder, ctype)(robot.name+'Motion')
-        # copy pose
+        
+        # Restore pose
         robot.location = pos
         robot.rotation_euler = rot
         robot.append(motion)
-        motion.add_service('socket')    # port = 4000
+        motion.add_service('socket')
         i += 1
-# delete the stand-in models
+        
+# Delete the stand-in models
 for obj in to_delete:
     bpy.ops.object.select_pattern(pattern=obj.name, case_sensitive=True, extend=False)
     bpy.ops.object.delete()
-# disallow sleeping
+
+# Disallow sleeping for rigid bodies
 for obj in bpy.context.scene.objects:
     if obj.game.physics_type == 'RIGID_BODY':
-            obj.game.use_sleep = True   # backwards; True means "no sleeping"
+        # True means "no sleeping"
+        obj.game.use_sleep = True
 
 # Get '__settings' object so we can set up some properties
 settings = bpy.data.objects['__settings']
@@ -135,7 +143,7 @@ settings['Outpath'] = outpath
 # Set the mode setting
 settings['Mode'] = mode
 
-# Mode specific configuration:
+# Record animation data if we're doing playback
 if mode == 'PLAY':
     bpy.context.scene.game_settings.use_animation_record = True
     
@@ -151,7 +159,7 @@ tick.use_repeat = True
 # Add 'communicator.py' text block
 bpy.ops.text.open(filepath=OMPL_DIR + "/communicator.py")
 
-# Add 'Comm' controller
+# Add 'Comm' controller for the script
 bpy.ops.logic.controller_add(context_override, type='PYTHON', name='Comm')
 comm = settings.game.controllers['Comm']
 comm.mode = 'MODULE'
@@ -160,7 +168,5 @@ comm.module = 'communicator.main'
 # Link Tick with Comm so it's run every frame
 tick.link(comm)
 
+# Create the environment
 env.create()
-
-
-
