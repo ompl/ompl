@@ -83,9 +83,15 @@ to_delete = []
 i = 0
 for obj in bpy.context.scene.objects:
     
-    # If this object has the marks of a robot, but not a goal
-    if obj.get('RobotType') and \
-        not [True for goalStr in ['.goalPose','.goalRegion','.goalRot'] if obj.name.endswith(goalStr)]:
+    # In PLAY mode, delete the goals
+    if [True for goalStr in ['.goalPose','.goalRegion','.goalRot'] if obj.name.endswith(goalStr)]:
+        if mode == 'PLAY':
+            to_delete.append(obj)
+        continue
+    
+    # If this object is a robot
+    if obj.get('RobotType'):
+            
         rtype = obj['RobotType']
         ctype = obj['ControllerType']
         pos = obj.location
