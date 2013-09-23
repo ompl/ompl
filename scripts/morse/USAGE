@@ -14,7 +14,7 @@ I) Installation
     Boost_PYTHON_LIBRARY_DEBUG and Boost_PYTHON_LIBRARY_RELEASE to the Python3
     version of these libraries (for example, you might use
     /usr/lib/libboost_python-3.2-mt.so). And ensure OMPL_PYTHON_INSTALL_DIR,
-    PYTHON_INCLUDE_DIRS, and PYTHON_LIBRARIES use Python3.
+    PYTHON_EXEC, PYTHON_INCLUDE_DIRS, and PYTHON_LIBRARIES use Python3.
     
     At the moment, there is one Python script that should be installed as a
     Blender add-on, and this is not done automatically. You'll find it located
