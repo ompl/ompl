@@ -499,11 +499,6 @@ def main():
                     print("[%i] rigid body %s" % (len(rigidObjects),gameobj.name))
                     rigidObjects.append(gameobj)
         
-        # Ignore rigid bodies that are children of goals
-        for gameobj in goalObjects:
-            children = obj.children[:]
-            while children:
-                rigidObjects.r
         # Reset terminal colors
         print('\033[0m')
         
