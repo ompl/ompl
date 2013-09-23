@@ -485,10 +485,25 @@ def main():
             
             elif obj.game.physics_type == 'RIGID_BODY':
                 
-                # Check if it's not a goal, but is a rigid body
-                print("[%i] rigid body %s" % (len(rigidObjects),gameobj.name))
-                rigidObjects.append(gameobj)
+                # Check if it's not a goal or child of a goal, but is a rigid body
+                parent = gameobj.parent
+                goal_child = False
+                while parent:
+                    if [True for goalStr in ['.goalPose','.goalRegion','.goalRot']
+                      if parent.name.endswith(goalStr)]:
+                        goal_child  = True
+                        break
+                    parent = parent.parent
+                
+                if not goal_child:
+                    print("[%i] rigid body %s" % (len(rigidObjects),gameobj.name))
+                    rigidObjects.append(gameobj)
         
+        # Ignore rigid bodies that are children of goals
+        for gameobj in goalObjects:
+            children = obj.children[:]
+            while children:
+                rigidObjects.r
         # Reset terminal colors
         print('\033[0m')
         
