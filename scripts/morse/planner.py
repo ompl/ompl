@@ -64,7 +64,7 @@ def planWithMorse(sockS, sockC):
         
         # Choose a planner
         planner = oc.RRT(si)
-                """
+        """
         # Alternative setup with a planner using a projection
         planner = oc.KPIECE1(si)
         space = si.getStateSpace()
