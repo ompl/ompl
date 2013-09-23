@@ -43,48 +43,49 @@ import time
 
 from ompl.morse.environment import *
 
+##
+# \brief Set up MyEnvironment object. Plan using sockS as the socket to the Blender
+#    communicator script and sockC as the socket to the MORSE motion controller.
 def playWithMorse(sockS, sockC):
-    """
-    Set up MyEnvironment object. Plan using sockS as the socket to the Blender
-    communicator script and sockC as the socket to the MORSE motion controller.
-    """
     
     env = None
     try:
-        # create a MORSE environment representation
+        # Create a MORSE environment representation
         env = MyEnvironment(sockS, sockC)
         
-        # play
+        # Read path from file for playback
         with open(sys.argv[1], 'rb') as f:
             (st,con,dur) = pickle.load(f)
         for i in range(len(con)):
-            # load state
+            # Load state
             env.call('submitState()', pickle.dumps(st[i]))
-            # apply control
+            # Apply control
             print(con[i])
             env.applyControl(con[i])
-            # simulate
+            # Simulate
             for _ in range(round(dur[i]/(1.0/10))):
                 env.worldStep(1.0/10)
-        # last state
+        # Last state
         env.call('submitState()', pickle.dumps(st[len(con)]))
     
     except Exception as msg:
+        # Ignore errors caused by MORSE or Blender shutting down
         if str(msg)!="[Errno 104] Connection reset by peer" \
-            and str(msg)!="[Errno 32] Broken pipe": # ignore if user exits MORSE
+            and str(msg)!="[Errno 32] Broken pipe":
             raise
+        
     finally:
-        # tell simulation it can shut down
+        # Tell simulation it can shut down
         if env:
             env.endSimulation()
 
-# set up the state and control sockets
+# Set up the state and control sockets
 sockS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sockC = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sockS.connect(('localhost', 50007))
 sockC.connect(('localhost', 4000))
 
-# play
+# Play
 playWithMorse(sockS, sockC)
 
 
