@@ -1,3 +1,4 @@
+USING OMPL WITH MORSE
 
 I) Installation
 
@@ -31,8 +32,8 @@ II) Quickstart
     however, you may wish to jump in a little further down so you can see some
     results right away. If you would like to use a pre-designed demo
     environment instead of modeling your own the first time, start at section
-    IV) Adding Robots and Goals, with ompl/demos/morse/rampjump_starter.blend
-    as your environment file. If you would like to get to the planning phase
+    IV) Adding Robot(s), with ompl/demos/morse/rampjump_starter.blend as your
+    environment file. If you would like to get to the planning phase
     immediately, you can start at section VI) Planning, with
     ompl/demos/morse/rampjump_complete.blend as your environment file.
 
@@ -263,3 +264,55 @@ VIII) Rendering animation videos
     data. You should then change the output format to AVI JPEG or some other
     video format. If all the other settings are to your liking, you can press
     Render Animation to create the video.
+
+IX) Advanced tweaks
+
+    There is some interesting functionality that is not exposed via the OMPL
+    addon interface, since it requires a little bit of coding. Here are some
+    pointers to get you started if you want to try out something a little
+    fancier.
+    
+    a) You can change the planner used by OMPL. See scripts/morse/planner.py,
+    lines 66ff. Right now, it uses RRT. An alternative is giving in a block
+    comment that uses KPIECE1; this is one of the planners that requires a
+    projection. See the projection code at scripts/morse/environment.py,
+    lines 264ff.
+    
+    b) You can change the minimum and maximum control durations, as well as
+    the control step size. See scripts/morse/environment.py, lines 70ff.
+    Note that the playback process also uses the control step size setting.
+    
+    c) You can modify the goal code to explain a complicated requirement to
+    the system. See scripts/morse/environment.py, lines 318ff., especially the
+    isSatisfied_Py() function. For exmample, you could require the distance
+    between to specific objects to be greater than some value. Tip: when the
+    simulation prints "Gathering list of rigid bodies and goal criteria," note
+    that the rigid bodies are numbered; this number tells you which components
+    of the state corresponds to each object. In particular, the state space is
+    organized as a list containing the 4 vectors (position, linear velocity,
+    angular velocity, and orientation) of the first rigid body, then the
+    second, etc., so that, e.g., state[4*7 + 2] gives the angular velocity
+    vector for rigid body number 7.
+    
+    d) MORSE allows you to make your own robot models and write actuators
+    (controllers) for them. You can even write new actuators for existing
+    robots. This could be helpful in increasing the number of robots in the
+    MORSE library that are usable by this planning process. See comments at
+    scripts/morse/ompl_addon.py.in, lines 174ff., 199ff.
+    
+    e) The planning process is quite slow right now, caused by an inability to
+    speed up the Blender Game Engine. It was designed for live simulation, and
+    though the underlying computations are extremely quick, it maintains a
+    uniform pace instead of progressing the simulation as fast as possible. The
+    MORSE developers are hoping to introduce faster-than-realtime simulation
+    soon. In the meantime, there's a very minimal change you can make to the
+    Blender source that multiplies the speed by a modest factor. Five times as
+    fast seems to be the limit, presumably because Blender refuses to perform
+    more than 5 physics updates during the same tick to keep up with the time.
+    The speed hack simply entails multiplying the elapsed time returned by
+    Blender's internal clock by 5 (anything higher will not have much affect).
+    If you've built Blender from source, just open up
+    blender/source/gameengine/BlenderRoutines/KX_BlenderSystem.cpp, multiply
+    the value returned by GetTimeInSeconds() by 5, and recompile. Just remember
+    to revert back to the normal speed before doing a playback, or else divide
+    the playback durations by 5 (dur[i] in scripts/morse/player.py, line 66).

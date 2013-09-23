@@ -81,7 +81,7 @@ def getObjState(gameobj):
 ##
 # \brief Returns the state tuple for an object, consisting only of
 #    position and orientation
-def getGoalLocRotState(gameobj)
+def getGoalLocRotState(gameobj):
     
     return (gameobj.worldPosition.to_tuple(),
             tuple(gameobj.worldOrientation.to_quaternion()))

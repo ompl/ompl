@@ -175,9 +175,9 @@ class Play(bpy.types.Operator):
 # \brief Compile a list of usable MORSE robots
 def getRobots():
     
-    # This is a list of incompatible robots (e.g., some controllers require you to name the part
-    #   to move instead of merely accepting a list of control values). If you write your own
-    #   controller that is compatible, feel free to take the robot out of this blacklist
+    # This is a list of incompatible robots (e.g., some use controllers that require you to explicitly
+    #   name the internal variable you want to change instead of merely accepting a list of control values).
+    #   If you write your own controller that is compatible, feel free to take the robot out of this blacklist
     excluded_robots = ['B21','BarePR2','BasePR2','Human','Hummer','Jido','LocalizedPR2','NavPR2','Victim']
     robotEnum = []
     i=0

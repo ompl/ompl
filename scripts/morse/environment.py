@@ -67,6 +67,13 @@ def unpickleFromSocket(s):
         break
     return o
 
+## \brief Controls are applied in discrete time intervals of this size (in seconds)
+controlStepSize = 0.1
+## \brief Smallest number of times a given control may be applied consecutively
+minControlDuration = 10
+## \brief Largest number of times a given control may be applied consecutively
+maxControlDuration = 20
+
 ##
 # \brief Represents the MORSE environment we will be planning in; inherits from the C++ class
 class MyEnvironment(om.MorseEnvironment):
@@ -116,7 +123,7 @@ class MyEnvironment(om.MorseEnvironment):
             rb[i] = list2vec(rb[i])
         
         # Combine control and rigid body info with step size and min/max control durations
-        envArgs = cb + rb + [0.1, 10, 20]
+        envArgs = cb + rb + [controlStepSize, minControlDuration, maxControlDuration]
         super(MyEnvironment, self).__init__(*envArgs)
         
         # Tell MORSE to reset the simulation, because it was running during initializing

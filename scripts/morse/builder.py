@@ -118,11 +118,22 @@ for obj in bpy.context.scene.objects:
         robot.append(motion)
         motion.add_service('socket')
         i += 1
-        
+
+##
+# \brief Recursively delete an object and its children
+def _recurseDelete(obj):
+    
+    # Call this function on all the children
+    for child in obj.children[:]:
+        _recurseDelete(child)
+    
+    # Select only this object and delete it
+    bpy.ops.object.select_pattern(pattern=obj.name, case_sensitive=True, extend=False)
+    bpy.ops.object.delete()        
+
 # Delete the stand-in models
 for obj in to_delete:
-    bpy.ops.object.select_pattern(pattern=obj.name, case_sensitive=True, extend=False)
-    bpy.ops.object.delete()
+    _recurseDelete(obj)
 
 # Disallow sleeping for rigid bodies
 for obj in bpy.context.scene.objects:
