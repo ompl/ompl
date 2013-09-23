@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Ioan Sucan, Caleb Voss */
+/* Authors: Caleb Voss */
 
 #include "ompl/extensions/morse/MorseStateSpace.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
@@ -143,52 +143,14 @@ void ompl::base::MorseStateSpace::interpolate(const State *from, const State *to
     CompoundStateSpace::interpolate(from, to, t, state);
 }
 
-/// @cond IGNORE
-namespace ompl
-{
-    namespace base
-    {
-        class WrapperForMorseSampler : public StateSampler
-        {
-        public:
-            WrapperForMorseSampler(const StateSpace *space, const StateSamplerPtr &wrapped) : StateSampler(space), wrapped_(wrapped)
-            {
-            }
-
-            virtual void sampleUniform(State *state)
-            {
-                wrapped_->sampleUniform(state);
-            }
-
-            virtual void sampleUniformNear(State *state, const State *near, const double distance)
-            {
-                wrapped_->sampleUniformNear(state, near, distance);
-            }
-
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev)
-            {
-                wrapped_->sampleGaussian(state, mean, stdDev);
-            }
-        private:
-            StateSamplerPtr wrapped_;
-        };
-    }
-}
-/// @endcond
-
 ompl::base::StateSamplerPtr ompl::base::MorseStateSpace::allocDefaultStateSampler(void) const
 {
-    StateSamplerPtr sampler = CompoundStateSpace::allocDefaultStateSampler();
-    return StateSamplerPtr(new WrapperForMorseSampler(this, sampler));
+    return CompoundStateSpace::allocDefaultStateSampler();
 }
 
 ompl::base::StateSamplerPtr ompl::base::MorseStateSpace::allocStateSampler(void) const
 {
-    StateSamplerPtr sampler = CompoundStateSpace::allocStateSampler();
-    if (dynamic_cast<WrapperForMorseSampler*>(sampler.get()))
-        return sampler;
-    else
-        return StateSamplerPtr(new WrapperForMorseSampler(this, sampler));
+    return CompoundStateSpace::allocDefaultStateSampler();
 }
 
 void ompl::base::MorseStateSpace::readState(State *state) const

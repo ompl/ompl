@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Ioan Sucan, Caleb Voss */
+/* Authors: Caleb Voss */
 
 #ifndef OMPL_EXTENSION_MORSE_STATE_SPACE_
 #define OMPL_EXTENSION_MORSE_STATE_SPACE_
