@@ -41,50 +41,49 @@ import pickle
 import sys
 
 from ompl import control as oc
-
 from ompl.morse.environment import *
 
+##
+# \brief Set up MyEnvironment, MorseSimpleSetup, and MyGoal objects.
+#    Plan using sockS as the socket to the Blender communicator script
+#    and sockC as the socket to the MORSE motion controller.
 def planWithMorse(sockS, sockC):
-    """
-    Set up MyEnvironment, MorseSimpleSetup, and MyGoal objects.
-    Plan using sockS as the socket to the Blender communicator script
-    and sockC as the socket to the MORSE motion controller.
-    """
     
     env = None
     try:
-        # create a MORSE environment representation
+        # Create a MORSE environment representation
         env = MyEnvironment(sockS, sockC)
         
-        # create a simple setup object
+        # Create a simple setup object
         ss = om.MorseSimpleSetup(env)
         si = ss.getSpaceInformation()
         
-        # set up goal
+        # Set up goal
         g = MyGoal(si, env)
         ss.setGoal(g)
         
-        # choose a planner
+        # Choose a planner
         planner = oc.RRT(si)
+        
         """
+        # Alternative setup with a planner using a projection
         planner = oc.KPIECE1(si)
-        # requires a projection (there is a default, but it uses x,y positions of
-        #  all rigid bodies; that could be a lot of dimensions)
         space = si.getStateSpace()
         proj = ExampleProjection(space)
         space.registerProjection("ExampleProjection", proj)
         planner.setProjectionEvaluator("ExampleProjection")
         """
+        
         ss.setPlanner(planner)
         
-        # solve
+        # Solve
         ss.solve()
         
-        # print the solution path
+        # Write the solution path to file
         if ss.haveSolutionPath():
             print("Saving solution.")
             cpath = ss.getSolutionPath()
-            #cpath.interpolate()
+            # Save the states, controls, and durations
             st = []
             con = []
             dur = []
@@ -94,26 +93,29 @@ def planWithMorse(sockS, sockC):
                 dur.append(cpath.getControlDuration(i))
             st.append(env.stateToList(cpath.getState(cpath.getControlCount())))
             with open(sys.argv[1], 'wb') as f:
+                # Pickle it all into a file
                 pickle.dump((st,con,dur), f)
         else:
             print("No solution found.")
     
     except Exception as msg:
+        # Ignore errors caused by MORSE or Blender shutting down
         if str(msg)!="[Errno 104] Connection reset by peer" \
-          and str(msg)!="[Errno 32] Broken pipe": # ignore if user exits MORSE
+          and str(msg)!="[Errno 32] Broken pipe":
             raise
+        
     finally:
-        # tell simulation it can shut down
+        # Tell simulation it can shut down
         if env:
             env.endSimulation()
 
-# set up the state and control sockets
+# Set up the state and control sockets
 sockS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sockC = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sockS.connect(('localhost', 50007))
 sockC.connect(('localhost', 4000))
 
-# plan
+# Plan
 planWithMorse(sockS, sockC)
 
 
