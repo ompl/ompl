@@ -200,7 +200,7 @@ class ompl_base_generator_t(code_generator_t):
             if stype!='Dubins' and stype!='ReedsShepp':
                 self.ompl_ns.class_(stype + 'StateSpace').decls('StateType').rename(
                     stype + 'StateInternal')
-            # add a constructor that allows, e.g., an State to be constructed from a SE3State
+            # add a constructor that allows, e.g., a State to be constructed from a SE3State
             bstate.add_registration_code(
                 'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateSpace> const &>(( bp::arg("other") )))' % stype)
             # add array access to double components of state
@@ -317,7 +317,7 @@ class ompl_base_generator_t(code_generator_t):
             self.ompl_ns.class_('StateStorage').member_function('store', arg_types=['::std::ostream &']).exclude()
         except:
             pass
-
+        
 class ompl_control_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
@@ -653,6 +653,28 @@ class ompl_util_generator_t(code_generator_t):
         self.std_ns.class_('vector< std::map<std::string, std::string > >').rename('vectorMapStringToString')
         self.std_ns.class_('map<std::string, std::string >').include()
         self.std_ns.class_('map<std::string, std::string >').rename('mapStringToString')
+
+class ompl_morse_generator_t(code_generator_t):
+    def __init__(self):
+        replacement = default_replacement
+        code_generator_t.__init__(self, 'morse',
+            ['bindings/util', 'bindings/base', 'bindings/geometric', 'bindings/control'],
+            replacement)
+    def filter_declarations(self):
+        stype = 'Morse'
+        # create a python type for each of the corresponding state type
+        state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateSpace >' % stype)
+        state.rename(stype+'State')
+        state.operator('=', arg_types=['::ompl::base::State const &']).exclude()
+        # add a constructor that allows a MorseState to be constructed from a State
+        state.add_registration_code(
+            'def(bp::init<ompl::base::ScopedState<ompl::base::StateSpace> const &>(( bp::arg("other") )))')
+        # add a constructor that allows, e.g., a State to be constructed from a MorseState
+        bstate = self.ompl_ns.class_('ScopedState< ompl::base::StateSpace >')
+        bstate.add_registration_code(
+            'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateSpace> const &>(( bp::arg("other") )))' % stype)
+        # add array access to double components of state
+        self.add_array_access(state,'double')
 
 
 if __name__ == '__main__':
