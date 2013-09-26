@@ -1,7 +1,7 @@
 ######################################################################
 # Software License Agreement (BSD License)
 #
-#  Copyright (c) 2010, Rice University
+#  Copyright (c) 2013, Rice University
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -82,21 +82,21 @@ env = morse.builder.Environment(envpath)
 to_delete = []
 i = 0
 for obj in bpy.context.scene.objects:
-    
+
     # In PLAY mode, delete the goals
     if [True for goalStr in ['.goalPose','.goalRegion','.goalRot'] if obj.name.endswith(goalStr)]:
         if mode == 'PLAY':
             to_delete.append(obj)
         continue
-    
+
     # If this object is a robot
     if obj.get('RobotType'):
-            
+
         rtype = obj['RobotType']
         ctype = obj['ControllerType']
         pos = obj.location
         rot = obj.rotation_euler
-        
+
         # Make names acceptable for MORSE
         rname = obj.name
         rnameSafe = rname.replace('.','_')
@@ -109,15 +109,15 @@ for obj in bpy.context.scene.objects:
                     print("\t> also renamed goal %s" % goal.name)
                     goal.name = rnameSafe + goalStr
             rname = rnameSafe
-        
+
         # Avoid name collision and mark for deletion
         obj.name += '_'
         to_delete.append(obj)
-        
+
         # Add the MORSE components
         robot = getattr(morse.builder, rtype)(rname)
         motion = getattr(morse.builder, ctype)(robot.name+'Motion')
-        
+
         # Restore pose
         robot.location = pos
         robot.rotation_euler = rot
@@ -128,14 +128,14 @@ for obj in bpy.context.scene.objects:
 ##
 # \brief Recursively delete an object and its children
 def _recurseDelete(obj):
-    
+
     # Call this function on all the children
     for child in obj.children[:]:
         _recurseDelete(child)
-    
+
     # Select only this object and delete it
     bpy.ops.object.select_pattern(pattern=obj.name, case_sensitive=True, extend=False)
-    bpy.ops.object.delete()        
+    bpy.ops.object.delete()
 
 # Delete the stand-in models
 for obj in to_delete:
@@ -163,7 +163,7 @@ settings['Mode'] = mode
 # Record animation data if we're doing playback
 if mode == 'PLAY':
     bpy.context.scene.game_settings.use_animation_record = True
-    
+
 bpy.ops.object.select_all(action='DESELECT')
 context_override = {"active_object":settings,"object":settings,"blend_data":bpy.data,
                     "scene":bpy.context.scene,"edit_object":settings}

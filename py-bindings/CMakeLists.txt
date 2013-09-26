@@ -32,9 +32,10 @@ if (OMPL_BUILD_PYBINDINGS)
         add_dependencies(update_control_bindings update_geometric_bindings)
         add_dependencies(update_control_bindings update_base_bindings)
         add_dependencies(update_tools_bindings update_control_bindings)
-        add_dependencies(update_morse_bindings update_base_bindings)
-        add_dependencies(update_morse_bindings update_control_bindings)
-
+        if(OMPL_EXTENSION_MORSE)
+            add_dependencies(update_morse_bindings update_base_bindings)
+            add_dependencies(update_morse_bindings update_control_bindings)
+        endif()
     endif(PY_OMPL_GENERATE)
 
     if(PY_OMPL_COMPILE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/bindings")
@@ -43,7 +44,7 @@ if (OMPL_BUILD_PYBINDINGS)
         endforeach(module)
 
         install(DIRECTORY ompl DESTINATION "${OMPL_PYTHON_INSTALL_DIR}"
-            PATTERN .svn EXCLUDE PATTERN "*.pyc" EXCLUDE PATTERN "_*.so" EXCLUDE)
+            PATTERN "*.pyc" EXCLUDE PATTERN "_*.so" EXCLUDE)
     endif()
 
 endif(OMPL_BUILD_PYBINDINGS)

@@ -28,3 +28,4 @@ Below we include a number of tutorials we believe are useful for understanding h
 - [Adding a new planner](newPlanner.html)
 - [Creating Python bindings for a new planner](pybindingsPlanner.html)
 - [Setting up a projection](projections.html)
+- [Using OMPL with the Morse simulator](morse.html)

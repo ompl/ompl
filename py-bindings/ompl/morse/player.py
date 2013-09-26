@@ -3,7 +3,7 @@
 ######################################################################
 # Software License Agreement (BSD License)
 #
-#  Copyright (c) 2010, Rice University
+#  Copyright (c) 2013, Rice University
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -39,70 +39,41 @@
 import socket
 import pickle
 import sys
+import time
 
-from ompl import control as oc
 from ompl.morse.environment import *
 
 ##
-# \brief Set up MyEnvironment, MorseSimpleSetup, and MyGoal objects.
-#    Plan using sockS as the socket to the Blender communicator script
-#    and sockC as the socket to the MORSE motion controller.
-def planWithMorse(sockS, sockC):
-    
+# \brief Set up MyEnvironment object. Plan using sockS as the socket to the Blender
+#    communicator script and sockC as the socket to the MORSE motion controller.
+def playWithMorse(sockS, sockC):
+
     env = None
     try:
         # Create a MORSE environment representation
         env = MyEnvironment(sockS, sockC)
-        
-        # Create a simple setup object
-        ss = om.MorseSimpleSetup(env)
-        si = ss.getSpaceInformation()
-        
-        # Set up goal
-        g = MyGoal(si, env)
-        ss.setGoal(g)
-        
-        # Choose a planner
-        planner = oc.RRT(si)
-        """
-        # Alternative setup with a planner using a projection
-        planner = oc.KPIECE1(si)
-        space = si.getStateSpace()
-        proj = ExampleProjection(space)
-        space.registerProjection("ExampleProjection", proj)
-        planner.setProjectionEvaluator("ExampleProjection")
-        """
-        
-        ss.setPlanner(planner)
-        
-        # Solve
-        ss.solve()
-        
-        # Write the solution path to file
-        if ss.haveSolutionPath():
-            print("Saving solution.")
-            cpath = ss.getSolutionPath()
-            # Save the states, controls, and durations
-            st = []
-            con = []
-            dur = []
-            for i in range(cpath.getControlCount()):
-                st.append(env.stateToList(cpath.getState(i)))
-                con.append(tuple(cpath.getControl(i)[j] for j in range(env.cdesc[0])))
-                dur.append(cpath.getControlDuration(i))
-            st.append(env.stateToList(cpath.getState(cpath.getControlCount())))
-            with open(sys.argv[1], 'wb') as f:
-                # Pickle it all into a file
-                pickle.dump((st,con,dur), f)
-        else:
-            print("No solution found.")
-    
+
+        # Read path from file for playback
+        with open(sys.argv[1], 'rb') as f:
+            (st,con,dur) = pickle.load(f)
+        for i in range(len(con)):
+            # Load state
+            env.call('submitState()', pickle.dumps(st[i]))
+            # Apply control
+            print(con[i])
+            env.applyControl(con[i])
+            # Simulate
+            for _ in range(round(dur[i]/(controlStepSize))):
+                env.worldStep(controlStepSize)
+        # Last state
+        env.call('submitState()', pickle.dumps(st[len(con)]))
+
     except Exception as msg:
         # Ignore errors caused by MORSE or Blender shutting down
         if str(msg)!="[Errno 104] Connection reset by peer" \
-          and str(msg)!="[Errno 32] Broken pipe":
+            and str(msg)!="[Errno 32] Broken pipe":
             raise
-        
+
     finally:
         # Tell simulation it can shut down
         if env:
@@ -114,8 +85,8 @@ sockC = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sockS.connect(('localhost', 50007))
 sockC.connect(('localhost', 4000))
 
-# Plan
-planWithMorse(sockS, sockC)
+# Play
+playWithMorse(sockS, sockC)
 
 
 
