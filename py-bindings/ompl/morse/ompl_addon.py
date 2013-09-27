@@ -53,7 +53,7 @@ import time
 import bpy
 import mathutils
 
-from ompl.morse import builder
+import morse.builder
 
 import ompl.morse.environment
 
@@ -181,16 +181,16 @@ def getRobots():
     excluded_robots = ['B21','BarePR2','BasePR2','Human','Hummer','Jido','LocalizedPR2','NavPR2','Victim']
     robotEnum = []
     i=0
-    for cname in dir(builder.robots):
-        c = getattr(builder.robots, cname)
+    for cname in dir(morse.builder.robots):
+        c = getattr(morse.builder.robots, cname)
         # Is c a class?
         if isinstance(c, type):
             # Does it inherit from Robot and is it neither Robot nor WheeledRobot?
-            if issubclass(c, builder.Robot) and c != builder.Robot and c != builder.WheeledRobot:
+            if issubclass(c, morse.builder.Robot) and c != morse.builder.Robot and c != morse.builder.WheeledRobot:
                 # Is is not in our exlusions list?
                 if cname not in excluded_robots:
                     # Add an entry for it
-                    robotEnum.append((cname,cname,'builder.robots.'+cname,i))
+                    robotEnum.append((cname,cname,'morse.builder.robots.'+cname,i))
                     i += 1
     # Put then in alphabetical order
     robotEnum.reverse()
@@ -207,20 +207,20 @@ def getControllers():
         'Light','Mocap','MocapControl','MotionXYW','Orientation','PTU','RotorcraftAttitude','Sound','SteerForce']
     controllerEnum = []
     i=0
-    for cname in dir(builder.actuators):
-        c = getattr(builder.actuators, cname)
+    for cname in dir(morse.builder.actuators):
+        c = getattr(morse.builder.actuators, cname)
         # Is c a class?
         if isinstance(c, type):
             # Does it inherit from Actuator and is it not Actuator?
             # OR does it inherit from ActuatorCreator and is it not ActuatorCreator?
-            if (issubclass(c, builder.Actuator) and
-                c != builder.Actuator) or \
-                (issubclass(c, builder.creator.ActuatorCreator) and
-                c != builder.creator.ActuatorCreator):
+            if (issubclass(c, morse.builder.Actuator) and
+                c != morse.builder.Actuator) or \
+                (issubclass(c, morse.builder.creator.ActuatorCreator) and
+                c != morse.builder.creator.ActuatorCreator):
                 # Is it not in our exclusions list?
                 if cname not in excluded_controllers:
                     # Add an entry for it
-                    controllerEnum.append((cname,cname,'builder.actuators.'+cname,i))
+                    controllerEnum.append((cname,cname,'morse.builder.actuators.'+cname,i))
                     i += 1
     controllerEnum.reverse()
     return controllerEnum
@@ -253,7 +253,7 @@ class AddRobot(bpy.types.Operator):
     def execute(self, context):
 
         # Add model for robot_type
-        robot = getattr(builder, self.robot_type)()
+        robot = getattr(morse.builder, self.robot_type)()
         robotObj = context.object
 
         # Make visible in a render
