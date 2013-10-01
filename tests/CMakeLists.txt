@@ -46,7 +46,9 @@ if(NOT "${Boost_VERSION}" LESS 104400)
 endif(NOT "${Boost_VERSION}" LESS 104400)
 
 # Test planning via MORSE extension
-add_ompl_test(test_morse_extension extensions/morse/morse_plan.cpp)
+if(OMPL_EXTENSION_MORSE)
+    add_ompl_test(test_morse_extension extensions/morse/morse_plan.cpp)
+endif(OMPL_EXTENSION_MORSE)
 
 # Python unit tests
 if(PYTHON_FOUND AND OMPL_BUILD_PYTESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../py-bindings/bindings")
