@@ -161,7 +161,7 @@ def read_benchmark_log(dbname, filenames):
                 c.execute('SELECT last_insert_rowid()')
                 run_ids.append(c.fetchone()[0])
                 
-            nextLine = logfile.readline()
+            nextLine = logfile.readline().strip()
 
             # Read in planner progress data if it's supplied
             if nextLine != '.':
