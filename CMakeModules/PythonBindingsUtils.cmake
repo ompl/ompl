@@ -3,6 +3,7 @@ find_package(Boost COMPONENTS python)
 # You can optionally specify the desired version like so:
 #   find_package(Python 2.6)
 find_package(Python QUIET)
+set(ENV{PYTHONPATH} "${PROJECT_BINARY_DIR}/pyplusplus/lib/python${PYTHON_VERSION}/site-packages:$ENV{PYTHONPATH}")
 find_python_module(pyplusplus QUIET)
 find_python_module(pygccxml QUIET)
 find_package(GCCXML QUIET)
@@ -33,6 +34,7 @@ if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
     set(OMPL_PYTHON_INSTALL_DIR "${PYTHON_SITE_MODULES}" CACHE STRING
         "Path to directory where OMPL python modules will be installed")
 endif()
+
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PY_PYPLUSPLUS
     AND PY_PYGCCXML AND GCCXML)
     # make sure targets are defined only once
@@ -70,7 +72,9 @@ function(create_module_code_generation_target module dir)
     # target for regenerating code. Cmake is run so that the list of
     # sources for the py_ompl_${module} target (see below) is updated.
     add_custom_target(update_${module}_bindings
-        COMMAND ${PYTHON_EXEC}
+        COMMAND env
+        PYTHONPATH="${PROJECT_BINARY_DIR}/pyplusplus/lib/python${PYTHON_VERSION}/site-packages:$ENV{PYTHONPATH}"
+        ${PYTHON_EXEC}
         "${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
         "1>${CMAKE_BINARY_DIR}/pyplusplus_${module}.log" "2>&1"
         COMMAND ${CMAKE_COMMAND} -D "PATH=${dir}/bindings/${module}"

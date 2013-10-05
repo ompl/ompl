@@ -16,12 +16,12 @@ cd @PROJECT_BINARY_DIR@/pyplusplus
 cd gccxml-567213ac765c99d5dfd23b14000b3c7b76274fcb
 @CMAKE_COMMAND@ @CMAKE_GCCXML_ARGS@ .
 @CMAKE_COMMAND@ --build .
-sudo @CMAKE_COMMAND@ --build . --target install
+@SUDO@ @CMAKE_COMMAND@ --build . --target install
 
 # build & install pygccxml and Py++
 cd ../pygccxml
 @PYTHON_EXEC@ setup.py build
-sudo @PYTHON_EXEC@ setup.py install
+@SUDO@ @PYTHON_EXEC@ setup.py install @DISTUTILS_ARGS@
 cd ../pyplusplus
 @PYTHON_EXEC@ setup.py build
-sudo @PYTHON_EXEC@ setup.py install
+@SUDO@ @PYTHON_EXEC@ setup.py install @DISTUTILS_ARGS@
