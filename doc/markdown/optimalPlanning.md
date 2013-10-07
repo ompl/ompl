@@ -17,10 +17,11 @@ You can find out more about asymptotic optimality in motion planning by checking
 - `ompl::geometric::PRM`
 - `ompl::geometric::TRRT`
 
-Lastly, the following two planners provide a theoretical guarantee of _asymptotic near optimality_, but currently do not support user-specified objectives:
+Lastly, the following planners provide a theoretical guarantee of _asymptotic near optimality_, but currently do not support user-specified objectives:
 
 - `ompl::geometric::SPARS`
 - `ompl::geometric::SPARStwo`
+- `ompl::geometric::LBTRRT`
 
 ## Optimization Objectives
 

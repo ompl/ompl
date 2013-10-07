@@ -27,6 +27,7 @@ This set of planners only accounts for the geometric constraints of the system. 
 - [SPARS2](\ref gSPARStwo)
 .
 - [RRT*](\ref gRRTstar)
+- [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT)
 .
 - [Transition-based RRT (T-RRT)](\ref gTRRT)
 
