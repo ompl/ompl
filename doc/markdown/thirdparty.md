@@ -12,7 +12,7 @@ Extend OMPL's support for optimal path planning. Users can plan robot paths that
 
 ### Author: Oren Salzman (Tel Aviv University)
 
-[LBT-RRT](\ref gLBTRRT) (Lower Bound Tree RRT) is an near-asymptotically optimal incremental sampling-based motion planning algorithm. LBT-RRT is guaranteed to converge to a solution that is within a constant factor of the optimal solution. The notion of optimality is with respect to the distance function defined on the state space we are operating on. The algorithm is described in:
+[LBT-RRT](\ref gLBTRRT) (Lower Bound Tree RRT) is a near-asymptotically optimal incremental sampling-based motion planning algorithm. LBT-RRT is guaranteed to converge to a solution that is within a constant factor of the optimal solution. The notion of optimality is with respect to the distance function defined on the state space we are operating on. The algorithm is described in:
 - Oren Salzman and Dan Halperin, Asymptotically near-optimal RRT for fast, high-quality, motion planning,
 _arXiv_, 2013 [[PDF]](http://arxiv.org/pdf/1308.0189.pdf)
 
@@ -29,7 +29,7 @@ _arXiv_, 2013 [[PDF]](http://arxiv.org/pdf/1308.0189.pdf)
 ### Author: Dave Coleman (University of Colorado Boulder)
 
 - [T-RRT](\ref gTRRT) is an RRT variant and tree-based motion planner that takes into consideration state costs to compute low-cost paths that follow valleys and saddle points of the configuration-space costmap. It uses transition tests from stochastic optimization methods to accept or reject new potential sates. [An example use of TRRT](https://github.com/davetcoleman/ompl_rviz_viewer).
-    - L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in IEEE Transactions on Robotics, 26(4):635–646, August 2010, [[PDF]](http://homepages.laas.fr/nic/Papers/10TRO.pdf)
+    - L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in IEEE Transactions on Robotics, 26(4):635–646, August 2010, [[PDF]](http://homepages.laas.fr/nic/Papers/10TRO.pdf)
 
 # ROS Interface to OMPL
 
