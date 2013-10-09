@@ -53,11 +53,9 @@ import time
 import bpy
 import mathutils
 
-import morse.builder
-
 import ompl.morse.environment
 
-OMPL_DIR = ompl.morse.__path__
+OMPL_DIR = ompl.morse.__path__[0]
 
 inf = float('inf')
 
@@ -175,6 +173,8 @@ class Play(bpy.types.Operator):
 # \brief Compile a list of usable MORSE robots
 def getRobots():
 
+    import morse.builder
+    
     # This is a list of incompatible robots (e.g., some use controllers that require you to explicitly
     #   name the internal variable you want to change instead of merely accepting a list of control values).
     #   If you write your own controller that is compatible, feel free to take the robot out of this blacklist
@@ -200,6 +200,8 @@ def getRobots():
 # \brief Compile list of controllers
 def getControllers():
 
+    import morse.builder
+    
     # Exclude controllers that require non-numeric parameters, don't have a socket interface, or are irrelevant;
     #   you may be able to rewrite some of these (e.g., SteerForce) with little modification so that they do
     #   accept purely numeric inputs
@@ -233,12 +235,14 @@ class AddRobot(bpy.types.Operator):
     bl_label = "Add Robot..."
 
     # Set up the robot and controller selection menus
-    robotEnum = getRobots()
-    controllerEnum = getControllers()
+    robotEnum = [('','','')]
+    controllerEnum = [('','','')]
+
     robot_type = bpy.props.EnumProperty(items=robotEnum, name="MORSE robot",
         description="A robot from the MORSE components library", default=robotEnum[-1][0])
     controller_type = bpy.props.EnumProperty(items=controllerEnum, name="MORSE actuator",
         description="The actuator to control the robot", default=controllerEnum[-1][0])
+    
 
     ##
     # \brief Operator refuses to run if this returns false; requires
@@ -251,7 +255,9 @@ class AddRobot(bpy.types.Operator):
     ##
     # \brief Add the model to the scene and set up some properties
     def execute(self, context):
-
+    
+        import morse.builder
+        
         # Add model for robot_type
         robot = getattr(morse.builder, self.robot_type)()
         robotObj = context.object
@@ -628,7 +634,7 @@ class BoundsConfiguration(bpy.types.Operator):
                 i += 1
 
 # #
-# Menu setup
+# Addon house-keeping
 # #
 
 ##
@@ -657,6 +663,25 @@ def menu_func(self, context):
     self.layout.menu(OMPLMenu.bl_idname)
 
 ##
+# \brief Deferred import of morse.builder (whenever a new file is loaded)
+@bpy.app.handlers.persistent
+def handler_scene_update_post(dummy):
+    
+    # A little hackish, but now is a good time to import morse.builder
+    if 'morse.builder' not in sys.modules:
+        del AddRobot.robot_type
+        del AddRobot.controller_type
+        robotEnum = getRobots()
+        controllerEnum = getControllers()
+        AddRobot.robot_type = bpy.props.EnumProperty(items=robotEnum, name="MORSE robot",
+            description="A robot from the MORSE components library", default=robotEnum[-1][0])
+        AddRobot.controller_type = bpy.props.EnumProperty(items=controllerEnum, name="MORSE actuator",
+            description="The actuator to control the robot", default=controllerEnum[-1][0])
+        bpy.utils.unregister_class(AddRobot)
+        bpy.utils.register_class(AddRobot)
+
+
+##
 # \brief Called when the addon is enabled or Blender starts
 def register():
 
@@ -675,8 +700,7 @@ def register():
     with open(config_file, 'w') as configfile:
         conf.write(configfile)
 
-
-    # Register all the operators and menu
+    # Register all the operators, menu, and handler
     bpy.utils.register_class(Plan)
     bpy.utils.register_class(AnimFile)
     bpy.utils.register_class(Play)
@@ -685,9 +709,10 @@ def register():
     bpy.utils.register_class(BoundsConfiguration)
     bpy.utils.register_class(OMPLMenu)
     bpy.types.INFO_MT_game.prepend(menu_func)
+    bpy.app.handlers.scene_update_post.append(handler_scene_update_post)
 
 ##
-# \brief Called when operator is disabled
+# \brief Called when operator is uninstalled
 def unregister():
 
     # Undo all the registering
@@ -699,6 +724,7 @@ def unregister():
     bpy.utils.unregister_class(BoundsConfiguration)
     bpy.utils.unregister_class(OMPLMenu)
     bpy.types.INFO_MT_game.remove(menu_func)
+    bpy.app.handlers.scene_update_post.remove(handler_scene_update_post)
 
 
 

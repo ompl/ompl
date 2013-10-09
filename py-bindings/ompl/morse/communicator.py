@@ -51,7 +51,7 @@ import mathutils
 
 import ompl.morse
 
-OMPL_DIR = ompl.morse.__path__
+OMPL_DIR = ompl.morse.__path__[0]
 
 ## \brief List of rigid body Blender objects
 rigidObjects = []
@@ -409,7 +409,7 @@ def spawn_planner():
 
     if mode != 'QUERY':
         # Pass the name of the output (or input) file
-        subprocess.Popen([OMPL_DIR + f, bpy.data.objects['__settings']['Outpath']])
+        subprocess.Popen(['env','python3',OMPL_DIR + f, bpy.data.objects['__settings']['Outpath']])
 
     # Make a connection
     s.listen(0)
