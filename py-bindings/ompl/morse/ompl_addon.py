@@ -57,7 +57,7 @@ import morse.builder
 
 import ompl.morse.environment
 
-OMPL_DIR = ompl.morse.__path__
+OMPL_DIR = ompl.morse.__path__[0]
 
 inf = float('inf')
 
