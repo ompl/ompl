@@ -39,6 +39,7 @@
 #  extracting and submitting data to the Blender simulation by
 #  the external script
 
+import sys
 import os
 import subprocess
 import inspect
@@ -409,7 +410,7 @@ def spawn_planner():
 
     if mode != 'QUERY':
         # Pass the name of the output (or input) file
-        subprocess.Popen(['env','python3',OMPL_DIR + f, bpy.data.objects['__settings']['Outpath']])
+        subprocess.Popen(['env', sys.executable, OMPL_DIR + f, bpy.data.objects['__settings']['Outpath']])
 
     # Make a connection
     s.listen(0)

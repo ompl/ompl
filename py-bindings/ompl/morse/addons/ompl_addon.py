@@ -174,7 +174,7 @@ class Play(bpy.types.Operator):
 def getRobots():
 
     import morse.builder
-    
+
     # This is a list of incompatible robots (e.g., some use controllers that require you to explicitly
     #   name the internal variable you want to change instead of merely accepting a list of control values).
     #   If you write your own controller that is compatible, feel free to take the robot out of this blacklist
@@ -201,7 +201,7 @@ def getRobots():
 def getControllers():
 
     import morse.builder
-    
+
     # Exclude controllers that require non-numeric parameters, don't have a socket interface, or are irrelevant;
     #   you may be able to rewrite some of these (e.g., SteerForce) with little modification so that they do
     #   accept purely numeric inputs
@@ -242,7 +242,7 @@ class AddRobot(bpy.types.Operator):
         description="A robot from the MORSE components library", default=robotEnum[-1][0])
     controller_type = bpy.props.EnumProperty(items=controllerEnum, name="MORSE actuator",
         description="The actuator to control the robot", default=controllerEnum[-1][0])
-    
+
 
     ##
     # \brief Operator refuses to run if this returns false; requires
@@ -255,9 +255,9 @@ class AddRobot(bpy.types.Operator):
     ##
     # \brief Add the model to the scene and set up some properties
     def execute(self, context):
-    
+
         import morse.builder
-        
+
         # Add model for robot_type
         robot = getattr(morse.builder, self.robot_type)()
         robotObj = context.object
@@ -666,7 +666,7 @@ def menu_func(self, context):
 # \brief Deferred import of morse.builder (whenever a new file is loaded)
 @bpy.app.handlers.persistent
 def handler_scene_update_post(dummy):
-    
+
     # A little hackish, but now is a good time to import morse.builder
     if 'morse.builder' not in sys.modules:
         del AddRobot.robot_type

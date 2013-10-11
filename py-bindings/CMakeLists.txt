@@ -44,7 +44,21 @@ if (OMPL_BUILD_PYBINDINGS)
         endforeach(module)
 
         install(DIRECTORY ompl DESTINATION "${OMPL_PYTHON_INSTALL_DIR}"
-            PATTERN "*.pyc" EXCLUDE PATTERN "_*.so" EXCLUDE)
+            PATTERN "*.pyc" EXCLUDE
+            PATTERN "__pycache__" EXCLUDE
+            PATTERN "_*.so" EXCLUDE
+            PATTERN "morse" EXCLUDE)
+        if(OMPL_EXTENSION_MORSE)
+            install(DIRECTORY ompl/morse
+                DESTINATION "${OMPL_PYTHON_INSTALL_DIR}/ompl"
+                PATTERN "*.pyc" EXCLUDE
+                PATTERN "__pycache__" EXCLUDE
+                PATTERN "*.so" EXCLUDE
+                PATTERN "addons" EXCLUDE)
+            install(DIRECTORY ompl/morse/addons
+                DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}"
+                PATTERN "*.pyc" EXCLUDE)
+        endif()
     endif()
 
 endif(OMPL_BUILD_PYBINDINGS)
