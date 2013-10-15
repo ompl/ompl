@@ -137,6 +137,9 @@ namespace ompl
             }
         protected:
 
+            /** \brief kRRG = 2e~5.5 is a valid choice for all problem instances */
+            static const double kRRG; // = 5.5
+
             /** \brief Representation of a motion
 
                 a motion is a simultunaeous represntation of the two trees used by LBT-RRT
@@ -150,7 +153,7 @@ namespace ompl
                 }
 
                 /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parentLb_(NULL), parentApx_(NULL), costLb_(0), costApx_(0)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parentLb_(NULL), parentApx_(NULL), costLb_(0.0), costApx_(0.0)
                 {
                 }
 
@@ -167,7 +170,7 @@ namespace ompl
                 /** \brief The parent motion in the exploration tree */
                 Motion            *parentApx_;
 
-                double            costLb_, costApx_;
+                double             costLb_, costApx_;
 
                 std::vector<Motion*> childrenLb_;
                 std::vector<Motion*> childrenApx_;

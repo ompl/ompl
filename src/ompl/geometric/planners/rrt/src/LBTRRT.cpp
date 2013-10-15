@@ -41,6 +41,8 @@
 #include <limits>
 #include <math.h>
 
+const double ompl::geometric::LBTRRT::kRRG = 5.5;
+
 ompl::geometric::LBTRRT::LBTRRT(const base::SpaceInformationPtr &si)
     : base::Planner(si, "LBTRRT")
 {
@@ -105,12 +107,6 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     checkValidity();
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
-
-    if (!goal)
-    {
-        OMPL_ERROR("Goal undefined");
-        return base::PlannerStatus::INVALID_GOAL;
-    }
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -177,7 +173,6 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
             nn_->add(motion);
 
             /* do lazy rewiring */
-            double kRRG = 5.5; //kRRG = 2e~5.5 is a valid choice for all problem instances
             double k = std::log(double(nn_->size())) * kRRG;
             std::vector<Motion *> nnVec;
             nn_->nearestK(rmotion, static_cast<int>(k), nnVec);
@@ -185,10 +180,10 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
             IsLessThan  isLessThan(this,motion);
             std::sort (nnVec.begin(), nnVec.end(), isLessThan);
 
-            for (unsigned int i(0); i < nnVec.size(); ++i)
+            for (std::size_t i = 0; i < nnVec.size(); ++i)
                 attemptNodeUpdate(motion, nnVec[i]);
 
-            for (unsigned int i(0); i < nnVec.size(); ++i)
+            for (std::size_t i = 0; i < nnVec.size(); ++i)
                 attemptNodeUpdate(nnVec[i], motion);
 
             double dist = 0.0;
@@ -249,7 +244,7 @@ void ompl::geometric::LBTRRT::attemptNodeUpdate(Motion* potentialParent, Motion*
     if (child->costLb_ <= potentialLb)
         return;
 
-    if (child->costApx_ > 1 + epsilon_ *  potentialLb)
+    if (child->costApx_ > 1.0 + epsilon_ *  potentialLb)
     {
         if (si_->checkMotion(potentialParent->state, child->state) == false)
             return;
