@@ -93,10 +93,18 @@ namespace ompl
         /** \brief Get the nearest neighbor of a point */
         virtual _T nearest(const _T &data) const = 0;
 
-        /** \brief Get the k-nearest neighbors of a point */
+        /** \brief Get the k-nearest neighbors of a point
+         *
+         * All the nearest neighbor structures currently return the neighbors in
+         * sorted order, but this is not required.
+         */
         virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const = 0;
 
-        /** \brief Get the nearest neighbors of a point, within a specified radius */
+        /** \brief Get the nearest neighbors of a point, within a specified radius
+         *
+         * All the nearest neighbor structures currently return the neighbors in
+         * sorted order, but this is not required.
+         */
         virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const = 0;
 
         /** \brief Get the number of elements in the datastructure */

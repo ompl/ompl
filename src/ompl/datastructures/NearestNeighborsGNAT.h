@@ -193,6 +193,7 @@ namespace ompl
             throw Exception("No elements found in nearest neighbors data structure");
         }
 
+        /// Return the k nearest neighbors in sorted order
         virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const
         {
             nbh.clear();
@@ -205,6 +206,7 @@ namespace ompl
             }
         }
 
+        /// Return the nearest neighbors within distance \c radius in sorted order
         virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const
         {
             nbh.clear();
