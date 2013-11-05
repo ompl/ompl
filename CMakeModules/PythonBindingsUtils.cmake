@@ -135,7 +135,17 @@ function(create_module_target module dir)
                 WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
                 COMMENT "Copying python module ${module} into place")
         endif(WIN32)
-        install(TARGETS py_ompl_${module} DESTINATION "${OMPL_PYTHON_INSTALL_DIR}/ompl/${module}/")
+        # put omplapp and MORSE bindings in separate components
+        if(${module} STREQUAL "app")
+            set(_component "omplapp")
+        elseif(${module} STREQUAL "morse")
+            set(_component "morse")
+        else()
+            set(_component "python")
+        endif()
+        install(TARGETS py_ompl_${module}
+            DESTINATION "${OMPL_PYTHON_INSTALL_DIR}/ompl/${module}/"
+            COMPONENT ${_component})
         include_directories("${dir}/bindings/${module}" "${dir}")
     else(NUM_SOURCE_FILES GREATER 0)
         if(PY_OMPL_GENERATE)

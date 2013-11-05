@@ -1,1 +1,3 @@
-install(PROGRAMS ompl_benchmark_statistics.py DESTINATION bin)
+install(PROGRAMS ompl_benchmark_statistics.py
+    DESTINATION bin
+    COMPONENT ompl)

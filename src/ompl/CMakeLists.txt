@@ -74,7 +74,9 @@ else(MSVC)
 endif(MSVC)
 
 # install the library
-install(TARGETS ompl DESTINATION lib/)
+install(TARGETS ompl
+    DESTINATION lib/
+    COMPONENT ompl)
 if(NOT MSVC)
     get_target_property(OMPL_LIBRARY_LOC ompl LOCATION)
     add_custom_command(TARGET ompl POST_BUILD

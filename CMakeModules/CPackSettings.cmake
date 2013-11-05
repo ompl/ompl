@@ -7,6 +7,20 @@ set(CPACK_PACKAGE_VERSION_MAJOR "${OMPL_MAJOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_MINOR "${OMPL_MINOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_PATCH "${OMPL_PATCH_VERSION}")
 
+# component list
+set(CPACK_COMPONENTS_ALL ompl python morse)
+# display names for components
+set(CPACK_COMPONENT_OMPL_DISPLAY_NAME "OMPL library, headers, and demos")
+set(CPACK_COMPONENT_PYTHON_DISPLAY_NAME "Python bindings")
+set(CPACK_COMPONENT_MORSE_DISPLAY_NAME "Blender/MORSE plugin")
+# descriptions of components
+set(CPACK_COMPONENT_MORSE_DESCRIPTION "The Blender/MORSE plugin allows one to plan paths using the MORSE robot simulator. MORSE is built on top of Blender and uses its built-in physics engine to compute physically realistic motions.")
+# intercomponent dependencies
+set(CPACK_COMPONENT_PYTHON_DEPENDS ompl)
+set(CPACK_COMPONENT_MORSE_DEPENDS python)
+# core library is required
+set(CPACK_COMPONENT_OMPL_REQUIRED TRUE)
+
 set(CPACK_SOURCE_IGNORE_FILES
     "/.hg"
     "/build/"
@@ -52,8 +66,12 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "python${PYTHON_VERSION}, libboost-all-dev, libode-dev, libtriangle-dev")
 endif()
 
+if(APPLE)
+    set(CPACK_GENERATOR "PackageMaker;${CPACK_GENERATOR}")
+endif()
+
 if(WIN32)
-  set(CPACK_GENERATOR "ZIP;${CPACK_GENERATOR}")
+    set(CPACK_GENERATOR "ZIP;${CPACK_GENERATOR}")
 endif()
 
 include(CPack)
