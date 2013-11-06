@@ -64,7 +64,10 @@ namespace ompl
                 pre-multiply this quaternion with the quaternion near
                 to center the distribution around near. */
             virtual void sampleUniformNear(State *state, const State *near, const double distance);
-            /** \brief To sample a unit quaternion from a Gaussian
+            /** \brief Sample a state such that the expected distance between
+                mean and state is stdDev.
+
+                To sample a unit quaternion from a Gaussian
                 distribution, we sample a 3-vector from the R^3 tangent space
                 using a 3D Gaussian with zero mean and covariance matrix equal
                 to diag(stdDev^2, stdDev^2, stdDev^2). This vector is "wrapped"

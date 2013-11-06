@@ -114,37 +114,35 @@ void ompl::base::SO3StateSampler::sampleUniformNear(State *state, const State *n
     SO3StateSpace::StateType q,
         *qs = static_cast<SO3StateSpace::StateType*>(state);
     const SO3StateSpace::StateType *qnear = static_cast<const SO3StateSpace::StateType*>(near);
-    computeAxisAngle(q, rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(), 2.*pow(d,1./3.)*distance);
+    computeAxisAngle(q, rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(),
+        2. * pow(d, boost::math::constants::third<double>()) * distance);
     quaternionProduct(*qs, *qnear, q);
 }
 
 void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mean, const double stdDev)
 {
+    // The standard deviation of the individual components of the tangent
+    // perturbation needs to be scaled so that the expected quaternion distance
+    // between the sampled state and the mean state is stdDev. The factor 2 is
+    // due to the way we define distance (see also Matt Mason's lecture notes
+    // on quaternions at
+    // http://www.cs.cmu.edu/afs/cs/academic/class/16741-s07/www/lecture7.pdf).
+    // The 1/sqrt(3) factor is necessary because the distribution in the tangent
+    // space is a 3-dimensional Gaussian, so that the *length* of a tangent
+    // vector needs to be scaled by 1/sqrt(3).
+    double rotDev = (2. * stdDev) / boost::math::constants::root_three<double>();
+
     // CDF of N(0, 1.17) at -pi/4 is approx. .25, so there's .25 probability
     // weight in each tail. Since the maximum distance in SO(3) is pi/2, we're
     // essentially as likely to sample a state within distance [0, pi/4] as
     // within distance [pi/4, pi/2]. With most weight in the tails (that wrap
     // around in case of quaternions) we might as well sample uniformly.
-    if (stdDev > 1.17)
+    if (rotDev > 1.17)
     {
         sampleUniform(state);
         return;
     }
 
-    // To explain the scaling factor of (2 / sqrt(3)):
-    // The (1 / sqrt(3)) comes from Section 2, Proposition 1 of Yu Qiu's thesis:
-    //
-    // http://lib.dr.iastate.edu/cgi/viewcontent.cgi?article=4014&amp;context=etd
-    //
-    // the additional factor of 2 comes from our particular definition of SO3
-    // distance, which is one of two distance metrics that differ by exactly a factor
-    // of 2:
-    //
-    // http://fgiesen.wordpress.com/2013/01/07/small-note-on-quaternion-distance-metrics/#comment-872
-    //
-    // We have also empirically confirmed that this scaling factor fits the LLN for
-    // SO3 under our distance metric.
-    double rotDev = (2 * stdDev) / boost::math::constants::root_three<double>();
 
     double x = rng_.gaussian(0, rotDev), y = rng_.gaussian(0, rotDev), z = rng_.gaussian(0, rotDev),
         theta = std::sqrt(x*x + y*y + z*z);

@@ -119,8 +119,12 @@ namespace ompl
 
             virtual void sampleUniform(State *state);
 
+            /** \brief Call sampleUniformNear for each of the subspace states
+                with distance scaled by the corresponding subspace weight. */
             virtual void sampleUniformNear(State *state, const State *near, const double distance);
 
+            /** \brief Call sampleGaussian for each of the subspace states
+                with stdDev scaled by the corresponding subspace weight. */
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
 
         protected:
