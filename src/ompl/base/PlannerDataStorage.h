@@ -257,7 +257,7 @@ namespace ompl
                 {
                     PlannerDataEdgeData edgeData;
                     ia >> edgeData;
-                    pd.addEdge(edgeData.endpoints_.first, edgeData.endpoints_.second, *edgeData.e_, edgeData.weight_);
+                    pd.addEdge(edgeData.endpoints_.first, edgeData.endpoints_.second, *edgeData.e_, Cost(edgeData.weight_));
 
                     // We deserialized the edge object pointer, and we own it.
                     // Since addEdge copies the object, it is safe to free here.
@@ -279,7 +279,9 @@ namespace ompl
                             edgeData.e_ = &pd.getEdge(i, j);
                             edgeData.endpoints_.first = i;
                             edgeData.endpoints_.second = j;
-                            edgeData.weight_ = pd.getEdgeWeight(i, j);
+                            Cost weight;
+                            pd.getEdgeWeight(i, j, &weight);
+                            edgeData.weight_ = weight.v;
 
                             oa << edgeData;
                         }

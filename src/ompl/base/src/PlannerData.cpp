@@ -37,6 +37,7 @@
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/PlannerDataGraph.h"
 #include "ompl/base/StateStorage.h"
+#include "ompl/base/OptimizationObjective.h"
 
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/graphml.hpp>
@@ -48,7 +49,6 @@
 
 const ompl::base::PlannerDataEdge   ompl::base::PlannerData::NO_EDGE = ompl::base::PlannerDataEdge();
 const ompl::base::PlannerDataVertex ompl::base::PlannerData::NO_VERTEX = ompl::base::PlannerDataVertex(0);
-const double ompl::base::PlannerData::INVALID_WEIGHT = std::numeric_limits<double>::infinity();
 const unsigned int ompl::base::PlannerData::INVALID_INDEX = std::numeric_limits<unsigned int>::max();
 
 ompl::base::PlannerData::PlannerData (const SpaceInformationPtr &si) : si_(si)
@@ -147,7 +147,7 @@ unsigned int ompl::base::PlannerData::getIncomingEdges (unsigned int v, std::map
     return edgeMap.size();
 }
 
-double ompl::base::PlannerData::getEdgeWeight(unsigned int v1, unsigned int v2) const
+bool ompl::base::PlannerData::getEdgeWeight(unsigned int v1, unsigned int v2, Cost* weight) const
 {
     Graph::Edge e;
     bool exists;
@@ -156,13 +156,14 @@ double ompl::base::PlannerData::getEdgeWeight(unsigned int v1, unsigned int v2) 
     if (exists)
     {
         boost::property_map<Graph::Type, boost::edge_weight_t>::type edges = get(boost::edge_weight, *graph_);
-        return edges[e];
+        *weight = edges[e];
+        return true;
     }
 
-    return INVALID_WEIGHT;
+    return false;
 }
 
-bool ompl::base::PlannerData::setEdgeWeight(unsigned int v1, unsigned int v2, double weight)
+bool ompl::base::PlannerData::setEdgeWeight(unsigned int v1, unsigned int v2, Cost weight)
 {
     Graph::Edge e;
     bool exists;
@@ -254,14 +255,14 @@ void ompl::base::PlannerData::printGraphviz (std::ostream& out) const
     boost::write_graphviz(out, *graph_);
 }
 
-void ompl::base::PlannerData::printGraphML (std::ostream& out) const
-{
-    // Not writing vertex or edge structures.
-    boost::dynamic_properties dp;
-    dp.property("weight", get(boost::edge_weight_t(), *graph_));
+// void ompl::base::PlannerData::printGraphML (std::ostream& out) const
+// {
+//     // Not writing vertex or edge structures.
+//     boost::dynamic_properties dp;
+//     dp.property("weight", get(boost::edge_weight_t(), *graph_));
 
-    boost::write_graphml(out, *graph_, dp);
-}
+//     boost::write_graphml(out, *graph_, dp);
+// }
 
 unsigned int ompl::base::PlannerData::vertexIndex (const PlannerDataVertex &v) const
 {
@@ -379,7 +380,7 @@ unsigned int ompl::base::PlannerData::addGoalVertex  (const PlannerDataVertex &v
     return index;
 }
 
-bool ompl::base::PlannerData::addEdge(unsigned int v1, unsigned int v2, const PlannerDataEdge &edge, double weight)
+bool ompl::base::PlannerData::addEdge(unsigned int v1, unsigned int v2, const PlannerDataEdge &edge, Cost weight)
 {
     // If either of the vertices do not exist, don't add an edge
     if (v1 >= numVertices() || v2 >= numVertices())
@@ -403,7 +404,7 @@ bool ompl::base::PlannerData::addEdge(unsigned int v1, unsigned int v2, const Pl
     return added;
 }
 
-bool ompl::base::PlannerData::addEdge (const PlannerDataVertex & v1, const PlannerDataVertex & v2, const PlannerDataEdge &edge, double weight)
+bool ompl::base::PlannerData::addEdge (const PlannerDataVertex & v1, const PlannerDataVertex & v2, const PlannerDataEdge &edge, Cost weight)
 {
     unsigned int index1 = addVertex(v1);
     unsigned int index2 = addVertex(v2);
@@ -558,13 +559,8 @@ bool ompl::base::PlannerData::markGoalState (const base::State* st)
     return false;
 }
 
-void ompl::base::PlannerData::computeEdgeWeights(const ompl::base::PlannerData::EdgeWeightFn& f)
+void ompl::base::PlannerData::computeEdgeWeights(const OptimizationObjective& opt)
 {
-    // If f wasn't specified, use defaultEdgeWeight
-    ompl::base::PlannerData::EdgeWeightFn func = f;
-    if (!func)
-        func = boost::bind(&ompl::base::PlannerData::defaultEdgeWeight, this, _1, _2, _3);
-
     unsigned int nv = numVertices();
     for (unsigned int i = 0; i < nv; ++i)
     {
@@ -573,37 +569,40 @@ void ompl::base::PlannerData::computeEdgeWeights(const ompl::base::PlannerData::
 
         std::map<unsigned int, const PlannerDataEdge*>::const_iterator it;
         for (it = nbrs.begin(); it != nbrs.end(); ++it)
-            setEdgeWeight(i, it->first, func(getVertex(i), getVertex(it->first), *it->second));
+        {
+            setEdgeWeight(i, it->first, opt.motionCost(getVertex(i).getState(),
+                                                       getVertex(it->first).getState()));
+        }
     }
 }
 
-void ompl::base::PlannerData::extractMinimumSpanningTree (unsigned int v, base::PlannerData &mst) const
-{
-    std::vector<ompl::base::PlannerData::Graph::Vertex> pred(numVertices());
+// void ompl::base::PlannerData::extractMinimumSpanningTree (unsigned int v, base::PlannerData &mst) const
+// {
+//     std::vector<ompl::base::PlannerData::Graph::Vertex> pred(numVertices());
 
-    // Ask boost nicely for the minimum spanning tree
-    boost::prim_minimum_spanning_tree(*graph_, &pred[0], boost::weight_map(get(boost::edge_weight, *graph_)).
-                                                         vertex_index_map(get(boost::vertex_index, *graph_)).
-                                                         root_vertex(boost::vertex(v, *graph_)));
+//     // Ask boost nicely for the minimum spanning tree
+//     boost::prim_minimum_spanning_tree(*graph_, &pred[0], boost::weight_map(get(boost::edge_weight, *graph_)).
+//                                                          vertex_index_map(get(boost::vertex_index, *graph_)).
+//                                                          root_vertex(boost::vertex(v, *graph_)));
 
-    // Adding vertices to MST
-    for (std::size_t i = 0; i < pred.size(); ++i)
-    {
-        if (isStartVertex(i))
-            mst.addStartVertex(getVertex(i));
-        else if (isGoalVertex(i))
-            mst.addGoalVertex(getVertex(i));
-        else
-            mst.addVertex(getVertex(i));
-    }
+//     // Adding vertices to MST
+//     for (std::size_t i = 0; i < pred.size(); ++i)
+//     {
+//         if (isStartVertex(i))
+//             mst.addStartVertex(getVertex(i));
+//         else if (isGoalVertex(i))
+//             mst.addGoalVertex(getVertex(i));
+//         else
+//             mst.addVertex(getVertex(i));
+//     }
 
-    // Adding edges to MST
-    for (std::size_t i = 0; i < pred.size(); ++i)
-    {
-        if (pred[i] != i)
-            mst.addEdge(pred[i], i, getEdge(pred[i], i), getEdgeWeight(pred[i], i));
-    }
-}
+//     // Adding edges to MST
+//     for (std::size_t i = 0; i < pred.size(); ++i)
+//     {
+//         if (pred[i] != i)
+//             mst.addEdge(pred[i], i, getEdge(pred[i], i), getEdgeWeight(pred[i], i));
+//     }
+// }
 
 void ompl::base::PlannerData::extractReachable(unsigned int v, base::PlannerData& data) const
 {
@@ -630,7 +629,9 @@ void ompl::base::PlannerData::extractReachable(unsigned int v, base::PlannerData
     for (it = neighbors.begin(); it != neighbors.end(); ++it)
     {
         extractReachable(it->first, data);
-        data.addEdge(idx, data.vertexIndex(getVertex(it->first)), *(it->second), getEdgeWeight(v, it->first));
+        Cost weight;
+        getEdgeWeight(v, it->first, &weight);
+        data.addEdge(idx, data.vertexIndex(getVertex(it->first)), *(it->second), weight);
     }
 }
 
@@ -672,11 +673,6 @@ const ompl::base::PlannerData::Graph& ompl::base::PlannerData::toBoostGraph(void
 {
     const ompl::base::PlannerData::Graph* boostgraph = reinterpret_cast<const ompl::base::PlannerData::Graph*>(graphRaw_);
     return *boostgraph;
-}
-
-double ompl::base::PlannerData::defaultEdgeWeight(const base::PlannerDataVertex &v1, const base::PlannerDataVertex &v2, const base::PlannerDataEdge& /*e*/) const
-{
-    return si_->distance(v1.getState(), v2.getState());
 }
 
 const ompl::base::SpaceInformationPtr& ompl::base::PlannerData::getSpaceInformation(void) const

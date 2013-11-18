@@ -131,7 +131,7 @@ namespace ompl
                     space->deserialize(ctrl, &edgeData.control_[0]);
                     const_cast<PlannerDataEdgeControl*>(static_cast<const PlannerDataEdgeControl*>(edgeData.e_))->c_ = ctrl;
 
-                    pd.addEdge(edgeData.endpoints_.first, edgeData.endpoints_.second, *edgeData.e_, edgeData.weight_);
+                    pd.addEdge(edgeData.endpoints_.first, edgeData.endpoints_.second, *edgeData.e_, base::Cost(edgeData.weight_));
 
                     // We deserialized the edge object pointer, and we own it.
                     // Since addEdge copies the object, it is safe to free here.
@@ -167,7 +167,9 @@ namespace ompl
                             edgeData.e_ = &pd.getEdge(i, j);
                             edgeData.endpoints_.first = i;
                             edgeData.endpoints_.second = j;
-                            edgeData.weight_ = pd.getEdgeWeight(i, j);
+                            base::Cost weight;
+                            pd.getEdgeWeight(i, j, &weight);
+                            edgeData.weight_ = weight.v;
 
                             space->serialize(&ctrl[0], static_cast<const PlannerDataEdgeControl*>(edgeData.e_)->getControl());
                             edgeData.control_ = ctrl;

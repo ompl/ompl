@@ -42,6 +42,7 @@
 #include <map>
 #include <set>
 #include "ompl/base/State.h"
+#include "ompl/base/Cost.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/noncopyable.hpp>
@@ -146,6 +147,9 @@ namespace ompl
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(StateStorage);
         OMPL_CLASS_FORWARD(PlannerData);
+
+        // Forward declaration for PlannerData::computeEdgeWeights
+        class OptimizationObjective;
         /// @endcond
 
         /** \class ompl::base::PlannerDataPtr
@@ -161,15 +165,11 @@ namespace ompl
         {
         public:
             class Graph;
-            /// \brief A function that accepts two vertex data sets and the edge data, and returns the weight of the edge
-            typedef boost::function<double (const PlannerDataVertex&, const PlannerDataVertex&, const PlannerDataEdge&)> EdgeWeightFn;
 
             /// \brief Representation for a non-existant edge
             static const PlannerDataEdge   NO_EDGE;
             /// \brief Representation for a non-existant vertex
             static const PlannerDataVertex NO_VERTEX;
-            /// \brief Representation of an invalid edge weight
-            static const double            INVALID_WEIGHT;
             /// \brief Representation of an invalid vertex index
             static const unsigned int      INVALID_INDEX;
 
@@ -216,13 +216,13 @@ namespace ompl
             /// \brief Adds a directed edge between the given vertex indexes.  An optional
             /// edge structure and weight can be supplied.  Success is returned.
             virtual bool addEdge (unsigned int v1, unsigned int v2,
-                                  const PlannerDataEdge &edge = PlannerDataEdge(), double weight=1.0);
+                                  const PlannerDataEdge &edge = PlannerDataEdge(), Cost weight=Cost(0.0));
             /// \brief Adds a directed edge between the given vertex indexes.  The
             /// vertices are added to the data if they are not already in the
             /// structure.  An optional edge structure and weight can also be supplied.
             /// Success is returned.
             virtual bool addEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2,
-                                  const PlannerDataEdge &edge = PlannerDataEdge(), double weight=1.0);
+                                  const PlannerDataEdge &edge = PlannerDataEdge(), Cost weight=Cost(1.0));
             /// \brief Removes the edge between vertex indexes \e v1 and \e v2.  Success is returned.
             virtual bool removeEdge (unsigned int v1, unsigned int v2);
             /// \brief Removes the edge between the vertices associated with the given vertex data.
@@ -319,16 +319,17 @@ namespace ompl
             /// edge from w to v, w and the edge structure will be in the map.)
             /// Key = vertex index, value = edge structure.  The number of incoming edges to \e v is returned
             unsigned int getIncomingEdges (unsigned int v, std::map<unsigned int, const PlannerDataEdge*> &edgeMap) const;
-            /// \brief Returns the weight of the edge between the given vertex indices.
-            /// INVALID_WEIGHT is returned for a non-existant edge.
-            double getEdgeWeight (unsigned int v1, unsigned int v2) const;
+            /// \brief Returns the weight of the edge between the
+            /// given vertex indices.  If there exists an edge between
+            /// \e v1 and \v2, the edge weight is placed in the
+            /// out-variable \e weight. Otherwise, this function
+            /// returns false.
+            bool getEdgeWeight (unsigned int v1, unsigned int v2, Cost* weight) const;
             /// \brief Sets the weight of the edge between the given vertex indices.
             /// If an edge between v1 and v2 does not exist, false is returned.
-            bool setEdgeWeight (unsigned int v1, unsigned int v2, double weight);
-            /// \brief Computes the weight for all edges given the EdgeWeightFn \e f
-            /// If \e f is not specified (i.e. NULL), ompl::base::PlannerData::defaultEdgeWeight
-            /// is used, which defines the weight as the distance between the states in the two vertices.
-            void computeEdgeWeights(const EdgeWeightFn& f = NULL);
+            bool setEdgeWeight (unsigned int v1, unsigned int v2, Cost weight);
+            /// \brief Computes the weight for all edges given the OptimizationObjective EdgeWeightFn \e opt.
+            void computeEdgeWeights(const OptimizationObjective& opt);
 
             /// \}
             /// \name Output methods
@@ -336,17 +337,23 @@ namespace ompl
 
             /// \brief Writes a Graphviz dot file of this structure to the given stream
             void printGraphviz (std::ostream& out = std::cout) const;
+
+            /// TODO Figure out how to get this to work with generalized costs
             /// \brief Writes a GraphML file of this structure to the given stream
-            void printGraphML (std::ostream& out = std::cout) const;
+            // void printGraphML (std::ostream& out = std::cout) const;
 
             /// \}
             /// \name Advanced graph extraction
             /// \{
 
+            /// TODO re-implement this if/when BGL's MST algorithm
+            /// allows for specification of distance-compare and
+            /// distance-combine.
+            ///
             /// \brief Extracts the minimum spanning tree of the data rooted at the vertex
             /// with index \e v.  The minimum spanning tree is saved into \e mst.
             /// O(|E| log |V|) complexity.
-            void extractMinimumSpanningTree (unsigned int v, PlannerData &mst) const;
+            // void extractMinimumSpanningTree (unsigned int v, PlannerData &mst) const;
             /// \brief Extracts the subset of PlannerData reachable from the vertex with index
             /// v.  For tree structures, this will be the sub-tree rooted at v. The reachable set
             /// is saved into \e data.
@@ -383,8 +390,6 @@ namespace ompl
             std::map<std::string, std::string>   properties;
 
         protected:
-            double defaultEdgeWeight(const PlannerDataVertex &v1, const PlannerDataVertex &v2, const PlannerDataEdge& e) const;
-
             /// \brief A mapping of states to vertex indexes.  For fast lookup of vertex index.
             std::map<const State*, unsigned int> stateIndexMap_;
             /// \brief A mutable listing of the vertices marked as start states.  Stored in sorted order.
