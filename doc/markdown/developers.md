@@ -1,11 +1,11 @@
 # Developers
 
-OMPL is developed and maintained by the [Physical and Biological Computing Group](http://www.kavrakilab.org) at Rice University, led by [Dr. Lydia Kavraki](http://www.cs.rice.edu/~kavraki). The development is coordinated by [Dr. Mark Moll](http://www.cs.rice.edu/~mmoll), [Dr. Lydia Kavraki](http://www.cs.rice.edu/~kavraki) (Rice) and [Dr. Ioan Șucan](http://ioan.sucan.ro) (Willow Garage, formerly Rice). Many others have contributed to OMPL as well, as can be seen below.
+OMPL is developed and maintained by the [Physical and Biological Computing Group](http://www.kavrakilab.org) at Rice University, led by [Dr. Lydia Kavraki](http://www.cs.rice.edu/~kavraki). The development is coordinated by [Dr. Mark Moll](http://www.cs.rice.edu/~mmoll), [Dr. Lydia Kavraki](http://www.cs.rice.edu/~kavraki) (Rice) and [Dr. Ioan Șucan](http://ioan.sucan.ro) (Google\[X\], formerly Rice). Many others have contributed to OMPL as well, as can be seen below.
 
 # Core developers:
 
 - [Mark Moll](http://www.cs.rice.edu/~mmoll), Rice University
-- [Ioan Șucan](http://ioan.sucan.ro), Willow Garage (formerly Rice University)
+- [Ioan Șucan](http://ioan.sucan.ro), Google\[X\] (formerly Rice University)
 - [Ryan Luna](http://www.ryanluna.com), Rice University
 - [Matt Maly](http://kavrakilab.org/profiles/mmaly), Rice University
 - [Luis Torres](http://luis.web.unc.edu), Ron Alterovitz' [Computational Robotics Group](http://robotics.cs.unc.edu), University of North Carolina at Chapel Hill
