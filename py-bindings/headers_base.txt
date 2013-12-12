@@ -30,12 +30,13 @@
 ../src/ompl/base/objectives/MechanicalWorkOptimizationObjective.h
 ../src/ompl/base/objectives/PathLengthOptimizationObjective.h
 ../src/ompl/base/objectives/StateCostIntegralObjective.h
+../src/ompl/base/ProblemDefinition.h
+../src/ompl/base/PlannerTerminationCondition.h
 ../src/ompl/base/PlannerData.h
 ../src/ompl/base/PlannerDataStorage.h
 ../src/ompl/base/PlannerStatus.h
 ../src/ompl/base/Planner.h
 ../src/ompl/base/SolutionNonExistenceProof.h
-../src/ompl/base/ProblemDefinition.h
 ../src/ompl/base/samplers/UniformValidStateSampler.h
 ../src/ompl/base/spaces/RealVectorStateSpace.h
 ../src/ompl/base/spaces/RealVectorStateProjections.h
