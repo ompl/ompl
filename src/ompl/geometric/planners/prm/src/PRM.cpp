@@ -101,8 +101,10 @@ void ompl::geometric::PRM::setup(void)
 {
     Planner::setup();
     if (!nn_)
+    {
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(si_->getStateSpace()));
-    nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
+        nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
+    }
     if (!connectionStrategy_)
     {
         if (starStrategy_)
@@ -125,8 +127,10 @@ void ompl::geometric::PRM::setup(void)
 void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
 {
     if (!nn_)
+    {
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(si_->getStateSpace()));
-    nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
+        nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
+    }
     connectionStrategy_ = KStrategy<Vertex>(k, nn_);
 }
 
