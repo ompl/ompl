@@ -63,7 +63,14 @@ class RandomWalkPlanner(ob.Planner):
         pdef = self.getProblemDefinition()
         goal = pdef.getGoal()
         si = self.getSpaceInformation()
-        self.states_.append(self.getPlannerInputStates().nextStart())
+        pi = self.getPlannerInputStates()
+        st = pi.nextStart()
+        while st:
+            self.states_.append(st)
+            st = pi.nextStart()
+        solution = None
+        approxsol = 0
+        approxdif = 1e6
         while not ptc():
             rstate = si.allocState()
             # pick a random state in the state space
@@ -71,13 +78,27 @@ class RandomWalkPlanner(ob.Planner):
             # check motion
             if si.checkMotion(self.states_[-1], rstate):
                 self.states_.append(rstate)
-                if goal.isSatisfied(rstate):
-                    path = og.PathGeometric(si)
-                    for s in self.states_:
-                        path.append(s)
-                    pdef.addSolutionPath(path)
-                    return ob.PlannerStatus.EXACT_SOLUTION
-        return ob.PlannerStatus.TIMEOUT
+                sat = goal.isSatisfied(rstate)
+                dist = goal.distanceGoal(rstate)
+                if sat:
+                    approxdif = dist
+                    solution = len(self.states_)
+                    break
+                if dist < approxdif:
+                    approxdif = dist
+                    approxsol = len(self.states_)
+        solved = False
+        approximate = False
+        if not solution:
+            solution = approxsol
+            approximate = True
+        if solution:
+            path = og.PathGeometric(si)
+            for s in self.states_[:solution]:
+                path.append(s)
+            pdef.addSolutionPath(path)
+            solved = True
+        return ob.PlannerStatus(solved, approximate)
 
     def clear(self):
         super(RandomWalkPlanner, self).clear()
@@ -114,7 +135,11 @@ def plan():
     # set the planner
     planner = RandomWalkPlanner(ss.getSpaceInformation())
     ss.setPlanner(planner)
-    if ss.solve(10.0):
+
+    result = ss.solve(10.0)
+    if result:
+        if result.getStatus() == ob.PlannerStatus.APPROXIMATE_SOLUTION:
+            print("Solution is approximate")
         # try to shorten the path
         ss.simplifySolution()
         # print the simplified path
