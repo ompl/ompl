@@ -124,8 +124,9 @@ void ompl::geometric::PRM::setup(void)
 
 void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
 {
-    if (!setup_)
-        setup();
+    if (!nn_)
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(si_->getStateSpace()));
+    nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
     connectionStrategy_ = KStrategy<Vertex>(k, nn_);
 }
 
