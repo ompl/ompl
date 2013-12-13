@@ -34,11 +34,7 @@
 
 /* Author: Ioan Sucan, James D. Marble */
 
-#include "ompl/base/goals/GoalSampleableRegion.h"
-
-typedef ::ompl::base::PlannerStatus ( ::ompl::base::Planner::*timed_solve_function_type )( double ) ;
-
-ompl::base::PlannerStatus PRM_wrapper::solve(const ompl::base::PlannerTerminationCondition& ptc)
+ompl::base::PlannerStatus PRM_wrapper::default_solve(const ompl::base::PlannerTerminationCondition& ptc)
 {
     using namespace ompl;
 
