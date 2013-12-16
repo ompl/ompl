@@ -529,7 +529,9 @@ class ompl_geometric_generator_t(code_generator_t):
             ::ompl::base::PlannerStatus default_solve( ::ompl::base::PlannerTerminationCondition const & ptc );
             """)
         PRM_cls.add_declaration_code(open('PRM.SingleThreadSolve.cpp','r').read())
-        PRM_cls.add_registration_code('def("solve", &PRM_wrapper::solve, &PRM_wrapper::default_solve, bp::arg("ptc") );')
+        PRM_cls.add_registration_code("""def("solve",
+            (::ompl::base::PlannerStatus(::ompl::geometric::PRM::*)( ::ompl::base::PlannerTerminationCondition const &))(&PRM_wrapper::solve),
+            (::ompl::base::PlannerStatus(PRM_wrapper::*)( ::ompl::base::PlannerTerminationCondition const & ))(&PRM_wrapper::default_solve), bp::arg("ptc") )""")
 
         # Py++ seems to get confused by some methods declared in one module
         # that are *not* overridden in a derived class in another module. The
