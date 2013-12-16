@@ -39,4 +39,5 @@
 ompl::geometric::PRMstar::PRMstar(const base::SpaceInformationPtr &si) : PRM(si, true)
 {
     setName("PRMstar");
+    params_.remove("max_nearest_neighbors");
 }
