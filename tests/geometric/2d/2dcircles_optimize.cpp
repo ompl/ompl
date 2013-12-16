@@ -178,17 +178,6 @@ protected:
     }
 };
 
-class LBTRRTTest : public TestPlanner
-{
-protected:
-
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
-    {
-        geometric::LBTRRT *rrt = new geometric::LBTRRT(si);
-        return base::PlannerPtr(rrt);
-    }
-};
-
 class PRMstarTest : public TestPlanner
 {
 protected:
@@ -258,6 +247,5 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 OMPL_PLANNER_TEST(PRMstar)
 OMPL_PLANNER_TEST(PRM)
 OMPL_PLANNER_TEST(RRTstar)
-OMPL_PLANNER_TEST(LBTRRT)
 
 BOOST_AUTO_TEST_SUITE_END()
