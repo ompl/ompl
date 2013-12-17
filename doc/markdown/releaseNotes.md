@@ -3,9 +3,14 @@
 
 # OMPL 0.14.0 (??)
 
-- Added new cost infrastructure to plan optimal paths with respect to arbitrary cost functions.
+- Added new cost infrastructure to plan optimal paths with respect to arbitrary cost functions. Several common cost objective functions have been defined (such as path length and mechanical work) and new ones can easily be defined.
 - RRT*, PRM*, TRRT, and PRM have been updated to use this cost infrastructure.
 - BallTreeRRT* has been removed since it assumed that the path cost is equal to the path length.
+- Added Lower Bound Tree RRT (LBTRRT), a near asymptotically-optimal incremental sampling-based motion planning algorithm.
+- Added support for MORSE. Through a plugin you can use OMPL with Blender and MORSE to plan kinodynamic paths. See [the gallery](gallery.html) for some examples.
+- Added functionality to the Benchmark class to keep track of user-specified properties at regular intervals. This is especially useful for asymptotically/approximately optimal or anytime planners.
+- Updated gccxml snapshot. If you use gcc 4.8 and the OMPL Python bindings, you need to run "make installpyplusplus" again.
+- Bug fixes.
 
 
 # OMPL 0.13.0 (August 5, 2013)

@@ -81,6 +81,24 @@ else()
   option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" OFF)
 endif()
 
+# on OS X we need to check whether to use libc++ or libstdc++ with clang++
+if(APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    include(GetPrerequisites)
+    get_prerequisites("${Boost_SYSTEM_LIBRARY}" _libs 0 0 "/" "")
+    set(CXXSTDLIB "")
+    foreach(_lib ${_libs})
+        if(_lib MATCHES "libc\\+\\+")
+            set(CXXSTDLIB "libc++")
+        elseif(_lib MATCHES "libstdc\\+\\+")
+            set(CXXSTDLIB "libstdc++")
+        endif()
+    endforeach()
+    if(CXXSTDLIB)
+        add_definitions(-stdlib=${CXXSTDLIB})
+    endif()
+endif()
+
+
 # pthread is sometimes needed, depending on OS / compiler
 find_package(Threads QUIET)
 
