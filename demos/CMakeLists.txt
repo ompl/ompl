@@ -30,6 +30,7 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_Koules ${Koules_SRC})
 
   add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
+  add_ompl_demo(demo_PlannerProgressProperties PlannerProgressProperties.cpp)
 
   if (OMPL_EXTENSION_OPENDE)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)

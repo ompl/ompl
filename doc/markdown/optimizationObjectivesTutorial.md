@@ -28,6 +28,10 @@ Now, let's talk about the counterintuitive implementation of `ompl::base::Optimi
 
 Lastly, notice that in `ClearanceObjective`'s constructor we initialized the `ompl::base::StateCostIntegralObjective` with the additional argument `true`. This changes the behaviour of the objective to use motion cost interpolation when summing up state costs along the path. By default, `ompl::base::StateCostIntegralObjective` simply takes the individual states that make up a given path, and sums up those costs. However, this approach can result in an inaccurate estimation of the path cost if successive states on the path are far apart. If we enable motion cost interpolation the path cost computation will interpolate between distant states in order to get a more accurate approximation of the true path cost. This interpolation of states along a path is the same as the one used in `ompl::base::DiscreteMotionValidator`. Note that the increase in accuracy by using motion cost interpolation comes with a decrease in computational effiency due to more calls to `ompl::base::OptimizationObjective::stateCost`.
 
+Here's an animation demonstrating the RRTstar algorithm's progress in planning under the above objective:
+
+<div class="row"><img src="../images/clearance.gif" class="span8 offset1"></div>
+
 ## Multiobjective optimal planning
 
 In some cases you might be interested in optimal planning under more than one objective. For instance, we might want to specify some balance between path clearance and path length. We can do this using the `ompl::base::MultiOptimizationObjective` class.
@@ -39,14 +43,14 @@ ob::OptimizationObjectivePtr getBalancedObjective(const ob::SpaceInformationPtr&
     ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
 
     ob::MultiOptimizationObjective* opt = new ob::MultiOptimizationObjective(si);
-    opt->addObjective(lengthObj, 5.0);
+    opt->addObjective(lengthObj, 10.0);
     opt->addObjective(clearObj, 1.0);
 
     return ob::OptimizationObjectivePtr(opt);
 }
 ~~~
 
-The above code fragment creates and optimization objective which attempts to optimize both path length and clearance. We begin by defining each of the individual objectives, and then we add them to a `ompl::base::MultiOptimizationObjective` object. This results in an optimization objective where path cost is equivalent to summing up each of the individual objectives' path costs. When we add objectives to `ompl::base::MultiOptimizationObjective`, we must also optionally specify each objective's weighting factor to signify how important it is in optimal planning. In the above example, we weigh the length with a factor of 5.0 and the clearance with a factor of 1.0 to try to balance more in favor of minimizing path length in planning. This objective results in a path which still maintains clearance from the circle, but not as much as before.
+The above code fragment creates and optimization objective which attempts to optimize both path length and clearance. We begin by defining each of the individual objectives, and then we add them to a `ompl::base::MultiOptimizationObjective` object. This results in an optimization objective where path cost is equivalent to summing up each of the individual objectives' path costs. When we add objectives to `ompl::base::MultiOptimizationObjective`, we must also optionally specify each objective's weighting factor to signify how important it is in optimal planning. In the above example, we weigh the length with a factor of 10.0 and the clearance with a factor of 1.0 to try to balance more in favor of minimizing path length in planning. This objective results in a path which still maintains clearance from the circle, but not as much as before.
 
 We also provide a more concise way to define multiple optimization objectives using operator overloading:
 
@@ -56,11 +60,15 @@ ob::OptimizationObjectivePtr getBalancedObjective(const ob::SpaceInformationPtr&
     ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(si));
     ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
 
-    return 5.0*lengthObj + clearObj;
+    return 10.0*lengthObj + clearObj;
 }
 ~~~
 
 This function defines exactly the same optimization objective as the previous one, but uses fewer lines of code and represents the objective in a semantically rich form.
+
+Here's an animation of the RRTstar algorithm's progress on this multiobjective problem:
+
+<div class="row"><img src="../images/balanced.gif" class="span8 offset1"></div>
 
 ## Specifying a new objective (part 2): maximize minimum clearance
 
@@ -73,7 +81,7 @@ class MaximizeMinClearance : public ob::OptimizationObjective
 public:
     MaximizeMinClearance(const ob::SpaceInformationPtr &si) :
         ob::OptimizationObjective(si) {}
-    
+
     virtual ob::Cost stateCost(const ob::State* s) const;
     virtual bool isCostBetterThan(ob::Cost c1, ob::Cost c2) const;
     virtual ob::Cost motionCost(const ob::State *s1, const ob::State *s2) const;
@@ -180,7 +188,7 @@ Let's consider what an admissible motion cost heuristic would look like when pla
 
 ~~~{.cpp}
 ompl::base::Cost
-ompl::base::PathLengthOptimizationObjective::motionCostHeuristic(const State *s1, 
+ompl::base::PathLengthOptimizationObjective::motionCostHeuristic(const State *s1,
                                                                  const State *s2) const
 {
     return Cost(si_->distance(s1, s2));
