@@ -120,7 +120,7 @@ def read_benchmark_log(dbname, filenames):
             # load a dictionary of properties and types
             # we keep the names of the properties in a list as well, to ensure the correct order of properties
             properties = {}
-            propNames = ['id', 'experimentid', 'plannerid']
+            propNames = ['runid', 'experimentid', 'plannerid']
             for j in range(num_properties):
                 field = logfile.readline().split()
                 ftype = field[-1]
@@ -129,7 +129,7 @@ def read_benchmark_log(dbname, filenames):
                 propNames.append(fname)
 
             # create the table, if needed
-            table_columns = "id INTEGER PRIMARY KEY AUTOINCREMENT, experimentid INTEGER, plannerid INTEGER"
+            table_columns = "runid INTEGER PRIMARY KEY AUTOINCREMENT, experimentid INTEGER, plannerid INTEGER"
             for k, v in properties.items():
                 table_columns = table_columns + ', ' + k + ' ' + v
             table_columns = table_columns + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE"
@@ -154,14 +154,14 @@ def read_benchmark_log(dbname, filenames):
                 run = tuple([None, experiment_id, planner_id] + [None if len(x)==0 else float(x)
                     for x in logfile.readline().split('; ')[:-1]])
                 c.execute(insert_fmt_str, run)
-                
+
                 # extract primary keys of each run row so we can
                 # reference them in the planner progress data table if
                 # needed
                 c.execute('SELECT last_insert_rowid()')
                 run_ids.append(c.fetchone()[0])
-                
-            nextLine = logfile.readline().strip()
+
+            nextLine = logfile.readline()
 
             # Read in planner progress data if it's supplied
             if nextLine != '.':
@@ -172,19 +172,19 @@ def read_benchmark_log(dbname, filenames):
                     field = logfile.readline().split()
                     prog_prop_types.append(field[-1])
                     prog_prop_names.append("_".join(field[:-1]))
-            
+
                 # create the table for run progress properties of this planner
                 #
                 # \TODO: do we need more disambiguating info in table
-                # name like exp id?  
+                # name like exp id?
                 #
                 # \TODO: might consider indexing on
                 # runid+time if things start taking too long
                 table_name = planner_name + '_planner_progress'
                 table_columns = 'runid INTEGER'
-                table_columns += ''.join([', %s %s' % (pname,ptype) for 
+                table_columns += ''.join([', %s %s' % (pname,ptype) for
                                           (pname,ptype) in zip(prog_prop_names,prog_prop_types)])
-                table_columns += ', FOREIGN KEY(runid) REFERENCES %s(id)' % planner_table 
+                table_columns += ', FOREIGN KEY(runid) REFERENCES %s(runid)' % planner_table
                 c.execute("CREATE TABLE IF NOT EXISTS `%s` (%s)" % (table_name, table_columns))
 
                 num_runs = int(logfile.readline().split()[0])
@@ -197,7 +197,7 @@ def read_benchmark_log(dbname, filenames):
                         # type
                         values = tuple([run_ids[j]]+[float(x) for x in data_sample.split(',')[:-1]])
                         c.execute(insert_fmt_str, values)
-                    
+
                 logfile.readline()
         logfile.close()
     conn.commit()
@@ -279,7 +279,7 @@ def plot_attribute(cur, planners, attribute, typename):
 def plot_progress_attribute(cur, table_names, attribute):
     """Plot data for a single planner progress attribute. Will create an
 average time-plot with error bars of the attribute over all runs for
-each planner."""        
+each planner."""
 
     import numpy.ma as ma
 
@@ -322,12 +322,12 @@ each planner."""
             # for r in dataTable:
             #     filteredDataTable.append(np.array(r)[isTimeValid].tolist())
             # dataArrays = np.array(filteredDataTable)
-            
+
             filteredData = ma.masked_array(dataArrays, np.equal(dataArrays, None), dtype=float)
 
             means = np.mean(filteredData, axis=0)
             stddevs = np.std(filteredData, axis=0, ddof=1)
-                
+
             # plot average with error bars
             plt.errorbar(times, means, yerr=2*stddevs, errorevery=len(times) // 20)
             ax.legend(planner_names)
@@ -349,7 +349,7 @@ def plot_statistics(dbname, fname):
     for p in planner_names:
         c.execute('SELECT * FROM `%s` LIMIT 1' % p)
         atr = [ t[0] for t in c.description]
-        atr.remove('id')
+        atr.remove('runid')
         atr.remove('plannerid')
         atr.remove('experimentid')
         for a in atr:
@@ -361,9 +361,9 @@ def plot_statistics(dbname, fname):
         eid = [t[0] for t in c.fetchall() if not t[0]==None]
         for e in eid:
             if e not in experiments:
-                experiments.append(e)                
-    attributes.sort()        
-            
+                experiments.append(e)
+    attributes.sort()
+
     pp = PdfPages(fname)
     for atr in attributes:
         if types[atr]=='integer' or types[atr]=='real':
@@ -548,4 +548,3 @@ if __name__ == "__main__":
 
     if options.mysqldb:
         save_as_mysql(options.dbname, options.mysqldb)
-

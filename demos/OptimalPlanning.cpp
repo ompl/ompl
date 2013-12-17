@@ -254,7 +254,7 @@ ob::OptimizationObjectivePtr getBalancedObjective1(const ob::SpaceInformationPtr
     ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
 
     ob::MultiOptimizationObjective* opt = new ob::MultiOptimizationObjective(si);
-    opt->addObjective(lengthObj, 5.0);
+    opt->addObjective(lengthObj, 10.0);
     opt->addObjective(clearObj, 1.0);
 
     return ob::OptimizationObjectivePtr(opt);
@@ -268,7 +268,7 @@ ob::OptimizationObjectivePtr getBalancedObjective2(const ob::SpaceInformationPtr
     ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(si));
     ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
 
-    return 5.0*lengthObj + clearObj;
+    return 10.0*lengthObj + clearObj;
 }
 
 /** Create an optimization objective for minimizing path length, and
