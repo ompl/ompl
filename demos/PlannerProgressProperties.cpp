@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Rice University
+*  Copyright (c) 2013, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ namespace og = ompl::geometric;
 int main(int argc, char** argv)
 {
     ob::StateSpacePtr space(new ob::RealVectorStateSpace(2));
-    space->as<ob::RealVectorStateSpace>()->setBounds(0,1);
+    space->as<ob::RealVectorStateSpace>()->setBounds(0, 1);
     og::SimpleSetup ss(space);
 
     // Set our robot's starting state to be the bottom-left corner of
