@@ -6,9 +6,12 @@
 - Added new cost infrastructure to plan optimal paths with respect to arbitrary cost functions. Several common cost objective functions have been defined (such as path length and mechanical work) and new ones can easily be defined.
 - RRT*, PRM*, TRRT, and PRM have been updated to use this cost infrastructure.
 - BallTreeRRT* has been removed since it assumed that the path cost is equal to the path length.
-- Added Lower Bound Tree RRT (LBTRRT), a near asymptotically-optimal incremental sampling-based motion planning algorithm.
+- Added two new planners:
+    - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT), a near asymptotically-optimal incremental sampling-based motion planning algorithm.
+    - [Search Tree with Resolution Independent Density Estimation (STRIDE)](\ref gSTRIDE), an EST-like planner that uses an extension of the GNAT nearest neighbor data structure that supports sampling states inversely proportional to the density of previously sampled states.
 - Added support for MORSE. Through a plugin you can use OMPL with Blender and MORSE to plan kinodynamic paths. See [the gallery](gallery.html) for some examples.
 - Added functionality to the Benchmark class to keep track of user-specified properties at regular intervals. This is especially useful for asymptotically/approximately optimal or anytime planners.
+- Added more [demo programs](group__demos.html).
 - Updated gccxml snapshot. If you use gcc 4.8 and the OMPL Python bindings, you need to run "make installpyplusplus" again.
 - Bug fixes.
 

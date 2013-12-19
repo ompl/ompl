@@ -57,7 +57,8 @@ namespace ompl
           @anchor gSTRIDE
 
           @par Short description
-          STRIDE is a tree-based motion planner that attempts to detect
+          STRIDE (Search Tree with Resolution Independent Density Estimation)
+          is a tree-based motion planner that attempts to detect
           the less explored area of the space through the use of a
           GNAT nearest-neighbor data structure. It is similar to EST,
           but unlike the EST implementation in OMPL does not require
@@ -70,9 +71,9 @@ namespace ompl
           @par External documentation
           B. Gipson, M. Moll, and L.E. Kavraki, Resolution independent density
           estimation for motion planning in high-dimensional spaces, in
-          <em>IEEE Intl. Conf. on Robotics and Automation</em>, 2013.
-          <a href="http://kavrakilab.org/sites/default/files/2013%20resolution%20independent%20density%20estimation%20for%20motion.pdf">[PDF]</a>
-*/
+          <em>IEEE Intl. Conf. on Robotics and Automation</em>, pp. 2429-2435, 2013.
+          <a href="http://dx.doi.org/10.1109/ICRA.2013.6630908">[PDF]</a>
+        */
 
         /** \brief Search Tree with Resolution Independent Density Estimation */
         class STRIDE : public base::Planner

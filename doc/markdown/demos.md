@@ -24,5 +24,7 @@
 - [Random walk planner](RandomWalkPlanner_8py_source.html) A simple demo illustrating how to create a new planning algorithm in Python. This particular planner simply performs a random walk until it gets close to the goal.
 - [Planning for Dubins and Reeds-Shepp cars.](GeometricCarPlanning_8cpp_source.html) This demo illustrates the use of the ompl::base::DubinsStateSpace and ompl::base::ReedsSheppStateSpace. The demo can solve two simple planning problems, print trajectories from the origin to a user-specified state, or print a discretized distance field.
 - [Optimal planning for a 2D point robot.](OptimalPlanning_8cpp_source.html) [[Python version]](OptimalPlanning_8py_source.html). This demo illustrates the use of `ompl::base::OptimizationObjective` to construct optimization objectives for optimal motion planning.
+- [Hypercube benchmark.](HypercubeBenchmark_8cpp_source.html) A simple benchmark where the configuration space consists of a hypercube in R<sup>n</sup> and the free space is a narrow corridor along edges of the hypercube. The exploration progress of a planner is therefore hard to capture in a low-dimensional projection.
+- [Kinematic chain benchmark.](KinematicChainBenchmark_8cpp_source.html) A benchmark for an _n_-link kinematic chain to get out of a narrow passage. It requires the chain to fold up and expand again. As in the previous benchmark, the free space is hard to capture by a low-dimensional projection of the configuration space.
 
 @}
