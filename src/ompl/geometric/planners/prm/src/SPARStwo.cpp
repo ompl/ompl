@@ -180,7 +180,8 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
     if (stopOnMaxFail)
     {
         resetFailures();
-        base::PlannerOrTerminationCondition ptcOrFail(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedFailureLimit, this)));
+	base::PlannerTerminationCondition ptcOrFail =
+	    base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedFailureLimit, this)));
         constructRoadmap(ptcOrFail);
     }
     else
@@ -295,11 +296,13 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
     addedSolution_ = false;
     resetFailures();
     base::PathPtr sol;
-    base::PlannerOrTerminationCondition ptcOrFail(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedFailureLimit, this)));
+    base::PlannerTerminationCondition ptcOrFail =
+        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedFailureLimit, this)));
     boost::thread slnThread(boost::bind(&SPARStwo::checkForSolution, this, ptcOrFail, boost::ref(sol)));
 
     //Construct planner termination condition which also takes M into account
-    base::PlannerOrTerminationCondition ptcOrStop(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedTerminationCriterion, this)));
+    base::PlannerTerminationCondition ptcOrStop =
+        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedTerminationCriterion, this)));
     constructRoadmap(ptcOrStop);
 
     // Ensure slnThread is ceased before exiting solve

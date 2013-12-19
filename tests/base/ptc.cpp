@@ -36,6 +36,7 @@
 
 #define BOOST_TEST_MODULE "PlannerTerminationCondition"
 #include <boost/test/unit_test.hpp>
+#include <boost/thread.hpp>
 #include <iostream>
 
 #include "ompl/base/PlannerTerminationCondition.h"

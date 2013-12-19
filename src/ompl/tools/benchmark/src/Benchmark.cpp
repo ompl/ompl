@@ -40,6 +40,7 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/progress.hpp>
+#include <boost/thread.hpp>
 #include <fstream>
 #include <sstream>
 

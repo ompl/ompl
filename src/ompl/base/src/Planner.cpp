@@ -121,7 +121,7 @@ void ompl::base::Planner::getPlannerData(PlannerData & /*data*/) const
 
 ompl::base::PlannerStatus ompl::base::Planner::solve(const PlannerTerminationConditionFn &ptc, double checkInterval)
 {
-    return solve(PlannerThreadedTerminationCondition(ptc, checkInterval));
+    return solve(PlannerTerminationCondition(ptc, checkInterval));
 }
 
 ompl::base::PlannerStatus ompl::base::Planner::solve(double solveTime)
@@ -202,11 +202,6 @@ void ompl::base::PlannerInputStates::checkValidity(void) const
     }
 }
 
-bool ompl::base::PlannerInputStates::use(const SpaceInformationPtr &, const ProblemDefinitionPtr &pdef)
-{
-  return use(pdef);
-}
-
 bool ompl::base::PlannerInputStates::use(const ProblemDefinitionPtr &pdef)
 {
     if (pdef)
@@ -216,11 +211,6 @@ bool ompl::base::PlannerInputStates::use(const ProblemDefinitionPtr &pdef)
         clear();
         return true;
     }
-}
-
-bool ompl::base::PlannerInputStates::use(const SpaceInformation *, const ProblemDefinition *pdef)
-{
-    return use(pdef);
 }
 
 bool ompl::base::PlannerInputStates::use(const ProblemDefinition *pdef)
@@ -271,7 +261,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
 
 const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(void)
 {
-    static PlannerAlwaysTerminatingCondition ptc;
+    static PlannerTerminationCondition ptc = plannerAlwaysTerminatingCondition();
     return nextGoal(ptc);
 }
 

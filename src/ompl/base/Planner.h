@@ -128,26 +128,6 @@ namespace ompl
                 was called. */
             bool update(void);
 
-            /** \brief Set the space information and problem
-                definition this class operates on, based on the
-                available planner instance. If a planner is not set in
-                the constructor argument, a call to this function is
-                needed before any calls to nextStart() or nextGoal()
-                are made. Returns true if changes were found
-                (different problem definition) and clear() was
-                called. */
-            OMPL_DEPRECATED bool use(const SpaceInformationPtr &si, const ProblemDefinitionPtr &pdef);
-
-            /** \brief Set the space information and problem
-                definition this class operates on, based on the
-                available planner instance. If a planner is not set in
-                the constructor argument, a call to this function is
-                needed before any calls to nextStart() or nextGoal()
-                are made. Returns true if changes were found
-                (different problem definition) and clear() was
-                called.*/
-            OMPL_DEPRECATED bool use(const SpaceInformation *si, const ProblemDefinition *pdef);
-
             /** \brief Set the problem definition this class operates on.
                 If a planner is not set in the constructor argument, a call
                 to this function is needed before any calls to nextStart()
@@ -371,8 +351,7 @@ namespace ompl
             typedef std::map<std::string, PlannerProgressProperty> PlannerProgressProperties;
 
             /** \brief Retrieve a planner's planner progress property map */
-            const PlannerProgressProperties&
-            getPlannerProgressProperties() const
+            const PlannerProgressProperties& getPlannerProgressProperties() const
             {
                 return plannerProgressProperties_;
             }
@@ -404,29 +383,28 @@ namespace ompl
             }
 
             /** \brief Add a planner progress property called \e progressPropertyName with a property querying function \e prop to this planner's progress property map */
-            void addPlannerProgressProperty(const std::string& progressPropertyName,
-                                            const PlannerProgressProperty& prop)
+            void addPlannerProgressProperty(const std::string& progressPropertyName, const PlannerProgressProperty& prop)
             {
                 plannerProgressProperties_[progressPropertyName] = prop;
             }
 
             /** \brief The space information for which planning is done */
-            SpaceInformationPtr  si_;
+            SpaceInformationPtr       si_;
 
             /** \brief The user set problem definition */
-            ProblemDefinitionPtr pdef_;
+            ProblemDefinitionPtr      pdef_;
 
             /** \brief Utility class to extract valid input states  */
-            PlannerInputStates   pis_;
+            PlannerInputStates        pis_;
 
             /** \brief The name of this planner */
-            std::string          name_;
+            std::string               name_;
 
             /** \brief The specifications of the planner (its capabilities) */
-            PlannerSpecs         specs_;
+            PlannerSpecs              specs_;
 
             /** \brief A map from parameter names to parameter instances for this planner. This field is populated by the declareParam() function */
-            ParamSet             params_;
+            ParamSet                  params_;
 
             /** \brief A mapping between this planner's progress property names and the functions used for querying those progress properties */
             PlannerProgressProperties plannerProgressProperties_;

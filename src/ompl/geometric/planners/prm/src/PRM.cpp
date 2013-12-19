@@ -404,8 +404,8 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     boost::thread slnThread(boost::bind(&PRM::checkForSolution, this, ptc, boost::ref(sol)));
 
     // construct new planner termination condition that fires when the given ptc is true, or a solution is found
-    base::PlannerOrTerminationCondition ptcOrSolutionFound(ptc,
-base::PlannerTerminationCondition(boost::bind(&PRM::addedNewSolution, this)));
+    base::PlannerTerminationCondition ptcOrSolutionFound =
+        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&PRM::addedNewSolution, this)));
 
     constructRoadmap(ptcOrSolutionFound);
 
@@ -445,9 +445,9 @@ void ompl::geometric::PRM::constructRoadmap(const base::PlannerTerminationCondit
         // maintain a 2:1 ratio for growing/expansion of roadmap
         // call growRoadmap() twice as long for every call of expandRoadmap()
         if (grow)
-            growRoadmap(base::PlannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(2.0 * magic::ROADMAP_BUILD_TIME)), xstates[0]);
+            growRoadmap(base::plannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(2.0 * magic::ROADMAP_BUILD_TIME)), xstates[0]);
         else
-            expandRoadmap(base::PlannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(magic::ROADMAP_BUILD_TIME)), xstates);
+            expandRoadmap(base::plannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(magic::ROADMAP_BUILD_TIME)), xstates);
         grow = !grow;
     }
 
