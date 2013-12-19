@@ -662,8 +662,8 @@ namespace ompl
                 for(size_t i = 0; i<minRange_.size(); i++)
                     if(minRange_[i] < minR && minRange_[i] > 0.0)
                         minR =  minRange_[i];
-                minR = fmax(minR, maxRadius_);
-                return pow(minR, gnat.estimatedDimension_) / (double) subtreeSize_;
+                minR = std::max(minR, maxRadius_);
+                return std::pow(minR, gnat.estimatedDimension_) / (double) subtreeSize_;
             }
             const _T& sample(const GNAT& gnat) const
             {
