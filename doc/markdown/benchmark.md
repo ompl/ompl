@@ -168,7 +168,7 @@ Collected benchmark data for each planner execution:
 - __valid segment fraction:__ (real) the fraction of segments that turned out to be valid (using ompl::base::MotionValidator) out of all the segments that were checked for validity
 - more planner-specific properties
 
-Planning algorithms can also register callback functions that the Benchmark class will use to measure properties at regular intervals during a run of the planning algorithm. Currently only RRT* uses this functionality. The RRT* constructor registers, among others, a function the cost of the best path found so far:
+Planning algorithms can also register callback functions that the Benchmark class will use to measure properties at regular intervals during a run of the planning algorithm. Currently only RRT* uses this functionality. The RRT* constructor registers, among others, a function that returns the cost of the best path found so far:
 
     addPlannerProgressProperty("best cost REAL", boost::bind(&RRTstar::getBestCost, this));
 
