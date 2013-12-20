@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2008, Willow Garage, Inc.
+ *  Copyright (c) 2013, Rice University
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
+ *   * Neither the name of Rice University nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Bryant Gipson, Mark Moll, Ioan Sucan */
+/* Author: Bryant Gipson, Mark Moll */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_STRIDE_STRIDE_
 #define OMPL_GEOMETRIC_PLANNERS_STRIDE_STRIDE_
@@ -42,6 +42,7 @@
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/datastructures/PDF.h"
 #include <boost/unordered_map.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <vector>
 
 namespace ompl
@@ -88,8 +89,6 @@ namespace ompl
 
                 virtual void setup(void);
 
-                virtual void setupTree(void);
-
                 virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
                 virtual void clear(void);
@@ -112,56 +111,74 @@ namespace ompl
                     return goalBias_;
                 }
 
+                /** \brief Set whether nearest neighbors are computed based
+                  on distances in a _projection_ of the state rather distances
+                  in the state space itself. */
                 void setUseProjectedDistance(bool useProjectedDistance)
                 {
                     useProjectedDistance_ = useProjectedDistance;
                 }
-                bool getUseProjectedDistance(void)
+                /** \brief Return whether nearest neighbors are computed based
+                  on distances in a _projection_ of the state rather distances
+                  in the state space itself. */
+                bool getUseProjectedDistance(void) const
                 {
                     return useProjectedDistance_;
                 }
 
+                /** \brief Set desired degree of a node in the GNAT. */
                 void setDegree(unsigned int degree)
                 {
                     degree_ = degree;
                 }
-                unsigned int getDegree(void)
+                /** \brief Get desired degree of a node in the GNAT. */
+                unsigned int getDegree(void) const
                 {
                     return degree_;
                 }
-
+                /** \brief Set minimum degree of a node in the GNAT. */
                 void setMinDegree(unsigned int minDegree)
                 {
                     minDegree_ = minDegree;
                 }
-                unsigned int getMinDegree(void)
+                /** \brief Get minimum degree of a node in the GNAT. */
+                unsigned int getMinDegree(void) const
                 {
                     return minDegree_;
                 }
-
+                /** \brief Set maximum degree of a node in the GNAT. */
                 void setMaxDegree(unsigned int maxDegree)
                 {
                     maxDegree_ = maxDegree;
                 }
-                unsigned int getMaxDegree(void)
+                /** \brief Set maximum degree of a node in the GNAT. */
+                unsigned int getMaxDegree(void) const
                 {
                     return maxDegree_;
                 }
-
+                /** \brief Set maximum number of elements stored in a leaf
+                  node of the GNAT. */
                 void setMaxNumPtsPerLeaf(unsigned int maxNumPtsPerLeaf)
                 {
                     maxNumPtsPerLeaf_ = maxNumPtsPerLeaf;
                 }
-                unsigned int getMaxNumPtsPerLeaf(void)
+                /** \brief Get maximum number of elements stored in a leaf
+                  node of the GNAT. */
+                unsigned int getMaxNumPtsPerLeaf(void) const
                 {
                     return maxNumPtsPerLeaf_;
                 }
-
+                /** \brief Set estimated dimension of the free space, which
+                  is needed to compute the sampling weight for a node in the
+                  GNAT. */
                 void setEstimatedDimension(double estimatedDimension)
                 {
                     estimatedDimension_ = estimatedDimension;
                 }
-                double getEstimatedDimension(void)
+                /** \brief Get estimated dimension of the free space, which
+                  is needed to compute the sampling weight for a node in the
+                  GNAT. */
+                double getEstimatedDimension(void) const
                 {
                     return estimatedDimension_;
                 }
@@ -217,7 +234,6 @@ namespace ompl
                     return projectionEvaluator_;
                 }
 
-
                 virtual void getPlannerData(base::PlannerData &data) const;
 
             protected:
@@ -225,14 +241,13 @@ namespace ompl
                 /** \brief The definition of a motion */
                 class Motion
                 {
-                    public:
-
-                        Motion(void) : state(NULL), parent(NULL)
+                public:
+                    Motion(void) : state(NULL), parent(NULL)
                     {
                     }
 
-                        /** \brief Constructor that allocates memory for the state */
-                        Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL)
+                    /** \brief Constructor that allocates memory for the state */
+                    Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL)
                     {
                     }
 
@@ -250,6 +265,9 @@ namespace ompl
 
                 /** \brief Free the memory allocated by this planner */
                 void freeMemory(void);
+
+                /** \brief Initialize GNAT data structure */
+                void setupTree(void);
 
                 /** \brief Compute distance between motions (actually distance between contained states) */
                 double distanceFunction(const Motion* a, const Motion* b) const
@@ -280,7 +298,8 @@ namespace ompl
                 base::ProjectionEvaluatorPtr projectionEvaluator_;
 
                 /** \brief The exploration tree constructed by this algorithm */
-                NearestNeighborsGNAT<Motion*> *tree_;
+                boost::scoped_ptr<NearestNeighborsGNAT<Motion*> >
+                                             tree_;
 
                 /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
                 double                       goalBias_;
@@ -288,17 +307,17 @@ namespace ompl
                 /** \brief The maximum length of a motion to be added to a tree */
                 double                       maxDistance_;
 
-                /** whether to use distance in the projection (instead of distance in the state space) for the GNAT */
+                /** \brief Whether to use distance in the projection (instead of distance in the state space) for the GNAT */
                 bool                         useProjectedDistance_;
-                /** desired degree of an internal node in the GNAT */
+                /** \brief Desired degree of an internal node in the GNAT */
                 unsigned int                 degree_;
-                /** minimum degree of an internal node in the GNAT */
+                /** \brief Minimum degree of an internal node in the GNAT */
                 unsigned int                 minDegree_;
-                /** maximum degree of an internal node in the GNAT */
+                /** \brief Maximum degree of an internal node in the GNAT */
                 unsigned int                 maxDegree_;
-                /** maximum number of points stored in a leaf node in the GNAT */
+                /** \brief Maximum number of points stored in a leaf node in the GNAT */
                 unsigned int                 maxNumPtsPerLeaf_;
-                /** estimate of the local dimensionality of the free space around a state */
+                /** \brief Estimate of the local dimensionality of the free space around a state */
                 double                       estimatedDimension_;
                 /** \brief When extending a motion, the planner can decide
                      to keep the first valid part of it, even if invalid

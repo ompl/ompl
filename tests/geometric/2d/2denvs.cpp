@@ -55,6 +55,7 @@
 #include "ompl/geometric/planners/rrt/LazyRRT.h"
 #include "ompl/geometric/planners/pdst/PDST.h"
 #include "ompl/geometric/planners/est/EST.h"
+#include "ompl/geometric/planners/stride/STRIDE.h"
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/prm/LazyPRM.h"
@@ -438,6 +439,19 @@ protected:
 
 };
 
+class STRIDETest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::STRIDE *stride = new geometric::STRIDE(si);
+        stride->setRange(10.0);
+        return base::PlannerPtr(stride);
+    }
+
+};
+
 class PDSTTest : public TestPlanner
 {
 protected:
@@ -707,6 +721,7 @@ OMPL_PLANNER_TEST(LBKPIECE1, 99.0, 0.02)
 OMPL_PLANNER_TEST(BKPIECE1, 99.0, 0.01)
 
 OMPL_PLANNER_TEST(EST, 99.0, 0.02)
+OMPL_PLANNER_TEST(STRIDE, 99.0, 0.02)
 
 OMPL_PLANNER_TEST(PRM, 98.0, 0.04)
 OMPL_PLANNER_TEST(PRMstar, 98.0, 0.04)

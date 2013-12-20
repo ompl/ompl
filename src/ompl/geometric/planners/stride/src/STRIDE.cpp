@@ -47,7 +47,7 @@ ompl::geometric::STRIDE::STRIDE(const base::SpaceInformationPtr &si,
     bool useProjectedDistance,
     unsigned int degree, unsigned int minDegree,
     unsigned int maxDegree, unsigned int maxNumPtsPerLeaf, double estimatedDimension)
-    : base::Planner(si, "STRIDE"), tree_(NULL), goalBias_(0.05), maxDistance_(0.),
+    : base::Planner(si, "STRIDE"), goalBias_(0.05), maxDistance_(0.),
     useProjectedDistance_(useProjectedDistance),
     degree_(degree), minDegree_(minDegree), maxDegree_(maxDegree),
     maxNumPtsPerLeaf_(maxNumPtsPerLeaf), estimatedDimension_(estimatedDimension),
@@ -72,8 +72,6 @@ ompl::geometric::STRIDE::STRIDE(const base::SpaceInformationPtr &si,
 ompl::geometric::STRIDE::~STRIDE(void)
 {
     freeMemory();
-    delete tree_;
-    tree_ = NULL;
 }
 
 void ompl::geometric::STRIDE::setup(void)
@@ -87,14 +85,12 @@ void ompl::geometric::STRIDE::setup(void)
 
 void ompl::geometric::STRIDE::setupTree(void)
 {
-    delete tree_;
-    tree_ = new NearestNeighborsGNAT<Motion*>(degree_, minDegree_, maxDegree_, maxNumPtsPerLeaf_, estimatedDimension_);
-    if(useProjectedDistance_)
+    tree_.reset(new NearestNeighborsGNAT<Motion*>(degree_, minDegree_, maxDegree_, maxNumPtsPerLeaf_, estimatedDimension_));
+    if (useProjectedDistance_)
         tree_->setDistanceFunction(boost::bind(&STRIDE::projectedDistanceFunction, this, _1, _2));
     else
         tree_->setDistanceFunction(boost::bind(&STRIDE::distanceFunction, this, _1, _2));
 }
-
 
 void ompl::geometric::STRIDE::clear(void)
 {
@@ -106,16 +102,17 @@ void ompl::geometric::STRIDE::clear(void)
 
 void ompl::geometric::STRIDE::freeMemory(void)
 {
-    if(tree_)
+    if (tree_)
     {
         std::vector<Motion*> motions;
         tree_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (std::size_t i = 0 ; i < motions.size() ; ++i)
         {
             if (motions[i]->state)
                 si_->freeState(motions[i]->state);
             delete motions[i];
         }
+        tree_.reset();
     }
 }
 
@@ -223,13 +220,11 @@ ompl::base::PlannerStatus ompl::geometric::STRIDE::solve(const base::PlannerTerm
 
 void ompl::geometric::STRIDE::addMotion(Motion *motion)
 {
-    assert(tree_);
     tree_->add(motion);
 }
 
 ompl::geometric::STRIDE::Motion* ompl::geometric::STRIDE::selectMotion(void)
 {
-    assert(tree_);
     return tree_->sample();
 }
 
