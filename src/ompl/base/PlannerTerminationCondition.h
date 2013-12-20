@@ -67,27 +67,27 @@ namespace ompl
 
             /** \brief Construct a termination condition. By default, eval() will call the externally specified function \e fn to decide whether
                 the planner should terminate. */
-	    PlannerTerminationCondition(const PlannerTerminationConditionFn &fn);
+            PlannerTerminationCondition(const PlannerTerminationConditionFn &fn);
 
             /** \brief Construct a termination condition that is evaluated every \e period seconds. The evaluation of
-                the condition consists of calling \e fn() in a separate thread. Calls to eval() will always return the 
-		last value computed by the call to \e fn(). */
+                the condition consists of calling \e fn() in a separate thread. Calls to eval() will always return the
+        last value computed by the call to \e fn(). */
             PlannerTerminationCondition(const PlannerTerminationConditionFn &fn, double period);
 
-	    ~PlannerTerminationCondition(void)
+            ~PlannerTerminationCondition(void)
             {
             }
 
             /** \brief Return true if the planner should stop its computation */
             bool operator()(void) const
             {
-	        return eval();
+                return eval();
             }
 
             /** \brief Cast as true if the planner should stop its computation */
             operator bool() const
             {
-	        return eval();
+                return eval();
             }
 
             /** \brief Notify that the condition for termination should become true, regardless of what eval() returns.
@@ -95,12 +95,12 @@ namespace ompl
             void terminate(void) const;
 
             /** \brief The implementation of some termination condition. By default, this just calls \e fn_() */
-	    bool eval(void) const;
+            bool eval(void) const;
 
         private:
 
-	    class PlannerTerminationConditionImpl;
-	    boost::shared_ptr<PlannerTerminationConditionImpl> impl_;
+            class PlannerTerminationConditionImpl;
+            boost::shared_ptr<PlannerTerminationConditionImpl> impl_;
         };
 
         /** \brief Simple termination condition that always returns false. The termination condition will never be met */

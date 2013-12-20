@@ -48,121 +48,121 @@ namespace ompl
 
         /// @cond IGNORE
         class PlannerTerminationCondition::PlannerTerminationConditionImpl
-	{
-	public:
-	    PlannerTerminationConditionImpl(const PlannerTerminationConditionFn &fn, double period) : 
-	      fn_(fn),
-	      period_(period),
-	      terminate_(false),
-	      thread_(NULL),
-	      evalValue_(false),
-	      signalThreadStop_(false)
-	    {
-	        if (period_ > 0.0)
-		    startEvalThread();	
-	    }
-	  
-	    ~PlannerTerminationConditionImpl()
-	    {
-	        stopEvalThread();
-	    }
+        {
+        public:
+            PlannerTerminationConditionImpl(const PlannerTerminationConditionFn &fn, double period) :
+            fn_(fn),
+            period_(period),
+            terminate_(false),
+            thread_(NULL),
+            evalValue_(false),
+            signalThreadStop_(false)
+            {
+                if (period_ > 0.0)
+                    startEvalThread();
+            }
 
-	    bool eval() const
-	    {
-	        if (terminate_)
-		    return true;
-		if (period_ > 0.0)
-		    return evalValue_;
-		return fn_();
-	    }
-  
-	    void terminate() const
-	    {
-	        // it is ok to have unprotected write here
-	        terminate_ = true;
-	    }
-  
-	private:
-  
-	    /** \brief Start the thread evaluating termination conditions if not already started */
-	    void startEvalThread(void)
-	    {
-	        if (!thread_)
-		{
-		    signalThreadStop_ = false;
-		    evalValue_ = false;
-		    thread_ = new boost::thread(boost::bind(&PlannerTerminationConditionImpl::periodicEval, this));
-		}
-	    }
-  
-	    /** \brief Stop the thread evaluating termination conditions if not already stopped */
-	    void stopEvalThread(void)
-	    {
-	        signalThreadStop_ = true;
-		if (thread_)
-		{
-		    thread_->join();
-		    delete thread_;
-		    thread_ = NULL;
-		}
-	    }
-  
-	    /** \brief Worker function that runs in a separate thread (calls computeEval())*/
-	    void periodicEval(void)
-	    {
-	        // we want to check for termination at least once every ms;
-	        // even though we may evaluate the condition itself more rarely
+            ~PlannerTerminationConditionImpl()
+            {
+                stopEvalThread();
+            }
 
-	        unsigned int count = 1;
-		time::duration s = time::seconds(period_);
-		if (period_ > 0.001)
-		{
-		    count = 0.5 + period_ / 0.001;
-		    s = time::seconds(period_ / (double) count);
-		}
+            bool eval() const
+            {
+                if (terminate_)
+                    return true;
+                if (period_ > 0.0)
+                    return evalValue_;
+                return fn_();
+            }
 
-		while (!terminate_ && !signalThreadStop_)
-		{
-		    evalValue_ = fn_();
-		    for (unsigned int i = 0 ; i < count ; ++i)
-		    {
-		        if (terminate_ || signalThreadStop_)
-			    break;
-			boost::this_thread::sleep(s);
-		    }
-		}
-	    }
-	  
-	    /** \brief Function pointer to the piece of code that decides whether a termination condition has been met */
-	    PlannerTerminationConditionFn fn_;
+            void terminate() const
+            {
+                // it is ok to have unprotected write here
+                terminate_ = true;
+            }
 
-	    /** \brief Interval of time (seconds) to wait between calls to computeEval() */
-	    double                        period_;
-  
-	    /** \brief Flag indicating whether the user has externally requested that the condition for termination should become true */
-	    mutable bool                  terminate_;
-  
-	    /** \brief Thread for periodicEval() */
-	    boost::thread                *thread_;
-  
-	    /** \brief Cached value returned by fn_() */
-	    bool                          evalValue_;
+        private:
 
-	    /** \brief Flag used to signal the condition evaluation thread to stop. */
-	    bool                          signalThreadStop_;
-	};
+            /** \brief Start the thread evaluating termination conditions if not already started */
+            void startEvalThread(void)
+            {
+                if (!thread_)
+                {
+                    signalThreadStop_ = false;
+                    evalValue_ = false;
+                    thread_ = new boost::thread(boost::bind(&PlannerTerminationConditionImpl::periodicEval, this));
+                }
+            }
+
+            /** \brief Stop the thread evaluating termination conditions if not already stopped */
+            void stopEvalThread(void)
+            {
+                signalThreadStop_ = true;
+                if (thread_)
+                {
+                    thread_->join();
+                    delete thread_;
+                    thread_ = NULL;
+                }
+            }
+
+            /** \brief Worker function that runs in a separate thread (calls computeEval())*/
+            void periodicEval(void)
+            {
+                // we want to check for termination at least once every ms;
+                // even though we may evaluate the condition itself more rarely
+
+                unsigned int count = 1;
+                time::duration s = time::seconds(period_);
+                if (period_ > 0.001)
+                {
+                    count = 0.5 + period_ / 0.001;
+                    s = time::seconds(period_ / (double) count);
+                }
+
+                while (!terminate_ && !signalThreadStop_)
+                {
+                    evalValue_ = fn_();
+                    for (unsigned int i = 0 ; i < count ; ++i)
+                    {
+                        if (terminate_ || signalThreadStop_)
+                            break;
+                        boost::this_thread::sleep(s);
+                    }
+                }
+            }
+
+            /** \brief Function pointer to the piece of code that decides whether a termination condition has been met */
+            PlannerTerminationConditionFn fn_;
+
+            /** \brief Interval of time (seconds) to wait between calls to computeEval() */
+            double                        period_;
+
+            /** \brief Flag indicating whether the user has externally requested that the condition for termination should become true */
+            mutable bool                  terminate_;
+
+            /** \brief Thread for periodicEval() */
+            boost::thread                *thread_;
+
+            /** \brief Cached value returned by fn_() */
+            bool                          evalValue_;
+
+            /** \brief Flag used to signal the condition evaluation thread to stop. */
+            bool                          signalThreadStop_;
+        };
 
         /// @endcond
     }
 }
 
 ompl::base::PlannerTerminationCondition::PlannerTerminationCondition(const PlannerTerminationConditionFn &fn) :
-    impl_(new PlannerTerminationConditionImpl(fn, -1.0))
+impl_(new PlannerTerminationConditionImpl(fn, -1.0))
 {
 }
 
 ompl::base::PlannerTerminationCondition::PlannerTerminationCondition(const PlannerTerminationConditionFn &fn, double period) :
-    impl_(new PlannerTerminationConditionImpl(fn, period))
+impl_(new PlannerTerminationConditionImpl(fn, period))
 {
 }
 
@@ -192,20 +192,20 @@ namespace ompl
     namespace base
     {
         static bool plannerOrTerminationConditionAux(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2)
-	{
-	   return c1() || c2();
-	}
+        {
+            return c1() || c2();
+        }
 
         static bool plannerAndTerminationConditionAux(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2)
-	{
-	    return c1() && c2();
-	}
+        {
+            return c1() && c2();
+        }
 
         // return true if a certain point in time has passed
         static bool timePassed(const time::point &endTime)
-	{
-	    return time::now() > endTime;
-	}
+        {
+            return time::now() > endTime;
+        }
     }
 }
 /// @endcond

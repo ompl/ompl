@@ -110,9 +110,9 @@ ompl::base::PlannerStatus PRM_wrapper::default_solve(const ompl::base::PlannerTe
         // maintain a 2:1 ratio for growing/expansion of roadmap
         // call growRoadmap() twice as long for every call of expandRoadmap()
         if (grow)
-            ompl::geometric::PRM::growRoadmap(base::PlannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(2.0*roadmap_build_time)), xstates[0]);
+            ompl::geometric::PRM::growRoadmap(base::plannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(2.0*roadmap_build_time)), xstates[0]);
         else
-            ompl::geometric::PRM::expandRoadmap(base::PlannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(roadmap_build_time)), xstates);
+            ompl::geometric::PRM::expandRoadmap(base::plannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(roadmap_build_time)), xstates);
         grow = !grow;
 
         // Check for a solution

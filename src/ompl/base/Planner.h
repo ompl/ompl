@@ -410,7 +410,7 @@ namespace ompl
             PlannerProgressProperties plannerProgressProperties_;
 
             /** \brief Flag indicating whether setup() has been called */
-            bool                 setup_;
+            bool                      setup_;
         };
 
         /** \brief Definition of a function that can allocate a planner */

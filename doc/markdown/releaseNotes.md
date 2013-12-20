@@ -1,7 +1,7 @@
 # Release Notes
 
 
-# OMPL 0.14.0 (??)
+# OMPL 0.14.0 (December 20, 2013)
 
 - Added new cost infrastructure to plan optimal paths with respect to arbitrary cost functions. Several common cost objective functions have been defined (such as path length and mechanical work) and new ones can easily be defined.
 - RRT*, PRM*, TRRT, and PRM have been updated to use this cost infrastructure.
@@ -19,7 +19,7 @@
 # OMPL 0.13.0 (August 5, 2013)
 
 - Added several new planners:
-    - [SPARS](\ref gSPARS) and [SPARS2](\ref gSPARStwo) are roadmap-based planners that operate similarly to Visbility-based PRM, but provide asymptotic near-optimality guarantees.
+    - [SPARS](\ref gSPARS) and [SPARS2](\ref gSPARStwo) are roadmap-based planners that operate similarly to Visibility-based PRM, but provide asymptotic near-optimality guarantees.
     - Path-Directed Subdivision Tree (PDST). There are actually two versions: [one for geometric planning](\ref gPDST) and [one for control-based planning](\ref cPDST).
     - [Lazy PRM](\ref gLazyPRM), a variant that lazily evaluates the validity of nodes and edges in a roadmap.
 - Various improvements and bug fixes in the RRTstar and BallTreeRRTstar planners.
