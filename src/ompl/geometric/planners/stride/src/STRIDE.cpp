@@ -225,7 +225,7 @@ void ompl::geometric::STRIDE::addMotion(Motion *motion)
 
 ompl::geometric::STRIDE::Motion* ompl::geometric::STRIDE::selectMotion(void)
 {
-    return tree_->sample();
+    return tree_->sample(rng_);
 }
 
 void ompl::geometric::STRIDE::getPlannerData(base::PlannerData &data) const

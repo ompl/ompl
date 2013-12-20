@@ -246,12 +246,12 @@ namespace ompl
 
 #ifdef GNAT_SAMPLER
         /// Sample an element from the GNAT.
-        const _T& sample() const
+        const _T& sample(RNG& rng) const
         {
             if (!size())
                 throw Exception("Cannot sample from an empty tree");
             else
-                return tree_->sample(*this);
+                return tree_->sample(*this, rng);
         }
 #endif
 
@@ -665,20 +665,20 @@ namespace ompl
                 minR = std::max(minR, maxRadius_);
                 return std::pow(minR, gnat.estimatedDimension_) / (double) subtreeSize_;
             }
-            const _T& sample(const GNAT& gnat) const
+            const _T& sample(const GNAT& gnat, RNG& rng) const
             {
                 if (children_.size() != 0)
                 {
-                    if (gnat.rng_.uniform01() < 1./(double) subtreeSize_)
+                    if (rng.uniform01() < 1./(double) subtreeSize_)
                         return pivot_;
                     PDF<const Node*> distribution;
                     for(unsigned int i = 0; i < children_.size(); ++i)
                         distribution.add(children_[i], children_[i]->getSamplingWeight(gnat));
-                    return distribution.sample(gnat.rng_.uniform01())->sample(gnat);
+                    return distribution.sample(rng.uniform01())->sample(gnat, rng);
                 }
                 else
                 {
-                    unsigned int i = gnat.rng_.uniformInt(0, data_.size());
+                    unsigned int i = rng.uniformInt(0, data_.size());
                     return (i==data_.size()) ? pivot_ : data_[i];
                 }
             }
@@ -788,8 +788,6 @@ namespace ompl
 #ifdef GNAT_SAMPLER
         /// \brief Estimated dimension of the local free space.
         double                          estimatedDimension_;
-        /// \brief Random number generator used to sample elements from the GNAT.
-        mutable RNG                     rng_;
 #endif
     };
 
