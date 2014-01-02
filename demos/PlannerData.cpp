@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ryan Luna */
+/* Author: Ryan Luna, Luis G. Torres */
 
 #include <ompl/base/PlannerData.h>
 #include <ompl/base/PlannerDataStorage.h>
@@ -121,8 +121,11 @@ void planWithSimpleSetup(void)
 }
 
 // Used for A* search.  Computes the heuristic distance from vertex v1 to the goal
-ob::Cost distanceHeuristic(ob::PlannerData::Graph::Vertex v1, const ob::GoalState* goal, const ob::OptimizationObjective* obj,
-                         const boost::property_map<ob::PlannerData::Graph::Type, vertex_type_t>::type& plannerDataVertices)
+ob::Cost distanceHeuristic(ob::PlannerData::Graph::Vertex v1,
+                           const ob::GoalState* goal,
+                           const ob::OptimizationObjective* obj,
+                           const boost::property_map<ob::PlannerData::Graph::Type,
+                           vertex_type_t>::type& plannerDataVertices)
 {
     return ob::Cost(obj->costToGo(plannerDataVertices[v1]->getState(), goal));
 }

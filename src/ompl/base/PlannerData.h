@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ryan Luna */
+/* Author: Ryan Luna, Luis G. Torres */
 
 #ifndef OMPL_BASE_PLANNER_DATA_
 #define OMPL_BASE_PLANNER_DATA_
@@ -216,13 +216,15 @@ namespace ompl
             /// \brief Adds a directed edge between the given vertex indexes.  An optional
             /// edge structure and weight can be supplied.  Success is returned.
             virtual bool addEdge (unsigned int v1, unsigned int v2,
-                                  const PlannerDataEdge &edge = PlannerDataEdge(), Cost weight=Cost(0.0));
+                                  const PlannerDataEdge &edge = PlannerDataEdge(),
+                                  Cost weight=Cost(1.0));
             /// \brief Adds a directed edge between the given vertex indexes.  The
             /// vertices are added to the data if they are not already in the
             /// structure.  An optional edge structure and weight can also be supplied.
             /// Success is returned.
             virtual bool addEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2,
-                                  const PlannerDataEdge &edge = PlannerDataEdge(), Cost weight=Cost(1.0));
+                                  const PlannerDataEdge &edge = PlannerDataEdge(),
+                                  Cost weight=Cost(1.0));
             /// \brief Removes the edge between vertex indexes \e v1 and \e v2.  Success is returned.
             virtual bool removeEdge (unsigned int v1, unsigned int v2);
             /// \brief Removes the edge between the vertices associated with the given vertex data.
@@ -325,10 +327,12 @@ namespace ompl
             /// out-variable \e weight. Otherwise, this function
             /// returns false.
             bool getEdgeWeight (unsigned int v1, unsigned int v2, Cost* weight) const;
-            /// \brief Sets the weight of the edge between the given vertex indices.
-            /// If an edge between v1 and v2 does not exist, false is returned.
+            /// \brief Sets the weight of the edge between the given
+            /// vertex indices.  If an edge between v1 and v2 does not
+            /// exist, this function returns false.
             bool setEdgeWeight (unsigned int v1, unsigned int v2, Cost weight);
-            /// \brief Computes the weight for all edges given the OptimizationObjective EdgeWeightFn \e opt.
+            /// \brief Computes the weight for all edges given the
+            /// OptimizationObjective \e opt.
             void computeEdgeWeights(const OptimizationObjective& opt);
 
             /// \}
