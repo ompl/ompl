@@ -76,7 +76,7 @@ unsigned int ompl::control::SimpleDirectedControlSampler::getBestControl (Contro
     {
         Control     *tempControl = si_->allocControl();
         base::State *tempState   = si_->allocState();
-        double bestDistance      = si_->distance(tempState, dest);
+        double bestDistance      = si_->distance(bestState, dest);
 
         // Sample k-1 more controls, and save the control that gets closest to target
         for (unsigned int i = 1; i < numControlSamples_; ++i)
