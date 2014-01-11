@@ -217,14 +217,14 @@ namespace ompl
             /// edge structure and weight can be supplied.  Success is returned.
             virtual bool addEdge (unsigned int v1, unsigned int v2,
                                   const PlannerDataEdge &edge = PlannerDataEdge(),
-                                  Cost weight=Cost(1.0));
+                                  Cost weight = Cost(1.0));
             /// \brief Adds a directed edge between the given vertex indexes.  The
             /// vertices are added to the data if they are not already in the
             /// structure.  An optional edge structure and weight can also be supplied.
             /// Success is returned.
             virtual bool addEdge (const PlannerDataVertex &v1, const PlannerDataVertex &v2,
                                   const PlannerDataEdge &edge = PlannerDataEdge(),
-                                  Cost weight=Cost(1.0));
+                                  Cost weight = Cost(1.0));
             /// \brief Removes the edge between vertex indexes \e v1 and \e v2.  Success is returned.
             virtual bool removeEdge (unsigned int v1, unsigned int v2);
             /// \brief Removes the edge between the vertices associated with the given vertex data.
@@ -334,6 +334,9 @@ namespace ompl
             /// \brief Computes the weight for all edges given the
             /// OptimizationObjective \e opt.
             void computeEdgeWeights(const OptimizationObjective& opt);
+            /// \brief Computes all edge weights using state space
+            /// distance (i.e. getSpaceInformation()->distance())
+            void computeEdgeWeights();
 
             /// \}
             /// \name Output methods
@@ -350,14 +353,12 @@ namespace ompl
             /// \name Advanced graph extraction
             /// \{
 
-            /// TODO re-implement this if/when BGL's MST algorithm
-            /// allows for specification of distance-compare and
-            /// distance-combine.
-            ///
             /// \brief Extracts the minimum spanning tree of the data rooted at the vertex
             /// with index \e v.  The minimum spanning tree is saved into \e mst.
             /// O(|E| log |V|) complexity.
-            // void extractMinimumSpanningTree (unsigned int v, PlannerData &mst) const;
+            void extractMinimumSpanningTree (unsigned int v,
+                                             const OptimizationObjective &opt,
+                                             PlannerData &mst) const;
             /// \brief Extracts the subset of PlannerData reachable from the vertex with index
             /// v.  For tree structures, this will be the sub-tree rooted at v. The reachable set
             /// is saved into \e data.

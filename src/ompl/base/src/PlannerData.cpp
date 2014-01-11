@@ -38,10 +38,11 @@
 #include "ompl/base/PlannerDataGraph.h"
 #include "ompl/base/StateStorage.h"
 #include "ompl/base/OptimizationObjective.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/graphml.hpp>
-#include <boost/graph/prim_minimum_spanning_tree.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
 
 // This is a convenient macro to cast the void* graph pointer as the
 // Boost.Graph structure from PlannerDataGraph.h
@@ -559,7 +560,7 @@ bool ompl::base::PlannerData::markGoalState (const base::State* st)
     return false;
 }
 
-void ompl::base::PlannerData::computeEdgeWeights(const OptimizationObjective& opt)
+void ompl::base::PlannerData::computeEdgeWeights (const OptimizationObjective &opt)
 {
     unsigned int nv = numVertices();
     for (unsigned int i = 0; i < nv; ++i)
@@ -576,33 +577,67 @@ void ompl::base::PlannerData::computeEdgeWeights(const OptimizationObjective& op
     }
 }
 
-// void ompl::base::PlannerData::extractMinimumSpanningTree (unsigned int v, base::PlannerData &mst) const
-// {
-//     std::vector<ompl::base::PlannerData::Graph::Vertex> pred(numVertices());
+void ompl::base::PlannerData::computeEdgeWeights (void)
+{
+    // Create a PathLengthOptimizationObjective to compute the edge
+    // weights according to state space distance
+    ompl::base::PathLengthOptimizationObjective opt(si_);
+    computeEdgeWeights(opt);
+}
 
-//     // Ask boost nicely for the minimum spanning tree
-//     boost::prim_minimum_spanning_tree(*graph_, &pred[0], boost::weight_map(get(boost::edge_weight, *graph_)).
-//                                                          vertex_index_map(get(boost::vertex_index, *graph_)).
-//                                                          root_vertex(boost::vertex(v, *graph_)));
+namespace
+{
+    // Used in minimum spanning tree
+    ompl::base::Cost project2nd (ompl::base::Cost /*unused*/, ompl::base::Cost second)
+    {
+        return second;
+    }
+}
 
-//     // Adding vertices to MST
-//     for (std::size_t i = 0; i < pred.size(); ++i)
-//     {
-//         if (isStartVertex(i))
-//             mst.addStartVertex(getVertex(i));
-//         else if (isGoalVertex(i))
-//             mst.addGoalVertex(getVertex(i));
-//         else
-//             mst.addVertex(getVertex(i));
-//     }
+void ompl::base::PlannerData::extractMinimumSpanningTree (unsigned int v,
+                                                          const base::OptimizationObjective &opt,
+                                                          base::PlannerData &mst) const
+{
+    std::vector<ompl::base::PlannerData::Graph::Vertex> pred(numVertices());
 
-//     // Adding edges to MST
-//     for (std::size_t i = 0; i < pred.size(); ++i)
-//     {
-//         if (pred[i] != i)
-//             mst.addEdge(pred[i], i, getEdge(pred[i], i), getEdgeWeight(pred[i], i));
-//     }
-// }
+    // This is how boost's minimum spanning tree is actually
+    // implemented, except it lacks the generality for specifying our
+    // own comparison function or zero/inf values.
+    //
+    // \TODO Once (https://svn.boost.org/trac/boost/ticket/9368) gets
+    // into boost we can use the far more direct
+    // boost::prim_minimum_spanning_tree().
+    boost::dijkstra_shortest_paths
+        (*graph_, v,
+         boost::predecessor_map(&pred[0]).
+         distance_compare(boost::bind(&base::OptimizationObjective::
+                                      isCostBetterThan, &opt, _1, _2)).
+         distance_combine(&project2nd).
+         distance_inf(opt.infiniteCost()).
+         distance_zero(opt.identityCost()));
+
+    // Adding vertices to MST
+    for (std::size_t i = 0; i < pred.size(); ++i)
+    {
+        if (isStartVertex(i))
+            mst.addStartVertex(getVertex(i));
+        else if (isGoalVertex(i))
+            mst.addGoalVertex(getVertex(i));
+        else
+            mst.addVertex(getVertex(i));
+    }
+
+    // Adding edges to MST
+    for (std::size_t i = 0; i < pred.size(); ++i)
+    {
+        if (pred[i] != i)
+        {
+            Cost c;
+            getEdgeWeight(pred[i], i, &c);
+            mst.addEdge(pred[i], i, getEdge(pred[i], i), c);
+        }
+    }
+}
 
 void ompl::base::PlannerData::extractReachable(unsigned int v, base::PlannerData& data) const
 {
