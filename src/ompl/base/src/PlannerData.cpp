@@ -43,6 +43,7 @@
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/graphml.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/property_map/function_property_map.hpp>
 
 // This is a convenient macro to cast the void* graph pointer as the
 // Boost.Graph structure from PlannerDataGraph.h
@@ -256,14 +257,38 @@ void ompl::base::PlannerData::printGraphviz (std::ostream& out) const
     boost::write_graphviz(out, *graph_);
 }
 
-// void ompl::base::PlannerData::printGraphML (std::ostream& out) const
-// {
-//     // Not writing vertex or edge structures.
-//     boost::dynamic_properties dp;
-//     dp.property("weight", get(boost::edge_weight_t(), *graph_));
+namespace
+{
+    // Property map for extracting the edge weight of a graph edge as
+    // a double for printGraphML.
+    double edgeWeightAsDouble(ompl::base::PlannerData::Graph::Type& g,
+                              ompl::base::PlannerData::Graph::edge_descriptor e)
+    {
+        return get(boost::edge_weight_t(), g)[e].v;
+    }
+}
 
-//     boost::write_graphml(out, *graph_, dp);
-// }
+void ompl::base::PlannerData::printGraphML (std::ostream& out) const
+{
+    // For some reason, make_function_property_map can't infer its
+    // template arguments corresponding to edgeWeightAsDouble's type
+    // signature. So, we have to use this horribly verbose
+    // instantiation of the property map.
+    //
+    // \TODO Can we use make_function_property_map() here and have it
+    // infer the property template arguments?
+    boost::function_property_map<
+        boost::function<double (ompl::base::PlannerData::Graph::edge_descriptor)>,
+        ompl::base::PlannerData::Graph::edge_descriptor,
+        double>
+        fmap(boost::bind(&edgeWeightAsDouble, *graph_, _1));
+
+    // Not writing vertex or edge structures.
+    boost::dynamic_properties dp;
+    dp.property("weight", fmap);
+
+    boost::write_graphml(out, *graph_, dp);
+}
 
 unsigned int ompl::base::PlannerData::vertexIndex (const PlannerDataVertex &v) const
 {

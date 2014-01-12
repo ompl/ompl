@@ -345,9 +345,8 @@ namespace ompl
             /// \brief Writes a Graphviz dot file of this structure to the given stream
             void printGraphviz (std::ostream& out = std::cout) const;
 
-            /// TODO Figure out how to get this to work with generalized costs
             /// \brief Writes a GraphML file of this structure to the given stream
-            // void printGraphML (std::ostream& out = std::cout) const;
+            void printGraphML (std::ostream& out = std::cout) const;
 
             /// \}
             /// \name Advanced graph extraction
