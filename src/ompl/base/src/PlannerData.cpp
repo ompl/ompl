@@ -261,8 +261,8 @@ namespace
 {
     // Property map for extracting the edge weight of a graph edge as
     // a double for printGraphML.
-    double edgeWeightAsDouble(ompl::base::PlannerData::Graph::Type& g,
-                              ompl::base::PlannerData::Graph::edge_descriptor e)
+    double edgeWeightAsDouble (ompl::base::PlannerData::Graph::Type &g,
+                               ompl::base::PlannerData::Graph::edge_descriptor e)
     {
         return get(boost::edge_weight_t(), g)[e].v;
     }
