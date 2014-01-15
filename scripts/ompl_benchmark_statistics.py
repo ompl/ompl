@@ -161,7 +161,7 @@ def read_benchmark_log(dbname, filenames):
                 c.execute('SELECT last_insert_rowid()')
                 run_ids.append(c.fetchone()[0])
 
-            nextLine = logfile.readline()
+            nextLine = logfile.readline().strip()
 
             # Read in planner progress data if it's supplied
             if nextLine != '.':
@@ -182,9 +182,9 @@ def read_benchmark_log(dbname, filenames):
                 # runid+time if things start taking too long
                 table_name = planner_name + '_planner_progress'
                 table_columns = 'runid INTEGER'
-                table_columns += ''.join([', %s %s' % (pname,ptype) for
+                table_columns += ''.join([', `%s` %s' % (pname,ptype) for
                                           (pname,ptype) in zip(prog_prop_names,prog_prop_types)])
-                table_columns += ', FOREIGN KEY(runid) REFERENCES %s(runid)' % planner_table
+                table_columns += ', FOREIGN KEY(runid) REFERENCES `%s`(runid)' % planner_table
                 c.execute("CREATE TABLE IF NOT EXISTS `%s` (%s)" % (table_name, table_columns))
 
                 num_runs = int(logfile.readline().split()[0])

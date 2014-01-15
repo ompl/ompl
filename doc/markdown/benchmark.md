@@ -2,15 +2,118 @@
 
 OMPL contains a ompl::Benchmark class that facilitates solving a motion planning problem repeatedly with different planners, different samplers, or even differently configured versions of the same planning algorithm. Below, we will describe how you can use this class.
 
+\if OMPLAPP
+- \ref benchmark_config
+\endif
 - \ref benchmark_code
 - \ref benchmark_log
 - \ref benchmark_sample_results
 
-For a command line program for rigid body motion planning, see the [ompl_benchmark](http://ompl.kavrakilab.org/benchmark.html) program in OMPL.app. For more advanced benchmarks, please see [plannerarena.org](http://plannerarena.org).
+\ifnot OMPLAPP
+For a command line program for rigid body motion planning, see the [ompl_benchmark](http://ompl.kavrakilab.org/benchmark.html) program in OMPL.app.
+\endif
+For more advanced benchmarks, please see [plannerarena.org](http://plannerarena.org).
+
+\if OMPLAPP
+# Create a benchmark configuration file {#benchmark_config}
+
+OMPL.app contains a command line program called \c ompl_benchmark, that can read a text based configuration file using an ini style format with key/value pairs. This is the same format that can be read and saved with the OMPL.app GUI. The GUI ignores the settings related to benchmarking. However, it is often convenient to create an initial configuration with the GUI and add the benchmark settings with a text editor. Currently the base functionality of the \c ompl_benchmark program only applies to geometric planning in SE(2) and SE(3), but can be extended by the user to other spaces.
+
+There are a number of required parameters necessary to define the problem.  These
+exist under the “[problem]” heading:
+
+- __name__: An identifying name for the problem to be solved
+- __robot__: The path to a mesh file describing the geometry of the robot
+- __start.[x|y|z|theta]__: Values describing the start state of the robot
+- __goal.[x|y|z|theta]__: Values describing the goal state of the robot
+
+An optional __world__ parameter specifying a mesh file for the environment can also
+be specified, but is not required.  If unspecified, it is assumed that the robot operates
+in an empty workspace.
+
+Another optional parameter is the sampler to be used by the planner. The
+following samplers are available:
+
+- __sampler=uniform__ (this is the default if no sampler is specified)
+- __sampler=gaussian__
+- __sampler=obstacle_based__
+- __sampler=max_clearance__
+
+Parameters relating to benchmarking must be declared under the “[benchmark]”
+heading:
+
+- __time_limit__: The amount of time (seconds) for each plan computation
+- __mem_limit__: The maximum amount of memory (MB) for each planner
+- __run_count__: The number of times to repeat the experiment for each planner
+- __save_paths__: This _optional_ parameter can be set to \c none, \c all, or \c shortest to save _no_ solution paths (the default value), _all_ solution paths (including approximate solutions), or the _shortest_ exact solution for each planner, respectively. These paths can then be “played back” in the [OMPL.app GUI](gui.html#gui_paths).
+
+The last required element to specify are the planners to benchmark.  These are specified under the “[planner]” heading.  The following planners are valid for geometric benchmarking:
+__kpiece__, __bkpiece__, __lbkpiece__, __est__, __sbl__, __prm__, __rrt__, __rrtconnect__, __lazyrrt__, __rrtstar__, __lbtrrt__, __trrt__, __prmstar__, __spars__, __spars2__, __stride__, __pdst__.
+
+An example of a minimal SE(2) configuration comparing the rrt and est planners is given below:
+
+    [problem]
+    name=my_benchmark_problem
+    robot=my_robot_mesh.dae
+    start.x=0.0
+    start.y=0.0
+    start.theta=0.0
+    goal.x=1.0
+    goal.y=1.0
+    goal.theta=0.0
+
+    [benchmark]
+    time_limit=10.0
+    mem_limit=1000.0
+    run_count = 3
+
+    [planner]
+    est=
+    rrt=
+
+Any parameter defined by these planners may also be configured for the benchmark. For example, the geometric::RRT planner defines two parameters, “range” and “goal_bias”, both real valued. The default values can be changed under the “planner” heading in the following manner:
+
+- __rrt.range__=50.0
+- __rrt.goal_bias__=0.10
+
+It is also convenient to specify the bounds of the workspace to plan in. Without any specification, OMPL.app assumes a tight bounding box around the start and goal states, but depending on the environment this may not be a good assumption. It is easy to redefine the bounding box under the problem heading using the “volume” configuration:
+
+- __volume.[min|max].[x|y|z]__
+
+There are many other optional parameters that can be specified or changed. The \c ompl_benchmark executable takes advantage of the ompl::base::ParamSet class, and uses this functionality to set any parameter defined in the file. If a class exposes a parameter, chances are that it is possible to tune it via the config file. OMPL.app provides two example configuration files inside of the benchmark directory, example.cfg and example_complex.cfg showing the configuration of many of these optional parameters.
+
+It is possible to create multiple instances of the same planner and configure each differently. This code, for example, creates two instances of \c rrtconnect with different values for its range parameter:
+
+    rrtconnect=
+    rrtconnect.range=100
+    rrtconnect=
+    rrtconnect.range=200
+
+Moreover, the problem settings can be changed between different planner instances.
+Below, some of the problem settings are changed for the second instance of \c kpiece.
+
+    kpiece=
+    kpiece=
+    # increase the size of the projection by a specific factor, in every dimension
+    problem.projection.cellsize_factor = 4.0
+    # specify a different sampler
+    problem.sampler=obstacle_based
+
+When using multiple planner instances, a useful parameter is “name”, as it can be used to rename a planner. For example, two instances of geometric::PRM can be created but named differently. Having different names is useful when processing the resulting log data using the [benchmark script](#benchmark_log).
+
+    prm=
+    problem.sampler="uniform"
+    prm.name="uniprm"
+    prm=
+    problem.sampler="obstacle_based"
+    prm.name="obprm"
+
+Finally, to execute the benchmark configuration file, simply run the \c ompl_benchmark executable in the OMPL.app bin directory, and supply the path to the config file as the first argument.
+\endif
 
 # Writing benchmarking code {#benchmark_code}
 
-Benchmarking a set of planners on a specified problem is a simple task in OMPL. The steps involved are as follows:
+Benchmarking a set of planners on a specified problem using the Benchmark class in your own code is a simple task in OMPL. The steps involved are as follows:
 
 - Configure the benchmark problem using ompl::geometric::SimpleSetup or ompl::control::SimpleSetup
 - Create a ompl::Benchmark object that takes the problem as input
@@ -108,9 +211,7 @@ b.setPostRunEvent(boost::bind(&optionalPostRunEvent, _1, _2));
 
 # Processing the benchmarking log file {#benchmark_log}
 
-Once the C++ code computing the results has been executed, a log file is generated. This contains information
-about the settings of the planners, the parameters of the problem tested on, etc. To visualize this
-information, we provide a script that parses the log files:
+Once the C++ code computing the results has been executed, a log file is generated. This contains information about the settings of the planners, the parameters of the problem tested on, etc. To visualize this information, we provide a script that parses the log files:
 
     ompl/scripts/ompl_benchmark_statistics.py logfile.log -d mydatabase.db
 
@@ -168,7 +269,7 @@ Collected benchmark data for each planner execution:
 - __valid segment fraction:__ (real) the fraction of segments that turned out to be valid (using ompl::base::MotionValidator) out of all the segments that were checked for validity
 - more planner-specific properties
 
-Planning algorithms can also register callback functions that the Benchmark class will use to measure properties at regular intervals during a run of the planning algorithm. Currently only RRT* uses this functionality. The RRT* constructor registers, among others, a function that returns the cost of the best path found so far:
+Planning algorithms can also register callback functions that the Benchmark class will use to measure progress properties at regular intervals during a run of the planning algorithm. Currently only RRT* uses this functionality. The RRT* constructor registers, among others, a function that returns the cost of the best path found so far:
 
     addPlannerProgressProperty("best cost REAL", boost::bind(&RRTstar::getBestCost, this));
 
