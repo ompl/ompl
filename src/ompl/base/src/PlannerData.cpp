@@ -43,7 +43,13 @@
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/graphml.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
+// Boost.OdeInt needs Boost version >= 1.51
+#include <boost/version.hpp>
+#if BOOST_VERSION < 105100
+#warning Boost version >=1.51 is needed for ompl::base::PlannerData::printGraphML
+#else
 #include <boost/property_map/function_property_map.hpp>
+#endif
 
 // This is a convenient macro to cast the void* graph pointer as the
 // Boost.Graph structure from PlannerDataGraph.h
@@ -270,6 +276,9 @@ namespace
 
 void ompl::base::PlannerData::printGraphML (std::ostream& out) const
 {
+#if BOOST_VERSION < 105100
+    OMPL_WARN("Boost version >=1.51 is needed for ompl::base::PlannerData::printGraphML");
+#else
     // For some reason, make_function_property_map can't infer its
     // template arguments corresponding to edgeWeightAsDouble's type
     // signature. So, we have to use this horribly verbose
@@ -288,6 +297,7 @@ void ompl::base::PlannerData::printGraphML (std::ostream& out) const
     dp.property("weight", fmap);
 
     boost::write_graphml(out, *graph_, dp);
+#endif
 }
 
 unsigned int ompl::base::PlannerData::vertexIndex (const PlannerDataVertex &v) const
