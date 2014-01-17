@@ -87,7 +87,7 @@ def useGraphTool(pd, space):
     f.close()
 
     # Load the graphml data using graph-tool
-    graph = gt.load_graph("graph.xml")
+    graph = gt.load_graph("graph.graphml", fmt="xml")
     edgeweights = graph.edge_properties["weight"]
 
     # Write some interesting statistics
