@@ -43,7 +43,6 @@
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/graphml.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
-// Boost.OdeInt needs Boost version >= 1.51
 #include <boost/version.hpp>
 #if BOOST_VERSION < 105100
 #warning Boost version >=1.51 is needed for ompl::base::PlannerData::printGraphML
