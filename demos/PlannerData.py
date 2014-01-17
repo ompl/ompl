@@ -82,7 +82,7 @@ def edgeWeight(space, v1, v2, edge):
 def useGraphTool(pd, space):
     # Extract the graphml representation of the planner data
     graphml = pd.printGraphML()
-    f = open("graph.xml", 'w')
+    f = open("graph.graphml", 'w')
     f.write(graphml)
     f.close()
 
@@ -208,8 +208,8 @@ def plan():
         pd = ob.PlannerData(ss.getSpaceInformation())
         ss.getPlannerData(pd)
 
-        # Computing weights of all edges based on distance
-        pd.computeEdgeWeights(ob.EdgeWeightFn(partial(edgeWeight, space)))
+        # Computing weights of all edges based on state space distance
+        pd.computeEdgeWeights()
 
         if graphtool:
             useGraphTool(pd, space)
