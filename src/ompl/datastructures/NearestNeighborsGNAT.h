@@ -100,7 +100,7 @@ namespace ompl
     public:
         NearestNeighborsGNAT(unsigned int degree = 4, unsigned int minDegree = 2,
             unsigned int maxDegree = 6, unsigned int maxNumPtsPerLeaf = 50,
-            unsigned int removedCacheSize = 50, bool rebalancing = true
+            unsigned int removedCacheSize = 50, bool rebalancing = false
 #ifdef GNAT_SAMPLER
             , double estimatedDimension = 6.0
 #endif
