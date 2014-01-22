@@ -660,6 +660,7 @@ class ompl_util_generator_t(code_generator_t):
         self.std_ns.class_('vector< std::map<std::string, std::string > >').rename('vectorMapStringToString')
         self.std_ns.class_('map<std::string, std::string >').include()
         self.std_ns.class_('map<std::string, std::string >').rename('mapStringToString')
+        self.std_ns.class_('vector< ompl::PPM::Color >').rename('vectorPPMColor')
 
 class ompl_morse_generator_t(code_generator_t):
     def __init__(self):

@@ -26,5 +26,6 @@
 - [Optimal planning for a 2D point robot.](OptimalPlanning_8cpp_source.html) [[Python version]](OptimalPlanning_8py_source.html). This demo illustrates the use of `ompl::base::OptimizationObjective` to construct optimization objectives for optimal motion planning.
 - [Hypercube benchmark.](HypercubeBenchmark_8cpp_source.html) A simple benchmark where the configuration space consists of a hypercube in R<sup>n</sup> and the free space is a narrow corridor along edges of the hypercube. The exploration progress of a planner is therefore hard to capture in a low-dimensional projection.
 - [Kinematic chain benchmark.](KinematicChainBenchmark_8cpp_source.html) A benchmark for an _n_-link kinematic chain to get out of a narrow passage. It requires the chain to fold up and expand again. As in the previous benchmark, the free space is hard to capture by a low-dimensional projection of the configuration space.
+- [2D point planning using a PPM image as a map](Point2DPlanning_8cpp_source.html) [[Python version](Point2DPlanning_8py_source.html)]
 
 @}

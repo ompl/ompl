@@ -49,6 +49,12 @@ namespace ompl
         struct Color
         {
             unsigned char red, green, blue;
+
+            // needed for Python bindings
+            bool operator==(const Color c)
+            {
+                return red == c.red && green == c.green && blue == c.blue;
+            }
         };
 
         PPM();
