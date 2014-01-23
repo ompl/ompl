@@ -1,6 +1,12 @@
 # Release Notes
 
 
+# OMPL.app 0.14.1 (January 23, 2014)
+
+- Update PlannerData to use new cost infrastructure.
+- Bug fixes.
+
+
 # OMPL 0.14.0 (December 20, 2013)
 
 - Added new cost infrastructure to plan optimal paths with respect to arbitrary cost functions. Several common cost objective functions have been defined (such as path length and mechanical work) and new ones can easily be defined.
