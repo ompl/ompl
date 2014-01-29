@@ -152,8 +152,7 @@ def readBenchmarkLog(dbname, filenames):
                 c.execute(insertFmtStr, values)
                 # extract primary key of each run row so we can reference them
                 # in the planner progress data table if needed
-                c.execute('SELECT last_insert_rowid()')
-                runIds.append(c.fetchone()[0])
+                runIds.append(c.lastrowid)
 
             nextLine = logfile.readline().strip()
 
@@ -271,7 +270,7 @@ each planner."""
 
     plt.clf()
     ax = plt.gca()
-    ax.set_xlabel('Time (s)')
+    ax.set_xlabel('time (s)')
     ax.set_ylabel(attribute.replace('_',' '))
     plannerNames = []
     for planner in planners:
@@ -341,11 +340,9 @@ def plotStatistics(dbname, fname):
     c.execute("""SELECT id, name, timelimit, memorylimit FROM experiments""")
     experiments = c.fetchall()
     for experiment in experiments:
-        c.execute("""SELECT plannerConfigs.name, count(*)
-            FROM plannerConfigs INNER JOIN runs
-            WHERE runs.experimentid = %d and plannerconfigs.id=plannerid
+        c.execute("""SELECT count(*) FROM runs WHERE runs.experimentid = %d
             GROUP BY runs.plannerid""" % experiment[0])
-        numRuns = [run[1] for run in c.fetchall()]
+        numRuns = [run[0] for run in c.fetchall()]
         numRuns = numRuns[0] if len(set(numRuns)) == 1 else ','.join(numRuns)
 
         plt.figtext(pagex, pagey, 'Experiment "%s"' % experiment[1])
