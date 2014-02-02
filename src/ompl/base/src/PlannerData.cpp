@@ -39,6 +39,7 @@
 #include "ompl/base/StateStorage.h"
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include "ompl/base/ScopedState.h"
 
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/graphml.hpp>
@@ -267,9 +268,26 @@ namespace
     // Property map for extracting the edge weight of a graph edge as
     // a double for printGraphML.
     double edgeWeightAsDouble (ompl::base::PlannerData::Graph::Type &g,
-                               ompl::base::PlannerData::Graph::edge_descriptor e)
+                               ompl::base::PlannerData::Graph::Edge e)
     {
         return get(boost::edge_weight_t(), g)[e].v;
+    }
+
+    // Property map for extracting states as arrays of doubles
+    std::string vertexCoords (ompl::base::PlannerData::Graph::Type &g,
+                              ompl::base::ScopedState<>& s,
+                              ompl::base::PlannerData::Graph::Vertex v)
+    {
+        s = *get(vertex_type_t(), g)[v]->getState();
+        std::vector<double> coords(s.reals());
+        std::ostringstream sstream;
+        if (coords.size()>0)
+        {
+            sstream << coords[0];
+            for (std::size_t i = 1; i < coords.size(); ++i)
+                sstream << ',' << coords[i];
+        }
+        return sstream.str();
     }
 }
 
@@ -286,14 +304,22 @@ void ompl::base::PlannerData::printGraphML (std::ostream& out) const
     // \TODO Can we use make_function_property_map() here and have it
     // infer the property template arguments?
     boost::function_property_map<
-        boost::function<double (ompl::base::PlannerData::Graph::edge_descriptor)>,
-        ompl::base::PlannerData::Graph::edge_descriptor,
+        boost::function<double (ompl::base::PlannerData::Graph::Edge)>,
+        ompl::base::PlannerData::Graph::Edge,
         double>
-        fmap(boost::bind(&edgeWeightAsDouble, *graph_, _1));
+        weightmap(boost::bind(&edgeWeightAsDouble, *graph_, _1));
+    ompl::base::ScopedState<> s(si_);
+    boost::function_property_map<
+        boost::function<std::string (ompl::base::PlannerData::Graph::Vertex)>,
+        ompl::base::PlannerData::Graph::Vertex,
+        std::string >
+        coordsmap(boost::bind(&vertexCoords, *graph_, s, _1));
+
 
     // Not writing vertex or edge structures.
     boost::dynamic_properties dp;
-    dp.property("weight", fmap);
+    dp.property("weight", weightmap);
+    dp.property("coords", coordsmap);
 
     boost::write_graphml(out, *graph_, dp);
 #endif
