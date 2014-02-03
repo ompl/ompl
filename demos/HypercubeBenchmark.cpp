@@ -45,7 +45,6 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/format.hpp>
 #include <fstream>
-#include <libgen.h>
 
 unsigned ndim = 6;
 const double edgeWidth = 0.1;
