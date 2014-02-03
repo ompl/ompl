@@ -45,7 +45,6 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/format.hpp>
 #include <fstream>
-#include <libgen.h>
 
 // a 2D line segment
 struct Segment
@@ -259,7 +258,7 @@ int main(int argc, char **argv)
 {
     if (argc < 2)
     {
-        std::cout << "Usage:\n" << basename(argv[0]) << " <num_links>\n";
+        std::cout << "Usage:\n" << argv[0] << " <num_links>\n";
         exit(0);
     }
 
