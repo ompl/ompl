@@ -263,7 +263,6 @@ int main(int argc, char **argv)
     }
 
     unsigned int numLinks = boost::lexical_cast<unsigned int>(std::string(argv[1]));
-    double eps = 3. / (sqrt(5.) * (double)numLinks);
     Environment env = createHornEnvironment(numLinks, log((double)numLinks) / (double)numLinks);
     ompl::base::StateSpacePtr chain(new KinematicChainSpace(numLinks, 1. / (double)numLinks, &env));
     ompl::geometric::SimpleSetup ss(chain);
