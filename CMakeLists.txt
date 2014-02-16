@@ -8,7 +8,6 @@ if (NOT CMAKE_BUILD_TYPE)
 
     # On 32bit architectures, use RelWithDebInfo
     if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_SIZEOF_VOID_P EQUAL 4)
-        execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
         set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Type of build" FORCE)
     endif()
 endif()
