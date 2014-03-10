@@ -54,6 +54,13 @@ endif(IS_ICPC)
 # have the try_join_for call
 find_package(Boost QUIET 1.50)
 
+# If Boost is not found at all, the check for version 1.50 below will die in
+# the most ungraceful manner because Boost_VERSION is not defined.  Define the
+# variable here for a more useful error.
+if (NOT ${Boost_FOUND})
+    set(Boost_VERSION 0)
+endif()
+
 # try_join_for requires the chrono library, so if we will use
 # try_join_for, we need to include the chrono component
 # Must recheck the Boost version, since update_bindings will re-run CMake
