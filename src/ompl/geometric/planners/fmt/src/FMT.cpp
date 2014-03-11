@@ -242,8 +242,8 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
         return base::PlannerStatus::INVALID_GOAL;
     }
 
-    Motion *z;
-    Motion *initMotion;
+    Motion *z = NULL;
+    Motion *initMotion = NULL;
     
     // Add start states to V (nn_) and H
     while (const base::State *st = pis_.nextStart())
@@ -256,7 +256,13 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
         nn_->add(initMotion);                           // V <-- {x_init}
     }
     z = initMotion;                                     // z <-- xinit
-        
+
+    if (!initMotion)
+    {
+        OMPL_ERROR("Start state undefined");
+        return base::PlannerStatus::INVALID_START;
+    }
+    
     // Sample N free states in the configuration space
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
