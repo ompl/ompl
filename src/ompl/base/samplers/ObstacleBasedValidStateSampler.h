@@ -46,7 +46,14 @@ namespace ompl
     {
 
 
-        /** \brief Generate valid samples using the Bridge Test. */
+        /** \brief Generate valid samples using obstacle based sampling.  First
+            sample an invalid state, then sample a valid state.  Then, interpolate from
+            the invalid state to the valid state, returning the first valid state
+            encountered.
+
+            @par External documentation
+            N. M. Amato, O. B. Bayazit, L. K. Dale, C. Jones, and D. Vallejo, OBPRM: an obstacle-based PRM for 3D workspaces, in <em> Third Workshop on the Algorithmic Foundations of Robotics</em>, pp. 155-168, 1998. DOI: <a href="http://dl.acm.org/citation.cfm?id=299002">http://dl.acm.org/citation.cfm?id=299002</a>
+        */
         class ObstacleBasedValidStateSampler : public ValidStateSampler
         {
         public:
