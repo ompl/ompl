@@ -8,6 +8,7 @@ OMPL contains a ompl::Benchmark class that facilitates solving a motion planning
 - \ref benchmark_code
 - \ref benchmark_log
 - \ref benchmark_sample_results
+- \ref benchmark_database
 
 \ifnot OMPLAPP
 For a command line program for rigid body motion planning, see the [ompl_benchmark](http://ompl.kavrakilab.org/benchmark.html) program in OMPL.app.
@@ -295,3 +296,73 @@ For boolean measurements the script will create bar charts with the percentage o
 <div class="row"><img src="../images/Twistycool_solved.png" class="span8 offset1"></div>
 
 Whenever measurements are not always available for a particular attribute, the columns for each planner are labeled with the number of runs for which no data was available. For instance, the boolean attribute __correct solution__ is not set if a solution is not found.
+
+# The benchmark database schema {#benchmark_database}
+
+The ompl_benchmark_statistics.py script can produce a series of plots from a database of benchmark results, but in many cases you may want to produce your own custom plots. For this it useful to understand the schema used for the database. There are five tables in a benchmark database:
+- \b experiments. This table contains the following information:
+  - *id:* an ID used in the \c runs table to denote that a run was part of a given experiment.
+  - *name:* name of the experiment.
+  - *totaltime:* total duration of the experiment in seconds.
+  - *timelimit:* time limit for each individual run in seconds.
+  - *memorylimit:* memory limit for each individual run in MB.
+  - *runcount:* the number of times each planner configuration was run.
+  - *hostname:* the host name of the machine on which the experiment was performed.
+  - *date:* the date on which the experiment was performed.
+  - *seed:* the random seed used.
+  - *setup:* a string containing a “print-out” of all the settings of the SimpleSetup object used during benchmarking.
+- \b plannerConfigs. There are a number of planner types (such as PRM and RRT), but each planner can typically be configured with a number of parameters. A planner configuration refers to a planner type with specific parameter settings. The \c plannerConfigs table contains the following information:
+  - *id:* an ID used in the \c runs table to denote that a given planner configuration was used for a run.
+  - *name:* the name of the configuration. This can be just the planner name, but when using different parameter settings of the same planner it is essential to use more specific names.
+  - *settings:* a string containing a “print-out” of all the settings of the planner.
+- \b enums: This table contains description of enumerate types that are measured during benchmarking. By default there is only one such such type defined: ompl::base::PlannerStatus. The table contains the following information:
+  - *name:* name of the enumerate type (e.g., “status”).
+  - *value:* numerical value used in the runs
+  - *description:* text description of each value (e.g. “Exact solution,” “Approximate solution,” “Timeout,” etc.)
+- \b runs. The \c runs table contains information for every run in every experiment. Each run is identified by the following fields:
+  - *id:* ID of the run
+  - *experimentid:* ID of the experiment to which this run belonged.
+  - *plannerid:* ID of the planner configuration used for this run.
+  .
+  In addition, there will be many benchmark statistics. None are *required*, but the OMPL planners all report the properties described above such as time, memory, solution length, simplification time, etc. It is possible that not all planners report the same properties. In that case, planners that do not report such properties will have NULL values in the corresponding fields.
+- \b progress. Some planners (such as RRT*) can also periodically report properties *during* a run. This can be useful to analyze the convergence or growth rate. The \c progress table contains the following information:
+  - *runid:* the ID of the run for which progress data was tracked.
+  - *time:* the time (in sec.) at which the property was measured.
+  .
+  The actual properties stored depend on the planner, but in the case of RRT* it stores the following additional fields:
+  - *iterations:* the number of iterations.
+  - *collision_checks:* the number of collision checks (or, more precisely, the number state validator calls).
+  - *best_cost:* the cost of the best solution found so far.
+
+Using SQL queries one can easily select a subset of the data or compute [joins](http://en.wikipedia.org/wiki/Join_(SQL)) of tables.
+Consider the following snippet of R code:
+\code
+library("ggplot2")
+library("RSQLite")
+con <- dbConnect(dbDriver("SQLite"), "benchmark.db")
+
+# read data
+runs <- dbGetQuery(con, "SELECT REPLACE(plannerConfigs.name,'geometric_','') AS name, runs.* FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid")
+progress <- dbGetQuery(con, "SELECT REPLACE(plannerConfigs.name,'geometric_','') AS name, progress.* FROM plannerConfigs INNER JOIN runs INNER JOIN progress ON plannerConfigs.id=runs.plannerid AND runs.id=progress.runid")
+
+# plot some data
+pdf('plots.pdf', width=8, height=6)
+qplot(name, time, data=runs, geom=c("jitter","boxplot"))
+qplot(time, best_cost, data=progress, alpha=I(1/2), colour=name, geom=c("point", "smooth"))
+
+dev.off()
+dbDisconnect(con)
+\endcode
+For a small database with 1 experiment (the “cubicles” problem from OMPL.app) and 5 planner configurations we then obtain the following two plots:
+\htmlonly
+<div class="row">
+<div class="span6">
+  <img src="../images/R_time.png" width="100%"><br>
+<b>Time to find a solution.</b> Note that that RRT* does not terminate because it keeps trying to find a more optimal solution.
+</div>
+<div class="span6">
+  <img src="../images/R_progress.png" width="100%"><br>
+<b>Length of shortest path found after a given number of seconds.</b> Only RRT* currently uses progress properties. Although the variability among individual runs is quite high, one can definitely tell that different parameter settings (for the range in this case) lead to statistically significant different behavior.
+</div>
+</div>
+\endhtmlonly
