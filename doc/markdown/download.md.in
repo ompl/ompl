@@ -6,6 +6,16 @@
 
   <a href="https://bitbucket.org/ompl/ompl/downloads/ompl-@OMPL_VERSION@-Source.tar.gz" class="btn btn-primary btn-small">TGZ</a>
   <a href="https://bitbucket.org/ompl/ompl/downloads/ompl-@OMPL_VERSION@-Source.zip" class="btn btn-primary btn-small">ZIP</a><br><br>
+
+  OMPL is also available through through several package managers:
+  - [Debian](https://packages.debian.org/sid/libompl-dev),
+  - [Ubuntu (14.04 and higher)](http://packages.ubuntu.com/trusty/libompl-dev),
+  - [Fedora](https://apps.fedoraproject.org/packages/ompl),
+  - [MacPorts](https://www.macports.org), and
+  - [Homebrew](http://brew.sh).
+  .
+  Note that these package managers may not always have the latest release.
+
 - [Installation instructions.](installation.html)
 - [Older releases.](https://bitbucket.org/ompl/ompl/downloads) See the [release notes](releaseNotes.html) for a brief a description of changes for each release.
 
@@ -26,7 +36,11 @@
 
 # Debian Packages
 
-- Debian Packages are are generated periodically for __OMPL__ as part of the ROS release process. On Ubuntu, you can use this:
+- Debian packages are available for Debian unstable and Ubuntu 14.04 and higher. Simply type:
+
+      apt-get install libompl-dev
+
+- Debian Packages are also generated periodically for __OMPL__ as part of the ROS release process. On Ubuntu, you can use this:
 
       sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
       wget http://packages.ros.org/ros.key -O - | sudo apt-key add -

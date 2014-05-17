@@ -1,4 +1,4 @@
-#!/usr/bin/env DYLD_FALLBACK_LIBRARY_PATH=/opt/local/lib python
+#!/usr/bin/env python
 
 ######################################################################
 # Software License Agreement (BSD License)
