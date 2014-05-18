@@ -115,12 +115,12 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::vector<Motio
     {
         /* Instead of querying the nearest neighbors datastructure over the entire tree of motions,
          * here we perform a linear search over all motions in the selected region and its neighbors. */
-        std::vector<unsigned int> searchRegions;
+        std::vector<int> searchRegions;
         decomp_->getNeighbors(region.index, searchRegions);
         searchRegions.push_back(region.index);
 
         std::vector<Motion*> motions;
-        for (std::vector<unsigned int>::const_iterator i = searchRegions.begin(); i != searchRegions.end(); ++i)
+        for (std::vector<int>::const_iterator i = searchRegions.begin(); i != searchRegions.end(); ++i)
         {
             const std::vector<Motion*>& regionMotions = getRegionFromIndex(*i).motions;
             motions.insert(motions.end(), regionMotions.begin(), regionMotions.end());

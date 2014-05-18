@@ -39,6 +39,7 @@ if (OMPL_BUILD_DEMOS)
 
   if (OMPL_EXTENSION_TRIANGLE)
     add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
+    add_ompl_demo(demo_LTLWithTriangulation LTLWithTriangulation)
   endif()
 
 # Only build the PlannerData demo on Boost >= 1.44
