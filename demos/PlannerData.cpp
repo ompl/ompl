@@ -32,13 +32,15 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ryan Luna */
+/* Author: Ryan Luna, Luis G. Torres */
 
 #include <ompl/base/PlannerData.h>
 #include <ompl/base/PlannerDataStorage.h>
 #include <ompl/base/PlannerDataGraph.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
+#include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/geometric/SimpleSetup.h>
+#include <ompl/base/goals/GoalState.h>
 
 #include <boost/graph/astar_search.hpp>
 #include <iostream>
@@ -119,10 +121,13 @@ void planWithSimpleSetup(void)
 }
 
 // Used for A* search.  Computes the heuristic distance from vertex v1 to the goal
-double distanceHeuristic(ob::PlannerData::Graph::Vertex v1, const ob::State* goal, const ob::StateSpacePtr& space,
-                         const boost::property_map<ob::PlannerData::Graph::Type, vertex_type_t>::type& plannerDataVertices)
+ob::Cost distanceHeuristic(ob::PlannerData::Graph::Vertex v1,
+                           const ob::GoalState* goal,
+                           const ob::OptimizationObjective* obj,
+                           const boost::property_map<ob::PlannerData::Graph::Type,
+                           vertex_type_t>::type& plannerDataVertices)
 {
-    return space->distance(plannerDataVertices[v1]->getState(), goal);
+    return ob::Cost(obj->costToGo(plannerDataVertices[v1]->getState(), goal));
 }
 
 void readPlannerData(void)
@@ -143,9 +148,12 @@ void readPlannerData(void)
     // Re-extract the shortest path from the loaded planner data
     if (data.numStartVertices() > 0 && data.numGoalVertices() > 0)
     {
+        // Create an optimization objective for optimizing path length in A*
+        ob::PathLengthOptimizationObjective opt(si);
+
         // Computing the weights of all edges based on the state space distance
         // This is not done by default for efficiency
-        data.computeEdgeWeights();
+        data.computeEdgeWeights(opt);
 
         // Getting a handle to the raw Boost.Graph data
         ob::PlannerData::Graph::Type& graph = data.toBoostGraph();
@@ -159,16 +167,27 @@ void readPlannerData(void)
         boost::property_map<ob::PlannerData::Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), graph);
 
         // Run A* search over our planner data
-        ob::PlannerData::Graph::Vertex goal  = boost::vertex(data.getGoalIndex(0), graph);
+        ob::GoalState goal(si);
+        goal.setState(data.getGoalVertex(0).getState());
         ob::PlannerData::Graph::Vertex start = boost::vertex(data.getStartIndex(0), graph);
         boost::astar_search(graph, start,
-                            boost::bind(&distanceHeuristic, _1, vertices[goal]->getState(), space, vertices),
-                            boost::predecessor_map(prev));
+                            boost::bind(&distanceHeuristic, _1, &goal, &opt, vertices),
+                            boost::predecessor_map(prev).
+                            distance_compare(boost::bind(&ob::OptimizationObjective::
+                                                         isCostBetterThan, &opt, _1, _2)).
+                            distance_combine(boost::bind(&ob::OptimizationObjective::
+                                                         combineCosts, &opt, _1, _2)).
+                            distance_inf(opt.infiniteCost()).
+                            distance_zero(opt.identityCost()));
 
         // Extracting the path
         og::PathGeometric path(si);
-        for (ob::PlannerData::Graph::Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
+        for (ob::PlannerData::Graph::Vertex pos = boost::vertex(data.getGoalIndex(0), graph);
+             prev[pos] != pos;
+             pos = prev[pos])
+        {
             path.append(vertices[pos]->getState());
+        }
         path.append(vertices[start]->getState());
         path.reverse();
 

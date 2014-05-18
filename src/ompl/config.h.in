@@ -44,10 +44,13 @@
 #define OMPL_MINOR_VERSION @OMPL_MINOR_VERSION@
 #define OMPL_PATCH_VERSION @OMPL_PATCH_VERSION@
 
+/** \brief Specify whether the MORSE extension is built */
+#cmakedefine01 OMPL_EXTENSION_MORSE
+
 /** \brief Specify whether the OpenDE extension is built */
 #cmakedefine01 OMPL_EXTENSION_OPENDE
 
-/** \brief Wether FLANN is installed */
+/** \brief Whether FLANN is installed */
 #cmakedefine01 OMPL_HAVE_FLANN
 
 #endif

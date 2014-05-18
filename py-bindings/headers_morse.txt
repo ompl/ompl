@@ -1,0 +1,10 @@
+../src/ompl/extensions/morse/MorseEnvironment.h
+../src/ompl/extensions/morse/MorseTerminationCondition.h
+../src/ompl/extensions/morse/MorseGoal.h
+../src/ompl/extensions/morse/MorseStateSpace.h
+../src/ompl/extensions/morse/MorseControlSpace.h
+../src/ompl/extensions/morse/MorseStatePropagator.h
+../src/ompl/extensions/morse/MorseStateValidityChecker.h
+../src/ompl/extensions/morse/MorseProjection.h
+../src/ompl/extensions/morse/MorseSimpleSetup.h
+ompl_py_morse.h

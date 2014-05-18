@@ -43,7 +43,8 @@
 #include "ompl/geometric/planners/rrt/TRRT.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
-#include "ompl/geometric/planners/rrt/BallTreeRRTstar.h"
+#include "ompl/geometric/planners/rrt/LBTRRT.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
 #include "../../BoostTestTeamCityReporter.h"
 #include "../../base/PlannerTest.h"
@@ -76,7 +77,8 @@ public:
         base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
 
         // define an objective that is met the moment the solution is found
-        base::PathLengthOptimizationObjective *opt = new base::PathLengthOptimizationObjective(si, std::numeric_limits<double>::infinity());
+        base::PathLengthOptimizationObjective *opt = new base::PathLengthOptimizationObjective(si);
+        opt->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
         pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
 
         /* instantiate motion planner */
@@ -115,19 +117,18 @@ public:
             pdef->clearSolutionPaths();
 
             // we change the optimization objective so the planner runs until the first solution
-            opt->setMaximumUpperBound(std::numeric_limits<double>::infinity());
+            opt->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
 
             time::point start = time::now();
             bool solved = planner->solve(SOLUTION_TIME);
             if (solved)
             {
               // we change the optimization objective so the planner runs until timeout
-              opt->setMaximumUpperBound(std::numeric_limits<double>::epsilon());
+              opt->setCostThreshold(base::Cost(std::numeric_limits<double>::epsilon()));
 
               geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
-              double ini_length = path->length();
-              double prev_length = ini_length;
-              std::vector<double> lengths;
+              base::Cost ini_cost = path->cost(pdef->getOptimizationObjective());
+              base::Cost prev_cost = ini_cost;
               double time_spent = time::seconds(time::now() - start);
 
               while (time_spent + DT_SOLUTION_TIME < SOLUTION_TIME)
@@ -138,19 +139,24 @@ public:
                 if (solved)
                 {
                     geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
-                    double new_length = path->length();
-                    BOOST_CHECK(new_length <= prev_length);
-                    prev_length = new_length;
+                    base::Cost new_cost = path->cost(pdef->getOptimizationObjective());
+
+                    // We don't use opt->isCostBetterThan() because
+                    // isCostBetterThan() defaults to '<', which can
+                    // cause this test to fail
+                    BOOST_CHECK(new_cost.v <= prev_cost.v);
+
+                    prev_cost = new_cost;
                     BOOST_CHECK(!pdef->hasOptimizedSolution());
                     BOOST_CHECK(!pdef->hasApproximateSolution());
                 }
                 time_spent = time::seconds(time::now() - start);
               }
-              BOOST_CHECK(ini_length > prev_length);
+              BOOST_CHECK(ini_cost.v > prev_cost.v);
 
               pdef->clearSolutionPaths();
               // we change the optimization objective so the planner can achieve the objective
-              opt->setMaximumUpperBound(ini_length);
+              opt->setCostThreshold(ini_cost);
               if (planner->solve(DT_SOLUTION_TIME))
                   BOOST_CHECK(pdef->hasOptimizedSolution());
             }
@@ -168,17 +174,6 @@ protected:
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
         geometric::RRTstar *rrt = new geometric::RRTstar(si);
-        return base::PlannerPtr(rrt);
-    }
-};
-
-class BallTreeRRTstarTest : public TestPlanner
-{
-protected:
-
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
-    {
-        geometric::BallTreeRRTstar *rrt = new geometric::BallTreeRRTstar(si);
         return base::PlannerPtr(rrt);
     }
 };
@@ -252,6 +247,5 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 OMPL_PLANNER_TEST(PRMstar)
 OMPL_PLANNER_TEST(PRM)
 OMPL_PLANNER_TEST(RRTstar)
-// OMPL_PLANNER_TEST(BallTreeRRTstar) hangs
 
 BOOST_AUTO_TEST_SUITE_END()

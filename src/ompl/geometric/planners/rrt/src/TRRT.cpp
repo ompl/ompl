@@ -35,6 +35,7 @@
 /* Author: Dave Coleman */
 
 #include "ompl/geometric/planners/rrt/TRRT.h"
+#include "ompl/base/objectives/MechanicalWorkOptimizationObjective.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/tools/config/MagicConstants.h"
@@ -97,6 +98,27 @@ void ompl::geometric::TRRT::setup(void)
     Planner::setup();
     tools::SelfConfig selfConfig(si_, getName());
 
+    bool usingDefaultObjective = false;
+    if (!pdef_->hasOptimizationObjective())
+    {
+        OMPL_INFORM("%s: No optimization objective specified.", getName().c_str());
+        usingDefaultObjective = true;
+    }
+    else if (!boost::dynamic_pointer_cast<
+             base::MechanicalWorkOptimizationObjective>(pdef_->getOptimizationObjective()))
+    {
+        OMPL_INFORM("%s: TRRT was supplied an inappropriate optimization objective; it can only handle types of ompl::base::MechanicalWorkOptimizationObjective.", getName().c_str());
+        usingDefaultObjective = true;
+    }
+
+    if (usingDefaultObjective)
+    {
+        opt_.reset(new base::MechanicalWorkOptimizationObjective(si_));
+        OMPL_INFORM("%s: Defaulting to optimizing path length.", getName().c_str());
+    }
+    else
+        opt_ = pdef_->getOptimizationObjective();
+
     // Set maximum distance a new node can be from its nearest neighbor
     if (maxDistance_ < std::numeric_limits<double>::epsilon())
     {
@@ -115,7 +137,7 @@ void ompl::geometric::TRRT::setup(void)
     if (kConstant_ < std::numeric_limits<double>::epsilon())
     {
         // Find the average cost of states by sampling
-        double averageCost = si_->averageStateCost(magic::TEST_STATE_COUNT);
+        double averageCost = opt_->averageStateCost(magic::TEST_STATE_COUNT).v;
         kConstant_ = averageCost;
         OMPL_DEBUG("%s: K constant detected to be %lf", getName().c_str(), kConstant_);
     }
@@ -160,9 +182,6 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goalRegion = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
-    // Object for getting the cost of a state
-    const base::StateValidityCheckerPtr &stateValidityChecker = si_->getStateValidityChecker();
-
     // Input States ---------------------------------------------------------------------------------
 
     // Loop through valid input states and add to tree
@@ -175,7 +194,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         si_->copyState(motion->state, state);
 
         // Set cost for this start state
-        motion->cost = stateValidityChecker->cost(motion->state);
+        motion->cost = opt_->stateCost(motion->state);
 
         // Add start motion to the tree
         nearestNeighbors_->add(motion);
@@ -293,10 +312,10 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
             continue; // give up on this one and try a new sample
         }
 
-        double childCost = stateValidityChecker->cost(newState);
+        base::Cost childCost = opt_->stateCost(newState);
 
         // Only add this motion to the tree if the tranistion test accepts it
-        if (!transitionTest(childCost, nearMotion->cost, motionDistance))
+        if(!transitionTest(childCost.v, nearMotion->cost.v, motionDistance))
         {
             continue; // give up on this one and try a new sample
         }
@@ -307,7 +326,6 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         Motion *motion = new Motion(si_);
         si_->copyState(motion->state, newState);
         motion->parent = nearMotion; // link q_new to q_near as an edge
-        motion->distance = motionDistance; // cache the distance btw parent and state
         motion->cost = childCost;
 
         // Add motion to data structure

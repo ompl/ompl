@@ -393,11 +393,14 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
     BOOST_CHECK_EQUAL( data.tagState(0, 1000), false ); // state doesn't exist
 
     // Reset the edge weight for 0->1
-    BOOST_CHECK( data.setEdgeWeight(0, 1, 1.234) );
-    BOOST_OMPL_EXPECT_NEAR( data.getEdgeWeight(0, 1), 1.234, 1e-4);
+    BOOST_CHECK( data.setEdgeWeight(0, 1, base::Cost(1.234)) );
 
-    BOOST_CHECK_EQUAL( data.getEdgeWeight(0, 5), base::PlannerData::INVALID_WEIGHT ); // edge does not exist
-    BOOST_CHECK_EQUAL( data.setEdgeWeight(0, 5, 2.345), false );
+    base::Cost w;
+    BOOST_CHECK(data.getEdgeWeight(0, 1, &w));
+    BOOST_OMPL_EXPECT_NEAR( w.v, 1.234, 1e-4);
+
+    BOOST_CHECK_EQUAL( data.getEdgeWeight(0, 5, &w), false ); // edge does not exist
+    BOOST_CHECK_EQUAL( data.setEdgeWeight(0, 5, base::Cost(2.345)), false );
 
     // Try to tag an invalid state
     BOOST_CHECK_EQUAL( data.tagState(0, 100), false );

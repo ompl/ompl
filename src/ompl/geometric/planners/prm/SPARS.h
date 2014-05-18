@@ -48,6 +48,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/pending/disjoint_sets.hpp>
 #include <boost/function.hpp>
+#include <boost/thread.hpp>
 #include <iostream>
 #include <fstream>
 #include <utility>
@@ -115,6 +116,9 @@ namespace ompl
 
             /** \brief Hash for storing interface information. */
             typedef boost::unordered_map<VertexIndexType, std::set<VertexIndexType>, boost::hash<VertexIndexType> > InterfaceHash;
+
+            /** \brief Internal representation of a dense path */
+            typedef std::deque<base::State*> DensePath;
 
             // The InterfaceHash structure is wrapped inside of this struct due to a compilation error on
             // GCC 4.6 with Boost 1.48.  An implicit assignment operator overload does not compile with these
@@ -393,7 +397,7 @@ namespace ompl
             DenseVertex getInterfaceNeighbor(DenseVertex q, SparseVertex rep);
 
             /** \brief Method for actually adding a dense path to the Roadmap Spanner, S. */
-            bool addPathToSpanner(const std::deque< base::State* >& p, SparseVertex vp, SparseVertex vpp);
+            bool addPathToSpanner(const DensePath& p, SparseVertex vp, SparseVertex vpp);
 
             /** \brief Automatically updates the representatives of all dense samplse within sparseDelta_ of v */
             void updateRepresentatives(SparseVertex v);
@@ -432,7 +436,7 @@ namespace ompl
             base::PathPtr constructSolution(const SparseVertex start, const SparseVertex goal) const;
 
             /** \brief Constructs the dense path between the start and goal vertices (if connected) */
-            void computeDensePath(const DenseVertex start, const DenseVertex goal, std::deque<base::State*> &path) const;
+            void computeDensePath(const DenseVertex start, const DenseVertex goal, DensePath &path) const;
 
             /** \brief Free all the memory allocated by the planner */
             void freeMemory(void);

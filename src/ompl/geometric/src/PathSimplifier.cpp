@@ -378,7 +378,7 @@ void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
     reduceVertices(path);
     collapseCloseVertices(path);
     // BSpline and checkAndRepair code only makes sense in a metric space.
-    if(si_->getStateSpace()->isMetricSpace())
+    if (si_->getStateSpace()->isMetricSpace())
     {
         smoothBSpline(path, 4, path.length()/100.0);
         const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);

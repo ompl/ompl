@@ -303,11 +303,13 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     addedSolution_ = false;
     resetFailures();
     base::PathPtr sol;
-    base::PlannerOrTerminationCondition ptcOrFail(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
+    base::PlannerTerminationCondition ptcOrFail = 
+        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
     boost::thread slnThread(boost::bind(&SPARS::checkForSolution, this, ptcOrFail, boost::ref(sol)));
 
     // Construct planner termination condition which also takes maxFailures_ and addedSolution_ into account
-    base::PlannerOrTerminationCondition ptcOrStop(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedTerminationCriterion, this)));
+    base::PlannerTerminationCondition ptcOrStop =
+        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedTerminationCriterion, this)));
     constructRoadmap(ptcOrStop);
 
     // Ensure slnThread is ceased before exiting solve
@@ -329,7 +331,8 @@ void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCond
     if (stopOnMaxFail)
     {
         resetFailures();
-        base::PlannerOrTerminationCondition ptcOrFail(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
+        base::PlannerTerminationCondition ptcOrFail =
+	    base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
         constructRoadmap(ptcOrFail);
     }
     else
@@ -582,7 +585,7 @@ bool ompl::geometric::SPARS::checkAddPath(DenseVertex q, const std::vector<Dense
                     s_max = dist;
             }
 
-            std::deque< base::State* > bestDPath;
+            DensePath bestDPath;
             DenseVertex best_qpp = boost::graph_traits<DenseGraph>::null_vertex();
             double d_min = std::numeric_limits<double>::infinity(); //Insanely big number
             //For each vpp in vpps
@@ -605,14 +608,14 @@ bool ompl::geometric::SPARS::checkAddPath(DenseVertex q, const std::vector<Dense
                     else
                     {
                         //Compute/Retain MINimum distance path on D through q, q"
-                        std::deque<base::State*> dPath;
+                        DensePath dPath;
                         computeDensePath(q, qpp, dPath);
                         if (dPath.size() > 0)
                         {
                             // compute path length
                             double length = 0.0;
-                            std::deque<base::State*>::const_iterator jt = dPath.begin();
-                            for (std::deque<base::State*>::const_iterator it = jt + 1 ; it != dPath.end() ; ++it)
+                            DensePath::const_iterator jt = dPath.begin();
+                            for (DensePath::const_iterator it = jt + 1 ; it != dPath.end() ; ++it)
                             {
                                 length += si_->distance(*jt, *it);
                                 jt = it;
@@ -691,7 +694,7 @@ ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::getInterfaceNeighbor
     throw Exception(name_, "Vertex has no interface neighbor with given representative");
 }
 
-bool ompl::geometric::SPARS::addPathToSpanner( const std::deque< base::State* >& dense_path, SparseVertex vp, SparseVertex vpp )
+bool ompl::geometric::SPARS::addPathToSpanner( const DensePath& dense_path, SparseVertex vp, SparseVertex vpp )
 {
     // First, check to see that the path has length
     if (dense_path.size() <= 1)
@@ -909,7 +912,7 @@ ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const SparseVertex
     }
 }
 
-void ompl::geometric::SPARS::computeDensePath(const DenseVertex start, const DenseVertex goal, std::deque< base::State* > &path) const
+void ompl::geometric::SPARS::computeDensePath(const DenseVertex start, const DenseVertex goal, DensePath &path) const
 {
     path.clear();
 

@@ -1,257 +1,278 @@
-<svg version="1.1" baseProfile="basic" id="apioverview"
-     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 729 531" xml:space="preserve">
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Basic//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic.dtd">
+<svg version="1.1" baseProfile="basic" id="Layer_1"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="729px" height="531px"
+	 viewBox="0 0 729 531" xml:space="preserve">
 <path fill="#98BFD5" d="M711,411c0,6.628-6.717,12-15,12H591c-8.284,0-15-5.372-15-12v-30c0-6.628,6.716-12,15-12h105
-    c8.283,0,15,5.372,15,12V411z"/>
+	c8.283,0,15,5.372,15,12V411z"/>
 <g>
-    <rect x="225" y="450" fill="#645D61" width="108" height="45"/>
-    <text transform="matrix(1 0 0 1 244.7773 477)" fill="#FFFFFF" font-family="'Helvetica-Bold'" font-size="14">User code</text>
+	<rect x="225" y="450" fill="#645D61" width="108" height="45"/>
+	<text transform="matrix(1 0 0 1 244.7773 477)" fill="#FFFFFF" font-family="'Helvetica-Bold'" font-size="14">User code</text>
 </g>
 <g>
-    <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="589.216" y1="342" x2="546.835" y2="369.556"/>
-    <g>
-        <path d="M548.34,368.578l3.801,1.825l-0.059,0.136l-6.197,1.246c-1.962,0.738-3.924,1.477-5.885,2.215
-            c1.47-1.494,2.941-2.986,4.411-4.48l3.654-5.158l0.136-0.017L548.34,368.578z"/>
-    </g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="589.216" y1="342" x2="546.835" y2="369.556"/>
+	<g>
+		<path d="M548.34,368.578l3.801,1.825l-0.059,0.136l-6.197,1.246c-1.962,0.738-3.924,1.477-5.885,2.215
+			c1.47-1.494,2.941-2.986,4.411-4.48l3.654-5.158l0.136-0.017L548.34,368.578z"/>
+	</g>
 </g>
 <a xlink:href="classompl_1_1base_1_1StateSpace.html" >
-    <g>
-        <path fill="#7992A2" stroke="#645D61" stroke-miterlimit="10" d="M540,97c0,11.045-8.507,20-19,20H388c-10.494,0-19-8.955-19-20
-            V47c0-11.045,8.506-20,19-20h133c10.493,0,19,8.955,19,20V97z"/>
-        <rect x="388" y="35.667" fill="none" width="135.334" height="75.333"/>
-        <text transform="matrix(1 0 0 1 423.3164 44.2939)"><tspan x="0" y="0" fill="#FFFFFF" font-family="'Helvetica-Bold'" font-size="12">StateSpace</tspan><tspan x="-33.799" y="12" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">Represents the state space in </tspan><tspan x="-31.295" y="24" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">which planning is performed; </tspan><tspan x="-31.844" y="36" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">implements topology-specific </tspan><tspan x="-32.686" y="48" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">functions: distance, interpola- </tspan><tspan x="-22.125" y="60" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">tion, state (de)allocation.</tspan></text>
-    </g>
+	<g>
+		<path fill="#7992A2" stroke="#645D61" stroke-miterlimit="10" d="M540,97c0,11.045-8.507,20-19,20H388c-10.494,0-19-8.955-19-20
+			V47c0-11.045,8.506-20,19-20h133c10.493,0,19,8.955,19,20V97z"/>
+		<rect x="388" y="35.667" fill="none" width="135.334" height="75.333"/>
+		<text transform="matrix(1 0 0 1 423.3164 44.2939)"><tspan x="0" y="0" fill="#FFFFFF" font-family="'Helvetica-Bold'" font-size="12">StateSpace</tspan><tspan x="-33.799" y="12" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">Represents the state space in </tspan><tspan x="-31.295" y="24" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">which planning is performed; </tspan><tspan x="-31.844" y="36" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">implements topology-specific </tspan><tspan x="-32.686" y="48" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">functions: distance, interpola- </tspan><tspan x="-22.125" y="60" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">tion, state (de)allocation.</tspan></text>
+	</g>
 </a>
 <a xlink:href="classompl_1_1base_1_1StateSampler.html" >
-    <g>
-        <path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="1.997,1.997" d="M720,76c0,7.732-7.612,14-17,14
-            H584c-9.389,0-17-6.268-17-14V41c0-7.732,7.611-14,17-14h119c9.388,0,17,6.268,17,14V76z"/>
-        <rect x="575" y="35.309" fill="none" width="137" height="46.382"/>
-        <text transform="matrix(1 0 0 1 605.1504 43.9365)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">StateSampler</tspan><tspan x="-15.285" y="12" font-family="'Helvetica'" font-size="10">Implements uniform and </tspan><tspan x="-24.461" y="24" font-family="'Helvetica'" font-size="10">Gaussian sampling of states </tspan><tspan x="-18.348" y="36" font-family="'Helvetica'" font-size="10">for a specific StateSpace.</tspan></text>
-    </g>
+	<g>
+		<path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="1.997,1.997" d="M720,76c0,7.732-7.612,14-17,14
+			H584c-9.389,0-17-6.268-17-14V41c0-7.732,7.611-14,17-14h119c9.388,0,17,6.268,17,14V76z"/>
+		<rect x="575" y="35.309" fill="none" width="137" height="46.382"/>
+		<text transform="matrix(1 0 0 1 605.1504 43.9365)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">StateSampler</tspan><tspan x="-15.285" y="12" font-family="'Helvetica'" font-size="10">Implements uniform and </tspan><tspan x="-24.461" y="24" font-family="'Helvetica'" font-size="10">Gaussian sampling of states </tspan><tspan x="-18.348" y="36" font-family="'Helvetica'" font-size="10">for a specific StateSpace.</tspan></text>
+	</g>
 </a>
 <a xlink:href="classompl_1_1base_1_1ProjectionEvaluator.html" >
-    <g>
-        <path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="2.008,2.008" d="M720,164c0,8.836-7.612,16-17,16
-            H584c-9.39,0-17-7.164-17-16v-40c0-8.836,7.61-16,17-16h119c9.388,0,17,7.164,17,16V164z"/>
-        <rect x="578" y="114.5" fill="none" width="131" height="63"/>
-        <text transform="matrix(1 0 0 1 586.8193 123.1279)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">ProjectionEvaluator</tspan><tspan x="-3.065" y="12" font-family="'Helvetica'" font-size="10">Computes projections from </tspan><tspan x="0.821" y="24" font-family="'Helvetica'" font-size="10">states of a specific State- </tspan><tspan x="-4.464" y="36" font-family="'Helvetica'" font-size="10">Space to a low-dimensional </tspan><tspan x="18.6" y="48" font-family="'Helvetica'" font-size="10">Euclidean space.</tspan></text>
-    </g>
+	<g>
+		<path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="2.008,2.008" d="M720,164c0,8.836-7.612,16-17,16
+			H584c-9.39,0-17-7.164-17-16v-40c0-8.836,7.61-16,17-16h119c9.388,0,17,7.164,17,16V164z"/>
+		<rect x="578" y="114.5" fill="none" width="131" height="63"/>
+		<text transform="matrix(1 0 0 1 586.8193 123.1279)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">ProjectionEvaluator</tspan><tspan x="-3.065" y="12" font-family="'Helvetica'" font-size="10">Computes projections from </tspan><tspan x="0.821" y="24" font-family="'Helvetica'" font-size="10">states of a specific State- </tspan><tspan x="-4.464" y="36" font-family="'Helvetica'" font-size="10">Space to a low-dimensional </tspan><tspan x="18.6" y="48" font-family="'Helvetica'" font-size="10">Euclidean space.</tspan></text>
+	</g>
 </a>
 <a xlink:href="classompl_1_1base_1_1Path.html" >
-    <g>
-        <path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="2.008,2.008" d="M720,326c0,8.836-7.612,16-17,16
-            H584c-9.39,0-17-7.164-17-16v-40c0-8.836,7.61-16,17-16h119c9.388,0,17,7.164,17,16V326z"/>
-        <rect x="579" y="280.244" fill="none" width="128" height="49.513"/>
-        <text transform="matrix(1 0 0 1 629.998 288.8721)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">Path</tspan><tspan x="-43.148" y="12" font-family="'Helvetica'" font-size="10">Representation of a path; </tspan><tspan x="-48.705" y="24" font-family="'Helvetica'" font-size="10">used to represent a solution </tspan><tspan x="-36.476" y="36" font-family="'Helvetica'" font-size="10">to a planning problem.</tspan></text>
-    </g>
+	<g>
+		<path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="2.008,2.008" d="M720,326c0,8.836-7.612,16-17,16
+			H584c-9.39,0-17-7.164-17-16v-40c0-8.836,7.61-16,17-16h119c9.388,0,17,7.164,17,16V326z"/>
+		<rect x="579" y="280.244" fill="none" width="128" height="49.513"/>
+		<text transform="matrix(1 0 0 1 629.998 288.8721)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">Path</tspan><tspan x="-43.148" y="12" font-family="'Helvetica'" font-size="10">Representation of a path; </tspan><tspan x="-48.705" y="24" font-family="'Helvetica'" font-size="10">used to represent a solution </tspan><tspan x="-36.476" y="36" font-family="'Helvetica'" font-size="10">to a planning problem.</tspan></text>
+	</g>
 </a>
 <a xlink:href="classompl_1_1base_1_1Goal.html" >
-    <g>
-        <path fill="none" stroke="#645D61" stroke-miterlimit="10" stroke-dasharray="7.89,3.945" d="M711,411c0,6.628-6.717,12-15,12H591
-            c-8.284,0-15-5.372-15-12v-30c0-6.628,6.716-12,15-12h105c8.283,0,15,5.372,15,12V411z"/>
-        <rect x="607" y="377.064" fill="none" width="76" height="38"/>
-        <text transform="matrix(1 0 0 1 631.6641 385.6924)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">Goal</tspan><tspan x="-20.575" y="12" font-family="'Helvetica'" font-size="10">Representation </tspan><tspan x="-7.235" y="24" font-family="'Helvetica'" font-size="10">of a goal.</tspan></text>
-    </g>
+	<g>
+		<path fill="none" stroke="#645D61" stroke-miterlimit="10" stroke-dasharray="7.89,3.945" d="M711,411c0,6.628-6.717,12-15,12H591
+			c-8.284,0-15-5.372-15-12v-30c0-6.628,6.716-12,15-12h105c8.283,0,15,5.372,15,12V411z"/>
+		<rect x="607" y="377.064" fill="none" width="76" height="38"/>
+		<text transform="matrix(1 0 0 1 631.6641 385.6924)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">Goal</tspan><tspan x="-20.575" y="12" font-family="'Helvetica'" font-size="10">Representation </tspan><tspan x="-7.235" y="24" font-family="'Helvetica'" font-size="10">of a goal.</tspan></text>
+	</g>
 </a>
 <a xlink:href="classompl_1_1base_1_1StateValidityChecker.html" >
-    <g>
-        <path fill="#7992A2" stroke="#645D61" stroke-miterlimit="10" d="M540.071,257c0,8.837-8.059,16-18,16h-126
-            c-9.941,0-18-7.163-18-16v-40c0-8.836,8.059-16,18-16h126c9.941,0,18,7.164,18,16V257z"/>
-        <rect x="391.333" y="211.135" fill="none" width="135.334" height="49.177"/>
-        <text transform="matrix(1 0 0 1 399.3076 219.7622)"><tspan x="0" y="0" fill="#FFFFFF" font-family="'Helvetica-Bold'" font-size="12">StateValidityChecker</tspan><tspan x="-7.29" y="12" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">Decides whether a given state </tspan><tspan x="-4.78" y="24" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">from a specific StateSpace is </tspan><tspan x="48.02" y="36" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">valid.</tspan></text>
-    </g>
+	<g>
+		<path fill="#7992A2" stroke="#645D61" stroke-miterlimit="10" d="M540.071,257c0,8.837-8.059,16-18,16h-126
+			c-9.941,0-18-7.163-18-16v-40c0-8.836,8.059-16,18-16h126c9.941,0,18,7.164,18,16V257z"/>
+		<rect x="391.333" y="211.135" fill="none" width="135.334" height="49.177"/>
+		<text transform="matrix(1 0 0 1 399.3076 219.7622)"><tspan x="0" y="0" fill="#FFFFFF" font-family="'Helvetica-Bold'" font-size="12">StateValidityChecker</tspan><tspan x="-7.29" y="12" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">Decides whether a given state </tspan><tspan x="-4.78" y="24" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">from a specific StateSpace is </tspan><tspan x="48.02" y="36" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">valid.</tspan></text>
+	</g>
 </a>
 <a xlink:href="classompl_1_1base_1_1SpaceInformation.html" >
-    <g>
-        <path fill="#99BFD5" stroke="#645D61" stroke-miterlimit="10" stroke-dasharray="7.908,3.954" d="M360,257c0,8.837-8.06,16-18,16
-            H216c-9.941,0-18-7.163-18-16v-40c0-8.837,8.059-16,18-16h126c9.94,0,18,7.163,18,16V257z"/>
-        <rect x="206.666" y="207.167" fill="none" width="144.667" height="59.667"/>
-        <text transform="matrix(1 0 0 1 228.3247 215.7949)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">SpaceInformation</tspan><tspan x="-19.359" y="12" font-family="'Helvetica'" font-size="10">Provides routines typically used </tspan><tspan x="-15.749" y="24" font-family="'Helvetica'" font-size="10">by motion planners; combines </tspan><tspan x="-11.579" y="36" font-family="'Helvetica'" font-size="10">the functionality of classes it </tspan><tspan x="23.15" y="48" font-family="'Helvetica'" font-size="10">depends on.</tspan></text>
-    </g>
+	<g>
+		<path fill="#99BFD5" stroke="#645D61" stroke-miterlimit="10" stroke-dasharray="7.908,3.954" d="M360,257c0,8.837-8.06,16-18,16
+			H216c-9.941,0-18-7.163-18-16v-40c0-8.837,8.059-16,18-16h126c9.94,0,18,7.163,18,16V257z"/>
+		<rect x="206.666" y="207.167" fill="none" width="144.667" height="59.667"/>
+		<text transform="matrix(1 0 0 1 228.3247 215.7949)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">SpaceInformation</tspan><tspan x="-19.359" y="12" font-family="'Helvetica'" font-size="10">Provides routines typically used </tspan><tspan x="-15.749" y="24" font-family="'Helvetica'" font-size="10">by motion planners; combines </tspan><tspan x="-11.579" y="36" font-family="'Helvetica'" font-size="10">the functionality of classes it </tspan><tspan x="23.15" y="48" font-family="'Helvetica'" font-size="10">depends on.</tspan></text>
+	</g>
 </a>
 <a xlink:href="classompl_1_1base_1_1MotionValidator.html" >
-    <g>
-        <path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="2.008,2.008" d="M171,257c0,8.836-7.612,16-17,16
-            H35c-9.389,0-17-7.164-17-16v-40c0-8.836,7.611-16,17-16h119c9.388,0,17,7.164,17,16V257z"/>
-        <rect x="25.299" y="207.562" fill="none" width="136.789" height="58.875"/>
-        <text transform="matrix(1 0 0 1 48.3618 216.1904)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">MotionValidator</tspan><tspan x="-16.644" y="12" font-family="'Helvetica'" font-size="10">Provides the ability to check </tspan><tspan x="-18.038" y="24" font-family="'Helvetica'" font-size="10">the validity of path segments </tspan><tspan x="-3.592" y="36" font-family="'Helvetica'" font-size="10">using the interpolation </tspan><tspan x="-17.488" y="48" font-family="'Helvetica'" font-size="10">provided by the StateSpace.</tspan></text>
-    </g>
+	<g>
+		<path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="2.008,2.008" d="M171,257c0,8.836-7.612,16-17,16
+			H35c-9.389,0-17-7.164-17-16v-40c0-8.836,7.611-16,17-16h119c9.388,0,17,7.164,17,16V257z"/>
+		<rect x="25.299" y="207.562" fill="none" width="136.789" height="58.875"/>
+		<text transform="matrix(1 0 0 1 48.3618 216.1904)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">MotionValidator</tspan><tspan x="-16.644" y="12" font-family="'Helvetica'" font-size="10">Provides the ability to check </tspan><tspan x="-18.038" y="24" font-family="'Helvetica'" font-size="10">the validity of path segments </tspan><tspan x="-3.592" y="36" font-family="'Helvetica'" font-size="10">using the interpolation </tspan><tspan x="-17.488" y="48" font-family="'Helvetica'" font-size="10">provided by the StateSpace.</tspan></text>
+	</g>
 </a>
 <a xlink:href="classompl_1_1base_1_1ValidStateSampler.html" >
-    <g>
-        <path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="2.009,2.009" d="M171,324c0,6.627-7.612,12-17,12
-            H35c-9.39,0-17-5.373-17-12v-30c0-6.627,7.61-12,17-12h119c9.388,0,17,5.373,17,12V324z"/>
-        <rect x="24.834" y="291.167" fill="none" width="139.333" height="35.667"/>
-        <text transform="matrix(1 0 0 1 41.813 299.7949)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">ValidStateSampler</tspan><tspan x="-12.344" y="12" font-family="'Helvetica'" font-size="10">Provides the ability to sample </tspan><tspan x="26.286" y="24" font-family="'Helvetica'" font-size="10">valid states.</tspan></text>
-    </g>
+	<g>
+		<path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="2.009,2.009" d="M171,324c0,6.627-7.612,12-17,12
+			H35c-9.39,0-17-5.373-17-12v-30c0-6.627,7.61-12,17-12h119c9.388,0,17,5.373,17,12V324z"/>
+		<rect x="24.834" y="291.167" fill="none" width="139.333" height="35.667"/>
+		<text transform="matrix(1 0 0 1 41.813 299.7949)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">ValidStateSampler</tspan><tspan x="-12.344" y="12" font-family="'Helvetica'" font-size="10">Provides the ability to sample </tspan><tspan x="26.286" y="24" font-family="'Helvetica'" font-size="10">valid states.</tspan></text>
+	</g>
 </a>
 <a xlink:href="classompl_1_1base_1_1Planner.html" >
-    <g>
-        <path fill="#9ABFD5" stroke="#645D61" stroke-miterlimit="10" stroke-dasharray="7.908,3.954" d="M162,411c0,6.628-6.717,12-15,12
-            H42c-8.284,0-15-5.372-15-12v-30c0-6.628,6.716-12,15-12h105c8.283,0,15,5.372,15,12V411z"/>
-        <rect x="48.36" y="377.731" fill="none" width="90.667" height="36.666"/>
-        <text transform="matrix(1 0 0 1 71.6855 386.3594)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">Planner</tspan><tspan x="-13.566" y="12" font-family="'Helvetica'" font-size="10">Solves a motion </tspan><tspan x="-17.741" y="24" font-family="'Helvetica'" font-size="10">planning problem.</tspan></text>
-    </g>
+	<g>
+		<path fill="#9ABFD5" stroke="#645D61" stroke-miterlimit="10" stroke-dasharray="7.908,3.954" d="M162,411c0,6.628-6.717,12-15,12
+			H42c-8.284,0-15-5.372-15-12v-30c0-6.628,6.716-12,15-12h105c8.283,0,15,5.372,15,12V411z"/>
+		<rect x="48.36" y="377.731" fill="none" width="90.667" height="36.666"/>
+		<text transform="matrix(1 0 0 1 71.6855 386.3594)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">Planner</tspan><tspan x="-13.566" y="12" font-family="'Helvetica'" font-size="10">Solves a motion </tspan><tspan x="-17.741" y="24" font-family="'Helvetica'" font-size="10">planning problem.</tspan></text>
+	</g>
 </a>
 <a xlink:href="classompl_1_1geometric_1_1SimpleSetup.html" >
-    <g>
-        <path fill="#7992A2" stroke="#645D61" stroke-width="2" stroke-miterlimit="10" d="M360,403c0,11.046-8.059,20-18,20H216
-            c-9.941,0-18-8.954-18-20v-50c0-11.045,8.059-20,18-20h126c9.941,0,18,8.955,18,20V403z"/>
-        <rect x="212.833" y="342.001" fill="none" width="132.333" height="73.063"/>
-        <text transform="matrix(1 0 0 1 236.603 352.0674)"><tspan x="0" y="0" fill="#FFFFFF" font-family="'Helvetica-Bold'" font-size="14">SimpleSetup</tspan><tspan x="-17.293" y="14.399" fill="#FFFFFF" font-family="'Helvetica'" font-size="12">Provides a simple way </tspan><tspan x="-19.651" y="28.8" fill="#FFFFFF" font-family="'Helvetica'" font-size="12">of setting up all needed </tspan><tspan x="-18.626" y="43.199" fill="#FFFFFF" font-family="'Helvetica'" font-size="12">classes without limiting</tspan><tspan x="9.045" y="57.6" fill="#FFFFFF" font-family="'Helvetica'" font-size="12">functionality.</tspan></text>
-    </g>
+	<g>
+		<path fill="#7992A2" stroke="#645D61" stroke-width="2" stroke-miterlimit="10" d="M360,403c0,11.046-8.059,20-18,20H216
+			c-9.941,0-18-8.954-18-20v-50c0-11.045,8.059-20,18-20h126c9.941,0,18,8.955,18,20V403z"/>
+		<rect x="212.833" y="342.001" fill="none" width="132.333" height="73.063"/>
+		<text transform="matrix(1 0 0 1 236.603 352.0674)"><tspan x="0" y="0" fill="#FFFFFF" font-family="'Helvetica-Bold'" font-size="14">SimpleSetup</tspan><tspan x="-17.293" y="14.399" fill="#FFFFFF" font-family="'Helvetica'" font-size="12">Provides a simple way </tspan><tspan x="-19.651" y="28.8" fill="#FFFFFF" font-family="'Helvetica'" font-size="12">of setting up all needed </tspan><tspan x="-18.626" y="43.199" fill="#FFFFFF" font-family="'Helvetica'" font-size="12">classes without limiting</tspan><tspan x="9.045" y="57.6" fill="#FFFFFF" font-family="'Helvetica'" font-size="12">functionality.</tspan></text>
+	</g>
 </a>
 <a xlink:href="classompl_1_1base_1_1ProblemDefinition.html" >
-    <g>
-        <path fill="#98BFD5" stroke="#645D61" stroke-miterlimit="10" stroke-dasharray="7.908,3.954" d="M540,407c0,8.837-8.061,16-18,16
-            H396c-9.941,0-18-7.163-18-16v-40c0-8.837,8.059-16,18-16h126c9.939,0,18,7.163,18,16V407z"/>
-        <rect x="386.404" y="358" fill="none" width="145.333" height="59.731"/>
-        <text transform="matrix(1 0 0 1 407.4023 366.6279)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">ProblemDefinition</tspan><tspan x="-10.871" y="12" font-family="'Helvetica'" font-size="10">Specifies the instance of the </tspan><tspan x="-7.533" y="24" font-family="'Helvetica'" font-size="10">planning problem; requires </tspan><tspan x="-13.648" y="36" font-family="'Helvetica'" font-size="10">definition of start states and a </tspan><tspan x="40.826" y="48" font-family="'Helvetica'" font-size="10">goal.</tspan></text>
-    </g>
+	<g>
+		<path fill="#98BFD5" stroke="#645D61" stroke-miterlimit="10" stroke-dasharray="7.908,3.954" d="M540,407c0,8.837-8.061,16-18,16
+			H396c-9.941,0-18-7.163-18-16v-40c0-8.837,8.059-16,18-16h126c9.939,0,18,7.163,18,16V407z"/>
+		<rect x="386.404" y="358" fill="none" width="145.333" height="59.731"/>
+		<text transform="matrix(1 0 0 1 407.4023 366.6279)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">ProblemDefinition</tspan><tspan x="-10.871" y="12" font-family="'Helvetica'" font-size="10">Specifies the instance of the </tspan><tspan x="-7.533" y="24" font-family="'Helvetica'" font-size="10">planning problem; requires </tspan><tspan x="-13.648" y="36" font-family="'Helvetica'" font-size="10">definition of start states and a </tspan><tspan x="40.826" y="48" font-family="'Helvetica'" font-size="10">goal.</tspan></text>
+	</g>
 </a>
 <g>
-    <rect x="396" y="450" fill="#F1F2F2" width="322" height="78.334"/>
-    <path fill="#7992A2" stroke="#645D61" stroke-width="2" stroke-miterlimit="10" d="M433,462.439c0-1.131-0.896-2.049-2-2.049h-14
-        c-1.104,0-2,0.918-2,2.049v5.121c0,1.131,0.896,2.049,2,2.049h14c1.104,0,2-0.918,2-2.049V462.439z"/>
-    <path fill="#98BFD5" stroke="#645D61" stroke-miterlimit="10" stroke-dasharray="7.908,3.954" d="M433,485c0,1.104-0.896,2-2,2h-14
-        c-1.104,0-2-0.896-2-2v-5c0-1.104,0.896-2,2-2h14c1.104,0,2,0.896,2,2V485z"/>
-    <path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="2.009,2.009" d="M433,501c0,1.104-0.896,2-2,2h-14
-        c-1.104,0-2-0.896-2-2v-5c0-1.104,0.896-2,2-2h14c1.104,0,2,0.896,2,2V501z"/>
-    <text transform="matrix(1 0 0 1 401 518)" font-family="'Helvetica-Oblique'" font-size="10">A</text>
-    <text transform="matrix(1 0 0 1 427 518)" font-family="'Helvetica-Oblique'" font-size="10">B</text>
-    <text transform="matrix(1 0 0 1 442.001 469)"><tspan x="0" y="0" font-family="'Helvetica'" font-size="10">User must instantiate this class.</tspan><tspan x="0" y="17" font-family="'Helvetica'" font-size="10">User must instantiate this class unless SimpleSetup is used.</tspan><tspan x="0" y="34" font-family="'Helvetica'" font-size="10">User can instantiate this class, but defaults are provided.</tspan></text>
-    <g>
-        <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="409" y1="514" x2="419.939" y2="514"/>
-        <g>
-            <polygon points="427,514 417.051,518.065 419.412,514 417.051,509.936            "/>
-        </g>
-    </g>
+	<rect x="396" y="450" fill="#F1F2F2" width="322" height="78.334"/>
+	<path fill="#7992A2" stroke="#645D61" stroke-width="2" stroke-miterlimit="10" d="M433,462.439c0-1.131-0.896-2.049-2-2.049h-14
+		c-1.104,0-2,0.918-2,2.049v5.121c0,1.131,0.896,2.049,2,2.049h14c1.104,0,2-0.918,2-2.049V462.439z"/>
+	<path fill="#98BFD5" stroke="#645D61" stroke-miterlimit="10" stroke-dasharray="7.908,3.954" d="M433,485c0,1.104-0.896,2-2,2h-14
+		c-1.104,0-2-0.896-2-2v-5c0-1.104,0.896-2,2-2h14c1.104,0,2,0.896,2,2V485z"/>
+	<path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="2.009,2.009" d="M433,501c0,1.104-0.896,2-2,2h-14
+		c-1.104,0-2-0.896-2-2v-5c0-1.104,0.896-2,2-2h14c1.104,0,2,0.896,2,2V501z"/>
+	<text transform="matrix(1 0 0 1 401 518)" font-family="'Helvetica-Oblique'" font-size="10">A</text>
+	<text transform="matrix(1 0 0 1 427 518)" font-family="'Helvetica-Oblique'" font-size="10">B</text>
+	<text transform="matrix(1 0 0 1 442.001 469)"><tspan x="0" y="0" font-family="'Helvetica'" font-size="10">User must instantiate this class.</tspan><tspan x="0" y="17" font-family="'Helvetica'" font-size="10">User must instantiate this class unless SimpleSetup is used.</tspan><tspan x="0" y="34" font-family="'Helvetica'" font-size="10">User can instantiate this class, but defaults are provided.</tspan></text>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="409" y1="514" x2="419.939" y2="514"/>
+		<g>
+			<polygon points="427,514 417.051,518.065 419.412,514 417.051,509.936 			"/>
+		</g>
+	</g>
 </g>
 <g>
-    <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="576" y1="396" x2="547.132" y2="396"/>
-    <g>
-        <polygon points="540.071,396 550.021,391.935 547.66,396 550.021,400.064         "/>
-    </g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="576" y1="396" x2="547.132" y2="396"/>
+	<g>
+		<polygon points="540.071,396 550.021,391.935 547.66,396 550.021,400.064 		"/>
+	</g>
 </g>
 <g>
-    <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="378" y1="396.064" x2="367.132" y2="396.064"/>
-    <g>
-        <polygon points="360.071,396.064 370.021,391.999 367.66,396.064 370.021,400.129         "/>
-    </g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="378" y1="396.064" x2="367.132" y2="396.064"/>
+	<g>
+		<polygon points="360.071,396.064 370.021,391.999 367.66,396.064 370.021,400.129 		"/>
+	</g>
 </g>
 <g>
-    <rect x="9" y="18" fill="#F2F2F2" stroke="#645D61" stroke-miterlimit="10" stroke-dasharray="4,4" width="347.006" height="169"/>
-    <text transform="matrix(1 0 0 1 9.1162 14)" fill="#645D61" font-family="'Helvetica-Oblique'" font-size="10">only when planning with differential constraints </text>
-    <a xlink:href="classompl_1_1control_1_1ControlSampler.html" >
-        <g>
-            <path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="1.997,1.997" d="M169,58
-                c0,5.522-7.512,10-16.778,10H34.778C25.512,68,18,63.521,18,58V33c0-5.521,7.512-10,16.778-10h117.444
-                C161.488,23,169,27.479,169,33V58z"/>
-            <text transform="matrix(1 0 0 1 47.687 35.667)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">ControlSampler</tspan><tspan x="-26.691" y="12" font-family="'Helvetica'" font-size="10">Implements sampling of controls</tspan><tspan x="-16.134" y="24" font-family="'Helvetica'" font-size="10">for a specific ControlSpace.</tspan></text>
-        </g>
-    </a>
-    <a xlink:href="classompl_1_1control_1_1ControlSpace.html" >
-        <g>
-            <path fill="#7992A2" stroke="#645D61" stroke-miterlimit="10" d="M342,97c0,11.044-7.164,20-16,20H214c-8.837,0-16-8.956-16-20
-                V47c0-11.044,7.163-20,16-20h112c8.836,0,16,8.956,16,20V97z"/>
-            <text transform="matrix(1 0 0 1 230.9932 49.5654)"><tspan x="0" y="0" fill="#FFFFFF" font-family="'Helvetica-Bold'" font-size="12">ControlSpace</tspan><tspan x="-11.299" y="12" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">Represents the control</tspan><tspan x="-18.255" y="24" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">space the planner uses to</tspan><tspan x="-10.748" y="36" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">represent inputs to the</tspan><tspan x="-18.25" y="48" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">system being planned for.</tspan></text>
-        </g>
-    </a>
-    <a xlink:href="classompl_1_1control_1_1DirectedControlSampler.html" >
-        <g>
-            <path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="1.997,1.997" d="M168.193,107.067
-                c0,5.522-7.512,10-16.778,10H33.971c-9.266,0-16.778-4.478-16.778-10v-25c0-5.521,7.512-10,16.778-10h117.444
-                c9.266,0,16.778,4.479,16.778,10V107.067z"/>
-            <rect x="22.187" y="76.317" fill="none" width="142.893" height="36.5"/>
-            <text transform="matrix(1 0 0 1 24.6182 84.9453)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">DirectedControlSampler</tspan><tspan x="4.256" y="12" font-family="'Helvetica'" font-size="10">Sample controls that take the </tspan><tspan x="-1.293" y="24" font-family="'Helvetica'" font-size="10">system towards a desired state.</tspan></text>
-        </g>
-    </a>
-    <a xlink:href="classompl_1_1control_1_1StatePropagator.html" >
-        <g>
-            <path fill="#7992A2" stroke="#6592A1" stroke-miterlimit="10" d="M169,166.928c0,7.037-7.512,12.74-16.778,12.74H34.779
-                c-9.268,0-16.779-5.703-16.779-12.74v-31.851c0-7.036,7.511-12.741,16.779-12.741h117.443c9.266,0,16.778,5.705,16.778,12.741
-                V166.928z"/>
-            <rect x="29.193" y="126.844" fill="none" width="127" height="48.316"/>
-            <text transform="matrix(1 0 0 1 46.0176 135.4717)"><tspan x="0" y="0" fill="#FFFFFF" font-family="'Helvetica-Bold'" font-size="12">StatePropagator</tspan><tspan x="-11.975" y="12" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">Returns the state obtained </tspan><tspan x="-4.745" y="24" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">by applying a control to </tspan><tspan x="-11.679" y="36" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">some arbitrary initial state.</tspan></text>
-        </g>
-    </a>
-    <g>
-        <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="169" y1="45.5" x2="190.939" y2="45.5"/>
-        <g>
-            <polygon points="198,45.5 188.051,49.565 190.412,45.5 188.051,41.435            "/>
-        </g>
-    </g>
-    <g>
-        <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="279" y1="117.067" x2="279" y2="193.939"/>
-        <g>
-            <polygon points="279,201 274.935,191.051 279,193.412 283.064,191.051            "/>
-        </g>
-    </g>
-    <g>
-        <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="169" y1="160.614" x2="207.641" y2="196.216"/>
-        <g>
-            <polygon points="212.833,201 202.761,197.249 207.252,195.858 208.27,191.27          "/>
-        </g>
-    </g>
-    <g>
-        <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="168.193" y1="94.567" x2="222.153" y2="194.783"/>
-        <g>
-            <polygon points="225.5,201 217.204,194.167 221.902,194.318 224.362,190.313          "/>
-        </g>
-    </g>
+	<rect x="9" y="18" fill="#F2F2F2" stroke="#645D61" stroke-miterlimit="10" stroke-dasharray="4,4" width="347.006" height="169"/>
+	<text transform="matrix(1 0 0 1 9.1162 14)" fill="#645D61" font-family="'Helvetica-Oblique'" font-size="10">only when planning with differential constraints </text>
+	<a xlink:href="classompl_1_1control_1_1ControlSampler.html" >
+		<g>
+			<path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="1.997,1.997" d="M169,58
+				c0,5.522-7.512,10-16.778,10H34.778C25.512,68,18,63.521,18,58V33c0-5.521,7.512-10,16.778-10h117.444
+				C161.488,23,169,27.479,169,33V58z"/>
+			<text transform="matrix(1 0 0 1 47.687 35.667)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">ControlSampler</tspan><tspan x="-26.691" y="12" font-family="'Helvetica'" font-size="10">Implements sampling of controls</tspan><tspan x="-16.134" y="24" font-family="'Helvetica'" font-size="10">for a specific ControlSpace.</tspan></text>
+		</g>
+	</a>
+	<a xlink:href="classompl_1_1control_1_1ControlSpace.html" >
+		<g>
+			<path fill="#7992A2" stroke="#645D61" stroke-miterlimit="10" d="M342,97c0,11.044-7.164,20-16,20H214c-8.837,0-16-8.956-16-20
+				V47c0-11.044,7.163-20,16-20h112c8.836,0,16,8.956,16,20V97z"/>
+			<text transform="matrix(1 0 0 1 230.9932 49.5654)"><tspan x="0" y="0" fill="#FFFFFF" font-family="'Helvetica-Bold'" font-size="12">ControlSpace</tspan><tspan x="-11.299" y="12" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">Represents the control</tspan><tspan x="-18.255" y="24" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">space the planner uses to</tspan><tspan x="-10.748" y="36" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">represent inputs to the</tspan><tspan x="-18.25" y="48" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">system being planned for.</tspan></text>
+		</g>
+	</a>
+	<a xlink:href="classompl_1_1control_1_1DirectedControlSampler.html" >
+		<g>
+			<path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="1.997,1.997" d="M168.193,107.067
+				c0,5.522-7.512,10-16.778,10H33.971c-9.266,0-16.778-4.478-16.778-10v-25c0-5.521,7.512-10,16.778-10h117.444
+				c9.266,0,16.778,4.479,16.778,10V107.067z"/>
+			<rect x="22.187" y="76.317" fill="none" width="142.893" height="36.5"/>
+			<text transform="matrix(1 0 0 1 24.6182 84.9453)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">DirectedControlSampler</tspan><tspan x="4.256" y="12" font-family="'Helvetica'" font-size="10">Sample controls that take the </tspan><tspan x="-1.293" y="24" font-family="'Helvetica'" font-size="10">system towards a desired state.</tspan></text>
+		</g>
+	</a>
+	<a xlink:href="classompl_1_1control_1_1StatePropagator.html" >
+		<g>
+			<path fill="#7992A2" stroke="#6592A1" stroke-miterlimit="10" d="M169,166.928c0,7.037-7.512,12.74-16.778,12.74H34.779
+				c-9.268,0-16.779-5.703-16.779-12.74v-31.851c0-7.036,7.511-12.741,16.779-12.741h117.443c9.266,0,16.778,5.705,16.778,12.741
+				V166.928z"/>
+			<rect x="29.193" y="126.844" fill="none" width="127" height="48.316"/>
+			<text transform="matrix(1 0 0 1 46.0176 135.4717)"><tspan x="0" y="0" fill="#FFFFFF" font-family="'Helvetica-Bold'" font-size="12">StatePropagator</tspan><tspan x="-11.975" y="12" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">Returns the state obtained </tspan><tspan x="-4.745" y="24" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">by applying a control to </tspan><tspan x="-11.679" y="36" fill="#FFFFFF" font-family="'Helvetica'" font-size="10">some arbitrary initial state.</tspan></text>
+		</g>
+	</a>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="169" y1="45.5" x2="190.939" y2="45.5"/>
+		<g>
+			<polygon points="198,45.5 188.051,49.565 190.412,45.5 188.051,41.435 			"/>
+		</g>
+	</g>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="279" y1="117.067" x2="279" y2="193.939"/>
+		<g>
+			<polygon points="279,201 274.935,191.051 279,193.412 283.064,191.051 			"/>
+		</g>
+	</g>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="169" y1="160.614" x2="207.641" y2="196.216"/>
+		<g>
+			<polygon points="212.833,201 202.761,197.249 207.252,195.858 208.27,191.27 			"/>
+		</g>
+	</g>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="168.193" y1="94.567" x2="222.153" y2="194.783"/>
+		<g>
+			<polygon points="225.5,201 217.204,194.167 221.902,194.318 224.362,190.313 			"/>
+		</g>
+	</g>
 </g>
 <g>
-    <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="171" y1="237" x2="190.939" y2="237"/>
-    <g>
-        <polygon points="198,237 188.051,241.065 190.412,237 188.051,232.936        "/>
-    </g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="171" y1="237" x2="190.939" y2="237"/>
+	<g>
+		<polygon points="198,237 188.051,241.065 190.412,237 188.051,232.936 		"/>
+	</g>
 </g>
 <g>
-    <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="171" y1="300" x2="194.397" y2="260.572"/>
-    <g>
-        <polygon points="198,254.5 196.419,265.131 194.127,261.026 189.427,260.982      "/>
-    </g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="171" y1="300" x2="194.397" y2="260.572"/>
+	<g>
+		<polygon points="198,254.5 196.419,265.131 194.127,261.026 189.427,260.982 		"/>
+	</g>
 </g>
 <g>
-    <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="279" y1="273" x2="279" y2="325.939"/>
-    <g>
-        <polygon points="279,333 274.935,323.051 279,325.412 283.064,323.051        "/>
-    </g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="279" y1="273" x2="279" y2="325.939"/>
+	<g>
+		<polygon points="279,333 274.935,323.051 279,325.412 283.064,323.051 		"/>
+	</g>
 </g>
 <g>
-    <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="378" y1="237" x2="367.061" y2="237"/>
-    <g>
-        <polygon points="360,237 369.949,232.935 367.588,237 369.949,241.064        "/>
-    </g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="378" y1="237" x2="367.061" y2="237"/>
+	<g>
+		<polygon points="360,237 369.949,232.935 367.588,237 369.949,241.064 		"/>
+	</g>
 </g>
 <g>
-    <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="396.5" y1="117.067" x2="357.306" y2="198.919"/>
-    <g>
-        <polygon points="354.257,205.287 354.887,194.558 357.534,198.443 362.22,198.069         "/>
-    </g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="396.5" y1="117.067" x2="357.306" y2="198.919"/>
+	<g>
+		<polygon points="354.257,205.287 354.887,194.558 357.534,198.443 362.22,198.069 		"/>
+	</g>
 </g>
 <g>
-    <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="567" y1="58.5" x2="547.061" y2="58.5"/>
-    <g>
-        <polygon points="540,58.5 549.949,54.435 547.588,58.5 549.949,62.564        "/>
-    </g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="567" y1="58.5" x2="547.061" y2="58.5"/>
+	<g>
+		<polygon points="540,58.5 549.949,54.435 547.588,58.5 549.949,62.564 		"/>
+	</g>
 </g>
 <g>
-    <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="567" y1="131.333" x2="544.364" y2="102.55"/>
-    <g>
-        <polygon points="540,97 549.346,102.308 544.69,102.965 542.955,107.333      "/>
-    </g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="567" y1="131.333" x2="544.364" y2="102.55"/>
+	<g>
+		<polygon points="540,97 549.346,102.308 544.69,102.965 542.955,107.333 		"/>
+	</g>
 </g>
 <g>
-    <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="162" y1="396.064" x2="189.786" y2="396.064"/>
-    <g>
-        <polygon points="196.847,396.064 186.897,400.13 189.258,396.064 186.897,392         "/>
-    </g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="162" y1="396.064" x2="189.786" y2="396.064"/>
+	<g>
+		<polygon points="196.847,396.064 186.897,400.13 189.258,396.064 186.897,392 		"/>
+	</g>
 </g>
 <g>
-    <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="278.999" y1="423" x2="278.999" y2="442.939"/>
-    <g>
-        <polygon points="278.999,450 274.934,440.051 278.999,442.412 283.063,440.051        "/>
-    </g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="278.999" y1="423" x2="278.999" y2="442.939"/>
+	<g>
+		<polygon points="278.999,450 274.934,440.051 278.999,442.412 283.063,440.051 		"/>
+	</g>
+</g>
+<a xlink:href="classompl_1_1base_1_1OptimizationObjective.html" >
+	<g>
+		<a xlink:href="classompl_1_1base_1_1OptimizationObjective.html" >
+			<path fill="#C0DCF3" stroke="#7992A2" stroke-miterlimit="10" stroke-dasharray="2.008,2.008" d="M540,319.292
+				c0,5.779-8.061,10.465-18,10.465H396c-9.942,0-18-4.686-18-10.465v-26.16c0-5.779,8.058-10.465,18-10.465h126
+				c9.939,0,18,4.686,18,10.465V319.292z"/>
+		</a>
+		<rect x="389.738" y="288.667" fill="none" width="138.666" height="36"/>
+		<text transform="matrix(1 0 0 1 395.7285 297.2949)"><tspan x="0" y="0" font-family="'Helvetica-Bold'" font-size="12">OptimizationObjective</tspan><tspan x="126.686" y="0" font-family="'Helvetica'" font-size="10"> </tspan><tspan x="3.307" y="12" font-family="'Helvetica'" font-size="10">Encodes a path cost that is </tspan><tspan x="-0.026" y="24" font-family="'Helvetica'" font-size="10">used by optimizing planners.</tspan></text>
+	</g>
+</a>
+<g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="459.071" y1="329.501" x2="459.071" y2="343.939"/>
+	<g>
+		<polygon points="459.071,351 455.006,341.051 459.071,343.412 463.136,341.051 		"/>
+	</g>
 </g>
 </svg>

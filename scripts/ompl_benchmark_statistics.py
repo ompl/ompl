@@ -34,7 +34,7 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 ######################################################################
 
-# Author: Mark Moll
+# Author: Mark Moll, Ioan Sucan, Luis G. Torres
 
 from sys import argv, exit
 from os.path import basename, splitext
@@ -49,28 +49,42 @@ import numpy as np
 from math import floor
 from optparse import OptionParser, OptionGroup
 
-def read_benchmark_log(dbname, filenames):
+def readBenchmarkLog(dbname, filenames):
     """Parse benchmark log files and store the parsed data in a sqlite3 database."""
 
     conn = sqlite3.connect(dbname)
     c = conn.cursor()
     c.execute('PRAGMA FOREIGN_KEYS = ON')
-    c.execute("""CREATE TABLE IF NOT EXISTS experiments
-        (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), totaltime REAL, timelimit REAL, memorylimit REAL, runcount INTEGER, hostname VARCHAR(1024), date DATETIME, seed INTEGER, setup TEXT)""")
-    c.execute("""CREATE TABLE IF NOT EXISTS planner_configs
-        (id INTEGER PRIMARY KEY AUTOINCREMENT, planner_name VARCHAR(512) NOT NULL, settings TEXT)""")
-    c.execute("""CREATE TABLE IF NOT EXISTS enums
-        (name VARCHAR(512), value INTEGER, description TEXT, PRIMARY KEY (name,value))""")
+
+    # create all tables if they don't already exist
+    c.executescript("""CREATE TABLE IF NOT EXISTS experiments
+        (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512),
+        totaltime REAL, timelimit REAL, memorylimit REAL, runcount INTEGER,
+        hostname VARCHAR(1024), date DATETIME, seed INTEGER, setup TEXT);
+        CREATE TABLE IF NOT EXISTS plannerConfigs
+        (id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR(512) NOT NULL, settings TEXT);
+        CREATE TABLE IF NOT EXISTS enums
+        (name VARCHAR(512), value INTEGER, description TEXT,
+        PRIMARY KEY (name, value));
+        CREATE TABLE IF NOT EXISTS runs
+        (id INTEGER PRIMARY KEY AUTOINCREMENT, experimentid INTEGER, plannerid INTEGER,
+        FOREIGN KEY (experimentid) REFERENCES experiments(id) ON DELETE CASCADE,
+        FOREIGN KEY (plannerid) REFERENCES plannerConfigs(id) ON DELETE CASCADE);
+        CREATE TABLE IF NOT EXISTS progress
+        (runid INTEGER, time REAL, PRIMARY KEY (runid, time),
+        FOREIGN KEY (runid) REFERENCES runs(id) ON DELETE CASCADE)""")
+
     for filename in filenames:
-        print("Processing " + filename)
+        print('Processing ' + filename)
         logfile = open(filename,'r')
         expname =  logfile.readline().split()[-1]
         hostname = logfile.readline().split()[-1]
-        date = " ".join(logfile.readline().split()[2:])
+        date = ' '.join(logfile.readline().split()[2:])
         logfile.readline() # skip <<<|
-        expsetup = ""
+        expsetup = ''
         expline = logfile.readline()
-        while not expline.startswith("|>>>"):
+        while not expline.startswith('|>>>'):
             expsetup = expsetup + expline
             expline = logfile.readline()
         rseed = int(logfile.readline().split()[0])
@@ -78,8 +92,8 @@ def read_benchmark_log(dbname, filenames):
         memorylimit = float(logfile.readline().split()[0])
         nrruns = float(logfile.readline().split()[0])
         totaltime = float(logfile.readline().split()[0])
-        num_enums = int(logfile.readline().split()[0])
-        for i in range(num_enums):
+        numEnums = int(logfile.readline().split()[0])
+        for i in range(numEnums):
             enum = logfile.readline()[:-1].split('|')
             c.execute('SELECT * FROM enums WHERE name IS "%s"' % enum[0])
             if c.fetchone()==None:
@@ -87,108 +101,123 @@ def read_benchmark_log(dbname, filenames):
                     c.execute('INSERT INTO enums VALUES (?,?,?)',
                         (enum[0],j,enum[j+1]))
         c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?,?,?,?,?)',
-              (None, expname, totaltime, timelimit, memorylimit, nrruns, hostname, date, rseed, expsetup) )
-        c.execute('SELECT last_insert_rowid()')
-        experiment_id = c.fetchone()[0]
-        num_planners = int(logfile.readline().split()[0])
+              (None, expname, totaltime, timelimit, memorylimit, nrruns,
+              hostname, date, rseed, expsetup) )
+        experimentId = c.lastrowid
+        numPlanners = int(logfile.readline().split()[0])
 
-        for i in range(num_planners):
-            planner_name = logfile.readline()[:-1]
-            print("Parsing data for " + planner_name)
+        for i in range(numPlanners):
+            plannerName = logfile.readline()[:-1]
+            print('Parsing data for ' + plannerName)
 
             # read common data for planner
-            num_common = int(logfile.readline().split()[0])
-            settings = ""
-            for j in range(num_common):
+            numCommon = int(logfile.readline().split()[0])
+            settings = ''
+            for j in range(numCommon):
                 settings = settings + logfile.readline() + ';'
 
             # find planner id
-            c.execute("SELECT id FROM planner_configs WHERE (planner_name=? AND settings=?)", (planner_name, settings,))
+            c.execute('SELECT id FROM plannerConfigs WHERE (name=? AND settings=?)',
+                (plannerName, settings,))
             p = c.fetchone()
             if p==None:
-                c.execute("INSERT INTO planner_configs VALUES (?,?,?)", (None, planner_name, settings,))
-                c.execute('SELECT last_insert_rowid()')
-                planner_id = c.fetchone()[0]
+                c.execute('INSERT INTO plannerConfigs VALUES (?,?,?)',
+                    (None, plannerName, settings,))
+                plannerId = c.lastrowid
             else:
-                planner_id = p[0]
+                plannerId = p[0]
 
-            # read run properties
+            # get current column names
+            c.execute('PRAGMA table_info(runs)')
+            columnNames = [col[1] for col in c.fetchall()]
 
-            # number of properties to read from log file
-            num_properties = int(logfile.readline().split()[0])
-
-            # load a dictionary of properties and types
-            # we keep the names of the properties in a list as well, to ensure the correct order of properties
-            properties = {}
-            propNames = ['experimentid', 'plannerid']
-            for j in range(num_properties):
+            # read properties and add columns as necessary
+            numProperties = int(logfile.readline().split()[0])
+            propertyNames = ['experimentid', 'plannerid']
+            for j in range(numProperties):
                 field = logfile.readline().split()
-                ftype = field[-1]
-                fname = "_".join(field[:-1])
-                properties[fname] = ftype
-                propNames.append(fname)
-
-            # create the table, if needed
-            table_columns = "experimentid INTEGER, plannerid INTEGER"
-            for k, v in properties.items():
-                table_columns = table_columns + ', ' + k + ' ' + v
-            table_columns = table_columns + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE"
-            table_columns = table_columns + ", FOREIGN KEY(plannerid) REFERENCES planner_configs(id) ON DELETE CASCADE"
-
-            planner_table = 'planner_%s' % planner_name
-            c.execute("CREATE TABLE IF NOT EXISTS `%s` (%s)" %  (planner_table, table_columns))
-
-            # check if the table has all the needed columns; if not, add them
-            c.execute('SELECT * FROM `%s`' % planner_table)
-            added_columns = [ t[0] for t in c.description]
-            for col in properties.keys():
-                if not col in added_columns:
-                    c.execute('ALTER TABLE `' + planner_table + '` ADD ' + col + ' ' + properties[col] + ';')
-
-            # add measurements
-            insert_fmt_str = 'INSERT INTO `' + planner_table + '` (' + ','.join(propNames) + ') VALUES (' + ','.join('?'*(num_properties + 2)) + ')'
-
-            num_runs = int(logfile.readline().split()[0])
-            for j in range(num_runs):
-                run = tuple([experiment_id, planner_id] + [None if len(x)==0 else float(x)
+                propertyType = field[-1]
+                propertyName = '_'.join(field[:-1])
+                if propertyName not in columnNames:
+                    c.execute('ALTER TABLE runs ADD %s %s' % (propertyName, propertyType))
+                propertyNames.append(propertyName)
+            # read measurements
+            insertFmtStr = 'INSERT INTO runs (' + ','.join(propertyNames) + \
+                ') VALUES (' + ','.join('?'*len(propertyNames)) + ')'
+            numRuns = int(logfile.readline().split()[0])
+            runIds = []
+            for j in range(numRuns):
+                values = tuple([experimentId, plannerId] + [None if len(x)==0 else x
                     for x in logfile.readline().split('; ')[:-1]])
-                c.execute(insert_fmt_str, run)
+                c.execute(insertFmtStr, values)
+                # extract primary key of each run row so we can reference them
+                # in the planner progress data table if needed
+                runIds.append(c.lastrowid)
 
-            logfile.readline()
+            nextLine = logfile.readline().strip()
+
+            # read planner progress data if it's supplied
+            if nextLine != '.':
+                # get current column names
+                c.execute('PRAGMA table_info(progress)')
+                columnNames = [col[1] for col in c.fetchall()]
+
+                # read progress properties and add columns as necesary
+                numProgressProperties = int(nextLine.split()[0])
+                progressPropertyNames = ['runid']
+                for i in range(numProgressProperties):
+                    field = logfile.readline().split()
+                    progressPropertyType = field[-1]
+                    progressPropertyName = "_".join(field[:-1])
+                    if progressPropertyName not in columnNames:
+                        c.execute('ALTER TABLE progress ADD %s %s' %
+                            (progressPropertyName, progressPropertyType))
+                    progressPropertyNames.append(progressPropertyName)
+                # read progress measurements
+                insertFmtStr = 'INSERT INTO progress (' + \
+                    ','.join(progressPropertyNames) + ') VALUES (' + \
+                    ','.join('?'*len(progressPropertyNames)) + ')'
+                numRuns = int(logfile.readline().split()[0])
+                for j in range(numRuns):
+                    dataSeries = logfile.readline().split(';')[:-1]
+                    for dataSample in dataSeries:
+                        values = tuple([runIds[j]] + \
+                            [None if x == 'nan' else x for x in dataSample.split(',')[:-1]])
+                        c.execute(insertFmtStr, values)
+
+                logfile.readline()
         logfile.close()
     conn.commit()
     c.close()
 
-def plot_attribute(cur, planners, attribute, typename):
+def plotAttribute(cur, planners, attribute, typename):
     """Create a plot for a particular attribute. It will include data for
     all planners that have data for this attribute."""
     plt.clf()
     ax = plt.gca()
     labels = []
     measurements = []
-    nan_counts = []
-    cur.execute('SELECT count(*) FROM enums where name IS "%s"' % attribute)
-    num_vals = cur.fetchone()[0]
-    is_enum = False if num_vals==0 else True
-    is_bool = not is_enum
+    nanCounts = []
+    if typename == 'ENUM':
+        cur.execute('SELECT description FROM enums where name IS "%s"' % attribute)
+        descriptions = [ t[0] for t in cur.fetchall() ]
+        numValues = len(descriptions)
     for planner in planners:
-        cur.execute('SELECT * FROM `%s`' % planner)
-        attributes = [ t[0] for t in cur.description]
-        if attribute in attributes:
-            cur.execute('SELECT `%s` FROM `%s` WHERE `%s` IS NOT NULL' % (attribute, planner, attribute))
-            measurement = [ 0 if np.isinf(t[0]) else t[0] for t in cur.fetchall() ]
-            cur.execute('SELECT count(*) FROM `%s` WHERE `%s` IS NULL' % (planner, attribute))
-            nan_counts.append(cur.fetchone()[0])
-            cur.execute('SELECT DISTINCT `%s` FROM `%s`' % (attribute, planner))
-            is_bool = is_bool and set([t[0] for t in cur.fetchall() if not t[0]==None]).issubset(set([0,1]))
-            if is_enum:
+        cur.execute('SELECT %s FROM runs WHERE plannerid = %s AND %s IS NOT NULL' \
+            % (attribute, planner[0], attribute))
+        measurement = [ 0 if np.isinf(t[0]) else t[0] for t in cur.fetchall() ]
+        if len(measurement) > 0:
+            cur.execute('SELECT count(*) FROM runs WHERE plannerid = %s AND %s IS NULL' \
+                % (planner[0], attribute))
+            nanCounts.append(cur.fetchone()[0])
+            labels.append(planner[1])
+            if typename == 'ENUM':
                 scale = 100. / len(measurement)
-                measurements.append([measurement.count(i)*scale for i in range(num_vals)])
+                measurements.append([measurement.count(i)*scale for i in range(numValues)])
             else:
                 measurements.append(measurement)
-            labels.append(planner.replace('planner_geometric_','').replace('planner_control_',''))
 
-    if is_enum:
+    if typename == 'ENUM':
         width = .5
         measurements = np.transpose(np.vstack(measurements))
         colsum = np.sum(measurements, axis=1)
@@ -197,9 +226,9 @@ def plot_attribute(cur, planners, attribute, typename):
         ind = range(measurements.shape[1])
         legend_labels = []
         for i in rows:
-            cur.execute('SELECT `description` FROM enums WHERE name IS "%s" AND value IS "%d"' % (attribute,i))
             plt.bar(ind, measurements[i], width, bottom=heights[0],
-                color=matplotlib.cm.hot(int(floor(i*256/num_vals))), label=cur.fetchone()[0])
+                color=matplotlib.cm.hot(int(floor(i*256/numValues))),
+                label=descriptions[i])
             heights = heights + measurements[i]
         xtickNames = plt.xticks([x+width/2. for x in ind], labels, rotation=30)
         ax.set_ylabel(attribute.replace('_',' ') + ' (%)')
@@ -208,12 +237,12 @@ def plot_attribute(cur, planners, attribute, typename):
         props = matplotlib.font_manager.FontProperties()
         props.set_size('small')
         ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop = props)
-    elif is_bool:
+    elif typename == 'BOOLEAN':
         width = .5
-        measurements_percentage = [sum(m)*100./len(m) for m in measurements]
+        measurementsPercentage = [sum(m) * 100. / len(m) for m in measurements]
         ind = range(len(measurements))
-        plt.bar(ind, measurements_percentage, width)
-        xtickNames = plt.xticks([x+width/2. for x in ind], labels, rotation=30)
+        plt.bar(ind, measurementsPercentage, width)
+        xtickNames = plt.xticks([x + width / 2. for x in ind], labels, rotation=30)
         ax.set_ylabel(attribute.replace('_',' ') + ' (%)')
     else:
         if int(matplotlibversion.split('.')[0])<1:
@@ -225,78 +254,107 @@ def plot_attribute(cur, planners, attribute, typename):
         plt.setp(xtickNames, rotation=25)
     ax.set_xlabel('Motion planning algorithm')
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-    if max(nan_counts)>0:
+    if max(nanCounts)>0:
         maxy = max([max(y) for y in measurements])
         for i in range(len(labels)):
-            x = i+width/2 if is_bool else i+1
-            ax.text(x, .95*maxy, str(nan_counts[i]), horizontalalignment='center', size='small')
+            x = i+width/2 if typename=='BOOLEAN' else i+1
+            ax.text(x, .95*maxy, str(nanCounts[i]), horizontalalignment='center', size='small')
     plt.show()
 
-def plot_statistics(dbname, fname):
+def plotProgressAttribute(cur, planners, attribute):
+    """Plot data for a single planner progress attribute. Will create an
+average time-plot with error bars of the attribute over all runs for
+each planner."""
+
+    import numpy.ma as ma
+
+    plt.clf()
+    ax = plt.gca()
+    ax.set_xlabel('time (s)')
+    ax.set_ylabel(attribute.replace('_',' '))
+    plannerNames = []
+    for planner in planners:
+        cur.execute("""SELECT count(progress.%s) FROM progress INNER JOIN runs
+            ON progress.runid = runs.id AND runs.plannerid=%s
+            AND progress.%s IS NOT NULL""" \
+            % (attribute, planner[0], attribute))
+        if cur.fetchone()[0] > 0:
+            plannerNames.append(planner[1])
+            cur.execute("""SELECT DISTINCT progress.runid FROM progress INNER JOIN runs
+            WHERE progress.runid=runs.id AND runs.plannerid=?""", (planner[0],))
+            runids = [t[0] for t in cur.fetchall()]
+            timeTable = []
+            dataTable = []
+            for r in runids:
+                # Select data for given run
+                cur.execute('SELECT time, %s FROM progress WHERE runid = %s ORDER BY time' % (attribute,r))
+                (time, data) = zip(*(cur.fetchall()))
+                timeTable.append(time)
+                dataTable.append(data)
+            # It's conceivable that the sampling process may have
+            # generated more samples for one run than another; in this
+            # case, truncate all data series to length of shortest
+            # one.
+            fewestSamples = min(len(time[:]) for time in timeTable)
+            times = np.array(timeTable[0][:fewestSamples])
+            dataArrays = np.array([data[:fewestSamples] for data in dataTable])
+            filteredData = ma.masked_array(dataArrays, np.equal(dataArrays, None), dtype=float)
+
+            means = np.mean(filteredData, axis=0)
+            stddevs = np.std(filteredData, axis=0, ddof=1)
+
+            # plot average with error bars
+            plt.errorbar(times, means, yerr=2*stddevs, errorevery=max(1, len(times) // 20))
+            ax.legend(plannerNames)
+    plt.show()
+
+def plotStatistics(dbname, fname):
     """Create a PDF file with box plots for all attributes."""
-    print("Generating plot...")
+    print("Generating plots...")
     conn = sqlite3.connect(dbname)
     c = conn.cursor()
     c.execute('PRAGMA FOREIGN_KEYS = ON')
-    c.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    table_names = [ str(t[0]) for t in c.fetchall() ]
-    planner_names = [ t for t in table_names if t.startswith('planner_') and t != 'planner_configs' ]
-    attributes = []
-    types = {}
-    experiments = []
-    # merge possible attributes from all planners
-    for p in planner_names:
-        c.execute('SELECT * FROM `%s` LIMIT 1' % p)
-        atr = [ t[0] for t in c.description]
-        atr.remove('plannerid')
-        atr.remove('experimentid')
-        for a in atr:
-            if a not in attributes:
-                c.execute('SELECT typeof(`%s`) FROM `%s` WHERE `%s` IS NOT NULL LIMIT 1' % (a, p, a))
-                attributes.append(a)
-                types[a] = c.fetchone()[0]
-        c.execute('SELECT DISTINCT experimentid FROM `%s`' % p)
-        eid = [t[0] for t in c.fetchall() if not t[0]==None]
-        for e in eid:
-            if e not in experiments:
-                experiments.append(e)
-    attributes.sort()
+    c.execute('SELECT id, name FROM plannerConfigs')
+    planners = [(t[0],t[1].replace('geometric_','').replace('control_',''))
+        for t in c.fetchall()]
+    c.execute('PRAGMA table_info(runs)')
+    colInfo = c.fetchall()[3:]
 
     pp = PdfPages(fname)
-    for atr in attributes:
-        if types[atr]=='integer' or types[atr]=='real':
-            plot_attribute(c, planner_names, atr, types[atr])
+    for col in colInfo:
+        if col[2] == 'BOOLEAN' or col[2] == 'ENUM' or \
+           col[2] == 'INTEGER' or col[2] == 'REAL':
+            plotAttribute(c, planners, col[1], col[2])
             pp.savefig(plt.gcf())
     plt.clf()
+
+    c.execute('PRAGMA table_info(progress)')
+    colInfo = c.fetchall()[2:]
+    for col in colInfo:
+        plotProgressAttribute(c, planners, col[1])
+        pp.savefig(plt.gcf())
+    plt.clf()
+
     pagey = 0.9
     pagex = 0.06
-    for e in experiments:
-        # get the number of runs, per planner, for this experiment
-        runcount = []
-        for p in planner_names:
-            c.execute('SELECT count(*) FROM `%s` WHERE experimentid = %s' % (p, e))
-            runcount.append(c.fetchone()[0])
+    c.execute("""SELECT id, name, timelimit, memorylimit FROM experiments""")
+    experiments = c.fetchall()
+    for experiment in experiments:
+        c.execute("""SELECT count(*) FROM runs WHERE runs.experimentid = %d
+            GROUP BY runs.plannerid""" % experiment[0])
+        numRuns = [run[0] for run in c.fetchall()]
+        numRuns = numRuns[0] if len(set(numRuns)) == 1 else ','.join(numRuns)
 
-        # check if this number is the same for all planners
-        runs = "Number of averaged runs: "
-        if len([r for r in runcount if not r == runcount[0]]) > 0:
-            runs = runs + ", ".join([planner_names[i].replace('planner_geometric_','').replace('planner_control_','') +
-                         "=" + str(runcount[i]) for i in range(len(runcount))])
-        else:
-            runs = runs + str(runcount[0])
-
-        c.execute('SELECT name, timelimit, memorylimit FROM experiments WHERE id = %s' % e)
-        d = c.fetchone()
-        plt.figtext(pagex, pagey, "Experiment '%s'" % d[0])
-        plt.figtext(pagex, pagey-0.05, runs)
-        plt.figtext(pagex, pagey-0.10, "Time limit per run: %s seconds" % d[1])
-        plt.figtext(pagex, pagey-0.15, "Memory limit per run: %s MB" % d[2])
+        plt.figtext(pagex, pagey, 'Experiment "%s"' % experiment[1])
+        plt.figtext(pagex, pagey-0.05, 'Number of averaged runs: %d' % numRuns)
+        plt.figtext(pagex, pagey-0.10, "Time limit per run: %g seconds" % experiment[2])
+        plt.figtext(pagex, pagey-0.15, "Memory limit per run: %g MB" % experiment[3])
         pagey -= 0.22
     plt.show()
     pp.savefig(plt.gcf())
     pp.close()
 
-def save_as_mysql(dbname, mysqldump):
+def saveAsMysql(dbname, mysqldump):
     # See http://stackoverflow.com/questions/1067060/perl-to-python
     import re
     print("Saving as MySQL dump file...")
@@ -351,54 +409,27 @@ def save_as_mysql(dbname, mysqldump):
         mysqldump.write(line)
     mysqldump.close()
 
-def compute_views(dbname):
+def computeViews(dbname):
     conn = sqlite3.connect(dbname)
     c = conn.cursor()
     c.execute('PRAGMA FOREIGN_KEYS = ON')
+    s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid, solved, time + simplification_time AS total_time
+        FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
+        ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
+    s1 = """SELECT plannerid, plannerName, experimentid, AVG(solved) AS avg_solved, AVG(total_time) AS avg_total_time
+        FROM (%s) GROUP BY plannerid, experimentid""" % s0
+    s2 = """SELECT plannerid, experimentid, MIN(avg_solved) AS avg_solved, avg_total_time
+        FROM (%s) GROUP BY plannerName, experimentid ORDER BY avg_solved DESC, avg_total_time ASC""" % s1
+    c.execute('DROP VIEW IF EXISTS bestPlannerConfigsPerExperiment')
+    c.execute('CREATE VIEW IF NOT EXISTS bestPlannerConfigsPerExperiment AS %s' % s2)
 
-    # best configuration per problem, for each planner
-    c.execute('SELECT DISTINCT planner_name FROM planner_configs')
-    planners = [p[0] for p in c.fetchall() if not p[0] == None]
-    c.execute('SELECT DISTINCT name FROM experiments')
-    exps = [e[0] for e in c.fetchall() if not e[0] == None]
-    for p in planners:
-        # the table name for this planner
-        tname = 'planner_' + p
+    s1 = """SELECT plannerid, plannerName, AVG(solved) AS avg_solved, AVG(total_time) AS avg_total_time
+        FROM (%s) GROUP BY plannerid""" % s0
+    s2 = """SELECT plannerid, MIN(avg_solved) AS avg_solved, avg_total_time
+        FROM (%s) GROUP BY plannerName ORDER BY avg_solved DESC, avg_total_time ASC""" % s1
+    c.execute('DROP VIEW IF EXISTS bestPlannerConfigs')
+    c.execute('CREATE VIEW IF NOT EXISTS bestPlannerConfigs AS %s' % s2)
 
-        # check if simplification time is available
-        has_simplification_time = False
-        c.execute('SELECT * FROM `%s` LIMIT 1' % tname)
-        if 'simplification_time' in [t[0] for t in c.description]:
-            has_simplification_time = True
-
-        for enm in exps:
-            # select all runs, in all configurations, for a particular problem and a particular planner
-            s0 = 'SELECT * FROM `%s` INNER JOIN experiments ON `%s`.experimentid = experiments.id WHERE experiments.name = "%s"' % (tname, tname, enm)
-            # select the highest solve rate and shortest average runtime for each planner configuration
-            if has_simplification_time:
-                s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
-            else:
-                s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
-            c.execute(s1)
-            best = c.fetchone()
-            if not best == None:
-                if not best[0] == None:
-                    bp = 'best_' + enm + '_' + p
-                    print("Best plannner configuration for planner " + p + " on problem '" + enm + "' is " + str(best[0]))
-                    c.execute('DROP VIEW IF EXISTS `%s`' % bp)
-                    c.execute('CREATE VIEW IF NOT EXISTS `%s` AS SELECT * FROM (%s) WHERE plannerid = %s' % (bp, s0, best[0]))
-
-        if has_simplification_time:
-            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM `%s` GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
-        else:
-            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM `%s` GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
-        best = c.fetchone()
-        if not best == None:
-            if not best[0] == None:
-                bp = 'best_' + p
-                print("Best overall plannner configuration for planner " + p + " on is " + str(best[0]))
-                c.execute('DROP VIEW IF EXISTS `%s`' % bp)
-                c.execute('CREATE VIEW IF NOT EXISTS `%s` AS SELECT * FROM `%s` WHERE plannerid = %s' % (bp, tname, best[0]))
     conn.commit()
     c.close()
 
@@ -416,16 +447,15 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     if len(args)>0:
-        read_benchmark_log(options.dbname, args)
+        readBenchmarkLog(options.dbname, args)
         # If we update the database, we recompute the views as well
         options.view = True
 
     if options.view:
-        compute_views(options.dbname)
+        computeViews(options.dbname)
 
     if options.plot:
-        plot_statistics(options.dbname, options.plot)
+        plotStatistics(options.dbname, options.plot)
 
     if options.mysqldb:
-        save_as_mysql(options.dbname, options.mysqldb)
-
+        saveAsMysql(options.dbname, options.mysqldb)

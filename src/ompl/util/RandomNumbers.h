@@ -111,7 +111,7 @@ namespace ompl
         /** \brief Uniform random unit quaternion sampling. The computed value has the order (x,y,z,w) */
         void   quaternion(double value[4]);
 
-        /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range [-pi, pi). The computed value has the order (roll, pitch, yaw) */
+        /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range (-pi, pi]. The computed value has the order (roll, pitch, yaw) */
         void   eulerRPY(double value[3]);
 
         /** \brief Set the seed for random number generation. Use this

@@ -37,8 +37,10 @@
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/goals/GoalState.h"
 #include "ompl/base/goals/GoalStates.h"
+#include "ompl/base/OptimizationObjective.h"
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/control/PathControl.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include <sstream>
 #include <algorithm>
 
@@ -433,9 +435,10 @@ void ompl::base::ProblemDefinition::print(std::ostream &out) const
         goal_->print(out);
     else
         out << "Goal = NULL" << std::endl;
+    if (optimizationObjective_)
+        out << "Average state cost: " << optimizationObjective_->averageStateCost(magic::TEST_STATE_COUNT) << std::endl;
     out << "There are " << solutions_->getSolutionCount() << " solutions" << std::endl;
 }
-
 
 bool ompl::base::ProblemDefinition::hasSolutionNonExistenceProof(void) const
 {

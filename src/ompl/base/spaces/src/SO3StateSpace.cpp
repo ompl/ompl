@@ -40,10 +40,17 @@
 #include <cmath>
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/math/constants/constants.hpp>
+#include <boost/version.hpp>
+#include <boost/assert.hpp>
 
-// Define for boost version < 1.47
 #ifndef BOOST_ASSERT_MSG
 #define BOOST_ASSERT_MSG(expr, msg) assert(expr)
+#endif
+
+#if BOOST_VERSION < 105000
+namespace boost{ namespace math{ namespace constants{
+BOOST_DEFINE_MATH_CONSTANT(root_three, 1.732050807568877293527446341505872366, 1.73205080756887729352744634150587236694280525381038062805580697945193301690880003708114618675724857567562614142, 0)
+}}}
 #endif
 
 static const double MAX_QUATERNION_NORM_ERROR = 1e-9;
@@ -107,23 +114,37 @@ void ompl::base::SO3StateSampler::sampleUniformNear(State *state, const State *n
     SO3StateSpace::StateType q,
         *qs = static_cast<SO3StateSpace::StateType*>(state);
     const SO3StateSpace::StateType *qnear = static_cast<const SO3StateSpace::StateType*>(near);
-    computeAxisAngle(q, rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(), 2.*pow(d,1./3.)*distance);
+    computeAxisAngle(q, rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(),
+        2. * pow(d, boost::math::constants::third<double>()) * distance);
     quaternionProduct(*qs, *qnear, q);
 }
 
 void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mean, const double stdDev)
 {
+    // The standard deviation of the individual components of the tangent
+    // perturbation needs to be scaled so that the expected quaternion distance
+    // between the sampled state and the mean state is stdDev. The factor 2 is
+    // due to the way we define distance (see also Matt Mason's lecture notes
+    // on quaternions at
+    // http://www.cs.cmu.edu/afs/cs/academic/class/16741-s07/www/lecture7.pdf).
+    // The 1/sqrt(3) factor is necessary because the distribution in the tangent
+    // space is a 3-dimensional Gaussian, so that the *length* of a tangent
+    // vector needs to be scaled by 1/sqrt(3).
+    double rotDev = (2. * stdDev) / boost::math::constants::root_three<double>();
+
     // CDF of N(0, 1.17) at -pi/4 is approx. .25, so there's .25 probability
     // weight in each tail. Since the maximum distance in SO(3) is pi/2, we're
     // essentially as likely to sample a state within distance [0, pi/4] as
     // within distance [pi/4, pi/2]. With most weight in the tails (that wrap
     // around in case of quaternions) we might as well sample uniformly.
-    if (stdDev > 1.17)
+    if (rotDev > 1.17)
     {
         sampleUniform(state);
         return;
     }
-    double x = rng_.gaussian(0, stdDev), y = rng_.gaussian(0, stdDev), z = rng_.gaussian(0, stdDev),
+
+
+    double x = rng_.gaussian(0, rotDev), y = rng_.gaussian(0, rotDev), z = rng_.gaussian(0, rotDev),
         theta = std::sqrt(x*x + y*y + z*z);
     if (theta < std::numeric_limits<double>::epsilon())
         space_->copyState(state, mean);

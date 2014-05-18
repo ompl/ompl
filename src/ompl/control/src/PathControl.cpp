@@ -38,7 +38,6 @@
 #include "ompl/control/spaces/DiscreteControlSpace.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
-#include "ompl/base/OptimizationObjective.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
 #include <numeric>
@@ -126,16 +125,6 @@ void ompl::control::PathControl::copyFrom(const PathControl& other)
 double ompl::control::PathControl::length(void) const
 {
     return std::accumulate(controlDurations_.begin(), controlDurations_.end(), 0.0);
-}
-
-double ompl::control::PathControl::cost(const base::OptimizationObjective &objective) const
-{
-    double L = 0.0;
-    for (unsigned int i = 1 ; i < states_.size() ; ++i)
-        L = objective.combineObjectiveCosts(L, objective.getIncrementalCost(states_[i-1], states_[i]));
-    if (!states_.empty())
-        L += objective.getTerminalCost(states_.back());
-    return L;
 }
 
 void ompl::control::PathControl::print(std::ostream &out) const

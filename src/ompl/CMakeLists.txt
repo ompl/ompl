@@ -28,6 +28,11 @@ file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp ge
 #
 #endif()
 
+if (OMPL_EXTENSION_MORSE)
+    file(GLOB_RECURSE OMPL_MORSE_EXTENSION_SOURCE_CODE extensions/morse/*.cpp)
+    set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_MORSE_EXTENSION_SOURCE_CODE})
+endif()
+
 if (OMPL_EXTENSION_OPENDE)
     file(GLOB_RECURSE OMPL_OPENDE_EXTENSION_SOURCE_CODE extensions/opende/*.cpp)
     set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_OPENDE_EXTENSION_SOURCE_CODE})
@@ -55,6 +60,7 @@ target_link_libraries(ompl
   ${Boost_SERIALIZATION_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
+  ${Boost_CHRONO_LIBRARY}
   ${CMAKE_THREAD_LIBS_INIT})
 
 if(MSVC)
@@ -68,7 +74,9 @@ else(MSVC)
 endif(MSVC)
 
 # install the library
-install(TARGETS ompl DESTINATION lib/)
+install(TARGETS ompl
+    DESTINATION lib/
+    COMPONENT ompl)
 if(NOT MSVC)
     get_target_property(OMPL_LIBRARY_LOC ompl LOCATION)
     add_custom_command(TARGET ompl POST_BUILD

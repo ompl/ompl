@@ -6,7 +6,7 @@ To compile OMPL the following two packages are required:
 - [Boost], version 1.40 or higher (version 1.44 or higher recommended), and
 - [CMake], version 2.8.2 or higher.
 
-To be able to generate python bindings you need to install the [Python] library and header files.
+The build system includes a [number of options](buildOptions.html) that you can enable or disable. To be able to generate python bindings you need to install the [Python] library and header files.
 
 Below are more detailed installation instructions for [Linux](#install_linux), [OS X](#install_osx), and [Windows](#install_windows).
 
@@ -101,7 +101,11 @@ The build steps are the same as for Ubuntu Linux:
       make -j 4
 
 
-Installation from source is also possible if dependencies listed above are installed.
+## Debian Linux
+
+Thanks to Leopold Palomo-Avellaneda, OMPL core is available as a collection of packages for Debian:
+
+      apt-get install libompl-dev ompl-demos
 
 
 # Installation on Mac OS X {#install_osx}

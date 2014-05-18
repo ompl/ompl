@@ -39,6 +39,7 @@
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/base/OptimizationObjective.h"
 
 /*
   NOTES:
@@ -58,7 +59,6 @@ namespace ompl
 
     namespace geometric
     {
-
         /**
            @anchor gTRRT
            @par Short description
@@ -252,11 +252,8 @@ namespace ompl
                 /** \brief The parent motion in the exploration tree */
                 Motion            *parent;
 
-                /** \brief The distance between parent state and this state, cached for optimization */
-                double            distance;
-
                 /** \brief Cost of the state */
-                double            cost;
+                base::Cost            cost;
 
             };
 
@@ -344,6 +341,8 @@ namespace ompl
             /// Target ratio of nonfrontier nodes to frontier nodes. rho
             double                                          frontierNodeRatio_;
 
+            /// The optimization objective being optimized by TRRT
+            ompl::base::OptimizationObjectivePtr            opt_;
         };
     }
 }

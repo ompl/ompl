@@ -38,6 +38,7 @@
 #define OMPL_BASE_PLANNER_DATA_GRAPH_
 
 #include "ompl/base/PlannerData.h"
+#include "ompl/base/Cost.h"
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -56,7 +57,7 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
                                boost::property<vertex_type_t, ompl::base::PlannerDataVertex*,
                                boost::property<boost::vertex_index_t, unsigned int> >,
                                boost::property<edge_type_t, ompl::base::PlannerDataEdge*,
-                               boost::property<boost::edge_weight_t, double> > > PlannerDataGraph;
+                               boost::property<boost::edge_weight_t, ompl::base::Cost> > > PlannerDataGraph;
 /// @endcond
 
 /// \brief Wrapper class for the Boost.Graph representation of the PlannerData.

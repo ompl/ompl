@@ -64,25 +64,25 @@ namespace ompl
             {
                 planner_->clear();
 
-                bool solved = planner_->solve(base::timedPlannerTerminationCondition(1.0));
+                bool solved = planner_->solve(timedPlannerTerminationCondition(1.0));
                 BOOST_CHECK(solved);
 
                 planner_->clear();
 
-                solved = planner_->solve(base::timedPlannerTerminationCondition(1.0));
+                solved = planner_->solve(timedPlannerTerminationCondition(1.0));
                 BOOST_CHECK(solved);
 
-                solved = planner_->solve(base::timedPlannerTerminationCondition(1.0));
+                solved = planner_->solve(timedPlannerTerminationCondition(1.0));
                 BOOST_CHECK(solved);
 
                 planner_->clear();
 
-                planner_->solve(PlannerAlwaysTerminatingCondition());
+                planner_->solve(plannerAlwaysTerminatingCondition());
                 planner_->solve(0.001);
                 planner_->solve(0.01);
                 solved = planner_->solve(0.1);
                 if (!solved)
-                    solved = planner_->solve(base::timedPlannerTerminationCondition(1.0));
+                    solved = planner_->solve(timedPlannerTerminationCondition(1.0));
                 BOOST_CHECK(solved);
                 planner_->clear();
                 planner_->clear();

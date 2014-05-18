@@ -1,10 +1,31 @@
 # Release Notes
 
 
+# OMPL.app 0.14.1 (January 23, 2014)
+
+- Update PlannerData to use new cost infrastructure.
+- Bug fixes.
+
+
+# OMPL 0.14.0 (December 20, 2013)
+
+- Added new cost infrastructure to plan optimal paths with respect to arbitrary cost functions. Several common cost objective functions have been defined (such as path length and mechanical work) and new ones can easily be defined.
+- RRT*, PRM*, TRRT, and PRM have been updated to use this cost infrastructure.
+- BallTreeRRT* has been removed since it assumed that the path cost is equal to the path length.
+- Added two new planners:
+    - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT), a near asymptotically-optimal incremental sampling-based motion planning algorithm.
+    - [Search Tree with Resolution Independent Density Estimation (STRIDE)](\ref gSTRIDE), an EST-like planner that uses an extension of the GNAT nearest neighbor data structure that supports sampling states inversely proportional to the density of previously sampled states.
+- Added support for MORSE. Through a plugin you can use OMPL with Blender and MORSE to plan kinodynamic paths. See [the gallery](gallery.html) for some examples.
+- Added functionality to the Benchmark class to keep track of user-specified properties at regular intervals. This is especially useful for asymptotically/approximately optimal or anytime planners.
+- Added more [demo programs](group__demos.html).
+- Updated gccxml snapshot. If you use gcc 4.8 and the OMPL Python bindings, you need to run "make installpyplusplus" again.
+- Bug fixes.
+
+
 # OMPL 0.13.0 (August 5, 2013)
 
 - Added several new planners:
-    - [SPARS](\ref gSPARS) and [SPARS2](\ref gSPARStwo) are roadmap-based planners that operate similarly to Visbility-based PRM, but provide asymptotic near-optimality guarantees.
+    - [SPARS](\ref gSPARS) and [SPARS2](\ref gSPARStwo) are roadmap-based planners that operate similarly to Visibility-based PRM, but provide asymptotic near-optimality guarantees.
     - Path-Directed Subdivision Tree (PDST). There are actually two versions: [one for geometric planning](\ref gPDST) and [one for control-based planning](\ref cPDST).
     - [Lazy PRM](\ref gLazyPRM), a variant that lazily evaluates the validity of nodes and edges in a roadmap.
 - Various improvements and bug fixes in the RRTstar and BallTreeRRTstar planners.

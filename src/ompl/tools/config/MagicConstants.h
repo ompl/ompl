@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_UTIL_MAGIC_CONSTANTS_
-#define OMPL_UTIL_MAGIC_CONSTANTS_
+#ifndef OMPL_TOOLS_CONFIG_MAGIC_CONSTANTS_
+#define OMPL_TOOLS_CONFIG_MAGIC_CONSTANTS_
 
 namespace ompl
 {

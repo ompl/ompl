@@ -4,14 +4,11 @@ project(ompl CXX C)
 # set the default build type
 if (NOT CMAKE_BUILD_TYPE)
     # By default, use Release mode
-    set(CMAKE_BUILD_TYPE Release)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Type of build" FORCE)
 
-    # On 32bit architectures with gcc < 4.7, use RelWithDebInfo
+    # On 32bit architectures, use RelWithDebInfo
     if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_SIZEOF_VOID_P EQUAL 4)
-        execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-        if (GCC_VERSION VERSION_LESS 4.7)
-            set(CMAKE_BUILD_TYPE RelWithDebInfo)
-        endif()
+        set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Type of build" FORCE)
     endif()
 endif()
 
@@ -53,7 +50,28 @@ else(IS_ICPC)
     add_definitions(-DBOOST_TEST_DYN_LINK)
 endif(IS_ICPC)
 
-find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework REQUIRED)
+# Do one quiet find_package on Boost to see if it is recent enough to
+# have the try_join_for call
+find_package(Boost QUIET 1.50)
+
+# If Boost is not found at all, the check for version 1.50 below will die in
+# the most ungraceful manner because Boost_VERSION is not defined.  Define the
+# variable here for a more useful error.
+if (NOT ${Boost_FOUND})
+    set(Boost_VERSION 0)
+endif()
+
+# try_join_for requires the chrono library, so if we will use
+# try_join_for, we need to include the chrono component
+# Must recheck the Boost version, since update_bindings will re-run CMake
+# and this will pass for versions of Boost < 1.50
+if (${Boost_FOUND} AND ${Boost_VERSION} GREATER 104900) # Boost version is at least 1.50
+  # we're using chrono
+  find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework chrono REQUIRED)
+else()
+  # don't use chrono
+  find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework REQUIRED)
+endif()
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 if (NOT ${Boost_VERSION} LESS 104400)
@@ -67,12 +85,34 @@ else()
   option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" OFF)
 endif()
 
+# on OS X we need to check whether to use libc++ or libstdc++ with clang++
+if(APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    include(GetPrerequisites)
+    get_prerequisites("${Boost_SYSTEM_LIBRARY}" _libs 0 0 "/" "")
+    set(CXXSTDLIB "")
+    foreach(_lib ${_libs})
+        if(_lib MATCHES "libc\\+\\+")
+            set(CXXSTDLIB "libc++")
+        elseif(_lib MATCHES "libstdc\\+\\+")
+            set(CXXSTDLIB "libstdc++")
+        endif()
+    endforeach()
+    if(CXXSTDLIB)
+        add_definitions(-stdlib=${CXXSTDLIB})
+    endif()
+endif()
+
+
 # pthread is sometimes needed, depending on OS / compiler
 find_package(Threads QUIET)
 
 enable_testing()
 
-# ODE is only needed for Open Dynamics Engine bindings
+# MORSE is only needed for Modular OpenRobots Simulation Engine bindings
+find_package(MORSE QUIET)
+set(OMPL_EXTENSION_MORSE ${MORSE_FOUND})
+
+# OpenDE is only needed for Open Dynamics Engine bindings
 find_package(OpenDE QUIET)
 set(OMPL_EXTENSION_OPENDE ${OPENDE_FOUND})
 if (OPENDE_FOUND)
@@ -93,6 +133,15 @@ if (FLANN_FOUND)
     include_directories(SYSTEM "${FLANN_INCLUDE_DIRS}")
 endif()
 
+option(OMPL_LOCAL_PYPLUSPLUS_INSTALL "Whether Py++ and dependencies should be installed in the build directory" OFF)
+set(SUDO "sudo")
+set(CMAKE_GCCXML_ARGS "")
+if(OMPL_LOCAL_PYPLUSPLUS_INSTALL)
+    set(SUDO "")
+    set(CMAKE_GCCXML_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/pyplusplus")
+    set(DISTUTILS_ARGS "--prefix=${PROJECT_BINARY_DIR}/pyplusplus")
+endif()
+
 add_subdirectory(py-bindings)
 add_subdirectory(src)
 add_subdirectory(tests)
@@ -106,11 +155,14 @@ if (NOT MSVC)
   set(PKG_OMPL_LIBS "-lompl")
   set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
   configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
-  install(FILES "${pkg_conf_file}" DESTINATION lib/pkgconfig/
-    COMPONENT pkgconfig RENAME "ompl${OMPL_INSTALL_SUFFIX}.pc")
+  install(FILES "${pkg_conf_file}"
+    DESTINATION lib/pkgconfig/
+    COMPONENT ompl
+    RENAME "ompl${OMPL_INSTALL_SUFFIX}.pc")
 
-  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/dox/FindOMPL.cmake"
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/markdown/FindOMPL.cmake"
     DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}"
+    COMPONENT ompl
     RENAME ompl-config.cmake)
   if (NOT ${CMAKE_VERSION} VERSION_LESS 2.8.6)
     include(WriteBasicConfigVersionFile)
@@ -118,7 +170,8 @@ if (NOT MSVC)
       "${CMAKE_CURRENT_BINARY_DIR}/ompl-config-version.cmake"
       VERSION ${OMPL_VERSION} COMPATIBILITY SameMajorVersion)
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ompl-config-version.cmake"
-      DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}")
+      DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}"
+      COMPONENT ompl)
   endif()
 endif()
 

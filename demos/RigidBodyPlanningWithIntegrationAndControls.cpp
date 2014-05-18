@@ -251,7 +251,7 @@ void planWithSimpleSetup(void)
         std::cout << "Found solution:" << std::endl;
         /// print the path to screen
 
-        ss.getSolutionPath().asGeometric().print(std::cout);
+        ss.getSolutionPath().asGeometric().printAsMatrix(std::cout);
     }
     else
         std::cout << "No solution found" << std::endl;

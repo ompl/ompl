@@ -34,11 +34,7 @@
 
 /* Author: Ioan Sucan, James D. Marble */
 
-#include "ompl/base/goals/GoalSampleableRegion.h"
-
-typedef ::ompl::base::PlannerStatus ( ::ompl::base::Planner::*timed_solve_function_type )( double ) ;
-
-ompl::base::PlannerStatus PRM_wrapper::solve(const ompl::base::PlannerTerminationCondition& ptc)
+ompl::base::PlannerStatus PRM_wrapper::default_solve(const ompl::base::PlannerTerminationCondition& ptc)
 {
     using namespace ompl;
 
@@ -114,9 +110,9 @@ ompl::base::PlannerStatus PRM_wrapper::solve(const ompl::base::PlannerTerminatio
         // maintain a 2:1 ratio for growing/expansion of roadmap
         // call growRoadmap() twice as long for every call of expandRoadmap()
         if (grow)
-            ompl::geometric::PRM::growRoadmap(base::PlannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(2.0*roadmap_build_time)), xstates[0]);
+            ompl::geometric::PRM::growRoadmap(base::plannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(2.0*roadmap_build_time)), xstates[0]);
         else
-            ompl::geometric::PRM::expandRoadmap(base::PlannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(roadmap_build_time)), xstates);
+            ompl::geometric::PRM::expandRoadmap(base::plannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(roadmap_build_time)), xstates);
         grow = !grow;
 
         // Check for a solution

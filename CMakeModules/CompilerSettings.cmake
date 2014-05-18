@@ -3,9 +3,13 @@ if(CMAKE_COMPILER_IS_GNUCXX)
                     -Wcast-qual -Wwrite-strings -Wunreachable-code -Wpointer-arith
                     -Winit-self -Wredundant-decls
                     -Wno-unused-parameter -Wno-unused-function)
+    # prepend optimizion flag (in case the default setting doesn't include one)
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers -Wno-unused -Wno-unused-parameter -Wno-delete-non-virtual-dtor -Wno-overloaded-virtual -Wno-unknown-pragmas -Qunused-arguments)
+    # prepend optimizion flag (in case the default setting doesn't include one)
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
 endif()
 
 if(MSVC OR MSVC90 OR MSVC10)

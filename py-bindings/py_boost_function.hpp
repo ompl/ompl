@@ -1,13 +1,47 @@
+/*********************************************************************
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2014, Rice University.
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Rice University nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
+
+/* Author: Alcides Viamontes Esquivel, Mark Moll */
+
+
 /******************************************************************************
  * How to wrap boost.function objects with boost.python and use them both from
  * C++ and Python.
  *
- *   AUTHOR: Alcides Viamontes Esquivel
- *
- *   LICENSE: You're free to use this file for whatever you want. You're
- *            specially welcome to improve it in any way and give the
- *            changes back.
- *
+ * This is a significantly enhanced version of the original version by
+ * Alcides Viamontes Esquivel.
+ * *
  ******************************************************************************
  *
  * Usage example:
@@ -25,24 +59,19 @@
  *           cout << "Hello world, by " << origin << endl;
  *     }
  *
- *
- *     boost::function< void( std::string const& ) > module_greeter(
- *          module_greeter_f
- *     ) ;
- *     ...
+ *     PYDECLARE_FUNCTION(void(std::string const&), greeter_function_t)
  *
  *     BOOST_PYTHON_MODULE( foo ) {
  *
  *          using namespace boost.python;
- *          ...
  *
- *          def_function< void(string const&) >(
+ *          def_function< void(std::string const&) >(
  *              "greeter_function_t",
  *              "A greeting function"
  *          );
  *
- *          ...
- *          scope().attr("module_greeter") = module_greeter;
+ *          PY_REGISTER_FUNCTION(void(std::string const&),
+ *              greeter_function_t, "Greeter function type")
  *     }
  *
  * From python code:
@@ -57,7 +86,7 @@
  *          >>> def my_greetings(hi):
  *          >>> ... print hi, ", world"
  *          >>> ...
- *          >>> grfunc = foo.greeter_function_t.from_callable( my_greetings )
+ *          >>> grfunc = foo.greeter_function_t( my_greetings )
  *
  */
 

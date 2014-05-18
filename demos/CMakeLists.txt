@@ -23,9 +23,15 @@ if (OMPL_BUILD_DEMOS)
 
   add_ompl_demo(demo_StateSampling StateSampling.cpp)
   add_ompl_demo(demo_GeometricCarPlanning GeometricCarPlanning.cpp)
+  add_ompl_demo(demo_Point2DPlanning Point2DPlanning.cpp)
   add_ompl_demo(demo_HybridSystemPlanning HybridSystemPlanning.cpp)
+  add_ompl_demo(demo_KinematicChainBenchmark KinematicChainBenchmark.cpp)
+  add_ompl_demo(demo_HypercubeBenchmark HypercubeBenchmark.cpp)
   aux_source_directory(Koules Koules_SRC)
   add_ompl_demo(demo_Koules ${Koules_SRC})
+
+  add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
+  add_ompl_demo(demo_PlannerProgressProperties PlannerProgressProperties.cpp)
 
   if (OMPL_EXTENSION_OPENDE)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)
@@ -40,9 +46,14 @@ if (OMPL_BUILD_DEMOS)
   if(NOT "${Boost_VERSION}" LESS 104400)
     add_ompl_demo(demo_PlannerData PlannerData.cpp)
   endif(NOT "${Boost_VERSION}" LESS 104400)
+
 endif(OMPL_BUILD_DEMOS)
 
 file(GLOB OMPL_DEMO_CXX_FILES "*.cpp")
 file(GLOB OMPL_DEMO_PY_FILES "*.py")
-install(FILES ${OMPL_DEMO_CXX_FILES} ${OMPL_DEMO_PY_FILES} DESTINATION "${OMPL_DEMO_INSTALL_DIR}")
-install(DIRECTORY Koules DESTINATION "${OMPL_DEMO_INSTALL_DIR}")
+install(FILES ${OMPL_DEMO_CXX_FILES} ${OMPL_DEMO_PY_FILES}
+    DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
+    COMPONENT ompl)
+install(DIRECTORY Koules
+    DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
+    COMPONENT ompl)

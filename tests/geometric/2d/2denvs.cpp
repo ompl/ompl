@@ -55,6 +55,7 @@
 #include "ompl/geometric/planners/rrt/LazyRRT.h"
 #include "ompl/geometric/planners/pdst/PDST.h"
 #include "ompl/geometric/planners/est/EST.h"
+#include "ompl/geometric/planners/stride/STRIDE.h"
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/prm/LazyPRM.h"
@@ -438,6 +439,19 @@ protected:
 
 };
 
+class STRIDETest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::STRIDE *stride = new geometric::STRIDE(si);
+        stride->setRange(10.0);
+        return base::PlannerPtr(stride);
+    }
+
+};
+
 class PDSTTest : public TestPlanner
 {
 protected:
@@ -673,7 +687,9 @@ protected:
 
 BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 
-#define MACHINE_SPEED_FACTOR 3.0
+#ifndef MACHINE_SPEED_FACTOR
+#  define MACHINE_SPEED_FACTOR 3.0
+#endif
 
 // define boost tests for a planner assuming the naming convention is followed
 #define OMPL_PLANNER_TEST(Name, MinSuccess, MaxAvgTime)                 \
@@ -691,7 +707,7 @@ OMPL_PLANNER_TEST(RRTConnect, 99.0, 0.01)
 OMPL_PLANNER_TEST(pRRT, 99.0, 0.02)
 
 // LazyRRT is a not so great, so we use more relaxed bounds
-OMPL_PLANNER_TEST(LazyRRT, 90.0, 0.2)
+OMPL_PLANNER_TEST(LazyRRT, 80.0, 0.3)
 
 OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
 
@@ -705,11 +721,12 @@ OMPL_PLANNER_TEST(LBKPIECE1, 99.0, 0.02)
 OMPL_PLANNER_TEST(BKPIECE1, 99.0, 0.01)
 
 OMPL_PLANNER_TEST(EST, 99.0, 0.02)
+OMPL_PLANNER_TEST(STRIDE, 99.0, 0.02)
 
-OMPL_PLANNER_TEST(PRM, 98.0, 0.02)
-OMPL_PLANNER_TEST(PRMstar, 98.0, 0.02)
-OMPL_PLANNER_TEST(LazyPRM, 98.0, 0.02)
-OMPL_PLANNER_TEST(SPARS, 95.0, 0.02)
-OMPL_PLANNER_TEST(SPARStwo, 99.0, 0.02)
+OMPL_PLANNER_TEST(PRM, 98.0, 0.04)
+OMPL_PLANNER_TEST(PRMstar, 98.0, 0.04)
+OMPL_PLANNER_TEST(LazyPRM, 98.0, 0.04)
+OMPL_PLANNER_TEST(SPARS, 95.0, 0.04)
+OMPL_PLANNER_TEST(SPARStwo, 99.0, 0.04)
 
 BOOST_AUTO_TEST_SUITE_END()

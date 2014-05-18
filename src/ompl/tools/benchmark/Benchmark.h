@@ -79,6 +79,8 @@ namespace ompl
                 stored as key-value pairs. */
             typedef std::map<std::string, std::string> RunProperties;
 
+            typedef std::vector<std::map<std::string, std::string> > RunProgressData;
+
             /** \brief Signature of function that can be called before a planner execution is started */
             typedef boost::function<void(const base::PlannerPtr&)> PreSetupEvent;
 
@@ -93,6 +95,14 @@ namespace ompl
 
                 /// Data collected for each run
                 std::vector<RunProperties> runs;
+
+                /// Names of each of the planner progress properties
+                /// reported by planner
+                std::vector<std::string>     progressPropertyNames;
+
+                /// For each run of the planner, this stores the set
+                /// of planner progress data reported by the planner
+                std::vector<RunProgressData> runsProgressData;
 
                 /// Some common properties for all the runs
                 RunProperties              common;
@@ -142,8 +152,10 @@ namespace ompl
             {
                 /** \brief Constructor that provides default values for all members */
                 Request(double maxTime = 5.0, double maxMem = 4096.0,
-                    unsigned int runCount = 100, bool displayProgress = true,
-                    bool saveConsoleOutput = true, bool useThreads = true)
+                        unsigned int runCount = 100,
+                        double timeBetweenUpdates = 0.001,
+                        bool displayProgress = true,
+                        bool saveConsoleOutput = true, bool useThreads = true)
                     : maxTime(maxTime), maxMem(maxMem), runCount(runCount),
                     displayProgress(displayProgress), saveConsoleOutput(saveConsoleOutput),
                     useThreads(useThreads)
@@ -158,6 +170,9 @@ namespace ompl
 
                 /// \brief the number of times to run each planner; 100 by default
                 unsigned int runCount;
+
+                /// \brief When collecting time-varying data from a planner during its execution, the planner's progress will be queried every \c timeBetweenUpdates seconds.
+                double       timeBetweenUpdates;
 
                 /// \brief flag indicating whether progress is to be displayed or not; true by default
                 bool         displayProgress;

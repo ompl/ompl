@@ -200,7 +200,7 @@ class ompl_base_generator_t(code_generator_t):
             if stype!='Dubins' and stype!='ReedsShepp':
                 self.ompl_ns.class_(stype + 'StateSpace').decls('StateType').rename(
                     stype + 'StateInternal')
-            # add a constructor that allows, e.g., an State to be constructed from a SE3State
+            # add a constructor that allows, e.g., a State to be constructed from a SE3State
             bstate.add_registration_code(
                 'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateSpace> const &>(( bp::arg("other") )))' % stype)
             # add array access to double components of state
@@ -300,10 +300,11 @@ class ompl_base_generator_t(code_generator_t):
             'ValidStateSamplerAllocator', 'Valid state allocator function')
         self.add_boost_function('double(const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataEdge&)',
             'EdgeWeightFn', 'Edge weight function')
+        self.add_boost_function('ompl::base::Cost(const ompl::base::State*, const ompl::base::Goal*)',
+            'CostToGoHeuristic', 'Cost-to-go heuristic for optimizing planners')
+        self.add_boost_function('std::string()', 'PlannerProgressProperty',
+            'Function that returns stringified value of a property while a planner is running')
 
-        # exclude solve() methods that take a "const PlannerTerminationConditionFn &"
-        # as first argument; only keep the solve() that just takes a double argument
-        self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationConditionFn const &', 'double']).exclude()
         # rename SamplerSelectors
         self.ompl_ns.class_('SamplerSelector< ompl::base::StateSampler >').rename('StateSamplerSelector')
         self.ompl_ns.class_('SamplerSelector< ompl::base::ValidStateSampler >').rename('ValidStateSamplerSelector')
@@ -397,9 +398,6 @@ class ompl_control_generator_t(code_generator_t):
         # LLVM's clang++ compiler doesn't like exporting this method because
         # the argument type (Grid::Cell) is protected
         self.ompl_ns.member_functions('computeImportance').exclude()
-        # exclude solve() methods that take a "const PlannerTerminationCondition &"
-        # as first argument; only keep the solve() that just takes a double argument
-        self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
 
         # export pure virtual member functions, otherwise code doesn't compile
         syclop = self.ompl_ns.class_('Syclop')
@@ -445,7 +443,7 @@ class ompl_control_generator_t(code_generator_t):
         for cls in ['SimpleSetup', 'KPIECE1', 'PDST', 'RRT', 'EST', 'SpaceInformation', 'Syclop', 'SyclopEST', 'SyclopRRT']:
             self.ompl_ns.namespace('control').class_(cls).wrapper_alias = 'Control%s_wrapper' % cls
 
-        # Py++ seems to get confused by virtual methods declared in one module
+        # Py++ seems to get confused by some methods declared in one module
         # that are *not* overridden in a derived class in another module. The
         # Planner class is defined in ompl::base and two of its virtual methods,
         # setProblemDefinition and checkValidity, and not overridden by most
@@ -455,6 +453,8 @@ class ompl_control_generator_t(code_generator_t):
 
         # do this for all planners
         for planner in ['KPIECE1', 'PDST', 'RRT', 'EST', 'Syclop', 'SyclopEST', 'SyclopRRT']:
+            self.ompl_ns.class_(planner).add_registration_code("""
+            def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )""")
             self.ompl_ns.class_(planner).add_registration_code("""
             def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
                     &Control%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner)
@@ -494,9 +494,6 @@ class ompl_geometric_generator_t(code_generator_t):
         # LLVM's clang++ compiler doesn't like exporting this method because
         # the argument type (Grid::Cell) is protected
         self.ompl_ns.member_functions('computeImportance').exclude()
-        # exclude solve() methods that take a "const PlannerTerminationCondition &"
-        # as first argument; only keep the solve() that just takes a double argument
-        self.ompl_ns.member_functions('solve', arg_types=['::ompl::base::PlannerTerminationCondition const &']).exclude()
         # add wrappers for boost::function types
         self.add_boost_function('unsigned int()',
             'NumNeighborsFn', 'Number of neighbors function')
@@ -516,15 +513,27 @@ class ompl_geometric_generator_t(code_generator_t):
         # The OMPL implementation of PRM uses two threads: one for constructing
         # the roadmap and another for checking for a solution. This causes
         # problems when both threads try to access the python interpreter
-        # simultaneously. This is a know limitation of Boost.Python. We
+        # simultaneously. This is a known limitation of Boost.Python. We
         # therefore use a single-threaded version of PRM in python.
         PRM_cls = self.ompl_ns.class_('PRM')
-        PRM_cls.add_wrapper_code('ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition& ptc);')
-        PRM_cls.add_declaration_code(open('PRM.SingleThreadSolve.cpp','r').read())
-        PRM_cls.add_registration_code('def("solve", &PRM_wrapper::solve)')
-        PRM_cls.add_registration_code('def("solve", timed_solve_function_type(&ompl::base::Planner::solve))')
+        PRM_cls.member_function('solve').exclude()
+        PRM_cls.add_wrapper_code("""
+            virtual ::ompl::base::PlannerStatus solve( ::ompl::base::PlannerTerminationCondition const & ptc ) {
+                if( bp::override func_solve = this->get_override( "solve" ) )
+                    return func_solve( boost::ref(ptc) );
+                else{
+                    return default_solve( boost::ref(ptc) );
+                }
+            }
 
-        # Py++ seems to get confused by virtual methods declared in one module
+            ::ompl::base::PlannerStatus default_solve( ::ompl::base::PlannerTerminationCondition const & ptc );
+            """)
+        PRM_cls.add_declaration_code(open('PRM.SingleThreadSolve.cpp','r').read())
+        PRM_cls.add_registration_code("""def("solve",
+            (::ompl::base::PlannerStatus(::ompl::geometric::PRM::*)( ::ompl::base::PlannerTerminationCondition const &))(&PRM_wrapper::solve),
+            (::ompl::base::PlannerStatus(PRM_wrapper::*)( ::ompl::base::PlannerTerminationCondition const & ))(&PRM_wrapper::default_solve), bp::arg("ptc") )""")
+
+        # Py++ seems to get confused by some methods declared in one module
         # that are *not* overridden in a derived class in another module. The
         # Planner class is defined in ompl::base and two of its virtual methods,
         # setProblemDefinition and checkValidity, and not overridden by most
@@ -533,7 +542,9 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'PRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'BallTreeRRTstar', 'SBL', 'SPARS', 'SPARStwo']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'PRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE']:
+            self.ompl_ns.class_(planner).add_registration_code("""
+            def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )""")
             if planner!='PRM':
                 # PRM overrides setProblemDefinition, so we don't need to add this code
                 self.ompl_ns.class_(planner).add_registration_code("""
@@ -572,12 +583,12 @@ class ompl_tools_generator_t(code_generator_t):
         """)
 
         code_generator_t.__init__(self, 'tools',
-            ['bindings/util', 'bindings/base', 'bindings/geometric', 'bindings/control'], replacement)
+            ['bindings/util', 'bindings/base', 'bindings/geometric', 'bindings/control'], replacement, 1)
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
         # rename STL vectors/maps of certain types
         self.std_ns.class_('vector< ompl::tools::Benchmark::PlannerExperiment >').rename('vectorPlannerExperiment')
-
+        self.std_ns.class_('vector< std::vector< std::map<std::string, std::string> > >').rename('vectorRunProgressData')
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
 
@@ -649,6 +660,29 @@ class ompl_util_generator_t(code_generator_t):
         self.std_ns.class_('vector< std::map<std::string, std::string > >').rename('vectorMapStringToString')
         self.std_ns.class_('map<std::string, std::string >').include()
         self.std_ns.class_('map<std::string, std::string >').rename('mapStringToString')
+        self.std_ns.class_('vector< ompl::PPM::Color >').rename('vectorPPMColor')
+
+class ompl_morse_generator_t(code_generator_t):
+    def __init__(self):
+        replacement = default_replacement
+        code_generator_t.__init__(self, 'morse',
+            ['bindings/util', 'bindings/base', 'bindings/geometric', 'bindings/control'],
+            replacement)
+    def filter_declarations(self):
+        stype = 'Morse'
+        # create a python type for each of the corresponding state type
+        state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateSpace >' % stype)
+        state.rename(stype+'State')
+        state.operator('=', arg_types=['::ompl::base::State const &']).exclude()
+        # add a constructor that allows a MorseState to be constructed from a State
+        state.add_registration_code(
+            'def(bp::init<ompl::base::ScopedState<ompl::base::StateSpace> const &>(( bp::arg("other") )))')
+        # add a constructor that allows, e.g., a State to be constructed from a MorseState
+        bstate = self.ompl_ns.class_('ScopedState< ompl::base::StateSpace >')
+        bstate.add_registration_code(
+            'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateSpace> const &>(( bp::arg("other") )))' % stype)
+        # add array access to double components of state
+        self.add_array_access(state,'double')
 
 
 if __name__ == '__main__':

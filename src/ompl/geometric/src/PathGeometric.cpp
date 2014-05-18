@@ -36,7 +36,6 @@
 
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
-#include "ompl/base/OptimizationObjective.h"
 #include "ompl/base/ScopedState.h"
 #include <algorithm>
 #include <cmath>
@@ -90,16 +89,6 @@ double ompl::geometric::PathGeometric::length(void) const
     double L = 0.0;
     for (unsigned int i = 1 ; i < states_.size() ; ++i)
         L += si_->distance(states_[i-1], states_[i]);
-    return L;
-}
-
-double ompl::geometric::PathGeometric::cost(const base::OptimizationObjective &objective) const
-{
-    double L = 0.0;
-    for (unsigned int i = 1 ; i < states_.size() ; ++i)
-        L = objective.combineObjectiveCosts(L, objective.getIncrementalCost(states_[i-1], states_[i]));
-    if (!states_.empty())
-        L += objective.getTerminalCost(states_.back());
     return L;
 }
 

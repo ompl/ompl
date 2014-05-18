@@ -181,6 +181,8 @@ namespace ompl
             }
             throw Exception("No elements found in nearest neighbors data structure");
         }
+        /// \brief Return the k nearest neighbors in sorted order if
+        /// searchParams_.sorted==true (the default)
         virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const
         {
             _T& elt = const_cast<_T&>(data);
@@ -192,7 +194,8 @@ namespace ompl
             for (std::size_t i = 0 ; i < k ; ++i)
                 nbh[i] = *index_->getPoint(indices[0][i]);
         }
-
+        /// \brief Return the nearest neighbors within distance \c radius in sorted
+        /// order if searchParams_.sorted==true (the default)
         virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const
         {
             _T& elt = const_cast<_T&>(data);

@@ -8,6 +8,21 @@ An overview of [MoveIt!](http://moveit.ros.org), the [ROS](http://www.ros.org) p
 <iframe width="560" height="315" src="http://www.youtube.com/embed/vAeEEoxVhAo" frameborder="0" allowfullscreen></iframe>
 \endhtmlonly
 
+# Morse
+
+Morse is a robot simulator built on top of the 3D modeling program Blender. Caleb Voss has developed a plugin for Blender that allows you use OMPL to plan motions for Morse robots. There is [extensive documentation](morse.html) on how to use this plugin. Below are some example videos produced with this plugin.
+
+\htmlonly
+<div class="row">
+    <div class="span6">
+        <iframe src="http://player.vimeo.com/video/71580831?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="420" height="236" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+    </div>
+    <div class="span6">
+        <iframe src="http://player.vimeo.com/video/72710651?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="420" height="236" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+    </div>
+</div>
+\endhtmlonly
+
 # Manipulation Planning
 
 An example of using OMPL on the PR2 from [Willow Garage](http://www.willowgarage.com). The robot is asked to move the manipulate objects on the table. This demo is using [ROS](http://www.ros.org).

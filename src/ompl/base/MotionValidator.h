@@ -95,21 +95,6 @@ namespace ompl
                 \note This function updates the number of valid and invalid segments. */
             virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const = 0;
 
-            /** \brief Compute the cost of a path segment from \e s1 to \e s2 (including endpoints)
-                \param s1 start state of the motion to be evaluated
-                \param s2 final state of the motion to be evaluated
-                \param cost the cost of the motion segment
-                \param bounds the minimum (first) and maximum (second) cost a state along the motion incurrs
-
-                By default, this function computes
-                \f{eqnarray*}{
-                    \mbox{cost} &=& \frac{cost(s_1) + cost(s_2)}{2}\vert s_1 - s_2 \vert\\
-                    \mbox{bounds.first} &=& \min(cost(s_1), cost(s_2))\\
-                    \mbox{bounds.second} &=& \max(cost(s_1), cost(s_2))
-                \f}
-            */
-            virtual void computeMotionCost(const State *s1, const State *s2, double &cost, std::pair<double, double> &bounds) const;
-
             /** \brief Get the number of segments that tested as valid */
             unsigned int getValidMotionCount(void) const
             {

@@ -1,4 +1,4 @@
-#!/usr/bin/env DYLD_FALLBACK_LIBRARY_PATH=/opt/local/lib python
+#!/usr/bin/env python
 
 ######################################################################
 # Software License Agreement (BSD License)
@@ -57,7 +57,7 @@ try:
 except:
     # if the ompl module is not in the PYTHONPATH assume it is installed in a
     # subdirectory of the parent directory called "py-bindings."
-    from os.path import basename, abspath, dirname, join
+    from os.path import abspath, dirname, join
     import sys
     sys.path.insert(0, join(dirname(dirname(abspath(__file__))),'py-bindings'))
     from ompl import util as ou
@@ -82,12 +82,12 @@ def edgeWeight(space, v1, v2, edge):
 def useGraphTool(pd, space):
     # Extract the graphml representation of the planner data
     graphml = pd.printGraphML()
-    f = open("graph.xml", 'w')
+    f = open("graph.graphml", 'w')
     f.write(graphml)
     f.close()
 
     # Load the graphml data using graph-tool
-    graph = gt.load_graph("graph.xml")
+    graph = gt.load_graph("graph.graphml", fmt="xml")
     edgeweights = graph.edge_properties["weight"]
 
     # Write some interesting statistics
@@ -208,8 +208,8 @@ def plan():
         pd = ob.PlannerData(ss.getSpaceInformation())
         ss.getPlannerData(pd)
 
-        # Computing weights of all edges based on distance
-        pd.computeEdgeWeights(ob.EdgeWeightFn(partial(edgeWeight, space)))
+        # Computing weights of all edges based on state space distance
+        pd.computeEdgeWeights()
 
         if graphtool:
             useGraphTool(pd, space)

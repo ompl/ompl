@@ -40,6 +40,7 @@
 #include "KoulesConfig.h"
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
+/// @cond IGNORE
 class KoulesStateSpace : public ompl::base::RealVectorStateSpace
 {
 public:
@@ -61,5 +62,6 @@ protected:
     std::vector<double> mass_;
     std::vector<double> radius_;
 };
+/// @endcond
 
 #endif

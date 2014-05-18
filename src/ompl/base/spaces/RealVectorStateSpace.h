@@ -59,7 +59,15 @@ namespace ompl
             }
 
             virtual void sampleUniform(State *state);
+            /** \brief Sample a state such that each component state[i] is
+                uniformly sampled from [near[i]-distance, near[i]+distance].
+                If this interval exceeds the state space bounds, the
+                interval is truncated. */
             virtual void sampleUniformNear(State *state, const State *near, const double distance);
+            /** \brief Sample a state such that each component state[i] has
+                a Gaussian distribution with mean mean[i] and standard
+                deviation stdDev. If the sampled value exceeds the state
+                space boundary, it is thresholded to the nearest boundary. */
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
         };
 
