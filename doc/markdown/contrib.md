@@ -4,13 +4,18 @@ We welcome external contributions. If you would like us to list your contributio
 
 1. It is possible that your code simply uses OMPL as a dependency. In that case, bundling that code with OMPL might not make sense, but we can still list this as contribution with links to an external web site if users of OMPL may be interested in this code.
 
-2. If you would like to contribute code to OMPL, be it new algorithms or fixes, optimizations, we prefer to handle contributions in one of two ways:
+2. If you would like to contribute code to OMPL, be it new algorithms or fixes, optimizations, we prefer to handle contributions in one of three ways:
 
     - Mercurial <b>[preferred]</b>: contributors clone the OMPL repository on bitbucket.org like so:
 
           $ hg clone https://bitbucket.org/ompl/ompl
 
-      Contributors should then create their own branch, add their files in the appropriate places, and either send us a “pull” request (if the repository is accessible to us) or email us a [bundle](http://www.selenic.com/mercurial/hg.1.html#bundle). We will then merge your code in that separate branch, test the code and then merge it to the default branch. If you have a simple fix, using de default branch is fine.
+      Contributors should then create their own branch, add their files in the appropriate places, and either send us a “pull” request (if the repository is accessible to us) or email us a [bundle](http://www.selenic.com/mercurial/hg.1.html#bundle). We will then merge your code in that separate branch, test the code and then merge it to the default branch. If you have a simple fix, using the default branch is fine.
+    - Git: contributors clone the OMPL repository on github.com like so:
+
+          $ git clone https://github.com/ompl/ompl.git
+
+      Analogous to mercurial, contributors should then create their own branch, add their files in the appropriate places, and send us a “pull” request. We will then merge your code in that separate branch, test the code and then merge it to the default branch. If you have a simple fix, using the default branch is fine.
     - tar balls / zip files / etc.: contributors just email us their files and we put them in the appropriate place.
 
 3. In the unlikely event that the submitted code is of poor quality, we will try to suggest the changes necessary to include the contribution in OMPL, and postpone merging until the necessary changes are made.

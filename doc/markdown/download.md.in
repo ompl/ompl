@@ -22,9 +22,13 @@
 
 # Source Code
 
-- The [latest source](https://bitbucket.org/ompl/ompl/src) is available via Mercurial. For anonymous checkout use:
+- The [latest source](https://bitbucket.org/ompl/ompl/src) is available via Mercurial or Git. For anonymous checkout use:
 
       $ hg clone https://bitbucket.org/ompl/ompl
+
+  or
+
+      $ git clone https://github.com/ompl/ompl.git
 
 - Alternatively, get a snapshot for the latest source code:
 
