@@ -56,6 +56,7 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     iterations_ = 0;
     collisionChecks_ = 0;
     bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
+    distanceDirection_ = FROM_NEIGHBORS;
 
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
@@ -190,11 +191,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         else
             sampler_->sampleUniform(rstate);
 
-        // This sounds crazy but for asymmetric distance functions this is necessary
-        // For this case, it has to be FROM every other point TO our new point
-        // NOTE THE ORDER OF THE boost::bind PARAMETERS
+        // Set directionality of nearest neighbors computation to be
+        // FROM neighbors TO new state
         if (!symDist)
-            nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
+            distanceDirection_ = FROM_NEIGHBORS;
 
         // find closest state in the tree
         Motion *nmotion = nn_->nearest(rmotion);
@@ -214,32 +214,15 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         if (si_->checkMotion(nmotion->state, dstate))
         {
             // create a motion
-            //
-            // We don't need to populate the incCost and cost fields
-            // yet; they will get populated later.
             Motion *motion = new Motion(si_);
             si_->copyState(motion->state, dstate);
             motion->parent = nmotion;
+            motion->incCost = opt_->motionCost(nmotion->state, motion->state);
+            motion->cost = opt_->combineCosts(nmotion->cost, motion->incCost);
 
             // Find nearby neighbors of the new motion - k-nearest RRT*
             unsigned int k = std::ceil(k_rrg * log((double)(nn_->size()+1)));
             nn_->nearestK(motion, k, nbh);
-
-            // In an asymmetric space, it's possible that the nearest
-            // motion "nmotion" to the random sample actually doesn't
-            // appear in the set of k nearest neighbors of the newly
-            // added motion. In the case that all of the k near
-            // neighbors are in collision, we can "fall back" on
-            // nmotion as a valid connection to the new
-            // motion. Therefore, we add nmotion to the set of
-            // neighbors in order to keep it in consideration.
-            //
-            // SEE https://bitbucket.org/ompl/ompl/issue/78/segmentation-fault-in-rrt
-            if (!(symDist && symInterp) &&
-                std::find(nbh.begin(), nbh.end(), nmotion) == nbh.end())
-            {
-                nbh.push_back(nmotion);
-            }
 
             rewireTest += nbh.size();
             statesGenerated++;
@@ -288,6 +271,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                           compareFn);
 
                 // collision check until a valid motion is found
+                //
+                // ASYMMETRIC CASE: it's possible that none of these
+                // neighbors are valid. This is fine, because motion
+                // already has a connection to the tree through
+                // nmotion (with populated cost fields!).
                 for (std::vector<std::size_t>::const_iterator i = sortedCostIndices.begin();
                      i != sortedCostIndices.begin()+nbh.size();
                      ++i)
@@ -350,12 +338,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             bool checkForSolution = false;
             // rewire tree if needed
             //
-            // This sounds crazy but for asymmetric distance functions this is necessary
-            // For this case, it has to be FROM our new point TO each other point
-            // NOTE THE ORDER OF THE boost::bind PARAMETERS
+            // Set directionality of distance function to be FROM new
+            // state TO neighbors, since this is how the routing
+            // should occur in tree rewiring
             if (!symDist)
             {
-                nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _2, _1));
+                distanceDirection_ = TO_NEIGHBORS;
                 nn_->nearestK(motion, k, nbh);
                 rewireTest += nbh.size();
             }

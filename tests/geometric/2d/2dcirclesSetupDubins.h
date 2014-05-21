@@ -40,6 +40,7 @@
 #include <boost/filesystem.hpp>
 
 #include "ompl/base/SpaceInformation.h"
+#include "ompl/base/ScopedState.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/base/spaces/SO2StateSpace.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
@@ -65,8 +66,7 @@ namespace ompl
 
             virtual bool isValid(const base::State *state) const
             {
-                const double *xy;
-                xy = state->as<base::DubinsStateSpace::StateType>()->
+                const double *xy = state->as<base::DubinsStateSpace::StateType>()->
                     as<base::RealVectorStateSpace::StateType>(0)->values;
                 return circles_.noOverlap(xy[0], xy[1]);
             }
@@ -109,20 +109,15 @@ namespace ompl
         {
         public:
             DubinsXYGoal(const base::SpaceInformationPtr &si,
-                         const base::RealVectorStateSpace::StateType *state2D) :
-                base::GoalSampleableRegion(si)
+                         const base::State *state2D) :
+                base::GoalSampleableRegion(si),
+                goalState2D_(si)
             {
-                base::RealVectorStateSpace* space2D = get2DSpaceFromDubins(si->getStateSpace());
-                goalState2D = space2D->allocState()->as<base::RealVectorStateSpace::StateType>();
-                space2D->copyState(goalState2D, state2D);
+                const base::StateSpacePtr& so2 =
+                    si->getStateSpace()->as<base::CompoundStateSpace>()->getSubspace(1);
+                samplerSO2_ = si->getStateSpace()->allocSubspaceStateSampler(so2);
 
-                samplerSO2 = si->getStateSpace()->as<base::DubinsStateSpace>()->
-                    as<base::SO2StateSpace>(1)->allocStateSampler();
-            }
-
-            ~DubinsXYGoal()
-            {
-                get2DSpaceFromDubins(si_->getStateSpace())->freeState(goalState2D);
+                si_->copyState(goalState2D_.get(), state2D);
             }
 
             virtual double distanceGoal(const base::State *dubinsState) const
@@ -130,17 +125,14 @@ namespace ompl
                 return get2DSpaceFromDubins(si_->getStateSpace())->
                     distance(dubinsState->as<base::DubinsStateSpace::StateType>()->
                                  as<base::RealVectorStateSpace::StateType>(0),
-                             goalState2D);
+                             goalState2D_.get()->as<base::DubinsStateSpace::StateType>()->
+                                 as<base::RealVectorStateSpace::StateType>(0));
             }
 
             virtual void sampleGoal(base::State *state) const
             {
-                get2DSpaceFromDubins(si_->getStateSpace())->
-                    copyState(state->as<base::DubinsStateSpace::StateType>()->
-                              as<base::RealVectorStateSpace::StateType>(0),
-                              goalState2D);
-                samplerSO2->sampleUniform(state->as<base::DubinsStateSpace::StateType>()->
-                                          as<base::SO2StateSpace::StateType>(1));
+                si_->copyState(state, goalState2D_.get());
+                samplerSO2_->sampleUniform(state);
             }
 
             virtual unsigned int maxSampleCount(void) const
@@ -148,8 +140,8 @@ namespace ompl
                 return 100;
             }
         private:
-            base::RealVectorStateSpace::StateType *goalState2D;
-            base::StateSamplerPtr samplerSO2;
+            base::ScopedState<> goalState2D_;
+            base::StateSamplerPtr samplerSO2_;
         };
     }
 }

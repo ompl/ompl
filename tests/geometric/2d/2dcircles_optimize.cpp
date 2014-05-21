@@ -74,16 +74,15 @@ public:
 
     virtual void test2DCircles(const Circles2D& circles)
     {
-        test2DCirclesGeneral(circles, POINT, 1.0, true);
+        base::SpaceInformationPtr si = geometric::spaceInformation2DCircles(circles);
+        test2DCirclesGeneral(circles, si, 1.0, true);
     }
-
-    enum SpaceType { POINT, DUBINS };
 
 protected:
 
     /* test a planner in a planar environment with circular obstacles */
     void test2DCirclesGeneral(const Circles2D &circles,
-                              const SpaceType spaceType,
+                              const base::SpaceInformationPtr &si,
                               double solutionTime, // need different time for dubins
                               bool checkOptimized  // Must test dubins
                                                    // w/o goal bias,
@@ -94,18 +93,6 @@ protected:
                                                    // this flag
                               )
     {
-        /* instantiate space information */
-        base::SpaceInformationPtr si;
-        switch (spaceType)
-        {
-        case POINT:
-            si = geometric::spaceInformation2DCircles(circles);
-            break;
-        case DUBINS:
-            si = geometric::spaceInformation2DCirclesDubins(circles);
-            break;
-        }
-
         /* instantiate problem definition */
         base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
 
@@ -120,6 +107,11 @@ protected:
         planner->setup();
 
         base::ScopedState<> start(si);
+
+        // If this is a Dubins space, zero-out the SO2 subspace element.
+        if (boost::dynamic_pointer_cast<base::DubinsStateSpace>(si->getStateSpace()))
+            start[2] = 0.0;
+
         std::size_t nt = std::min<std::size_t>(5, circles.getQueryCount());
 
         // run a simple test first
@@ -128,10 +120,8 @@ protected:
             const Circles2D::Query &q = circles.getQuery(0);
             start[0] = q.startX_;
             start[1] = q.startY_;
-            if (spaceType == DUBINS)
-                start[2] = 0.0;
 
-            base::GoalPtr goal = genGoalFromQuery(q, si, spaceType);
+            base::GoalPtr goal = genGoalFromQuery(q, si);
 
             pdef->clearStartStates();
             pdef->addStartState(start);
@@ -150,7 +140,7 @@ protected:
             start[0] = q.startX_;
             start[1] = q.startY_;
 
-            base::GoalPtr goal = genGoalFromQuery(q, si, spaceType);
+            base::GoalPtr goal = genGoalFromQuery(q, si);
 
             pdef->clearStartStates();
             pdef->addStartState(start);
@@ -196,7 +186,10 @@ protected:
                 }
                 time_spent = time::seconds(time::now() - start);
               }
-              BOOST_CHECK(ini_cost.v >= prev_cost.v);
+              if (checkOptimized)
+                  BOOST_CHECK(opt->isCostBetterThan(prev_cost, ini_cost));
+              else
+                  BOOST_CHECK(ini_cost.v >= prev_cost.v); // for dubins goal bias case
 
               pdef->clearSolutionPaths();
               // we change the optimization objective so the planner can achieve the objective
@@ -208,52 +201,26 @@ protected:
     }
 
     static base::GoalPtr genGoalFromQuery(const Circles2D::Query &q,
-                                          const base::SpaceInformationPtr &si,
-                                          const SpaceType spaceType)
+                                          const base::SpaceInformationPtr &si)
     {
-        base::RealVectorStateSpace::StateType* goal2D;
-        switch (spaceType)
-        {
-        case POINT:
-            goal2D = si->allocState()->as<base::RealVectorStateSpace::StateType>();
-            break;
-        case DUBINS:
-            goal2D = geometric::get2DSpaceFromDubins(si->getStateSpace())->allocState()->
-                as<base::RealVectorStateSpace::StateType>();
-            break;
-        }
-        (*goal2D)[0] = q.goalX_;
-        (*goal2D)[1] = q.goalY_;
+        base::ScopedState<> goal2D(si);
+        goal2D[0] = q.goalX_;
+        goal2D[1] = q.goalY_;
 
         base::GoalPtr goal;
-        switch (spaceType)
+        if (boost::dynamic_pointer_cast<base::DubinsStateSpace>(si->getStateSpace()))
         {
-        case POINT:
-            {
-                base::GoalState* goalState = new base::GoalState(si);
-                goalState->setState(goal2D);
-                goalState->setThreshold(1e-3);
-                goal = base::GoalPtr(goalState);
-                break;
-            }
-        case DUBINS:
-            {
-                geometric::DubinsXYGoal* dubinsGoal =
-                    new geometric::DubinsXYGoal(si, goal2D);
-                dubinsGoal->setThreshold(1e-3);
-                goal = base::GoalPtr(dubinsGoal);
-            }
+            geometric::DubinsXYGoal* dubinsGoal =
+                new geometric::DubinsXYGoal(si, goal2D.get());
+            dubinsGoal->setThreshold(1e-3);
+            goal = base::GoalPtr(dubinsGoal);
         }
-
-        // Free 2D goal state
-        switch (spaceType)
+        else
         {
-        case POINT:
-            si->freeState(goal2D);
-            break;
-        case DUBINS:
-            geometric::get2DSpaceFromDubins(si->getStateSpace())->freeState(goal2D);
-            break;
+            base::GoalState* goalState = new base::GoalState(si);
+            goalState->setState(goal2D);
+            goalState->setThreshold(1e-3);
+            goal = base::GoalPtr(goalState);
         }
 
         return goal;
@@ -304,7 +271,8 @@ protected:
 
     void test2DCircles(const Circles2D& circles)
     {
-        test2DCirclesGeneral(circles, DUBINS, 5.0, true);
+        base::SpaceInformationPtr si = geometric::spaceInformation2DCirclesDubins(circles);
+        test2DCirclesGeneral(circles, si, 5.0, true);
     }
 };
 
@@ -322,9 +290,20 @@ protected:
 
     void test2DCircles(const Circles2D& circles)
     {
-        test2DCirclesGeneral(circles, DUBINS, 5.0, false);
+        base::SpaceInformationPtr si = geometric::spaceInformation2DCirclesDubins(circles);
+        test2DCirclesGeneral(circles, si, 5.0, false);
     }
 };
+
+// Seed the RNG so that a known edge case occurs in DubinsNoGoalBias
+struct InitializeRandomSeed
+{
+    InitializeRandomSeed()
+    {
+        RNG::setSeed(3);
+    }
+};
+static const InitializeRandomSeed seed_initializer;
 
 class PlanTest
 {
@@ -338,13 +317,6 @@ public:
     template<typename T>
     void runAllTests(void)
     {
-        // A seed that we know to generate a particular edge case for
-        // Dubins
-        //
-        // TODO this is pretty ugly, especially since it gets called
-        // ineffectually every test after the first.
-        RNG::setSeed(3);
-
         TestPlanner *p = new T();
         run2DCirclesTest(p);
         delete p;
