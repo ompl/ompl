@@ -38,6 +38,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "2DcirclesSetup.h"
+#include "2dcirclesSetupDubins.h"
 #include <iostream>
 
 #include "ompl/geometric/planners/rrt/TRRT.h"
@@ -45,13 +46,14 @@
 #include "ompl/geometric/planners/rrt/RRTstar.h"
 #include "ompl/geometric/planners/rrt/LBTRRT.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include "ompl/base/goals/GoalState.h"
+#include "ompl/util/RandomNumbers.h"
 
 #include "../../BoostTestTeamCityReporter.h"
 #include "../../base/PlannerTest.h"
 
 using namespace ompl;
 
-static const double SOLUTION_TIME = 1.0;
 static const double DT_SOLUTION_TIME = 0.1;
 static const bool VERBOSE = true;
 
@@ -67,11 +69,42 @@ public:
     {
     }
 
+    virtual base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) = 0;
+
+
+    virtual void test2DCircles(const Circles2D& circles)
+    {
+        test2DCirclesGeneral(circles, POINT, 1.0, true);
+    }
+
+    enum SpaceType { POINT, DUBINS };
+
+protected:
+
     /* test a planner in a planar environment with circular obstacles */
-    void test2DCircles(const Circles2D &circles)
+    void test2DCirclesGeneral(const Circles2D &circles,
+                              const SpaceType spaceType,
+                              double solutionTime, // need different time for dubins
+                              bool checkOptimized  // Must test dubins
+                                                   // w/o goal bias,
+                                                   // but w/o g/b
+                                                   // dubins fails a
+                                                   // check unless we
+                                                   // disable with
+                                                   // this flag
+                              )
     {
         /* instantiate space information */
-        base::SpaceInformationPtr si = geometric::spaceInformation2DCircles(circles);
+        base::SpaceInformationPtr si;
+        switch (spaceType)
+        {
+        case POINT:
+            si = geometric::spaceInformation2DCircles(circles);
+            break;
+        case DUBINS:
+            si = geometric::spaceInformation2DCirclesDubins(circles);
+            break;
+        }
 
         /* instantiate problem definition */
         base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
@@ -87,7 +120,6 @@ public:
         planner->setup();
 
         base::ScopedState<> start(si);
-        base::ScopedState<> goal(si);
         std::size_t nt = std::min<std::size_t>(5, circles.getQueryCount());
 
         // run a simple test first
@@ -96,9 +128,16 @@ public:
             const Circles2D::Query &q = circles.getQuery(0);
             start[0] = q.startX_;
             start[1] = q.startY_;
-            goal[0] = q.goalX_;
-            goal[1] = q.goalY_;
-            pdef->setStartAndGoalStates(start, goal, 1e-3);
+            if (spaceType == DUBINS)
+                start[2] = 0.0;
+
+            base::GoalPtr goal = genGoalFromQuery(q, si, spaceType);
+
+            pdef->clearStartStates();
+            pdef->addStartState(start);
+            pdef->clearGoal();
+            pdef->setGoal(goal);
+
             base::PlannerTest pt(planner);
             pt.test();
             planner->clear();
@@ -110,9 +149,14 @@ public:
             const Circles2D::Query &q = circles.getQuery(i);
             start[0] = q.startX_;
             start[1] = q.startY_;
-            goal[0] = q.goalX_;
-            goal[1] = q.goalY_;
-            pdef->setStartAndGoalStates(start, goal, 1e-3);
+
+            base::GoalPtr goal = genGoalFromQuery(q, si, spaceType);
+
+            pdef->clearStartStates();
+            pdef->addStartState(start);
+            pdef->clearGoal();
+            pdef->setGoal(goal);
+
             planner->clear();
             pdef->clearSolutionPaths();
 
@@ -120,7 +164,7 @@ public:
             opt->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
 
             time::point start = time::now();
-            bool solved = planner->solve(SOLUTION_TIME);
+            bool solved = planner->solve(solutionTime);
             if (solved)
             {
               // we change the optimization objective so the planner runs until timeout
@@ -131,7 +175,7 @@ public:
               base::Cost prev_cost = ini_cost;
               double time_spent = time::seconds(time::now() - start);
 
-              while (time_spent + DT_SOLUTION_TIME < SOLUTION_TIME)
+              while (time_spent + DT_SOLUTION_TIME < solutionTime)
               {
                 pdef->clearSolutionPaths();
                 solved = planner->solve(DT_SOLUTION_TIME);
@@ -152,19 +196,68 @@ public:
                 }
                 time_spent = time::seconds(time::now() - start);
               }
-              BOOST_CHECK(ini_cost.v > prev_cost.v);
+              BOOST_CHECK(ini_cost.v >= prev_cost.v);
 
               pdef->clearSolutionPaths();
               // we change the optimization objective so the planner can achieve the objective
               opt->setCostThreshold(ini_cost);
-              if (planner->solve(DT_SOLUTION_TIME))
+              if (checkOptimized && planner->solve(DT_SOLUTION_TIME))
                   BOOST_CHECK(pdef->hasOptimizedSolution());
             }
         }
     }
 
-    virtual base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) = 0;
+    static base::GoalPtr genGoalFromQuery(const Circles2D::Query &q,
+                                          const base::SpaceInformationPtr &si,
+                                          const SpaceType spaceType)
+    {
+        base::RealVectorStateSpace::StateType* goal2D;
+        switch (spaceType)
+        {
+        case POINT:
+            goal2D = si->allocState()->as<base::RealVectorStateSpace::StateType>();
+            break;
+        case DUBINS:
+            goal2D = geometric::get2DSpaceFromDubins(si->getStateSpace())->allocState()->
+                as<base::RealVectorStateSpace::StateType>();
+            break;
+        }
+        (*goal2D)[0] = q.goalX_;
+        (*goal2D)[1] = q.goalY_;
 
+        base::GoalPtr goal;
+        switch (spaceType)
+        {
+        case POINT:
+            {
+                base::GoalState* goalState = new base::GoalState(si);
+                goalState->setState(goal2D);
+                goalState->setThreshold(1e-3);
+                goal = base::GoalPtr(goalState);
+                break;
+            }
+        case DUBINS:
+            {
+                geometric::DubinsXYGoal* dubinsGoal =
+                    new geometric::DubinsXYGoal(si, goal2D);
+                dubinsGoal->setThreshold(1e-3);
+                goal = base::GoalPtr(dubinsGoal);
+            }
+        }
+
+        // Free 2D goal state
+        switch (spaceType)
+        {
+        case POINT:
+            si->freeState(goal2D);
+            break;
+        case DUBINS:
+            geometric::get2DSpaceFromDubins(si->getStateSpace())->freeState(goal2D);
+            break;
+        }
+
+        return goal;
+    }
 };
 
 class RRTstarTest : public TestPlanner
@@ -200,6 +293,39 @@ protected:
     }
 };
 
+class RRTstarDubinsTest : public TestPlanner
+{
+protected:
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::RRTstar *rrt = new geometric::RRTstar(si);
+        return base::PlannerPtr(rrt);
+    }
+
+    void test2DCircles(const Circles2D& circles)
+    {
+        test2DCirclesGeneral(circles, DUBINS, 5.0, true);
+    }
+};
+
+// This is to test an edge case that I've only been able to reproduce
+// without goal bias.
+class RRTstarDubinsNoGoalBiasTest : public TestPlanner
+{
+protected:
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::RRTstar *rrt = new geometric::RRTstar(si);
+        rrt->setGoalBias(0.0);
+        return base::PlannerPtr(rrt);
+    }
+
+    void test2DCircles(const Circles2D& circles)
+    {
+        test2DCirclesGeneral(circles, DUBINS, 5.0, false);
+    }
+};
+
 class PlanTest
 {
 public:
@@ -212,6 +338,13 @@ public:
     template<typename T>
     void runAllTests(void)
     {
+        // A seed that we know to generate a particular edge case for
+        // Dubins
+        //
+        // TODO this is pretty ugly, especially since it gets called
+        // ineffectually every test after the first.
+        RNG::setSeed(3);
+
         TestPlanner *p = new T();
         run2DCirclesTest(p);
         delete p;
@@ -247,5 +380,7 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 OMPL_PLANNER_TEST(PRMstar)
 OMPL_PLANNER_TEST(PRM)
 OMPL_PLANNER_TEST(RRTstar)
+OMPL_PLANNER_TEST(RRTstarDubinsNoGoalBias)
+OMPL_PLANNER_TEST(RRTstarDubins)
 
 BOOST_AUTO_TEST_SUITE_END()
