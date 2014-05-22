@@ -1,6 +1,6 @@
 find_package(Doxygen QUIET)
 
-if(DOXYGEN)
+if(DOXYGEN AND NOT OMPLAPP_VERSION)
     if(UNIX)
         execute_process(COMMAND date "+%b %d, %Y"
             OUTPUT_VARIABLE OMPL_RELEASE_DATE
@@ -24,4 +24,7 @@ if(DOXYGEN)
         COMMAND ./mkwebdocs.sh
         DEPENDS doc
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-endif(DOXYGEN)
+endif(DOXYGEN AND NOT OMPLAPP_VERSION)
+
+install(FILES man/ompl_benchmark_statistics.1
+    DESTINATION man/man1 COMPONENT ompl)
