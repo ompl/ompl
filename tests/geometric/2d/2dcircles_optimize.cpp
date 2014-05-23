@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Luis G. Torres */
 
 #define BOOST_TEST_MODULE "GeometricPlanningOpt"
 #include <boost/test/unit_test.hpp>
@@ -75,7 +75,7 @@ public:
     virtual void test2DCircles(const Circles2D& circles)
     {
         base::SpaceInformationPtr si = geometric::spaceInformation2DCircles(circles);
-        test2DCirclesGeneral(circles, si, 1.0, true);
+        test2DCirclesGeneral(circles, si, 1.0);
     }
 
 protected:
@@ -83,15 +83,7 @@ protected:
     /* test a planner in a planar environment with circular obstacles */
     void test2DCirclesGeneral(const Circles2D &circles,
                               const base::SpaceInformationPtr &si,
-                              double solutionTime, // need different time for dubins
-                              bool checkOptimized  // Must test dubins
-                                                   // w/o goal bias,
-                                                   // but w/o g/b
-                                                   // dubins fails a
-                                                   // check unless we
-                                                   // disable with
-                                                   // this flag
-                              )
+                              double solutionTime)
     {
         /* instantiate problem definition */
         base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
@@ -106,27 +98,13 @@ protected:
         planner->setProblemDefinition(pdef);
         planner->setup();
 
-        base::ScopedState<> start(si);
-
-        // If this is a Dubins space, zero-out the SO2 subspace element.
-        if (boost::dynamic_pointer_cast<base::DubinsStateSpace>(si->getStateSpace()))
-            start[2] = 0.0;
-
         std::size_t nt = std::min<std::size_t>(5, circles.getQueryCount());
 
         // run a simple test first
         if (nt > 0)
         {
             const Circles2D::Query &q = circles.getQuery(0);
-            start[0] = q.startX_;
-            start[1] = q.startY_;
-
-            base::GoalPtr goal = genGoalFromQuery(q, si);
-
-            pdef->clearStartStates();
-            pdef->addStartState(start);
-            pdef->clearGoal();
-            pdef->setGoal(goal);
+            setupProblem(q, si, pdef);
 
             base::PlannerTest pt(planner);
             pt.test();
@@ -137,15 +115,7 @@ protected:
         for (std::size_t i = 0 ; i < nt ; ++i)
         {
             const Circles2D::Query &q = circles.getQuery(i);
-            start[0] = q.startX_;
-            start[1] = q.startY_;
-
-            base::GoalPtr goal = genGoalFromQuery(q, si);
-
-            pdef->clearStartStates();
-            pdef->addStartState(start);
-            pdef->clearGoal();
-            pdef->setGoal(goal);
+            setupProblem(q, si, pdef);
 
             planner->clear();
             pdef->clearSolutionPaths();
@@ -186,18 +156,124 @@ protected:
                 }
                 time_spent = time::seconds(time::now() - start);
               }
-              if (checkOptimized)
-                  BOOST_CHECK(opt->isCostBetterThan(prev_cost, ini_cost));
-              else
-                  BOOST_CHECK(ini_cost.v >= prev_cost.v); // for dubins goal bias case
+              BOOST_CHECK(opt->isCostBetterThan(prev_cost, ini_cost));
 
               pdef->clearSolutionPaths();
               // we change the optimization objective so the planner can achieve the objective
               opt->setCostThreshold(ini_cost);
-              if (checkOptimized && planner->solve(DT_SOLUTION_TIME))
+              if (planner->solve(DT_SOLUTION_TIME))
                   BOOST_CHECK(pdef->hasOptimizedSolution());
             }
         }
+    }
+
+    // Similar test to above, but less strict about strictly
+    // decreasing cost. This is because in this test we do not expect
+    // to find goal states, so the planner effectively optimizes for
+    // nearness to goal instead of path cost.
+    void test2DCirclesNoGoalBias(const Circles2D &circles,
+                                 const base::SpaceInformationPtr &si,
+                                 double solutionTime)
+    {
+        /* instantiate problem definition */
+        base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
+
+        // define an objective that is met the moment the solution is found
+        base::PathLengthOptimizationObjective *opt = new base::PathLengthOptimizationObjective(si);
+        opt->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
+        pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
+
+        /* instantiate motion planner */
+        base::PlannerPtr planner = newPlanner(si);
+        planner->setProblemDefinition(pdef);
+        planner->setup();
+
+        std::size_t nt = std::min<std::size_t>(5, circles.getQueryCount());
+
+        // run a simple test first
+        if (nt > 0)
+        {
+            const Circles2D::Query &q = circles.getQuery(0);
+            setupProblem(q, si, pdef);
+
+            base::PlannerTest pt(planner);
+            pt.test();
+            planner->clear();
+            pdef->clearSolutionPaths();
+        }
+
+        for (std::size_t i = 0 ; i < nt ; ++i)
+        {
+            const Circles2D::Query &q = circles.getQuery(i);
+            setupProblem(q, si, pdef);
+
+            planner->clear();
+            pdef->clearSolutionPaths();
+
+            // we change the optimization objective so the planner runs until the first solution
+            opt->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
+
+            time::point start = time::now();
+            bool solved = planner->solve(solutionTime);
+            if (solved)
+            {
+              // we change the optimization objective so the planner runs until timeout
+              opt->setCostThreshold(base::Cost(std::numeric_limits<double>::epsilon()));
+
+              geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
+              base::Cost ini_cost = path->cost(pdef->getOptimizationObjective());
+              base::Cost prev_cost = ini_cost;
+              double time_spent = time::seconds(time::now() - start);
+
+              while (time_spent + DT_SOLUTION_TIME < solutionTime)
+              {
+                pdef->clearSolutionPaths();
+                solved = planner->solve(DT_SOLUTION_TIME);
+                BOOST_CHECK(solved);
+                if (solved)
+                {
+                    geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
+                    base::Cost new_cost = path->cost(pdef->getOptimizationObjective());
+
+                    // We don't use opt->isCostBetterThan() because
+                    // isCostBetterThan() defaults to '<', which can
+                    // cause this test to fail
+                    BOOST_CHECK(new_cost.v <= prev_cost.v);
+
+                    prev_cost = new_cost;
+                    BOOST_CHECK(!pdef->hasOptimizedSolution());
+                    BOOST_CHECK(!pdef->hasApproximateSolution());
+                }
+                time_spent = time::seconds(time::now() - start);
+              }
+
+              // In dubins no-goal-bias case, we can't guarantee that
+              // ini_cost is actually greater than prev_cost
+              BOOST_CHECK(ini_cost.v >= prev_cost.v);
+
+              pdef->clearSolutionPaths();
+            }
+        }
+    }
+
+    static void setupProblem(const Circles2D::Query &q,
+                             const base::SpaceInformationPtr &si,
+                             base::ProblemDefinitionPtr &pdef)
+    {
+        base::ScopedState<> start(si);
+        start[0] = q.startX_;
+        start[1] = q.startY_;
+
+        // If this is a Dubins space, zero-out the SO2 subspace element.
+        if (boost::dynamic_pointer_cast<base::DubinsStateSpace>(si->getStateSpace()))
+            start[2] = 0.0;
+
+        base::GoalPtr goal = genGoalFromQuery(q, si);
+
+        pdef->clearStartStates();
+        pdef->addStartState(start);
+        pdef->clearGoal();
+        pdef->setGoal(goal);
     }
 
     static base::GoalPtr genGoalFromQuery(const Circles2D::Query &q,
@@ -272,7 +348,7 @@ protected:
     void test2DCircles(const Circles2D& circles)
     {
         base::SpaceInformationPtr si = geometric::spaceInformation2DCirclesDubins(circles);
-        test2DCirclesGeneral(circles, si, 5.0, true);
+        test2DCirclesGeneral(circles, si, 5.0);
     }
 };
 
@@ -291,7 +367,7 @@ protected:
     void test2DCircles(const Circles2D& circles)
     {
         base::SpaceInformationPtr si = geometric::spaceInformation2DCirclesDubins(circles);
-        test2DCirclesGeneral(circles, si, 5.0, false);
+        test2DCirclesNoGoalBias(circles, si, 5.0);
     }
 };
 
