@@ -1,7 +1,7 @@
 # Release Notes
 
 
-# OMPL 0.14.2 (May ??, 2014)
+# OMPL 0.14.2 (May 23, 2014)
 
 - Changed the [benchmark database schema](\ref benchmark_database) to make it easier to create your own plots.
 - Real-valued state components are now also stored when exporting PlannerData objects in [GraphML](http://graphml.graphdrawing.org) format.
