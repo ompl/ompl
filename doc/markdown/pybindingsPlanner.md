@@ -24,7 +24,7 @@ in the \c filter_declarations() method of the \c ompl_geometric_generator_t clas
 
 The next step is to regenerate the python bindings. It safest to remove the old ones first. Go to your build directory and type the following commands:
 
-    make clear_bindings
+    make clean_bindings
     make -j 3 update_bindings
 
 If something went wrong, the errors will be listed in pyplusplus_geometric.log and pyplusplus_control.log. If Py++ produces errors for methods that are not really needed at the Python level, you can explicitly exclude them in \c ompl/py-bindings/generate_bindings.py.
