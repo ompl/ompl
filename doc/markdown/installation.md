@@ -75,6 +75,17 @@ and install OMPL:
 - Optionally, generate documentation by typing <tt>make doc</tt>.
 - If you need to install the library, you can type <tt>sudo make install</tt>. The install location is specified by <tt>CMAKE_INSTALL_PREFIX</tt>. If you install in a non-standard location, you have to set the environment variable PYTHONPATH to the directory where the OMPL python module is installed (e.g., $HOME/lib/python2.7/site-packages).
 
+### Installation from source for use with ROS
+
+If you'd like to use your own build of OMPL with ROS, follow the following steps:
+- [Create a normal ROS catkin workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace)
+- [Clone OMPL into the src/ folder](\ref download_repos)
+- Add the package.xml file:
+
+      wget https://raw.githubusercontent.com/ros-gbp/ompl-release/debian/`rosversion -d`/`lsb_release -cs`/ompl/package.xml
+
+- To build, you must run catkin_make_isolated instead of the normal catkin_make since OMPL is not a normal catkin package.
+- When sourcing this workspace, be sure to source devel_isolated/setup.bash.
 
 ## Fedora Linux
 

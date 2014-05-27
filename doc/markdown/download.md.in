@@ -20,7 +20,7 @@
 - [Older releases.](https://bitbucket.org/ompl/ompl/downloads) See the [release notes](releaseNotes.html) for a brief a description of changes for each release.
 
 
-# Repositories
+# Repositories {#download_repos}
 
 - The [latest source](https://bitbucket.org/ompl/ompl/src) is available via Mercurial or Git. For anonymous checkout use:
 
