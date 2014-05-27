@@ -66,10 +66,10 @@ namespace ompl
             programming recursion on a set of probabilistically-drawn samples to 
             grow a tree of paths, which moves steadily outward in cost-to-come space. 
            @par External documentation
-           L. Janson and M. Pavone, Fast Marching Trees: a Fast Marching 
+           L. Janson, A. Clark, and M. Pavone, Fast Marching Trees: a Fast Marching 
            Sampling-Based Method for Optimal Motion Planning in Many Dimensions 
-           -- Extended Version, International Symposium on Robotics Research, 2013.
-           <a href="http://arxiv.org/pdf/1306.3532v2.pdf">http://arxiv.org/pdf/1306.3532v2.pdf</a>
+           , International Journal on Robotics Research, 2013.
+           <a href="http://arxiv.org/pdf/1306.3532v3.pdf">http://arxiv.org/pdf/1306.3532v3.pdf</a>
         */
         /** @brief Asymptotically Optimal Fast Marching Tree algorithm developed 
             by L. Janson and M. Pavone. */
@@ -105,17 +105,39 @@ namespace ompl
                 return numSamples_;
             }
             
-            /** \brief The planner searches for neighbors of a node within a
-                cost r, where r is the value described for PRM* in Section
-                3.3 of [S. Karaman and E. Frazzoli. "Sampling-based algorithms 
-                for optimal motion planning." International Journal of Robotics 
-                Research, 30(7):846–894, 2011]. The user should choose a 
-                constant multiplier for the search radius that is greater than 
-                one. The default value is 1.1 */
+            /** \brief Set the number of states that the planner can try to 
+                sample before it must move on to planning, even if the desired 
+                number of valid states have not been found yet. The default 
+                value is ten times numSamples_. Ideally, it should be related to
+                numSamples_/(the fraction of the configuration space that is obstacle-free) */
+            void setMaxSampleAttempts(const unsigned int maxSampleAttempts)
+            {
+                maxSampleAttempts_ = maxSampleAttempts;
+            }
+            
+            /** \brief Get the number of states that the planner can try to 
+                sample before it must move on to planning, even if the desired
+                number of valid states have not been found yet */
+            unsigned int getMaxSampleAttempts(void) const
+            {
+                return maxSampleAttempts_;
+            }
+            
+            /** \brief The planner searches for neighbors of a node within a 
+                cost r, where r is the value described for FMT* in Section 4 
+                of [L. Janson, A. Clark, and M. Pavone, "Fast Marching Trees: a Fast 
+                Marching Sampling-Based Method for Optimal Motion Planning in 
+                Many Dimensions," International Symposium on 
+                Robotics Research, 2013. <a href="http://arxiv.org/pdf/1306.3532v3.pdf">
+                http://arxiv.org/pdf/1306.3532v3.pdf</a>] For guaranteed asymptotic
+                convergence, the user should choose a constant multiplier for 
+                the search radius that is greater than one. The default value is 1.1. 
+                In general, a radius multiplier between 0.9 and 5 appears to 
+                perform the best */
             void setRadiusMultiplier(const double radiusMultiplier)
             {
-                if ( radiusMultiplier <= 1.0 )
-                    throw Exception("Radius multiplier must be greater than one");
+                if ( radiusMultiplier <= 0.0 )
+                    throw Exception("Radius multiplier must be greater than zero");
                 radiusMultiplier_ = radiusMultiplier;
             }
             
@@ -126,28 +148,27 @@ namespace ompl
                 return radiusMultiplier_;
             }
             
-            /** \brief Store the fraction of the state space that is occupied
-                by obstacles. If no value is specified, the default is 0.0 */
-            void setObstacleCoverage(const double obstacleCoverage)
+            /** \brief Store the volume of the obstacle-free configuration space. 
+                If no value is specified, the default assumes an obstacle-free
+                unit hypercube, freeSpaceVolume = (maximumExtent/sqrt(dimension))^(dimension) */
+            void setFreeSpaceVolume(const double freeSpaceVolume)
             {
-                if ( obstacleCoverage < 0.0 || obstacleCoverage > 1.0 )
-                    throw Exception("Obstacle coverage must be in range [0.0,1.0]");
-                obstacleCoverage_ = obstacleCoverage;
+                if ( freeSpaceVolume < 0.0)
+                    throw Exception("Free space volume should be greater than zero");
+                freeSpaceVolume_ = freeSpaceVolume;
             }
             
-            /** \brief Get the percentage of the state space that the planner
-                considers occupied by obstacles */
-            double getObstacleCoverage(void) const
+            /** \brief Get the volume of the free configuration space that is 
+                being used by the planner */
+            double getFreeSpaceVolume(void) const
             {
-                return obstacleCoverage_;
+                return freeSpaceVolume_;
             }
             
         protected:
             /** \brief Representation of a motion
-
-                Cannot be copied because a state cannot be copied
               */
-            class Motion : boost::noncopyable
+            class Motion
             {
                 public:
                     
@@ -161,19 +182,18 @@ namespace ompl
                     enum SetType { SET_NULL, SET_H, SET_W };
 
                     Motion(const base::OptimizationObjectivePtr opt)
-                        : state_(NULL), parent_(NULL), cost_(0.0), currentSet_(SET_NULL), children_(new std::vector<Motion*>), opt_(opt)
+                        : state_(NULL), parent_(NULL), cost_(0.0), currentSet_(SET_NULL), opt_(opt)
                     {
                     }
 
                     /** \brief Constructor that allocates memory for the state */
                     Motion(const base::OptimizationObjectivePtr opt, const base::SpaceInformationPtr &si)
-                        : state_(si->allocState()), parent_(NULL), cost_(0.0), currentSet_(SET_NULL), children_(new std::vector<Motion*>), opt_(opt)
+                        : state_(si->allocState()), parent_(NULL), cost_(0.0), currentSet_(SET_NULL), opt_(opt)
                     {
                     }
 
                     ~Motion(void)
                     {
-                        delete children_;
                     }
 
                     /** \brief Set the state associated with the motion */
@@ -211,18 +231,6 @@ namespace ompl
                     {
                         return cost_;
                     }
-                    
-                    /** \brief Set the child motions of the current motion */
-                    inline void setChildren(std::vector<Motion*> *children)
-                    {
-                        children_ = children;
-                    }
-                    
-                    /** \brief Get the child motions of the current motion */
-                    inline std::vector<Motion*> *getChildren(void) const
-                    {
-                        return children_;
-                    }
 
                     /** \brief Specify the set that this motion belongs to */
                     inline void setSetType(const SetType currentSet)
@@ -246,22 +254,19 @@ namespace ompl
                 protected:
                         
                     /** \brief The state contained by the motion */
-                    base::State                                 *state_;
+                    base::State *state_;
 
                     /** \brief The parent motion in the exploration tree */
-                    Motion                                     *parent_;
+                    Motion *parent_;
 
                     /** \brief The cost of this motion */
-                    base::Cost                                    cost_;
-
-                    /** \brief The set of motions descending from the current motion */
-                    std::vector<Motion*>                     *children_;
+                    base::Cost cost_;
 
                     /** \brief The flag indicating which set a motion belongs to */
-                    SetType                                 currentSet_;
+                    SetType currentSet_;
                     
                     /** \brief The cost function optimization objective */
-                    const base::OptimizationObjectivePtr           opt_;
+                    const base::OptimizationObjectivePtr opt_;
             };
             
             /** \brief Comparator used to order motions in a binary heap */
@@ -273,7 +278,7 @@ namespace ompl
                 
                 /* Returns true if m1 is lower cost than m2. m1 and m2 must 
                    have been instantiated with the same optimization objective */
-                bool operator()(const Motion* m1, const Motion* m2) const 
+                bool operator()(const Motion *m1, const Motion *m2) const 
                 {
                     return m1->getOptimizationObjective()->isCostBetterThan(m1->getCost(), m2->getCost());
                 }
@@ -306,18 +311,20 @@ namespace ompl
             /** \brief Compute the volume of the unit ball in a given dimension */
             double calculateUnitBallVolume(const unsigned int dimension) const;
             
-            /** \brief Calculate the radius to use for nearest neighbor searches.
-                This is something that the user should optimize over for a given
-                application, between the minimum bound given in [L. Janson and M. 
+            /** \brief Calculate the radius to use for nearest neighbor searches,
+                using the bound given in [L. Janson, A. Clark, and M. 
                 Pavone, "Fast Marching Trees: a Fast Marching Sampling-Based 
-                Method for Optimal Motion Planning in Many Dimensions -- 
-                Extended Version," International Symposium on Robotics Research, 
-                2013. <a href="http://arxiv.org/pdf/1306.3532v2.pdf">
-                http://arxiv.org/pdf/1306.3532v2.pdf</a>], and positive infinity */
+                Method for Optimal Motion Planning in Many Dimensions," 
+                International Journal on Robotics Research, 
+                2013. <a href="http://arxiv.org/pdf/1306.3532v3.pdf">
+                http://arxiv.org/pdf/1306.3532v3.pdf</a>]. The radius depends on
+                the radiusMultiplier parameter, the volume of the free 
+                configuration space, the volume of the unit ball in the current 
+                dimension, and the number of nodes in the graph */
             double calculateRadius(unsigned int dimension, unsigned int n) const;
 
             /** \brief Save the neighbors within a given radius of a state */
-            void saveNeighborhood(Motion* m, const double r);
+            void saveNeighborhood(Motion *m, const double r);
             
             /** \brief Complete one iteration of the main loop of the FMT* 
                 algorithm: Find all nodes in set W within a radius r of the node 
@@ -348,15 +355,26 @@ namespace ompl
             /** \brief The number of samples to use when planning */
             unsigned int numSamples_;
             
-            /** \brief The percentage of the state space that is occupied by obstacles */
-            double obstacleCoverage_;
+            /** \brief The number of samples the planner can try to take before
+                it must continue on in the planning process, even if numSamples_
+                of valid states have not been found yet */
+            unsigned int maxSampleAttempts_;
+            
+            /** \brief The volume of the free configuration space */
+            double freeSpaceVolume_;
             
             /** \brief This planner uses a nearest neighbor search radius
-                proportional to the lower bound for optimality derived for PRM* 
-                in Section 3.3 of [S. Karaman and E. Frazzoli. "Sampling-based 
-                algorithms for optimal motion planning." International Journal of 
-                Robotics Research, 30(7):846–894, 2011].  The radius multiplier 
-                is the multiplier for the lower bound. It must be > 1 
+                proportional to the lower bound for optimality derived for FMT* 
+                in Section 4 of [L. Janson, A. Clark, and M. Pavone, "Fast 
+                Marching Trees: a Fast Marching Sampling-Based Method for 
+                Optimal Motion Planning in Many Dimensions," International 
+                Journal on Robotics Research, 2013. 
+                <a href="http://arxiv.org/pdf/1306.3532v3.pdf">
+                http://arxiv.org/pdf/1306.3532v3.pdf</a>].  The radius multiplier 
+                is the multiplier for the lower bound. For guaranteed asymptotic
+                convergence, the user should choose a multiplier for the search 
+                radius that is greater than one. The default value is 1.1. 
+                In general, a radius between 0.9 and 5 appears to perform the best
              */
             double radiusMultiplier_;
             
@@ -368,6 +386,9 @@ namespace ompl
 
             /** \brief The cost objective function */
             base::OptimizationObjectivePtr opt_;
+            
+            /** \brief The most recent goal motion.  Used for PlannerData computation */
+            Motion *lastGoalMotion_;
             
         };
     }
