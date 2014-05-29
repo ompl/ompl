@@ -52,6 +52,9 @@ namespace ompl
 
     namespace tools
     {
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(ParallelPlan);
+        /// @endcond
 
         /** \brief This is a utility that allows executing multiple
             planners in parallel, until one or more find a
