@@ -49,8 +49,6 @@
 #include <cstring>
 #include <limits>
 
-// static const double DIMENSION_UPDATE_FACTOR = 1.2;
-
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
     using namespace boost::numeric::ublas;
@@ -142,11 +140,11 @@ ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpacePtr &space)
     params_.declareParam<double>("cellsize_factor", boost::bind(&ProjectionEvaluator::mulCellSizes, this, _1));
 }
 
-ompl::base::ProjectionEvaluator::~ProjectionEvaluator(void)
+ompl::base::ProjectionEvaluator::~ProjectionEvaluator()
 {
 }
 
-bool ompl::base::ProjectionEvaluator::userConfigured(void) const
+bool ompl::base::ProjectionEvaluator::userConfigured() const
 {
     return !defaultCellSizes_ && !cellSizesWereInferred_;
 }
@@ -196,7 +194,7 @@ void ompl::base::ProjectionEvaluator::mulCellSizes(double factor)
     }
 }
 
-void ompl::base::ProjectionEvaluator::checkCellSizes(void) const
+void ompl::base::ProjectionEvaluator::checkCellSizes() const
 {
     if (getDimension() <= 0)
         throw Exception("Dimension of projection needs to be larger than 0");
@@ -204,14 +202,14 @@ void ompl::base::ProjectionEvaluator::checkCellSizes(void) const
         throw Exception("Number of dimensions in projection space does not match number of cell sizes");
 }
 
-void ompl::base::ProjectionEvaluator::checkBounds(void) const
+void ompl::base::ProjectionEvaluator::checkBounds() const
 {
     bounds_.check();
     if (hasBounds() && bounds_.low.size() != getDimension())
         throw Exception("Number of dimensions in projection space does not match dimension of bounds");
 }
 
-void ompl::base::ProjectionEvaluator::defaultCellSizes(void)
+void ompl::base::ProjectionEvaluator::defaultCellSizes()
 {
 }
 
@@ -232,14 +230,14 @@ namespace ompl
 }
 /// @endcond
 
-void ompl::base::ProjectionEvaluator::inferBounds(void)
+void ompl::base::ProjectionEvaluator::inferBounds()
 {
     if (estimatedBounds_.low.empty())
         estimateBounds();
     bounds_ = estimatedBounds_;
 }
 
-void ompl::base::ProjectionEvaluator::estimateBounds(void)
+void ompl::base::ProjectionEvaluator::estimateBounds()
 {
     unsigned int dim = getDimension();
     estimatedBounds_.resize(dim);
@@ -276,7 +274,7 @@ void ompl::base::ProjectionEvaluator::estimateBounds(void)
     }
 }
 
-void ompl::base::ProjectionEvaluator::inferCellSizes(void)
+void ompl::base::ProjectionEvaluator::inferCellSizes()
 {
     cellSizesWereInferred_ = true;
     if (!hasBounds())
@@ -295,7 +293,7 @@ void ompl::base::ProjectionEvaluator::inferCellSizes(void)
     }
 }
 
-void ompl::base::ProjectionEvaluator::setup(void)
+void ompl::base::ProjectionEvaluator::setup()
 {
     if (defaultCellSizes_)
         defaultCellSizes();
@@ -355,7 +353,7 @@ ompl::base::SubspaceProjectionEvaluator::SubspaceProjectionEvaluator(const State
         throw Exception("State space " + space_->getName() + " does not have a subspace at index " + boost::lexical_cast<std::string>(index_));
 }
 
-void ompl::base::SubspaceProjectionEvaluator::setup(void)
+void ompl::base::SubspaceProjectionEvaluator::setup()
 {
     if (specifiedProj_)
         proj_ = specifiedProj_;
@@ -368,7 +366,7 @@ void ompl::base::SubspaceProjectionEvaluator::setup(void)
     ProjectionEvaluator::setup();
 }
 
-unsigned int ompl::base::SubspaceProjectionEvaluator::getDimension(void) const
+unsigned int ompl::base::SubspaceProjectionEvaluator::getDimension() const
 {
     return proj_->getDimension();
 }

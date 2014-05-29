@@ -45,6 +45,7 @@
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/Deprecation.h"
 
 namespace ompl
 {
@@ -67,77 +68,90 @@ namespace ompl
 
             /** \brief Constructor needs the state space used for planning. */
             explicit
+            SimpleSetup(const base::SpaceInformationPtr &si);
+
+            /** \brief Constructor needs the state space used for planning. */
+            explicit
             SimpleSetup(const base::StateSpacePtr &space);
 
-            virtual ~SimpleSetup(void)
+            virtual ~SimpleSetup()
             {
             }
 
             /** \brief Get the current instance of the space information */
-            const base::SpaceInformationPtr& getSpaceInformation(void) const
+            const base::SpaceInformationPtr& getSpaceInformation() const
             {
                 return si_;
             }
 
             /** \brief Get the current instance of the problem definition */
-            const base::ProblemDefinitionPtr& getProblemDefinition(void) const
+            const base::ProblemDefinitionPtr& getProblemDefinition() const
             {
                 return pdef_;
             }
 
             /** \brief Get the current instance of the state space */
-            const base::StateSpacePtr& getStateSpace(void) const
+            const base::StateSpacePtr& getStateSpace() const
             {
                 return si_->getStateSpace();
             }
 
             /** \brief Get the current instance of the state validity checker */
-            const base::StateValidityCheckerPtr& getStateValidityChecker(void) const
+            const base::StateValidityCheckerPtr& getStateValidityChecker() const
             {
                 return si_->getStateValidityChecker();
             }
 
             /** \brief Get the current goal definition */
-            const base::GoalPtr& getGoal(void) const
+            const base::GoalPtr& getGoal() const
             {
                 return pdef_->getGoal();
             }
 
             /** \brief Get the current planner */
-            const base::PlannerPtr& getPlanner(void) const
+            const base::PlannerPtr& getPlanner() const
             {
                 return planner_;
             }
 
             /** \brief Get the planner allocator */
-            const base::PlannerAllocator& getPlannerAllocator(void) const
+            const base::PlannerAllocator& getPlannerAllocator() const
             {
                 return pa_;
             }
 
             /** \brief Get the path simplifier */
-            const PathSimplifierPtr& getPathSimplifier(void) const
+            const PathSimplifierPtr& getPathSimplifier() const
             {
                 return psk_;
             }
 
             /** \brief Get the path simplifier */
-            PathSimplifierPtr& getPathSimplifier(void)
+            PathSimplifierPtr& getPathSimplifier()
             {
                 return psk_;
             }
 
+            /** \brief Get the optimization objective to use */
+            const base::OptimizationObjectivePtr& getOptimizationObjective() const
+            {
+                return pdef_->getOptimizationObjective();
+            }
+
             /** \brief Return true if a solution path is available (previous call to solve() was successful) and the solution is exact (not approximate) */
-            bool haveExactSolutionPath(void) const;
+            bool haveExactSolutionPath() const;
 
             /** \brief Return true if a solution path is available (previous call to solve() was successful). The solution may be approximate. */
-            bool haveSolutionPath(void) const
+            bool haveSolutionPath() const
             {
                 return pdef_->getSolutionPath().get();
             }
 
+            /** \brief Get the best solution's planer name. Throw an exception if no solution is available */
+            const std::string getSolutionPlannerName(void) const;
+
             /** \brief Get the solution path. Throw an exception if no solution is available */
-            PathGeometric& getSolutionPath(void) const;
+            PathGeometric& getSolutionPath() const;
 
             /** \brief Get information about the exploration data structure the motion planner used. */
             void getPlannerData(base::PlannerData &pd) const;
@@ -154,11 +168,20 @@ namespace ompl
                 si_->setStateValidityChecker(svc);
             }
 
+            /** \brief Set the optimization objective to use */
+            void setOptimizationObjective(const base::OptimizationObjectivePtr &optimizationObjective)
+            {
+                pdef_->setOptimizationObjective(optimizationObjective);
+            }
+
             /** \brief Set the start and goal states to use. */
             void setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal,
                                        const double threshold = std::numeric_limits<double>::epsilon())
             {
                 pdef_->setStartAndGoalStates(start, goal, threshold);
+
+                // Clear any past solutions since they no longer correspond to our start and goal states
+                pdef_->clearSolutionPaths();
             }
 
             /** \brief Add a starting state for planning. This call is not
@@ -169,7 +192,7 @@ namespace ompl
             }
 
             /** \brief Clear the currently set starting states */
-            void clearStartStates(void)
+            void clearStartStates()
             {
                 pdef_->clearStartStates();
             }
@@ -223,19 +246,19 @@ namespace ompl
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             /** \brief Return the status of the last planning attempt */
-            base::PlannerStatus getLastPlannerStatus(void) const
+            base::PlannerStatus getLastPlannerStatus() const
             {
-                return last_status_;
+                return lastStatus_;
             }
 
             /** \brief Get the amount of time (in seconds) spent during the last planning step */
-            double getLastPlanComputationTime(void) const
+            double getLastPlanComputationTime() const
             {
                 return planTime_;
             }
 
             /** \brief Get the amount of time (in seconds) spend during the last path simplification step */
-            double getLastSimplificationTime(void) const
+            double getLastSimplificationTime() const
             {
                 return simplifyTime_;
             }
@@ -250,7 +273,7 @@ namespace ompl
             /** \brief Clear all planning data. This only includes
                 data generated by motion plan computation. Planner
                 settings, start & goal states are not affected. */
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Print information about the current setup */
             virtual void print(std::ostream &out = std::cout) const;
@@ -258,19 +281,7 @@ namespace ompl
             /** \brief This method will create the necessary classes
                 for planning. The solve() method will call this
                 function automatically. */
-            virtual void setup(void);
-
-            /** \brief Get the  parameters for this planning context */
-            base::ParamSet& params(void)
-            {
-                return params_;
-            }
-
-            /** \brief Get the  parameters for this planning context */
-            const base::ParamSet& params(void) const
-            {
-                return params_;
-            }
+            virtual void setup();
 
         protected:
 
@@ -299,14 +310,12 @@ namespace ompl
             double                        simplifyTime_;
 
             /// The status of the last planning request
-            base::PlannerStatus           last_status_;
-
-            /// The parameters that describe the planning context
-            base::ParamSet                params_;
+            base::PlannerStatus           lastStatus_;
         };
 
-        /** \brief Given a goal specification, decide on a planner for that goal */
-        base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
+        /** \brief Given a goal specification, decide on a planner for that goal.
+            \deprecated Use tools::SelfConfig::getDefaultPlanner() instead. */
+        OMPL_DEPRECATED base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
     }
 
 }

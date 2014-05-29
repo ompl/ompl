@@ -45,6 +45,7 @@
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/Deprecation.h"
 
 namespace ompl
 {
@@ -66,78 +67,82 @@ namespace ompl
 
             /** \brief Constructor needs the control space used for planning. */
             explicit
+            SimpleSetup(const SpaceInformationPtr &si);
+
+            /** \brief Constructor needs the control space used for planning. */
+            explicit
             SimpleSetup(const ControlSpacePtr &space);
 
-            virtual ~SimpleSetup(void)
+            virtual ~SimpleSetup()
             {
             }
 
             /** \brief Get the current instance of the space information */
-            const SpaceInformationPtr& getSpaceInformation(void) const
+            const SpaceInformationPtr& getSpaceInformation() const
             {
                 return si_;
             }
 
             /** \brief Get the current instance of the problem definition */
-            const base::ProblemDefinitionPtr& getProblemDefinition(void) const
+            const base::ProblemDefinitionPtr& getProblemDefinition() const
             {
                 return pdef_;
             }
 
             /** \brief Get the current instance of the state space */
-            const base::StateSpacePtr& getStateSpace(void) const
+            const base::StateSpacePtr& getStateSpace() const
             {
                 return si_->getStateSpace();
             }
 
             /** \brief Get the current instance of the control space */
-            const ControlSpacePtr& getControlSpace(void) const
+            const ControlSpacePtr& getControlSpace() const
             {
                 return si_->getControlSpace();
             }
 
             /** \brief Get the current instance of the state validity checker */
-            const base::StateValidityCheckerPtr& getStateValidityChecker(void) const
+            const base::StateValidityCheckerPtr& getStateValidityChecker() const
             {
                 return si_->getStateValidityChecker();
             }
 
             /** \brief Get the instance of the state propagator being used */
-            const StatePropagatorPtr& getStatePropagator(void) const
+            const StatePropagatorPtr& getStatePropagator() const
             {
                 return si_->getStatePropagator();
             }
 
             /** \brief Get the current goal definition */
-            const base::GoalPtr& getGoal(void) const
+            const base::GoalPtr& getGoal() const
             {
                 return pdef_->getGoal();
             }
 
             /** \brief Get the current planner */
-            const base::PlannerPtr& getPlanner(void) const
+            const base::PlannerPtr& getPlanner() const
             {
                 return planner_;
             }
 
             /** \brief Get the planner allocator */
-            const base::PlannerAllocator& getPlannerAllocator(void) const
+            const base::PlannerAllocator& getPlannerAllocator() const
             {
                 return pa_;
             }
 
             /** \brief Return true if a solution path is available (previous call to solve() was successful) and the solution is exact (not approximate) */
-            bool haveExactSolutionPath(void) const;
+            bool haveExactSolutionPath() const;
 
 
             /** \brief Return true if a solution path is available (previous call to solve() was successful). The solution may be approximate. */
-            bool haveSolutionPath(void) const
+            bool haveSolutionPath() const
             {
                 return pdef_->getSolutionPath().get();
             }
 
             /** \brief Get the solution path. Throw an exception if no solution is available */
-            PathControl& getSolutionPath(void) const;
+            PathControl& getSolutionPath() const;
 
             /** \brief Get information about the exploration data structure the motion planner used. */
             void getPlannerData(base::PlannerData &pd) const;
@@ -166,6 +171,12 @@ namespace ompl
                 si_->setStatePropagator(sp);
             }
 
+            /** \brief Set the optimization objective to use */
+            void setOptimizationObjective(const base::OptimizationObjectivePtr &optimizationObjective)
+            {
+                pdef_->setOptimizationObjective(optimizationObjective);
+            }
+
             /** \brief Set the start and goal states to use. */
             void setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon())
             {
@@ -186,7 +197,7 @@ namespace ompl
             }
 
             /** \brief Clear the currently set starting states */
-            void clearStartStates(void)
+            void clearStartStates()
             {
                 pdef_->clearStartStates();
             }
@@ -234,13 +245,13 @@ namespace ompl
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             /** \brief Return the status of the last planning attempt */
-            base::PlannerStatus getLastPlannerStatus(void) const
+            base::PlannerStatus getLastPlannerStatus() const
             {
                 return last_status_;
             }
 
             /** \brief Get the amount of time (in seconds) spent during the last planning step */
-            double getLastPlanComputationTime(void) const
+            double getLastPlanComputationTime() const
             {
                 return planTime_;
             }
@@ -248,7 +259,7 @@ namespace ompl
             /** \brief Clear all planning data. This only includes
                 data generated by motion plan computation. Planner
                 settings, start & goal states are not affected. */
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Print information about the current setup */
             virtual void print(std::ostream &out = std::cout) const;
@@ -256,19 +267,7 @@ namespace ompl
             /** \brief This method will create the necessary classes
                 for planning. The solve() method will call this
                 function automatically. */
-            virtual void setup(void);
-
-            /** \brief Get the  parameters for this planning context */
-            base::ParamSet& params(void)
-            {
-                return params_;
-            }
-
-            /** \brief Get the  parameters for this planning context */
-            const base::ParamSet& params(void) const
-            {
-                return params_;
-            }
+            virtual void setup();
 
         protected:
 
@@ -292,13 +291,11 @@ namespace ompl
 
             /// The status of the last planning request
             base::PlannerStatus           last_status_;
-
-            /// The parameters that describe the planning context
-            base::ParamSet                params_;
         };
 
-        /** \brief Given a goal specification, decide on a planner for that goal */
-        base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
+        /** \brief Given a goal specification, decide on a planner for that goal.
+            \deprecated Use tools::SelfConfig::getDefaultPlanner() instead. */
+        OMPL_DEPRECATED base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
     }
 
 }

@@ -36,12 +36,13 @@
 
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/control/SimpleDirectedControlSampler.h"
+#include "ompl/control/SteeredControlSampler.h"
 #include "ompl/util/Exception.h"
 #include <cassert>
 #include <utility>
 #include <limits>
 
-void ompl::control::SpaceInformation::setup(void)
+void ompl::control::SpaceInformation::setup()
 {
     base::SpaceInformation::setup();
     if (!statePropagator_)
@@ -70,12 +71,13 @@ void ompl::control::SpaceInformation::setup(void)
         throw Exception("The dimension of the control space we plan in must be > 0");
 }
 
-ompl::control::DirectedControlSamplerPtr ompl::control::SpaceInformation::allocDirectedControlSampler(void) const
+ompl::control::DirectedControlSamplerPtr ompl::control::SpaceInformation::allocDirectedControlSampler() const
 {
     if (dcsa_)
         return dcsa_(this);
     else
-        return DirectedControlSamplerPtr(new SimpleDirectedControlSampler(this));
+        return statePropagator_->canSteer() ? DirectedControlSamplerPtr(new SteeredControlSampler(this))
+            : DirectedControlSamplerPtr(new SimpleDirectedControlSampler(this));
 }
 
 void ompl::control::SpaceInformation::setDirectedControlSamplerAllocator(const DirectedControlSamplerAllocator &dcsa)
@@ -84,7 +86,7 @@ void ompl::control::SpaceInformation::setDirectedControlSamplerAllocator(const D
     setup_ = false;
 }
 
-void ompl::control::SpaceInformation::clearDirectedSamplerAllocator(void)
+void ompl::control::SpaceInformation::clearDirectedSamplerAllocator()
 {
     dcsa_ = DirectedControlSamplerAllocator();
     setup_ = false;
@@ -100,7 +102,7 @@ void ompl::control::SpaceInformation::setStatePropagator(const StatePropagatorFn
         {
         }
 
-        virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
+        virtual void propagate(const base::State *state, const Control *control, const double duration, base::State *result) const
         {
             fn_(state, control, duration, result);
         }
@@ -119,12 +121,12 @@ void ompl::control::SpaceInformation::setStatePropagator(const StatePropagatorPt
     statePropagator_ = sp;
 }
 
-bool ompl::control::SpaceInformation::canPropagateBackward(void) const
+bool ompl::control::SpaceInformation::canPropagateBackward() const
 {
     return statePropagator_->canPropagateBackward();
 }
 
-void ompl::control::SpaceInformation::propagate(const base::State *state, const Control* control, int steps, base::State *result) const
+void ompl::control::SpaceInformation::propagate(const base::State *state, const Control *control, int steps, base::State *result) const
 {
     if (steps == 0)
     {
@@ -142,7 +144,7 @@ void ompl::control::SpaceInformation::propagate(const base::State *state, const 
     }
 }
 
-unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::State *state, const Control* control, int steps, base::State *result) const
+unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::State *state, const Control *control, int steps, base::State *result) const
 {
     if (steps == 0)
     {
@@ -199,7 +201,7 @@ unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::St
     }
 }
 
-void ompl::control::SpaceInformation::propagate(const base::State *state, const Control* control, int steps, std::vector<base::State*> &result, bool alloc) const
+void ompl::control::SpaceInformation::propagate(const base::State *state, const Control *control, int steps, std::vector<base::State*> &result, bool alloc) const
 {
     double signedStepSize = steps > 0 ? stepSize_ : -stepSize_;
     steps = abs(steps);
@@ -232,7 +234,7 @@ void ompl::control::SpaceInformation::propagate(const base::State *state, const 
     }
 }
 
-unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::State *state, const Control* control, int steps, std::vector<base::State*> &result, bool alloc) const
+unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::State *state, const Control *control, int steps, std::vector<base::State*> &result, bool alloc) const
 {
     double signedStepSize = steps > 0 ? stepSize_ : -stepSize_;
     steps = abs(steps);

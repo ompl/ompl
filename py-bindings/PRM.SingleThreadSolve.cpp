@@ -91,13 +91,13 @@ ompl::base::PlannerStatus PRM_wrapper::default_solve(const ompl::base::PlannerTe
     si_->allocStates(xstates);
     bool grow = true;
 
-    // Reset addedSolution_ member
-    addedSolution_ = false;
+    // Reset addedNewSolution_ member
+    addedNewSolution_ = false;
     base::PathPtr sln;
     sln.reset();
 
     double roadmap_build_time = 0.05;
-    while (ptc == false && !addedSolution_)
+    while (ptc == false && !addedNewSolution_)
     {
         // Check for any new goal states
         if (goal->maxSampleCount() > goalM_.size())
@@ -116,14 +116,14 @@ ompl::base::PlannerStatus PRM_wrapper::default_solve(const ompl::base::PlannerTe
         grow = !grow;
 
         // Check for a solution
-        addedSolution_ = haveSolution (startM_, goalM_, sln);
+        addedNewSolution_ = maybeConstructSolution (startM_, goalM_, sln);
     }
 
     OMPL_INFORM("Created %u states", boost::num_vertices(g_) - nrStartStates);
 
     if (sln)
     {
-        if(addedSolution_)
+        if(addedNewSolution_)
             pdef_->addSolutionPath (sln);
         else
             // the solution is exact, but not as short as we'd like it to be
@@ -133,5 +133,5 @@ ompl::base::PlannerStatus PRM_wrapper::default_solve(const ompl::base::PlannerTe
     si_->freeStates(xstates);
 
     // Return true if any solution was found.
-    return sln ? (addedSolution_ ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::APPROXIMATE_SOLUTION) : base::PlannerStatus::TIMEOUT;
+    return sln ? (addedNewSolution_ ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::APPROXIMATE_SOLUTION) : base::PlannerStatus::TIMEOUT;
 }

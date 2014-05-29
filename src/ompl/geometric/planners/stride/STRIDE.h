@@ -73,7 +73,7 @@ namespace ompl
           B. Gipson, M. Moll, and L.E. Kavraki, Resolution independent density
           estimation for motion planning in high-dimensional spaces, in
           <em>IEEE Intl. Conf. on Robotics and Automation</em>, pp. 2429-2435, 2013.
-          <a href="http://dx.doi.org/10.1109/ICRA.2013.6630908">[PDF]</a>
+          [[PDF]](http://dx.doi.org/10.1109/ICRA.2013.6630908)
         */
 
         /** \brief Search Tree with Resolution Independent Density Estimation */
@@ -85,13 +85,13 @@ namespace ompl
                 STRIDE(const base::SpaceInformationPtr &si, bool useProjectedDistance = false,
                         unsigned int degree = 16, unsigned int minDegree = 12, unsigned int maxDegree = 18,
                         unsigned int maxNumPtsPerLeaf = 6, double estimatedDimension = 0.0);
-                virtual ~STRIDE(void);
+                virtual ~STRIDE();
 
-                virtual void setup(void);
+                virtual void setup();
 
                 virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-                virtual void clear(void);
+                virtual void clear();
 
                 /** \brief In the process of randomly selecting states in
                   the state space to attempt to go towards, the
@@ -106,7 +106,7 @@ namespace ompl
                 }
 
                 /** \brief Get the goal bias the planner is using */
-                double getGoalBias(void) const
+                double getGoalBias() const
                 {
                     return goalBias_;
                 }
@@ -121,7 +121,7 @@ namespace ompl
                 /** \brief Return whether nearest neighbors are computed based
                   on distances in a _projection_ of the state rather distances
                   in the state space itself. */
-                bool getUseProjectedDistance(void) const
+                bool getUseProjectedDistance() const
                 {
                     return useProjectedDistance_;
                 }
@@ -132,7 +132,7 @@ namespace ompl
                     degree_ = degree;
                 }
                 /** \brief Get desired degree of a node in the GNAT. */
-                unsigned int getDegree(void) const
+                unsigned int getDegree() const
                 {
                     return degree_;
                 }
@@ -142,7 +142,7 @@ namespace ompl
                     minDegree_ = minDegree;
                 }
                 /** \brief Get minimum degree of a node in the GNAT. */
-                unsigned int getMinDegree(void) const
+                unsigned int getMinDegree() const
                 {
                     return minDegree_;
                 }
@@ -152,7 +152,7 @@ namespace ompl
                     maxDegree_ = maxDegree;
                 }
                 /** \brief Set maximum degree of a node in the GNAT. */
-                unsigned int getMaxDegree(void) const
+                unsigned int getMaxDegree() const
                 {
                     return maxDegree_;
                 }
@@ -164,7 +164,7 @@ namespace ompl
                 }
                 /** \brief Get maximum number of elements stored in a leaf
                   node of the GNAT. */
-                unsigned int getMaxNumPtsPerLeaf(void) const
+                unsigned int getMaxNumPtsPerLeaf() const
                 {
                     return maxNumPtsPerLeaf_;
                 }
@@ -178,7 +178,7 @@ namespace ompl
                 /** \brief Get estimated dimension of the free space, which
                   is needed to compute the sampling weight for a node in the
                   GNAT. */
-                double getEstimatedDimension(void) const
+                double getEstimatedDimension() const
                 {
                     return estimatedDimension_;
                 }
@@ -194,7 +194,7 @@ namespace ompl
                 }
 
                 /** \brief Get the range the planner is using */
-                double getRange(void) const
+                double getRange() const
                 {
                     return maxDistance_;
                 }
@@ -210,7 +210,7 @@ namespace ompl
                 }
 
                 /** \brief Get the value of the fraction set by setMinValidPathFraction() */
-                double getMinValidPathFraction(void) const
+                double getMinValidPathFraction() const
                 {
                     return minValidPathFraction_;
                 }
@@ -229,7 +229,7 @@ namespace ompl
                 }
 
                 /** \brief Get the projection evaluator */
-                const base::ProjectionEvaluatorPtr& getProjectionEvaluator(void) const
+                const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
                 {
                     return projectionEvaluator_;
                 }
@@ -242,7 +242,7 @@ namespace ompl
                 class Motion
                 {
                 public:
-                    Motion(void) : state(NULL), parent(NULL)
+                    Motion() : state(NULL), parent(NULL)
                     {
                     }
 
@@ -251,7 +251,7 @@ namespace ompl
                     {
                     }
 
-                    ~Motion(void)
+                    ~Motion()
                     {
                     }
 
@@ -264,19 +264,19 @@ namespace ompl
 
 
                 /** \brief Free the memory allocated by this planner */
-                void freeMemory(void);
+                void freeMemory();
 
                 /** \brief Initialize GNAT data structure */
-                void setupTree(void);
+                void setupTree();
 
                 /** \brief Compute distance between motions (actually distance between contained states) */
-                double distanceFunction(const Motion* a, const Motion* b) const
+                double distanceFunction(const Motion *a, const Motion *b) const
                 {
                     return si_->distance(a->state, b->state);
                 }
 
                 /** \brief Compute distance between motions (actually distance between projections of contained states) */
-                double projectedDistanceFunction(const Motion* a, const Motion* b) const
+                double projectedDistanceFunction(const Motion *a, const Motion *b) const
                 {
                     unsigned int num_dims = projectionEvaluator_->getDimension();
                     ompl::base::EuclideanProjection aproj(num_dims), bproj(num_dims);
@@ -289,7 +289,7 @@ namespace ompl
                 void addMotion(Motion *motion);
 
                 /** \brief Select a motion to continue the expansion of the tree from */
-                Motion* selectMotion(void);
+                Motion* selectMotion();
 
                 /** \brief Valid state sampler */
                 base::ValidStateSamplerPtr   sampler_;

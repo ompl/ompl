@@ -54,17 +54,20 @@ namespace ompl
         OMPL_CLASS_FORWARD(StateStorage);
         /// @endcond
 
-        /** \brief Manage loading and storing for a set of states of a specified state space */
+        /** \brief Manage loading and storing for a set of states of a specified state space
+
+            \deprecated This class is deprecated and will be removed in the future. Please use the improved PlannerDataStorage.
+         */
         class StateStorage
         {
         public:
 
             /** \brief The state space to store states for is specified as argument */
             StateStorage(const StateSpacePtr &space);
-            virtual ~StateStorage(void);
+            virtual ~StateStorage();
 
             /** \brief Get the state space this class maintains states for */
-            const StateSpacePtr& getStateSpace(void) const
+            const StateSpacePtr& getStateSpace() const
             {
                 return space_;
             }
@@ -89,16 +92,16 @@ namespace ompl
             virtual void generateSamples(unsigned int count);
 
             /** \brief Clear the stored states. This frees all the memory */
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Return the number of stored states */
-            std::size_t size(void) const
+            std::size_t size() const
             {
                 return states_.size();
             }
 
             /** \brief Get the stored states */
-            const std::vector<const State*>& getStates(void) const
+            const std::vector<const State*>& getStates() const
             {
                 return states_;
             }
@@ -118,7 +121,7 @@ namespace ompl
             }
 
             /** \brief Return a flag that indicates whether there is metadata associated to the states in this storage */
-            bool hasMetadata(void) const
+            bool hasMetadata() const
             {
                 return hasMetadata_;
             }
@@ -129,7 +132,7 @@ namespace ompl
 
             /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all sampled
                 states are actually from this storage structure. */
-            StateSamplerAllocator getStateSamplerAllocator(void) const;
+            StateSamplerAllocator getStateSamplerAllocator() const;
 
             /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all sampled
                 states are actually from this storage structure at an index less than or equal to \e until */
@@ -189,7 +192,7 @@ namespace ompl
             virtual void storeMetadata(const Header &h, boost::archive::binary_oarchive &oa);
 
             /** \brief Free the memory allocated for states */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief State space that corresponds to maintained states */
             StateSpacePtr             space_;
@@ -233,7 +236,7 @@ namespace ompl
                 metadata_.push_back(metadata);
             }
 
-            virtual void clear(void)
+            virtual void clear()
             {
                 StateStorage::clear();
                 metadata_.clear();
@@ -272,7 +275,7 @@ namespace ompl
 
         /** \brief Storage of states where the metadata is a vector of indices. This is is typically used to store a graph */
         typedef StateStorageWithMetadata<std::vector<std::size_t> > GraphStateStorage;
-
+        typedef boost::shared_ptr<GraphStateStorage> GraphStateStoragePtr;
     }
 }
 #endif

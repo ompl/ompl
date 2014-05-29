@@ -66,7 +66,7 @@ namespace ompl
                 neighbors_.reserve(k_);
             }
 
-            virtual ~KStrategy(void)
+            virtual ~KStrategy()
             {
             }
 
@@ -79,7 +79,7 @@ namespace ompl
             /** \brief Given a milestone \e m, find the number of nearest
                 neighbors connection attempts that should be made from it,
                 according to the connection strategy */
-            std::vector<Milestone>& operator()(const Milestone& m)
+            std::vector<Milestone>& operator()(const Milestone &m)
             {
                 nn_->nearestK(m, k_, neighbors_);
                 return neighbors_;
@@ -140,11 +140,11 @@ namespace ompl
                           const boost::shared_ptr< NearestNeighbors<Milestone> > &nn,
                           const unsigned int d = 1) :
                 KStrategy<Milestone>(n(), nn), n_(n),
-                kPRMConstant_(boost::math::constants::e<double>() + (boost::math::constants::e<double>()/(double)d))
+                kPRMConstant_(boost::math::constants::e<double>() + (boost::math::constants::e<double>() / (double)d))
             {
             }
 
-            std::vector<Milestone>& operator()(const Milestone& m)
+            std::vector<Milestone>& operator()(const Milestone &m)
             {
                 KStrategy<Milestone>::k_ = static_cast<unsigned int>(ceil(kPRMConstant_ * log((double)n_())));
                 return static_cast<KStrategy<Milestone>&>(*this)(m);

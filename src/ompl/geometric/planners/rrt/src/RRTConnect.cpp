@@ -49,12 +49,12 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si) : b
     connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
 
-ompl::geometric::RRTConnect::~RRTConnect(void)
+ompl::geometric::RRTConnect::~RRTConnect()
 {
     freeMemory();
 }
 
-void ompl::geometric::RRTConnect::setup(void)
+void ompl::geometric::RRTConnect::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -68,7 +68,7 @@ void ompl::geometric::RRTConnect::setup(void)
     tGoal_->setDistanceFunction(boost::bind(&RRTConnect::distanceFunction, this, _1, _2));
 }
 
-void ompl::geometric::RRTConnect::freeMemory(void)
+void ompl::geometric::RRTConnect::freeMemory()
 {
     std::vector<Motion*> motions;
 
@@ -95,7 +95,7 @@ void ompl::geometric::RRTConnect::freeMemory(void)
     }
 }
 
-void ompl::geometric::RRTConnect::clear(void)
+void ompl::geometric::RRTConnect::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -182,7 +182,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("%s: Starting with %d states", getName().c_str(), (int)(tStart_->size() + tGoal_->size()));
+    OMPL_INFORM("%s: Starting planning with %d states already in datastructure", getName().c_str(), (int)(tStart_->size() + tGoal_->size()));
 
     TreeGrowingInfo tgi;
     tgi.xstate = si_->allocState();
@@ -204,7 +204,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
             const base::State *st = tGoal_->size() == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
             if (st)
             {
-                Motion* motion = new Motion(si_);
+                Motion *motion = new Motion(si_);
                 si_->copyState(motion->state, st);
                 motion->root = motion->state;
                 tGoal_->add(motion);
@@ -278,7 +278,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
                 for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
                     path->append(mpath2[i]->state);
 
-                pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
+                pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
                 solved = true;
                 break;
             }

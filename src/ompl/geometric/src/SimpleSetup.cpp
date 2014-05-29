@@ -35,53 +35,30 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/SimpleSetup.h"
-#include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/geometric/planners/rrt/RRTConnect.h"
-#include "ompl/geometric/planners/rrt/RRT.h"
-#include "ompl/geometric/planners/kpiece/LBKPIECE1.h"
-#include "ompl/geometric/planners/kpiece/KPIECE1.h"
+#include "ompl/tools/config/SelfConfig.h"
 
 ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &goal)
 {
-    base::PlannerPtr planner;
-    if (!goal)
-        throw Exception("Unable to allocate default planner for unspecified goal definition");
+    return tools::SelfConfig::getDefaultPlanner(goal);
+}
 
-    // if we can sample the goal region, use a bi-directional planner
-    if (goal->hasType(base::GOAL_SAMPLEABLE_REGION))
-    {
-        // if we have a default projection
-        if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection())
-            planner = base::PlannerPtr(new LBKPIECE1(goal->getSpaceInformation()));
-        else
-            planner = base::PlannerPtr(new RRTConnect(goal->getSpaceInformation()));
-    }
-    // other use a single-tree planner
-    else
-    {
-        // if we have a default projection
-        if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection())
-            planner = base::PlannerPtr(new KPIECE1(goal->getSpaceInformation()));
-        else
-            planner = base::PlannerPtr(new RRT(goal->getSpaceInformation()));
-    }
-
-    if (!planner)
-        throw Exception("Unable to allocate default planner");
-
-    return planner;
+ompl::geometric::SimpleSetup::SimpleSetup(const base::SpaceInformationPtr &si) :
+    configured_(false), planTime_(0.0), simplifyTime_(0.0), lastStatus_(base::PlannerStatus::UNKNOWN)
+{
+    si_ = si;
+    pdef_.reset(new base::ProblemDefinition(si_));
+    psk_.reset(new PathSimplifier(si_));
 }
 
 ompl::geometric::SimpleSetup::SimpleSetup(const base::StateSpacePtr &space) :
-    configured_(false), planTime_(0.0), simplifyTime_(0.0), last_status_(base::PlannerStatus::UNKNOWN)
+    configured_(false), planTime_(0.0), simplifyTime_(0.0), lastStatus_(base::PlannerStatus::UNKNOWN)
 {
     si_.reset(new base::SpaceInformation(space));
     pdef_.reset(new base::ProblemDefinition(si_));
     psk_.reset(new PathSimplifier(si_));
-    params_.include(si_->params());
 }
 
-void ompl::geometric::SimpleSetup::setup(void)
+void ompl::geometric::SimpleSetup::setup()
 {
     if (!configured_ || !si_->isSetup() || !planner_->isSetup())
     {
@@ -94,21 +71,17 @@ void ompl::geometric::SimpleSetup::setup(void)
             if (!planner_)
             {
                 OMPL_INFORM("No planner specified. Using default.");
-                planner_ = getDefaultPlanner(getGoal());
+                planner_ = tools::SelfConfig::getDefaultPlanner(getGoal());
             }
         }
         planner_->setProblemDefinition(pdef_);
         if (!planner_->isSetup())
             planner_->setup();
-
-        params_.clear();
-        params_.include(si_->params());
-        params_.include(planner_->params());
         configured_ = true;
     }
 }
 
-void ompl::geometric::SimpleSetup::clear(void)
+void ompl::geometric::SimpleSetup::clear()
 {
     if (planner_)
         planner_->clear();
@@ -120,29 +93,29 @@ void ompl::geometric::SimpleSetup::clear(void)
 ompl::base::PlannerStatus ompl::geometric::SimpleSetup::solve(double time)
 {
     setup();
-    last_status_ = base::PlannerStatus::UNKNOWN;
+    lastStatus_ = base::PlannerStatus::UNKNOWN;
     time::point start = time::now();
-    last_status_ = planner_->solve(time);
+    lastStatus_ = planner_->solve(time);
     planTime_ = time::seconds(time::now() - start);
-    if (last_status_)
+    if (lastStatus_)
         OMPL_INFORM("Solution found in %f seconds", planTime_);
     else
         OMPL_INFORM("No solution found after %f seconds", planTime_);
-    return last_status_;
+    return lastStatus_;
 }
 
 ompl::base::PlannerStatus ompl::geometric::SimpleSetup::solve(const base::PlannerTerminationCondition &ptc)
 {
     setup();
-    last_status_ = base::PlannerStatus::UNKNOWN;
+    lastStatus_ = base::PlannerStatus::UNKNOWN;
     time::point start = time::now();
-    last_status_ = planner_->solve(ptc);
+    lastStatus_ = planner_->solve(ptc);
     planTime_ = time::seconds(time::now() - start);
-    if (last_status_)
+    if (lastStatus_)
         OMPL_INFORM("Solution found in %f seconds", planTime_);
     else
         OMPL_INFORM("No solution found after %f seconds", planTime_);
-    return last_status_;
+    return lastStatus_;
 }
 
 void ompl::geometric::SimpleSetup::simplifySolution(const base::PlannerTerminationCondition &ptc)
@@ -153,9 +126,12 @@ void ompl::geometric::SimpleSetup::simplifySolution(const base::PlannerTerminati
         if (p)
         {
             time::point start = time::now();
-            psk_->simplify(static_cast<PathGeometric&>(*p), ptc);
+            PathGeometric &path = static_cast<PathGeometric&>(*p);
+            std::size_t numStates = path.getStateCount();
+            psk_->simplify(path, ptc);
             simplifyTime_ = time::seconds(time::now() - start);
-            OMPL_INFORM("Path simplification took %f seconds", simplifyTime_);
+            OMPL_INFORM("SimpleSetup: Path simplification took %f seconds and changed from %d to %d states",
+                        simplifyTime_, numStates, path.getStateCount());
             return;
         }
     }
@@ -170,19 +146,36 @@ void ompl::geometric::SimpleSetup::simplifySolution(double duration)
         if (p)
         {
             time::point start = time::now();
+            PathGeometric &path = static_cast<PathGeometric&>(*p);
+            std::size_t numStates = path.getStateCount();
             if (duration < std::numeric_limits<double>::epsilon())
                 psk_->simplifyMax(static_cast<PathGeometric&>(*p));
             else
                 psk_->simplify(static_cast<PathGeometric&>(*p), duration);
             simplifyTime_ = time::seconds(time::now() - start);
-            OMPL_INFORM("Path simplification took %f seconds", simplifyTime_);
+            OMPL_INFORM("SimpleSetup: Path simplification took %f seconds and changed from %d to %d states",
+                        simplifyTime_, numStates, path.getStateCount());
             return;
         }
     }
     OMPL_WARN("No solution to simplify");
 }
 
-ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath(void) const
+const std::string ompl::geometric::SimpleSetup::getSolutionPlannerName(void) const
+{
+    if (pdef_)
+    {
+        const ompl::base::PathPtr path; // convert to a generic path ptr
+        ompl::base::PlannerSolution solution(path); // a dummy solution
+
+        // Get our desired solution
+        pdef_->getSolution(solution);
+        return solution.plannerName_;
+    }
+    throw Exception("No problem definition found");
+}
+
+ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath() const
 {
     if (pdef_)
     {
@@ -193,7 +186,7 @@ ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath(vo
     throw Exception("No solution path");
 }
 
-bool ompl::geometric::SimpleSetup::haveExactSolutionPath(void) const
+bool ompl::geometric::SimpleSetup::haveExactSolutionPath() const
 {
     return haveSolutionPath() && (!pdef_->hasApproximateSolution() || pdef_->getSolutionDifference() < std::numeric_limits<double>::epsilon());
 }

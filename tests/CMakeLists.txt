@@ -65,10 +65,11 @@ if(PYTHON_FOUND AND OMPL_BUILD_PYTESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.
     if(WIN32)
         set_target_properties(py_boost_function PROPERTIES OUTPUT_NAME py_boost_function SUFFIX .pyd)
     endif(WIN32)
-    get_target_property(PYBOOSTFUNCTION_NAME py_boost_function LOCATION)
     add_custom_command(TARGET py_boost_function POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy "${PYBOOSTFUNCTION_NAME}"
+        COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:py_boost_function>"
         "${CMAKE_CURRENT_SOURCE_DIR}/util"
         WORKING_DIRECTORY "${LIBRARY_OUTPUT_PATH}")
     add_ompl_python_test(util/test_py_boost_function.py)
 endif()
+
+add_subdirectory(regression_tests)

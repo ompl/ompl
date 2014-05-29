@@ -23,8 +23,7 @@ endif(APPLE)
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
     include_directories(${PYTHON_INCLUDE_DIRS})
     # make sure target is defined only once
-    get_target_property(_target py_ompl EXCLUDE_FROM_ALL)
-    if(NOT _target)
+    if(NOT TARGET py_ompl)
         # top-level target for compiling python modules
         add_custom_target(py_ompl)
     endif()
@@ -38,8 +37,7 @@ endif()
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PY_PYPLUSPLUS
     AND PY_PYGCCXML AND GCCXML)
     # make sure targets are defined only once
-    get_target_property(_target generate_headers EXCLUDE_FROM_ALL)
-    if(NOT _target)
+    if(NOT TARGET generate_headers)
         # top-level target for updating all-in-one header file for each module
         add_custom_target(generate_headers)
         # top-level target for regenerating code for all python modules
@@ -121,16 +119,15 @@ function(create_module_target module dir)
             ${Boost_PYTHON_LIBRARY}
             ${PYTHON_LIBRARIES})
         add_dependencies(py_ompl py_ompl_${module})
-        get_target_property(PY${module}_NAME py_ompl_${module} LOCATION)
         if(WIN32)
             add_custom_command(TARGET py_ompl_${module} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy "${PY${module}_NAME}"
+                COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:py_ompl_${module}>"
                 "${_dest_dir}/${module}/_${module}.pyd"
                 WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
                 COMMENT "Copying python module ${module} into place")
         else(WIN32)
             add_custom_command(TARGET py_ompl_${module} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy "${PY${module}_NAME}"
+                COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:py_ompl_${module}>"
                 "${_dest_dir}/${module}/_${module}${CMAKE_SHARED_MODULE_SUFFIX}"
                 WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
                 COMMENT "Copying python module ${module} into place")

@@ -52,12 +52,12 @@ ompl::control::EST::EST(const SpaceInformationPtr &si) : base::Planner(si, "EST"
     Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias, "0.:.05:1.");
 }
 
-ompl::control::EST::~EST(void)
+ompl::control::EST::~EST()
 {
     freeMemory();
 }
 
-void ompl::control::EST::setup(void)
+void ompl::control::EST::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -67,7 +67,7 @@ void ompl::control::EST::setup(void)
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
 }
 
-void ompl::control::EST::clear(void)
+void ompl::control::EST::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -79,7 +79,7 @@ void ompl::control::EST::clear(void)
     lastGoalMotion_ = NULL;
 }
 
-void ompl::control::EST::freeMemory(void)
+void ompl::control::EST::freeMemory()
 {
     for (Grid<MotionInfo>::iterator it = tree_.grid.begin(); it != tree_.grid.end() ; ++it)
     {
@@ -121,7 +121,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
     if (!controlSampler_)
         controlSampler_ = siC_->allocDirectedControlSampler();
 
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), tree_.size);
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), tree_.size);
 
     Motion  *solution = NULL;
     Motion *approxsol = NULL;
@@ -204,7 +204,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
             else
                 path->append(mpath[i]->state);
         solved = true;
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
     }
 
     // Cleaning up memory
@@ -219,7 +219,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
     return base::PlannerStatus(solved, approximate);
 }
 
-ompl::control::EST::Motion* ompl::control::EST::selectMotion(void)
+ompl::control::EST::Motion* ompl::control::EST::selectMotion()
 {
     GridCell* cell = pdf_.sample(rng_.uniform01());
     return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : NULL;

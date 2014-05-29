@@ -38,6 +38,7 @@
 #define OMPL_GEOMETRIC_PLANNERS_RRT_LBT_RRT_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
+#include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 
 #include <fstream>
@@ -71,13 +72,13 @@ namespace ompl
             /** \brief Constructor */
             LBTRRT (const base::SpaceInformationPtr &si);
 
-            virtual ~LBTRRT (void);
+            virtual ~LBTRRT ();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set the goal bias
 
@@ -94,7 +95,7 @@ namespace ompl
             }
 
             /** \brief Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -110,19 +111,19 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 nn_.reset(new NN<Motion*>());
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
             /** \brief Set the apprimation factor */
             void setApproximationFactor (double epsilon)
@@ -131,10 +132,22 @@ namespace ompl
             }
 
             /** \brief Get the apprimation factor */
-            double getApproximationFactor (void) const
+            double getApproximationFactor () const
             {
                 return epsilon_;
             }
+
+            ///////////////////////////////////////
+            // Planner progress property functions
+            std::string getIterationCount() const
+            {
+              return boost::lexical_cast<std::string>(iterations_);
+            }
+            std::string getBestCost() const
+            {
+              return boost::lexical_cast<std::string>(bestCost_);
+            }
+
         protected:
 
             /** \brief kRRG = 2e~5.5 is a valid choice for all problem instances */
@@ -148,7 +161,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : state(NULL), parentLb_(NULL), parentApx_(NULL), costLb_(0.0), costApx_(0.0)
+                Motion() : state(NULL), parentLb_(NULL), parentApx_(NULL), costLb_(0.0), costApx_(0.0)
                 {
                 }
 
@@ -157,7 +170,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -170,40 +183,41 @@ namespace ompl
                 /** \brief The parent motion in the exploration tree */
                 Motion            *parentApx_;
 
-                double             costLb_, costApx_;
+                /** \brief Cost lower bound on path from start to state */
+                base::Cost         costLb_;
+                /** \brief Approximate cost on path from start to state */
+                base::Cost         costApx_;
+                /** \brief The incremental lower bound cost of this motion's parent to this motion (this is stored to save distance computations in the updateChildCosts() method) */
+                base::Cost        incCost_;
 
                 std::vector<Motion*> childrenLb_;
                 std::vector<Motion*> childrenApx_;
             };
 
-            struct IsLessThan
+            struct CostCompare
             {
-                IsLessThan (LBTRRT*  plannerPtr, Motion * motion_): plannerPtr_(plannerPtr), motion(motion_)
+                CostCompare(const base::OptimizationObjective &opt, Motion *motion_): opt_(opt), motion(motion_)
                 {
                 }
 
-                bool operator() (const Motion * motionA, const Motion * motionB)
+                bool operator() (const Motion *motionA, const Motion *motionB)
                 {
-                    double sqDistA = plannerPtr_->distanceFunction(motionA, motion);
-                    double distA = std::sqrt(sqDistA);
-
-                    double sqDistB = plannerPtr_->distanceFunction(motionB, motion);
-                    double distB = std::sqrt(sqDistB);
-
-                    return (motionA->costLb_ + distA < motionB->costLb_ + distB);
+                    base::Cost costA = opt_.combineCosts(motionA->costLb_, opt_.motionCost(motionA->state, motion->state));
+                    base::Cost costB = opt_.combineCosts(motionB->costLb_, opt_.motionCost(motionB->state, motion->state));
+                    return opt_.isCostBetterThan(costA, costB);
                 }
-                LBTRRT*  plannerPtr_;
-                Motion* motion;
+                const base::OptimizationObjective &opt_;
+                Motion *motion;
             }; //IsLessThan
 
             /** \brief attempt to rewire the trees */
-            void attemptNodeUpdate(Motion* potentialParent, Motion* child);
+            bool attemptNodeUpdate(Motion *potentialParent, Motion *child);
 
             /** \brief update the child cost of the lower bound tree */
-            void updateChildCostsLb(Motion *m, double delta);
+            void updateChildCostsLb(Motion *m);
 
             /** \brief update the child cost of the approximation tree */
-            void updateChildCostsApx(Motion *m, double delta);
+            void updateChildCostsApx(Motion *m);
 
             /** \brief remove motion from its parent in the lower bound tree*/
             void removeFromParentLb(Motion *m);
@@ -215,14 +229,18 @@ namespace ompl
             void removeFromParent(const Motion *m, std::vector<Motion*>& vec);
 
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Compute distance between motions (actually distance between contained states) */
-            double distanceFunction(const Motion* a, const Motion* b) const
+            double distanceFunction(const Motion *a, const Motion *b) const
             {
                 return si_->distance(a->state, b->state);
             }
-
+            /* \brief Compute cost to move from state in motion a to state in motion b */
+            base::Cost costFunction(const Motion *a, const Motion *b) const
+            {
+                return opt_->motionCost(a->state, b->state);
+            }
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;
 
@@ -236,13 +254,27 @@ namespace ompl
             double                                         maxDistance_;
 
             /** \brief approximation factor*/
-            double                                          epsilon_;
+            double                                         epsilon_;
 
             /** \brief The random number generator */
             RNG                                            rng_;
 
+            /** \brief Objective we're optimizing */
+            base::OptimizationObjectivePtr                 opt_;
+
             /** \brief The most recent goal motion.  Used for PlannerData computation */
             Motion                                         *lastGoalMotion_;
+
+            /** \brief A list of states in the tree that satisfy the goal condition */
+            std::vector<Motion*>                           goalMotions_;
+
+            //////////////////////////////
+            // Planner progress properties
+            /** \brief Number of iterations the algorithm performed */
+            unsigned int                                   iterations_;
+            /** \brief Best cost found so far by algorithm */
+            base::Cost                                     bestCost_;
+
         };
 
     }

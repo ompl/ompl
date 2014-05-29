@@ -97,7 +97,7 @@ namespace ompl
 }
 /// @endcond
 
-void ompl::control::OpenDEStatePropagator::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
+void ompl::control::OpenDEStatePropagator::propagate(const base::State *state, const Control *control, const double duration, base::State *result) const
 {
     env_->mutex_.lock();
 
@@ -132,7 +132,7 @@ void ompl::control::OpenDEStatePropagator::propagate(const base::State *state, c
     }
 }
 
-bool ompl::control::OpenDEStatePropagator::canPropagateBackward(void) const
+bool ompl::control::OpenDEStatePropagator::canPropagateBackward() const
 {
     return false;
 }

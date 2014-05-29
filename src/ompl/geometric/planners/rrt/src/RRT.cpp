@@ -52,12 +52,12 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si) : base::Planner(s
     Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias, "0.:.05:1.");
 }
 
-ompl::geometric::RRT::~RRT(void)
+ompl::geometric::RRT::~RRT()
 {
     freeMemory();
 }
 
-void ompl::geometric::RRT::clear(void)
+void ompl::geometric::RRT::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -67,7 +67,7 @@ void ompl::geometric::RRT::clear(void)
     lastGoalMotion_ = NULL;
 }
 
-void ompl::geometric::RRT::setup(void)
+void ompl::geometric::RRT::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -78,7 +78,7 @@ void ompl::geometric::RRT::setup(void)
     nn_->setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));
 }
 
-void ompl::geometric::RRT::freeMemory(void)
+void ompl::geometric::RRT::freeMemory()
 {
     if (nn_)
     {
@@ -115,7 +115,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nn_->size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
@@ -191,9 +191,9 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 
         /* set the solution path */
         PathGeometric *path = new PathGeometric(si_);
-           for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
         solved = true;
     }
 

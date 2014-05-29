@@ -103,14 +103,14 @@ public:
 
     double distance(const ompl::base::State *state1, const ompl::base::State *state2) const
     {
-        const StateType *cstate1 = static_cast<const StateType*>(state1);
-        const StateType *cstate2 = static_cast<const StateType*>(state2);
+        const StateType *cstate1 = state1->as<StateType>();
+        const StateType *cstate2 = state2->as<StateType>();
         double theta1 = 0., theta2 = 0., dx = 0., dy = 0., dist = 0.;
 
         for (unsigned int i = 0; i < getSubspaceCount(); ++i)
         {
-            theta1 += cstate1->components[i]->as<ompl::base::SO2StateSpace::StateType>()->value;
-            theta2 += cstate2->components[i]->as<ompl::base::SO2StateSpace::StateType>()->value;
+            theta1 += cstate1->as<ompl::base::SO2StateSpace::StateType>(i)->value;
+            theta2 += cstate2->as<ompl::base::SO2StateSpace::StateType>(i)->value;
             dx += cos(theta1) - cos(theta2);
             dy += sin(theta1) - sin(theta2);
             dist += sqrt(dx * dx + dy * dy);
@@ -142,8 +142,8 @@ public:
 
     bool isValid(const ompl::base::State *state) const
     {
-        const KinematicChainSpace* space = static_cast<const KinematicChainSpace*>(si_->getStateSpace().get());
-        const KinematicChainSpace::StateType *s = static_cast<const KinematicChainSpace::StateType*>(state);
+        const KinematicChainSpace* space = si_->getStateSpace()->as<KinematicChainSpace>();
+        const KinematicChainSpace::StateType *s = state->as<KinematicChainSpace::StateType>();
         unsigned int n = si_->getStateDimension();
         Environment segments;
         double linkLength = space->linkLength();
@@ -152,7 +152,7 @@ public:
         segments.reserve(n + 1);
         for(unsigned int i = 0; i < n; ++i)
         {
-            theta += static_cast<ompl::base::SO2StateSpace::StateType*>((*s)[i])->value;
+            theta += s->as<ompl::base::SO2StateSpace::StateType>(i)->value;
             xN = x + cos(theta) * linkLength;
             yN = y + sin(theta) * linkLength;
             segments.push_back(Segment(x, y, xN, yN));
@@ -207,7 +207,7 @@ protected:
         double t_numer = s32_x * s02_y - s32_y * s02_x;
         if ((t_numer < std::numeric_limits<float>::epsilon()) == denomPositive)
             return false; // No collision
-        if (((s_numer - denom > -std::numeric_limits<float>::epsilon()) == denomPositive) 
+        if (((s_numer - denom > -std::numeric_limits<float>::epsilon()) == denomPositive)
             || ((t_numer - denom > std::numeric_limits<float>::epsilon()) == denomPositive))
             return false; // No collision
         return true;
@@ -304,10 +304,10 @@ int main(int argc, char **argv)
     }
 
     // by default, use the Benchmark class
-    double runtime_limit = 7200, memory_limit = 1024;
+    double runtime_limit = 60, memory_limit = 1024;
     int run_count = 20;
-    ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count);
-    ompl::tools::Benchmark b(ss, "KinematicChain");
+    ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, 0.5);
+    ompl::tools::Benchmark b(ss, boost::str(boost::format("KinematicChain%i") % numLinks));
 
     b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::STRIDE(ss.getSpaceInformation())));
     b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::EST(ss.getSpaceInformation())));

@@ -45,19 +45,19 @@
 
     \def OMPL_ERROR(fmt, ...)
     \brief Log a formatted error string.
-    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+    \remarks This macro takes the same arguments as [printf](http://www.cplusplus.com/reference/clibrary/cstdio/printf).
 
     \def OMPL_WARN(fmt, ...)
     \brief Log a formatted warning string.
-    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+    \remarks This macro takes the same arguments as [printf](http://www.cplusplus.com/reference/clibrary/cstdio/printf).
 
     \def OMPL_INFORM(fmt, ...)
     \brief Log a formatted information string.
-    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+    \remarks This macro takes the same arguments as [printf](http://www.cplusplus.com/reference/clibrary/cstdio/printf).
 
     \def OMPL_DEBUG(fmt, ...)
     \brief Log a formatted debugging string.
-    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+    \remarks This macro takes the same arguments as [printf](http://www.cplusplus.com/reference/clibrary/cstdio/printf).
 
     \}
 */
@@ -98,11 +98,11 @@ namespace ompl
         {
         public:
 
-            OutputHandler(void)
+            OutputHandler()
             {
             }
 
-            virtual ~OutputHandler(void)
+            virtual ~OutputHandler()
             {
             }
 
@@ -117,7 +117,7 @@ namespace ompl
         {
         public:
 
-            OutputHandlerSTD(void) : OutputHandler()
+            OutputHandlerSTD() : OutputHandler()
             {
             }
 
@@ -133,7 +133,7 @@ namespace ompl
             /** \brief The name of the file in which to save the message data */
             OutputHandlerFile(const char *filename);
 
-            virtual ~OutputHandlerFile(void);
+            virtual ~OutputHandlerFile();
 
             virtual void log(const std::string &text, LogLevel level, const char *filename, int line);
 
@@ -145,16 +145,16 @@ namespace ompl
         };
 
         /** \brief This function instructs ompl that no messages should be outputted. Equivalent to useOutputHandler(NULL) */
-        void noOutputHandler(void);
+        void noOutputHandler();
 
         /** \brief Restore the output handler that was previously in use (if any) */
-        void restorePreviousOutputHandler(void);
+        void restorePreviousOutputHandler();
 
         /** \brief Specify the instance of the OutputHandler to use. By default, this is OutputHandlerSTD */
         void useOutputHandler(OutputHandler *oh);
 
         /** \brief Get the instance of the OutputHandler currently used. This is NULL in case there is no output handler. */
-        OutputHandler* getOutputHandler(void);
+        OutputHandler* getOutputHandler();
 
         /** \brief Set the minimum level of logging data to output.  Messages
             with lower logging levels will not be recorded. */
@@ -162,12 +162,12 @@ namespace ompl
 
         /** \brief Retrieve the current level of logging data.  Messages
             with lower logging levels will not be recorded. */
-        LogLevel getLogLevel(void);
+        LogLevel getLogLevel();
 
         /** \brief Root level logging function.  This should not be invoked directly,
             but rather used via a \ref logging "logging macro".  Formats the message
             string given the arguments and forwards the string to the output handler */
-        void log(const char *file, int line, LogLevel level, const char* m, ...);
+        void log(const char *file, int line, LogLevel level, const char *m, ...);
     }
 
 }

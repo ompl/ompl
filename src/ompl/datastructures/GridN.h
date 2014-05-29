@@ -66,11 +66,11 @@ namespace ompl
             /// A flag indicating whether this cell is on the border or not
             bool                border;
 
-            Cell(void) : BaseCell(), neighbors(0), border(true)
+            Cell() : BaseCell(), neighbors(0), border(true)
             {
             }
 
-            virtual ~Cell(void)
+            virtual ~Cell()
             {
             }
         };
@@ -88,7 +88,7 @@ namespace ompl
             setDimension(dimension);
         }
 
-        virtual ~GridN(void)
+        virtual ~GridN()
         {
         }
 

@@ -104,19 +104,19 @@ namespace ompl
             /** \brief Lock to use when performing simulations in the world. (OpenDE simulations are NOT thread safe) */
             mutable boost::mutex  mutex_;
 
-            OpenDEEnvironment(void) : world_(NULL), verboseContacts_(false), maxContacts_(3), stepSize_(0.05), maxControlSteps_(100), minControlSteps_(5)
+            OpenDEEnvironment() : world_(NULL), verboseContacts_(false), maxContacts_(3), stepSize_(0.05), maxControlSteps_(100), minControlSteps_(5)
             {
                 contactGroup_ = dJointGroupCreate(0);
             }
 
-            virtual ~OpenDEEnvironment(void)
+            virtual ~OpenDEEnvironment()
             {
                 if (contactGroup_)
                     dJointGroupDestroy(contactGroup_);
             }
 
             /** \brief Number of parameters (double values) needed to specify a control input */
-            virtual unsigned int getControlDimension(void) const = 0;
+            virtual unsigned int getControlDimension() const = 0;
 
             /** \brief Get the control bounds -- the bounding box in which to sample controls */
             virtual void getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const = 0;

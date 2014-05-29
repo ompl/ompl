@@ -55,7 +55,7 @@ namespace ompl
                 as which planner is currently being tested or how much */
             struct Status
             {
-                Status(void)
+                Status()
                 {
                     running = false;
                     activeRun = 0;
@@ -145,6 +145,9 @@ namespace ompl
 
                 /// Hostname that identifies the machine the benchmark ran on
                 std::string                    host;
+
+                /// Information about the CPU of the machine the benchmark ran on
+                std::string                    cpuInfo;
             };
 
             /** \brief Representation of a benchmark request */
@@ -153,10 +156,11 @@ namespace ompl
                 /** \brief Constructor that provides default values for all members */
                 Request(double maxTime = 5.0, double maxMem = 4096.0,
                         unsigned int runCount = 100,
-                        double timeBetweenUpdates = 0.001,
+                        double timeBetweenUpdates = 0.05,
                         bool displayProgress = true,
                         bool saveConsoleOutput = true, bool useThreads = true)
                     : maxTime(maxTime), maxMem(maxMem), runCount(runCount),
+                    timeBetweenUpdates(timeBetweenUpdates),
                     displayProgress(displayProgress), saveConsoleOutput(saveConsoleOutput),
                     useThreads(useThreads)
                 {
@@ -196,7 +200,7 @@ namespace ompl
                 exp_.name = name;
             }
 
-            virtual ~Benchmark(void)
+            virtual ~Benchmark()
             {
             }
 
@@ -207,7 +211,7 @@ namespace ompl
             }
 
             /** \brief Get the name of the experiment */
-            const std::string& getExperimentName(void) const
+            const std::string& getExperimentName() const
             {
                 return exp_.name;
             }
@@ -228,7 +232,7 @@ namespace ompl
             }
 
             /** \brief Clear the set of planners to be benchmarked */
-            void clearPlanners(void)
+            void clearPlanners()
             {
                 planners_.clear();
             }
@@ -265,7 +269,7 @@ namespace ompl
             virtual void benchmark(const Request &req);
 
             /** \brief Get the status of the benchmarking code. This function can be called in a separate thread to check how much progress has been made */
-            const Status& getStatus(void) const
+            const Status& getStatus() const
             {
                 return status_;
             }
@@ -274,7 +278,7 @@ namespace ompl
                 written to the results file. The data should not be
                 changed, but it could be useful to quickly extract cartain
                 statistics. */
-            const CompleteExperiment& getRecordedExperimentData(void) const
+            const CompleteExperiment& getRecordedExperimentData() const
             {
                 return exp_;
             }
@@ -286,7 +290,7 @@ namespace ompl
             bool saveResultsToFile(const char *filename) const;
 
             /** \brief Save the results of the benchmark to a file. The name of the file is the current date and time. */
-            bool saveResultsToFile(void) const;
+            bool saveResultsToFile() const;
 
         protected:
 

@@ -64,11 +64,11 @@ namespace ompl
             /// The coordinate of the cell
             Coord               coord;
 
-            Cell(void)
+            Cell()
             {
             }
 
-            virtual ~Cell(void)
+            virtual ~Cell()
             {
             }
         };
@@ -85,19 +85,19 @@ namespace ompl
         }
 
         /// Destructor
-        virtual ~Grid(void)
+        virtual ~Grid()
         {
             freeMemory();
         }
 
         /// Clear all cells in the grid
-        virtual void clear(void)
+        virtual void clear()
         {
             freeMemory();
         }
 
         /// Return the dimension of the grid
-        unsigned int getDimension(void) const
+        unsigned int getDimension() const
         {
             return dimension_;
         }
@@ -166,7 +166,7 @@ namespace ompl
         }
 
         /// Get the connected components formed by the cells in this grid (based on neighboring relation)
-        std::vector< std::vector<Cell*> > components(void) const
+        std::vector< std::vector<Cell*> > components() const
         {
             typedef boost::unordered_map<Coord*, int, HashFunCoordPtr, EqualCoordPtr> ComponentHash;
             typedef typename ComponentHash::iterator CHit;
@@ -291,13 +291,13 @@ namespace ompl
         }
 
         /// Check if the grid is empty
-        bool empty(void) const
+        bool empty() const
         {
             return hash_.empty();
         }
 
         /// Check the size of the grid
-        unsigned int size(void) const
+        unsigned int size() const
         {
             return hash_.size();
         }
@@ -316,7 +316,7 @@ namespace ompl
     protected:
 
         /// Free the allocated memory
-        void freeMemory(void)
+        void freeMemory()
         {
             CellArray content;
             getCells(content);
@@ -374,13 +374,13 @@ namespace ompl
         typedef typename CoordHash::const_iterator iterator;
 
         /// Return the begin() iterator for the grid
-        iterator begin(void) const
+        iterator begin() const
         {
             return hash_.begin();
         }
 
         /// Return the end() iterator for the grid
-        iterator end(void) const
+        iterator end() const
         {
             return hash_.end();
         }

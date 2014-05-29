@@ -56,10 +56,10 @@ namespace ompl
     public:
 
         /** \brief Constructor. Always sets a different random seed */
-        RNG(void);
+        RNG();
 
         /** \brief Generate a random real between 0 and 1 */
-        double uniform01(void)
+        double uniform01()
         {
             return uni_();
         }
@@ -79,13 +79,13 @@ namespace ompl
         }
 
         /** \brief Generate a random boolean */
-        bool uniformBool(void)
+        bool uniformBool()
         {
             return uni_() <= 0.5;
         }
 
         /** \brief Generate a random real using a normal distribution with mean 0 and variance 1 */
-        double gaussian01(void)
+        double gaussian01()
         {
             return normal_();
         }
@@ -123,7 +123,7 @@ namespace ompl
             generation. Passing the returned value to setSeed() at a
             subsequent execution of the code will ensure deterministic
             (repeatable) behaviour. Useful for debugging. */
-        static boost::uint32_t getSeed(void);
+        static boost::uint32_t getSeed();
 
     private:
 

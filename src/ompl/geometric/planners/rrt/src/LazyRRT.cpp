@@ -50,12 +50,12 @@ ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si) : base::P
     Planner::declareParam<double>("goal_bias", this, &LazyRRT::setGoalBias, &LazyRRT::getGoalBias, "0.:.05:1.");
 }
 
-ompl::geometric::LazyRRT::~LazyRRT(void)
+ompl::geometric::LazyRRT::~LazyRRT()
 {
     freeMemory();
 }
 
-void ompl::geometric::LazyRRT::setup(void)
+void ompl::geometric::LazyRRT::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -66,7 +66,7 @@ void ompl::geometric::LazyRRT::setup(void)
     nn_->setDistanceFunction(boost::bind(&LazyRRT::distanceFunction, this, _1, _2));
 }
 
-void ompl::geometric::LazyRRT::clear(void)
+void ompl::geometric::LazyRRT::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -76,7 +76,7 @@ void ompl::geometric::LazyRRT::clear(void)
     lastGoalMotion_ = NULL;
 }
 
-void ompl::geometric::LazyRRT::freeMemory(void)
+void ompl::geometric::LazyRRT::freeMemory()
 {
     if (nn_)
     {
@@ -114,7 +114,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nn_->size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
     Motion *solution = NULL;
     double  distsol  = -1.0;
@@ -190,7 +190,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
                 for (int i = mpath.size() - 1 ; i >= 0 ; --i)
                     path->append(mpath[i]->state);
 
-                pdef_->addSolutionPath(base::PathPtr(path), false, distsol);
+                pdef_->addSolutionPath(base::PathPtr(path), false, distsol, getName());
             }
         }
     }

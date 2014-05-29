@@ -61,21 +61,21 @@ namespace ompl
                 MorseStateSpace, an exception is thrown. */
             MorseStatePropagator(const SpaceInformationPtr &si);
 
-            virtual ~MorseStatePropagator(void)
+            virtual ~MorseStatePropagator()
             {
             }
 
             /** \brief Get the MORSE environment this state propagator operates on */
-            const base::MorseEnvironmentPtr& getEnvironment(void) const
+            const base::MorseEnvironmentPtr& getEnvironment() const
             {
                 return env_;
             }
 
             /** \brief Will always return false, as the simulation can only proceed forward in time */
-            virtual bool canPropagateBackward(void) const;
+            virtual bool canPropagateBackward() const;
 
             /** \brief Propagate from a state, under a given control, for some specified amount of time */
-            virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
+            virtual void propagate(const base::State *state, const Control *control, const double duration, base::State *result) const;
 
         protected:
 

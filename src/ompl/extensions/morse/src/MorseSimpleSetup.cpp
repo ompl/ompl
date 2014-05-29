@@ -51,7 +51,7 @@ ompl::control::MorseSimpleSetup::MorseSimpleSetup(const base::MorseEnvironmentPt
     si_->setStatePropagator(StatePropagatorPtr(new MorseStatePropagator(si_)));
 }
 
-ompl::base::ScopedState<ompl::base::MorseStateSpace> ompl::control::MorseSimpleSetup::getCurrentState(void) const
+ompl::base::ScopedState<ompl::base::MorseStateSpace> ompl::control::MorseSimpleSetup::getCurrentState() const
 {
     base::ScopedState<base::MorseStateSpace> current(getStateSpace());
     getStateSpace()->as<base::MorseStateSpace>()->readState(current.get());
@@ -68,7 +68,7 @@ void ompl::control::MorseSimpleSetup::setCurrentState(const base::ScopedState<> 
     getStateSpace()->as<base::MorseStateSpace>()->writeState(state.get());
 }
 
-void ompl::control::MorseSimpleSetup::setup(void)
+void ompl::control::MorseSimpleSetup::setup()
 {
     if (!si_->getStateValidityChecker())
     {
@@ -89,14 +89,14 @@ void ompl::control::MorseSimpleSetup::setup(void)
     SimpleSetup::setup();
 }
 
-ompl::base::PlannerStatus ompl::control::MorseSimpleSetup::solve(void)
+ompl::base::PlannerStatus ompl::control::MorseSimpleSetup::solve()
 {
     setup();
     // terminate if user exits MORSE
     return SimpleSetup::solve(base::MorseTerminationCondition(env_));
 }
 
-void ompl::control::MorseSimpleSetup::playSolutionPath(void) const
+void ompl::control::MorseSimpleSetup::playSolutionPath() const
 {
     if (haveSolutionPath())
         playPath(pdef_->getSolutionPath());
@@ -133,7 +133,7 @@ void ompl::control::MorseSimpleSetup::playPath(const base::PathPtr &path) const
     }
 }
 
-ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const double* control, unsigned int steps) const
+ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const double *control, unsigned int steps) const
 {
     Control *c = si_->allocControl();
     memcpy(c->as<MorseControlSpace::ControlType>()->values, control, sizeof(double) * getControlSpace()->getDimension());
@@ -142,7 +142,7 @@ ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const doubl
     return path;
 }
 
-ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const Control* control, unsigned int steps) const
+ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const Control *control, unsigned int steps) const
 {
     PathControl *p = new PathControl(si_);
 

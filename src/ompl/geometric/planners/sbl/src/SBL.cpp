@@ -49,12 +49,12 @@ ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si) : base::Planner(s
     Planner::declareParam<double>("range", this, &SBL::setRange, &SBL::getRange, "0.:1.:10000.");
 }
 
-ompl::geometric::SBL::~SBL(void)
+ompl::geometric::SBL::~SBL()
 {
     freeMemory();
 }
 
-void ompl::geometric::SBL::setup(void)
+void ompl::geometric::SBL::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -113,7 +113,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    OMPL_INFORM("%s: Starting with %d states", getName().c_str(), (int)(tStart_.size + tGoal_.size));
+    OMPL_INFORM("%s: Starting planning with %d states already in datastructure", getName().c_str(), (int)(tStart_.size + tGoal_.size));
 
     std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
@@ -133,7 +133,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
             const base::State *st = tGoal_.size == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
             if (st)
             {
-                Motion* motion = new Motion(si_);
+                Motion *motion = new Motion(si_);
                 si_->copyState(motion->state, st);
                 motion->root = motion->state;
                 motion->valid = true;
@@ -166,7 +166,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
             for (unsigned int i = 0 ; i < solution.size() ; ++i)
                 path->append(solution[i]->state);
 
-            pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
+            pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
             solved = true;
             break;
         }
@@ -346,7 +346,7 @@ void ompl::geometric::SBL::addMotion(TreeData &tree, Motion *motion)
     tree.size++;
 }
 
-void ompl::geometric::SBL::clear(void)
+void ompl::geometric::SBL::clear()
 {
     Planner::clear();
 

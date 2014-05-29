@@ -72,7 +72,7 @@ namespace ompl
            A. Dobson, K. Bekris,
            Improving Sparse Roadmap Spanners,
            <em>IEEE International Conference on Robotics and Automation (ICRA)</em> May 2013.
-           <a href="http://www.cs.rutgers.edu/~kb572/pubs/spars2.pdf">[PDF]</a>
+           [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/spars2.pdf)
         */
 
         /** \brief <b> SPArse Roadmap Spanner Version 2.0 </b> */
@@ -101,18 +101,18 @@ namespace ompl
             struct InterfaceData
             {
                 /** \brief States which lie inside the visibility region of a vertex and support an interface. */
-                base::State* pointA_;
-                base::State* pointB_;
+                base::State *pointA_;
+                base::State *pointB_;
 
                 /** \brief States which lie just outside the visibility region of a vertex and support an interface. */
-                base::State* sigmaA_;
-                base::State* sigmaB_;
+                base::State *sigmaA_;
+                base::State *sigmaB_;
 
                 /** \brief Last known distance between the two interfaces supported by points_ and sigmas. */
                 double       d_;
 
                 /** \brief Constructor */
-                InterfaceData(void) :
+                InterfaceData() :
                     pointA_(NULL),
                     pointB_(NULL),
                     sigmaA_(NULL),
@@ -225,7 +225,7 @@ namespace ompl
                 boost::property < boost::vertex_rank_t, VertexIndexType,
                 boost::property < vertex_color_t, GuardType,
                 boost::property < vertex_interface_data_t, InterfaceHashStruct > > > > >,
-                boost::property < boost::edge_weight_t, double >
+                boost::property < boost::edge_weight_t, base::Cost >
             > Graph;
 
             /** \brief Vertex in Graph */
@@ -238,7 +238,7 @@ namespace ompl
             SPARStwo(const base::SpaceInformationPtr &si);
 
             /** \brief Destructor */
-            virtual ~SPARStwo(void);
+            virtual ~SPARStwo();
 
             virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
 
@@ -319,48 +319,56 @@ namespace ompl
                 Subsequent calls to solve() will reuse the previously computed roadmap,
                 but will clear the set of input states constructed by the previous call to solve().
                 This enables multi-query functionality for PRM. */
-            void clearQuery(void);
+            void clearQuery();
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 nn_.reset(new NN< Vertex >());
                 if (isSetup())
                     setup();
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
             /** \brief Retrieve the computed roadmap. */
-            const Graph& getRoadmap(void) const
+            const Graph& getRoadmap() const
             {
                 return g_;
             }
 
             /** \brief Get the number of vertices in the sparse roadmap. */
-            unsigned int milestoneCount(void) const
+            unsigned int milestoneCount() const
             {
                 return boost::num_vertices(g_);
             }
 
-            /** \brief Get the number of iterations the algorithm performed */
-            long unsigned int getIterations(void) const
-            {
-                return iterations_;
-            }
-
             virtual void getPlannerData(base::PlannerData &data) const;
+
+            /** \brief Print debug information about planner */
+            void printDebug(std::ostream &out = std::cout) const;
+
+            ///////////////////////////////////////
+            // Planner progress property functions
+            std::string getIterationCount() const
+            {
+                return boost::lexical_cast<std::string>(iterations_);
+            }
+            std::string getBestCost() const
+            {
+                return boost::lexical_cast<std::string>(bestCost_);
+            }
 
         protected:
 
             /** \brief Free all the memory allocated by the planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Check that the query vertex is initialized (used for internal nearest neighbor searches) */
-            void checkQueryStateInitialization(void);
+            void checkQueryStateInitialization();
 
             /** \brief Checks to see if the sample needs to be added to ensure coverage of the space */
             bool checkAddCoverage(const base::State *qNew, std::vector<Vertex> &visibleNeighborhood);
@@ -375,16 +383,16 @@ namespace ompl
             bool checkAddPath( Vertex v );
 
             /** \brief A reset function for resetting the failures count */
-            void resetFailures(void);
+            void resetFailures();
 
             /** \brief Finds visible nodes in the graph near st */
-            void findGraphNeighbors(base::State* st, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood);
+            void findGraphNeighbors(base::State *st, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood);
 
             /** \brief Approaches the graph from a given vertex */
             void approachGraph( Vertex v );
 
             /** \brief Finds the representative of the input state, st  */
-            Vertex findGraphRepresentative(base::State* st);
+            Vertex findGraphRepresentative(base::State *st);
 
             /** \brief Finds representatives of samples near qNew_ which are not his representative */
             void findCloseRepresentatives(base::State *workArea, const base::State *qNew, Vertex qRep,
@@ -409,7 +417,7 @@ namespace ompl
             void distanceCheck(Vertex rep, const base::State *q, Vertex r, const base::State *s, Vertex rp);
 
             /** \brief When a new guard is added at state st, finds all guards who must abandon their interface information and deletes that information */
-            void abandonLists(base::State* st);
+            void abandonLists(base::State *st);
 
             /** \brief Construct a guard for a given state (\e state) and store it in the nearest neighbors data structure */
             Vertex addGuard(base::State *state, GuardType type);
@@ -424,10 +432,10 @@ namespace ompl
             void checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution);
 
             /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_ or if a solution was added */
-            bool reachedTerminationCriterion(void) const;
+            bool reachedTerminationCriterion() const;
 
             /** \brief Returns whether we have reached the iteration failures limit, maxFailures_ */
-            bool reachedFailureLimit (void) const;
+            bool reachedFailureLimit () const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
             base::PathPtr constructSolution(const Vertex start, const Vertex goal) const;
@@ -506,9 +514,6 @@ namespace ompl
             /** \brief A counter for the number of consecutive failed iterations of the algorithm */
             unsigned int                                                        consecutiveFailures_;
 
-            /** \brief A counter for the number of iterations of the algorithm */
-            long unsigned int                                                   iterations_;
-
             /** \brief Maximum visibility range for nodes in the graph */
             double                                                              sparseDelta_;
 
@@ -518,6 +523,18 @@ namespace ompl
             /** \brief Mutex to guard access to the Graph member (g_) */
             mutable boost::mutex                                                graphMutex_;
 
+            /** \brief Objective cost function for PRM graph edges */
+            base::OptimizationObjectivePtr                                      opt_;
+
+            /** \brief Given two vertices, returns a heuristic on the cost of the path connecting them. This method wraps OptimizationObjective::motionCostHeuristic */
+            base::Cost costHeuristic(Vertex u, Vertex v) const;
+
+            //////////////////////////////
+            // Planner progress properties
+            /** \brief A counter for the number of iterations of the algorithm */
+            long unsigned int                                                   iterations_;
+            /** \brief Best cost found so far by algorithm */
+            base::Cost                                                          bestCost_;
         };
 
     }

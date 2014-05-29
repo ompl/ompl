@@ -72,12 +72,12 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
     Planner::declareParam<double>("k_constant", this, &TRRT::setKConstant, &TRRT::getKConstant);
 }
 
-ompl::geometric::TRRT::~TRRT(void)
+ompl::geometric::TRRT::~TRRT()
 {
     freeMemory();
 }
 
-void ompl::geometric::TRRT::clear(void)
+void ompl::geometric::TRRT::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -93,7 +93,7 @@ void ompl::geometric::TRRT::clear(void)
     frontierCount_ = 1; // init to 1 to prevent division by zero error
 }
 
-void ompl::geometric::TRRT::setup(void)
+void ompl::geometric::TRRT::setup()
 {
     Planner::setup();
     tools::SelfConfig selfConfig(si_, getName());
@@ -104,11 +104,9 @@ void ompl::geometric::TRRT::setup(void)
         OMPL_INFORM("%s: No optimization objective specified.", getName().c_str());
         usingDefaultObjective = true;
     }
-    else if (!boost::dynamic_pointer_cast<
-             base::MechanicalWorkOptimizationObjective>(pdef_->getOptimizationObjective()))
+    else 
     {
-        OMPL_INFORM("%s: TRRT was supplied an inappropriate optimization objective; it can only handle types of ompl::base::MechanicalWorkOptimizationObjective.", getName().c_str());
-        usingDefaultObjective = true;
+        usingDefaultObjective = false;
     }
 
     if (usingDefaultObjective)
@@ -137,7 +135,7 @@ void ompl::geometric::TRRT::setup(void)
     if (kConstant_ < std::numeric_limits<double>::epsilon())
     {
         // Find the average cost of states by sampling
-        double averageCost = opt_->averageStateCost(magic::TEST_STATE_COUNT).v;
+        double averageCost = opt_->averageStateCost(magic::TEST_STATE_COUNT).value();
         kConstant_ = averageCost;
         OMPL_DEBUG("%s: K constant detected to be %lf", getName().c_str(), kConstant_);
     }
@@ -156,7 +154,7 @@ void ompl::geometric::TRRT::setup(void)
     frontierCount_ = 1; // init to 1 to prevent division by zero error
 }
 
-void ompl::geometric::TRRT::freeMemory(void)
+void ompl::geometric::TRRT::freeMemory()
 {
     // Delete all motions, states and the nearest neighbors data structure
     if (nearestNeighbors_)
@@ -212,7 +210,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         sampler_ = si_->allocStateSampler();
 
     // Debug
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nearestNeighbors_->size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nearestNeighbors_->size());
 
 
     // Solver variables ------------------------------------------------------------------------------------
@@ -315,7 +313,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         base::Cost childCost = opt_->stateCost(newState);
 
         // Only add this motion to the tree if the tranistion test accepts it
-        if(!transitionTest(childCost.v, nearMotion->cost.v, motionDistance))
+        if (!transitionTest(childCost.value(), nearMotion->cost.value(), motionDistance))
         {
             continue; // give up on this one and try a new sample
         }
@@ -383,7 +381,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
 
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxDifference);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxDifference, getName());
         solved = true;
     }
 

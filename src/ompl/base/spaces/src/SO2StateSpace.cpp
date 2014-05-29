@@ -65,14 +65,19 @@ void ompl::base::SO2StateSampler::sampleGaussian(State *state, const State *mean
     space_->enforceBounds(state);
 }
 
-unsigned int ompl::base::SO2StateSpace::getDimension(void) const
+unsigned int ompl::base::SO2StateSpace::getDimension() const
 {
     return 1;
 }
 
-double ompl::base::SO2StateSpace::getMaximumExtent(void) const
+double ompl::base::SO2StateSpace::getMaximumExtent() const
 {
     return boost::math::constants::pi<double>();
+}
+
+double ompl::base::SO2StateSpace::getMeasure() const
+{
+    return 2.0 * boost::math::constants::pi<double>();
 }
 
 void ompl::base::SO2StateSpace::enforceBounds(State *state) const
@@ -97,7 +102,7 @@ void ompl::base::SO2StateSpace::copyState(State *destination, const State *sourc
     destination->as<StateType>()->value = source->as<StateType>()->value;
 }
 
-unsigned int ompl::base::SO2StateSpace::getSerializationLength(void) const
+unsigned int ompl::base::SO2StateSpace::getSerializationLength() const
 {
     return sizeof(double);
 }
@@ -150,12 +155,12 @@ void ompl::base::SO2StateSpace::interpolate(const State *from, const State *to, 
     }
 }
 
-ompl::base::StateSamplerPtr ompl::base::SO2StateSpace::allocDefaultStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::SO2StateSpace::allocDefaultStateSampler() const
 {
     return StateSamplerPtr(new SO2StateSampler(this));
 }
 
-ompl::base::State* ompl::base::SO2StateSpace::allocState(void) const
+ompl::base::State* ompl::base::SO2StateSpace::allocState() const
 {
     return new StateType();
 }
@@ -165,7 +170,7 @@ void ompl::base::SO2StateSpace::freeState(State *state) const
     delete static_cast<StateType*>(state);
 }
 
-void ompl::base::SO2StateSpace::registerProjections(void)
+void ompl::base::SO2StateSpace::registerProjections()
 {
     class SO2DefaultProjection : public ProjectionEvaluator
     {
@@ -175,12 +180,12 @@ void ompl::base::SO2StateSpace::registerProjections(void)
         {
         }
 
-        virtual unsigned int getDimension(void) const
+        virtual unsigned int getDimension() const
         {
             return 1;
         }
 
-        virtual void defaultCellSizes(void)
+        virtual void defaultCellSizes()
         {
             cellSizes_.resize(1);
             cellSizes_[0] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;

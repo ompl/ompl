@@ -44,7 +44,7 @@ void ompl::control::DiscreteControlSampler::sample(Control *control)
                         space_->as<DiscreteControlSpace>()->getUpperBound());
 }
 
-unsigned int ompl::control::DiscreteControlSpace::getDimension(void) const
+unsigned int ompl::control::DiscreteControlSpace::getDimension() const
 {
     return 1;
 }
@@ -59,12 +59,12 @@ bool ompl::control::DiscreteControlSpace::equalControls(const Control *control1,
     return control1->as<ControlType>()->value == control2->as<ControlType>()->value;
 }
 
-ompl::control::ControlSamplerPtr ompl::control::DiscreteControlSpace::allocDefaultControlSampler(void) const
+ompl::control::ControlSamplerPtr ompl::control::DiscreteControlSpace::allocDefaultControlSampler() const
 {
     return ControlSamplerPtr(new DiscreteControlSampler(this));
 }
 
-ompl::control::Control* ompl::control::DiscreteControlSpace::allocControl(void) const
+ompl::control::Control* ompl::control::DiscreteControlSpace::allocControl() const
 {
     return new ControlType();
 }
@@ -94,14 +94,14 @@ void ompl::control::DiscreteControlSpace::printSettings(std::ostream &out) const
     out << "Discrete control space '" << getName() << "' with bounds [" << lowerBound_ << ", " << upperBound_ << "]" << std::endl;
 }
 
-void ompl::control::DiscreteControlSpace::setup(void)
+void ompl::control::DiscreteControlSpace::setup()
 {
     if (lowerBound_ > upperBound_)
         throw Exception("Lower bound cannot be larger than upper bound for a discrete space");
     ControlSpace::setup();
 }
 
-unsigned int ompl::control::DiscreteControlSpace::getSerializationLength(void) const
+unsigned int ompl::control::DiscreteControlSpace::getSerializationLength() const
 {
     return sizeof(int);
 }

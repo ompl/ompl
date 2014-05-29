@@ -473,6 +473,14 @@ class ompl_geometric_generator_t(code_generator_t):
             return s.str();
         }
         """)
+        replacement['printDebug'] = ('def("printDebug", &__printDebug)', """
+        std::string __printDebug(%s* obj)
+        {
+            std::ostringstream s;
+            obj->printDebug(s);
+            return s.str();
+        }
+        """)
         code_generator_t.__init__(self, 'geometric', ['bindings/util', 'bindings/base'], replacement)
 
     def filter_declarations(self):
@@ -483,8 +491,10 @@ class ompl_geometric_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
         # print paths as matrices
         self.replace_member_functions(self.ompl_ns.member_functions('printAsMatrix'))
+        # print debug info
+        self.replace_member_functions(self.ompl_ns.member_functions('printDebug'))
         self.ompl_ns.member_functions('freeGridMotions').exclude()
-        self.ompl_ns.class_('PRM').member_functions('haveSolution').exclude()
+        self.ompl_ns.class_('PRM').member_functions('maybeConstructSolution').exclude()
         self.ompl_ns.class_('PRM').member_functions('growRoadmap',
                 function=declarations.access_type_matcher_t('protected')).exclude()
         self.ompl_ns.class_('PRM').member_functions('expandRoadmap',
@@ -532,6 +542,11 @@ class ompl_geometric_generator_t(code_generator_t):
         PRM_cls.add_registration_code("""def("solve",
             (::ompl::base::PlannerStatus(::ompl::geometric::PRM::*)( ::ompl::base::PlannerTerminationCondition const &))(&PRM_wrapper::solve),
             (::ompl::base::PlannerStatus(PRM_wrapper::*)( ::ompl::base::PlannerTerminationCondition const & ))(&PRM_wrapper::default_solve), bp::arg("ptc") )""")
+        # exclude PRM*, define it in python to use the single-threaded version
+        # of PRM with the k* connection strategy
+        self.ompl_ns.class_('PRMstar').exclude()
+        # LazyPRM's Vertex type is void* so exclude addMilestone which has return type void*
+        self.ompl_ns.class_('LazyPRM').member_function('addMilestone').exclude()
 
         # Py++ seems to get confused by some methods declared in one module
         # that are *not* overridden in a derived class in another module. The
@@ -542,7 +557,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'PRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT']:
             self.ompl_ns.class_(planner).add_registration_code("""
             def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )""")
             if planner!='PRM':
@@ -554,6 +569,22 @@ class ompl_geometric_generator_t(code_generator_t):
             def("checkValidity",&::ompl::base::Planner::checkValidity,
                 &%s_wrapper::default_checkValidity )""" % planner)
 
+        # do this for all multithreaded planners
+        for planner in ['SPARS', 'SPARStwo']:
+            cls = self.ompl_ns.class_(planner)
+            cls.constructor(arg_types=["::ompl::base::SpaceInformationPtr const &"]).exclude()
+            cls.add_registration_code('def(bp::init<ompl::base::SpaceInformationPtr const &>(bp::arg("si")))')
+            cls.add_wrapper_code("""
+            {0}_wrapper(::ompl::base::SpaceInformationPtr const &si) : ompl::geometric::{0}(si),
+                bp::wrapper<ompl::geometric::{0}>()
+            {{
+                OMPL_WARN("%s: this planner uses multiple threads and might crash if your StateValidityChecker, OptimizationObjective, etc., are allocated within Python.", getName().c_str());
+            }}
+            """.format(planner))
+
+        # used in SPARS
+        self.std_ns.class_('deque<ompl::base::State*>').rename('dequeState')
+
         # needed to able to set connection strategy for PRM
         # the PRM::Vertex type is typedef-ed to boost::graph_traits<Graph>::vertex_descriptor. This can
         # be equal to an unsigned long or unsigned int, depending on architecture (or version of boost?)
@@ -563,12 +594,16 @@ class ompl_geometric_generator_t(code_generator_t):
             self.ompl_ns.class_('NearestNeighborsLinear<unsigned long>').rename('NearestNeighborsLinear')
             self.ompl_ns.class_('KStrategy<unsigned long>').rename('KStrategy')
             self.ompl_ns.class_('KStarStrategy<unsigned long>').rename('KStarStrategy')
+            # used in SPARStwo
+            self.std_ns.class_('map<unsigned long, ompl::base::State*>').rename('mapVertexToState')
         except:
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').include()
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').rename('NearestNeighbors')
             self.ompl_ns.class_('NearestNeighborsLinear<unsigned int>').rename('NearestNeighborsLinear')
             self.ompl_ns.class_('KStrategy<unsigned int>').rename('KStrategy')
             self.ompl_ns.class_('KStarStrategy<unsigned int>').rename('KStarStrategy')
+            # used in SPARStwo
+            self.std_ns.class_('map<unsigned int, ompl::base::State*>').rename('mapVertexToState')
 
 class ompl_tools_generator_t(code_generator_t):
     def __init__(self):

@@ -58,9 +58,9 @@ namespace ompl
            qr, until a state @b qm is reached. @b qm is then added to
            the exploration tree.
            @par External documentation
-           J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844730">10.1109/ROBOT.2000.844730</a><br>
-           <a href="http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246">[PDF]</a>
-           <a href="http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html">[more]</a>
+           J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI: [10.1109/ROBOT.2000.844730](http://dx.doi.org/10.1109/ROBOT.2000.844730)<br>
+           [[PDF]](http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246)
+           [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
         */
 
         /** \brief Parallel RRT */
@@ -70,13 +70,13 @@ namespace ompl
 
             pRRT(const base::SpaceInformationPtr &si);
 
-            virtual ~pRRT(void);
+            virtual ~pRRT();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set the goal bias.
 
@@ -93,7 +93,7 @@ namespace ompl
             }
 
             /** \brief Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -109,7 +109,7 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
@@ -117,19 +117,19 @@ namespace ompl
             /** \brief Set the number of threads the planner should use. Default is 2. */
             void setThreadCount(unsigned int nthreads);
 
-            unsigned int getThreadCount(void) const
+            unsigned int getThreadCount() const
             {
                 return threadCount_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 nn_.reset(new NN<Motion*>());
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
         protected:
 
@@ -137,7 +137,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : state(NULL), parent(NULL)
+                Motion() : state(NULL), parent(NULL)
                 {
                 }
 
@@ -145,7 +145,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -163,9 +163,9 @@ namespace ompl
             };
 
             void threadSolve(unsigned int tid, const base::PlannerTerminationCondition &ptc, SolutionInfo *sol);
-            void freeMemory(void);
+            void freeMemory();
 
-            double distanceFunction(const Motion* a, const Motion* b) const
+            double distanceFunction(const Motion *a, const Motion *b) const
             {
                 return si_->distance(a->state, b->state);
             }

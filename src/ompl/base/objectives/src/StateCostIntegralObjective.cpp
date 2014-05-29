@@ -45,6 +45,11 @@ StateCostIntegralObjective(const SpaceInformationPtr &si,
     description_ = "State Cost Integral";
 }
 
+ompl::base::Cost ompl::base::StateCostIntegralObjective::stateCost(const State *s) const
+{
+    return Cost(1.0);
+}
+
 ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State *s1,
                                                                     const State *s2) const
 {
@@ -63,8 +68,8 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
             {
                 si_->getStateSpace()->interpolate(s1, s2, (double) j / (double) nd, test2);
                 Cost nextStateCost = this->stateCost(test2);
-                totalCost.v += this->trapezoid(prevStateCost, nextStateCost,
-                                               si_->distance(test1, test2)).v;
+                totalCost = Cost(totalCost.value() + this->trapezoid(prevStateCost, nextStateCost,
+                                                                     si_->distance(test1, test2)).value());
                 std::swap(test1, test2);
                 prevStateCost = nextStateCost;
             }
@@ -72,8 +77,8 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
         }
 
         // Lastly, add s2
-        totalCost.v += this->trapezoid(prevStateCost, this->stateCost(s2),
-                                       si_->distance(test1, s2)).v;
+        totalCost = Cost(totalCost.value() + this->trapezoid(prevStateCost, this->stateCost(s2),
+                                                             si_->distance(test1, s2)).value());
 
         si_->freeState(test1);
 
@@ -84,7 +89,7 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
                                si_->distance(s1, s2));
 }
 
-bool ompl::base::StateCostIntegralObjective::isMotionCostInterpolationEnabled(void) const
+bool ompl::base::StateCostIntegralObjective::isMotionCostInterpolationEnabled() const
 {
     return interpolateMotionCost_;
 }

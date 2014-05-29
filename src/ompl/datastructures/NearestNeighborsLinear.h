@@ -57,15 +57,15 @@ namespace ompl
     class NearestNeighborsLinear : public NearestNeighbors<_T>
     {
     public:
-        NearestNeighborsLinear(void) : NearestNeighbors<_T>()
+        NearestNeighborsLinear() : NearestNeighbors<_T>()
         {
         }
 
-        virtual ~NearestNeighborsLinear(void)
+        virtual ~NearestNeighborsLinear()
         {
         }
 
-        virtual void clear(void)
+        virtual void clear()
         {
             data_.clear();
         }
@@ -139,7 +139,7 @@ namespace ompl
             std::sort(nbh.begin(), nbh.end(), ElemSort(data, NearestNeighbors<_T>::distFun_));
         }
 
-        virtual std::size_t size(void) const
+        virtual std::size_t size() const
         {
             return data_.size();
         }

@@ -55,7 +55,7 @@ namespace ompl
             {
             }
 
-            virtual ~OptimizePlan(void)
+            virtual ~OptimizePlan()
             {
             }
 
@@ -66,10 +66,10 @@ namespace ompl
             void addPlannerAllocator(const base::PlannerAllocator &pa);
 
             /** \brief Clear the set of planners to be executed */
-            void clearPlanners(void);
+            void clearPlanners();
 
             /** \brief Get the problem definition used */
-            const base::ProblemDefinitionPtr& getProblemDefinition(void) const
+            const base::ProblemDefinitionPtr& getProblemDefinition() const
             {
                 return pp_.getProblemDefinition();
             }

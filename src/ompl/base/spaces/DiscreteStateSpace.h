@@ -86,21 +86,23 @@ namespace ompl
                 type_ = STATE_SPACE_DISCRETE;
             }
 
-            virtual ~DiscreteStateSpace(void)
+            virtual ~DiscreteStateSpace()
             {
             }
 
-            virtual bool isDiscrete(void) const;
+            virtual bool isDiscrete() const;
 
-            virtual unsigned int getDimension(void) const;
+            virtual unsigned int getDimension() const;
 
-            virtual double getMaximumExtent(void) const;
+            virtual double getMaximumExtent() const;
+
+            virtual double getMeasure() const;
 
             virtual void enforceBounds(State *state) const;
 
             virtual bool satisfiesBounds(const State *state) const;
 
-            virtual unsigned int getSerializationLength(void) const;
+            virtual unsigned int getSerializationLength() const;
 
             virtual void serialize(void *serialization, const State *state) const;
 
@@ -114,9 +116,9 @@ namespace ompl
 
             virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
-            virtual StateSamplerPtr allocDefaultStateSampler(void) const;
+            virtual StateSamplerPtr allocDefaultStateSampler() const;
 
-            virtual State* allocState(void) const;
+            virtual State* allocState() const;
 
             virtual void freeState(State *state) const;
 
@@ -124,22 +126,22 @@ namespace ompl
 
             virtual void printSettings(std::ostream &out) const;
 
-            virtual void registerProjections(void);
+            virtual void registerProjections();
 
             /** \brief Returns the number of states possible */
-            unsigned int getStateCount(void) const
+            unsigned int getStateCount() const
             {
                 return upperBound_ - lowerBound_ + 1;
             }
 
             /** \brief Returns the lowest possible state */
-            int getLowerBound(void) const
+            int getLowerBound() const
             {
                 return lowerBound_;
             }
 
             /** \brief Returns the highest possible state */
-            int getUpperBound(void) const
+            int getUpperBound() const
             {
                 return upperBound_;
             }
@@ -151,7 +153,7 @@ namespace ompl
                 upperBound_ = upperBound;
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
         protected:
 

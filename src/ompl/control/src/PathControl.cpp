@@ -38,6 +38,7 @@
 #include "ompl/control/spaces/DiscreteControlSpace.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
+#include "ompl/base/OptimizationObjective.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
 #include <numeric>
@@ -45,11 +46,11 @@
 
 namespace
 {
-    unsigned int getNumberOfDiscreteControls(const ompl::control::ControlSpace* cs)
+    unsigned int getNumberOfDiscreteControls(const ompl::control::ControlSpace *cs)
     {
         if (cs->isCompound())
         {
-            const ompl::control::CompoundControlSpace* ccs
+            const ompl::control::CompoundControlSpace *ccs
                 = cs->as<ompl::control::CompoundControlSpace>();
             unsigned int num = 0;
             for (unsigned int i = 0; i < ccs->getSubspaceCount(); ++i)
@@ -63,12 +64,12 @@ namespace
         return 0;
     }
 
-    void printDiscreteControls(std::ostream &out, const ompl::control::ControlSpace* cs,
-        const ompl::control::Control* c)
+    void printDiscreteControls(std::ostream &out, const ompl::control::ControlSpace *cs,
+        const ompl::control::Control *c)
     {
         if (cs->isCompound())
         {
-            const ompl::control::CompoundControlSpace* ccs
+            const ompl::control::CompoundControlSpace *ccs
                 = cs->as<ompl::control::CompoundControlSpace>();
             for (unsigned int i = 0; i < ccs->getSubspaceCount(); ++i)
                 printDiscreteControls(out, ccs->getSubspace(i).get(),
@@ -90,7 +91,7 @@ ompl::control::PathControl::PathControl(const PathControl &path) : base::Path(pa
     copyFrom(path);
 }
 
-ompl::geometric::PathGeometric ompl::control::PathControl::asGeometric(void) const
+ompl::geometric::PathGeometric ompl::control::PathControl::asGeometric() const
 {
     PathControl pc(*this);
     pc.interpolate();
@@ -99,7 +100,7 @@ ompl::geometric::PathGeometric ompl::control::PathControl::asGeometric(void) con
     return pg;
 }
 
-ompl::control::PathControl& ompl::control::PathControl::operator=(const PathControl& other)
+ompl::control::PathControl& ompl::control::PathControl::operator=(const PathControl &other)
 {
     freeMemory();
     si_ = other.si_;
@@ -107,7 +108,7 @@ ompl::control::PathControl& ompl::control::PathControl::operator=(const PathCont
     return *this;
 }
 
-void ompl::control::PathControl::copyFrom(const PathControl& other)
+void ompl::control::PathControl::copyFrom(const PathControl &other)
 {
     states_.resize(other.states_.size());
     controls_.resize(other.controls_.size());
@@ -122,7 +123,13 @@ void ompl::control::PathControl::copyFrom(const PathControl& other)
     controlDurations_ = other.controlDurations_;
 }
 
-double ompl::control::PathControl::length(void) const
+ompl::base::Cost ompl::control::PathControl::cost(const base::OptimizationObjectivePtr &opt) const
+{
+    OMPL_ERROR("Error: Cost computation is only implemented for paths of type PathGeometric.");
+    return opt->identityCost();
+}
+
+double ompl::control::PathControl::length() const
 {
     return std::accumulate(controlDurations_.begin(), controlDurations_.end(), 0.0);
 }
@@ -159,9 +166,9 @@ void ompl::control::PathControl::printAsMatrix(std::ostream &out) const
     if (controls_.empty())
         return;
 
-    const ControlSpace* cs = static_cast<const SpaceInformation*>(si_.get())->getControlSpace().get();
+    const ControlSpace *cs = static_cast<const SpaceInformation*>(si_.get())->getControlSpace().get();
     unsigned int n = 0, m = getNumberOfDiscreteControls(cs);
-    double* val;
+    double *val;
     while ((val = cspace->getValueAddressAtIndex(controls_[0], n)))
         ++n;
     for (unsigned int i = 0 ; i < n + m; ++i)
@@ -180,7 +187,7 @@ void ompl::control::PathControl::printAsMatrix(std::ostream &out) const
     }
 }
 
-void ompl::control::PathControl::interpolate(void)
+void ompl::control::PathControl::interpolate()
 {
     if (states_.size() <= controls_.size())
     {
@@ -229,7 +236,7 @@ void ompl::control::PathControl::interpolate(void)
     controlDurations_.swap(newControlDurations);
 }
 
-bool ompl::control::PathControl::check(void) const
+bool ompl::control::PathControl::check() const
 {
     if (controls_.empty())
     {
@@ -269,7 +276,7 @@ void ompl::control::PathControl::append(const base::State *state, const Control 
     controlDurations_.push_back(duration);
 }
 
-void ompl::control::PathControl::random(void)
+void ompl::control::PathControl::random()
 {
     freeMemory();
     states_.resize(2);
@@ -330,7 +337,7 @@ bool ompl::control::PathControl::randomValid(unsigned int attempts)
     return ok;
 }
 
-void ompl::control::PathControl::freeMemory(void)
+void ompl::control::PathControl::freeMemory()
 {
     for (unsigned int i = 0 ; i < states_.size() ; ++i)
         si_->freeState(states_[i]);

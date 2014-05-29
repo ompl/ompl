@@ -37,7 +37,7 @@
 
 #include "ompl/tools/debug/Profiler.h"
 
-ompl::tools::Profiler& ompl::tools::Profiler::Instance(void)
+ompl::tools::Profiler& ompl::tools::Profiler::Instance()
 {
     static Profiler p(true, false);
     return p;
@@ -50,7 +50,7 @@ ompl::tools::Profiler& ompl::tools::Profiler::Instance(void)
 #include <algorithm>
 #include <sstream>
 
-void ompl::tools::Profiler::start(void)
+void ompl::tools::Profiler::start()
 {
     lock_.lock();
     if (!running_)
@@ -61,7 +61,7 @@ void ompl::tools::Profiler::start(void)
     lock_.unlock();
 }
 
-void ompl::tools::Profiler::stop(void)
+void ompl::tools::Profiler::stop()
 {
     lock_.lock();
     if (running_)
@@ -72,7 +72,7 @@ void ompl::tools::Profiler::stop(void)
     lock_.unlock();
 }
 
-void ompl::tools::Profiler::clear(void)
+void ompl::tools::Profiler::clear()
 {
     lock_.lock();
     data_.clear();
@@ -157,7 +157,7 @@ void ompl::tools::Profiler::status(std::ostream &out, bool merge)
     lock_.unlock();
 }
 
-void ompl::tools::Profiler::console(void)
+void ompl::tools::Profiler::console()
 {
     std::stringstream ss;
     ss << std::endl;

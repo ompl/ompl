@@ -62,8 +62,8 @@ namespace ompl
         {
             friend class BinaryHeap;
         private:
-            Element(void) { }
-            ~Element(void) { }
+            Element() { }
+            ~Element() { }
             /** \brief The location of the data in the heap's storage */
             unsigned int position;
         public:
@@ -77,13 +77,13 @@ namespace ompl
         /** \brief Event that gets called just before a removal */
         typedef void (*EventBeforeRemove)(Element*, void*);
 
-        BinaryHeap(void)
+        BinaryHeap()
         {
             eventAfterInsert_  = NULL;
             eventBeforeRemove_ = NULL;
         }
 
-        ~BinaryHeap(void)
+        ~BinaryHeap()
         {
             clear();
         }
@@ -103,7 +103,7 @@ namespace ompl
         }
 
         /** \brief Clear the heap */
-        void clear(void)
+        void clear()
         {
             for (typename std::vector<Element*>::iterator i = vector_.begin() ;
                  i != vector_.end() ; ++i)
@@ -112,19 +112,19 @@ namespace ompl
         }
 
         /** \brief Return the top element. NULL for an empty heap. */
-        Element* top(void) const
+        Element* top() const
         {
             return vector_.empty() ? NULL : vector_.at(0);
         }
 
         /** \brief Remove the top element */
-        void pop(void)
+        void pop()
         {
             removePos(0);
         }
 
         /** \brief Remove a specific element */
-        void remove(Element* element)
+        void remove(Element *element)
         {
             if (eventBeforeRemove_)
                 eventBeforeRemove_(element, eventBeforeRemoveData_);
@@ -134,7 +134,7 @@ namespace ompl
         /** \brief Add a new element */
         Element* insert(const _T& data)
         {
-            Element* element = new Element();
+            Element *element = new Element();
             element->data = data;
             const unsigned int pos = vector_.size();
             element->position = pos;
@@ -153,7 +153,7 @@ namespace ompl
             for (unsigned int i = 0 ; i < m ; ++i)
             {
                 const unsigned int pos = i + n;
-                Element* element = newElement(list[i], pos);
+                Element *element = newElement(list[i], pos);
                 vector_.push_back(element);
                 percolateUp(pos);
                 if (eventAfterInsert_)
@@ -172,13 +172,13 @@ namespace ompl
         }
 
         /** \brief Rebuild the heap */
-        void rebuild(void)
+        void rebuild()
         {
             build();
         }
 
         /** \brief Update an element in the heap */
-        void update(Element* element)
+        void update(Element *element)
         {
             const unsigned int pos = element->position;
             assert(vector_[pos] == element);
@@ -187,13 +187,13 @@ namespace ompl
         }
 
         /** \brief Check if the heap is empty */
-        bool empty(void) const
+        bool empty() const
         {
             return vector_.empty();
         }
 
         /** \brief Get the number of elements in the heap */
-        unsigned int size(void) const
+        unsigned int size() const
         {
             return vector_.size();
         }
@@ -226,6 +226,12 @@ namespace ompl
             vector_ = backup;
         }
 
+        /** \brief Return a reference to the comparison operator */
+        LessThan& getComparisonOperator()
+        {
+            return lt_;
+        }
+
     private:
 
         LessThan                 lt_;
@@ -254,13 +260,13 @@ namespace ompl
 
         Element* newElement(_T& data, unsigned int pos) const
         {
-            Element* element = new Element();
+            Element *element = new Element();
             element->data = data;
             element->position = pos;
             return element;
         }
 
-        void build(void)
+        void build()
         {
             for(int i = vector_.size() / 2 - 1; i >= 0; --i)
                 percolateDown(i);
@@ -269,7 +275,7 @@ namespace ompl
         void percolateDown(const unsigned int pos)
         {
             const unsigned int n      = vector_.size();
-            Element*           tmp    = vector_[pos];
+            Element           *tmp    = vector_[pos];
             unsigned int       parent = pos;
             unsigned int       child  = (pos + 1) << 1;
 
@@ -305,9 +311,9 @@ namespace ompl
 
         void percolateUp(const unsigned int pos)
         {
-            Element*           tmp    = vector_[pos];
-            unsigned int       child  = pos;
-            unsigned int       parent = (pos - 1) >> 1;
+            Element      *tmp    = vector_[pos];
+            unsigned int  child  = pos;
+            unsigned int  parent = (pos - 1) >> 1;
 
             while (child > 0 && lt_(tmp->data, vector_[parent]->data))
             {

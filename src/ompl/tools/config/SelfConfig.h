@@ -38,6 +38,8 @@
 #define OMPL_TOOLS_SELF_CONFIG_
 
 #include "ompl/config.h"
+#include "ompl/base/Goal.h"
+#include "ompl/base/Planner.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
@@ -62,13 +64,13 @@ namespace ompl
                 console is prefixed by \e context */
             SelfConfig(const base::SpaceInformationPtr &si, const std::string &context = std::string());
 
-            ~SelfConfig(void);
+            ~SelfConfig();
 
             /** \brief Get the probability of a sampled state being valid (calls base::SpaceInformation::probabilityOfValidState())*/
-            double getProbabilityOfValidState(void);
+            double getProbabilityOfValidState();
 
             /** \brief Get the probability of a sampled state being valid (calls base::SpaceInformation::averageValidMotionLength())*/
-            double getAverageValidMotionLength(void);
+            double getAverageValidMotionLength();
 
             /** \brief Instances of base::ValidStateSampler need a number of attempts to be specified -- the maximum number of times
                 a new sample is selected and checked to be valid. This function computes a number of \e attempts such that the probability
@@ -95,6 +97,9 @@ namespace ompl
                 else
                     return new NearestNeighborsSqrtApprox<_T>();
             }
+
+            /** \brief Given a goal specification, decide on a planner for that goal */
+            static base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
 
         private:
 

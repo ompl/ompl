@@ -227,7 +227,7 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *t
 }
 
 void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *to, const double t,
-    bool& firstTime, DubinsPath& path, State *state) const
+    bool &firstTime, DubinsPath &path, State *state) const
 {
     if (firstTime)
     {
@@ -259,7 +259,7 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *t
     interpolate(from, path, t, state);
 }
 
-void ompl::base::DubinsStateSpace::interpolate(const State *from, const DubinsPath& path, double t, State *state) const
+void ompl::base::DubinsStateSpace::interpolate(const State *from, const DubinsPath &path, double t, State *state) const
 {
     StateType *s  = allocState()->as<StateType>();
     double seg = t * path.length(), phi, v;
@@ -331,7 +331,7 @@ ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(co
 }
 
 
-void ompl::base::DubinsMotionValidator::defaultSettings(void)
+void ompl::base::DubinsMotionValidator::defaultSettings()
 {
     stateSpace_ = dynamic_cast<DubinsStateSpace*>(si_->getStateSpace().get());
     if (!stateSpace_)

@@ -93,13 +93,13 @@ namespace ompl
         {
         }
 
-        virtual ~NearestNeighborsFLANN(void)
+        virtual ~NearestNeighborsFLANN()
         {
             if (index_)
                 delete index_;
         }
 
-        virtual void clear(void)
+        virtual void clear()
         {
             if (index_)
             {
@@ -208,7 +208,7 @@ namespace ompl
                 nbh[i] = *index_->getPoint(indices[0][i]);
         }
 
-        virtual std::size_t size(void) const
+        virtual std::size_t size() const
         {
             return index_ ? index_->size() : 0;
         }
@@ -239,7 +239,7 @@ namespace ompl
         }
 
         /// \brief Get the FLANN parameters used to build the current index.
-        virtual const boost::shared_ptr<flann::IndexParams>& getIndexParams(void) const
+        virtual const boost::shared_ptr<flann::IndexParams>& getIndexParams() const
         {
             return params_;
         }
@@ -253,19 +253,19 @@ namespace ompl
 
         /// \brief Get the FLANN parameters used during nearest neighbor
         /// searches
-        flann::SearchParams& getSearchParams(void)
+        flann::SearchParams& getSearchParams()
         {
             return searchParams_;
         }
 
         /// \brief Get the FLANN parameters used during nearest neighbor
         /// searches
-        const flann::SearchParams& getSearchParams(void) const
+        const flann::SearchParams& getSearchParams() const
         {
             return searchParams_;
         }
 
-        unsigned int getContainerSize(void) const
+        unsigned int getContainerSize() const
         {
             return dimension_;
         }

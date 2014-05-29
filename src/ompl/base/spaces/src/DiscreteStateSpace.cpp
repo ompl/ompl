@@ -62,19 +62,24 @@ void ompl::base::DiscreteStateSampler::sampleGaussian(State *state, const State 
     space_->enforceBounds(state);
 }
 
-bool ompl::base::DiscreteStateSpace::isDiscrete(void) const
+bool ompl::base::DiscreteStateSpace::isDiscrete() const
 {
     return true;
 }
 
-unsigned int ompl::base::DiscreteStateSpace::getDimension(void) const
+unsigned int ompl::base::DiscreteStateSpace::getDimension() const
 {
     return 1;
 }
 
-double ompl::base::DiscreteStateSpace::getMaximumExtent(void) const
+double ompl::base::DiscreteStateSpace::getMaximumExtent() const
 {
     return upperBound_ - lowerBound_;
+}
+
+double ompl::base::DiscreteStateSpace::getMeasure() const
+{
+    return upperBound_ - lowerBound_ + 1.0;
 }
 
 void ompl::base::DiscreteStateSpace::enforceBounds(State *state) const
@@ -96,7 +101,7 @@ void ompl::base::DiscreteStateSpace::copyState(State *destination, const State *
     destination->as<StateType>()->value = source->as<StateType>()->value;
 }
 
-unsigned int ompl::base::DiscreteStateSpace::getSerializationLength(void) const
+unsigned int ompl::base::DiscreteStateSpace::getSerializationLength() const
 {
     return sizeof(int);
 }
@@ -127,12 +132,12 @@ void ompl::base::DiscreteStateSpace::interpolate(const State *from, const State 
                                                (to->as<StateType>()->value - from->as<StateType>()->value) * t + 0.5);
 }
 
-ompl::base::StateSamplerPtr ompl::base::DiscreteStateSpace::allocDefaultStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::DiscreteStateSpace::allocDefaultStateSampler() const
 {
     return StateSamplerPtr(new DiscreteStateSampler(this));
 }
 
-ompl::base::State* ompl::base::DiscreteStateSpace::allocState(void) const
+ompl::base::State* ompl::base::DiscreteStateSpace::allocState() const
 {
     return new StateType();
 }
@@ -142,7 +147,7 @@ void ompl::base::DiscreteStateSpace::freeState(State *state) const
     delete static_cast<StateType*>(state);
 }
 
-void ompl::base::DiscreteStateSpace::registerProjections(void)
+void ompl::base::DiscreteStateSpace::registerProjections()
 {
     class DiscreteDefaultProjection : public ProjectionEvaluator
     {
@@ -152,12 +157,12 @@ void ompl::base::DiscreteStateSpace::registerProjections(void)
         {
         }
 
-        virtual unsigned int getDimension(void) const
+        virtual unsigned int getDimension() const
         {
             return 1;
         }
 
-        virtual void defaultCellSizes(void)
+        virtual void defaultCellSizes()
         {
             bounds_.resize(1);
             bounds_.low[0] = space_->as<DiscreteStateSpace>()->lowerBound_;
@@ -175,7 +180,7 @@ void ompl::base::DiscreteStateSpace::registerProjections(void)
     registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new DiscreteDefaultProjection(this))));
 }
 
-void ompl::base::DiscreteStateSpace::setup(void)
+void ompl::base::DiscreteStateSpace::setup()
 {
     if (lowerBound_ > upperBound_)
         throw Exception("Lower bound cannot be larger than upper bound for a discrete space");

@@ -83,7 +83,8 @@ function IsInjected($str)
 <head>
   <meta charset="utf-8">
   <title>Contact Us</title>
-  <link href="../css/bootstrap.css" rel="stylesheet">
+  <link href="../css/bootstrap.min.css" rel="stylesheet">
+  <link href="../css/bootstrap-theme.min.css" rel="stylesheet">
   <link href="../css/ompl.css" rel="stylesheet">
 
 <!-- define some style elements-->
@@ -96,33 +97,35 @@ textarea { resize: none; }
 </head>
 
 <body style="padding-top:0px">
+<div class="container">
 <?php
 if(!empty($errors)){
 echo "<p class='err'>".nl2br($errors)."</p>";
 }
 ?>
-<div id='contact_form_errorloc' class="err span6"></div>
-<form method="POST" name="contact_form"
+<div id='contact_form_errorloc' class="err"></div>
+<form method="POST" name="contact_form" class="form" role="form"
 action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>">
-<div class="row">
-<div class="span3"><label for='name'>Name: </label></div>
-<div class="span3"><label for='email'>Email: </label></div>
-</div>
-<div class="row">
-<div class="span3"><input type="text" name="name" value='<?php echo htmlentities($name) ?>' class="span3"></div>
-<div class="span3"><input type="text" name="email" value='<?php echo htmlentities($visitor_email) ?>' class="span3"></div>
-</div>
-<label for='message'>Message:</label>
-<textarea name="message" rows=18 cols=20 class="span6"><?php echo htmlentities($user_message) ?></textarea>
-<img src="captcha_code_file.php?rand=<?php echo rand(); ?>" id='captchaimg' ><br>
-<div class="row">
-<div class="span6"><label for='message'>Enter the code above here :</label></div>
-<div class="span6"><input id="6_letters_code" name="6_letters_code" type="text" class="span3"><br>
-<small>Can't read the image? click <a href='javascript: refreshCaptcha();'>here</a> to refresh</small>
-</p>
-<input type="submit" value="Submit" name='submit' class="btn btn-primary">
-</div>
-</div>
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" class="form-control" name="name" id="name" value='<?php echo htmlentities($name) ?>' placeholder="Name">
+  </div>
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input type="email" class="form-control" name="email" id="email" value='<?php echo htmlentities($visitor_email) ?>' placeholder="Email">
+  </div>
+  <div class="form-group">
+    <label for="message">Message</label>
+    <textarea id="message" name="message" rows=18 cols=20 class="form-control"><?php echo htmlentities($user_message) ?></textarea>
+  </div>
+
+  <img src="captcha_code_file.php?rand=<?php echo rand(); ?>" id='captchaimg' ><br>
+  <div class="form-group">
+    <label for="6_letters_code">Enter the code above</label>
+    <input type="text"  class="form-control" id="6_letters_code" name="6_letters_code" type="text" >
+    <p class="help-block">Can't read the image? click <a href='javascript: refreshCaptcha();'>here</a> to refresh</p>
+  </div>
+  <input type="submit" value="Submit" name='submit' class="btn btn-primary">
 </form>
 </div>
 <script language="JavaScript">

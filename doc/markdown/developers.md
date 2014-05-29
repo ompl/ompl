@@ -12,6 +12,9 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 
 # Contributors:
 
+- [Javier V Gomez](http://www.javiervgomez.com), Universidad Carlos III de Madrid
+- Ashley Clark, Stanford University
+- Caleb Voss, Rice University
 - [Matt Maly](http://kavrakilab.org/profiles/mmaly), Rice University (now at Google)
 - [Oren Salzman](http://acg.cs.tau.ac.il/people/oren-salzman/oren-salzman), Dan Halperin's [Computational Geometry Lab](http://acg.cs.tau.ac.il), Tel Aviv University
 - [Dave Coleman](http://davetcoleman.com/),  Nikolaus Correll's [group](http://correll.cs.colorado.edu/), University of Colorado Boulder
@@ -24,7 +27,7 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 - Elizabeth Fudge, Rice University
 - Jonathan Sobieski, Rice University
 - Beck Chen, Rice University
-- [Sachin Chitta](http://www.willowgarage.com/pages/people/sachin-chitta-research-scientist), Willow Garage
+- [Sachin Chitta](http://www.sachinchitta.org), Willow Garage
 - Gil Jones, Willow Garage
 
 Click [here](thirdparty.html) for a detailed description of the third-party contributions.

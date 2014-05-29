@@ -53,7 +53,7 @@ namespace ompl
         typedef boost::posix_time::time_duration duration;
 
         /** \brief Get the current time point */
-        inline point now(void)
+        inline point now()
         {
             return boost::posix_time::microsec_clock::universal_time();
         }

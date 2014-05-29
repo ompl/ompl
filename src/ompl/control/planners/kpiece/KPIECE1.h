@@ -70,7 +70,7 @@ namespace ompl
            @par External documentation
            I.A. Şucan and L.E. Kavraki, Kinodynamic motion planning by interior-exterior cell exploration,
            in <em>Workshop on the Algorithmic Foundations of Robotics</em>, Dec. 2008.<br>
-           <a href="http://ioan.sucan.ro/files/pubs/wafr2008.pdf">[PDF]</a>
+           [[PDF]](http://ioan.sucan.ro/files/pubs/wafr2008.pdf)
         */
 
         /** \brief Kinodynamic Planning by Interior-Exterior Cell Exploration */
@@ -81,11 +81,11 @@ namespace ompl
             /** \brief Constructor */
             KPIECE1(const SpaceInformationPtr &si);
 
-            virtual ~KPIECE1(void);
+            virtual ~KPIECE1();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** In the process of randomly selecting states in the state
                 space to attempt to go towards, the algorithm may in fact
@@ -100,7 +100,7 @@ namespace ompl
             }
 
             /** Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -118,7 +118,7 @@ namespace ompl
 
             /** \brief Get the fraction of time to focus exploration
                 on boundary */
-            double getBorderFraction(void) const
+            double getBorderFraction() const
             {
                 return selectBorderFraction_;
             }
@@ -149,14 +149,14 @@ namespace ompl
 
             /** \brief Get the factor that is multiplied to a cell's
                 score if extending a motion from that cell succeeded. */
-            double getGoodCellScoreFactor(void) const
+            double getGoodCellScoreFactor() const
             {
                 return goodScoreFactor_;
             }
 
             /** \brief Get the factor that is multiplied to a cell's
                 score if extending a motion from that cell failed. */
-            double getBadCellScoreFactor(void) const
+            double getBadCellScoreFactor() const
             {
                 return badScoreFactor_;
             }
@@ -169,7 +169,7 @@ namespace ompl
             }
 
             /** \brief Get the maximum number of samples to store in the queue of samples that are close to the goal */
-            unsigned int getMaxCloseSamplesCount(void) const
+            unsigned int getMaxCloseSamplesCount() const
             {
                 return nCloseSamples_;
             }
@@ -189,12 +189,12 @@ namespace ompl
             }
 
             /** \brief Get the projection evaluator */
-            const base::ProjectionEvaluatorPtr& getProjectionEvaluator(void) const
+            const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
             {
                 return projectionEvaluator_;
             }
 
-            virtual void setup(void);
+            virtual void setup();
             virtual void getPlannerData(base::PlannerData &data) const;
 
         protected:
@@ -202,7 +202,7 @@ namespace ompl
             /** \brief Representation of a motion for this algorithm */
             struct Motion
             {
-                Motion(void) : state(NULL), control(NULL), steps(0), parent(NULL)
+                Motion() : state(NULL), control(NULL), steps(0), parent(NULL)
                 {
                 }
 
@@ -211,7 +211,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -231,11 +231,11 @@ namespace ompl
             /** \brief The data held by a cell in the grid of motions */
             struct CellData
             {
-                CellData(void) : coverage(0.0), selections(1), score(1.0), iteration(0), importance(0.0)
+                CellData() : coverage(0.0), selections(1), score(1.0), iteration(0), importance(0.0)
                 {
                 }
 
-                ~CellData(void)
+                ~CellData()
                 {
                 }
 
@@ -323,7 +323,7 @@ namespace ompl
                 bool selectMotion(Motion* &smotion, Grid::Cell* &scell);
 
                 /** \brief Return true if samples can be selected from this set */
-                bool canSample(void) const
+                bool canSample() const
                 {
                     return samples.size() > 0;
                 }
@@ -339,7 +339,7 @@ namespace ompl
             /** \brief The data defining a tree of motions for this algorithm */
             struct TreeData
             {
-                TreeData(void) : grid(0), size(0), iteration(1)
+                TreeData() : grid(0), size(0), iteration(1)
                 {
                 }
 
@@ -365,7 +365,7 @@ namespace ompl
             }
 
             /** \brief Free all the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Free the memory for the motions contained in a grid */
             void freeGridMotions(Grid &grid);
@@ -381,7 +381,7 @@ namespace ompl
                 from the state of the motion being added. The function
                 Returns the number of cells created to accommodate the
                 new motion (0 or 1). */
-                Grid::Cell* addMotion(Motion* motion, double dist);
+                Grid::Cell* addMotion(Motion *motion, double dist);
 
             /** \brief Select a motion and the cell it is part of from
                 the grid of motions. This is where preference is given

@@ -59,11 +59,11 @@ ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::P
     Planner::declareParam<double>("min_valid_path_fraction", this, &KPIECE1::setMinValidPathFraction, &KPIECE1::getMinValidPathFraction);
 }
 
-ompl::geometric::KPIECE1::~KPIECE1(void)
+ompl::geometric::KPIECE1::~KPIECE1()
 {
 }
 
-void ompl::geometric::KPIECE1::setup(void)
+void ompl::geometric::KPIECE1::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -78,7 +78,7 @@ void ompl::geometric::KPIECE1::setup(void)
     disc_.setDimension(projectionEvaluator_->getDimension());
 }
 
-void ompl::geometric::KPIECE1::clear(void)
+void ompl::geometric::KPIECE1::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -118,7 +118,7 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), disc_.getMotionCount());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), disc_.getMotionCount());
 
     Motion *solution    = NULL;
     Motion *approxsol   = NULL;
@@ -199,7 +199,7 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
         PathGeometric *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
         solved = true;
     }
 
