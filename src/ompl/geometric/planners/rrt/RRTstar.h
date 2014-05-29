@@ -221,6 +221,7 @@ namespace ompl
                 case TO_NEIGHBORS:
                     return si_->distance(b->state, a->state);
                 }
+                return 0; // remove warning
             }
 
             /** \brief Removes the given motion from the parent's child list */
