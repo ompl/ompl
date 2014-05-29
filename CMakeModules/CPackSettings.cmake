@@ -47,7 +47,9 @@ set(CPACK_SOURCE_IGNORE_FILES
     ".registered$"
     "download.md$"
     "mainpage.md$"
-    "binding_generator.py$")
+    "binding_generator.py$"
+    "gen_validatorv31.js"
+    "/php/")
 set(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
 set(CPACK_GENERATOR "TGZ")
 
