@@ -41,10 +41,9 @@
 #include "2dcirclesSetupDubins.h"
 #include <iostream>
 
-#include "ompl/geometric/planners/rrt/TRRT.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
-#include "ompl/geometric/planners/rrt/LBTRRT.h"
+#include "ompl/geometric/planners/fmt/FMT.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/base/goals/GoalState.h"
 #include "ompl/util/RandomNumbers.h"
@@ -336,6 +335,17 @@ protected:
     }
 };
 
+class FMTTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::FMT *fmt = new geometric::FMT(si);
+        return base::PlannerPtr(fmt);
+    }
+};
+
 class RRTstarDubinsTest : public TestPlanner
 {
 protected:
@@ -427,6 +437,7 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 
 OMPL_PLANNER_TEST(PRMstar)
 OMPL_PLANNER_TEST(PRM)
+OMPL_PLANNER_TEST(FMT)
 OMPL_PLANNER_TEST(RRTstar)
 OMPL_PLANNER_TEST(RRTstarDubinsNoGoalBias)
 OMPL_PLANNER_TEST(RRTstarDubins)

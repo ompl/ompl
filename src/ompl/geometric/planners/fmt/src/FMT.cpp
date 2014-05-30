@@ -43,7 +43,6 @@
 #include <boost/math/constants/constants.hpp>
 
 #include <ompl/datastructures/BinaryHeap.h>
-#include <ompl/datastructures/NearestNeighborsGNAT.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/geometric/planners/fmt/FMT.h>
@@ -54,10 +53,10 @@ ompl::geometric::FMT::FMT(const base::SpaceInformationPtr &si)
     , numSamples_(1000)
     , radiusMultiplier_(1.1)
 {
-    maxSampleAttempts_ = 10*numSamples_;
-    freeSpaceVolume_ = std::pow(si_->getMaximumExtent()/std::pow(si_->getStateDimension(),0.5),si_->getStateDimension());
+    maxSampleAttempts_ = 10 * numSamples_;
+    freeSpaceVolume_ = std::pow(si_->getMaximumExtent() / std::sqrt(si_->getStateDimension()), si_->getStateDimension());
     lastGoalMotion_ = NULL;
-    
+
     specs_.approximateSolutions = false;
     specs_.directed = false;
 
@@ -75,19 +74,19 @@ void ompl::geometric::FMT::setup(void)
 {
     ompl::base::Planner::setup();
 
-    /* Setup the optimization objective. If no optimization objective was 
-       specified, then default to optimizing path length as computed by the 
+    /* Setup the optimization objective. If no optimization objective was
+       specified, then default to optimizing path length as computed by the
        distance() function in the state space */
-    if ( pdef_->hasOptimizationObjective() )
+    if (pdef_->hasOptimizationObjective())
         opt_ = pdef_->getOptimizationObjective();
     else
     {
         OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length.", getName().c_str());
         opt_.reset(new base::PathLengthOptimizationObjective(si_));
     }
-    
+
     if (!nn_)
-        nn_.reset(new NearestNeighborsGNAT<Motion*>());
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&FMT::distanceFunction, this, _1, _2));
 }
 
@@ -122,9 +121,9 @@ void ompl::geometric::FMT::getPlannerData(base::PlannerData &data) const
     std::vector<Motion*> motions;
     nn_->list(motions);
 
-    if(lastGoalMotion_)
+    if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->getState()));
-    
+
     unsigned int size = motions.size();
     for (unsigned int i = 0; i < size; ++i)
     {
@@ -147,8 +146,8 @@ void ompl::geometric::FMT::saveNeighborhood(Motion *m, const double r)
         if (!nbh.empty())
         {
             // Save the neighborhood but skip the first element, since it will be motion m
-            neighborhoods_[m] = std::vector<Motion*>(nbh.size()-1, 0);
-            std::copy(nbh.begin()+1, nbh.end(), neighborhoods_[m].begin());
+            neighborhoods_[m] = std::vector<Motion*>(nbh.size() - 1, 0);
+            std::copy(nbh.begin() + 1, nbh.end(), neighborhoods_[m].begin());
         }
         else
         {
@@ -161,9 +160,9 @@ void ompl::geometric::FMT::saveNeighborhood(Motion *m, const double r)
 // Calculate the unit ball volume for a given dimension
 double ompl::geometric::FMT::calculateUnitBallVolume(const unsigned int dimension) const
 {
-    if ( dimension == 0 )
+    if (dimension == 0)
         return 1.0;
-    else if ( dimension == 1 )
+    else if (dimension == 1)
         return 2.0;
     return 2.0 * boost::math::constants::pi<double>() / dimension
             * calculateUnitBallVolume(dimension-2);
@@ -174,7 +173,7 @@ double ompl::geometric::FMT::calculateRadius(const unsigned int dimension, const
     double a = 1.0/(double)dimension;
     double unitBallVolume = calculateUnitBallVolume(dimension);
 
-    return  radiusMultiplier_ * 2.0 * std::pow(a,a) * std::pow(freeSpaceVolume_/unitBallVolume, a) * std::pow(log((double)n)/(double)n,a);
+    return  radiusMultiplier_ * 2.0 * std::pow(a, a) * std::pow(freeSpaceVolume_ / unitBallVolume, a) * std::pow(log((double)n) / (double)n, a);
 }
 
 void ompl::geometric::FMT::sampleFree(const base::PlannerTerminationCondition &ptc)
@@ -182,7 +181,7 @@ void ompl::geometric::FMT::sampleFree(const base::PlannerTerminationCondition &p
     unsigned int nodeCount = 0;
     unsigned int sampleAttempts = 0;
     Motion *motion = new Motion(opt_, si_);
- 
+
     // Sample numSamples_ number of nodes from the free configuration space
     while (nodeCount < numSamples_ && sampleAttempts < maxSampleAttempts_ && !ptc)
     {
@@ -202,18 +201,16 @@ void ompl::geometric::FMT::sampleFree(const base::PlannerTerminationCondition &p
     delete motion;
 }
 
-void ompl::geometric::FMT::assureGoalIsSampled(const ompl::base::Goal *goal)
+void ompl::geometric::FMT::assureGoalIsSampled(const ompl::base::GoalSampleableRegion *goal)
 {
-    const base::GoalSampleableRegion *goal_s = dynamic_cast<const base::GoalSampleableRegion *>(goal);
-    
     // Ensure that there is at least one node near each goal
     while (const base::State *goalState = pis_.nextGoal())
     {
-        Motion *gMotion = new Motion(opt_,si_);
+        Motion *gMotion = new Motion(opt_, si_);
         si_->copyState(gMotion->getState(), goalState);
-        
+
         std::vector<Motion*> nearGoal;
-        nn_->nearestR(gMotion, goal_s->getThreshold(), nearGoal);
+        nn_->nearestR(gMotion, goal->getThreshold(), nearGoal);
 
         // If there is no node in the goal region, insert one
         if (nearGoal.empty())
@@ -238,13 +235,18 @@ void ompl::geometric::FMT::assureGoalIsSampled(const ompl::base::Goal *goal)
     } // For each goal
 }
 
-ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTerminationCondition& ptc)
+ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                     *goal   = pdef_->getGoal().get();
-
+    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
     Motion *initMotion = NULL;
-    
+
+    if (!goal)
+    {
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+    }
+
     // Add start states to V (nn_) and H
     while (const base::State *st = pis_.nextStart())
     {
@@ -253,16 +255,15 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
         hElements_[initMotion] = H_.insert(initMotion);
         initMotion->setSetType(Motion::SET_H);
         initMotion->setCost(opt_->initialCost(initMotion->getState()));
-        nn_->add(initMotion);                           // V <-- {x_init}
+        nn_->add(initMotion); // V <-- {x_init}
     }
-    Motion *z = initMotion;                                     // z <-- xinit
 
     if (!initMotion)
     {
         OMPL_ERROR("Start state undefined");
         return base::PlannerStatus::INVALID_START;
     }
-    
+
     // Sample N free states in the configuration space
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
@@ -273,7 +274,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
     // Calculate the nearest neighbor search radius
     double r = calculateRadius(si_->getStateDimension(), nn_->size());
     OMPL_DEBUG("Using radius of %f", r);
-    
+
     // Flag all nodes as in set W
     std::vector<Motion*> vNodes;
     vNodes.reserve(nn_->size());
@@ -283,19 +284,19 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
     {
         vNodes[i]->setSetType(Motion::SET_W);
     }
-    vNodes.clear();
-    
+
     // Execute the planner, and return early if the planner returns a failure
     bool plannerSuccess = false;
     bool successfulExpansion = false;
+    Motion *z = initMotion; // z <-- xinit
     z->setSetType(Motion::SET_H);
     saveNeighborhood(z, r);
-    
+
     while (!ptc && !(plannerSuccess = goal->isSatisfied(z->getState())))
     {
         successfulExpansion = expandTreeFromNode(z, r);
-        if (!successfulExpansion) 
-            return base::PlannerStatus(false,false);
+        if (!successfulExpansion)
+            return base::PlannerStatus(false, false);
     } // While not at goal
 
     if (plannerSuccess)
@@ -332,7 +333,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
 bool ompl::geometric::FMT::expandTreeFromNode(Motion *&z, const double r)
 {
     // Find all nodes that are near z, and also in set W
-    
+
     std::vector<Motion*> xNear;
     const std::vector<Motion*> &zNeighborhood = neighborhoods_[z];
     unsigned int zNeighborhoodSize = zNeighborhood.size();
@@ -350,7 +351,7 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion *&z, const double r)
     unsigned int xNearSize = xNear.size();
     for (unsigned int i = 0 ; i < xNearSize; ++i)
     {
-        Motion *x = xNear.at(i);
+        Motion *x = xNear[i];
 
         // Find all nodes that are near x and in set H
         saveNeighborhood(x,r);
@@ -367,28 +368,25 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion *&z, const double r)
         // Find the lowest cost-to-come connection from H to x
         Motion *yMin = NULL;
         base::Cost cMin(std::numeric_limits<double>::infinity());
-        base::Cost cNew;
-        base::State *yState;
-
         unsigned int yNearSize = yNear.size();
         for (unsigned int j = 0; j < yNearSize; ++j)
         {
-            yState = yNear.at(j)->getState();
+            base::State *yState = yNear[j]->getState();
             base::Cost dist = opt_->motionCost(yState, x->getState());
-            cNew = opt_->combineCosts(yNear.at(j)->getCost(), dist);
+            base::Cost cNew = opt_->combineCosts(yNear[j]->getCost(), dist);
 
             if (opt_->isCostBetterThan(cNew, cMin))
             {
-                yMin = yNear.at(j);
+                yMin = yNear[j];
                 cMin = cNew;
             }
         }
         yNear.clear();
-        
+
         // If an optimal connection from H to x was found
-        if (yMin != NULL) 
+        if (yMin != NULL)
         {
-            bool collision_free = si_->checkMotion(yMin->getState(), x->getState()); 
+            bool collision_free = si_->checkMotion(yMin->getState(), x->getState());
 
             if (collision_free)
             {
@@ -396,7 +394,7 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion *&z, const double r)
                 x->setParent(yMin);
                 x->setCost(cMin);
                 // Add x to H_new
-                H_new.push_back(x);	
+                H_new.push_back(x);
                 // Remove x from W
                 x->setSetType(Motion::SET_NULL);
             }
@@ -404,17 +402,16 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion *&z, const double r)
     } // For each node near z and in set W, try to connect it to set H
 
     // Remove motion z from the binary heap and from the map
-    MotionBinHeap::Element *zElement = hElements_[z];
-    H_.remove(zElement);
+    H_.remove(hElements_[z]);
     hElements_.erase(z);
     z->setSetType(Motion::SET_NULL);
 
     // Add the nodes in H_new to H
     unsigned int hNewSize = H_new.size();
-    for (unsigned int i = 0; i < hNewSize; i++) 
+    for (unsigned int i = 0; i < hNewSize; i++)
     {
-        hElements_[H_new.at(i)] = H_.insert(H_new.at(i));
-        H_new.at(i)->setSetType(Motion::SET_H);
+        hElements_[H_new[i]] = H_.insert(H_new[i]);
+        H_new[i]->setSetType(Motion::SET_H);
     }
 
     H_new.clear();
