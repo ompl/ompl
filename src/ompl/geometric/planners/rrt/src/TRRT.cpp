@@ -104,11 +104,9 @@ void ompl::geometric::TRRT::setup(void)
         OMPL_INFORM("%s: No optimization objective specified.", getName().c_str());
         usingDefaultObjective = true;
     }
-    else if (!boost::dynamic_pointer_cast<
-             base::MechanicalWorkOptimizationObjective>(pdef_->getOptimizationObjective()))
+    else 
     {
-        OMPL_INFORM("%s: TRRT was supplied an inappropriate optimization objective; it can only handle types of ompl::base::MechanicalWorkOptimizationObjective.", getName().c_str());
-        usingDefaultObjective = true;
+        usingDefaultObjective = false;
     }
 
     if (usingDefaultObjective)
