@@ -61,11 +61,16 @@ namespace ompl
         /** \brief Properties that a state validity checker may have */
         struct StateValidityCheckerSpecs
         {
+	    /** \brief Specify the type of clearance computation */
             enum ClearanceComputationType
             {
+                /// Clearance computation is not implemented.
                 NONE = 0,
+                /// Exact clearance computation is available.
                 EXACT,
+                /// Some approximation of clearance is computed, but it is not clear if this is above or below the exact clearance.
                 APPROXIMATE,
+                /// A lower bound on clearance is computed.
                 BOUNDED_APPROXIMATE,
             };
 
