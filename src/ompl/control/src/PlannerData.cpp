@@ -62,7 +62,7 @@ bool ompl::control::PlannerData::removeVertex (const ompl::base::PlannerDataVert
     for (std::map<unsigned int, const base::PlannerDataEdge*>::iterator edgemapit = edgeMap.begin(); edgemapit != edgeMap.end(); ++edgemapit)
     {
         // Before deleting the edge, free the control associated with it, if it was decoupled
-        Control* ctrl = const_cast<Control*>(static_cast<const PlannerDataEdgeControl*>(edgemapit->second)->getControl());
+        Control *ctrl = const_cast<Control*>(static_cast<const PlannerDataEdgeControl*>(edgemapit->second)->getControl());
         std::set<Control*>::iterator it = decoupledControls_.find(ctrl);
         if (it != decoupledControls_.end())
         {
@@ -90,7 +90,7 @@ bool ompl::control::PlannerData::removeEdge (const ompl::base::PlannerDataVertex
 
     // Before deleting the edge, free the control associated with it, if it was decoupled
     PlannerDataEdgeControl &edge = static_cast<PlannerDataEdgeControl&>(getEdge(index1, index2));
-    Control* ctrl = const_cast<Control*>(edge.getControl());
+    Control *ctrl = const_cast<Control*>(edge.getControl());
     std::set<Control*>::iterator it = decoupledControls_.find(ctrl);
     if (it != decoupledControls_.end())
     {
@@ -121,7 +121,7 @@ void ompl::control::PlannerData::decoupleFromPlanner(void)
             {
                 PlannerDataEdgeControl &edge = static_cast<PlannerDataEdgeControl&>(getEdge(i, j));
                 // If this edge's control is not in the decoupled list, clone it and add it
-                Control* ctrl = const_cast<Control*>(edge.getControl());
+                Control *ctrl = const_cast<Control*>(edge.getControl());
                 if (decoupledControls_.find(ctrl) == decoupledControls_.end())
                 {
                     Control *clone = siC_->cloneControl(ctrl);

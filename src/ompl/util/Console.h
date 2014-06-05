@@ -154,7 +154,7 @@ namespace ompl
         void useOutputHandler(OutputHandler *oh);
 
         /** \brief Get the instance of the OutputHandler currently used. This is NULL in case there is no output handler. */
-        OutputHandler* getOutputHandler(void);
+        OutputHandler *getOutputHandler(void);
 
         /** \brief Set the minimum level of logging data to output.  Messages
             with lower logging levels will not be recorded. */

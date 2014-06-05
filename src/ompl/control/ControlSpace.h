@@ -116,7 +116,7 @@ namespace ompl
             virtual unsigned int getDimension(void) const = 0;
 
             /** \brief Allocate memory for a control */
-            virtual Control* allocControl(void) const = 0;
+            virtual Control *allocControl(void) const = 0;
 
             /** \brief Free the memory of a control */
             virtual void freeControl(Control *control) const = 0;
@@ -233,7 +233,7 @@ namespace ompl
 
             virtual unsigned int getDimension(void) const;
 
-            virtual Control* allocControl(void) const;
+            virtual Control *allocControl(void) const;
 
             virtual void freeControl(Control *control) const;
 

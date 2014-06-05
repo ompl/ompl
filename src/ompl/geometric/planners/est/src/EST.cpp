@@ -192,7 +192,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
     return base::PlannerStatus(solved, approximate);
 }
 
-ompl::geometric::EST::Motion* ompl::geometric::EST::selectMotion(void)
+ompl::geometric::EST::Motion *ompl::geometric::EST::selectMotion(void)
 {
     GridCell* cell = pdf_.sample(rng_.uniform01());
     return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : NULL;

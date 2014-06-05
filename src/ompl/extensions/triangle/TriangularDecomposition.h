@@ -58,9 +58,9 @@ namespace ompl
 
             virtual void getNeighbors(unsigned int triID, std::vector<unsigned int>& neighbors) const;
 
-            virtual int locateRegion(const base::State* s) const;
+            virtual int locateRegion(const base::State *s) const;
 
-            virtual void sampleFromRegion(unsigned int triID, RNG& rng, std::vector<double>& coord) const;
+            virtual void sampleFromRegion(unsigned int triID, RNG &rng, std::vector<double>& coord) const;
 
             //Debug method: prints this decomposition as a list of polygons
             void print(std::ostream& out) const;
@@ -91,7 +91,7 @@ namespace ompl
             /** \brief Constructor. Creates a TriangularDecomposition over the given bounds, which must be 2-dimensional.
                 The triangulation will respect any given obstacles, which are assumed to be convex polygons.
              */
-            TriangularDecomposition(unsigned int dim, const base::RealVectorBounds& b,
+            TriangularDecomposition(unsigned int dim, const base::RealVectorBounds &b,
                 const std::vector<Polygon>& holes = std::vector<Polygon>());
 
             /** \brief Helper method to triangulate the space and return the number of triangles. */
@@ -104,7 +104,7 @@ namespace ompl
             class LocatorGrid : public GridDecomposition
             {
             public:
-                LocatorGrid(unsigned int len, const Decomposition* d) :
+                LocatorGrid(unsigned int len, const Decomposition *d) :
                     GridDecomposition(len, d->getDimension(), d->getBounds()),
                     triDecomp(d)
                 {
@@ -114,7 +114,7 @@ namespace ompl
                 {
                 }
 
-                virtual void project(const base::State* s, std::vector<double>& coord) const
+                virtual void project(const base::State *s, std::vector<double>& coord) const
                 {
                     triDecomp->project(s, coord);
                 }
@@ -123,7 +123,7 @@ namespace ompl
                 {
                 }
 
-                const std::vector<unsigned int>& locateTriangles(const base::State* s) const
+                const std::vector<unsigned int>& locateTriangles(const base::State *s) const
                 {
                     return regToTriangles_[locateRegion(s)];
                 }
@@ -131,7 +131,7 @@ namespace ompl
                 void buildTriangleMap(const std::vector<Triangle>& triangles);
 
             protected:
-                const Decomposition* triDecomp;
+                const Decomposition *triDecomp;
                 /* map from locator grid cell ID to set of triangles with which
                  * that cell intersects */
                 std::vector<std::vector<unsigned int> > regToTriangles_;

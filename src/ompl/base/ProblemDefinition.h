@@ -173,13 +173,13 @@ namespace ompl
             }
 
             /** \brief Returns a specific start state */
-            const State* getStartState(unsigned int index) const
+            const State *getStartState(unsigned int index) const
             {
                 return startStates_[index];
             }
 
             /** \copydoc getStartState() */
-            State* getStartState(unsigned int index)
+            State *getStartState(unsigned int index)
             {
                 return startStates_[index];
             }

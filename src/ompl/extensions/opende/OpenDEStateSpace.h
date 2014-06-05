@@ -85,13 +85,13 @@ namespace ompl
                 }
 
                 /** \brief Get the quaternion of the body at index \e body */
-                const base::SO3StateSpace::StateType& getBodyRotation(unsigned int body) const
+                const base::SO3StateSpace::StateType &getBodyRotation(unsigned int body) const
                 {
                     return *as<base::SO3StateSpace::StateType>(body * 4 + 3);
                 }
 
                 /** \brief Get the quaternion of the body at index \e body */
-                base::SO3StateSpace::StateType& getBodyRotation(unsigned int body)
+                base::SO3StateSpace::StateType &getBodyRotation(unsigned int body)
                 {
                     return *as<base::SO3StateSpace::StateType>(body * 4 + 3);
                 }
@@ -200,7 +200,7 @@ namespace ompl
                 (position, linear and agular velocities) */
             bool satisfiesBoundsExceptRotation(const StateType *state) const;
 
-            virtual base::State* allocState(void) const;
+            virtual base::State *allocState(void) const;
             virtual void freeState(base::State *state) const;
             virtual void copyState(base::State *destination, const base::State *source) const;
             virtual void interpolate(const base::State *from, const base::State *to, const double t, base::State *state) const;

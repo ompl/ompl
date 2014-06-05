@@ -67,7 +67,7 @@ namespace ompl
             }
 
             /** \brief Assignment operator */
-            PathControl& operator=(const PathControl& other);
+            PathControl &operator=(const PathControl &other);
 
             /** \brief The path length (sum of control durations) */
             virtual double length(void) const;
@@ -135,25 +135,25 @@ namespace ompl
             }
 
             /** \brief Get the state located at \e index along the path */
-            base::State* getState(unsigned int index)
+            base::State *getState(unsigned int index)
             {
                 return states_[index];
             }
 
             /** \brief Get the state located at \e index along the path */
-            const base::State* getState(unsigned int index) const
+            const base::State *getState(unsigned int index) const
             {
                 return states_[index];
             }
 
             /** \brief Get the control located at \e index along the path. This is the control that gets applied to the state located at \e index */
-            Control* getControl(unsigned int index)
+            Control *getControl(unsigned int index)
             {
                 return controls_[index];
             }
 
             /** \brief Get the control located at \e index along the path. This is the control that gets applied to the state located at \e index */
-            const Control* getControl(unsigned int index) const
+            const Control *getControl(unsigned int index) const
             {
                 return controls_[index];
             }
@@ -193,7 +193,7 @@ namespace ompl
             void freeMemory(void);
 
             /** \brief Copy the content of a path to this one */
-            void copyFrom(const PathControl& other);
+            void copyFrom(const PathControl &other);
 
         };
 

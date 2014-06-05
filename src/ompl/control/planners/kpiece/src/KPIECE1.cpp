@@ -425,7 +425,7 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
     {
         for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
         {
-            const Motion* m = cells[i]->data->motions[j];
+            const Motion *m = cells[i]->data->motions[j];
             if (m->parent)
             {
                 if (data.hasControls())

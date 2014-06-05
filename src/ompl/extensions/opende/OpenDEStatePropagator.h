@@ -80,7 +80,7 @@ namespace ompl
 
             virtual bool canPropagateBackward(void) const;
 
-            virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
+            virtual void propagate(const base::State *state, const Control *control, const double duration, base::State *result) const;
 
         protected:
 

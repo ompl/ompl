@@ -223,7 +223,7 @@ void ompl::geometric::STRIDE::addMotion(Motion *motion)
     tree_->add(motion);
 }
 
-ompl::geometric::STRIDE::Motion* ompl::geometric::STRIDE::selectMotion(void)
+ompl::geometric::STRIDE::Motion *ompl::geometric::STRIDE::selectMotion(void)
 {
     return tree_->sample(rng_);
 }

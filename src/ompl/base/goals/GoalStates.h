@@ -68,7 +68,7 @@ namespace ompl
             virtual void print(std::ostream &out = std::cout) const;
 
             /** \brief Add a goal state */
-            virtual void addState(const State* st);
+            virtual void addState(const State *st);
 
             /** \brief Add a goal state (calls the previous definition of addState())*/
             void addState(const ScopedState<> &st);
@@ -80,7 +80,7 @@ namespace ompl
             virtual bool hasStates(void) const;
 
             /** \brief Return a pointer to the indexth state in the state list */
-            virtual const State* getState(unsigned int index) const;
+            virtual const State *getState(unsigned int index) const;
 
             /** \brief Return the number of valid goal states */
             virtual std::size_t getStateCount(void) const;

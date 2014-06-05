@@ -67,13 +67,13 @@ namespace ompl
 
             virtual ~PlannerDataEdgeControl (void) {}
 
-            virtual base::PlannerDataEdge* clone () const
+            virtual base::PlannerDataEdge *clone () const
             {
                 return static_cast<base::PlannerDataEdge*>(new PlannerDataEdgeControl(*this));
             }
 
             /// \brief Return the control associated with this edge.
-            const Control* getControl (void) const { return c_; }
+            const Control *getControl (void) const { return c_; }
             /// \brief Return the duration associated with this edge.
             double getDuration (void) const { return duration_; }
 

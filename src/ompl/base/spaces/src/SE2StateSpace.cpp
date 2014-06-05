@@ -38,7 +38,7 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <cstring>
 
-ompl::base::State* ompl::base::SE2StateSpace::allocState(void) const
+ompl::base::State *ompl::base::SE2StateSpace::allocState(void) const
 {
     StateType *state = new StateType();
     allocStateComponents(state);

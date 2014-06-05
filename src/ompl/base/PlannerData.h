@@ -61,9 +61,9 @@ namespace ompl
         {
         public:
             /// \brief Constructor.  Takes a state pointer and an optional integer tag.
-            PlannerDataVertex (const State* st, int tag = 0) : state_(st), tag_(tag) {}
+            PlannerDataVertex (const State *st, int tag = 0) : state_(st), tag_(tag) {}
             /// \brief Copy constructor.
-            PlannerDataVertex (const PlannerDataVertex& rhs) : state_(rhs.state_), tag_(rhs.tag_) {}
+            PlannerDataVertex (const PlannerDataVertex &rhs) : state_(rhs.state_), tag_(rhs.tag_) {}
             virtual ~PlannerDataVertex (void) {}
 
             /// \brief Returns the integer tag associated with this vertex.
@@ -71,10 +71,10 @@ namespace ompl
             /// \brief Set the integer tag associated with this vertex.
             virtual void setTag (int tag) { tag_ = tag; }
             /// \brief Retrieve the state associated with this vertex.
-            virtual const State* getState(void) const { return state_; }
+            virtual const State *getState(void) const { return state_; }
 
             /// \brief Return a clone of this object, allocated from the heap.
-            virtual PlannerDataVertex* clone (void) const
+            virtual PlannerDataVertex *clone (void) const
             {
                 return new PlannerDataVertex(*this);
             }
@@ -105,7 +105,7 @@ namespace ompl
             }
 
             /// \brief The state represented by this vertex
-            const State* state_;
+            const State *state_;
             /// \brief A generic integer tag for this state.  Not used for equivalence checking.
             int tag_;
 
@@ -120,7 +120,7 @@ namespace ompl
             PlannerDataEdge (void) {}
             virtual ~PlannerDataEdge (void) {}
             /// \brief Return a clone of this object, allocated from the heap.
-            virtual PlannerDataEdge* clone () const { return new PlannerDataEdge(); }
+            virtual PlannerDataEdge *clone () const { return new PlannerDataEdge(); }
 
             /// \brief Returns true if the edges point to the same memory
             virtual bool operator == (const PlannerDataEdge &rhs) const
@@ -198,13 +198,13 @@ namespace ompl
             unsigned int addGoalVertex  (const PlannerDataVertex &v);
             /// \brief Mark the given state as a start vertex.  If the given state does not exist in a
             /// vertex, false is returned.
-            bool markStartState (const State* st);
+            bool markStartState (const State *st);
             /// \brief Mark the given state as a goal vertex.  If the given state does not exist in a
             /// vertex, false is returned.
-            bool markGoalState (const State* st);
+            bool markGoalState (const State *st);
             /// \brief Set the integer tag associated with the given state.  If the given
             /// state does not exist in a vertex, false is returned.
-            bool tagState (const State* st, int tag);
+            bool tagState (const State *st, int tag);
             /// \brief Removes the vertex associated with the given data.  If the
             /// vertex does not exist, false is returned.
             /// This method has O(n) complexity in the number of vertices.
@@ -262,22 +262,22 @@ namespace ompl
             bool vertexExists (const PlannerDataVertex &v) const;
             /// \brief Retrieve a reference to the vertex object with the given
             /// index.  If this vertex does not exist, NO_VERTEX is returned.
-            const PlannerDataVertex& getVertex (unsigned int index) const;
+            const PlannerDataVertex &getVertex (unsigned int index) const;
             /// \brief Retrieve a reference to the vertex object with the given
             /// index.  If this vertex does not exist, NO_VERTEX is returned.
-            PlannerDataVertex& getVertex (unsigned int index);
+            PlannerDataVertex &getVertex (unsigned int index);
             /// \brief Retrieve a reference to the ith start vertex object.  If
             /// \e i is greater than the number of start vertices, NO_VERTEX is returned.
-            const PlannerDataVertex& getStartVertex (unsigned int i) const;
+            const PlannerDataVertex &getStartVertex (unsigned int i) const;
             /// \brief Retrieve a reference to the ith start vertex object.  If
             /// \e i is greater than the number of start vertices, NO_VERTEX is returned.
-            PlannerDataVertex& getStartVertex (unsigned int i);
+            PlannerDataVertex &getStartVertex (unsigned int i);
             /// \brief Retrieve a reference to the ith goal vertex object.  If
             /// \e i is greater than the number of goal vertices, NO_VERTEX is returned.
-            const PlannerDataVertex& getGoalVertex (unsigned int i) const;
+            const PlannerDataVertex &getGoalVertex (unsigned int i) const;
             /// \brief Retrieve a reference to the ith goal vertex object.  If
             /// \e i is greater than the number of goal vertices, NO_VERTEX is returned.
-            PlannerDataVertex& getGoalVertex (unsigned int i);
+            PlannerDataVertex &getGoalVertex (unsigned int i);
             /// \brief Returns the index of the ith start state.
             /// INVALID_INDEX is returned if \e i is out of range.
             /// Indexes are volatile and may change after adding/removing a vertex.
@@ -303,10 +303,10 @@ namespace ompl
             bool edgeExists (unsigned int v1, unsigned int v2) const;
             /// \brief Retrieve a reference to the edge object connecting vertices
             /// with indexes \e v1 and \e v2. If this edge does not exist, NO_EDGE is returned.
-            const PlannerDataEdge& getEdge (unsigned int v1, unsigned int v2) const;
+            const PlannerDataEdge &getEdge (unsigned int v1, unsigned int v2) const;
             /// \brief Retrieve a reference to the edge object connecting vertices
             /// with indexes \e v1 and \e v2. If this edge does not exist, NO_EDGE is returned.
-            PlannerDataEdge& getEdge (unsigned int v1, unsigned int v2);
+            PlannerDataEdge &getEdge (unsigned int v1, unsigned int v2);
             /// \brief Returns a list of the vertex indexes directly connected to
             /// vertex with index \e v (outgoing edges).  The number of outgoing
             /// edges from \e v is returned.
@@ -333,7 +333,7 @@ namespace ompl
             bool setEdgeWeight (unsigned int v1, unsigned int v2, Cost weight);
             /// \brief Computes the weight for all edges given the
             /// OptimizationObjective \e opt.
-            void computeEdgeWeights(const OptimizationObjective& opt);
+            void computeEdgeWeights(const OptimizationObjective &opt);
             /// \brief Computes all edge weights using state space
             /// distance (i.e. getSpaceInformation()->distance())
             void computeEdgeWeights();
@@ -373,14 +373,14 @@ namespace ompl
             /// removing vertices and edges should be performed by using the respective method
             /// in PlannerData to ensure proper memory management.  Manipulating the graph directly
             /// will result in undefined behavior with this class.
-            Graph& toBoostGraph (void);
+            Graph &toBoostGraph (void);
             /// \brief Extract a Boost.Graph object from this PlannerData.
             /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The object
             /// returned can be used safely for all read-only purposes in Boost.  Adding or
             /// removing vertices and edges should be performed by using the respective method
             /// in PlannerData to ensure proper memory management.  Manipulating the graph directly
             /// will result in undefined behavior with this class.
-            const Graph& toBoostGraph (void) const;
+            const Graph &toBoostGraph (void) const;
 
             /// \}
 

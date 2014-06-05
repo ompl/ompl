@@ -148,7 +148,7 @@ namespace ompl
 
             /** \brief Return the next valid start state or NULL if no
                 more valid start states are available. */
-            const State* nextStart(void);
+            const State *nextStart(void);
 
             /** \brief Return the next valid goal state or NULL if no
                 more valid goal states are available.  Because
@@ -158,10 +158,10 @@ namespace ompl
                 the termination condition evaluates to true the
                 function terminates even if no valid goal has been
                 found. */
-            const State* nextGoal(const PlannerTerminationCondition &ptc);
+            const State *nextGoal(const PlannerTerminationCondition &ptc);
 
             /** \brief Same as above but only one attempt is made to find a valid goal. */
-            const State* nextGoal(void);
+            const State *nextGoal(void);
 
             /** \brief Check if there are more potential start states */
             bool haveMoreStartStates(void) const;
@@ -264,7 +264,7 @@ namespace ompl
             const ProblemDefinitionPtr& getProblemDefinition(void) const;
 
             /** \brief Get the planner input states */
-            const PlannerInputStates& getPlannerInputStates(void) const;
+            const PlannerInputStates &getPlannerInputStates(void) const;
 
             /** \brief Set the problem definition for the planner. The
                 problem needs to be set before calling solve(). Note:
@@ -333,13 +333,13 @@ namespace ompl
             bool isSetup(void) const;
 
             /** \brief Get the  parameters for this planner */
-            ParamSet& params(void)
+            ParamSet &params(void)
             {
                 return params_;
             }
 
             /** \brief Get the  parameters for this planner */
-            const ParamSet& params(void) const
+            const ParamSet &params(void) const
             {
                 return params_;
             }

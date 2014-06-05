@@ -169,7 +169,7 @@ namespace ompl
              expect the roadmap to be sparse (m<n^2), an adjacency_list is more
              appropriate than an adjacency_matrix.
 
-             @par Obviously, a ompl::base::State* vertex property is required.
+             @par Obviously, a ompl::base::State *vertex property is required.
              The incremental connected components algorithm requires
              vertex_predecessor_t and vertex_rank_t properties.
              If boost::vecS is not used for vertex storage, then there must also
@@ -323,16 +323,15 @@ namespace ompl
 
             virtual void setup(void);
 
-            /** \brief Retrieve the underlying dense graph structure.  This is built as a PRM*
-                and asymptotically approximates best paths through the space. */
-            const DenseGraph& getDenseGraph(void) const
+            /** \brief Retrieve the underlying dense graph structure.  This is built as a PRM *and asymptotically approximates best paths through the space. */
+            const DenseGraph &getDenseGraph(void) const
             {
                 return g_;
             }
 
             /** \brief Retrieve the sparse roadmap structure.  This is the structure which
                 answers given queries, and has the desired property of asymptotic near-optimality.*/
-            const SpannerGraph& getRoadmap(void) const
+            const SpannerGraph &getRoadmap(void) const
             {
                 return s_;
             }
@@ -382,10 +381,10 @@ namespace ompl
             void connectDensePoints(DenseVertex v, DenseVertex vp);
 
             /** \brief Checks the latest dense sample for the coverage property, and adds appropriately. */
-            bool checkAddCoverage(const base::State* lastState, const std::vector<SparseVertex> &neigh);
+            bool checkAddCoverage(const base::State *lastState, const std::vector<SparseVertex> &neigh);
 
             /** \brief Checks the latest dense sample for connectivity, and adds appropriately. */
-            bool checkAddConnectivity(const base::State* lastState, const std::vector<SparseVertex> &neigh);
+            bool checkAddConnectivity(const base::State *lastState, const std::vector<SparseVertex> &neigh);
 
             /** \brief Checks the latest dense sample for bridging an edge-less interface */
             bool checkAddInterface(const std::vector<DenseVertex>& graphNeighborhood, const std::vector<DenseVertex>& visibleNeighborhood, DenseVertex q);
@@ -397,7 +396,7 @@ namespace ompl
             DenseVertex getInterfaceNeighbor(DenseVertex q, SparseVertex rep);
 
             /** \brief Method for actually adding a dense path to the Roadmap Spanner, S. */
-            bool addPathToSpanner(const DensePath& p, SparseVertex vp, SparseVertex vpp);
+            bool addPathToSpanner(const DensePath &p, SparseVertex vp, SparseVertex vpp);
 
             /** \brief Automatically updates the representatives of all dense samplse within sparseDelta_ of v */
             void updateRepresentatives(SparseVertex v);
@@ -442,10 +441,10 @@ namespace ompl
             void freeMemory(void);
 
             /** \brief Get all nodes in the sparse graph which are within sparseDelta_ of the given state. */
-            void getSparseNeighbors(base::State* inState, std::vector< SparseVertex > &graphNeighborhood);
+            void getSparseNeighbors(base::State *inState, std::vector< SparseVertex > &graphNeighborhood);
 
             /** \brief Get the visible neighbors */
-            void filterVisibleNeighbors(base::State* inState, const std::vector<SparseVertex> &graphNeighborhood, std::vector<SparseVertex> &visibleNeighborhood) const;
+            void filterVisibleNeighbors(base::State *inState, const std::vector<SparseVertex> &graphNeighborhood, std::vector<SparseVertex> &visibleNeighborhood) const;
 
             /** \brief Gets the representatives of all interfaces that q supports */
             void getInterfaceNeighborRepresentatives(DenseVertex q, std::set<SparseVertex> &interfaceRepresentatives);

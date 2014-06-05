@@ -64,7 +64,7 @@ namespace ompl
            <a href="http://www.kavrakilab.org/robotics/lazyprm.html">[more]</a>
         */
 
-        /** \brief PRM* planner */
+        /** \brief PRM *planner */
         class PRMstar : public PRM
         {
         public:

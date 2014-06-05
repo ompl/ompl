@@ -117,7 +117,7 @@ namespace ompl
             /** \brief This function checks whether a state satisfies its bounds */
             bool satisfiesBounds(const State *state) const;
 
-            State* allocState(void) const;
+            State *allocState(void) const;
             void freeState(State *state) const;
             void copyState(State *destination, const State *source) const;
             void interpolate(const State *from, const State *to, const double t, State *state) const;

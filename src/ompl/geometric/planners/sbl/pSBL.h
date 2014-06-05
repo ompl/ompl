@@ -183,7 +183,7 @@ namespace ompl
             /** \brief A struct containing an array of motions and a corresponding PDF element */
             struct MotionInfo
             {
-                Motion* operator[](unsigned int i)
+                Motion *operator[](unsigned int i)
                 {
                     return motions_[i];
                 }
@@ -195,7 +195,7 @@ namespace ompl
                 {
                     motions_.erase (iter);
                 }
-                void push_back(Motion* m)
+                void push_back(Motion *m)
                 {
                     motions_.push_back(m);
                 }
@@ -208,7 +208,7 @@ namespace ompl
                     return motions_.empty();
                 }
                 std::vector<Motion*> motions_;
-                CellPDF::Element*    elem_;
+                CellPDF::Element *elem_;
             };
 
             struct TreeData
@@ -253,7 +253,7 @@ namespace ompl
             void freeGridMotions(Grid<MotionInfo> &grid);
 
             void addMotion(TreeData &tree, Motion *motion);
-            Motion* selectMotion(RNG &rng, TreeData &tree);
+            Motion *selectMotion(RNG &rng, TreeData &tree);
             void removeMotion(TreeData &tree, Motion *motion, std::map<Motion*, bool> &seen);
             bool isPathValid(TreeData &tree, Motion *motion);
             bool checkSolution(RNG &rng, bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution);

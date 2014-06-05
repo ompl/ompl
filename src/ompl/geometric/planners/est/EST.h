@@ -179,15 +179,15 @@ namespace ompl
             /** \brief A struct containing an array of motions and a corresponding PDF element */
             struct MotionInfo
             {
-                Motion* operator[](unsigned int i)
+                Motion *operator[](unsigned int i)
                 {
                     return motions_[i];
                 }
-                const Motion* operator[](unsigned int i) const
+                const Motion *operator[](unsigned int i) const
                 {
                     return motions_[i];
                 }
-                void push_back(Motion* m)
+                void push_back(Motion *m)
                 {
                     motions_.push_back(m);
                 }
@@ -200,7 +200,7 @@ namespace ompl
                     return motions_.empty();
                 }
                 std::vector<Motion*> motions_;
-                CellPDF::Element*    elem_;
+                CellPDF::Element *elem_;
             };
 
 
@@ -225,7 +225,7 @@ namespace ompl
             void addMotion(Motion *motion);
 
             /** \brief Select a motion to continue the expansion of the tree from */
-            Motion* selectMotion(void);
+            Motion *selectMotion(void);
 
             /** \brief Valid state sampler */
             base::ValidStateSamplerPtr   sampler_;

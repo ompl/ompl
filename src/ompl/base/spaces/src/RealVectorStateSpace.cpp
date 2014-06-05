@@ -264,7 +264,7 @@ ompl::base::StateSamplerPtr ompl::base::RealVectorStateSpace::allocDefaultStateS
     return StateSamplerPtr(new RealVectorStateSampler(this));
 }
 
-ompl::base::State* ompl::base::RealVectorStateSpace::allocState(void) const
+ompl::base::State *ompl::base::RealVectorStateSpace::allocState(void) const
 {
     StateType *rstate = new StateType();
     rstate->values = new double[dimension_];

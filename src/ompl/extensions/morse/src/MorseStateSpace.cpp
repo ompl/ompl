@@ -125,7 +125,7 @@ void ompl::base::MorseStateSpace::setAngularVelocityBounds(const RealVectorBound
         components_[i * 4 + 2]->as<RealVectorStateSpace>()->setBounds(bounds);
 }
 
-ompl::base::State* ompl::base::MorseStateSpace::allocState(void) const
+ompl::base::State *ompl::base::MorseStateSpace::allocState(void) const
 {
     StateType *state = new StateType();
     allocStateComponents(state);

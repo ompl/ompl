@@ -179,7 +179,7 @@ namespace ompl
             /** \brief A struct containing an array of motions and a corresponding PDF element */
             struct MotionInfo
             {
-                Motion* operator[](unsigned int i)
+                Motion *operator[](unsigned int i)
                 {
                     return motions_[i];
                 }
@@ -191,7 +191,7 @@ namespace ompl
                 {
                     motions_.erase (iter);
                 }
-                void push_back(Motion* m)
+                void push_back(Motion *m)
                 {
                     motions_.push_back(m);
                 }
@@ -205,7 +205,7 @@ namespace ompl
                 }
 
                 std::vector<Motion*> motions_;
-                CellPDF::Element*    elem_;
+                CellPDF::Element *elem_;
             };
 
             /** \brief Representation of a search tree. Two instances will be used. One for start and one for goal */
@@ -239,7 +239,7 @@ namespace ompl
             void addMotion(TreeData &tree, Motion *motion);
 
             /** \brief Select a motion from a tree */
-            Motion* selectMotion(TreeData &tree);
+            Motion *selectMotion(TreeData &tree);
 
             /** \brief Remove a motion from a tree */
             void removeMotion(TreeData &tree, Motion *motion);

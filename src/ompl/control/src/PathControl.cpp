@@ -45,11 +45,11 @@
 
 namespace
 {
-    unsigned int getNumberOfDiscreteControls(const ompl::control::ControlSpace* cs)
+    unsigned int getNumberOfDiscreteControls(const ompl::control::ControlSpace *cs)
     {
         if (cs->isCompound())
         {
-            const ompl::control::CompoundControlSpace* ccs
+            const ompl::control::CompoundControlSpace *ccs
                 = cs->as<ompl::control::CompoundControlSpace>();
             unsigned int num = 0;
             for (unsigned int i = 0; i < ccs->getSubspaceCount(); ++i)
@@ -63,12 +63,12 @@ namespace
         return 0;
     }
 
-    void printDiscreteControls(std::ostream &out, const ompl::control::ControlSpace* cs,
-        const ompl::control::Control* c)
+    void printDiscreteControls(std::ostream &out, const ompl::control::ControlSpace *cs,
+        const ompl::control::Control *c)
     {
         if (cs->isCompound())
         {
-            const ompl::control::CompoundControlSpace* ccs
+            const ompl::control::CompoundControlSpace *ccs
                 = cs->as<ompl::control::CompoundControlSpace>();
             for (unsigned int i = 0; i < ccs->getSubspaceCount(); ++i)
                 printDiscreteControls(out, ccs->getSubspace(i).get(),
@@ -99,7 +99,7 @@ ompl::geometric::PathGeometric ompl::control::PathControl::asGeometric(void) con
     return pg;
 }
 
-ompl::control::PathControl& ompl::control::PathControl::operator=(const PathControl& other)
+ompl::control::PathControl &ompl::control::PathControl::operator=(const PathControl &other)
 {
     freeMemory();
     si_ = other.si_;
@@ -107,7 +107,7 @@ ompl::control::PathControl& ompl::control::PathControl::operator=(const PathCont
     return *this;
 }
 
-void ompl::control::PathControl::copyFrom(const PathControl& other)
+void ompl::control::PathControl::copyFrom(const PathControl &other)
 {
     states_.resize(other.states_.size());
     controls_.resize(other.controls_.size());
@@ -149,9 +149,9 @@ void ompl::control::PathControl::printAsMatrix(std::ostream &out) const
 {
     if (states_.empty())
         return;
-    const base::StateSpace* space(si_->getStateSpace().get());
+    const base::StateSpace *space(si_->getStateSpace().get());
     const SpaceInformation *si = static_cast<const SpaceInformation*>(si_.get());
-    const ControlSpace* cspace(si->getControlSpace().get());
+    const ControlSpace *cspace(si->getControlSpace().get());
     std::vector<double> reals;
 
     space->copyToReals(reals, states_[0]);
@@ -159,7 +159,7 @@ void ompl::control::PathControl::printAsMatrix(std::ostream &out) const
     if (controls_.empty())
         return;
 
-    const ControlSpace* cs = static_cast<const SpaceInformation*>(si_.get())->getControlSpace().get();
+    const ControlSpace *cs = static_cast<const SpaceInformation*>(si_.get())->getControlSpace().get();
     unsigned int n = 0, m = getNumberOfDiscreteControls(cs);
     double* val;
     while ((val = cspace->getValueAddressAtIndex(controls_[0], n)))

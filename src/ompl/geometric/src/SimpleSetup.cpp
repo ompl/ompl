@@ -182,7 +182,7 @@ void ompl::geometric::SimpleSetup::simplifySolution(double duration)
     OMPL_WARN("No solution to simplify");
 }
 
-ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath(void) const
+ompl::geometric::PathGeometric &ompl::geometric::SimpleSetup::getSolutionPath(void) const
 {
     if (pdef_)
     {

@@ -143,7 +143,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     // If a solution path has been computed, save it in the problem definition object.
     if (hasSolution)
     {
-        Motion* m;
+        Motion *m;
         std::vector<unsigned int> durations(1,
             findDurationAndAncestor(lastGoalMotion_, lastGoalMotion_->endState_, tmpState1, m));
         std::vector<Motion*> mpath(1, m);
@@ -171,8 +171,8 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     return base::PlannerStatus(hasSolution, isApproximate);
 }
 
-ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
-    Motion* motion, base::State* start, base::State* rnd)
+ompl::control::PDST::Motion *ompl::control::PDST::propagateFrom(
+    Motion *motion, base::State *start, base::State *rnd)
 {
     // sample a point along the trajectory given by motion
     unsigned int prevDuration = motion->controlDuration_;
@@ -200,7 +200,7 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
         control, duration, ++iteration_, motion);
 }
 
-void ompl::control::PDST::addMotion(Motion *motion, Cell *bsp, base::State* prevState, base::State* state,
+void ompl::control::PDST::addMotion(Motion *motion, Cell *bsp, base::State *prevState, base::State *state,
     base::EuclideanProjection& prevProj, base::EuclideanProjection& proj)
 {
     // If the motion is at most 1 step, then it cannot be split across cell bounds.
@@ -222,7 +222,7 @@ void ompl::control::PDST::addMotion(Motion *motion, Cell *bsp, base::State* prev
         cell = bsp->stab(proj);
         if (duration > 0 && cell != prevCell)
         {
-            Motion* newMotion = new Motion(motion->startState_, si_->cloneState(prevState),
+            Motion *newMotion = new Motion(motion->startState_, si_->cloneState(prevState),
                 motion->control_, duration, motion->priority_, motion->parent_);
             newMotion->isSplit_ = true;
             prevCell->addMotion(newMotion);
@@ -241,8 +241,8 @@ void ompl::control::PDST::addMotion(Motion *motion, Cell *bsp, base::State* prev
 }
 
 
-unsigned int ompl::control::PDST::findDurationAndAncestor(Motion* motion, base::State* state,
-    base::State* scratch, Motion*& ancestor) const
+unsigned int ompl::control::PDST::findDurationAndAncestor(Motion *motion, base::State *state,
+    base::State *scratch, Motion*& ancestor) const
 {
     const double eps = std::numeric_limits<float>::epsilon();
     unsigned int duration;
@@ -335,7 +335,7 @@ void ompl::control::PDST::getPlannerData(ompl::base::PlannerData &data) const
     base::Planner::getPlannerData(data);
 
     double dt = siC_->getPropagationStepSize();
-    base::State* scratch = si_->allocState();
+    base::State *scratch = si_->allocState();
     std::vector<Motion*> motions;
     motions.reserve(priorityQueue_.size());
     priorityQueue_.getContent(motions);

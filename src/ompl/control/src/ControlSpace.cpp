@@ -178,7 +178,7 @@ unsigned int ompl::control::CompoundControlSpace::getDimension(void) const
     return dim;
 }
 
-ompl::control::Control* ompl::control::CompoundControlSpace::allocControl(void) const
+ompl::control::Control *ompl::control::CompoundControlSpace::allocControl(void) const
 {
     CompoundControl *control = new CompoundControl();
     control->components = new Control*[componentCount_];

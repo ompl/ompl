@@ -91,7 +91,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion* motion = new Motion(si_);
+        Motion *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         motion->root = motion->state;
         projectionEvaluator_->computeCoordinates(motion->state, xcoord);
@@ -133,7 +133,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
             const base::State *st = dGoal_.getMotionCount() == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
             if (st)
             {
-                Motion* motion = new Motion(si_);
+                Motion *motion = new Motion(si_);
                 si_->copyState(motion->state, st);
                 motion->root = motion->state;
                 projectionEvaluator_->computeCoordinates(motion->state, xcoord);
@@ -172,7 +172,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
 
                 if (cellC && !cellC->data->motions.empty())
                 {
-                    Motion* connectOther = cellC->data->motions[rng_.uniformInt(0, cellC->data->motions.size() - 1)];
+                    Motion *connectOther = cellC->data->motions[rng_.uniformInt(0, cellC->data->motions.size() - 1)];
 
                     if (goal->isStartGoalPairValid(startTree ? connectOther->root : motion->root, startTree ? motion->root : connectOther->root) &&
                         si_->checkMotion(motion->state, connectOther->state))

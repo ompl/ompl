@@ -155,7 +155,7 @@ ompl::base::StateSamplerPtr ompl::base::SO2StateSpace::allocDefaultStateSampler(
     return StateSamplerPtr(new SO2StateSampler(this));
 }
 
-ompl::base::State* ompl::base::SO2StateSpace::allocState(void) const
+ompl::base::State *ompl::base::SO2StateSpace::allocState(void) const
 {
     return new StateType();
 }

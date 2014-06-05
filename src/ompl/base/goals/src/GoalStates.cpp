@@ -92,7 +92,7 @@ unsigned int ompl::base::GoalStates::maxSampleCount(void) const
     return states_.size();
 }
 
-void ompl::base::GoalStates::addState(const State* st)
+void ompl::base::GoalStates::addState(const State *st)
 {
     states_.push_back(si_->cloneState(st));
 }
@@ -102,7 +102,7 @@ void ompl::base::GoalStates::addState(const ScopedState<> &st)
     addState(st.get());
 }
 
-const ompl::base::State* ompl::base::GoalStates::getState(unsigned int index) const
+const ompl::base::State *ompl::base::GoalStates::getState(unsigned int index) const
 {
     if (index >= states_.size())
         throw Exception("Index " + boost::lexical_cast<std::string>(index) + " out of range. Only " +

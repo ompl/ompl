@@ -133,7 +133,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
             const base::State *st = tGoal_.size == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
             if (st)
             {
-                Motion* motion = new Motion(si_);
+                Motion *motion = new Motion(si_);
                 si_->copyState(motion->state, st);
                 motion->root = motion->state;
                 motion->valid = true;
@@ -264,7 +264,7 @@ bool ompl::geometric::SBL::isPathValid(TreeData &tree, Motion *motion)
     return true;
 }
 
-ompl::geometric::SBL::Motion* ompl::geometric::SBL::selectMotion(TreeData &tree)
+ompl::geometric::SBL::Motion *ompl::geometric::SBL::selectMotion(TreeData &tree)
 {
     GridCell* cell = tree.pdf.sample(rng_.uniform01());
     return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : NULL;

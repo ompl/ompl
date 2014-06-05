@@ -52,7 +52,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            DiscreteMotionValidator(SpaceInformation* si) : MotionValidator(si)
+            DiscreteMotionValidator(SpaceInformation *si) : MotionValidator(si)
             {
                 defaultSettings();
             }

@@ -37,7 +37,7 @@
 
 #include "ompl/tools/debug/Profiler.h"
 
-ompl::tools::Profiler& ompl::tools::Profiler::Instance(void)
+ompl::tools::Profiler &ompl::tools::Profiler::Instance(void)
 {
     static Profiler p(true, false);
     return p;

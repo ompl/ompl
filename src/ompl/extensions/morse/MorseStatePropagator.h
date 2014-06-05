@@ -75,7 +75,7 @@ namespace ompl
             virtual bool canPropagateBackward(void) const;
 
             /** \brief Propagate from a state, under a given control, for some specified amount of time */
-            virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
+            virtual void propagate(const base::State *state, const Control *control, const double duration, base::State *result) const;
 
         protected:
 

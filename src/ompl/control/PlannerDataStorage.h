@@ -64,20 +64,20 @@ namespace ompl
             virtual ~PlannerDataStorage(void);
 
             /// \brief Load the PlannerData structure from the given filename.
-            virtual void load(const char *filename, base::PlannerData& pd);
+            virtual void load(const char *filename, base::PlannerData &pd);
 
             /// \brief Deserializes the structure from the given stream.
-            virtual void load(std::istream &in, base::PlannerData& pd);
+            virtual void load(std::istream &in, base::PlannerData &pd);
 
             /// \brief Store (serialize) the structure to the given filename.
             /// The StateSpace and ControlSpace that was used to store the data
             /// must match those inside of the argument PlannerData.
-            virtual void store(const base::PlannerData& pd, const char *filename);
+            virtual void store(const base::PlannerData &pd, const char *filename);
 
             /// \brief Load the PlannerData structure from the given stream.
             /// The StateSpace and ControlSpace that was used to store the data
             /// must match those inside of the argument PlannerData.
-            virtual void store(const base::PlannerData& pd, std::ostream &out);
+            virtual void store(const base::PlannerData &pd, std::ostream &out);
 
         protected:
 

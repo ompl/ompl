@@ -78,7 +78,7 @@ void ompl::base::Planner::setProblemDefinition(const ProblemDefinitionPtr &pdef)
     pis_.update();
 }
 
-const ompl::base::PlannerInputStates& ompl::base::Planner::getPlannerInputStates(void) const
+const ompl::base::PlannerInputStates &ompl::base::Planner::getPlannerInputStates(void) const
 {
     return pis_;
 }
@@ -225,7 +225,7 @@ bool ompl::base::PlannerInputStates::use(const ProblemDefinition *pdef)
     return false;
 }
 
-const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
+const ompl::base::State *ompl::base::PlannerInputStates::nextStart(void)
 {
     if (pdef_ == NULL || si_ == NULL)
     {
@@ -259,13 +259,13 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
     return NULL;
 }
 
-const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(void)
+const ompl::base::State *ompl::base::PlannerInputStates::nextGoal(void)
 {
     static PlannerTerminationCondition ptc = plannerAlwaysTerminatingCondition();
     return nextGoal(ptc);
 }
 
-const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerTerminationCondition &ptc)
+const ompl::base::State *ompl::base::PlannerInputStates::nextGoal(const PlannerTerminationCondition &ptc)
 {
     if (pdef_ == NULL || si_ == NULL)
     {

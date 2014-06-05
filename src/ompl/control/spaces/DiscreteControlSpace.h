@@ -94,7 +94,7 @@ namespace ompl
 
             virtual ControlSamplerPtr allocDefaultControlSampler(void) const;
 
-            virtual Control* allocControl(void) const;
+            virtual Control *allocControl(void) const;
 
             virtual void freeControl(Control *control) const;
 

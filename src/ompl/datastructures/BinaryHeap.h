@@ -46,7 +46,7 @@ namespace ompl
 
     /** \brief This class provides an implementation of an updatable
         min-heap. Using it is a bit cumbersome, as it requires keeping
-        track of the BinaryHeap::Element* type, however, it should be
+        track of the BinaryHeap::Element *type, however, it should be
         as fast as it gets with an updatable heap. */
     template <typename _T,
               class LessThan = std::less<_T> >
@@ -55,7 +55,7 @@ namespace ompl
     public:
 
         /** \brief When an element is added to the heap, an instance
-            of Element* is created. This instance contains the data
+            of Element *is created. This instance contains the data
             that was added and internal information about the position
             of the data in the heap's internal storage. */
         class Element
@@ -112,7 +112,7 @@ namespace ompl
         }
 
         /** \brief Return the top element. NULL for an empty heap. */
-        Element* top(void) const
+        Element *top(void) const
         {
             return vector_.empty() ? NULL : vector_.at(0);
         }
@@ -124,7 +124,7 @@ namespace ompl
         }
 
         /** \brief Remove a specific element */
-        void remove(Element* element)
+        void remove(Element *element)
         {
             if (eventBeforeRemove_)
                 eventBeforeRemove_(element, eventBeforeRemoveData_);
@@ -132,9 +132,9 @@ namespace ompl
         }
 
         /** \brief Add a new element */
-        Element* insert(const _T& data)
+        Element *insert(const _T& data)
         {
-            Element* element = new Element();
+            Element *element = new Element();
             element->data = data;
             const unsigned int pos = vector_.size();
             element->position = pos;
@@ -153,7 +153,7 @@ namespace ompl
             for (unsigned int i = 0 ; i < m ; ++i)
             {
                 const unsigned int pos = i + n;
-                Element* element = newElement(list[i], pos);
+                Element *element = newElement(list[i], pos);
                 vector_.push_back(element);
                 percolateUp(pos);
                 if (eventAfterInsert_)
@@ -178,7 +178,7 @@ namespace ompl
         }
 
         /** \brief Update an element in the heap */
-        void update(Element* element)
+        void update(Element *element)
         {
             const unsigned int pos = element->position;
             assert(vector_[pos] == element);
@@ -252,9 +252,9 @@ namespace ompl
                 vector_.pop_back();
         }
 
-        Element* newElement(_T& data, unsigned int pos) const
+        Element *newElement(_T& data, unsigned int pos) const
         {
-            Element* element = new Element();
+            Element *element = new Element();
             element->data = data;
             element->position = pos;
             return element;
@@ -269,7 +269,7 @@ namespace ompl
         void percolateDown(const unsigned int pos)
         {
             const unsigned int n      = vector_.size();
-            Element*           tmp    = vector_[pos];
+            Element *tmp    = vector_[pos];
             unsigned int       parent = pos;
             unsigned int       child  = (pos + 1) << 1;
 
@@ -305,7 +305,7 @@ namespace ompl
 
         void percolateUp(const unsigned int pos)
         {
-            Element*           tmp    = vector_[pos];
+            Element *tmp    = vector_[pos];
             unsigned int       child  = pos;
             unsigned int       parent = (pos - 1) >> 1;
 

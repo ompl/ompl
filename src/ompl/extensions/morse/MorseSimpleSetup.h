@@ -102,7 +102,7 @@ namespace ompl
 
             /** \brief Simulate the MORSE environment forward for \e steps simulation steps, using the control \e control.
                 Construct a path representing this action. */
-            base::PathPtr simulateControl(const Control* control, unsigned int steps) const;
+            base::PathPtr simulateControl(const Control *control, unsigned int steps) const;
 
             /** \brief Simulate the MORSE environment forward for \e
                 steps simulation steps, using the null control
