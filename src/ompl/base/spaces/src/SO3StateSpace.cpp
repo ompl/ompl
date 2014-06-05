@@ -83,6 +83,11 @@ namespace ompl
             q.z = q0.w*q1.z + q0.z*q1.w + q0.x*q1.y - q0.y*q1.x;
             q.w = q0.w*q1.w - q0.x*q1.x - q0.y*q1.y - q0.z*q1.z;
         }
+
+        inline double quaternionNormSquared(const SO3StateSpace::StateType &q)
+        {
+            return q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
+        }
     }
 }
 /// @endcond
@@ -172,24 +177,40 @@ double ompl::base::SO3StateSpace::getMaximumExtent(void) const
     return .5 * boost::math::constants::pi<double>();
 }
 
+
 double ompl::base::SO3StateSpace::norm(const StateType *state) const
 {
-    double nrmSqr = state->x * state->x + state->y * state->y + state->z * state->z + state->w * state->w;
+    double nrmSqr = quaternionNormSquared(*state);
     return (fabs(nrmSqr - 1.0) > std::numeric_limits<double>::epsilon()) ? sqrt(nrmSqr) : 1.0;
 }
 
 void ompl::base::SO3StateSpace::enforceBounds(State *state) const
 {
+    // see http://stackoverflow.com/questions/11667783/quaternion-and-normalization/12934750#12934750
     StateType *qstate = static_cast<StateType*>(state);
-    double nrm = norm(qstate);
-    if (fabs(nrm) < MAX_QUATERNION_NORM_ERROR)
-        qstate->setIdentity();
-    else if (fabs(nrm - 1.0) > MAX_QUATERNION_NORM_ERROR)
+    double nrmsq = quaternionNormSquared(*qstate);
+    double error = std::abs(1.0 - nrmsq);
+    const double epsilon = 2.107342e-08;
+    if (error < epsilon)
     {
-        qstate->x /= nrm;
-        qstate->y /= nrm;
-        qstate->z /= nrm;
-        qstate->w /= nrm;
+        double scale = 0.5 * (1.0 + nrmsq);
+        qstate->x /= scale;
+        qstate->y /= scale;
+        qstate->z /= scale;
+        qstate->w /= scale;
+    }
+    else
+    {
+        if (nrmsq < 1e-6)
+            qstate->setIdentity();
+        else
+        {
+            double scale = std::sqrt(nrmsq);
+            qstate->x /= scale;
+            qstate->y /= scale;
+            qstate->z /= scale;
+            qstate->w /= scale;
+        }
     }
 }
 
