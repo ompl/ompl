@@ -60,7 +60,7 @@ ompl::geometric::PathGeometric::PathGeometric(const base::SpaceInformationPtr &s
     states_[1] = si_->cloneState(state2);
 }
 
-ompl::geometric::PathGeometric& ompl::geometric::PathGeometric::operator=(const PathGeometric &other)
+ompl::geometric::PathGeometric &ompl::geometric::PathGeometric::operator=(const PathGeometric &other)
 {
     if (this != &other)
     {
@@ -168,7 +168,7 @@ void ompl::geometric::PathGeometric::print(std::ostream &out) const
 }
 void ompl::geometric::PathGeometric::printAsMatrix(std::ostream &out) const
 {
-    const base::StateSpace* space(si_->getStateSpace().get());
+    const base::StateSpace *space(si_->getStateSpace().get());
     std::vector<double> reals;
     for (unsigned int i = 0 ; i < states_.size() ; ++i)
     {

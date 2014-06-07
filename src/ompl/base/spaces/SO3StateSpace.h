@@ -151,7 +151,7 @@ namespace ompl
 
             virtual StateSamplerPtr allocDefaultStateSampler(void) const;
 
-            virtual State* allocState(void) const;
+            virtual State *allocState(void) const;
 
             virtual void freeState(State *state) const;
 

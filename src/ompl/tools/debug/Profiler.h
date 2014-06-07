@@ -125,7 +125,7 @@ namespace ompl
             };
 
             /** \brief Return an instance of the class */
-            static Profiler& Instance(void);
+            static Profiler &Instance(void);
 
             /** \brief Constructor. It is allowed to separately instantiate this
                 class (not only as a singleton) */
@@ -365,7 +365,7 @@ namespace ompl
                 }
             };
 
-            static Profiler& Instance(void);
+            static Profiler &Instance(void);
 
             Profiler(bool = true, bool = true)
             {

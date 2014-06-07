@@ -268,7 +268,7 @@ const std::map<std::string, ompl::base::StateSpace::SubstateLocation>& ompl::bas
     return substateLocationsByName_;
 }
 
-ompl::base::State* ompl::base::StateSpace::getSubstateAtLocation(State *state, const SubstateLocation &loc) const
+ompl::base::State *ompl::base::StateSpace::getSubstateAtLocation(State *state, const SubstateLocation &loc) const
 {
     std::size_t index = 0;
     while (loc.chain.size() > index)
@@ -276,7 +276,7 @@ ompl::base::State* ompl::base::StateSpace::getSubstateAtLocation(State *state, c
     return state;
 }
 
-const ompl::base::State* ompl::base::StateSpace::getSubstateAtLocation(const State *state, const SubstateLocation &loc) const
+const ompl::base::State *ompl::base::StateSpace::getSubstateAtLocation(const State *state, const SubstateLocation &loc) const
 {
     std::size_t index = 0;
     while (loc.chain.size() > index)
@@ -1095,7 +1095,7 @@ ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocSubspaceStateSa
     return StateSpace::allocSubspaceStateSampler(subspace);
 }
 
-ompl::base::State* ompl::base::CompoundStateSpace::allocState(void) const
+ompl::base::State *ompl::base::CompoundStateSpace::allocState(void) const
 {
     CompoundState *state = new CompoundState();
     allocStateComponents(state);

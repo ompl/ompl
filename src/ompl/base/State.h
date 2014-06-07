@@ -55,7 +55,7 @@ namespace ompl
             State(const State&);
 
             /** \brief Disable copy operator */
-            const State& operator=(const State&);
+            const State &operator=(const State&);
 
         protected:
 
@@ -126,7 +126,7 @@ namespace ompl
 
             /** \brief Access element i<sup>th</sup> component. This
                 does not check whether the index is within bounds. */
-            State* operator[](unsigned int i) const
+            State *operator[](unsigned int i) const
             {
                 return components[i];
             }

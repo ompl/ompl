@@ -100,7 +100,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            CompoundStateSampler(const StateSpace* space) : StateSampler(space), samplerCount_(0)
+            CompoundStateSampler(const StateSpace *space) : StateSampler(space), samplerCount_(0)
             {
             }
 

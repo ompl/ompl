@@ -235,7 +235,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     return base::PlannerStatus(solved, approximate);
 }
 
-void ompl::geometric::LBTRRT::attemptNodeUpdate(Motion* potentialParent, Motion* child)
+void ompl::geometric::LBTRRT::attemptNodeUpdate(Motion *potentialParent, Motion *child)
 {
     double dist = distanceFunction(potentialParent, child);
     double potentialLb = potentialParent->costLb_ + dist;

@@ -132,7 +132,7 @@ ompl::base::StateSamplerPtr ompl::base::DiscreteStateSpace::allocDefaultStateSam
     return StateSamplerPtr(new DiscreteStateSampler(this));
 }
 
-ompl::base::State* ompl::base::DiscreteStateSpace::allocState(void) const
+ompl::base::State *ompl::base::DiscreteStateSpace::allocState(void) const
 {
     return new StateType();
 }

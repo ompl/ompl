@@ -215,13 +215,13 @@ namespace ompl
             bool covers(const StateSpace *other) const;
 
             /** \brief Get the parameters for this space */
-            ParamSet& params(void)
+            ParamSet &params(void)
             {
                 return params_;
             }
 
             /** \brief Get the parameters for this space */
-            const ParamSet& params(void) const
+            const ParamSet &params(void) const
             {
                 return params_;
             }
@@ -327,7 +327,7 @@ namespace ompl
             void clearStateSamplerAllocator(void);
 
             /** \brief Allocate a state that can store a point in the described space */
-            virtual State* allocState(void) const = 0;
+            virtual State *allocState(void) const = 0;
 
             /** \brief Free the memory of the allocated state */
             virtual void freeState(State *state) const = 0;
@@ -456,10 +456,10 @@ namespace ompl
             virtual StateSamplerPtr allocSubspaceStateSampler(const StateSpace *subspace) const;
 
             /** \brief Get the substate of \e state that is pointed to by \e loc */
-            State* getSubstateAtLocation(State *state, const SubstateLocation &loc) const;
+            State *getSubstateAtLocation(State *state, const SubstateLocation &loc) const;
 
             /** \brief Get the substate of \e state that is pointed to by \e loc */
-            const State* getSubstateAtLocation(const State *state, const SubstateLocation &loc) const;
+            const State *getSubstateAtLocation(const State *state, const SubstateLocation &loc) const;
 
             /** \brief Get the list of known substate locations (keys of the map corrspond to names of subspaces) */
             const std::map<std::string, SubstateLocation>& getSubstateLocationsByName(void) const;
@@ -674,7 +674,7 @@ namespace ompl
 
             virtual StateSamplerPtr allocDefaultStateSampler(void) const;
 
-            virtual State* allocState(void) const;
+            virtual State *allocState(void) const;
 
             virtual void freeState(State *state) const;
 

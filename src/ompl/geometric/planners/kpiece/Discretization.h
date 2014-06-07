@@ -197,7 +197,7 @@ namespace ompl
                 ownership of the motion passed as argument, and the
                 memory for the motion is freed by calling the function
                 passed to the constructor. */
-            unsigned int addMotion(Motion* motion, const Coord &coord, double dist = 0.0)
+            unsigned int addMotion(Motion *motion, const Coord &coord, double dist = 0.0)
             {
                 Cell *cell = grid_.getCell(coord);
 
@@ -281,7 +281,7 @@ namespace ompl
                 grid_.update(cell);
             }
 
-            const Grid& getGrid(void) const
+            const Grid &getGrid(void) const
             {
                 return grid_;
             }

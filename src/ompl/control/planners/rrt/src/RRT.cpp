@@ -278,7 +278,7 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        const Motion* m = motions[i];
+        const Motion *m = motions[i];
         if (m->parent)
         {
             if (data.hasControls())

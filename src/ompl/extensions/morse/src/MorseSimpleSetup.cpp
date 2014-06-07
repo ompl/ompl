@@ -142,7 +142,7 @@ ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const doubl
     return path;
 }
 
-ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const Control* control, unsigned int steps) const
+ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const Control *control, unsigned int steps) const
 {
     PathControl *p = new PathControl(si_);
 

@@ -215,7 +215,7 @@ namespace ompl
                 @{ */
 
             /** \brief Allocate memory for a state */
-            State* allocState(void) const
+            State *allocState(void) const
             {
                 return stateSpace_->allocState();
             }
@@ -247,7 +247,7 @@ namespace ompl
             }
 
             /** \brief Clone a state */
-            State* cloneState(const State *source) const
+            State *cloneState(const State *source) const
             {
                 State *copy = stateSpace_->allocState();
                 stateSpace_->copyState(copy, source);
@@ -376,13 +376,13 @@ namespace ompl
             virtual void printProperties(std::ostream &out = std::cout) const;
 
             /** \brief Get the combined parameters for the classes that the space information manages */
-            ParamSet& params(void)
+            ParamSet &params(void)
             {
                 return params_;
             }
 
             /** \brief Get the combined parameters for the classes that the space information manages */
-            const ParamSet& params(void) const
+            const ParamSet &params(void) const
             {
                 return params_;
             }

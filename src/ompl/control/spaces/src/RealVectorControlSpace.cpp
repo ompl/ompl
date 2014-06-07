@@ -95,7 +95,7 @@ ompl::control::ControlSamplerPtr ompl::control::RealVectorControlSpace::allocDef
     return ControlSamplerPtr(new RealVectorControlUniformSampler(this));
 }
 
-ompl::control::Control* ompl::control::RealVectorControlSpace::allocControl(void) const
+ompl::control::Control *ompl::control::RealVectorControlSpace::allocControl(void) const
 {
     ControlType *rcontrol = new ControlType();
     rcontrol->values = new double[dimension_];

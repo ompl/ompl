@@ -105,13 +105,13 @@ namespace ompl
             }
 
             /** \brief Get the parameters for the valid state sampler */
-            ParamSet& params(void)
+            ParamSet &params(void)
             {
                 return params_;
             }
 
             /** \brief Get the parameters for the valid state sampler */
-            const ParamSet& params(void) const
+            const ParamSet &params(void) const
             {
                 return params_;
             }

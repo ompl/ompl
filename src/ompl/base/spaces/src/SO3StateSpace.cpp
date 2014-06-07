@@ -76,7 +76,7 @@ namespace ompl
         }
 
         /* Standard quaternion multiplication: q = q0 * q1 */
-        static inline void quaternionProduct(SO3StateSpace::StateType &q, const SO3StateSpace::StateType& q0, const SO3StateSpace::StateType& q1)
+        static inline void quaternionProduct(SO3StateSpace::StateType &q, const SO3StateSpace::StateType &q0, const SO3StateSpace::StateType &q1)
         {
             q.x = q0.w*q1.x + q0.x*q1.w + q0.y*q1.z - q0.z*q1.y;
             q.y = q0.w*q1.y + q0.y*q1.w + q0.z*q1.x - q0.x*q1.z;
@@ -324,7 +324,7 @@ ompl::base::StateSamplerPtr ompl::base::SO3StateSpace::allocDefaultStateSampler(
     return StateSamplerPtr(new SO3StateSampler(this));
 }
 
-ompl::base::State* ompl::base::SO3StateSpace::allocState(void) const
+ompl::base::State *ompl::base::SO3StateSpace::allocState(void) const
 {
     return new StateType();
 }

@@ -137,7 +137,7 @@ namespace ompl
             }
 
             /** \brief Get the solution path. Throw an exception if no solution is available */
-            PathControl& getSolutionPath(void) const;
+            PathControl &getSolutionPath(void) const;
 
             /** \brief Get information about the exploration data structure the motion planner used. */
             void getPlannerData(base::PlannerData &pd) const;
@@ -259,13 +259,13 @@ namespace ompl
             virtual void setup(void);
 
             /** \brief Get the  parameters for this planning context */
-            base::ParamSet& params(void)
+            base::ParamSet &params(void)
             {
                 return params_;
             }
 
             /** \brief Get the  parameters for this planning context */
-            const base::ParamSet& params(void) const
+            const base::ParamSet &params(void) const
             {
                 return params_;
             }

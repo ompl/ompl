@@ -214,7 +214,7 @@ namespace ompl
             void setBounds(const RealVectorBounds &bounds);
 
             /** \brief Get the bounds computed/set for this projection */
-            const RealVectorBounds& getBounds(void)
+            const RealVectorBounds &getBounds(void)
             {
                 return bounds_;
             }
@@ -237,13 +237,13 @@ namespace ompl
             }
 
             /** \brief Get the parameters for this projection */
-            ParamSet& params(void)
+            ParamSet &params(void)
             {
                 return params_;
             }
 
             /** \brief Get the parameters for this projection */
-            const ParamSet& params(void) const
+            const ParamSet &params(void) const
             {
                 return params_;
             }

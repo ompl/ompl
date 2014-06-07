@@ -270,13 +270,13 @@ namespace ompl
                 void setupTree(void);
 
                 /** \brief Compute distance between motions (actually distance between contained states) */
-                double distanceFunction(const Motion* a, const Motion* b) const
+                double distanceFunction(const Motion *a, const Motion *b) const
                 {
                     return si_->distance(a->state, b->state);
                 }
 
                 /** \brief Compute distance between motions (actually distance between projections of contained states) */
-                double projectedDistanceFunction(const Motion* a, const Motion* b) const
+                double projectedDistanceFunction(const Motion *a, const Motion *b) const
                 {
                     unsigned int num_dims = projectionEvaluator_->getDimension();
                     ompl::base::EuclideanProjection aproj(num_dims), bproj(num_dims);
@@ -289,7 +289,7 @@ namespace ompl
                 void addMotion(Motion *motion);
 
                 /** \brief Select a motion to continue the expansion of the tree from */
-                Motion* selectMotion(void);
+                Motion *selectMotion(void);
 
                 /** \brief Valid state sampler */
                 base::ValidStateSamplerPtr   sampler_;

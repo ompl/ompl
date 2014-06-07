@@ -124,7 +124,7 @@ namespace ompl
             }
 
             /** \brief The planner searches for neighbors of a node within a
-                cost r, where r is the value described for FMT* in Section 4
+                cost r, where r is the value described for FMT *in Section 4
                 of [L. Janson, A. Clark, and M. Pavone, "Fast Marching Trees: a Fast
                 Marching Sampling-Based Method for Optimal Motion Planning in
                 Many Dimensions," International Symposium on
@@ -172,7 +172,7 @@ namespace ompl
             {
                 public:
 
-                    /** \brief The FMT* planner begins with all nodes included in
+                    /** \brief The FMT *planner begins with all nodes included in
                         set W "Waiting for optimal connection". As nodes are
                         connected to the tree, they are transferred into set H
                         "Horizon of explored tree." Once a node in H is no longer
@@ -326,8 +326,7 @@ namespace ompl
             /** \brief Save the neighbors within a given radius of a state */
             void saveNeighborhood(Motion *m, const double r);
 
-            /** \brief Complete one iteration of the main loop of the FMT*
-                algorithm: Find all nodes in set W within a radius r of the node
+            /** \brief Complete one iteration of the main loop of the FMT *algorithm: Find all nodes in set W within a radius r of the node
                 z. Attempt to connect them to their optimal cost-to-come parent
                 in set H. Remove all newly connected nodes from W and insert
                 them into H. Remove motion z from H, and update z to be the
@@ -345,7 +344,7 @@ namespace ompl
             MotionBinHeap H_;
 
             /** \brief A map of all of the elements stored within the
-                MotionBinHeap H, used to convert between Motion* and Element* */
+                MotionBinHeap H, used to convert between Motion *and Element* */
             std::map<Motion*, MotionBinHeap::Element*> hElements_;
 
             /** \brief A map linking a motion to all of the motions within a
@@ -364,8 +363,7 @@ namespace ompl
             double freeSpaceVolume_;
 
             /** \brief This planner uses a nearest neighbor search radius
-                proportional to the lower bound for optimality derived for FMT*
-                in Section 4 of [L. Janson, A. Clark, and M. Pavone, "Fast
+                proportional to the lower bound for optimality derived for FMT *in Section 4 of [L. Janson, A. Clark, and M. Pavone, "Fast
                 Marching Trees: a Fast Marching Sampling-Based Method for
                 Optimal Motion Planning in Many Dimensions," International
                 Journal on Robotics Research, 2013.

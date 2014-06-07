@@ -94,7 +94,7 @@ namespace ompl
 
             /** \brief Assignment operator by type. This is just for convenience, as it just calls setValue() */
             template<typename T>
-            GenericParam& operator=(const T &value)
+            GenericParam &operator=(const T &value)
             {
                 try
                 {
@@ -278,7 +278,7 @@ namespace ompl
             bool hasParam(const std::string &key) const;
 
             /** \brief Access operator for parameters, by name. If the parameter is not defined, an exception is thrown */
-            GenericParam& operator[](const std::string &key);
+            GenericParam &operator[](const std::string &key);
 
             /** \brief Get the number of parameters maintained by this instance */
             std::size_t size(void) const

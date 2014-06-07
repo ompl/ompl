@@ -112,7 +112,7 @@ namespace
         }
         return false;
     }
-    void CSC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
+    void CSC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath &path)
     {
         double t, u, v, Lmin = path.length(), L;
         if (LpSpLp(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
@@ -178,7 +178,7 @@ namespace
         }
         return false;
     }
-    void CCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
+    void CCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath &path)
     {
         double t, u, v, Lmin = path.length(), L;
         if (LpRmL(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
@@ -263,7 +263,7 @@ namespace
         }
         return false;
     }
-    void CCCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
+    void CCCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath &path)
     {
         double t, u, v, Lmin = path.length(), L;
         if (LpRupLumRm(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + 2.*fabs(u) + fabs(v)))
@@ -348,7 +348,7 @@ namespace
         }
         return false;
     }
-    void CCSC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
+    void CCSC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath &path)
     {
         double t, u, v, Lmin = path.length() - .5*pi, L;
         if (LpRmSmLm(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
@@ -470,7 +470,7 @@ namespace
         }
         return false;
     }
-    void CCSCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
+    void CCSCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath &path)
     {
         double t, u, v, Lmin = path.length() - pi, L;
         if (LpRmSLmRp(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
@@ -552,7 +552,7 @@ void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const Stat
 }
 
 void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const State *to, const double t,
-    bool& firstTime, ReedsSheppPath& path, State *state) const
+    bool& firstTime, ReedsSheppPath &path, State *state) const
 {
     if (firstTime)
     {
@@ -574,9 +574,9 @@ void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const Stat
     interpolate(from, path, t, state);
 }
 
-void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const ReedsSheppPath& path, double t, State *state) const
+void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const ReedsSheppPath &path, double t, State *state) const
 {
-    StateType* s = allocState()->as<StateType>();
+    StateType *s = allocState()->as<StateType>();
     double seg = t * path.length(), phi, v;
 
     s->setXY(0., 0.);

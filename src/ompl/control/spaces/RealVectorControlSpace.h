@@ -103,7 +103,7 @@ namespace ompl
             void setBounds(const base::RealVectorBounds &bounds);
 
             /** \brief Get the bounds (min max values for each dimension) for the control */
-            const base::RealVectorBounds& getBounds(void) const
+            const base::RealVectorBounds &getBounds(void) const
             {
                 return bounds_;
             }
@@ -116,7 +116,7 @@ namespace ompl
 
             virtual ControlSamplerPtr allocDefaultControlSampler(void) const;
 
-            virtual Control* allocControl(void) const;
+            virtual Control *allocControl(void) const;
 
             virtual void freeControl(Control *control) const;
 

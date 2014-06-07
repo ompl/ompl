@@ -64,7 +64,7 @@ ompl::control::ControlSamplerPtr ompl::control::DiscreteControlSpace::allocDefau
     return ControlSamplerPtr(new DiscreteControlSampler(this));
 }
 
-ompl::control::Control* ompl::control::DiscreteControlSpace::allocControl(void) const
+ompl::control::Control *ompl::control::DiscreteControlSpace::allocControl(void) const
 {
     return new ControlType();
 }

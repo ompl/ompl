@@ -369,43 +369,43 @@ namespace ompl
             }
 
             /** \brief De-references to the contained state */
-            StateType& operator*(void)
+            StateType &operator*(void)
             {
                 return *state_;
             }
 
             /** \brief De-references to the contained state */
-            const StateType& operator*(void) const
+            const StateType &operator*(void) const
             {
                 return *state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            StateType* operator->(void)
+            StateType *operator->(void)
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            const StateType* operator->(void) const
+            const StateType *operator->(void) const
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            StateType* get(void)
+            StateType *get(void)
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            const StateType* get(void) const
+            const StateType *get(void) const
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state (used for Python bindings) */
-            StateType* operator()(void) const
+            StateType *operator()(void) const
             {
                 return state_;
             }

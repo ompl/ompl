@@ -142,7 +142,7 @@ ompl::base::StateSamplerPtr ompl::base::TimeStateSpace::allocDefaultStateSampler
     return StateSamplerPtr(new TimeStateSampler(this));
 }
 
-ompl::base::State* ompl::base::TimeStateSpace::allocState(void) const
+ompl::base::State *ompl::base::TimeStateSpace::allocState(void) const
 {
     return new StateType();
 }

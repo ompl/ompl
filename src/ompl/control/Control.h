@@ -53,7 +53,7 @@ namespace ompl
             Control(const Control&);
 
             /** \brief Disable copy operator */
-            const Control& operator=(const Control&);
+            const Control &operator=(const Control&);
 
         protected:
 

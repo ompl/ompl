@@ -78,13 +78,13 @@ namespace ompl
                 }
 
                 /** \brief Get the rotation component of the state */
-                const SO3StateSpace::StateType& rotation(void) const
+                const SO3StateSpace::StateType &rotation(void) const
                 {
                     return *as<SO3StateSpace::StateType>(1);
                 }
 
                 /** \brief Get the rotation component of the state and allow changing it as well */
-                SO3StateSpace::StateType& rotation(void)
+                SO3StateSpace::StateType &rotation(void)
                 {
                     return *as<SO3StateSpace::StateType>(1);
                 }
@@ -137,12 +137,12 @@ namespace ompl
             }
 
             /** \copydoc RealVectorStateSpace::getBounds() */
-            const RealVectorBounds& getBounds(void) const
+            const RealVectorBounds &getBounds(void) const
             {
                 return as<RealVectorStateSpace>(0)->getBounds();
             }
 
-            virtual State* allocState(void) const;
+            virtual State *allocState(void) const;
             virtual void freeState(State *state) const;
 
             virtual void registerProjections(void);

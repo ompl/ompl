@@ -125,7 +125,7 @@ ompl::base::PlannerStatus ompl::control::SimpleSetup::solve(const base::PlannerT
     return last_status_;
 }
 
-ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath(void) const
+ompl::control::PathControl &ompl::control::SimpleSetup::getSolutionPath(void) const
 {
     if (pdef_)
     {

@@ -104,14 +104,14 @@ namespace ompl
             }
 
             /** \brief Get a particular state for non-const access */
-            State* getState(unsigned int index)
+            State *getState(unsigned int index)
             {
                 assert(states_.size() > index);
                 return const_cast<State*>(states_[index]);
             }
 
             /** \brief Get a particular state */
-            const State* getState(unsigned int index) const
+            const State *getState(unsigned int index) const
             {
                 assert(states_.size() > index);
                 return states_[index];

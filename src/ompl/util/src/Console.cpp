@@ -62,7 +62,7 @@ struct DefaultOutputHandler
 // however, the first run of this function is not thread safe, due to the use of a static
 // variable inside the function. For this reason, we ensure the first call happens during
 // static initialization using a proxy class
-static DefaultOutputHandler* getDOH(void)
+static DefaultOutputHandler *getDOH(void)
 {
     static DefaultOutputHandler DOH;
     return &DOH;
@@ -96,7 +96,7 @@ void ompl::msg::useOutputHandler(OutputHandler *oh)
     doh->output_handler_ = oh;
 }
 
-ompl::msg::OutputHandler* ompl::msg::getOutputHandler(void)
+ompl::msg::OutputHandler *ompl::msg::getOutputHandler(void)
 {
     return getDOH()->output_handler_;
 }

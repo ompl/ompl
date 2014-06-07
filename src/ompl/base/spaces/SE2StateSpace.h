@@ -129,12 +129,12 @@ namespace ompl
             }
 
             /** \copydoc RealVectorStateSpace::getBounds() */
-            const RealVectorBounds& getBounds(void) const
+            const RealVectorBounds &getBounds(void) const
             {
                 return as<RealVectorStateSpace>(0)->getBounds();
             }
 
-            virtual State* allocState(void) const;
+            virtual State *allocState(void) const;
             virtual void freeState(State *state) const;
 
             virtual void registerProjections(void);

@@ -130,7 +130,7 @@ namespace ompl
             void setBounds(double low, double high);
 
             /** \brief Get the bounds for this state space */
-            const RealVectorBounds& getBounds(void) const
+            const RealVectorBounds &getBounds(void) const
             {
                 return bounds_;
             }
@@ -169,7 +169,7 @@ namespace ompl
 
             virtual StateSamplerPtr allocDefaultStateSampler(void) const;
 
-            virtual State* allocState(void) const;
+            virtual State *allocState(void) const;
 
             virtual void freeState(State *state) const;
 

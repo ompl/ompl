@@ -202,14 +202,14 @@ namespace ompl
             void freeMotion(Motion *motion);
 
             /** \brief Remove a motion from a tree of motions */
-            void removeMotion(Discretization<Motion> &disc, Motion* motion);
+            void removeMotion(Discretization<Motion> &disc, Motion *motion);
 
             /** \brief Since solutions are computed in a lazy fashion,
                 once trees are connected, the solution found needs to
                 be checked for validity. This function checks whether
                 the reverse path from a given motion to a root is
                 valid. If this is not the case, invalid motions are removed  */
-            bool isPathValid(Discretization<Motion> &disc, Motion* motion, base::State *temp);
+            bool isPathValid(Discretization<Motion> &disc, Motion *motion, base::State *temp);
 
             /** \brief The employed state sampler */
             base::StateSamplerPtr              sampler_;

@@ -452,7 +452,7 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
                     connectGuards(r, rp);
                 else
                 {
-                    PathGeometric* p = new PathGeometric( si_ );
+                    PathGeometric *p = new PathGeometric( si_ );
                     if (r < rp)
                     {
                         p->append(d.sigmaA_);
@@ -479,7 +479,7 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
                         Vertex vnew;
                         std::vector<base::State*>& states = p->getStates();
 
-                        foreach (base::State* st, states)
+                        foreach (base::State *st, states)
                         {
                             // no need to clone st, since we will destroy p; we just copy the pointer
                             vnew = addGuard(st , QUALITY);
@@ -506,7 +506,7 @@ void ompl::geometric::SPARStwo::resetFailures(void)
     consecutiveFailures_ = 0;
 }
 
-void ompl::geometric::SPARStwo::findGraphNeighbors(base::State* st, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood)
+void ompl::geometric::SPARStwo::findGraphNeighbors(base::State *st, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood)
 {
     visibleNeighborhood.clear();
     stateProperty_[ queryVertex_ ] = st;
@@ -533,7 +533,7 @@ void ompl::geometric::SPARStwo::approachGraph( Vertex v )
         connectGuards(v, vp);
 }
 
-ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::findGraphRepresentative(base::State* st)
+ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::findGraphRepresentative(base::State *st)
 {
     std::vector<Vertex> nbh;
     stateProperty_[ queryVertex_ ] = st;
@@ -693,7 +693,7 @@ void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, 
     interfaceDataProperty_[rep].interfaceHash[index(r, rp)] = d;
 }
 
-void ompl::geometric::SPARStwo::abandonLists(base::State* st)
+void ompl::geometric::SPARStwo::abandonLists(base::State *st)
 {
     stateProperty_[ queryVertex_ ] = st;
 

@@ -111,7 +111,7 @@ namespace ompl
              expect the roadmap to be sparse (m<n^2), an adjacency_list is more
              appropriate than an adjacency_matrix.
 
-             @par Obviously, a ompl::base::State* vertex property is required.
+             @par Obviously, a ompl::base::State *vertex property is required.
              The incremental connected components algorithm requires
              vertex_predecessor_t and vertex_rank_t properties.
              If boost::vecS is not used for vertex storage, then there must also
@@ -263,7 +263,7 @@ namespace ompl
 
             virtual void setup(void);
 
-            const Graph& getRoadmap(void) const
+            const Graph &getRoadmap(void) const
             {
                 return g_;
             }
