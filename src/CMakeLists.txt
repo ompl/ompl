@@ -1,5 +1,5 @@
 add_subdirectory(ompl)
-install(DIRECTORY ompl/ DESTINATION "include/ompl${OMPL_INSTALL_SUFFIX}"
+install(DIRECTORY ompl/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ompl${OMPL_INSTALL_SUFFIX}"
     COMPONENT ompl
     FILES_MATCHING PATTERN "*.h"
     PATTERN ".DS_Store" EXCLUDE
@@ -10,7 +10,7 @@ install(DIRECTORY ompl/ DESTINATION "include/ompl${OMPL_INSTALL_SUFFIX}"
 
 if(${Boost_VERSION} LESS 105300)
     install(DIRECTORY external/omplext_odeint/
-        DESTINATION "include/omplext_odeint${OMPL_INSTALL_SUFFIX}"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/omplext_odeint${OMPL_INSTALL_SUFFIX}"
         COMPONENT ompl)
 endif()
 

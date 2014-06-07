@@ -21,6 +21,7 @@ if(MSVC OR MSVC90 OR MSVC10)
 endif (MSVC OR MSVC90 OR MSVC10)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
+include(GNUInstallDirs)
 include(CompilerSettings)
 include(OMPLVersion)
 include(OMPLUtils)
@@ -33,8 +34,6 @@ set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
 set(OMPL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(OMPL_DEMO_INSTALL_DIR "share/ompl${OMPL_INSTALL_SUFFIX}/demos"
     CACHE STRING "Relative path to directory where demos will be installed")
-set(OMPL_DOC_INSTALL_DIR "share/ompl${OMPL_INSTALL_SUFFIX}/doc"
-    CACHE STRING "Relative path to directory where documentation will be installed")
 
 include_directories("${OMPL_INCLUDE_DIR}")
 
@@ -156,12 +155,12 @@ if (NOT MSVC)
   set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
   configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
   install(FILES "${pkg_conf_file}"
-    DESTINATION lib/pkgconfig/
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
     COMPONENT ompl
     RENAME "ompl${OMPL_INSTALL_SUFFIX}.pc")
 
   install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/markdown/FindOMPL.cmake"
-    DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}"
+    DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
     COMPONENT ompl
     RENAME ompl-config.cmake)
   if (NOT ${CMAKE_VERSION} VERSION_LESS 2.8.6)
@@ -170,7 +169,7 @@ if (NOT MSVC)
       "${CMAKE_CURRENT_BINARY_DIR}/ompl-config-version.cmake"
       VERSION ${OMPL_VERSION} COMPATIBILITY SameMajorVersion)
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ompl-config-version.cmake"
-      DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}"
+      DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
       COMPONENT ompl)
   endif()
 endif()
