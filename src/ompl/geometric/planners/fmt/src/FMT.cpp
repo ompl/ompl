@@ -127,7 +127,6 @@ void ompl::geometric::FMT::getPlannerData(base::PlannerData &data) const
     unsigned int size = motions.size();
     for (unsigned int i = 0; i < size; ++i)
     {
-        Motion *motion = motions[i];
         if (motions[i]->getParent() == NULL)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->getState()));
         else
