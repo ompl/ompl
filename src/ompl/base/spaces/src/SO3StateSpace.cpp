@@ -62,12 +62,12 @@ namespace ompl
     {
         static inline void computeAxisAngle(SO3StateSpace::StateType &q, double ax, double ay, double az, double angle)
         {
-	    double norm = std::sqrt(ax * ax + ay * ay + az * az);
+            double norm = std::sqrt(ax * ax + ay * ay + az * az);
             if (norm < MAX_QUATERNION_NORM_ERROR)
                 q.setIdentity();
             else
             {
-	        double half_angle = angle / 2.0;
+                double half_angle = angle / 2.0;
                 double s = sin(half_angle) / norm;
                 q.x = s * ax;
                 q.y = s * ay;
