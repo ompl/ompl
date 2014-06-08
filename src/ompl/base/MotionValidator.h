@@ -67,7 +67,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            MotionValidator(SpaceInformation* si) : si_(si), valid_(0), invalid_(0)
+            MotionValidator(SpaceInformation *si) : si_(si), valid_(0), invalid_(0)
             {
             }
 

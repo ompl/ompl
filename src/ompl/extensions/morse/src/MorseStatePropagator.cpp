@@ -47,7 +47,7 @@ ompl::control::MorseStatePropagator::MorseStatePropagator(const SpaceInformation
         throw Exception("MORSE State Space needed for MorseStatePropagator");
 }
 
-void ompl::control::MorseStatePropagator::propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
+void ompl::control::MorseStatePropagator::propagate(const base::State *state, const Control *control, const double duration, base::State *result) const
 {
     boost::mutex::scoped_lock lock(env_->mutex_);
 

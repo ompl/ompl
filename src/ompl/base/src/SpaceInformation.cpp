@@ -86,7 +86,7 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
     {
     public:
 
-        BoostFnStateValidityChecker(SpaceInformation* si,
+        BoostFnStateValidityChecker(SpaceInformation *si,
                                     const StateValidityCheckerFn &fn) : StateValidityChecker(si), fn_(fn)
         {
         }

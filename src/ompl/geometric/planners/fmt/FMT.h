@@ -203,7 +203,7 @@ namespace ompl
                     }
 
                     /** \brief Get the state associated with the motion */
-                    base::State *getState(void) const
+                    base::State* getState(void) const
                     {
                         return state_;
                     }
@@ -215,7 +215,7 @@ namespace ompl
                     }
 
                     /** \brief Get the parent motion of the current motion */
-                    Motion *getParent(void) const
+                    Motion* getParent(void) const
                     {
                         return parent_;
                     }
@@ -326,9 +326,9 @@ namespace ompl
             /** \brief Save the neighbors within a given radius of a state */
             void saveNeighborhood(Motion *m, const double r);
 
-            /** \brief Complete one iteration of the main loop of the FMT*
-                algorithm: Find all nodes in set W within a radius r of the node
-                z. Attempt to connect them to their optimal cost-to-come parent
+            /** \brief Complete one iteration of the main loop of the FMT* algorithm:
+		Find all nodes in set W within a radius r of the node z.
+                Attempt to connect them to their optimal cost-to-come parent
                 in set H. Remove all newly connected nodes from W and insert
                 them into H. Remove motion z from H, and update z to be the
                 current lowest cost-to-come node in H */
@@ -345,7 +345,7 @@ namespace ompl
             MotionBinHeap H_;
 
             /** \brief A map of all of the elements stored within the
-                MotionBinHeap H, used to convert between Motion* and Element* */
+                MotionBinHeap H, used to convert between Motion *and Element* */
             std::map<Motion*, MotionBinHeap::Element*> hElements_;
 
             /** \brief A map linking a motion to all of the motions within a

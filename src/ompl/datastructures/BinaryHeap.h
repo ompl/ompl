@@ -124,7 +124,7 @@ namespace ompl
         }
 
         /** \brief Remove a specific element */
-        void remove(Element* element)
+        void remove(Element *element)
         {
             if (eventBeforeRemove_)
                 eventBeforeRemove_(element, eventBeforeRemoveData_);
@@ -134,7 +134,7 @@ namespace ompl
         /** \brief Add a new element */
         Element* insert(const _T& data)
         {
-            Element* element = new Element();
+            Element *element = new Element();
             element->data = data;
             const unsigned int pos = vector_.size();
             element->position = pos;
@@ -153,7 +153,7 @@ namespace ompl
             for (unsigned int i = 0 ; i < m ; ++i)
             {
                 const unsigned int pos = i + n;
-                Element* element = newElement(list[i], pos);
+                Element *element = newElement(list[i], pos);
                 vector_.push_back(element);
                 percolateUp(pos);
                 if (eventAfterInsert_)
@@ -178,7 +178,7 @@ namespace ompl
         }
 
         /** \brief Update an element in the heap */
-        void update(Element* element)
+        void update(Element *element)
         {
             const unsigned int pos = element->position;
             assert(vector_[pos] == element);
@@ -254,7 +254,7 @@ namespace ompl
 
         Element* newElement(_T& data, unsigned int pos) const
         {
-            Element* element = new Element();
+            Element *element = new Element();
             element->data = data;
             element->position = pos;
             return element;
@@ -269,7 +269,7 @@ namespace ompl
         void percolateDown(const unsigned int pos)
         {
             const unsigned int n      = vector_.size();
-            Element*           tmp    = vector_[pos];
+            Element *tmp    = vector_[pos];
             unsigned int       parent = pos;
             unsigned int       child  = (pos + 1) << 1;
 
@@ -305,9 +305,9 @@ namespace ompl
 
         void percolateUp(const unsigned int pos)
         {
-            Element*           tmp    = vector_[pos];
-            unsigned int       child  = pos;
-            unsigned int       parent = (pos - 1) >> 1;
+            Element      *tmp    = vector_[pos];
+            unsigned int  child  = pos;
+            unsigned int  parent = (pos - 1) >> 1;
 
             while (child > 0 && lt_(tmp->data, vector_[parent]->data))
             {

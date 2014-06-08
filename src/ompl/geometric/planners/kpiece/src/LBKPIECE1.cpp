@@ -87,7 +87,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion* motion = new Motion(si_);
+        Motion *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         motion->root = st;
         motion->valid = true;
@@ -129,7 +129,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
             const base::State *st = dGoal_.getMotionCount() == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
             if (st)
             {
-                Motion* motion = new Motion(si_);
+                Motion *motion = new Motion(si_);
                 si_->copyState(motion->state, st);
                 motion->root = motion->state;
                 motion->valid = true;
@@ -150,7 +150,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
         sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
 
         /* create a motion */
-        Motion* motion = new Motion(si_);
+        Motion *motion = new Motion(si_);
         si_->copyState(motion->state, xstate);
         motion->parent = existing;
         motion->root = existing->root;
@@ -162,11 +162,11 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
         Discretization<Motion>::Cell *ocell = otherDisc.getGrid().getCell(xcoord);
         if (ocell && !ocell->data->motions.empty())
         {
-            Motion* connectOther = ocell->data->motions[rng_.uniformInt(0, ocell->data->motions.size() - 1)];
+            Motion *connectOther = ocell->data->motions[rng_.uniformInt(0, ocell->data->motions.size() - 1)];
 
             if (goal->isStartGoalPairValid(startTree ? connectOther->root : motion->root, startTree ? motion->root : connectOther->root))
             {
-                Motion* connect = new Motion(si_);
+                Motion *connect = new Motion(si_);
                 si_->copyState(connect->state, connectOther->state);
                 connect->parent = motion;
                 connect->root = motion->root;
@@ -254,7 +254,7 @@ bool ompl::geometric::LBKPIECE1::isPathValid(Discretization<Motion> &disc, Motio
                 // add the valid part of the path, if sufficiently long
                 if (lastValid.second > minValidPathFraction_)
                 {
-                    Motion* reAdd = new Motion(si_);
+                    Motion *reAdd = new Motion(si_);
                     si_->copyState(reAdd->state, lastValid.first);
                     reAdd->parent = parent;
                     reAdd->root = parent->root;

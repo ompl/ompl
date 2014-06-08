@@ -167,7 +167,7 @@ namespace ompl
         /** \brief Root level logging function.  This should not be invoked directly,
             but rather used via a \ref logging "logging macro".  Formats the message
             string given the arguments and forwards the string to the output handler */
-        void log(const char *file, int line, LogLevel level, const char* m, ...);
+        void log(const char *file, int line, LogLevel level, const char *m, ...);
     }
 
 }

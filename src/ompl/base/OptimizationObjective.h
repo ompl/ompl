@@ -126,10 +126,10 @@ namespace ompl
             void setCostToGoHeuristic(const CostToGoHeuristic& costToGo);
 
             /** \brief Uses a cost-to-go heuristic to calculate an admissible estimate of the optimal cost from a given state to a given goal. If no cost-to-go heuristic has been specified with setCostToGoHeuristic(), this function just returns the identity cost, which is sure to be an admissible heuristic if there are no negative costs. */
-            Cost costToGo(const State* state, const Goal* goal) const;
+            Cost costToGo(const State *state, const Goal *goal) const;
 
             /** \brief Defines an admissible estimate on the optimal cost on the motion between states \e s1 and \e s2. An admissible estimate always undervalues the true optimal cost of the motion. Used by some planners to speed up planning. The default implementation of this method returns this objective's identity cost, which is sure to be an admissible heuristic if there are no negative costs. */
-            virtual Cost motionCostHeuristic(const State* s1, const State* s2) const;
+            virtual Cost motionCostHeuristic(const State *s1, const State *s2) const;
 
             /** \brief Returns this objective's SpaceInformation. Needed for operators in MultiOptimizationObjective */
             const SpaceInformationPtr& getSpaceInformation(void) const;
@@ -156,7 +156,7 @@ namespace ompl
             exactly zero. Note: \e goal is assumed to be of type
             ompl::base::GoalRegion
         */
-        Cost goalRegionCostToGo(const State* state, const Goal* goal);
+        Cost goalRegionCostToGo(const State *state, const Goal *goal);
 
         /** \brief This class allows for the definition of multiobjective optimal planning problems. Objectives are added to this compound object, and motion costs are computed by taking a weighted sum of the individual objective costs. */
         class MultiOptimizationObjective : public OptimizationObjective
@@ -190,13 +190,13 @@ namespace ompl
               addition to add up all the individual objectives' state cost
               values, where each individual value is scaled by its
               weight */
-            virtual Cost stateCost(const State* s) const;
+            virtual Cost stateCost(const State *s) const;
 
             /** The default implementation of this method is to use
               addition to add up all the individual objectives' motion
               cost values, where each individual value is scaled by
               its weight */
-            virtual Cost motionCost(const State* s1, const State* s2) const;
+            virtual Cost motionCost(const State *s1, const State *s2) const;
 
         protected:
 

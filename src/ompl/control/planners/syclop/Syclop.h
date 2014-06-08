@@ -127,7 +127,7 @@ namespace ompl
 
             /** \brief Continues solving until a solution is found or a given planner termination condition is met.
                 Returns true if solution was found. */
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition& ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
             /// @}
 
             /// @name Tunable parameters
@@ -255,18 +255,18 @@ namespace ompl
                 {
                 }
                 /** \brief Constructor that allocates memory for the state and the control */
-                Motion(const SpaceInformation* si) : state(si->allocState()), control(si->allocControl()), parent(NULL), steps(0)
+                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), parent(NULL), steps(0)
                 {
                 }
                 virtual ~Motion(void)
                 {
                 }
                 /** \brief The state contained by the motion */
-                base::State* state;
+                base::State *state;
                 /** \brief The control contained by the motion */
-                Control* control;
+                Control *control;
                 /** \brief The parent motion in the tree */
-                const Motion* parent;
+                const Motion *parent;
                 /** \brief The number of steps for which the control is applied */
                 unsigned int steps;
             };
@@ -309,7 +309,7 @@ namespace ompl
                 /** \brief The number of times this region has been selected for expansion */
                 unsigned int numSelections;
                 /** \brief The Element corresponding to this region in the PDF of available regions. */
-                PDF<int>::Element* pdfElem;
+                PDF<int>::Element *pdfElem;
             };
             #pragma pack (pop)  // Restoring default byte alignment
 
@@ -334,9 +334,9 @@ namespace ompl
                     direct connections along this adjacency */
                 std::set<int> covGridCells;
                 /** \brief The source region of this adjacency edge */
-                const Region* source;
+                const Region *source;
                 /** \brief The target region of this adjacency edge */
-                const Region* target;
+                const Region *target;
                 /** \brief The cost of this adjacency edge, used in lead computations */
                 double cost;
                 /** \brief The number of times this adjacency has been included in a lead */
@@ -350,11 +350,11 @@ namespace ompl
             #pragma pack (pop) // Restoring default byte alignment
 
             /** \brief Add State s as a new root in the low-level tree, and return the Motion corresponding to s. */
-            virtual Motion* addRoot(const base::State* s) = 0;
+            virtual Motion* addRoot(const base::State *s) = 0;
 
             /** \brief Select a Motion from the given Region, and extend the tree from the Motion.
                 Add any new motions created to newMotions. */
-            virtual void selectAndExtend(Region& region, std::vector<Motion*>& newMotions) = 0;
+            virtual void selectAndExtend(Region &region, std::vector<Motion*>& newMotions) = 0;
 
             /** \brief Returns a reference to the Region object with the given index. Assumes the index is valid. */
             inline const Region& getRegionFromIndex(const int rid) const
@@ -381,7 +381,7 @@ namespace ompl
             double probAbandonLeadEarly_;
 
             /** \brief Handle to the control::SpaceInformation object */
-            const SpaceInformation* siC_;
+            const SpaceInformation *siC_;
 
             /** \brief The high level decomposition used to focus tree expansion */
             DecompositionPtr decomp_;
@@ -405,7 +405,7 @@ namespace ompl
 
                 /** \brief Since the CoverageGrid is defined in the same space as the Decomposition,
                     it uses the Decomposition's projection function. */
-                virtual void project(const base::State* s, std::vector<double>& coord) const
+                virtual void project(const base::State *s, std::vector<double>& coord) const
                 {
                     decomp->project(s, coord);
                 }
@@ -431,18 +431,18 @@ namespace ompl
             class DecompositionHeuristic : public boost::astar_heuristic<RegionGraph, double>
             {
             public:
-                DecompositionHeuristic(const Syclop* s, const Region& goal) : syclop(s), goalRegion(goal)
+                DecompositionHeuristic(const Syclop *s, const Region &goal) : syclop(s), goalRegion(goal)
                 {
                 }
 
                 double operator()(Vertex v)
                 {
-                    const Region& region = syclop->getRegionFromIndex(v);
+                    const Region &region = syclop->getRegionFromIndex(v);
                     return region.alpha*goalRegion.alpha;
                 }
             private:
-                const Syclop* syclop;
-                const Region& goalRegion;
+                const Syclop *syclop;
+                const Region &goalRegion;
             };
 
             struct found_goal {};
@@ -479,7 +479,7 @@ namespace ompl
                         regToElem[r] = regions.add(r, 1);
                     else
                     {
-                        PDF<int>::Element* elem = regToElem[r];
+                        PDF<int>::Element *elem = regToElem[r];
                         regions.update(elem, regions.getWeight(elem)+1);
                     }
                 }
@@ -504,30 +504,30 @@ namespace ompl
             /// @endcond
 
             /** \brief Initializes default values for a given Region. */
-            void initRegion(Region& r);
+            void initRegion(Region &r);
 
             /** \brief Computes volume estimates for a given Region. */
             void setupRegionEstimates(void);
 
             /** \brief Recomputes coverage and selection estimates for a given Region. */
-            void updateRegion(Region& r);
+            void updateRegion(Region &r);
 
             /** \brief Initializes a given Adjacency between a source Region and a destination Region. */
-            void initEdge(Adjacency& a, const Region* source, const Region* target);
+            void initEdge(Adjacency &a, const Region *source, const Region *target);
 
             /** \brief Initializes default values for each Adjacency. */
             void setupEdgeEstimates(void);
 
             /** \brief Updates the edge cost for a given Adjacency according to Syclop's list of edge cost factors. */
-            void updateEdge(Adjacency& a);
+            void updateEdge(Adjacency &a);
 
             /** \brief Given that a State s has been added to the tree,
                 update the coverage estimate (if needed) for its corresponding Region. */
-            bool updateCoverageEstimate(Region& r, const base::State* s);
+            bool updateCoverageEstimate(Region &r, const base::State *s);
 
             /** \brief Given that an edge has been added to the tree of motions from a state in Region c to
                 the State s in Region d, update the corresponding Adjacency's cost and connection estimates. */
-            bool updateConnectionEstimate(const Region& c, const Region& d, const base::State* s);
+            bool updateConnectionEstimate(const Region &c, const Region &d, const base::State *s);
 
             /** \brief Build a RegionGraph according to the Decomposition assigned to Syclop,
                 creating Region and Adjacency objects for each node and edge. */

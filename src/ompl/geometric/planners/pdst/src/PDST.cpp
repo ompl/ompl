@@ -98,7 +98,7 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
 
     OMPL_INFORM("%s: Starting with %u states", getName().c_str(), priorityQueue_.size());
 
-    base::State* tmpState1 = si_->allocState(), *tmpState2 = si_->allocState();
+    base::State *tmpState1 = si_->allocState(), *tmpState2 = si_->allocState();
     base::EuclideanProjection tmpProj(ndim);
     while (!ptc)
     {
@@ -168,8 +168,8 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
     return base::PlannerStatus(hasSolution, isApproximate);
 }
 
-ompl::geometric::PDST::Motion* ompl::geometric::PDST::propagateFrom(
-    Motion* motion, base::State* start, base::State* rnd)
+ompl::geometric::PDST::Motion *ompl::geometric::PDST::propagateFrom(
+    Motion *motion, base::State *start, base::State *rnd)
 {
     // sample a point along the trajectory given by motion
     si_->getStateSpace()->interpolate(motion->startState_, motion->endState_, rng_.uniform01(), start);
@@ -184,7 +184,7 @@ ompl::geometric::PDST::Motion* ompl::geometric::PDST::propagateFrom(
     return new Motion(si_->cloneState(start), si_->cloneState(rnd), ++iteration_, motion);
 }
 
-void ompl::geometric::PDST::addMotion(Motion *motion, Cell *bsp, base::State* state, base::EuclideanProjection& proj)
+void ompl::geometric::PDST::addMotion(Motion *motion, Cell *bsp, base::State *state, base::EuclideanProjection& proj)
 {
     projectionEvaluator_->project(motion->endState_, proj);
     bsp->stab(proj)->addMotion(motion);
@@ -224,7 +224,7 @@ void ompl::geometric::PDST::addMotion(Motion *motion, Cell *bsp, base::State* st
             }
         }
 
-        Motion* m = new Motion(motion->startState_, si_->cloneState(state), motion->priority_, motion->parent_);
+        Motion *m = new Motion(motion->startState_, si_->cloneState(state), motion->priority_, motion->parent_);
         startCell->addMotion(m);
         m->heapElement_ = priorityQueue_.insert(m);
         m->isSplit_ = true;

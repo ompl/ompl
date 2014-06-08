@@ -187,15 +187,15 @@ namespace ompl
                 {
                     return motions_[i];
                 }
-                std::vector<Motion*>::iterator begin (void)
+                std::vector<Motion*>::iterator begin(void)
                 {
-                    return motions_.begin ();
+                    return motions_.begin();
                 }
-                void erase (std::vector<Motion*>::iterator iter)
+                void erase(std::vector<Motion*>::iterator iter)
                 {
-                    motions_.erase (iter);
+                    motions_.erase(iter);
                 }
-                void push_back(Motion* m)
+                void push_back(Motion *m)
                 {
                     motions_.push_back(m);
                 }
@@ -208,7 +208,7 @@ namespace ompl
                     return motions_.empty();
                 }
                 std::vector<Motion*> motions_;
-                CellPDF::Element*    elem_;
+                CellPDF::Element    *elem_;
             };
 
             struct TreeData

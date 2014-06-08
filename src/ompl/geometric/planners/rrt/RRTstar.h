@@ -198,7 +198,7 @@ namespace ompl
             struct CostIndexCompare
             {
                 CostIndexCompare(const std::vector<base::Cost>& costs,
-                                 const base::OptimizationObjective& opt) :
+                                 const base::OptimizationObjective &opt) :
                     costs_(costs), opt_(opt)
                 {}
                 bool operator()(unsigned i, unsigned j)
@@ -206,13 +206,13 @@ namespace ompl
                     return opt_.isCostBetterThan(costs_[i],costs_[j]);
                 }
                 const std::vector<base::Cost>& costs_;
-                const base::OptimizationObjective& opt_;
+                const base::OptimizationObjective &opt_;
             };
 
             enum DistanceDirection { FROM_NEIGHBORS, TO_NEIGHBORS };
 
             /** \brief Compute distance between motions (actually distance between contained states) */
-            double distanceFunction(const Motion* a, const Motion* b) const
+            double distanceFunction(const Motion *a, const Motion *b) const
             {
                 switch (distanceDirection_)
                 {

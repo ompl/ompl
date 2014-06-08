@@ -64,7 +64,7 @@ void ompl::control::Syclop::clear(void)
     goalRegions_.clear();
 }
 
-ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTerminationCondition& ptc)
+ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     if (!graphReady_)
@@ -74,11 +74,11 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
         setupEdgeEstimates();
         graphReady_ = true;
     }
-    while (const base::State* s = pis_.nextStart())
+    while (const base::State *s = pis_.nextStart())
     {
         const int region = decomp_->locateRegion(s);
         startRegions_.insert(region);
-        Motion* startMotion = addRoot(s);
+        Motion *startMotion = addRoot(s);
         graph_[boost::vertex(region, graph_)].motions.push_back(startMotion);
         ++numMotions_;
         updateCoverageEstimate(graph_[boost::vertex(region, graph_)], s);
@@ -92,7 +92,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
     //We need at least one valid goal sample so that we can find the goal region
     if (goalRegions_.empty())
     {
-        if (const base::State* g = pis_.nextGoal(ptc))
+        if (const base::State *g = pis_.nextGoal(ptc))
             goalRegions_.insert(decomp_->locateRegion(g));
         else
         {
@@ -104,8 +104,8 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
     OMPL_INFORM("%s: Starting with %u states", getName().c_str(), numMotions_);
 
     std::vector<Motion*> newMotions;
-    const Motion* solution = NULL;
-    base::Goal* goal = pdef_->getGoal().get();
+    const Motion *solution = NULL;
+    base::Goal *goal = pdef_->getGoal().get();
     double goalDist = std::numeric_limits<double>::infinity();
     bool solved = false;
     while (!ptc && !solved)
@@ -116,7 +116,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
         // if we have not sampled too many goal regions already
         if (pis_.haveMoreGoalStates() && goalRegions_.size() < numMotions_/2)
         {
-            if (const base::State* g = pis_.nextGoal())
+            if (const base::State *g = pis_.nextGoal())
             {
                 chosenGoalRegion = decomp_->locateRegion(g);
                 goalRegions_.insert(chosenGoalRegion);
@@ -137,7 +137,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
                 selectAndExtend(graph_[boost::vertex(region, graph_)], newMotions);
                 for (std::vector<Motion*>::const_iterator m = newMotions.begin(); m != newMotions.end() && !ptc; ++m)
                 {
-                    Motion* motion = *m;
+                    Motion *motion = *m;
                     double distance;
                     solved = goal->isSatisfied(motion->state, &distance);
                     if (solved)
@@ -156,7 +156,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
                     const int newRegion = decomp_->locateRegion(motion->state);
                     graph_[boost::vertex(newRegion, graph_)].motions.push_back(motion);
                     ++numMotions_;
-                    Region& newRegionObj = graph_[boost::vertex(newRegion, graph_)];
+                    Region &newRegionObj = graph_[boost::vertex(newRegion, graph_)];
                     improved |= updateCoverageEstimate(newRegionObj, motion->state);
                     /* If tree has just crossed from one region to its neighbor,
                        update the connection estimates. If the tree has crossed an entire region,
@@ -164,7 +164,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
                     if (newRegion != region
                         && regionsToEdge_.count(std::pair<int,int>(region,newRegion)) > 0)
                     {
-                        Adjacency* adj = regionsToEdge_[std::pair<int,int>(region,newRegion)];
+                        Adjacency *adj = regionsToEdge_[std::pair<int,int>(region,newRegion)];
                         adj->empty = false;
                         ++adj->numSelections;
                         improved |= updateConnectionEstimate(graph_[boost::vertex(region, graph_)], newRegionObj, motion->state);
@@ -177,7 +177,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
                        if it already exists in the lead. */
                     else if (std::find(lead_.begin(), lead_.end(), newRegion) != lead_.end())
                     {
-                        PDF<int>::Element* elem = availDist_.add(newRegion, newRegionObj.weight);
+                        PDF<int>::Element *elem = availDist_.add(newRegion, newRegionObj.weight);
                         newRegionObj.pdfElem = elem;
                     }
                 }
@@ -195,7 +195,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
             mpath.push_back(solution);
             solution = solution->parent;
         }
-        PathControl* path = new PathControl(si_);
+        PathControl *path = new PathControl(si_);
         for (int i = mpath.size()-1; i >= 0; --i)
             if (mpath[i]->parent)
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
@@ -222,7 +222,7 @@ void ompl::control::Syclop::clearEdgeCostFactors(void)
     edgeCostFactors_.clear();
 }
 
-void ompl::control::Syclop::initRegion(Region& r)
+void ompl::control::Syclop::initRegion(Region &r)
 {
     r.numSelections = 0;
     r.volume = 1.0;
@@ -237,7 +237,7 @@ void ompl::control::Syclop::setupRegionEstimates(void)
     std::vector<int> numValid(decomp_->getNumRegions(), 0);
     base::StateValidityCheckerPtr checker = si_->getStateValidityChecker();
     base::StateSamplerPtr sampler = si_->allocStateSampler();
-    base::State* s = si_->allocState();
+    base::State *s = si_->allocState();
 
     for (int i = 0; i < numFreeVolSamples_; ++i)
     {
@@ -254,7 +254,7 @@ void ompl::control::Syclop::setupRegionEstimates(void)
 
     for (unsigned int i = 0; i < decomp_->getNumRegions(); ++i)
     {
-        Region& r = graph_[boost::vertex(i, graph_)];
+        Region &r = graph_[boost::vertex(i, graph_)];
         r.volume = decomp_->getRegionVolume(i);
         if (numTotal[i] == 0)
             r.percentValidCells = 1.0;
@@ -267,14 +267,14 @@ void ompl::control::Syclop::setupRegionEstimates(void)
     }
 }
 
-void ompl::control::Syclop::updateRegion(Region& r)
+void ompl::control::Syclop::updateRegion(Region &r)
 {
     const double f = r.freeVolume*r.freeVolume*r.freeVolume*r.freeVolume;
     r.alpha = 1.0 / ((1 + r.covGridCells.size()) * f);
     r.weight = f / ((1 + r.covGridCells.size())*(1 + r.numSelections*r.numSelections));
 }
 
-void ompl::control::Syclop::initEdge(Adjacency& adj, const Region* source, const Region* target)
+void ompl::control::Syclop::initEdge(Adjacency &adj, const Region *source, const Region *target)
 {
     adj.source = source;
     adj.target = target;
@@ -287,7 +287,7 @@ void ompl::control::Syclop::setupEdgeEstimates(void)
     EdgeIter ei, eend;
     for (boost::tie(ei,eend) = boost::edges(graph_) ; ei != eend; ++ei)
     {
-        Adjacency& adj = graph_[*ei];
+        Adjacency &adj = graph_[*ei];
         adj.empty = true;
         adj.numLeadInclusions = 0;
         adj.numSelections = 0;
@@ -295,7 +295,7 @@ void ompl::control::Syclop::setupEdgeEstimates(void)
     }
 }
 
-void ompl::control::Syclop::updateEdge(Adjacency& a)
+void ompl::control::Syclop::updateEdge(Adjacency &a)
 {
     a.cost = 1.0;
     for (std::vector<EdgeCostFactorFn>::const_iterator i = edgeCostFactors_.begin(); i != edgeCostFactors_.end(); ++i)
@@ -305,7 +305,7 @@ void ompl::control::Syclop::updateEdge(Adjacency& a)
     }
 }
 
-bool ompl::control::Syclop::updateCoverageEstimate(Region& r, const base::State *s)
+bool ompl::control::Syclop::updateCoverageEstimate(Region &r, const base::State *s)
 {
     const int covCell = covGrid_.locateRegion(s);
     if (r.covGridCells.count(covCell) == 1)
@@ -315,9 +315,9 @@ bool ompl::control::Syclop::updateCoverageEstimate(Region& r, const base::State 
     return true;
 }
 
-bool ompl::control::Syclop::updateConnectionEstimate(const Region& c, const Region& d, const base::State *s)
+bool ompl::control::Syclop::updateConnectionEstimate(const Region &c, const Region &d, const base::State *s)
 {
-    Adjacency& adj = *regionsToEdge_[std::pair<int,int>(c.index,d.index)];
+    Adjacency &adj = *regionsToEdge_[std::pair<int,int>(c.index,d.index)];
     const int covCell = covGrid_.locateRegion(s);
     if (adj.covGridCells.count(covCell) == 1)
         return false;
@@ -333,7 +333,7 @@ void ompl::control::Syclop::buildGraph(void)
     for (unsigned int i = 0; i < decomp_->getNumRegions(); ++i)
     {
         const RegionGraph::vertex_descriptor v = boost::add_vertex(graph_);
-        Region& r = graph_[boost::vertex(v, graph_)];
+        Region &r = graph_[boost::vertex(v, graph_)];
         initRegion(r);
         r.index = index[v];
     }
@@ -368,7 +368,7 @@ void ompl::control::Syclop::clearGraphDetails(void)
 int ompl::control::Syclop::selectRegion(void)
 {
     const int index = availDist_.sample(rng_.uniform01());
-    Region& region = graph_[boost::vertex(index, graph_)];
+    Region &region = graph_[boost::vertex(index, graph_)];
     ++region.numSelections;
     updateRegion(region);
     return index;
@@ -381,7 +381,7 @@ void ompl::control::Syclop::computeAvailableRegions(void)
     availDist_.clear();
     for (int i = lead_.size()-1; i >= 0; --i)
     {
-        Region& r = graph_[boost::vertex(lead_[i], graph_)];
+        Region &r = graph_[boost::vertex(lead_[i], graph_)];
         if (!r.motions.empty())
         {
             r.pdfElem = availDist_.add(lead_[i], r.weight);
@@ -489,7 +489,7 @@ void ompl::control::Syclop::defaultComputeLead(int startRegion, int goalRegion, 
     //Now that we have a lead, update the edge weights.
     for (std::size_t i = 0; i < lead.size()-1; ++i)
     {
-        Adjacency& adj = *regionsToEdge_[std::pair<int,int>(lead[i], lead[i+1])];
+        Adjacency &adj = *regionsToEdge_[std::pair<int,int>(lead[i], lead[i+1])];
         if (adj.empty)
         {
             ++adj.numLeadInclusions;
@@ -500,7 +500,7 @@ void ompl::control::Syclop::defaultComputeLead(int startRegion, int goalRegion, 
 
 double ompl::control::Syclop::defaultEdgeCost(int r, int s)
 {
-    const Adjacency& a = *regionsToEdge_[std::pair<int,int>(r,s)];
+    const Adjacency &a = *regionsToEdge_[std::pair<int,int>(r,s)];
     double factor = 1.0;
     const int nsel = (a.empty ? a.numLeadInclusions : a.numSelections);
     factor = (double)(1 + nsel*nsel) / (double)(1 + a.covGridCells.size()*a.covGridCells.size());

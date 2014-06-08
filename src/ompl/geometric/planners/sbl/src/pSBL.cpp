@@ -370,7 +370,7 @@ ompl::geometric::pSBL::Motion* ompl::geometric::pSBL::selectMotion(RNG &rng, Tre
 {
     tree.lock.lock ();
     GridCell* cell = tree.pdf.sample(rng.uniform01());
-    Motion* result = cell && !cell->data.empty() ? cell->data[rng.uniformInt(0, cell->data.size() - 1)] : NULL;
+    Motion *result = cell && !cell->data.empty() ? cell->data[rng.uniformInt(0, cell->data.size() - 1)] : NULL;
     tree.lock.unlock ();
     return result;
 }

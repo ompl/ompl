@@ -345,13 +345,13 @@ namespace ompl
         typedef BinaryHeap< CellX*, LessThanExternalCell > externalBHeap;
 
         /// Routine used internally for keeping track of binary heap elements for internal cells
-        static void setHeapElementI(typename internalBHeap::Element* element, void *)
+        static void setHeapElementI(typename internalBHeap::Element *element, void*)
         {
             element->data->heapElement = reinterpret_cast<void*>(element);
         }
 
         /// Routine used internally for keeping track of binary heap elements for external cells
-        static void setHeapElementE(typename externalBHeap::Element* element, void *)
+        static void setHeapElementE(typename externalBHeap::Element *element, void*)
         {
             element->data->heapElement = reinterpret_cast<void*>(element);
         }
