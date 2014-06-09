@@ -117,7 +117,7 @@ ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProject
     checkSpaceType(space_);
 }
 
-void ompl::base::RealVectorOrthogonalProjectionEvaluator::copyBounds(void)
+void ompl::base::RealVectorOrthogonalProjectionEvaluator::copyBounds()
 {
     bounds_.resize(components_.size());
     const RealVectorBounds &bounds = space_->as<RealVectorStateSpace>()->getBounds();
@@ -128,7 +128,7 @@ void ompl::base::RealVectorOrthogonalProjectionEvaluator::copyBounds(void)
     }
 }
 
-void ompl::base::RealVectorOrthogonalProjectionEvaluator::defaultCellSizes(void)
+void ompl::base::RealVectorOrthogonalProjectionEvaluator::defaultCellSizes()
 {
     const RealVectorBounds &bounds = space_->as<RealVectorStateSpace>()->getBounds();
     bounds_.resize(components_.size());
@@ -141,7 +141,7 @@ void ompl::base::RealVectorOrthogonalProjectionEvaluator::defaultCellSizes(void)
     }
 }
 
-unsigned int ompl::base::RealVectorLinearProjectionEvaluator::getDimension(void) const
+unsigned int ompl::base::RealVectorLinearProjectionEvaluator::getDimension() const
 {
     return projection_.mat.size1();
 }
@@ -151,7 +151,7 @@ void ompl::base::RealVectorLinearProjectionEvaluator::project(const State *state
     projection_.project(state->as<RealVectorStateSpace::StateType>()->values, projection);
 }
 
-unsigned int ompl::base::RealVectorOrthogonalProjectionEvaluator::getDimension(void) const
+unsigned int ompl::base::RealVectorOrthogonalProjectionEvaluator::getDimension() const
 {
     return components_.size();
 }
@@ -190,12 +190,12 @@ ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionE
     checkSpaceType(space_);
 }
 
-void ompl::base::RealVectorIdentityProjectionEvaluator::copyBounds(void)
+void ompl::base::RealVectorIdentityProjectionEvaluator::copyBounds()
 {
     bounds_ = space_->as<RealVectorStateSpace>()->getBounds();
 }
 
-void ompl::base::RealVectorIdentityProjectionEvaluator::defaultCellSizes(void)
+void ompl::base::RealVectorIdentityProjectionEvaluator::defaultCellSizes()
 {
     bounds_ = space_->as<RealVectorStateSpace>()->getBounds();
     cellSizes_.resize(getDimension());
@@ -203,13 +203,13 @@ void ompl::base::RealVectorIdentityProjectionEvaluator::defaultCellSizes(void)
         cellSizes_[i] = (bounds_.high[i] - bounds_.low[i]) / magic::PROJECTION_DIMENSION_SPLITS;
 }
 
-void ompl::base::RealVectorIdentityProjectionEvaluator::setup(void)
+void ompl::base::RealVectorIdentityProjectionEvaluator::setup()
 {
     copySize_ = getDimension() * sizeof(double);
     ProjectionEvaluator::setup();
 }
 
-unsigned int ompl::base::RealVectorIdentityProjectionEvaluator::getDimension(void) const
+unsigned int ompl::base::RealVectorIdentityProjectionEvaluator::getDimension() const
 {
     return space_->getDimension();
 }

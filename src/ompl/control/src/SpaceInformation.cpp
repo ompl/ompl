@@ -41,7 +41,7 @@
 #include <utility>
 #include <limits>
 
-void ompl::control::SpaceInformation::setup(void)
+void ompl::control::SpaceInformation::setup()
 {
     base::SpaceInformation::setup();
     if (!statePropagator_)
@@ -70,7 +70,7 @@ void ompl::control::SpaceInformation::setup(void)
         throw Exception("The dimension of the control space we plan in must be > 0");
 }
 
-ompl::control::DirectedControlSamplerPtr ompl::control::SpaceInformation::allocDirectedControlSampler(void) const
+ompl::control::DirectedControlSamplerPtr ompl::control::SpaceInformation::allocDirectedControlSampler() const
 {
     if (dcsa_)
         return dcsa_(this);
@@ -84,7 +84,7 @@ void ompl::control::SpaceInformation::setDirectedControlSamplerAllocator(const D
     setup_ = false;
 }
 
-void ompl::control::SpaceInformation::clearDirectedSamplerAllocator(void)
+void ompl::control::SpaceInformation::clearDirectedSamplerAllocator()
 {
     dcsa_ = DirectedControlSamplerAllocator();
     setup_ = false;
@@ -119,7 +119,7 @@ void ompl::control::SpaceInformation::setStatePropagator(const StatePropagatorPt
     statePropagator_ = sp;
 }
 
-bool ompl::control::SpaceInformation::canPropagateBackward(void) const
+bool ompl::control::SpaceInformation::canPropagateBackward() const
 {
     return statePropagator_->canPropagateBackward();
 }

@@ -65,12 +65,12 @@ ompl::geometric::FMT::FMT(const base::SpaceInformationPtr &si)
     ompl::base::Planner::declareParam<double>("free_space_volume", this, &FMT::setFreeSpaceVolume, &FMT::getFreeSpaceVolume, "1.:10:1000000.");
 }
 
-ompl::geometric::FMT::~FMT(void)
+ompl::geometric::FMT::~FMT()
 {
     freeMemory();
 }
 
-void ompl::geometric::FMT::setup(void)
+void ompl::geometric::FMT::setup()
 {
     ompl::base::Planner::setup();
 
@@ -90,7 +90,7 @@ void ompl::geometric::FMT::setup(void)
     nn_->setDistanceFunction(boost::bind(&FMT::distanceFunction, this, _1, _2));
 }
 
-void ompl::geometric::FMT::freeMemory(void)
+void ompl::geometric::FMT::freeMemory()
 {
     if (nn_)
     {
@@ -105,7 +105,7 @@ void ompl::geometric::FMT::freeMemory(void)
     }
 }
 
-void ompl::geometric::FMT::clear(void)
+void ompl::geometric::FMT::clear()
 {
     ompl::base::Planner::clear();
     lastGoalMotion_ = NULL;

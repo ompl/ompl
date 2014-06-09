@@ -71,7 +71,7 @@ ompl::base::MorseStateSpace::MorseStateSpace(const MorseEnvironmentPtr &env, dou
     setBounds();
 }
 
-void ompl::base::MorseStateSpace::setBounds(void)
+void ompl::base::MorseStateSpace::setBounds()
 {
     RealVectorBounds pbounds(3), lbounds(3), abounds(3);
     for (unsigned int i = 0; i < 3; i++)
@@ -125,7 +125,7 @@ void ompl::base::MorseStateSpace::setAngularVelocityBounds(const RealVectorBound
         components_[i * 4 + 2]->as<RealVectorStateSpace>()->setBounds(bounds);
 }
 
-ompl::base::State* ompl::base::MorseStateSpace::allocState(void) const
+ompl::base::State* ompl::base::MorseStateSpace::allocState() const
 {
     StateType *state = new StateType();
     allocStateComponents(state);
@@ -143,12 +143,12 @@ void ompl::base::MorseStateSpace::interpolate(const State *from, const State *to
     CompoundStateSpace::interpolate(from, to, t, state);
 }
 
-ompl::base::StateSamplerPtr ompl::base::MorseStateSpace::allocDefaultStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::MorseStateSpace::allocDefaultStateSampler() const
 {
     return CompoundStateSpace::allocDefaultStateSampler();
 }
 
-ompl::base::StateSamplerPtr ompl::base::MorseStateSpace::allocStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::MorseStateSpace::allocStateSampler() const
 {
     return CompoundStateSpace::allocDefaultStateSampler();
 }

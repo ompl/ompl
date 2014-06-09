@@ -74,7 +74,7 @@ namespace ompl
                 BOUNDED_APPROXIMATE,
             };
 
-            StateValidityCheckerSpecs(void) : clearanceComputationType(NONE), hasValidDirectionComputation(false)
+            StateValidityCheckerSpecs() : clearanceComputationType(NONE), hasValidDirectionComputation(false)
             {
             }
 
@@ -104,7 +104,7 @@ namespace ompl
             {
             }
 
-            virtual ~StateValidityChecker(void)
+            virtual ~StateValidityChecker()
             {
             }
 
@@ -147,7 +147,7 @@ namespace ompl
             }
 
             /** \brief Return the specifications (capabilities of this state validity checker) */
-            const StateValidityCheckerSpecs& getSpecs(void) const
+            const StateValidityCheckerSpecs& getSpecs() const
             {
                 return specs_;
             }

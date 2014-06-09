@@ -56,7 +56,7 @@ namespace ompl
         {
         public:
 
-            PlannerSolutionSet(void)
+            PlannerSolutionSet()
             {
             }
 
@@ -69,20 +69,20 @@ namespace ompl
                 std::sort(solutions_.begin(), solutions_.end());
             }
 
-            void clear(void)
+            void clear()
             {
                 boost::mutex::scoped_lock slock(lock_);
                 solutions_.clear();
             }
 
-            std::vector<PlannerSolution> getSolutions(void)
+            std::vector<PlannerSolution> getSolutions()
             {
                 boost::mutex::scoped_lock slock(lock_);
                 std::vector<PlannerSolution> copy = solutions_;
                 return copy;
             }
 
-            bool isApproximate(void)
+            bool isApproximate()
             {
                 boost::mutex::scoped_lock slock(lock_);
                 bool result = false;
@@ -91,7 +91,7 @@ namespace ompl
                 return result;
             }
 
-            bool isOptimized(void)
+            bool isOptimized()
             {
                 boost::mutex::scoped_lock slock(lock_);
                 bool result = false;
@@ -100,7 +100,7 @@ namespace ompl
                 return result;
             }
 
-            double getDifference(void)
+            double getDifference()
             {
                 boost::mutex::scoped_lock slock(lock_);
                 double diff = -1.0;
@@ -109,7 +109,7 @@ namespace ompl
                 return diff;
             }
 
-            PathPtr getTopSolution(void)
+            PathPtr getTopSolution()
             {
                 boost::mutex::scoped_lock slock(lock_);
                 PathPtr copy;
@@ -118,7 +118,7 @@ namespace ompl
                 return copy;
             }
 
-            std::size_t getSolutionCount(void)
+            std::size_t getSolutionCount()
             {
                 boost::mutex::scoped_lock slock(lock_);
                 std::size_t result = solutions_.size();
@@ -247,7 +247,7 @@ void ompl::base::ProblemDefinition::getInputStates(std::vector<const State*> &st
             states.push_back (goals->getState(i));
 }
 
-ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid(void) const
+ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() const
 {
     PathPtr path;
     if (control::SpaceInformationPtr sic = boost::dynamic_pointer_cast<control::SpaceInformation, SpaceInformation>(si_))
@@ -372,17 +372,17 @@ bool ompl::base::ProblemDefinition::isTrivial(unsigned int *startIndex, double *
     return false;
 }
 
-bool ompl::base::ProblemDefinition::hasSolution(void) const
+bool ompl::base::ProblemDefinition::hasSolution() const
 {
     return solutions_->getSolutionCount() > 0;
 }
 
-std::size_t ompl::base::ProblemDefinition::getSolutionCount(void) const
+std::size_t ompl::base::ProblemDefinition::getSolutionCount() const
 {
     return solutions_->getSolutionCount();
 }
 
-ompl::base::PathPtr ompl::base::ProblemDefinition::getSolutionPath(void) const
+ompl::base::PathPtr ompl::base::ProblemDefinition::getSolutionPath() const
 {
     return solutions_->getTopSolution();
 }
@@ -401,27 +401,27 @@ void ompl::base::ProblemDefinition::addSolutionPath(const PlannerSolution &sol) 
     solutions_->add(sol);
 }
 
-bool ompl::base::ProblemDefinition::hasApproximateSolution(void) const
+bool ompl::base::ProblemDefinition::hasApproximateSolution() const
 {
     return solutions_->isApproximate();
 }
 
-bool ompl::base::ProblemDefinition::hasOptimizedSolution(void) const
+bool ompl::base::ProblemDefinition::hasOptimizedSolution() const
 {
     return solutions_->isOptimized();
 }
 
-double ompl::base::ProblemDefinition::getSolutionDifference(void) const
+double ompl::base::ProblemDefinition::getSolutionDifference() const
 {
     return solutions_->getDifference();
 }
 
-std::vector<ompl::base::PlannerSolution> ompl::base::ProblemDefinition::getSolutions(void) const
+std::vector<ompl::base::PlannerSolution> ompl::base::ProblemDefinition::getSolutions() const
 {
     return solutions_->getSolutions();
 }
 
-void ompl::base::ProblemDefinition::clearSolutionPaths(void) const
+void ompl::base::ProblemDefinition::clearSolutionPaths() const
 {
     solutions_->clear();
 }
@@ -440,17 +440,17 @@ void ompl::base::ProblemDefinition::print(std::ostream &out) const
     out << "There are " << solutions_->getSolutionCount() << " solutions" << std::endl;
 }
 
-bool ompl::base::ProblemDefinition::hasSolutionNonExistenceProof(void) const
+bool ompl::base::ProblemDefinition::hasSolutionNonExistenceProof() const
 {
     return nonExistenceProof_.get();
 }
 
-void ompl::base::ProblemDefinition::clearSolutionNonExistenceProof(void)
+void ompl::base::ProblemDefinition::clearSolutionNonExistenceProof()
 {
     nonExistenceProof_.reset();
 }
 
-const ompl::base::SolutionNonExistenceProofPtr& ompl::base::ProblemDefinition::getSolutionNonExistenceProof(void) const
+const ompl::base::SolutionNonExistenceProofPtr& ompl::base::ProblemDefinition::getSolutionNonExistenceProof() const
 {
     return nonExistenceProof_;
 }

@@ -82,7 +82,7 @@ namespace ompl
 
             struct Triangle : public Polygon
             {
-                Triangle(void) : Polygon(3) {}
+                Triangle() : Polygon(3) {}
                 virtual ~Triangle() {}
                 std::vector<unsigned int> neighbors;
                 double volume;

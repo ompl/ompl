@@ -90,7 +90,7 @@ ompl::control::PathControl::PathControl(const PathControl &path) : base::Path(pa
     copyFrom(path);
 }
 
-ompl::geometric::PathGeometric ompl::control::PathControl::asGeometric(void) const
+ompl::geometric::PathGeometric ompl::control::PathControl::asGeometric() const
 {
     PathControl pc(*this);
     pc.interpolate();
@@ -122,7 +122,7 @@ void ompl::control::PathControl::copyFrom(const PathControl &other)
     controlDurations_ = other.controlDurations_;
 }
 
-double ompl::control::PathControl::length(void) const
+double ompl::control::PathControl::length() const
 {
     return std::accumulate(controlDurations_.begin(), controlDurations_.end(), 0.0);
 }
@@ -180,7 +180,7 @@ void ompl::control::PathControl::printAsMatrix(std::ostream &out) const
     }
 }
 
-void ompl::control::PathControl::interpolate(void)
+void ompl::control::PathControl::interpolate()
 {
     if (states_.size() <= controls_.size())
     {
@@ -229,7 +229,7 @@ void ompl::control::PathControl::interpolate(void)
     controlDurations_.swap(newControlDurations);
 }
 
-bool ompl::control::PathControl::check(void) const
+bool ompl::control::PathControl::check() const
 {
     if (controls_.empty())
     {
@@ -269,7 +269,7 @@ void ompl::control::PathControl::append(const base::State *state, const Control 
     controlDurations_.push_back(duration);
 }
 
-void ompl::control::PathControl::random(void)
+void ompl::control::PathControl::random()
 {
     freeMemory();
     states_.resize(2);
@@ -330,7 +330,7 @@ bool ompl::control::PathControl::randomValid(unsigned int attempts)
     return ok;
 }
 
-void ompl::control::PathControl::freeMemory(void)
+void ompl::control::PathControl::freeMemory()
 {
     for (unsigned int i = 0 ; i < states_.size() ; ++i)
         si_->freeState(states_[i]);

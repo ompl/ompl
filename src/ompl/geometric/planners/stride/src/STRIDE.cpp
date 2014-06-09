@@ -69,12 +69,12 @@ ompl::geometric::STRIDE::STRIDE(const base::SpaceInformationPtr &si,
     Planner::declareParam<double>("min_valid_path_fraction", this, &STRIDE::setMinValidPathFraction, &STRIDE::getMinValidPathFraction, "0.:.05:1.");
 }
 
-ompl::geometric::STRIDE::~STRIDE(void)
+ompl::geometric::STRIDE::~STRIDE()
 {
     freeMemory();
 }
 
-void ompl::geometric::STRIDE::setup(void)
+void ompl::geometric::STRIDE::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -83,7 +83,7 @@ void ompl::geometric::STRIDE::setup(void)
     setupTree();
 }
 
-void ompl::geometric::STRIDE::setupTree(void)
+void ompl::geometric::STRIDE::setupTree()
 {
     tree_.reset(new NearestNeighborsGNAT<Motion*>(degree_, minDegree_, maxDegree_, maxNumPtsPerLeaf_, estimatedDimension_));
     if (useProjectedDistance_)
@@ -92,7 +92,7 @@ void ompl::geometric::STRIDE::setupTree(void)
         tree_->setDistanceFunction(boost::bind(&STRIDE::distanceFunction, this, _1, _2));
 }
 
-void ompl::geometric::STRIDE::clear(void)
+void ompl::geometric::STRIDE::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -100,7 +100,7 @@ void ompl::geometric::STRIDE::clear(void)
     setupTree();
 }
 
-void ompl::geometric::STRIDE::freeMemory(void)
+void ompl::geometric::STRIDE::freeMemory()
 {
     if (tree_)
     {
@@ -223,7 +223,7 @@ void ompl::geometric::STRIDE::addMotion(Motion *motion)
     tree_->add(motion);
 }
 
-ompl::geometric::STRIDE::Motion* ompl::geometric::STRIDE::selectMotion(void)
+ompl::geometric::STRIDE::Motion* ompl::geometric::STRIDE::selectMotion()
 {
     return tree_->sample(rng_);
 }

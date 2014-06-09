@@ -70,7 +70,7 @@ namespace ompl
             /** \brief Constructor */
             RRT(const SpaceInformationPtr &si);
 
-            virtual ~RRT(void);
+            virtual ~RRT();
 
             /** \brief Continue solving for some amount of time. Return true if solution was found. */
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
@@ -78,7 +78,7 @@ namespace ompl
             /** \brief Clear datastructures. Call this function if the
                 input data to the planner has changed and you do not
                 want to continue planning */
-            virtual void clear(void);
+            virtual void clear();
 
             /** In the process of randomly selecting states in the state
                 space to attempt to go towards, the algorithm may in fact
@@ -93,13 +93,13 @@ namespace ompl
             }
 
             /** \brief Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
 
             /** \brief Return true if the intermediate states generated along motions are to be added to the tree itself */
-            bool getIntermediateStates(void) const
+            bool getIntermediateStates() const
             {
                 return addIntermediateStates_;
             }
@@ -114,12 +114,12 @@ namespace ompl
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 nn_.reset(new NN<Motion*>());
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
         protected:
 
@@ -132,7 +132,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : state(NULL), control(NULL), steps(0), parent(NULL)
+                Motion() : state(NULL), control(NULL), steps(0), parent(NULL)
                 {
                 }
 
@@ -141,7 +141,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -159,7 +159,7 @@ namespace ompl
             };
 
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion *a, const Motion *b) const

@@ -70,7 +70,7 @@ void ompl::control::MorseStatePropagator::propagate(const base::State *state, co
     si_->getStateSpace()->as<base::MorseStateSpace>()->readState(result);
 }
 
-bool ompl::control::MorseStatePropagator::canPropagateBackward(void) const
+bool ompl::control::MorseStatePropagator::canPropagateBackward() const
 {
     return false;
 }

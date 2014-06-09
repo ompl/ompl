@@ -40,7 +40,7 @@ ompl::control::PlannerData::PlannerData(const SpaceInformationPtr &siC) : base::
 {
 }
 
-ompl::control::PlannerData::~PlannerData(void)
+ompl::control::PlannerData::~PlannerData()
 {
     freeMemory();
 }
@@ -101,7 +101,7 @@ bool ompl::control::PlannerData::removeEdge (const ompl::base::PlannerDataVertex
     return ompl::base::PlannerData::removeEdge(index1, index2);
 }
 
-void ompl::control::PlannerData::clear (void)
+void ompl::control::PlannerData::clear ()
 {
     ompl::base::PlannerData::clear();
 
@@ -109,7 +109,7 @@ void ompl::control::PlannerData::clear (void)
     decoupledControls_.clear();
 }
 
-void ompl::control::PlannerData::decoupleFromPlanner(void)
+void ompl::control::PlannerData::decoupleFromPlanner()
 {
     ompl::base::PlannerData::decoupleFromPlanner();
 
@@ -134,17 +134,17 @@ void ompl::control::PlannerData::decoupleFromPlanner(void)
     }
 }
 
-const ompl::control::SpaceInformationPtr& ompl::control::PlannerData::getSpaceInformation(void) const
+const ompl::control::SpaceInformationPtr& ompl::control::PlannerData::getSpaceInformation() const
 {
     return siC_;
 }
 
-bool ompl::control::PlannerData::hasControls(void) const
+bool ompl::control::PlannerData::hasControls() const
 {
     return true;
 }
 
-void ompl::control::PlannerData::freeMemory(void)
+void ompl::control::PlannerData::freeMemory()
 {
     for (std::set<Control*>::iterator it = decoupledControls_.begin(); it != decoupledControls_.end(); ++it)
         siC_->freeControl(*it);

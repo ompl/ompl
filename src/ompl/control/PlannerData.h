@@ -65,7 +65,7 @@ namespace ompl
             /// \brief Copy constructor.
             PlannerDataEdgeControl(const PlannerDataEdgeControl &rhs) : PlannerDataEdge(), c_(rhs.c_), duration_(rhs.duration_) {}
 
-            virtual ~PlannerDataEdgeControl(void) {}
+            virtual ~PlannerDataEdgeControl() {}
 
             virtual base::PlannerDataEdge* clone() const
             {
@@ -73,9 +73,9 @@ namespace ompl
             }
 
             /// \brief Return the control associated with this edge.
-            const Control* getControl(void) const { return c_; }
+            const Control* getControl() const { return c_; }
             /// \brief Return the duration associated with this edge.
-            double getDuration(void) const { return duration_; }
+            double getDuration() const { return duration_; }
 
             virtual bool operator==(const PlannerDataEdge &rhs) const
             {
@@ -115,7 +115,7 @@ namespace ompl
             /// \brief Constructor.  Accepts a SpaceInformationPtr for the space planned in.
             PlannerData(const SpaceInformationPtr &siC);
             /// \brief Destructor.
-            virtual ~PlannerData(void);
+            virtual ~PlannerData();
 
             /// \brief Removes the vertex associated with the given data.  If the
             /// vertex does not exist, false is returned.
@@ -133,7 +133,7 @@ namespace ompl
             virtual bool removeEdge(const base::PlannerDataVertex &v1, const base::PlannerDataVertex &v2);
 
             /// \brief Clears the entire data structure
-            virtual void clear(void);
+            virtual void clear();
 
             /// \brief Creates a deep copy of the states contained in the vertices of this
             /// PlannerData structure so that when the planner that created this instance goes
@@ -142,13 +142,13 @@ namespace ompl
             /// in this PlannerData will be replaced with clones which are scoped to this PlannerData
             /// object.  A subsequent call to this method is necessary after any other vertices are
             /// added to ensure that this PlannerData instance is fully decoupled.
-            virtual void decoupleFromPlanner(void);
+            virtual void decoupleFromPlanner();
 
             /// \brief Return the instance of SpaceInformation used in this PlannerData
-            const SpaceInformationPtr& getSpaceInformation(void) const;
+            const SpaceInformationPtr& getSpaceInformation() const;
 
             /// \brief Returns true if this PlannerData instance has controls associated with it
-            virtual bool hasControls(void) const;
+            virtual bool hasControls() const;
 
         protected:
             /// \brief The instance of control::SpaceInformation associated with this data
@@ -158,7 +158,7 @@ namespace ompl
             std::set<Control*> decoupledControls_;
 
         private:
-            void freeMemory(void);
+            void freeMemory();
         };
     }
 }

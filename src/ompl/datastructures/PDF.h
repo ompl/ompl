@@ -64,7 +64,7 @@ namespace ompl
         };
 
         /** \brief Constructs an empty PDF. */
-        PDF(void)
+        PDF()
         {
         }
 
@@ -82,13 +82,13 @@ namespace ompl
         }
 
         /** \brief Destructor. Clears allocated memory. */
-        ~PDF(void)
+        ~PDF()
         {
             clear();
         }
 
         /** \brief Get the current set of stored elements */
-        const std::vector<Element*>& getElements(void)
+        const std::vector<Element*>& getElements()
         {
             return data_;
         }
@@ -238,7 +238,7 @@ which must be between 0 and 1. */
         }
 
         /** \brief Clears the PDF. */
-        void clear(void)
+        void clear()
         {
             for (typename std::vector<Element*>::iterator e = data_.begin(); e != data_.end(); ++e)
                 delete *e;
@@ -247,7 +247,7 @@ which must be between 0 and 1. */
         }
 
         /** \brief Returns the number of elements in the PDF. */
-        std::size_t size(void) const
+        std::size_t size() const
         {
             return data_.size();
         }
@@ -259,7 +259,7 @@ which must be between 0 and 1. */
         }
 
         /** \brief Returns whether the PDF contains no data. */
-        bool empty(void) const
+        bool empty() const
         {
             return data_.empty();
         }

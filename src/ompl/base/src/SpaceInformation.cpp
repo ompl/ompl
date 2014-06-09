@@ -54,7 +54,7 @@ ompl::base::SpaceInformation::SpaceInformation(const StateSpacePtr &space) :
     params_.include(stateSpace_->params());
 }
 
-void ompl::base::SpaceInformation::setup(void)
+void ompl::base::SpaceInformation::setup()
 {
     if (!stateValidityChecker_)
     {
@@ -75,7 +75,7 @@ void ompl::base::SpaceInformation::setup(void)
     setup_ = true;
 }
 
-bool ompl::base::SpaceInformation::isSetup(void) const
+bool ompl::base::SpaceInformation::isSetup() const
 {
     return setup_;
 }
@@ -107,7 +107,7 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
     setStateValidityChecker(StateValidityCheckerPtr(dynamic_cast<StateValidityChecker*>(new BoostFnStateValidityChecker(this, svc))));
 }
 
-void ompl::base::SpaceInformation::setDefaultMotionValidator(void)
+void ompl::base::SpaceInformation::setDefaultMotionValidator()
 {
     if (dynamic_cast<ReedsSheppStateSpace*>(stateSpace_.get()))
          motionValidator_.reset(new ReedsSheppMotionValidator(this));
@@ -124,7 +124,7 @@ void ompl::base::SpaceInformation::setValidStateSamplerAllocator(const ValidStat
     setup_ = false;
 }
 
-void ompl::base::SpaceInformation::clearValidStateSamplerAllocator(void)
+void ompl::base::SpaceInformation::clearValidStateSamplerAllocator()
 {
     vssa_ = ValidStateSamplerAllocator();
     setup_ = false;
@@ -319,7 +319,7 @@ bool ompl::base::SpaceInformation::checkMotion(const std::vector<State*> &states
     return true;
 }
 
-ompl::base::ValidStateSamplerPtr ompl::base::SpaceInformation::allocValidStateSampler(void) const
+ompl::base::ValidStateSamplerPtr ompl::base::SpaceInformation::allocValidStateSampler() const
 {
     if (vssa_)
         return vssa_(this);

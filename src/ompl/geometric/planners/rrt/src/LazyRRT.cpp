@@ -50,12 +50,12 @@ ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si) : base::P
     Planner::declareParam<double>("goal_bias", this, &LazyRRT::setGoalBias, &LazyRRT::getGoalBias, "0.:.05:1.");
 }
 
-ompl::geometric::LazyRRT::~LazyRRT(void)
+ompl::geometric::LazyRRT::~LazyRRT()
 {
     freeMemory();
 }
 
-void ompl::geometric::LazyRRT::setup(void)
+void ompl::geometric::LazyRRT::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -66,7 +66,7 @@ void ompl::geometric::LazyRRT::setup(void)
     nn_->setDistanceFunction(boost::bind(&LazyRRT::distanceFunction, this, _1, _2));
 }
 
-void ompl::geometric::LazyRRT::clear(void)
+void ompl::geometric::LazyRRT::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -76,7 +76,7 @@ void ompl::geometric::LazyRRT::clear(void)
     lastGoalMotion_ = NULL;
 }
 
-void ompl::geometric::LazyRRT::freeMemory(void)
+void ompl::geometric::LazyRRT::freeMemory()
 {
     if (nn_)
     {

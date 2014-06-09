@@ -121,9 +121,9 @@ namespace ompl
             /// @name ompl::base::Planner Interface
             /// @{
 
-            virtual void setup(void);
+            virtual void setup();
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Continues solving until a solution is found or a given planner termination condition is met.
                 Returns true if solution was found. */
@@ -140,10 +140,10 @@ namespace ompl
             void addEdgeCostFactor(const EdgeCostFactorFn& factor);
 
             /** \brief Clears all edge cost factors, making all edge weights equivalent to 1. */
-            void clearEdgeCostFactors(void);
+            void clearEdgeCostFactors();
 
             /// \brief Get the number of states to sample when estimating free volume in the Decomposition.
-            int getNumFreeVolumeSamples (void) const
+            int getNumFreeVolumeSamples () const
             {
                 return numFreeVolSamples_;
             }
@@ -157,7 +157,7 @@ namespace ompl
 
             /// \brief Get the probability [0,1] that a lead will be computed as
             ///  a shortest-path instead of a random-DFS.
-            double getProbShortestPathLead (void) const
+            double getProbShortestPathLead () const
             {
                 return probShortestPath_;
             }
@@ -171,7 +171,7 @@ namespace ompl
 
             /// \brief Get the probability [0,1] that the set of available
             ///  regions will be augmented.
-            double getProbAddingToAvailableRegions (void) const
+            double getProbAddingToAvailableRegions () const
             {
                 return probKeepAddingToAvail_;
             }
@@ -185,7 +185,7 @@ namespace ompl
 
             /// \brief Get the number of times a new region will be chosen and
             ///  promoted for expansion from a given lead.
-            int getNumRegionExpansions (void) const
+            int getNumRegionExpansions () const
             {
                 return numRegionExpansions_;
             }
@@ -199,7 +199,7 @@ namespace ompl
 
             /// \brief Get the number of calls to selectAndExtend() in the
             ///  low-level tree planner for a given lead and region.
-            int getNumTreeExpansions (void) const
+            int getNumTreeExpansions () const
             {
                 return numTreeSelections_;
             }
@@ -213,7 +213,7 @@ namespace ompl
 
             /// \brief Get the probability [0,1] that a lead will be abandoned
             ///  early, before a new region is chosen for expansion.
-            double getProbAbandonLeadEarly (void) const
+            double getProbAbandonLeadEarly () const
             {
                 return probAbandonLeadEarly_;
             }
@@ -251,14 +251,14 @@ namespace ompl
             class Motion
             {
             public:
-                Motion(void) : state(NULL), control(NULL), parent(NULL), steps(0)
+                Motion() : state(NULL), control(NULL), parent(NULL), steps(0)
                 {
                 }
                 /** \brief Constructor that allocates memory for the state and the control */
                 Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), parent(NULL), steps(0)
                 {
                 }
-                virtual ~Motion(void)
+                virtual ~Motion()
                 {
                 }
                 /** \brief The state contained by the motion */
@@ -277,14 +277,14 @@ namespace ompl
             class Region
             {
             public:
-                Region(void)
+                Region()
                 {
                 }
-                virtual ~Region(void)
+                virtual ~Region()
                 {
                 }
                 /** \brief Clears motions and coverage information from this region. */
-                void clear(void)
+                void clear()
                 {
                     motions.clear();
                     covGridCells.clear();
@@ -319,14 +319,14 @@ namespace ompl
             class Adjacency
             {
             public:
-                Adjacency(void)
+                Adjacency()
                 {
                 }
-                virtual ~Adjacency(void)
+                virtual ~Adjacency()
                 {
                 }
                 /** \brief Clears coverage information from this adjacency. */
-                void clear(void)
+                void clear()
                 {
                     covGridCells.clear();
                 }
@@ -467,7 +467,7 @@ namespace ompl
             class RegionSet
             {
             public:
-                int sampleUniform(void)
+                int sampleUniform()
                 {
                     if (empty())
                         return -1;
@@ -483,12 +483,12 @@ namespace ompl
                         regions.update(elem, regions.getWeight(elem)+1);
                     }
                 }
-                void clear(void)
+                void clear()
                 {
                     regions.clear();
                     regToElem.clear();
                 }
-                std::size_t size(void) const
+                std::size_t size() const
                 {
                     return regions.size();
                 }
@@ -507,7 +507,7 @@ namespace ompl
             void initRegion(Region &r);
 
             /** \brief Computes volume estimates for a given Region. */
-            void setupRegionEstimates(void);
+            void setupRegionEstimates();
 
             /** \brief Recomputes coverage and selection estimates for a given Region. */
             void updateRegion(Region &r);
@@ -516,7 +516,7 @@ namespace ompl
             void initEdge(Adjacency &a, const Region *source, const Region *target);
 
             /** \brief Initializes default values for each Adjacency. */
-            void setupEdgeEstimates(void);
+            void setupEdgeEstimates();
 
             /** \brief Updates the edge cost for a given Adjacency according to Syclop's list of edge cost factors. */
             void updateEdge(Adjacency &a);
@@ -531,16 +531,16 @@ namespace ompl
 
             /** \brief Build a RegionGraph according to the Decomposition assigned to Syclop,
                 creating Region and Adjacency objects for each node and edge. */
-            void buildGraph(void);
+            void buildGraph();
 
             /** \brief Clear all Region and Adjacency objects in the graph. */
-            void clearGraphDetails(void);
+            void clearGraphDetails();
 
             /** \brief Select a Region in which to promote expansion of the low-level tree. */
-            int selectRegion(void);
+            int selectRegion();
 
             /** \brief Compute the set of Regions available for selection. */
-            void computeAvailableRegions(void);
+            void computeAvailableRegions();
 
             /** \brief Default lead computation. A lead is a sequence of adjacent Regions from start to goal in the Decomposition. */
             void defaultComputeLead(int startRegion, int goalRegion, std::vector<int>& lead);

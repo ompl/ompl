@@ -73,18 +73,18 @@ namespace ompl
             /** \brief Constructor. The objective must always know the space information it is part of. The cost threshold for objective satisfaction defaults to 0.0. */
             OptimizationObjective(const SpaceInformationPtr &si);
 
-            virtual ~OptimizationObjective(void)
+            virtual ~OptimizationObjective()
             {
             }
 
             /** \brief Get the description of this optimization objective */
-            const std::string& getDescription(void) const;
+            const std::string& getDescription() const;
 
             /** \brief Verify that our objective is satisfied already and we can stop planning */
             virtual bool isSatisfied(Cost c) const;
 
             /** \brief Returns the cost threshold currently being checked for objective satisfaction */
-            Cost getCostThreshold(void) const;
+            Cost getCostThreshold() const;
 
             /** \brief Set the cost threshold for objective satisfaction. When a path is found with a cost better than the cost threshold, the objective is considered satisfied. */
             void setCostThreshold(Cost c);
@@ -117,7 +117,7 @@ namespace ompl
             virtual Cost terminalCost(const State *s) const;
 
             /** \brief Check if this objective has a symmetric cost metric, i.e. motionCost(s1, s2) = motionCost(s2, s1). Default implementation returns whether the underlying state space has symmetric interpolation. */
-            virtual bool isSymmetric(void) const;
+            virtual bool isSymmetric() const;
 
             /** \brief Compute the average state cost of this objective by taking a sample of \e numStates states */
             virtual Cost averageStateCost(unsigned int numStates) const;
@@ -132,7 +132,7 @@ namespace ompl
             virtual Cost motionCostHeuristic(const State *s1, const State *s2) const;
 
             /** \brief Returns this objective's SpaceInformation. Needed for operators in MultiOptimizationObjective */
-            const SpaceInformationPtr& getSpaceInformation(void) const;
+            const SpaceInformationPtr& getSpaceInformation() const;
 
         protected:
             /** \brief The space information for this objective */
@@ -169,7 +169,7 @@ namespace ompl
                               double weight);
 
             /** \brief Returns the number of objectives that make up this multiobjective. */
-            std::size_t getObjectiveCount(void) const;
+            std::size_t getObjectiveCount() const;
 
             /** \brief Returns a specific objective from this multiobjective, where the individual objectives are in order of addition to the multiobjective, and \e idx is the zero-based index into this ordering. */
             const OptimizationObjectivePtr& getObjective(unsigned int idx) const;
@@ -181,10 +181,10 @@ namespace ompl
             void setObjectiveWeight(unsigned int idx, double weight);
 
             /** \brief This method "freezes" this multiobjective so that no more objectives can be added to it */
-            void lock(void);
+            void lock();
 
             /** \brief Returns whether this multiobjective has been locked from adding further objectives */
-            bool isLocked(void) const;
+            bool isLocked() const;
 
             /** The default implementation of this method is to use
               addition to add up all the individual objectives' state cost

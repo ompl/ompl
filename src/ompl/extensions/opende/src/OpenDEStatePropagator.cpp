@@ -132,7 +132,7 @@ void ompl::control::OpenDEStatePropagator::propagate(const base::State *state, c
     }
 }
 
-bool ompl::control::OpenDEStatePropagator::canPropagateBackward(void) const
+bool ompl::control::OpenDEStatePropagator::canPropagateBackward() const
 {
     return false;
 }

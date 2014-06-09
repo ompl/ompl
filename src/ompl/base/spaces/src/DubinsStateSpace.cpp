@@ -331,7 +331,7 @@ ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(co
 }
 
 
-void ompl::base::DubinsMotionValidator::defaultSettings(void)
+void ompl::base::DubinsMotionValidator::defaultSettings()
 {
     stateSpace_ = dynamic_cast<DubinsStateSpace*>(si_->getStateSpace().get());
     if (!stateSpace_)

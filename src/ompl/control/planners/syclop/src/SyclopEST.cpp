@@ -37,7 +37,7 @@
 #include "ompl/control/planners/syclop/SyclopEST.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 
-void ompl::control::SyclopEST::setup(void)
+void ompl::control::SyclopEST::setup()
 {
     Syclop::setup();
     sampler_ = si_->allocStateSampler();
@@ -45,7 +45,7 @@ void ompl::control::SyclopEST::setup(void)
     lastGoalMotion_ = NULL;
 }
 
-void ompl::control::SyclopEST::clear(void)
+void ompl::control::SyclopEST::clear()
 {
     Syclop::clear();
     freeMemory();
@@ -115,7 +115,7 @@ void ompl::control::SyclopEST::selectAndExtend(Region &region, std::vector<Motio
     si_->freeState(newState);
 }
 
-void ompl::control::SyclopEST::freeMemory(void)
+void ompl::control::SyclopEST::freeMemory()
 {
     for (std::vector<Motion*>::iterator i = motions_.begin(); i != motions_.end(); ++i)
     {

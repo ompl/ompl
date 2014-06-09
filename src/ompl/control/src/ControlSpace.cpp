@@ -64,11 +64,11 @@ ompl::control::ControlSpace::ControlSpace(const base::StateSpacePtr &stateSpace)
     type_ = CONTROL_SPACE_UNKNOWN;
 }
 
-ompl::control::ControlSpace::~ControlSpace(void)
+ompl::control::ControlSpace::~ControlSpace()
 {
 }
 
-const std::string& ompl::control::ControlSpace::getName(void) const
+const std::string& ompl::control::ControlSpace::getName() const
 {
     return name_;
 }
@@ -78,11 +78,11 @@ void ompl::control::ControlSpace::setName(const std::string &name)
     name_ = name;
 }
 
-void ompl::control::ControlSpace::setup(void)
+void ompl::control::ControlSpace::setup()
 {
 }
 
-ompl::control::ControlSamplerPtr ompl::control::ControlSpace::allocControlSampler(void) const
+ompl::control::ControlSamplerPtr ompl::control::ControlSpace::allocControlSampler() const
 {
     if (csa_)
         return csa_(this);
@@ -95,7 +95,7 @@ void ompl::control::ControlSpace::setControlSamplerAllocator(const ControlSample
     csa_ = csa;
 }
 
-void ompl::control::ControlSpace::clearControlSamplerAllocator(void)
+void ompl::control::ControlSpace::clearControlSamplerAllocator()
 {
     csa_ = ControlSamplerAllocator();
 }
@@ -115,7 +115,7 @@ void ompl::control::ControlSpace::printSettings(std::ostream &out) const
     out << "ControlSpace '" << getName() << "' instance: " << this << std::endl;
 }
 
-unsigned int ompl::control::ControlSpace::getSerializationLength(void) const
+unsigned int ompl::control::ControlSpace::getSerializationLength() const
 {
     return 0;
 }
@@ -135,7 +135,7 @@ void ompl::control::ControlSpace::computeSignature(std::vector<int> &signature) 
     signature.insert(signature.begin(), signature.size());
 }
 
-bool ompl::control::ControlSpace::isCompound(void) const
+bool ompl::control::ControlSpace::isCompound() const
 {
     return false;
 }
@@ -149,7 +149,7 @@ void ompl::control::CompoundControlSpace::addSubspace(const ControlSpacePtr &com
     componentCount_ = components_.size();
 }
 
-unsigned int ompl::control::CompoundControlSpace::getSubspaceCount(void) const
+unsigned int ompl::control::CompoundControlSpace::getSubspaceCount() const
 {
     return componentCount_;
 }
@@ -170,7 +170,7 @@ const ompl::control::ControlSpacePtr& ompl::control::CompoundControlSpace::getSu
     throw Exception("Subspace " + name + " does not exist");
 }
 
-unsigned int ompl::control::CompoundControlSpace::getDimension(void) const
+unsigned int ompl::control::CompoundControlSpace::getDimension() const
 {
     unsigned int dim = 0;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
@@ -178,7 +178,7 @@ unsigned int ompl::control::CompoundControlSpace::getDimension(void) const
     return dim;
 }
 
-ompl::control::Control* ompl::control::CompoundControlSpace::allocControl(void) const
+ompl::control::Control* ompl::control::CompoundControlSpace::allocControl() const
 {
     CompoundControl *control = new CompoundControl();
     control->components = new Control*[componentCount_];
@@ -221,7 +221,7 @@ void ompl::control::CompoundControlSpace::nullControl(Control *control) const
         components_[i]->nullControl(ccontrol->components[i]);
 }
 
-ompl::control::ControlSamplerPtr ompl::control::CompoundControlSpace::allocDefaultControlSampler(void) const
+ompl::control::ControlSamplerPtr ompl::control::CompoundControlSpace::allocDefaultControlSampler() const
 {
     CompoundControlSampler *ss = new CompoundControlSampler(this);
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
@@ -229,7 +229,7 @@ ompl::control::ControlSamplerPtr ompl::control::CompoundControlSpace::allocDefau
     return ControlSamplerPtr(ss);
 }
 
-void ompl::control::CompoundControlSpace::lock(void)
+void ompl::control::CompoundControlSpace::lock()
 {
     locked_ = true;
 }
@@ -273,14 +273,14 @@ void ompl::control::CompoundControlSpace::printSettings(std::ostream &out) const
     out << "]" << std::endl;
 }
 
-void ompl::control::CompoundControlSpace::setup(void)
+void ompl::control::CompoundControlSpace::setup()
 {
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
         components_[i]->setup();
     ControlSpace::setup();
 }
 
-unsigned int ompl::control::CompoundControlSpace::getSerializationLength(void) const
+unsigned int ompl::control::CompoundControlSpace::getSerializationLength() const
 {
     unsigned int l = 0;
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
@@ -310,7 +310,7 @@ void ompl::control::CompoundControlSpace::deserialize(Control *ctrl, const void 
     }
 }
 
-bool ompl::control::CompoundControlSpace::isCompound(void) const
+bool ompl::control::CompoundControlSpace::isCompound() const
 {
     return true;
 }

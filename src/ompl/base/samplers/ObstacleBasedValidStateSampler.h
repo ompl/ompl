@@ -61,7 +61,7 @@ namespace ompl
             /** \brief Constructor */
             ObstacleBasedValidStateSampler(const SpaceInformation *si);
 
-            virtual ~ObstacleBasedValidStateSampler(void)
+            virtual ~ObstacleBasedValidStateSampler()
             {
             }
 

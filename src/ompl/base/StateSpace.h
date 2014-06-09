@@ -78,13 +78,13 @@ namespace ompl
             typedef State StateType;
 
             /** \brief Constructor. Assigns a @b unique name to the space */
-            StateSpace(void);
+            StateSpace();
 
-            virtual ~StateSpace(void);
+            virtual ~StateSpace();
 
             /** \brief Cast this instance to a desired type. */
             template<class T>
-            T* as(void)
+            T* as()
             {
                 /** \brief Make sure the type we are casting to is indeed a state space */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, StateSpace*>));
@@ -94,7 +94,7 @@ namespace ompl
 
             /** \brief Cast this instance to a desired type. */
             template<class T>
-            const T* as(void) const
+            const T* as() const
             {
                 /** \brief Make sure the type we are casting to is indeed a state space */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, StateSpace*>));
@@ -160,7 +160,7 @@ namespace ompl
                 @{ */
 
             /** \brief Check if the state space is compound */
-            virtual bool isCompound(void) const;
+            virtual bool isCompound() const;
 
             /** \brief Check if the set of states is discrete
 
@@ -168,26 +168,26 @@ namespace ompl
                 the representation of all spaces is discrete; this
                 function returns true if the corresponding
                 mathematical object is a discrete one. */
-            virtual bool isDiscrete(void) const;
+            virtual bool isDiscrete() const;
 
             /** \brief Check if this is a hybrid state space (i.e., both discrete and continuous components exist)*/
-            virtual bool isHybrid(void) const;
+            virtual bool isHybrid() const;
 
             /** \brief Return true if the distance function associated with the space
                 is a metric */
-            virtual bool isMetricSpace(void) const
+            virtual bool isMetricSpace() const
             {
                 return true;
             }
 
             /** \brief Check if the distance function on this state space is symmetric, i.e. distance(s1,s2) = distance(s2,s1). Default implementation returns true.*/
-            virtual bool hasSymmetricDistance(void) const;
+            virtual bool hasSymmetricDistance() const;
 
             /** \brief Check if the interpolation function on this state space is symmetric, i.e. interpolate(from, to, t, state) = interpolate(to, from, 1-t, state). Default implementation returns true.*/
-            virtual bool hasSymmetricInterpolate(void) const;
+            virtual bool hasSymmetricInterpolate() const;
 
             /** \brief Get the name of the state space */
-            const std::string& getName(void) const;
+            const std::string& getName() const;
 
             /** \brief Set the name of the state space */
             void setName(const std::string &name);
@@ -195,7 +195,7 @@ namespace ompl
             /** \brief Get the type of the state space. The type can be
                 used to verify whether two space instances are of
                 the same type (e.g., SO2) */
-            int getType(void) const
+            int getType() const
             {
                 return type_;
             }
@@ -215,13 +215,13 @@ namespace ompl
             bool covers(const StateSpace *other) const;
 
             /** \brief Get the parameters for this space */
-            ParamSet& params(void)
+            ParamSet& params()
             {
                 return params_;
             }
 
             /** \brief Get the parameters for this space */
-            const ParamSet& params(void) const
+            const ParamSet& params() const
             {
                 return params_;
             }
@@ -231,7 +231,7 @@ namespace ompl
                 require state validation needs to be specified. This
                 function returns this length, for this state space, as a
                 fraction of the space's maximum extent. */
-            virtual double getLongestValidSegmentFraction(void) const;
+            virtual double getLongestValidSegmentFraction() const;
 
             /** \brief When performing discrete validation of motions,
                 the length of the longest segment that does not
@@ -257,7 +257,7 @@ namespace ompl
             void setValidSegmentCountFactor(unsigned int factor);
 
             /** \brief Get the value used to multiply the return value of validSegmentCount().*/
-            unsigned int getValidSegmentCountFactor(void) const;
+            unsigned int getValidSegmentCountFactor() const;
 
             /** \brief Compute an array of ints that uniquely identifies the structure of the state space.
                 The first element of the signature is the number of integers that follow */
@@ -269,7 +269,7 @@ namespace ompl
                 @{ */
 
             /** \brief Get the dimension of the space (not the dimension of the surrounding ambient space) */
-            virtual unsigned int getDimension(void) const = 0;
+            virtual unsigned int getDimension() const = 0;
 
             /** \brief Get the maximum value a call to distance() can return (or an upper bound).
                 For unbounded state spaces, this function can return infinity.
@@ -277,7 +277,7 @@ namespace ompl
                 \note Tight upper bounds are preferred because the value of the extent is used in
                 the automatic computation of parameters for planning. If the bounds are less tight,
                 the automatically computed parameters will be less useful.*/
-            virtual double getMaximumExtent(void) const = 0;
+            virtual double getMaximumExtent() const = 0;
 
             /** \brief Bring the state within the bounds of the state space. For unbounded spaces this
                 function can be a no-op. */
@@ -296,7 +296,7 @@ namespace ompl
             virtual double distance(const State *state1, const State *state2) const = 0;
 
             /** \brief Get the number of chars in the serialization of a state in this space */
-            virtual unsigned int getSerializationLength(void) const;
+            virtual unsigned int getSerializationLength() const;
 
             /** \brief Write the binary representation of \e state to \e serialization */
             virtual void serialize(void *serialization, const State *state) const;
@@ -313,21 +313,21 @@ namespace ompl
             virtual void interpolate(const State *from, const State *to, const double t, State *state) const = 0;
 
             /** \brief Allocate an instance of the default uniform state sampler for this space */
-            virtual StateSamplerPtr allocDefaultStateSampler(void) const = 0;
+            virtual StateSamplerPtr allocDefaultStateSampler() const = 0;
 
             /** \brief Allocate an instance of the state sampler for this space. This sampler will be allocated with the
                 sampler allocator that was previously specified by setStateSamplerAllocator() or, if no sampler allocator was specified,
                 allocDefaultStateSampler() is called */
-            virtual StateSamplerPtr allocStateSampler(void) const;
+            virtual StateSamplerPtr allocStateSampler() const;
 
             /** \brief Set the sampler allocator to use */
             void setStateSamplerAllocator(const StateSamplerAllocator &ssa);
 
             /** \brief Clear the state sampler allocator (reset to default) */
-            void clearStateSamplerAllocator(void);
+            void clearStateSamplerAllocator();
 
             /** \brief Allocate a state that can store a point in the described space */
-            virtual State* allocState(void) const = 0;
+            virtual State* allocState() const = 0;
 
             /** \brief Free the memory of the allocated state */
             virtual void freeState(State *state) const = 0;
@@ -356,11 +356,11 @@ namespace ompl
 
             /** \brief Get the locations of values of type double contained in a state from this space. The order of the values is
                 consistent with getValueAddressAtIndex(). The setup() function must have been previously called. */
-            const std::vector<ValueLocation>& getValueLocations(void) const;
+            const std::vector<ValueLocation>& getValueLocations() const;
 
             /** \brief Get the named locations of values of type double contained in a state from this space.
                 The setup() function must have been previously called. */
-            const std::map<std::string, ValueLocation>& getValueLocationsByName(void) const;
+            const std::map<std::string, ValueLocation>& getValueLocationsByName() const;
 
             /** \brief Get a pointer to the double value in \e state that \e loc points to */
             double* getValueAddressAtLocation(State *state, const ValueLocation &loc) const;
@@ -393,22 +393,22 @@ namespace ompl
 
             /** \brief Register the projections for this state space. Usually, this is at least the default
                 projection. These are implicit projections, set by the implementation of the state space. This is called by setup(). */
-            virtual void registerProjections(void);
+            virtual void registerProjections();
 
             /** \brief Get the projection registered under a specific name */
             ProjectionEvaluatorPtr getProjection(const std::string &name) const;
 
             /** \brief Get the default projection */
-            ProjectionEvaluatorPtr getDefaultProjection(void) const;
+            ProjectionEvaluatorPtr getDefaultProjection() const;
 
             /** \brief Check if a projection with a specified name is available */
             bool hasProjection(const std::string &name) const;
 
             /** \brief Check if a default projection is available */
-            bool hasDefaultProjection(void) const;
+            bool hasDefaultProjection() const;
 
             /** \brief Get all the registered projections */
-            const std::map<std::string, ProjectionEvaluatorPtr>& getRegisteredProjections(void) const;
+            const std::map<std::string, ProjectionEvaluatorPtr>& getRegisteredProjections() const;
 
             /** @} */
 
@@ -430,7 +430,7 @@ namespace ompl
 
             /** \brief Convenience function that allows derived state spaces to choose which checks
                 should pass (see SanityChecks flags) and how strict the checks are. This just calls sanityChecks() with some default arguments. */
-            virtual void sanityChecks(void) const;
+            virtual void sanityChecks() const;
 
             /** \brief Print a Graphviz digraph that represents the containment diagram for the state space */
             void diagram(std::ostream &out) const;
@@ -462,7 +462,7 @@ namespace ompl
             const State* getSubstateAtLocation(const State *state, const SubstateLocation &loc) const;
 
             /** \brief Get the list of known substate locations (keys of the map corrspond to names of subspaces) */
-            const std::map<std::string, SubstateLocation>& getSubstateLocationsByName(void) const;
+            const std::map<std::string, SubstateLocation>& getSubstateLocationsByName() const;
 
             /** \brief Get the set of subspaces that this space and \e other have in common. The computed list of \e subspaces does
                 not contain spaces that cover each other, even though they may be common, as that is redundant information. */
@@ -474,7 +474,7 @@ namespace ompl
 
             /** \brief Compute the location information for various components of the state space. Either this function or setup() must be
                 called before any calls to getValueAddressAtName(), getValueAddressAtLocation() (and other functions where those are used). */
-            virtual void computeLocations(void);
+            virtual void computeLocations();
 
             /** @} */
 
@@ -486,7 +486,7 @@ namespace ompl
                 subsequent call, projections that have been previously
                 user configured are not re-instantiated, but their
                 setup() method is still called. */
-            virtual void setup(void);
+            virtual void setup();
 
         protected:
 
@@ -543,12 +543,12 @@ namespace ompl
             typedef CompoundState StateType;
 
             /** \brief Construct an empty compound state space */
-            CompoundStateSpace(void);
+            CompoundStateSpace();
 
             /** \brief Construct a compound state space from a list of subspaces (\e components) and their corresponding weights (\e weights) */
             CompoundStateSpace(const std::vector<StateSpacePtr> &components, const std::vector<double> &weights);
 
-            virtual ~CompoundStateSpace(void)
+            virtual ~CompoundStateSpace()
             {
             }
 
@@ -572,9 +572,9 @@ namespace ompl
                 return static_cast<T*>(getSubspace(name).get());
             }
 
-            virtual bool isCompound(void) const;
+            virtual bool isCompound() const;
 
-            virtual bool isHybrid(void) const;
+            virtual bool isHybrid() const;
 
             /** @name Management of contained subspaces
                 @{ */
@@ -584,7 +584,7 @@ namespace ompl
             void addSubspace(const StateSpacePtr &component, double weight);
 
             /** \brief Get the number of state spaces that make up the compound state space */
-            unsigned int getSubspaceCount(void) const;
+            unsigned int getSubspaceCount() const;
 
             /** \brief Get a specific subspace from the compound state space */
             const StateSpacePtr& getSubspace(const unsigned int index) const;
@@ -611,22 +611,22 @@ namespace ompl
             void setSubspaceWeight(const std::string &name, double weight);
 
             /** \brief Get the list of components */
-            const std::vector<StateSpacePtr>& getSubspaces(void) const;
+            const std::vector<StateSpacePtr>& getSubspaces() const;
 
             /** \brief Get the list of component weights */
-            const std::vector<double>& getSubspaceWeights(void) const;
+            const std::vector<double>& getSubspaceWeights() const;
 
             /** \brief Return true if the state space is locked. A value
                 of true means that no further spaces can be added
                 as components. */
-            bool isLocked(void) const;
+            bool isLocked() const;
 
             /** \brief Lock this state space. This means no further
                 spaces can be added as components.  This function can
                 be for instance called from the constructor of a
                 state space that inherits from CompoundStateSpace to
                 prevent the user to add further components. */
-            void lock(void);
+            void lock();
             /** @} */
 
             /** @name Operations with substates
@@ -639,9 +639,9 @@ namespace ompl
             /** @name Functionality specific to the state space
                 @{ */
 
-            virtual unsigned int getDimension(void) const;
+            virtual unsigned int getDimension() const;
 
-            virtual double getMaximumExtent(void) const;
+            virtual double getMaximumExtent() const;
 
             virtual void enforceBounds(State *state) const;
 
@@ -649,7 +649,7 @@ namespace ompl
 
             virtual void copyState(State *destination, const State *source) const;
 
-            virtual unsigned int getSerializationLength(void) const;
+            virtual unsigned int getSerializationLength() const;
 
             virtual void serialize(void *serialization, const State *state) const;
 
@@ -672,9 +672,9 @@ namespace ompl
 
             virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
-            virtual StateSamplerPtr allocDefaultStateSampler(void) const;
+            virtual StateSamplerPtr allocDefaultStateSampler() const;
 
-            virtual State* allocState(void) const;
+            virtual State* allocState() const;
 
             virtual void freeState(State *state) const;
 
@@ -686,9 +686,9 @@ namespace ompl
 
             virtual void printSettings(std::ostream &out) const;
 
-            virtual void computeLocations(void);
+            virtual void computeLocations();
 
-            virtual void setup(void);
+            virtual void setup();
 
         protected:
 

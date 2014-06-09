@@ -57,11 +57,11 @@ namespace ompl
                 type_ = GOAL_STATES;
             }
 
-            virtual ~GoalStates(void);
+            virtual ~GoalStates();
 
             virtual void sampleGoal(State *st) const;
 
-            virtual unsigned int maxSampleCount(void) const;
+            virtual unsigned int maxSampleCount() const;
 
             virtual double distanceGoal(const State *st) const;
 
@@ -74,16 +74,16 @@ namespace ompl
             void addState(const ScopedState<> &st);
 
             /** \brief Clear all goal states */
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Check if there are any states in this goal region */
-            virtual bool hasStates(void) const;
+            virtual bool hasStates() const;
 
             /** \brief Return a pointer to the indexth state in the state list */
             virtual const State* getState(unsigned int index) const;
 
             /** \brief Return the number of valid goal states */
-            virtual std::size_t getStateCount(void) const;
+            virtual std::size_t getStateCount() const;
 
         protected:
 
@@ -96,7 +96,7 @@ namespace ompl
             mutable unsigned int samplePosition_;
 
             /** \brief Free allocated memory */
-            void freeMemory(void);
+            void freeMemory();
 
         };
 

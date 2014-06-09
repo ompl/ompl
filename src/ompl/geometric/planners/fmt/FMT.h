@@ -79,13 +79,13 @@ namespace ompl
 
             FMT(const base::SpaceInformationPtr &si);
 
-            virtual ~FMT(void);
+            virtual ~FMT();
 
-            virtual void setup(void);
+            virtual void setup();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
@@ -100,7 +100,7 @@ namespace ompl
             }
 
             /** \brief Get the number of states that the planner will sample */
-            unsigned int getNumSamples(void) const
+            unsigned int getNumSamples() const
             {
                 return numSamples_;
             }
@@ -118,7 +118,7 @@ namespace ompl
             /** \brief Get the number of states that the planner can try to
                 sample before it must move on to planning, even if the desired
                 number of valid states have not been found yet */
-            unsigned int getMaxSampleAttempts(void) const
+            unsigned int getMaxSampleAttempts() const
             {
                 return maxSampleAttempts_;
             }
@@ -143,7 +143,7 @@ namespace ompl
 
             /** \brief Get the multiplier used for the nearest neighbors search
                 radius */
-            double getRadiusMultiplier(void) const
+            double getRadiusMultiplier() const
             {
                 return radiusMultiplier_;
             }
@@ -160,7 +160,7 @@ namespace ompl
 
             /** \brief Get the volume of the free configuration space that is
                 being used by the planner */
-            double getFreeSpaceVolume(void) const
+            double getFreeSpaceVolume() const
             {
                 return freeSpaceVolume_;
             }
@@ -192,7 +192,7 @@ namespace ompl
                     {
                     }
 
-                    ~Motion(void)
+                    ~Motion()
                     {
                     }
 
@@ -203,7 +203,7 @@ namespace ompl
                     }
 
                     /** \brief Get the state associated with the motion */
-                    base::State* getState(void) const
+                    base::State* getState() const
                     {
                         return state_;
                     }
@@ -215,7 +215,7 @@ namespace ompl
                     }
 
                     /** \brief Get the parent motion of the current motion */
-                    Motion* getParent(void) const
+                    Motion* getParent() const
                     {
                         return parent_;
                     }
@@ -227,7 +227,7 @@ namespace ompl
                     }
 
                     /** \brief Get the cost-to-come for the current motion */
-                    base::Cost getCost(void) const
+                    base::Cost getCost() const
                     {
                         return cost_;
                     }
@@ -239,14 +239,14 @@ namespace ompl
                     }
 
                     /** \brief Get the set that this motion belongs to */
-                    SetType getSetType(void) const
+                    SetType getSetType() const
                     {
                         return currentSet_;
                     }
 
                     /** \brief Get the optimization objective used to determine
                         the cost between two states */
-                    const base::OptimizationObjectivePtr getOptimizationObjective(void) const
+                    const base::OptimizationObjectivePtr getOptimizationObjective() const
                     {
                         return opt_;
                     }
@@ -294,7 +294,7 @@ namespace ompl
             }
 
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Sample a state from the free configuration space and save
                 it into the nearest neighbors data structure */

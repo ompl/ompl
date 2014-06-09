@@ -44,7 +44,7 @@
 
 struct DefaultOutputHandler
 {
-    DefaultOutputHandler(void)
+    DefaultOutputHandler()
     {
         output_handler_ = static_cast<ompl::msg::OutputHandler*>(&std_output_handler_);
         previous_output_handler_ = output_handler_;
@@ -62,7 +62,7 @@ struct DefaultOutputHandler
 // however, the first run of this function is not thread safe, due to the use of a static
 // variable inside the function. For this reason, we ensure the first call happens during
 // static initialization using a proxy class
-static DefaultOutputHandler* getDOH(void)
+static DefaultOutputHandler* getDOH()
 {
     static DefaultOutputHandler DOH;
     return &DOH;
@@ -76,14 +76,14 @@ static DefaultOutputHandler* getDOH(void)
 
 /// @endcond
 
-void ompl::msg::noOutputHandler(void)
+void ompl::msg::noOutputHandler()
 {
     USE_DOH;
     doh->previous_output_handler_ = doh->output_handler_;
     doh->output_handler_ = NULL;
 }
 
-void ompl::msg::restorePreviousOutputHandler(void)
+void ompl::msg::restorePreviousOutputHandler()
 {
     USE_DOH;
     std::swap(doh->previous_output_handler_, doh->output_handler_);
@@ -96,7 +96,7 @@ void ompl::msg::useOutputHandler(OutputHandler *oh)
     doh->output_handler_ = oh;
 }
 
-ompl::msg::OutputHandler* ompl::msg::getOutputHandler(void)
+ompl::msg::OutputHandler* ompl::msg::getOutputHandler()
 {
     return getDOH()->output_handler_;
 }
@@ -123,7 +123,7 @@ void ompl::msg::setLogLevel(LogLevel level)
     doh->logLevel_ = level;
 }
 
-ompl::msg::LogLevel ompl::msg::getLogLevel(void)
+ompl::msg::LogLevel ompl::msg::getLogLevel()
 {
     USE_DOH;
     return doh->logLevel_;
@@ -153,7 +153,7 @@ ompl::msg::OutputHandlerFile::OutputHandlerFile(const char *filename) : OutputHa
         std::cerr << "Unable to open log file: '" << filename << "'" << std::endl;
 }
 
-ompl::msg::OutputHandlerFile::~OutputHandlerFile(void)
+ompl::msg::OutputHandlerFile::~OutputHandlerFile()
 {
     if (file_)
         if (fclose(file_) != 0)

@@ -54,11 +54,11 @@ ompl::geometric::LBKPIECE1::LBKPIECE1(const base::SpaceInformationPtr &si) : bas
     Planner::declareParam<double>("min_valid_path_fraction", this, &LBKPIECE1::setMinValidPathFraction, &LBKPIECE1::getMinValidPathFraction);
 }
 
- ompl::geometric::LBKPIECE1::~LBKPIECE1(void)
+ ompl::geometric::LBKPIECE1::~LBKPIECE1()
 {
 }
 
-void ompl::geometric::LBKPIECE1::setup(void)
+void ompl::geometric::LBKPIECE1::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -309,7 +309,7 @@ void ompl::geometric::LBKPIECE1::freeMotion(Motion *motion)
     delete motion;
 }
 
-void ompl::geometric::LBKPIECE1::clear(void)
+void ompl::geometric::LBKPIECE1::clear()
 {
     Planner::clear();
 

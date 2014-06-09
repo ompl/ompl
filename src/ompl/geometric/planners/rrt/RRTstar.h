@@ -78,13 +78,13 @@ namespace ompl
 
             RRTstar(const base::SpaceInformationPtr &si);
 
-            virtual ~RRTstar(void);
+            virtual ~RRTstar();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set the goal bias
 
@@ -101,7 +101,7 @@ namespace ompl
             }
 
             /** \brief Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -117,14 +117,14 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 nn_.reset(new NN<Motion*>());
             }
@@ -142,20 +142,20 @@ namespace ompl
             }
 
             /** \brief Get the state of the delayed collision checking option */
-            bool getDelayCC(void) const
+            bool getDelayCC() const
             {
                 return delayCC_;
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
             ///////////////////////////////////////
             // Planner progress property functions
-            std::string getIterationCount(void) const;
+            std::string getIterationCount() const;
 
-            std::string getCollisionCheckCount(void) const;
+            std::string getCollisionCheckCount() const;
 
-            std::string getBestCost(void) const;
+            std::string getBestCost() const;
             ///////////////////////////////////////
 
         protected:
@@ -171,7 +171,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -192,7 +192,7 @@ namespace ompl
             };
 
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             // For sorting a list of costs and getting only their sorted indices
             struct CostIndexCompare

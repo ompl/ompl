@@ -74,12 +74,12 @@ namespace ompl
         last value computed by the call to \e fn(). */
             PlannerTerminationCondition(const PlannerTerminationConditionFn &fn, double period);
 
-            ~PlannerTerminationCondition(void)
+            ~PlannerTerminationCondition()
             {
             }
 
             /** \brief Return true if the planner should stop its computation */
-            bool operator()(void) const
+            bool operator()() const
             {
                 return eval();
             }
@@ -92,10 +92,10 @@ namespace ompl
 
             /** \brief Notify that the condition for termination should become true, regardless of what eval() returns.
                 This function may be called while the condition is being evaluated by other threads. */
-            void terminate(void) const;
+            void terminate() const;
 
             /** \brief The implementation of some termination condition. By default, this just calls \e fn_() */
-            bool eval(void) const;
+            bool eval() const;
 
         private:
 

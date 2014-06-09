@@ -45,7 +45,7 @@ const double ompl::control::Syclop::Defaults::PROB_ABANDON_LEAD_EARLY   = 0.25;
 const double ompl::control::Syclop::Defaults::PROB_KEEP_ADDING_TO_AVAIL = 0.50;
 const double ompl::control::Syclop::Defaults::PROB_SHORTEST_PATH        = 0.95;
 
-void ompl::control::Syclop::setup(void)
+void ompl::control::Syclop::setup()
 {
     base::Planner::setup();
     if (!leadComputeFn)
@@ -54,7 +54,7 @@ void ompl::control::Syclop::setup(void)
     addEdgeCostFactor(boost::bind(&ompl::control::Syclop::defaultEdgeCost, this, _1, _2));
 }
 
-void ompl::control::Syclop::clear(void)
+void ompl::control::Syclop::clear()
 {
     base::Planner::clear();
     lead_.clear();
@@ -217,7 +217,7 @@ void ompl::control::Syclop::addEdgeCostFactor(const EdgeCostFactorFn& factor)
     edgeCostFactors_.push_back(factor);
 }
 
-void ompl::control::Syclop::clearEdgeCostFactors(void)
+void ompl::control::Syclop::clearEdgeCostFactors()
 {
     edgeCostFactors_.clear();
 }
@@ -231,7 +231,7 @@ void ompl::control::Syclop::initRegion(Region &r)
     r.pdfElem = NULL;
 }
 
-void ompl::control::Syclop::setupRegionEstimates(void)
+void ompl::control::Syclop::setupRegionEstimates()
 {
     std::vector<int> numTotal(decomp_->getNumRegions(), 0);
     std::vector<int> numValid(decomp_->getNumRegions(), 0);
@@ -282,7 +282,7 @@ void ompl::control::Syclop::initEdge(Adjacency &adj, const Region *source, const
     regionsToEdge_[std::pair<int,int>(source->index, target->index)] = &adj;
 }
 
-void ompl::control::Syclop::setupEdgeEstimates(void)
+void ompl::control::Syclop::setupEdgeEstimates()
 {
     EdgeIter ei, eend;
     for (boost::tie(ei,eend) = boost::edges(graph_) ; ei != eend; ++ei)
@@ -326,7 +326,7 @@ bool ompl::control::Syclop::updateConnectionEstimate(const Region &c, const Regi
     return true;
 }
 
-void ompl::control::Syclop::buildGraph(void)
+void ompl::control::Syclop::buildGraph()
 {
     VertexIndexMap index = get(boost::vertex_index, graph_);
     std::vector<unsigned int> neighbors;
@@ -354,7 +354,7 @@ void ompl::control::Syclop::buildGraph(void)
     }
 }
 
-void ompl::control::Syclop::clearGraphDetails(void)
+void ompl::control::Syclop::clearGraphDetails()
 {
     VertexIter vi, vend;
     for (boost::tie(vi,vend) = boost::vertices(graph_); vi != vend; ++vi)
@@ -365,7 +365,7 @@ void ompl::control::Syclop::clearGraphDetails(void)
     graphReady_ = false;
 }
 
-int ompl::control::Syclop::selectRegion(void)
+int ompl::control::Syclop::selectRegion()
 {
     const int index = availDist_.sample(rng_.uniform01());
     Region &region = graph_[boost::vertex(index, graph_)];
@@ -374,7 +374,7 @@ int ompl::control::Syclop::selectRegion(void)
     return index;
 }
 
-void ompl::control::Syclop::computeAvailableRegions(void)
+void ompl::control::Syclop::computeAvailableRegions()
 {
     for (unsigned int i = 0; i < availDist_.size(); ++i)
         graph_[boost::vertex(availDist_[i],graph_)].pdfElem = NULL;

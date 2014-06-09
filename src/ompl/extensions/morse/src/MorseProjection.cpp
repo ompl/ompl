@@ -45,18 +45,18 @@ ompl::base::MorseProjection::MorseProjection(const StateSpacePtr &space)
         throw Exception("MORSE State Space needed for Morse Projection");
 }
 
-void ompl::base::MorseProjection::setup(void)
+void ompl::base::MorseProjection::setup()
 {
     ProjectionEvaluator::setup();
 }
 
-unsigned int ompl::base::MorseProjection::getDimension(void) const
+unsigned int ompl::base::MorseProjection::getDimension() const
 {
     // default projection uses 2 coordinates for each rigid body
     return 2*space_->getEnvironment()->rigidBodies_;
 }
 
-void ompl::base::MorseProjection::defaultCellSizes(void)
+void ompl::base::MorseProjection::defaultCellSizes()
 {
     cellSizes_.resize(getDimension());
     for (unsigned int i = 0; i < getDimension(); i++)

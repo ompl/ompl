@@ -104,7 +104,7 @@ namespace ompl
             GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc,
                             bool autoStart = true, double minDist = std::numeric_limits<double>::epsilon());
 
-            virtual ~GoalLazySamples(void);
+            virtual ~GoalLazySamples();
 
             virtual void sampleGoal(State *st) const;
 
@@ -113,13 +113,13 @@ namespace ompl
             virtual void addState(const State *st);
 
             /** \brief Start the goal sampling thread */
-            void startSampling(void);
+            void startSampling();
 
             /** \brief Stop the goal sampling thread */
-            void stopSampling(void);
+            void stopSampling();
 
             /** \brief Return true if the sampling thread is active */
-            bool isSampling(void) const;
+            bool isSampling() const;
 
             /** \brief Set the minimum distance that a new state returned by the sampling thread needs to be away from
                 previously added states, so that it is added to the list of goal states. */
@@ -130,13 +130,13 @@ namespace ompl
 
             /** \brief Get the minimum distance that a new state returned by the sampling thread needs to be away from
                 previously added states, so that it is added to the list of goal states. */
-            double getMinNewSampleDistance(void) const
+            double getMinNewSampleDistance() const
             {
                 return minDist_;
             }
 
             /** \brief The number of times the sampling function was called and it returned true */
-            unsigned int samplingAttemptsCount(void) const
+            unsigned int samplingAttemptsCount() const
             {
                 return samplingAttempts_;
             }
@@ -149,18 +149,18 @@ namespace ompl
             bool addStateIfDifferent(const State *st, double minDistance);
 
             /** \brief Return true if GoalStates::couldSample() is true or if the sampling thread is active, as in this case it is possible a sample can be produced at some point. */
-            virtual bool couldSample(void) const;
+            virtual bool couldSample() const;
 
-            virtual bool hasStates(void) const;
+            virtual bool hasStates() const;
             virtual const State* getState(unsigned int index) const;
-            virtual std::size_t getStateCount(void) const;
+            virtual std::size_t getStateCount() const;
 
-            virtual void clear(void);
+            virtual void clear();
 
         protected:
 
             /** \brief The function that samples goals by calling \e samplerFunc_ in a separate thread */
-            void goalSamplingThread(void);
+            void goalSamplingThread();
 
             /** \brief Lock for updating the set of states */
             mutable boost::mutex           lock_;

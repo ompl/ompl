@@ -65,13 +65,13 @@ namespace ompl
             /** \brief Constructor */
             RRTConnect(const base::SpaceInformationPtr &si);
 
-            virtual ~RRTConnect(void);
+            virtual ~RRTConnect();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set the range the planner is supposed to use.
 
@@ -84,20 +84,20 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 tStart_.reset(new NN<Motion*>());
                 tGoal_.reset(new NN<Motion*>());
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
         protected:
 
@@ -106,7 +106,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : root(NULL), state(NULL), parent(NULL)
+                Motion() : root(NULL), state(NULL), parent(NULL)
                 {
                     parent = NULL;
                     state  = NULL;
@@ -116,7 +116,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -149,7 +149,7 @@ namespace ompl
                 };
 
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion *a, const Motion *b) const

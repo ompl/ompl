@@ -55,7 +55,7 @@ namespace ompl
                 as which planner is currently being tested or how much */
             struct Status
             {
-                Status(void)
+                Status()
                 {
                     running = false;
                     activeRun = 0;
@@ -196,7 +196,7 @@ namespace ompl
                 exp_.name = name;
             }
 
-            virtual ~Benchmark(void)
+            virtual ~Benchmark()
             {
             }
 
@@ -207,7 +207,7 @@ namespace ompl
             }
 
             /** \brief Get the name of the experiment */
-            const std::string& getExperimentName(void) const
+            const std::string& getExperimentName() const
             {
                 return exp_.name;
             }
@@ -228,7 +228,7 @@ namespace ompl
             }
 
             /** \brief Clear the set of planners to be benchmarked */
-            void clearPlanners(void)
+            void clearPlanners()
             {
                 planners_.clear();
             }
@@ -265,7 +265,7 @@ namespace ompl
             virtual void benchmark(const Request &req);
 
             /** \brief Get the status of the benchmarking code. This function can be called in a separate thread to check how much progress has been made */
-            const Status& getStatus(void) const
+            const Status& getStatus() const
             {
                 return status_;
             }
@@ -274,7 +274,7 @@ namespace ompl
                 written to the results file. The data should not be
                 changed, but it could be useful to quickly extract cartain
                 statistics. */
-            const CompleteExperiment& getRecordedExperimentData(void) const
+            const CompleteExperiment& getRecordedExperimentData() const
             {
                 return exp_;
             }
@@ -286,7 +286,7 @@ namespace ompl
             bool saveResultsToFile(const char *filename) const;
 
             /** \brief Save the results of the benchmark to a file. The name of the file is the current date and time. */
-            bool saveResultsToFile(void) const;
+            bool saveResultsToFile() const;
 
         protected:
 

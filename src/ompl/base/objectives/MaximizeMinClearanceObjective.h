@@ -56,10 +56,10 @@ namespace ompl
             virtual bool isCostBetterThan(Cost c1, Cost c2) const;
 
             /** \brief Returns +infinity, since any cost combined with +infinity under this objective will always return the other cost. */
-            virtual Cost identityCost(void) const;
+            virtual Cost identityCost() const;
 
             /** \brief Returns -infinity, since no path clearance value can be considered worse than this. */
-            virtual Cost infiniteCost(void) const;
+            virtual Cost infiniteCost() const;
         };
     }
 }

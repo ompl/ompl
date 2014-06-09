@@ -82,13 +82,13 @@ namespace ompl
             /** \brief Constructor */
             LazyRRT(const base::SpaceInformationPtr &si);
 
-            virtual ~LazyRRT(void);
+            virtual ~LazyRRT();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set the goal biasing.
 
@@ -105,7 +105,7 @@ namespace ompl
             }
 
             /** \brief Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -121,19 +121,19 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 nn_.reset(new NN<Motion*>());
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
         protected:
 
@@ -142,7 +142,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : state(NULL), parent(NULL), valid(false)
+                Motion() : state(NULL), parent(NULL), valid(false)
                 {
                 }
 
@@ -151,7 +151,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -169,7 +169,7 @@ namespace ompl
             };
 
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Remove a motion from the tree datastructure */
             void removeMotion(Motion *motion);

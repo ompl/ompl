@@ -44,7 +44,7 @@ ompl::control::PDST::PDST(const SpaceInformationPtr &si)
     Planner::declareParam<double>("goal_bias", this, &PDST::setGoalBias, &PDST::getGoalBias, "0.:.05:1.");
 }
 
-ompl::control::PDST::~PDST(void)
+ompl::control::PDST::~PDST()
 {
     freeMemory();
 }
@@ -281,7 +281,7 @@ unsigned int ompl::control::PDST::findDurationAndAncestor(Motion *motion, base::
     return findDurationAndAncestor(motion->parent_, state, scratch, ancestor);
 }
 
-void ompl::control::PDST::clear(void)
+void ompl::control::PDST::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -292,7 +292,7 @@ void ompl::control::PDST::clear(void)
     bsp_ = new Cell(1., projectionEvaluator_->getBounds(), 0);
 }
 
-void ompl::control::PDST::freeMemory(void)
+void ompl::control::PDST::freeMemory()
 {
     // Iterate over the elements in the priority queue and clear it
     std::vector<Motion*> motions;
@@ -315,7 +315,7 @@ void ompl::control::PDST::freeMemory(void)
     bsp_ = NULL;
 }
 
-void ompl::control::PDST::setup(void)
+void ompl::control::PDST::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());

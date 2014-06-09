@@ -49,12 +49,12 @@ ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si) : base::Planner(s
     Planner::declareParam<double>("range", this, &SBL::setRange, &SBL::getRange, "0.:1.:10000.");
 }
 
-ompl::geometric::SBL::~SBL(void)
+ompl::geometric::SBL::~SBL()
 {
     freeMemory();
 }
 
-void ompl::geometric::SBL::setup(void)
+void ompl::geometric::SBL::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -346,7 +346,7 @@ void ompl::geometric::SBL::addMotion(TreeData &tree, Motion *motion)
     tree.size++;
 }
 
-void ompl::geometric::SBL::clear(void)
+void ompl::geometric::SBL::clear()
 {
     Planner::clear();
 

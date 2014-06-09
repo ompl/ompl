@@ -61,12 +61,12 @@ ompl::control::KPIECE1::KPIECE1(const SpaceInformationPtr &si) : base::Planner(s
     Planner::declareParam<double>("good_score_factor", this, &KPIECE1::setGoodCellScoreFactor, &KPIECE1::getGoodCellScoreFactor);
 }
 
-ompl::control::KPIECE1::~KPIECE1(void)
+ompl::control::KPIECE1::~KPIECE1()
 {
     freeMemory();
 }
 
-void ompl::control::KPIECE1::setup(void)
+void ompl::control::KPIECE1::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -82,7 +82,7 @@ void ompl::control::KPIECE1::setup(void)
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
 }
 
-void ompl::control::KPIECE1::clear(void)
+void ompl::control::KPIECE1::clear()
 {
     Planner::clear();
     controlSampler_.reset();
@@ -93,7 +93,7 @@ void ompl::control::KPIECE1::clear(void)
     lastGoalMotion_ = NULL;
 }
 
-void ompl::control::KPIECE1::freeMemory(void)
+void ompl::control::KPIECE1::freeMemory()
 {
     freeGridMotions(tree_.grid);
 }

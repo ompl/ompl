@@ -73,7 +73,7 @@ namespace ompl
             {
             }
 
-            virtual ~StatePropagator(void)
+            virtual ~StatePropagator()
             {
             }
 
@@ -98,7 +98,7 @@ namespace ompl
                 function is always positive). If this is the case, this function should return false. Planners that need
                 backward propagation (negative durations) will call this function to check. If backward propagation is
                 possible, this function should return true (this is the default). */
-            virtual bool canPropagateBackward(void) const
+            virtual bool canPropagateBackward() const
             {
                 return true;
             }

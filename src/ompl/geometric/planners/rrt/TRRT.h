@@ -81,13 +81,13 @@ namespace ompl
             /** \brief Constructor */
             TRRT(const base::SpaceInformationPtr &si);
 
-            virtual ~TRRT(void);
+            virtual ~TRRT();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &plannerTerminationCondition);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set the goal bias
 
@@ -104,7 +104,7 @@ namespace ompl
             }
 
             /** \brief Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -120,7 +120,7 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
@@ -215,12 +215,12 @@ namespace ompl
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 nearestNeighbors_.reset(new NN<Motion*>());
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
         protected:
 
@@ -233,7 +233,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : state(NULL), parent(NULL)
+                Motion() : state(NULL), parent(NULL)
                 {
                 }
 
@@ -242,7 +242,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -258,7 +258,7 @@ namespace ompl
             };
 
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion *a, const Motion *b) const

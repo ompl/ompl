@@ -56,11 +56,11 @@ ompl::geometric::BKPIECE1::BKPIECE1(const base::SpaceInformationPtr &si) : base:
     Planner::declareParam<double>("min_valid_path_fraction", this, &BKPIECE1::setMinValidPathFraction, &BKPIECE1::getMinValidPathFraction);
 }
 
-ompl::geometric::BKPIECE1::~BKPIECE1(void)
+ompl::geometric::BKPIECE1::~BKPIECE1()
 {
 }
 
-void ompl::geometric::BKPIECE1::setup(void)
+void ompl::geometric::BKPIECE1::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -240,7 +240,7 @@ void ompl::geometric::BKPIECE1::freeMotion(Motion *motion)
     delete motion;
 }
 
-void ompl::geometric::BKPIECE1::clear(void)
+void ompl::geometric::BKPIECE1::clear()
 {
     Planner::clear();
 

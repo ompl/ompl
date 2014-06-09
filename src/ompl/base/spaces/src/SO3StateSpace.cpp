@@ -97,7 +97,7 @@ void ompl::base::SO3StateSpace::StateType::setAxisAngle(double ax, double ay, do
     computeAxisAngle(*this, ax, ay, az, angle);
 }
 
-void ompl::base::SO3StateSpace::StateType::setIdentity(void)
+void ompl::base::SO3StateSpace::StateType::setIdentity()
 {
     x = y = z = 0.0;
     w = 1.0;
@@ -167,12 +167,12 @@ void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mea
     }
 }
 
-unsigned int ompl::base::SO3StateSpace::getDimension(void) const
+unsigned int ompl::base::SO3StateSpace::getDimension() const
 {
     return 3;
 }
 
-double ompl::base::SO3StateSpace::getMaximumExtent(void) const
+double ompl::base::SO3StateSpace::getMaximumExtent() const
 {
     return .5 * boost::math::constants::pi<double>();
 }
@@ -229,7 +229,7 @@ void ompl::base::SO3StateSpace::copyState(State *destination, const State *sourc
     qdestination->w = qsource->w;
 }
 
-unsigned int ompl::base::SO3StateSpace::getSerializationLength(void) const
+unsigned int ompl::base::SO3StateSpace::getSerializationLength() const
 {
     return sizeof(double) * 4;
 }
@@ -319,12 +319,12 @@ void ompl::base::SO3StateSpace::interpolate(const State *from, const State *to, 
     }
 }
 
-ompl::base::StateSamplerPtr ompl::base::SO3StateSpace::allocDefaultStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::SO3StateSpace::allocDefaultStateSampler() const
 {
     return StateSamplerPtr(new SO3StateSampler(this));
 }
 
-ompl::base::State* ompl::base::SO3StateSpace::allocState(void) const
+ompl::base::State* ompl::base::SO3StateSpace::allocState() const
 {
     return new StateType();
 }
@@ -334,7 +334,7 @@ void ompl::base::SO3StateSpace::freeState(State *state) const
     delete static_cast<StateType*>(state);
 }
 
-void ompl::base::SO3StateSpace::registerProjections(void)
+void ompl::base::SO3StateSpace::registerProjections()
 {
     class SO3DefaultProjection : public ProjectionEvaluator
     {
@@ -344,12 +344,12 @@ void ompl::base::SO3StateSpace::registerProjections(void)
         {
         }
 
-        virtual unsigned int getDimension(void) const
+        virtual unsigned int getDimension() const
         {
             return 3;
         }
 
-        virtual void defaultCellSizes(void)
+        virtual void defaultCellSizes()
         {
             cellSizes_.resize(3);
             cellSizes_[0] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;

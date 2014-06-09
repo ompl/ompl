@@ -68,11 +68,11 @@ namespace ompl
         // however, this stays hidden from the user
         struct CellX : public Cell
         {
-            CellX(void) : Cell()
+            CellX() : Cell()
             {
             }
 
-            virtual ~CellX(void)
+            virtual ~CellX()
             {
             }
 
@@ -93,7 +93,7 @@ namespace ompl
             setupHeaps();
         }
 
-        virtual ~GridB(void)
+        virtual ~GridB()
         {
             clearHeaps();
         }
@@ -107,39 +107,39 @@ namespace ompl
         }
 
         /// Return the cell that is at the top of the heap maintaining internal cells
-        Cell* topInternal(void) const
+        Cell* topInternal() const
         {
             Cell* top = static_cast<Cell*>(internal_.top()->data);
             return top ? top : topExternal();
         }
 
         /// Return the cell that is at the top of the heap maintaining external cells
-        Cell* topExternal(void) const
+        Cell* topExternal() const
         {
             Cell* top = static_cast<Cell*>(external_.top()->data);
             return top ? top : topInternal();
         }
 
         /// Return the number of internal cells
-        unsigned int countInternal(void) const
+        unsigned int countInternal() const
         {
             return internal_.size();
         }
 
         /// Return the number of external cells
-        unsigned int countExternal(void) const
+        unsigned int countExternal() const
         {
             return external_.size();
         }
 
         /// Return the fraction of external cells
-        double fracExternal(void) const
+        double fracExternal() const
         {
             return external_.empty() ? 0.0 : (double)(external_.size()) / (double)(external_.size() + internal_.size());
         }
 
         /// Return the fraction of internal cells
-        double fracInternal(void) const
+        double fracInternal() const
         {
             return 1.0 - fracExternal();
         }
@@ -157,7 +157,7 @@ namespace ompl
         }
 
             /// Update all cells and reconstruct the heaps
-        void updateAll(void)
+        void updateAll()
         {
             std::vector< Cell* > cells;
             this->getCells(cells);
@@ -273,7 +273,7 @@ namespace ompl
             return false;
         }
 
-        virtual void clear(void)
+        virtual void clear()
         {
             GridN<_T>::clear();
             clearHeaps();
@@ -300,7 +300,7 @@ namespace ompl
         }
 
         /// Set the update procedure for the heaps of internal and external cells
-        void setupHeaps(void)
+        void setupHeaps()
         {
             eventCellUpdate_     = &noCellUpdate;
             eventCellUpdateData_ = NULL;
@@ -309,7 +309,7 @@ namespace ompl
         }
 
         /// Clear the data from both heaps
-        void clearHeaps(void)
+        void clearHeaps()
         {
             internal_.clear();
             external_.clear();

@@ -98,7 +98,7 @@ namespace ompl
             }
 
             /// \brief Destructor.
-            virtual ~ODESolver (void)
+            virtual ~ODESolver ()
             {
             }
 
@@ -109,7 +109,7 @@ namespace ompl
             }
 
             /// \brief Return the size of a single numerical integration step
-            double getIntegrationStepSize (void) const
+            double getIntegrationStepSize () const
             {
                 return intStep_;
             }
@@ -238,7 +238,7 @@ namespace ompl
             }
 
             /// \brief Retrieves the error values from the most recent integration
-            ODESolver::StateType getError (void)
+            ODESolver::StateType getError ()
             {
                 ODESolver::StateType error (error_.begin (), error_.end ());
                 return error;
@@ -285,7 +285,7 @@ namespace ompl
             }
 
             /// \brief Retrieve the total error allowed during numerical integration
-            double getMaximumError (void) const
+            double getMaximumError () const
             {
                 return maxError_;
             }
@@ -297,7 +297,7 @@ namespace ompl
             }
 
             /// \brief Retrieve the error tolerance during one step of numerical integration (local truncation error)
-            double getMaximumEpsilonError (void) const
+            double getMaximumEpsilonError () const
             {
                 return maxEpsilonError_;
             }

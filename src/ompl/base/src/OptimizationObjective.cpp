@@ -46,7 +46,7 @@ ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationP
 {
 }
 
-const std::string& ompl::base::OptimizationObjective::getDescription(void) const
+const std::string& ompl::base::OptimizationObjective::getDescription() const
 {
     return description_;
 }
@@ -56,7 +56,7 @@ bool ompl::base::OptimizationObjective::isSatisfied(Cost c) const
     return this->isCostBetterThan(c, threshold_);
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::getCostThreshold(void) const
+ompl::base::Cost ompl::base::OptimizationObjective::getCostThreshold() const
 {
     return threshold_;
 }
@@ -136,7 +136,7 @@ ompl::base::Cost ompl::base::OptimizationObjective::terminalCost(const State *s)
     return identityCost();
 }
 
-bool ompl::base::OptimizationObjective::isSymmetric(void) const
+bool ompl::base::OptimizationObjective::isSymmetric() const
 {
     return si_->getStateSpace()->hasSymmetricInterpolate();
 }
@@ -179,7 +179,7 @@ ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const St
 }
 
 const ompl::base::SpaceInformationPtr&
-ompl::base::OptimizationObjective::getSpaceInformation(void) const
+ompl::base::OptimizationObjective::getSpaceInformation() const
 {
     return si_;
 }
@@ -218,7 +218,7 @@ void ompl::base::MultiOptimizationObjective::addObjective(const OptimizationObje
         components_.push_back(Component(objective, weight));
 }
 
-std::size_t ompl::base::MultiOptimizationObjective::getObjectiveCount(void) const
+std::size_t ompl::base::MultiOptimizationObjective::getObjectiveCount() const
 {
     return components_.size();
 }
@@ -249,12 +249,12 @@ void ompl::base::MultiOptimizationObjective::setObjectiveWeight(unsigned int idx
         throw Exception("Objecitve index does not exist.");
 }
 
-void ompl::base::MultiOptimizationObjective::lock(void)
+void ompl::base::MultiOptimizationObjective::lock()
 {
     locked_ = true;
 }
 
-bool ompl::base::MultiOptimizationObjective::isLocked(void) const
+bool ompl::base::MultiOptimizationObjective::isLocked() const
 {
     return locked_;
 }

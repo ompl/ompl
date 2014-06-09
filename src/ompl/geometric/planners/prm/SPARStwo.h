@@ -112,7 +112,7 @@ namespace ompl
                 double       d_;
 
                 /** \brief Constructor */
-                InterfaceData(void) :
+                InterfaceData() :
                     pointA_(NULL),
                     pointB_(NULL),
                     sigmaA_(NULL),
@@ -238,7 +238,7 @@ namespace ompl
             SPARStwo(const base::SpaceInformationPtr &si);
 
             /** \brief Destructor */
-            virtual ~SPARStwo(void);
+            virtual ~SPARStwo();
 
             virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
 
@@ -319,35 +319,35 @@ namespace ompl
                 Subsequent calls to solve() will reuse the previously computed roadmap,
                 but will clear the set of input states constructed by the previous call to solve().
                 This enables multi-query functionality for PRM. */
-            void clearQuery(void);
+            void clearQuery();
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 nn_.reset(new NN< Vertex >());
                 if (isSetup())
                     setup();
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
             /** \brief Retrieve the computed roadmap. */
-            const Graph& getRoadmap(void) const
+            const Graph& getRoadmap() const
             {
                 return g_;
             }
 
             /** \brief Get the number of vertices in the sparse roadmap. */
-            unsigned int milestoneCount(void) const
+            unsigned int milestoneCount() const
             {
                 return boost::num_vertices(g_);
             }
 
             /** \brief Get the number of iterations the algorithm performed */
-            long unsigned int getIterations(void) const
+            long unsigned int getIterations() const
             {
                 return iterations_;
             }
@@ -357,10 +357,10 @@ namespace ompl
         protected:
 
             /** \brief Free all the memory allocated by the planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Check that the query vertex is initialized (used for internal nearest neighbor searches) */
-            void checkQueryStateInitialization(void);
+            void checkQueryStateInitialization();
 
             /** \brief Checks to see if the sample needs to be added to ensure coverage of the space */
             bool checkAddCoverage(const base::State *qNew, std::vector<Vertex> &visibleNeighborhood);
@@ -375,7 +375,7 @@ namespace ompl
             bool checkAddPath( Vertex v );
 
             /** \brief A reset function for resetting the failures count */
-            void resetFailures(void);
+            void resetFailures();
 
             /** \brief Finds visible nodes in the graph near st */
             void findGraphNeighbors(base::State *st, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood);
@@ -424,10 +424,10 @@ namespace ompl
             void checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution);
 
             /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_ or if a solution was added */
-            bool reachedTerminationCriterion(void) const;
+            bool reachedTerminationCriterion() const;
 
             /** \brief Returns whether we have reached the iteration failures limit, maxFailures_ */
-            bool reachedFailureLimit (void) const;
+            bool reachedFailureLimit () const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
             base::PathPtr constructSolution(const Vertex start, const Vertex goal) const;

@@ -70,11 +70,11 @@ namespace ompl
             /** \brief Construct a control space, given the state space */
             ControlSpace(const base::StateSpacePtr &stateSpace);
 
-            virtual ~ControlSpace(void);
+            virtual ~ControlSpace();
 
             /** \brief Cast this instance to a desired type. */
             template<class T>
-            T* as(void)
+            T* as()
             {
                 /** \brief Make sure the type we are casting to is indeed a control space */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, ControlSpace*>));
@@ -84,7 +84,7 @@ namespace ompl
 
             /** \brief Cast this instance to a desired type. */
             template<class T>
-            const T* as(void) const
+            const T* as() const
             {
                 /** \brief Make sure the type we are casting to is indeed a control space */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, ControlSpace*>));
@@ -93,7 +93,7 @@ namespace ompl
             }
 
             /** \brief Get the name of the control space */
-            const std::string& getName(void) const;
+            const std::string& getName() const;
 
             /** \brief Set the name of the control space */
             void setName(const std::string &name);
@@ -101,22 +101,22 @@ namespace ompl
             /** \brief Get the type of the control space. The type can be
                 used to verify whether two space instances are of
                 the same type */
-            int getType(void) const
+            int getType() const
             {
                 return type_;
             }
 
             /** \brief Return the state space this control space depends on */
-            const base::StateSpacePtr& getStateSpace(void) const
+            const base::StateSpacePtr& getStateSpace() const
             {
                 return stateSpace_;
             }
 
             /** \brief Get the dimension of this control space */
-            virtual unsigned int getDimension(void) const = 0;
+            virtual unsigned int getDimension() const = 0;
 
             /** \brief Allocate memory for a control */
-            virtual Control* allocControl(void) const = 0;
+            virtual Control* allocControl() const = 0;
 
             /** \brief Free the memory of a control */
             virtual void freeControl(Control *control) const = 0;
@@ -131,18 +131,18 @@ namespace ompl
             virtual void nullControl(Control *control) const = 0;
 
             /** \brief Allocate the default control sampler */
-            virtual ControlSamplerPtr allocDefaultControlSampler(void) const = 0;
+            virtual ControlSamplerPtr allocDefaultControlSampler() const = 0;
 
             /** \brief Allocate an instance of the control sampler for this space. This sampler will be allocated with the
                 sampler allocator that was previously specified by setControlSamplerAllocator() or, if no sampler allocator was specified,
                 allocDefaultControlSampler() is called */
-            virtual ControlSamplerPtr allocControlSampler(void) const;
+            virtual ControlSamplerPtr allocControlSampler() const;
 
             /** \brief Set the sampler allocator to use */
             void setControlSamplerAllocator(const ControlSamplerAllocator &csa);
 
             /** \brief Clear the control sampler allocator (reset to default) */
-            void clearControlSamplerAllocator(void);
+            void clearControlSamplerAllocator();
 
             /** \brief Many controls contain a number of double values. This function provides a means to get the
                 memory address of a double value from a control \e control located at position \e index. The first double value
@@ -157,10 +157,10 @@ namespace ompl
             virtual void printSettings(std::ostream &out) const;
 
             /** \brief Perform final setup steps. This function is automatically called by the SpaceInformation */
-            virtual void setup(void);
+            virtual void setup();
 
             /** \brief Returns the serialization size for a single control in this space */
-            virtual unsigned int getSerializationLength(void) const;
+            virtual unsigned int getSerializationLength() const;
 
             /** \brief Serializes the given control into the serialization buffer. */
             virtual void serialize(void *serialization, const Control *ctrl) const;
@@ -173,7 +173,7 @@ namespace ompl
             void computeSignature(std::vector<int> &signature) const;
 
             /** \brief Check if the control space is compound */
-            virtual bool isCompound(void) const;
+            virtual bool isCompound() const;
 
         protected:
 
@@ -205,7 +205,7 @@ namespace ompl
             {
             }
 
-            virtual ~CompoundControlSpace(void)
+            virtual ~CompoundControlSpace()
             {
             }
 
@@ -223,7 +223,7 @@ namespace ompl
             virtual void addSubspace(const ControlSpacePtr &component);
 
             /** \brief Get the number of control spaces that make up the compound control space */
-            unsigned int getSubspaceCount(void) const;
+            unsigned int getSubspaceCount() const;
 
             /** \brief Get a specific subspace from the compound control space */
             const ControlSpacePtr& getSubspace(const unsigned int index) const;
@@ -231,9 +231,9 @@ namespace ompl
             /** \brief Get a specific subspace from the compound control space */
             const ControlSpacePtr& getSubspace(const std::string &name) const;
 
-            virtual unsigned int getDimension(void) const;
+            virtual unsigned int getDimension() const;
 
-            virtual Control* allocControl(void) const;
+            virtual Control* allocControl() const;
 
             virtual void freeControl(Control *control) const;
 
@@ -243,7 +243,7 @@ namespace ompl
 
             virtual void nullControl(Control *control) const;
 
-            virtual ControlSamplerPtr allocDefaultControlSampler(void) const;
+            virtual ControlSamplerPtr allocDefaultControlSampler() const;
 
             virtual double* getValueAddressAtIndex(Control *control, const unsigned int index) const;
 
@@ -251,10 +251,10 @@ namespace ompl
 
             virtual void printSettings(std::ostream &out) const;
 
-            virtual void setup(void);
+            virtual void setup();
 
             /** \brief Returns the serialization size for a single control in this space */
-            virtual unsigned int getSerializationLength(void) const;
+            virtual unsigned int getSerializationLength() const;
 
             /** \brief Serializes the given control into the serialization buffer. */
             virtual void serialize(void *serialization, const Control *ctrl) const;
@@ -262,14 +262,14 @@ namespace ompl
             /** \brief Deserializes a control from the serialization buffer. */
             virtual void deserialize(Control *ctrl, const void *serialization) const;
 
-            virtual bool isCompound(void) const;
+            virtual bool isCompound() const;
 
             /** \brief Lock this control space. This means no further
              control spaces can be added as components.  This function can
              be for instance called from the constructor of a state space
              that inherits from CompoundControlSpace to prevent the
              user to add further components. */
-            void lock(void);
+            void lock();
 
         protected:
 

@@ -76,7 +76,7 @@ namespace ompl
             {
             }
 
-            virtual ~MotionValidator(void)
+            virtual ~MotionValidator()
             {
             }
 
@@ -96,25 +96,25 @@ namespace ompl
             virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const = 0;
 
             /** \brief Get the number of segments that tested as valid */
-            unsigned int getValidMotionCount(void) const
+            unsigned int getValidMotionCount() const
             {
                 return valid_;
             }
 
             /** \brief Get the number of segments that tested as invalid */
-            unsigned int getInvalidMotionCount(void) const
+            unsigned int getInvalidMotionCount() const
             {
                 return invalid_;
             }
 
             /** \brief Get the fraction of segments that tested as valid */
-            double getValidMotionFraction(void) const
+            double getValidMotionFraction() const
             {
                 return valid_ == 0 ? 0.0 : (double)valid_ / (double)(invalid_ + valid_);
             }
 
             /** \brief Reset the counters for valid and invalid segments */
-            void resetMotionCounter(void)
+            void resetMotionCounter()
             {
                 valid_ = invalid_ = 0;
             }
