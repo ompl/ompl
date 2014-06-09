@@ -272,7 +272,7 @@ namespace ompl
 
         /** \brief Storage of states where the metadata is a vector of indices. This is is typically used to store a graph */
         typedef StateStorageWithMetadata<std::vector<std::size_t> > GraphStateStorage;
-
+        typedef boost::shared_ptr<GraphStateStorage> GraphStateStoragePtr;
     }
 }
 #endif
