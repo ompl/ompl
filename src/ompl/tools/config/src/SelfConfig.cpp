@@ -62,7 +62,7 @@ namespace ompl
             {
             }
 
-            double getProbabilityOfValidState(void)
+            double getProbabilityOfValidState()
             {
                 base::SpaceInformationPtr si = wsi_.lock();
                 checkSetup(si);
@@ -71,7 +71,7 @@ namespace ompl
                 return probabilityOfValidState_;
             }
 
-            double getAverageValidMotionLength(void)
+            double getAverageValidMotionLength()
             {
                 base::SpaceInformationPtr si = wsi_.lock();
                 checkSetup(si);
@@ -128,7 +128,7 @@ namespace ompl
                     out << "EXPIRED" << std::endl;
             }
 
-            bool expired(void) const
+            bool expired() const
             {
                 return wsi_.expired();
             }
@@ -199,19 +199,19 @@ ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const s
     }
 }
 
-ompl::tools::SelfConfig::~SelfConfig(void)
+ompl::tools::SelfConfig::~SelfConfig()
 {
 }
 
 /* ------------------------------------------------------------------------ */
 
-double ompl::tools::SelfConfig::getProbabilityOfValidState(void)
+double ompl::tools::SelfConfig::getProbabilityOfValidState()
 {
     boost::mutex::scoped_lock iLock(impl_->lock_);
     return impl_->getProbabilityOfValidState();
 }
 
-double ompl::tools::SelfConfig::getAverageValidMotionLength(void)
+double ompl::tools::SelfConfig::getAverageValidMotionLength()
 {
     boost::mutex::scoped_lock iLock(impl_->lock_);
     return impl_->getAverageValidMotionLength();

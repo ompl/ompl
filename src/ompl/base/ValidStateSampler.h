@@ -69,10 +69,10 @@ namespace ompl
             /** \brief Constructor */
             ValidStateSampler(const SpaceInformation *si);
 
-            virtual ~ValidStateSampler(void);
+            virtual ~ValidStateSampler();
 
             /** \brief Get the name of the sampler */
-            const std::string& getName(void) const
+            const std::string& getName() const
             {
                 return name_;
             }
@@ -99,19 +99,19 @@ namespace ompl
             }
 
             /** \brief Get the number of attempts to be performed by the sampling routine */
-            unsigned int getNrAttempts(void) const
+            unsigned int getNrAttempts() const
             {
                 return attempts_;
             }
 
             /** \brief Get the parameters for the valid state sampler */
-            ParamSet& params(void)
+            ParamSet& params()
             {
                 return params_;
             }
 
             /** \brief Get the parameters for the valid state sampler */
-            const ParamSet& params(void) const
+            const ParamSet& params() const
             {
                 return params_;
             }

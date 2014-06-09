@@ -91,7 +91,7 @@ void ompl::base::ParamSet::getParamValues(std::vector<std::string> &vals) const
         vals[i] = params_.find(names[i])->second->getValue();
 }
 
-const std::map<std::string, ompl::base::GenericParamPtr>& ompl::base::ParamSet::getParams(void) const
+const std::map<std::string, ompl::base::GenericParamPtr>& ompl::base::ParamSet::getParams() const
 {
     return params_;
 }
@@ -145,7 +145,7 @@ void ompl::base::ParamSet::remove(const std::string &name)
     params_.erase(name);
 }
 
-void ompl::base::ParamSet::clear(void)
+void ompl::base::ParamSet::clear()
 {
     params_.clear();
 }

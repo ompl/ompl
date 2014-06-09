@@ -71,15 +71,15 @@ namespace ompl
             void resize(std::size_t size);
 
             /** \brief Compute the volume of the space enclosed by the bounds */
-            double getVolume(void) const;
+            double getVolume() const;
 
             /** \brief Get the difference between the high and low bounds for each dimension: result[i] = high[i] - low[i] */
-            std::vector<double> getDifference(void) const;
+            std::vector<double> getDifference() const;
 
             /** \brief Check if the bounds are valid (same length for
                 low and high, high[i] > low[i]). Throw an exception if
                 this is not the case. */
-            void check(void) const;
+            void check() const;
 
             /** \brief Lower bound */
             std::vector<double> low;

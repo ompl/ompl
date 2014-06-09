@@ -70,12 +70,12 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
                                boost::bind(&RRTstar::getBestCost, this));
 }
 
-ompl::geometric::RRTstar::~RRTstar(void)
+ompl::geometric::RRTstar::~RRTstar()
 {
     freeMemory();
 }
 
-void ompl::geometric::RRTstar::setup(void)
+void ompl::geometric::RRTstar::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -100,7 +100,7 @@ void ompl::geometric::RRTstar::setup(void)
     }
 }
 
-void ompl::geometric::RRTstar::clear(void)
+void ompl::geometric::RRTstar::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -161,7 +161,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     base::State *xstate    = si_->allocState();
 
     // e+e/d.  K-nearest RRT*
-    double k_rrg           = boost::math::constants::e<double>() + (boost::math::constants::e<double>()/(double)si_->getStateSpace()->getDimension());
+    double k_rrg           = boost::math::constants::e<double>() +
+                             (boost::math::constants::e<double>() / (double)si_->getStateSpace()->getDimension());
 
     std::vector<Motion*>       nbh;
 
@@ -221,7 +222,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             motion->cost = opt_->combineCosts(nmotion->cost, motion->incCost);
 
             // Find nearby neighbors of the new motion - k-nearest RRT*
-            unsigned int k = std::ceil(k_rrg * log((double)(nn_->size()+1)));
+            unsigned int k = std::ceil(k_rrg * log((double)(nn_->size() + 1)));
             nn_->nearestK(motion, k, nbh);
 
             rewireTest += nbh.size();
@@ -509,7 +510,7 @@ void ompl::geometric::RRTstar::updateChildCosts(Motion *m)
     }
 }
 
-void ompl::geometric::RRTstar::freeMemory(void)
+void ompl::geometric::RRTstar::freeMemory()
 {
     if (nn_)
     {
@@ -548,15 +549,15 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
         boost::lexical_cast<std::string>(collisionChecks_);
 }
 
-std::string ompl::geometric::RRTstar::getIterationCount(void) const
+std::string ompl::geometric::RRTstar::getIterationCount() const
 {
   return boost::lexical_cast<std::string>(iterations_);
 }
-std::string ompl::geometric::RRTstar::getCollisionCheckCount(void) const
+std::string ompl::geometric::RRTstar::getCollisionCheckCount() const
 {
   return boost::lexical_cast<std::string>(collisionChecks_);
 }
-std::string ompl::geometric::RRTstar::getBestCost(void) const
+std::string ompl::geometric::RRTstar::getBestCost() const
 {
   return boost::lexical_cast<std::string>(bestCost_.v);
 }

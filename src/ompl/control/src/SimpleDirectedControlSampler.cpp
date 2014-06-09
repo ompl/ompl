@@ -42,7 +42,7 @@ ompl::control::SimpleDirectedControlSampler::SimpleDirectedControlSampler(const 
 {
 }
 
-ompl::control::SimpleDirectedControlSampler::~SimpleDirectedControlSampler(void)
+ompl::control::SimpleDirectedControlSampler::~SimpleDirectedControlSampler()
 {
 }
 

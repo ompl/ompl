@@ -82,19 +82,19 @@ namespace ompl
                 type_ = CONTROL_SPACE_DISCRETE;
             }
 
-            virtual ~DiscreteControlSpace(void)
+            virtual ~DiscreteControlSpace()
             {
             }
 
-            virtual unsigned int getDimension(void) const;
+            virtual unsigned int getDimension() const;
 
             virtual void copyControl(Control *destination, const Control *source) const;
 
             virtual bool equalControls(const Control *control1, const Control *control2) const;
 
-            virtual ControlSamplerPtr allocDefaultControlSampler(void) const;
+            virtual ControlSamplerPtr allocDefaultControlSampler() const;
 
-            virtual Control* allocControl(void) const;
+            virtual Control* allocControl() const;
 
             virtual void freeControl(Control *control) const;
 
@@ -106,19 +106,19 @@ namespace ompl
             virtual void printSettings(std::ostream &out) const;
 
             /** \brief Returns the number of controls possible */
-            unsigned int getControlCount(void) const
+            unsigned int getControlCount() const
             {
                 return upperBound_ - lowerBound_ + 1;
             }
 
             /** \brief Returns the lowest possible control value */
-            int getLowerBound(void) const
+            int getLowerBound() const
             {
                 return lowerBound_;
             }
 
             /** \brief Returns the highest possible control value */
-            int getUpperBound(void) const
+            int getUpperBound() const
             {
                 return upperBound_;
             }
@@ -130,10 +130,10 @@ namespace ompl
                 upperBound_ = upperBound;
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
             /** \brief Returns the serialization size for a single control in this space */
-            virtual unsigned int getSerializationLength(void) const;
+            virtual unsigned int getSerializationLength() const;
 
             /** \brief Serializes the given control into the serialization buffer. */
             virtual void serialize(void *serialization, const Control *ctrl) const;

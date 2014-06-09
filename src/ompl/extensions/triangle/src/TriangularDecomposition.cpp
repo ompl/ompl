@@ -45,7 +45,7 @@ extern "C"
     #include <triangle.h>
 }
 
-ompl::control::TriangularDecomposition::TriangularDecomposition(unsigned int dim, const base::RealVectorBounds& b, const std::vector<Polygon>& holes) :
+ompl::control::TriangularDecomposition::TriangularDecomposition(unsigned int dim, const base::RealVectorBounds &b, const std::vector<Polygon>& holes) :
     Decomposition(dim, b),
     holes_(holes),
     locator(64, this)
@@ -71,7 +71,7 @@ double ompl::control::TriangularDecomposition::getRegionVolume(unsigned int triI
     return tri.volume;
 }
 
-void ompl::control::TriangularDecomposition::sampleFromRegion(unsigned int triID, RNG& rng, std::vector<double>& coord) const
+void ompl::control::TriangularDecomposition::sampleFromRegion(unsigned int triID, RNG &rng, std::vector<double>& coord) const
 {
     /* Uniformly sample a point from within a triangle, using the approach discussed in
      * http://math.stackexchange.com/questions/18686/uniform-random-point-in-triangle */
@@ -88,7 +88,7 @@ void ompl::control::TriangularDecomposition::getNeighbors(unsigned int triID, st
     neighbors = triangles_[triID].neighbors;
 }
 
-int ompl::control::TriangularDecomposition::locateRegion(const base::State* s) const
+int ompl::control::TriangularDecomposition::locateRegion(const base::State *s) const
 {
     std::vector<double> coord(2);
     project(s, coord);
@@ -112,7 +112,7 @@ unsigned int ompl::control::TriangularDecomposition::createTriangles()
     /* create a conforming Delaunay triangulation
        where each triangle takes up no more than 0.03% of
        the total area of the decomposition space */
-    const base::RealVectorBounds& bounds = getBounds();
+    const base::RealVectorBounds &bounds = getBounds();
     const double maxTriangleArea = bounds.getVolume()*0.0003;
     std::string triswitches = "pDznQ -a" + boost::lexical_cast<std::string>(maxTriangleArea);
     struct triangulateio in;

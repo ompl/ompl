@@ -62,12 +62,12 @@ namespace
                 v -= twopi;
         return v;
     }
-    inline void polar(double x, double y, double& r, double& theta)
+    inline void polar(double x, double y, double &r, double &theta)
     {
         r = sqrt(x*x + y*y);
         theta = atan2(y, x);
     }
-    inline void tauOmega(double u, double v, double xi, double eta, double phi, double& tau, double& omega)
+    inline void tauOmega(double u, double v, double xi, double eta, double phi, double &tau, double &omega)
     {
         double delta = mod2pi(u-v), A = sin(u) - sin(delta), B = cos(u) - cos(delta) - 1.;
         double t1 = atan2(eta*A - xi*B, xi*A + eta*B), t2 = 2. * (cos(delta) - cos(v) - cos(u)) + 3;
@@ -76,7 +76,7 @@ namespace
     }
 
     // formula 8.1 in Reeds-Shepp paper
-    inline bool LpSpLp(double x, double y, double phi, double& t, double& u, double& v)
+    inline bool LpSpLp(double x, double y, double phi, double &t, double &u, double &v)
     {
         polar(x - sin(phi), y - 1. + cos(phi), u, t);
         if (t >= -ZERO)
@@ -93,7 +93,7 @@ namespace
         return false;
     }
     // formula 8.2
-    inline bool LpSpRp(double x, double y, double phi, double& t, double& u, double& v)
+    inline bool LpSpRp(double x, double y, double phi, double &t, double &u, double &v)
     {
         double t1, u1;
         polar(x + sin(phi), y - 1. - cos(phi), u1, t1);
@@ -112,7 +112,7 @@ namespace
         }
         return false;
     }
-    void CSC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
+    void CSC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath &path)
     {
         double t, u, v, Lmin = path.length(), L;
         if (LpSpLp(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
@@ -162,7 +162,7 @@ namespace
                 ReedsSheppStateSpace::reedsSheppPathType[13], -t, -u, -v);
     }
     // formula 8.3 / 8.4  *** TYPO IN PAPER ***
-    inline bool LpRmL(double x, double y, double phi, double& t, double& u, double& v)
+    inline bool LpRmL(double x, double y, double phi, double &t, double &u, double &v)
     {
         double xi = x - sin(phi), eta = y - 1. + cos(phi), u1, theta;
         polar(xi, eta, u1, theta);
@@ -178,7 +178,7 @@ namespace
         }
         return false;
     }
-    void CCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
+    void CCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath &path)
     {
         double t, u, v, Lmin = path.length(), L;
         if (LpRmL(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
@@ -231,7 +231,7 @@ namespace
                 ReedsSheppStateSpace::reedsSheppPathType[1], -v, -u, -t);
     }
     // formula 8.7
-    inline bool LpRupLumRm(double x, double y, double phi, double& t, double& u, double& v)
+    inline bool LpRupLumRm(double x, double y, double phi, double &t, double &u, double &v)
     {
         double xi = x + sin(phi), eta = y - 1. - cos(phi), rho = .25 * (2. + sqrt(xi*xi + eta*eta));
         if (rho <= 1.)
@@ -246,7 +246,7 @@ namespace
         return false;
     }
     // formula 8.8
-    inline bool LpRumLumRp(double x, double y, double phi, double& t, double& u, double& v)
+    inline bool LpRumLumRp(double x, double y, double phi, double &t, double &u, double &v)
     {
         double xi = x + sin(phi), eta = y - 1. - cos(phi), rho = (20. - xi*xi - eta*eta) / 16.;
         if (rho>=0 && rho<=1)
@@ -263,7 +263,7 @@ namespace
         }
         return false;
     }
-    void CCCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
+    void CCCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath &path)
     {
         double t, u, v, Lmin = path.length(), L;
         if (LpRupLumRm(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + 2.*fabs(u) + fabs(v)))
@@ -314,7 +314,7 @@ namespace
                 ReedsSheppStateSpace::reedsSheppPathType[3], -t, -u, -u, -v);
     }
     // formula 8.9
-    inline bool LpRmSmLm(double x, double y, double phi, double& t, double& u, double& v)
+    inline bool LpRmSmLm(double x, double y, double phi, double &t, double &u, double &v)
     {
         double xi = x - sin(phi), eta = y - 1. + cos(phi), rho, theta;
         polar(xi, eta, rho, theta);
@@ -332,7 +332,7 @@ namespace
         return false;
     }
     // formula 8.10
-    inline bool LpRmSmRm(double x, double y, double phi, double& t, double& u, double& v)
+    inline bool LpRmSmRm(double x, double y, double phi, double &t, double &u, double &v)
     {
         double xi = x + sin(phi), eta = y - 1. - cos(phi), rho, theta;
         polar(-eta, xi, rho, theta);
@@ -348,7 +348,7 @@ namespace
         }
         return false;
     }
-    void CCSC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
+    void CCSC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath &path)
     {
         double t, u, v, Lmin = path.length() - .5*pi, L;
         if (LpRmSmLm(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
@@ -451,7 +451,7 @@ namespace
                 ReedsSheppStateSpace::reedsSheppPathType[11], -v, -u, .5*pi, -t);
     }
     // formula 8.11 *** TYPO IN PAPER ***
-    inline bool LpRmSLmRp(double x, double y, double phi, double& t, double& u, double& v)
+    inline bool LpRmSLmRp(double x, double y, double phi, double &t, double &u, double &v)
     {
         double xi = x + sin(phi), eta = y - 1. - cos(phi), rho, theta;
         polar(xi, eta, rho, theta);
@@ -470,7 +470,7 @@ namespace
         }
         return false;
     }
-    void CCSCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath& path)
+    void CCSCC(double x, double y, double phi, ReedsSheppStateSpace::ReedsSheppPath &path)
     {
         double t, u, v, Lmin = path.length() - pi, L;
         if (LpRmSLmRp(x, y, phi, t, u, v) && Lmin > (L = fabs(t) + fabs(u) + fabs(v)))
@@ -552,7 +552,7 @@ void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const Stat
 }
 
 void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const State *to, const double t,
-    bool& firstTime, ReedsSheppPath& path, State *state) const
+    bool &firstTime, ReedsSheppPath &path, State *state) const
 {
     if (firstTime)
     {
@@ -574,9 +574,9 @@ void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const Stat
     interpolate(from, path, t, state);
 }
 
-void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const ReedsSheppPath& path, double t, State *state) const
+void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const ReedsSheppPath &path, double t, State *state) const
 {
-    StateType* s = allocState()->as<StateType>();
+    StateType *s = allocState()->as<StateType>();
     double seg = t * path.length(), phi, v;
 
     s->setXY(0., 0.);
@@ -630,7 +630,7 @@ ompl::base::ReedsSheppStateSpace::ReedsSheppPath ompl::base::ReedsSheppStateSpac
 }
 
 
-void ompl::base::ReedsSheppMotionValidator::defaultSettings(void)
+void ompl::base::ReedsSheppMotionValidator::defaultSettings()
 {
     stateSpace_ = dynamic_cast<ReedsSheppStateSpace*>(si_->getStateSpace().get());
     if (!stateSpace_)

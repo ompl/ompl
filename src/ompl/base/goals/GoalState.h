@@ -57,13 +57,13 @@ namespace ompl
                 type_ = GOAL_STATE;
             }
 
-            virtual ~GoalState(void);
+            virtual ~GoalState();
 
             /** \brief Sample a state in the goal region */
             virtual void sampleGoal(State *st) const;
 
             /** \brief Return the maximum number of samples that can be asked for before repeating */
-            virtual unsigned int maxSampleCount(void) const;
+            virtual unsigned int maxSampleCount() const;
 
             /** \brief Compute the distance to the goal (heuristic) */
             virtual double distanceGoal(const State *st) const;
@@ -73,16 +73,16 @@ namespace ompl
             virtual void print(std::ostream &out = std::cout) const;
 
             /** \brief Set the goal state */
-            void setState(const State* st);
+            void setState(const State *st);
 
             /** \brief Set the goal state */
             void setState(const ScopedState<> &st);
 
             /** \brief Get the goal state */
-            const State* getState(void) const;
+            const State* getState() const;
 
             /** \brief Get the goal state */
-            State* getState(void);
+            State* getState();
 
         protected:
 

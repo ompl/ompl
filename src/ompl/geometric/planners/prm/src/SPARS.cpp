@@ -85,12 +85,12 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
     Planner::declareParam<unsigned int>("max_failures", this, &SPARS::setMaxFailures, &SPARS::getMaxFailures, "100:10:3000");
 }
 
-ompl::geometric::SPARS::~SPARS(void)
+ompl::geometric::SPARS::~SPARS()
 {
     freeMemory();
 }
 
-void ompl::geometric::SPARS::setup(void)
+void ompl::geometric::SPARS::setup()
 {
     Planner::setup();
     if (!nn_)
@@ -112,19 +112,19 @@ void ompl::geometric::SPARS::setProblemDefinition(const base::ProblemDefinitionP
     clearQuery();
 }
 
-void ompl::geometric::SPARS::resetFailures(void)
+void ompl::geometric::SPARS::resetFailures()
 {
     consecutiveFailures_ = 0;
 }
 
-void ompl::geometric::SPARS::clearQuery(void)
+void ompl::geometric::SPARS::clearQuery()
 {
     startM_.clear();
     goalM_.clear();
     pis_.restart();
 }
 
-void ompl::geometric::SPARS::clear(void)
+void ompl::geometric::SPARS::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -139,7 +139,7 @@ void ompl::geometric::SPARS::clear(void)
     iterations_ = 0;
 }
 
-void ompl::geometric::SPARS::freeMemory(void)
+void ompl::geometric::SPARS::freeMemory()
 {
     foreach (DenseVertex v, boost::vertices(g_))
         if( stateProperty_[v] != NULL )
@@ -225,17 +225,17 @@ bool ompl::geometric::SPARS::haveSolution(const std::vector<DenseVertex> &starts
     return false;
 }
 
-bool ompl::geometric::SPARS::reachedTerminationCriterion(void) const
+bool ompl::geometric::SPARS::reachedTerminationCriterion() const
 {
     return consecutiveFailures_ >= maxFailures_ || addedSolution_;
 }
 
-bool ompl::geometric::SPARS::reachedFailureLimit(void) const
+bool ompl::geometric::SPARS::reachedFailureLimit() const
 {
     return consecutiveFailures_ >= maxFailures_;
 }
 
-void ompl::geometric::SPARS::checkQueryStateInitialization(void)
+void ompl::geometric::SPARS::checkQueryStateInitialization()
 {
     boost::mutex::scoped_lock _(graphMutex_);
     if (boost::num_vertices(g_) < 1)
@@ -484,7 +484,7 @@ bool ompl::geometric::SPARS::checkAddCoverage(const base::State *lastState, cons
     return true;
 }
 
-bool ompl::geometric::SPARS::checkAddConnectivity( const base::State* lastState, const std::vector<SparseVertex>& neigh )
+bool ompl::geometric::SPARS::checkAddConnectivity( const base::State *lastState, const std::vector<SparseVertex>& neigh )
 {
     std::vector< SparseVertex > links;
     //For each neighbor
@@ -656,7 +656,7 @@ bool ompl::geometric::SPARS::checkAddPath(DenseVertex q, const std::vector<Dense
     return result;
 }
 
-double ompl::geometric::SPARS::averageValence(void) const
+double ompl::geometric::SPARS::averageValence() const
 {
     double degree = 0.0;
     foreach (DenseVertex v, boost::vertices(s_))
@@ -665,7 +665,7 @@ double ompl::geometric::SPARS::averageValence(void) const
     return degree;
 }
 
-void ompl::geometric::SPARS::getSparseNeighbors(base::State* inState, std::vector<SparseVertex> &graphNeighborhood)
+void ompl::geometric::SPARS::getSparseNeighbors(base::State *inState, std::vector<SparseVertex> &graphNeighborhood)
 {
     sparseStateProperty_[sparseQueryVertex_] = inState;
 
@@ -675,7 +675,7 @@ void ompl::geometric::SPARS::getSparseNeighbors(base::State* inState, std::vecto
     sparseStateProperty_[sparseQueryVertex_] = NULL;
 }
 
-void ompl::geometric::SPARS::filterVisibleNeighbors(base::State* inState, const std::vector<SparseVertex> &graphNeighborhood,
+void ompl::geometric::SPARS::filterVisibleNeighbors(base::State *inState, const std::vector<SparseVertex> &graphNeighborhood,
                                                     std::vector<SparseVertex> &visibleNeighborhood) const
 {
     visibleNeighborhood.clear();
@@ -694,7 +694,7 @@ ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::getInterfaceNeighbor
     throw Exception(name_, "Vertex has no interface neighbor with given representative");
 }
 
-bool ompl::geometric::SPARS::addPathToSpanner( const DensePath& dense_path, SparseVertex vp, SparseVertex vpp )
+bool ompl::geometric::SPARS::addPathToSpanner( const DensePath &dense_path, SparseVertex vp, SparseVertex vpp )
 {
     // First, check to see that the path has length
     if (dense_path.size() <= 1)

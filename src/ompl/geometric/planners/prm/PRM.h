@@ -156,7 +156,7 @@ namespace ompl
             /** \brief Constructor */
             PRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
 
-            virtual ~PRM(void);
+            virtual ~PRM();
 
             virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
 
@@ -246,13 +246,13 @@ namespace ompl
                 Subsequent calls to solve() will reuse the previously computed roadmap,
                 but will clear the set of input states constructed by the previous call to solve().
                 This enables multi-query functionality for PRM. */
-            void clearQuery(void);
+            void clearQuery();
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 nn_.reset(new NN<Vertex>());
                 if (!userSetConnectionStrategy_)
@@ -261,9 +261,9 @@ namespace ompl
                     setup();
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
-            const Graph& getRoadmap(void) const
+            const Graph& getRoadmap() const
             {
                 return g_;
             }
@@ -275,12 +275,12 @@ namespace ompl
             }
 
             /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
-            unsigned int milestoneCount(void) const
+            unsigned int milestoneCount() const
             {
                 return boost::num_vertices(g_);
             }
 
-            const RoadmapNeighbors& getNearestNeighbors(void)
+            const RoadmapNeighbors& getNearestNeighbors()
             {
                 return nn_;
             }
@@ -288,7 +288,7 @@ namespace ompl
         protected:
 
             /** \brief Free all the memory allocated by the planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Construct a milestone for a given state (\e state), store it in the nearest neighbors data structure
                 and then connect it to the roadmap in accordance to the connection strategy. */
@@ -317,7 +317,7 @@ namespace ompl
             bool haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution);
 
             /** \brief Returns the value of the addedSolution_ member. */
-            bool addedNewSolution(void) const;
+            bool addedNewSolution() const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
             virtual base::PathPtr constructSolution(const Vertex &start, const Vertex &goal);

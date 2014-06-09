@@ -85,11 +85,11 @@ namespace ompl
 
             PDST(const SpaceInformationPtr &si);
 
-            virtual ~PDST(void);
+            virtual ~PDST();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
-            virtual void clear(void);
-            virtual void setup(void);
+            virtual void clear();
+            virtual void setup();
 
             /// Extracts the planner data from the priority queue into data.
             virtual void getPlannerData(base::PlannerData &data) const;
@@ -107,7 +107,7 @@ namespace ompl
             }
 
             /// Get the projection evaluator
-            const base::ProjectionEvaluatorPtr& getProjectionEvaluator(void) const
+            const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
             {
                 return projectionEvaluator_;
             }
@@ -124,7 +124,7 @@ namespace ompl
                 goalBias_ = goalBias;
             }
             /// Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -137,7 +137,7 @@ namespace ompl
             struct MotionCompare
             {
                 /// returns true if m1 is lower priority than m2
-                bool operator() (Motion* p1, Motion* p2) const
+                bool operator() (Motion *p1, Motion *p2) const
                 {
                     // lowest priority means highest score
                     return p1->score() < p2->score();
@@ -149,7 +149,7 @@ namespace ompl
             {
             public:
                 Motion(base::State *startState, base::State *endState, Control *control,
-                    unsigned int controlDuration, double priority, Motion* parent)
+                    unsigned int controlDuration, double priority, Motion *parent)
                     : startState_(startState), endState_(endState), control_(control),
                     controlDuration_(controlDuration), priority_(priority), parent_(parent),
                     cell_(NULL), heapElement_(NULL), isSplit_(false)
@@ -162,31 +162,31 @@ namespace ompl
                 {
                 }
                 /// The score is used to order motions in a priority queue.
-                double score(void) const
+                double score() const
                 {
                     return priority_ / cell_->volume_;
                 }
-                void updatePriority(void)
+                void updatePriority()
                 {
                     priority_ = priority_ * 2. + 1.;
                 }
 
                 /// The starting point of this motion
-                ompl::base::State*               startState_;
+                base::State                     *startState_;
                 /// The state reached by this motion
-                ompl::base::State*               endState_;
+                base::State                     *endState_;
                 /// The control that was applied to arrive at this state from the parent
-                ompl::control::Control*          control_;
+                control::Control                *control_;
                 /// The duration that the control was applied to arrive at this state from the parent
                 unsigned int                     controlDuration_;
                 /// Priority for selecting this path to extend from in the future
                 double                           priority_;
                 /// Parent motion from which this one started
-                Motion*                          parent_;
+                Motion *parent_;
                 /// Pointer to the cell that contains this path
                 Cell*                            cell_;
                 /// Handle to the element of the priority queue for this Motion
-                ompl::BinaryHeap<Motion*, MotionCompare>::Element* heapElement_;
+                BinaryHeap<Motion*, MotionCompare>::Element *heapElement_;
                 /// Whether this motion is the result of a split operation, in which case
                 /// its endState_ and control_ should not be freed.
                 bool                             isSplit_;
@@ -195,7 +195,7 @@ namespace ompl
             /// Cell is a Binary Space Partition
             struct Cell
             {
-                Cell(double volume, const ompl::base::RealVectorBounds& bounds,
+                Cell(double volume, const base::RealVectorBounds &bounds,
                      unsigned int splitDimension = 0)
                     : volume_(volume), splitDimension_(splitDimension), splitValue_(0.0),
                     left_(NULL), right_(NULL), bounds_(bounds)
@@ -215,7 +215,7 @@ namespace ompl
                 void subdivide(unsigned int spaceDimension);
 
                 /// Locates the cell that this motion begins in
-                Cell* stab(const ompl::base::EuclideanProjection& projection) const
+                Cell* stab(const base::EuclideanProjection& projection) const
                 {
                     Cell *containingCell = const_cast<Cell*>(this);
                     while (containingCell->left_ != NULL)
@@ -254,7 +254,7 @@ namespace ompl
                 /// The right child cell (NULL for a leaf cell)
                 Cell*                        right_;
                 /// A bounding box for this cell
-                ompl::base::RealVectorBounds bounds_;
+                base::RealVectorBounds       bounds_;
                 /// The motions contained in this cell. Motions are stored only in leaf nodes.
                 std::vector<Motion*>         motions_;
             };
@@ -265,7 +265,7 @@ namespace ompl
             void addMotion(Motion *motion, Cell *cell,
                 base::State*, base::State*, base::EuclideanProjection&, base::EuclideanProjection&);
             /// \brief Either update heap after motion's priority has changed or insert motion into heap.
-            void updateHeapElement(Motion* motion)
+            void updateHeapElement(Motion *motion)
             {
                 if (motion->heapElement_)
                     priorityQueue_.update(motion->heapElement_);
@@ -275,43 +275,43 @@ namespace ompl
             /// \brief Select a state along motion and propagate a new motion from there.
             /// Return NULL if no valid motion could be generated starting at the
             /// selected state.
-            Motion* propagateFrom(Motion* motion, base::State*, base::State*);
+            Motion* propagateFrom(Motion *motion, base::State*, base::State*);
             /// \brief Find the max. duration that the control_ in motion can be applied s.t.
             /// the trajectory passes through state. This means that "ancestor" motions with
             /// the same control_ are also considered. A pointer to the oldest ancestor with
             /// the same control_ is returned. Upon return applying the control
             /// \e ancestor->control_ for duration steps starting from the state
             /// \e ancestor->startState_ should result in the state \e state.
-            unsigned int findDurationAndAncestor(Motion* motion, base::State* state,
-                base::State* scratch, Motion*& ancestor) const;
+            unsigned int findDurationAndAncestor(Motion *motion, base::State *state,
+                base::State *scratch, Motion*& ancestor) const;
 
-            void freeMemory(void);
+            void freeMemory();
 
             /// State sampler
-            ompl::base::StateSamplerPtr              sampler_;
+            base::StateSamplerPtr                    sampler_;
             /// Directed control sampler
             DirectedControlSamplerPtr                controlSampler_;
             /// SpaceInformation convenience pointer
-            const SpaceInformation*                  siC_;
+            const SpaceInformation                  *siC_;
             // Random number generator
             RNG                                      rng_;
             /// \brief Vector holding all of the start states supplied for the problem
             /// Each start motion is the root of its own tree of motions.
             std::vector<Motion*>                     startMotions_;
             /// Priority queue of motions
-            ompl::BinaryHeap<Motion*, MotionCompare> priorityQueue_;
+            BinaryHeap<Motion*, MotionCompare>       priorityQueue_;
             /// Binary Space Partition
             Cell*                                    bsp_;
             /// Projection evaluator for the problem
-            ompl::base::ProjectionEvaluatorPtr       projectionEvaluator_;
+            base::ProjectionEvaluatorPtr             projectionEvaluator_;
             /// Number between 0 and 1 specifying the probability with which the goal should be sampled
             double                                   goalBias_;
             /// Objected used to sample the goal
-            ompl::base::GoalSampleableRegion*        goalSampler_;
+            base::GoalSampleableRegion              *goalSampler_;
             /// Iteration number and priority of the next Motion that will be generated
             unsigned int                             iteration_;
             /// Closest motion to the goal
-            Motion*                                  lastGoalMotion_;
+            Motion                                  *lastGoalMotion_;
         };
     }
 }

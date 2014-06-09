@@ -75,7 +75,7 @@ endif(MSVC)
 
 # install the library
 install(TARGETS ompl
-    DESTINATION lib/
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT ompl)
 if(NOT MSVC)
     get_target_property(OMPL_LIBRARY_LOC ompl LOCATION)

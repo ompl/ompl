@@ -77,11 +77,11 @@ namespace ompl
             /** \brief Constructor */
             EST(const base::SpaceInformationPtr &si);
 
-            virtual ~EST(void);
+            virtual ~EST();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief In the process of randomly selecting states in
                 the state space to attempt to go towards, the
@@ -96,7 +96,7 @@ namespace ompl
             }
 
             /** \brief Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -112,7 +112,7 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
@@ -132,12 +132,12 @@ namespace ompl
             }
 
             /** \brief Get the projection evaluator */
-            const base::ProjectionEvaluatorPtr& getProjectionEvaluator(void) const
+            const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
             {
                 return projectionEvaluator_;
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
@@ -148,7 +148,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : state(NULL), parent(NULL)
+                Motion() : state(NULL), parent(NULL)
                 {
                 }
 
@@ -157,7 +157,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -187,27 +187,27 @@ namespace ompl
                 {
                     return motions_[i];
                 }
-                void push_back(Motion* m)
+                void push_back(Motion *m)
                 {
                     motions_.push_back(m);
                 }
-                unsigned int size(void) const
+                unsigned int size() const
                 {
                     return motions_.size();
                 }
-                bool empty(void) const
+                bool empty() const
                 {
                     return motions_.empty();
                 }
                 std::vector<Motion*> motions_;
-                CellPDF::Element*    elem_;
+                CellPDF::Element    *elem_;
             };
 
 
             /** \brief The data contained by a tree of exploration */
             struct TreeData
             {
-                TreeData(void) : grid(0), size(0)
+                TreeData() : grid(0), size(0)
                 {
                 }
 
@@ -219,13 +219,13 @@ namespace ompl
             };
 
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Add a motion to the exploration tree */
             void addMotion(Motion *motion);
 
             /** \brief Select a motion to continue the expansion of the tree from */
-            Motion* selectMotion(void);
+            Motion* selectMotion();
 
             /** \brief Valid state sampler */
             base::ValidStateSamplerPtr   sampler_;

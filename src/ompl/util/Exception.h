@@ -60,7 +60,7 @@ namespace ompl
         {
         }
 
-        virtual ~Exception(void) throw()
+        virtual ~Exception() throw()
         {
         }
 

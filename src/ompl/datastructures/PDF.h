@@ -64,7 +64,7 @@ namespace ompl
         };
 
         /** \brief Constructs an empty PDF. */
-        PDF(void)
+        PDF()
         {
         }
 
@@ -82,13 +82,13 @@ namespace ompl
         }
 
         /** \brief Destructor. Clears allocated memory. */
-        ~PDF(void)
+        ~PDF()
         {
             clear();
         }
 
         /** \brief Get the current set of stored elements */
-        const std::vector<Element*>& getElements(void)
+        const std::vector<Element*>& getElements()
         {
             return data_;
         }
@@ -98,7 +98,7 @@ namespace ompl
         {
             if (w < 0)
                 throw Exception("Weight argument must be a nonnegative value");
-            Element* elem = new Element(d, data_.size());
+            Element *elem = new Element(d, data_.size());
             data_.push_back(elem);
             if (data_.size() == 1)
             {
@@ -152,7 +152,7 @@ which must be between 0 and 1. */
         }
 
         /** \brief Updates the data in the given Element with a new weight value. */
-        void update(Element* elem, const double w)
+        void update(Element *elem, const double w)
         {
             std::size_t index = elem->index_;
             if (index >= data_.size())
@@ -168,13 +168,13 @@ which must be between 0 and 1. */
         }
 
         /** \brief Returns the current weight of the given Element. */
-        double getWeight(const Element* elem) const
+        double getWeight(const Element *elem) const
         {
             return tree_.front()[elem->index_];
         }
 
         /** \brief Removes the data in the given Element from the PDF. After calling this function, the Element object should no longer be used. */
-        void remove(Element* elem)
+        void remove(Element *elem)
         {
             if (data_.size() == 1)
             {
@@ -238,7 +238,7 @@ which must be between 0 and 1. */
         }
 
         /** \brief Clears the PDF. */
-        void clear(void)
+        void clear()
         {
             for (typename std::vector<Element*>::iterator e = data_.begin(); e != data_.end(); ++e)
                 delete *e;
@@ -247,7 +247,7 @@ which must be between 0 and 1. */
         }
 
         /** \brief Returns the number of elements in the PDF. */
-        std::size_t size(void) const
+        std::size_t size() const
         {
             return data_.size();
         }
@@ -259,7 +259,7 @@ which must be between 0 and 1. */
         }
 
         /** \brief Returns whether the PDF contains no data. */
-        bool empty(void) const
+        bool empty() const
         {
             return data_.empty();
         }

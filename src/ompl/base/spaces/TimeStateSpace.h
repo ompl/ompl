@@ -81,19 +81,19 @@ namespace ompl
                 double position;
             };
 
-            TimeStateSpace(void) : StateSpace(), bounded_(false), minTime_(0.0), maxTime_(0.0)
+            TimeStateSpace() : StateSpace(), bounded_(false), minTime_(0.0), maxTime_(0.0)
             {
                 setName("Time" + getName());
                 type_ = STATE_SPACE_TIME;
             }
 
-            virtual ~TimeStateSpace(void)
+            virtual ~TimeStateSpace()
             {
             }
 
-            virtual unsigned int getDimension(void) const;
+            virtual unsigned int getDimension() const;
 
-            virtual double getMaximumExtent(void) const;
+            virtual double getMaximumExtent() const;
 
             /** \brief Set the minimum and maximum time bounds. This
                 will make the state space switch into bounded time
@@ -104,19 +104,19 @@ namespace ompl
             void setBounds(double minTime, double maxTime);
 
             /** \brief Get the minimum allowed value of \e position in a state. The function returns 0 if time is not bounded. */
-            double getMinTimeBound(void) const
+            double getMinTimeBound() const
             {
                 return minTime_;
             }
 
             /** \brief Get the maximum allowed value of \e position in a state. The function returns 0 if time is not bounded. */
-            double getMaxTimeBound(void) const
+            double getMaxTimeBound() const
             {
                 return maxTime_;
             }
 
             /** \brief Check if the time is bounded or not */
-            bool isBounded(void) const
+            bool isBounded() const
             {
                 return bounded_;
             }
@@ -127,7 +127,7 @@ namespace ompl
 
             virtual void copyState(State *destination, const State *source) const;
 
-            virtual unsigned int getSerializationLength(void) const;
+            virtual unsigned int getSerializationLength() const;
 
             virtual void serialize(void *serialization, const State *state) const;
 
@@ -139,9 +139,9 @@ namespace ompl
 
             virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
-            virtual StateSamplerPtr allocDefaultStateSampler(void) const;
+            virtual StateSamplerPtr allocDefaultStateSampler() const;
 
-            virtual State* allocState(void) const;
+            virtual State* allocState() const;
 
             virtual void freeState(State *state) const;
 
@@ -151,7 +151,7 @@ namespace ompl
 
             virtual void printSettings(std::ostream &out) const;
 
-            virtual void registerProjections(void);
+            virtual void registerProjections();
 
         protected:
 

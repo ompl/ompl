@@ -34,6 +34,10 @@
 
 # Author: Mark Moll
 
+# The paths that cmake substitutues in the code_generator_t constructor might
+# contain Unicode characters.
+# coding: utf-8
+
 import logging
 from os.path import exists, join, isdir
 from os import getenv

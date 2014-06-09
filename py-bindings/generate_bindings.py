@@ -542,7 +542,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'PRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'PRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT']:
             self.ompl_ns.class_(planner).add_registration_code("""
             def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )""")
             if planner!='PRM':

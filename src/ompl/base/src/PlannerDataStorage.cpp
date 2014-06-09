@@ -45,22 +45,22 @@
 
 static const boost::uint32_t OMPL_PLANNER_DATA_ARCHIVE_MARKER = 0x5044414D; // this spells PDAM
 
-ompl::base::PlannerDataStorage::PlannerDataStorage(void)
+ompl::base::PlannerDataStorage::PlannerDataStorage()
 {
 }
 
-ompl::base::PlannerDataStorage::~PlannerDataStorage(void)
+ompl::base::PlannerDataStorage::~PlannerDataStorage()
 {
 }
 
-void ompl::base::PlannerDataStorage::store(const PlannerData& pd, const char *filename)
+void ompl::base::PlannerDataStorage::store(const PlannerData &pd, const char *filename)
 {
     std::ofstream out(filename, std::ios::binary);
     store(pd, out);
     out.close();
 }
 
-void ompl::base::PlannerDataStorage::store(const PlannerData& pd, std::ostream &out)
+void ompl::base::PlannerDataStorage::store(const PlannerData &pd, std::ostream &out)
 {
     const SpaceInformationPtr &si = pd.getSpaceInformation();
     if (!out.good())
@@ -94,14 +94,14 @@ void ompl::base::PlannerDataStorage::store(const PlannerData& pd, std::ostream &
     }
 }
 
-void ompl::base::PlannerDataStorage::load(const char *filename, PlannerData& pd)
+void ompl::base::PlannerDataStorage::load(const char *filename, PlannerData &pd)
 {
     std::ifstream in(filename, std::ios::binary);
     load(in, pd);
     in.close();
 }
 
-void ompl::base::PlannerDataStorage::load(std::istream &in, PlannerData& pd)
+void ompl::base::PlannerDataStorage::load(std::istream &in, PlannerData &pd)
 {
     pd.clear();
 

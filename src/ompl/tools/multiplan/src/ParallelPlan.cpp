@@ -42,7 +42,7 @@ ompl::tools::ParallelPlan::ParallelPlan(const base::ProblemDefinitionPtr &pdef) 
 {
 }
 
-ompl::tools::ParallelPlan::~ParallelPlan(void)
+ompl::tools::ParallelPlan::~ParallelPlan()
 {
 }
 
@@ -62,12 +62,12 @@ void ompl::tools::ParallelPlan::addPlannerAllocator(const base::PlannerAllocator
     planners_.push_back(planner);
 }
 
-void ompl::tools::ParallelPlan::clearPlanners(void)
+void ompl::tools::ParallelPlan::clearPlanners()
 {
     planners_.clear();
 }
 
-void ompl::tools::ParallelPlan::clearHybridizationPaths(void)
+void ompl::tools::ParallelPlan::clearHybridizationPaths()
 {
     phybrid_->clear();
 }

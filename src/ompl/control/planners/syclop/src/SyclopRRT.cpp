@@ -38,7 +38,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
-void ompl::control::SyclopRRT::setup(void)
+void ompl::control::SyclopRRT::setup()
 {
     Syclop::setup();
     sampler_ = si_->allocStateSampler();
@@ -54,7 +54,7 @@ void ompl::control::SyclopRRT::setup(void)
     }
 }
 
-void ompl::control::SyclopRRT::clear(void)
+void ompl::control::SyclopRRT::clear()
 {
     Syclop::clear();
     freeMemory();
@@ -63,7 +63,7 @@ void ompl::control::SyclopRRT::clear(void)
     lastGoalMotion_ = NULL;
 }
 
-void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
+void ompl::control::SyclopRRT::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
     std::vector<Motion*> motions;
@@ -91,9 +91,9 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData& data) const
     }
 }
 
-ompl::control::Syclop::Motion* ompl::control::SyclopRRT::addRoot(const base::State* s)
+ompl::control::Syclop::Motion* ompl::control::SyclopRRT::addRoot(const base::State *s)
 {
-    Motion* motion = new Motion(siC_);
+    Motion *motion = new Motion(siC_);
     si_->copyState(motion->state, s);
     siC_->nullControl(motion->control);
 
@@ -102,15 +102,15 @@ ompl::control::Syclop::Motion* ompl::control::SyclopRRT::addRoot(const base::Sta
     return motion;
 }
 
-void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::vector<Motion*>& newMotions)
+void ompl::control::SyclopRRT::selectAndExtend(Region &region, std::vector<Motion*>& newMotions)
 {
-    Motion* rmotion = new Motion(siC_);
+    Motion *rmotion = new Motion(siC_);
     base::StateSamplerPtr sampler(si_->allocStateSampler());
     std::vector<double> coord(decomp_->getDimension());
     decomp_->sampleFromRegion(region.index, rng_, coord);
     decomp_->sampleFullState(sampler, coord, rmotion->state);
 
-    Motion* nmotion;
+    Motion *nmotion;
     if (regionalNN_)
     {
         /* Instead of querying the nearest neighbors datastructure over the entire tree of motions,
@@ -132,7 +132,7 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::vector<Motio
         ++i;
         while (i != motions.end())
         {
-            Motion* m = *i;
+            Motion *m = *i;
             const double dist = distanceFunction(rmotion, m);
             if (dist < minDistance)
             {
@@ -166,7 +166,7 @@ void ompl::control::SyclopRRT::selectAndExtend(Region& region, std::vector<Motio
     }
 }
 
-void ompl::control::SyclopRRT::freeMemory(void)
+void ompl::control::SyclopRRT::freeMemory()
 {
     if (nn_)
     {
@@ -174,7 +174,7 @@ void ompl::control::SyclopRRT::freeMemory(void)
         nn_->list(motions);
         for (std::vector<Motion*>::iterator i = motions.begin(); i != motions.end(); ++i)
         {
-            Motion* m = *i;
+            Motion *m = *i;
             if (m->state)
                 si_->freeState(m->state);
             if (m->control)

@@ -46,6 +46,6 @@ ompl::base::ValidStateSampler::ValidStateSampler(const SpaceInformation *si) :
                                        boost::bind(&ValidStateSampler::getNrAttempts, this));
 }
 
-ompl::base::ValidStateSampler::~ValidStateSampler(void)
+ompl::base::ValidStateSampler::~ValidStateSampler()
 {
 }

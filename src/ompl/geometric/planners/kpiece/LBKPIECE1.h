@@ -82,7 +82,7 @@ namespace ompl
             /** \brief Constructor */
             LBKPIECE1(const base::SpaceInformationPtr &si);
 
-            virtual ~LBKPIECE1(void);
+            virtual ~LBKPIECE1();
 
             /** \brief Set the projection evaluator. This class is
                 able to compute the projection of a given state. */
@@ -99,7 +99,7 @@ namespace ompl
             }
 
             /** \brief Get the projection evaluator. */
-            const base::ProjectionEvaluatorPtr& getProjectionEvaluator(void) const
+            const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
             {
                 return projectionEvaluator_;
             }
@@ -115,7 +115,7 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
@@ -133,7 +133,7 @@ namespace ompl
 
             /** \brief Get the fraction of time to focus exploration
                 on boundary */
-            double getBorderFraction(void) const
+            double getBorderFraction() const
             {
                 return dStart_.getBorderFraction();
             }
@@ -150,15 +150,15 @@ namespace ompl
             }
 
             /** \brief Get the value of the fraction set by setMinValidPathFraction() */
-            double getMinValidPathFraction(void) const
+            double getMinValidPathFraction() const
             {
                 return minValidPathFraction_;
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
-            virtual void clear(void);
+            virtual void clear();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
@@ -169,7 +169,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : root(NULL), state(NULL), parent(NULL), valid(false)
+                Motion() : root(NULL), state(NULL), parent(NULL), valid(false)
                 {
                 }
 
@@ -178,7 +178,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -202,14 +202,14 @@ namespace ompl
             void freeMotion(Motion *motion);
 
             /** \brief Remove a motion from a tree of motions */
-            void removeMotion(Discretization<Motion> &disc, Motion* motion);
+            void removeMotion(Discretization<Motion> &disc, Motion *motion);
 
             /** \brief Since solutions are computed in a lazy fashion,
                 once trees are connected, the solution found needs to
                 be checked for validity. This function checks whether
                 the reverse path from a given motion to a root is
                 valid. If this is not the case, invalid motions are removed  */
-            bool isPathValid(Discretization<Motion> &disc, Motion* motion, base::State *temp);
+            bool isPathValid(Discretization<Motion> &disc, Motion *motion, base::State *temp);
 
             /** \brief The employed state sampler */
             base::StateSamplerPtr              sampler_;

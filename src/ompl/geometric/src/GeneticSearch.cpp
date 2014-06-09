@@ -48,7 +48,7 @@ ompl::geometric::GeneticSearch::GeneticSearch(const base::SpaceInformationPtr &s
     setValidityCheck(true);
 }
 
-ompl::geometric::GeneticSearch::~GeneticSearch(void)
+ompl::geometric::GeneticSearch::~GeneticSearch()
 {
     for (unsigned int i = 0 ; i < pool_.size() ; ++i)
         si_->freeState(pool_[i].state);
@@ -283,7 +283,7 @@ void ompl::geometric::GeneticSearch::tryToImprove(const base::GoalRegion &goal, 
     OMPL_DEBUG("Distance to goal after improvement: %g", distance);
 }
 
-void ompl::geometric::GeneticSearch::clear(void)
+void ompl::geometric::GeneticSearch::clear()
 {
     generations_ = 0;
     pool_.clear();

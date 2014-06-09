@@ -54,7 +54,7 @@ namespace ompl
             /** \brief Create a goal region */
             GoalRegion(const SpaceInformationPtr &si);
 
-            virtual ~GoalRegion(void)
+            virtual ~GoalRegion()
             {
             }
 
@@ -85,7 +85,7 @@ namespace ompl
 
             /** \brief Get the distance to the goal that is allowed
                 for a state to be considered in the goal region */
-            double getThreshold(void) const
+            double getThreshold() const
             {
                 return threshold_;
             }

@@ -81,7 +81,7 @@ ompl::base::SubspaceStateSampler::SubspaceStateSampler(const StateSpace *space, 
         OMPL_WARN("Subspace state sampler did not find any common subspaces. Sampling will have no effect.");
 }
 
-ompl::base::SubspaceStateSampler::~SubspaceStateSampler(void)
+ompl::base::SubspaceStateSampler::~SubspaceStateSampler()
 {
     subspace_->freeState(work_);
     subspace_->freeState(work2_);

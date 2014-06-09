@@ -46,7 +46,7 @@ ompl::base::MaximizeClearanceValidStateSampler::MaximizeClearanceValidStateSampl
                                        boost::bind(&MaximizeClearanceValidStateSampler::getNrImproveAttempts, this));
 }
 
-ompl::base::MaximizeClearanceValidStateSampler::~MaximizeClearanceValidStateSampler(void)
+ompl::base::MaximizeClearanceValidStateSampler::~MaximizeClearanceValidStateSampler()
 {
     si_->freeState(work_);
 }

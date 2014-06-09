@@ -116,7 +116,7 @@ namespace ompl
         {
         }
 
-        virtual ~NearestNeighborsGNAT(void)
+        virtual ~NearestNeighborsGNAT()
         {
             if (tree_)
                 delete tree_;
@@ -129,7 +129,7 @@ namespace ompl
             if (tree_)
                 rebuildDataStructure();
         }
-        virtual void clear(void)
+        virtual void clear()
         {
             if (tree_)
             {
@@ -239,14 +239,14 @@ namespace ompl
             }
         }
 
-        virtual std::size_t size(void) const
+        virtual std::size_t size() const
         {
             return size_;
         }
 
 #ifdef GNAT_SAMPLER
         /// Sample an element from the GNAT.
-        const _T& sample(RNG& rng) const
+        const _T& sample(RNG &rng) const
         {
             if (!size())
                 throw Exception("Cannot sample from an empty tree");
@@ -499,7 +499,7 @@ namespace ompl
                     for (unsigned int i=1; i<degree_; ++i)
                         if (dists[j][i] < dists[j][k])
                             k = i;
-                    Node* child = children_[k];
+                    Node *child = children_[k];
                     if (j != pivots[k])
                     {
                         child->data_.push_back(data_[j]);
@@ -556,7 +556,7 @@ namespace ompl
             /// special case). The nodeQueue, which contains other Nodes
             /// that need to be checked for nearest neighbors, is updated.
             void nearestK(const GNAT& gnat, const _T &data, std::size_t k,
-                NearQueue& nbh, NodeQueue& nodeQueue, bool& isPivot) const
+                NearQueue& nbh, NodeQueue& nodeQueue, bool &isPivot) const
             {
                 for (unsigned int i=0; i<data_.size(); ++i)
                     if (!gnat.isRemoved(data_[i]))
@@ -567,7 +567,7 @@ namespace ompl
                 if (children_.size() > 0)
                 {
                     double dist;
-                    Node* child;
+                    Node *child;
                     std::vector<double> distToPivot(children_.size());
                     std::vector<int> permutation(children_.size());
 
@@ -623,7 +623,7 @@ namespace ompl
                         insertNeighborR(nbh, r, data_[i], gnat.distFun_(data, data_[i]));
                 if (children_.size() > 0)
                 {
-                    Node* child;
+                    Node *child;
                     std::vector<double> distToPivot(children_.size());
                     std::vector<int> permutation(children_.size());
 
@@ -665,7 +665,7 @@ namespace ompl
                 minR = std::max(minR, maxRadius_);
                 return std::pow(minR, gnat.estimatedDimension_) / (double) subtreeSize_;
             }
-            const _T& sample(const GNAT& gnat, RNG& rng) const
+            const _T& sample(const GNAT& gnat, RNG &rng) const
             {
                 if (children_.size() != 0)
                 {
@@ -695,7 +695,7 @@ namespace ompl
                     children_[i]->list(gnat, data);
             }
 
-            friend std::ostream& operator<<(std::ostream& out, const Node& node)
+            friend std::ostream& operator<<(std::ostream& out, const Node &node)
             {
                 out << "\ndegree:\t" << node.degree_;
                 out << "\nminRadius:\t" << node.minRadius_;
@@ -756,7 +756,7 @@ namespace ompl
         };
 
         /// \brief The data structure containing the elements stored in this structure.
-        Node*                           tree_;
+        Node                           *tree_;
         /// The desired degree of each node.
         unsigned int                    degree_;
         /// \brief After splitting a Node, each child Node has degree equal to

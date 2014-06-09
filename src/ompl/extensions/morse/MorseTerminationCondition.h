@@ -59,12 +59,12 @@ namespace ompl
             {
             }
             
-            ~MorseTerminationCondition(void)
+            ~MorseTerminationCondition()
             {
             }
             
             /** \brief Return true if the simulation is still running */
-            bool eval(void) const;
+            bool eval() const;
         };
     }
 }

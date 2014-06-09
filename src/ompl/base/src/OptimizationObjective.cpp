@@ -46,7 +46,7 @@ ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationP
 {
 }
 
-const std::string& ompl::base::OptimizationObjective::getDescription(void) const
+const std::string& ompl::base::OptimizationObjective::getDescription() const
 {
     return description_;
 }
@@ -56,7 +56,7 @@ bool ompl::base::OptimizationObjective::isSatisfied(Cost c) const
     return this->isCostBetterThan(c, threshold_);
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::getCostThreshold(void) const
+ompl::base::Cost ompl::base::OptimizationObjective::getCostThreshold() const
 {
     return threshold_;
 }
@@ -136,7 +136,7 @@ ompl::base::Cost ompl::base::OptimizationObjective::terminalCost(const State *s)
     return identityCost();
 }
 
-bool ompl::base::OptimizationObjective::isSymmetric(void) const
+bool ompl::base::OptimizationObjective::isSymmetric() const
 {
     return si_->getStateSpace()->hasSymmetricInterpolate();
 }
@@ -163,8 +163,8 @@ void ompl::base::OptimizationObjective::setCostToGoHeuristic(const CostToGoHeuri
     costToGoFn_ = costToGo;
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State* state,
-                                                             const Goal* goal) const
+ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State *state,
+                                                             const Goal *goal) const
 {
     if (costToGoFn_)
         return costToGoFn_(state, goal);
@@ -172,21 +172,21 @@ ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State* state,
         return this->identityCost(); // assumes that identity < all costs
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const State* s1,
-                                                                        const State* s2) const
+ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const State *s1,
+                                                                        const State *s2) const
 {
     return this->identityCost(); // assumes that identity < all costs
 }
 
 const ompl::base::SpaceInformationPtr&
-ompl::base::OptimizationObjective::getSpaceInformation(void) const
+ompl::base::OptimizationObjective::getSpaceInformation() const
 {
     return si_;
 }
 
-ompl::base::Cost ompl::base::goalRegionCostToGo(const State* state, const Goal* goal)
+ompl::base::Cost ompl::base::goalRegionCostToGo(const State *state, const Goal *goal)
 {
-    const GoalRegion* goalRegion = goal->as<GoalRegion>();
+    const GoalRegion *goalRegion = goal->as<GoalRegion>();
 
     // Ensures that all states within the goal region's threshold to
     // have a cost-to-go of exactly zero.
@@ -218,7 +218,7 @@ void ompl::base::MultiOptimizationObjective::addObjective(const OptimizationObje
         components_.push_back(Component(objective, weight));
 }
 
-std::size_t ompl::base::MultiOptimizationObjective::getObjectiveCount(void) const
+std::size_t ompl::base::MultiOptimizationObjective::getObjectiveCount() const
 {
     return components_.size();
 }
@@ -249,17 +249,17 @@ void ompl::base::MultiOptimizationObjective::setObjectiveWeight(unsigned int idx
         throw Exception("Objecitve index does not exist.");
 }
 
-void ompl::base::MultiOptimizationObjective::lock(void)
+void ompl::base::MultiOptimizationObjective::lock()
 {
     locked_ = true;
 }
 
-bool ompl::base::MultiOptimizationObjective::isLocked(void) const
+bool ompl::base::MultiOptimizationObjective::isLocked() const
 {
     return locked_;
 }
 
-ompl::base::Cost ompl::base::MultiOptimizationObjective::stateCost(const State* s) const
+ompl::base::Cost ompl::base::MultiOptimizationObjective::stateCost(const State *s) const
 {
     Cost c = this->identityCost();
     for (std::vector<Component>::const_iterator comp = components_.begin();
@@ -272,8 +272,8 @@ ompl::base::Cost ompl::base::MultiOptimizationObjective::stateCost(const State* 
     return c;
 }
 
-ompl::base::Cost ompl::base::MultiOptimizationObjective::motionCost(const State* s1,
-                                                                    const State* s2) const
+ompl::base::Cost ompl::base::MultiOptimizationObjective::motionCost(const State *s1,
+                                                                    const State *s2) const
 {
     Cost c = this->identityCost();
      for (std::vector<Component>::const_iterator comp = components_.begin();
@@ -293,7 +293,7 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
 
     if (a)
     {
-        if (MultiOptimizationObjective* mult = dynamic_cast<MultiOptimizationObjective*>(a.get()))
+        if (MultiOptimizationObjective *mult = dynamic_cast<MultiOptimizationObjective*>(a.get()))
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {
@@ -308,7 +308,7 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
 
     if (b)
     {
-        if (MultiOptimizationObjective* mult = dynamic_cast<MultiOptimizationObjective*>(b.get()))
+        if (MultiOptimizationObjective *mult = dynamic_cast<MultiOptimizationObjective*>(b.get()))
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {
@@ -321,7 +321,7 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
             components.push_back(MultiOptimizationObjective::Component(b, 1.0));
     }
 
-    MultiOptimizationObjective* multObj = new MultiOptimizationObjective(a->getSpaceInformation());
+    MultiOptimizationObjective *multObj = new MultiOptimizationObjective(a->getSpaceInformation());
 
     for (std::vector<MultiOptimizationObjective::Component>::const_iterator comp = components.begin();
          comp != components.end();
@@ -340,7 +340,7 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator*(double weight,
 
     if (a)
     {
-        if (MultiOptimizationObjective* mult = dynamic_cast<MultiOptimizationObjective*>(a.get()))
+        if (MultiOptimizationObjective *mult = dynamic_cast<MultiOptimizationObjective*>(a.get()))
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {
@@ -353,7 +353,7 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator*(double weight,
             components.push_back(MultiOptimizationObjective::Component(a, weight));
     }
 
-    MultiOptimizationObjective* multObj = new MultiOptimizationObjective(a->getSpaceInformation());
+    MultiOptimizationObjective *multObj = new MultiOptimizationObjective(a->getSpaceInformation());
 
     for (std::vector<MultiOptimizationObjective::Component>::const_iterator comp = components.begin();
          comp != components.end();

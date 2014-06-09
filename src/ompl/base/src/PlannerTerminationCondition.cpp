@@ -85,7 +85,7 @@ namespace ompl
         private:
 
             /** \brief Start the thread evaluating termination conditions if not already started */
-            void startEvalThread(void)
+            void startEvalThread()
             {
                 if (!thread_)
                 {
@@ -96,7 +96,7 @@ namespace ompl
             }
 
             /** \brief Stop the thread evaluating termination conditions if not already stopped */
-            void stopEvalThread(void)
+            void stopEvalThread()
             {
                 signalThreadStop_ = true;
                 if (thread_)
@@ -108,7 +108,7 @@ namespace ompl
             }
 
             /** \brief Worker function that runs in a separate thread (calls computeEval())*/
-            void periodicEval(void)
+            void periodicEval()
             {
                 // we want to check for termination at least once every ms;
                 // even though we may evaluate the condition itself more rarely
@@ -166,12 +166,12 @@ impl_(new PlannerTerminationConditionImpl(fn, period))
 {
 }
 
-void ompl::base::PlannerTerminationCondition::terminate(void) const
+void ompl::base::PlannerTerminationCondition::terminate() const
 {
     impl_->terminate();
 }
 
-bool ompl::base::PlannerTerminationCondition::eval(void) const
+bool ompl::base::PlannerTerminationCondition::eval() const
 {
     return impl_->eval();
 }

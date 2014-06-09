@@ -60,7 +60,7 @@ namespace ompl
                 {
                 }
 
-                virtual ~SolutionNonExistenceProof(void)
+                virtual ~SolutionNonExistenceProof()
                 {
                 }
 

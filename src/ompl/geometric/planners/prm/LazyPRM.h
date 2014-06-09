@@ -67,7 +67,7 @@ namespace ompl
             /** \brief Constructor */
             LazyPRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
 
-            virtual ~LazyPRM(void);
+            virtual ~LazyPRM();
 
             /** \brief For LazyPRM, this simply calls growRoadmap() */
             virtual void constructRoadmap(const base::PlannerTerminationCondition &ptc);
