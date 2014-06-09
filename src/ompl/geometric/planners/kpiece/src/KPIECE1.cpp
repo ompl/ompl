@@ -59,11 +59,11 @@ ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::P
     Planner::declareParam<double>("min_valid_path_fraction", this, &KPIECE1::setMinValidPathFraction, &KPIECE1::getMinValidPathFraction);
 }
 
-ompl::geometric::KPIECE1::~KPIECE1(void)
+ompl::geometric::KPIECE1::~KPIECE1()
 {
 }
 
-void ompl::geometric::KPIECE1::setup(void)
+void ompl::geometric::KPIECE1::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -78,7 +78,7 @@ void ompl::geometric::KPIECE1::setup(void)
     disc_.setDimension(projectionEvaluator_->getDimension());
 }
 
-void ompl::geometric::KPIECE1::clear(void)
+void ompl::geometric::KPIECE1::clear()
 {
     Planner::clear();
     sampler_.reset();

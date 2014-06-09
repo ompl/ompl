@@ -47,20 +47,20 @@
 static const boost::uint32_t OMPL_PLANNER_DATA_CONTROL_ARCHIVE_MARKER = 0x5044434D; // this spells PDCM
 /// \endcond
 
-ompl::control::PlannerDataStorage::PlannerDataStorage(void) : base::PlannerDataStorage()
+ompl::control::PlannerDataStorage::PlannerDataStorage() : base::PlannerDataStorage()
 {
 }
 
-ompl::control::PlannerDataStorage::~PlannerDataStorage(void)
+ompl::control::PlannerDataStorage::~PlannerDataStorage()
 {
 }
 
-void ompl::control::PlannerDataStorage::load(const char *filename, base::PlannerData& pd)
+void ompl::control::PlannerDataStorage::load(const char *filename, base::PlannerData &pd)
 {
     base::PlannerDataStorage::load(filename, pd);
 }
 
-void ompl::control::PlannerDataStorage::load(std::istream &in, base::PlannerData& pd)
+void ompl::control::PlannerDataStorage::load(std::istream &in, base::PlannerData &pd)
 {
     if (!pd.hasControls())
     {
@@ -69,7 +69,7 @@ void ompl::control::PlannerDataStorage::load(std::istream &in, base::PlannerData
         return;
     }
 
-    control::PlannerData* pdc = static_cast<control::PlannerData*>(&pd);
+    control::PlannerData *pdc = static_cast<control::PlannerData*>(&pd);
     pdc->clear();
 
     const SpaceInformationPtr &si = pdc->getSpaceInformation();
@@ -127,14 +127,14 @@ void ompl::control::PlannerDataStorage::load(std::istream &in, base::PlannerData
     }
 }
 
-void ompl::control::PlannerDataStorage::store(const base::PlannerData& pd, const char *filename)
+void ompl::control::PlannerDataStorage::store(const base::PlannerData &pd, const char *filename)
 {
     base::PlannerDataStorage::store(pd, filename);
 }
 
-void ompl::control::PlannerDataStorage::store(const base::PlannerData& pd, std::ostream &out)
+void ompl::control::PlannerDataStorage::store(const base::PlannerData &pd, std::ostream &out)
 {
-    const control::PlannerData* pdc = static_cast<const control::PlannerData*>(&pd);
+    const control::PlannerData *pdc = static_cast<const control::PlannerData*>(&pd);
     if (!pdc)
     {
         OMPL_WARN("Failed to cast PlannerData to control::PlannerData.  Invoking base::PlannerDataStorage::store");

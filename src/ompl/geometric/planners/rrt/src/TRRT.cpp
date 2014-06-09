@@ -72,12 +72,12 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
     Planner::declareParam<double>("k_constant", this, &TRRT::setKConstant, &TRRT::getKConstant);
 }
 
-ompl::geometric::TRRT::~TRRT(void)
+ompl::geometric::TRRT::~TRRT()
 {
     freeMemory();
 }
 
-void ompl::geometric::TRRT::clear(void)
+void ompl::geometric::TRRT::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -93,7 +93,7 @@ void ompl::geometric::TRRT::clear(void)
     frontierCount_ = 1; // init to 1 to prevent division by zero error
 }
 
-void ompl::geometric::TRRT::setup(void)
+void ompl::geometric::TRRT::setup()
 {
     Planner::setup();
     tools::SelfConfig selfConfig(si_, getName());
@@ -154,7 +154,7 @@ void ompl::geometric::TRRT::setup(void)
     frontierCount_ = 1; // init to 1 to prevent division by zero error
 }
 
-void ompl::geometric::TRRT::freeMemory(void)
+void ompl::geometric::TRRT::freeMemory()
 {
     // Delete all motions, states and the nearest neighbors data structure
     if (nearestNeighbors_)

@@ -45,7 +45,7 @@ MaximizeMinClearanceObjective(const SpaceInformationPtr &si) :
     this->setCostThreshold(Cost(std::numeric_limits<double>::infinity()));
 }
 
-ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::stateCost(const State* s) const
+ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::stateCost(const State *s) const
 {
     return Cost(si_->getStateValidityChecker()->clearance(s));
 }
@@ -55,12 +55,12 @@ bool ompl::base::MaximizeMinClearanceObjective::isCostBetterThan(Cost c1, Cost c
     return c1.v > c2.v + magic::BETTER_PATH_COST_MARGIN;
 }
 
-ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::identityCost(void) const
+ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::identityCost() const
 {
     return Cost(std::numeric_limits<double>::infinity());
 }
 
-ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::infiniteCost(void) const
+ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::infiniteCost() const
 {
     return Cost(-std::numeric_limits<double>::infinity());
 }

@@ -85,7 +85,7 @@ void ompl::base::RealVectorStateSampler::sampleGaussian(State *state, const Stat
     }
 }
 
-void ompl::base::RealVectorStateSpace::registerProjections(void)
+void ompl::base::RealVectorStateSpace::registerProjections()
 {
     // compute a default random projection
     if (dimension_ > 0)
@@ -100,7 +100,7 @@ void ompl::base::RealVectorStateSpace::registerProjections(void)
     }
 }
 
-void ompl::base::RealVectorStateSpace::setup(void)
+void ompl::base::RealVectorStateSpace::setup()
 {
     bounds_.check();
     StateSpace::setup();
@@ -139,7 +139,7 @@ void ompl::base::RealVectorStateSpace::setBounds(double low, double high)
     setBounds(bounds);
 }
 
-unsigned int ompl::base::RealVectorStateSpace::getDimension(void) const
+unsigned int ompl::base::RealVectorStateSpace::getDimension() const
 {
     return dimension_;
 }
@@ -168,7 +168,7 @@ void ompl::base::RealVectorStateSpace::setDimensionName(unsigned int index, cons
         throw Exception("Cannot set dimension name. Index out of bounds");
 }
 
-double ompl::base::RealVectorStateSpace::getMaximumExtent(void) const
+double ompl::base::RealVectorStateSpace::getMaximumExtent() const
 {
     double e = 0.0;
     for (unsigned int i = 0 ; i < dimension_ ; ++i)
@@ -208,7 +208,7 @@ void ompl::base::RealVectorStateSpace::copyState(State *destination, const State
            static_cast<const StateType*>(source)->values, stateBytes_);
 }
 
-unsigned int ompl::base::RealVectorStateSpace::getSerializationLength(void) const
+unsigned int ompl::base::RealVectorStateSpace::getSerializationLength() const
 {
     return stateBytes_;
 }
@@ -259,12 +259,12 @@ void ompl::base::RealVectorStateSpace::interpolate(const State *from, const Stat
         rstate->values[i] = rfrom->values[i] + (rto->values[i] - rfrom->values[i]) * t;
 }
 
-ompl::base::StateSamplerPtr ompl::base::RealVectorStateSpace::allocDefaultStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::RealVectorStateSpace::allocDefaultStateSampler() const
 {
     return StateSamplerPtr(new RealVectorStateSampler(this));
 }
 
-ompl::base::State* ompl::base::RealVectorStateSpace::allocState(void) const
+ompl::base::State* ompl::base::RealVectorStateSpace::allocState() const
 {
     StateType *rstate = new StateType();
     rstate->values = new double[dimension_];

@@ -70,12 +70,12 @@ namespace ompl
             {
             }
 
-            virtual ~GenericParam(void)
+            virtual ~GenericParam()
             {
             }
 
             /** \brief Get the name of the parameter */
-            const std::string& getName(void) const
+            const std::string& getName() const
             {
                 return name_;
             }
@@ -90,7 +90,7 @@ namespace ompl
             virtual bool setValue(const std::string &value) = 0;
 
             /** \brief Retrieve the value of the parameter, as a string. */
-            virtual std::string getValue(void) const = 0;
+            virtual std::string getValue() const = 0;
 
             /** \brief Assignment operator by type. This is just for convenience, as it just calls setValue() */
             template<typename T>
@@ -114,7 +114,7 @@ namespace ompl
             }
 
             /** \brief Get the suggested range of values */
-            const std::string& getRangeSuggestion(void) const
+            const std::string& getRangeSuggestion() const
             {
                 return rangeSuggestion_;
             }
@@ -162,7 +162,7 @@ namespace ompl
                     OMPL_ERROR("Setter function must be specified for parameter");
             }
 
-            virtual ~SpecificParam(void)
+            virtual ~SpecificParam()
             {
             }
 
@@ -187,7 +187,7 @@ namespace ompl
                 return result;
             }
 
-            virtual std::string getValue(void) const
+            virtual std::string getValue() const
             {
                 if (getter_)
                     try
@@ -269,7 +269,7 @@ namespace ompl
             void getParamValues(std::vector<std::string> &vals) const;
 
             /** \brief Get the map from parameter names to parameter descriptions */
-            const std::map<std::string, GenericParamPtr>& getParams(void) const;
+            const std::map<std::string, GenericParamPtr>& getParams() const;
 
             /** \brief Get the parameter that corresponds to a specified name. An empty shared ptr is returned if the parameter does not exist */
             const GenericParamPtr& getParam(const std::string &key) const;
@@ -281,13 +281,13 @@ namespace ompl
             GenericParam& operator[](const std::string &key);
 
             /** \brief Get the number of parameters maintained by this instance */
-            std::size_t size(void) const
+            std::size_t size() const
             {
                 return params_.size();
             }
 
             /** \brief Clear all the set parameters */
-            void clear(void);
+            void clear();
 
             /** \brief Print the parameters to a stream */
             void print(std::ostream &out) const;

@@ -78,13 +78,13 @@ void ompl::geometric::PathGeometric::copyFrom(const PathGeometric &other)
         states_[i] = si_->cloneState(other.states_[i]);
 }
 
-void ompl::geometric::PathGeometric::freeMemory(void)
+void ompl::geometric::PathGeometric::freeMemory()
 {
     for (unsigned int i = 0 ; i < states_.size() ; ++i)
         si_->freeState(states_[i]);
 }
 
-double ompl::geometric::PathGeometric::length(void) const
+double ompl::geometric::PathGeometric::length() const
 {
     double L = 0.0;
     for (unsigned int i = 1 ; i < states_.size() ; ++i)
@@ -92,7 +92,7 @@ double ompl::geometric::PathGeometric::length(void) const
     return L;
 }
 
-double ompl::geometric::PathGeometric::clearance(void) const
+double ompl::geometric::PathGeometric::clearance() const
 {
     double c = 0.0;
     for (unsigned int i = 0 ; i < states_.size() ; ++i)
@@ -104,7 +104,7 @@ double ompl::geometric::PathGeometric::clearance(void) const
     return c;
 }
 
-double ompl::geometric::PathGeometric::smoothness(void) const
+double ompl::geometric::PathGeometric::smoothness() const
 {
     double s = 0.0;
     if (states_.size() > 2)
@@ -140,7 +140,7 @@ double ompl::geometric::PathGeometric::smoothness(void) const
     return s;
 }
 
-bool ompl::geometric::PathGeometric::check(void) const
+bool ompl::geometric::PathGeometric::check() const
 {
     bool result = true;
     if (states_.size() > 0)
@@ -262,7 +262,7 @@ std::pair<bool, bool> ompl::geometric::PathGeometric::checkAndRepair(unsigned in
     return std::make_pair(originalValid, result);
 }
 
-void ompl::geometric::PathGeometric::subdivide(void)
+void ompl::geometric::PathGeometric::subdivide()
 {
     if (states_.size() < 2)
         return;
@@ -277,7 +277,7 @@ void ompl::geometric::PathGeometric::subdivide(void)
     states_.swap(newStates);
 }
 
-void ompl::geometric::PathGeometric::interpolate(void)
+void ompl::geometric::PathGeometric::interpolate()
 {
     unsigned int n = 0;
     const int n1 = states_.size() - 1;
@@ -353,12 +353,12 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
         throw Exception("Internal error in path interpolation. This should never happen. Please contact the developers.");
 }
 
-void ompl::geometric::PathGeometric::reverse(void)
+void ompl::geometric::PathGeometric::reverse()
 {
     std::reverse(states_.begin(), states_.end());
 }
 
-void ompl::geometric::PathGeometric::random(void)
+void ompl::geometric::PathGeometric::random()
 {
     freeMemory();
     states_.resize(2);

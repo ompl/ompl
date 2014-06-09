@@ -61,19 +61,19 @@ namespace ompl
             /** \brief Copy constructor */
             PathControl(const PathControl &path);
 
-            virtual ~PathControl(void)
+            virtual ~PathControl()
             {
                 freeMemory();
             }
 
             /** \brief Assignment operator */
-            PathControl& operator=(const PathControl& other);
+            PathControl& operator=(const PathControl &other);
 
             /** \brief The path length (sum of control durations) */
-            virtual double length(void) const;
+            virtual double length() const;
 
             /** \brief Check if the path is valid */
-            virtual bool check(void) const;
+            virtual bool check() const;
 
             /** \brief Print the path to a stream */
             virtual void print(std::ostream &out) const;
@@ -89,7 +89,7 @@ namespace ompl
             virtual void printAsMatrix(std::ostream &out) const;
 
             /** \brief Convert this path into a geometric path (interpolation is performed and then states are copied) */
-            geometric::PathGeometric asGeometric(void) const;
+            geometric::PathGeometric asGeometric() const;
 
             /** @name Path operations
                 @{ */
@@ -103,10 +103,10 @@ namespace ompl
             void append(const base::State *state, const Control *control, double duration);
 
             /** \brief Make the path such that all controls are applied for a single time step (computes intermediate states) */
-            void interpolate(void);
+            void interpolate();
 
             /** \brief Set this path to a random segment */
-            void random(void);
+            void random();
 
             /** \brief Set this path to a random valid segment. Sample \e attempts times for valid segments. Returns true on success.*/
             bool randomValid(unsigned int attempts);
@@ -117,19 +117,19 @@ namespace ompl
                 @{ */
 
             /** \brief Get the states that make up the path (as a reference, so it can be modified, hence the function is not const) */
-            std::vector<base::State*>& getStates(void)
+            std::vector<base::State*>& getStates()
             {
                 return states_;
             }
 
             /** \brief Get the controls that make up the path (as a reference, so it can be modified, hence the function is not const) */
-            std::vector<Control*>& getControls(void)
+            std::vector<Control*>& getControls()
             {
                 return controls_;
             }
 
             /** \brief Get the control durations used along the path (as a reference, so it can be modified, hence the function is not const) */
-            std::vector<double>& getControlDurations(void)
+            std::vector<double>& getControlDurations()
             {
                 return controlDurations_;
             }
@@ -165,13 +165,13 @@ namespace ompl
             }
 
             /** \brief Get the number of states (way-points) that make up this path */
-            std::size_t getStateCount(void) const
+            std::size_t getStateCount() const
             {
                 return states_.size();
             }
 
             /** \brief Get the number of controls applied along this path. This should be equal to getStateCount() - 1 unless there are 0 states, in which case the number of controls will also be 0. */
-            std::size_t getControlCount(void) const
+            std::size_t getControlCount() const
             {
                 return controls_.size();
             }
@@ -190,10 +190,10 @@ namespace ompl
             std::vector<double>         controlDurations_;
 
             /** \brief Free the memory allocated by the path */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Copy the content of a path to this one */
-            void copyFrom(const PathControl& other);
+            void copyFrom(const PathControl &other);
 
         };
 

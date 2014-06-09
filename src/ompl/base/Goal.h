@@ -68,13 +68,13 @@ namespace ompl
             Goal(const SpaceInformationPtr &si);
 
             /** \brief Destructor.*/
-            virtual ~Goal(void)
+            virtual ~Goal()
             {
             }
 
             /** \brief Cast this instance to a desired type. */
             template<class T>
-            T* as(void)
+            T* as()
             {
                 /** \brief Make sure the type we are casting to is indeed a goal */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Goal*>));
@@ -84,7 +84,7 @@ namespace ompl
 
             /** \brief Cast this instance to a desired type. */
             template<class T>
-            const T* as(void) const
+            const T* as() const
             {
                 /** \brief Make sure the type we are casting to is indeed a goal */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Goal*>));
@@ -93,7 +93,7 @@ namespace ompl
             }
 
             /** \brief Return the goal type */
-            GoalType getType(void) const
+            GoalType getType() const
             {
                 return type_;
             }
@@ -105,7 +105,7 @@ namespace ompl
             }
 
             /** \brief Get the space information this goal is for */
-            const SpaceInformationPtr& getSpaceInformation(void) const
+            const SpaceInformationPtr& getSpaceInformation() const
             {
                 return si_;
             }

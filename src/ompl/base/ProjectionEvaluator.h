@@ -145,10 +145,10 @@ namespace ompl
             /** \brief Construct a projection evaluator for a specific state space */
             ProjectionEvaluator(const StateSpacePtr &space);
 
-            virtual ~ProjectionEvaluator(void);
+            virtual ~ProjectionEvaluator();
 
             /** \brief Return the dimension of the projection defined by this evaluator */
-            virtual unsigned int getDimension(void) const = 0;
+            virtual unsigned int getDimension() const = 0;
 
             /** \brief Compute the projection as an array of double values */
             virtual void project(const State *state, EuclideanProjection &projection) const = 0;
@@ -172,10 +172,10 @@ namespace ompl
             void mulCellSizes(double factor);
 
             /** \brief Return true if any user configuration has been done to this projection evaluator (setCellSizes() was called) */
-            bool userConfigured(void) const;
+            bool userConfigured() const;
 
             /** \brief Get the size (each dimension) of a grid cell  */
-            const std::vector<double>& getCellSizes(void) const
+            const std::vector<double>& getCellSizes() const
             {
                 return cellSizes_;
             }
@@ -184,26 +184,26 @@ namespace ompl
             double getCellSizes(unsigned int dim) const;
 
             /** \brief Check if cell dimensions match projection dimension */
-            void checkCellSizes(void) const;
+            void checkCellSizes() const;
 
             /** \brief Sample the state space and decide on default
                 cell sizes. This function is called by setup() if
                 no cell dsizes have been set and
                 defaultCellSizes() does not fill the cell
                 sizes either. */
-            void inferCellSizes(void);
+            void inferCellSizes();
 
             /** \brief Set the default cell dimensions for this
                 projection. The default implementation of this
                 function is empty. setup() calls this function if no
                 cell dimensions have been previously set. */
-            virtual void defaultCellSizes(void);
+            virtual void defaultCellSizes();
 
             /** \brief Check if the projection dimension matched the dimension of the bounds */
-            void checkBounds(void) const;
+            void checkBounds() const;
 
             /** \brief Check if bounds were specified for this projection */
-            bool hasBounds(void) const
+            bool hasBounds() const
             {
                 return !bounds_.low.empty();
             }
@@ -214,16 +214,16 @@ namespace ompl
             void setBounds(const RealVectorBounds &bounds);
 
             /** \brief Get the bounds computed/set for this projection */
-            const RealVectorBounds& getBounds(void)
+            const RealVectorBounds& getBounds()
             {
                 return bounds_;
             }
 
             /** \brief Compute an approximation of the bounds for this projection space. getBounds() will then report the computed bounds. */
-            void inferBounds(void);
+            void inferBounds();
 
             /** \brief Perform configuration steps, if needed */
-            virtual void setup(void);
+            virtual void setup();
 
             /** \brief Compute integer coordinates for a projection */
             void computeCoordinates(const EuclideanProjection &projection, ProjectionCoordinates &coord) const;
@@ -237,13 +237,13 @@ namespace ompl
             }
 
             /** \brief Get the parameters for this projection */
-            ParamSet& params(void)
+            ParamSet& params()
             {
                 return params_;
             }
 
             /** \brief Get the parameters for this projection */
-            const ParamSet& params(void) const
+            const ParamSet& params() const
             {
                 return params_;
             }
@@ -257,7 +257,7 @@ namespace ompl
         protected:
 
             /** \brief Fill estimatedBounds_ with an approximate bounding box for the projection space (via sampling) */
-            void estimateBounds(void);
+            void estimateBounds();
 
             /** \brief The state space this projection operates on */
             const StateSpace    *space_;
@@ -305,9 +305,9 @@ namespace ompl
                 the subspace at position \e index is used. */
             SubspaceProjectionEvaluator(const StateSpace *space, unsigned int index, const ProjectionEvaluatorPtr &projToUse = ProjectionEvaluatorPtr());
 
-            virtual void setup(void);
+            virtual void setup();
 
-            virtual unsigned int getDimension(void) const;
+            virtual unsigned int getDimension() const;
 
             virtual void project(const State *state, EuclideanProjection &projection) const;
 

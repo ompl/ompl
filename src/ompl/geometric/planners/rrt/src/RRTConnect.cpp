@@ -49,12 +49,12 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si) : b
     connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
 
-ompl::geometric::RRTConnect::~RRTConnect(void)
+ompl::geometric::RRTConnect::~RRTConnect()
 {
     freeMemory();
 }
 
-void ompl::geometric::RRTConnect::setup(void)
+void ompl::geometric::RRTConnect::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -68,7 +68,7 @@ void ompl::geometric::RRTConnect::setup(void)
     tGoal_->setDistanceFunction(boost::bind(&RRTConnect::distanceFunction, this, _1, _2));
 }
 
-void ompl::geometric::RRTConnect::freeMemory(void)
+void ompl::geometric::RRTConnect::freeMemory()
 {
     std::vector<Motion*> motions;
 
@@ -95,7 +95,7 @@ void ompl::geometric::RRTConnect::freeMemory(void)
     }
 }
 
-void ompl::geometric::RRTConnect::clear(void)
+void ompl::geometric::RRTConnect::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -204,7 +204,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
             const base::State *st = tGoal_->size() == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
             if (st)
             {
-                Motion* motion = new Motion(si_);
+                Motion *motion = new Motion(si_);
                 si_->copyState(motion->state, st);
                 motion->root = motion->state;
                 tGoal_->add(motion);

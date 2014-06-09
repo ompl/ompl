@@ -80,7 +80,7 @@ namespace ompl
             class StateType : public State
             {
             public:
-                StateType(void) : State()
+                StateType() : State()
                 {
                 }
 
@@ -111,7 +111,7 @@ namespace ompl
                 dimensionNames_.resize(dim, "");
             }
 
-            virtual ~RealVectorStateSpace(void)
+            virtual ~RealVectorStateSpace()
             {
             }
 
@@ -130,12 +130,12 @@ namespace ompl
             void setBounds(double low, double high);
 
             /** \brief Get the bounds for this state space */
-            const RealVectorBounds& getBounds(void) const
+            const RealVectorBounds& getBounds() const
             {
                 return bounds_;
             }
 
-            virtual unsigned int getDimension(void) const;
+            virtual unsigned int getDimension() const;
 
             /** \brief Each dimension can optionally have a name associated to it. If it does, this function returns that name.
                 Return empty string otherwise */
@@ -147,7 +147,7 @@ namespace ompl
             /** \brief Set the name of a dimension */
             void setDimensionName(unsigned int index, const std::string &name);
 
-            virtual double getMaximumExtent(void) const;
+            virtual double getMaximumExtent() const;
 
             virtual void enforceBounds(State *state) const;
 
@@ -155,7 +155,7 @@ namespace ompl
 
             virtual void copyState(State *destination, const State *source) const;
 
-            virtual unsigned int getSerializationLength(void) const;
+            virtual unsigned int getSerializationLength() const;
 
             virtual void serialize(void *serialization, const State *state) const;
 
@@ -167,9 +167,9 @@ namespace ompl
 
             virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
-            virtual StateSamplerPtr allocDefaultStateSampler(void) const;
+            virtual StateSamplerPtr allocDefaultStateSampler() const;
 
-            virtual State* allocState(void) const;
+            virtual State* allocState() const;
 
             virtual void freeState(State *state) const;
 
@@ -179,9 +179,9 @@ namespace ompl
 
             virtual void printSettings(std::ostream &out) const;
 
-            virtual void registerProjections(void);
+            virtual void registerProjections();
 
-            virtual void setup(void);
+            virtual void setup();
 
         protected:
 

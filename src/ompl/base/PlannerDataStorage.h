@@ -87,25 +87,25 @@ namespace ompl
         public:
 
             /// \brief Default constructor.
-            PlannerDataStorage(void);
+            PlannerDataStorage();
             /// \brief Destructor
-            virtual ~PlannerDataStorage(void);
+            virtual ~PlannerDataStorage();
 
             /// \brief Store (serialize) the PlannerData structure to the given filename.
-            virtual void store(const PlannerData& pd, const char *filename);
+            virtual void store(const PlannerData &pd, const char *filename);
 
             /// \brief Store (serialize) the PlannerData structure to the given stream.
-            virtual void store(const PlannerData& pd, std::ostream &out);
+            virtual void store(const PlannerData &pd, std::ostream &out);
 
             /// \brief Load the PlannerData structure from the given stream.
             /// The StateSpace that was used to store the data must match the
             /// StateSpace inside of the argument PlannerData.
-            virtual void load(const char *filename, PlannerData& pd);
+            virtual void load(const char *filename, PlannerData &pd);
 
             /// \brief Load the PlannerData structure from the given stream.
             /// The StateSpace that was used to store the data must match the
             /// StateSpace inside of the argument PlannerData.
-            virtual void load(std::istream &in, PlannerData& pd);
+            virtual void load(std::istream &in, PlannerData &pd);
 
         protected:
             /// \brief Information stored at the beginning of the PlannerData archive
@@ -152,7 +152,7 @@ namespace ompl
                     ar & type_;
                 }
 
-                const PlannerDataVertex* v_;
+                const PlannerDataVertex *v_;
                 std::vector<unsigned char> state_;
                 VertexType type_;
             };
@@ -168,7 +168,7 @@ namespace ompl
                     ar & weight_;
                 }
 
-                const PlannerDataEdge* e_;
+                const PlannerDataEdge *e_;
                 std::pair<unsigned int, unsigned int> endpoints_;
                 double weight_;
             };
@@ -189,7 +189,7 @@ namespace ompl
                     const PlannerDataVertex *v = vertexData.v_;
 
                     // Allocating a new state and deserializing it from the buffer
-                    State* state = space->allocState();
+                    State *state = space->allocState();
                     states.push_back(state);
                     space->deserialize (state, &vertexData.state_[0]);
                     const_cast<PlannerDataVertex*>(v)->state_ = state;

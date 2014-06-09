@@ -47,7 +47,7 @@
 #include <stdio.h>
 #include <psapi.h>
 
-ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
+ompl::machine::MemUsage_t getProcessMemoryUsageAux()
 {
     HANDLE hProcess;
     PROCESS_MEMORY_COUNTERS pmc;
@@ -81,7 +81,7 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
 #include <cstring>
 #include <unistd.h>
 
-ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
+ompl::machine::MemUsage_t getProcessMemoryUsageAux()
 {
 
     task_basic_info         info;
@@ -106,7 +106,7 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
 #include <iostream>
 #include <fstream>
 
-ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
+ompl::machine::MemUsage_t getProcessMemoryUsageAux()
 {
    using std::ios_base;
    using std::ifstream;
@@ -144,7 +144,7 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
 
 #else
 // if we have no idea what to do, we return 0
-ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
+ompl::machine::MemUsage_t getProcessMemoryUsageAux()
 {
     return 0;
 }
@@ -152,7 +152,7 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
 #endif // apple
 #endif // windows
 
-ompl::machine::MemUsage_t ompl::machine::getProcessMemoryUsage(void)
+ompl::machine::MemUsage_t ompl::machine::getProcessMemoryUsage()
 {
     MemUsage_t result = getProcessMemoryUsageAux();
     if (result == 0)
@@ -162,7 +162,7 @@ ompl::machine::MemUsage_t ompl::machine::getProcessMemoryUsage(void)
     return result;
 }
 
-std::string ompl::machine::getHostname(void)
+std::string ompl::machine::getHostname()
 {
     static const int BUF_SIZE = 1024;
     char buffer[BUF_SIZE];

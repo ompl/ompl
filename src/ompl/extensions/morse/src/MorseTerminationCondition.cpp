@@ -36,7 +36,7 @@
 
 #include "ompl/extensions/morse/MorseTerminationCondition.h"
 
-bool ompl::base::MorseTerminationCondition::eval(void) const
+bool ompl::base::MorseTerminationCondition::eval() const
 {
     // the Python object will unset this if we should stop
     return !env_->simRunning_;

@@ -89,7 +89,7 @@ namespace ompl
 
             /// \brief Callback function to perform an event at the end of numerical
             /// integration.  This functionality is optional.
-            typedef boost::function<void(const base::State *state, const Control* control, const double duration, base::State *result)> PostPropagationEvent;
+            typedef boost::function<void(const base::State *state, const Control *control, const double duration, base::State *result)> PostPropagationEvent;
 
             /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
             /// an ODE to solve, and the integration step size.
@@ -98,7 +98,7 @@ namespace ompl
             }
 
             /// \brief Destructor.
-            virtual ~ODESolver (void)
+            virtual ~ODESolver ()
             {
             }
 
@@ -109,7 +109,7 @@ namespace ompl
             }
 
             /// \brief Return the size of a single numerical integration step
-            double getIntegrationStepSize (void) const
+            double getIntegrationStepSize () const
             {
                 return intStep_;
             }
@@ -143,7 +143,7 @@ namespace ompl
                                 OMPL_ERROR("ODESolverPtr does not reference a valid ODESolver object");
                         }
 
-                        virtual void propagate (const base::State *state, const Control* control, const double duration, base::State *result) const
+                        virtual void propagate (const base::State *state, const Control *control, const double duration, base::State *result) const
                         {
                             ODESolver::StateType reals;
                             si_->getStateSpace()->copyToReals(reals, state);
@@ -164,7 +164,7 @@ namespace ompl
         protected:
 
             /// \brief Solve the ODE given the initial state, and a control to apply for some duration.
-            virtual void solve (StateType &state, const Control* control, const double duration) const = 0;
+            virtual void solve (StateType &state, const Control *control, const double duration) const = 0;
 
             /// \brief The SpaceInformation that this ODESolver operates in.
             const SpaceInformationPtr     si_;
@@ -179,7 +179,7 @@ namespace ompl
             // Functor used by the boost::numeric::odeint stepper object
             struct ODEFunctor
             {
-                ODEFunctor (const ODE &o, const Control* ctrl) : ode(o), control(ctrl) {}
+                ODEFunctor (const ODE &o, const Control *ctrl) : ode(o), control(ctrl) {}
 
                 // boost::numeric::odeint will callback to this method during integration to evaluate the system
                 void operator () (const StateType &current, StateType &output, double /*time*/)
@@ -188,7 +188,7 @@ namespace ompl
                 }
 
                 ODE ode;
-                const Control* control;
+                const Control *control;
             };
             /// @endcond
         };
@@ -213,7 +213,7 @@ namespace ompl
         protected:
 
             /// \brief Solve the ODE using boost::numeric::odeint.
-            virtual void solve (StateType &state, const Control* control, const double duration) const
+            virtual void solve (StateType &state, const Control *control, const double duration) const
             {
                 Solver solver;
                 ODESolver::ODEFunctor odefunc (ode_, control);
@@ -238,7 +238,7 @@ namespace ompl
             }
 
             /// \brief Retrieves the error values from the most recent integration
-            ODESolver::StateType getError (void)
+            ODESolver::StateType getError ()
             {
                 ODESolver::StateType error (error_.begin (), error_.end ());
                 return error;
@@ -246,7 +246,7 @@ namespace ompl
 
         protected:
             /// \brief Solve the ODE using boost::numeric::odeint.  Save the resulting error values into error_.
-            virtual void solve (StateType &state, const Control* control, const double duration) const
+            virtual void solve (StateType &state, const Control *control, const double duration) const
             {
                 ODESolver::ODEFunctor odefunc (ode_, control);
 
@@ -285,7 +285,7 @@ namespace ompl
             }
 
             /// \brief Retrieve the total error allowed during numerical integration
-            double getMaximumError (void) const
+            double getMaximumError () const
             {
                 return maxError_;
             }
@@ -297,7 +297,7 @@ namespace ompl
             }
 
             /// \brief Retrieve the error tolerance during one step of numerical integration (local truncation error)
-            double getMaximumEpsilonError (void) const
+            double getMaximumEpsilonError () const
             {
                 return maxEpsilonError_;
             }
@@ -314,7 +314,7 @@ namespace ompl
             /// of the system, a control to apply to the system, and the duration to
             /// apply the control.  The value of \e state will contain the final
             /// values for the system after integration.
-            virtual void solve (StateType &state, const Control* control, const double duration) const
+            virtual void solve (StateType &state, const Control *control, const double duration) const
             {
                 ODESolver::ODEFunctor odefunc (ode_, control);
 

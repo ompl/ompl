@@ -57,12 +57,12 @@ ompl::geometric::pRRT::pRRT(const base::SpaceInformationPtr &si) : base::Planner
     Planner::declareParam<unsigned int>("thread_count", this, &pRRT::setThreadCount, &pRRT::getThreadCount, "1:64");
 }
 
-ompl::geometric::pRRT::~pRRT(void)
+ompl::geometric::pRRT::~pRRT()
 {
     freeMemory();
 }
 
-void ompl::geometric::pRRT::setup(void)
+void ompl::geometric::pRRT::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -73,7 +73,7 @@ void ompl::geometric::pRRT::setup(void)
     nn_->setDistanceFunction(boost::bind(&pRRT::distanceFunction, this, _1, _2));
 }
 
-void ompl::geometric::pRRT::clear(void)
+void ompl::geometric::pRRT::clear()
 {
     Planner::clear();
     samplerArray_.clear();
@@ -83,7 +83,7 @@ void ompl::geometric::pRRT::clear(void)
     lastGoalMotion_ = NULL;
 }
 
-void ompl::geometric::pRRT::freeMemory(void)
+void ompl::geometric::pRRT::freeMemory()
 {
     if (nn_)
     {

@@ -74,7 +74,7 @@ namespace ompl
             RealVectorLinearProjectionEvaluator(const StateSpacePtr &space,
                                                 const ProjectionMatrix::Matrix &projection);
 
-            virtual unsigned int getDimension(void) const;
+            virtual unsigned int getDimension() const;
 
             virtual void project(const State *state, EuclideanProjection &projection) const;
 
@@ -145,9 +145,9 @@ namespace ompl
                 kept components are in \e components and the cell sizes are a tenth of the corresponding bounds from the state space.  */
             RealVectorOrthogonalProjectionEvaluator(const StateSpacePtr &space, const std::vector<unsigned int> &components);
 
-            virtual unsigned int getDimension(void) const;
+            virtual unsigned int getDimension() const;
 
-            virtual void defaultCellSizes(void);
+            virtual void defaultCellSizes();
 
             virtual void project(const State *state, EuclideanProjection &projection) const;
 
@@ -182,11 +182,11 @@ namespace ompl
                 kept components are in \e components and the cell sizes are a tenth of the bounds from the state space.  */
             RealVectorIdentityProjectionEvaluator(const StateSpacePtr &space);
 
-            virtual unsigned int getDimension(void) const;
+            virtual unsigned int getDimension() const;
 
-            virtual void defaultCellSizes(void);
+            virtual void defaultCellSizes();
 
-            virtual void setup(void);
+            virtual void setup();
 
             virtual void project(const State *state, EuclideanProjection &projection) const;
 

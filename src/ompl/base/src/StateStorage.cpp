@@ -74,7 +74,7 @@ ompl::base::StateStorage::StateStorage(const StateSpacePtr &space) : space_(spac
 {
 }
 
-ompl::base::StateStorage::~StateStorage(void)
+ompl::base::StateStorage::~StateStorage()
 {
     freeMemory();
 }
@@ -217,13 +217,13 @@ void ompl::base::StateStorage::generateSamples(unsigned int count)
     space_->freeState(s);
 }
 
-void ompl::base::StateStorage::freeMemory(void)
+void ompl::base::StateStorage::freeMemory()
 {
     for (std::size_t i = 0 ; i < states_.size() ; ++i)
         space_->freeState(const_cast<State*>(states_[i]));
 }
 
-void ompl::base::StateStorage::clear(void)
+void ompl::base::StateStorage::clear()
 {
     freeMemory();
     states_.clear();
@@ -234,7 +234,7 @@ void ompl::base::StateStorage::sort(const boost::function<bool(const State*, con
     std::sort(states_.begin(), states_.end(), op);
 }
 
-ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocator(void) const
+ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocator() const
 {
     return getStateSamplerAllocatorRange(0, states_.empty() ? 0 : states_.size() - 1);
 }

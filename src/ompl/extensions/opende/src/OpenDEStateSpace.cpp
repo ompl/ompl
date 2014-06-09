@@ -66,7 +66,7 @@ ompl::control::OpenDEStateSpace::OpenDEStateSpace(const OpenDEEnvironmentPtr &en
     setDefaultBounds();
 }
 
-void ompl::control::OpenDEStateSpace::setDefaultBounds(void)
+void ompl::control::OpenDEStateSpace::setDefaultBounds()
 {
     // limit all velocities to 1 m/s, 1 rad/s, respectively
     base::RealVectorBounds bounds1(3);
@@ -235,7 +235,7 @@ void ompl::control::OpenDEStateSpace::setAngularVelocityBounds(const base::RealV
         components_[i * 4 + 2]->as<base::RealVectorStateSpace>()->setBounds(bounds);
 }
 
-ompl::base::State* ompl::control::OpenDEStateSpace::allocState(void) const
+ompl::base::State* ompl::control::OpenDEStateSpace::allocState() const
 {
     StateType *state = new StateType();
     allocStateComponents(state);
@@ -292,13 +292,13 @@ namespace ompl
 }
 /// @endcond
 
-ompl::base::StateSamplerPtr ompl::control::OpenDEStateSpace::allocDefaultStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::control::OpenDEStateSpace::allocDefaultStateSampler() const
 {
     base::StateSamplerPtr sampler = base::CompoundStateSpace::allocDefaultStateSampler();
     return base::StateSamplerPtr(new WrapperForOpenDESampler(this, sampler));
 }
 
-ompl::base::StateSamplerPtr ompl::control::OpenDEStateSpace::allocStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::control::OpenDEStateSpace::allocStateSampler() const
 {
     base::StateSamplerPtr sampler = base::CompoundStateSpace::allocStateSampler();
     if (dynamic_cast<WrapperForOpenDESampler*>(sampler.get()))

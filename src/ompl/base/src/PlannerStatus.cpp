@@ -36,7 +36,7 @@
 
 #include "ompl/base/PlannerStatus.h"
 
-std::string ompl::base::PlannerStatus::asString(void) const
+std::string ompl::base::PlannerStatus::asString() const
 {
     switch (status_)
     {

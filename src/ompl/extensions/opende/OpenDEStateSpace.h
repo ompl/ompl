@@ -68,7 +68,7 @@ namespace ompl
             class StateType : public base::CompoundStateSpace::StateType
             {
             public:
-                StateType(void) : base::CompoundStateSpace::StateType(), collision(0)
+                StateType() : base::CompoundStateSpace::StateType(), collision(0)
                 {
                 }
 
@@ -149,18 +149,18 @@ namespace ompl
                              double positionWeight = 1.0, double linVelWeight = 0.5,
                              double angVelWeight = 0.5, double orientationWeight = 1.0);
 
-            virtual ~OpenDEStateSpace(void)
+            virtual ~OpenDEStateSpace()
             {
             }
 
             /** \brief Get the OpenDE environment this state space corresponds to */
-            const OpenDEEnvironmentPtr& getEnvironment(void) const
+            const OpenDEEnvironmentPtr& getEnvironment() const
             {
                 return env_;
             }
 
             /** \brief Get the number of bodies state is maintained for */
-            unsigned int getNrBodies(void) const
+            unsigned int getNrBodies() const
             {
                 return env_->stateBodies_.size();
             }
@@ -170,7 +170,7 @@ namespace ompl
               objects in the spaces collision checking is performed
               (env.collisionSpaces_). The linear and angular velocity
               bounds are set as -1 to 1 for each dimension. */
-            void setDefaultBounds(void);
+            void setDefaultBounds();
 
             /** \brief Set the bounds for each of the position subspaces */
             void setVolumeBounds(const base::RealVectorBounds &bounds);
@@ -200,13 +200,13 @@ namespace ompl
                 (position, linear and agular velocities) */
             bool satisfiesBoundsExceptRotation(const StateType *state) const;
 
-            virtual base::State* allocState(void) const;
+            virtual base::State* allocState() const;
             virtual void freeState(base::State *state) const;
             virtual void copyState(base::State *destination, const base::State *source) const;
             virtual void interpolate(const base::State *from, const base::State *to, const double t, base::State *state) const;
 
-            virtual base::StateSamplerPtr allocDefaultStateSampler(void) const;
-            virtual base::StateSamplerPtr allocStateSampler(void) const;
+            virtual base::StateSamplerPtr allocDefaultStateSampler() const;
+            virtual base::StateSamplerPtr allocStateSampler() const;
 
             /** \brief Fill the OpenDEStateSpace::STATE_COLLISION_VALUE_BIT of StateType::collision member of a state, if unspecified.
                 Return the value value of that bit. */

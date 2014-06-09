@@ -103,7 +103,7 @@ namespace ompl
             {
             }
 
-            virtual bool isMetricSpace(void) const
+            virtual bool isMetricSpace() const
             {
                 return false;
             }
@@ -113,19 +113,19 @@ namespace ompl
             virtual void interpolate(const State *from, const State *to, const double t,
                 State *state) const;
             virtual void interpolate(const State *from, const State *to, const double t,
-                bool& firstTime, DubinsPath& path, State *state) const;
+                bool &firstTime, DubinsPath &path, State *state) const;
 
-            virtual bool hasSymmetricDistance(void) const
+            virtual bool hasSymmetricDistance() const
             {
                 return isSymmetric_;
             }
 
-            virtual bool hasSymmetricInterpolate(void) const
+            virtual bool hasSymmetricInterpolate() const
             {
                 return isSymmetric_;
             }
 
-            virtual void sanityChecks(void) const
+            virtual void sanityChecks() const
             {
                 double zero = std::numeric_limits<double>::epsilon();
                 double eps = std::numeric_limits<float>::epsilon();
@@ -139,7 +139,7 @@ namespace ompl
             DubinsPath dubins(const State *state1, const State *state2) const;
 
         protected:
-            virtual void interpolate(const State *from, const DubinsPath& path, const double t,
+            virtual void interpolate(const State *from, const DubinsPath &path, const double t,
                 State *state) const;
 
             /** \brief Turning radius */
@@ -164,7 +164,7 @@ namespace ompl
         class DubinsMotionValidator : public MotionValidator
         {
         public:
-            DubinsMotionValidator(SpaceInformation* si) : MotionValidator(si)
+            DubinsMotionValidator(SpaceInformation *si) : MotionValidator(si)
             {
                 defaultSettings();
             }
@@ -172,14 +172,14 @@ namespace ompl
             {
                 defaultSettings();
             }
-            virtual ~DubinsMotionValidator(void)
+            virtual ~DubinsMotionValidator()
             {
             }
             virtual bool checkMotion(const State *s1, const State *s2) const;
             virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
         private:
             DubinsStateSpace *stateSpace_;
-            void defaultSettings(void);
+            void defaultSettings();
         };
 
     }

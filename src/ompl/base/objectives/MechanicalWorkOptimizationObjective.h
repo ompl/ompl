@@ -52,7 +52,7 @@ namespace ompl
                                                 double pathLengthWeight = 0.00001);
 
             /** \brief Set the factor to use for weighing path length in the mechanical work objective formulation. */
-            virtual double getPathLengthWeight(void) const;
+            virtual double getPathLengthWeight() const;
 
             /** \brief Defines motion cost in terms of the mechanical work formulation used for TRRT. */
             virtual Cost motionCost(const State *s1, const State *s2) const;

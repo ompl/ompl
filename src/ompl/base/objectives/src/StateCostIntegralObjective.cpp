@@ -84,7 +84,7 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
                                si_->distance(s1, s2));
 }
 
-bool ompl::base::StateCostIntegralObjective::isMotionCostInterpolationEnabled(void) const
+bool ompl::base::StateCostIntegralObjective::isMotionCostInterpolationEnabled() const
 {
     return interpolateMotionCost_;
 }

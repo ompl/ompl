@@ -105,7 +105,7 @@ namespace ompl
             {
             }
 
-            ~StateSamplerArray(void)
+            ~StateSamplerArray()
             {
             }
 
@@ -132,13 +132,13 @@ namespace ompl
             }
 
             /** \brief Get the count of samplers currently available */
-            std::size_t size(void) const
+            std::size_t size() const
             {
                 return samplers_.size();
             }
 
             /** \brief Clear all allocated samplers */
-            void clear(void)
+            void clear()
             {
                 resize(0);
             }

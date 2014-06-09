@@ -61,12 +61,12 @@ ompl::geometric::LBTRRT::LBTRRT(const base::SpaceInformationPtr &si)
     Planner::declareParam<double>("epsilon", this, &LBTRRT::setApproximationFactor, &LBTRRT::getApproximationFactor);
 }
 
-ompl::geometric::LBTRRT::~LBTRRT(void)
+ompl::geometric::LBTRRT::~LBTRRT()
 {
     freeMemory();
 }
 
-void ompl::geometric::LBTRRT::clear(void)
+void ompl::geometric::LBTRRT::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -76,7 +76,7 @@ void ompl::geometric::LBTRRT::clear(void)
     lastGoalMotion_ = NULL;
 }
 
-void ompl::geometric::LBTRRT::setup(void)
+void ompl::geometric::LBTRRT::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -87,7 +87,7 @@ void ompl::geometric::LBTRRT::setup(void)
     nn_->setDistanceFunction(boost::bind(&LBTRRT::distanceFunction, this, _1, _2));
 }
 
-void ompl::geometric::LBTRRT::freeMemory(void)
+void ompl::geometric::LBTRRT::freeMemory()
 {
     if (nn_)
     {
@@ -235,7 +235,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     return base::PlannerStatus(solved, approximate);
 }
 
-void ompl::geometric::LBTRRT::attemptNodeUpdate(Motion* potentialParent, Motion* child)
+void ompl::geometric::LBTRRT::attemptNodeUpdate(Motion *potentialParent, Motion *child)
 {
     double dist = distanceFunction(potentialParent, child);
     double potentialLb = potentialParent->costLb_ + dist;

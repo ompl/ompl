@@ -72,7 +72,7 @@ namespace ompl
             {
             }
 
-            virtual ~StateSampler(void)
+            virtual ~StateSampler()
             {
             }
 
@@ -100,12 +100,12 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            CompoundStateSampler(const StateSpace* space) : StateSampler(space), samplerCount_(0)
+            CompoundStateSampler(const StateSpace *space) : StateSampler(space), samplerCount_(0)
             {
             }
 
             /** \brief Destructor. This frees the added samplers as well. */
-            virtual ~CompoundStateSampler(void)
+            virtual ~CompoundStateSampler()
             {
             }
 
@@ -149,7 +149,7 @@ namespace ompl
 
             /** \brief Construct a sampler for \e space but only sample components common to \e subspace. Use \e weight as a multiplicative factor for \e distance and \e stdDev in the sampleUniformNear() and sampleGaussian() functions. */
             SubspaceStateSampler(const StateSpace *space, const StateSpace *subspace, double weight);
-            virtual ~SubspaceStateSampler(void);
+            virtual ~SubspaceStateSampler();
 
             virtual void sampleUniform(State *state);
 

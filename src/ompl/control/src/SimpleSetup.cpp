@@ -61,7 +61,7 @@ ompl::control::SimpleSetup::SimpleSetup(const ControlSpacePtr &space) :
     params_.include(si_->params());
 }
 
-void ompl::control::SimpleSetup::setup(void)
+void ompl::control::SimpleSetup::setup()
 {
     if (!configured_ || !si_->isSetup() || !planner_->isSetup())
     {
@@ -88,7 +88,7 @@ void ompl::control::SimpleSetup::setup(void)
     }
 }
 
-void ompl::control::SimpleSetup::clear(void)
+void ompl::control::SimpleSetup::clear()
 {
     if (planner_)
         planner_->clear();
@@ -125,7 +125,7 @@ ompl::base::PlannerStatus ompl::control::SimpleSetup::solve(const base::PlannerT
     return last_status_;
 }
 
-ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath(void) const
+ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath() const
 {
     if (pdef_)
     {
@@ -136,7 +136,7 @@ ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath(void) co
     throw Exception("No solution path");
 }
 
-bool ompl::control::SimpleSetup::haveExactSolutionPath(void) const
+bool ompl::control::SimpleSetup::haveExactSolutionPath() const
 {
     return haveSolutionPath() && (!pdef_->hasApproximateSolution() || pdef_->getSolutionDifference() < std::numeric_limits<double>::epsilon());
 }

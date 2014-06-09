@@ -38,7 +38,7 @@
 #include "ompl/util/Exception.h"
 #include <queue>
 
-void ompl::base::DiscreteMotionValidator::defaultSettings(void)
+void ompl::base::DiscreteMotionValidator::defaultSettings()
 {
     stateSpace_ = si_->getStateSpace().get();
     if (!stateSpace_)

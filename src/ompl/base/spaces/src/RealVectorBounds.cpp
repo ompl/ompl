@@ -59,7 +59,7 @@ void ompl::base::RealVectorBounds::setHigh(unsigned int index, double value)
     high[index] = value;
 }
 
-std::vector<double> ompl::base::RealVectorBounds::getDifference(void) const
+std::vector<double> ompl::base::RealVectorBounds::getDifference() const
 {
     unsigned int n = std::min(low.size(), high.size());
     std::vector<double> result(n);
@@ -68,7 +68,7 @@ std::vector<double> ompl::base::RealVectorBounds::getDifference(void) const
     return result;
 }
 
-double ompl::base::RealVectorBounds::getVolume(void) const
+double ompl::base::RealVectorBounds::getVolume() const
 {
     double v = 1.0;
     unsigned int n = std::min(low.size(), high.size());
@@ -86,7 +86,7 @@ void ompl::base::RealVectorBounds::resize(std::size_t size)
     high.resize(size, 0.0);
 }
 
-void ompl::base::RealVectorBounds::check(void) const
+void ompl::base::RealVectorBounds::check() const
 {
     if (low.size() != high.size())
         throw Exception("Lower and upper bounds are not of same dimension");

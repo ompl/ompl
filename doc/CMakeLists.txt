@@ -27,4 +27,4 @@ if(DOXYGEN AND NOT OMPLAPP_VERSION)
 endif(DOXYGEN AND NOT OMPLAPP_VERSION)
 
 install(FILES man/ompl_benchmark_statistics.1
-    DESTINATION share/man/man1 COMPONENT ompl)
+    DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 COMPONENT ompl)

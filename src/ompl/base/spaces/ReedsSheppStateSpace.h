@@ -96,9 +96,9 @@ namespace ompl
             virtual void interpolate(const State *from, const State *to, const double t,
                 State *state) const;
             virtual void interpolate(const State *from, const State *to, const double t,
-                bool& firstTime, ReedsSheppPath& path, State *state) const;
+                bool &firstTime, ReedsSheppPath &path, State *state) const;
 
-            virtual void sanityChecks(void) const
+            virtual void sanityChecks() const
             {
                 double zero = std::numeric_limits<double>::epsilon();
                 double eps = .1; // rarely such a large error will occur
@@ -109,7 +109,7 @@ namespace ompl
             ReedsSheppPath reedsShepp(const State *state1, const State *state2) const;
 
         protected:
-            virtual void interpolate(const State *from, const ReedsSheppPath& path, const double t,
+            virtual void interpolate(const State *from, const ReedsSheppPath &path, const double t,
                 State *state) const;
 
             /** \brief Turning radius */
@@ -125,7 +125,7 @@ namespace ompl
         class ReedsSheppMotionValidator : public MotionValidator
         {
         public:
-            ReedsSheppMotionValidator(SpaceInformation* si) : MotionValidator(si)
+            ReedsSheppMotionValidator(SpaceInformation *si) : MotionValidator(si)
             {
                 defaultSettings();
             }
@@ -133,14 +133,14 @@ namespace ompl
             {
                 defaultSettings();
             }
-            virtual ~ReedsSheppMotionValidator(void)
+            virtual ~ReedsSheppMotionValidator()
             {
             }
             virtual bool checkMotion(const State *s1, const State *s2) const;
             virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
         private:
             ReedsSheppStateSpace *stateSpace_;
-            void defaultSettings(void);
+            void defaultSettings();
         };
 
     }

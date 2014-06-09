@@ -66,10 +66,10 @@ namespace ompl
                 try when directing a system toward a specific state.  Default value is 1. */
             SimpleDirectedControlSampler(const SpaceInformation *si, unsigned int k = 1);
 
-            virtual ~SimpleDirectedControlSampler(void);
+            virtual ~SimpleDirectedControlSampler();
 
             /** \brief Retrieve the number of controls to generate when finding the best control. */
-            unsigned int getNumControlSamples (void) const
+            unsigned int getNumControlSamples () const
             {
                 return numControlSamples_;
             }

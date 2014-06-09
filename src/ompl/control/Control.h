@@ -57,11 +57,11 @@ namespace ompl
 
         protected:
 
-            Control(void)
+            Control()
             {
             }
 
-            virtual ~Control(void)
+            virtual ~Control()
             {
             }
 
@@ -69,7 +69,7 @@ namespace ompl
 
             /** \brief Cast this instance to a desired type. */
             template<class T>
-            const T* as(void) const
+            const T* as() const
             {
                 /** \brief Make sure the type we are allocating is indeed a state */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
@@ -79,7 +79,7 @@ namespace ompl
 
             /** \brief Cast this instance to a desired type. */
             template<class T>
-            T* as(void)
+            T* as()
             {
                 /** \brief Make sure the type we are allocating is indeed a state */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
@@ -94,11 +94,11 @@ namespace ompl
         {
         public:
 
-            CompoundControl(void) : Control()
+            CompoundControl() : Control()
             {
             }
 
-            virtual ~CompoundControl(void)
+            virtual ~CompoundControl()
             {
             }
 

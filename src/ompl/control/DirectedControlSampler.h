@@ -69,7 +69,7 @@ namespace ompl
             {
             }
 
-            virtual ~DirectedControlSampler(void)
+            virtual ~DirectedControlSampler()
             {
             }
 

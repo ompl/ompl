@@ -90,7 +90,7 @@ namespace ompl
             /** \brief Constructor. Sets the instance of the state space to plan with. */
             SpaceInformation(const StateSpacePtr &space);
 
-            virtual ~SpaceInformation(void)
+            virtual ~SpaceInformation()
             {
             }
 
@@ -101,7 +101,7 @@ namespace ompl
             }
 
             /** \brief Return the instance of the used state space */
-            const StateSpacePtr& getStateSpace(void) const
+            const StateSpacePtr& getStateSpace() const
             {
                 return stateSpace_;
             }
@@ -161,7 +161,7 @@ namespace ompl
             void setStateValidityChecker(const StateValidityCheckerFn &svc);
 
             /** \brief Return the instance of the used state validity checker */
-            const StateValidityCheckerPtr& getStateValidityChecker(void) const
+            const StateValidityCheckerPtr& getStateValidityChecker() const
             {
                 return stateValidityChecker_;
             }
@@ -176,7 +176,7 @@ namespace ompl
             }
 
             /** \brief Return the instance of the used state validity checker */
-            const MotionValidatorPtr& getMotionValidator(void) const
+            const MotionValidatorPtr& getMotionValidator() const
             {
                 return motionValidator_;
             }
@@ -197,7 +197,7 @@ namespace ompl
                 verified. This call is only applicable if a
                 ompl::base::DiscreteMotionValidator is used. See \ref
                 stateValidation. */
-            double getStateValidityCheckingResolution(void) const
+            double getStateValidityCheckingResolution() const
             {
                 return stateSpace_->getLongestValidSegmentFraction();
             }
@@ -206,7 +206,7 @@ namespace ompl
             /** @}*/
 
             /** \brief Return the dimension of the state space */
-            unsigned int getStateDimension(void) const
+            unsigned int getStateDimension() const
             {
                 return stateSpace_->getDimension();
             }
@@ -215,7 +215,7 @@ namespace ompl
                 @{ */
 
             /** \brief Allocate memory for a state */
-            State* allocState(void) const
+            State* allocState() const
             {
                 return stateSpace_->allocState();
             }
@@ -261,7 +261,7 @@ namespace ompl
                 @{ */
 
             /** \brief Allocate a uniform state sampler for the state space */
-            StateSamplerPtr allocStateSampler(void) const
+            StateSamplerPtr allocStateSampler() const
             {
                 return stateSpace_->allocStateSampler();
             }
@@ -269,14 +269,14 @@ namespace ompl
             /** \brief Allocate an instance of a valid state sampler for this space. If setValidStateSamplerAllocator() was previously called,
                 the specified allocator is used to produce the state sampler.  Otherwise, a ompl::base::UniformValidStateSampler() is
                 allocated. */
-            ValidStateSamplerPtr allocValidStateSampler(void) const;
+            ValidStateSamplerPtr allocValidStateSampler() const;
 
             /** \brief Set the allocator to use for a valid state sampler. This replaces the default uniform valid state
                 sampler. This call can be made at any time, but it should not be changed while ompl::base::Planner::solve() is executing */
             void setValidStateSamplerAllocator(const ValidStateSamplerAllocator &vssa);
 
             /** \brief Clear the allocator used for the valid state sampler. This will revert to using the uniform valid state sampler (the default). */
-            void clearValidStateSamplerAllocator(void);
+            void clearValidStateSamplerAllocator();
 
             /** @}*/
 
@@ -286,7 +286,7 @@ namespace ompl
             /** \brief Get the maximum extent of the space we are
                 planning in. This is the maximum distance that could
                 be reported between any two given states */
-            double getMaximumExtent(void) const
+            double getMaximumExtent() const
             {
                 return stateSpace_->getMaximumExtent();
             }
@@ -376,13 +376,13 @@ namespace ompl
             virtual void printProperties(std::ostream &out = std::cout) const;
 
             /** \brief Get the combined parameters for the classes that the space information manages */
-            ParamSet& params(void)
+            ParamSet& params()
             {
                 return params_;
             }
 
             /** \brief Get the combined parameters for the classes that the space information manages */
-            const ParamSet& params(void) const
+            const ParamSet& params() const
             {
                 return params_;
             }
@@ -391,14 +391,14 @@ namespace ompl
                 before use). If state validity checking resolution has
                 not been set, estimateMaxResolution() is called to
                 estimate it. */
-            virtual void setup(void);
+            virtual void setup();
 
             /** \brief Return true if setup was called */
-            bool isSetup(void) const;
+            bool isSetup() const;
 
         protected:
             /** \brief Set default motion validator for the state space */
-            void setDefaultMotionValidator(void);
+            void setDefaultMotionValidator();
 
             /** \brief The state space planning is to be performed in */
             StateSpacePtr              stateSpace_;

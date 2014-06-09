@@ -81,7 +81,7 @@ ompl::geometric::SimpleSetup::SimpleSetup(const base::StateSpacePtr &space) :
     params_.include(si_->params());
 }
 
-void ompl::geometric::SimpleSetup::setup(void)
+void ompl::geometric::SimpleSetup::setup()
 {
     if (!configured_ || !si_->isSetup() || !planner_->isSetup())
     {
@@ -108,7 +108,7 @@ void ompl::geometric::SimpleSetup::setup(void)
     }
 }
 
-void ompl::geometric::SimpleSetup::clear(void)
+void ompl::geometric::SimpleSetup::clear()
 {
     if (planner_)
         planner_->clear();
@@ -182,7 +182,7 @@ void ompl::geometric::SimpleSetup::simplifySolution(double duration)
     OMPL_WARN("No solution to simplify");
 }
 
-ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath(void) const
+ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath() const
 {
     if (pdef_)
     {
@@ -193,7 +193,7 @@ ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath(vo
     throw Exception("No solution path");
 }
 
-bool ompl::geometric::SimpleSetup::haveExactSolutionPath(void) const
+bool ompl::geometric::SimpleSetup::haveExactSolutionPath() const
 {
     return haveSolutionPath() && (!pdef_->hasApproximateSolution() || pdef_->getSolutionDifference() < std::numeric_limits<double>::epsilon());
 }

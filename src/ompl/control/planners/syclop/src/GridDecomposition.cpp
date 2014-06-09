@@ -36,7 +36,7 @@
 
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 
-ompl::control::GridDecomposition::GridDecomposition(unsigned int len, unsigned int dim, const base::RealVectorBounds& b) :
+ompl::control::GridDecomposition::GridDecomposition(unsigned int len, unsigned int dim, const base::RealVectorBounds &b) :
     Decomposition(dim, b, calcNumRegions(len,dim)), length_(len), cellVolume_(b.getVolume())
 {
     double lenInv = 1.0 / len;
@@ -128,14 +128,14 @@ void ompl::control::GridDecomposition::getNeighbors(unsigned int rid, std::vecto
     }
 }
 
-int ompl::control::GridDecomposition::locateRegion(const base::State* s) const
+int ompl::control::GridDecomposition::locateRegion(const base::State *s) const
 {
     std::vector<double> coord(dimension_);
     project(s, coord);
     return coordToRegion(coord);
 }
 
-void ompl::control::GridDecomposition::sampleFromRegion(unsigned int rid, RNG& rng, std::vector<double>& coord) const
+void ompl::control::GridDecomposition::sampleFromRegion(unsigned int rid, RNG &rng, std::vector<double>& coord) const
 {
     coord.resize(dimension_);
     const base::RealVectorBounds& regionBounds(getRegionBounds(rid));
@@ -252,11 +252,11 @@ void ompl::control::GridDecomposition::coordToGridCoord(const std::vector<double
     }
 }
 
-const ompl::base::RealVectorBounds& ompl::control::GridDecomposition::getRegionBounds(unsigned int rid) const
+const ompl::base::RealVectorBounds &ompl::control::GridDecomposition::getRegionBounds(unsigned int rid) const
 {
     if (regToBounds_.count(rid) > 0)
         return *regToBounds_[rid].get();
-    ompl::base::RealVectorBounds* regionBounds = new ompl::base::RealVectorBounds(dimension_);
+    ompl::base::RealVectorBounds *regionBounds = new ompl::base::RealVectorBounds(dimension_);
     std::vector<unsigned int> rc(dimension_);
     regionToGridCoord(rid, rc);
     for (unsigned int i = 0; i < dimension_; ++i)

@@ -77,12 +77,12 @@ namespace ompl
             {
             }
 
-            virtual ~SpaceInformation(void)
+            virtual ~SpaceInformation()
             {
             }
 
             /** \brief Get the control space */
-            const ControlSpacePtr& getControlSpace(void) const
+            const ControlSpacePtr& getControlSpace() const
             {
                 return controlSpace_;
             }
@@ -91,7 +91,7 @@ namespace ompl
                 @{ */
 
             /** \brief Allocate memory for a control */
-            Control* allocControl(void) const
+            Control* allocControl() const
             {
                 return controlSpace_->allocControl();
             }
@@ -145,7 +145,7 @@ namespace ompl
                 @{ */
 
             /** \brief Allocate a control sampler */
-            ControlSamplerPtr allocControlSampler(void) const
+            ControlSamplerPtr allocControlSampler() const
             {
                 return controlSpace_->allocControlSampler();
             }
@@ -158,26 +158,26 @@ namespace ompl
             }
 
             /** \brief Get the minimum number of steps a control is propagated for */
-            unsigned int getMinControlDuration(void) const
+            unsigned int getMinControlDuration() const
             {
                 return minSteps_;
             }
 
             /** \brief Get the maximum number of steps a control is propagated for */
-            unsigned int getMaxControlDuration(void) const
+            unsigned int getMaxControlDuration() const
             {
                 return maxSteps_;
             }
 
             /** \brief Allocate an instance of the DirectedControlSampler to use. This will be the default (SimpleDirectedControlSampler) unless
                 setDirectedControlSamplerAllocator() was previously called. */
-            DirectedControlSamplerPtr allocDirectedControlSampler(void) const;
+            DirectedControlSamplerPtr allocDirectedControlSampler() const;
 
             /** \brief Set the allocator to use for the  DirectedControlSampler */
             void setDirectedControlSamplerAllocator(const DirectedControlSamplerAllocator &dcsa);
 
             /** \brief Reset the DirectedControlSampler to be the default one */
-            void clearDirectedSamplerAllocator(void);
+            void clearDirectedSamplerAllocator();
 
             /** @} */
 
@@ -185,7 +185,7 @@ namespace ompl
                 @{ */
 
             /** \brief Get the instance of StatePropagator that performs state propagation */
-            const StatePropagatorPtr& getStatePropagator(void) const
+            const StatePropagatorPtr& getStatePropagator() const
             {
                 return statePropagator_;
             }
@@ -204,7 +204,7 @@ namespace ompl
             }
 
             /** \brief Propagation is performed at integer multiples of a specified step size. This function returns the value of this step size. */
-            double getPropagationStepSize(void) const
+            double getPropagationStepSize() const
             {
                 return stepSize_;
             }
@@ -218,13 +218,13 @@ namespace ompl
                 \param control the control to apply
                 \param steps the number of time steps to apply the control for. Each time step is of length getPropagationStepSize()
                 \param result the state at the end of the propagation */
-            void propagate(const base::State *state, const Control* control, int steps, base::State *result) const;
+            void propagate(const base::State *state, const Control *control, int steps, base::State *result) const;
 
             /** \brief Some systems can only propagate forward in time (i.e., the \e steps argument for the propagate()
                 function is always positive). If this is the case, this function will return false. Planners that need
                 backward propagation (negative \e steps) will call this function to check. If backward propagation is
                 possible, this function will return true (this is the default). */
-            bool canPropagateBackward(void) const;
+            bool canPropagateBackward() const;
 
             /** \brief Propagate the model of the system forward, starting at a given state, with a given control, for a given number of steps.
                 Stop if a collision is found and return the number of steps actually performed without collision. If no collision is found, the returned value is
@@ -233,7 +233,7 @@ namespace ompl
                 \param control the control to apply
                 \param steps the maximum number of time steps to apply the control for. Each time step is of length getPropagationStepSize(). If \e steps is negative, backward propagation will be performed.
                 \param result the state at the end of the propagation or the last valid state if a collision is found */
-            unsigned int propagateWhileValid(const base::State *state, const Control* control, int steps, base::State *result) const;
+            unsigned int propagateWhileValid(const base::State *state, const Control *control, int steps, base::State *result) const;
 
             /** \brief Propagate the model of the system forward, starting a a given state, with a given control, for a given number of steps.
                 \param state the state to start at
@@ -243,7 +243,7 @@ namespace ompl
                 \param alloc flag indicating whether memory for the states in \e result should be allocated
 
                 \note Start state \e state is not included in \e result */
-            void propagate(const base::State *state, const Control* control, int steps, std::vector<base::State*> &result, bool alloc) const;
+            void propagate(const base::State *state, const Control *control, int steps, std::vector<base::State*> &result, bool alloc) const;
 
             /** \brief Propagate the model of the system forward, starting at a given state, with a given control, for a given number of steps.
                 Stop if a collision is found and return the number of steps actually performed without collision. If no collision is found, the returned value is
@@ -257,7 +257,7 @@ namespace ompl
                 \param result the set of states along the propagated motion (only valid states included)
                 \param alloc flag indicating whether memory for the states in \e result should be allocated
             */
-            unsigned int propagateWhileValid(const base::State *state, const Control* control, int steps, std::vector<base::State*> &result, bool alloc) const;
+            unsigned int propagateWhileValid(const base::State *state, const Control *control, int steps, std::vector<base::State*> &result, bool alloc) const;
 
             /** @} */
 
@@ -265,7 +265,7 @@ namespace ompl
             virtual void printSettings(std::ostream &out = std::cout) const;
 
             /** \brief Perform additional setup tasks (run once, before use) */
-            virtual void setup(void);
+            virtual void setup();
 
         protected:
 

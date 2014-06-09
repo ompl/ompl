@@ -52,12 +52,12 @@ ompl::control::RRT::RRT(const SpaceInformationPtr &si) : base::Planner(si, "RRT"
     Planner::declareParam<bool>("intermediate_states", this, &RRT::setIntermediateStates, &RRT::getIntermediateStates);
 }
 
-ompl::control::RRT::~RRT(void)
+ompl::control::RRT::~RRT()
 {
     freeMemory();
 }
 
-void ompl::control::RRT::setup(void)
+void ompl::control::RRT::setup()
 {
     base::Planner::setup();
     if (!nn_)
@@ -65,7 +65,7 @@ void ompl::control::RRT::setup(void)
     nn_->setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));
 }
 
-void ompl::control::RRT::clear(void)
+void ompl::control::RRT::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -76,7 +76,7 @@ void ompl::control::RRT::clear(void)
     lastGoalMotion_ = NULL;
 }
 
-void ompl::control::RRT::freeMemory(void)
+void ompl::control::RRT::freeMemory()
 {
     if (nn_)
     {
@@ -278,7 +278,7 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        const Motion* m = motions[i];
+        const Motion *m = motions[i];
         if (m->parent)
         {
             if (data.hasControls())

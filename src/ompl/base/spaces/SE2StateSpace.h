@@ -55,18 +55,18 @@ namespace ompl
             class StateType : public CompoundStateSpace::StateType
             {
             public:
-                StateType(void) : CompoundStateSpace::StateType()
+                StateType() : CompoundStateSpace::StateType()
                 {
                 }
 
                 /** \brief Get the X component of the state */
-                double getX(void) const
+                double getX() const
                 {
                     return as<RealVectorStateSpace::StateType>(0)->values[0];
                 }
 
                 /** \brief Get the Y component of the state */
-                double getY(void) const
+                double getY() const
                 {
                     return as<RealVectorStateSpace::StateType>(0)->values[1];
                 }
@@ -74,7 +74,7 @@ namespace ompl
                 /** \brief Get the yaw component of the state. This is
                     the rotation in plane, with respect to the Z
                     axis. */
-                double getYaw(void) const
+                double getYaw() const
                 {
                     return as<SO2StateSpace::StateType>(1)->value;
                 }
@@ -109,7 +109,7 @@ namespace ompl
             };
 
 
-            SE2StateSpace(void) : CompoundStateSpace()
+            SE2StateSpace() : CompoundStateSpace()
             {
                 setName("SE2" + getName());
                 type_ = STATE_SPACE_SE2;
@@ -118,7 +118,7 @@ namespace ompl
                 lock();
             }
 
-            virtual ~SE2StateSpace(void)
+            virtual ~SE2StateSpace()
             {
             }
 
@@ -129,15 +129,15 @@ namespace ompl
             }
 
             /** \copydoc RealVectorStateSpace::getBounds() */
-            const RealVectorBounds& getBounds(void) const
+            const RealVectorBounds& getBounds() const
             {
                 return as<RealVectorStateSpace>(0)->getBounds();
             }
 
-            virtual State* allocState(void) const;
+            virtual State* allocState() const;
             virtual void freeState(State *state) const;
 
-            virtual void registerProjections(void);
+            virtual void registerProjections();
 
         };
     }

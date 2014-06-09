@@ -54,7 +54,7 @@ namespace ompl
             class StateType : public CompoundStateSpace::StateType
             {
             public:
-                StateType(void) : CompoundStateSpace::StateType()
+                StateType() : CompoundStateSpace::StateType()
                 {
                 }
             };
@@ -78,24 +78,24 @@ namespace ompl
                              double positionWeight = 1.0, double linVelWeight = 0.5,
                              double angVelWeight = 0.5, double orientationWeight = 1.0);
 
-            virtual ~MorseStateSpace(void)
+            virtual ~MorseStateSpace()
             {
             }
 
             /** \brief Get the MORSE environment this state space corresponds to */
-            const MorseEnvironmentPtr& getEnvironment(void) const
+            const MorseEnvironmentPtr& getEnvironment() const
             {
                 return env_;
             }
 
             /** \brief Get the number of bodies this state space represents */
-            unsigned int getNrBodies(void) const
+            unsigned int getNrBodies() const
             {
                 return env_->rigidBodies_;
             }
 
             /** \brief Set the bounds given by the MorseEnvironment */
-            void setBounds(void);
+            void setBounds();
 
             /** \brief Set the bounds for each of the position subspaces */
             void setPositionBounds(const RealVectorBounds &bounds);
@@ -117,13 +117,13 @@ namespace ompl
             /** \brief This function checks whether a state satisfies its bounds */
             bool satisfiesBounds(const State *state) const;
 
-            State* allocState(void) const;
+            State* allocState() const;
             void freeState(State *state) const;
             void copyState(State *destination, const State *source) const;
             void interpolate(const State *from, const State *to, const double t, State *state) const;
 
-            StateSamplerPtr allocDefaultStateSampler(void) const;
-            StateSamplerPtr allocStateSampler(void) const;
+            StateSamplerPtr allocDefaultStateSampler() const;
+            StateSamplerPtr allocStateSampler() const;
 
         protected:
 
