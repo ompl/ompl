@@ -56,6 +56,6 @@ do
     ./bin/regression_test
     echo "Copying results for $tag ..."
     ls -1 *.log
-    mv *.log "$CURRENT_DIR/$LOG_RESULTS/"
+    mv *.log "$LOG_RESULTS/"
     cd ..
 done
