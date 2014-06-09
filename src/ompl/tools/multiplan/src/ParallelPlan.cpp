@@ -97,6 +97,8 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTe
 
     time::point start = time::now();
     std::vector<boost::thread*> threads(planners_.size());
+
+    // Decide if we are combining solutions or just taking the first one
     if (hybridize)
         for (std::size_t i = 0 ; i < threads.size() ; ++i)
             threads[i] = new boost::thread(boost::bind(&ParallelPlan::solveMore, this, planners_[i].get(), minSolCount, maxSolCount, &ptc));
@@ -122,7 +124,7 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTe
             }
     }
 
-    OMPL_INFORM("Solution found in %f seconds", time::seconds(time::now() - start));
+    OMPL_INFORM("ParallelPlan Solve: Solution found by one or more of the threads in %f seconds", time::seconds(time::now() - start));
 
     return base::PlannerStatus(pdef_->hasSolution(), pdef_->hasApproximateSolution());
 }
@@ -139,7 +141,7 @@ void ompl::tools::ParallelPlan::solveOne(base::Planner *planner, std::size_t min
         foundSolCountLock_.unlock();
         if (nrSol >= minSolCount)
             ptc->terminate();
-        OMPL_DEBUG("Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
+        OMPL_DEBUG("ParallelPlan: Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
     }
 }
 
@@ -157,7 +159,7 @@ void ompl::tools::ParallelPlan::solveMore(base::Planner *planner, std::size_t mi
         if (nrSol >= maxSolCount)
             ptc->terminate();
 
-        OMPL_DEBUG("Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
+        OMPL_DEBUG("ParallelPlan: Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
 
         const std::vector<base::PlannerSolution> &paths = pdef_->getSolutions();
 
