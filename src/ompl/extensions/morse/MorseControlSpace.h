@@ -57,12 +57,12 @@ namespace ompl
                 MorseStateSpace, an exception is thrown. */
             MorseControlSpace(const base::StateSpacePtr &stateSpace);
 
-            virtual ~MorseControlSpace(void)
+            virtual ~MorseControlSpace()
             {
             }
 
             /** \brief Get the MORSE environment this state space corresponds to */
-            const base::MorseEnvironmentPtr& getEnvironment(void) const
+            const base::MorseEnvironmentPtr& getEnvironment() const
             {
                 return stateSpace_->as<base::MorseStateSpace>()->getEnvironment();
             }

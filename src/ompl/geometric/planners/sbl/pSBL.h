@@ -90,7 +90,7 @@ namespace ompl
 
             pSBL(const base::SpaceInformationPtr &si);
 
-            virtual ~pSBL(void);
+            virtual ~pSBL();
 
             /** \brief Set the projection evaluator. This class is
                 able to compute the projection of a given state. */
@@ -107,7 +107,7 @@ namespace ompl
             }
 
             /** \brief Get the projection evaluator. */
-            const base::ProjectionEvaluatorPtr& getProjectionEvaluator(void) const
+            const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
             {
                 return projectionEvaluator_;
             }
@@ -123,7 +123,7 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
@@ -132,16 +132,16 @@ namespace ompl
             void setThreadCount(unsigned int nthreads);
 
             /** \brief Get the thread count */
-            unsigned int getThreadCount(void) const
+            unsigned int getThreadCount() const
             {
                 return threadCount_;
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
@@ -160,7 +160,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : root(NULL), state(NULL), parent(NULL), valid(false)
+                Motion() : root(NULL), state(NULL), parent(NULL), valid(false)
                 {
                 }
 
@@ -168,7 +168,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -187,7 +187,7 @@ namespace ompl
                 {
                     return motions_[i];
                 }
-                std::vector<Motion*>::iterator begin(void)
+                std::vector<Motion*>::iterator begin()
                 {
                     return motions_.begin();
                 }
@@ -199,11 +199,11 @@ namespace ompl
                 {
                     motions_.push_back(m);
                 }
-                unsigned int size(void) const
+                unsigned int size() const
                 {
                     return motions_.size();
                 }
-                bool empty(void) const
+                bool empty() const
                 {
                     return motions_.empty();
                 }
@@ -213,7 +213,7 @@ namespace ompl
 
             struct TreeData
             {
-                TreeData(void) : grid(0), size(0)
+                TreeData() : grid(0), size(0)
                 {
                 }
 
@@ -244,7 +244,7 @@ namespace ompl
 
             void threadSolve(unsigned int tid, const base::PlannerTerminationCondition &ptc, SolutionInfo *sol);
 
-            void freeMemory(void)
+            void freeMemory()
             {
                 freeGridMotions(tStart_.grid);
                 freeGridMotions(tGoal_.grid);

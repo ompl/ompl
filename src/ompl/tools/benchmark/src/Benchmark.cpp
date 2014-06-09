@@ -118,22 +118,22 @@ namespace ompl
                     memUsed_ = 0;
             }
 
-            double getTimeUsed(void) const
+            double getTimeUsed() const
             {
                 return timeUsed_;
             }
 
-            machine::MemUsage_t getMemUsed(void) const
+            machine::MemUsage_t getMemUsed() const
             {
                 return memUsed_;
             }
 
-            base::PlannerStatus getStatus(void) const
+            base::PlannerStatus getStatus() const
             {
                 return status_;
             }
 
-            const Benchmark::RunProgressData& getRunProgressData(void) const
+            const Benchmark::RunProgressData& getRunProgressData() const
             {
                 return runProgressData_;
             }
@@ -247,7 +247,7 @@ bool ompl::tools::Benchmark::saveResultsToFile(const char *filename) const
     return result;
 }
 
-bool ompl::tools::Benchmark::saveResultsToFile(void) const
+bool ompl::tools::Benchmark::saveResultsToFile() const
 {
     std::string filename = getResultsFilename(exp_);
     return saveResultsToFile(filename.c_str());

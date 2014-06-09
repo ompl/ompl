@@ -85,11 +85,11 @@ namespace ompl
 
             PDST(const SpaceInformationPtr &si);
 
-            virtual ~PDST(void);
+            virtual ~PDST();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
-            virtual void clear(void);
-            virtual void setup(void);
+            virtual void clear();
+            virtual void setup();
 
             /// Extracts the planner data from the priority queue into data.
             virtual void getPlannerData(base::PlannerData &data) const;
@@ -107,7 +107,7 @@ namespace ompl
             }
 
             /// Get the projection evaluator
-            const base::ProjectionEvaluatorPtr& getProjectionEvaluator(void) const
+            const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
             {
                 return projectionEvaluator_;
             }
@@ -124,7 +124,7 @@ namespace ompl
                 goalBias_ = goalBias;
             }
             /// Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -162,11 +162,11 @@ namespace ompl
                 {
                 }
                 /// The score is used to order motions in a priority queue.
-                double score(void) const
+                double score() const
                 {
                     return priority_ / cell_->volume_;
                 }
-                void updatePriority(void)
+                void updatePriority()
                 {
                     priority_ = priority_ * 2. + 1.;
                 }
@@ -285,7 +285,7 @@ namespace ompl
             unsigned int findDurationAndAncestor(Motion *motion, base::State *state,
                 base::State *scratch, Motion*& ancestor) const;
 
-            void freeMemory(void);
+            void freeMemory();
 
             /// State sampler
             base::StateSamplerPtr                    sampler_;

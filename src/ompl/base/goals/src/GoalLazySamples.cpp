@@ -46,12 +46,12 @@ ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, cons
         startSampling();
 }
 
-ompl::base::GoalLazySamples::~GoalLazySamples(void)
+ompl::base::GoalLazySamples::~GoalLazySamples()
 {
     stopSampling();
 }
 
-void ompl::base::GoalLazySamples::startSampling(void)
+void ompl::base::GoalLazySamples::startSampling()
 {
     if (samplingThread_ == NULL)
     {
@@ -61,7 +61,7 @@ void ompl::base::GoalLazySamples::startSampling(void)
     }
 }
 
-void ompl::base::GoalLazySamples::stopSampling(void)
+void ompl::base::GoalLazySamples::stopSampling()
 {
     if (isSampling())
     {
@@ -80,7 +80,7 @@ void ompl::base::GoalLazySamples::stopSampling(void)
         }
 }
 
-void ompl::base::GoalLazySamples::goalSamplingThread(void)
+void ompl::base::GoalLazySamples::goalSamplingThread()
 {
     if (!si_->isSetup())
     {
@@ -108,17 +108,17 @@ void ompl::base::GoalLazySamples::goalSamplingThread(void)
     OMPL_DEBUG("Stopped goal sampling thread after %u sampling attempts", samplingAttempts_ - prevsa);
 }
 
-bool ompl::base::GoalLazySamples::isSampling(void) const
+bool ompl::base::GoalLazySamples::isSampling() const
 {
     return terminateSamplingThread_ == false && samplingThread_ != NULL;
 }
 
-bool ompl::base::GoalLazySamples::couldSample(void) const
+bool ompl::base::GoalLazySamples::couldSample() const
 {
     return canSample() || isSampling();
 }
 
-void ompl::base::GoalLazySamples::clear(void)
+void ompl::base::GoalLazySamples::clear()
 {
     boost::mutex::scoped_lock slock(lock_);
     GoalStates::clear();
@@ -153,13 +153,13 @@ const ompl::base::State* ompl::base::GoalLazySamples::getState(unsigned int inde
     return GoalStates::getState(index);
 }
 
-bool ompl::base::GoalLazySamples::hasStates(void) const
+bool ompl::base::GoalLazySamples::hasStates() const
 {
     boost::mutex::scoped_lock slock(lock_);
     return GoalStates::hasStates();
 }
 
-std::size_t ompl::base::GoalLazySamples::getStateCount(void) const
+std::size_t ompl::base::GoalLazySamples::getStateCount() const
 {
     boost::mutex::scoped_lock slock(lock_);
     return GoalStates::getStateCount();

@@ -57,13 +57,13 @@ namespace ompl
             {
             }
 
-            virtual ~SyclopRRT(void)
+            virtual ~SyclopRRT()
             {
                 freeMemory();
             }
 
-            virtual void setup(void);
-            virtual void clear(void);
+            virtual void setup();
+            virtual void clear();
             virtual void getPlannerData(base::PlannerData &data) const;
 
             /** \brief If regionalNearestNeighbors is enabled, then when computing the closest Motion to a generated state
@@ -79,7 +79,7 @@ namespace ompl
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 regionalNN_ = false;
                 nn_.reset(new NN<Motion*>());
@@ -90,7 +90,7 @@ namespace ompl
             virtual void selectAndExtend(Region &region, std::vector<Motion*> &newMotions);
 
             /** \brief Free the memory allocated by this planner. */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion *a, const Motion *b) const

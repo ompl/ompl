@@ -63,11 +63,11 @@ namespace ompl
             /** \brief The data held by a cell in the grid of motions */
             struct CellData
             {
-                CellData(void) : coverage(0.0), selections(1), score(1.0), iteration(0), importance(0.0)
+                CellData() : coverage(0.0), selections(1), score(1.0), iteration(0), importance(0.0)
                 {
                 }
 
-                ~CellData(void)
+                ~CellData()
                 {
                 }
 
@@ -126,7 +126,7 @@ namespace ompl
                 selectBorderFraction_ = 0.9;
             }
 
-            ~Discretization(void)
+            ~Discretization()
             {
                 freeMemory();
             }
@@ -146,7 +146,7 @@ namespace ompl
 
             /** \brief Set the fraction of time for focusing on the
                 border (between 0 and 1). */
-            double getBorderFraction(void) const
+            double getBorderFraction() const
             {
                 return selectBorderFraction_;
             }
@@ -158,7 +158,7 @@ namespace ompl
             }
 
             /** \brief Restore the discretization to its original form */
-            void clear(void)
+            void clear()
             {
                 freeMemory();
                 size_ = 0;
@@ -166,23 +166,23 @@ namespace ompl
                 recentCell_ = NULL;
             }
 
-            void countIteration(void)
+            void countIteration()
             {
                 ++iteration_;
             }
 
-            std::size_t getMotionCount(void) const
+            std::size_t getMotionCount() const
             {
                 return size_;
             }
 
-            std::size_t getCellCount(void) const
+            std::size_t getCellCount() const
             {
                 return grid_.size();
             }
 
             /** \brief Free the memory for the motions contained in a grid */
-            void freeMemory(void)
+            void freeMemory()
             {
                 for (typename Grid::iterator it = grid_.begin(); it != grid_.end() ; ++it)
                     freeCellData(it->second->data);
@@ -281,7 +281,7 @@ namespace ompl
                 grid_.update(cell);
             }
 
-            const Grid& getGrid(void) const
+            const Grid& getGrid() const
             {
                 return grid_;
             }

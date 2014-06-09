@@ -54,12 +54,12 @@ ompl::geometric::pSBL::pSBL(const base::SpaceInformationPtr &si) : base::Planner
     Planner::declareParam<unsigned int>("thread_count", this, &pSBL::setThreadCount, &pSBL::getThreadCount, "1:64");
 }
 
-ompl::geometric::pSBL::~pSBL(void)
+ompl::geometric::pSBL::~pSBL()
 {
     freeMemory();
 }
 
-void ompl::geometric::pSBL::setup(void)
+void ompl::geometric::pSBL::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -70,7 +70,7 @@ void ompl::geometric::pSBL::setup(void)
     tGoal_.grid.setDimension(projectionEvaluator_->getDimension());
 }
 
-void ompl::geometric::pSBL::clear(void)
+void ompl::geometric::pSBL::clear()
 {
     Planner::clear();
 

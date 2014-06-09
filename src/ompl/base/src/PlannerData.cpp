@@ -64,7 +64,7 @@ ompl::base::PlannerData::PlannerData (const SpaceInformationPtr &si) : si_(si)
     graphRaw_ = new Graph();
 }
 
-ompl::base::PlannerData::~PlannerData (void)
+ompl::base::PlannerData::~PlannerData ()
 {
     freeMemory();
 
@@ -75,13 +75,13 @@ ompl::base::PlannerData::~PlannerData (void)
     }
 }
 
-void ompl::base::PlannerData::clear (void)
+void ompl::base::PlannerData::clear ()
 {
     freeMemory();
     decoupledStates_.clear();
 }
 
-void ompl::base::PlannerData::decoupleFromPlanner (void)
+void ompl::base::PlannerData::decoupleFromPlanner ()
 {
     unsigned int count = 0;
     for (unsigned int i = 0; i < numVertices(); ++i)
@@ -200,12 +200,12 @@ bool ompl::base::PlannerData::vertexExists (const PlannerDataVertex &v) const
     return vertexIndex(v) != INVALID_INDEX;
 }
 
-unsigned int ompl::base::PlannerData::numVertices (void) const
+unsigned int ompl::base::PlannerData::numVertices () const
 {
     return boost::num_vertices(*graph_);
 }
 
-unsigned int ompl::base::PlannerData::numEdges (void) const
+unsigned int ompl::base::PlannerData::numEdges () const
 {
     return boost::num_edges(*graph_);
 }
@@ -333,12 +333,12 @@ unsigned int ompl::base::PlannerData::vertexIndex (const PlannerDataVertex &v) c
     return INVALID_INDEX;
 }
 
-unsigned int ompl::base::PlannerData::numStartVertices (void) const
+unsigned int ompl::base::PlannerData::numStartVertices () const
 {
     return startVertexIndices_.size();
 }
 
-unsigned int ompl::base::PlannerData::numGoalVertices (void) const
+unsigned int ompl::base::PlannerData::numGoalVertices () const
 {
     return goalVertexIndices_.size();
 }
@@ -637,7 +637,7 @@ void ompl::base::PlannerData::computeEdgeWeights (const OptimizationObjective &o
     }
 }
 
-void ompl::base::PlannerData::computeEdgeWeights (void)
+void ompl::base::PlannerData::computeEdgeWeights ()
 {
     // Create a PathLengthOptimizationObjective to compute the edge
     // weights according to state space distance
@@ -730,7 +730,7 @@ void ompl::base::PlannerData::extractReachable(unsigned int v, base::PlannerData
     }
 }
 
-ompl::base::StateStoragePtr ompl::base::PlannerData::extractStateStorage(void) const
+ompl::base::StateStoragePtr ompl::base::PlannerData::extractStateStorage() const
 {
     GraphStateStorage *store = new GraphStateStorage(si_->getStateSpace());
     if (graph_)
@@ -758,24 +758,24 @@ ompl::base::StateStoragePtr ompl::base::PlannerData::extractStateStorage(void) c
     return StateStoragePtr(store);
 }
 
-ompl::base::PlannerData::Graph& ompl::base::PlannerData::toBoostGraph(void)
+ompl::base::PlannerData::Graph& ompl::base::PlannerData::toBoostGraph()
 {
     ompl::base::PlannerData::Graph *boostgraph = reinterpret_cast<ompl::base::PlannerData::Graph*>(graphRaw_);
     return *boostgraph;
 }
 
-const ompl::base::PlannerData::Graph& ompl::base::PlannerData::toBoostGraph(void) const
+const ompl::base::PlannerData::Graph& ompl::base::PlannerData::toBoostGraph() const
 {
     const ompl::base::PlannerData::Graph *boostgraph = reinterpret_cast<const ompl::base::PlannerData::Graph*>(graphRaw_);
     return *boostgraph;
 }
 
-const ompl::base::SpaceInformationPtr& ompl::base::PlannerData::getSpaceInformation(void) const
+const ompl::base::SpaceInformationPtr& ompl::base::PlannerData::getSpaceInformation() const
 {
     return si_;
 }
 
-void ompl::base::PlannerData::freeMemory(void)
+void ompl::base::PlannerData::freeMemory()
 {
     // Freeing decoupled states, if any
     for (std::set<State*>::iterator it = decoupledStates_.begin(); it != decoupledStates_.end(); ++it)
@@ -797,7 +797,7 @@ void ompl::base::PlannerData::freeMemory(void)
     }
 }
 
-bool ompl::base::PlannerData::hasControls(void) const
+bool ompl::base::PlannerData::hasControls() const
 {
     return false;
 }

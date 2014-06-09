@@ -50,7 +50,7 @@ void ompl::tools::OptimizePlan::addPlannerAllocator(const base::PlannerAllocator
     planners_.push_back(pa(getProblemDefinition()->getSpaceInformation()));
 }
 
-void ompl::tools::OptimizePlan::clearPlanners(void)
+void ompl::tools::OptimizePlan::clearPlanners()
 {
     planners_.clear();
 }

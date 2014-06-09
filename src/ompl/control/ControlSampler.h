@@ -76,7 +76,7 @@ namespace ompl
             {
             }
 
-            virtual ~ControlSampler(void)
+            virtual ~ControlSampler()
             {
             }
 
@@ -136,7 +136,7 @@ namespace ompl
             }
 
             /** \brief Destructor. This frees the added samplers as well. */
-            virtual ~CompoundControlSampler(void)
+            virtual ~CompoundControlSampler()
             {
             }
 

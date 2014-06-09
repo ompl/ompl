@@ -52,12 +52,12 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si) : base::Planner(s
     Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias, "0.:.05:1.");
 }
 
-ompl::geometric::RRT::~RRT(void)
+ompl::geometric::RRT::~RRT()
 {
     freeMemory();
 }
 
-void ompl::geometric::RRT::clear(void)
+void ompl::geometric::RRT::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -67,7 +67,7 @@ void ompl::geometric::RRT::clear(void)
     lastGoalMotion_ = NULL;
 }
 
-void ompl::geometric::RRT::setup(void)
+void ompl::geometric::RRT::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -78,7 +78,7 @@ void ompl::geometric::RRT::setup(void)
     nn_->setDistanceFunction(boost::bind(&RRT::distanceFunction, this, _1, _2));
 }
 
-void ompl::geometric::RRT::freeMemory(void)
+void ompl::geometric::RRT::freeMemory()
 {
     if (nn_)
     {

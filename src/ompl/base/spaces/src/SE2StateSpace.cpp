@@ -38,7 +38,7 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <cstring>
 
-ompl::base::State* ompl::base::SE2StateSpace::allocState(void) const
+ompl::base::State* ompl::base::SE2StateSpace::allocState() const
 {
     StateType *state = new StateType();
     allocStateComponents(state);
@@ -50,7 +50,7 @@ void ompl::base::SE2StateSpace::freeState(State *state) const
     CompoundStateSpace::freeState(state);
 }
 
-void ompl::base::SE2StateSpace::registerProjections(void)
+void ompl::base::SE2StateSpace::registerProjections()
 {
     class SE2DefaultProjection : public ProjectionEvaluator
     {
@@ -60,12 +60,12 @@ void ompl::base::SE2StateSpace::registerProjections(void)
         {
         }
 
-        virtual unsigned int getDimension(void) const
+        virtual unsigned int getDimension() const
         {
             return 2;
         }
 
-        virtual void defaultCellSizes(void)
+        virtual void defaultCellSizes()
         {
             cellSizes_.resize(2);
             bounds_ = space_->as<SE2StateSpace>()->getBounds();

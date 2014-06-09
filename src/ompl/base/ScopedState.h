@@ -136,13 +136,13 @@ namespace ompl
             }
 
             /** \brief Free the memory of the internally allocated state */
-            ~ScopedState(void)
+            ~ScopedState()
             {
                 space_->freeState(state_);
             }
 
             /** \brief Get the state space that the state corresponds to */
-            const StateSpacePtr& getSpace(void) const
+            const StateSpacePtr& getSpace() const
             {
                 return space_;
             }
@@ -331,7 +331,7 @@ namespace ompl
             }
 
             /** \brief Set this state to a random value (uniform) */
-            void random(void)
+            void random()
             {
                 if (!sampler_)
                     sampler_ = space_->allocStateSampler();
@@ -339,13 +339,13 @@ namespace ompl
             }
 
             /** \brief Enforce the bounds on the maintained state */
-            void enforceBounds(void)
+            void enforceBounds()
             {
                 space_->enforceBounds(state_);
             }
 
             /** \brief Check if the maintained state satisfies bounds */
-            bool satisfiesBounds(void) const
+            bool satisfiesBounds() const
             {
                 return space_->satisfiesBounds(state_);
             }
@@ -353,7 +353,7 @@ namespace ompl
             /** \brief Return the real values corresponding to this
                 state. If a conversion is not possible, an exception
                 is thrown.*/
-            std::vector<double> reals(void) const
+            std::vector<double> reals() const
             {
                 std::vector<double> r;
                 unsigned int index = 0;
@@ -369,43 +369,43 @@ namespace ompl
             }
 
             /** \brief De-references to the contained state */
-            StateType& operator*(void)
+            StateType& operator*()
             {
                 return *state_;
             }
 
             /** \brief De-references to the contained state */
-            const StateType& operator*(void) const
+            const StateType& operator*() const
             {
                 return *state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            StateType* operator->(void)
+            StateType* operator->()
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            const StateType* operator->(void) const
+            const StateType* operator->() const
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            StateType* get(void)
+            StateType* get()
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            const StateType* get(void) const
+            const StateType* get() const
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state (used for Python bindings) */
-            StateType* operator()(void) const
+            StateType* operator()() const
             {
                 return state_;
             }

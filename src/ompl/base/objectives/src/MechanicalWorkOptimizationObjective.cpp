@@ -45,7 +45,7 @@ MechanicalWorkOptimizationObjective(const SpaceInformationPtr &si,
     description_ = "Mechanical Work";
 }
 
-double ompl::base::MechanicalWorkOptimizationObjective::getPathLengthWeight(void) const
+double ompl::base::MechanicalWorkOptimizationObjective::getPathLengthWeight() const
 {
     return pathLengthWeight_;
 }

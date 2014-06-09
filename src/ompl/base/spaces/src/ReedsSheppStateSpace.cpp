@@ -630,7 +630,7 @@ ompl::base::ReedsSheppStateSpace::ReedsSheppPath ompl::base::ReedsSheppStateSpac
 }
 
 
-void ompl::base::ReedsSheppMotionValidator::defaultSettings(void)
+void ompl::base::ReedsSheppMotionValidator::defaultSettings()
 {
     stateSpace_ = dynamic_cast<ReedsSheppStateSpace*>(si_->getStateSpace().get());
     if (!stateSpace_)

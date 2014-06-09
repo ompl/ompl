@@ -116,7 +116,7 @@ namespace ompl
         {
         }
 
-        virtual ~NearestNeighborsGNAT(void)
+        virtual ~NearestNeighborsGNAT()
         {
             if (tree_)
                 delete tree_;
@@ -129,7 +129,7 @@ namespace ompl
             if (tree_)
                 rebuildDataStructure();
         }
-        virtual void clear(void)
+        virtual void clear()
         {
             if (tree_)
             {
@@ -239,7 +239,7 @@ namespace ompl
             }
         }
 
-        virtual std::size_t size(void) const
+        virtual std::size_t size() const
         {
             return size_;
         }

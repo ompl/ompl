@@ -80,12 +80,12 @@ ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si) :
     Planner::declareParam<unsigned int>("max_failures", this, &SPARStwo::setMaxFailures, &SPARStwo::getMaxFailures, "100:10:3000");
 }
 
-ompl::geometric::SPARStwo::~SPARStwo(void)
+ompl::geometric::SPARStwo::~SPARStwo()
 {
     freeMemory();
 }
 
-void ompl::geometric::SPARStwo::setup(void)
+void ompl::geometric::SPARStwo::setup()
 {
     Planner::setup();
     if (!nn_)
@@ -102,14 +102,14 @@ void ompl::geometric::SPARStwo::setProblemDefinition(const base::ProblemDefiniti
     clearQuery();
 }
 
-void ompl::geometric::SPARStwo::clearQuery(void)
+void ompl::geometric::SPARStwo::clearQuery()
 {
     startM_.clear();
     goalM_.clear();
     pis_.restart();
 }
 
-void ompl::geometric::SPARStwo::clear(void)
+void ompl::geometric::SPARStwo::clear()
 {
     Planner::clear();
     clearQuery();
@@ -120,7 +120,7 @@ void ompl::geometric::SPARStwo::clear(void)
         nn_->clear();
 }
 
-void ompl::geometric::SPARStwo::freeMemory(void)
+void ompl::geometric::SPARStwo::freeMemory()
 {
     Planner::clear();
     sampler_.reset();
@@ -165,12 +165,12 @@ bool ompl::geometric::SPARStwo::sameComponent(Vertex m1, Vertex m2)
     return boost::same_component(m1, m2, disjointSets_);
 }
 
-bool ompl::geometric::SPARStwo::reachedFailureLimit(void) const
+bool ompl::geometric::SPARStwo::reachedFailureLimit() const
 {
     return consecutiveFailures_ >= maxFailures_;
 }
 
-bool ompl::geometric::SPARStwo::reachedTerminationCriterion(void) const
+bool ompl::geometric::SPARStwo::reachedTerminationCriterion() const
 {
     return consecutiveFailures_ >= maxFailures_ || addedSolution_;
 }
@@ -242,7 +242,7 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
     si_->freeState(qNew);
 }
 
-void ompl::geometric::SPARStwo::checkQueryStateInitialization(void)
+void ompl::geometric::SPARStwo::checkQueryStateInitialization()
 {
     boost::mutex::scoped_lock _(graphMutex_);
     if (boost::num_vertices(g_) < 1)
@@ -501,7 +501,7 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
     return ret;
 }
 
-void ompl::geometric::SPARStwo::resetFailures(void)
+void ompl::geometric::SPARStwo::resetFailures()
 {
     consecutiveFailures_ = 0;
 }

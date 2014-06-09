@@ -38,7 +38,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
-void ompl::control::SyclopRRT::setup(void)
+void ompl::control::SyclopRRT::setup()
 {
     Syclop::setup();
     sampler_ = si_->allocStateSampler();
@@ -54,7 +54,7 @@ void ompl::control::SyclopRRT::setup(void)
     }
 }
 
-void ompl::control::SyclopRRT::clear(void)
+void ompl::control::SyclopRRT::clear()
 {
     Syclop::clear();
     freeMemory();
@@ -166,7 +166,7 @@ void ompl::control::SyclopRRT::selectAndExtend(Region &region, std::vector<Motio
     }
 }
 
-void ompl::control::SyclopRRT::freeMemory(void)
+void ompl::control::SyclopRRT::freeMemory()
 {
     if (nn_)
     {

@@ -87,9 +87,9 @@ namespace ompl
         public:
 
             /// \brief Default constructor.
-            PlannerDataStorage(void);
+            PlannerDataStorage();
             /// \brief Destructor
-            virtual ~PlannerDataStorage(void);
+            virtual ~PlannerDataStorage();
 
             /// \brief Store (serialize) the PlannerData structure to the given filename.
             virtual void store(const PlannerData &pd, const char *filename);

@@ -70,13 +70,13 @@ namespace ompl
 
             pRRT(const base::SpaceInformationPtr &si);
 
-            virtual ~pRRT(void);
+            virtual ~pRRT();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set the goal bias.
 
@@ -93,7 +93,7 @@ namespace ompl
             }
 
             /** \brief Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -109,7 +109,7 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
@@ -117,19 +117,19 @@ namespace ompl
             /** \brief Set the number of threads the planner should use. Default is 2. */
             void setThreadCount(unsigned int nthreads);
 
-            unsigned int getThreadCount(void) const
+            unsigned int getThreadCount() const
             {
                 return threadCount_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 nn_.reset(new NN<Motion*>());
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
         protected:
 
@@ -137,7 +137,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : state(NULL), parent(NULL)
+                Motion() : state(NULL), parent(NULL)
                 {
                 }
 
@@ -145,7 +145,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -163,7 +163,7 @@ namespace ompl
             };
 
             void threadSolve(unsigned int tid, const base::PlannerTerminationCondition &ptc, SolutionInfo *sol);
-            void freeMemory(void);
+            void freeMemory();
 
             double distanceFunction(const Motion *a, const Motion *b) const
             {

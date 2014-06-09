@@ -47,11 +47,11 @@
 static const boost::uint32_t OMPL_PLANNER_DATA_CONTROL_ARCHIVE_MARKER = 0x5044434D; // this spells PDCM
 /// \endcond
 
-ompl::control::PlannerDataStorage::PlannerDataStorage(void) : base::PlannerDataStorage()
+ompl::control::PlannerDataStorage::PlannerDataStorage() : base::PlannerDataStorage()
 {
 }
 
-ompl::control::PlannerDataStorage::~PlannerDataStorage(void)
+ompl::control::PlannerDataStorage::~PlannerDataStorage()
 {
 }
 

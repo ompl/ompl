@@ -78,11 +78,11 @@ namespace ompl
             /** \brief Constructor */
             KPIECE1(const base::SpaceInformationPtr &si);
 
-            virtual ~KPIECE1(void);
+            virtual ~KPIECE1();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set the goal bias.
 
@@ -99,7 +99,7 @@ namespace ompl
             }
 
             /** \brief Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -115,7 +115,7 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
@@ -133,7 +133,7 @@ namespace ompl
 
             /** \brief Get the fraction of time to focus exploration
                 on boundary */
-            double getBorderFraction(void) const
+            double getBorderFraction() const
             {
                 return disc_.getBorderFraction();
             }
@@ -150,7 +150,7 @@ namespace ompl
             }
 
             /** \brief Get the value of the fraction set by setMinValidPathFraction() */
-            double getMinValidPathFraction(void) const
+            double getMinValidPathFraction() const
             {
                 return minValidPathFraction_;
             }
@@ -166,7 +166,7 @@ namespace ompl
 
             /** \brief Get the factor that is multiplied to a cell's
                 score if extending a motion from that cell failed. */
-            double getFailedExpansionCellScoreFactor(void) const
+            double getFailedExpansionCellScoreFactor() const
             {
                 return failedExpansionScoreFactor_;
             }
@@ -186,12 +186,12 @@ namespace ompl
             }
 
             /** \brief Get the projection evaluator */
-            const base::ProjectionEvaluatorPtr& getProjectionEvaluator(void) const
+            const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
             {
                 return projectionEvaluator_;
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
@@ -202,7 +202,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : state(NULL), parent(NULL)
+                Motion() : state(NULL), parent(NULL)
                 {
                 }
 
@@ -211,7 +211,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 

@@ -72,7 +72,7 @@ namespace ompl
             {
             }
 
-            virtual ~PathSimplifier(void)
+            virtual ~PathSimplifier()
             {
             }
 

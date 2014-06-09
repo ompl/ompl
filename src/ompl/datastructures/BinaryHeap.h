@@ -62,8 +62,8 @@ namespace ompl
         {
             friend class BinaryHeap;
         private:
-            Element(void) { }
-            ~Element(void) { }
+            Element() { }
+            ~Element() { }
             /** \brief The location of the data in the heap's storage */
             unsigned int position;
         public:
@@ -77,13 +77,13 @@ namespace ompl
         /** \brief Event that gets called just before a removal */
         typedef void (*EventBeforeRemove)(Element*, void*);
 
-        BinaryHeap(void)
+        BinaryHeap()
         {
             eventAfterInsert_  = NULL;
             eventBeforeRemove_ = NULL;
         }
 
-        ~BinaryHeap(void)
+        ~BinaryHeap()
         {
             clear();
         }
@@ -103,7 +103,7 @@ namespace ompl
         }
 
         /** \brief Clear the heap */
-        void clear(void)
+        void clear()
         {
             for (typename std::vector<Element*>::iterator i = vector_.begin() ;
                  i != vector_.end() ; ++i)
@@ -112,13 +112,13 @@ namespace ompl
         }
 
         /** \brief Return the top element. NULL for an empty heap. */
-        Element* top(void) const
+        Element* top() const
         {
             return vector_.empty() ? NULL : vector_.at(0);
         }
 
         /** \brief Remove the top element */
-        void pop(void)
+        void pop()
         {
             removePos(0);
         }
@@ -172,7 +172,7 @@ namespace ompl
         }
 
         /** \brief Rebuild the heap */
-        void rebuild(void)
+        void rebuild()
         {
             build();
         }
@@ -187,13 +187,13 @@ namespace ompl
         }
 
         /** \brief Check if the heap is empty */
-        bool empty(void) const
+        bool empty() const
         {
             return vector_.empty();
         }
 
         /** \brief Get the number of elements in the heap */
-        unsigned int size(void) const
+        unsigned int size() const
         {
             return vector_.size();
         }
@@ -260,7 +260,7 @@ namespace ompl
             return element;
         }
 
-        void build(void)
+        void build()
         {
             for(int i = vector_.size() / 2 - 1; i >= 0; --i)
                 percolateDown(i);

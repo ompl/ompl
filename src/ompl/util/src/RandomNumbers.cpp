@@ -44,21 +44,21 @@
 #include <boost/math/constants/constants.hpp>
 
 /// The seed the user asked for (cannot be 0)
-static boost::uint32_t& getUserSetSeed(void)
+static boost::uint32_t& getUserSetSeed()
 {
     static boost::uint32_t userSetSeed = 0;
     return userSetSeed;
 }
 
 /// Flag indicating whether the first seed has already been generated or not
-static bool& getFirstSeedGenerated(void)
+static bool& getFirstSeedGenerated()
 {
     static bool firstSeedGenerated = false;
     return firstSeedGenerated;
 }
 
 /// Compute the first seed to be used; this function should be called only once
-static boost::uint32_t firstSeed(void)
+static boost::uint32_t firstSeed()
 {
     /// The value of the first seed
     static boost::uint32_t firstSeedValue = 0;
@@ -83,7 +83,7 @@ static boost::uint32_t firstSeed(void)
 /// We use a different random number generator for the seeds of the
 /// Other random generators. The root seed is from the number of
 /// nano-seconds in the current time.
-static boost::uint32_t nextSeed(void)
+static boost::uint32_t nextSeed()
 {
     static boost::mutex rngMutex;
     boost::mutex::scoped_lock slock(rngMutex);
@@ -93,7 +93,7 @@ static boost::uint32_t nextSeed(void)
     return s();
 }
 
-boost::uint32_t ompl::RNG::getSeed(void)
+boost::uint32_t ompl::RNG::getSeed()
 {
     return firstSeed();
 }
@@ -113,7 +113,7 @@ void ompl::RNG::setSeed(boost::uint32_t seed)
         getUserSetSeed() = seed;
 }
 
-ompl::RNG::RNG(void) : generator_(nextSeed()),
+ompl::RNG::RNG() : generator_(nextSeed()),
                        uniDist_(0, 1),
                        normalDist_(0, 1),
                        uni_(generator_, uniDist_),

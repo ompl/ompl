@@ -70,7 +70,7 @@ namespace ompl
             /** \brief Create an instance for a specified space information */
             ParallelPlan(const base::ProblemDefinitionPtr &pdef);
 
-            virtual ~ParallelPlan(void);
+            virtual ~ParallelPlan();
 
             /** \brief Add a planner to use. */
             void addPlanner(const base::PlannerPtr &planner);
@@ -79,13 +79,13 @@ namespace ompl
             void addPlannerAllocator(const base::PlannerAllocator &pa);
 
             /** \brief Clear the set of paths recorded for hybrididzation */
-            void clearHybridizationPaths(void);
+            void clearHybridizationPaths();
 
             /** \brief Clear the set of planners to be executed */
-            void clearPlanners(void);
+            void clearPlanners();
 
             /** \brief Get the problem definition used */
-            const base::ProblemDefinitionPtr& getProblemDefinition(void) const
+            const base::ProblemDefinitionPtr& getProblemDefinition() const
             {
                 return pdef_;
             }

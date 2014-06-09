@@ -52,12 +52,12 @@ ompl::geometric::EST::EST(const base::SpaceInformationPtr &si) : base::Planner(s
     Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias, "0.:.05:1.");
 }
 
-ompl::geometric::EST::~EST(void)
+ompl::geometric::EST::~EST()
 {
     freeMemory();
 }
 
-void ompl::geometric::EST::setup(void)
+void ompl::geometric::EST::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -67,7 +67,7 @@ void ompl::geometric::EST::setup(void)
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
 }
 
-void ompl::geometric::EST::clear(void)
+void ompl::geometric::EST::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -78,7 +78,7 @@ void ompl::geometric::EST::clear(void)
     lastGoalMotion_ = NULL;
 }
 
-void ompl::geometric::EST::freeMemory(void)
+void ompl::geometric::EST::freeMemory()
 {
     for (Grid<MotionInfo>::iterator it = tree_.grid.begin(); it != tree_.grid.end() ; ++it)
     {
@@ -192,7 +192,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
     return base::PlannerStatus(solved, approximate);
 }
 
-ompl::geometric::EST::Motion* ompl::geometric::EST::selectMotion(void)
+ompl::geometric::EST::Motion* ompl::geometric::EST::selectMotion()
 {
     GridCell* cell = pdf_.sample(rng_.uniform01());
     return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : NULL;

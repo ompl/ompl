@@ -64,17 +64,17 @@ namespace ompl
             PlannerDataVertex(const State *st, int tag = 0) : state_(st), tag_(tag) {}
             /// \brief Copy constructor.
             PlannerDataVertex(const PlannerDataVertex &rhs) : state_(rhs.state_), tag_(rhs.tag_) {}
-            virtual ~PlannerDataVertex(void) {}
+            virtual ~PlannerDataVertex() {}
 
             /// \brief Returns the integer tag associated with this vertex.
-            virtual int  getTag(void) const { return tag_; }
+            virtual int  getTag() const { return tag_; }
             /// \brief Set the integer tag associated with this vertex.
             virtual void setTag(int tag) { tag_ = tag; }
             /// \brief Retrieve the state associated with this vertex.
-            virtual const State* getState(void) const { return state_; }
+            virtual const State* getState() const { return state_; }
 
             /// \brief Return a clone of this object, allocated from the heap.
-            virtual PlannerDataVertex* clone(void) const
+            virtual PlannerDataVertex* clone() const
             {
                 return new PlannerDataVertex(*this);
             }
@@ -94,7 +94,7 @@ namespace ompl
             }
 
         protected:
-            PlannerDataVertex(void) {}
+            PlannerDataVertex() {}
 
             friend class boost::serialization::access;
             template <class Archive>
@@ -117,8 +117,8 @@ namespace ompl
         class PlannerDataEdge
         {
         public:
-            PlannerDataEdge(void) {}
-            virtual ~PlannerDataEdge(void) {}
+            PlannerDataEdge() {}
+            virtual ~PlannerDataEdge() {}
             /// \brief Return a clone of this object, allocated from the heap.
             virtual PlannerDataEdge* clone() const { return new PlannerDataEdge(); }
 
@@ -176,7 +176,7 @@ namespace ompl
             /// \brief Constructor.  Accepts a SpaceInformationPtr for the space planned in.
             PlannerData(const SpaceInformationPtr &si);
             /// \brief Destructor.
-            virtual ~PlannerData(void);
+            virtual ~PlannerData();
 
             /// \name PlannerData construction
             /// \{
@@ -231,7 +231,7 @@ namespace ompl
             /// Success is returned.
             virtual bool removeEdge(const PlannerDataVertex &v1, const PlannerDataVertex &v2);
             /// \brief Clears the entire data structure
-            virtual void clear(void);
+            virtual void clear();
             /// \brief Creates a deep copy of the states contained in the vertices of this
             /// PlannerData structure so that when the planner that created this instance goes
             /// out of scope, all data remains intact.
@@ -239,20 +239,20 @@ namespace ompl
             /// in this PlannerData will be replaced with clones which are scoped to this PlannerData
             /// object.  A subsequent call to this method is necessary after any other vertices are
             /// added to ensure that this PlannerData instance is fully decoupled.
-            virtual void decoupleFromPlanner(void);
+            virtual void decoupleFromPlanner();
 
             /// \}
             /// \name PlannerData Properties
             /// \{
 
             /// \brief Retrieve the number of edges in this structure
-            unsigned int numEdges(void) const;
+            unsigned int numEdges() const;
             /// \brief Retrieve the number of vertices in this structure
-            unsigned int numVertices(void) const;
+            unsigned int numVertices() const;
             /// \brief Returns the number of start vertices
-            unsigned int numStartVertices(void) const;
+            unsigned int numStartVertices() const;
             /// \brief Returns the number of goal vertices
-            unsigned int numGoalVertices(void) const;
+            unsigned int numGoalVertices() const;
 
             /// \}
             /// \name PlannerData vertex lookup
@@ -365,7 +365,7 @@ namespace ompl
 
             /// \brief Extract a ompl::base::GraphStateStorage object from this PlannerData. Memory for states is copied
             /// (the resulting ompl::base::StateStorage is independent from this PlannerData)
-            StateStoragePtr extractStateStorage(void) const;
+            StateStoragePtr extractStateStorage() const;
 
             /// \brief Extract a Boost.Graph object from this PlannerData.
             /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The object
@@ -373,22 +373,22 @@ namespace ompl
             /// removing vertices and edges should be performed by using the respective method
             /// in PlannerData to ensure proper memory management.  Manipulating the graph directly
             /// will result in undefined behavior with this class.
-            Graph& toBoostGraph(void);
+            Graph& toBoostGraph();
             /// \brief Extract a Boost.Graph object from this PlannerData.
             /// \remarks Use of this method requires inclusion of PlannerDataGraph.h  The object
             /// returned can be used safely for all read-only purposes in Boost.  Adding or
             /// removing vertices and edges should be performed by using the respective method
             /// in PlannerData to ensure proper memory management.  Manipulating the graph directly
             /// will result in undefined behavior with this class.
-            const Graph& toBoostGraph(void) const;
+            const Graph& toBoostGraph() const;
 
             /// \}
 
             /// \brief Return the instance of SpaceInformation used in this PlannerData
-            const SpaceInformationPtr& getSpaceInformation(void) const;
+            const SpaceInformationPtr& getSpaceInformation() const;
 
           /// \brief Indicate whether any information about controls (ompl::control::Control) is stored in this instance
-            virtual bool hasControls(void) const;
+            virtual bool hasControls() const;
 
             /// \brief Any extra properties (key-value pairs) the planner can set.
             std::map<std::string, std::string>   properties;
@@ -408,7 +408,7 @@ namespace ompl
             std::set<State*>                     decoupledStates_;
 
         private:
-            void freeMemory(void);
+            void freeMemory();
 
             // Abstract pointer that points to the Boost.Graph structure.
             // Obscured to prevent unnecessary inclusion of BGL throughout the

@@ -62,18 +62,18 @@ namespace ompl
                 environment. */
             MorseSimpleSetup(const base::MorseEnvironmentPtr &env);
 
-            virtual ~MorseSimpleSetup(void)
+            virtual ~MorseSimpleSetup()
             {
             }
 
             /** \brief Get the MORSE environment associated with this setup */
-            const base::MorseEnvironmentPtr& getEnvironment(void) const
+            const base::MorseEnvironmentPtr& getEnvironment() const
             {
                 return env_;
             }
 
             /** \brief Get the current MORSE state (read parameters from MORSE bodies) */
-            base::ScopedState<base::MorseStateSpace> getCurrentState(void) const;
+            base::ScopedState<base::MorseStateSpace> getCurrentState() const;
 
             /** \brief Set the current MORSE state (set parameters for MORSE bodies) */
             void setCurrentState(const base::ScopedState<> &state);
@@ -84,17 +84,17 @@ namespace ompl
             /** \brief This method will create the necessary classes
                 for planning. The solve() method will call this
                 function automatically. */
-            void setup(void);
+            void setup();
             
             /** \brief Run the planner until solution is found or user shuts down MORSE */
-            base::PlannerStatus solve(void);
+            base::PlannerStatus solve();
             
             /** \brief Set the MORSE world to the states that are
                 contained in a given path, sequentially. */
             void playPath(const base::PathPtr &path) const;
 
             /** \brief Call playPath() on the solution path, if one is available */
-            void playSolutionPath(void) const;
+            void playSolutionPath() const;
 
             /** \brief Simulate the MORSE environment forward for \e steps simulation steps, using the control \e control.
                 Construct a path representing this action. */

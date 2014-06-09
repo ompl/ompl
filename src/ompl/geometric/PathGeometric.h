@@ -70,7 +70,7 @@ namespace ompl
             /** \brief Construct a path instance from two states (thus making a segment) */
             PathGeometric(const base::SpaceInformationPtr &si, const base::State *state1, const base::State *state2);
 
-            virtual ~PathGeometric(void)
+            virtual ~PathGeometric()
             {
                 freeMemory();
             }
@@ -79,10 +79,10 @@ namespace ompl
             PathGeometric& operator=(const PathGeometric &other);
 
             /** \brief Compute the length of a geometric path (sum of lengths of segments that make up the path) */
-            virtual double length(void) const;
+            virtual double length() const;
 
             /** \brief Check if the path is valid */
-            virtual bool check(void) const;
+            virtual bool check() const;
 
             /** \brief Compute a notion of smoothness for this
                 path. The closer the value is to 0, the smoother the
@@ -97,7 +97,7 @@ namespace ompl
                 where \f$a_i = \mbox{dist}(s_{i-2}, s_{i-1}), b_i = \mbox{dist}(s_{i-1}, s_{i}), c_i = \mbox{dist}(s_{i-2}, s_i)\f$, \f$s_i\f$ is the i<sup>th</sup>
                 state along the path (see getState()) and \f$\mbox{dist}(s_i, s_j)\f$ gives the distance between two states (see ompl::base::StateSpace::distance()).
             */
-            double smoothness(void) const;
+            double smoothness() const;
 
             /** \brief Compute the clearance of the way-points along
                 the path (no interpolation is performed). Detailed formula follows.
@@ -110,7 +110,7 @@ namespace ompl
                 \f$s_i\f$ is the i<sup>th</sup> state along the path (see getState())
                 \f$cl()\f$ gives the distance to the nearest invalid state for a particular state (see ompl::base::StateValidityChecker::clearance())
             */
-            double clearance(void) const;
+            double clearance() const;
 
             /** \brief Print the path to a stream */
             virtual void print(std::ostream &out) const;
@@ -134,13 +134,13 @@ namespace ompl
                 path is made up of (approximately) the states checked
                 for validity when a discrete motion validator is
                 used. */
-            void interpolate(void);
+            void interpolate();
 
             /** \brief Add a state at the middle of each segment */
-            void subdivide(void);
+            void subdivide();
 
             /** \brief Reverse the path */
-            void reverse(void);
+            void reverse();
 
             /** \brief Check if the path is valid. If it is not,
                 attempts are made to fix the path by sampling around
@@ -189,7 +189,7 @@ namespace ompl
             void keepBefore(const base::State *state);
 
             /** \brief Set this path to a random segment */
-            void random(void);
+            void random();
 
             /** \brief Set this path to a random valid segment. Sample \e attempts times for valid segments. Returns true on success.*/
             bool randomValid(unsigned int attempts);
@@ -202,7 +202,7 @@ namespace ompl
             int getClosestIndex(const base::State *state) const;
 
             /** \brief Get the states that make up the path (as a reference, so it can be modified, hence the function is not const) */
-            std::vector<base::State*>& getStates(void)
+            std::vector<base::State*>& getStates()
             {
                 return states_;
             }
@@ -220,7 +220,7 @@ namespace ompl
             }
 
             /** \brief Get the number of states (way-points) that make up this path */
-            std::size_t getStateCount(void) const
+            std::size_t getStateCount() const
             {
                 return states_.size();
             }
@@ -230,7 +230,7 @@ namespace ompl
         protected:
 
             /** \brief Free the memory corresponding to the states on this path */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Copy data to this path from another path instance */
             void copyFrom(const PathGeometric &other);

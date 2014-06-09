@@ -40,18 +40,18 @@
 #include <boost/lexical_cast.hpp>
 #include <limits>
 
-ompl::base::GoalStates::~GoalStates(void)
+ompl::base::GoalStates::~GoalStates()
 {
     freeMemory();
 }
 
-void ompl::base::GoalStates::clear(void)
+void ompl::base::GoalStates::clear()
 {
     freeMemory();
     states_.clear();
 }
 
-void ompl::base::GoalStates::freeMemory(void)
+void ompl::base::GoalStates::freeMemory()
 {
     for (unsigned int i = 0 ; i < states_.size() ; ++i)
         si_->freeState(states_[i]);
@@ -87,7 +87,7 @@ void ompl::base::GoalStates::sampleGoal(base::State *st) const
     samplePosition_ = (samplePosition_ + 1) % states_.size();
 }
 
-unsigned int ompl::base::GoalStates::maxSampleCount(void) const
+unsigned int ompl::base::GoalStates::maxSampleCount() const
 {
     return states_.size();
 }
@@ -110,12 +110,12 @@ const ompl::base::State* ompl::base::GoalStates::getState(unsigned int index) co
     return states_[index];
 }
 
-std::size_t ompl::base::GoalStates::getStateCount(void) const
+std::size_t ompl::base::GoalStates::getStateCount() const
 {
     return states_.size();
 }
 
-bool ompl::base::GoalStates::hasStates(void) const
+bool ompl::base::GoalStates::hasStates() const
 {
     return !states_.empty();
 }

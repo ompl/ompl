@@ -92,12 +92,12 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
     Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors, std::string("8:1000"));
 }
 
-ompl::geometric::PRM::~PRM(void)
+ompl::geometric::PRM::~PRM()
 {
     freeMemory();
 }
 
-void ompl::geometric::PRM::setup(void)
+void ompl::geometric::PRM::setup()
 {
     Planner::setup();
     if (!nn_)
@@ -140,14 +140,14 @@ void ompl::geometric::PRM::setProblemDefinition(const base::ProblemDefinitionPtr
     clearQuery();
 }
 
-void ompl::geometric::PRM::clearQuery(void)
+void ompl::geometric::PRM::clearQuery()
 {
     startM_.clear();
     goalM_.clear();
     pis_.restart();
 }
 
-void ompl::geometric::PRM::clear(void)
+void ompl::geometric::PRM::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -159,7 +159,7 @@ void ompl::geometric::PRM::clear(void)
     maxEdgeID_ = 0;
 }
 
-void ompl::geometric::PRM::freeMemory(void)
+void ompl::geometric::PRM::freeMemory()
 {
     foreach (Vertex v, boost::vertices(g_))
         si_->freeState(stateProperty_[v]);
@@ -349,7 +349,7 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
     return false;
 }
 
-bool ompl::geometric::PRM::addedNewSolution(void) const
+bool ompl::geometric::PRM::addedNewSolution() const
 {
     return addedSolution_;
 }

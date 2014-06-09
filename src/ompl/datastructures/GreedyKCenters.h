@@ -51,11 +51,11 @@ namespace ompl
         /** \brief The definition of a distance function */
         typedef boost::function<double(const _T&, const _T&)> DistanceFunction;
 
-        GreedyKCenters(void)
+        GreedyKCenters()
         {
         }
 
-        virtual ~GreedyKCenters(void)
+        virtual ~GreedyKCenters()
         {
         }
 
@@ -66,7 +66,7 @@ namespace ompl
         }
 
         /** \brief Get the distance function used */
-        const DistanceFunction& getDistanceFunction(void) const
+        const DistanceFunction& getDistanceFunction() const
         {
             return distFun_;
         }

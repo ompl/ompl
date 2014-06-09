@@ -44,7 +44,7 @@ ompl::geometric::PDST::PDST(const base::SpaceInformationPtr &si)
     Planner::declareParam<double>("goal_bias", this, &PDST::setGoalBias, &PDST::getGoalBias, "0.:.05:1.");
 }
 
-ompl::geometric::PDST::~PDST(void)
+ompl::geometric::PDST::~PDST()
 {
     freeMemory();
 }
@@ -235,7 +235,7 @@ void ompl::geometric::PDST::addMotion(Motion *motion, Cell *bsp, base::State *st
     }
 }
 
-void ompl::geometric::PDST::clear(void)
+void ompl::geometric::PDST::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -245,7 +245,7 @@ void ompl::geometric::PDST::clear(void)
     bsp_ = new Cell(1., projectionEvaluator_->getBounds(), 0);
 }
 
-void ompl::geometric::PDST::freeMemory(void)
+void ompl::geometric::PDST::freeMemory()
 {
     // Iterate over the elements in the priority queue and clear it
     std::vector<Motion*> motions;
@@ -264,7 +264,7 @@ void ompl::geometric::PDST::freeMemory(void)
     bsp_ = NULL;
 }
 
-void ompl::geometric::PDST::setup(void)
+void ompl::geometric::PDST::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());

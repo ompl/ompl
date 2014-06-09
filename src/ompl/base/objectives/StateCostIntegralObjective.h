@@ -88,7 +88,7 @@ namespace ompl
                 cost computation. Motion cost interpolation is
                 disabled by default.
             */
-            bool isMotionCostInterpolationEnabled(void) const;
+            bool isMotionCostInterpolationEnabled() const;
 
         protected:
 

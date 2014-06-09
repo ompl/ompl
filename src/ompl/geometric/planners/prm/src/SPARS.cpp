@@ -85,12 +85,12 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
     Planner::declareParam<unsigned int>("max_failures", this, &SPARS::setMaxFailures, &SPARS::getMaxFailures, "100:10:3000");
 }
 
-ompl::geometric::SPARS::~SPARS(void)
+ompl::geometric::SPARS::~SPARS()
 {
     freeMemory();
 }
 
-void ompl::geometric::SPARS::setup(void)
+void ompl::geometric::SPARS::setup()
 {
     Planner::setup();
     if (!nn_)
@@ -112,19 +112,19 @@ void ompl::geometric::SPARS::setProblemDefinition(const base::ProblemDefinitionP
     clearQuery();
 }
 
-void ompl::geometric::SPARS::resetFailures(void)
+void ompl::geometric::SPARS::resetFailures()
 {
     consecutiveFailures_ = 0;
 }
 
-void ompl::geometric::SPARS::clearQuery(void)
+void ompl::geometric::SPARS::clearQuery()
 {
     startM_.clear();
     goalM_.clear();
     pis_.restart();
 }
 
-void ompl::geometric::SPARS::clear(void)
+void ompl::geometric::SPARS::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -139,7 +139,7 @@ void ompl::geometric::SPARS::clear(void)
     iterations_ = 0;
 }
 
-void ompl::geometric::SPARS::freeMemory(void)
+void ompl::geometric::SPARS::freeMemory()
 {
     foreach (DenseVertex v, boost::vertices(g_))
         if( stateProperty_[v] != NULL )
@@ -225,17 +225,17 @@ bool ompl::geometric::SPARS::haveSolution(const std::vector<DenseVertex> &starts
     return false;
 }
 
-bool ompl::geometric::SPARS::reachedTerminationCriterion(void) const
+bool ompl::geometric::SPARS::reachedTerminationCriterion() const
 {
     return consecutiveFailures_ >= maxFailures_ || addedSolution_;
 }
 
-bool ompl::geometric::SPARS::reachedFailureLimit(void) const
+bool ompl::geometric::SPARS::reachedFailureLimit() const
 {
     return consecutiveFailures_ >= maxFailures_;
 }
 
-void ompl::geometric::SPARS::checkQueryStateInitialization(void)
+void ompl::geometric::SPARS::checkQueryStateInitialization()
 {
     boost::mutex::scoped_lock _(graphMutex_);
     if (boost::num_vertices(g_) < 1)
@@ -656,7 +656,7 @@ bool ompl::geometric::SPARS::checkAddPath(DenseVertex q, const std::vector<Dense
     return result;
 }
 
-double ompl::geometric::SPARS::averageValence(void) const
+double ompl::geometric::SPARS::averageValence() const
 {
     double degree = 0.0;
     foreach (DenseVertex v, boost::vertices(s_))

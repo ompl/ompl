@@ -66,7 +66,7 @@ namespace ompl
                 neighbors_.reserve(k_);
             }
 
-            virtual ~KStrategy(void)
+            virtual ~KStrategy()
             {
             }
 
