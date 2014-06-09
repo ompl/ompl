@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Mark Moll, Ioan Sucan */
 
 #include "ompl/base/spaces/SO3StateSpace.h"
 #include <algorithm>
@@ -62,26 +62,27 @@ namespace ompl
     {
         static inline void computeAxisAngle(SO3StateSpace::StateType &q, double ax, double ay, double az, double angle)
         {
-            double norm = sqrt(ax * ax + ay * ay + az * az);
+            double norm = std::sqrt(ax * ax + ay * ay + az * az);
             if (norm < MAX_QUATERNION_NORM_ERROR)
                 q.setIdentity();
             else
             {
-                double s = sin(angle / 2.0);
-                q.x = s * ax / norm;
-                q.y = s * ay / norm;
-                q.z = s * az / norm;
-                q.w = cos(angle / 2.0);
+                double half_angle = angle / 2.0;
+                double s = sin(half_angle) / norm;
+                q.x = s * ax;
+                q.y = s * ay;
+                q.z = s * az;
+                q.w = cos(half_angle);
             }
         }
 
         /* Standard quaternion multiplication: q = q0 * q1 */
         static inline void quaternionProduct(SO3StateSpace::StateType &q, const SO3StateSpace::StateType& q0, const SO3StateSpace::StateType& q1)
         {
-            q.x = q0.w*q1.x + q0.x*q1.w + q0.y*q1.z - q0.z*q1.y;
-            q.y = q0.w*q1.y + q0.y*q1.w + q0.z*q1.x - q0.x*q1.z;
-            q.z = q0.w*q1.z + q0.z*q1.w + q0.x*q1.y - q0.y*q1.x;
-            q.w = q0.w*q1.w - q0.x*q1.x - q0.y*q1.y - q0.z*q1.z;
+            q.x = q0.w * q1.x + q0.x * q1.w + q0.y * q1.z - q0.z * q1.y;
+            q.y = q0.w * q1.y + q0.y * q1.w + q0.z * q1.x - q0.x * q1.z;
+            q.z = q0.w * q1.z + q0.z * q1.w + q0.x * q1.y - q0.y * q1.x;
+            q.w = q0.w * q1.w - q0.x * q1.x - q0.y * q1.y - q0.z * q1.z;
         }
 
         inline double quaternionNormSquared(const SO3StateSpace::StateType &q)
@@ -158,8 +159,9 @@ void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mea
         SO3StateSpace::StateType q,
             *qs = static_cast<SO3StateSpace::StateType*>(state);
         const SO3StateSpace::StateType *qmu = static_cast<const SO3StateSpace::StateType*>(mean);
-        double s = sin(theta / 2) / theta;
-        q.w = cos(theta / 2);
+	double half_theta = theta / 2.0;
+        double s = sin(half_theta) / theta;
+        q.w = cos(half_theta);
         q.x = s * x;
         q.y = s * y;
         q.z = s * z;
@@ -181,7 +183,7 @@ double ompl::base::SO3StateSpace::getMaximumExtent(void) const
 double ompl::base::SO3StateSpace::norm(const StateType *state) const
 {
     double nrmSqr = quaternionNormSquared(*state);
-    return (fabs(nrmSqr - 1.0) > std::numeric_limits<double>::epsilon()) ? sqrt(nrmSqr) : 1.0;
+    return (fabs(nrmSqr - 1.0) > std::numeric_limits<double>::epsilon()) ? std::sqrt(nrmSqr) : 1.0;
 }
 
 void ompl::base::SO3StateSpace::enforceBounds(State *state) const
@@ -193,11 +195,11 @@ void ompl::base::SO3StateSpace::enforceBounds(State *state) const
     const double epsilon = 2.107342e-08;
     if (error < epsilon)
     {
-        double scale = 0.5 * (1.0 + nrmsq);
-        qstate->x /= scale;
-        qstate->y /= scale;
-        qstate->z /= scale;
-        qstate->w /= scale;
+        double scale = 2.0 / (1.0 + nrmsq);
+        qstate->x *= scale;
+        qstate->y *= scale;
+        qstate->z *= scale;
+        qstate->w *= scale;
     }
     else
     {
@@ -205,11 +207,11 @@ void ompl::base::SO3StateSpace::enforceBounds(State *state) const
             qstate->setIdentity();
         else
         {
-            double scale = std::sqrt(nrmsq);
-            qstate->x /= scale;
-            qstate->y /= scale;
-            qstate->z /= scale;
-            qstate->w /= scale;
+            double scale = 1.0 / std::sqrt(nrmsq);
+            qstate->x *= scale;
+            qstate->y *= scale;
+            qstate->z *= scale;
+            qstate->w *= scale;
         }
     }
 }
