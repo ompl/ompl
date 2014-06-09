@@ -269,7 +269,7 @@ namespace ompl
         void percolateDown(const unsigned int pos)
         {
             const unsigned int n      = vector_.size();
-            Element *tmp    = vector_[pos];
+            Element           *tmp    = vector_[pos];
             unsigned int       parent = pos;
             unsigned int       child  = (pos + 1) << 1;
 

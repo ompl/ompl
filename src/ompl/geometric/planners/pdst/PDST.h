@@ -292,11 +292,11 @@ namespace ompl
             /// Number between 0 and 1 specifying the probability with which the goal should be sampled
             double                                   goalBias_;
             /// Objected used to sample the goal
-            ompl::base::GoalSampleableRegion *goalSampler_;
+            ompl::base::GoalSampleableRegion        *goalSampler_;
             /// Iteration number and priority of the next Motion that will be generated
             unsigned int                             iteration_;
             /// Closest motion to the goal
-            Motion *lastGoalMotion_;
+            Motion                                  *lastGoalMotion_;
         };
     }
 }
