@@ -67,6 +67,10 @@ namespace ompl
 
             /** \brief Constructor needs the state space used for planning. */
             explicit
+            SimpleSetup(const base::SpaceInformationPtr &si);
+
+            /** \brief Constructor needs the state space used for planning. */
+            explicit
             SimpleSetup(const base::StateSpacePtr &space);
 
             virtual ~SimpleSetup()

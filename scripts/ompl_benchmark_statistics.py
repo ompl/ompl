@@ -49,6 +49,33 @@ import numpy as np
 from math import floor
 from optparse import OptionParser, OptionGroup
 
+# Given a text line, split it into tokens (by space) and return the token
+# at the desired index. Additionally, test that some expected tokens exist.
+# Return None if they do not.
+def readLogValue(filevar, desired_token_index, expected_tokens) :
+    start_pos = filevar.tell()
+    tokens = filevar.readline().split()
+    for token_index in expected_tokens:
+        if not tokens[token_index] == expected_tokens[token_index]:
+            # undo the read, if we failed to parse.
+            filevar.seek(start_pos)
+            return None
+    return tokens[desired_token_index]
+
+def readOptionalLogValue(filevar, desired_token_index, expected_tokens = {}) :
+    return readLogValue(filevar, desired_token_index, expected_tokens)
+
+def readRequiredLogValue(name, filevar, desired_token_index, expected_tokens = {}) :
+    result = readLogValue(filevar, desired_token_index, expected_tokens)
+    if result == None:
+        raise Exception("Unable to read " + name)
+    return result
+
+def ensurePrefix(line, prefix):
+    if not line.startswith(prefix):
+        raise Exception("Expected prefix " + prefix + " was not found")
+    return line
+
 def readBenchmarkLog(dbname, filenames):
     """Parse benchmark log files and store the parsed data in a sqlite3 database."""
 
@@ -78,25 +105,33 @@ def readBenchmarkLog(dbname, filenames):
     for filename in filenames:
         print('Processing ' + filename)
         logfile = open(filename,'r')
-        expname =  logfile.readline().split()[-1]
-        hostname = logfile.readline().split()[-1]
-        date = ' '.join(logfile.readline().split()[2:])
-        logfile.readline() # skip <<<|
+        expname = readRequiredLogValue("experiment name", logfile, -1, {0 : "Experiment"})
+        hostname = readRequiredLogValue("hostname", logfile, -1, {0 : "Running"})
+        date = ' '.join(ensurePrefix(logfile.readline(), "Starting").split()[2:])
+        ensurePrefix(logfile.readline(), "<<<|") # skip <<<|
         expsetup = ''
         expline = logfile.readline()
         while not expline.startswith('|>>>'):
             expsetup = expsetup + expline
             expline = logfile.readline()
-        rseed = int(logfile.readline().split()[0])
-        timelimit = float(logfile.readline().split()[0])
-        memorylimit = float(logfile.readline().split()[0])
-        nrruns = float(logfile.readline().split()[0])
-        totaltime = float(logfile.readline().split()[0])
-        numEnums = int(logfile.readline().split()[0])
+            if expline == None:
+                raise Exception("Expected token |>>> missing")
+        rseed = int(readRequiredLogValue("random seed", logfile, 0, {-2 : "random", -1 : "seed"}))
+        timelimit = float(readRequiredLogValue("time limit", logfile, 0, {-3 : "seconds", -2 : "per", -1 : "run"}))
+        memorylimit = float(readRequiredLogValue("memory limit", logfile, 0, {-3 : "MB", -2 : "per", -1 : "run"}))
+        nrrunsOrNone = readOptionalLogValue(logfile, 0, {-3 : "runs", -2 : "per", -1 : "planner"})
+        nrruns = -1
+        if nrrunsOrNone != None:
+            nrruns = int(nrrunsOrNone)
+        totaltime = float(readRequiredLogValue("total time", logfile, 0, {-3 : "collect", -2 : "the", -1 : "data"}))
+        numEnums = 0
+        numEnumsOrNone = readOptionalLogValue(logfile, 0, {-2 : "enum"})
+        if numEnumsOrNone != None:
+            numEnums = int(numEnumsOrNone)
         for i in range(numEnums):
             enum = logfile.readline()[:-1].split('|')
             c.execute('SELECT * FROM enums WHERE name IS "%s"' % enum[0])
-            if c.fetchone()==None:
+            if c.fetchone() == None:
                 for j in range(len(enum)-1):
                     c.execute('INSERT INTO enums VALUES (?,?,?)',
                         (enum[0],j,enum[j+1]))
@@ -104,8 +139,7 @@ def readBenchmarkLog(dbname, filenames):
               (None, expname, totaltime, timelimit, memorylimit, nrruns,
               hostname, date, rseed, expsetup) )
         experimentId = c.lastrowid
-        numPlanners = int(logfile.readline().split()[0])
-
+        numPlanners = int(readRequiredLogValue("planner count", logfile, 0, {-1 : "planners"}))
         for i in range(numPlanners):
             plannerName = logfile.readline()[:-1]
             print('Parsing data for ' + plannerName)
