@@ -76,7 +76,7 @@ namespace ompl
             }
 
             /** \brief Assignment operator */
-            PathGeometric& operator=(const PathGeometric& other);
+            PathGeometric& operator=(const PathGeometric &other);
 
             /** \brief Compute the length of a geometric path (sum of lengths of segments that make up the path) */
             virtual double length(void) const;
@@ -233,7 +233,7 @@ namespace ompl
             void freeMemory(void);
 
             /** \brief Copy data to this path from another path instance */
-            void copyFrom(const PathGeometric& other);
+            void copyFrom(const PathGeometric &other);
 
             /** \brief The list of states that make up the path */
             std::vector<base::State*> states_;

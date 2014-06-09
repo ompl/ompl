@@ -101,7 +101,7 @@ ompl::msg::OutputHandler* ompl::msg::getOutputHandler(void)
     return getDOH()->output_handler_;
 }
 
-void ompl::msg::log(const char *file, int line, LogLevel level, const char* m, ...)
+void ompl::msg::log(const char *file, int line, LogLevel level, const char *m, ...)
 {
     USE_DOH;
     if (doh->output_handler_ && level >= doh->logLevel_)
@@ -129,7 +129,7 @@ ompl::msg::LogLevel ompl::msg::getLogLevel(void)
     return doh->logLevel_;
 }
 
-static const char* LogLevelString[4] = {"Debug:   ", "Info:    ", "Warning: ", "Error:   "};
+static const char *LogLevelString[4] = {"Debug:   ", "Info:    ", "Warning: ", "Error:   "};
 
 void ompl::msg::OutputHandlerSTD::log(const std::string &text, LogLevel level, const char *filename, int line)
 {

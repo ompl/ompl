@@ -64,7 +64,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            StatePropagator(SpaceInformation* si) : si_(si)
+            StatePropagator(SpaceInformation *si) : si_(si)
             {
             }
 
@@ -92,7 +92,7 @@ namespace ompl
                 \note The pointer to the starting state and the result
                 state may be the same.
             */
-            virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const = 0;
+            virtual void propagate(const base::State *state, const Control *control, const double duration, base::State *result) const = 0;
 
             /** \brief Some systems can only propagate forward in time (i.e., the \e duration argument for the propagate()
                 function is always positive). If this is the case, this function should return false. Planners that need

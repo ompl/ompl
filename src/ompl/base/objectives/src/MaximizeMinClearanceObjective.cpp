@@ -45,7 +45,7 @@ MaximizeMinClearanceObjective(const SpaceInformationPtr &si) :
     this->setCostThreshold(Cost(std::numeric_limits<double>::infinity()));
 }
 
-ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::stateCost(const State* s) const
+ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::stateCost(const State *s) const
 {
     return Cost(si_->getStateValidityChecker()->clearance(s));
 }

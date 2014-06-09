@@ -67,7 +67,7 @@ namespace ompl
             }
 
             /** \brief Assignment operator */
-            PathControl& operator=(const PathControl& other);
+            PathControl& operator=(const PathControl &other);
 
             /** \brief The path length (sum of control durations) */
             virtual double length(void) const;
@@ -193,7 +193,7 @@ namespace ompl
             void freeMemory(void);
 
             /** \brief Copy the content of a path to this one */
-            void copyFrom(const PathControl& other);
+            void copyFrom(const PathControl &other);
 
         };
 

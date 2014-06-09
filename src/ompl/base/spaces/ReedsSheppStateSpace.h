@@ -96,7 +96,7 @@ namespace ompl
             virtual void interpolate(const State *from, const State *to, const double t,
                 State *state) const;
             virtual void interpolate(const State *from, const State *to, const double t,
-                bool& firstTime, ReedsSheppPath& path, State *state) const;
+                bool &firstTime, ReedsSheppPath &path, State *state) const;
 
             virtual void sanityChecks(void) const
             {
@@ -109,7 +109,7 @@ namespace ompl
             ReedsSheppPath reedsShepp(const State *state1, const State *state2) const;
 
         protected:
-            virtual void interpolate(const State *from, const ReedsSheppPath& path, const double t,
+            virtual void interpolate(const State *from, const ReedsSheppPath &path, const double t,
                 State *state) const;
 
             /** \brief Turning radius */
@@ -125,7 +125,7 @@ namespace ompl
         class ReedsSheppMotionValidator : public MotionValidator
         {
         public:
-            ReedsSheppMotionValidator(SpaceInformation* si) : MotionValidator(si)
+            ReedsSheppMotionValidator(SpaceInformation *si) : MotionValidator(si)
             {
                 defaultSettings();
             }

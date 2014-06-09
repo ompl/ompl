@@ -131,7 +131,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            CompoundControlSampler(const ControlSpace* space) : ControlSampler(space)
+            CompoundControlSampler(const ControlSpace *space) : ControlSampler(space)
             {
             }
 

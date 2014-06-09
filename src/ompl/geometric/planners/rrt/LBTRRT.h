@@ -178,7 +178,7 @@ namespace ompl
 
             struct IsLessThan
             {
-                IsLessThan (LBTRRT*  plannerPtr, Motion * motion_): plannerPtr_(plannerPtr), motion(motion_)
+                IsLessThan (LBTRRT *plannerPtr, Motion * motion_): plannerPtr_(plannerPtr), motion(motion_)
                 {
                 }
 
@@ -192,12 +192,12 @@ namespace ompl
 
                     return (motionA->costLb_ + distA < motionB->costLb_ + distB);
                 }
-                LBTRRT*  plannerPtr_;
-                Motion* motion;
+                LBTRRT *plannerPtr_;
+                Motion *motion;
             }; //IsLessThan
 
             /** \brief attempt to rewire the trees */
-            void attemptNodeUpdate(Motion* potentialParent, Motion* child);
+            void attemptNodeUpdate(Motion *potentialParent, Motion *child);
 
             /** \brief update the child cost of the lower bound tree */
             void updateChildCostsLb(Motion *m, double delta);
@@ -218,7 +218,7 @@ namespace ompl
             void freeMemory(void);
 
             /** \brief Compute distance between motions (actually distance between contained states) */
-            double distanceFunction(const Motion* a, const Motion* b) const
+            double distanceFunction(const Motion *a, const Motion *b) const
             {
                 return si_->distance(a->state, b->state);
             }

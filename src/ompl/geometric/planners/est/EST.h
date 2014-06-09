@@ -187,7 +187,7 @@ namespace ompl
                 {
                     return motions_[i];
                 }
-                void push_back(Motion* m)
+                void push_back(Motion *m)
                 {
                     motions_.push_back(m);
                 }
@@ -200,7 +200,7 @@ namespace ompl
                     return motions_.empty();
                 }
                 std::vector<Motion*> motions_;
-                CellPDF::Element*    elem_;
+                CellPDF::Element    *elem_;
             };
 
 

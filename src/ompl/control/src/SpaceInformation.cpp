@@ -100,7 +100,7 @@ void ompl::control::SpaceInformation::setStatePropagator(const StatePropagatorFn
         {
         }
 
-        virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const
+        virtual void propagate(const base::State *state, const Control *control, const double duration, base::State *result) const
         {
             fn_(state, control, duration, result);
         }
@@ -124,7 +124,7 @@ bool ompl::control::SpaceInformation::canPropagateBackward(void) const
     return statePropagator_->canPropagateBackward();
 }
 
-void ompl::control::SpaceInformation::propagate(const base::State *state, const Control* control, int steps, base::State *result) const
+void ompl::control::SpaceInformation::propagate(const base::State *state, const Control *control, int steps, base::State *result) const
 {
     if (steps == 0)
     {
@@ -142,7 +142,7 @@ void ompl::control::SpaceInformation::propagate(const base::State *state, const 
     }
 }
 
-unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::State *state, const Control* control, int steps, base::State *result) const
+unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::State *state, const Control *control, int steps, base::State *result) const
 {
     if (steps == 0)
     {
@@ -199,7 +199,7 @@ unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::St
     }
 }
 
-void ompl::control::SpaceInformation::propagate(const base::State *state, const Control* control, int steps, std::vector<base::State*> &result, bool alloc) const
+void ompl::control::SpaceInformation::propagate(const base::State *state, const Control *control, int steps, std::vector<base::State*> &result, bool alloc) const
 {
     double signedStepSize = steps > 0 ? stepSize_ : -stepSize_;
     steps = abs(steps);
@@ -232,7 +232,7 @@ void ompl::control::SpaceInformation::propagate(const base::State *state, const 
     }
 }
 
-unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::State *state, const Control* control, int steps, std::vector<base::State*> &result, bool alloc) const
+unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::State *state, const Control *control, int steps, std::vector<base::State*> &result, bool alloc) const
 {
     double signedStepSize = steps > 0 ? stepSize_ : -stepSize_;
     steps = abs(steps);

@@ -110,7 +110,7 @@ namespace ompl
 
             virtual double distanceGoal(const State *st) const;
 
-            virtual void addState(const State* st);
+            virtual void addState(const State *st);
 
             /** \brief Start the goal sampling thread */
             void startSampling(void);
@@ -146,7 +146,7 @@ namespace ompl
             void setNewStateCallback(const NewStateCallbackFn &callback);
 
             /** \brief Add a state \e st if it further away that \e minDistance from previously added states. Return true if the state was added. */
-            bool addStateIfDifferent(const State* st, double minDistance);
+            bool addStateIfDifferent(const State *st, double minDistance);
 
             /** \brief Return true if GoalStates::couldSample() is true or if the sampling thread is active, as in this case it is possible a sample can be produced at some point. */
             virtual bool couldSample(void) const;

@@ -73,7 +73,7 @@ namespace ompl
             virtual void print(std::ostream &out = std::cout) const;
 
             /** \brief Set the goal state */
-            void setState(const State* st);
+            void setState(const State *st);
 
             /** \brief Set the goal state */
             void setState(const ScopedState<> &st);

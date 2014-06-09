@@ -86,12 +86,12 @@ void ompl::base::PlannerData::decoupleFromPlanner (void)
     unsigned int count = 0;
     for (unsigned int i = 0; i < numVertices(); ++i)
     {
-        PlannerDataVertex& vtx = getVertex(i);
+        PlannerDataVertex &vtx = getVertex(i);
         // If this vertex's state is not in the decoupled list, clone it and add it
         if (decoupledStates_.find(const_cast<State*>(vtx.getState())) == decoupledStates_.end())
         {
-            const State* oldState = vtx.getState();
-            State* clone = si_->cloneState(oldState);
+            const State *oldState = vtx.getState();
+            State *clone = si_->cloneState(oldState);
             decoupledStates_.insert(clone);
             // Replacing the shallow state pointer with our shiny new clone
             vtx.state_ = clone;
@@ -529,7 +529,7 @@ bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
             goalVertexIndices_[i]--;
 
     // If the state attached to this vertex was decoupled, free it here
-    State* vtxState = const_cast<State*>(getVertex(vIndex).getState());
+    State *vtxState = const_cast<State*>(getVertex(vIndex).getState());
     if (decoupledStates_.find(vtxState) != decoupledStates_.end())
     {
         decoupledStates_.erase(vtxState);
@@ -575,7 +575,7 @@ bool ompl::base::PlannerData::removeEdge (const PlannerDataVertex &v1, const Pla
     return removeEdge (index1, index2);
 }
 
-bool ompl::base::PlannerData::tagState (const base::State* st, int tag)
+bool ompl::base::PlannerData::tagState (const base::State *st, int tag)
 {
     std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
     if (it != stateIndexMap_.end())
@@ -586,7 +586,7 @@ bool ompl::base::PlannerData::tagState (const base::State* st, int tag)
     return false;
 }
 
-bool ompl::base::PlannerData::markStartState (const base::State* st)
+bool ompl::base::PlannerData::markStartState (const base::State *st)
 {
     // Find the index in the stateIndexMap_
     std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
@@ -603,7 +603,7 @@ bool ompl::base::PlannerData::markStartState (const base::State* st)
     return false;
 }
 
-bool ompl::base::PlannerData::markGoalState (const base::State* st)
+bool ompl::base::PlannerData::markGoalState (const base::State *st)
 {
     // Find the index in the stateIndexMap_
     std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(st);
@@ -699,7 +699,7 @@ void ompl::base::PlannerData::extractMinimumSpanningTree (unsigned int v,
     }
 }
 
-void ompl::base::PlannerData::extractReachable(unsigned int v, base::PlannerData& data) const
+void ompl::base::PlannerData::extractReachable(unsigned int v, base::PlannerData &data) const
 {
     // If this vertex already exists in data, return
     if (data.vertexExists(getVertex(v)))
@@ -760,13 +760,13 @@ ompl::base::StateStoragePtr ompl::base::PlannerData::extractStateStorage(void) c
 
 ompl::base::PlannerData::Graph& ompl::base::PlannerData::toBoostGraph(void)
 {
-    ompl::base::PlannerData::Graph* boostgraph = reinterpret_cast<ompl::base::PlannerData::Graph*>(graphRaw_);
+    ompl::base::PlannerData::Graph *boostgraph = reinterpret_cast<ompl::base::PlannerData::Graph*>(graphRaw_);
     return *boostgraph;
 }
 
 const ompl::base::PlannerData::Graph& ompl::base::PlannerData::toBoostGraph(void) const
 {
-    const ompl::base::PlannerData::Graph* boostgraph = reinterpret_cast<const ompl::base::PlannerData::Graph*>(graphRaw_);
+    const ompl::base::PlannerData::Graph *boostgraph = reinterpret_cast<const ompl::base::PlannerData::Graph*>(graphRaw_);
     return *boostgraph;
 }
 

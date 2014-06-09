@@ -63,11 +63,11 @@ namespace ompl
 
             virtual void setup(void);
             virtual void clear(void);
-            virtual void getPlannerData(base::PlannerData& data) const;
+            virtual void getPlannerData(base::PlannerData &data) const;
 
         protected:
-            virtual Syclop::Motion* addRoot(const base::State* s);
-            virtual void selectAndExtend(Region& region, std::vector<Motion*>& newMotions);
+            virtual Syclop::Motion* addRoot(const base::State *s);
+            virtual void selectAndExtend(Region &region, std::vector<Motion*> &newMotions);
 
             /** \brief Free the memory allocated by this planner. */
             void freeMemory(void);

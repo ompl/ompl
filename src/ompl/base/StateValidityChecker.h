@@ -95,7 +95,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            StateValidityChecker(SpaceInformation* si) : si_(si)
+            StateValidityChecker(SpaceInformation *si) : si_(si)
             {
             }
 
@@ -155,7 +155,7 @@ namespace ompl
         protected:
 
             /** \brief The instance of space information this state validity checker operates on */
-            SpaceInformation*         si_;
+            SpaceInformation         *si_;
 
             /** \brief The specifications of the state validity checker (its capabilities) */
             StateValidityCheckerSpecs specs_;
@@ -168,7 +168,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            AllValidStateValidityChecker(SpaceInformation* si) : StateValidityChecker(si)
+            AllValidStateValidityChecker(SpaceInformation *si) : StateValidityChecker(si)
             {
             }
 

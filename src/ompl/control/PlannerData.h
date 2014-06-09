@@ -61,23 +61,23 @@ namespace ompl
         {
         public:
             /// \brief Constructor.  Accepts a control pointer and a duration.
-            PlannerDataEdgeControl (const Control *c, double duration) : PlannerDataEdge(), c_(c), duration_(duration) {}
+            PlannerDataEdgeControl(const Control *c, double duration) : PlannerDataEdge(), c_(c), duration_(duration) {}
             /// \brief Copy constructor.
-            PlannerDataEdgeControl (const PlannerDataEdgeControl &rhs) : PlannerDataEdge(), c_(rhs.c_), duration_(rhs.duration_) {}
+            PlannerDataEdgeControl(const PlannerDataEdgeControl &rhs) : PlannerDataEdge(), c_(rhs.c_), duration_(rhs.duration_) {}
 
-            virtual ~PlannerDataEdgeControl (void) {}
+            virtual ~PlannerDataEdgeControl(void) {}
 
-            virtual base::PlannerDataEdge* clone () const
+            virtual base::PlannerDataEdge* clone() const
             {
                 return static_cast<base::PlannerDataEdge*>(new PlannerDataEdgeControl(*this));
             }
 
             /// \brief Return the control associated with this edge.
-            const Control* getControl (void) const { return c_; }
+            const Control* getControl(void) const { return c_; }
             /// \brief Return the duration associated with this edge.
-            double getDuration (void) const { return duration_; }
+            double getDuration(void) const { return duration_; }
 
-            virtual bool operator == (const PlannerDataEdge &rhs) const
+            virtual bool operator==(const PlannerDataEdge &rhs) const
             {
                 const PlannerDataEdgeControl *rhsc = static_cast<const PlannerDataEdgeControl*> (&rhs);
                 if (c_ == rhsc->c_)
@@ -94,7 +94,7 @@ namespace ompl
             PlannerDataEdgeControl() : PlannerDataEdge(), c_(NULL) {};
 
             template <class Archive>
-            void serialize(Archive & ar, const unsigned int /*version*/)
+            void serialize(Archive &ar, const unsigned int /*version*/)
             {
                 ar & boost::serialization::base_object<base::PlannerDataEdge>(*this);
                 ar & duration_;
@@ -120,20 +120,20 @@ namespace ompl
             /// \brief Removes the vertex associated with the given data.  If the
             /// vertex does not exist, false is returned.
             /// This method has O(n) complexity in the number of vertices.
-            virtual bool removeVertex (const base::PlannerDataVertex &st);
+            virtual bool removeVertex(const base::PlannerDataVertex &st);
             /// \brief Removes the vertex with the given index.  If the index is
             /// out of range, false is returned.
             /// This method has O(n) complexity in the number of vertices.
-            virtual bool removeVertex (unsigned int vIndex);
+            virtual bool removeVertex(unsigned int vIndex);
 
             /// \brief Removes the edge between vertex indexes \e v1 and \e v2.  Success is returned.
-            virtual bool removeEdge (unsigned int v1, unsigned int v2);
+            virtual bool removeEdge(unsigned int v1, unsigned int v2);
             /// \brief Removes the edge between the vertices associated with the given vertex data.
             /// Success is returned.
-            virtual bool removeEdge (const base::PlannerDataVertex &v1, const base::PlannerDataVertex &v2);
+            virtual bool removeEdge(const base::PlannerDataVertex &v1, const base::PlannerDataVertex &v2);
 
             /// \brief Clears the entire data structure
-            virtual void clear (void);
+            virtual void clear(void);
 
             /// \brief Creates a deep copy of the states contained in the vertices of this
             /// PlannerData structure so that when the planner that created this instance goes
@@ -155,7 +155,7 @@ namespace ompl
             SpaceInformationPtr  siC_;
             /// \brief A list of controls that are allocated during the decoupleFromPlanner method.
             /// These controls are freed by PlannerData in the destructor.
-            std::set<Control*>   decoupledControls_;
+            std::set<Control*> decoupledControls_;
 
         private:
             void freeMemory(void);

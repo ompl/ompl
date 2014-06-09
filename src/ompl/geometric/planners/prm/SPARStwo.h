@@ -101,12 +101,12 @@ namespace ompl
             struct InterfaceData
             {
                 /** \brief States which lie inside the visibility region of a vertex and support an interface. */
-                base::State* pointA_;
-                base::State* pointB_;
+                base::State *pointA_;
+                base::State *pointB_;
 
                 /** \brief States which lie just outside the visibility region of a vertex and support an interface. */
-                base::State* sigmaA_;
-                base::State* sigmaB_;
+                base::State *sigmaA_;
+                base::State *sigmaB_;
 
                 /** \brief Last known distance between the two interfaces supported by points_ and sigmas. */
                 double       d_;
@@ -378,13 +378,13 @@ namespace ompl
             void resetFailures(void);
 
             /** \brief Finds visible nodes in the graph near st */
-            void findGraphNeighbors(base::State* st, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood);
+            void findGraphNeighbors(base::State *st, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood);
 
             /** \brief Approaches the graph from a given vertex */
             void approachGraph( Vertex v );
 
             /** \brief Finds the representative of the input state, st  */
-            Vertex findGraphRepresentative(base::State* st);
+            Vertex findGraphRepresentative(base::State *st);
 
             /** \brief Finds representatives of samples near qNew_ which are not his representative */
             void findCloseRepresentatives(base::State *workArea, const base::State *qNew, Vertex qRep,
@@ -409,7 +409,7 @@ namespace ompl
             void distanceCheck(Vertex rep, const base::State *q, Vertex r, const base::State *s, Vertex rp);
 
             /** \brief When a new guard is added at state st, finds all guards who must abandon their interface information and deletes that information */
-            void abandonLists(base::State* st);
+            void abandonLists(base::State *st);
 
             /** \brief Construct a guard for a given state (\e state) and store it in the nearest neighbors data structure */
             Vertex addGuard(base::State *state, GuardType type);

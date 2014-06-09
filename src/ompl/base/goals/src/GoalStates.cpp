@@ -92,7 +92,7 @@ unsigned int ompl::base::GoalStates::maxSampleCount(void) const
     return states_.size();
 }
 
-void ompl::base::GoalStates::addState(const State* st)
+void ompl::base::GoalStates::addState(const State *st)
 {
     states_.push_back(si_->cloneState(st));
 }

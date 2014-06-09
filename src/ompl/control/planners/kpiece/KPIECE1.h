@@ -381,7 +381,7 @@ namespace ompl
                 from the state of the motion being added. The function
                 Returns the number of cells created to accommodate the
                 new motion (0 or 1). */
-                Grid::Cell* addMotion(Motion* motion, double dist);
+                Grid::Cell* addMotion(Motion *motion, double dist);
 
             /** \brief Select a motion and the cell it is part of from
                 the grid of motions. This is where preference is given

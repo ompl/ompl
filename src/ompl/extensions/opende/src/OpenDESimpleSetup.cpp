@@ -129,7 +129,7 @@ void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, doubl
     }
 }
 
-ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const double* control, unsigned int steps) const
+ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const double *control, unsigned int steps) const
 {
     Control *c = si_->allocControl();
     memcpy(c->as<OpenDEControlSpace::ControlType>()->values, control, sizeof(double) * getControlSpace()->getDimension());
@@ -138,7 +138,7 @@ ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const doub
     return path;
 }
 
-ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const Control* control, unsigned int steps) const
+ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const Control *control, unsigned int steps) const
 {
     PathControl *p = new PathControl(si_);
 

@@ -113,7 +113,7 @@ namespace ompl
             virtual void interpolate(const State *from, const State *to, const double t,
                 State *state) const;
             virtual void interpolate(const State *from, const State *to, const double t,
-                bool& firstTime, DubinsPath& path, State *state) const;
+                bool &firstTime, DubinsPath &path, State *state) const;
 
             virtual bool hasSymmetricDistance(void) const
             {
@@ -139,7 +139,7 @@ namespace ompl
             DubinsPath dubins(const State *state1, const State *state2) const;
 
         protected:
-            virtual void interpolate(const State *from, const DubinsPath& path, const double t,
+            virtual void interpolate(const State *from, const DubinsPath &path, const double t,
                 State *state) const;
 
             /** \brief Turning radius */
@@ -164,7 +164,7 @@ namespace ompl
         class DubinsMotionValidator : public MotionValidator
         {
         public:
-            DubinsMotionValidator(SpaceInformation* si) : MotionValidator(si)
+            DubinsMotionValidator(SpaceInformation *si) : MotionValidator(si)
             {
                 defaultSettings();
             }

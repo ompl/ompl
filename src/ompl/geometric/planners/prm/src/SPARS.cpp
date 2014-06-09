@@ -484,7 +484,7 @@ bool ompl::geometric::SPARS::checkAddCoverage(const base::State *lastState, cons
     return true;
 }
 
-bool ompl::geometric::SPARS::checkAddConnectivity( const base::State* lastState, const std::vector<SparseVertex>& neigh )
+bool ompl::geometric::SPARS::checkAddConnectivity( const base::State *lastState, const std::vector<SparseVertex>& neigh )
 {
     std::vector< SparseVertex > links;
     //For each neighbor
@@ -665,7 +665,7 @@ double ompl::geometric::SPARS::averageValence(void) const
     return degree;
 }
 
-void ompl::geometric::SPARS::getSparseNeighbors(base::State* inState, std::vector<SparseVertex> &graphNeighborhood)
+void ompl::geometric::SPARS::getSparseNeighbors(base::State *inState, std::vector<SparseVertex> &graphNeighborhood)
 {
     sparseStateProperty_[sparseQueryVertex_] = inState;
 
@@ -675,7 +675,7 @@ void ompl::geometric::SPARS::getSparseNeighbors(base::State* inState, std::vecto
     sparseStateProperty_[sparseQueryVertex_] = NULL;
 }
 
-void ompl::geometric::SPARS::filterVisibleNeighbors(base::State* inState, const std::vector<SparseVertex> &graphNeighborhood,
+void ompl::geometric::SPARS::filterVisibleNeighbors(base::State *inState, const std::vector<SparseVertex> &graphNeighborhood,
                                                     std::vector<SparseVertex> &visibleNeighborhood) const
 {
     visibleNeighborhood.clear();
@@ -694,7 +694,7 @@ ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::getInterfaceNeighbor
     throw Exception(name_, "Vertex has no interface neighbor with given representative");
 }
 
-bool ompl::geometric::SPARS::addPathToSpanner( const DensePath& dense_path, SparseVertex vp, SparseVertex vpp )
+bool ompl::geometric::SPARS::addPathToSpanner( const DensePath &dense_path, SparseVertex vp, SparseVertex vpp )
 {
     // First, check to see that the path has length
     if (dense_path.size() <= 1)
