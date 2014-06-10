@@ -118,7 +118,7 @@ namespace ompl
                 return copy;
             }
 
-            const std::string& getTopSolutionPlannerName(void)
+            const std::string getTopSolutionPlannerName(void)
             {
                 boost::mutex::scoped_lock slock(lock_);
                 if (!solutions_.empty())
