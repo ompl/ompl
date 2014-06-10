@@ -5,6 +5,14 @@ if [ ! -e regression_tests/ ] ; then
     exit
 fi
 
+ompl_major_version() {
+    grep "set(OMPL_MAJOR_VERSION" CMakeModules/OMPLVersion.cmake | sed 's/[^0-9]//g'
+}
+
+ompl_minor_version() {
+    grep "set(OMPL_MINOR_VERSION" CMakeModules/OMPLVersion.cmake | sed 's/[^0-9]//g'
+}
+
 TAGS="
 0.9.4
 0.9.5
@@ -41,12 +49,25 @@ do
     echo "Patching $tag ..."
     cp -r "$CURRENT_DIR/regression_tests" .
     cp -r "$CURRENT_DIR/tests" .
-    echo "add_subdirectory(regression_tests)" >> CMakeLists.txt
+
+    # Add build rule if needed.
+    if [ -f CMakeModules/OMPLVersion.cmake ] ; then
+	OMPL_MAJOR_VERSION=$(ompl_major_version)
+	OMPL_MINOR_VERSION=$(ompl_minor_version)
+	if [ $OMPL_MAJOR_VERSION -lt 1 ] ; then
+	    if [ $OMPL_MINOR_VERSION -lt 15 ] ; then
+		echo "add_subdirectory(regression_tests)" >> CMakeLists.txt	    
+	    fi
+	fi
+    fi
+
+    # No need to build tests or demos
     echo "" > tests/CMakeLists.txt
     echo "" > demos/CMakeLists.txt
     if [ -e src/ompl/contrib/rrt_star/CMakeLists.txt ] ; then
 	echo "" > src/ompl/contrib/rrt_star/CMakeLists.txt
     fi
+
     echo "Building $tag ..."
     mkdir -p build
     cd build
