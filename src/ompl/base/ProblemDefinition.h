@@ -70,7 +70,6 @@ namespace ompl
         struct PlannerSolution
         {
             /** \brief Construct a solution that consists of a \e path and its attributes (whether it is \e approximate and the \e difference to the desired goal) */
-            /// \todo Create a second constuctor which requires plannerName, and make this one deprecated so as to encourage OMPL devs to pass a name?
             PlannerSolution(const PathPtr &path, bool approximate = false, double difference = -1.0, const std::string& plannerName = "") :
                 index_(-1), path_(path), length_(path->length()),
                 approximate_(approximate), difference_(difference),
@@ -301,10 +300,10 @@ namespace ompl
                 This will need to be casted into the specialization computed by the planner */
             PathPtr getSolutionPath() const;
 
-            /** \brief Return the top solution's planner name, if one is found. The top path is the shortest
-                 one that was found, preference being given to solutions that are not approximate.
+            /** \brief Return true if a top solution is found, with the top solution passed by reference in the function header
+                 The top path is the shortest one that was found, preference being given to solutions that are not approximate.
                 This will need to be casted into the specialization computed by the planner */
-            const std::string& getSolutionPlannerName(void) const;
+            bool getSolution(PlannerSolution& solution) const;
 
             /** \brief Add a solution path in a thread-safe manner. Multiple solutions can be set for a goal.
                 If a solution does not reach the desired goal it is considered approximate.

@@ -118,13 +118,19 @@ namespace ompl
                 return copy;
             }
 
-            const std::string getTopSolutionPlannerName(void)
+            bool getTopSolution(PlannerSolution& solution)
             {
                 boost::mutex::scoped_lock slock(lock_);
+
                 if (!solutions_.empty())
-                    return solutions_[0].plannerName_;
+                {
+                    solution = solutions_[0];
+                    return true;
+                }
                 else
-                    return std::string("");
+                {
+                    return false;
+                }
             }
 
             std::size_t getSolutionCount()
@@ -396,9 +402,9 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::getSolutionPath() const
     return solutions_->getTopSolution();
 }
 
-const std::string& ompl::base::ProblemDefinition::getSolutionPlannerName(void) const
+bool ompl::base::ProblemDefinition::getSolution(PlannerSolution& solution) const
 {
-    return solutions_->getTopSolutionPlannerName();
+    return solutions_->getTopSolution(solution);
 }
 
 void ompl::base::ProblemDefinition::addSolutionPath(const PathPtr &path, bool approximate, double difference, const std::string& plannerName) const
