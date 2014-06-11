@@ -54,7 +54,10 @@ namespace ompl
         OMPL_CLASS_FORWARD(StateStorage);
         /// @endcond
 
-        /** \brief Manage loading and storing for a set of states of a specified state space */
+        /** \brief Manage loading and storing for a set of states of a specified state space 
+
+            DEPRECATED: This class is deprecated and will be removed in the future. Please use the improved PlannerDataStorage.
+         */
         class StateStorage
         {
         public:
