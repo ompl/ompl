@@ -252,7 +252,7 @@ void ompl::control::Syclop::setupRegionEstimates()
     }
     si_->freeState(s);
 
-    for (unsigned int i = 0; i < decomp_->getNumRegions(); ++i)
+    for (int i = 0; i < decomp_->getNumRegions(); ++i)
     {
         Region &r = graph_[boost::vertex(i, graph_)];
         r.volume = decomp_->getRegionVolume(i);
@@ -329,8 +329,8 @@ bool ompl::control::Syclop::updateConnectionEstimate(const Region &c, const Regi
 void ompl::control::Syclop::buildGraph()
 {
     VertexIndexMap index = get(boost::vertex_index, graph_);
-    std::vector<unsigned int> neighbors;
-    for (unsigned int i = 0; i < decomp_->getNumRegions(); ++i)
+    std::vector<int> neighbors;
+    for (int i = 0; i < decomp_->getNumRegions(); ++i)
     {
         const RegionGraph::vertex_descriptor v = boost::add_vertex(graph_);
         Region &r = graph_[boost::vertex(v, graph_)];
@@ -343,7 +343,7 @@ void ompl::control::Syclop::buildGraph()
         /* Create an edge between this vertex and each of its neighboring regions in the decomposition,
             and initialize the edge's Adjacency object. */
         decomp_->getNeighbors(index[*vi], neighbors);
-        for (std::vector<unsigned int>::const_iterator j = neighbors.begin(); j != neighbors.end(); ++j)
+        for (std::vector<int>::const_iterator j = neighbors.begin(); j != neighbors.end(); ++j)
         {
             RegionGraph::edge_descriptor edge;
             bool ignore;

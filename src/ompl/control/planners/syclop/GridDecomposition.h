@@ -56,53 +56,54 @@ namespace ompl
             /** \brief Constructor. Creates a GridDecomposition as a hypercube with a given dimension, side length, and bounds.
                 The cells of the hypercube are referenced by integer coordinates of the form
                 \f$(r_1,\ldots,r_k)\f$, where \f$ 0 \leq r_i < \texttt{len}\f$. */
-            GridDecomposition(unsigned int len, unsigned int dim, const base::RealVectorBounds &b);
+            GridDecomposition(int len, int dim, const base::RealVectorBounds &b);
 
             virtual ~GridDecomposition()
             {
             }
 
-            virtual double getRegionVolume(unsigned int /*rid*/)
+            virtual int getNumRegions(void) const { return numGridCells_; }
+
+            virtual double getRegionVolume(int /*rid*/)
             {
                 return cellVolume_;
             }
 
-            virtual void getNeighbors(unsigned int rid, std::vector<unsigned int>& neighbors) const;
+            virtual void getNeighbors(int rid, std::vector<int>& neighbors) const;
 
             virtual int locateRegion(const base::State *s) const;
 
-            virtual void sampleFromRegion(unsigned int rid, RNG &rng, std::vector<double>& coord) const;
+            virtual void sampleFromRegion(int rid, RNG &rng, std::vector<double>& coord) const;
 
         protected:
             /** \brief Helper method to return the bounds of a given region. */
-            virtual const base::RealVectorBounds& getRegionBounds(unsigned int rid) const;
+            virtual const base::RealVectorBounds& getRegionBounds(int rid) const;
 
             /** \brief Converts a given region to a coordinate in the grid. */
-            void regionToGridCoord(unsigned int rid, std::vector<unsigned int>& coord) const;
+            void regionToGridCoord(int rid, std::vector<int>& coord) const;
 
             /** \brief Converts the given grid coordinate to its corresponding region ID. */
-            unsigned int gridCoordToRegion (const std::vector<unsigned int> &coord) const;
+            int gridCoordToRegion (const std::vector<int> &coord) const;
 
             /** \brief Converts a decomposition space coordinate to the ID of the region that contains iit. */
-            unsigned int coordToRegion(const std::vector<double>& coord) const;
+            int coordToRegion(const std::vector<double>& coord) const;
 
             /** \brief Converts a decomposition space coordinate to a grid coordinate. */
-            void coordToGridCoord(const std::vector<double>& coord, std::vector<unsigned int>& gridCoord) const;
+            void coordToGridCoord(const std::vector<double>& coord, std::vector<int>& gridCoord) const;
 
             /** \brief Computes the neighbors of the given region in a n-dimensional grid */
-            void computeGridNeighbors (unsigned int rid, std::vector <unsigned int> &neighbors) const;
+            void computeGridNeighbors (int rid, std::vector <int> &neighbors) const;
 
             /** Recursive subroutine for grid neighbor computation */
-            void computeGridNeighborsSub (const std::vector <unsigned int>&coord, std::vector <unsigned int> &neighbors,
-                                          unsigned int dim, std::vector <unsigned int> &candidate) const;
+            void computeGridNeighborsSub (const std::vector<int>& coord, std::vector<int>& neighbors,
+                                          int dim, std::vector<int>& candidate) const;
 
-            unsigned int length_;
+            int length_;
             double cellVolume_;
             mutable boost::unordered_map<int, boost::shared_ptr<base::RealVectorBounds> > regToBounds_;
 
         private:
-            /** \brief Helper method to return len^dim in call to super-constructor. */
-            unsigned int calcNumRegions(unsigned int len, unsigned int dim) const;
+            const int numGridCells_;
         };
     }
 }
