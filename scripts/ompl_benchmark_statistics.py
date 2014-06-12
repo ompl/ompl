@@ -76,6 +76,33 @@ def ensurePrefix(line, prefix):
         raise Exception("Expected prefix " + prefix + " was not found")
     return line
 
+def readOptionalMultilineValue(filevar):
+    start_pos = filevar.tell()
+    line = filevar.readline()
+    if not line.startswith("<<<|"):
+        filevar.seek(start_pos)
+        return None
+    value = ''
+    line = filevar.readline()
+    while not line.startswith('|>>>'):
+        value = value + line
+        line = filevar.readline()
+        if line == None:
+            raise Exception("Expected token |>>> missing")
+    return value
+
+def readRequiredMultilineValue(filevar):
+    ensurePrefix(filevar.readline(), "<<<|")
+    value = ''
+    line = filevar.readline()
+    while not line.startswith('|>>>'):
+        value = value + line
+        line = filevar.readline()
+        if line == None:
+            raise Exception("Expected token |>>> missing")
+    return value
+
+
 def readBenchmarkLog(dbname, filenames):
     """Parse benchmark log files and store the parsed data in a sqlite3 database."""
 
@@ -87,7 +114,8 @@ def readBenchmarkLog(dbname, filenames):
     c.executescript("""CREATE TABLE IF NOT EXISTS experiments
         (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512),
         totaltime REAL, timelimit REAL, memorylimit REAL, runcount INTEGER,
-        hostname VARCHAR(1024), date DATETIME, seed INTEGER, setup TEXT);
+        version VARCHAR(128), hostname VARCHAR(1024), cpuinfo TEXT,
+        date DATETIME, seed INTEGER, setup TEXT);
         CREATE TABLE IF NOT EXISTS plannerConfigs
         (id INTEGER PRIMARY KEY AUTOINCREMENT,
         name VARCHAR(512) NOT NULL, settings TEXT);
@@ -105,17 +133,12 @@ def readBenchmarkLog(dbname, filenames):
     for filename in filenames:
         print('Processing ' + filename)
         logfile = open(filename,'r')
+        version = readOptionalLogValue(logfile, -1, {0 : "OMPL", 1 : "version"})
         expname = readRequiredLogValue("experiment name", logfile, -1, {0 : "Experiment"})
         hostname = readRequiredLogValue("hostname", logfile, -1, {0 : "Running"})
         date = ' '.join(ensurePrefix(logfile.readline(), "Starting").split()[2:])
-        ensurePrefix(logfile.readline(), "<<<|") # skip <<<|
-        expsetup = ''
-        expline = logfile.readline()
-        while not expline.startswith('|>>>'):
-            expsetup = expsetup + expline
-            expline = logfile.readline()
-            if expline == None:
-                raise Exception("Expected token |>>> missing")
+        expsetup = readRequiredMultilineValue(logfile)
+        cpuinfo = readOptionalMultilineValue(logfile)
         rseed = int(readRequiredLogValue("random seed", logfile, 0, {-2 : "random", -1 : "seed"}))
         timelimit = float(readRequiredLogValue("time limit", logfile, 0, {-3 : "seconds", -2 : "per", -1 : "run"}))
         memorylimit = float(readRequiredLogValue("memory limit", logfile, 0, {-3 : "MB", -2 : "per", -1 : "run"}))
@@ -135,9 +158,9 @@ def readBenchmarkLog(dbname, filenames):
                 for j in range(len(enum)-1):
                     c.execute('INSERT INTO enums VALUES (?,?,?)',
                         (enum[0],j,enum[j+1]))
-        c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?,?,?,?,?)',
+        c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
               (None, expname, totaltime, timelimit, memorylimit, nrruns,
-              hostname, date, rseed, expsetup) )
+              version, hostname, cpuinfo, date, rseed, expsetup) )
         experimentId = c.lastrowid
         numPlanners = int(readRequiredLogValue("planner count", logfile, 0, {-1 : "planners"}))
         for i in range(numPlanners):

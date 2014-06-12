@@ -52,20 +52,20 @@ do
 
     # Add build rule if needed.
     if [ -f CMakeModules/OMPLVersion.cmake ] ; then
-	OMPL_MAJOR_VERSION=$(ompl_major_version)
-	OMPL_MINOR_VERSION=$(ompl_minor_version)
-	if [ $OMPL_MAJOR_VERSION -lt 1 ] ; then
-	    if [ $OMPL_MINOR_VERSION -lt 15 ] ; then
-		echo "add_subdirectory(regression_tests)" >> CMakeLists.txt	    
-	    fi
-	fi
+    OMPL_MAJOR_VERSION=$(ompl_major_version)
+    OMPL_MINOR_VERSION=$(ompl_minor_version)
+    if [ $OMPL_MAJOR_VERSION -lt 1 ] ; then
+        if [ $OMPL_MINOR_VERSION -lt 15 ] ; then
+        echo "add_subdirectory(regression_tests)" >> CMakeLists.txt
+        fi
+    fi
     fi
 
     # No need to build tests or demos
     echo "" > tests/CMakeLists.txt
     echo "" > demos/CMakeLists.txt
     if [ -e src/ompl/contrib/rrt_star/CMakeLists.txt ] ; then
-	echo "" > src/ompl/contrib/rrt_star/CMakeLists.txt
+    echo "" > src/ompl/contrib/rrt_star/CMakeLists.txt
     fi
 
     echo "Building $tag ..."
@@ -75,6 +75,14 @@ do
     make -j4
     echo "Running $tag ..."
     ./bin/regression_test
+    # add OMPL version number to top of the log file
+    if [ $OMPL_MAJOR_VERSION -lt 1 ] ; then
+        if [ $OMPL_MINOR_VERSION -lt 15 ] ; then
+            for log in *.log; do
+                echo OMPL version $tag > .tmp.log
+                cat $log >> .tmp.log
+                mv .tmp.log $log
+            done
     echo "Copying results for $tag ..."
     ls -1 *.log
     mv *.log "$LOG_RESULTS/"

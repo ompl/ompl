@@ -36,6 +36,7 @@
 
 #include "ompl/tools/benchmark/MachineSpecs.h"
 #include "ompl/util/Console.h"
+#include <sstream>
 
 /// @cond IGNORE
 
@@ -69,6 +70,23 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux()
     return result;
 }
 
+std::string getCPUInfoAux()
+{
+    static const int BUF_SIZE = 256;
+    char buffer[BUF_SIZE];
+    std::stringstream result;
+    FILE *cmdPipe = _popen("wmic cpu list full", "rt");
+    if (cmdPipe != NULL)
+    {
+        while (fgets(buffer, BUF_SIZE, cmdPipe))
+            result << buffer;
+        if (feof(cmdPipe))
+            _pclose(cmdPipe);
+    }
+    return result.str();
+}
+
+
 #else
 #if defined __APPLE__
 
@@ -95,6 +113,22 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux()
     rval = task_info(task, TASK_BASIC_INFO, tptr, &tcnt);
     if (!(rval == KERN_SUCCESS)) return 0;
     return info.resident_size;
+}
+
+std::string getCPUInfoAux()
+{
+    static const int BUF_SIZE = 256;
+    char buffer[BUF_SIZE];
+    std::stringstream result;
+    FILE *cmdPipe = popen("sysctl hw", "r");
+    if (cmdPipe != NULL)
+    {
+        while (fgets(buffer, BUF_SIZE, cmdPipe))
+            result << buffer;
+        if (feof(cmdPipe))
+            pclose(cmdPipe);
+    }
+    return result.str();
 }
 
 #else
@@ -142,12 +176,37 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux()
    return 0;
 }
 
+std::string getCPUInfoAux()
+{
+    static const int BUF_SIZE = 4096;
+    char buffer[BUF_SIZE];
+    std::stringstream result;
+    FILE *cmdPipe = popen("lscpu", "r");
+    if (cmdPipe != NULL)
+    {
+        fgets(buffer, BUF_SIZE, cmdPipe);
+        if (feof(cmdPipe))
+        {
+            while (fgets(buffer, BUF_SIZE, cmdPipe))
+                result << buffer;
+            if (feof(cmdPipe))
+                pclose(cmdPipe);
+        }
+        return result.str();
+}
+
 #else
 // if we have no idea what to do, we return 0
 ompl::machine::MemUsage_t getProcessMemoryUsageAux()
 {
     return 0;
 }
+// if we have no idea what to do, we return an empty string
+std::string getCPUInfoAux()
+{
+    return std::string();
+}
+
 #endif // posix
 #endif // apple
 #endif // windows
@@ -158,6 +217,16 @@ ompl::machine::MemUsage_t ompl::machine::getProcessMemoryUsage()
     if (result == 0)
     {
         OMPL_WARN("Unable to get memory usage");
+    }
+    return result;
+}
+
+std::string ompl::machine::getCPUInfo()
+{
+    std::string result = getCPUInfoAux();
+    if (result.size() == 0)
+    {
+        OMPL_WARN("Unable to get CPU information");
     }
     return result;
 }
