@@ -326,6 +326,11 @@ namespace ompl
             /** \brief Save the neighbors within a given radius of a state */
             void saveNeighborhood(Motion *m, const double r);
 
+            /** \brief Trace the path from a goal state back to the start state
+                and save the result as a solution in the Problem Definiton.
+             */
+            void traceSolutionPathThroughTree(Motion *goalMotion);
+
             /** \brief Complete one iteration of the main loop of the FMT* algorithm:
 		Find all nodes in set W within a radius r of the node z.
                 Attempt to connect them to their optimal cost-to-come parent
