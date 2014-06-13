@@ -71,7 +71,7 @@ do
     echo "Building $tag ..."
     mkdir -p build
     cd build
-    cmake ..
+    cmake -DCMAKE_BUILD_TYPE=Release ..
     make -j4
     echo "Running $tag ..."
     ./bin/regression_test
