@@ -77,6 +77,11 @@ double ompl::base::DiscreteStateSpace::getMaximumExtent() const
     return upperBound_ - lowerBound_;
 }
 
+double ompl::base::DiscreteStateSpace::getMeasure() const
+{
+    return upperBound_ - lowerBound_ + 1.0;
+}
+
 void ompl::base::DiscreteStateSpace::enforceBounds(State *state) const
 {
     if (state->as<StateType>()->value < lowerBound_)

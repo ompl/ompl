@@ -970,6 +970,15 @@ double ompl::base::CompoundStateSpace::getMaximumExtent() const
     return e;
 }
 
+double ompl::base::CompoundStateSpace::getMeasure() const
+{
+    double m = 1.0;
+    for (unsigned int i = 0 ; i < componentCount_ ; ++i)
+        if (weights_[i] >= std::numeric_limits<double>::epsilon()) // avoid possible multiplication of 0 times infinity
+            m *= weights_[i] * components_[i]->getMaximumExtent();
+    return m;
+}
+
 void ompl::base::CompoundStateSpace::enforceBounds(State *state) const
 {
     CompoundState *cstate = static_cast<CompoundState*>(state);
