@@ -508,7 +508,7 @@ namespace ompl
             /** \brief The longest valid segment at the time setup() was called */
             double                                        longestValidSegment_;
 
-            /** \brief The factor to multiply the value returned by validSegmentCount() */
+            /** \brief The factor to multiply the value returned by validSegmentCount(). Rarely used but useful for things like doubling the resolution */
             unsigned int                                  longestValidSegmentCountFactor_;
 
             /** \brief List of available projections */
