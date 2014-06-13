@@ -84,6 +84,7 @@ void ompl::geometric::FMT::setup()
         OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length.", getName().c_str());
         opt_.reset(new base::PathLengthOptimizationObjective(si_));
     }
+    H_.getComparisonOperator().opt_ = opt_.get();
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
@@ -182,7 +183,7 @@ void ompl::geometric::FMT::sampleFree(const base::PlannerTerminationCondition &p
 {
     unsigned int nodeCount = 0;
     unsigned int sampleAttempts = 0;
-    Motion *motion = new Motion(opt_, si_);
+    Motion *motion = new Motion(si_);
 
     // Sample numSamples_ number of nodes from the free configuration space
     while (nodeCount < numSamples_ && sampleAttempts < maxSampleAttempts_ && !ptc)
@@ -196,7 +197,7 @@ void ompl::geometric::FMT::sampleFree(const base::PlannerTerminationCondition &p
         {
             nodeCount++;
             nn_->add(motion);
-            motion = new Motion(opt_, si_);
+            motion = new Motion(si_);
         } // If collision free
     } // While nodeCount < numSamples
     si_->freeState(motion->getState());
@@ -208,7 +209,7 @@ void ompl::geometric::FMT::assureGoalIsSampled(const ompl::base::GoalSampleableR
     // Ensure that there is at least one node near each goal
     while (const base::State *goalState = pis_.nextGoal())
     {
-        Motion *gMotion = new Motion(opt_, si_);
+        Motion *gMotion = new Motion(si_);
         si_->copyState(gMotion->getState(), goalState);
 
         std::vector<Motion*> nearGoal;
@@ -264,7 +265,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
     // Add start states to V (nn_) and H
     while (const base::State *st = pis_.nextStart())
     {
-        initMotion = new Motion(opt_, si_);
+        initMotion = new Motion(si_);
         si_->copyState(initMotion->getState(), st);
         hElements_[initMotion] = H_.insert(initMotion);
         initMotion->setSetType(Motion::SET_H);
