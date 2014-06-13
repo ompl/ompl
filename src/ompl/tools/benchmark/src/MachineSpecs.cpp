@@ -184,15 +184,12 @@ std::string getCPUInfoAux()
     FILE *cmdPipe = popen("lscpu", "r");
     if (cmdPipe != NULL)
     {
-        fgets(buffer, BUF_SIZE, cmdPipe);
+        while (fgets(buffer, BUF_SIZE, cmdPipe))
+            result << buffer;
         if (feof(cmdPipe))
-        {
-            while (fgets(buffer, BUF_SIZE, cmdPipe))
-                result << buffer;
-            if (feof(cmdPipe))
-                pclose(cmdPipe);
-        }
-        return result.str();
+            pclose(cmdPipe);
+    }
+    return result.str();
 }
 
 #else
