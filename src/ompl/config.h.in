@@ -44,6 +44,10 @@
 #define OMPL_MINOR_VERSION @OMPL_MINOR_VERSION@
 #define OMPL_PATCH_VERSION @OMPL_PATCH_VERSION@
 
+#define OMPL_VERSION_VALUE ( OMPL_MAJOR_VERSION * 1000000       \
+                             + OMPL_MINOR_VERSION * 1000        \
+                             + OMPL_PATCH_VERSION)
+
 /** \brief Specify whether the MORSE extension is built */
 #cmakedefine01 OMPL_EXTENSION_MORSE
 
