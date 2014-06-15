@@ -13,32 +13,22 @@ ompl_minor_version() {
     grep "set(OMPL_MINOR_VERSION" CMakeModules/OMPLVersion.cmake | sed 's/[^0-9]//g'
 }
 
-TAGS="
-0.9.4
-0.9.5
-0.10.0
-0.10.1
-0.10.2
-0.11.0
-0.11.1
-0.12.0
-0.12.1
-0.12.2
-0.13.0
-0.14.0
-0.14.1
-0.14.2
-"
+TAGS=`cat regression_tests/VERSIONS`
+NPROC=`(nproc || sysctl -n hw.ncpu || echo 4) 2>/dev/null`
 
 HG_REPO=https://bitbucket.org/ompl/ompl
 SRC_LOCATION=/tmp/
 
 CURRENT_DIR=`pwd`
 LOG_RESULTS=${SRC_LOCATION}/ompl-`date "+%Y-%m-%d_%H:%M:%S"`-results
-mkdir "$LOG_RESULTS"
+mkdir -p "$LOG_RESULTS" || exit
 
-hg clone $HG_REPO $SRC_LOCATION/ompl
-cd $SRC_LOCATION/ompl
+# For bogomips:
+(lscpu || sysctl hw || wmic cpu list full) > "$LOG_RESULTS/" 2> /dev/null
+
+rm -rf $SRC_LOCATION/ompl || exit
+hg clone $HG_REPO $SRC_LOCATION/ompl || exit
+cd $SRC_LOCATION/ompl || exit
 
 for tag in $TAGS
 do
@@ -71,8 +61,8 @@ do
     echo "Building $tag ..."
     mkdir -p build
     cd build
-    cmake -DCMAKE_BUILD_TYPE=Release ..
-    make -j4
+    cmake -DCMAKE_BUILD_TYPE=Release -DOMPL_REGISTRATION=OFF ..
+    make -j$NPROC
     echo "Running $tag ..."
     ./bin/regression_test
     # add OMPL version number to top of the log file
@@ -90,3 +80,5 @@ do
     mv *.log "$LOG_RESULTS/"
     cd ..
 done
+
+echo "Done. Results are in $LOG_RESULTS/"

@@ -34,10 +34,16 @@
 
 /* Author: Ioan Sucan */
 
+#include "ompl/config.h"
+
+#ifndef OMPL_VERSION_VALUE
+#define OMPL_VERSION_VALUE ( OMPL_MAJOR_VERSION * 1000000       \
+                             + OMPL_MINOR_VERSION * 1000        \
+                             + OMPL_PATCH_VERSION)
+#endif
+
 // This is copied from the latest version.
 #include "../tests/geometric/2d/2DcirclesSetup.h"
-
-#include "ompl/config.h"
 
 #include "ompl/tools/benchmark/Benchmark.h"
 
@@ -55,85 +61,104 @@
 #include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/PRM.h"
 
-#if OMPL_MAJOR_VERSION >= 0 && OMPL_MINOR_VERSION >= 12
+#if OMPL_VERSION_VALUE >= 12000
 #include "ompl/geometric/planners/rrt/TRRT.h"
 #endif
 
-#if OMPL_MAJOR_VERSION >= 0 && OMPL_MINOR_VERSION >= 13
+#if OMPL_VERSION_VALUE >= 13000
 #include "ompl/geometric/planners/prm/LazyPRM.h"
 #include "ompl/geometric/planners/pdst/PDST.h"
 #include "ompl/geometric/planners/prm/SPARS.h"
 #include "ompl/geometric/planners/prm/SPARStwo.h"
 #endif
 
-#if OMPL_MAJOR_VERSION >= 0 && OMPL_MINOR_VERSION >= 14
+#if OMPL_VERSION_VALUE >= 14000
 #include "ompl/geometric/planners/stride/STRIDE.h"
 #endif
 
 using namespace ompl;
 
-#if OMPL_MAJOR_VERSION >= 0 && OMPL_MINOR_VERSION > 9
+#if OMPL_VERSION_VALUE > 9000
 using tools::Benchmark;
 #endif
 
-static const double SOLUTION_TIME = 1.0;
-static const bool VERBOSE = true;
+template<unsigned int PROBLEM>
+std::string problemName() { return ""; }
 
-void addPlanner(Benchmark &benchmark, const base::PlannerPtr &planner)
-{
-    planner->setName(planner->getName() + "-" OMPL_VERSION);
-    benchmark.addPlanner(planner);
-}
-
-template<typename T>
+template<typename T, unsigned int PROBLEM>
 void addPlanner(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
-    addPlanner(benchmark, base::PlannerPtr(new T(si)));
+    benchmark.addPlanner(base::PlannerPtr(new T(si)));
+}
+
+#include "RegressionTestCirclesProblem.inl.h"
+
+template<unsigned int PROBLEM>
+void addAllPlanners(Benchmark &b, geometric::SimpleSetup &ss)
+{
+    // EST
+    addPlanner<geometric::EST, PROBLEM>(b, ss.getSpaceInformation());
+    // SBL
+    addPlanner<geometric::SBL, PROBLEM>(b, ss.getSpaceInformation());
+    // RRT
+    addPlanner<geometric::RRT, PROBLEM>(b, ss.getSpaceInformation());
+    // RRTConnect
+    addPlanner<geometric::RRTConnect, PROBLEM>(b, ss.getSpaceInformation());
+
+    // KPIECE
+    addPlanner<geometric::KPIECE1, PROBLEM>(b, ss.getSpaceInformation());
+    addPlanner<geometric::BKPIECE1, PROBLEM>(b, ss.getSpaceInformation());
+    addPlanner<geometric::LBKPIECE1, PROBLEM>(b, ss.getSpaceInformation());
+
+    // PRM
+    addPlanner<geometric::PRM, PROBLEM>(b, ss.getSpaceInformation());
+
+    // PDST
+#if OMPL_VERSION_VALUE >= 13000
+    addPlanner<geometric::PDST, PROBLEM>(b, ss.getSpaceInformation());
+#endif
+}
+
+// Setup a problem from the known set of problems included with the regression tests.
+template<unsigned int PROBLEM>
+boost::shared_ptr<geometric::SimpleSetup> setupProblem()
+{
+    if (PROBLEM == CIRCLES_ID)
+        return setupCirclesProblem(0);
+    fprintf(stderr, "Unknown problem '%d'", PROBLEM);
+    return boost::shared_ptr<geometric::SimpleSetup>();
+}
+
+template<unsigned int PROBLEM>
+void runProblem(double runtime_limit, double memory_limit, int run_count)
+{
+    boost::shared_ptr<geometric::SimpleSetup> ss = setupProblem<PROBLEM>();
+    if (ss)
+    {
+        const std::string exp_name = problemName<PROBLEM>();
+        Benchmark b(*ss, exp_name);
+        addAllPlanners<PROBLEM>(b, *ss);
+
+#if OMPL_VERSION_VALUE > 9000
+        Benchmark::Request request(runtime_limit, memory_limit, run_count);
+        b.benchmark(request);
+#else
+        b.benchmark(runtime_limit, memory_limit, run_count);
+#endif
+
+        b.saveResultsToFile((exp_name + ".log").c_str());
+    }
+    else
+    {
+        fprintf(stderr, "Unable to run problem '%d'", PROBLEM);
+    }
 }
 
 int main(int argc, char **argv)
 {
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
-
-    Circles2D circles;
-    circles.loadCircles((path / "circle_obstacles.txt").string());
-    circles.loadQueries((path / "circle_queries.txt").string());
-    base::SpaceInformationPtr si = geometric::spaceInformation2DCircles(circles);
-
-#if OMPL_MAJOR_VERSION <= 0 && OMPL_MINOR_VERSION < 15
-    // For older versions of OMPL, we are missing the constructor we need, so we hack things.
-    geometric::SimpleSetup ss(si->getStateSpace());
-    const_cast<base::SpaceInformationPtr&>(ss.getSpaceInformation()) = si;
-    const_cast<base::ProblemDefinitionPtr&>(ss.getProblemDefinition()).reset(new base::ProblemDefinition(si));
-    const_cast<geometric::PathSimplifierPtr&>(ss.getPathSimplifier()).reset(new geometric::PathSimplifier(si));
-#else
-    geometric::SimpleSetup ss(si);
-#endif
-
-    base::ScopedState<> start(ss.getSpaceInformation());
-    base::ScopedState<> goal(ss.getSpaceInformation());
-    const Circles2D::Query &q = circles.getQuery(0);
-    start[0] = q.startX_;
-    start[1] = q.startY_;
-    goal[0] = q.goalX_;
-    goal[1] = q.goalY_;
-    ss.setStartAndGoalStates(start, goal, 1e-3);
-
-    // by default, use the Benchmark class
     double runtime_limit = 1, memory_limit = 4096;
-    int run_count = 100;
-    Benchmark b(ss, OMPL_VERSION);
-
-    addPlanner<geometric::EST>(b, ss.getSpaceInformation());
-    addPlanner<geometric::RRT>(b, ss.getSpaceInformation());
-#if OMPL_MAJOR_VERSION >= 0 && OMPL_MINOR_VERSION > 9
-    Benchmark::Request request(runtime_limit, memory_limit, run_count);
-    b.benchmark(request);
-#else
-    b.benchmark(runtime_limit, memory_limit, run_count);
-#endif
-
-    b.saveResultsToFile(OMPL_VERSION ".log");
+    int run_count = 1000;
+    runProblem<CIRCLES_ID>(runtime_limit, memory_limit, run_count);
 
     return 0;
 }
