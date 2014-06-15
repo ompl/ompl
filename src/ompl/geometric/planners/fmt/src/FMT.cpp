@@ -72,7 +72,7 @@ ompl::geometric::FMT::~FMT()
 
 void ompl::geometric::FMT::setup()
 {
-    ompl::base::Planner::setup();
+    Planner::setup();
 
     /* Setup the optimization objective. If no optimization objective was
        specified, then default to optimizing path length as computed by the
@@ -108,7 +108,7 @@ void ompl::geometric::FMT::freeMemory()
 
 void ompl::geometric::FMT::clear()
 {
-    ompl::base::Planner::clear();
+    Planner::clear();
     lastGoalMotion_ = NULL;
     sampler_.reset();
     freeMemory();
@@ -168,15 +168,15 @@ double ompl::geometric::FMT::calculateUnitBallVolume(const unsigned int dimensio
     else if (dimension == 1)
         return 2.0;
     return 2.0 * boost::math::constants::pi<double>() / dimension
-            * calculateUnitBallVolume(dimension-2);
+            * calculateUnitBallVolume(dimension - 2);
 }
 
 double ompl::geometric::FMT::calculateRadius(const unsigned int dimension, const unsigned int n) const
 {
-    double a = 1.0/(double)dimension;
+    double a = 1.0 / (double)dimension;
     double unitBallVolume = calculateUnitBallVolume(dimension);
 
-    return  radiusMultiplier_ * 2.0 * std::pow(a, a) * std::pow(freeSpaceVolume_ / unitBallVolume, a) * std::pow(log((double)n) / (double)n, a);
+    return radiusMultiplier_ * 2.0 * std::pow(a, a) * std::pow(freeSpaceVolume_ / unitBallVolume, a) * std::pow(log((double)n) / (double)n, a);
 }
 
 void ompl::geometric::FMT::sampleFree(const base::PlannerTerminationCondition &ptc)
