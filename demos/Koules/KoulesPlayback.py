@@ -126,7 +126,7 @@ def makeMovie(fname):
             interval = 1000. / step, blit = True)
         (base,ext) = splitext(basename(fname))
         outfname = base + '.mp4'
-        ani.save(outfname, bitrate = 300, fps = targetFrameRate)
+        ani.save(outfname, bitrate = 300, fps = targetFrameRate, writer='mencoder')
         print('')
 
 if __name__ == '__main__':

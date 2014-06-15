@@ -17,18 +17,18 @@ TAGS=`cat regression_tests/VERSIONS`
 NPROC=`(nproc || sysctl -n hw.ncpu || echo 4) 2>/dev/null`
 
 HG_REPO=https://bitbucket.org/ompl/ompl
-SRC_LOCATION=/tmp/
+SRC_LOCATION=/tmp
 
 CURRENT_DIR=`pwd`
 LOG_RESULTS=${SRC_LOCATION}/ompl-`date "+%Y-%m-%d_%H:%M:%S"`-results
 mkdir -p "$LOG_RESULTS" || exit
 
 # For bogomips:
-(lscpu || sysctl hw || wmic cpu list full) > "$LOG_RESULTS/" 2> /dev/null
+(lscpu || sysctl hw || wmic cpu list full) > "$LOG_RESULTS/cpuinfo" 2> /dev/null
 
 rm -rf $SRC_LOCATION/ompl || exit
-hg clone $HG_REPO $SRC_LOCATION/ompl || exit
-cd $SRC_LOCATION/ompl || exit
+hg clone $HG_REPO ${SRC_LOCATION}/ompl || exit
+cd ${SRC_LOCATION}/ompl || exit
 
 for tag in $TAGS
 do
