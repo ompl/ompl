@@ -58,7 +58,7 @@ void addPlanner<geometric::EST, CIRCLES_ID>(Benchmark &benchmark, const base::Sp
     geometric::EST *est = new geometric::EST(si);
     est->setRange(10.0);
     est->setProjectionEvaluator(getCirclesProjEvaluator(si));
-    addPlanner(benchmark, base::PlannerPtr(est));
+    benchmark.addPlanner(base::PlannerPtr(est));
 }
 
 template<>
@@ -67,7 +67,7 @@ void addPlanner<geometric::SBL, CIRCLES_ID>(Benchmark &benchmark, const base::Sp
     geometric::SBL *sbl = new geometric::SBL(si);
     sbl->setRange(10.0);
     sbl->setProjectionEvaluator(getCirclesProjEvaluator(si));
-    addPlanner(benchmark, base::PlannerPtr(sbl));
+    benchmark.addPlanner(base::PlannerPtr(sbl));
 }
 
 template<>
@@ -76,7 +76,7 @@ void addPlanner<geometric::KPIECE1, CIRCLES_ID>(Benchmark &benchmark, const base
     geometric::KPIECE1 *kpiece = new geometric::KPIECE1(si);
     kpiece->setRange(10.0);
     kpiece->setProjectionEvaluator(getCirclesProjEvaluator(si));
-    addPlanner(benchmark, base::PlannerPtr(kpiece));
+    benchmark.addPlanner(base::PlannerPtr(kpiece));
 }
 
 template<>
@@ -85,7 +85,7 @@ void addPlanner<geometric::BKPIECE1, CIRCLES_ID>(Benchmark &benchmark, const bas
     geometric::BKPIECE1 *kpiece = new geometric::BKPIECE1(si);
     kpiece->setRange(10.0);
     kpiece->setProjectionEvaluator(getCirclesProjEvaluator(si));
-    addPlanner(benchmark, base::PlannerPtr(kpiece));
+    benchmark.addPlanner(base::PlannerPtr(kpiece));
 }
 
 template<>
@@ -94,7 +94,7 @@ void addPlanner<geometric::LBKPIECE1, CIRCLES_ID>(Benchmark &benchmark, const ba
     geometric::LBKPIECE1 *kpiece = new geometric::LBKPIECE1(si);
     kpiece->setRange(10.0);
     kpiece->setProjectionEvaluator(getCirclesProjEvaluator(si));
-    addPlanner(benchmark, base::PlannerPtr(kpiece));
+    benchmark.addPlanner(base::PlannerPtr(kpiece));
 }
 
 #if OMPL_VERSION_VALUE >= 13000
@@ -103,6 +103,6 @@ void addPlanner<geometric::PDST, CIRCLES_ID>(Benchmark &benchmark, const base::S
 {
     geometric::PDST *pdst = new geometric::PDST(si);
     pdst->setProjectionEvaluator(getCirclesProjEvaluator(si));
-    addPlanner(benchmark, base::PlannerPtr(pdst));
+    benchmark.addPlanner(base::PlannerPtr(pdst));
 }
 #endif
