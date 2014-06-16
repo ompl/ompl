@@ -124,7 +124,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("Starting with %u states", nn_->size());
+    OMPL_INFORM("Starting planning with %u states already in datastructure", nn_->size());
 
     Motion *solution  = NULL;
     Motion *approxSol = NULL;
