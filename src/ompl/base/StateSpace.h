@@ -279,6 +279,9 @@ namespace ompl
                 the automatically computed parameters will be less useful.*/
             virtual double getMaximumExtent() const = 0;
 
+            /** \brief Get a measure of the space (this can be thought of as a generalization of volume) */
+            virtual double getMeasure() const = 0;
+
             /** \brief Bring the state within the bounds of the state space. For unbounded spaces this
                 function can be a no-op. */
             virtual void enforceBounds(State *state) const = 0;
@@ -508,7 +511,7 @@ namespace ompl
             /** \brief The longest valid segment at the time setup() was called */
             double                                        longestValidSegment_;
 
-            /** \brief The factor to multiply the value returned by validSegmentCount() */
+            /** \brief The factor to multiply the value returned by validSegmentCount(). Rarely used but useful for things like doubling the resolution */
             unsigned int                                  longestValidSegmentCountFactor_;
 
             /** \brief List of available projections */
@@ -642,6 +645,8 @@ namespace ompl
             virtual unsigned int getDimension() const;
 
             virtual double getMaximumExtent() const;
+
+            virtual double getMeasure() const;
 
             virtual void enforceBounds(State *state) const;
 

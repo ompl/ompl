@@ -53,7 +53,7 @@ and install OMPL:
 
       sudo apt-get install libboost-all-dev cmake
 
-  Some versions of Linux offer multiple versions of Boost. It is strongly advised to install only one version.
+  Some versions of Linux offer multiple versions of Boost. It is strongly advised to install only one version. Note that for Ubuntu 12.04 versions and older, a warning will appear stating that not all features are compatible with version of Boost before 1.51. This is unavoidable unless you compile Boost from source, and can be ignored.
 - To be able to generate documentation, generate Python bindings, build the ODE extension, the following packages are also needed:
 
       sudo apt-get install doxygen graphviz python-dev libode-dev

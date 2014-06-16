@@ -179,6 +179,16 @@ double ompl::base::RealVectorStateSpace::getMaximumExtent() const
     return sqrt(e);
 }
 
+double ompl::base::RealVectorStateSpace::getMeasure() const
+{
+    double m = 1.0;
+    for (unsigned int i = 0 ; i < dimension_ ; ++i)
+    {
+        m *= bounds_.high[i] - bounds_.low[i];
+    }
+    return m;
+}
+
 void ompl::base::RealVectorStateSpace::enforceBounds(State *state) const
 {
     StateType *rstate = static_cast<StateType*>(state);

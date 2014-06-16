@@ -72,7 +72,7 @@ ompl::geometric::FMT::~FMT()
 
 void ompl::geometric::FMT::setup()
 {
-    ompl::base::Planner::setup();
+    Planner::setup();
 
     /* Setup the optimization objective. If no optimization objective was
        specified, then default to optimizing path length as computed by the
@@ -84,6 +84,7 @@ void ompl::geometric::FMT::setup()
         OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length.", getName().c_str());
         opt_.reset(new base::PathLengthOptimizationObjective(si_));
     }
+    H_.getComparisonOperator().opt_ = opt_.get();
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
@@ -107,12 +108,15 @@ void ompl::geometric::FMT::freeMemory()
 
 void ompl::geometric::FMT::clear()
 {
-    ompl::base::Planner::clear();
+    Planner::clear();
     lastGoalMotion_ = NULL;
     sampler_.reset();
     freeMemory();
     if (nn_)
         nn_->clear();
+    H_.clear();
+    hElements_.clear();
+    neighborhoods_.clear();
 }
 
 void ompl::geometric::FMT::getPlannerData(base::PlannerData &data) const
@@ -164,22 +168,22 @@ double ompl::geometric::FMT::calculateUnitBallVolume(const unsigned int dimensio
     else if (dimension == 1)
         return 2.0;
     return 2.0 * boost::math::constants::pi<double>() / dimension
-            * calculateUnitBallVolume(dimension-2);
+            * calculateUnitBallVolume(dimension - 2);
 }
 
 double ompl::geometric::FMT::calculateRadius(const unsigned int dimension, const unsigned int n) const
 {
-    double a = 1.0/(double)dimension;
+    double a = 1.0 / (double)dimension;
     double unitBallVolume = calculateUnitBallVolume(dimension);
 
-    return  radiusMultiplier_ * 2.0 * std::pow(a, a) * std::pow(freeSpaceVolume_ / unitBallVolume, a) * std::pow(log((double)n) / (double)n, a);
+    return radiusMultiplier_ * 2.0 * std::pow(a, a) * std::pow(freeSpaceVolume_ / unitBallVolume, a) * std::pow(log((double)n) / (double)n, a);
 }
 
 void ompl::geometric::FMT::sampleFree(const base::PlannerTerminationCondition &ptc)
 {
     unsigned int nodeCount = 0;
     unsigned int sampleAttempts = 0;
-    Motion *motion = new Motion(opt_, si_);
+    Motion *motion = new Motion(si_);
 
     // Sample numSamples_ number of nodes from the free configuration space
     while (nodeCount < numSamples_ && sampleAttempts < maxSampleAttempts_ && !ptc)
@@ -193,7 +197,7 @@ void ompl::geometric::FMT::sampleFree(const base::PlannerTerminationCondition &p
         {
             nodeCount++;
             nn_->add(motion);
-            motion = new Motion(opt_, si_);
+            motion = new Motion(si_);
         } // If collision free
     } // While nodeCount < numSamples
     si_->freeState(motion->getState());
@@ -205,7 +209,7 @@ void ompl::geometric::FMT::assureGoalIsSampled(const ompl::base::GoalSampleableR
     // Ensure that there is at least one node near each goal
     while (const base::State *goalState = pis_.nextGoal())
     {
-        Motion *gMotion = new Motion(opt_, si_);
+        Motion *gMotion = new Motion(si_);
         si_->copyState(gMotion->getState(), goalState);
 
         std::vector<Motion*> nearGoal;
@@ -236,6 +240,18 @@ void ompl::geometric::FMT::assureGoalIsSampled(const ompl::base::GoalSampleableR
 
 ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTerminationCondition &ptc)
 {
+    if (lastGoalMotion_) {
+        OMPL_INFORM("solve() called before clear(); returning previous solution");
+        traceSolutionPathThroughTree(lastGoalMotion_);
+        OMPL_DEBUG("Final path cost: %f", lastGoalMotion_->getCost().v);
+        return base::PlannerStatus(true, false);
+    }
+    else if (hElements_.size() > 0)
+    {
+        OMPL_INFORM("solve() called before clear(); no previous solution so starting afresh");
+        clear();
+    }
+
     checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
     Motion *initMotion = NULL;
@@ -249,7 +265,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
     // Add start states to V (nn_) and H
     while (const base::State *st = pis_.nextStart())
     {
-        initMotion = new Motion(opt_, si_);
+        initMotion = new Motion(si_);
         si_->copyState(initMotion->getState(), st);
         hElements_[initMotion] = H_.insert(initMotion);
         initMotion->setSetType(Motion::SET_H);
@@ -301,25 +317,10 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
     if (plannerSuccess)
     {
         // Return the path to z, since by definition of planner success, z is in the goal region
-        std::vector<Motion*> mpath;
-        Motion *solution = z;
         lastGoalMotion_ = z;
+        traceSolutionPathThroughTree(lastGoalMotion_);
 
-        // Construct the solution path
-        while (solution != NULL)
-        {
-            mpath.push_back(solution);
-            solution = solution->getParent();
-        }
-
-        // Set the solution path
-        PathGeometric *path = new PathGeometric(si_);
-        int mPathSize = mpath.size();
-        for (int i = mPathSize - 1 ; i >= 0 ; --i)
-            path->append(mpath[i]->getState());
-        pdef_->addSolutionPath(base::PathPtr(path), false, lastGoalMotion_->getCost().v, getName());
-
-        OMPL_DEBUG("Final path cost: %f\n", lastGoalMotion_->getCost().v);
+        OMPL_DEBUG("Final path cost: %f", lastGoalMotion_->getCost().v);
         return base::PlannerStatus(true, false);
     } // if plannerSuccess
     else
@@ -327,6 +328,26 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
         // Planner terminated without accomplishing goal
         return base::PlannerStatus(false, false);
     }
+}
+
+void ompl::geometric::FMT::traceSolutionPathThroughTree(Motion *goalMotion)
+{
+    std::vector<Motion*> mpath;
+    Motion *solution = goalMotion;
+
+    // Construct the solution path
+    while (solution != NULL)
+    {
+        mpath.push_back(solution);
+        solution = solution->getParent();
+    }
+
+    // Set the solution path
+    PathGeometric *path = new PathGeometric(si_);
+    int mPathSize = mpath.size();
+    for (int i = mPathSize - 1 ; i >= 0 ; --i)
+        path->append(mpath[i]->getState());
+    pdef_->addSolutionPath(base::PathPtr(path), false, lastGoalMotion_->getCost().v, getName());
 }
 
 bool ompl::geometric::FMT::expandTreeFromNode(Motion *&z, const double r)

@@ -145,6 +145,9 @@ namespace ompl
 
                 /// Hostname that identifies the machine the benchmark ran on
                 std::string                    host;
+
+                /// Information about the CPU of the machine the benchmark ran on
+                std::string                    cpuInfo;
             };
 
             /** \brief Representation of a benchmark request */

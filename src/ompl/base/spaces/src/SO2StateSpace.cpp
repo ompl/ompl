@@ -75,6 +75,11 @@ double ompl::base::SO2StateSpace::getMaximumExtent() const
     return boost::math::constants::pi<double>();
 }
 
+double ompl::base::SO2StateSpace::getMeasure() const
+{
+    return 2.0 * boost::math::constants::pi<double>();
+}
+
 void ompl::base::SO2StateSpace::enforceBounds(State *state) const
 {
     double v = fmod(state->as<StateType>()->value, 2.0 * boost::math::constants::pi<double>());

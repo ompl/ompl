@@ -83,6 +83,11 @@ double ompl::base::TimeStateSpace::getMaximumExtent() const
     return bounded_ ? maxTime_ - minTime_ : 1.0;
 }
 
+double ompl::base::TimeStateSpace::getMeasure() const
+{
+    return getMaximumExtent();
+}
+
 void ompl::base::TimeStateSpace::enforceBounds(State *state) const
 {
     if (bounded_)

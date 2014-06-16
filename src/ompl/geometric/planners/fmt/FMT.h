@@ -181,14 +181,14 @@ namespace ompl
                         indicating which set the node belongs to; H, W, or neither */
                     enum SetType { SET_NULL, SET_H, SET_W };
 
-                    Motion(const base::OptimizationObjectivePtr opt)
-                        : state_(NULL), parent_(NULL), cost_(0.0), currentSet_(SET_NULL), opt_(opt)
+                    Motion()
+                        : state_(NULL), parent_(NULL), cost_(0.0), currentSet_(SET_NULL)
                     {
                     }
 
                     /** \brief Constructor that allocates memory for the state */
-                    Motion(const base::OptimizationObjectivePtr &opt, const base::SpaceInformationPtr &si)
-                        : state_(si->allocState()), parent_(NULL), cost_(0.0), currentSet_(SET_NULL), opt_(opt)
+                    Motion(const base::SpaceInformationPtr &si)
+                        : state_(si->allocState()), parent_(NULL), cost_(0.0), currentSet_(SET_NULL)
                     {
                     }
 
@@ -244,13 +244,6 @@ namespace ompl
                         return currentSet_;
                     }
 
-                    /** \brief Get the optimization objective used to determine
-                        the cost between two states */
-                    const base::OptimizationObjectivePtr getOptimizationObjective() const
-                    {
-                        return opt_;
-                    }
-
                 protected:
 
                     /** \brief The state contained by the motion */
@@ -264,15 +257,12 @@ namespace ompl
 
                     /** \brief The flag indicating which set a motion belongs to */
                     SetType currentSet_;
-
-                    /** \brief The cost function optimization objective */
-                    const base::OptimizationObjectivePtr opt_;
             };
 
             /** \brief Comparator used to order motions in a binary heap */
             struct MotionCompare
             {
-                MotionCompare()
+                MotionCompare() : opt_(NULL)
                 {
                 }
 
@@ -280,8 +270,10 @@ namespace ompl
                    have been instantiated with the same optimization objective */
                 bool operator()(const Motion *m1, const Motion *m2) const
                 {
-                    return m1->getOptimizationObjective()->isCostBetterThan(m1->getCost(), m2->getCost());
+                    return opt_->isCostBetterThan(m1->getCost(), m2->getCost());
                 }
+
+                base::OptimizationObjective* opt_;
             };
 
             /** \brief Compute the distance between two motions as the cost
@@ -325,6 +317,11 @@ namespace ompl
 
             /** \brief Save the neighbors within a given radius of a state */
             void saveNeighborhood(Motion *m, const double r);
+
+            /** \brief Trace the path from a goal state back to the start state
+                and save the result as a solution in the Problem Definiton.
+             */
+            void traceSolutionPathThroughTree(Motion *goalMotion);
 
             /** \brief Complete one iteration of the main loop of the FMT* algorithm:
 		Find all nodes in set W within a radius r of the node z.

@@ -54,7 +54,10 @@ namespace ompl
         OMPL_CLASS_FORWARD(StateStorage);
         /// @endcond
 
-        /** \brief Manage loading and storing for a set of states of a specified state space */
+        /** \brief Manage loading and storing for a set of states of a specified state space
+
+            \deprecated This class is deprecated and will be removed in the future. Please use the improved PlannerDataStorage.
+         */
         class StateStorage
         {
         public:
@@ -272,7 +275,7 @@ namespace ompl
 
         /** \brief Storage of states where the metadata is a vector of indices. This is is typically used to store a graph */
         typedef StateStorageWithMetadata<std::vector<std::size_t> > GraphStateStorage;
-
+        typedef boost::shared_ptr<GraphStateStorage> GraphStateStoragePtr;
     }
 }
 #endif
