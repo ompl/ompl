@@ -50,7 +50,7 @@ namespace ompl
     {
 
         /// @cond IGNORE
-        /** \brief Forward declaration of ompl::base::SpaceInformation */
+        /** \brief Forward declaration of ompl::base::PathGeometric */
         OMPL_CLASS_FORWARD(PathGeometric);
         /// @endcond
 
