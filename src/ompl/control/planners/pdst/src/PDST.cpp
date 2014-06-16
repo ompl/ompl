@@ -160,7 +160,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         for (int i = (int) mpath.size() - 2; i > 0; i--)
             path->append(mpath[i-1]->startState_, mpath[i]->control_, durations[i] * dt);
         path->append(lastGoalMotion_->endState_, mpath[0]->control_, durations[0] * dt);
-        pdef_->addSolutionPath(base::PathPtr(path), isApproximate, closestDistanceToGoal);
+        pdef_->addSolutionPath(base::PathPtr(path), isApproximate, closestDistanceToGoal, getName());
     }
 
     si_->freeState(tmpState1);

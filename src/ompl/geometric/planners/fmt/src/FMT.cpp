@@ -317,7 +317,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
         int mPathSize = mpath.size();
         for (int i = mPathSize - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->getState());
-        pdef_->addSolutionPath(base::PathPtr(path), false, lastGoalMotion_->getCost().v);
+        pdef_->addSolutionPath(base::PathPtr(path), false, lastGoalMotion_->getCost().v, getName());
 
         OMPL_DEBUG("Final path cost: %f\n", lastGoalMotion_->getCost().v);
         return base::PlannerStatus(true, false);

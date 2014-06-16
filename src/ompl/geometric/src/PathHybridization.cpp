@@ -47,7 +47,9 @@ namespace ompl
 }
 
 ompl::geometric::PathHybridization::PathHybridization(const base::SpaceInformationPtr &si) :
-    si_(si), stateProperty_(boost::get(vertex_state_t(), g_))
+    si_(si),
+    stateProperty_(boost::get(vertex_state_t(), g_)),
+    name_("PathHybridization")
 {
     root_ = boost::add_vertex(g_);
     stateProperty_[root_] = NULL;
@@ -79,6 +81,11 @@ void ompl::geometric::PathHybridization::print(std::ostream &out) const
         out << "  path " << i << " of length " << it->length_ << std::endl;
     if (hpath_)
         out << "Hybridized path of length " << hpath_->length() << std::endl;
+}
+
+const std::string& ompl::geometric::PathHybridization::getName() const
+{
+    return name_;
 }
 
 void ompl::geometric::PathHybridization::computeHybridPath()

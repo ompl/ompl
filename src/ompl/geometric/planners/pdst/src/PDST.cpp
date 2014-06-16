@@ -157,7 +157,7 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
         // Add the solution path in order from the start state to the goal.
         for (std::vector<base::State*>::reverse_iterator rIt = spath.rbegin(); rIt != spath.rend(); ++rIt)
             path->append((*rIt));
-        pdef_->addSolutionPath(base::PathPtr(path), isApproximate, closestDistanceToGoal);
+        pdef_->addSolutionPath(base::PathPtr(path), isApproximate, closestDistanceToGoal, getName());
     }
 
     si_->freeState(tmpState1);

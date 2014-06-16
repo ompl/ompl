@@ -417,6 +417,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     if (sol)
     {
         base::PlannerSolution psol(sol);
+        psol.plannerName_ = getName();
         // if the solution was optimized, we mark it as such
         if (addedNewSolution())
             psol.optimized_ = true;

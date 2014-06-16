@@ -467,7 +467,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         base::PathPtr path(geoPath);
         // Add the solution path, whether it is approximate (not reaching the goal), and the
         // distance from the end of the path to the goal (-1 if satisfying the goal).
-        base::PlannerSolution psol(path, approximate, approximate ? approximatedist : -1.0);
+        base::PlannerSolution psol(path, approximate, approximate ? approximatedist : -1.0, getName());
         // Does the solution satisfy the optimization objective?
         psol.optimized_ = sufficientlyShort;
 
