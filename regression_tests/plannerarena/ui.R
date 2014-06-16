@@ -15,7 +15,7 @@ shinyUI(fluidPage(
         ),
         selectInput("problem", label = h4("Motion planning problem"),
             choices = list(
-                "Circles",
+                "circles",
                 "Cubicles",
                 "Twistycool"
             )
@@ -61,9 +61,10 @@ shinyUI(fluidPage(
                     "0.13.0",
                     "0.14.0",
                     "0.14.1",
-                    "0.14.2"
+                    "0.14.2",
+                    "0.15.0"
                 ),
-                selected = "0.14.2"
+                selected = "0.15.0"
             )
         ),
         checkboxGroupInput("planners", label = h4("Selected planners"),

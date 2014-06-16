@@ -146,7 +146,7 @@ void runProblem(double runtime_limit, double memory_limit, int run_count)
         b.benchmark(runtime_limit, memory_limit, run_count);
 #endif
 
-        b.saveResultsToFile((exp_name + ".log").c_str());
+        b.saveResultsToFile((exp_name + OMPL_VERSION + ".log").c_str());
     }
     else
     {
