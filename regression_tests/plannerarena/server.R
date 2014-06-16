@@ -3,9 +3,11 @@ library(ggplot2)
 library(RSQLite)
 
 con <- dbConnect(dbDriver("SQLite"), "www/benchmark.db")
-sqlPlannerSelect <- function(name) sprintf('plannerConfigs.name = "geometric_%s"', name)
 plannerConfigs <- dbGetQuery(con,
     "SELECT REPLACE(name, 'geometric_', '') as name, settings FROM plannerConfigs")
+
+sqlPlannerSelect <- function(name) sprintf('plannerConfigs.name = "geometric_%s"', name)
+sqlVersionSelect <- function(version) sprintf('experiments.version = "%s"', version)
 
 
 shinyServer(function(input, output) {
@@ -23,10 +25,11 @@ shinyServer(function(input, output) {
         # regression plot
         if (input$plotType == 1) {
             attr <- gsub(" ", "_", input$attr)
-            query <- sprintf("SELECT plannerConfigs.name, runs.%s, experiments.version FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND (%s);",
+            query <- sprintf("SELECT plannerConfigs.name, runs.%s, experiments.version FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND (%s) AND (%s);",
                 attr,
                 input$problem,
-                paste(sapply(input$planners, sqlPlannerSelect), collapse=" OR "))
+                paste(sapply(input$planners, sqlPlannerSelect), collapse=" OR "),
+                paste(sapply(input$versions, sqlVersionSelect), collapse=" OR "))
             data <- dbGetQuery(con, query)
             # order by order listed in data frame (i.e., "0.9.*" before "0.10.*")
             data$version <- factor(data$version, unique(data$version))

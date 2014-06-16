@@ -1,4 +1,5 @@
 library(shiny)
+library(RSQLite)
 
 con <- dbConnect(dbDriver("SQLite"), "www/benchmark.db")
 problems <- dbGetQuery(con, "SELECT DISTINCT name FROM experiments")
@@ -46,6 +47,12 @@ shinyUI(fluidPage(
                     "collision checks"
                 )
             )
+        ),
+        conditionalPanel(
+            condition = "input.plotType == 1",
+            checkboxGroupInput("versions", label = h4("Selected versions"),
+            choices = paste(versions$version),
+            selected = paste(versions$version))
         ),
         conditionalPanel(
             condition = "input.plotType == 2 || input.plotType == 3",
