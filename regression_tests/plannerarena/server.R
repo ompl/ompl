@@ -4,10 +4,20 @@ library(RSQLite)
 
 con <- dbConnect(dbDriver("SQLite"), "www/benchmark.db")
 sqlPlannerSelect <- function(name) sprintf('plannerConfigs.name = "geometric_%s"', name)
+plannerConfigs <- dbGetQuery(con,
+    "SELECT REPLACE(name, 'geometric_', '') as name, settings FROM plannerConfigs")
+
 
 shinyServer(function(input, output) {
-    output$debug <- renderText({
+    benchmarkInfo <- reactive({
+        query <- sprintf("SELECT * FROM experiments WHERE name=\"%s\" AND version=\"%s\"",
+            input$problem,
+            input$version)
+        res <- dbGetQuery(con, query)
     })
+    output$benchmarkInfo <- renderTable({ t(benchmarkInfo()) })
+
+    output$plannerConfigs <- renderTable({ plannerConfigs })
 
     output$plot <- renderPlot({
         # regression plot

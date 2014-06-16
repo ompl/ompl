@@ -2,3 +2,7 @@ label.checkbox {
     min-width: 100px;
     display:inline-block;
 }
+.table td {
+    font-family: monospace;
+    white-space: pre;
+}

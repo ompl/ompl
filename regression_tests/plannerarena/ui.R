@@ -90,7 +90,13 @@ shinyUI(fluidPage(
             selected = list("KPIECE1","EST","RRT","PRM")
         )
     ),
-    mainPanel(textOutput("debug"),plotOutput("plot"))
+    mainPanel(
+        tabsetPanel(
+            tabPanel("Plot", plotOutput("plot")),
+            tabPanel("Benchmark Info", tableOutput("benchmarkInfo")),
+            tabPanel("Planner Configurations", tableOutput("plannerConfigs"))
+        )
+    )
   )
 ))
 
