@@ -290,7 +290,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
     }
 
     unsigned int nrStartStates = boost::num_vertices(g_) - 1;  // don't count query vertex
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nrStartStates);
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nrStartStates);
 
     // Reset addedSolution_ member
     addedSolution_ = false;

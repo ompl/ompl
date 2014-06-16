@@ -101,7 +101,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
         }
     }
 
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), numMotions_);
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), numMotions_);
 
     std::vector<Motion*> newMotions;
     const Motion *solution = NULL;

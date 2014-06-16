@@ -96,7 +96,7 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
         return base::PlannerStatus::INVALID_START;
     }
 
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), priorityQueue_.size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), priorityQueue_.size());
 
     base::State *tmpState1 = si_->allocState(), *tmpState2 = si_->allocState();
     base::EuclideanProjection tmpProj(ndim);

@@ -138,7 +138,7 @@ ompl::base::PlannerStatus ompl::geometric::STRIDE::solve(const base::PlannerTerm
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), tree_->size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), tree_->size());
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;

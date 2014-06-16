@@ -284,7 +284,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
         sampler_ = si_->allocStateSampler();
     sampleFree(ptc);
     assureGoalIsSampled(goal);
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nn_->size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
     // Calculate the nearest neighbor search radius
     double r = calculateRadius(si_->getStateDimension(), nn_->size());

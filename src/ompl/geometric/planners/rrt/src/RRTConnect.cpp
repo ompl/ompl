@@ -182,7 +182,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("%s: Starting with %d states", getName().c_str(), (int)(tStart_->size() + tGoal_->size()));
+    OMPL_INFORM("%s: Starting planning with %d states already in datastructure", getName().c_str(), (int)(tStart_->size() + tGoal_->size()));
 
     TreeGrowingInfo tgi;
     tgi.xstate = si_->allocState();
