@@ -19,7 +19,7 @@ shinyServer(function(input, output) {
 
     output$plannerConfigs <- renderTable({ plannerConfigs })
 
-    output$plot <- renderPlot({
+    plot <- reactive({
         # regression plot
         if (input$plotType == 1) {
             attr <- gsub(" ", "_", input$attr)
@@ -39,7 +39,6 @@ shinyServer(function(input, output) {
                 # plot mean and error bars
                 stat_summary(fun.data = "mean_cl_boot", geom="bar", position = position_dodge()) +
                 stat_summary(fun.data = "mean_cl_boot", geom="errorbar", position = position_dodge())
-            print(p)
         }
         # plot of overall performance
         if (input$plotType == 2) {
@@ -59,11 +58,19 @@ shinyServer(function(input, output) {
                 # plot mean and error bars
                 stat_summary(fun.data = "mean_cl_boot", geom="bar", position = position_dodge()) +
                 stat_summary(fun.data = "mean_cl_boot", geom="errorbar", position = position_dodge())
-            print(p)
         }
         # progress plot
         if (input$plotType == 3) {
             # TODO
         }
+        p
     })
+    output$plot <- renderPlot({ print(plot()) })
+    output$downloadPlot <- downloadHandler(filename = 'plot.pdf',
+        content = function(file) {
+            pdf(file=file, width=12, height=8)
+            print(plot())
+            dev.off()
+        }
+    )
 })

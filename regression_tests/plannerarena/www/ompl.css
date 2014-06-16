@@ -6,3 +6,6 @@ label.checkbox {
     font-family: monospace;
     white-space: pre;
 }
+.btn a:hover, .btn a:focus {
+    text-decoration: none;
+}
