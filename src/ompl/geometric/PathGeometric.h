@@ -48,7 +48,6 @@ namespace ompl
     /** \brief This namespace contains code that is specific to planning under geometric constraints */
     namespace geometric
     {
-
         /** \brief Definition of a geometric path.
 
             This is the type of path computed by geometric planners. */
@@ -145,7 +144,8 @@ namespace ompl
             /** \brief Check if the path is valid. If it is not,
                 attempts are made to fix the path by sampling around
                 invalid states. Not more than \e attempts samples are
-                drawn. A pair of boolean values is returned. The first
+                drawn. 
+                \return A pair of boolean values is returned. The first
                 value represents the validity of the path before any
                 change was made. The second value represents the
                 validity of the path after changes were attempted. If
