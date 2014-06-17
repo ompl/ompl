@@ -48,15 +48,6 @@ namespace ompl
     /** \brief This namespace contains code that is specific to planning under geometric constraints */
     namespace geometric
     {
-
-        /// @cond IGNORE
-        /** \brief Forward declaration of ompl::base::PathGeometric */
-        OMPL_CLASS_FORWARD(PathGeometric);
-        /// @endcond
-
-        /** \class ompl::base::PathGeometricPtr
-            \brief A boost shared pointer wrapper for ompl::base::PathGeometric */
-
         /** \brief Definition of a geometric path.
 
             This is the type of path computed by geometric planners. */
