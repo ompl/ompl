@@ -34,7 +34,7 @@ shinyServer(function(input, output) {
             # order by order listed in data frame (i.e., "0.9.*" before "0.10.*")
             data$version <- factor(data$version, unique(data$version))
             data$name <- sub("geometric_", "", data$name)
-            p <- ggplot(data, aes_string(x = "version", y = attr, color = "name", fill = "name", group = "name")) +
+            p <- ggplot(data, aes_string(x = "version", y = attr, fill = "name", group = "name")) +
                 # labels
                 xlab('version') +
                 ylab(input$attr) +
@@ -53,14 +53,12 @@ shinyServer(function(input, output) {
                 paste(sapply(input$planners, sqlPlannerSelect), collapse=" OR "))
             data <- dbGetQuery(con, query)
             data$name <- sub("geometric_", "", data$name)
-            p <- ggplot(data, aes_string(x = "name", y = attr, color = "name", fill = "name", group = "name")) +
+            p <- ggplot(data, aes_string(x = "name", y = attr, group = "name")) +
                 # labels
                 xlab('planner') +
                 ylab(input$attr) +
-                theme(legend.title=element_blank()) +
-                # plot mean and error bars
-                stat_summary(fun.data = "mean_cl_boot", geom="bar", position = position_dodge()) +
-                stat_summary(fun.data = "mean_cl_boot", geom="errorbar", position = position_dodge())
+                theme(legend.position="none") +
+                geom_boxplot(color=I("#3073ba"),fill=I("#99c9eb"))
         }
         # progress plot
         if (input$plotType == 3) {
