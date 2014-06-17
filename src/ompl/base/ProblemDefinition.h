@@ -117,6 +117,12 @@ namespace ompl
             /** \brief True of the solution was optimized to meet the specified optimization criterion */
             bool    optimized_;
         };
+        
+        class Planner;
+        
+		/** \brief When a planner has an intermediate solution (e.g., optimizing planners), a function with this signature can be called
+		to report the states of that solution. */
+		typedef boost::function<void(const Planner*, const std::vector<const base::State*> &, const Cost &)> ReportIntermediateSolutionFn;
 
         OMPL_CLASS_FORWARD(OptimizationObjective);
 
@@ -130,13 +136,13 @@ namespace ompl
             /** \brief Create a problem definition given the SpaceInformation it is part of */
             ProblemDefinition(const SpaceInformationPtr &si);
 
-            virtual ~ProblemDefinition()
+            virtual ~ProblemDefinition(void)
             {
                 clearStartStates();
             }
 
             /** \brief Get the space information this problem definition is for */
-            const SpaceInformationPtr& getSpaceInformation() const
+            const SpaceInformationPtr& getSpaceInformation(void) const
             {
                 return si_;
             }
@@ -159,7 +165,7 @@ namespace ompl
             bool hasStartState(const State *state, unsigned int *startIndex = NULL);
 
             /** \brief Clear all start states (memory is freed) */
-            void clearStartStates()
+            void clearStartStates(void)
             {
                 for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
                     si_->freeState(startStates_[i]);
@@ -167,7 +173,7 @@ namespace ompl
             }
 
             /** \brief Returns the number of start states */
-            unsigned int getStartStateCount() const
+            unsigned int getStartStateCount(void) const
             {
                 return startStates_.size();
             }
@@ -191,13 +197,13 @@ namespace ompl
             }
 
             /** \brief Clear the goal. Memory is freed. */
-            void clearGoal()
+            void clearGoal(void)
             {
                 goal_.reset();
             }
 
             /** \brief Return the current goal */
-            const GoalPtr& getGoal() const
+            const GoalPtr& getGoal(void) const
             {
                 return goal_;
             }
@@ -233,13 +239,13 @@ namespace ompl
             }
 
             /** \brief Check if an optimization objective was defined for planning  */
-            bool hasOptimizationObjective() const
+            bool hasOptimizationObjective(void) const
             {
                 return optimizationObjective_.get();
             }
 
             /** \brief Get the optimization objective to be considered during planning */
-            const OptimizationObjectivePtr& getOptimizationObjective() const
+            const OptimizationObjectivePtr& getOptimizationObjective(void) const
             {
                 return optimizationObjective_;
             }
@@ -249,7 +255,19 @@ namespace ompl
             {
                 optimizationObjective_ = optimizationObjective;
             }
-
+            
+            /** \brief When this function returns a valid function pointer, that function should be called 
+				by planners that compute intermediate solutions every time a better solution is found */
+			const ReportIntermediateSolutionFn& getIntermediateSolutionCallback(void) const
+			{
+				return intermediateSolutionCallback_;
+			}
+			
+			/** \brief Set the callback to be called by planners that can compute intermediate solutions */
+			void setIntermediateSolutionCallback(const ReportIntermediateSolutionFn &callback) {
+				intermediateSolutionCallback_ = callback;
+			}
+			
             /** \brief A problem is trivial if a given starting state already
                 in the goal region, so we need no motion planning. startID
                 will be set to the index of the starting state that
@@ -269,7 +287,7 @@ namespace ompl
                 \note When planning under differential constraints,
                 the system is propagated forward in time using the
                 null control. */
-            PathPtr isStraightLinePathValid() const;
+            PathPtr isStraightLinePathValid(void) const;
 
             /** \brief Many times the start or goal state will barely touch an obstacle. In this case, we may want to automatically
               * find a nearby state that is valid so motion planning can be performed. This function enables this behaviour.
@@ -278,24 +296,24 @@ namespace ompl
             bool fixInvalidInputStates(double distStart, double distGoal, unsigned int attempts);
 
             /** \brief Returns true if a solution path has been found (could be approximate) */
-            bool hasSolution() const;
+            bool hasSolution(void) const;
 
             /** \brief Return true if the top found solution is
                 approximate (does not actually reach the desired goal,
                 but hopefully is closer to it) */
-            bool hasApproximateSolution() const;
+            bool hasApproximateSolution(void) const;
 
             /** \brief Get the distance to the desired goal for the top solution. Return -1.0 if there are no solutions available. */
-            double getSolutionDifference() const;
+            double getSolutionDifference(void) const;
 
             /** \brief Return true if the top found solution is optimized (satisfies the specified optimization objective) */
-            bool hasOptimizedSolution() const;
+            bool hasOptimizedSolution(void) const;
 
             /** \brief Return the top solution path, if one is found. The top path is the shortest
                  one that was found, preference being given to solutions that are not approximate.
 
                 This will need to be casted into the specialization computed by the planner */
-            PathPtr getSolutionPath() const;
+            PathPtr getSolutionPath(void) const;
 
             /** \brief Add a solution path in a thread-safe manner. Multiple solutions can be set for a goal.
                 If a solution does not reach the desired goal it is considered approximate.
@@ -307,22 +325,22 @@ namespace ompl
             void addSolutionPath(const PlannerSolution &sol) const;
 
             /** \brief Get the number of solutions already found */
-            std::size_t getSolutionCount() const;
+            std::size_t getSolutionCount(void) const;
 
             /** \brief Get all the solution paths available for this goal */
-            std::vector<PlannerSolution> getSolutions() const;
+            std::vector<PlannerSolution> getSolutions(void) const;
 
             /** \brief Forget the solution paths (thread safe). Memory is freed. */
-            void clearSolutionPaths() const;
+            void clearSolutionPaths(void) const;
 
             /** \brief Returns true if the problem definition has a proof of non existence for a solution */
-            bool hasSolutionNonExistenceProof() const;
+            bool hasSolutionNonExistenceProof(void) const;
 
             /** \brief Removes any existing instance of SolutionNonExistenceProof */
-            void clearSolutionNonExistenceProof();
+            void clearSolutionNonExistenceProof(void);
 
             /** \brief Retrieve a pointer to the SolutionNonExistenceProof instance for this problem definition */
-            const SolutionNonExistenceProofPtr& getSolutionNonExistenceProof() const;
+            const SolutionNonExistenceProofPtr& getSolutionNonExistenceProof(void) const;
 
             /** \brief Set the instance of SolutionNonExistenceProof for this problem definition */
             void setSolutionNonExistenceProof(const SolutionNonExistenceProofPtr& nonExistenceProof);
@@ -349,6 +367,9 @@ namespace ompl
 
             /** \brief The objective to be optimized while solving the planning problem */
             OptimizationObjectivePtr     optimizationObjective_;
+            
+            /** \brief Callback function which is called when a new intermediate solution has been found.*/
+            ReportIntermediateSolutionFn		intermediateSolutionCallback_;
 
         private:
 

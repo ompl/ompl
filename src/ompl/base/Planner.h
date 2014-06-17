@@ -101,32 +101,32 @@ namespace ompl
             /** \brief Default constructor. No work is performed. A
                 call to use() needs to be made, before making any
                 calls to nextStart() or nextGoal(). */
-            PlannerInputStates() : planner_(NULL)
+            PlannerInputStates(void) : planner_(NULL)
             {
                 tempState_ = NULL;
                 clear();
             }
 
             /** \brief Destructor. Clear allocated memory. */
-            ~PlannerInputStates()
+            ~PlannerInputStates(void)
             {
                 clear();
             }
 
             /** \brief Clear all stored information. */
-            void clear();
-
+            void clear(void);
+            
             /** \brief Forget how many states were returned by
                 nextStart() and nextGoal() and return all states
                 again */
-            void restart();
+            void restart(void);
 
             /** \brief Set the space information and problem
                 definition this class operates on, based on the
                 available planner instance. Returns true if changes
                 were found (different problem definition) and clear()
                 was called. */
-            bool update();
+            bool update(void);
 
             /** \brief Set the problem definition this class operates on.
                 If a planner is not set in the constructor argument, a call
@@ -144,11 +144,11 @@ namespace ompl
 
             /** \brief Check if the problem definition was set, start
                 state are available and goal was set */
-            void checkValidity() const;
+            void checkValidity(void) const;
 
             /** \brief Return the next valid start state or NULL if no
                 more valid start states are available. */
-            const State* nextStart();
+            const State* nextStart(void);
 
             /** \brief Return the next valid goal state or NULL if no
                 more valid goal states are available.  Because
@@ -161,24 +161,24 @@ namespace ompl
             const State* nextGoal(const PlannerTerminationCondition &ptc);
 
             /** \brief Same as above but only one attempt is made to find a valid goal. */
-            const State* nextGoal();
+            const State* nextGoal(void);
 
             /** \brief Check if there are more potential start states */
-            bool haveMoreStartStates() const;
+            bool haveMoreStartStates(void) const;
 
             /** \brief Check if there are more potential goal states */
-            bool haveMoreGoalStates() const;
+            bool haveMoreGoalStates(void) const;
 
             /** \brief Get the number of start states from the problem
                 definition that were already seen, including invalid
                 ones. */
-            unsigned int getSeenStartStatesCount() const
+            unsigned int getSeenStartStatesCount(void) const
             {
                 return addedStartStates_;
             }
 
             /** \brief Get the number of sampled goal states, including invalid ones */
-            unsigned int getSampledGoalsCount() const
+            unsigned int getSampledGoalsCount(void) const
             {
                 return sampledGoalsCount_;
             }
@@ -198,7 +198,7 @@ namespace ompl
         /** \brief Properties that planners may have */
         struct PlannerSpecs
         {
-            PlannerSpecs() : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false), optimizingPaths(false), directed(false), provingSolutionNonExistence(false)
+            PlannerSpecs(void) : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false), optimizingPaths(false), directed(false), provingSolutionNonExistence(false)
             {
             }
 
@@ -233,13 +233,13 @@ namespace ompl
             Planner(const SpaceInformationPtr &si, const std::string &name);
 
             /** \brief Destructor */
-            virtual ~Planner()
+            virtual ~Planner(void)
             {
             }
 
             /** \brief Cast this instance to a desired type. */
             template<class T>
-            T* as()
+            T* as(void)
             {
                 /** \brief Make sure the type we are casting to is indeed a planner */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Planner*>));
@@ -249,7 +249,7 @@ namespace ompl
 
             /** \brief Cast this instance to a desired type. */
             template<class T>
-            const T* as() const
+            const T* as(void) const
             {
                 /** \brief Make sure the type we are casting to is indeed a Planner */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Planner*>));
@@ -258,13 +258,13 @@ namespace ompl
             }
 
             /** \brief Get the space information this planner is using */
-            const SpaceInformationPtr& getSpaceInformation() const;
+            const SpaceInformationPtr& getSpaceInformation(void) const;
 
             /** \brief Get the problem definition the planner is trying to solve */
-            const ProblemDefinitionPtr& getProblemDefinition() const;
+            const ProblemDefinitionPtr& getProblemDefinition(void) const;
 
             /** \brief Get the planner input states */
-            const PlannerInputStates& getPlannerInputStates() const;
+            const PlannerInputStates& getPlannerInputStates(void) const;
 
             /** \brief Set the problem definition for the planner. The
                 problem needs to be set before calling solve(). Note:
@@ -298,7 +298,15 @@ namespace ompl
             /** \brief Clear all internal datastructures. Planner
                 settings are not affected. Subsequent calls to solve()
                 will ignore all previous work. */
-            virtual void clear();
+            virtual void clear(void);
+            
+			/** \brief Given a path known to be valid with a given cost, include the states that make up the path
+				in the planner's exploration data structures. */
+			virtual void includeValidPath(const std::vector<const State *> &states, const Cost cost);	
+			
+			/** \brief For the tree-based, optimizing planners (currently only RRT* is supported) this function
+				activates the CForest parallelization framework. */
+			virtual void activateCForest();
 
             /** \brief Get information about the current run of the
                 motion planner. Repeated calls to this function will
@@ -309,37 +317,37 @@ namespace ompl
             virtual void getPlannerData(PlannerData &data) const;
 
             /** \brief Get the name of the planner */
-            const std::string& getName() const;
+            const std::string& getName(void) const;
 
             /** \brief Set the name of the planner */
             void setName(const std::string &name);
 
             /** \brief Return the specifications (capabilities of this planner) */
-            const PlannerSpecs& getSpecs() const;
+            const PlannerSpecs& getSpecs(void) const;
 
             /** \brief Perform extra configuration steps, if
                 needed. This call will also issue a call to
                 ompl::base::SpaceInformation::setup() if needed. This
                 must be called before solving */
-            virtual void setup();
+            virtual void setup(void);
 
             /** \brief Check to see if the planner is in a working
                 state (setup has been called, a goal was set, the
                 input states seem to be in order). In case of error,
                 this function throws an exception.*/
-            virtual void checkValidity();
+            virtual void checkValidity(void);
 
             /** \brief Check if setup() was called for this planner */
-            bool isSetup() const;
+            bool isSetup(void) const;
 
             /** \brief Get the  parameters for this planner */
-            ParamSet& params()
+            ParamSet& params(void)
             {
                 return params_;
             }
 
             /** \brief Get the  parameters for this planner */
-            const ParamSet& params() const
+            const ParamSet& params(void) const
             {
                 return params_;
             }
@@ -411,6 +419,7 @@ namespace ompl
 
             /** \brief Flag indicating whether setup() has been called */
             bool                      setup_;
+            
         };
 
         /** \brief Definition of a function that can allocate a planner */

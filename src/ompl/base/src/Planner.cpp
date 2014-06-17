@@ -47,12 +47,12 @@ ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &n
         throw Exception(name_, "Invalid space information instance for planner");
 }
 
-const ompl::base::PlannerSpecs& ompl::base::Planner::getSpecs() const
+const ompl::base::PlannerSpecs& ompl::base::Planner::getSpecs(void) const
 {
     return specs_;
 }
 
-const std::string& ompl::base::Planner::getName() const
+const std::string& ompl::base::Planner::getName(void) const
 {
     return name_;
 }
@@ -62,12 +62,12 @@ void ompl::base::Planner::setName(const std::string &name)
     name_ = name;
 }
 
-const ompl::base::SpaceInformationPtr&  ompl::base::Planner::getSpaceInformation() const
+const ompl::base::SpaceInformationPtr&  ompl::base::Planner::getSpaceInformation(void) const
 {
     return si_;
 }
 
-const ompl::base::ProblemDefinitionPtr& ompl::base::Planner::getProblemDefinition() const
+const ompl::base::ProblemDefinitionPtr& ompl::base::Planner::getProblemDefinition(void) const
 {
     return pdef_;
 }
@@ -78,12 +78,22 @@ void ompl::base::Planner::setProblemDefinition(const ProblemDefinitionPtr &pdef)
     pis_.update();
 }
 
-const ompl::base::PlannerInputStates& ompl::base::Planner::getPlannerInputStates() const
+const ompl::base::PlannerInputStates& ompl::base::Planner::getPlannerInputStates(void) const
 {
     return pis_;
 }
 
-void ompl::base::Planner::setup()
+void ompl::base::Planner::includeValidPath(const std::vector<const State *> &states, const Cost cost)
+{
+	throw Exception("Including valid paths in exploration data structures is not implemented for " + name_);
+}
+
+void ompl::base::Planner::activateCForest()
+{
+	throw Exception("CForest cannot be activated for " + name_);
+}
+
+void ompl::base::Planner::setup(void)
 {
     if (!si_->isSetup())
     {
@@ -97,19 +107,19 @@ void ompl::base::Planner::setup()
         setup_ = true;
 }
 
-void ompl::base::Planner::checkValidity()
+void ompl::base::Planner::checkValidity(void)
 {
     if (!isSetup())
         setup();
     pis_.checkValidity();
 }
 
-bool ompl::base::Planner::isSetup() const
+bool ompl::base::Planner::isSetup(void) const
 {
     return setup_;
 }
 
-void ompl::base::Planner::clear()
+void ompl::base::Planner::clear(void)
 {
     pis_.clear();
     pis_.update();
@@ -152,7 +162,7 @@ void ompl::base::Planner::printSettings(std::ostream &out) const
     params_.print(out);
 }
 
-void ompl::base::PlannerInputStates::clear()
+void ompl::base::PlannerInputStates::clear(void)
 {
     if (tempState_)
     {
@@ -165,20 +175,20 @@ void ompl::base::PlannerInputStates::clear()
     si_ = NULL;
 }
 
-void ompl::base::PlannerInputStates::restart()
+void ompl::base::PlannerInputStates::restart(void)
 {
     addedStartStates_ = 0;
     sampledGoalsCount_ = 0;
 }
 
-bool ompl::base::PlannerInputStates::update()
+bool ompl::base::PlannerInputStates::update(void)
 {
     if (!planner_)
         throw Exception("No planner set for PlannerInputStates");
     return use(planner_->getProblemDefinition());
 }
 
-void ompl::base::PlannerInputStates::checkValidity() const
+void ompl::base::PlannerInputStates::checkValidity(void) const
 {
     std::string error;
 
@@ -225,7 +235,7 @@ bool ompl::base::PlannerInputStates::use(const ProblemDefinition *pdef)
     return false;
 }
 
-const ompl::base::State* ompl::base::PlannerInputStates::nextStart()
+const ompl::base::State* ompl::base::PlannerInputStates::nextStart(void)
 {
     if (pdef_ == NULL || si_ == NULL)
     {
@@ -259,7 +269,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart()
     return NULL;
 }
 
-const ompl::base::State* ompl::base::PlannerInputStates::nextGoal()
+const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(void)
 {
     static PlannerTerminationCondition ptc = plannerAlwaysTerminatingCondition();
     return nextGoal(ptc);
@@ -339,14 +349,14 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
     return NULL;
 }
 
-bool ompl::base::PlannerInputStates::haveMoreStartStates() const
+bool ompl::base::PlannerInputStates::haveMoreStartStates(void) const
 {
     if (pdef_)
         return addedStartStates_ < pdef_->getStartStateCount();
     return false;
 }
 
-bool ompl::base::PlannerInputStates::haveMoreGoalStates() const
+bool ompl::base::PlannerInputStates::haveMoreGoalStates(void) const
 {
     if (pdef_ && pdef_->getGoal())
         if (pdef_->getGoal()->hasType(GOAL_SAMPLEABLE_REGION))
