@@ -204,7 +204,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
             else
                 path->append(mpath[i]->state);
         solved = true;
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
     }
 
     // Cleaning up memory

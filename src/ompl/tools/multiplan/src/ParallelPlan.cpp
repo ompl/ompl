@@ -120,7 +120,7 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTe
                 geometric::PathGeometric *pg = static_cast<geometric::PathGeometric*>(hsol.get());
                 double difference = 0.0;
                 bool approximate = !pdef_->getGoal()->isSatisfied(pg->getStates().back(), &difference);
-                pdef_->addSolutionPath(hsol, approximate, difference);
+                pdef_->addSolutionPath(hsol, approximate, difference, phybrid_->getName()); // name this solution after the hybridization algorithm
             }
     }
 

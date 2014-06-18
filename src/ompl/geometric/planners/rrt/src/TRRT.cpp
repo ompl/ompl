@@ -381,7 +381,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
 
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxDifference);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxDifference, getName());
         solved = true;
     }
 
