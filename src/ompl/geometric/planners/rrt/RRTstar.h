@@ -80,13 +80,13 @@ namespace ompl
 
             RRTstar(const base::SpaceInformationPtr &si);
 
-            virtual ~RRTstar(void);
+            virtual ~RRTstar();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 			
-            virtual void clear(void);
+            virtual void clear();
 
             virtual void includeValidPath(const std::vector<const base::State *> &states, const base::Cost cost);
 
@@ -105,7 +105,7 @@ namespace ompl
             }
 
             /** \brief Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -121,14 +121,14 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 nn_.reset(new NN<Motion*>());
             }
@@ -146,7 +146,7 @@ namespace ompl
             }
 
             /** \brief Get the state of the delayed collision checking option */
-            bool getDelayCC(void) const
+            bool getDelayCC() const
             {
                 return delayCC_;
             }
@@ -177,15 +177,15 @@ namespace ompl
 				return pruneStatesPercentage_;
 			}
 			
-            virtual void setup(void);
+            virtual void setup();
 
             ///////////////////////////////////////
             // Planner progress property functions
-            std::string getIterationCount(void) const;
+            std::string getIterationCount() const;
 
-            std::string getCollisionCheckCount(void) const;
+            std::string getCollisionCheckCount() const;
 
-            std::string getBestCost(void) const;
+            std::string getBestCost() const;
             ///////////////////////////////////////
             
 			/** \brief TO BE REMOVED in the final version. */
@@ -216,7 +216,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -240,7 +240,7 @@ namespace ompl
             struct CostIndexCompare
             {
                 CostIndexCompare(const std::vector<base::Cost>& costs,
-                                 const base::OptimizationObjective& opt) :
+                                 const base::OptimizationObjective &opt) :
                     costs_(costs), opt_(opt)
                 {}
                 bool operator()(unsigned i, unsigned j)
@@ -248,16 +248,25 @@ namespace ompl
                     return opt_.isCostBetterThan(costs_[i],costs_[j]);
                 }
                 const std::vector<base::Cost>& costs_;
-                const base::OptimizationObjective& opt_;
+                const base::OptimizationObjective &opt_;
             };
             
+            enum DistanceDirection { FROM_NEIGHBORS, TO_NEIGHBORS };
+            
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Compute distance between motions (actually distance between contained states) */
-            double distanceFunction(const Motion* a, const Motion* b) const
+            double distanceFunction(const Motion *a, const Motion *b) const
             {
-                return si_->distance(a->state, b->state);
+                  switch (distanceDirection_)
+                  {
+                  case FROM_NEIGHBORS:
+                      return si_->distance(a->state, b->state);
+                  case TO_NEIGHBORS:
+                      return si_->distance(b->state, a->state);
+                  }
+                  return 0; // remove warning
             }
 
             /** \brief Removes the given motion from the parent's child list */
@@ -293,13 +302,18 @@ namespace ompl
             bool                                           delayCC_;
 
             /** \brief Objective we're optimizing */
-            base::OptimizationObjectivePtr 					opt_;
+            base::OptimizationObjectivePtr                 opt_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
             Motion                                         *lastGoalMotion_;
 
             /** \brief A list of states in the tree that satisfy the goal condition */
             std::vector<Motion*>                           goalMotions_;
+            
+            /** \brief Directionality of distance computation for
+                 nearest neighbors. Either from neighbors to new state,
+                 or from new state to neighbors. */
+            DistanceDirection                              distanceDirection_;
             
             /** \brief If this vector contains states, they will be included to the tree in the next iterations of solve(). */
             std::vector<base::State*>						statesToInclude_;
