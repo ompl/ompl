@@ -210,7 +210,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         sampler_ = si_->allocStateSampler();
 
     // Debug
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nearestNeighbors_->size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nearestNeighbors_->size());
 
 
     // Solver variables ------------------------------------------------------------------------------------
@@ -381,7 +381,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
 
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxDifference);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxDifference, getName());
         solved = true;
     }
 

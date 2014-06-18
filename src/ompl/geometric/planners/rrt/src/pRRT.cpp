@@ -197,7 +197,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
         return base::PlannerStatus::INVALID_START;
     }
 
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nn_->size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
     SolutionInfo sol;
     sol.solution = NULL;
@@ -238,7 +238,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
            for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
 
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, sol.approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, sol.approxdif, getName());
         solved = true;
     }
 

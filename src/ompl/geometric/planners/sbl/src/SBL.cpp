@@ -113,7 +113,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    OMPL_INFORM("%s: Starting with %d states", getName().c_str(), (int)(tStart_.size + tGoal_.size));
+    OMPL_INFORM("%s: Starting planning with %d states already in datastructure", getName().c_str(), (int)(tStart_.size + tGoal_.size));
 
     std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
@@ -166,7 +166,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
             for (unsigned int i = 0 ; i < solution.size() ; ++i)
                 path->append(solution[i]->state);
 
-            pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
+            pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
             solved = true;
             break;
         }

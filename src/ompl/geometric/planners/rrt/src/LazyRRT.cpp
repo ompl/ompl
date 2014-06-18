@@ -114,7 +114,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nn_->size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
     Motion *solution = NULL;
     double  distsol  = -1.0;
@@ -190,7 +190,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
                 for (int i = mpath.size() - 1 ; i >= 0 ; --i)
                     path->append(mpath[i]->state);
 
-                pdef_->addSolutionPath(base::PathPtr(path), false, distsol);
+                pdef_->addSolutionPath(base::PathPtr(path), false, distsol, getName());
             }
         }
     }

@@ -226,6 +226,12 @@ namespace ompl
             vector_ = backup;
         }
 
+        /** \brief Return a reference to the comparison operator */
+        LessThan& getComparisonOperator()
+        {
+            return lt_;
+        }
+
     private:
 
         LessThan                 lt_;

@@ -110,7 +110,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("%s: Starting with %d states", getName().c_str(), (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
+    OMPL_INFORM("%s: Starting planning with %d states already in datastructure", getName().c_str(), (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
 
     base::State *xstate = si_->allocState();
     bool      startTree = true;
@@ -207,7 +207,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
                     for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
                         path->append(mpath2[i]->state);
 
-                    pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
+                    pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
                     solved = true;
                     break;
                 }

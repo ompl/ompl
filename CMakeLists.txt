@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
+if(NOT ${CMAKE_VERSION} VERSION_LESS 3.0.0)
+    cmake_policy(SET CMP0042 OLD)
+endif()
 project(ompl CXX C)
 
 # set the default build type

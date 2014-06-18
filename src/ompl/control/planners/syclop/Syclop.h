@@ -450,16 +450,16 @@ namespace ompl
             class GoalVisitor : public boost::default_astar_visitor
             {
             public:
-                GoalVisitor(const unsigned int goal) : goalRegion(goal)
+                GoalVisitor(const int goal) : goalRegion(goal)
                 {
                 }
                 void examine_vertex(Vertex v, const RegionGraph& /*g*/)
                 {
-                    if (v == goalRegion)
+                    if (static_cast<int>(v) == goalRegion)
                         throw found_goal();
                 }
             private:
-                const unsigned int goalRegion;
+                const int goalRegion;
             };
             /// @endcond
 

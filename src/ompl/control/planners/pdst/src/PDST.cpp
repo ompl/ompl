@@ -94,7 +94,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         return base::PlannerStatus::INVALID_START;
     }
 
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), priorityQueue_.size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), priorityQueue_.size());
 
     base::State *tmpState1 = si_->allocState(), *tmpState2 = si_->allocState();
     base::EuclideanProjection tmpProj1(ndim), tmpProj2(ndim);
@@ -160,7 +160,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         for (int i = (int) mpath.size() - 2; i > 0; i--)
             path->append(mpath[i-1]->startState_, mpath[i]->control_, durations[i] * dt);
         path->append(lastGoalMotion_->endState_, mpath[0]->control_, durations[0] * dt);
-        pdef_->addSolutionPath(base::PathPtr(path), isApproximate, closestDistanceToGoal);
+        pdef_->addSolutionPath(base::PathPtr(path), isApproximate, closestDistanceToGoal, getName());
     }
 
     si_->freeState(tmpState1);

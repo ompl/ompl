@@ -297,7 +297,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
 
     unsigned int nrStartStatesDense = boost::num_vertices(g_) - 1; // don't count query vertex
     unsigned int nrStartStatesSparse = boost::num_vertices(s_) - 1; // don't count query vertex
-    OMPL_INFORM("%s: Starting with %u dense states, %u sparse states", getName().c_str(), nrStartStatesDense, nrStartStatesSparse);
+    OMPL_INFORM("%s: Starting planning with %u dense states, %u sparse states", getName().c_str(), nrStartStatesDense, nrStartStatesSparse);
 
     // Reset addedSolution_ member
     addedSolution_ = false;
@@ -316,7 +316,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     slnThread.join();
 
     if (sol)
-        pdef_->addSolutionPath(sol, false);
+        pdef_->addSolutionPath(sol, false, -1.0, getName());
 
     OMPL_INFORM("%s: Created %u dense states, %u sparse states", getName().c_str(),
                 (unsigned int)(boost::num_vertices(g_) - nrStartStatesDense),

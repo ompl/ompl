@@ -197,7 +197,7 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
     if (!controlSampler_)
         controlSampler_ = siC_->allocControlSampler();
 
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), tree_.size);
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), tree_.size);
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
@@ -335,7 +335,7 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
             else
                 path->append(mpath[i]->state);
 
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
         solved = true;
     }
 

@@ -54,6 +54,9 @@ namespace ompl
 
         /** \brief Get the hostname of the machine in use */
         std::string getHostname();
+
+        /** \brief Get information about the CPU of the machine in use */
+        std::string getCPUInfo();
     }
 }
 

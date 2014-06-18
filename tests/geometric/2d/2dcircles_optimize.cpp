@@ -43,7 +43,6 @@
 
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
-#include "ompl/geometric/planners/fmt/FMT.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/base/goals/GoalState.h"
 #include "ompl/util/RandomNumbers.h"
@@ -144,10 +143,7 @@ protected:
                     geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
                     base::Cost new_cost = path->cost(pdef->getOptimizationObjective());
 
-                    // We don't use opt->isCostBetterThan() because
-                    // isCostBetterThan() defaults to '<', which can
-                    // cause this test to fail
-                    BOOST_CHECK(new_cost.v <= prev_cost.v);
+                    BOOST_CHECK(!opt->isCostBetterThan(prev_cost, new_cost));
 
                     prev_cost = new_cost;
                     BOOST_CHECK(!pdef->hasOptimizedSolution());
@@ -234,10 +230,7 @@ protected:
                     geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
                     base::Cost new_cost = path->cost(pdef->getOptimizationObjective());
 
-                    // We don't use opt->isCostBetterThan() because
-                    // isCostBetterThan() defaults to '<', which can
-                    // cause this test to fail
-                    BOOST_CHECK(new_cost.v <= prev_cost.v);
+                    BOOST_CHECK(!opt->isCostBetterThan(prev_cost, new_cost));
 
                     prev_cost = new_cost;
                     BOOST_CHECK(!pdef->hasOptimizedSolution());
@@ -335,17 +328,6 @@ protected:
     }
 };
 
-class FMTTest : public TestPlanner
-{
-protected:
-
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
-    {
-        geometric::FMT *fmt = new geometric::FMT(si);
-        return base::PlannerPtr(fmt);
-    }
-};
-
 class RRTstarDubinsTest : public TestPlanner
 {
 protected:
@@ -437,7 +419,6 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 
 OMPL_PLANNER_TEST(PRMstar)
 OMPL_PLANNER_TEST(PRM)
-OMPL_PLANNER_TEST(FMT)
 OMPL_PLANNER_TEST(RRTstar)
 OMPL_PLANNER_TEST(RRTstarDubinsNoGoalBias)
 OMPL_PLANNER_TEST(RRTstarDubins)

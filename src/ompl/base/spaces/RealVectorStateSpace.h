@@ -149,6 +149,8 @@ namespace ompl
 
             virtual double getMaximumExtent() const;
 
+            virtual double getMeasure() const;
+
             virtual void enforceBounds(State *state) const;
 
             virtual bool satisfiesBounds(const State *state) const;

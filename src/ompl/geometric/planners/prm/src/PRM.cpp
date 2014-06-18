@@ -396,7 +396,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     }
 
     unsigned int nrStartStates = boost::num_vertices(g_);
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nrStartStates);
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nrStartStates);
 
     // Reset addedSolution_ member and create solution checking thread
     addedSolution_ = false;
@@ -417,6 +417,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     if (sol)
     {
         base::PlannerSolution psol(sol);
+        psol.plannerName_ = getName();
         // if the solution was optimized, we mark it as such
         if (addedNewSolution())
             psol.optimized_ = true;
