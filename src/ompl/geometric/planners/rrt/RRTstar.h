@@ -309,33 +309,33 @@ namespace ompl
 
             /** \brief A list of states in the tree that satisfy the goal condition */
             std::vector<Motion*>                           goalMotions_;
-            
+
             /** \brief Directionality of distance computation for
                  nearest neighbors. Either from neighbors to new state,
                  or from new state to neighbors. */
             DistanceDirection                              distanceDirection_;
-            
+
             /** \brief If this vector contains states, they will be included to the tree in the next iterations of solve(). */
             std::vector<base::State*>                      statesToInclude_;
-            
+
              /** \brief If this vector contains motions, they will be deteled once the solve() function ends. */
             std::deque<Motion*>	                           toBeDeleted_;
-            
+
              /** \brief Lock for includeValidPath() and pathsToInclude_ */
             boost::mutex                                   includePathsLock_;
 
 			/** \brief If this value is set to true, the CForest parallelization framework will be activated. */
             bool                                           isCForest_;
-			
+
 			/** \brief CForest-related parameter. The tree is only pruned if there is a cost improvement over this percentage (between 0 and 1). */
             double                                         pruneCostPercentage_;
-			
+
 			/** \brief CForest-related parameter. The tree is only pruned is the percentage of states to prune is above this threshold. */
             double                                         pruneStatesPercentage_;
-			
+
 			/** \brief The cost used to prune the tree. It is set by CForest functions. */
             base::Cost                                     pruneTreeCost_;
-			
+
             //////////////////////////////
             // Planner progress properties
 
@@ -348,7 +348,6 @@ namespace ompl
             /** \brief Best cost found so far by algorithm */
             base::Cost                                     bestCost_;      
         };
-
     }
 }
 

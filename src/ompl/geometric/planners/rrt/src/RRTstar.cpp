@@ -33,7 +33,7 @@
 *********************************************************************/
 
 /* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Luis G. Torres, Ioan Sucan */
-/* CForest Authors: Javier V Gomez */
+/* CForest modifications authors: Javier V Gomez */
 
 #include "ompl/geometric/planners/rrt/RRTstar.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
@@ -135,8 +135,14 @@ void ompl::geometric::RRTstar::includeValidPath(const std::vector<const base::St
     boost::mutex::scoped_lock slock(includePathsLock_);
     if (opt_->isCostBetterThan(cost, pruneTreeCost_))
     {	
-        statesToInclude_.clear();
+        while(!statesToInclude_.empty())
+        {
+			si_->freeState(statesToInclude_.back());
+			statesToInclude_.pop_back();
+        }
+
         statesToInclude_.reserve(states.size());
+        // TODO: would a cast to const state help? So statesToInclude could be vector <const base::State *>
         for (std::size_t i = 0; i < states.size(); ++i)
             statesToInclude_.push_back(si_->cloneState(states[i]));
 
@@ -244,6 +250,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         {
             boost::mutex::scoped_lock slock(includePathsLock_);
             si_->copyState(rmotion->state, statesToInclude_.back());
+            si_->freeState(statesToInclude_.back());
             statesToInclude_.pop_back();
         }
         else 
@@ -619,7 +626,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     }
     
     int n = pruneTree();
-  statesGenerated -= n;
+    statesGenerated -= n;
     detelePrunedMotions();
     si_->freeState(xstate);
     if (rmotion->state)
@@ -668,7 +675,13 @@ void ompl::geometric::RRTstar::freeMemory()
             delete motions[i];
         }
     }
-    
+
+    while(!statesToInclude_.empty())
+    {
+        si_->freeState(statesToInclude_.back());
+        statesToInclude_.pop_back();
+	}
+
     detelePrunedMotions();
 }
 
