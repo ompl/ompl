@@ -44,7 +44,6 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
     specs_.optimizingPaths = true;
     specs_.multithreaded = true;
 
-    numInstances_ = 0;
     pathsShared_ = 0;
 
     addPlannerProgressProperty("best cost REAL",
@@ -64,7 +63,7 @@ void ompl::geometric::CForest::getPlannerData(base::PlannerData &data) const
 
     base::PlannerData pd(si_);
 
-    for (std::size_t i = 0 ; i < numInstances_ ; ++i)
+    for (std::size_t i = 0 ; i < planners_.size() ; ++i)
     {
         planners_[i]->getPlannerData(pd);
 
@@ -97,7 +96,7 @@ void ompl::geometric::CForest::getPlannerData(base::PlannerData &data) const
 void ompl::geometric::CForest::clear()
 {
     Planner::clear();
-    for (std::size_t i = 0 ; i < numInstances_ ; ++i)
+    for (std::size_t i = 0 ; i < planners_.size() ; ++i)
         planners_[i]->clear();
 
     totalBestCost_ = opt_->infiniteCost();
@@ -123,7 +122,7 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, co
     {
         pathsShared_++;
         totalBestCost_ = cost;
-        for (std::size_t i = 0 ; i < numInstances_ ; ++i) 
+        for (std::size_t i = 0 ; i < planners_.size() ; ++i) 
         {
             if (planners_[i].get() != planner) 
                 planners_[i]->includeValidPath(states, cost);        
@@ -138,13 +137,13 @@ void ompl::geometric::CForest::setup()
 
     totalBestCost_ = opt_->infiniteCost();
 
-    if (numInstances_ == 0) 
+    if (planners_.empty()) 
     {
         OMPL_INFORM("%s: Number and type of instances not specified. Defaulting to 2 instances of RRTstar", getName().c_str());
         setInstances<RRTstar>(2);
     }
 
-    for (std::size_t i = 0 ; i < numInstances_ ; ++i) 
+    for (std::size_t i = 0 ; i < planners_.size() ; ++i) 
         planners_[i]->setup();
 }
 
@@ -154,7 +153,7 @@ ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTer
         pdef_->getSpaceInformation()->setup();
 
     time::point start = time::now();
-    std::vector<boost::thread*> threads(numInstances_);
+    std::vector<boost::thread*> threads(planners_.size());
 
     const ReportIntermediateSolutionFn prevSolutionCallback = getProblemDefinition()->getIntermediateSolutionCallback();
 

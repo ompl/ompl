@@ -69,8 +69,8 @@ namespace ompl
             void setInstances(const std::size_t n)
             {
                 planners_.clear();
-                numInstances_ = n;
-                for (std::size_t i = 0 ; i < numInstances_ ; ++i)
+				planners_.reserve(n);
+                for (std::size_t i = 0 ; i < n; ++i)
                 {
                     base::PlannerPtr planner (new planner_t(si_));
                     planner->activateCForest();
@@ -117,9 +117,6 @@ namespace ompl
 
             /** \brief The maximum length of a motion to be added to a tree. */
             double                                       maxDistance_;
-
-            /** \brief Number of instances of the same planner that will run in parallel. */
-            std::size_t                                  numInstances_; 
 
             //////////////////////////////
             // Planner progress properties
