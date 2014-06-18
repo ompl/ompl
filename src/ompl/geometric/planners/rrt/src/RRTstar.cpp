@@ -135,10 +135,11 @@ void ompl::geometric::RRTstar::includeValidPath(const std::vector<const base::St
     boost::mutex::scoped_lock slock(includePathsLock_);
     if (opt_->isCostBetterThan(cost, pruneTreeCost_))
     {	
+        // \TODO: we can optimize: overwrite states already in the vector and push/remove the new ones.
         while(!statesToInclude_.empty())
         {
-			si_->freeState(statesToInclude_.back());
-			statesToInclude_.pop_back();
+            si_->freeState(statesToInclude_.back());
+            statesToInclude_.pop_back();
         }
 
         statesToInclude_.reserve(states.size());
