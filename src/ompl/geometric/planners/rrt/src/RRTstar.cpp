@@ -196,7 +196,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     // e+e/d.  K-nearest RRT*
     double k_rrg           = boost::math::constants::e<double>() + 
-                              (boost::math::constants::e<double>()/(double)si_->getStateSpace()->getDimension());
+                             (boost::math::constants::e<double>() / (double)si_->getStateSpace()->getDimension());
 
     std::vector<Motion*>       nbh;
 
@@ -216,7 +216,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     base::Cost					lastPruneCost = opt_->infiniteCost();
 
     if (solution)
-         OMPL_INFORM("%s: Starting planning with existing solution of cost %.5f", getName().c_str(), solution->cost.v);
+        OMPL_INFORM("%s: Starting planning with existing solution of cost %.5f", getName().c_str(), solution->cost.v);
     OMPL_INFORM("%s: Initial k-nearest value of %u", getName().c_str(), (unsigned int)std::ceil(k_rrg * log((double)(nn_->size()+1))));
 
     // our functor for sorting nearest neighbors
@@ -270,7 +270,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 		
 		if (!symDist)
             distanceDirection_ = FROM_NEIGHBORS;
-	
+
         // find closest state in the tree
         Motion *nmotion = nn_->nearest(rmotion);
         base::State *dstate = rstate;
@@ -291,7 +291,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             Motion *motion = new Motion(si_);
             si_->copyState(motion->state, dstate);
             motion->parent = nmotion;
-			motion->incCost = opt_->motionCost(nmotion->state, motion->state);
+            motion->incCost = opt_->motionCost(nmotion->state, motion->state);
             motion->cost = opt_->combineCosts(nmotion->cost, motion->incCost);
 
             // Find nearby neighbors of the new motion - k-nearest RRT*
@@ -430,7 +430,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 			
             bool checkForSolution = false;
             // rewire tree if needed
-            //           
+            //
             // Set directionality of distance function to be FROM new
             // state TO neighbors, since this is how the routing
             // should occur in tree rewiring
@@ -464,7 +464,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                             }
                             else
                                 motionValid = (valid[i] == 1);
-                                
+
                         }
                         else
                         {
@@ -520,7 +520,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             // Checking for solution or iterative improvement
             if (checkForSolution)
             {
-				bool updatedSolution = false;
+                bool updatedSolution = false;
                 for (size_t i = 0; i < goalMotions_.size(); ++i)
                 {
                     if (opt_->isCostBetterThan(goalMotions_[i]->cost, bestCost))
@@ -539,8 +539,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                      else if (!solution ||
                               opt_->isCostBetterThan(goalMotions_[i]->cost,solution->cost)) 
                     {
-                         solution = goalMotions_[i];
-                         updatedSolution = true;
+                        solution = goalMotions_[i];
+                        updatedSolution = true;
                     }
                 }
 
@@ -627,7 +627,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     if (rmotion->state)
         si_->freeState(rmotion->state);
     delete rmotion;
+
     OMPL_INFORM("%s: Created %u new states. Checked %u rewire options. %u goal states in tree.", getName().c_str(), statesGenerated, rewireTest, goalMotions_.size());
+
     return base::PlannerStatus(addedSolution, approximate);
 }
 

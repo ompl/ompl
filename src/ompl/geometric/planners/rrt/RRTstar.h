@@ -85,7 +85,7 @@ namespace ompl
             virtual void getPlannerData(base::PlannerData &data) const;
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
-			
+
             virtual void clear();
 
             virtual void includeValidPath(const std::vector<const base::State *> &states, const base::Cost cost);
@@ -250,7 +250,7 @@ namespace ompl
                 const std::vector<base::Cost>& costs_;
                 const base::OptimizationObjective &opt_;
             };
-            
+
             enum DistanceDirection { FROM_NEIGHBORS, TO_NEIGHBORS };
             
             /** \brief Free the memory allocated by this planner */
@@ -259,14 +259,14 @@ namespace ompl
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion *a, const Motion *b) const
             {
-                  switch (distanceDirection_)
-                  {
-                  case FROM_NEIGHBORS:
-                      return si_->distance(a->state, b->state);
-                  case TO_NEIGHBORS:
-                      return si_->distance(b->state, a->state);
-                  }
-                  return 0; // remove warning
+                switch (distanceDirection_)
+                {
+                case FROM_NEIGHBORS:
+                    return si_->distance(a->state, b->state);
+                case TO_NEIGHBORS:
+                    return si_->distance(b->state, a->state);
+                }
+                return 0; // remove warning
             }
 
             /** \brief Removes the given motion from the parent's child list */
@@ -316,25 +316,25 @@ namespace ompl
             DistanceDirection                              distanceDirection_;
             
             /** \brief If this vector contains states, they will be included to the tree in the next iterations of solve(). */
-            std::vector<base::State*>						statesToInclude_;
+            std::vector<base::State*>                      statesToInclude_;
             
              /** \brief If this vector contains motions, they will be deteled once the solve() function ends. */
-            std::deque<Motion*>								toBeDeleted_;
+            std::deque<Motion*>	                           toBeDeleted_;
             
              /** \brief Lock for includeValidPath() and pathsToInclude_ */
-            boost::mutex                 					includePathsLock_;
+            boost::mutex                                   includePathsLock_;
 
 			/** \brief If this value is set to true, the CForest parallelization framework will be activated. */
-			bool											isCForest_;
+			bool                                           isCForest_;
 			
 			/** \brief CForest-related parameter. The tree is only pruned if there is a cost improvement over this percentage (between 0 and 1). */
-			double											pruneCostPercentage_;
+			double                                         pruneCostPercentage_;
 			
 			/** \brief CForest-related parameter. The tree is only pruned is the percentage of states to prune is above this threshold. */
-			double											pruneStatesPercentage_;
+			double                                         pruneStatesPercentage_;
 			
 			/** \brief The cost used to prune the tree. It is set by CForest functions. */
-			base::Cost										pruneTreeCost_;
+			base::Cost                                     pruneTreeCost_;
 			
             //////////////////////////////
             // Planner progress properties
@@ -346,8 +346,7 @@ namespace ompl
             unsigned int                                   collisionChecks_;
 
             /** \brief Best cost found so far by algorithm */
-            base::Cost                                     bestCost_;
-                       
+            base::Cost                                     bestCost_;      
         };
 
     }
