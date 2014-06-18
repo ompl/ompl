@@ -120,9 +120,9 @@ namespace ompl
         
         class Planner;
         
-		/** \brief When a planner has an intermediate solution (e.g., optimizing planners), a function with this signature can be called
-		to report the states of that solution. */
-		typedef boost::function<void(const Planner*, const std::vector<const base::State*> &, const Cost &)> ReportIntermediateSolutionFn;
+        /** \brief When a planner has an intermediate solution (e.g., optimizing planners), a function with this signature can be called
+            to report the states of that solution. */
+        typedef boost::function<void(const Planner*, const std::vector<const base::State*> &, const Cost &)> ReportIntermediateSolutionFn;
 
         OMPL_CLASS_FORWARD(OptimizationObjective);
 
@@ -255,19 +255,19 @@ namespace ompl
             {
                 optimizationObjective_ = optimizationObjective;
             }
-            
+
             /** \brief When this function returns a valid function pointer, that function should be called 
-				by planners that compute intermediate solutions every time a better solution is found */
-			const ReportIntermediateSolutionFn& getIntermediateSolutionCallback() const
-			{
-				return intermediateSolutionCallback_;
-			}
-			
-			/** \brief Set the callback to be called by planners that can compute intermediate solutions */
-			void setIntermediateSolutionCallback(const ReportIntermediateSolutionFn &callback) {
-				intermediateSolutionCallback_ = callback;
-			}
-			
+                by planners that compute intermediate solutions every time a better solution is found */
+            const ReportIntermediateSolutionFn& getIntermediateSolutionCallback() const
+            {
+                return intermediateSolutionCallback_;
+            }
+
+            /** \brief Set the callback to be called by planners that can compute intermediate solutions */
+            void setIntermediateSolutionCallback(const ReportIntermediateSolutionFn &callback) {
+                intermediateSolutionCallback_ = callback;
+             }
+
             /** \brief A problem is trivial if a given starting state already
                 in the goal region, so we need no motion planning. startID
                 will be set to the index of the starting state that
@@ -369,7 +369,7 @@ namespace ompl
             OptimizationObjectivePtr     optimizationObjective_;
             
             /** \brief Callback function which is called when a new intermediate solution has been found.*/
-            ReportIntermediateSolutionFn		intermediateSolutionCallback_;
+            ReportIntermediateSolutionFn     intermediateSolutionCallback_;
 
         private:
 

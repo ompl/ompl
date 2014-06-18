@@ -49,93 +49,87 @@ namespace ompl
 
     namespace geometric
     {
-		class CForest : public base::Planner
+        class CForest : public base::Planner
         {
         public:
-			
-			/** \brief Function signature to report intermediate solutions found by the underlying planner. */
-			typedef boost::function<void(const Planner*, const std::vector<const base::State*> &, const base::Cost &)> ReportIntermediateSolutionFn;
-        
-			CForest(const base::SpaceInformationPtr &si);
-			
-			~CForest();
-			
-			virtual void getPlannerData(base::PlannerData &data) const;
-			 
-			virtual void clear();
-			
-			/** \brief Set the number of planner instances and the type that will be running in different threads.*/
-			template <class planner_t>
-			void setInstances(const std::size_t n)
-			{
-				planners_.clear();
-				numInstances_ = n;
-				for (std::size_t i = 0 ; i < numInstances_ ; ++i)
-				{
-					base::PlannerPtr planner (new planner_t(si_));
-					planner->activateCForest();
-					planner->setProblemDefinition(pdef_);
-					planners_.push_back(planner);
-				}
-			}
-			
-			virtual void setProblemDefinition (const base::ProblemDefinitionPtr &pdef); 
+            
+            /** \brief Function signature to report intermediate solutions found by the underlying planner. */
+            typedef boost::function<void(const Planner*, const std::vector<const base::State*> &, const base::Cost &)> ReportIntermediateSolutionFn;
 
-			/** \brief Callback to be called everytime a new, better solution is found by a planner. */
-			void newSolutionFound(const base::Planner *planner, const std::vector<const base::State *> &states, const base::Cost cost);
+            CForest(const base::SpaceInformationPtr &si);
 
-			void setup();
-			
-			virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
-			
-			/** \brief Get an specific planner instance. */
-			const base::PlannerPtr &getPlanner (const std::size_t idx) const
-			{
-				return planners_[idx];
-			}
-			
-			///////////////////////////////////////
+            ~CForest();
+
+            virtual void getPlannerData(base::PlannerData &data) const;
+
+            virtual void clear();
+
+            /** \brief Set the number of planner instances and the type that will be running in different threads.*/
+            template <class planner_t>
+            void setInstances(const std::size_t n)
+            {
+                planners_.clear();
+                numInstances_ = n;
+                for (std::size_t i = 0 ; i < numInstances_ ; ++i)
+                {
+                    base::PlannerPtr planner (new planner_t(si_));
+                    planner->activateCForest();
+                    planner->setProblemDefinition(pdef_);
+                    planners_.push_back(planner);
+                }
+            }
+
+            virtual void setProblemDefinition (const base::ProblemDefinitionPtr &pdef); 
+
+            /** \brief Callback to be called everytime a new, better solution is found by a planner. */
+            void newSolutionFound(const base::Planner *planner, const std::vector<const base::State *> &states, const base::Cost cost);
+
+            void setup();
+
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+
+            /** \brief Get an specific planner instance. */
+            const base::PlannerPtr &getPlanner (const std::size_t idx) const
+            {
+                return planners_[idx];
+            }
+
+            ///////////////////////////////////////
             // Planner progress property functions
             /** \brief Get best cost among all the planners. */
-			std::string getBestCost() const;
-			
-			/** \brief Get number of paths shared by the algorithm. */
+            std::string getBestCost() const;
+
+            /** \brief Get number of paths shared by the algorithm. */
             std::string getPathsShared() const;
-            
-			///////////////////////////////////////
-			
+
+            ///////////////////////////////////////
+
         protected:
-        
-			
-			/** \brief Manages the call to solve() for each individual planner. */
-			void solveOne(base::Planner *planner, const base::PlannerTerminationCondition *ptc);
-        
-			/** \brief Optimization objective taken into account when planning. */
-			base::OptimizationObjectivePtr 				opt_;
-			
-			/** \brief The set of planners to be used. */
-            std::vector<base::PlannerPtr>  				planners_;
-            
+
+            /** \brief Manages the call to solve() for each individual planner. */
+            void solveOne(base::Planner *planner, const base::PlannerTerminationCondition *ptc);
+
+            /** \brief Optimization objective taken into account when planning. */
+            base::OptimizationObjectivePtr               opt_;
+
+            /** \brief The set of planners to be used. */
+            std::vector<base::PlannerPtr>                planners_;
+
             /** \brief The maximum length of a motion to be added to a tree. */
             double                                       maxDistance_;
-            
+
             /** \brief Number of instances of the same planner that will run in parallel. */
-            std::size_t									 numInstances_; 
-            
+            std::size_t                                  numInstances_; 
+
             //////////////////////////////
             // Planner progress properties
-
              /** \brief Cost of the best path found so far among planners. */
-            base::Cost									totalBestCost_;       
-            
-            /** \brief Number of paths shared among threads. */
-            int											pathsShared_;   
-		};
-		
-		
-		
-	}
-}
+            base::Cost                                   totalBestCost_;       
 
+            /** \brief Number of paths shared among threads. */
+            int                                          pathsShared_;   
+        };
+    }
+}
 
 #endif

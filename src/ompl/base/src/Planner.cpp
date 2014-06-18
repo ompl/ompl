@@ -85,12 +85,12 @@ const ompl::base::PlannerInputStates& ompl::base::Planner::getPlannerInputStates
 
 void ompl::base::Planner::includeValidPath(const std::vector<const State *> &states, const Cost cost)
 {
-	throw Exception("Including valid paths in exploration data structures is not implemented for " + name_);
+    throw Exception("Including valid paths in exploration data structures is not implemented for " + name_);
 }
 
 void ompl::base::Planner::activateCForest()
 {
-	throw Exception("CForest cannot be activated for " + name_);
+    throw Exception("CForest cannot be activated for " + name_);
 }
 
 void ompl::base::Planner::setup()
