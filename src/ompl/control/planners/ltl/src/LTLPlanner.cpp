@@ -129,7 +129,7 @@ ompl::control::LTLPlanner::Motion::Motion(void) : state(NULL), control(NULL), pa
 ompl::control::LTLPlanner::Motion::Motion(const SpaceInformation* si) :
     state(si->allocState()),
     control(si->allocControl()),
-    parent(NULL), 
+    parent(NULL),
     steps(0)
 {
 }
@@ -198,6 +198,7 @@ bool ompl::control::LTLPlanner::explore(const std::vector<ProductGraph::State*>&
 {
     bool solved = false;
     base::PlannerTerminationCondition ptc = base::timedPlannerTerminationCondition(duration);
+    base::GoalPtr goal = pdef_->getGoal();
     while (!ptc() && !solved)
     {
         ProductGraph::State* as = availDist_.sample(rng_.uniform01());
@@ -232,7 +233,7 @@ bool ompl::control::LTLPlanner::explore(const std::vector<ProductGraph::State*>&
         // Since the state was determined to be valid by SpaceInformation, we don't need to check automaton states
         m->abstractState = ltlsi_->getProdGraphState(m->state);
         motions_.push_back(m);
-        
+
         abstractInfo_[m->abstractState].addMotion(m);
         updateWeight(m->abstractState);
         // update weight if hl state already exists in avail
@@ -248,7 +249,7 @@ bool ompl::control::LTLPlanner::explore(const std::vector<ProductGraph::State*>&
             }
         }
 
-        solved = static_cast<base::LTLProblemDefinition*>(pdef_.get())->getGoal()->isSatisfied(m->state);
+        solved = goal->isSatisfied(m->state);
         if (solved)
         {
             soln = m;

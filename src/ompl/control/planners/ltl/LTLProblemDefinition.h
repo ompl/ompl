@@ -43,7 +43,7 @@
 
 namespace ompl
 {
-    namespace base
+    namespace control
     {
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::LTLProblemDefinition */
@@ -52,7 +52,7 @@ namespace ompl
 
         /** \class ompl::control::LTLProblemDefinitionPtr
             \brief A boost shared pointer wrapper for ompl::control::LTLProblemDefinition */
-        class LTLProblemDefinition : public ProblemDefinition
+        class LTLProblemDefinition : public base::ProblemDefinition
         {
         public:
             LTLProblemDefinition(const control::LTLSpaceInformationPtr& ltlsi);
@@ -61,12 +61,12 @@ namespace ompl
 
             void addLowerStartState(const base::State* s);
 
-            PathPtr getLowerSolutionPath(void) const;
+            base::PathPtr getLowerSolutionPath(void) const;
 
         protected:
             void createGoal(void);
 
-            control::LTLSpaceInformationPtr ltlsi_;
+            LTLSpaceInformationPtr ltlsi_;
         };
     }
 }
