@@ -110,7 +110,7 @@ void oc::LTLSpaceInformation::extendPropagator(const oc::SpaceInformationPtr& ol
     private:
         const oc::ProductGraphPtr prod_;
         const oc::StatePropagatorPtr lowProp_;
-        const oc::LTLSpaceInformationPtr ltlsi_;
+        oc::LTLSpaceInformation* ltlsi_;
     };
 
     // Some compilers have trouble with LTLStatePropagator being hidden in this function,

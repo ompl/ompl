@@ -24,15 +24,18 @@ ob::PathPtr oc::LTLProblemDefinition::getLowerSolutionPath(void) const
     PathControl* fullPath = static_cast<PathControl*>(getSolutionPath().get());
     ob::PathPtr lowPathPtr(new PathControl(ltlsi_->getLowSpace()));
     PathControl* lowPath = static_cast<PathControl*>(lowPathPtr.get());
-    lowPath->getControls().assign(fullPath->getControls().begin(), fullPath->getControls().end());
-    lowPath->getControlDurations().assign(
-        fullPath->getControlDurations().begin(), fullPath->getControlDurations().end());
-    for (std::size_t i = 0; i < fullPath->getStateCount(); ++i)
+
+    if (fullPath->getStateCount() > 0)
     {
-        lowPath->append(ltlsi_->getLowSpace()->allocState());
-        ltlsi_->getLowSpace()->copyState(lowPath->getState(i),
-            ltlsi_->getLowLevelState(fullPath->getState(i)));
+        for(size_t i = 0; i < fullPath->getStateCount()-1; ++i)
+            lowPath->append(ltlsi_->getLowLevelState(fullPath->getState(i)),
+                            fullPath->getControl(i),
+                            fullPath->getControlDuration(i));
+
+        // The last state does not have a control
+        lowPath->append(ltlsi_->getLowLevelState(fullPath->getState(fullPath->getStateCount()-1)));
     }
+
     return lowPathPtr;
 }
 
