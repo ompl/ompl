@@ -256,6 +256,8 @@ void plan(void)
     }
     else
         std::cout << "No solution found" << std::endl;
+
+    delete ltlPlanner;
 }
 
 int main(int, char **)

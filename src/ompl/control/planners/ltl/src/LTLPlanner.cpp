@@ -24,6 +24,7 @@ ompl::control::LTLPlanner::LTLPlanner(const LTLSpaceInformationPtr& ltlsi, const
 
 ompl::control::LTLPlanner::~LTLPlanner(void)
 {
+    clearMotions();
 }
 
 void ompl::control::LTLPlanner::setup()
@@ -226,8 +227,7 @@ bool ompl::control::LTLPlanner::explore(const std::vector<ProductGraph::State*>&
         }
         Motion* m = new Motion();
         m->state = newState;
-        m->control = ltlsi_->allocControl();
-        ltlsi_->copyControl(m->control, rctrl);
+        m->control = rctrl;
         m->steps = cd;
         m->parent = v;
         // Since the state was determined to be valid by SpaceInformation, we don't need to check automaton states
@@ -255,7 +255,6 @@ bool ompl::control::LTLPlanner::explore(const std::vector<ProductGraph::State*>&
             soln = m;
             break;
         }
-        ltlsi_->freeControl(rctrl);
     }
     return solved;
 }

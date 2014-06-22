@@ -139,7 +139,7 @@ void oc::LTLSpaceInformation::extendValidityChecker(const oc::SpaceInformationPt
     private:
         const oc::ProductGraphPtr prod_;
         const ob::StateValidityCheckerPtr lowChecker_;
-        const oc::LTLSpaceInformationPtr ltlsi_;
+        oc::LTLSpaceInformation* ltlsi_;
     };
 
     // Some compilers have trouble with LTLStateValidityChecker being hidden in this function,
