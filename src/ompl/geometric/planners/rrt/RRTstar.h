@@ -84,7 +84,12 @@ namespace ompl
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc)
+            {
+                return  base::PlannerStatus::UNKNOWN;
+            }
+
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, const int idx);
 
             virtual void clear();
 
@@ -152,29 +157,30 @@ namespace ompl
             }
 
             /** \brief Set the percentage threshold (between 0 and 1) for pruning the tree. If best cost is improved
-			    over this percentage, the  tree will be pruned. */
-            void setPruneCostPercentage (const double pp)
+                over this percentage, the  tree will be pruned. */
+            void setPruneCostImprovementThreshold (const double pp)
             {
-                pruneCostPercentage_ = pp;
+                pruneCostThreshold_ = pp;
             }
 
             /** \brief Get the current prune cost percentage threshold parameter. */
-            double getPruneCostPercentage () const
-			{
-                return pruneCostPercentage_;
+            
+            double getPruneCostImprovementThreshold() const
+            {
+                return pruneCostThreshold_;
             }
 
             /** \brief Set the percentage threshold (between 0 and 1) for pruning the tree. If the new tree has removed
                 at least this percentage of states, the tree will be finally pruned. */
-            void setPruneStatesPercentage (const double pp)
+            void setPruneStatesImprovementThreshold(const double pp)
             {
-                pruneStatesPercentage_ = pp;
+                pruneStatesThreshold_ = pp;
             }
 
             /** \brief Get the current prune states percentage threshold parameter. */
-            double getPruneStatesPercentage () const
+            double getPruneStatesImprovementThreshold () const
             {
-                return pruneStatesPercentage_;
+                return pruneStatesThreshold_;
             }
 
             virtual void setup();
@@ -187,8 +193,8 @@ namespace ompl
 
             std::string getBestCost() const;
             ///////////////////////////////////////
-            
-			/** \brief TO BE REMOVED in the final version. */
+
+            /** \brief TO BE REMOVED in the final version. */
             void saveTree(const char * filename);
 
             /** \brief When called, the CForest parallelization framework is activated. */
@@ -235,7 +241,7 @@ namespace ompl
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion*> children;
             };
-            
+
             // For sorting a list of costs and getting only their sorted indices
             struct CostIndexCompare
             {
@@ -324,16 +330,16 @@ namespace ompl
              /** \brief Lock for includeValidPath() and pathsToInclude_ */
             boost::mutex                                   includePathsLock_;
 
-			/** \brief If this value is set to true, the CForest parallelization framework will be activated. */
+            /** \brief If this value is set to true, the CForest parallelization framework will be activated. */
             bool                                           isCForest_;
 
-			/** \brief CForest-related parameter. The tree is only pruned if there is a cost improvement over this percentage (between 0 and 1). */
-            double                                         pruneCostPercentage_;
+            /** \brief CForest-related parameter. The tree is only pruned if there is a cost improvement over this percentage (between 0 and 1). */
+            double                                         pruneCostThreshold_;
 
-			/** \brief CForest-related parameter. The tree is only pruned is the percentage of states to prune is above this threshold. */
-            double                                         pruneStatesPercentage_;
+            /** \brief CForest-related parameter. The tree is only pruned is the percentage of states to prune is above this threshold (between 0 and 1). */
+            double                                         pruneStatesThreshold_;
 
-			/** \brief The cost used to prune the tree. It is set by CForest functions. */
+            /** \brief The cost used to prune the tree. It is set by CForest functions. */
             base::Cost                                     pruneTreeCost_;
 
             //////////////////////////////
@@ -346,7 +352,11 @@ namespace ompl
             unsigned int                                   collisionChecks_;
 
             /** \brief Best cost found so far by algorithm */
-            base::Cost                                     bestCost_;      
+            base::Cost                                     bestCost_;     
+            
+            
+            
+            int idx_; 
         };
     }
 }

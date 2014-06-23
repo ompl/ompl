@@ -129,7 +129,7 @@ public:
 		// Set the problem instance for our planner to solve
 		planner_->setProblemDefinition(pdef_);
 		
-		//planner_->as<og::CForest>()->setInstances<og::RRTStar>(2);
+		//planner_->as<og::CForest>()->setPlannerInstances<og::RRTStar>(2);
 		
 		planner_->setup();
 
@@ -291,13 +291,13 @@ int main(int argc, char** argv)
         //env.loadPlannerData("plannerData");
     }
 
-	Plane2DEnvironment<og::RRTstar> env2((path / "ppm/floor.ppm").string().c_str());
+/*	Plane2DEnvironment<og::RRTstar> env2((path / "ppm/floor.ppm").string().c_str());
 	
     if (env2.plan(0, 0, 1140, 1402))
     {
 		OMPL_INFORM("Plan successful");
 		std::cout << "Final lowest cost 2: " << env2.getLowestCost() << std::endl;
-	}
+	}*/
 
 	return 0;
 }

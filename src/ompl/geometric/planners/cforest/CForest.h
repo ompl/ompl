@@ -54,42 +54,40 @@ namespace ompl
         public:
             
             /** \brief Function signature to report intermediate solutions found by the underlying planner. */
-            typedef boost::function<void(const Planner*, const std::vector<const base::State*> &, const base::Cost &)> ReportIntermediateSolutionFn;
+            typedef boost::function<void(const Planner*, const std::vector<const base::State*> &, const base::Cost)> ReportIntermediateSolutionFn;
 
             CForest(const base::SpaceInformationPtr &si);
 
-            ~CForest();
+            virtual ~CForest();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
             virtual void clear();
 
-            /** \brief Set the number of planner instances and the type that will be running in different threads.*/
-            template <class planner_t>
-            void setInstances(const std::size_t n)
+            /** \brief Set the number of planner instances and the type T that will be running in different threads.*/
+            template <class T>
+            void setPlannerInstances(const std::size_t n)
             {
                 planners_.clear();
-				planners_.reserve(n);
+                planners_.reserve(n);
                 for (std::size_t i = 0 ; i < n; ++i)
                 {
-                    base::PlannerPtr planner (new planner_t(si_));
+                    base::PlannerPtr planner (new T(si_));
                     planner->activateCForest();
                     planner->setProblemDefinition(pdef_);
                     planners_.push_back(planner);
                 }
             }
+            
+            /** \brief Add an specific planner instance. */
+            void addPlannerInstance(const base::PlannerPtr &planner);
 
-            virtual void setProblemDefinition (const base::ProblemDefinitionPtr &pdef); 
-
-            /** \brief Callback to be called everytime a new, better solution is found by a planner. */
-            void newSolutionFound(const base::Planner *planner, const std::vector<const base::State *> &states, const base::Cost cost);
-
-            void setup();
+            virtual void setup();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             /** \brief Get an specific planner instance. */
-            const base::PlannerPtr &getPlanner (const std::size_t idx) const
+            const base::PlannerPtr& getPlanner(const std::size_t idx) const
             {
                 return planners_[idx];
             }
@@ -101,13 +99,17 @@ namespace ompl
 
             /** \brief Get number of paths shared by the algorithm. */
             std::string getPathsShared() const;
-
             ///////////////////////////////////////
+
+        private:
+
+            /** \brief Callback to be called everytime a new, better solution is found by a planner. */
+            void newSolutionFound(const base::Planner *planner, const std::vector<const base::State *> &states, const base::Cost cost);
 
         protected:
 
             /** \brief Manages the call to solve() for each individual planner. */
-            void solveOne(base::Planner *planner, const base::PlannerTerminationCondition *ptc);
+            void solveOne(base::Planner *planner, const base::PlannerTerminationCondition *ptc, const int idx);
 
             /** \brief Optimization objective taken into account when planning. */
             base::OptimizationObjectivePtr               opt_;
@@ -124,7 +126,9 @@ namespace ompl
             base::Cost                                   totalBestCost_;       
 
             /** \brief Number of paths shared among threads. */
-            int                                          pathsShared_;   
+            int                                          pathsShared_;  
+            
+            boost::mutex                                 newSolutionFoundMutex_;
         };
     }
 }

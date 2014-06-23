@@ -58,10 +58,10 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     delayCC_ = true;
     lastGoalMotion_ = NULL;
     
-    pruneTreeCost_ = base::Cost(std::numeric_limits<double>::infinity());
+    pruneTreeCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
     isCForest_ = false;
-    pruneCostPercentage_ = 0.001;
-    pruneStatesPercentage_ = 0.05;
+    pruneCostThreshold_ = 0.001;
+    pruneStatesThreshold_ = 0.05;
 
     iterations_ = 0;
     collisionChecks_ = 0;
@@ -71,9 +71,9 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
     Planner::declareParam<bool>("delay_collision_checking", this, &RRTstar::setDelayCC, &RRTstar::getDelayCC, "0,1");
-	Planner::declareParam<double>("prune_cost_percentage", this, &RRTstar::setPruneCostPercentage, &RRTstar::getPruneCostPercentage, "0.:.0001:1.");
-	Planner::declareParam<double>("prune_states_percentage", this, &RRTstar::setPruneStatesPercentage, &RRTstar::getPruneStatesPercentage, "0.:.01:1.");
-	
+    Planner::declareParam<double>("prune_cost_threshold", this, &RRTstar::setPruneCostImprovementThreshold, &RRTstar::getPruneCostImprovementThreshold, "0.:.0001:1.");
+    Planner::declareParam<double>("prune_states_threshold", this, &RRTstar::setPruneStatesImprovementThreshold, &RRTstar::getPruneStatesImprovementThreshold, "0.:.01:1.");
+    
     addPlannerProgressProperty("iterations INTEGER",
                                boost::bind(&RRTstar::getIterationCount, this));
     addPlannerProgressProperty("collision checks INTEGER",
@@ -127,32 +127,34 @@ void ompl::geometric::RRTstar::clear()
     iterations_ = 0;
     collisionChecks_ = 0;
     bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
-    pruneTreeCost_ = base::Cost(std::numeric_limits<double>::infinity());
+    pruneTreeCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
 }
 
+
+// \TODO: This function is a bit inefficient in terms of memory allocation. We should free memory 
+// only when states.size() < statesToInclude_.size(); otherwise, we allocate memory from 
+// statesToInclude_.size() to states.size() -1 (allocState). Then we can use copyState() 
+// instead of cloneState() and we save a lot of memory alloc / free.
 void ompl::geometric::RRTstar::includeValidPath(const std::vector<const base::State *> &states, const base::Cost cost) 
 {
     boost::mutex::scoped_lock slock(includePathsLock_);
     if (opt_->isCostBetterThan(cost, pruneTreeCost_))
-    {	
-        // \TODO: we can optimize: overwrite states already in the vector and push/remove the new ones.
-        while(!statesToInclude_.empty())
-        {
-            si_->freeState(statesToInclude_.back());
-            statesToInclude_.pop_back();
-        }
+    {
+        si_->freeStates(statesToInclude_);
+        statesToInclude_.clear();
 
         statesToInclude_.reserve(states.size());
         // TODO: would a cast to const state help? So statesToInclude could be vector <const base::State *>
         for (std::size_t i = 0; i < states.size(); ++i)
             statesToInclude_.push_back(si_->cloneState(states[i]));
-
+            
         pruneTreeCost_ = cost;
     }
 }
 
-ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc, const int idx)
 {
+	idx_ = idx;
     checkValidity();
     base::Goal                  *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
@@ -219,8 +221,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     std::vector<int>           valid;
     unsigned int               rewireTest = 0;
     unsigned int               statesGenerated = 0;
-    
+
     base::Cost                 lastPruneCost = opt_->infiniteCost();
+
+    pruneTreeCost_ = opt_->infiniteCost();
 
     if (solution)
         OMPL_INFORM("%s: Starting planning with existing solution of cost %.5f", getName().c_str(), solution->cost.v);
@@ -234,12 +238,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         iterations_++;
 
         // CFOREST Specific code: a new path has been shared by other thread.
-		if (isCForest_ && opt_->isCostBetterThan(pruneTreeCost_, bestCost_))
+        if (isCForest_ && opt_->isCostBetterThan(pruneTreeCost_, bestCost_))
         {
             bestCost_ = pruneTreeCost_;
             bestCost = bestCost_;
             // Only prune if the improvement is noticeable.
-            if (1-bestCost_.v/lastPruneCost.v > pruneCostPercentage_ || std::isinf(lastPruneCost.v))
+            if (1-bestCost_.v/lastPruneCost.v > pruneCostThreshold_ || std::isinf(lastPruneCost.v))
             {
                 lastPruneCost = bestCost_;
                 int n = pruneTree();
@@ -276,7 +280,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
         }
 
-		if (!symDist)
+         if (!symDist)
             distanceDirection_ = FROM_NEIGHBORS;
 
         // find closest state in the tree
@@ -421,6 +425,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 {
                     nn_->add(motion);
                     motion->parent->children.push_back(motion);
+
                 }
                 else // If the new motion does not improve the pruneTreeCost_ it is ignored.
                 {
@@ -435,7 +440,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 nn_->add(motion);
                 motion->parent->children.push_back(motion);
             }
-			
+
             bool checkForSolution = false;
             // rewire tree if needed
             //
@@ -502,25 +507,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             double distanceFromGoal;
             if (goal->isSatisfied(motion->state, &distanceFromGoal))
             {
-				// CForest: avoiding to replicate goal states.
-                if (isCForest_)
-                {
-                    bool addGoalMotion = true;
-                    for (std::size_t i = 0; i < goalMotions_.size(); ++i) 
-                    {
-                        if (si_->equalStates(motion->state, goalMotions_[i]->state))
-                        {
-                            goalMotions_[i]->cost = motion->cost;
-                            addGoalMotion = false;
-                            break;
-                        }
-                    }
-                    if (addGoalMotion)
-                        goalMotions_.push_back(motion);
-                }
-                else
-                    goalMotions_.push_back(motion);
-
+                goalMotions_.push_back(motion);
                 checkForSolution = true;
             }
 
@@ -552,30 +539,31 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 }
 
                 // CFOREST sharing path only when there are not more shared states to include.
-				if (isCForest_ && updatedSolution && statesToInclude_.empty()) 
-				{
+                if (isCForest_ && updatedSolution && statesToInclude_.empty()) 
+                {
                     if (opt_->isCostBetterThan(bestCost_, pruneTreeCost_))
-					{
+                    {
                         pruneTreeCost_ = bestCost_;
-                        //Only prune if the improvement is noticeable.
-                        if (1-bestCost_.v/lastPruneCost.v > pruneCostPercentage_ || std::isinf(lastPruneCost.v))
+                        // Only prune if the improvement is noticeable.
+                        // \TODO: would work if we substitute isinf() for == opt_->infiniteCost() ?
+                        if (1-bestCost_.v/lastPruneCost.v > pruneCostThreshold_ || std::isinf(lastPruneCost.v))
                         {
                             lastPruneCost = bestCost_;
                             int n = pruneTree();
                             statesGenerated -= n;
                         }
 
-						std::vector<const base::State *> spath;
-						Motion *intermediate_solution = solution;
+                        std::vector<const base::State *> spath;
+                        Motion *intermediate_solution = solution->parent; // Do not include goal state.
 
                         do
                         {
                             spath.push_back(intermediate_solution->state);
                             intermediate_solution = intermediate_solution->parent;
                         } while (intermediate_solution->parent != 0); // Do not include the start state.
-						
+
                         pdef_->getIntermediateSolutionCallback()(this, spath, bestCost_);
-					}
+                    }
                 }
             }
 
@@ -676,12 +664,9 @@ void ompl::geometric::RRTstar::freeMemory()
             delete motions[i];
         }
     }
-
-    while(!statesToInclude_.empty())
-    {
-        si_->freeState(statesToInclude_.back());
-        statesToInclude_.pop_back();
-	}
+    
+    si_->freeStates(statesToInclude_);
+    statesToInclude_.clear();
 
     detelePrunedMotions();
 }
@@ -752,6 +737,7 @@ void ompl::geometric::RRTstar::saveTree(const char * filename)
 	 fs.close();	
 }
 
+// \TODO: change candidates.push(tree[0]); for root searching.
 int ompl::geometric::RRTstar::pruneTree()
 {
     base::Cost costToGo;
@@ -785,26 +771,26 @@ int ompl::geometric::RRTstar::pruneTree()
                 candidates.push(candidate->children[i]);
         }
         else {
-            toBePruned.push_back(candidate);		
+            toBePruned.push_back(candidate);
         }
     }
 
     // To create the new nn takes one order of magnitude in time more than just checking how many 
     // states would be pruned. Therefore, only prune if it removes a significant amount of states.
-    if (1. - ((double)newTree.size()) / tree.size() > pruneStatesPercentage_)
+    if (1. - ((double)newTree.size()) / tree.size() > pruneStatesThreshold_)
     {
         // TODO: the deletion of the pruned nodes can be improved. However, it requires to be really
         // careful when dealing with pruneTreeCost_ and goal motions, since they could be pruned if pruneTreeCost_
-        // is updated while pruning. This does not avoid this, but does not delete the goal motion so it can be
+        // is updated while pruning. This does not avoid it, but does not delete the goal motion so it can be
         // removed from the tree but still used. It is kept this way in order to maintain the code understandable.
-		for (std::size_t i = 0; i < toBePruned.size(); ++i)
+        for (std::size_t i = 0; i < toBePruned.size(); ++i)
         {
             removeFromParent(toBePruned[i]);
             toBeDeleted_.push_back(toBePruned[i]);
         }
 
         nn_->clear();
-        nn_->add(newTree);	
+        nn_->add(newTree);
 
         return (tree.size() - newTree.size());
     }
