@@ -288,6 +288,8 @@ namespace ompl
             /** \brief If CForest is activated, this function will delete the pruned motions at the end of the solve() function. */
             void detelePrunedMotions();
 
+            Motion* getRootMotion(Motion *seed);
+
 
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;

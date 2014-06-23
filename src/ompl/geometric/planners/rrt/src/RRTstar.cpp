@@ -734,10 +734,9 @@ void ompl::geometric::RRTstar::saveTree(const char * filename)
 		    << tree[i]->parent->state->as<ompl::base::RealVectorStateSpace::StateType>()->values[1] << std::endl; 
 	 }
 	 
-	 fs.close();	
+	 fs.close();
 }
 
-// \TODO: change candidates.push(tree[0]); for root searching.
 int ompl::geometric::RRTstar::pruneTree()
 {
     base::Cost costToGo;
@@ -753,7 +752,8 @@ int ompl::geometric::RRTstar::pruneTree()
 
     Motion *candidate;
     std::queue<Motion*> candidates;
-    candidates.push(tree[0]);
+    
+    candidates.push(getRootMotion(tree[0]));
 
     while (!candidates.empty())
     {
@@ -810,4 +810,12 @@ void ompl::geometric::RRTstar::detelePrunedMotions()
         si_->freeState(mto_delete->state);
         delete mto_delete;
     }
+}
+
+ompl::geometric::RRTstar::Motion* ompl::geometric::RRTstar::getRootMotion(ompl::geometric::RRTstar::Motion *seed)
+{
+    while (seed->parent != 0)
+        seed = seed->parent;
+
+    return seed;
 }
