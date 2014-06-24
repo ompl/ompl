@@ -289,6 +289,8 @@ namespace ompl
             void detelePrunedMotions();
 
             Motion* getRootMotion(Motion *seed);
+            
+            ompl::geometric::RRTstar::Motion* getInitialParent(Motion *rmotion, base::State *dstate, base::State *xstate);
 
 
             /** \brief State sampler */
@@ -343,6 +345,14 @@ namespace ompl
 
             /** \brief The cost used to prune the tree. It is set by CForest functions. */
             base::Cost                                     pruneTreeCost_;
+            
+            Motion *                                       prevMotion_;
+            
+            bool                                           addingSharedState_;
+            
+            Motion *                                       startMotion_;
+            
+            bool                                           restartPrevMotion_;
 
             //////////////////////////////
             // Planner progress properties

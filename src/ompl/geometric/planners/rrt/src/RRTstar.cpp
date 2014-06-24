@@ -149,6 +149,7 @@ void ompl::geometric::RRTstar::includeValidPath(const std::vector<const base::St
             statesToInclude_.push_back(si_->cloneState(states[i]));
             
         pruneTreeCost_ = cost;
+        restartPrevMotion_ = true;
     }
 }
 
@@ -162,14 +163,17 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     bool symDist = si_->getStateSpace()->hasSymmetricDistance();
     bool symInterp = si_->getStateSpace()->hasSymmetricInterpolate();
     bool symCost = opt_->isSymmetric();
-
+    
     while (const base::State *st = pis_.nextStart())
     {
         Motion *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         motion->cost = opt_->identityCost();
         nn_->add(motion);
+        startMotion_ = motion; // For CForest we assume there is only one initial state.
     }
+    
+    prevMotion_ = startMotion_;
 
     if (nn_->size() == 0)
     {
@@ -193,6 +197,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     // \TODO Make this variable unnecessary, or at least have it
     // persist across solve runs
     base::Cost bestCost    = opt_->infiniteCost();
+    bestCost_ = bestCost;
+    pruneTreeCost_ = bestCost_;
 
     Motion *approximation  = NULL;
     double approximatedist = std::numeric_limits<double>::infinity();
@@ -238,16 +244,20 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         iterations_++;
 
         // CFOREST Specific code: a new path has been shared by other thread.
-        if (isCForest_ && opt_->isCostBetterThan(pruneTreeCost_, bestCost_))
+        if (isCForest_)
         {
-            bestCost_ = pruneTreeCost_;
-            bestCost = bestCost_;
-            // Only prune if the improvement is noticeable.
-            if (1-bestCost_.v/lastPruneCost.v > pruneCostThreshold_ || std::isinf(lastPruneCost.v))
+            addingSharedState_ = false;
+            if (opt_->isCostBetterThan(pruneTreeCost_, bestCost_))
             {
-                lastPruneCost = bestCost_;
-                int n = pruneTree();
-                statesGenerated -= n;
+                bestCost_ = pruneTreeCost_;
+                bestCost = bestCost_;
+                // Only prune if the improvement is noticeable.
+                if (1-bestCost_.v/lastPruneCost.v > pruneCostThreshold_ || std::isinf(lastPruneCost.v))
+                {
+                    lastPruneCost = bestCost_;
+                    int n = pruneTree();
+                    statesGenerated -= n;
+                }
             }
         }
 
@@ -257,6 +267,13 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             si_->copyState(rmotion->state, statesToInclude_.back());
             si_->freeState(statesToInclude_.back());
             statesToInclude_.pop_back();
+            addingSharedState_ = true;
+
+            if (restartPrevMotion_)
+            {
+                prevMotion_ = startMotion_;
+                restartPrevMotion_ = false;
+            }
         }
         else 
         {
@@ -280,20 +297,15 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
         }
 
-         if (!symDist)
+        if (!symDist)
             distanceDirection_ = FROM_NEIGHBORS;
-
-        // find closest state in the tree
-        Motion *nmotion = nn_->nearest(rmotion);
+        
+        // \TODO: improve all this rstate, dstate, xstate mess. Probably we can get rid of some of them.
         base::State *dstate = rstate;
-
-        // find state to add to the tree
-        double d = si_->distance(nmotion->state, rstate);
-        if (d > maxDistance_)
-        {
-            si_->getStateSpace()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
-            dstate = xstate;
-        }
+        Motion *nmotion = getInitialParent(rmotion, dstate, xstate);
+        
+        if (addingSharedState_ && si_->equalStates(nmotion->state, rstate))  // Duplicate states: ignore shared state.
+            continue;
 
         // Check if the motion between the nearest state and the state to add is valid
         ++collisionChecks_;
@@ -416,7 +428,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 }
             }
 
-            if (isCForest_)
+            if (isCForest_ && !addingSharedState_)
             {
                 costToCome = opt_->combineCosts(motion->parent->cost, opt_->motionCost(motion->parent->state, motion->state));
                 costToGo = base::goalRegionCostToGo(motion->state, goal);
@@ -425,7 +437,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 {
                     nn_->add(motion);
                     motion->parent->children.push_back(motion);
-
                 }
                 else // If the new motion does not improve the pruneTreeCost_ it is ignored.
                 {
@@ -439,6 +450,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             {
                 nn_->add(motion);
                 motion->parent->children.push_back(motion);
+                prevMotion_ = motion; // For CForest only.
             }
 
             bool checkForSolution = false;
@@ -554,7 +566,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         }
 
                         std::vector<const base::State *> spath;
-                        Motion *intermediate_solution = solution->parent; // Do not include goal state.
+                        Motion *intermediate_solution = solution->parent; // Do not include goal state to simplify code.
 
                         do
                         {
@@ -818,4 +830,28 @@ ompl::geometric::RRTstar::Motion* ompl::geometric::RRTstar::getRootMotion(ompl::
         seed = seed->parent;
 
     return seed;
+}
+
+ompl::geometric::RRTstar::Motion* ompl::geometric::RRTstar::getInitialParent(ompl::geometric::RRTstar::Motion *rmotion, base::State *dstate, base::State *xstate)
+{
+    // find closest state in the tree
+    Motion *nmotion = nn_->nearest(rmotion);
+
+    if (addingSharedState_)
+    {
+        if (si_->equalStates(rmotion->state, nmotion->state))
+            prevMotion_ = nmotion;
+    }
+    else
+    {
+        // find state to add to the tree
+        double d = si_->distance(nmotion->state, rmotion->state);
+        if (d > maxDistance_)
+        {
+            si_->getStateSpace()->interpolate(nmotion->state, rmotion->state, maxDistance_ / d, dstate);
+            dstate = xstate;
+        }
+    }
+
+    return nmotion;
 }

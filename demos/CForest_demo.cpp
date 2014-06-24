@@ -136,7 +136,7 @@ public:
 		// attempt to solve the planning problem within one second of
 		// planning time
 		ot::point start_t = ot::now();
-		bool v = planner_->solve(5.0);
+		bool v = planner_->solve(1.0);
 		double duration = ot::seconds(ot::now() - start_t);
         OMPL_DEBUG("Solution found by in %lf seconds", duration);
 		return v;
