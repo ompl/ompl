@@ -249,10 +249,13 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             addingSharedState_ = false;
             if (opt_->isCostBetterThan(pruneTreeCost_, bestCost_))
             {
-                bestCost_ = pruneTreeCost_;
-                bestCost = bestCost_;
+                // \TODO: improve this! this should be done automatically when updating the tree, not hard-coded this way.
+                // However I tried for days and I was unable to get other way working.
+                for (std::size_t i = 0; i < goalMotions_.size(); ++i)
+                    goalMotions_[i]->cost = pruneTreeCost_;
+
                 // Only prune if the improvement is noticeable.
-                if (1-bestCost_.v/lastPruneCost.v > pruneCostThreshold_ || std::isinf(lastPruneCost.v))
+                if (1-pruneTreeCost_.v/lastPruneCost.v > pruneCostThreshold_ || std::isinf(lastPruneCost.v))
                 {
                     lastPruneCost = bestCost_;
                     int n = pruneTree();
@@ -303,7 +306,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         // \TODO: improve all this rstate, dstate, xstate mess. Probably we can get rid of some of them.
         base::State *dstate = rstate;
         Motion *nmotion = getInitialParent(rmotion, dstate, xstate);
-        
+
         if (addingSharedState_ && si_->equalStates(nmotion->state, rstate))  // Duplicate states: ignore shared state.
             continue;
 
@@ -522,7 +525,15 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 goalMotions_.push_back(motion);
                 checkForSolution = true;
             }
-
+            
+            if (addingSharedState_)
+            {
+                // Update the costs of the node's children
+                updateChildCosts(motion);
+                 checkForSolution = true;
+            }
+               
+                
             // Checking for solution or iterative improvement
             if (checkForSolution)
             {
@@ -551,14 +562,15 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 }
 
                 // CFOREST sharing path only when there are not more shared states to include.
-                if (isCForest_ && updatedSolution && statesToInclude_.empty()) 
+                //if (isCForest_ && updatedSolution && statesToInclude_.empty()) 
+                if (isCForest_ && updatedSolution ) 
                 {
                     if (opt_->isCostBetterThan(bestCost_, pruneTreeCost_))
                     {
                         pruneTreeCost_ = bestCost_;
                         // Only prune if the improvement is noticeable.
                         // \TODO: would work if we substitute isinf() for == opt_->infiniteCost() ?
-                        if (1-bestCost_.v/lastPruneCost.v > pruneCostThreshold_ || std::isinf(lastPruneCost.v))
+                        if (1-pruneTreeCost_.v/lastPruneCost.v > pruneCostThreshold_ || std::isinf(lastPruneCost.v))
                         {
                             lastPruneCost = bestCost_;
                             int n = pruneTree();
@@ -836,15 +848,17 @@ ompl::geometric::RRTstar::Motion* ompl::geometric::RRTstar::getInitialParent(omp
 {
     // find closest state in the tree
     Motion *nmotion = nn_->nearest(rmotion);
-
     if (addingSharedState_)
     {
         if (si_->equalStates(rmotion->state, nmotion->state))
             prevMotion_ = nmotion;
+        else
+            nmotion = prevMotion_;
     }
     else
     {
-        // find state to add to the tree
+        // find closest state in the tree
+        Motion *nmotion = nn_->nearest(rmotion);
         double d = si_->distance(nmotion->state, rmotion->state);
         if (d > maxDistance_)
         {

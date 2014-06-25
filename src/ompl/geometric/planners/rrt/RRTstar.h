@@ -288,10 +288,12 @@ namespace ompl
             /** \brief If CForest is activated, this function will delete the pruned motions at the end of the solve() function. */
             void detelePrunedMotions();
 
+            /** \brief Given a seed Motion, looks for the root Motion of the tree. */
             Motion* getRootMotion(Motion *seed);
-            
-            ompl::geometric::RRTstar::Motion* getInitialParent(Motion *rmotion, base::State *dstate, base::State *xstate);
 
+            /** \brief For a given random motion, rmotion, looks for the initial parent to be linked with (nearest neighbor in RRTstar)
+             * or previous motion when sharing CForest states. */
+            ompl::geometric::RRTstar::Motion* getInitialParent(Motion *rmotion, base::State *dstate, base::State *xstate);
 
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;
@@ -345,13 +347,17 @@ namespace ompl
 
             /** \brief The cost used to prune the tree. It is set by CForest functions. */
             base::Cost                                     pruneTreeCost_;
-            
+
+            /** \brief Stores the previous motion added when using CForest. */
             Motion *                                       prevMotion_;
-            
+
+            /** \brief Flag to indicate that the state being added to the tree is shared by CForest. */
             bool                                           addingSharedState_;
-            
+
+            /** \brief Stores the Motion containing the initial start state for CForest (assumes there is only 1 start state). */
             Motion *                                       startMotion_;
-            
+
+            /** \brief Flag to indicate that the previous motion has to be restarted to the start motion in CForest. */
             bool                                           restartPrevMotion_;
 
             //////////////////////////////
@@ -365,9 +371,7 @@ namespace ompl
 
             /** \brief Best cost found so far by algorithm */
             base::Cost                                     bestCost_;     
-            
-            
-            
+
             int idx_; 
         };
     }
