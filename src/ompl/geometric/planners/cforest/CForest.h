@@ -109,7 +109,7 @@ namespace ompl
         protected:
 
             /** \brief Manages the call to solve() for each individual planner. */
-            void solveOne(base::Planner *planner, const base::PlannerTerminationCondition *ptc, const int idx);
+            void solveOne(base::Planner *planner, const base::PlannerTerminationCondition *ptc);
 
             /** \brief Optimization objective taken into account when planning. */
             base::OptimizationObjectivePtr               opt_;

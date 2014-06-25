@@ -153,9 +153,8 @@ void ompl::geometric::RRTstar::includeValidPath(const std::vector<const base::St
     }
 }
 
-ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc, const int idx)
+ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
 {
-	idx_ = idx;
     checkValidity();
     base::Goal                  *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
@@ -525,15 +524,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 goalMotions_.push_back(motion);
                 checkForSolution = true;
             }
-            
-            if (addingSharedState_)
-            {
-                // Update the costs of the node's children
-                updateChildCosts(motion);
-                 checkForSolution = true;
-            }
-               
-                
+
             // Checking for solution or iterative improvement
             if (checkForSolution)
             {

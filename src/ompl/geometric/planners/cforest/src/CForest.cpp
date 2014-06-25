@@ -147,7 +147,7 @@ ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTer
 
     // run planners each in its own thread, with the same ptc.
     for (std::size_t i = 0 ; i < threads.size() ; ++i)
-        threads[i] = new boost::thread(boost::bind(&CForest::solveOne, this, planners_[i].get(), &ptc, i));
+        threads[i] = new boost::thread(boost::bind(&CForest::solveOne, this, planners_[i].get(), &ptc));
         
     for (std::size_t i = 0 ; i < threads.size() ; ++i)
     {
@@ -194,11 +194,11 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, co
     }
 }
 
-void ompl::geometric::CForest::solveOne(base::Planner *planner, const base::PlannerTerminationCondition *ptc, const int idx)
+void ompl::geometric::CForest::solveOne(base::Planner *planner, const base::PlannerTerminationCondition *ptc)
 {
     OMPL_DEBUG("Starting %s", planner->getName().c_str());
     time::point start = time::now();
-    if (planner->as<RRTstar>()->solve(*ptc,idx))
+    if (planner->solve(*ptc))
     {
         double duration = time::seconds(time::now() - start);
         OMPL_DEBUG("Solution found by %s in %lf seconds", planner->getName().c_str(), duration);

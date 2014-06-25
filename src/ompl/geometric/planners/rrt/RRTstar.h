@@ -84,12 +84,7 @@ namespace ompl
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc)
-            {
-                return  base::PlannerStatus::UNKNOWN;
-            }
-
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, const int idx);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             virtual void clear();
 
@@ -371,8 +366,6 @@ namespace ompl
 
             /** \brief Best cost found so far by algorithm */
             base::Cost                                     bestCost_;     
-
-            int idx_; 
         };
     }
 }
