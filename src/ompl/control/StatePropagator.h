@@ -109,7 +109,12 @@ namespace ompl
 
                 \note If false is returned, the content of \e result and \e duration may have been changed,
                 but it does not represent a solution; */
-            bool steer(const base::State* /*from*/, const base::State* /*to*/, Control* /*result*/, double& /*duration*/) const
+            virtual bool steer(const base::State* /*from*/, const base::State* /*to*/, Control* /*result*/, double& /*duration*/) const
+            {
+                return false;
+            }
+
+            virtual canSteer()
             {
                 return false;
             }
