@@ -37,8 +37,8 @@
 #ifndef OMPL_CONTROL_STEERED_CONTROL_SAMPLER_
 #define OMPL_CONTROL_STEERED_CONTROL_SAMPLER_
 
-#include "ompl/DirectedControlSampler.h"
-#include "ompl/StatePropagator.h"
+#include "ompl/control/DirectedControlSampler.h"
+#include "ompl/control/StatePropagator.h"
 #include <cmath>
 
 namespace ompl
@@ -73,7 +73,7 @@ namespace ompl
 
             virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest)
             {
-                sampleTo(control, source, dest);
+                return sampleTo(control, source, dest);
             }
 
         protected:

@@ -114,7 +114,7 @@ namespace ompl
                 return false;
             }
 
-            virtual canSteer()
+            virtual bool canSteer()
             {
                 return false;
             }

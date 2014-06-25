@@ -76,8 +76,8 @@ ompl::control::DirectedControlSamplerPtr ompl::control::SpaceInformation::allocD
     if (dcsa_)
         return dcsa_(this);
     else
-        return DirectedControlSamplerPtr(statePropagator_->canSteer() ?
-            new SteeredControlSampler(this) : new SimpleDirectedControlSampler(this));
+        return statePropagator_->canSteer() ? DirectedControlSamplerPtr(new SteeredControlSampler(this))
+            : DirectedControlSamplerPtr(new SimpleDirectedControlSampler(this));
 }
 
 void ompl::control::SpaceInformation::setDirectedControlSamplerAllocator(const DirectedControlSamplerAllocator &dcsa)
