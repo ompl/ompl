@@ -264,7 +264,7 @@ def plotAttribute(cur, planners, attribute, typename):
     for planner in planners:
         cur.execute('SELECT %s FROM runs WHERE plannerid = %s AND %s IS NOT NULL' \
             % (attribute, planner[0], attribute))
-        measurement = [ t[0] if t[0] != None for t in cur.fetchall() ]
+        measurement = [ t[0] for t in cur.fetchall() if t[0] != None ]
         if len(measurement) > 0:
             cur.execute('SELECT count(*) FROM runs WHERE plannerid = %s AND %s IS NULL' \
                 % (planner[0], attribute))
