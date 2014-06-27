@@ -6,51 +6,54 @@
 namespace ob = ompl::base;
 namespace oc = ompl::control;
 
-ob::LTLProblemDefinition::LTLProblemDefinition(const oc::LTLSpaceInformationPtr& ltlsi)
+oc::LTLProblemDefinition::LTLProblemDefinition(const LTLSpaceInformationPtr& ltlsi)
     : ob::ProblemDefinition(ltlsi), ltlsi_(ltlsi)
 {
     createGoal();
 }
 
-void ob::LTLProblemDefinition::addLowerStartState(const base::State* s)
+void oc::LTLProblemDefinition::addLowerStartState(const ob::State* s)
 {
-    base::ScopedState<base::CompoundStateSpace> fullStart(si_);
+    ob::ScopedState<ob::CompoundStateSpace> fullStart(si_);
     ltlsi_->getFullState(s, fullStart.get());
     addStartState(fullStart);
 }
 
-ob::PathPtr ob::LTLProblemDefinition::getLowerSolutionPath(void) const
+ob::PathPtr oc::LTLProblemDefinition::getLowerSolutionPath(void) const
 {
-    oc::PathControl* fullPath = static_cast<oc::PathControl*>(getSolutionPath().get());
-    ob::PathPtr lowPathPtr(new oc::PathControl(ltlsi_->getLowSpace()));
-    oc::PathControl* lowPath = static_cast<oc::PathControl*>(lowPathPtr.get());
-    lowPath->getControls().assign(fullPath->getControls().begin(), fullPath->getControls().end());
-    lowPath->getControlDurations().assign(
-        fullPath->getControlDurations().begin(), fullPath->getControlDurations().end());
-    for (std::size_t i = 0; i < fullPath->getStateCount(); ++i)
+    PathControl* fullPath = static_cast<PathControl*>(getSolutionPath().get());
+    ob::PathPtr lowPathPtr(new PathControl(ltlsi_->getLowSpace()));
+    PathControl* lowPath = static_cast<PathControl*>(lowPathPtr.get());
+
+    if (fullPath->getStateCount() > 0)
     {
-        lowPath->append(ltlsi_->getLowSpace()->allocState());
-        ltlsi_->getLowSpace()->copyState(lowPath->getState(i),
-            ltlsi_->getLowLevelState(fullPath->getState(i)));
+        for(size_t i = 0; i < fullPath->getStateCount()-1; ++i)
+            lowPath->append(ltlsi_->getLowLevelState(fullPath->getState(i)),
+                            fullPath->getControl(i),
+                            fullPath->getControlDuration(i));
+
+        // The last state does not have a control
+        lowPath->append(ltlsi_->getLowLevelState(fullPath->getState(fullPath->getStateCount()-1)));
     }
+
     return lowPathPtr;
 }
 
-void ob::LTLProblemDefinition::createGoal(void)
+void oc::LTLProblemDefinition::createGoal(void)
 {
-    class LTLGoal : public Goal
+    class LTLGoal : public base::Goal
     {
     public:
-        LTLGoal(const oc::LTLSpaceInformationPtr& ltlsi)
-            : Goal(ltlsi), ltlsi_(ltlsi), prod_(ltlsi->getProductGraph()) {}
+        LTLGoal(const LTLSpaceInformationPtr& ltlsi)
+            : ob::Goal(ltlsi), ltlsi_(ltlsi), prod_(ltlsi->getProductGraph()) {}
         virtual ~LTLGoal(void) {}
-        virtual bool isSatisfied(const base::State* s) const
+        virtual bool isSatisfied(const ob::State* s) const
         {
             return prod_->isSolution(ltlsi_->getProdGraphState(s));
         }
     protected:
-        const oc::LTLSpaceInformationPtr ltlsi_;
-        const oc::ProductGraphPtr prod_;
+        const LTLSpaceInformationPtr ltlsi_;
+        const ProductGraphPtr prod_;
     };
 
     // Some compilers have trouble with LTLGoal being hidden in this function,

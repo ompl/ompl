@@ -190,7 +190,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
                 for (int i = mpath.size() - 1 ; i >= 0 ; --i)
                     path->append(mpath[i]->state);
 
-                pdef_->addSolutionPath(base::PathPtr(path), false, distsol);
+                pdef_->addSolutionPath(base::PathPtr(path), false, distsol, getName());
             }
         }
     }

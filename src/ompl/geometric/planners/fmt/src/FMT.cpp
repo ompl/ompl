@@ -347,7 +347,7 @@ void ompl::geometric::FMT::traceSolutionPathThroughTree(Motion *goalMotion)
     int mPathSize = mpath.size();
     for (int i = mPathSize - 1 ; i >= 0 ; --i)
         path->append(mpath[i]->getState());
-    pdef_->addSolutionPath(base::PathPtr(path), false, lastGoalMotion_->getCost().v);
+    pdef_->addSolutionPath(base::PathPtr(path), false, lastGoalMotion_->getCost().v, getName());
 }
 
 bool ompl::geometric::FMT::expandTreeFromNode(Motion *&z, const double r)

@@ -238,7 +238,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
            for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
 
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, sol.approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, sol.approxdif, getName());
         solved = true;
     }
 

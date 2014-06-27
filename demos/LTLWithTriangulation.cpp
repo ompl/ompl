@@ -208,7 +208,7 @@ void plan(void)
     std::vector<unsigned int> toAvoid(1);
     toAvoid[0] = 1;
     oc::AutomatonPtr safety = oc::Automaton::AvoidanceAutomaton(3, toAvoid);
-    
+
     //construct product graph (propDecomp x A_{cosafety} x A_{safety})
     oc::ProductGraphPtr product(new oc::ProductGraph(pd, cosafety, safety));
 
@@ -224,7 +224,7 @@ void plan(void)
 
     // LTLProblemDefinition creates a goal in hybrid space, corresponding to any
     // state in which both automata are accepting
-    ob::LTLProblemDefinitionPtr pdef(new ob::LTLProblemDefinition(ltlsi));
+    oc::LTLProblemDefinitionPtr pdef(new oc::LTLProblemDefinition(ltlsi));
 
     // create a start state
     ob::ScopedState<ob::SE2StateSpace> start(space);
@@ -256,6 +256,8 @@ void plan(void)
     }
     else
         std::cout << "No solution found" << std::endl;
+
+    delete ltlPlanner;
 }
 
 int main(int, char **)

@@ -36,6 +36,7 @@
 
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/control/SimpleDirectedControlSampler.h"
+#include "ompl/control/SteeredControlSampler.h"
 #include "ompl/util/Exception.h"
 #include <cassert>
 #include <utility>
@@ -75,7 +76,8 @@ ompl::control::DirectedControlSamplerPtr ompl::control::SpaceInformation::allocD
     if (dcsa_)
         return dcsa_(this);
     else
-        return DirectedControlSamplerPtr(new SimpleDirectedControlSampler(this));
+        return statePropagator_->canSteer() ? DirectedControlSamplerPtr(new SteeredControlSampler(this))
+            : DirectedControlSamplerPtr(new SimpleDirectedControlSampler(this));
 }
 
 void ompl::control::SpaceInformation::setDirectedControlSamplerAllocator(const DirectedControlSamplerAllocator &dcsa)

@@ -102,6 +102,9 @@ namespace ompl
             /** \brief Print information about the computed path */
             void print(std::ostream &out = std::cout) const;
 
+            /** \brief Get the name of the algorithm */
+            const std::string& getName() const;
+
         private:
 
             /// @cond IGNORE
@@ -153,6 +156,9 @@ namespace ompl
             Vertex                                            goal_;
             std::set<PathInfo>                                paths_;
             base::PathPtr                                     hpath_;
+
+            /** \brief The name of the path hybridization algorithm, used for tracking planner solution sources */
+            std::string                                       name_;
         };
     }
 }

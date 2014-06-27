@@ -176,8 +176,6 @@ namespace ompl
             /// \brief Read \e numVertices from the binary input \e ia and store them as PlannerData.
             virtual void loadVertices(PlannerData &pd, unsigned int numVertices, boost::archive::binary_iarchive &ia)
             {
-                OMPL_DEBUG("Loading %d PlannerDataVertex objects", numVertices);
-
                 const StateSpacePtr &space = pd.getSpaceInformation()->getStateSpace();
                 std::vector<State*> states;
                 for (unsigned int i = 0; i < numVertices; ++i)
@@ -221,8 +219,6 @@ namespace ompl
             /// \brief Serialize and store all vertices in \e pd to the binary archive.
             virtual void storeVertices(const PlannerData &pd, boost::archive::binary_oarchive &oa)
             {
-                OMPL_DEBUG("Storing %d PlannerDataVertex objects", pd.numVertices());
-
                 const StateSpacePtr &space = pd.getSpaceInformation()->getStateSpace();
                 std::vector<unsigned char> state (space->getSerializationLength());
                 for (unsigned int i = 0; i < pd.numVertices(); ++i)
@@ -251,8 +247,6 @@ namespace ompl
             /// \brief Read \e numEdges from the binary input \e ia and store them as PlannerData.
             virtual void loadEdges(PlannerData &pd, unsigned int numEdges, boost::archive::binary_iarchive &ia)
             {
-                OMPL_DEBUG("Loading %d PlannerDataEdge objects", numEdges);
-
                 for (unsigned int i = 0; i < numEdges; ++i)
                 {
                     PlannerDataEdgeData edgeData;
@@ -268,8 +262,6 @@ namespace ompl
             /// \brief Serialize and store all edges in \e pd to the binary archive.
             virtual void storeEdges(const PlannerData &pd, boost::archive::binary_oarchive &oa)
             {
-                OMPL_DEBUG("Storing %d PlannerDataEdge objects", pd.numEdges());
-
                 for (unsigned int i = 0; i < pd.numVertices(); ++i)
                     for (unsigned int j = 0; j < pd.numVertices(); ++j)
                     {

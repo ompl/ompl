@@ -204,7 +204,8 @@ def readBenchmarkLog(dbname, filenames):
             numRuns = int(logfile.readline().split()[0])
             runIds = []
             for j in range(numRuns):
-                values = tuple([experimentId, plannerId] + [None if len(x)==0 else x
+                values = tuple([experimentId, plannerId] + \
+                    [None if len(x) == 0 or x == 'nan' or x == 'inf' else x
                     for x in logfile.readline().split('; ')[:-1]])
                 c.execute(insertFmtStr, values)
                 # extract primary key of each run row so we can reference them
@@ -239,7 +240,8 @@ def readBenchmarkLog(dbname, filenames):
                     dataSeries = logfile.readline().split(';')[:-1]
                     for dataSample in dataSeries:
                         values = tuple([runIds[j]] + \
-                            [None if x == 'nan' else x for x in dataSample.split(',')[:-1]])
+                            [None if len(x) == 0 or x == 'nan' or x == 'inf' else x
+                            for x in dataSample.split(',')[:-1]])
                         c.execute(insertFmtStr, values)
 
                 logfile.readline()
@@ -262,7 +264,7 @@ def plotAttribute(cur, planners, attribute, typename):
     for planner in planners:
         cur.execute('SELECT %s FROM runs WHERE plannerid = %s AND %s IS NOT NULL' \
             % (attribute, planner[0], attribute))
-        measurement = [ 0 if np.isinf(t[0]) else t[0] for t in cur.fetchall() ]
+        measurement = [ t[0] if t[0] != None for t in cur.fetchall() ]
         if len(measurement) > 0:
             cur.execute('SELECT count(*) FROM runs WHERE plannerid = %s AND %s IS NULL' \
                 % (planner[0], attribute))

@@ -83,6 +83,11 @@ ompl::control::ProductGraph::ProductGraph(const PropositionalDecompositionPtr& d
 {
 }
 
+ompl::control::ProductGraph::~ProductGraph()
+{
+    clear();
+}
+
 const ompl::control::PropositionalDecompositionPtr& ompl::control::ProductGraph::getDecomp() const
 {
     return decomp_;
@@ -131,8 +136,6 @@ ompl::control::ProductGraph::computeLead(
 			cost = distances[boost::vertex(stateToIndex_[*s], graph_)];
 			bestSoln = *s;
 		}
-        
-        
 	}
 	//build lead from bestSoln parents
 	std::stack<State*> leadStack;

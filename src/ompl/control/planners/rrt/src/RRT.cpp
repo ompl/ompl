@@ -248,7 +248,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
             else
                 path->append(mpath[i]->state);
         solved = true;
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
     }
 
     if (rmotion->state)

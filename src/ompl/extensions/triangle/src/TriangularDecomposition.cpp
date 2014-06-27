@@ -419,8 +419,10 @@ int ompl::control::TriangularDecomposition::createTriangles()
     if (in.numberofregions > 0)
         trifree(in.regionlist);
     trifree(out.pointlist);
+    trifree(out.pointattributelist);
     trifree(out.pointmarkerlist);
     trifree(out.trianglelist);
+    trifree(out.triangleattributelist);
     trifree(out.neighborlist);
     trifree(out.edgelist);
     trifree(out.edgemarkerlist);

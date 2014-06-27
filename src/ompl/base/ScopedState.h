@@ -458,7 +458,7 @@ namespace ompl
            // the following line will construct an empty state space C6 = C[]
            ompl::base::StateSpacePtr C6 = X - X;
 
-           // the following line will construct an empty state space C7 = Y
+           // the following line will construct a state space C7 = Y
            ompl::base::StateSpacePtr C7 = Y + C6;
           \endcode
            These state spaces can be used when operating with states:

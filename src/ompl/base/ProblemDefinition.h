@@ -70,10 +70,10 @@ namespace ompl
         struct PlannerSolution
         {
             /** \brief Construct a solution that consists of a \e path and its attributes (whether it is \e approximate and the \e difference to the desired goal) */
-            PlannerSolution(const PathPtr &path, bool approximate = false, double difference = -1.0) :
+            PlannerSolution(const PathPtr &path, bool approximate = false, double difference = -1.0, const std::string& plannerName = "") :
                 index_(-1), path_(path), length_(path->length()),
                 approximate_(approximate), difference_(difference),
-                optimized_(false)
+                optimized_(false), plannerName_(plannerName)
             {
             }
 
@@ -116,6 +116,9 @@ namespace ompl
 
             /** \brief True of the solution was optimized to meet the specified optimization criterion */
             bool    optimized_;
+
+            /** \brief Name of planner type that generated this solution, as received from Planner.getName() */
+            std::string plannerName_;
         };
         
         class Planner;
@@ -315,11 +318,17 @@ namespace ompl
                 This will need to be casted into the specialization computed by the planner */
             PathPtr getSolutionPath() const;
 
+            /** \brief Return true if a top solution is found, with the top solution passed by reference in the function header
+                 The top path is the shortest one that was found, preference being given to solutions that are not approximate.
+                This will need to be casted into the specialization computed by the planner */
+            bool getSolution(PlannerSolution& solution) const;
+
             /** \brief Add a solution path in a thread-safe manner. Multiple solutions can be set for a goal.
                 If a solution does not reach the desired goal it is considered approximate.
                 Optionally, the distance between the desired goal and the one actually achieved is set by \e difference.
+                Optionally, the name of the planner that generated the solution
             */
-            void addSolutionPath(const PathPtr &path, bool approximate = false, double difference = -1.0) const;
+            void addSolutionPath(const PathPtr &path, bool approximate = false, double difference = -1.0, const std::string& plannerName = "Unknown") const;
 
             /** \brief Add a solution path in a thread-safe manner. Multiple solutions can be set for a goal. */
             void addSolutionPath(const PlannerSolution &sol) const;

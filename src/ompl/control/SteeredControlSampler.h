@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Rice University
+*  Copyright (c) 2014, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,43 +32,57 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Matt Maly */
+/* Author: Mark Moll, Ioan Sucan */
 
-#ifndef OMPL_CONTROL_PLANNERS_LTL_LTLPROBLEMDEFINITION_
-#define OMPL_CONTROL_PLANNERS_LTL_LTLPROBLEMDEFINITION_
+#ifndef OMPL_CONTROL_STEERED_CONTROL_SAMPLER_
+#define OMPL_CONTROL_STEERED_CONTROL_SAMPLER_
 
-#include "ompl/base/ProblemDefinition.h"
-#include "ompl/control/planners/ltl/ProductGraph.h"
-#include "ompl/control/planners/ltl/LTLSpaceInformation.h"
+#include "ompl/control/DirectedControlSampler.h"
+#include "ompl/control/StatePropagator.h"
+#include <cmath>
 
 namespace ompl
 {
     namespace control
     {
-        /// @cond IGNORE
-        /** \brief Forward declaration of ompl::control::LTLProblemDefinition */
-        OMPL_CLASS_FORWARD(LTLProblemDefinition);
-        /// @endcond
 
-        /** \class ompl::control::LTLProblemDefinitionPtr
-            \brief A boost shared pointer wrapper for ompl::control::LTLProblemDefinition */
-        class LTLProblemDefinition : public base::ProblemDefinition
+
+        /** \brief Abstract definition of a steered control sampler. It uses the
+            steering function in a state propagator to find the controls that
+            drive from one state to another. */
+        class SteeredControlSampler : public DirectedControlSampler
         {
         public:
-            LTLProblemDefinition(const control::LTLSpaceInformationPtr& ltlsi);
 
-            virtual ~LTLProblemDefinition(void) {}
+            /** \brief Constructor takes the state space to construct samples for as argument */
+            SteeredControlSampler(const SpaceInformation *si) : DirectedControlSampler(si)
+            {
+            }
 
-            void addLowerStartState(const base::State* s);
+            virtual ~SteeredControlSampler()
+            {
+            }
 
-            base::PathPtr getLowerSolutionPath(void) const;
+            virtual unsigned int sampleTo(Control *control, const base::State *source, base::State *dest)
+            {
+                double duration;
+                if (!si_->getStatePropagator()->steer(source, dest, control, duration)) return 0;
+                unsigned int steps = std::floor(duration / si_->getMinControlDuration() + 0.5);
+                return si_->propagateWhileValid(source, control, steps, dest);
+            }
+
+            virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest)
+            {
+                return sampleTo(control, source, dest);
+            }
 
         protected:
-            void createGoal(void);
 
-            LTLSpaceInformationPtr ltlsi_;
+            /** \brief The space information this sampler operates on */
+            const SpaceInformation *si_;
         };
     }
 }
+
 
 #endif
