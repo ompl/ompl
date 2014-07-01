@@ -214,5 +214,3 @@ if (OMPL_REGISTRATION)
         endif()
     endif()
 endif()
-
-add_subdirectory(regression_tests)
