@@ -146,7 +146,7 @@ endif()
 
 add_subdirectory(py-bindings)
 add_subdirectory(src)
-#add_subdirectory(tests)
+add_subdirectory(tests)
 add_subdirectory(demos)
 add_subdirectory(scripts)
 add_subdirectory(doc)
