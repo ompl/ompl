@@ -78,8 +78,6 @@ namespace ompl
 
         protected:
 
-            /** \brief The space information this sampler operates on */
-            const SpaceInformation *si_;
         };
     }
 }
