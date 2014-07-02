@@ -216,7 +216,7 @@ void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c)
 /// Public
 
 ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, const Constraints constraintFn, const Jacobian jacobianFn)
-: RealVectorStateSpace(dimension), bigF(constraintFn), bigJ(jacobianFn), n_(dimension), delta_(0.05), epsilon_(0.1), exploration_(0.5),
+: RealVectorStateSpace(dimension), bigF(constraintFn), bigJ(jacobianFn), n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5),
     lambda_(2), projectionTolerance_(1e-8), projectionMaxIterations_(200), monteCarloThoroughness_(3.5)
 {
     setName("Atlas" + RealVectorStateSpace::getName());
@@ -229,7 +229,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     if (bigJ(zero).rows() != bigF(zero).size() || bigJ(zero).cols() != n_)
         throw ompl::Exception("Dimensions of the Jacobian are incorrect! Should be n-k by n, where n, k are the ambient, manifold dimensions.");
     
-    setRho(0.2);
+    setRho(0.1);
     setAlpha(M_PI/16);
     
     OMPL_INFORM("Monte Carlo integration will use %d samples per chart.", monteCarloSamples());

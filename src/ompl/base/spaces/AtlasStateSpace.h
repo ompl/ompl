@@ -167,14 +167,14 @@ namespace ompl
             /** \brief Associate \a si with this space. Requires that \a si was constructed from this AtlasStateSpace. */
             void setSpaceInformation (const SpaceInformationPtr &si);
             
-            /** \brief Set \a delta, the step size for traversing the manifold and collision checking. Default is 0.05. */
+            /** \brief Set \a delta, the step size for traversing the manifold and collision checking. Default is 0.02. */
             void setDelta (const double delta);
             
             /** \brief Set \a epsilon, the maximum permissible distance between a point in the validity region
              * of a chart and its projection onto the manifold. Default is 0.1. */
             void setEpsilon (const double epsilon);
             
-            /** \brief Set \a rho, the maximum radius for which a chart is valid. Default is 0.2. If this value
+            /** \brief Set \a rho, the maximum radius for which a chart is valid. Default is 0.1. If this value
              * is too large, it will be decreased during operation of the atlas. Marked 'const' because operation
              * of the atlas is performed by other const methods. */
             void setRho (const double rho) const;
