@@ -37,14 +37,19 @@
 #ifndef OMPL_BASE_SPACE_ATLAS_CHART_
 #define OMPL_BASE_SPACE_ATLAS_CHART_
 
-#include <eigen3/Eigen/Core>
-
 #include "ompl/base/spaces/AtlasStateSpace.h"
+
+#include <list>
+
+#include <eigen3/Eigen/Core>
 
 namespace ompl
 {
     namespace base
     {
+        // Forward declaration
+        class AtlasStateSpace;
+        
         /** \brief Tangent space for use as a projection of a manifold patch. */
         class AtlasChart : private boost::noncopyable
         {

@@ -36,6 +36,8 @@
 
 #include "ompl/base/spaces/AtlasChart.h"
 
+#include <eigen3/Eigen/Dense>
+
 /// AtlasChart::LinearInequality
 
 /// Public
@@ -43,7 +45,7 @@ ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c,
 : owner_(c), complement_(NULL)
 {
     // u_ should be neighbor's center projected onto our chart
-    setU(owner_.psiInverse(neighbor.phi(Eigen::VectorXd::Zero(owner.k_))));
+    setU(owner_.psiInverse(neighbor.phi(Eigen::VectorXd::Zero(owner_.k_))));
 }
 
 ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c, const Eigen::VectorXd &u)
@@ -54,7 +56,7 @@ ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c,
 
 void ompl::base::AtlasChart::LinearInequality::setComplement (LinearInequality *const complement)
 {
-    complement_ = other;
+    complement_ = complement;
 }
 
 const ompl::base::AtlasChart::LinearInequality &ompl::base::AtlasChart::LinearInequality::getComplement (void) const
@@ -77,7 +79,7 @@ void ompl::base::AtlasChart::LinearInequality::checkNear (const Eigen::VectorXd 
 {
     // Threshold is 10% of the distance from the origin to the inequality
     if (complement_ && distanceToPoint(v) < 1.0/20)
-        complement_->expandToInclude(owner.psi(v));
+        complement_->expandToInclude(owner_.psi(v));
 }
 
 /// Private
@@ -87,7 +89,7 @@ void ompl::base::AtlasChart::LinearInequality::setU (const Eigen::VectorXd &u)
     rhs_ = u_.squaredNorm()/2;
 }
 
-double ompl::base::AtlasChart:LinearInequality::distanceToPoint (const Eigen::VectorXd &v) const
+double ompl::base::AtlasChart::LinearInequality::distanceToPoint (const Eigen::VectorXd &v) const
 {
     return (0.5 - v.dot(u_) / u_.squaredNorm());
 }
@@ -95,7 +97,7 @@ double ompl::base::AtlasChart:LinearInequality::distanceToPoint (const Eigen::Ve
 void ompl::base::AtlasChart::LinearInequality::expandToInclude (const Eigen::VectorXd &x)
 {
     // Compute how far v = psiInverse(x) lies outside the inequality, if at all
-    const double t = -distanceToPoint(owner.psiInverse(x));
+    const double t = -distanceToPoint(owner_.psiInverse(x));
     
     // Move u_ away by twice that much
     if (t > 0)
@@ -109,11 +111,11 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::V
 : atlas_(atlas), n_(atlas_.getAmbientDimension()), k_(atlas_.getManifoldDimension()),
   xorigin_(xorigin), id_(atlas_.getChartCount())
 {
-    if (atlas_.F(xorigin_).norm() > NEWTON_TOLERANCE)
+    if (atlas_.bigF(xorigin_).norm() > NEWTON_TOLERANCE)
         OMPL_WARN("AtlasChart created at point not on the manifold!");
     
     // Initialize basis by computing the null space of the Jacobian and orthonormalizing
-    Eigen::MatrixXd nullJ = atlas_.J(xorigin_).fullPivLu().kernel();
+    Eigen::MatrixXd nullJ = atlas_.bigJ(xorigin_).fullPivLu().kernel();
     bigPhi_ = nullJ.householderQr().householderQ() * Eigen::MatrixXd::Identity(n_, k_);
     bigPhi_t_ = bigPhi_.transpose();
     
@@ -123,23 +125,23 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::V
     for (unsigned int i = 0; i < k_; i++)
     {
         e[i] = 2 * atlas_.getRho_s();
-        bigL_.push_front(new LinearInequality(this, e));
+        bigL_.push_front(new LinearInequality(*this, e));
         e[i] *= -1;
-        bigL_.push_front(new LinearInequality(this, e));
+        bigL_.push_front(new LinearInequality(*this, e));
         e[i] = 0;
     }
-    measure = std::pow(2*atlas_.getRho_s(), k_);
+    measure_ = std::pow(2*atlas_.getRho_s(), k_);
 }
 
 ompl::base::AtlasChart::~AtlasChart (void)
 {
-    for (std::iterator<> l = bigL_.begin(); l != bigL_.end(); l++)
+    for (std::list<LinearInequality *>::iterator l = bigL_.begin(); l != bigL_.end(); l++)
         delete *l;
 }
 
 Eigen::VectorXd ompl::base::AtlasChart::phi (const Eigen::VectorXd &u) const
 {
-    return xorigin_ + bigPhi_ * u_;
+    return xorigin_ + bigPhi_ * u;
 }
 
 Eigen::VectorXd ompl::base::AtlasChart::psi (const Eigen::VectorXd &u) const
@@ -150,18 +152,18 @@ Eigen::VectorXd ompl::base::AtlasChart::psi (const Eigen::VectorXd &u) const
     
     unsigned iter = 0;
     Eigen::VectorXd b(n_);
-    b.head(n_-k_) = -atlas_.F(x);
-    b.tail(k_) = Eigen::Vector::Zero(k_);
-    while (b.norm() > atlas_.getProjectionTolerance() && (iter++ < atlas_.getProjectionMaxIterations())
+    b.head(n_-k_) = -atlas_.bigF(x);
+    b.tail(k_) = Eigen::VectorXd::Zero(k_);
+    while (b.norm() > atlas_.getProjectionTolerance() && iter++ < atlas_.getProjectionMaxIterations())
     {
         Eigen::MatrixXd A(n_, n_);
-        A.block(0, 0, n_-k_, n_) = atlas_.J(x);
+        A.block(0, 0, n_-k_, n_) = atlas_.bigJ(x);
         A.block(n_-k_, 0, k_, n_) = bigPhi_t_;
         
         // Move in the direction that decreases F(x) and is perpendicular to the chart plane
         x += A.colPivHouseholderQr().solve(b);
         
-        b.head(n_-k_) = -atlas_.F(x);
+        b.head(n_-k_) = -atlas_.bigF(x);
         b.tail(k_) = bigPhi_t_ * (x_0 - x);
     }
     
@@ -170,17 +172,17 @@ Eigen::VectorXd ompl::base::AtlasChart::psi (const Eigen::VectorXd &u) const
 
 Eigen::VectorXd ompl::base::AtlasChart::psiInverse (const Eigen::VectorXd &x) const
 {
-    return bigPhi_t_ * (x - xorigin);
+    return bigPhi_t_ * (x - xorigin_);
 }
 
-bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, std::size_t *const solitary = NULL) const
+bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, std::size_t *const solitary) const
 {
     bool inPolytope = true;
     if (solitary)
         *solitary = bigL_.size();
     
     std::size_t i = 0;
-    for (std::iterator<> l = bigL_.begin(); l != bigL_.end(); l++, i++)
+    for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++, i++)
     {
         if (!(*l)->accepts(u))
         {
@@ -205,7 +207,7 @@ bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, std::size_t *const s
 
 void ompl::base::AtlasChart::borderCheck (const Eigen::VectorXd &v) const
 {
-    for (std::iterator<> l = bigL_.begin(); l != bigL_.end(); l++)
+    for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++)
         (*l)->checkNear(v);
 }
 
@@ -213,9 +215,9 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eige
 {
     const AtlasChart *bestC = NULL;
     double best = std::numeric_limits<double>::infinity();
-    for (std::iterator<> l = bigL_.begin(); l != bigL_.end(); l++)
+    for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++)
     {
-        LinearInequality *comp = (*l)->getComplement();
+        const LinearInequality *const comp = &(*l)->getComplement();
         if (!comp)
             continue;
         
@@ -283,7 +285,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
     {
         // Sample a point within ball
         std::size_t soleViolation;
-        r.setRandome();
+        r.setRandom();
         r *= M_SQRT2 * atlas_.getRho();
         if (inP(r, &soleViolation))
             countInside++;
@@ -295,17 +297,17 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
     // Prune at most one candidate (If two inequalities are too close together, we won't sample
     //  between them, so we don't know which is redundant and which is important.)
     std::size_t i = 0;
-    for (std::iterator<> l = bigL_.begin(); l != biL_.end(); l++, i++)
+    for (std::list<LinearInequality *>::iterator l = bigL_.begin(); l != bigL_.end(); l++, i++)
     {
         if (pruneCandidates[i])
         {
             delete *l;
-            L.erase(l);
+            bigL_.erase(l);
             break;
         }
     }
     
     // Update measure with new estimate
     measure_ = countInside * (atlas_.measureSqrt2RhoKBall() / countTotal);
-    atlas_.updateMeasure(this);
+    atlas_.updateMeasure(*this);
 }

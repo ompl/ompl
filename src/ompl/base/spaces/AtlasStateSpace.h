@@ -39,11 +39,20 @@
 
 #include "ompl/base/MotionValidator.h"
 #include "ompl/base/StateSampler.h"
+#include "ompl/base/spaces/AtlasChart.h"
+#include "ompl/base/spaces/RealVectorStateSpace.h"
+#include "ompl/datastructures/PDF.h"
+
+#include <eigen3/Eigen/Core>
 
 namespace ompl
 {
     namespace base
     {
+        // Forward declarations
+        class AtlasStateSpace;
+        class AtlasChart;
+        
         /** \brief StateSampler for use on an atlas. */
         class AtlasStateSampler : public StateSampler
         {
@@ -94,7 +103,7 @@ namespace ompl
             const AtlasStateSpace &atlas_;
             
             /** \brief Check that the space is, in fact, an AtlasStateSpace. */
-            bool checkSpace (void);
+            void checkSpace (void);
         };
         
         /** \brief State space encapsulating the atlas algorithm to assist planning on a constraint manifold.
@@ -244,7 +253,7 @@ namespace ompl
             
             /** \brief Find the chart to which \a x belongs. Use \a neighbor to hint that the chart
              * may be its neighbor, if that information is available. Returns NULL if no chart found. */
-            AtlasChart *owningChart (const Eigen;:VectorXd &x, const AtlasChart *const neighbor = NULL) const;
+            AtlasChart *owningChart (const Eigen::VectorXd &x, const AtlasChart *const neighbor = NULL) const;
             
             /** \brief Create a new chart for the atlas, centered at \a xorigin, which should be on
              * the manifold. */
@@ -271,8 +280,8 @@ namespace ompl
              * we stopped early for any reason, such as a collision or traveling too far. No collision checking is performed
              * if \a interpolate is true. If \a stateList is not NULL, the sequence of intermediates is saved to it, including
              * a copy of \a from, as well as the final state. Caller is responsible for freeing states returned in \a stateList. */
-            bool followManifold (const StateType *from, const StateType *to, const bool interpolate,
-                                 std::vector<StateType *> *const stateList) const;
+            bool followManifold (const StateType *from, const StateType *to, const bool interpolate = false,
+                                 std::vector<StateType *> *const stateList = NULL) const;
             
             /** \brief Find the state between \a from and \a to at time \a t, where \a t = 0 is \a from, and \a t = 1 is the final
              * state reached by followManifold(\a from, \a to, true, ...), which may not be \a to. State returned in \a state. */
@@ -293,7 +302,7 @@ namespace ompl
             StateSamplerPtr allocDefaultStateSampler (void) const;
             
             /** \brief Allocate a new state in this space. */
-            State *allocState (void);
+            State *allocState (void) const;
             
             /** \brief Free \a state. Assumes \a state is an AtlasStateSpace state. */
             void freeState (State *state) const;
@@ -315,6 +324,9 @@ namespace ompl
             /** \brief List of charts, sampleable by weight. */
             mutable PDF<AtlasChart *> charts_;
             
+            /** \brief Step size when traversing the manifold and collision checking. */
+            double delta_;
+            
             /** \brief Maximum distance between a chart and the manifold inside its validity region. */
             double epsilon_;
             
@@ -331,7 +343,7 @@ namespace ompl
             double lambda_;
             
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
-            double rho_s_;
+            mutable double rho_s_;
             
             /** \brief Tolerance for Newton method used in projection onto manifold. */
             double projectionTolerance_;
