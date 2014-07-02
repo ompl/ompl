@@ -303,7 +303,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
     {
         if (pruneCandidates[i])
         {
-            defunct_.push_front(*l);
+            defunct_.push_front(*l);    // TODO maybe just setting the complement's complement to NULL will work also
             bigL_.erase(l);
             break;
         }
