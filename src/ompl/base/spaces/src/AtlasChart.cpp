@@ -111,7 +111,7 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::V
 : atlas_(atlas), n_(atlas_.getAmbientDimension()), k_(atlas_.getManifoldDimension()),
   xorigin_(xorigin), id_(atlas_.getChartCount())
 {
-    if (atlas_.bigF(xorigin_).norm() > NEWTON_TOLERANCE)
+    if (atlas_.bigF(xorigin_).norm() > 10*atlas_.getProjectionTolerance())
         OMPL_WARN("AtlasChart created at point not on the manifold!");
     
     // Initialize basis by computing the null space of the Jacobian and orthonormalizing

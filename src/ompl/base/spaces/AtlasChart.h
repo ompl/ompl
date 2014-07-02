@@ -188,12 +188,6 @@ namespace ompl
             /** \brief Measure of the convex polytope P. */
             double measure_;
             
-            /** \brief Newton process runs at most until error is less than this threshold. */
-            static const double NEWTON_TOLERANCE = 1e-8;
-            
-            /** \brief Newton process runs at most this many iterations. */
-            static const double NEWTON_ITERATIONS = 200;
-            
             /** \brief Introduce a new linear inequality \a l to bound the polytope P. Updates
              * approximate measure and prune redundant inequalities. This chart assumes
              * responsibility for deleting l. */
