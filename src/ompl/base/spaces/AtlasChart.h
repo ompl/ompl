@@ -182,6 +182,9 @@ namespace ompl
             /** \brief Set of linear inequalities defining the polytope P. */
             std::list<LinearInequality *> bigL_;
             
+            /** \brief Set of linear inequalities no loner in use, but not yet deleted. */
+            std::list<LinearInequality *> defunct_;
+            
             /** \brief Measure of the convex polytope P. */
             double measure_;
             

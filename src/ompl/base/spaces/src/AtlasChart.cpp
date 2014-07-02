@@ -137,6 +137,8 @@ ompl::base::AtlasChart::~AtlasChart (void)
 {
     for (std::list<LinearInequality *>::iterator l = bigL_.begin(); l != bigL_.end(); l++)
         delete *l;
+    for (std::list<LinearInequality *>::iterator l = defunct_.begin(); l != defunct_.end(); l++)
+        delete *l;
 }
 
 Eigen::VectorXd ompl::base::AtlasChart::phi (const Eigen::VectorXd &u) const
@@ -301,7 +303,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
     {
         if (pruneCandidates[i])
         {
-            delete *l;
+            defunct_.push_front(*l);
             bigL_.erase(l);
             break;
         }
