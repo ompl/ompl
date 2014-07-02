@@ -101,10 +101,11 @@ public:
 
     virtual bool steer (const ob::State *from, const ob::State *to, oc::Control *result, double &duration) const 
     {
-        double cv[] = {0.1,boost::math::constants::pi<double>()/4};
+        double cv[] = {0.1,0};
         result->as<oc::RealVectorControlSpace::ControlType>()->values[0] = cv[0];
         result->as<oc::RealVectorControlSpace::ControlType>()->values[1] = cv[1];
-        duration = 50;
+        //duration = 50;
+        duration = 5; // In real time (say seconds);
         return true;
     }
 
