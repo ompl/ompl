@@ -39,6 +39,7 @@
 #include "ompl/base/DiscreteMotionValidator.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
+#include "ompl/base/spaces/AtlasStateSpace.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Time.h"
 #include "ompl/tools/config/MagicConstants.h"
@@ -113,6 +114,8 @@ void ompl::base::SpaceInformation::setDefaultMotionValidator()
          motionValidator_.reset(new ReedsSheppMotionValidator(this));
      else if (dynamic_cast<DubinsStateSpace*>(stateSpace_.get()))
          motionValidator_.reset(new DubinsMotionValidator(this));
+     else if (dynamic_cast<AtlasStateSpace*>(stateSpace_.get()))
+         motionValidator_.reset(new AtlasMotionValidator(this));
      else
          motionValidator_.reset(new DiscreteMotionValidator(this));
 }
