@@ -59,9 +59,9 @@ void ompl::base::AtlasChart::LinearInequality::setComplement (LinearInequality *
     complement_ = complement;
 }
 
-const ompl::base::AtlasChart::LinearInequality &ompl::base::AtlasChart::LinearInequality::getComplement (void) const
+ompl::base::AtlasChart::LinearInequality *ompl::base::AtlasChart::LinearInequality::getComplement (void) const
 {
-    return *complement_;
+    return complement_;
 }
 
 const ompl::base::AtlasChart &ompl::base::AtlasChart::LinearInequality::getOwner (void) const
@@ -136,8 +136,6 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::V
 ompl::base::AtlasChart::~AtlasChart (void)
 {
     for (std::list<LinearInequality *>::iterator l = bigL_.begin(); l != bigL_.end(); l++)
-        delete *l;
-    for (std::list<LinearInequality *>::iterator l = defunct_.begin(); l != defunct_.end(); l++)
         delete *l;
 }
 
@@ -219,7 +217,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eige
     double best = std::numeric_limits<double>::infinity();
     for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++)
     {
-        const LinearInequality *const comp = &(*l)->getComplement();
+        const LinearInequality *const comp = (*l)->getComplement();
         if (!comp)
             continue;
         
@@ -303,7 +301,10 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
     {
         if (pruneCandidates[i])
         {
-            defunct_.push_front(*l);    // TODO maybe just setting the complement's complement to NULL will work also
+            LinearInequality *const comp = (*l)->getComplement();
+            if (comp)
+                comp->setComplement(NULL);
+            delete *l;
             bigL_.erase(l);
             break;
         }

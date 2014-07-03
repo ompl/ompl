@@ -71,7 +71,7 @@ namespace ompl
                 void setComplement (LinearInequality *const complement);
                 
                 /** \brief Get the complementary inequality. Returns NULL if none. */
-                const LinearInequality &getComplement (void) const;
+                LinearInequality *getComplement (void) const;
                 
                 /** \brief Get the chart to which this inequality belongs. */
                 const AtlasChart &getOwner (void) const;
@@ -181,9 +181,6 @@ namespace ompl
             
             /** \brief Set of linear inequalities defining the polytope P. */
             std::list<LinearInequality *> bigL_;
-            
-            /** \brief Set of linear inequalities no loner in use, but not yet deleted. */
-            std::list<LinearInequality *> defunct_;
             
             /** \brief Measure of the convex polytope P. */
             double measure_;
