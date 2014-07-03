@@ -113,17 +113,17 @@ void printState (const ompl::base::AtlasStateSpace::StateType *state)
 int main (int, char *[])
 {
     // Atlas initialization
-    const unsigned int dim = 9; /* 3; */
-    ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(dim, Fcomplicated, Jcomplicated); /* Fsphere, Jsphere); */
-    ompl::base::StateSpacePtr space(atlas);
+    const unsigned int dim = 3; /* 9; */
+    ompl::base::AtlasStateSpacePtr atlas(new ompl::base::AtlasStateSpace(dim, Fsphere, Jsphere)); /* Fcomplicated, Jcomplicated); */
+    ompl::base::StateSpacePtr space(boost::dynamic_pointer_cast<ompl::base::StateSpace>(atlas));
     
     // Seed some intial charts around the start and goal points
-    /*
     Eigen::VectorXd x(dim); x << 0, 0, 1;
     Eigen::VectorXd y(dim); y << 0, 1, 0;
-    */
+    /*
     Eigen::VectorXd x(dim); x << 0, 0, 3, 0, 0, 0, 2, 0, 3;
     Eigen::VectorXd y(dim); y << -4, -4, 0, -4, -4, -3, -4, -4, 2;
+    */
     const ompl::base::AtlasChart &startChart = atlas->newChart(x);
     const ompl::base::AtlasChart &goalChart = atlas->newChart(y);
     ompl::base::ScopedState<> start(space), goal(space);
@@ -170,15 +170,19 @@ int main (int, char *[])
             // Traverse the manifold
             std::vector<ompl::base::AtlasStateSpace::StateType *> stateList;
             atlas->followManifold(from, to, true, &stateList);
-            if (atlas->equalStates(stateList.front(), stateList.back()))
-                continue;
-            
-            // Print the intermediate states
-            for (std::size_t i = 1; i < stateList.size(); i++)
+            if (!atlas->equalStates(stateList.front(), stateList.back()))
             {
-                printState(stateList[i]);
-                length += atlas->distance(stateList[i-1], stateList[i]);
+                // Print the intermediate states
+                for (std::size_t i = 1; i < stateList.size(); i++)
+                {
+                    printState(stateList[i]);
+                    length += atlas->distance(stateList[i-1], stateList[i]);
+                }
             }
+            
+            // Delete the intermediate states
+            for (std::size_t i = 0; i < stateList.size(); i++)
+                atlas->freeState(stateList[i]);
         }
         std::cout << "-----\n";
         std::cout << "Length: " << length << "\n";
@@ -190,7 +194,6 @@ int main (int, char *[])
         std::cout << "No solution found.\n";
     
     std::cout << "Atlas created " << atlas->getChartCount() << " charts.\n";
-    atlas = NULL;   // Don't delete it because the shared pointers will
     
     return 0;
 }

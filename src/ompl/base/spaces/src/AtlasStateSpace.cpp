@@ -237,6 +237,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
 {
+    std::cout << "Atlas destructor called!\n";
     for (std::size_t i = 0; i < charts_.size(); i++)
         delete charts_[i];
 }

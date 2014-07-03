@@ -50,7 +50,7 @@ namespace ompl
     namespace base
     {
         // Forward declarations
-        class AtlasStateSpace;
+        OMPL_CLASS_FORWARD(AtlasStateSpace);
         class AtlasChart;
         
         /** \brief StateSampler for use on an atlas. */
