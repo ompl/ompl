@@ -267,7 +267,7 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
     // It hasn't been an issue, but the paper calls for it.
 }
 
-/// Private
+/// Protected
 void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
 {
     bigL_.push_front(l);

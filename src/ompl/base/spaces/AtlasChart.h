@@ -117,7 +117,7 @@ namespace ompl
             AtlasChart (const AtlasStateSpace &atlas, const Eigen::VectorXd &xorigin);
             
             /** \brief Destructor. */
-            ~AtlasChart (void);
+            virtual ~AtlasChart (void);
             
             /** \brief Write a chart point \a u in ambient space coordinates. */
             Eigen::VectorXd phi (const Eigen::VectorXd &u) const;
@@ -132,11 +132,11 @@ namespace ompl
              * is not NULL, perform a thorough check to find solitary volations. If only one
              * of the linear inequalities is violated, its index is returned in \a solitary; otherwise
              * \a solitary is set to the total number of linear inequalities. */
-            bool inP (const Eigen::VectorXd &u, std::size_t *const solitary = NULL) const;
+            virtual bool inP (const Eigen::VectorXd &u, std::size_t *const solitary = NULL) const;
             
             /** \brief Check if chart point \a v lies too close to any linear inequality. When it does,
              * expand the neighboring chart's polytope. */
-            void borderCheck (const Eigen::VectorXd &v) const;
+            virtual void borderCheck (const Eigen::VectorXd &v) const;
             
             /** \brief Check each of our neighboring charts to see if ambient point \a x lies within its
              * polytope when projected onto it. Returns NULL if none. */
@@ -152,6 +152,19 @@ namespace ompl
             /** \brief Create two complementary linear inequalities dividing the space between charts \a c1 and \a c2,
              * and add them to the charts' polytopes. */
             static void generateHalfspace (AtlasChart &c1, AtlasChart &c2);
+            
+        protected:
+            
+            /** \brief Measure of the convex polytope P. */
+            double measure_;
+            
+            /** \brief Set of linear inequalities defining the polytope P. */
+            std::list<LinearInequality *> bigL_;
+            
+            /** \brief Introduce a new linear inequality \a l to bound the polytope P. Updates
+             * approximate measure and prune redundant inequalities. This chart assumes
+             * responsibility for deleting l. */
+            virtual void addBoundary (LinearInequality *const l);
             
         private:
             
@@ -175,17 +188,6 @@ namespace ompl
             
             /** \brief Transpose of basis. */
             Eigen::MatrixXd bigPhi_t_;
-            
-            /** \brief Set of linear inequalities defining the polytope P. */
-            std::list<LinearInequality *> bigL_;
-            
-            /** \brief Measure of the convex polytope P. */
-            double measure_;
-            
-            /** \brief Introduce a new linear inequality \a l to bound the polytope P. Updates
-             * approximate measure and prune redundant inequalities. This chart assumes
-             * responsibility for deleting l. */
-            void addBoundary (LinearInequality *const l);
         };
     }
 }

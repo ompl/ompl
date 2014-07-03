@@ -66,13 +66,13 @@ namespace ompl
             AtlasStateSampler (const AtlasStateSpace &atlas);
             
             /** \brief Sample a state uniformly from the known charted regions of the manifold. Return in \a state. */
-            void sampleUniform (State *state);
+            virtual void sampleUniform (State *state);
             
             /** \brief Sample a state uniformly from the ball with center \a near and radius \a distance. Return in \a state. */
-            void sampleUniformNear (State *state, const State *near, const double distance);
+            virtual void sampleUniformNear (State *state, const State *near, const double distance);
             
             /** \brief Not implemented. */
-            void sampleGaussian (State *, const State *, const double);
+            virtual void sampleGaussian (State *, const State *, const double);
             
         private:
             
@@ -125,7 +125,7 @@ namespace ompl
                 StateType (const unsigned int dimension);
                 
                 /** \brief Destructor. */
-                ~StateType(void);
+                virtual ~StateType(void);
                 
                 /** \brief Set the real vector to the values in \a x and the chart to \a c.
                  * Assumes \a x is of the same dimensionality as the state. */
@@ -163,10 +163,10 @@ namespace ompl
             AtlasStateSpace (const unsigned int dimension, const Constraints constraintFn, const Jacobian jacobianFn);
             
             /** \brief Destructor. */
-            ~AtlasStateSpace (void);
+            virtual ~AtlasStateSpace (void);
             
             /** \brief Final setup for the space. */
-            void setup (void);
+            virtual void setup (void);
             
             /** \brief Associate \a si with this space. Requires that \a si was constructed from this AtlasStateSpace. */
             void setSpaceInformation (const SpaceInformationPtr &si);
@@ -253,20 +253,20 @@ namespace ompl
             const Jacobian bigJ;
             
             /** \brief Pick a chart at random with probability proportional the chart measure / atlas measure. */
-            AtlasChart &sampleChart (void) const;
+            virtual AtlasChart &sampleChart (void) const;
             
             /** \brief Find the chart to which \a x belongs. Use \a neighbor to hint that the chart
              * may be its neighbor, if that information is available. Returns NULL if no chart found. */
-            AtlasChart *owningChart (const Eigen::VectorXd &x, const AtlasChart *const neighbor = NULL) const;
+            virtual AtlasChart *owningChart (const Eigen::VectorXd &x, const AtlasChart *const neighbor = NULL) const;
             
             /** \brief Create a new chart for the atlas, centered at \a xorigin, which should be on
              * the manifold. */
-            AtlasChart &newChart (const Eigen::VectorXd &xorigin) const;
+            virtual AtlasChart &newChart (const Eigen::VectorXd &xorigin) const;
             
             /** \brief Search for the border of chart \a c between \a xinside, which is assumed to be inside the
              * polytope of \a c, and \a xoutside. The returned point lies inside the border at a distance no farther
              * than half the distance of \a xinside to the border. */
-            Eigen::VectorXd dichotomicSearch (const AtlasChart &c, const Eigen::VectorXd &xinside, Eigen::VectorXd xoutside) const;
+            virtual Eigen::VectorXd dichotomicSearch (const AtlasChart &c, const Eigen::VectorXd &xinside, Eigen::VectorXd xoutside) const;
             
             /** \brief Update the recorded measure of a chart. */
             void updateMeasure (const AtlasChart &c) const;
@@ -284,32 +284,32 @@ namespace ompl
              * we stopped early for any reason, such as a collision or traveling too far. No collision checking is performed
              * if \a interpolate is true. If \a stateList is not NULL, the sequence of intermediates is saved to it, including
              * a copy of \a from, as well as the final state. Caller is responsible for freeing states returned in \a stateList. */
-            bool followManifold (const StateType *from, const StateType *to, const bool interpolate = false,
+            virtual bool followManifold (const StateType *from, const StateType *to, const bool interpolate = false,
                                  std::vector<StateType *> *const stateList = NULL) const;
             
             /** \brief Find the state between \a from and \a to at time \a t, where \a t = 0 is \a from, and \a t = 1 is the final
              * state reached by followManifold(\a from, \a to, true, ...), which may not be \a to. State returned in \a state. */
-            void interpolate (const State *from, const State *to, const double t, State *state) const;
+            virtual void interpolate (const State *from, const State *to, const double t, State *state) const;
             
             /** \brief Like interpolate(...), but uses the information about intermediate states already supplied in \a stateList from
              * a previous call to followManifold(..., true, \a stateList). The 'from' and 'to' states are the first and last
              * elements \a stateList. Assumes \a stateList contains at least two elements. */
-            void fastInterpolate (const std::vector<StateType *> &stateList, const double t, State *state) const;
+            virtual void fastInterpolate (const std::vector<StateType *> &stateList, const double t, State *state) const;
             
             /** \brief Whether interpolation is symmetric. (No.) */
-            bool hasSymmetricInterpolate (void) const;
+            virtual bool hasSymmetricInterpolate (void) const;
             
             /** \brief Duplicate \a source in \a destination. The memory for these two states should not overlap. */
-            void copyState (State *destination, const State *source) const;
+            virtual void copyState (State *destination, const State *source) const;
             
             /** \brief Return an instance of the AtlasStateSampler. */
-            StateSamplerPtr allocDefaultStateSampler (void) const;
+            virtual StateSamplerPtr allocDefaultStateSampler (void) const;
             
             /** \brief Allocate a new state in this space. */
-            State *allocState (void) const;
+            virtual State *allocState (void) const;
             
             /** \brief Free \a state. Assumes \a state is an AtlasStateSpace state. */
-            void freeState (State *state) const;
+            virtual void freeState (State *state) const;
             
         private:
             
