@@ -39,7 +39,6 @@
 
 #include "ompl/base/MotionValidator.h"
 #include "ompl/base/StateSampler.h"
-#include "ompl/base/spaces/AtlasChart.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/datastructures/PDF.h"
 
@@ -49,9 +48,14 @@ namespace ompl
 {
     namespace base
     {
-        // Forward declarations
-        OMPL_CLASS_FORWARD(AtlasStateSpace);
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::AtlasChart and ompl::base::AtlasStateSpace. */
         class AtlasChart;
+        OMPL_CLASS_FORWARD(AtlasStateSpace);
+        /// @endcond
+        
+        /** \class ompl::base::SpaceInformationPtr
+            \brief A boost shared pointer wrapper for ompl::base::AtlasStateSpace. */
         
         /** \brief StateSampler for use on an atlas. */
         class AtlasStateSampler : public StateSampler

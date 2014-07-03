@@ -47,9 +47,6 @@ namespace ompl
 {
     namespace base
     {
-        // Forward declaration
-        class AtlasStateSpace;
-        
         /** \brief Tangent space for use as a projection of a manifold patch. */
         class AtlasChart : private boost::noncopyable
         {
