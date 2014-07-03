@@ -316,7 +316,7 @@ namespace ompl
             unsigned int k_;
             
             /** \brief SpaceInformation associated with this space. */
-            SpaceInformationPtr si_;
+            SpaceInformation *si_;
             
             /** \brief Random number generator. */
             mutable RNG rng_;

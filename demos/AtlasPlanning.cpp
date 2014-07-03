@@ -114,8 +114,8 @@ int main (int, char *[])
 {
     // Atlas initialization
     const unsigned int dim = 3; /* 9; */
-    ompl::base::AtlasStateSpacePtr atlas(new ompl::base::AtlasStateSpace(dim, Fsphere, Jsphere)); /* Fcomplicated, Jcomplicated); */
-    ompl::base::StateSpacePtr space(boost::dynamic_pointer_cast<ompl::base::StateSpace>(atlas));
+    ompl::base::AtlasStateSpacePtr atlas(new ompl::base::AtlasStateSpace(dim, Fsphere, Jsphere)); /* Fcomplicated, Jcomplicated)); */
+    ompl::base::StateSpacePtr space(atlas);
     
     // Seed some intial charts around the start and goal points
     Eigen::VectorXd x(dim); x << 0, 0, 1;

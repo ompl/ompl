@@ -237,7 +237,6 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
 {
-    std::cout << "Atlas destructor called!\n";
     for (std::size_t i = 0; i < charts_.size(); i++)
         delete charts_[i];
 }
@@ -257,7 +256,8 @@ void ompl::base::AtlasStateSpace::setSpaceInformation (const SpaceInformationPtr
     if (si->getStateSpace().get() != this)
         throw ompl::Exception("SpaceInformation for AtlasStateSpace must be constructed from the same space object.");
     
-    si_ = si;
+    // Save only a raw pointer to prevent a cycle
+    si_ = si.get();
 }
 
 void ompl::base::AtlasStateSpace::setDelta (const double delta)
