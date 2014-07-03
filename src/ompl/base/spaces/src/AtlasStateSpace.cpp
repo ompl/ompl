@@ -730,25 +730,29 @@ void ompl::base::AtlasStateSpace::freeState (State *state) const
 /// Protected
 Eigen::MatrixXd ompl::base::AtlasStateSpace::numericalJacobian (const Eigen::VectorXd &x) const
 {
-    const std::size_t cols = n_;
-    const std::size_t rows = n_ - k_;
     Eigen::VectorXd y1 = x;
     Eigen::VectorXd y2 = x;
-    Eigen::MatrixXd jac(rows, cols);
-    for (std::size_t j = 0; j < cols; j++)
+    Eigen::MatrixXd jac(n_-k_, n_);
+    
+    // Use a 7-point central difference stencil on each entire column at once
+    for (std::size_t j = 0; j < n_; j++)
     {
+        // Make step size as small as possible while still giving usable accuracy
         const double h = std::sqrt(std::numeric_limits<double>::epsilon()) * (x[j] >= 1 ? x[j] : 1);
         
         y1[j] += h; y2[j] -= h;
-        const Eigen::VectorXd m1 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);
+        const Eigen::VectorXd m1 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);   // Can't assume y1[j]-y2[j] == 2*h because of precision errors
         y1[j] += h; y2[j] -= h;
         const Eigen::VectorXd m2 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);
         y1[j] += h; y2[j] -= h;
         const Eigen::VectorXd m3 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);
-        y1[j] = y2[j] = x[j];
         
-        jac.col(j) = ((15*m1 - 6*m2) + m3) / 10;
+        jac.col(j) = 15*m1 - 6*m2 + m3;
+        
+        // Reset for next iteration
+        y1[j] = y2[j] = x[j];
     }
     
-    return jac;
+    // Saved this for last, so we only have to do it once
+    return jac/10;
 }
