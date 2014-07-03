@@ -151,16 +151,16 @@ namespace ompl
             
             /** \brief Constraint function type; input vector size is the ambient dimension;
              * output vector size is the number of constraints. */
-            typedef boost::function<Eigen::VectorXd (const Eigen::VectorXd &)> Constraints;
+            typedef boost::function<Eigen::VectorXd (const Eigen::VectorXd &)> ConstraintsFn;
             
             /** \brief Jacobian function type; input vector size is the ambient dimension;
              * output matrix is (number of constraints) by (ambient dimension). */
-            typedef boost::function<Eigen::MatrixXd (const Eigen::VectorXd &)> Jacobian;
+            typedef boost::function<Eigen::MatrixXd (const Eigen::VectorXd &)> JacobianFn;
             
             /** \brief Constructor. The ambient space has dimension \a dimension. The manifold is implicitly defined
              * as { x in R^(\a dimension) : \a constraintFn(x) = Zero }. The Jacobian of \a constraintFn at x
              * is given by \a jacobianFn(x). */
-            AtlasStateSpace (const unsigned int dimension, const Constraints constraintFn, const Jacobian jacobianFn);
+            AtlasStateSpace (const unsigned int dimension, const ConstraintsFn constraint, const JacobianFn jacobian);
             
             /** \brief Destructor. */
             virtual ~AtlasStateSpace (void);
@@ -246,11 +246,11 @@ namespace ompl
             
             /** \brief Constraint function. Accepts a vector \a x in ambient space. Returns a vector of the amount of violation of
              * each constraint. Returns the zero vector when \a x is on the manifold. */
-            const Constraints bigF;
+            const ConstraintsFn bigF;
             
             /** \brief Jacobian of the constraint function, F. Accepts a vector \a x in ambient space. Returns the Jacobian of F
              * at \a x. */
-            const Jacobian bigJ;
+            const JacobianFn bigJ;
             
             /** \brief Pick a chart at random with probability proportional the chart measure / atlas measure. */
             virtual AtlasChart &sampleChart (void) const;

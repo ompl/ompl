@@ -215,8 +215,8 @@ void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c)
 
 /// Public
 
-ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, const Constraints constraintFn, const Jacobian jacobianFn)
-: RealVectorStateSpace(dimension), bigF(constraintFn), bigJ(jacobianFn), n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5),
+ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, const ConstraintsFn constraints, const JacobianFn jacobian)
+: RealVectorStateSpace(dimension), bigF(constraints), bigJ(jacobian), n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5),
     lambda_(2), projectionTolerance_(1e-8), projectionMaxIterations_(200), monteCarloThoroughness_(3.5)
 {
     setName("Atlas" + RealVectorStateSpace::getName());
