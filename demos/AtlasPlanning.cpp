@@ -83,17 +83,17 @@ Eigen::VectorXd Fcomplicated (const Eigen::VectorXd &x)
 /** Jacobian of Fcomplicated(x). */
 Eigen::MatrixXd Jcomplicated (const Eigen::VectorXd &x)
 {
-    Eigen::VectorXd e1, e2, p;
-    e1 = x.segment(0, 3);
-    e2 = x.segment(3, 3);
-    p = x.segment(6, 3);
+    Eigen::VectorXd p1, p2, p3;
+    p1 = x.segment(0, 3);
+    p2 = x.segment(3, 3);
+    p3 = x.segment(6, 3);
     
     Eigen::MatrixXd j = Eigen::MatrixXd::Zero(5, 9);
     j(0,0) = 1; j(0,3) = -1;
     j(1,1) = 1; j(1,4) = -1;
     j(2,2) = 1; j(2,5) = -1;
-    j.row(3).head(3) = (e1 - p).transpose()/(e1 - p).norm(); j.row(3).tail(3) = -j.row(3).head(3);
-    j.row(4).head(3) = (p - 2*e1).transpose(); j.row(4).tail(3) = e1.transpose();
+    j.row(3).head(3) = (p1 - p3).transpose()/(p1 - p3).norm(); j.row(3).tail(3) = -j.row(3).head(3);
+    j.row(4).head(3) = (p3 - 2*p1).transpose(); j.row(4).tail(3) = p1.transpose();
     return j;
 }
 
