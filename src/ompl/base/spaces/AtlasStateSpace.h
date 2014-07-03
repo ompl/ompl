@@ -165,6 +165,9 @@ namespace ompl
             /** \brief Destructor. */
             virtual ~AtlasStateSpace (void);
             
+            /** @name Setup and tuning of atlas parameters
+             * @{ */
+            
             /** \brief Final setup for the space. */
             virtual void setup (void);
             
@@ -244,6 +247,11 @@ namespace ompl
             /** \brief Get the dimension of the constraint manifold. */
             unsigned int getManifoldDimension (void) const;
             
+            /** @} */
+            
+            /** @name Manifold and chart operations
+             *  @{ */
+            
             /** \brief Constraint function. Accepts a vector \a x in ambient space. Returns a vector of the amount of violation of
              * each constraint. Returns the zero vector when \a x is on the manifold. */
             const ConstraintsFn bigF;
@@ -285,7 +293,12 @@ namespace ompl
              * if \a interpolate is true. If \a stateList is not NULL, the sequence of intermediates is saved to it, including
              * a copy of \a from, as well as the final state. Caller is responsible for freeing states returned in \a stateList. */
             virtual bool followManifold (const StateType *from, const StateType *to, const bool interpolate = false,
-                                 std::vector<StateType *> *const stateList = NULL) const;
+                                         std::vector<StateType *> *const stateList = NULL) const;
+            
+            /** @} */
+            
+            /** @name Interpolation and state management
+             * @{ */
             
             /** \brief Find the state between \a from and \a to at time \a t, where \a t = 0 is \a from, and \a t = 1 is the final
              * state reached by followManifold(\a from, \a to, true, ...), which may not be \a to. State returned in \a state. */
@@ -311,13 +324,9 @@ namespace ompl
             /** \brief Free \a state. Assumes \a state is an AtlasStateSpace state. */
             virtual void freeState (State *state) const;
             
-        private:
+            /** @} */
             
-            /** \brief Ambient space dimension. */
-            const unsigned int n_;
-            
-            /** \brief Manifold dimension. */
-            unsigned int k_;
+        protected:
             
             /** \brief SpaceInformation associated with this space. */
             SpaceInformation *si_;
@@ -327,6 +336,14 @@ namespace ompl
             
             /** \brief List of charts, sampleable by weight. */
             mutable PDF<AtlasChart *> charts_;
+            
+        private:
+            
+            /** \brief Ambient space dimension. */
+            const unsigned int n_;
+            
+            /** \brief Manifold dimension. */
+            unsigned int k_;
             
             /** \brief Step size when traversing the manifold and collision checking. */
             double delta_;

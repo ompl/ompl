@@ -140,7 +140,7 @@ namespace ompl
             
             /** \brief Check each of our neighboring charts to see if ambient point \a x lies within its
              * polytope when projected onto it. Returns NULL if none. */
-            const AtlasChart *owningNeighbor (const Eigen::VectorXd &x) const;
+            virtual const AtlasChart *owningNeighbor (const Eigen::VectorXd &x) const;
             
             /** \brief Get the measure (k_-dimensional volume) of this chart. */
             double getMeasure (void) const;
@@ -155,6 +155,9 @@ namespace ompl
             
         protected:
             
+            /** \brief Atlas to which this chart belongs. */
+            const AtlasStateSpace &atlas_;
+            
             /** \brief Measure of the convex polytope P. */
             double measure_;
             
@@ -167,9 +170,6 @@ namespace ompl
             virtual void addBoundary (LinearInequality *const l);
             
         private:
-            
-            /** \brief Atlas to which this chart belongs. */
-            const AtlasStateSpace &atlas_;
             
             /** \brief Dimension of the ambient space. */
             const unsigned int n_;
