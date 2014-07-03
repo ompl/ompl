@@ -272,10 +272,10 @@ namespace ompl
             void updateMeasure (const AtlasChart &c) const;
             
             /** \brief Return the measure of a manifold-dimensional ball of radius sqrt(2)*rho. */
-            double measureSqrt2RhoKBall (void) const;
+            double getMeasureSqrt2RhoKBall (void) const;
             
             /** \brief Return the number of samples to use in chart measure estimation. */
-            unsigned int monteCarloSamples (void) const;
+            unsigned int getMonteCarloSamples (void) const;
             
             /** \brief Return the number of charts currently in the atlas. */
             std::size_t getChartCount (void) const;

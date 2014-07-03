@@ -281,7 +281,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
     unsigned int countInside = 0;
     unsigned int countTotal = 0;
     Eigen::VectorXd r(k_);
-    while (countTotal++ < atlas_.monteCarloSamples())
+    while (countTotal++ < atlas_.getMonteCarloSamples())
     {
         // Sample a point within ball
         std::size_t soleViolation;
@@ -311,6 +311,6 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
     }
     
     // Update measure with new estimate
-    measure_ = countInside * (atlas_.measureSqrt2RhoKBall() / countTotal);
+    measure_ = countInside * (atlas_.getMeasureSqrt2RhoKBall() / countTotal);
     atlas_.updateMeasure(*this);
 }

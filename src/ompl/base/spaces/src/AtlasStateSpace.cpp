@@ -214,7 +214,6 @@ void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c)
 /// AtlasStateSpace
 
 /// Public
-
 ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, const ConstraintsFn constraints, const JacobianFn jacobian)
 : RealVectorStateSpace(dimension), bigF(constraints), bigJ(jacobian), n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5),
     lambda_(2), projectionTolerance_(1e-8), projectionMaxIterations_(200), monteCarloThoroughness_(3.5)
@@ -232,7 +231,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     setRho(0.1);
     setAlpha(M_PI/16);
     
-    OMPL_INFORM("Monte Carlo integration will use %d samples per chart.", monteCarloSamples());
+    OMPL_INFORM("Monte Carlo integration will use %d samples per chart.", getMonteCarloSamples());
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
@@ -460,12 +459,12 @@ void ompl::base::AtlasStateSpace::updateMeasure (const AtlasChart &c) const
     charts_.update(charts_.getElements()[c.getID()], c.getMeasure());
 }
 
-double ompl::base::AtlasStateSpace::measureSqrt2RhoKBall (void) const
+double ompl::base::AtlasStateSpace::getMeasureSqrt2RhoKBall (void) const
 {
     return ballMeasure_;
 }
 
-unsigned int ompl::base::AtlasStateSpace::monteCarloSamples (void) const
+unsigned int ompl::base::AtlasStateSpace::getMonteCarloSamples (void) const
 {
     // Volume of a k-ball with radius equal to the thoroughness parameter
     static unsigned int samples = std::pow(std::sqrt(M_PI) * monteCarloThoroughness_, k_) / boost::math::tgamma(k_/2.0 + 1);
