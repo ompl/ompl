@@ -158,9 +158,10 @@ namespace ompl
             typedef boost::function<Eigen::MatrixXd (const Eigen::VectorXd &)> JacobianFn;
             
             /** \brief Constructor. The ambient space has dimension \a dimension. The manifold is implicitly defined
-             * as { x in R^(\a dimension) : \a constraintFn(x) = Zero }. The Jacobian of \a constraintFn at x
-             * is given by \a jacobianFn(x). */
-            AtlasStateSpace (const unsigned int dimension, const ConstraintsFn constraint, const JacobianFn jacobian);
+             * as { x in R^(\a dimension) : \a constraints(x) = Zero }. The Jacobian of \a constraints at x is
+             * given by \a jacobian(x) if specified explicitly; otherwise numerical methods are used. Generally, an
+             * explicit Jacobian would be much faster. */
+            AtlasStateSpace (const unsigned int dimension, const ConstraintsFn constraints, const JacobianFn jacobian = NULL);
             
             /** \brief Destructor. */
             virtual ~AtlasStateSpace (void);
@@ -336,6 +337,9 @@ namespace ompl
             
             /** \brief List of charts, sampleable by weight. */
             mutable PDF<AtlasChart *> charts_;
+            
+            /** \brief Numerically compute the Jacobian of the constraint function at \a x. */
+            virtual Eigen::MatrixXd numericalJacobian (const Eigen::VectorXd &x) const;
             
         private:
             

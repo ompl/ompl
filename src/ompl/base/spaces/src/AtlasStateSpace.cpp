@@ -40,6 +40,8 @@
 #include "ompl/util/Exception.h"
 
 #include <boost/math/special_functions/gamma.hpp>
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
 
 #include <eigen3/Eigen/Core>
 
@@ -215,8 +217,11 @@ void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c)
 
 /// Public
 ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, const ConstraintsFn constraints, const JacobianFn jacobian)
-: RealVectorStateSpace(dimension), bigF(constraints), bigJ(jacobian), n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5),
-    lambda_(2), projectionTolerance_(1e-8), projectionMaxIterations_(200), monteCarloThoroughness_(3.5)
+: RealVectorStateSpace(dimension),
+    bigF(constraints),
+    bigJ(jacobian ? jacobian : boost::bind(&AtlasStateSpace::numericalJacobian, this, boost::lambda::_1)),
+    n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
+    projectionTolerance_(1e-8), projectionMaxIterations_(200), monteCarloThoroughness_(3.5)
 {
     setName("Atlas" + RealVectorStateSpace::getName());
     
@@ -225,13 +230,15 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     k_ = n_ - bigF(zero).size();
     if (k_ <= 0)
         throw ompl::Exception("Too many constraints! The manifold must be at least 1-dimensional.");
-    if (bigJ(zero).rows() != bigF(zero).size() || bigJ(zero).cols() != n_)
+    if (!jacobian)
+        OMPL_INFORM("Atlas: Jacobian not given. Using numerical methods to compute it. (May be slower and/or less accurate.)");
+    else if (bigJ(zero).rows() != bigF(zero).size() || bigJ(zero).cols() != n_)
         throw ompl::Exception("Dimensions of the Jacobian are incorrect! Should be n-k by n, where n, k are the ambient, manifold dimensions.");
     
     setRho(0.1);
     setAlpha(M_PI/16);
     
-    OMPL_INFORM("Monte Carlo integration will use %d samples per chart.", getMonteCarloSamples());
+    OMPL_INFORM("Atlas: Monte Carlo integration will use %d samples per chart.", getMonteCarloSamples());
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
@@ -563,7 +570,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             // Deviation: If rho is too big, charts have gaps between them; this fixes it on the fly
             if (!c)
             {
-                OMPL_DEBUG("Fell between the cracks! Patching in a new chart now. Using smaller rho in the future.");
+                OMPL_DEBUG("Atlas: Fell between the cracks! Patching in a new chart now. Using smaller rho in the future.");
                 setRho(0.8*getRho());
                 c = &newChart(x_n);
                 //chartCreated = true;  // Lying here in case the 'explore' flag is ever implemented, since this is not supposed to happen
@@ -718,4 +725,30 @@ ompl::base::State *ompl::base::AtlasStateSpace::allocState (void) const
 void ompl::base::AtlasStateSpace::freeState (State *state) const
 {
     delete state->as<StateType>();
+}
+
+/// Protected
+Eigen::MatrixXd ompl::base::AtlasStateSpace::numericalJacobian (const Eigen::VectorXd &x) const
+{
+    const std::size_t cols = n_;
+    const std::size_t rows = n_ - k_;
+    Eigen::VectorXd y1 = x;
+    Eigen::VectorXd y2 = x;
+    Eigen::MatrixXd jac(rows, cols);
+    for (std::size_t j = 0; j < cols; j++)
+    {
+        const double h = std::sqrt(std::numeric_limits<double>::epsilon()) * (x[j] >= 1 ? x[j] : 1);
+        
+        y1[j] += h; y2[j] -= h;
+        const Eigen::VectorXd m1 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);
+        y1[j] += h; y2[j] -= h;
+        const Eigen::VectorXd m2 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);
+        y1[j] += h; y2[j] -= h;
+        const Eigen::VectorXd m3 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);
+        y1[j] = y2[j] = x[j];
+        
+        jac.col(j) = ((15*m1 - 6*m2) + m3) / 10;
+    }
+    
+    return jac;
 }

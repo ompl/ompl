@@ -147,8 +147,8 @@ Eigen::VectorXd ompl::base::AtlasChart::phi (const Eigen::VectorXd &u) const
 Eigen::VectorXd ompl::base::AtlasChart::psi (const Eigen::VectorXd &u) const
 {
     // Initial guess for Newton's method
-    Eigen::VectorXd x, x_0;
-    x = x_0 = phi(u);
+    const Eigen::VectorXd x_0 = phi(u);
+    Eigen::VectorXd x = x_0;
     
     unsigned iter = 0;
     Eigen::VectorXd b(n_);
