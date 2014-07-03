@@ -71,7 +71,7 @@ const ompl::base::AtlasChart &ompl::base::AtlasChart::LinearInequality::getOwner
 
 bool ompl::base::AtlasChart::LinearInequality::accepts (const Eigen::VectorXd &v) const
 {
-    // Equation (10) in Jaillet 2013
+    // Equation (10) in the Jaillet paper
     return v.dot(u_) <= rhs_;
 }
 
@@ -278,6 +278,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
         pruneCandidates[i] = true;
     
     // Perform Monte Carlo integration to estimate volume
+    // TODO This could be done so much better, but it's a lot of work
     unsigned int countInside = 0;
     unsigned int countTotal = 0;
     Eigen::VectorXd r(k_);
