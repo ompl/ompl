@@ -65,10 +65,9 @@ namespace ompl
 
             virtual unsigned int sampleTo(Control *control, const base::State *source, base::State *dest)
             {
-                double duration; // In real time (say seconds);
+                double duration;
                 if (!si_->getStatePropagator()->steer(source, dest, control, duration)) return 0;
-                //unsigned int steps = std::floor(duration / si_->getMinControlDuration() + 0.5);
-                unsigned int steps = std::floor(duration / si_->getPropagationStepSize() + 0.5);
+                unsigned int steps = std::floor(duration / si_->getMinControlDuration() + 0.5);
                 return si_->propagateWhileValid(source, control, steps, dest);
             }
 
@@ -79,6 +78,8 @@ namespace ompl
 
         protected:
 
+            /** \brief The space information this sampler operates on */
+            const SpaceInformation *si_;
         };
     }
 }
