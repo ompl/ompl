@@ -142,6 +142,9 @@ namespace ompl
              * polytope when projected onto it. Returns NULL if none. */
             virtual const AtlasChart *owningNeighbor (const Eigen::VectorXd &x) const;
             
+            /** \brief Perform calculations to approximate the measure of this chart. */
+            virtual void approximateMeasure (void);
+            
             /** \brief Get the measure (k_-dimensional volume) of this chart. */
             double getMeasure (void) const;
             
@@ -164,10 +167,10 @@ namespace ompl
             /** \brief Set of linear inequalities defining the polytope P. */
             std::list<LinearInequality *> bigL_;
             
-            /** \brief Introduce a new linear inequality \a l to bound the polytope P. Updates
+            /** \brief Introduce a new linear inequality \a halfspace to bound the polytope P. Updates
              * approximate measure and prune redundant inequalities. This chart assumes
-             * responsibility for deleting l. */
-            virtual void addBoundary (LinearInequality *const l);
+             * responsibility for deleting \a halfspace. If \a halfspace is NULL, it is not added. */
+            virtual void addBoundary (LinearInequality *const halfspace = NULL);
             
         private:
             

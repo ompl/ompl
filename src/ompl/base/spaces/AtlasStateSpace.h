@@ -277,7 +277,7 @@ namespace ompl
             double getMeasureRhoKBall (void) const;
             
             /** \brief Return the samples to use in chart measure estimation. */
-            const std::vector<Eigen::VectorXd *> &getMonteCarloSamples (void) const;
+            const std::vector<Eigen::VectorXd> &getMonteCarloSamples (void) const;
             
             /** \brief Return the number of charts currently in the atlas. */
             std::size_t getChartCount (void) const;
@@ -379,7 +379,7 @@ namespace ompl
             mutable double ballMeasure_;
             
             /** \brief Collection of points to use in Monte Carlo integration. */
-            mutable std::vector<Eigen::VectorXd *> samples_;
+            mutable std::vector<Eigen::VectorXd> samples_;
         };
     }
 }

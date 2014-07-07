@@ -237,7 +237,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     
     const std::size_t s = std::pow(std::sqrt(M_PI) * monteCarloThoroughness_, k_) / boost::math::tgamma(k_/2.0 + 1);
     OMPL_INFORM("Atlas: Monte Carlo integration using %d samples per chart.", s);
-    samples_.assign(s, NULL);
+    samples_.assign(s, Eigen::VectorXd::Zero(k_));
     
     setRho(0.1);
     setAlpha(M_PI/16);
@@ -247,11 +247,6 @@ ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
 {
     for (std::size_t i = 0; i < charts_.size(); i++)
         delete charts_[i];
-    for (std::size_t i = 0; i < samples_.size(); i++)
-    {
-        if (samples_[i])
-            delete samples_[i];
-    }
 }
 
 void ompl::base::AtlasStateSpace::setup (void)
@@ -295,36 +290,23 @@ void ompl::base::AtlasStateSpace::setRho (const double rho) const
 {
     if (rho <= 0)
         throw ompl::Exception("Please specify a positive rho.");
-    if (rho > rho_ && setup_)
-        throw ompl::Exception("Can only decrease rho after setup is called.");
     rho_ = rho;
     rho_s_ = rho_ / std::pow(1 - exploration_, 1.0/k_);
     ballMeasure_ = std::pow(std::sqrt(M_PI) * rho_, k_) / boost::math::tgamma(k_/2.0 + 1);
     
-    if (!setup_)
+    // Generate random samples within the ball
+    for (std::size_t i = 0; i < samples_.size(); i++)
     {
-        // Generate random samples within the ball
-        for (std::size_t i = 0; i < samples_.size(); i++)
-        {
-            samples_[i] = new Eigen::VectorXd;
-            do
-            {
-                *samples_[i] = Eigen::VectorXd::Random(k_) * rho_;
-            }
-            while (samples_[i]->norm() > rho_);
-        }
+        do
+            samples_[i] = Eigen::VectorXd::Random(k_) * rho_;
+        while (samples_[i].norm() > rho_);
     }
-    else
+    
+    if (setup_)
     {
-        // Retire samples too far away
-        for (std::size_t i = 0; i < samples_.size(); i++)
-        {
-            if (samples_[i] && samples_[i]->norm() > rho_)
-            {
-                delete samples_[i];
-                samples_[i] = NULL;
-            }
-        }
+        // Completely recompute chart measures
+        for (std::size_t i = 0; i < charts_.size(); i++)
+            charts_[i]->approximateMeasure();
     }
 }
 
@@ -498,7 +480,7 @@ double ompl::base::AtlasStateSpace::getMeasureRhoKBall (void) const
     return ballMeasure_;
 }
 
-const std::vector<Eigen::VectorXd *> &ompl::base::AtlasStateSpace::getMonteCarloSamples (void) const
+const std::vector<Eigen::VectorXd> &ompl::base::AtlasStateSpace::getMonteCarloSamples (void) const
 {
     return samples_;
 }

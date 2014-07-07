@@ -238,6 +238,11 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eige
     return bestC;
 }
 
+void ompl::base::AtlasChart::approximateMeasure (void)
+{
+    addBoundary();
+}
+
 double ompl::base::AtlasChart::getMeasure (void) const
 {
     return measure_;
@@ -268,9 +273,10 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
 }
 
 /// Protected
-void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
+void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace)
 {
-    bigL_.push_front(l);
+    if (halfspace)
+        bigL_.push_front(halfspace);
     
     // Initialize list of inequalities marked for pruning
     std::vector<bool> pruneCandidates(bigL_.size() + 1);  // dummy at the end for convenience
@@ -278,19 +284,13 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
         pruneCandidates[i] = true;
     
     // Perform Monte Carlo integration to estimate volume
-    // TODO This could be done so much better, but it's a lot of work
     unsigned int countInside = 0;
-    unsigned int countTotal = 0;
-    const std::vector<Eigen::VectorXd *> &samples = atlas_.getMonteCarloSamples();
+    const std::vector<Eigen::VectorXd> &samples = atlas_.getMonteCarloSamples();
     for (std::size_t i = 0; i < samples.size(); i++)
     {
-        if (!samples[i])
-            continue;
-        countTotal++;
-        
         // Take a sample and check if it's inside P \intersect k-Ball
         std::size_t soleViolation;
-        if (inP(*samples[i], &soleViolation))
+        if (inP(samples[i], &soleViolation))
             countInside++;
         
         // If there was a solitary violation, that inequalitiy is too important to prune
@@ -314,8 +314,6 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
     }
     
     // Update measure with new estimate
-    if (countTotal == 0)    // TODO Solve this potential issue
-        throw ompl::Exception("No viable Monte Carlo samples remain after last decrease in rho.");
-    measure_ = countInside * (atlas_.getMeasureRhoKBall() / countTotal);
+    measure_ = countInside * (atlas_.getMeasureRhoKBall() / samples.size());
     atlas_.updateMeasure(*this);
 }
