@@ -221,12 +221,14 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eige
         if (!comp)
             continue;
         
-        // Project onto the chart and check if it's in the polytope
+        // Project onto the chart and check if it's in the validity region and polytope
         const AtlasChart &c = comp->getOwner();
         const Eigen::VectorXd psiInvX = c.psiInverse(x);
-        if (c.inP(psiInvX))
+        const Eigen::VectorXd psiPsiInvX = c.psi(psiInvX);
+        if ((c.phi(psiInvX) - psiPsiInvX).norm() < atlas_.getEpsilon() && psiInvX.norm() < atlas_.getRho() && c.inP(psiInvX))
         {
-            double err = (c.phi(psiInvX) - x).norm();
+            // The closer the point to where the chart puts it, the better
+            double err = (psiPsiInvX - x).norm();
             if (err < best)
             {
                 bestC = &c;

@@ -423,20 +423,21 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
     }
     
     // If not found, search through all charts for the best match
-    double best = std::numeric_limits<double>::infinity();
+    double best = delta_;
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
-        // The point must lie in the chart's polytope, but check rho first for speed
+        // The point must lie in the chart's validity region and polytope
         AtlasChart &c = *charts_[i];
         const Eigen::VectorXd psiInvX = c.psiInverse(x);
-        if (psiInvX.norm() < rho_ && c.inP(psiInvX))
+        const Eigen::VectorXd psiPsiInvX = c.psi(psiInvX);
+        if ((c.phi(psiInvX) - psiPsiInvX).norm() < epsilon_ && psiInvX.norm() < rho_ && c.inP(psiInvX))
         {
-            // The closer the chart point to the manifold point, the better
-            double d = (c.phi(psiInvX) - x).norm();
-            if (d < best)
+            // The closer the point to where the chart puts it, the better
+            double err = (psiPsiInvX - x).norm();
+            if (err < best)
             {
                 bestC = &c;
-                best = d;
+                best = err;
             }
         }
     }
@@ -550,7 +551,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             break;
         }
         
-        if ((x_j - c->phi(u_j)).norm() > epsilon_ || delta_/d_s < cos_alpha_ || u_j.norm() > rho_)
+        if ((x_j - c->phi(u_j)).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_ || u_j.squaredNorm() > rho_*rho_)
         {
             // Left the validity region of the chart; make a new one
             if (u_n.norm() == 0)
@@ -622,7 +623,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         d += d_s;
         if (((x_0 - x_j).norm() > d_0 || d > lambda_*d_0))
         {
-            reached = !((u_r - u_n).squaredNorm() > delta_*delta_);  // Did we just reach the target anyway?
+            reached = ((u_r - u_n).squaredNorm() < delta_*delta_);  // Did we just reach the target anyway?
             break;
         }
     }
