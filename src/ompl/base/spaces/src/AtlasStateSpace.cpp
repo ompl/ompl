@@ -221,7 +221,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     bigF(constraints),
     bigJ(jacobian ? jacobian : boost::bind(&AtlasStateSpace::numericalJacobian, this, boost::lambda::_1)),
     n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
-    projectionTolerance_(1e-8), projectionMaxIterations_(200), monteCarloThoroughness_(3.5)
+    projectionTolerance_(1e-8), projectionMaxIterations_(200), monteCarloThoroughness_(3.5), setup_(false)
 {
     setName("Atlas" + RealVectorStateSpace::getName());
     
@@ -238,7 +238,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     setRho(0.1);
     setAlpha(M_PI/16);
     
-    OMPL_INFORM("Atlas: Monte Carlo integration will use %d samples per chart.", getMonteCarloSamples());
+    OMPL_INFORM("Atlas: Monte Carlo integration using %d samples per chart.", getMonteCarloSamples());
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
@@ -249,9 +249,13 @@ ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
 
 void ompl::base::AtlasStateSpace::setup (void)
 {
+    if (setup_)
+        return;
+    
     if (!si_)
         throw ompl::Exception("Must associate a SpaceInformation object to the AtlasStateSpace via setStateInformation() before use.");
     RealVectorStateSpace::setup();
+    setup_ = true;
 }
 
 void ompl::base::AtlasStateSpace::setSpaceInformation (const SpaceInformationPtr &si)
@@ -284,9 +288,10 @@ void ompl::base::AtlasStateSpace::setRho (const double rho) const
 {
     if (rho <= 0)
         throw ompl::Exception("Please specify a positive rho.");
+    if (rho > rho_ && setup_)
+        throw ompl::Exception("Can only decrease rho after setup is called.");
     rho_ = rho;
     rho_s_ = rho_ / std::pow(1 - exploration_, 1.0/k_);
-    ballMeasure_ = std::pow(std::sqrt(2*M_PI) * rho_, k_) / boost::math::tgamma(k_/2.0 + 1);
 }
 
 void ompl::base::AtlasStateSpace::setAlpha (const double alpha)
@@ -325,13 +330,6 @@ void ompl::base::AtlasStateSpace::setProjectionMaxIterations (unsigned int itera
     if (iterations == 0)
         throw ompl::Exception("Please specify a positive maximum projection iteration count.");
     projectionMaxIterations_ = iterations;
-}
-
-void ompl::base::AtlasStateSpace::setMonteCarloThoroughness (const double thoroughness)
-{
-    if (thoroughness <= 0)
-        throw ompl::Exception("Please specify a positive Monte Carlo thoroughness.");
-    monteCarloThoroughness_ = thoroughness;
 }
 
 double ompl::base::AtlasStateSpace::getDelta (void) const
@@ -379,11 +377,6 @@ unsigned int ompl::base::AtlasStateSpace::getProjectionMaxIterations (void) cons
     return projectionMaxIterations_;
 }
 
-double ompl::base::AtlasStateSpace::getMonteCarloThoroughness (void) const
-{
-    return monteCarloThoroughness_;
-}
-
 unsigned int ompl::base::AtlasStateSpace::getAmbientDimension (void) const
 {
     return n_;
@@ -417,10 +410,10 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
     double best = std::numeric_limits<double>::infinity();
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
-        // The point must lie in the chart's polytope
+        // The point must lie in the chart's polytope, but check rho first for speed
         AtlasChart &c = *charts_[i];
         const Eigen::VectorXd psiInvX = c.psiInverse(x);
-        if (c.inP(psiInvX))
+        if (psiInvX.norm() < rho_ && c.inP(psiInvX))
         {
             // The closer the chart point to the manifold point, the better
             double d = (c.phi(psiInvX) - x).norm();
@@ -464,11 +457,6 @@ Eigen::VectorXd ompl::base::AtlasStateSpace::dichotomicSearch (const AtlasChart 
 void ompl::base::AtlasStateSpace::updateMeasure (const AtlasChart &c) const
 {
     charts_.update(charts_.getElements()[c.getID()], c.getMeasure());
-}
-
-double ompl::base::AtlasStateSpace::getMeasureSqrt2RhoKBall (void) const
-{
-    return ballMeasure_;
 }
 
 unsigned int ompl::base::AtlasStateSpace::getMonteCarloSamples (void) const

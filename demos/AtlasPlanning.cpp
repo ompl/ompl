@@ -114,17 +114,18 @@ void printState (const ompl::base::AtlasStateSpace::StateType *state)
 int main (int, char *[])
 {
     // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is faster)
-    const unsigned int dim = /*3;*/ 9;
-    ompl::base::AtlasStateSpacePtr atlas(new ompl::base::AtlasStateSpace(dim, /*Fsphere, Jsphere)); */ Fcomplicated, Jcomplicated));
+    const unsigned int dim = 3; /* 9; */
+    ompl::base::AtlasStateSpacePtr atlas(new ompl::base::AtlasStateSpace(dim, Fsphere, Jsphere)); /* Fcomplicated, Jcomplicated)); */
     ompl::base::StateSpacePtr space(atlas);
     
     // Seed some intial charts around the start and goal points
-    /*
+    
     Eigen::VectorXd x(dim); x << 0, 0, 1;
     Eigen::VectorXd y(dim); y << 0, 1, 0;
-    */
+    /*
     Eigen::VectorXd x(dim); x << 0, 0, 3, 0, 0, 0, 2, 0, 3;
     Eigen::VectorXd y(dim); y << -4, -4, 0, -4, -4, -3, -4, -4, 2;
+    */
     const ompl::base::AtlasChart &startChart = atlas->newChart(x);
     const ompl::base::AtlasChart &goalChart = atlas->newChart(y);
     ompl::base::ScopedState<> start(space), goal(space);

@@ -120,17 +120,17 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::V
     bigPhi_t_ = bigPhi_.transpose();
     
     // Initialize set of linear inequalities so the polytope is the k_-dimensional cube of side
-    //  length 2*rho_s so it completely contains the sampling ball
+    //  length 2*rho so it completely contains the ball of radius rho
     Eigen::VectorXd e = Eigen::VectorXd::Zero(k_);
     for (unsigned int i = 0; i < k_; i++)
     {
-        e[i] = 2 * atlas_.getRho_s();
+        e[i] = 2 * atlas_.getRho();
         bigL_.push_front(new LinearInequality(*this, e));
         e[i] *= -1;
         bigL_.push_front(new LinearInequality(*this, e));
         e[i] = 0;
     }
-    measure_ = std::pow(2*atlas_.getRho_s(), k_);
+    measure_ = std::pow(2*atlas_.getRho(), k_);
 }
 
 ompl::base::AtlasChart::~AtlasChart (void)
@@ -284,10 +284,10 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
     Eigen::VectorXd r(k_);
     while (countTotal++ < atlas_.getMonteCarloSamples())
     {
-        // Sample a point within ball
+        // Sample a point within cube
         std::size_t soleViolation;
         r.setRandom();
-        r *= M_SQRT2 * atlas_.getRho();
+        r *= atlas_.getRho();
         if (inP(r, &soleViolation))
             countInside++;
         
@@ -312,6 +312,6 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
     }
     
     // Update measure with new estimate
-    measure_ = countInside * (atlas_.getMeasureSqrt2RhoKBall() / countTotal);
+    measure_ = countInside * (std::pow(2*atlas_.getRho(), k_) / countTotal);
     atlas_.updateMeasure(*this);
 }

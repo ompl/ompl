@@ -208,10 +208,6 @@ namespace ompl
              * Default is 200. */
             void setProjectionMaxIterations (unsigned int iterations);
             
-            /** \brief The number of samples used in the Monte Carlo integration of a chart's measure is proportional to
-             * \a thoroughness ^ (manifold dimension). Default is 3.5. Has a massive performance impact in higher dimensions. */
-            void setMonteCarloThoroughness (const double thoroughness);
-            
             /** \brief Get delta. */
             double getDelta (void) const;
             
@@ -238,9 +234,6 @@ namespace ompl
             
             /** \brief Get the maximum number of projection iterations. */
             unsigned int getProjectionMaxIterations (void) const;
-            
-            /** \brief Get the Monte Carlo integration thoroughness parameter. */
-            double getMonteCarloThoroughness (void) const;
             
             /** \brief Get the dimension of the ambient space. */
             unsigned int getAmbientDimension (void) const;
@@ -279,9 +272,6 @@ namespace ompl
             
             /** \brief Update the recorded measure of a chart. */
             void updateMeasure (const AtlasChart &c) const;
-            
-            /** \brief Return the measure of a manifold-dimensional ball of radius sqrt(2)*rho. */
-            double getMeasureSqrt2RhoKBall (void) const;
             
             /** \brief Return the number of samples to use in chart measure estimation. */
             unsigned int getMonteCarloSamples (void) const;
@@ -379,8 +369,8 @@ namespace ompl
             /** \brief Parameter which tunes the number of samples used by Monte Carlo integration. */
             double monteCarloThoroughness_;
             
-            /** \brief Measure of a k-ball of radius sqrt(2)*rho. */
-            mutable double ballMeasure_;
+            /** \brief Whether setup() has been called. */
+            bool setup_;
         };
     }
 }
