@@ -130,7 +130,7 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::V
         bigL_.push_front(new LinearInequality(*this, e));
         e[i] = 0;
     }
-    measure_ = std::pow(2*atlas_.getRho(), k_);
+    measure_ = atlas_.getMeasureRhoKBall();
 }
 
 ompl::base::AtlasChart::~AtlasChart (void)
@@ -316,6 +316,6 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const l)
     // Update measure with new estimate
     if (countTotal == 0)    // TODO Solve this potential issue
         throw ompl::Exception("No viable Monte Carlo samples remain after last decrease in rho.");
-    measure_ = countInside * (std::pow(2*atlas_.getRho(), k_) / countTotal);
+    measure_ = countInside * (atlas_.getMeasureRhoKBall() / countTotal);
     atlas_.updateMeasure(*this);
 }
