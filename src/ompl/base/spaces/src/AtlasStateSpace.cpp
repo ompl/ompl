@@ -299,7 +299,7 @@ void ompl::base::AtlasStateSpace::setRho (const double rho) const
     {
         do
             samples_[i] = Eigen::VectorXd::Random(k_) * rho_;
-        while (samples_[i].norm() > rho_);
+        while (samples_[i].squaredNorm() > rho_*rho_);
     }
     
     if (setup_)
@@ -514,7 +514,6 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     Eigen::VectorXd x_n, x_r, x_j, x_0, u_n, u_r, u_j;
     x_n = from->toVector();
     x_r = to->toVector();
-    bool reached = true;
     
     // We will stop if we exit the ball of radius d_0 centered at x_0
     x_0 = x_n;
@@ -546,10 +545,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         // Collision check unless interpolating
         temp->setRealState(x_j, *c);
         if (!interpolate && !svc->isValid(temp))
-        {
-            reached = false;
             break;
-        }
         
         if ((x_j - c->phi(u_j)).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_ || u_j.squaredNorm() > rho_*rho_)
         {
@@ -575,16 +571,12 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
                 OMPL_DEBUG("Atlas: Fell between the cracks! Patching in a new chart now. Using smaller rho in the future.");
                 setRho(0.8*getRho());
                 c = &newChart(x_n);
-                //chartCreated = true;  // Lying here in case the 'explore' flag is ever implemented, since this is not supposed to happen
             }
             
             // Deviation: again we can't know about 'explore' mode or whether a chart is in the current tree
             /*
             if (!interpolate && (chartCreated || (!explore && inTree(c))))
-            {
-                reached = false;
                 break;
-            }
             */
             
             changedChart = true;
@@ -622,11 +614,10 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         // Check stopping criteria regarding how far we've gone
         d += d_s;
         if (((x_0 - x_j).norm() > d_0 || d > lambda_*d_0))
-        {
-            reached = ((u_r - u_n).squaredNorm() < delta_*delta_);  // Did we just reach the target anyway?
             break;
-        }
     }
+    
+    const bool reached = ((x_r - x_n).squaredNorm() < delta_*delta_);
     
     // Append a copy of the target state, since we're within delta, but didn't hit it exactly
     if (reached && stateList)

@@ -55,9 +55,33 @@ Eigen::VectorXd Fsphere (const Eigen::VectorXd &x)
 /** Jacobian of Fsphere(x). */
 Eigen::MatrixXd Jsphere (const Eigen::VectorXd &x)
 {
-    Eigen::MatrixXd j = x.transpose();
-    j /= x.norm();
-    return j;
+    return x.transpose().normalized();
+}
+
+/** Sphere has 3 ring-shaped obstacles on latitudinal lines, with a small gap in each. */
+bool sphereValid (const ompl::base::State *state)
+{
+    const Eigen::VectorXd &x = state->as<ompl::base::AtlasStateSpace::StateType>()->toVector();
+    
+    if (-0.7 < x[2] && x[2] < -0.6)
+    {
+        if (-0.2 < x[1] && x[1] < 0.2)
+            return x[0] > 0;
+        return false;
+    }
+    else if (-0.1 < x[2] && x[2] < 0.1)
+    {
+        if (-0.2 < x[1] && x[1] < 0.2)
+            return x[0] < 0;
+        return false;
+    }
+    else if (0.6 < x[2] && x[2] < 0.7)
+    {
+        if (-0.2 < x[0] && x[0] < 0.2)
+            return x[1] > 0;
+        return false;
+    }
+    return true;
 }
 
 /** More complicated manifold example: Consider three points in 3D space: p1, p2, and p3. Put p1 exactly
@@ -93,14 +117,14 @@ Eigen::MatrixXd Jcomplicated (const Eigen::VectorXd &x)
     j(0,0) = 1; j(0,3) = -1;
     j(1,1) = 1; j(1,4) = -1;
     j(2,2) = 1; j(2,5) = -1;
-    j.row(3).head(3) = (p1 - p3).transpose()/(p1 - p3).norm(); j.row(3).tail(3) = -j.row(3).head(3);
+    j.row(3).head(3) = (p1 - p3).transpose().normalized(); j.row(3).tail(3) = -j.row(3).head(3);
     j.row(4).head(3) = (p3 - 2*p1).transpose(); j.row(4).tail(3) = p1.transpose();
     return j;
 }
 
 /** Every state has a 1% chance to be invalid. On very rare occasions, the start or goal is declared
  * invalid and the planning fails. */
-bool isValid (const ompl::base::State *)
+bool almostAlways (const ompl::base::State *)
 {
     return ((double) std::rand())/RAND_MAX < 0.99;
 }
@@ -112,26 +136,32 @@ void printState (const ompl::base::AtlasStateSpace::StateType *state)
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y)
+ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, boost::function<bool (const ompl::base::State *)> &isValid)
 {
     const std::size_t dim = 3;
     
     // Start and goal points
-    x = Eigen::VectorXd(dim); x << 0, 0, 1;
-    y = Eigen::VectorXd(dim); y << 0, 1, 0;
+    x = Eigen::VectorXd(dim); x << 0, 0, -1;
+    y = Eigen::VectorXd(dim); y << 0, 0, 1;
+    
+    // Validity checker
+    isValid = &sphereValid;
     
     // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is faster)
     return new ompl::base::AtlasStateSpace(dim, Fsphere, Jsphere);
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initComplicatedProblem (Eigen::VectorXd &x, Eigen::VectorXd &y)
+ompl::base::AtlasStateSpace *initComplicatedProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, boost::function<bool (const ompl::base::State *)> &isValid)
 {
     const std::size_t dim = 9;
     
     // Start and goal points
     x = Eigen::VectorXd(dim); x << 0, 0, 3, 0, 0, 0, 2, 0, 3;
     y = Eigen::VectorXd(dim); y << -4, -4, 0, -4, -4, -3, -4, -4, 2;
+    
+    // Validity checker
+    isValid = &almostAlways;
     
     // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is faster)
     return new ompl::base::AtlasStateSpace(dim, Fcomplicated, Jcomplicated);
@@ -141,18 +171,25 @@ int main (int, char *[])
 {
     // Initialize the atlas for a problem (you can try the other one too)
     Eigen::VectorXd x, y;
-    ompl::base::AtlasStateSpacePtr atlas(initSphereProblem(x, y));
+    boost::function<bool (const ompl::base::State *)> isValid;
+    ompl::base::AtlasStateSpacePtr atlas(initSphereProblem(x, y, isValid));
     ompl::base::StateSpacePtr space(atlas);
+    ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
+    atlas->setSpaceInformation(si);
+    si->setStateValidityChecker(isValid);
     const ompl::base::AtlasChart &startChart = atlas->newChart(x);
     const ompl::base::AtlasChart &goalChart = atlas->newChart(y);
-    ompl::base::ScopedState<> start(space), goal(space);
+    ompl::base::ScopedState<> start(space);
+    ompl::base::ScopedState<> goal(space);
     start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
     goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
     
+    atlas->setExploration(0.9);
+    atlas->setRho(0.1);
+    atlas->setAlpha(M_PI/32);
+    atlas->setEpsilon(0.05);
+    
     // More setup for the space and problem definition
-    ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
-    atlas->setSpaceInformation(si);
-    si->setStateValidityChecker(&isValid);
     ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());
     bounds.setLow(-10);
     bounds.setHigh(10);

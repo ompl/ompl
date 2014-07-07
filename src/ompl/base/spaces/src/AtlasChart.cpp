@@ -45,7 +45,7 @@ ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c,
 : owner_(c), complement_(NULL)
 {
     // u_ should be neighbor's center projected onto our chart
-    setU(owner_.psiInverse(neighbor.phi(Eigen::VectorXd::Zero(owner_.k_))));
+    setU(1.05*owner_.psiInverse(neighbor.phi(Eigen::VectorXd::Zero(owner_.k_))));
 }
 
 ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c, const Eigen::VectorXd &u)
