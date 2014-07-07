@@ -510,7 +510,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         stateList->push_back(fromCopy);
     }
     
-    Eigen::VectorXd x_n, x_r, x_j, x_0, u_n, u_r, u_j, ur_un;
+    Eigen::VectorXd x_n, x_r, x_j, x_0, u_n, u_r, u_j;
     x_n = from->toVector();
     x_r = to->toVector();
     bool reached = true;
@@ -524,26 +524,20 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     u_n = c->psiInverse(x_n);
     u_r = c->psiInverse(x_r);
     
-    // Some often-used information
-    ur_un = u_r - u_n;
-    double d_ur_un = ur_un.norm();
-    
     // Deviation: we can't know whether we're in 'explore' mode. We typically actually want to reach the specified sample, not just to grow the atlas.
     /*
     if (explore)
     {
-        u_r = u_n + d_0*ur_un/d_ur_un;  // Note the difference between this and the pseudocode (line 8): it's a subtle mistake
+        u_r = u_n + d_0*(u_r - u_n).normalized();  // Note the difference between this and the pseudocode (line 8): it's a subtle mistake
         x_r = c.phi(u_r);
-        ur_un = u_r - u_n;
-        d_ur_un = ur_un.norm();
     }
     */
     
     //bool chartCreated = false;    // Unused for now
-    while (d_ur_un > delta_)
+    while ((u_r - u_n).squaredNorm() > delta_*delta_)
     {
         // Step by delta toward the target and project
-        u_j = u_n + delta_*ur_un/d_ur_un;   // Note the difference to pseudocode (line 13): a similar mistake
+        u_j = u_n + delta_*(u_r - u_n).normalized();    // Note the difference to pseudocode (line 13): a similar mistake
         x_j = c->psi(u_j);
         double d_s = (x_n - x_j).norm();
         bool changedChart = false;
@@ -606,8 +600,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             if (explore)
             {
                 u_n = c->psiInverse(x_n);
-                ur_un = u_r - u_n;
-                u_r = u_n + (x_r - x_n).norm() * ur_un / ur_un.norm();  // Note the difference to pseudocode (line 37). More severe issue than line 8.
+                u_r = u_n + (x_r - x_n).norm() * (u_r - u_n).normalized();  // Note the difference to pseudocode (line 37). More severe issue than line 8.
                 x_r = c->phi(u_r);
             }
             */
@@ -624,14 +617,12 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         // Update iteration variables
         u_n = u_j;
         x_n = x_j;
-        ur_un = u_r - u_n;
-        d_ur_un = ur_un.norm();
         
         // Check stopping criteria regarding how far we've gone
         d += d_s;
         if (((x_0 - x_j).norm() > d_0 || d > lambda_*d_0))
         {
-            reached = !(d_ur_un > delta_);  // Did we just reach the target anyway?
+            reached = !((u_r - u_n).squaredNorm() > delta_*delta_);  // Did we just reach the target anyway?
             break;
         }
     }
