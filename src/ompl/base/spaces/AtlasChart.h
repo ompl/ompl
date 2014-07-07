@@ -41,7 +41,7 @@
 
 #include <list>
 
-#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/LU>
 
 namespace ompl
 {
@@ -80,6 +80,20 @@ namespace ompl
                  * the complementary inequality to relax in order to accept \a v when projected onto
                  * the neighboring chart. */
                 void checkNear (const Eigen::VectorXd &v) const;
+                
+                /** \brief Compute the vertex of intersection of two 1-dimensional inequalities \a l1 and \a l2. */
+                static Eigen::VectorXd intersect (const LinearInequality &l1, const LinearInequality &l2)
+                {
+                    if (&l1.owner_ != &l2.owner_)
+                        throw ompl::Exception("Cannot intersect linear inequalities on different charts.");
+                    if (l1.owner_.atlas_.getManifoldDimension() != 2)
+                        throw ompl::Exception("AtlasChart::LinearInequality::intersect() only works on 2D manifolds/charts.");
+                    
+                    Eigen::MatrixXd A(2,2);
+                    A.col(0) = l1.u_; A.col(1) = l2.u_;
+                    Eigen::VectorXd b(2); b << l1.u_.squaredNorm(), l2.u_.squaredNorm();
+                    return A.inverse() * b;
+                }
                 
             private:
                 
@@ -151,6 +165,46 @@ namespace ompl
             /** \brief Get this chart's unique identifier in its atlas. Same as its index in the atlas'
              * vector of charts. */
             unsigned int getID (void) const;
+            
+            /** \brief If the manifold dimension is 2, compute the sequence of vertices for the polygon of this
+             * chart and return them in \a vertices, in order. */
+            void toPolygon (std::vector<Eigen::VectorXd> &vertices) const
+            {
+                if (atlas_.getManifoldDimension() != 2)
+                    throw ompl::Exception("AtlasChart::toPolygon() only works on 2D manifold/charts.");
+                
+                bool done = false;
+                std::list<LinearInequality *>::const_iterator l1 = bigL_.begin();
+                while(!done)
+                {
+                    if (l1 == bigL_.end())
+                        l1 = bigL_.begin();
+                    
+                    std::list<LinearInequality *>::const_iterator l2 = boost::next(l1);
+                    while (l1 != l2)
+                    {
+                        if (l2 == bigL_.end())
+                        {
+                            l2 = bigL_.begin();
+                            continue;
+                        }
+                        
+                        const Eigen::VectorXd v = LinearInequality::intersect(**l1, **l2);
+                        if (inP(v))
+                        {
+                            l1 = l2;
+                            if ((vertices.front() - v).norm() < 1e-6)
+                                done = true;
+                            else
+                                vertices.push_back(v);
+                        }
+                        
+                        l2++;
+                    }
+                    
+                    l1++;
+                }
+            }
             
             /** \brief Create two complementary linear inequalities dividing the space between charts \a c1 and \a c2,
              * and add them to the charts' polytopes. */
