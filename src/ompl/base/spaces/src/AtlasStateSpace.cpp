@@ -238,13 +238,20 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     setRho(0.1);
     setAlpha(M_PI/16);
     
-    OMPL_INFORM("Atlas: Monte Carlo integration using %d samples per chart.", getMonteCarloSamples());
+    const std::size_t s = std::pow(std::sqrt(M_PI) * monteCarloThoroughness_, k_) / boost::math::tgamma(k_/2.0 + 1);
+    OMPL_INFORM("Atlas: Monte Carlo integration using %d samples per chart.", s);
+    samples_.assign(s, NULL);
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
 {
     for (std::size_t i = 0; i < charts_.size(); i++)
         delete charts_[i];
+    for (std::size_t i = 0; i < samples_.size(); i++)
+    {
+        if (samples_[i])
+            delete samples_[i];
+    }
 }
 
 void ompl::base::AtlasStateSpace::setup (void)
@@ -292,6 +299,33 @@ void ompl::base::AtlasStateSpace::setRho (const double rho) const
         throw ompl::Exception("Can only decrease rho after setup is called.");
     rho_ = rho;
     rho_s_ = rho_ / std::pow(1 - exploration_, 1.0/k_);
+    ballMeasure_ = std::pow(std::sqrt(M_PI) * rho_, k_) / boost::math::tgamma(k_/2.0 + 1);
+    
+    if (!setup_)
+    {
+        // Generate random samples within the ball
+        for (std::size_t i = 0; i < samples_.size(); i++)
+        {
+            samples_[i] = new Eigen::VectorXd;
+            do
+            {
+                *samples_[i] = Eigen::VectorXd::Random(k_) * rho_;
+            }
+            while (samples_[i]->norm() > rho_);
+        }
+    }
+    else
+    {
+        // Retire samples too far away
+        for (std::size_t i = 0; i < samples_.size(); i++)
+        {
+            if (samples_[i]->norm() > rho_)
+            {
+                delete samples_[i];
+                samples_[i] = NULL;
+            }
+        }
+    }
 }
 
 void ompl::base::AtlasStateSpace::setAlpha (const double alpha)
@@ -459,11 +493,14 @@ void ompl::base::AtlasStateSpace::updateMeasure (const AtlasChart &c) const
     charts_.update(charts_.getElements()[c.getID()], c.getMeasure());
 }
 
-unsigned int ompl::base::AtlasStateSpace::getMonteCarloSamples (void) const
+double ompl::base::AtlasStateSpace::getMeasureRhoKBall (void) const
 {
-    // Volume of a k-ball with radius equal to the thoroughness parameter
-    static unsigned int samples = std::pow(std::sqrt(M_PI) * monteCarloThoroughness_, k_) / boost::math::tgamma(k_/2.0 + 1);
-    return samples;
+    return ballMeasure_;
+}
+
+const std::vector<Eigen::VectorXd *> &ompl::base::AtlasStateSpace::getMonteCarloSamples (void) const
+{
+    return samples_;
 }
 
 std::size_t ompl::base::AtlasStateSpace::getChartCount (void) const

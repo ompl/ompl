@@ -119,7 +119,6 @@ int main (int, char *[])
     ompl::base::StateSpacePtr space(atlas);
     
     // Seed some intial charts around the start and goal points
-    
     Eigen::VectorXd x(dim); x << 0, 0, 1;
     Eigen::VectorXd y(dim); y << 0, 1, 0;
     /*
