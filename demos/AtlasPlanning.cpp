@@ -111,20 +111,38 @@ void printState (const ompl::base::AtlasStateSpace::StateType *state)
     std::cout << "[" << state->toVector().transpose() << "]  " << state->getChart().getID() << "\n";
 }
 
+/** Initialize the atlas for the sphere problem and store the start and goal vectors. */
+ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y)
+{
+    const std::size_t dim = 3;
+    
+    // Start and goal points
+    x = Eigen::VectorXd(dim); x << 0, 0, 1;
+    y = Eigen::VectorXd(dim); y << 0, 1, 0;
+    
+    // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is faster)
+    return new ompl::base::AtlasStateSpace(dim, Fsphere, Jsphere);
+}
+
+/** Initialize the atlas for the sphere problem and store the start and goal vectors. */
+ompl::base::AtlasStateSpace *initComplicatedProblem (Eigen::VectorXd &x, Eigen::VectorXd &y)
+{
+    const std::size_t dim = 9;
+    
+    // Start and goal points
+    x = Eigen::VectorXd(dim); x << 0, 0, 3, 0, 0, 0, 2, 0, 3;
+    y = Eigen::VectorXd(dim); y << -4, -4, 0, -4, -4, -3, -4, -4, 2;
+    
+    // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is faster)
+    return new ompl::base::AtlasStateSpace(dim, Fcomplicated, Jcomplicated);
+}
+
 int main (int, char *[])
 {
-    // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is faster)
-    const unsigned int dim = 3; /* 9; */
-    ompl::base::AtlasStateSpacePtr atlas(new ompl::base::AtlasStateSpace(dim, Fsphere, Jsphere)); /* Fcomplicated, Jcomplicated)); */
+    // Initialize the atlas for a problem (you can try the other one too)
+    Eigen::VectorXd x, y;
+    ompl::base::AtlasStateSpacePtr atlas(initSphereProblem(x, y));
     ompl::base::StateSpacePtr space(atlas);
-    
-    // Seed some intial charts around the start and goal points
-    Eigen::VectorXd x(dim); x << 0, 0, 1;
-    Eigen::VectorXd y(dim); y << 0, 1, 0;
-    /*
-    Eigen::VectorXd x(dim); x << 0, 0, 3, 0, 0, 0, 2, 0, 3;
-    Eigen::VectorXd y(dim); y << -4, -4, 0, -4, -4, -3, -4, -4, 2;
-    */
     const ompl::base::AtlasChart &startChart = atlas->newChart(x);
     const ompl::base::AtlasChart &goalChart = atlas->newChart(y);
     ompl::base::ScopedState<> start(space), goal(space);
@@ -135,7 +153,7 @@ int main (int, char *[])
     ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
     atlas->setSpaceInformation(si);
     si->setStateValidityChecker(&isValid);
-    ompl::base::RealVectorBounds bounds(dim);
+    ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());
     bounds.setLow(-10);
     bounds.setHigh(10);
     atlas->setBounds(bounds);
