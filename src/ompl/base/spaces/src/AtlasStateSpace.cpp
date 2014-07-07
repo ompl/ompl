@@ -235,12 +235,12 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     else if (bigJ(zero).rows() != bigF(zero).size() || bigJ(zero).cols() != n_)
         throw ompl::Exception("Dimensions of the Jacobian are incorrect! Should be n-k by n, where n, k are the ambient, manifold dimensions.");
     
-    setRho(0.1);
-    setAlpha(M_PI/16);
-    
     const std::size_t s = std::pow(std::sqrt(M_PI) * monteCarloThoroughness_, k_) / boost::math::tgamma(k_/2.0 + 1);
     OMPL_INFORM("Atlas: Monte Carlo integration using %d samples per chart.", s);
     samples_.assign(s, NULL);
+    
+    setRho(0.1);
+    setAlpha(M_PI/16);
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
@@ -319,7 +319,7 @@ void ompl::base::AtlasStateSpace::setRho (const double rho) const
         // Retire samples too far away
         for (std::size_t i = 0; i < samples_.size(); i++)
         {
-            if (samples_[i]->norm() > rho_)
+            if (samples_[i] && samples_[i]->norm() > rho_)
             {
                 delete samples_[i];
                 samples_[i] = NULL;
