@@ -201,6 +201,9 @@ namespace ompl
             
             /** \brief Compare the angles \a v1 and \a v2 make with the origin. */
             bool angleCompare (const Eigen::VectorXd &v1, const Eigen::VectorXd &v2) const;
+            
+            /** \brief Enables pruning of redundant linear inequalities. */
+            const bool pruning;
         };
     }
 }

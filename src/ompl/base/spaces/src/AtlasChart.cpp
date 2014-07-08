@@ -126,7 +126,7 @@ void ompl::base::AtlasChart::LinearInequality::expandToInclude (const Eigen::Vec
 /// Public
 ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::VectorXd &xorigin)
 : atlas_(atlas), n_(atlas_.getAmbientDimension()), k_(atlas_.getManifoldDimension()),
-  xorigin_(xorigin), id_(atlas_.getChartCount())
+  xorigin_(xorigin), id_(atlas_.getChartCount()), pruning(false)
 {
     if (atlas_.bigF(xorigin_).norm() > 10*atlas_.getProjectionTolerance())
         OMPL_WARN("AtlasChart created at point not on the manifold!");
@@ -320,9 +320,13 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace)
         bigL_.push_front(halfspace);
     
     // Initialize list of inequalities marked for pruning
-    std::vector<bool> pruneCandidates(bigL_.size() + 1);  // dummy at the end for convenience
-    for (std::size_t i = 0; i < bigL_.size(); i++)
-        pruneCandidates[i] = true;
+    std::vector<bool> pruneCandidates;
+    if (pruning)
+    {
+        pruneCandidates.resize(bigL_.size() + 1);  // dummy at the end for convenience
+        for (std::size_t i = 0; i < bigL_.size(); i++)
+            pruneCandidates[i] = true;
+    }
     
     // Perform Monte Carlo integration to estimate volume
     unsigned int countInside = 0;
@@ -331,26 +335,30 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace)
     {
         // Take a sample and check if it's inside P \intersect k-Ball
         std::size_t soleViolation;
-        if (inP(samples[i], &soleViolation))
+        if (inP(samples[i], (pruning ? NULL : &soleViolation)))
             countInside++;
         
         // If there was a solitary violation, that inequalitiy is too important to prune
-        pruneCandidates[soleViolation] = false;
+        if (pruning)
+            pruneCandidates[soleViolation] = false;
     }
     
     // Prune at most one candidate (If two inequalities are too close together, we won't sample
     //  between them, so we don't know which is redundant and which is important.)
-    std::size_t i = 0;
-    for (std::list<LinearInequality *>::iterator l = bigL_.begin(); l != bigL_.end(); l++, i++)
+    if (pruning)
     {
-        if (pruneCandidates[i])
+        std::size_t i = 0;
+        for (std::list<LinearInequality *>::iterator l = bigL_.begin(); l != bigL_.end(); l++, i++)
         {
-            LinearInequality *const comp = (*l)->getComplement();
-            if (comp)
-                comp->setComplement(NULL);
-            delete *l;
-            bigL_.erase(l);
-            break;
+            if (pruneCandidates[i])
+            {
+                LinearInequality *const comp = (*l)->getComplement();
+                if (comp)
+                    comp->setComplement(NULL);
+                delete *l;
+                bigL_.erase(l);
+                break;
+            }
         }
     }
     
