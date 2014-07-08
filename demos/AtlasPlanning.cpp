@@ -209,7 +209,7 @@ int main (int, char *[])
     // Plan for at most 60 seconds
     std::clock_t tstart = std::clock();
     ompl::base::PlannerStatus stat;
-    if ((stat = planner->solve(60)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
+    if ((stat = planner->solve(120)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
     {
         double time = ((double)(std::clock()-tstart))/CLOCKS_PER_SEC;
         std::cout << "Solution found!\n";

@@ -659,14 +659,24 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
                 if (prev == j)
                 {
                     // Draw a full circle
-                    Eigen::VectorXd x(3); x << rho_, 0, 0;
-                    const Eigen::Rotation2Dd rot(M_PI/16);
-                    for (std::size_t i = 0; i < 32; i++)
+                    Eigen::VectorXd u_0(2); u_0 << rho_, 0;
+                    double step = M_PI/16;
+                    for (double a = 0; a < 2*M_PI; a += step)
                     {
-                        const Eigen::VectorXd u = rot*c.psiInverse(x);
+                        const Eigen::VectorXd u = Eigen::Rotation2Dd(a)*u_0;
                         if (!c.inP(u))
+                        {
+                            // Switch to fine-grained search for border
+                            if (step == M_PI/16)
+                            {
+                                a -= step;
+                                step = M_PI/128;
+                            }
                             continue;
-                        x = c.phi(u);
+                        }
+                        else
+                            step = M_PI/16;
+                        const Eigen::VectorXd x = c.phi(u);
                         v << x[0] << " " << x[1] << " " << x[2] << "\n";
                         poly << vcount++ << " ";
                         fvcount++;
@@ -677,8 +687,14 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
                 else
                 {
                     // Draw lines to the circle from prev and next and an arc between those two points
-                    const Eigen::VectorXd x1 = rho_ * (vertices[j] - vertices[prev]).normalized() + vertices[prev];
-                    const Eigen::VectorXd x2 = rho_ * (vertices[j] - vertices[next]).normalized() + vertices[next];
+                    const Eigen::VectorXd &p = c.psiInverse(vertices[prev]);
+                    const Eigen::VectorXd &n = c.psiInverse(vertices[next]);
+                    const Eigen::VectorXd &y = c.psiInverse(vertices[(prev+1) % vertices.size()]);
+                    const Eigen::VectorXd &z = c.psiInverse(vertices[next == 0 ? vertices.size()-1 : next-1]);
+                    double t = (-(p.dot(y-p)) + std::sqrt(p.dot(y-p)*p.dot(y-p) - (y-p).squaredNorm()*(p.squaredNorm()-rho_*rho_))) / (y-p).squaredNorm();
+                    const Eigen::VectorXd x1 = c.phi(p + t*(y-p));
+                    t = (-(n.dot(z-n)) + std::sqrt(n.dot(z-n)*n.dot(z-n) - (z-n).squaredNorm()*(n.squaredNorm()-rho_*rho_))) / (z-n).squaredNorm();
+                    const Eigen::VectorXd x2 = c.phi(n + t*(z-n));
                     v << x1[0] << " " << x1[1] << " " << x1[2] << "\n";
                     poly << vcount++ << " ";
                     fvcount++;
