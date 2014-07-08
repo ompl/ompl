@@ -65,19 +65,19 @@ bool sphereValid (const ompl::base::State *state)
 {
     const Eigen::VectorXd &x = state->as<ompl::base::AtlasStateSpace::StateType>()->toVector();
     
-    if (-0.7 < x[2] && x[2] < -0.6)
+    if (-0.75 < x[2] && x[2] < -0.6)
     {
         if (-0.2 < x[1] && x[1] < 0.2)
             return x[0] > 0;
         return false;
     }
-    else if (-0.1 < x[2] && x[2] < 0.1)
+    else if (-0.125 < x[2] && x[2] < 0.125)
     {
         if (-0.2 < x[1] && x[1] < 0.2)
             return x[0] < 0;
         return false;
     }
-    else if (0.6 < x[2] && x[2] < 0.7)
+    else if (0.6 < x[2] && x[2] < 0.75)
     {
         if (-0.2 < x[0] && x[0] < 0.2)
             return x[1] > 0;
@@ -215,6 +215,8 @@ int main (int, char *[])
         std::cout << "Solution found!\n";
         
         // Extract the solution path by re-interpolating between the saved states
+        std::stringstream v;
+        std::size_t vcount = 0;
         const std::vector<ompl::base::State *> &waypoints =
             boost::dynamic_pointer_cast<ompl::geometric::PathGeometric>(pdef->getSolutionPath())->getStates();
         double length = 0;
@@ -235,6 +237,9 @@ int main (int, char *[])
                 for (std::size_t i = 1; i < stateList.size(); i++)
                 {
                     printState(stateList[i]);
+                    const Eigen::VectorXd x = stateList[i]->toVector();
+                    v << x[0] << " " << x[1] << " " << x[2] << "\n";
+                    vcount++;
                     length += atlas->distance(stateList[i-1], stateList[i]);
                 }
             }
@@ -243,6 +248,16 @@ int main (int, char *[])
             for (std::size_t i = 0; i < stateList.size(); i++)
                 atlas->freeState(stateList[i]);
         }
+        std::ofstream pathFile("path.ply");
+        pathFile << "ply\n";
+        pathFile << "format ascii 1.0\n";
+        pathFile << "element vertex " << vcount << "\n";
+        pathFile << "property float x\n";
+        pathFile << "property float y\n";
+        pathFile << "property float z\n";
+        pathFile << "end_header\n";
+        pathFile << v.str();
+        pathFile.close();
         std::cout << "-----\n";
         std::cout << "Length: " << length << "\n";
         std::cout << "Took " << time << " seconds.\n";
@@ -254,9 +269,9 @@ int main (int, char *[])
     
     std::cout << "Atlas created " << atlas->getChartCount() << " charts.\n";
     
-    std::ofstream meshFile("mesh.ply");
-    atlas->dumpMesh(meshFile);
-    meshFile.close();
+    std::ofstream atlasFile("atlas.ply");
+    atlas->dumpMesh(atlasFile);
+    atlasFile.close();
     
     return 0;
 }

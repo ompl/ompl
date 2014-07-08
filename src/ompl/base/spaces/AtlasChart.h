@@ -141,6 +141,12 @@ namespace ompl
              * expand the neighboring chart's polytope. */
             virtual void borderCheck (const Eigen::VectorXd &v) const;
             
+            /** \brief Track that this chart owns \a state. Assumes we are not already tracking it. */
+            void own (ompl::base::AtlasStateSpace::StateType *const state) const;
+            
+            /** \brief Stop tracking \a state. Assumes it is listed at most once. */
+            void disown (ompl::base::AtlasStateSpace::StateType *const state) const;
+            
             /** \brief Check each of our neighboring charts to see if ambient point \a x lies within its
              * polytope when projected onto it. Returns NULL if none. */
             virtual const AtlasChart *owningNeighbor (const Eigen::VectorXd &x) const;
@@ -198,6 +204,9 @@ namespace ompl
             
             /** \brief Transpose of basis. */
             Eigen::MatrixXd bigPhi_t_;
+            
+            /** \brief List of states on this chart. */
+            mutable std::list<ompl::base::AtlasStateSpace::StateType *> owned_;
             
             /** \brief Compare the angles \a v1 and \a v2 make with the origin. */
             bool angleCompare (const Eigen::VectorXd &v1, const Eigen::VectorXd &v2) const;

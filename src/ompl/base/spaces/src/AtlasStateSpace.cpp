@@ -193,7 +193,7 @@ void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd
 {
     for (std::size_t i = 0; i < dimension_; i++)
         (*this)[i]  = x[i];
-    chart_ = &c;
+    setChart(c);
 }
 
 Eigen::VectorXd ompl::base::AtlasStateSpace::StateType::toVector (void) const
@@ -209,9 +209,17 @@ const ompl::base::AtlasChart &ompl::base::AtlasStateSpace::StateType::getChart (
     return *chart_;
 }
 
+const ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart_safe (void) const
+{
+    return chart_;
+}
+
 void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c)
 {
+    if (chart_)
+        chart_->disown(this);
     chart_ = &c;
+    chart_->own(this);
 }
 
 /// AtlasStateSpace
@@ -551,7 +559,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         if ((x_j - c->phi(u_j)).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_ || u_j.squaredNorm() > rho_*rho_)
         {
             // Left the validity region of the chart; make a new one
-            if (u_n.norm() == 0)
+            if (u_n.norm() < 1e-6)
             {
                 // Point we want to center the new chart on is already a chart center
                 c = &newChart(dichotomicSearch(*c, x_n, x_j));  // See paper's discussion of probabilistic completeness; this was left out of pseudocode
@@ -741,7 +749,7 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
     out << "property float y\n";
     out << "property float z\n";
     out << "element face " << fcount << "\n";
-    out << "property list uchar uint vertex_index\n";
+    out << "property list uint uint vertex_index\n";
     out << "end_header\n";
     out << v.str() << f.str();
 }
@@ -829,7 +837,11 @@ ompl::base::State *ompl::base::AtlasStateSpace::allocState (void) const
 
 void ompl::base::AtlasStateSpace::freeState (State *state) const
 {
-    delete state->as<StateType>();
+    StateType *const astate = state->as<StateType>();
+    const AtlasChart *const c = astate->getChart_safe();
+    if (c)
+        c->disown(astate);
+    delete astate;
 }
 
 /// Protected

@@ -134,8 +134,11 @@ namespace ompl
                 /** \brief Convert this state to an Eigen::VectorXd. */
                 Eigen::VectorXd toVector (void) const;
                 
-                /** \brief Get the chart for the state. */
+                /** \brief Get the chart for the state. Unsafe if state not initalized. */
                 const AtlasChart &getChart (void) const;
+                
+                /** \brief Get the (possibly NULL) pointer to the chart. */
+                const AtlasChart *getChart_safe (void) const;
                 
                 /** \brief Set the chart for the state. */
                 void setChart (const AtlasChart &c);

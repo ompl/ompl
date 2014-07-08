@@ -228,6 +228,24 @@ void ompl::base::AtlasChart::borderCheck (const Eigen::VectorXd &v) const
         (*l)->checkNear(v);
 }
 
+void ompl::base::AtlasChart::own (ompl::base::AtlasStateSpace::StateType *const state) const
+{
+    assert(state != NULL);
+    owned_.push_front(state);
+}
+
+void ompl::base::AtlasChart::disown (ompl::base::AtlasStateSpace::StateType *const state) const
+{
+    for (std::list<ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
+    {
+        if (*s == state)
+        {
+            owned_.erase(s);
+            break;
+        }
+    }
+}
+
 const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eigen::VectorXd &x) const
 {
     const AtlasChart *bestC = NULL;
@@ -318,6 +336,22 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace)
 {
     if (halfspace)
         bigL_.push_front(halfspace);
+    
+    // Find tracked states which need to be moved to a different chart
+    for (std::list<ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
+    {
+        assert(*s != NULL);
+        std::list<ompl::base::AtlasStateSpace::StateType *>::iterator p = boost::prior(s);
+        if (!halfspace->accepts(psiInverse((*s)->toVector())))
+        {
+            const LinearInequality *const comp = halfspace->getComplement();
+            if (!comp)
+                (*s)->setChart(atlas_.newChart((*s)->toVector()));
+            else
+                (*s)->setChart(comp->getOwner());
+            s = p;
+        }
+    }
     
     // Initialize list of inequalities marked for pruning
     std::vector<bool> pruneCandidates;
