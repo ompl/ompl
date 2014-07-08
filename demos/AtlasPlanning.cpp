@@ -186,10 +186,11 @@ int main (int, char *[])
     start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
     goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
     
-    atlas->setExploration(0.9);
+    atlas->setExploration(0.8);
     atlas->setRho(0.1);
     atlas->setAlpha(M_PI/32);
     atlas->setEpsilon(0.05);
+    atlas->setDelta(0.01);
     
     // More setup for the space and problem definition
     ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());

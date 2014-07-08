@@ -44,6 +44,7 @@
 #include <boost/lambda/lambda.hpp>
 
 #include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
 
 /// AtlasStateSampler
 
@@ -633,28 +634,88 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
 
 void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
 {
-    std::stringstream v, f1;//, f2;
+    std::stringstream v, f;
     std::size_t vcount = 0;
     std::size_t fcount = 0;
     std::vector<Eigen::VectorXd> vertices;
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
         // Write the vertices and the faces
-        charts_[i]->toPolygon(vertices);
-        if (vertices.size() < 3)
-            continue;
-        f1 << vertices.size() << " ";
-//         f2 << vertices.size() << " ";
+        const AtlasChart &c = *charts_[i];
+        c.toPolygon(vertices);
+        std::stringstream poly;
+        std::size_t fvcount = 0;
         for (std::size_t j = 0; j < vertices.size(); j++)
         {
-            v << vertices[j].transpose() << "\n";
-            f1 << vcount+j << " ";
-//             f2 << vcount+vertices.size()-1-j << " ";
+            // Handle a special case if vertex is outside the validity ball
+            if (c.psiInverse(vertices[j]).norm() > rho_)
+            {
+                std::size_t prev = (j == 0 ? vertices.size()-1 : j-1);
+                while (c.psiInverse(vertices[prev]).norm() > rho_ && prev != j)
+                    prev = (prev == 0 ? vertices.size()-1 : prev-1);
+                std::size_t next = (j+1) % vertices.size();
+                while (c.psiInverse(vertices[next]).norm() > rho_ && next != j)
+                    next = (next+1) % vertices.size();
+                if (prev == j)
+                {
+                    // Draw a full circle
+                    Eigen::VectorXd x(3); x << rho_, 0, 0;
+                    const Eigen::Rotation2Dd rot(M_PI/16);
+                    for (std::size_t i = 0; i < 32; i++)
+                    {
+                        const Eigen::VectorXd u = rot*c.psiInverse(x);
+                        if (!c.inP(u))
+                            continue;
+                        x = c.phi(u);
+                        v << x[0] << " " << x[1] << " " << x[2] << "\n";
+                        poly << vcount++ << " ";
+                        fvcount++;
+                    }
+                    
+                    break;
+                }
+                else
+                {
+                    // Draw lines to the circle from prev and next and an arc between those two points
+                    const Eigen::VectorXd x1 = rho_ * (vertices[j] - vertices[prev]).normalized() + vertices[prev];
+                    const Eigen::VectorXd x2 = rho_ * (vertices[j] - vertices[next]).normalized() + vertices[next];
+                    v << x1[0] << " " << x1[1] << " " << x1[2] << "\n";
+                    poly << vcount++ << " ";
+                    fvcount++;
+                    double angle = std::acos(x1.dot(x2) / (x1.norm()*x2.norm()));
+                    for (double a = 0; a < angle-M_PI/16; a += M_PI/16)
+                    {
+                        const Eigen::VectorXd u = Eigen::Rotation2Dd(a) * c.psiInverse(x1);
+                        if (!c.inP(u))
+                            continue;
+                        const Eigen::VectorXd x = c.phi(u);
+                        v << x[0] << " " << x[1] << " " << x[2] << "\n";
+                        poly << vcount++ << " ";
+                        fvcount++;
+                    }
+                    v << x2[0] << " " << x2[1] << " " << x2[2] << "\n";
+                    poly << vcount++ << " ";
+                    fvcount++;
+                    
+                    if (next < j)
+                        break;
+                    j = next-1;
+                }
+            }
+            else
+            {
+                const Eigen::VectorXd &x = vertices[j];
+                v << x[0] << " " << x[1] << " " << x[2] << "\n";
+                poly << vcount++ << " ";
+                fvcount++;
+            }
         }
-        f1 << "\n";
-//         f2 << "\n";
-        vcount += vertices.size();
-        fcount += 1;//2;
+        
+        if (fvcount > 2)
+        {
+            f << fvcount << " " << poly.str() << "\n";
+            fcount += 1;
+        }
     }
     
     out << "ply\n";
@@ -666,7 +727,7 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
     out << "element face " << fcount << "\n";
     out << "property list uchar uint vertex_index\n";
     out << "end_header\n";
-    out << v.str() << f1.str();// << f2.str();
+    out << v.str() << f.str();
 }
 
 void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *to, const double t, State *state) const

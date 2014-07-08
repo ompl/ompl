@@ -283,16 +283,10 @@ void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
     {
         for (std::list<LinearInequality *>::const_iterator l2 = boost::next(l1); l2 != bigL_.end(); l2++)
         {
+            // Accept within a 1% margin in case of precision errors
             Eigen::VectorXd v = 0.99*LinearInequality::intersect(**l1, **l2);
             if (inP(v))
-            {
-                if (v.norm() > atlas_.getRho())
-                {
-                    //TODO bound it by rho
-                }
-                else
-                    vertices.push_back(phi(v));
-            }
+                vertices.push_back(phi(v));
         }
     }
     
