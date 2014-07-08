@@ -202,7 +202,7 @@ int main (int, char *[])
     si->setup();
     
     // Choose the planner. Try others, like RRT, RRTstar, EST, PRM, ...
-    ompl::base::PlannerPtr planner(new ompl::geometric::RRTConnect(si));
+    ompl::base::PlannerPtr planner(new ompl::geometric::RRT(si));
     planner->setProblemDefinition(pdef);
     planner->setup();
     

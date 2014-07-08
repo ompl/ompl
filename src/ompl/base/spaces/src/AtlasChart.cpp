@@ -326,9 +326,6 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
     l2->setComplement(l1);
     c1.addBoundary(l1);
     c2.addBoundary(l2);
-    
-    // TODO What about existing states that need to move to a different chart because of the boundary change?
-    // It hasn't been an issue, but the paper calls for it.
 }
 
 /// Protected
