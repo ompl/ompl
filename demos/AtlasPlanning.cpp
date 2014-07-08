@@ -34,6 +34,8 @@
 
 /* Author: Caleb Voss */
 
+#include <fstream>
+
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/spaces/AtlasChart.h>
 #include <ompl/base/spaces/AtlasStateSpace.h>
@@ -250,6 +252,10 @@ int main (int, char *[])
         std::cout << "No solution found.\n";
     
     std::cout << "Atlas created " << atlas->getChartCount() << " charts.\n";
+    
+    std::ofstream meshFile("mesh.ply");
+    atlas->dumpMesh(meshFile);
+    meshFile.close();
     
     return 0;
 }

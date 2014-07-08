@@ -36,6 +36,9 @@
 
 #include "ompl/base/spaces/AtlasChart.h"
 
+#include <boost/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+
 #include <eigen3/Eigen/Dense>
 
 /// AtlasChart::LinearInequality
@@ -80,6 +83,20 @@ void ompl::base::AtlasChart::LinearInequality::checkNear (const Eigen::VectorXd 
     // Threshold is 10% of the distance from the origin to the inequality
     if (complement_ && distanceToPoint(v) < 1.0/20)
         complement_->expandToInclude(owner_.psi(v));
+}
+
+/// Public static
+Eigen::VectorXd ompl::base::AtlasChart::LinearInequality::intersect (const LinearInequality &l1, const LinearInequality &l2)
+{
+    if (&l1.owner_ != &l2.owner_)
+        throw ompl::Exception("Cannot intersect linear inequalities on different charts.");
+    if (l1.owner_.atlas_.getManifoldDimension() != 2)
+        throw ompl::Exception("AtlasChart::LinearInequality::intersect() only works on 2D manifolds/charts.");
+    
+    Eigen::MatrixXd A(2,2);
+    A.row(0) = l1.u_.transpose(); A.row(1) = l2.u_.transpose();
+    Eigen::VectorXd b(2); b << l1.u_.squaredNorm(), l2.u_.squaredNorm();
+    return 0.5 * A.inverse() * b;
 }
 
 /// Private
@@ -255,6 +272,34 @@ unsigned int ompl::base::AtlasChart::getID (void) const
     return id_;
 }
 
+void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) const
+{
+    if (atlas_.getManifoldDimension() != 2)
+        throw ompl::Exception("AtlasChart::toPolygon() only works on 2D manifold/charts.");
+    
+    // Compile a list of all the vertices in P
+    vertices.clear();
+    for (std::list<LinearInequality *>::const_iterator l1 = bigL_.begin(); l1 != bigL_.end(); l1++)
+    {
+        for (std::list<LinearInequality *>::const_iterator l2 = boost::next(l1); l2 != bigL_.end(); l2++)
+        {
+            Eigen::VectorXd v = 0.99*LinearInequality::intersect(**l1, **l2);
+            if (inP(v))
+            {
+                if (v.norm() > atlas_.getRho())
+                {
+                    //TODO bound it by rho
+                }
+                else
+                    vertices.push_back(phi(v));
+            }
+        }
+    }
+    
+    // Put them in order
+    std::sort(vertices.begin(), vertices.end(), boost::bind(&AtlasChart::angleCompare, this, boost::lambda::_1, boost::lambda::_2));
+}
+
 /// Public Static
 void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
 {
@@ -318,4 +363,12 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace)
     // Update measure with new estimate
     measure_ = countInside * (atlas_.getMeasureRhoKBall() / samples.size());
     atlas_.updateMeasure(*this);
+}
+
+// Private
+bool ompl::base::AtlasChart::angleCompare (const Eigen::VectorXd &x1, const Eigen::VectorXd &x2) const
+{
+    const Eigen::VectorXd v1 = psiInverse(x1);
+    const Eigen::VectorXd v2 = psiInverse(x2);
+    return std::atan2(v1[1], v1[0]) < std::atan2(v2[1], v2[0]);
 }

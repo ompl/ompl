@@ -631,6 +631,44 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     return reached;
 }
 
+void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
+{
+    std::stringstream v, f1;//, f2;
+    std::size_t vcount = 0;
+    std::size_t fcount = 0;
+    std::vector<Eigen::VectorXd> vertices;
+    for (std::size_t i = 0; i < charts_.size(); i++)
+    {
+        // Write the vertices and the faces
+        charts_[i]->toPolygon(vertices);
+        if (vertices.size() < 3)
+            continue;
+        f1 << vertices.size() << " ";
+//         f2 << vertices.size() << " ";
+        for (std::size_t j = 0; j < vertices.size(); j++)
+        {
+            v << vertices[j].transpose() << "\n";
+            f1 << vcount+j << " ";
+//             f2 << vcount+vertices.size()-1-j << " ";
+        }
+        f1 << "\n";
+//         f2 << "\n";
+        vcount += vertices.size();
+        fcount += 1;//2;
+    }
+    
+    out << "ply\n";
+    out << "format ascii 1.0\n";
+    out << "element vertex " << vcount << "\n";
+    out << "property float x\n";
+    out << "property float y\n";
+    out << "property float z\n";
+    out << "element face " << fcount << "\n";
+    out << "property list uchar uint vertex_index\n";
+    out << "end_header\n";
+    out << v.str() << f1.str();// << f2.str();
+}
+
 void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *to, const double t, State *state) const
 {
     // Traverse the manifold and save all the intermediate states

@@ -289,6 +289,9 @@ namespace ompl
             virtual bool followManifold (const StateType *from, const StateType *to, const bool interpolate = false,
                                          std::vector<StateType *> *const stateList = NULL) const;
             
+            /** \brief Write a mesh representation of the atlas to a stream. */
+            void dumpMesh (std::ostream &out) const;
+            
             /** @} */
             
             /** @name Interpolation and state management
