@@ -289,11 +289,11 @@ The plots show comparisons between ompl::geometric::RRTConnect, ompl::geometric:
 
 For integer and real-valued measurements the script will compute [box plots](http://en.wikipedia.org/wiki/Box_plot). For example, here is the plot for the real-valued attribute __time__ for the cubicles environment:
 
-<div class="row"><img src="../images/cubicles_time.png" class="span8 offset1"></div>
+<div class="row"><img src="../images/cubicles_time.png" class="col-md-8 col-sm-10 col-md-offset-2 col-sm-offset-1 img-responsive"></div>
 
 For boolean measurements the script will create bar charts with the percentage of __true__ values. For example, here is the plot for the boolean attribute __solved__ for the Twistycool environment, a much harder problem:
 
-<div class="row"><img src="../images/Twistycool_solved.png" class="span8 offset1"></div>
+<div class="row"><img src="../images/Twistycool_solved.png" class="col-md-8 col-sm-10 col-md-offset-2 col-sm-offset-1 img-responsive"></div>
 
 Whenever measurements are not always available for a particular attribute, the columns for each planner are labeled with the number of runs for which no data was available. For instance, the boolean attribute __correct solution__ is not set if a solution is not found.
 
@@ -356,11 +356,11 @@ dbDisconnect(con)
 For a small database with 1 experiment (the “cubicles” problem from OMPL.app) and 5 planner configurations we then obtain the following two plots:
 \htmlonly
 <div class="row">
-<div class="span6">
+<div class="col-md-6 col-sm-6">
   <img src="../images/R_time.png" width="100%"><br>
 <b>Time to find a solution.</b> Note that that RRT* does not terminate because it keeps trying to find a more optimal solution.
 </div>
-<div class="span6">
+<div class="col-md-6 col-sm-6">
   <img src="../images/R_progress.png" width="100%"><br>
 <b>Length of shortest path found after a given number of seconds.</b> Only RRT* currently uses progress properties. Although the variability among individual runs is quite high, one can definitely tell that different parameter settings (for the range in this case) lead to statistically significant different behavior.
 </div>

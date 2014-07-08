@@ -1,3 +1,4 @@
+body { font-size: 13px; }
 h1 { margin-top: 1em; }
 h2 { margin-bottom: .25em; margin-top: 1em;}
 h2:first-child { margin-top: 0em; }
@@ -24,9 +25,7 @@ dl.user+ul { margin-top: -1.5em;}
 }
 #MSearchClose { top: 0px; }
 span.gray, span.gray a { color: #bbb; font-weight: normal; }
-@media (min-width: 980px) {
-    body { padding-top: 60px; }
-}
+body { padding-top: 60px; }
 div.header
 {
     background-image: none;
@@ -56,7 +55,7 @@ div.contents
 
 div.contents div.textblock { margin-left: 20px; }
 
-#top div.navbar-inner {
+.navbar-inverse {
     background-color: #022845;
     background-image: -moz-linear-gradient(top, #034170, #000);
     background-image: -ms-linear-gradient(top, #034170, #000);
@@ -67,6 +66,9 @@ div.contents div.textblock { margin-left: 20px; }
     background-repeat: repeat-x;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#034170', endColorstr='#000', GradientType=0);
 }
+.navbar .nav > li > a { color: #ddd; padding: 10px 10px; }
+.navbar { min-height: 40px; margin-bottom: 10px; }
+.navbar-inverse .navbar-brand { height: 40px; padding: 10px 10px; color: #ddd; }
 
 input[type="text"]:focus, select:focus {
   -webkit-box-shadow: none;
@@ -94,8 +96,6 @@ input[type="text"]:focus, select:focus {
 @media (max-width: 980px) { #nav-path { margin-top: -18px; } }
 #nav-path ul {margin-right: -20px; }
 .contents table { margin-left: 20px; margin-right: 20px; }
-.navbar .brand { color:#fff; }
-.navbar .nav > li > a { color: #ddd; }
 iframe { border: none; }
 .carousel-caption ul { color: #fff; }
 .carousel-caption-inset { padding-left: 60px; padding-right: 60px; }
@@ -117,6 +117,8 @@ span.lineno { border-right-color: #034170; }
 .navpath li { line-height: 32px; }
 table.doxtable td, table.doxtable th { border: 0px; }
 iframe#externalpagewrapper { min-width:980px; width:100%; height:1600px; margin: -50px -40px 0px -40px; }
+
+.embed-responsive-1by1 { padding-bottom: 100%; }
 
 #apioverview {
     width: 940px;

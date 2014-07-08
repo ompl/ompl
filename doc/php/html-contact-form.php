@@ -83,7 +83,8 @@ function IsInjected($str)
 <head>
   <meta charset="utf-8">
   <title>Contact Us</title>
-  <link href="../css/bootstrap.css" rel="stylesheet">
+  <link href="../css/bootstrap.min.css" rel="stylesheet">
+  <link href="../css/bootstrap-theme.min.css" rel="stylesheet">
   <link href="../css/ompl.css" rel="stylesheet">
 
 <!-- define some style elements-->
@@ -101,23 +102,23 @@ if(!empty($errors)){
 echo "<p class='err'>".nl2br($errors)."</p>";
 }
 ?>
-<div id='contact_form_errorloc' class="err span6"></div>
+<div id='contact_form_errorloc' class="err col-md-6 col-sm-6"></div>
 <form method="POST" name="contact_form"
 action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>">
 <div class="row">
-<div class="span3"><label for='name'>Name: </label></div>
-<div class="span3"><label for='email'>Email: </label></div>
+<div class="col-md-3 col-sm-3"><label for='name'>Name: </label></div>
+<div class="col-md-3 col-sm-3"><label for='email'>Email: </label></div>
 </div>
 <div class="row">
-<div class="span3"><input type="text" name="name" value='<?php echo htmlentities($name) ?>' class="span3"></div>
-<div class="span3"><input type="text" name="email" value='<?php echo htmlentities($visitor_email) ?>' class="span3"></div>
+<div class="col-md-3 col-sm-3"><input type="text" name="name" value='<?php echo htmlentities($name) ?>' class="col-md-3 col-sm-3"></div>
+<div class="col-md-3 col-sm-3"><input type="text" name="email" value='<?php echo htmlentities($visitor_email) ?>' class="col-md-3 col-sm-3"></div>
 </div>
 <label for='message'>Message:</label>
-<textarea name="message" rows=18 cols=20 class="span6"><?php echo htmlentities($user_message) ?></textarea>
+<textarea name="message" rows=18 cols=20 class="col-md-6 col-sm-6"><?php echo htmlentities($user_message) ?></textarea>
 <img src="captcha_code_file.php?rand=<?php echo rand(); ?>" id='captchaimg' ><br>
 <div class="row">
-<div class="span6"><label for='message'>Enter the code above here :</label></div>
-<div class="span6"><input id="6_letters_code" name="6_letters_code" type="text" class="span3"><br>
+<div class="col-md-6 col-sm-6"><label for='message'>Enter the code above here :</label></div>
+<div class="col-md-6 col-sm-6"><input id="6_letters_code" name="6_letters_code" type="text" class="col-md-3 col-sm-3"><br>
 <small>Can't read the image? click <a href='javascript: refreshCaptcha();'>here</a> to refresh</small>
 </p>
 <input type="submit" value="Submit" name='submit' class="btn btn-primary">
