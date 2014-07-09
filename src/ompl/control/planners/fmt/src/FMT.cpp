@@ -40,6 +40,7 @@
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
+#include <boost/math/constants/constants.hpp>
 #include <limits>
 
 ompl::control::FMT::FMT(const SpaceInformationPtr &si) 
@@ -114,6 +115,72 @@ void ompl::control::FMT::freeMemory()
     }
 }
 
+void ompl::control::FMT::saveNeighborhood(Motion *m, const double r)
+{
+    // Check to see if neighborhood has not been saved yet
+    if (neighborhoods_.find(m) == neighborhoods_.end())
+    {
+        std::vector<Motion*> nbh;
+        nn_->nearestR(m, r, nbh);
+        if (!nbh.empty())
+        {
+            // Save the neighborhood but skip the first element, since it will be motion m
+            neighborhoods_[m] = std::vector<Motion*>(nbh.size() - 1, 0);
+            std::copy(nbh.begin() + 1, nbh.end(), neighborhoods_[m].begin());
+        }
+        else
+        {
+            // Save an empty neighborhood
+            neighborhoods_[m] = std::vector<Motion*>(0);
+        }
+    } // If neighborhood hadn't been saved yet
+}
+
+// Calculate the unit ball volume for a given dimension
+double ompl::control::FMT::calculateUnitBallVolume(const unsigned int dimension) const
+{
+    if (dimension == 0)
+        return 1.0;
+    else if (dimension == 1)
+        return 2.0;
+    return 2.0 * boost::math::constants::pi<double>() / dimension
+            * calculateUnitBallVolume(dimension - 2);
+}
+
+double ompl::control::FMT::calculateRadius(const unsigned int dimension, const unsigned int n) const
+{
+    double a = 1.0 / (double)dimension;
+    double unitBallVolume = calculateUnitBallVolume(dimension);
+
+    return radiusMultiplier_ * 2.0 * std::pow(a, a) * std::pow(freeSpaceVolume_ / unitBallVolume, a) * std::pow(log((double)n) / (double)n, a);
+}
+
+void ompl::control::FMT::sampleFree(const base::PlannerTerminationCondition &ptc)
+{
+    unsigned int nodeCount = 0;
+    unsigned int sampleAttempts = 0;
+    Motion *motion = new Motion(siC_);
+
+    // Sample numSamples_ number of nodes from the free configuration space
+    while (nodeCount < numSamples_ && sampleAttempts < maxSampleAttempts_ && !ptc)
+    {
+        sampler_->sampleUniform(motion->getState());
+        sampleAttempts++;
+
+        bool collision_free = si_->isValid(motion->getState());
+
+        if (collision_free)
+        {
+            nodeCount++;
+            nn_->add(motion);
+            motion = new Motion(siC_);
+        } // If collision free
+    } // While nodeCount < numSamples
+    si_->freeState(motion->getState());
+    siC_->freeControl(motion->getControl());
+    delete motion;
+}
+
 void ompl::control::FMT::assureGoalIsSampled(const ompl::base::GoalSampleableRegion *goal)
 {
     // Ensure that there is at least one node near each goal
@@ -148,46 +215,84 @@ void ompl::control::FMT::assureGoalIsSampled(const ompl::base::GoalSampleableReg
     } // For each goal
 }
 
-
 ompl::base::PlannerStatus ompl::control::FMT::solve(const base::PlannerTerminationCondition &ptc)
 {
+    if (lastGoalMotion_) {
+        OMPL_INFORM("solve() called before clear(); returning previous solution");
+        traceSolutionPathThroughTree(lastGoalMotion_);
+        OMPL_DEBUG("Final path cost: %f", lastGoalMotion_->getCost().v);
+        return base::PlannerStatus(true, false);
+    }
+    else if (hElements_.size() > 0)
+    {
+        OMPL_INFORM("solve() called before clear(); no previous solution so starting afresh");
+        clear();
+    }
+
     checkValidity();
-    base::Goal                 *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
+    Motion *initMotion = NULL;
+
+    if (!goal)
+    {
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+    }
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(siC_);
-        si_->copyState(motion->getState(), st);
-        siC_->nullControl(motion->getControl());
-        nn_->add(motion);
+        initMotion = new Motion(siC_);
+        si_->copyState(initMotion->getState(), st);
+        siC_->nullControl(initMotion->getControl());
+        hElements_[initMotion] = H_.insert(initMotion);
+        initMotion->setSetType(Motion::SET_H);
+        initMotion->setCost(opt_->initialCost(initMotion->getState()));
+        nn_->add(initMotion); // V <-- {x_init}
     }
 
-    if (nn_->size() == 0)
+    if (nn_->size() == 0 || !initMotion)
     {
         OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
 
+    // Sample N free states in the configuration space
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
+    sampleFree(ptc);
+    assureGoalIsSampled(goal);
+
     if (!controlSampler_)
         controlSampler_ = siC_->allocDirectedControlSampler();
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
-    Motion *solution  = NULL;
-    Motion *approxsol = NULL;
-    double  approxdif = std::numeric_limits<double>::infinity();
+    // Calculate the nearest neighbor search radius
+    // TODO: check the kinoFMT paper the real radius.
+    double r = calculateRadius(si_->getStateDimension(), nn_->size());
+    OMPL_DEBUG("Using radius of %f", r);
 
-    Motion      *rmotion = new Motion(siC_);
-    base::State  *rstate = rmotion->getState();
-    Control       *rctrl = rmotion->getControl();
-    base::State  *xstate = si_->allocState();
-
-    /*while (ptc == false)
+    // Flag all nodes as in set W
+    std::vector<Motion*> vNodes;
+    //vNodes.reserve(nn_->size()); // list() alread reserves the size.
+    nn_->list(vNodes);
+    unsigned int vNodesSize = vNodes.size();
+    for (unsigned int i = 0; i < vNodesSize; ++i)
     {
-        // sample random state (with goal biasing) 
+        vNodes[i]->setSetType(Motion::SET_W);
+    }
+
+    // Execute the planner, and return early if the planner returns a failure
+    bool plannerSuccess = false;
+    bool successfulExpansion = false;
+    Motion *z = initMotion; // z <-- xinit
+    z->setSetType(Motion::SET_H);
+    saveNeighborhood(z, r);
+
+    while (ptc == false)
+    {
+    }
+       /* // sample random state (with goal biasing) 
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
         else
@@ -320,6 +425,30 @@ ompl::base::PlannerStatus ompl::control::FMT::solve(const base::PlannerTerminati
 
     return base::PlannerStatus(false, false);
 }
+
+void ompl::control::FMT::traceSolutionPathThroughTree(Motion *goalMotion)
+{
+    std::vector<Motion*> mpath;
+    Motion *solution = goalMotion;
+
+    // Construct the solution path
+    while (solution != NULL)
+    {
+        mpath.push_back(solution);
+        solution = solution->getParent();
+    }
+
+    // Set the solution path
+    PathControl *path = new PathControl(si_);
+    for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        if (mpath[i]->getParent())
+            path->append(mpath[i]->getState(), mpath[i]->getControl(), mpath[i]->getSteps() * siC_->getPropagationStepSize());
+        else
+            path->append(mpath[i]->getState());
+
+    pdef_->addSolutionPath(base::PathPtr(path), false, lastGoalMotion_->getCost().v, getName());
+}
+
 
 void ompl::control::FMT::getPlannerData(base::PlannerData &data) const
 {

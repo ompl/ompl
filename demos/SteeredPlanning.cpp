@@ -202,8 +202,8 @@ int main(int argc, char** argv)
 
     //cs->sampleTo(c,start.get(),goal.get());
     
-	ss.setStartAndGoalStates(start, goal, 0.05);
-    ob::PlannerStatus solved = ss.solve(10.0);
+    ss.setStartAndGoalStates(start, goal, 0.05);
+    ob::PlannerStatus solved = ss.solve(1.0);
 
     if (solved)
     {
