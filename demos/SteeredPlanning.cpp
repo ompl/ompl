@@ -43,6 +43,7 @@
 #include <ompl/control/SpaceInformation.h>
 #include <ompl/control/StatePropagator.h>
 #include <ompl/control/planners/rrt/RRT.h>
+#include <ompl/control/planners/fmt/FMT.h>
 #include <ompl/control/DirectedControlSampler.h>
 #include <ompl/control/SimpleDirectedControlSampler.h>
 
@@ -179,7 +180,7 @@ int main(int argc, char** argv)
     const oc::SpaceInformationPtr &si = ss.getSpaceInformation();
     oc::StatePropagatorPtr sp (new SteeredStatePropagator(si));
     ss.setStatePropagator(sp);
-    ss.setPlanner(ob::PlannerPtr(new oc::RRT(si)));
+    ss.setPlanner(ob::PlannerPtr(new oc::FMT(si)));
 
     // set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, si, _1));
@@ -201,7 +202,6 @@ int main(int argc, char** argv)
 
     //cs->sampleTo(c,start.get(),goal.get());
     
-
 	ss.setStartAndGoalStates(start, goal, 0.05);
     ob::PlannerStatus solved = ss.solve(10.0);
 
@@ -215,6 +215,5 @@ int main(int argc, char** argv)
     else
         std::cout << "No solution found" << std::endl;
 
-    return 0;
-    
+    return 0;   
 }
