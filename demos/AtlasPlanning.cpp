@@ -138,7 +138,7 @@ void printState (const ompl::base::AtlasStateSpace::StateType *state)
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, boost::function<bool (const ompl::base::State *)> &isValid)
+ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
 {
     const std::size_t dim = 3;
     
@@ -154,7 +154,7 @@ ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::Vecto
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initComplicatedProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, boost::function<bool (const ompl::base::State *)> &isValid)
+ompl::base::AtlasStateSpace *initComplicatedProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
 {
     const std::size_t dim = 9;
     
@@ -173,7 +173,7 @@ int main (int, char *[])
 {
     // Initialize the atlas for a problem (you can try the other one too)
     Eigen::VectorXd x, y;
-    boost::function<bool (const ompl::base::State *)> isValid;
+    ompl::base::StateValidityCheckerFn isValid;
     ompl::base::AtlasStateSpacePtr atlas(initSphereProblem(x, y, isValid));
     ompl::base::StateSpacePtr space(atlas);
     ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));

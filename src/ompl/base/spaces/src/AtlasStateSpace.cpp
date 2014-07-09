@@ -94,6 +94,8 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         const AtlasChart *c = &anear->getChart();
         const Eigen::VectorXd u = c->psiInverse(astate->toVector());
         r = c->psi(u + distance * Eigen::VectorXd::Random(atlas_.getManifoldDimension()));
+        if (atlas_.bigF(r).norm() > 10*atlas_.getProjectionTolerance())
+            continue;
         
         // It might belong to a different chart
         c = atlas_.owningChart(r);
@@ -106,9 +108,35 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     while (atlas_.distance(near, state) > distance);
 }
 
-void ompl::base::AtlasStateSampler::sampleGaussian (State *, const State *, const double)
+void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *mean, const double stdDev)
 {
-    throw ompl::Exception("Gaussian sampling in AtlasStateSpace not implemented.");
+    AtlasStateSpace::StateType *astate = state->as<AtlasStateSpace::StateType>();
+    const AtlasStateSpace::StateType *amean = mean->as<AtlasStateSpace::StateType>();
+    Eigen::VectorXd r;
+    const std::size_t k = atlas_.getManifoldDimension();
+    
+    // Rejection sampling to find a point in the ball
+    while (true)
+    {
+        const AtlasChart *c = &amean->getChart();
+        const Eigen::VectorXd u = c->psiInverse(astate->toVector());
+        Eigen::VectorXd rand(k);
+        const double s = stdDev / std::sqrt(k);
+        for (std::size_t i = 0; i < k; i++)
+            rand[i] = atlas_.getRNG().gaussian(0, s);
+        r = c->psi(u + rand);
+        if (atlas_.bigF(r).norm() > 10*atlas_.getProjectionTolerance())
+            continue;
+        
+        // It might belong to a different chart
+        c = atlas_.owningChart(r);
+        if (!c)
+            c = &atlas_.newChart(r);
+        else
+            r = c->psi(c->psiInverse(r));
+        astate->setRealState(r, *c);
+        break;
+    }
 }
 
 /// AtlasMotionValidator
@@ -410,6 +438,11 @@ unsigned int ompl::base::AtlasStateSpace::getAmbientDimension (void) const
 unsigned int ompl::base::AtlasStateSpace::getManifoldDimension (void) const
 {
     return k_;
+}
+
+ompl::RNG &ompl::base::AtlasStateSpace::getRNG (void) const
+{
+    return rng_;
 }
 
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::sampleChart (void) const

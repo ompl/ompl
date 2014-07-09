@@ -72,7 +72,7 @@ namespace ompl
             virtual void sampleUniformNear (State *state, const State *near, const double distance);
             
             /** \brief Not implemented. */
-            virtual void sampleGaussian (State *, const State *, const double);
+            virtual void sampleGaussian (State *state, const State *mean, const double stdDev);
             
         private:
             
@@ -243,6 +243,9 @@ namespace ompl
             
             /** \brief Get the dimension of the constraint manifold. */
             unsigned int getManifoldDimension (void) const;
+            
+            /** \brief Access the random number generator of the atlas. */
+            RNG &getRNG (void) const;
             
             /** @} */
             

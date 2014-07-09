@@ -30,6 +30,7 @@ if (OMPL_BUILD_DEMOS)
   aux_source_directory(Koules Koules_SRC)
   add_ompl_demo(demo_Koules ${Koules_SRC})
   add_ompl_demo(demo_AtlasPlanning AtlasPlanning.cpp)
+  add_ompl_demo(demo_AtlasBenchmark AtlasBenchmark.cpp)
 
   add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
   add_ompl_demo(demo_PlannerProgressProperties PlannerProgressProperties.cpp)

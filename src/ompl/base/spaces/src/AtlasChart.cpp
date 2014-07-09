@@ -136,7 +136,7 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::V
     bigPhi_ = nullJ.householderQr().householderQ() * Eigen::MatrixXd::Identity(n_, k_);
     bigPhi_t_ = bigPhi_.transpose();
     
-    // Initialize set of linear inequalities so the polytope is the k_-dimensional cube of side
+    // Initialize set of linear inequalities so the polytope is the k-dimensional cube of side
     //  length 2*rho so it completely contains the ball of radius rho
     Eigen::VectorXd e = Eigen::VectorXd::Zero(k_);
     for (unsigned int i = 0; i < k_; i++)
