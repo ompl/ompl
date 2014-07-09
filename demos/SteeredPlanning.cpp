@@ -43,8 +43,12 @@
 #include <ompl/control/SpaceInformation.h>
 #include <ompl/control/StatePropagator.h>
 #include <ompl/control/planners/rrt/RRT.h>
+#include <ompl/control/DirectedControlSampler.h>
+#include <ompl/control/SimpleDirectedControlSampler.h>
 
 #include <boost/math/constants/constants.hpp>
+
+//#include "kinodynamic/double_integrator.hpp"
 
 namespace ob = ompl::base;
 namespace oc = ompl::control;
@@ -73,6 +77,7 @@ class SteeredStatePropagator : public oc::StatePropagator
 public:
     SteeredStatePropagator (const oc::SpaceInformationPtr &si) : oc::StatePropagator(si)
     {
+        sdcs_ = new oc::SimpleDirectedControlSampler(si_, 50);
     }
 
     virtual void propagate (const ob::State *state, const oc::Control *control, const double duration, ob::State *result) const
@@ -94,18 +99,16 @@ public:
         SO2.enforceBounds(s[1]);
 
         // Printing matrix-like for fast Matlab visualization.
-        std::cout << result->as<ob::SE2StateSpace::StateType>()->getX() << "\t"
+        /*std::cout << result->as<ob::SE2StateSpace::StateType>()->getX() << "\t"
                   << result->as<ob::SE2StateSpace::StateType>()->getY() << "\t"
-                  << result->as<ob::SE2StateSpace::StateType>()->getYaw() << std::endl;
+                  << result->as<ob::SE2StateSpace::StateType>()->getYaw() << std::endl;*/
     }
 
     virtual bool steer (const ob::State *from, const ob::State *to, oc::Control *result, double &duration) const 
     {
-        double cv[] = {0.1,0};
-        result->as<oc::RealVectorControlSpace::ControlType>()->values[0] = cv[0];
-        result->as<oc::RealVectorControlSpace::ControlType>()->values[1] = cv[1];
-        //duration = 50;
-        duration = 1; // In real time (say seconds);
+        ob::State* state = si_->cloneState(to);
+        int steps = sdcs_->sampleTo(result, from, state);
+        duration = steps*si_->getPropagationStepSize();
         return true;
     }
 
@@ -113,6 +116,10 @@ public:
     {
         return true;
     }
+    
+private:
+    oc::SimpleDirectedControlSampler* sdcs_;
+    
 };
 
 
@@ -145,8 +152,8 @@ public:
 
 int main(int argc, char** argv)
 {
-    // setting stace space: [x,y, yaw]
-    ob::StateSpacePtr space (new ob::SE2StateSpace());
+    // construct the state space we are planning in
+    ob::StateSpacePtr space(new ob::SE2StateSpace());
 
     // set the bounds for the R^2 part of SE(2)
     ob::RealVectorBounds bounds(2);
@@ -155,15 +162,13 @@ int main(int argc, char** argv)
 
     space->as<ob::SE2StateSpace>()->setBounds(bounds);
 
-    // setting control space: [velocity, steering angle]
-    oc::ControlSpacePtr cspace (new oc::RealVectorControlSpace(space, 2));
+    // create a control space
+    oc::ControlSpacePtr cspace(new oc::RealVectorControlSpace(space, 2));
 
     // set the bounds for the control space
     ob::RealVectorBounds cbounds(2);
-    bounds.setLow(0,-1);
-    bounds.setHigh(0,1);
-    bounds.setLow(1,-boost::math::constants::pi<double>()/2.0);
-    bounds.setHigh(1,boost::math::constants::pi<double>()/2.0);
+    cbounds.setLow(-0.3);
+    cbounds.setHigh(0.3);
 
     cspace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
 
@@ -184,21 +189,20 @@ int main(int argc, char** argv)
     start->setX(0.0);
     start->setY(0.0);
     start->setYaw(0.0);
-
-    std::cout << si->satisfiesBounds(start.get()) << std::endl;
-    std::cout << si->isValid(start.get()) << std::endl;
-
-    //ob::State* state = start.get();
-    //oc::Control *c = si->allocControl();
-    //oc::DirectedControlSamplerPtr cs = si->allocDirectedControlSampler();
-    //cs->sampleTo(c,c,state,state);
-
+    
     ob::ScopedState<ob::SE2StateSpace> goal(space);
     goal->setX(0.7);
-    goal->setY(0.0);
-    goal->setYaw(0.0);
+    goal->setY(0.7);
+    goal->setYaw(-boost::math::constants::pi<double>()/2);
 
-    ss.setStartAndGoalStates(start, goal, 0.05);
+    oc::DirectedControlSamplerPtr cs = si->allocDirectedControlSampler();
+    //si->setMinMaxControlDuration(1,50);
+    //si->setup();
+
+    //cs->sampleTo(c,start.get(),goal.get());
+    
+
+	ss.setStartAndGoalStates(start, goal, 0.05);
     ob::PlannerStatus solved = ss.solve(10.0);
 
     if (solved)
@@ -212,4 +216,5 @@ int main(int argc, char** argv)
         std::cout << "No solution found" << std::endl;
 
     return 0;
+    
 }
