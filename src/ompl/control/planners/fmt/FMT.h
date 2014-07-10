@@ -161,6 +161,8 @@ namespace ompl
                 return freeSpaceVolume_;
             }
 
+            void saveTree();
+
         protected:
              /** \brief Representation of a motion */
             class Motion

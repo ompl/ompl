@@ -43,6 +43,10 @@
 #include <boost/math/constants/constants.hpp>
 #include <limits>
 
+#include <fstream>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include <ompl/control/spaces/RealVectorControlSpace.h>
+
 ompl::control::FMT::FMT(const SpaceInformationPtr &si) 
     : base::Planner(si, "FMT")
     , numSamples_(1000)
@@ -427,7 +431,8 @@ bool ompl::control::FMT::expandTreeFromNode(Motion *&z, const double r)
             base::State *steer_state = si_->cloneState(x->getState());
             int cd = controlSampler_->sampleTo(steer_ctrl, yMin->getState(), steer_state);
 
-            if (cd > 0 && si_->distance(steer_state, x->getState()) < 0.3)
+            //if (cd > 0 && si_->distance(steer_state, x->getState()) < 0.3)
+            if (cd > 0)
             {
                 /*si_->printState(yMin->getState());
                 si_->printState(x->getState());
@@ -437,20 +442,16 @@ bool ompl::control::FMT::expandTreeFromNode(Motion *&z, const double r)
 
                 // Add edge from yMin to x
                 si_->copyState(x->getState(), steer_state);
+                siC_->copyControl(x->getControl(), steer_ctrl);
                 x->setParent(yMin);
                 x->setCost(cMin);
-                x->setControl(steer_ctrl);
                 x->setSteps(cd);
                 // Add x to H_new
                 H_new.push_back(x);
                 // Remove x from W
-                x->setSetType(Motion::SET_NULL);
-
+                x->setSetType(Motion::SET_NULL); 
             }
-            else
-            {
-                siC_->freeControl(steer_ctrl);
-            }
+            siC_->freeControl(steer_ctrl);
             si_->freeState(steer_state);
 
             //bool collision_free = si_->checkMotion(yMin->getState(), x->getState());
@@ -482,4 +483,51 @@ bool ompl::control::FMT::expandTreeFromNode(Motion *&z, const double r)
     z = H_.top()->data;
 
     return true;
+}
+
+
+void ompl::control::FMT::saveTree()
+{
+    const char *filename = "fmtree.txt";
+    OMPL_INFORM("Saving into %s", filename);
+
+    std::vector<Motion*> tree;
+    nn_->list(tree);
+
+    std::fstream fs;
+    fs.open (filename, std::fstream::out | std::fstream::trunc);
+
+    fs << tree.size() << "\t" << siC_->getPropagationStepSize() << "\t" << 0 << "\t" << 0<< "\t" << 0<< "\t"
+       << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << std::endl;
+
+    Motion *root = tree[0];
+    while (root->getParent() != 0)
+        root = root->getParent();
+
+    // First node has no parent.
+    fs << root->getState()->as<base::RealVectorStateSpace::StateType>()->values[0] << "\t"
+       << root->getState()->as<base::RealVectorStateSpace::StateType>()->values[1] << "\t"
+       << root->getState()->as<base::RealVectorStateSpace::StateType>()->values[2] << "\t"
+       << root->getState()->as<base::RealVectorStateSpace::StateType>()->values[3] << "\t"
+       << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << std::endl;
+
+    for (size_t i = 0; i < tree.size(); ++i) 
+    {
+        if (tree[i] != root && tree[i]->getSetType() == Motion::SET_NULL) 
+        {
+            fs  << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[0] << "\t"
+                << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[1] << "\t"
+                << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[2] << "\t"
+                << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[3] << "\t"
+                << tree[i]->getParent()->getState()->as<base::RealVectorStateSpace::StateType>()->values[0] << "\t"
+                << tree[i]->getParent()->getState()->as<base::RealVectorStateSpace::StateType>()->values[1] << "\t"
+                << tree[i]->getParent()->getState()->as<base::RealVectorStateSpace::StateType>()->values[2] << "\t"
+                << tree[i]->getParent()->getState()->as<base::RealVectorStateSpace::StateType>()->values[3] << "\t"
+                << tree[i]->getControl()->as<RealVectorControlSpace::ControlType>()->values[0] << "\t"
+                << tree[i]->getControl()->as<RealVectorControlSpace::ControlType>()->values[1] << "\t"
+                << tree[i]->getSteps() << std::endl;
+        }
+    }
+
+    fs.close();
 }
