@@ -289,141 +289,27 @@ ompl::base::PlannerStatus ompl::control::FMT::solve(const base::PlannerTerminati
     z->setSetType(Motion::SET_H);
     saveNeighborhood(z, r);
 
-    while (ptc == false)
+    while (!ptc && !(plannerSuccess = goal->isSatisfied(z->getState())))
     {
-    }
-       /* // sample random state (with goal biasing) 
-        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
-            goal_s->sampleGoal(rstate);
-        else
-            sampler_->sampleUniform(rstate);
+        successfulExpansion = expandTreeFromNode(z, r);
+        if (!successfulExpansion)
+            return base::PlannerStatus(false, false);
+    } // While not at goal
 
-        // find closest state in the tree 
-        Motion *nmotion = nn_->nearest(rmotion);
-
-        // sample a random control that attempts to go towards the random state, and also sample a control duration
-        unsigned int cd = controlSampler_->sampleTo(rctrl, nmotion->getControl(), nmotion->getState(), rmotion->getState());
-
-        if (addIntermediateStates_)
-        {
-            // this code is contributed by Jennifer Barry
-            std::vector<base::State *> pstates;
-            cd = siC_->propagateWhileValid(nmotion->getState(), rctrl, cd, pstates, true);
-
-            if (cd >= siC_->getMinControlDuration())
-            {
-                Motion *lastmotion = nmotion;
-                bool solved = false;
-                size_t p = 0;
-                for ( ; p < pstates.size(); ++p)
-                {
-                    // create a motion
-                    Motion *motion = new Motion();
-                    motion->getState() = pstates[p];
-                    //we need multiple copies of rctrl
-                    motion->getControl() = siC_->allocControl();
-                    siC_->copyControl(motion->getControl(), rctrl);
-                    motion->steps = 1;
-                    motion->parent = lastmotion;
-                    lastmotion = motion;
-                    nn_->add(motion);
-                    double dist = 0.0;
-                    solved = goal->isSatisfied(motion->getState(), &dist);
-                    if (solved)
-                    {
-                        approxdif = dist;
-                        solution = motion;
-                        break;
-                    }
-                    if (dist < approxdif)
-                    {
-                        approxdif = dist;
-                        approxsol = motion;
-                    }
-                }
-
-                //free any states after we hit the goal
-                while (++p < pstates.size())
-                    si_->freeState(pstates[p]);
-                if (solved)
-                    break;
-            }
-            else
-                for (size_t p = 0 ; p < pstates.size(); ++p)
-                    si_->freeState(pstates[p]);
-        }
-        else
-        {
-            if (cd >= siC_->getMinControlDuration())
-            {
-                // create a motion
-                Motion *motion = new Motion(siC_);
-                si_->copyState(motion->getState(), rmotion->getState());
-                siC_->copyControl(motion->getControl(), rctrl);
-                motion->steps = cd;
-                motion->parent = nmotion;
-
-                nn_->add(motion);
-                double dist = 0.0;
-                bool solv = goal->isSatisfied(motion->getState(), &dist);
-                if (solv)
-                {
-                    approxdif = dist;
-                    solution = motion;
-                    break;
-                }
-                if (dist < approxdif)
-                {
-                    approxdif = dist;
-                    approxsol = motion;
-                }
-            }
-        }
-    }
-
-    bool solved = false;
-    bool approximate = false;
-    if (solution == NULL)
+    if (plannerSuccess)
     {
-        solution = approxsol;
-        approximate = true;
-    }
+        // Return the path to z, since by definition of planner success, z is in the goal region
+        lastGoalMotion_ = z;
+        traceSolutionPathThroughTree(lastGoalMotion_);
 
-    if (solution != NULL)
+        OMPL_DEBUG("Final path cost: %f", lastGoalMotion_->getCost().v);
+        return base::PlannerStatus(true, false);
+    } // if plannerSuccess
+    else
     {
-        lastGoalMotion_ = solution;
-
-        // construct the solution path
-        std::vector<Motion*> mpath;
-        while (solution != NULL)
-        {
-            mpath.push_back(solution);
-            solution = solution->parent;
-        }
-
-        // set the solution path
-        PathControl *path = new PathControl(si_);
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            if (mpath[i]->parent)
-                path->append(mpath[i]->getState(), mpath[i]->getControl(), mpath[i]->steps * siC_->getPropagationStepSize());
-            else
-                path->append(mpath[i]->getState());
-        solved = true;
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
+        // Planner terminated without accomplishing goal
+        return base::PlannerStatus(false, false);
     }
-
-    if (rmotion->getState())
-        si_->freeState(rmotion->getState());
-    if (rmotion->getControl())
-        siC_->freeControl(rmotion->getControl());
-    delete rmotion;
-    si_->freeState(xstate);
-
-    OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
-
-    return base::PlannerStatus(solved, approximate);*/
-
-    return base::PlannerStatus(false, false);
 }
 
 void ompl::control::FMT::traceSolutionPathThroughTree(Motion *goalMotion)
@@ -479,4 +365,121 @@ void ompl::control::FMT::getPlannerData(base::PlannerData &data) const
         else
             data.addStartVertex(base::PlannerDataVertex(m->getState()));
     }
+}
+
+bool ompl::control::FMT::expandTreeFromNode(Motion *&z, const double r)
+{
+    // Find all nodes that are near z, and also in set W
+    std::vector<Motion*> xNear;
+    const std::vector<Motion*> &zNeighborhood = neighborhoods_[z];
+    unsigned int zNeighborhoodSize = zNeighborhood.size();
+    xNear.reserve(zNeighborhoodSize);
+
+    for (unsigned int i = 0; i < zNeighborhoodSize; ++i)
+    {
+        if (zNeighborhood[i]->getSetType() == Motion::SET_W)
+            xNear.push_back(zNeighborhood[i]);
+    }
+
+    // For each node near z and in set W, attempt to connect it to set H
+    std::vector<Motion*> yNear;
+    std::vector<Motion*> H_new;
+    unsigned int xNearSize = xNear.size();
+    for (unsigned int i = 0 ; i < xNearSize; ++i)
+    {
+        Motion *x = xNear[i];
+
+        // Find all nodes that are near x and in set H
+        saveNeighborhood(x,r);
+        const std::vector<Motion*> &xNeighborhood = neighborhoods_[x];
+
+        unsigned int xNeighborhoodSize = xNeighborhood.size();
+        yNear.reserve(xNeighborhoodSize);
+        for (unsigned int j = 0; j < xNeighborhoodSize; ++j)
+        {
+            if (xNeighborhood[j]->getSetType() == Motion::SET_H)
+                yNear.push_back(xNeighborhood[j]);
+        }
+
+        // Find the lowest cost-to-come connection from H to x
+        Motion *yMin = NULL;
+        base::Cost cMin(std::numeric_limits<double>::infinity());
+        unsigned int yNearSize = yNear.size();
+        for (unsigned int j = 0; j < yNearSize; ++j)
+        {
+            base::State *yState = yNear[j]->getState();
+            base::Cost dist = opt_->motionCost(yState, x->getState());
+            base::Cost cNew = opt_->combineCosts(yNear[j]->getCost(), dist);
+
+            if (opt_->isCostBetterThan(cNew, cMin))
+            {
+                yMin = yNear[j];
+                cMin = cNew;
+            }
+        }
+        yNear.clear();
+
+        // If an optimal connection from H to x was found
+        if (yMin != NULL)
+        {
+            // See if those 2 states can be connected with sampled controls.
+            Control *steer_ctrl = siC_->allocControl();
+            base::State *steer_state = si_->cloneState(x->getState());
+            int cd = controlSampler_->sampleTo(steer_ctrl, yMin->getState(), steer_state);
+
+            if (cd > 0 && si_->distance(steer_state, x->getState()) < 0.3)
+            {
+                /*si_->printState(yMin->getState());
+                si_->printState(x->getState());
+                si_->printState(steer_state);
+                std::cout << si_->distance(yMin->getState(), x->getState()) << std::endl;
+                std::cout << "---" << si_->distance(steer_state, x->getState()) << std::endl;*/
+
+                // Add edge from yMin to x
+                si_->copyState(x->getState(), steer_state);
+                x->setParent(yMin);
+                x->setCost(cMin);
+                x->setControl(steer_ctrl);
+                x->setSteps(cd);
+                // Add x to H_new
+                H_new.push_back(x);
+                // Remove x from W
+                x->setSetType(Motion::SET_NULL);
+
+            }
+            else
+            {
+                siC_->freeControl(steer_ctrl);
+            }
+            si_->freeState(steer_state);
+
+            //bool collision_free = si_->checkMotion(yMin->getState(), x->getState());
+        } // An optimal connection from H to x was found
+    } // For each node near z and in set W, try to connect it to set H
+
+    // Remove motion z from the binary heap and from the map
+    H_.remove(hElements_[z]);
+    hElements_.erase(z);
+    z->setSetType(Motion::SET_NULL);
+
+    // Add the nodes in H_new to H
+    unsigned int hNewSize = H_new.size();
+    for (unsigned int i = 0; i < hNewSize; i++)
+    {
+        hElements_[H_new[i]] = H_.insert(H_new[i]);
+        H_new[i]->setSetType(Motion::SET_H);
+    }
+
+    H_new.clear();
+
+    if (H_.empty())
+    {
+        OMPL_INFORM("H is empty before path was found --> no feasible path exists");
+        return false;
+    }
+
+    // Take the top of H as the new z
+    z = H_.top()->data;
+
+    return true;
 }

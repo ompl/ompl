@@ -78,7 +78,7 @@ class SteeredStatePropagator : public oc::StatePropagator
 public:
     SteeredStatePropagator (const oc::SpaceInformationPtr &si) : oc::StatePropagator(si)
     {
-        sdcs_ = new oc::SimpleDirectedControlSampler(si_, 50);
+        sdcs_ = new oc::SimpleDirectedControlSampler(si_, 100);
     }
 
     virtual void propagate (const ob::State *state, const oc::Control *control, const double duration, ob::State *result) const
@@ -180,7 +180,12 @@ int main(int argc, char** argv)
     const oc::SpaceInformationPtr &si = ss.getSpaceInformation();
     oc::StatePropagatorPtr sp (new SteeredStatePropagator(si));
     ss.setStatePropagator(sp);
+    
+    /*oc::FMT fmt(si);
+    fmt.setNumSamples(1000);
+    ss.setPlanner(ob::PlannerPtr(&fmt));*/
     ss.setPlanner(ob::PlannerPtr(new oc::FMT(si)));
+    ss.getPlanner()->as<oc::FMT>()->setNumSamples(1000);
 
     // set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, si, _1));
@@ -197,7 +202,7 @@ int main(int argc, char** argv)
     goal->setYaw(-boost::math::constants::pi<double>()/2);
 
     oc::DirectedControlSamplerPtr cs = si->allocDirectedControlSampler();
-    //si->setMinMaxControlDuration(1,50);
+    //si->setMinMaxControlDuration(1,100);
     //si->setup();
 
     //cs->sampleTo(c,start.get(),goal.get());
