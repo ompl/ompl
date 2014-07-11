@@ -151,9 +151,6 @@ int main(int argc, char** argv)
     start->values[1] = 0.0;
     start->values[2] = 0.0;
     start->values[3] = 0.0;
-    
-    std::cout << si->satisfiesBounds(start.get()) << std::endl;
-    std::cout << si->isValid(start.get()) << std::endl;
 
     ob::ScopedState<ob::RealVectorStateSpace> goal(space);
     goal->values[0] = 8.0;

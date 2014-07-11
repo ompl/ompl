@@ -162,6 +162,7 @@ namespace ompl
             }
 
             void saveTree();
+            void saveInitialTree();
 
         protected:
              /** \brief Representation of a motion */

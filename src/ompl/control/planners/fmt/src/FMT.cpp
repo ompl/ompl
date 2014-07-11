@@ -266,6 +266,8 @@ ompl::base::PlannerStatus ompl::control::FMT::solve(const base::PlannerTerminati
     sampleFree(ptc);
     assureGoalIsSampled(goal);
 
+    saveInitialTree();
+
     if (!controlSampler_)
         controlSampler_ = siC_->allocDirectedControlSampler();
 
@@ -531,3 +533,29 @@ void ompl::control::FMT::saveTree()
 
     fs.close();
 }
+
+
+void ompl::control::FMT::saveInitialTree()
+{
+    const char *filename = "fmtree_initial.txt";
+    OMPL_INFORM("Saving inital tree into %s", filename);
+
+    std::vector<Motion*> tree;
+    nn_->list(tree);
+
+    std::fstream fs;
+    fs.open (filename, std::fstream::out | std::fstream::trunc);
+
+    fs << tree.size() << "\t" << siC_->getPropagationStepSize() << "\t" << 0 << "\t" << 0 << std::endl;
+
+    for (size_t i = 0; i < tree.size(); ++i) 
+    {
+        fs << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[0] << "\t"
+           << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[1] << "\t"
+           << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[2] << "\t"
+           << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[3] << std::endl;
+    }
+
+    fs.close();
+}
+
