@@ -38,6 +38,7 @@
 #define OMPL_CONTROL_CONTROL_
 
 #include <boost/concept_check.hpp>
+#include <deque>
 
 namespace ompl
 {
@@ -86,6 +87,9 @@ namespace ompl
 
                 return static_cast<T*>(this);
             }
+
+            Control *current;
+            std::deque<Control *> next;
 
         };
 

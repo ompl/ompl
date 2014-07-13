@@ -88,13 +88,34 @@ public:
 
     virtual bool steer (const ob::State *from, const ob::State *to, oc::Control *result, double &duration) const 
     {
+        std::cout << "steering" << std::endl;
         ob::ReedsSheppStateSpace::ReedsSheppPath rsp = rs_.reedsShepp(from, to);
-        for (int i = 0; i<5; ++i)
+        oc::Control *c;
+        int i = 0;
+        while (rsp.type_[i] != 0)
         {
-           std::cout << rsp.length_[i] << "   " << rsp.type_[i] << std::endl;
+            c = si_->allocControl();
+            
+            if (rsp.length_[i] > 0) // Forward
+                c->as<oc::RealVectorControlSpace::ControlType>()->values[0] = 1;
+            else // Backwards
+                c->as<oc::RealVectorControlSpace::ControlType>()->values[0] = -1;
+                
+            if (rsp.type_[i] == 1) // Left
+                c->as<oc::RealVectorControlSpace::ControlType>()->values[1] = 1;
+            else if (rsp.type_[i] == 3) // Right
+                c->as<oc::RealVectorControlSpace::ControlType>()->values[1] = -1;
+            else // Straight
+                c->as<oc::RealVectorControlSpace::ControlType>()->values[1] = 0;
+                 
+            result->next.push_back(c);
+            ++i;
         }
         
-        return true;
+        std::cout << " test "  << result->next.size() << std::endl;
+        if (result->next.size())
+            return true;
+        return false;
     }
     
     virtual double distance(const ob::State *from, const ob::State *to) const
@@ -119,7 +140,6 @@ private:
 
 int main(int argc, char** argv)
 {
-    const int r = 1;
     // construct the state space we are planning in
     ob::StateSpacePtr space(new ob::SE2StateSpace());
 
@@ -129,11 +149,12 @@ int main(int argc, char** argv)
     bounds.setHigh(1);
     space->as<ob::SE2StateSpace>()->setBounds(bounds);
 
-    // create a control space
-    oc::CompoundControlSpace *ccspace = new oc::CompoundControlSpace(space);
-    ccspace->addSubspace(oc::ControlSpacePtr(new oc::DiscreteControlSpace(space, -1, 1)));
-    ccspace->addSubspace(oc::ControlSpacePtr(new oc::DiscreteControlSpace(space, -r, r)));
-    oc::ControlSpacePtr cspace(ccspace);
+    // create a control space - RealVector space is not the most correct space, but easier to use.
+    oc::ControlSpacePtr cspace(new oc::RealVectorControlSpace(space, 2));
+    ob::RealVectorBounds cbounds(2);
+    cbounds.setLow(-1);
+    cbounds.setHigh(1);
+    cspace->as<oc::RealVectorControlSpace>()->setBounds(bounds);
     
     // define a simple setup class
     oc::SimpleSetup ss(cspace);
