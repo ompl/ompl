@@ -37,9 +37,12 @@
 #include <ompl/base/State.h>
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
+#include <ompl/base/spaces/ReedsSheppStateSpace.h>
 
 #include <ompl/control/SimpleSetup.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
+#include <ompl/control/spaces/DiscreteControlSpace.h>
+#include <ompl/control/ControlSpace.h>
 #include <ompl/control/SpaceInformation.h>
 #include <ompl/control/StatePropagator.h>
 #include <ompl/control/planners/rrt/RRT.h>
@@ -48,8 +51,6 @@
 #include <ompl/control/SimpleDirectedControlSampler.h>
 
 #include <boost/math/constants/constants.hpp>
-
-//#include "kinodynamic/double_integrator.hpp"
 
 namespace ob = ompl::base;
 namespace oc = ompl::control;
@@ -62,109 +63,114 @@ bool isStateValid(const oc::SpaceInformationPtr &si, const ob::State *state)
     return si->satisfiesBounds(state); 
 }
 
-class SteeredStatePropagator : public oc::StatePropagator
+class ReedsSheppStatePropagator : public oc::StatePropagator
 {
 public:
-    SteeredStatePropagator (const oc::SpaceInformationPtr &si) : oc::StatePropagator(si)
+    ReedsSheppStatePropagator (const oc::SpaceInformationPtr &si) : oc::StatePropagator(si)
     {
         sdcs_ = new oc::SimpleDirectedControlSampler(si_, 100);
     }
 
     virtual void propagate (const ob::State *state, const oc::Control *control, const double duration, ob::State *result) const
     {
-        const double* values = state->as<ob::RealVectorStateSpace::StateType>()->values;
+        //std::cout << "Propagating" << std::endl;
+        /*const ob::SE2StateSpace::StateType *se2state = start->as<ob::SE2StateSpace::StateType>();
+        const double* pos = se2state->as<ob::RealVectorStateSpace::StateType>(0)->values;
+        const double rot = se2state->as<ob::SO2StateSpace::StateType>(1)->value;
         const double* ctrl = control->as<oc::RealVectorControlSpace::ControlType>()->values;
 
-        result->as<ob::RealVectorStateSpace::StateType>()->values[0] = values[0]+values[2]*duration+ctrl[0]/2.0*duration*duration; // x
-        result->as<ob::RealVectorStateSpace::StateType>()->values[1] = values[1]+values[3]*duration+ctrl[1]/2.0*duration*duration; // y
-        result->as<ob::RealVectorStateSpace::StateType>()->values[2] = values[2]+ctrl[0]*duration; // vx
-        result->as<ob::RealVectorStateSpace::StateType>()->values[3] = values[3]+ctrl[1]*duration; // vy
-
+        result->as<ob::SE2StateSpace::StateType>()->setXY(
+            pos[0] + ctrl[0] * duration * cos(rot),
+            pos[1] + ctrl[0] * duration * sin(rot));
+        result->as<ob::SE2StateSpace::StateType>()->setYaw(
+            rot    + ctrl[1] * duration);*/
     }
 
     virtual bool steer (const ob::State *from, const ob::State *to, oc::Control *result, double &duration) const 
     {
-        ob::State* state = si_->cloneState(to);
-        int steps = sdcs_->sampleTo(result, from, state);
-        duration = steps*si_->getPropagationStepSize();
+        ob::ReedsSheppStateSpace::ReedsSheppPath rsp = rs_.reedsShepp(from, to);
+        for (int i = 0; i<5; ++i)
+        {
+           std::cout << rsp.length_[i] << "   " << rsp.type_[i] << std::endl;
+        }
+        
         return true;
+    }
+    
+    virtual double distance(const ob::State *from, const ob::State *to) const
+    {
+        return rs_.distance(from,to);
     }
 
     virtual bool canSteer() const
     {
         return true;
     }
+
+    virtual bool hasDistance() const
+    {
+        return true;
+    }
     
 private:
     oc::SimpleDirectedControlSampler* sdcs_;
-    
+    ob::ReedsSheppStateSpace rs_;
 };
 
 int main(int argc, char** argv)
 {
+    const int r = 1;
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::RealVectorStateSpace(4));
+    ob::StateSpacePtr space(new ob::SE2StateSpace());
 
-    // x,y,vx,vy
-    ob::RealVectorBounds bounds(4);
-    bounds.setLow(0,-10);
-    bounds.setHigh(0,10);
-    bounds.setLow(1,-10);
-    bounds.setHigh(1,10);
-    bounds.setLow(2,-1);
-    bounds.setHigh(2,1);
-    bounds.setLow(3,-1);
-    bounds.setHigh(3,1);
-
-    space->as<ob::RealVectorStateSpace>()->setBounds(bounds);
+    // set the bounds for the R^2 part of SE(2)
+    ob::RealVectorBounds bounds(2);
+    bounds.setLow(-1);
+    bounds.setHigh(1);
+    space->as<ob::SE2StateSpace>()->setBounds(bounds);
 
     // create a control space
-    oc::ControlSpacePtr cspace(new oc::RealVectorControlSpace(space, 2));
-
-    // set the bounds for the control space
-    ob::RealVectorBounds cbounds(2);
-    cbounds.setLow(-1);
-    cbounds.setHigh(1);
-
-    cspace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
-
+    oc::CompoundControlSpace *ccspace = new oc::CompoundControlSpace(space);
+    ccspace->addSubspace(oc::ControlSpacePtr(new oc::DiscreteControlSpace(space, -1, 1)));
+    ccspace->addSubspace(oc::ControlSpacePtr(new oc::DiscreteControlSpace(space, -r, r)));
+    oc::ControlSpacePtr cspace(ccspace);
+    
     // define a simple setup class
     oc::SimpleSetup ss(cspace);
 
     // set the state propagation routine
     const oc::SpaceInformationPtr &si = ss.getSpaceInformation();
-    oc::StatePropagatorPtr sp (new SteeredStatePropagator(si));
+    oc::StatePropagatorPtr sp (new ReedsSheppStatePropagator(si));
     ss.setStatePropagator(sp);
-    
-    /*oc::FMT fmt(si);
-    fmt.setNumSamples(1000);
-    ss.setPlanner(ob::PlannerPtr(&fmt));*/
+
     ss.setPlanner(ob::PlannerPtr(new oc::FMT(si)));
     ss.getPlanner()->as<oc::FMT>()->setNumSamples(1000);
 
     // set state validity checking for this space
     ss.setStateValidityChecker(boost::bind(&isStateValid, si, _1));
 
-    // testing the self-made propagator
-    ob::ScopedState<ob::RealVectorStateSpace> start(space);
-    start->values[0] = 0.0;
-    start->values[1] = 0.0;
-    start->values[2] = 0.0;
-    start->values[3] = 0.0;
+    // Setting start and goal states.
+    ob::ScopedState<ob::SE2StateSpace> start(space);
+    start->setX(0.0);
+    start->setY(0.0);
+    start->setYaw(0.0);
 
-    ob::ScopedState<ob::RealVectorStateSpace> goal(space);
-    goal->values[0] = 8.0;
-    goal->values[1] = 8.0;
-    goal->values[2] = 0.0;
-    goal->values[3] = 0.0;
-
-    oc::DirectedControlSamplerPtr cs = si->allocDirectedControlSampler();
-    si->setMinMaxControlDuration(1,100);
-    //si->setup();
-
-    //cs->sampleTo(c,start.get(),goal.get());
+    ob::ScopedState<ob::SE2StateSpace> goal(space);
+    goal->setX(0.0);
+    goal->setY(0.0);
+    goal->setYaw(3.14);
     
     ss.setStartAndGoalStates(start, goal, 0.2);
+
+    // testing the self-made propagator
+    oc::DirectedControlSamplerPtr cs = si->allocDirectedControlSampler();
+    si->setMinMaxControlDuration(1,100);
+    si->setup();
+    
+    std::cout << si->distance(start.get(),goal.get()) << std::endl;
+    cs->sampleTo(si->allocControl(),start.get(),goal.get());
+    
+    /*
     ob::PlannerStatus solved = ss.solve(1.0);
 
     if (solved)
@@ -177,7 +183,7 @@ int main(int argc, char** argv)
     else
         std::cout << "No solution found" << std::endl;
 
-    ss.getPlanner()->as<oc::FMT>()->saveTree();
+    ss.getPlanner()->as<oc::FMT>()->saveTree();*/
 
     return 0;   
 }

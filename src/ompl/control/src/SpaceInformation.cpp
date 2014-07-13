@@ -300,3 +300,11 @@ void ompl::control::SpaceInformation::printSettings(std::ostream &out) const
     out << "  - propagation step size: " << stepSize_ << std::endl;
     out << "  - propagation duration: [" << minSteps_ << ", " << maxSteps_ << "]" << std::endl;
 }
+
+double ompl::control::SpaceInformation::distance (const base::State *state1, const base::State *state2) const
+{
+    if (statePropagator_->hasDistance())
+        return statePropagator_->distance(state1,state2);
+
+    return base::SpaceInformation::distance(state1,state2);
+}

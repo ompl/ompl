@@ -267,6 +267,8 @@ namespace ompl
             /** \brief Perform additional setup tasks (run once, before use) */
             virtual void setup();
 
+            virtual double distance (const base::State *state1, const base::State *sate2) const;
+
         protected:
 
             /** \brief The control space describing the space of controls applicable to states in the state space */

@@ -118,6 +118,16 @@ namespace ompl
             {
                 return false;
             }
+            
+            virtual double distance(const base::State *from, const base::State *to) const
+            {
+                return -1;
+            }
+
+            virtual bool hasDistance() const
+            {
+                return false;
+            }
 
         protected:
 
