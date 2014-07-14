@@ -63,6 +63,7 @@ bool isStateValid(const oc::SpaceInformationPtr &si, const ob::State *state)
     return si->satisfiesBounds(state); 
 }
 
+// TODO: for any reason I am not able to generalize to any radius. Try it again.
 class ReedsSheppStatePropagator : public oc::StatePropagator
 {
 public:
@@ -73,10 +74,7 @@ public:
 
     virtual void propagate (const ob::State *state, const oc::Control *control, const double duration, ob::State *result) const
     {
-        std::cout << duration << "   ";
-        si_->printControl(control);
-        //std::cout << "Propagating" << std::endl;
-        /*const ob::SE2StateSpace::StateType *se2state = start->as<ob::SE2StateSpace::StateType>();
+        const ob::SE2StateSpace::StateType *se2state = state->as<ob::SE2StateSpace::StateType>();
         const double* pos = se2state->as<ob::RealVectorStateSpace::StateType>(0)->values;
         const double rot = se2state->as<ob::SO2StateSpace::StateType>(1)->value;
         const double* ctrl = control->as<oc::RealVectorControlSpace::ControlType>()->values;
@@ -85,17 +83,31 @@ public:
             pos[0] + ctrl[0] * duration * cos(rot),
             pos[1] + ctrl[0] * duration * sin(rot));
         result->as<ob::SE2StateSpace::StateType>()->setYaw(
-            rot    + ctrl[1] * duration);*/
+            rot    + ctrl[0]*ctrl[1] * duration);
+
+        /*std::cout << result->as<ob::SE2StateSpace::StateType>()->getX() << "\t"
+                  << result->as<ob::SE2StateSpace::StateType>()->getY() << "\t"
+                  << result->as<ob::SE2StateSpace::StateType>()->getYaw() << std::endl;*/
     }
 
     virtual bool steer (const ob::State *from, const ob::State *to, oc::Control *result, double &duration) const
     {
-        std::cout << "steering" << std::endl;
         ob::ReedsSheppStateSpace::ReedsSheppPath rsp = rs_.reedsShepp(from, to);
+
+        /*for (int i=0; i<5; ++i)
+            std::cout << rsp.type_[i] << "      " << rsp.length_[i] <<std::endl;
+        std::cout << " ======= " << std::endl;*/
+
         oc::Control *c;
         int i = 0;
-        while (rsp.type_[i] != 0)
+        while (rsp.type_[i] != 0 && i<5)
         {
+            // Segments shorter than stepSize are ignored.
+            if (std::abs(rsp.length_[i]) < si_->getPropagationStepSize())
+            {
+                ++i;
+                continue;
+            }
             c = si_->allocControl();
             
             if (rsp.length_[i] > 0) // Forward
@@ -117,11 +129,15 @@ public:
             ++i;
         }
 
+       /* for (size_t i=0; i<result->next.size(); ++i)
+            std::cout << result->next[i].first->as<oc::RealVectorControlSpace::ControlType>()->values[0] << "   "
+                      << result->next[i].first->as<oc::RealVectorControlSpace::ControlType>()->values[1] << std::endl;*/
+
         if (result->next.size())
             return true;
         return false;
     }
-    
+
     virtual double distance(const ob::State *from, const ob::State *to) const
     {
         return rs_.distance(from,to);
@@ -149,8 +165,8 @@ int main(int argc, char** argv)
 
     // set the bounds for the R^2 part of SE(2)
     ob::RealVectorBounds bounds(2);
-    bounds.setLow(-1);
-    bounds.setHigh(1);
+    bounds.setLow(-10);
+    bounds.setHigh(10);
     space->as<ob::SE2StateSpace>()->setBounds(bounds);
 
     // create a control space - RealVector space is not the most correct space, but easier to use.
@@ -178,21 +194,22 @@ int main(int argc, char** argv)
     ob::ScopedState<ob::SE2StateSpace> start(space);
     start->setX(0.0);
     start->setY(0.0);
-    start->setYaw(0.0);
+    start->setYaw(boost::math::constants::pi<double>()/2);
 
     ob::ScopedState<ob::SE2StateSpace> goal(space);
-    goal->setX(0.0);
-    goal->setY(0.0);
-    goal->setYaw(3.14);
+    goal->setX(5.0);
+    goal->setY(1.0);
+    goal->setYaw(boost::math::constants::pi<double>()/2);
     
     ss.setStartAndGoalStates(start, goal, 0.2);
 
     // testing the self-made propagator
     oc::DirectedControlSamplerPtr cs = si->allocDirectedControlSampler();
     si->setMinMaxControlDuration(1,100);
+    si->setPropagationStepSize(0.05);
     si->setup();
     
-    std::cout << si->distance(start.get(),goal.get()) << std::endl;
+    //std::cout << si->distance(start.get(),goal.get()) << std::endl;
     cs->sampleTo(si->allocControl(),start.get(),goal.get());
     
     /*

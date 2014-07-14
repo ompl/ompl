@@ -75,6 +75,7 @@ namespace ompl
                 double t = control->current.second;
                 unsigned int steps = std::floor(t / si_->getPropagationStepSize() + 0.5);
                 int cd = si_->propagateWhileValid(source, c, steps, dest);
+
                 while (cd > 0)
                 {
                     if (!control->update()) // No more control actions left.
@@ -83,7 +84,7 @@ namespace ompl
                     c = control->current.first;
                     t = control->current.second;
                     steps = std::floor(t / si_->getPropagationStepSize() + 0.5);
-                    cd = si_->propagateWhileValid(source, c, steps, dest);
+                    cd = si_->propagateWhileValid(dest, c, steps, dest);
                 }
 
                 return cd;
