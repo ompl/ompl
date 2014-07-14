@@ -65,11 +65,28 @@ namespace ompl
 
             virtual unsigned int sampleTo(Control *control, const base::State *source, base::State *dest)
             {
-                double duration; // In real time (say seconds);
+                double duration = 0; // In real time (say seconds);
                 if (!si_->getStatePropagator()->steer(source, dest, control, duration))
                     return 0;
-                unsigned int steps = std::floor(duration / si_->getPropagationStepSize() + 0.5);
-                return si_->propagateWhileValid(source, control, steps, dest);
+
+                // Apply all control actions until finished or collision detected (cd == 0).
+                control->update();
+                Control *c = control->current.first;
+                double t = control->current.second;
+                unsigned int steps = std::floor(t / si_->getPropagationStepSize() + 0.5);
+                int cd = si_->propagateWhileValid(source, c, steps, dest);
+                while (cd > 0)
+                {
+                    if (!control->update()) // No more control actions left.
+                        break;
+
+                    c = control->current.first;
+                    t = control->current.second;
+                    steps = std::floor(t / si_->getPropagationStepSize() + 0.5);
+                    cd = si_->propagateWhileValid(source, c, steps, dest);
+                }
+
+                return cd;
             }
 
             virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest)

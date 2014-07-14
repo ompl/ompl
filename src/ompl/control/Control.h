@@ -88,8 +88,19 @@ namespace ompl
                 return static_cast<T*>(this);
             }
 
-            Control *current;
-            std::deque<Control *> next;
+            bool update()
+            {
+                if (next.size())
+                {
+                    current = next.front();
+                    next.pop_front();
+                    return true;
+                }
+                return false;
+            }
+
+            std::pair<Control *, double> current;
+            std::deque<std::pair<Control *, double> > next;
 
         };
 

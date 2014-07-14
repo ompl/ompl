@@ -73,6 +73,8 @@ public:
 
     virtual void propagate (const ob::State *state, const oc::Control *control, const double duration, ob::State *result) const
     {
+        std::cout << duration << "   ";
+        si_->printControl(control);
         //std::cout << "Propagating" << std::endl;
         /*const ob::SE2StateSpace::StateType *se2state = start->as<ob::SE2StateSpace::StateType>();
         const double* pos = se2state->as<ob::RealVectorStateSpace::StateType>(0)->values;
@@ -86,7 +88,7 @@ public:
             rot    + ctrl[1] * duration);*/
     }
 
-    virtual bool steer (const ob::State *from, const ob::State *to, oc::Control *result, double &duration) const 
+    virtual bool steer (const ob::State *from, const ob::State *to, oc::Control *result, double &duration) const
     {
         std::cout << "steering" << std::endl;
         ob::ReedsSheppStateSpace::ReedsSheppPath rsp = rs_.reedsShepp(from, to);
@@ -100,19 +102,21 @@ public:
                 c->as<oc::RealVectorControlSpace::ControlType>()->values[0] = 1;
             else // Backwards
                 c->as<oc::RealVectorControlSpace::ControlType>()->values[0] = -1;
-                
+
             if (rsp.type_[i] == 1) // Left
                 c->as<oc::RealVectorControlSpace::ControlType>()->values[1] = 1;
             else if (rsp.type_[i] == 3) // Right
                 c->as<oc::RealVectorControlSpace::ControlType>()->values[1] = -1;
             else // Straight
                 c->as<oc::RealVectorControlSpace::ControlType>()->values[1] = 0;
-                 
-            result->next.push_back(c);
+
+            double cduration = std::abs(rsp.length_[i]);
+            duration += cduration;
+
+            result->next.push_back(std::make_pair(c,cduration));
             ++i;
         }
-        
-        std::cout << " test "  << result->next.size() << std::endl;
+
         if (result->next.size())
             return true;
         return false;
