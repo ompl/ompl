@@ -46,6 +46,7 @@
 #include <fstream>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
+#include <ompl/base/spaces/SE2StateSpace.h>
 
 ompl::control::FMT::FMT(const SpaceInformationPtr &si) 
     : base::Planner(si, "FMT")
@@ -114,6 +115,7 @@ void ompl::control::FMT::freeMemory()
                 si_->freeState(motions[i]->getState());
             if (motions[i]->getControl())
                 siC_->freeControl(motions[i]->getControl());
+
             delete motions[i];
         }
     }
@@ -208,12 +210,14 @@ void ompl::control::FMT::assureGoalIsSampled(const ompl::base::GoalSampleableReg
             else
             {
                 si_->freeState(gMotion->getState());
+                siC_->freeControl(gMotion->getControl());
                 delete gMotion;
             }
         }
         else // There is already a sample in the goal region
         {
             si_->freeState(gMotion->getState());
+            siC_->freeControl(gMotion->getControl());
             delete gMotion;
         }
     } // For each goal
@@ -429,7 +433,7 @@ bool ompl::control::FMT::expandTreeFromNode(Motion *&z, const double r)
         if (yMin != NULL)
         {
             // See if those 2 states can be connected with sampled controls.
-            Control *steer_ctrl = siC_->allocControl();
+            Control *steer_ctrl = siC_->allocControl(); // Take these out of the loop.
             base::State *steer_state = si_->cloneState(x->getState());
             int cd = controlSampler_->sampleTo(steer_ctrl, yMin->getState(), steer_state);
 
@@ -453,8 +457,9 @@ bool ompl::control::FMT::expandTreeFromNode(Motion *&z, const double r)
                 // Remove x from W
                 x->setSetType(Motion::SET_NULL); 
             }
-            siC_->freeControl(steer_ctrl);
             si_->freeState(steer_state);
+            siC_->freeControl(steer_ctrl);
+
 
             //bool collision_free = si_->checkMotion(yMin->getState(), x->getState());
         } // An optimal connection from H to x was found
@@ -499,35 +504,52 @@ void ompl::control::FMT::saveTree()
     std::fstream fs;
     fs.open (filename, std::fstream::out | std::fstream::trunc);
 
-    fs << tree.size() << "\t" << siC_->getPropagationStepSize() << "\t" << 0 << "\t" << 0<< "\t" << 0<< "\t"
-       << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << std::endl;
+    fs << tree.size() << "\t" << siC_->getPropagationStepSize() << "\t";
+
+    for (size_t i = 0; i < 19; ++i)
+      fs << 0 << "\t";
+    fs << std::endl;
 
     Motion *root = tree[0];
     while (root->getParent() != 0)
         root = root->getParent();
 
     // First node has no parent.
-    fs << root->getState()->as<base::RealVectorStateSpace::StateType>()->values[0] << "\t"
-       << root->getState()->as<base::RealVectorStateSpace::StateType>()->values[1] << "\t"
-       << root->getState()->as<base::RealVectorStateSpace::StateType>()->values[2] << "\t"
-       << root->getState()->as<base::RealVectorStateSpace::StateType>()->values[3] << "\t"
-       << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << std::endl;
+    fs << root->getState()->as<base::SE2StateSpace::StateType>()->getX() << "\t"
+       << root->getState()->as<base::SE2StateSpace::StateType>()->getY() << "\t"
+       << root->getState()->as<base::SE2StateSpace::StateType>()->getYaw() << "\t";
+
+    for (size_t i = 0; i < 18; ++i)
+        fs << 0 << "\t";
+    fs << std::endl;
 
     for (size_t i = 0; i < tree.size(); ++i) 
     {
         if (tree[i] != root && tree[i]->getSetType() == Motion::SET_NULL) 
         {
-            fs  << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[0] << "\t"
-                << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[1] << "\t"
-                << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[2] << "\t"
-                << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[3] << "\t"
-                << tree[i]->getParent()->getState()->as<base::RealVectorStateSpace::StateType>()->values[0] << "\t"
-                << tree[i]->getParent()->getState()->as<base::RealVectorStateSpace::StateType>()->values[1] << "\t"
-                << tree[i]->getParent()->getState()->as<base::RealVectorStateSpace::StateType>()->values[2] << "\t"
-                << tree[i]->getParent()->getState()->as<base::RealVectorStateSpace::StateType>()->values[3] << "\t"
-                << tree[i]->getControl()->as<RealVectorControlSpace::ControlType>()->values[0] << "\t"
-                << tree[i]->getControl()->as<RealVectorControlSpace::ControlType>()->values[1] << "\t"
-                << tree[i]->getSteps() << std::endl;
+            fs << tree[i]->getState()->as<base::SE2StateSpace::StateType>()->getX() << "\t"
+               << tree[i]->getState()->as<base::SE2StateSpace::StateType>()->getY() << "\t"
+               << tree[i]->getState()->as<base::SE2StateSpace::StateType>()->getYaw() << "\t"
+               << tree[i]->getParent()->getState()->as<base::SE2StateSpace::StateType>()->getX() << "\t"
+               << tree[i]->getParent()->getState()->as<base::SE2StateSpace::StateType>()->getY() << "\t"
+               << tree[i]->getParent()->getState()->as<base::SE2StateSpace::StateType>()->getYaw() << "\t";
+
+            size_t j;
+            for(j = 0; j < tree[i]->getControl()->actions.size(); ++j)
+            {
+                fs << tree[i]->getControl()->actions[j].first->as<RealVectorControlSpace::ControlType>()->values[0] << "\t"
+                   << tree[i]->getControl()->actions[j].first->as<RealVectorControlSpace::ControlType>()->values[1] << "\t"
+                   << tree[i]->getControl()->actions[j].second << "\t";
+            }
+
+            for(; j < 5; ++j)
+            {
+                fs << 0 << "\t"
+                   << 0 << "\t"
+                   << 0 << "\t";
+            }
+
+            fs << std::endl;
         }
     }
 
@@ -546,14 +568,13 @@ void ompl::control::FMT::saveInitialTree()
     std::fstream fs;
     fs.open (filename, std::fstream::out | std::fstream::trunc);
 
-    fs << tree.size() << "\t" << siC_->getPropagationStepSize() << "\t" << 0 << "\t" << 0 << std::endl;
+    fs << tree.size() << "\t" << siC_->getPropagationStepSize() << "\t" << 0 << std::endl;
 
     for (size_t i = 0; i < tree.size(); ++i) 
     {
-        fs << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[0] << "\t"
-           << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[1] << "\t"
-           << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[2] << "\t"
-           << tree[i]->getState()->as<base::RealVectorStateSpace::StateType>()->values[3] << std::endl;
+        fs << tree[i]->getState()->as<base::SE2StateSpace::StateType>()->getX() << "\t"
+           << tree[i]->getState()->as<base::SE2StateSpace::StateType>()->getY() << "\t"
+           << tree[i]->getState()->as<base::SE2StateSpace::StateType>()->getYaw() << std::endl;
     }
 
     fs.close();

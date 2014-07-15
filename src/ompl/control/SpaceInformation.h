@@ -99,13 +99,23 @@ namespace ompl
             /** \brief Free the memory of a control */
             void freeControl(Control *control) const
             {
+                for(size_t i = 0; i < control->actions.size(); ++i)
+                    controlSpace_->freeControl(control->actions[i].first);
+                control->actions.clear();
                 controlSpace_->freeControl(control);
+
             }
 
             /** \brief Copy a control to another */
             void copyControl(Control *destination, const Control *source) const
             {
                 controlSpace_->copyControl(destination, source);
+                //destination->actions.resize(source->actions.size());
+                destination->actions.clear(); // TODO: memory leaks could happen here: free previous content of destination.
+                for(size_t i = 0; i < source->actions.size(); ++i)
+                {
+                    destination->actions.push_back(std::make_pair(cloneControl(source->actions[i].first), source->actions[i].second));
+                }
             }
 
             /** \brief Clone a control */

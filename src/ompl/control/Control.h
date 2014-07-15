@@ -44,6 +44,9 @@ namespace ompl
 {
     namespace control
     {
+        /// @cond IGNORE
+        //OMPL_CLASS_FORWARD(SpaceInformation);
+        /// @endcond
 
         /** \brief Definition of an abstract control */
         class Control
@@ -60,6 +63,8 @@ namespace ompl
 
             Control()
             {
+                cur_idx = 0;
+                null_ = std::make_pair((Control *)0,0);
             }
 
             virtual ~Control()
@@ -90,17 +95,25 @@ namespace ompl
 
             bool update()
             {
-                if (next.size())
+                if (cur_idx < actions.size())
                 {
-                    current = next.front();
-                    next.pop_front();
+                    current = actions[cur_idx];
+                    ++cur_idx;
                     return true;
                 }
                 return false;
             }
 
+            void reset()
+            {
+                cur_idx = 0;
+                current = null_;
+            }
+
             std::pair<Control *, double> current;
-            std::deque<std::pair<Control *, double> > next;
+            std::deque<std::pair<Control *, double> > actions;
+            unsigned int cur_idx;
+            std::pair<Control *, double> null_;
 
         };
 

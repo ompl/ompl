@@ -46,7 +46,6 @@ namespace ompl
     namespace control
     {
 
-
         /** \brief Abstract definition of a steered control sampler. It uses the
             steering function in a state propagator to find the controls that
             drive from one state to another. */
@@ -100,6 +99,5 @@ namespace ompl
         };
     }
 }
-
 
 #endif

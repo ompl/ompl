@@ -125,15 +125,15 @@ public:
             double cduration = std::abs(rsp.length_[i]);
             duration += cduration;
 
-            result->next.push_back(std::make_pair(c,cduration));
+            result->actions.push_back(std::make_pair(c,cduration));
             ++i;
         }
 
-       /* for (size_t i=0; i<result->next.size(); ++i)
-            std::cout << result->next[i].first->as<oc::RealVectorControlSpace::ControlType>()->values[0] << "   "
-                      << result->next[i].first->as<oc::RealVectorControlSpace::ControlType>()->values[1] << std::endl;*/
+       /* for (size_t i=0; i<result->actions.size(); ++i)
+            std::cout << result->actions[i].first->as<oc::RealVectorControlSpace::ControlType>()->values[0] << "   "
+                      << result->actions[i].first->as<oc::RealVectorControlSpace::ControlType>()->values[1] << std::endl;*/
 
-        if (result->next.size())
+        if (result->actions.size())
             return true;
         return false;
     }
@@ -165,8 +165,8 @@ int main(int argc, char** argv)
 
     // set the bounds for the R^2 part of SE(2)
     ob::RealVectorBounds bounds(2);
-    bounds.setLow(-10);
-    bounds.setHigh(10);
+    bounds.setLow(-5);
+    bounds.setHigh(5);
     space->as<ob::SE2StateSpace>()->setBounds(bounds);
 
     // create a control space - RealVector space is not the most correct space, but easier to use.
@@ -197,7 +197,7 @@ int main(int argc, char** argv)
     start->setYaw(boost::math::constants::pi<double>()/2);
 
     ob::ScopedState<ob::SE2StateSpace> goal(space);
-    goal->setX(5.0);
+    goal->setX(4.0);
     goal->setY(1.0);
     goal->setYaw(boost::math::constants::pi<double>()/2);
     
@@ -205,14 +205,14 @@ int main(int argc, char** argv)
 
     // testing the self-made propagator
     oc::DirectedControlSamplerPtr cs = si->allocDirectedControlSampler();
-    si->setMinMaxControlDuration(1,100);
+    //si->setMinMaxControlDuration(1,100);
     si->setPropagationStepSize(0.05);
     si->setup();
     
     //std::cout << si->distance(start.get(),goal.get()) << std::endl;
-    cs->sampleTo(si->allocControl(),start.get(),goal.get());
+    //cs->sampleTo(si->allocControl(),start.get(),goal.get());
     
-    /*
+
     ob::PlannerStatus solved = ss.solve(1.0);
 
     if (solved)
@@ -225,7 +225,7 @@ int main(int argc, char** argv)
     else
         std::cout << "No solution found" << std::endl;
 
-    ss.getPlanner()->as<oc::FMT>()->saveTree();*/
+    ss.getPlanner()->as<oc::FMT>()->saveTree();
 
-    return 0;   
+    return 0;
 }

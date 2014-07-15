@@ -30,7 +30,8 @@ plot(tree.start(1),tree.start(2), 'mx', 'MarkerSize', 15, 'LineWidth', 3);
 plot(tree.goal(1),tree.goal(2), 'mo', 'MarkerSize', 15, 'LineWidth', 3);
 
 % Propagation of steps.
-for i = 1 : tree.size
+%for i = 1 : tree.size
+for i = 1 : size(tree.parent,1)
     p = propagateReedsShepp(tree.parent(i,:), ...
                            tree.control(i,:), tree.stepsize);
     
