@@ -81,6 +81,7 @@ void ompl::control::FMT::setup()
     {
         OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length.", getName().c_str());
         opt_.reset(new base::PathLengthOptimizationObjective(si_));
+//        pdef_->setOptimizationObjective(opt_); // Why no planner has this line?
     }
     H_.getComparisonOperator().opt_ = opt_.get();
 
