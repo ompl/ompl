@@ -49,13 +49,14 @@
 #include <ompl/control/planners/fmt/FMT.h>
 #include <ompl/control/DirectedControlSampler.h>
 #include <ompl/control/SimpleDirectedControlSampler.h>
+#include <ompl/control/PathControl.h>
 
 #include <boost/math/constants/constants.hpp>
 
+#include <fstream>
+
 namespace ob = ompl::base;
 namespace oc = ompl::control;
-//namespace og = ompl::geometric;
-//namespace ot = ompl::time;
 
 bool isStateValid(const oc::SpaceInformationPtr &si, const ob::State *state)
 {
@@ -84,20 +85,11 @@ public:
             pos[1] + ctrl[0] * duration * sin(rot));
         result->as<ob::SE2StateSpace::StateType>()->setYaw(
             rot    + ctrl[0]*ctrl[1] * duration);
-
-        /*std::cout << result->as<ob::SE2StateSpace::StateType>()->getX() << "\t"
-                  << result->as<ob::SE2StateSpace::StateType>()->getY() << "\t"
-                  << result->as<ob::SE2StateSpace::StateType>()->getYaw() << std::endl;*/
     }
 
     virtual bool steer (const ob::State *from, const ob::State *to, oc::Control *result, double &duration) const
     {
         ob::ReedsSheppStateSpace::ReedsSheppPath rsp = rs_.reedsShepp(from, to);
-
-        /*for (int i=0; i<5; ++i)
-            std::cout << rsp.type_[i] << "      " << rsp.length_[i] <<std::endl;
-        std::cout << " ======= " << std::endl;*/
-
         oc::Control *c;
         int i = 0;
         while (rsp.type_[i] != 0 && i<5)
@@ -129,10 +121,6 @@ public:
             ++i;
         }
 
-       /* for (size_t i=0; i<result->actions.size(); ++i)
-            std::cout << result->actions[i].first->as<oc::RealVectorControlSpace::ControlType>()->values[0] << "   "
-                      << result->actions[i].first->as<oc::RealVectorControlSpace::ControlType>()->values[1] << std::endl;*/
-
         if (result->actions.size())
             return true;
         return false;
@@ -152,7 +140,7 @@ public:
     {
         return true;
     }
-    
+
 private:
     oc::SimpleDirectedControlSampler* sdcs_;
     ob::ReedsSheppStateSpace rs_;
@@ -205,7 +193,7 @@ int main(int argc, char** argv)
 
     // testing the self-made propagator
     oc::DirectedControlSamplerPtr cs = si->allocDirectedControlSampler();
-    //si->setMinMaxControlDuration(1,100);
+    si->setMinMaxControlDuration(1,100);
     si->setPropagationStepSize(0.05);
     si->setup();
     
@@ -216,7 +204,55 @@ int main(int argc, char** argv)
     ob::PlannerStatus solved = ss.solve(1.0);
 
     if (solved)
-        std::cout << "Found solution:" << std::endl;
+    {
+        const char *filename = "fmtpath.txt";
+        std::cout << "Found solution. Saving into " << filename << std::endl;
+
+        ss.getSolutionPath().printAsMatrix(std::cout);
+
+        const oc::PathControl path = ss.getSolutionPath();
+        std::fstream fs;
+        fs.open (filename, std::fstream::out | std::fstream::trunc);
+
+        fs << path.getStateCount() << "\t" << path.getControlCount() << "\t" << si->getPropagationStepSize() << "\t";
+
+        for (size_t i = 0; i < 15; ++i)
+          fs << 0 << "\t";
+        fs << std::endl;
+
+        for (size_t i = 0; i < path.getControlCount(); ++i)
+        {
+            fs << path.getState(i)->as<ob::SE2StateSpace::StateType>()->getX() << "\t"
+               << path.getState(i)->as<ob::SE2StateSpace::StateType>()->getY() << "\t"
+               << path.getState(i)->as<ob::SE2StateSpace::StateType>()->getYaw() << "\t";
+
+            size_t j;
+            for(j = 0; j < path.getControl(i)->actions.size(); ++j)
+            {
+                fs << path.getControl(i)->actions[j].first->as<oc::RealVectorControlSpace::ControlType>()->values[0] << "\t"
+                   << path.getControl(i)->actions[j].first->as<oc::RealVectorControlSpace::ControlType>()->values[1] << "\t"
+                   << path.getControl(i)->actions[j].second << "\t";
+            }
+
+            for(; j < 5; ++j)
+            {
+                fs << 0 << "\t"
+                   << 0 << "\t"
+                   << 0 << "\t";
+            }
+            fs << std::endl;
+        }
+
+        size_t i = path.getStateCount()-1;
+        fs << path.getState(i)->as<ob::SE2StateSpace::StateType>()->getX() << "\t"
+           << path.getState(i)->as<ob::SE2StateSpace::StateType>()->getY() << "\t"
+           << path.getState(i)->as<ob::SE2StateSpace::StateType>()->getYaw() << "\t";
+
+        for (size_t i = 0; i < 15; ++i)
+          fs << 0 << "\t";
+        fs << std::endl;
+
+    }
     else
         std::cout << "No solution found" << std::endl;
 

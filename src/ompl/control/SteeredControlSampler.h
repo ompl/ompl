@@ -86,7 +86,7 @@ namespace ompl
                     cd = si_->propagateWhileValid(dest, c, steps, dest);
                 }
 
-                return cd;
+                return cd; // TODO: the cd to return should be the sum of all iterations.
             }
 
             virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest)

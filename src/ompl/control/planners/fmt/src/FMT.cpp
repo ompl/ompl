@@ -438,7 +438,6 @@ bool ompl::control::FMT::expandTreeFromNode(Motion *&z, const double r)
             base::State *steer_state = si_->cloneState(x->getState());
             int cd = controlSampler_->sampleTo(steer_ctrl, yMin->getState(), steer_state);
 
-            //if (cd > 0 && si_->distance(steer_state, x->getState()) < 0.3)
             if (cd > 0)
             {
                 /*si_->printState(yMin->getState());
@@ -456,7 +455,7 @@ bool ompl::control::FMT::expandTreeFromNode(Motion *&z, const double r)
                 // Add x to H_new
                 H_new.push_back(x);
                 // Remove x from W
-                x->setSetType(Motion::SET_NULL); 
+                x->setSetType(Motion::SET_NULL);
             }
             si_->freeState(steer_state);
             siC_->freeControl(steer_ctrl);
@@ -526,7 +525,7 @@ void ompl::control::FMT::saveTree()
 
     for (size_t i = 0; i < tree.size(); ++i) 
     {
-        if (tree[i] != root && tree[i]->getSetType() == Motion::SET_NULL) 
+        if (tree[i] != root && tree[i]->getSetType() != Motion::SET_W)
         {
             fs << tree[i]->getState()->as<base::SE2StateSpace::StateType>()->getX() << "\t"
                << tree[i]->getState()->as<base::SE2StateSpace::StateType>()->getY() << "\t"

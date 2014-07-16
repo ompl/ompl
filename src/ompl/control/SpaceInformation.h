@@ -122,7 +122,8 @@ namespace ompl
             Control* cloneControl(const Control *source) const
             {
                 Control *copy = controlSpace_->allocControl();
-                controlSpace_->copyControl(copy, source);
+                //controlSpace_->copyControl(copy, source);
+                copyControl(copy, source);
                 return copy;
             }
 
