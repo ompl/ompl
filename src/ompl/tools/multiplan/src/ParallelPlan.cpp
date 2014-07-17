@@ -131,7 +131,7 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTe
 
 void ompl::tools::ParallelPlan::solveOne(base::Planner *planner, std::size_t minSolCount, const base::PlannerTerminationCondition *ptc)
 {
-    OMPL_DEBUG("Starting %s", planner->getName().c_str());
+    OMPL_DEBUG("ParallelPlan starting planner %s", planner->getName().c_str());
     time::point start = time::now();
     if (planner->solve(*ptc))
     {
