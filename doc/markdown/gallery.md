@@ -35,7 +35,7 @@ Morse is a robot simulator built on top of the 3D modeling program Blender. Cale
 
 # Manipulation Planning
 
-An example of using OMPL on the PR2 from [Willow Garage](http://www.willowgarage.com). The robot is asked to move the manipulate objects on the table. This demo is using [ROS](http://www.ros.org).
+An example of using OMPL on the PR2 from Willow Garage. The robot is asked to move the manipulate objects on the table. This demo is using [ROS](http://www.ros.org).
 
 \htmlonly
 <div class="row">

@@ -24,7 +24,7 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 - Elizabeth Fudge, Rice University
 - Jonathan Sobieski, Rice University
 - Beck Chen, Rice University
-- [Sachin Chitta](http://www.willowgarage.com/pages/people/sachin-chitta-research-scientist), Willow Garage
+- [Sachin Chitta](http://www.sachinchitta.org), Willow Garage
 - Gil Jones, Willow Garage
 
 Click [here](thirdparty.html) for a detailed description of the third-party contributions.
