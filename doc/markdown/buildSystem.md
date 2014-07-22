@@ -7,7 +7,7 @@ When developing your own code that relies on OMPL, you have several options:
        cmake -DCMAKE_INSTALL_PREFIX=/some/path
        make install
 
-   Below are the specifics for different build systems:
+   See [Build Options](buildOptions.html) for details on how to enable/disable different OMPL-specific features. Below are the specifics for different build systems:
 
    - __CMake:__ For ease of use with CMake, we have included a CMake file that finds OMPL: \ref FindOMPL.cmake. This normally gets installed in the CMake module path, so if you use CMake in your own project, you can simply use this command in your CMakeLists.txt: \c find_package(OMPL). This will define the following variables:
 

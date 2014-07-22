@@ -1,6 +1,6 @@
 # Using the ODESolver for Planning with Controls
 
-OMPL provides a wrapper class for numerically solving differential equations using the [boost::numeric::odeint][odeint] package. A number of other software packages exist to perform numerical integration (e.g., GSL, ALGLIB, Scipy), but the odeint library is specifically chosen due to its feature rich and easy-to-use implementation, as well as its lack of external dependencies.
+OMPL provides a wrapper class for numerically solving differential equations using the [boost::numeric::odeint][odeint] package. A number of other software packages exist to perform numerical integration (e.g., GSL, ALGLIB, Scipy), but the odeint library is specifically chosen due to its feature-rich and easy-to-use implementation, as well as its lack of external dependencies.
 
 The ODESolver class is particularly suited for motion planning problems. It provides the user with an object capable of solving equations of the form \f$\dot{q} = f(q,u)\f$, where \f$q\f$ is the current state of the system and \f$u\f$ is a control applied to the system at state \f$q\f$. Using the ODESolver removes the need for the user to implement numerical integration in their own code, and allows advanced users the ability to customize the method used for integration.
 
