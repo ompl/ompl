@@ -166,7 +166,8 @@ void ompl::geometric::SimpleSetup::simplifySolution(const base::PlannerTerminati
             std::size_t numStates = path.getStateCount();
             psk_->simplify(path, ptc);
             simplifyTime_ = time::seconds(time::now() - start);
-            OMPL_INFORM("Path simplification took %f seconds and removed %d states", simplifyTime_, numStates - path.getStateCount());
+            OMPL_INFORM("Path simplification took %f seconds and changed from %d to %d states",
+                        simplifyTime_, numStates, path.getStateCount());
             return;
         }
     }
@@ -197,7 +198,7 @@ const std::string ompl::geometric::SimpleSetup::getSolutionPlannerName(void) con
 {
     if (pdef_)
     {
-        ompl::base::PathPtr path(new PathGeometric(si_)); // convert to a generic path ptr
+        const ompl::base::PathPtr path; // convert to a generic path ptr
         ompl::base::PlannerSolution solution(path); // a dummy solution
 
         // Get our desired solution

@@ -131,6 +131,12 @@ namespace ompl
                 return psk_;
             }
 
+            /** \brief Get the optimization objective to use */
+            const base::OptimizationObjectivePtr& getOptimizationObjective()
+            {
+                return pdef_->getOptimizationObjective();
+            }
+
             /** \brief Return true if a solution path is available (previous call to solve() was successful) and the solution is exact (not approximate) */
             bool haveExactSolutionPath() const;
 
@@ -161,7 +167,7 @@ namespace ompl
                 si_->setStateValidityChecker(svc);
             }
 
-            /** \brief Set the state validity checker to use */
+            /** \brief Set the optimization objective to use */
             void setOptimizationObjective(const base::OptimizationObjectivePtr &optimizationObjective)
             {
                 pdef_->setOptimizationObjective(optimizationObjective);
