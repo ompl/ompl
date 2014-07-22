@@ -16,7 +16,7 @@
 
 - Q: _Can I visualize the exploration datastructure used by a planner?_
 
-  A: Yes. You need to call ompl::base::Planner::getPlannerData(). This will give you an instance of ompl::base::PlannerData which contains all the states and the edges between them. Functionality for plotting this data is however not available.
+  A: Yes. You need to call ompl::base::Planner::getPlannerData(). This will give you an instance of ompl::base::PlannerData which contains all the states and the edges between them. The PlannerData can be exported in [GraphML format](http://graphml.graphdrawing.org) which can be read by a number of external programs such a [graph-tool](http://graph-tool.skewed.de) and [Gephi](http://gephi.github.io).
 
 - Q: _Can I change the state space during planning?_
 

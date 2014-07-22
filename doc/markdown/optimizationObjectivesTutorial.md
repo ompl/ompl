@@ -30,7 +30,7 @@ Lastly, notice that in `ClearanceObjective`'s constructor we initialized the `om
 
 Here's an animation demonstrating the RRTstar algorithm's progress in planning under the above objective:
 
-<div class="row"><img src="../images/clearance.gif" class="span8 offset1"></div>
+<div class="row"><img src="../images/clearance.gif" class="col-md-8 col-sm-8 col-md-push-1 col-sm-push-1"></div>
 
 ## Multiobjective optimal planning
 
@@ -68,7 +68,7 @@ This function defines exactly the same optimization objective as the previous on
 
 Here's an animation of the RRTstar algorithm's progress on this multiobjective problem:
 
-<div class="row"><img src="../images/balanced.gif" class="span8 offset1"></div>
+<div class="row"><img src="../images/balanced.gif" class="col-md-8 col-sm-8 col-md-push-1 col-sm-push-1"></div>
 
 ## Specifying a new objective (part 2): maximize minimum clearance
 

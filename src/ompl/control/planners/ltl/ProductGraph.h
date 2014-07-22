@@ -137,6 +137,8 @@ namespace ompl
                 const AutomatonPtr& cosafetyAut
             );
 
+            ~ProductGraph();
+
             /** \brief Returns the PropositionalDecomposition contained
                 within this ProductGraph. */
             const PropositionalDecompositionPtr& getDecomp() const;
