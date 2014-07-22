@@ -410,14 +410,14 @@ bool ompl::base::ProblemDefinition::getSolution(PlannerSolution& solution) const
 void ompl::base::ProblemDefinition::addSolutionPath(const PathPtr &path, bool approximate, double difference, const std::string& plannerName) const
 {
     if (approximate)
-        OMPL_INFORM("Adding approximate solution");
+        OMPL_INFORM("ProblemDefinition: Adding approximate solution from planner %s", plannerName.c_str());
     solutions_->add(PlannerSolution(path, approximate, difference, plannerName));
 }
 
 void ompl::base::ProblemDefinition::addSolutionPath(const PlannerSolution &sol) const
 {
     if (sol.approximate_)
-        OMPL_INFORM("Adding approximate solution");
+        OMPL_INFORM("ProblemDefinition: Adding approximate solution from planner %s", sol.plannerName_.c_str());
     solutions_->add(sol);
 }
 
