@@ -1,11 +1,11 @@
-clear all; close all;
+clear all; %close all;
 
-iitree = load ('../../build/Debug/fmtree_initial.txt');
+iitree = load ('../../build/Release/fmtree_initial.txt');
 itree.size = iitree(1,1);
 itree.stepsize = iitree(1,2);
 itree.states = iitree(2:end,:);
 
-ttree = load ('../../build/Debug/fmtree.txt');
+ttree = load ('../../build/Release/fmtree.txt');
 tree.size = ttree(1,1); % Removing the start.
 tree.stepsize = ttree(1,2);
 tree.start = ttree(2,1:3);
@@ -17,15 +17,16 @@ tree.controls = ttree(2:end,7:end);
 clear ttree;
 clear iitree;
 
-figure;
+figure(1);
+clf;
 hold on;
 
 % TODO: some green states are translated with respect to its corresponding,
 % propagated position.
 
 % Initial sampled states and their velocities.
-plot(itree.states(:,1),itree.states(:,2), '.r');
-quiver(itree.states(:,1),itree.states(:,2),cos(itree.states(:,3)),sin(itree.states(:,3)),'r');
+% % % plot(itree.states(:,1),itree.states(:,2), '.r');
+% % % quiver(itree.states(:,1),itree.states(:,2),cos(itree.states(:,3)),sin(itree.states(:,3)),'r');
 
 % Final computed states, start and goal.
 plot(tree.states(:,1),tree.states(:,2), 'g.');
@@ -44,7 +45,7 @@ end
 quiver(tree.states(:,1),tree.states(:,2),cos(tree.states(:,3)),sin(tree.states(:,3)),'g');
 
 % Plotting path
-tpath = load ('../../build/Debug/fmtpath.txt');
+tpath = load ('../../build/Release/fmtpath.txt');
 path.states = tpath(2:end,1:3);
 path.controls = tpath(2:end,4:end);
 path.stepsize = tpath(1,3);
@@ -56,7 +57,7 @@ for i = 1 : size(path.states,1)-1
                                       path.controls(i,:), path.stepsize)];
 
 end
-%plot(pathstates(:,1), pathstates(:,2), 'm', 'LineWidth', 2);
+plot(pathstates(:,1), pathstates(:,2), 'm', 'LineWidth', 2);
  
 % Sum of euclidean distances between states of the path..
 d = pdist(path.states);

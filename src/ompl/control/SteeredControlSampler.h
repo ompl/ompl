@@ -68,22 +68,25 @@ namespace ompl
                 if (!si_->getStatePropagator()->steer(source, dest, control, duration))
                     return 0;
 
+                // TODO: this code would be at propagateWhileValid once the new control class is properly defined.
                 // Apply all control actions until finished or collision detected (cd == 0).
                 control->update();
                 Control *c = control->current.first;
                 double t = control->current.second;
                 unsigned int steps = std::floor(t / si_->getPropagationStepSize() + 0.5);
-                int cd = si_->propagateWhileValid(source, c, steps, dest);
+                int cd = 0;
+                int cd_aux = si_->propagateWhileValid(source, c, steps, dest);
 
-                while (cd > 0)
+                while (cd_aux > 0)
                 {
+                    cd += cd_aux;
                     if (!control->update()) // No more control actions left.
                         break;
 
                     c = control->current.first;
                     t = control->current.second;
                     steps = std::floor(t / si_->getPropagationStepSize() + 0.5);
-                    cd = si_->propagateWhileValid(dest, c, steps, dest);
+                    cd_aux = si_->propagateWhileValid(dest, c, steps, dest);
                 }
 
                 return cd; // TODO: the cd to return should be the sum of all iterations.

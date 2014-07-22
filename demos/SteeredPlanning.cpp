@@ -87,6 +87,7 @@ public:
             rot    + ctrl[0]*ctrl[1] * duration);
     }
 
+    // TODO how can this be a const function?
     virtual bool steer (const ob::State *from, const ob::State *to, oc::Control *result, double &duration) const
     {
         ob::ReedsSheppStateSpace::ReedsSheppPath rsp = rs_.reedsShepp(from, to);
@@ -193,7 +194,7 @@ int main(int argc, char** argv)
 
     // testing the self-made propagator
     oc::DirectedControlSamplerPtr cs = si->allocDirectedControlSampler();
-    si->setMinMaxControlDuration(1,100);
+    //si->setMinMaxControlDuration(1,100);
     si->setPropagationStepSize(0.05);
     si->setup();
     
