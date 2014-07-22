@@ -59,13 +59,7 @@ namespace ot = ompl::time;
 
 ob::OptimizationObjectivePtr getPathLengthObjective(const ob::SpaceInformationPtr& si);
 
-ob::Cost distanceHeuristic(ob::PlannerData::Graph::Vertex v1,
-                           const ob::GoalState* goal,
-                           const ob::OptimizationObjective* obj,
-                           const boost::property_map<ob::PlannerData::Graph::Type,
-                           vertex_type_t>::type& plannerDataVertices);
-
-template <class planner_t> 
+template <class planner_t>
 class Plane2DEnvironment
 {
 public:
@@ -91,14 +85,14 @@ public:
             maxHeight_ = ppm_.getHeight() - 1;
             space->setup(); 
 
-			// Construct a space information instance for this state space
-			ob::StateSpacePtr sspace (space);
-			si_.reset(new ob::SpaceInformation(sspace));
-			
-			// Set the object used to check which states in the space are valid
-			si_->setStateValidityChecker( boost::bind(&Plane2DEnvironment::isStateValid, this, _1) );
-			si_->setStateValidityCheckingResolution(1.0 / space->getMaximumExtent());
-			si_->setup();
+            // Construct a space information instance for this state space
+            ob::StateSpacePtr sspace (space);
+            si_.reset(new ob::SpaceInformation(sspace));
+
+            // Set the object used to check which states in the space are valid
+            si_->setStateValidityChecker( boost::bind(&Plane2DEnvironment::isStateValid, this, _1) );
+            si_->setStateValidityCheckingResolution(1.0 / space->getMaximumExtent());
+            si_->setup();
         }
     }
 
@@ -114,32 +108,32 @@ public:
         goal[1] = goal_col;
         
         // Create a problem instance
-		pdef_.reset(new ob::ProblemDefinition(si_));
-		
-		// Set the start and goal states
-		pdef_->setStartAndGoalStates(start, goal);
-		
-		// Set the optimization objective (select one of them)
-		pdef_->setOptimizationObjective(getPathLengthObjective(si_));
-		pdef_->getOptimizationObjective()->setCostThreshold(ob::Cost(2070));
-		
-		// Construct our optimal planner using the RRTstar algorithm.
-		planner_.reset(new planner_t(si_));
-		//planner_.reset(new og::RRTstar(si_));
-		// Set the problem instance for our planner to solve
-		planner_->setProblemDefinition(pdef_);
-		
-		//planner_->as<og::CForest>()->setPlannerInstances<og::RRTStar>(2);
-		
-		planner_->setup();
+        pdef_.reset(new ob::ProblemDefinition(si_));
 
-		// attempt to solve the planning problem within one second of
-		// planning time
-		ot::point start_t = ot::now();
-		bool v = planner_->solve(5.0);
-		double duration = ot::seconds(ot::now() - start_t);
+        // Set the start and goal states
+        pdef_->setStartAndGoalStates(start, goal);
+
+        // Set the optimization objective (select one of them)
+        pdef_->setOptimizationObjective(getPathLengthObjective(si_));
+        pdef_->getOptimizationObjective()->setCostThreshold(ob::Cost(2070));
+
+        // Construct our optimal planner using the RRTstar algorithm.
+        planner_.reset(new planner_t(si_));
+        //planner_.reset(new og::RRTstar(si_));
+        // Set the problem instance for our planner to solve
+        planner_->setProblemDefinition(pdef_);
+
+        //planner_->as<og::CForest>()->setPlannerInstances<og::RRTStar>(2);
+
+        planner_->setup();
+
+        // attempt to solve the planning problem within one second of
+        // planning time
+        ot::point start_t = ot::now();
+        bool v = planner_->solve(5.0);
+        double duration = ot::seconds(ot::now() - start_t);
         OMPL_DEBUG("Solution found by %s in %lf seconds", planner_->getName().c_str(), duration);
-		return v;
+        return v;
     }
 
     void recordSolution()
@@ -161,96 +155,26 @@ public:
             c.blue = 0;
         }
     }
-    
+
     double getLowestCost() const 
     {
-		if (!pdef_->getSolutionPath().get())
+        if (!pdef_->getSolutionPath().get())
             return -1.0;
-     
+
         return pdef_->getSolutionPath()->cost(getPathLengthObjective(si_)).v;
-		
-	}
+    }
 
     void save(const char *filename)
     {
         ppm_.saveFile(filename);
     }
     
-  /*  void saveTree(const char *filename, const size_t idx)
+    /*  void saveTree(const char *filename, const size_t idx)
     {
-		planner_->as<og::CForest>()->getPlanner(idx)->as<og::RRTstar>()->saveTree(filename);		
-	}
-	*/
-	void savePlannerData(const char *filename)
-	{
-		ob::PlannerData data(si_);
-        planner_->getPlannerData(data);
+        planner_->as<og::CForest>()->getPlanner(idx)->as<og::RRTstar>()->saveTree(filename);
+    }
+    */
 
-        ob::PlannerDataStorage dataStorage;
-        dataStorage.store(data, filename);
-	}
-	
-	void loadPlannerData(const char *filename)
-	{
-		std::cout << "Reading PlannerData from "<< filename << std::endl;
-
-		ob::PlannerDataStorage dataStorage;
-		ob::PlannerData data(si_);
-
-		// Loading an instance of PlannerData from disk.
-		dataStorage.load("filename", data);
-		
-		// Re-extract the shortest path from the loaded planner data
-		if (data.numStartVertices() > 0 && data.numGoalVertices() > 0)
-		{
-			// Create an optimization objective for optimizing path length in A*
-			ob::PathLengthOptimizationObjective opt(si_);
-
-			// Computing the weights of all edges based on the state space distance
-			// This is not done by default for efficiency
-			data.computeEdgeWeights(opt);
-
-			// Getting a handle to the raw Boost.Graph data
-			ob::PlannerData::Graph::Type& graph = data.toBoostGraph();
-
-			// Now we can apply any Boost.Graph algorithm.  How about A*!
-
-			// create a predecessor map to store A* results in
-			boost::vector_property_map<ob::PlannerData::Graph::Vertex> prev(data.numVertices());
-
-			// Retieve a property map with the PlannerDataVertex object pointers for quick lookup
-			boost::property_map<ob::PlannerData::Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), graph);
-
-			// Run A* search over our planner data
-			ob::GoalState goal(si_);
-			goal.setState(data.getGoalVertex(0).getState());
-			ob::PlannerData::Graph::Vertex start = boost::vertex(data.getStartIndex(0), graph);
-			boost::astar_search(graph, start,
-								boost::bind(&distanceHeuristic, _1, &goal, &opt, vertices),
-								boost::predecessor_map(prev).
-								distance_compare(boost::bind(&ob::OptimizationObjective::
-															 isCostBetterThan, &opt, _1, _2)).
-								distance_combine(boost::bind(&ob::OptimizationObjective::
-															 combineCosts, &opt, _1, _2)).
-								distance_inf(opt.infiniteCost()).
-								distance_zero(opt.identityCost()));
-
-			// Extracting the path
-			og::PathGeometric path(si_);
-			for (ob::PlannerData::Graph::Vertex pos = boost::vertex(data.getGoalIndex(0), graph);
-				 prev[pos] != pos;
-				 pos = prev[pos])
-			{
-				path.append(vertices[pos]->getState());
-			}
-			path.append(vertices[start]->getState());
-			path.reverse();
-
-			// print the path to screen
-			//path.print(std::cout);
-			std::cout << "Found stored solution with " << path.getStateCount() << " states and length " << path.length() << std::endl;
-		}
-	}
 
 private:
 
@@ -262,10 +186,10 @@ private:
         const ompl::PPM::Color &c = ppm_.getPixel(h, w);
         return c.red > 127 && c.green > 127 && c.blue > 127;
     }
-    
+
     ob::SpaceInformationPtr si_;
-	ob::ProblemDefinitionPtr pdef_;
-	ob::PlannerPtr planner_;
+    ob::ProblemDefinitionPtr pdef_;
+    ob::PlannerPtr planner_;
     int maxWidth_;
     int maxHeight_;
     ompl::PPM ppm_;
@@ -275,13 +199,13 @@ private:
 
 int main(int argc, char** argv)
 {
-	 boost::filesystem::path path(TEST_RESOURCES_DIR);
-	Plane2DEnvironment<og::CForest> env((path / "ppm/floor.ppm").string().c_str());
-	
+     boost::filesystem::path path(TEST_RESOURCES_DIR);
+    Plane2DEnvironment<og::CForest> env((path / "ppm/floor.ppm").string().c_str());
+
     if (env.plan(0, 0, 1140, 1402))
     {
-		
-		OMPL_INFORM("Plan successful");
+
+        OMPL_INFORM("Plan successful");
         //env.recordSolution();
         //env.save("result_demo.ppm");
         //env.savePlannerData("plannerData");
@@ -292,28 +216,18 @@ int main(int argc, char** argv)
     }
 
 /*	Plane2DEnvironment<og::RRTstar> env2((path / "ppm/floor.ppm").string().c_str());
-	
+
     if (env2.plan(0, 0, 1140, 1402))
     {
-		OMPL_INFORM("Plan successful");
-		std::cout << "Final lowest cost 2: " << env2.getLowestCost() << std::endl;
-	}*/
+        OMPL_INFORM("Plan successful");
+        std::cout << "Final lowest cost 2: " << env2.getLowestCost() << std::endl;
+    }*/
 
-	return 0;
+    return 0;
 }
 
 
 ob::OptimizationObjectivePtr getPathLengthObjective(const ob::SpaceInformationPtr& si)
 {
     return ob::OptimizationObjectivePtr(new ob::PathLengthOptimizationObjective(si));
-}
-
-// Used for A* search.  Computes the heuristic distance from vertex v1 to the goal
-ob::Cost distanceHeuristic(ob::PlannerData::Graph::Vertex v1,
-                           const ob::GoalState* goal,
-                           const ob::OptimizationObjective* obj,
-                           const boost::property_map<ob::PlannerData::Graph::Type,
-                           vertex_type_t>::type& plannerDataVertices)
-{
-    return ob::Cost(obj->costToGo(plannerDataVertices[v1]->getState(), goal));
 }
