@@ -248,8 +248,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             addingSharedState_ = false;
             if (opt_->isCostBetterThan(pruneTreeCost_, bestCost_))
             {
-                // \TODO: improve this! this should be done automatically when updating the tree, not hard-coded this way.
-                // However I tried for days and I was unable to get other way working.
+                // \TODO: this should be done automatically when updating the tree, not hard-coded this way.
                 for (std::size_t i = 0; i < goalMotions_.size(); ++i)
                     goalMotions_[i]->cost = pruneTreeCost_;
 

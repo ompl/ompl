@@ -66,23 +66,33 @@ void ompl::geometric::CForest::getPlannerData(base::PlannerData &data) const
         base::PlannerData pd(si_);
         planners_[i]->getPlannerData(pd);
 
+        for (unsigned int j = 0; j < pd.numVertices(); ++j)
+        {
+            base::PlannerDataVertex &v = pd.getVertex(j);
+
+            v.setTag(i);
+            std::vector<unsigned int> edgeList;
+            unsigned int numEdges = pd.getIncomingEdges(j, edgeList);
+            for (unsigned int k = 0; k <numEdges; ++k)
+            {
+                base::Cost edgeWeight;
+                base::PlannerDataVertex &w = pd.getVertex(edgeList[k]);
+
+                w.setTag(i);
+                pd.getEdgeWeight(j, k, &edgeWeight);
+                data.addEdge(v, w, pd.getEdge(j, k), edgeWeight);
+            }
+        }
+
+
         for (unsigned int j = 0; j < pd.numGoalVertices(); ++j)
         {
-            base::PlannerDataVertex pdv (pd.getGoalVertex(j));
-            pdv.setTag(i);
-            data.addGoalVertex(pdv);
+            data.markGoalState(pd.getGoalVertex(j).getState());
         }
 
         for (unsigned int j = 0; j < pd.numStartVertices(); ++j)
         {
-            base::PlannerDataVertex pdv (pd.getStartVertex(j));
-            pdv.setTag(i);
-            data.addGoalVertex(pdv);
-        }
-
-        for (unsigned int j = 0; j < pd.numEdges(); ++j)
-        {  
-            //data.addEdge(PlannerDataVertex1, PlannerDataVertex1); 
+            data.markStartState(pd.getStartVertex(j).getState());
         }
 
     }

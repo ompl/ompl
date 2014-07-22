@@ -43,15 +43,10 @@
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 
 #include <ompl/util/PPM.h>
-#include <../tests/resources/config.h>
 
-#include <ompl/base/PlannerData.h>
-#include <ompl/base/PlannerDataStorage.h>
-#include <ompl/base/PlannerDataGraph.h>
+#include <ompl/base/samplers/CForestValidStateSampler.h>
 
-#include <boost/graph/astar_search.hpp>
 #include <boost/filesystem.hpp>
-
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
@@ -175,6 +170,8 @@ public:
     }
     */
 
+    ob::SpaceInformationPtr si_;
+
 
 private:
 
@@ -187,7 +184,7 @@ private:
         return c.red > 127 && c.green > 127 && c.blue > 127;
     }
 
-    ob::SpaceInformationPtr si_;
+    //ob::SpaceInformationPtr si_;
     ob::ProblemDefinitionPtr pdef_;
     ob::PlannerPtr planner_;
     int maxWidth_;
@@ -199,10 +196,10 @@ private:
 
 int main(int argc, char** argv)
 {
-     boost::filesystem::path path(TEST_RESOURCES_DIR);
+     boost::filesystem::path path("../../tests/resources/");
     Plane2DEnvironment<og::CForest> env((path / "ppm/floor.ppm").string().c_str());
 
-    if (env.plan(0, 0, 1140, 1402))
+   /* if (env.plan(0, 0, 1140, 1402))
     {
 
         OMPL_INFORM("Plan successful");
@@ -212,7 +209,27 @@ int main(int argc, char** argv)
         //env.saveTree("tree_0.txt", 0);
         //env.saveTree("tree_1.txt", 1);
         std::cout << "Final lowest cost: " << env.getLowestCost() << std::endl;
-        //env.loadPlannerData("plannerData");
+    }*/
+
+    // Testing the sampler.
+    ob::CForestValidStateSampler ss (env.si_.get());
+
+    std::vector<ob::State *> states;
+    ob::State *s;
+    for (int i =0; i < 5; ++i)
+    {
+        s = env.si_->allocState();
+        s->as<ob::RealVectorStateSpace::StateType>()->values[0] = i;
+        s->as<ob::RealVectorStateSpace::StateType>()->values[1] = 2*i;
+        states.push_back(s);
+    }
+
+    ss.setStatesToSample(states);
+    ob::State *s2 = env.si_->allocState();
+    for (size_t i = 0; i < states.size(); ++i)
+    {
+        ss.sample(s2);
+        env.si_->printState(s2);
     }
 
 /*	Plane2DEnvironment<og::RRTstar> env2((path / "ppm/floor.ppm").string().c_str());
