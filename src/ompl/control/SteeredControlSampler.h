@@ -75,11 +75,6 @@ namespace ompl
             {
                 return sampleTo(control, source, dest);
             }
-
-        protected:
-
-            /** \brief The space information this sampler operates on */
-            const SpaceInformation *si_;
         };
     }
 }
