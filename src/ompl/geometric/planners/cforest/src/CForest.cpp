@@ -38,12 +38,13 @@
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/samplers/CForestStateSampler.h>
+#include <ompl/base/StateSpace.h>
 
-
-/*ompl::base::ValidStateSamplerPtr allocCForestStateSampler (const ompl::base::SpaceInformation *si)
+// Allocator for the CForest State Sampler.
+ompl::base::StateSamplerPtr allocCForestStateSampler(const ompl::base::StateSpace *ss)
 {
-    return ompl::base::StateSamplerPtr(new ompl::base::CForestStateSampler(si));
-}*/
+    return ompl::base::StateSamplerPtr(new ompl::base::CForestStateSampler(ss));
+}
 
 ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::Planner(si, "CForest")
 {
@@ -58,7 +59,7 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
     addPlannerProgressProperty("shared paths INTEGER",
                                boost::bind(&CForest::getPathsShared, this));
 
-    //si_->setValidStateSamplerAllocator(allocCForestValidStateSampler);
+    si_->getStateSpace()->setStateSamplerAllocator(allocCForestStateSampler);
 }
 
 ompl::geometric::CForest::~CForest()

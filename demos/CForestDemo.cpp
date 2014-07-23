@@ -45,7 +45,6 @@
 #include <ompl/util/PPM.h>
 
 #include <ompl/base/samplers/CForestStateSampler.h>
-//#include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
 
 #include <boost/filesystem.hpp>
 
@@ -54,7 +53,7 @@ namespace og = ompl::geometric;
 namespace ot = ompl::time;
 
 ob::OptimizationObjectivePtr getPathLengthObjective(const ob::SpaceInformationPtr& si);
-//ob::ValidStateSamplerPtr allocCForestValidStateSampler(const ob::SpaceInformation *si);
+//ob::StateSamplerPtr allocCForestStateSampler(const ob::StateSpace *ss);
 
 template <class planner_t>
 class Plane2DEnvironment
@@ -201,7 +200,7 @@ int main(int argc, char** argv)
      boost::filesystem::path path("../../tests/resources/");
     Plane2DEnvironment<og::CForest> env((path / "ppm/floor.ppm").string().c_str());
 
-   /* if (env.plan(0, 0, 1140, 1402))
+   if (env.plan(0, 0, 1140, 1402))
     {
 
         OMPL_INFORM("Plan successful");
@@ -211,10 +210,10 @@ int main(int argc, char** argv)
         //env.saveTree("tree_0.txt", 0);
         //env.saveTree("tree_1.txt", 1);
         std::cout << "Final lowest cost: " << env.getLowestCost() << std::endl;
-    }*/
+    }
 
     // Testing the sampler.
-    ob::CForestStateSampler ss (env.si_->getStateSpace().get());
+    /*ob::CForestStateSampler ss (env.si_->getStateSpace().get());
 
     std::vector<ob::State *> states;
     ob::State *s;
@@ -232,7 +231,10 @@ int main(int argc, char** argv)
     {
         ss.sampleUniform(s2);
         env.si_->printState(s2);
-    }
+    }*/
+
+    //env.si_->getStateSpace()->setStateSamplerAllocator(allocCForestStateSampler);
+    //ob::StateSamplerPtr ss= env.si_->getStateSpace()->allocStateSampler();
 
 /*	Plane2DEnvironment<og::RRTstar> env2((path / "ppm/floor.ppm").string().c_str());
 
@@ -251,7 +253,7 @@ ob::OptimizationObjectivePtr getPathLengthObjective(const ob::SpaceInformationPt
     return ob::OptimizationObjectivePtr(new ob::PathLengthOptimizationObjective(si));
 }
 
-/*ob::ValidStateSamplerPtr allocCForestStateSampler(const ob::SpaceInformation *si)
+/*ob::StateSamplerPtr allocCForestStateSampler(const ob::StateSpace *ss)
 {
-    return ob::ValidStateSamplerPtr(new ob::CForestValidStateSampler(si));
+    return ob::StateSamplerPtr(new ob::CForestStateSampler(ss));
 }*/

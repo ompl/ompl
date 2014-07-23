@@ -39,21 +39,20 @@
 
 #include "ompl/base/StateSpace.h"
 
+// TODO: allow to set the sampler_ to use instead of using default. How?
 
-// TODO: This is kind of higher-level sampler. The actual sampler to use
-// have to be chosen. Now it is just a version of UniformValidSS.
 namespace ompl
 {
     namespace base
     {
 
-        /** \brief State sampler for the R<sup>n</sup> state space */
+        /** \brief Extended state sampler to use with the CForest planning algorithm. */
         class CForestStateSampler : public StateSampler
         {
         public:
 
             /** \brief Constructor */
-            CForestStateSampler(const StateSpace *space) : StateSampler(space), sampler_(space_->allocStateSampler())
+            CForestStateSampler(const StateSpace *space) : StateSampler(space), sampler_(space_->allocDefaultStateSampler())
             {
             }
 
