@@ -88,11 +88,6 @@ void ompl::base::Planner::includeValidPath(const std::vector<const State *> &sta
     throw Exception("Including valid paths in exploration data structures is not implemented for " + name_);
 }
 
-void ompl::base::Planner::activateCForest()
-{
-    throw Exception("CForest cannot be activated for " + name_);
-}
-
 void ompl::base::Planner::setup()
 {
     if (!si_->isSetup())

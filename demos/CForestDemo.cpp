@@ -117,7 +117,7 @@ public:
         // Set the problem instance for our planner to solve
         planner_->setProblemDefinition(pdef_);
 
-        //planner_->as<og::CForest>()->setPlannerInstances<og::RRTStar>(2);
+        //planner_->as<og::CForest>()->setPlannerInstances<og::RRTstar>(3);
 
         planner_->setup();
 
@@ -196,24 +196,24 @@ int main(int argc, char** argv)
    if (env_cf.plan(0, 0, 1140, 1402))
     {
 
-        OMPL_INFORM("Plan successful");
+        OMPL_INFORM("**** Plan successful ****");
         env_cf.recordSolution();
         env_cf.save("result_demo_cforest.ppm");
         //env.savePlannerData("plannerData");
         //env.saveTree("tree_0.txt", 0);
         //env.saveTree("tree_1.txt", 1);
-        std::cout << "Final lowest cost: " << env_cf.getLowestCost() << std::endl;
+        std::cout << "Final lowest cost CForest: " << env_cf.getLowestCost() << std::endl;
     }
 
-/*	Plane2DEnvironment<og::RRTstar> env_rrts((path / "ppm/floor.ppm").string().c_str());
+    Plane2DEnvironment<og::RRTstar> env_rrts((path / "ppm/floor.ppm").string().c_str());
 
     if (env_rrts.plan(0, 0, 1140, 1402))
     {
-        OMPL_INFORM("Plan successful");
+        OMPL_INFORM("**** Plan successful ****");
         env_rrts.recordSolution();
         env_rrts.save("result_demo_rrtstar.ppm");
-        std::cout << "Final lowest cost 2: " << env_rrts.getLowestCost() << std::endl;
-    }*/
+        std::cout << "Final lowest cost RRTstar: " << env_rrts.getLowestCost() << std::endl;
+    }
 
     return 0;
 }

@@ -73,7 +73,7 @@ namespace ompl
                 for (std::size_t i = 0 ; i < n; ++i)
                 {
                     base::PlannerPtr planner (new T(si_));
-                    planner->activateCForest();
+                    planner->as<T>()->activateCForest();
                     planner->setProblemDefinition(pdef_);
                     planners_.push_back(planner);
                 }

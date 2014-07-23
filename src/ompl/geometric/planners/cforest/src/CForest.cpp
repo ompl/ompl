@@ -64,7 +64,6 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
 
 ompl::geometric::CForest::~CForest()
 {
-
 }
 
 void ompl::geometric::CForest::getPlannerData(base::PlannerData &data) const
@@ -141,7 +140,7 @@ void ompl::geometric::CForest::setup()
 
     totalBestCost_ = opt_->infiniteCost();
 
-    if (planners_.empty()) 
+    if (planners_.empty())
     {
         OMPL_INFORM("%s: Number and type of instances not specified. Defaulting to 2 instances of RRTstar", getName().c_str());
         setPlannerInstances<RRTstar>(2);
