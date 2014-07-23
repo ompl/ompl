@@ -57,6 +57,8 @@ namespace ompl
             /** \brief Constructor takes the state space to construct samples for as argument */
             SteeredControlSampler(const SpaceInformation *si) : DirectedControlSampler(si)
             {
+                this->si_=si;
+
             }
 
             virtual ~SteeredControlSampler()
