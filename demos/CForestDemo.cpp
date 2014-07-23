@@ -157,6 +157,9 @@ public:
         if (!pdef_->getSolutionPath().get())
             return -1.0;
 
+        ob::PathPtr path = pdef_->getSolutionPath();
+        path->print(std::cout);
+
         return pdef_->getSolutionPath()->cost(getPathLengthObjective(si_)).v;
     }
 

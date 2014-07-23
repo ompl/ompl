@@ -151,20 +151,6 @@ namespace ompl
                 return delayCC_;
             }
 
-            /** \brief Set the percentage threshold (between 0 and 1) for pruning the tree. If best cost is improved
-                over this percentage, the  tree will be pruned. */
-            void setPruneCostImprovementThreshold (const double pp)
-            {
-                pruneCostThreshold_ = pp;
-            }
-
-            /** \brief Get the current prune cost percentage threshold parameter. */
-            
-            double getPruneCostImprovementThreshold() const
-            {
-                return pruneCostThreshold_;
-            }
-
             /** \brief Set the percentage threshold (between 0 and 1) for pruning the tree. If the new tree has removed
                 at least this percentage of states, the tree will be finally pruned. */
             void setPruneStatesImprovementThreshold(const double pp)
@@ -286,10 +272,6 @@ namespace ompl
             /** \brief Given a seed Motion, looks for the root Motion of the tree. */
             Motion* getRootMotion(Motion *seed);
 
-            /** \brief For a given random motion, rmotion, looks for the initial parent to be linked with (nearest neighbor in RRTstar)
-             * or previous motion when sharing CForest states. */
-            ompl::geometric::RRTstar::Motion* getInitialParent(Motion *rmotion, base::State *dstate, base::State *xstate);
-
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;
 
@@ -322,9 +304,6 @@ namespace ompl
                  or from new state to neighbors. */
             DistanceDirection                              distanceDirection_;
 
-            /** \brief If this vector contains states, they will be included to the tree in the next iterations of solve(). */
-            std::vector<base::State*>                      statesToInclude_;
-
              /** \brief If this vector contains motions, they will be deteled once the solve() function ends. */
             std::deque<Motion*>	                           toBeDeleted_;
 
@@ -334,26 +313,15 @@ namespace ompl
             /** \brief If this value is set to true, the CForest parallelization framework will be activated. */
             bool                                           isCForest_;
 
-            /** \brief CForest-related parameter. The tree is only pruned if there is a cost improvement over this percentage (between 0 and 1). */
-            double                                         pruneCostThreshold_;
-
-            /** \brief CForest-related parameter. The tree is only pruned is the percentage of states to prune is above this threshold (between 0 and 1). */
+            /** \brief CForest parameter. The tree is only pruned is the percentage of states to prune is above this threshold (between 0 and 1). */
             double                                         pruneStatesThreshold_;
 
             /** \brief The cost used to prune the tree. It is set by CForest functions. */
             base::Cost                                     pruneTreeCost_;
 
-            /** \brief Stores the previous motion added when using CForest. */
-            Motion *                                       prevMotion_;
-
-            /** \brief Flag to indicate that the state being added to the tree is shared by CForest. */
-            bool                                           addingSharedState_;
 
             /** \brief Stores the Motion containing the initial start state for CForest (assumes there is only 1 start state). */
             Motion *                                       startMotion_;
-
-            /** \brief Flag to indicate that the previous motion has to be restarted to the start motion in CForest. */
-            bool                                           restartPrevMotion_;
 
             //////////////////////////////
             // Planner progress properties
