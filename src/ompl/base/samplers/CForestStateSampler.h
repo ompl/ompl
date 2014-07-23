@@ -76,7 +76,7 @@ namespace ompl
 
             void getNextSample(State *state);
 
-            std::vector<State *> statesToSample_;
+            std::vector<const State *> statesToSample_;
 
             StateSamplerPtr sampler_;
         };

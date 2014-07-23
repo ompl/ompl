@@ -140,6 +140,13 @@ void ompl::geometric::RRTstar::includeValidPath(const std::vector<const base::St
     boost::mutex::scoped_lock slock(includePathsLock_);
     if (opt_->isCostBetterThan(cost, pruneTreeCost_))
     {
+        sampler_->setStatesToSample(states);
+        pruneTreeCost_ = cost;
+        restartPrevMotion_ = true;
+    }
+    /*boost::mutex::scoped_lock slock(includePathsLock_);
+    if (opt_->isCostBetterThan(cost, pruneTreeCost_))
+    {
         si_->freeStates(statesToInclude_);
         statesToInclude_.clear();
 
@@ -150,7 +157,7 @@ void ompl::geometric::RRTstar::includeValidPath(const std::vector<const base::St
             
         pruneTreeCost_ = cost;
         restartPrevMotion_ = true;
-    }
+    }*/
 }
 
 ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
@@ -245,7 +252,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         // CFOREST Specific code: a new path has been shared by other thread.
         if (isCForest_)
         {
-            addingSharedState_ = false;
             if (opt_->isCostBetterThan(pruneTreeCost_, bestCost_))
             {
                 // \TODO: this should be done automatically when updating the tree, not hard-coded this way.
@@ -262,7 +268,24 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
         }
 
-        if (isCForest_ && !statesToInclude_.empty()) 
+        if (goal_s && goalMotions_.size() < goal_s->maxSampleCount() && rng_.uniform01() < goalBias_ && goal_s->canSample())
+            goal_s->sampleGoal(rstate);
+        else
+        {
+            sampler_->sampleUniform(rstate);
+
+            if (isCForest_)
+            {
+                // Checking CForest condition.
+                costToCome = opt_->motionCost(pdef_->getStartState(0), rstate);
+                costToGo = base::goalRegionCostToGo(rstate, goal);
+                costTotal = opt_->combineCosts(costToCome, costToGo);
+                if (opt_->isCostBetterThan(pruneTreeCost_, costTotal))
+                    continue;
+            }
+        }
+
+        /*if (isCForest_ && !statesToInclude_.empty())
         {
             boost::mutex::scoped_lock slock(includePathsLock_);
             si_->copyState(rmotion->state, statesToInclude_.back());
@@ -296,16 +319,22 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         continue;
                 }
             }
-        }
+        }*/
 
         if (!symDist)
             distanceDirection_ = FROM_NEIGHBORS;
         
-        // \TODO: improve all this rstate, dstate, xstate mess. Probably we can get rid of some of them.
         base::State *dstate = rstate;
-        Motion *nmotion = getInitialParent(rmotion, dstate, xstate);
+        // find closest state in the tree
+        Motion *nmotion = nn_->nearest(rmotion);
+        double d = si_->distance(nmotion->state, rmotion->state);
+        if (d > maxDistance_)
+        {
+            si_->getStateSpace()->interpolate(nmotion->state, rmotion->state, maxDistance_ / d, dstate);
+            dstate = xstate;
+        }
 
-        if (addingSharedState_ && si_->equalStates(nmotion->state, rstate))  // Duplicate states: ignore shared state.
+        if (si_->equalStates(nmotion->state, rstate))  // Duplicate states: ignore shared state.
             continue;
 
         // Check if the motion between the nearest state and the state to add is valid
@@ -429,7 +458,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 }
             }
 
-            if (isCForest_ && !addingSharedState_)
+            if (isCForest_)
             {
                 costToCome = opt_->combineCosts(motion->parent->cost, opt_->motionCost(motion->parent->state, motion->state));
                 costToGo = base::goalRegionCostToGo(motion->state, goal);
