@@ -37,7 +37,6 @@
 #ifndef OMPL_BASE_SAMPLERS_CFOREST_STATE_SAMPLER_
 #define OMPL_BASE_SAMPLERS_CFOREST_STATE_SAMPLER_
 
-//#include "ompl/base/StateSampler.h"
 #include "ompl/base/StateSpace.h"
 
 
@@ -54,7 +53,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            CForestStateSampler(const StateSpace *space) : StateSampler(space)
+            CForestStateSampler(const StateSpace *space) : StateSampler(space), sampler_(space_->allocStateSampler())
             {
             }
 
@@ -79,6 +78,8 @@ namespace ompl
         protected:
 
             std::vector<State *> statesToSample_;
+
+            StateSamplerPtr sampler_;
         };
 
     }

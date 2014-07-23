@@ -228,7 +228,7 @@ int main(int argc, char** argv)
 
     ss.setStatesToSample(states);
     ob::State *s2 = env.si_->allocState();
-    for (size_t i = 0; i < states.size(); ++i)
+    for (size_t i = 0; i < states.size()+2; ++i)
     {
         ss.sampleUniform(s2);
         env.si_->printState(s2);
