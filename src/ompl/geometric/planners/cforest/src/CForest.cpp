@@ -197,7 +197,7 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, co
 {
     bool change = false;
     newSolutionFoundMutex_.lock();
-    if (opt_->isCostBetterThan(cost, totalBestCost_)) 
+    if (opt_->isCostBetterThan(cost, totalBestCost_))
     {
             pathsShared_++;
             totalBestCost_ = cost;
@@ -207,10 +207,10 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, co
     
     if (!change) return;
     
-    for (std::size_t i = 0 ; i < planners_.size() ; ++i) 
+    for (std::size_t i = 0 ; i < planners_.size() ; ++i)
     {
-        if (planners_[i].get() != planner) 
-            planners_[i]->includeValidPath(states, cost);        
+        if (planners_[i].get() != planner)
+            planners_[i]->includeValidPath(states, cost);
     }
 }
 

@@ -68,13 +68,13 @@ namespace ompl
                 space boundary, it is thresholded to the nearest boundary. */
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
 
-            void addStateToSample(const State *state);
-
-            void setStatesToSample(const std::vector<State *> &states);
-
-            void getNextSample(State *state);
+            virtual void setStatesToSample(const std::vector<const State *> &states);
 
         protected:
+
+            void addStateToSample(const State *state);
+
+            void getNextSample(State *state);
 
             std::vector<State *> statesToSample_;
 

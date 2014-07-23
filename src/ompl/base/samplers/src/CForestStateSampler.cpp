@@ -68,7 +68,7 @@ void ompl::base::CForestStateSampler::addStateToSample(const State *state)
     statesToSample_.push_back(copy);
 }
 
-void ompl::base::CForestStateSampler::setStatesToSample(const std::vector<State *> &states)
+void ompl::base::CForestStateSampler::setStatesToSample(const std::vector<const State *> &states)
 {
     statesToSample_.clear();
     statesToSample_.reserve(states.size());
