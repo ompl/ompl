@@ -168,13 +168,13 @@ public:
         ppm_.saveFile(filename);
     }
     
-    /*  void saveTree(const char *filename, const size_t idx)
+      void saveTree(const char *filename, const size_t idx)
     {
         planner_->as<og::CForest>()->getPlanner(idx)->as<og::RRTstar>()->saveTree(filename);
     }
-    */
 
-    ob::SpaceInformationPtr si_;
+
+    //ob::SpaceInformationPtr si_;
 
 
 private:
@@ -188,7 +188,7 @@ private:
         return c.red > 127 && c.green > 127 && c.blue > 127;
     }
 
-    //ob::SpaceInformationPtr si_;
+    ob::SpaceInformationPtr si_;
     ob::ProblemDefinitionPtr pdef_;
     ob::PlannerPtr planner_;
     int maxWidth_;
@@ -207,11 +207,11 @@ int main(int argc, char** argv)
     {
 
         OMPL_INFORM("Plan successful");
-        //env.recordSolution();
-        //env.save("result_demo.ppm");
+        env.recordSolution();
+        env.save("result_demo.ppm");
         //env.savePlannerData("plannerData");
-        //env.saveTree("tree_0.txt", 0);
-        //env.saveTree("tree_1.txt", 1);
+        env.saveTree("tree_0.txt", 0);
+        env.saveTree("tree_1.txt", 1);
         std::cout << "Final lowest cost: " << env.getLowestCost() << std::endl;
     }
 

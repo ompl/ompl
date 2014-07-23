@@ -269,8 +269,7 @@ namespace ompl
             /** \brief If CForest is activated, this function will delete the pruned motions at the end of the solve() function. */
             void detelePrunedMotions();
 
-            /** \brief Given a seed Motion, looks for the root Motion of the tree. */
-            Motion* getRootMotion(Motion *seed);
+            base::Cost computeCTGHeuristic(const base::State *state) const;
 
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;

@@ -246,11 +246,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
             if (isCForest_)
             {
-                // Checking CForest condition.
-                costToCome = opt_->motionCost(pdef_->getStartState(0), rstate);
-                costToGo = base::goalRegionCostToGo(rstate, goal);
-                costTotal = opt_->combineCosts(costToCome, costToGo);
-                if (opt_->isCostBetterThan(pruneTreeCost_, costTotal))
+                if (opt_->isCostBetterThan(pruneTreeCost_, computeCTGHeuristic(rstate)))
                     continue;
             }
         }
@@ -708,21 +704,20 @@ void ompl::geometric::RRTstar::saveTree(const char * filename)
 
 int ompl::geometric::RRTstar::pruneTree()
 {
-    base::Cost costToGo;
+    /*base::Cost costToGo;
     base::Cost costToCome;
-    base::Cost totalCost;
+    base::Cost totalCost;*/
     std::vector<Motion*> tree, newTree, toBePruned;
     tree.reserve(nn_->size()); 
     newTree.reserve(nn_->size());
     toBePruned.reserve(nn_->size());
     nn_->list(tree);
 
-    base::Goal *goal = pdef_->getGoal().get();
+    //base::Goal *goal = pdef_->getGoal().get();
 
     Motion *candidate;
     std::queue<Motion*> candidates;
-    
-    //candidates.push(getRootMotion(tree[0]));
+
     candidates.push(startMotion_);
 
     while (!candidates.empty())
@@ -730,11 +725,11 @@ int ompl::geometric::RRTstar::pruneTree()
         candidate = candidates.front();
         candidates.pop();
 
-        costToCome = opt_->motionCost(startMotion_->state, candidate->state);
+        /*costToCome = opt_->motionCost(startMotion_->state, candidate->state);
         costToGo = base::goalRegionCostToGo(candidate->state, goal); // h_g
-        totalCost = opt_->combineCosts(costToCome, costToGo); // h_s + h_g
+        totalCost = opt_->combineCosts(costToCome, costToGo); // h_s + h_g*/
 
-        if ( opt_->isCostBetterThan(totalCost, pruneTreeCost_))
+        if ( opt_->isCostBetterThan(computeCTGHeuristic(candidate->state), pruneTreeCost_))
         {
             newTree.push_back(candidate);
             for(std::size_t i = 0; i < candidate->children.size(); ++i)
@@ -749,10 +744,6 @@ int ompl::geometric::RRTstar::pruneTree()
     // states would be pruned. Therefore, only prune if it removes a significant amount of states.
     if (1. - ((double)newTree.size()) / tree.size() > pruneStatesThreshold_)
     {
-        // TODO: the deletion of the pruned nodes can be improved. However, it requires to be really
-        // careful when dealing with pruneTreeCost_ and goal motions, since they could be pruned if pruneTreeCost_
-        // is updated while pruning. This does not avoid it, but does not delete the goal motion so it can be
-        // removed from the tree but still used. It is kept this way in order to maintain the code understandable.
         for (std::size_t i = 0; i < toBePruned.size(); ++i)
         {
             removeFromParent(toBePruned[i]);
@@ -782,10 +773,10 @@ void ompl::geometric::RRTstar::detelePrunedMotions()
     }
 }
 
-ompl::geometric::RRTstar::Motion* ompl::geometric::RRTstar::getRootMotion(ompl::geometric::RRTstar::Motion *seed)
+ompl::base::Cost ompl::geometric::RRTstar::computeCTGHeuristic(const base::State *state) const
 {
-    while (seed->parent != 0)
-        seed = seed->parent;
-
-    return seed;
+    const base::Cost costToCome = opt_->motionCost(startMotion_->state, state); // h_s
+    const base::Cost costToGo = base::goalRegionCostToGo(state, pdef_->getGoal().get()); // h_g
+    return opt_->combineCosts(costToCome, costToGo); // h_s + h_g
 }
+
