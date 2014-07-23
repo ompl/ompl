@@ -34,52 +34,54 @@
 
 /* Author: Javier V. Gómez */
 
-#ifndef OMPL_BASE_SAMPLERS_CFOREST_VALID_STATE_SAMPLER_
-#define OMPL_BASE_SAMPLERS_CFOREST_VALID_STATE_SAMPLER_
+#ifndef OMPL_BASE_SAMPLERS_CFOREST_STATE_SAMPLER_
+#define OMPL_BASE_SAMPLERS_CFOREST_STATE_SAMPLER_
 
-#include "ompl/base/ValidStateSampler.h"
-#include "ompl/base/StateSampler.h"
+//#include "ompl/base/StateSampler.h"
+#include "ompl/base/StateSpace.h"
 
 
-// TODO: This is kind of higher-level sampler. The actual valid sampler to use
+// TODO: This is kind of higher-level sampler. The actual sampler to use
 // have to be chosen. Now it is just a version of UniformValidSS.
 namespace ompl
 {
     namespace base
     {
 
-        /** \brief Generate valid samples ... */
-        class CForestValidStateSampler : public ValidStateSampler
+        /** \brief State sampler for the R<sup>n</sup> state space */
+        class CForestStateSampler : public StateSampler
         {
         public:
 
             /** \brief Constructor */
-            CForestValidStateSampler(const SpaceInformation *si);
-
-            virtual ~CForestValidStateSampler()
+            CForestStateSampler(const StateSpace *space) : StateSampler(space)
             {
             }
 
-            virtual bool sample(State *state);
-            virtual bool sampleNear(State *state, const State *near, const double distance);
+            virtual void sampleUniform(State *state);
+            /** \brief Sample a state such that each component state[i] is
+                uniformly sampled from [near[i]-distance, near[i]+distance].
+                If this interval exceeds the state space bounds, the
+                interval is truncated. */
+            virtual void sampleUniformNear(State *state, const State *near, const double distance);
+            /** \brief Sample a state such that each component state[i] has
+                a Gaussian distribution with mean mean[i] and standard
+                deviation stdDev. If the sampled value exceeds the state
+                space boundary, it is thresholded to the nearest boundary. */
+            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
 
             void addStateToSample(const State *state);
-            void setStatesToSample(const std::vector<State *> &state);
-            void getNextSample(State *state);
 
+            void setStatesToSample(const std::vector<State *> &states);
+
+            void getNextSample(State *state);
 
         protected:
 
-            /** \brief The sampler to build upon */
-            StateSamplerPtr sampler_;
-
-            /** \brief */
-            std::vector<base::State*> statesToSample_;
-
+            std::vector<State *> statesToSample_;
         };
 
     }
 }
-
 
 #endif

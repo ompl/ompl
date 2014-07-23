@@ -34,16 +34,67 @@
 
 /* Author: Javier V. Gómez*/
 
-#include "ompl/base/samplers/CForestValidStateSampler.h"
-#include "ompl/base/SpaceInformation.h"
+#include "ompl/base/samplers/CForestStateSampler.h"
 
-ompl::base::CForestValidStateSampler::CForestValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocStateSampler())
+
+void ompl::base::CForestStateSampler::sampleUniform(State *state)
+{
+    if (statesToSample_.size() > 0)
+        getNextSample(state);
+    else
+    {
+        std::cout << "No more samples" << std::endl;
+    }
+}
+
+void ompl::base::CForestStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
+{
+
+}
+
+void ompl::base::CForestStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
+{
+
+}
+
+void ompl::base::CForestStateSampler::addStateToSample(const State *state)
+{
+    State *copy = space_->allocState();
+    space_->copyState(copy, state);
+    statesToSample_.push_back(copy);
+}
+
+void ompl::base::CForestStateSampler::setStatesToSample(const std::vector<State *> &states)
+{
+    statesToSample_.clear();
+    statesToSample_.reserve(states.size());
+    for (size_t i = 0; i < states.size(); ++i)
+        addStateToSample(states[i]);
+}
+
+void ompl::base::CForestStateSampler::getNextSample(State *state)
+{
+    space_->copyState(state, statesToSample_.back());
+    space_->freeState(statesToSample_.back());
+    statesToSample_.pop_back();
+}
+
+
+
+
+
+
+
+
+
+/*
+
+ompl::base::CForestStateSampler::CForestStateSampler(const StateSpace *space) : StateSampler(space)
 {
     name_ = "cforest";
 }
 
-bool ompl::base::CForestValidStateSampler::sample(State *state)
+bool ompl::base::CForestStateSampler::sample(State *state)
 {
     bool valid = false;
 
@@ -65,7 +116,7 @@ bool ompl::base::CForestValidStateSampler::sample(State *state)
      return valid;
 }
 
-bool ompl::base::CForestValidStateSampler::sampleNear(State *state, const State *near, const double distance)
+bool ompl::base::CForestStateSampler::sampleNear(State *state, const State *near, const double distance)
 {
     unsigned int attempts = 0;
     bool valid = false;
@@ -77,23 +128,4 @@ bool ompl::base::CForestValidStateSampler::sampleNear(State *state, const State 
     } while (!valid && attempts < attempts_);
     return valid;
 }
-
-void ompl::base::CForestValidStateSampler::addStateToSample(const State *state)
-{
-    statesToSample_.push_back(si_->cloneState(state));
-}
-
-void ompl::base::CForestValidStateSampler::setStatesToSample(const std::vector<State *> &states)
-{
-    statesToSample_.clear();
-    statesToSample_.reserve(states.size());
-    for (size_t i = 0; i < states.size(); ++i)
-        addStateToSample(states[i]);
-}
-
-void ompl::base::CForestValidStateSampler::getNextSample(State *state)
-{
-    si_->copyState(state, statesToSample_.back());
-    si_->freeState(statesToSample_.back());
-    statesToSample_.pop_back();
-}
+*/

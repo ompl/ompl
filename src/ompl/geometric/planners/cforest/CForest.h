@@ -92,6 +92,8 @@ namespace ompl
                 return planners_[idx];
             }
 
+            base::ValidStateSamplerPtr allocCForestValidStateSampler (const base::SpaceInformation *si);
+
             ///////////////////////////////////////
             // Planner progress property functions
             /** \brief Get best cost among all the planners. */

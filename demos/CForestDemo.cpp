@@ -44,7 +44,8 @@
 
 #include <ompl/util/PPM.h>
 
-#include <ompl/base/samplers/CForestValidStateSampler.h>
+#include <ompl/base/samplers/CForestStateSampler.h>
+//#include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
 
 #include <boost/filesystem.hpp>
 
@@ -53,6 +54,7 @@ namespace og = ompl::geometric;
 namespace ot = ompl::time;
 
 ob::OptimizationObjectivePtr getPathLengthObjective(const ob::SpaceInformationPtr& si);
+//ob::ValidStateSamplerPtr allocCForestValidStateSampler(const ob::SpaceInformation *si);
 
 template <class planner_t>
 class Plane2DEnvironment
@@ -212,7 +214,7 @@ int main(int argc, char** argv)
     }*/
 
     // Testing the sampler.
-    ob::CForestValidStateSampler ss (env.si_.get());
+    ob::CForestStateSampler ss (env.si_->getStateSpace().get());
 
     std::vector<ob::State *> states;
     ob::State *s;
@@ -228,7 +230,7 @@ int main(int argc, char** argv)
     ob::State *s2 = env.si_->allocState();
     for (size_t i = 0; i < states.size(); ++i)
     {
-        ss.sample(s2);
+        ss.sampleUniform(s2);
         env.si_->printState(s2);
     }
 
@@ -248,3 +250,8 @@ ob::OptimizationObjectivePtr getPathLengthObjective(const ob::SpaceInformationPt
 {
     return ob::OptimizationObjectivePtr(new ob::PathLengthOptimizationObjective(si));
 }
+
+/*ob::ValidStateSamplerPtr allocCForestStateSampler(const ob::SpaceInformation *si)
+{
+    return ob::ValidStateSamplerPtr(new ob::CForestValidStateSampler(si));
+}*/
