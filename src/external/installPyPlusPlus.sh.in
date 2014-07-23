@@ -7,19 +7,19 @@ mkdir -p @PROJECT_BINARY_DIR@/pyplusplus
 cd @PROJECT_BINARY_DIR@/pyplusplus
 
 # get sources
-# gccxml snapshot of 5/2/2013
-@DOWNLOAD_CMD@ https://github.com/gccxml/gccxml/archive/b040a46352e4d5c11a0304e4fcb6f7842008942a.tar.gz | tar xzf -
-@DOWNLOAD_CMD@ https://bitbucket.org/ompl/pygccxml/downloads/pygccxml-r579.tgz | tar xzf -
-@DOWNLOAD_CMD@ https://bitbucket.org/ompl/pyplusplus/downloads/pyplusplus-r1246.tgz | tar xzf -
+# gccxml snapshot of 7/21/2014
+@DOWNLOAD_CMD@ https://github.com/gccxml/gccxml/archive/ab651a2aa866351bdd089a4bf1d57f6a9bec2a66.tar.gz | tar xzf -
+@DOWNLOAD_CMD@ https://github.com/gccxml/pygccxml/archive/v1.6.1.tar.gz | tar xzf -
+@DOWNLOAD_CMD@ https://bitbucket.org/ompl/pyplusplus/downloads/pyplusplus-r1247.tgz | tar xzf -
 
 # build & install gccxml
-cd gccxml-b040a46352e4d5c11a0304e4fcb6f7842008942a
+cd gccxml-ab651a2aa866351bdd089a4bf1d57f6a9bec2a66
 @CMAKE_COMMAND@ @CMAKE_GCCXML_ARGS@ .
 @CMAKE_COMMAND@ --build .
 @SUDO@ @CMAKE_COMMAND@ --build . --target install
 
 # build & install pygccxml and Py++
-cd ../pygccxml
+cd ../pygccxml-1.6.1
 @PYTHON_EXEC@ setup.py build
 @SUDO@ @PYTHON_EXEC@ setup.py install @DISTUTILS_ARGS@
 cd ../pyplusplus
