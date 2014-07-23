@@ -229,6 +229,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
                 int n = pruneTree();
                 statesGenerated -= n;
+                bestCost_ = pruneTreeCost_;
             }
         }
 
@@ -501,7 +502,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                          break;
                      }
                      else if (!solution ||
-                         opt_->isCostBetterThan(goalMotions_[i]->cost,solution->cost)) 
+                         opt_->isCostBetterThan(goalMotions_[i]->cost,solution->cost))
                     {
                         solution = goalMotions_[i];
                         updatedSolution = true;
@@ -509,7 +510,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 }
 
                 // CFOREST sharing path only when there are not more shared states to include.
-                if (isCForest_ && updatedSolution ) 
+                if (isCForest_ && updatedSolution )
                 {
                     if (opt_->isCostBetterThan(bestCost_, pruneTreeCost_))
                     {
@@ -578,9 +579,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         addedSolution = true;
     }
     
-    int n = pruneTree();
-    statesGenerated -= n;
-    detelePrunedMotions();
+    if (isCForest_)
+    {
+        int n = pruneTree();
+        statesGenerated -= n;
+        detelePrunedMotions();
+    }
     si_->freeState(xstate);
     if (rmotion->state)
         si_->freeState(rmotion->state);

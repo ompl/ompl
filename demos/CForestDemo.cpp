@@ -190,7 +190,8 @@ private:
 
 int main(int argc, char** argv)
 {
-     boost::filesystem::path path("../../tests/resources/");
+    //boost::filesystem::path path("../../tests/resources/");
+    boost::filesystem::path path("../../ompl/tests/resources/");
     Plane2DEnvironment<og::CForest> env_cf((path / "ppm/floor.ppm").string().c_str());
 
    if (env_cf.plan(0, 0, 1140, 1402))
