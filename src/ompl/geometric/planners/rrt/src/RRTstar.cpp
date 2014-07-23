@@ -147,7 +147,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     bool symDist = si_->getStateSpace()->hasSymmetricDistance();
     bool symInterp = si_->getStateSpace()->hasSymmetricInterpolate();
     bool symCost = opt_->isSymmetric();
-    
+
     while (const base::State *st = pis_.nextStart())
     {
         Motion *motion = new Motion(si_);
@@ -156,7 +156,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         nn_->add(motion);
         startMotion_ = motion;
     }
-    
 
     if (nn_->size() == 0)
     {
@@ -219,7 +218,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     {
         iterations_++;
 
-        // CFOREST Specific code: a new path has been shared by other thread.
+        // CForest: a new path has been shared by other thread.
         if (isCForest_)
         {
             if (opt_->isCostBetterThan(pruneTreeCost_, bestCost_))
@@ -233,6 +232,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
         }
 
+        // sample random state (with goal biasing)
+        // Goal samples are only sampled until maxSampleCount() goals are in the tree, to prohibit duplicate goal states.
         if (goal_s && goalMotions_.size() < goal_s->maxSampleCount() && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
         else
@@ -247,6 +248,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
         }
 
+        // Set directionality of nearest neighbors computation to be
+        // FROM neighbors TO new state
         if (!symDist)
             distanceDirection_ = FROM_NEIGHBORS;
 

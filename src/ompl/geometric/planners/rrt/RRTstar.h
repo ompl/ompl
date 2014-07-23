@@ -223,6 +223,9 @@ namespace ompl
                 std::vector<Motion*> children;
             };
 
+            /** \brief Free the memory allocated by this planner */
+            void freeMemory();
+
             // For sorting a list of costs and getting only their sorted indices
             struct CostIndexCompare
             {
@@ -239,9 +242,6 @@ namespace ompl
             };
 
             enum DistanceDirection { FROM_NEIGHBORS, TO_NEIGHBORS };
-            
-            /** \brief Free the memory allocated by this planner */
-            void freeMemory();
 
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion *a, const Motion *b) const
