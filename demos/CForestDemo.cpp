@@ -53,7 +53,6 @@ namespace og = ompl::geometric;
 namespace ot = ompl::time;
 
 ob::OptimizationObjectivePtr getPathLengthObjective(const ob::SpaceInformationPtr& si);
-//ob::StateSamplerPtr allocCForestStateSampler(const ob::StateSpace *ss);
 
 template <class planner_t>
 class Plane2DEnvironment
@@ -115,7 +114,6 @@ public:
 
         // Construct our optimal planner using the RRTstar algorithm.
         planner_.reset(new planner_t(si_));
-        //planner_.reset(new og::RRTstar(si_));
         // Set the problem instance for our planner to solve
         planner_->setProblemDefinition(pdef_);
 
@@ -136,7 +134,7 @@ public:
     {
         if (!pdef_->getSolutionPath().get())
             return;
-     
+
         const ob::PathPtr &pPtr = pdef_->getSolutionPath();
         og::PathGeometric &p = static_cast<og::PathGeometric&>(*pPtr);
        
@@ -156,10 +154,6 @@ public:
     {
         if (!pdef_->getSolutionPath().get())
             return -1.0;
-
-        ob::PathPtr path = pdef_->getSolutionPath();
-        path->print(std::cout);
-
         return pdef_->getSolutionPath()->cost(getPathLengthObjective(si_)).v;
     }
 
@@ -172,10 +166,6 @@ public:
     {
         planner_->as<og::CForest>()->getPlanner(idx)->as<og::RRTstar>()->saveTree(filename);
     }
-
-
-    //ob::SpaceInformationPtr si_;
-
 
 private:
 
@@ -201,50 +191,28 @@ private:
 int main(int argc, char** argv)
 {
      boost::filesystem::path path("../../tests/resources/");
-    Plane2DEnvironment<og::CForest> env((path / "ppm/floor.ppm").string().c_str());
+    Plane2DEnvironment<og::CForest> env_cf((path / "ppm/floor.ppm").string().c_str());
 
-   if (env.plan(0, 0, 1140, 1402))
+   if (env_cf.plan(0, 0, 1140, 1402))
     {
 
         OMPL_INFORM("Plan successful");
-        env.recordSolution();
-        env.save("result_demo.ppm");
+        env_cf.recordSolution();
+        env_cf.save("result_demo_cforest.ppm");
         //env.savePlannerData("plannerData");
-        env.saveTree("tree_0.txt", 0);
-        env.saveTree("tree_1.txt", 1);
-        std::cout << "Final lowest cost: " << env.getLowestCost() << std::endl;
+        //env.saveTree("tree_0.txt", 0);
+        //env.saveTree("tree_1.txt", 1);
+        std::cout << "Final lowest cost: " << env_cf.getLowestCost() << std::endl;
     }
 
-    // Testing the sampler.
-    /*ob::CForestStateSampler ss (env.si_->getStateSpace().get());
+/*	Plane2DEnvironment<og::RRTstar> env_rrts((path / "ppm/floor.ppm").string().c_str());
 
-    std::vector<ob::State *> states;
-    ob::State *s;
-    for (int i =0; i < 5; ++i)
-    {
-        s = env.si_->allocState();
-        s->as<ob::RealVectorStateSpace::StateType>()->values[0] = i;
-        s->as<ob::RealVectorStateSpace::StateType>()->values[1] = 2*i;
-        states.push_back(s);
-    }
-
-    ss.setStatesToSample(states);
-    ob::State *s2 = env.si_->allocState();
-    for (size_t i = 0; i < states.size()+2; ++i)
-    {
-        ss.sampleUniform(s2);
-        env.si_->printState(s2);
-    }*/
-
-    //env.si_->getStateSpace()->setStateSamplerAllocator(allocCForestStateSampler);
-    //ob::StateSamplerPtr ss= env.si_->getStateSpace()->allocStateSampler();
-
-/*	Plane2DEnvironment<og::RRTstar> env2((path / "ppm/floor.ppm").string().c_str());
-
-    if (env2.plan(0, 0, 1140, 1402))
+    if (env_rrts.plan(0, 0, 1140, 1402))
     {
         OMPL_INFORM("Plan successful");
-        std::cout << "Final lowest cost 2: " << env2.getLowestCost() << std::endl;
+        env_rrts.recordSolution();
+        env_rrts.save("result_demo_rrtstar.ppm");
+        std::cout << "Final lowest cost 2: " << env_rrts.getLowestCost() << std::endl;
     }*/
 
     return 0;
@@ -255,8 +223,3 @@ ob::OptimizationObjectivePtr getPathLengthObjective(const ob::SpaceInformationPt
 {
     return ob::OptimizationObjectivePtr(new ob::PathLengthOptimizationObjective(si));
 }
-
-/*ob::StateSamplerPtr allocCForestStateSampler(const ob::StateSpace *ss)
-{
-    return ob::StateSamplerPtr(new ob::CForestStateSampler(ss));
-}*/

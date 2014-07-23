@@ -269,7 +269,7 @@ namespace ompl
             /** \brief If CForest is activated, this function will delete the pruned motions at the end of the solve() function. */
             void detelePrunedMotions();
 
-            base::Cost computeCTGHeuristic(const base::State *state) const;
+            base::Cost computeCTGHeuristic(const Motion *motion, const bool shortest = true) const;
 
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;
