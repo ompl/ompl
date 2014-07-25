@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Javier V. Gomez */
+/* Author: Javier V. Gomez - adapted from HypercubeBenchmark.cpp */
 
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
@@ -47,8 +47,8 @@
 #include <fstream>
 #include <libgen.h>
 
-unsigned ndim = 6;
-const double edgeWidth = 0.1;
+static unsigned NDIM = 3;
+static const double EDGEWIDTH = 0.1;
 
 ompl::base::OptimizationObjectivePtr getPathLengthObjective(const ompl::base::SpaceInformationPtr& si)
 {
@@ -57,21 +57,21 @@ ompl::base::OptimizationObjectivePtr getPathLengthObjective(const ompl::base::Sp
 
 // Only states near some edges of a hypercube are valid. The valid edges form a
 // narrow passage from (0,...,0) to (1,...,1). A state s is valid if there exists
-// a k s.t. (a) 0<=s[k]<=1, (b) for all i<k s[i]<=edgeWidth, and (c) for all i>k
-// s[i]>=1-edgewidth.
+// a k s.t. (a) 0<=s[k]<=1, (b) for all i<k s[i]<=EDGEWIDTH, and (c) for all i>k
+// s[i]>=1-EDGEWIDTH.
 bool isStateValid(const ompl::base::State *state)
 {
     const ompl::base::RealVectorStateSpace::StateType *s
         = static_cast<const ompl::base::RealVectorStateSpace::StateType*>(state);
     bool foundMaxDim = false;
 
-    for (int i = ndim - 1; i >= 0; i--)
+    for (int i = NDIM - 1; i >= 0; i--)
         if (!foundMaxDim)
         {
-            if ((*s)[i] > edgeWidth)
+            if ((*s)[i] > EDGEWIDTH)
                 foundMaxDim = true;
         }
-        else if ((*s)[i] < (1. - edgeWidth))
+        else if ((*s)[i] < (1. - EDGEWIDTH))
             return false;
         return true;
 }
@@ -87,11 +87,11 @@ void addPlanner(ompl::tools::Benchmark& benchmark, ompl::base::PlannerPtr planne
 int main(int argc, char **argv)
 {
     if(argc > 1)
-        ndim = boost::lexical_cast<size_t>(argv[1]);
+        NDIM = boost::lexical_cast<size_t>(argv[1]);
 
-    double range = edgeWidth * 0.5;
-    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(ndim));
-    ompl::base::RealVectorBounds bounds(ndim);
+    double range = EDGEWIDTH * 0.5;
+    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(NDIM));
+    ompl::base::RealVectorBounds bounds(NDIM);
     ompl::geometric::SimpleSetup ss(space);
     ompl::base::ScopedState<> start(space), goal(space);
 
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
     ss.getSpaceInformation()->setStateValidityCheckingResolution(0.001);
     ss.getProblemDefinition()->setOptimizationObjective(getPathLengthObjective(ss.getSpaceInformation()));
     
-    for(unsigned int i = 0; i < ndim; ++i)
+    for(unsigned int i = 0; i < NDIM; ++i)
     {
         start[i] = 0.;
         goal[i] = 1.;
@@ -111,15 +111,15 @@ int main(int argc, char **argv)
     
 
     // by default, use the Benchmark class
-    double runtime_limit = 5, memory_limit = 4096;
-    int run_count = 20;
+    double runtime_limit = 30, memory_limit = 4096;
+    int run_count = 30;
     ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count);
     ompl::tools::Benchmark b(ss, "HyperCube");
 
     addPlanner(b, ompl::base::PlannerPtr(new ompl::geometric::CForest(ss.getSpaceInformation())), range);
     addPlanner(b, ompl::base::PlannerPtr(new ompl::geometric::RRTstar(ss.getSpaceInformation())), range);
     b.benchmark(request);
-    b.saveResultsToFile(boost::str(boost::format("hypercube_%i_8t_pathshared.log") % ndim).c_str());
+    b.saveResultsToFile(boost::str(boost::format("hypercube_%i_2t.log") % NDIM).c_str());
 
     exit(0);
 }

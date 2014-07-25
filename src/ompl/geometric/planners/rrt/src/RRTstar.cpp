@@ -39,6 +39,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include "ompl/base/samplers/CForestStateSampler.h"
 #include <algorithm>
 #include <limits>
 #include <map>
@@ -133,8 +134,14 @@ void ompl::geometric::RRTstar::includeValidPath(const std::vector<const base::St
     boost::mutex::scoped_lock slock(includePathsLock_);
     if (opt_->isCostBetterThan(cost, pruneTreeCost_))
     {
-        sampler_->setStatesToSample(states);
-        pruneTreeCost_ = cost;
+        base::CForestStateSampler *cfss = dynamic_cast <base::CForestStateSampler *> (sampler_.get());
+        if(cfss)
+        {
+            cfss->setStatesToSample(states);
+            pruneTreeCost_ = cost;
+        }
+        else
+            OMPL_WARN("Sampler using with CForest is not properly set.");
     }
 }
 

@@ -86,11 +86,6 @@ namespace ompl
             /** \brief Sample a state using a Gaussian distribution with given \e mean and standard deviation (\e stdDev) */
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev) = 0;
 
-            virtual void setStatesToSample(const std::vector<const State *> &states)
-            {
-                OMPL_WARN("The state sampler does not allow to set the states to sample.");
-            }
-
         protected:
 
             /** \brief The state space this sampler samples */

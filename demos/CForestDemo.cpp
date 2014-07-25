@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Rice University
+*  Copyright (c) 2014, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 
 #include <ompl/util/PPM.h>
+#include <../tests/resources/config.h>
 
 #include <ompl/base/samplers/CForestStateSampler.h>
 
@@ -190,8 +191,7 @@ private:
 
 int main(int argc, char** argv)
 {
-    //boost::filesystem::path path("../../tests/resources/");
-    boost::filesystem::path path("../../ompl/tests/resources/");
+    boost::filesystem::path path(TEST_RESOURCES_DIR);
     Plane2DEnvironment<og::CForest> env_cf((path / "ppm/floor.ppm").string().c_str());
 
    if (env_cf.plan(0, 0, 1140, 1402))
@@ -206,7 +206,7 @@ int main(int argc, char** argv)
         std::cout << "Final lowest cost CForest: " << env_cf.getLowestCost() << std::endl;
     }
 
-    Plane2DEnvironment<og::RRTstar> env_rrts((path / "ppm/floor.ppm").string().c_str());
+   /* Plane2DEnvironment<og::RRTstar> env_rrts((path / "ppm/floor.ppm").string().c_str());
 
     if (env_rrts.plan(0, 0, 1140, 1402))
     {
@@ -214,7 +214,7 @@ int main(int argc, char** argv)
         env_rrts.recordSolution();
         env_rrts.save("result_demo_rrtstar.ppm");
         std::cout << "Final lowest cost RRTstar: " << env_rrts.getLowestCost() << std::endl;
-    }
+    }*/
 
     return 0;
 }
