@@ -399,7 +399,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
             if (isCForest_)
             {
-                const base::Cost costTotal = computeCTGHeuristic(motion);
+                const base::Cost costTotal = computeCTGHeuristic(motion, false);
                 if (opt_->isCostBetterThan(costTotal, pruneTreeCost_))
                 {
                     nn_->add(motion);
