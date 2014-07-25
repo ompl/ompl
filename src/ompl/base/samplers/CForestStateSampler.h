@@ -59,7 +59,7 @@ namespace ompl
             /** \brief Destructor */
             ~CForestStateSampler()
             {
-                clearStatesToSample();
+                clear();
             }
 
             virtual void sampleUniform(State *state);
@@ -76,7 +76,7 @@ namespace ompl
 
             void setStatesToSample(const std::vector<const State *> &states);
 
-            void clearStatesToSample();
+            void clear();
 
         protected:
 

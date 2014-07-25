@@ -125,10 +125,10 @@ namespace ompl
             //////////////////////////////
             // Planner progress properties
              /** \brief Cost of the best path found so far among planners. */
-            base::Cost                                   totalBestCost_;       
+            base::Cost                                   totalBestCost_;
 
             /** \brief Number of paths shared among threads. */
-            int                                          pathsShared_;  
+            int                                          pathsShared_;
             
             boost::mutex                                 newSolutionFoundMutex_;
         };

@@ -43,6 +43,7 @@
 
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
+#include "ompl/geometric/planners/cforest/CForest.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/base/goals/GoalState.h"
 #include "ompl/util/RandomNumbers.h"
@@ -363,6 +364,17 @@ protected:
     }
 };
 
+class CForestTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::CForest *cforest = new geometric::CForest(si);
+        return base::PlannerPtr(cforest);
+    }
+};
+
 // Seed the RNG so that a known edge case occurs in DubinsNoGoalBias
 struct InitializeRandomSeed
 {
@@ -422,5 +434,6 @@ OMPL_PLANNER_TEST(PRM)
 OMPL_PLANNER_TEST(RRTstar)
 OMPL_PLANNER_TEST(RRTstarDubinsNoGoalBias)
 OMPL_PLANNER_TEST(RRTstarDubins)
+OMPL_PLANNER_TEST(CForest)
 
 BOOST_AUTO_TEST_SUITE_END()

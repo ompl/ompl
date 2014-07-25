@@ -80,7 +80,8 @@ void ompl::base::CForestStateSampler::getNextSample(State *state)
     statesToSample_.pop_back();
 }
 
-void ompl::base::CForestStateSampler::clearStatesToSample()
+void ompl::base::CForestStateSampler::clear()
 {
     statesToSample_.clear();
+    sampler_.reset();
 }

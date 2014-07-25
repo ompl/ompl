@@ -110,6 +110,8 @@ void ompl::geometric::RRTstar::setup()
         OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length for the allowed planning time.", getName().c_str());
         opt_.reset(new base::PathLengthOptimizationObjective(si_));
     }
+
+    pruneTreeCost_ = opt_->infiniteCost();
 }
 
 void ompl::geometric::RRTstar::clear()
@@ -126,7 +128,8 @@ void ompl::geometric::RRTstar::clear()
     iterations_ = 0;
     collisionChecks_ = 0;
     bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
-    pruneTreeCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
+    //pruneTreeCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
+    pruneTreeCost_ = opt_->infiniteCost();
 }
 
 void ompl::geometric::RRTstar::includeValidPath(const std::vector<const base::State *> &states, const base::Cost cost) 
@@ -187,7 +190,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     // persist across solve runs
     base::Cost bestCost    = opt_->infiniteCost();
     bestCost_ = bestCost;
-    pruneTreeCost_ = bestCost_;
 
     Motion *approximation  = NULL;
     double approximatedist = std::numeric_limits<double>::infinity();
@@ -211,8 +213,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     std::vector<int>           valid;
     unsigned int               rewireTest = 0;
     unsigned int               statesGenerated = 0;
-
-    pruneTreeCost_ = opt_->infiniteCost();
 
     if (solution)
         OMPL_INFORM("%s: Starting planning with existing solution of cost %.5f", getName().c_str(), solution->cost.v);
@@ -590,7 +590,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     {
         int n = pruneTree(pruneTreeCost_, pruneStatesThreshold_);
         statesGenerated -= n;
-        detelePrunedMotions();
     }
     si_->freeState(xstate);
     if (rmotion->state)
@@ -714,11 +713,10 @@ void ompl::geometric::RRTstar::saveTree(const char * filename)
 
 int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost, const double pruneStatesThreshold)
 {
-    std::vector<Motion*> tree, newTree, toBePruned;
-    tree.reserve(nn_->size()); 
-    newTree.reserve(nn_->size());
-    toBePruned.reserve(nn_->size());
-    nn_->list(tree);
+    const int tree_size = nn_->size();
+    std::vector<Motion*> newTree, toBePruned;
+    newTree.reserve(tree_size);
+    toBePruned.reserve(tree_size);
 
     Motion *candidate;
     std::queue<Motion*> candidates;
@@ -737,14 +735,13 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost, const do
             for(std::size_t i = 0; i < candidate->children.size(); ++i)
                 candidates.push(candidate->children[i]);
         }
-        else {
+        else
             toBePruned.push_back(candidate);
-        }
     }
 
     // To create the new nn takes one order of magnitude in time more than just checking how many 
     // states would be pruned. Therefore, only prune if it removes a significant amount of states.
-    if ((double)newTree.size() / tree.size() < pruneStatesThreshold)
+    if ((double)newTree.size() / tree_size < pruneStatesThreshold)
     {
         for (std::size_t i = 0; i < toBePruned.size(); ++i)
         {
@@ -755,7 +752,7 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost, const do
         nn_->clear();
         nn_->add(newTree);
 
-        return (tree.size() - newTree.size());
+        return (tree_size - newTree.size());
     }
     return 0;
 }
@@ -767,7 +764,7 @@ void ompl::geometric::RRTstar::detelePrunedMotions()
         Motion *mto_delete = toBeDeleted_.front();
         toBeDeleted_.pop_front();
 
-        for(std::size_t i = 0; i < mto_delete->children.size(); ++i) 
+        for(std::size_t i = 0; i < mto_delete->children.size(); ++i)
             toBeDeleted_.push_back(mto_delete->children[i]);
 
         si_->freeState(mto_delete->state);

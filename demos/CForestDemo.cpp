@@ -111,7 +111,7 @@ public:
 
         // Set the optimization objective (select one of them)
         pdef_->setOptimizationObjective(getPathLengthObjective(si_));
-        pdef_->getOptimizationObjective()->setCostThreshold(ob::Cost(2070));
+        //pdef_->getOptimizationObjective()->setCostThreshold(ob::Cost(2070));
 
         // Construct our optimal planner using the RRTstar algorithm.
         planner_.reset(new planner_t(si_));
@@ -206,7 +206,7 @@ int main(int argc, char** argv)
         std::cout << "Final lowest cost CForest: " << env_cf.getLowestCost() << std::endl;
     }
 
-   /* Plane2DEnvironment<og::RRTstar> env_rrts((path / "ppm/floor.ppm").string().c_str());
+    /*Plane2DEnvironment<og::RRTstar> env_rrts((path / "ppm/floor.ppm").string().c_str());
 
     if (env_rrts.plan(0, 0, 1140, 1402))
     {
