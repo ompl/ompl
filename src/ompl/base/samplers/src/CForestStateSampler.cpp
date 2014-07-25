@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2014, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -63,8 +63,6 @@ void ompl::base::CForestStateSampler::sampleGaussian(State *state, const State *
 
 void ompl::base::CForestStateSampler::addStateToSample(const State *state)
 {
-    //State *copy = space_->allocState();
-    //space_->copyState(copy, state);
     statesToSample_.push_back(state);
 }
 
@@ -79,6 +77,10 @@ void ompl::base::CForestStateSampler::setStatesToSample(const std::vector<const 
 void ompl::base::CForestStateSampler::getNextSample(State *state)
 {
     space_->copyState(state, statesToSample_.back());
-    //space_->freeState(statesToSample_.back());
     statesToSample_.pop_back();
+}
+
+void ompl::base::CForestStateSampler::clearStatesToSample()
+{
+    statesToSample_.clear();
 }

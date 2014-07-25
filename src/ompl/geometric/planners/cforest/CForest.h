@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Rice University
+*  Copyright (c) 2014, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -92,8 +92,6 @@ namespace ompl
                 return planners_[idx];
             }
 
-            base::ValidStateSamplerPtr allocCForestValidStateSampler (const base::SpaceInformation *si);
-
             ///////////////////////////////////////
             // Planner progress property functions
             /** \brief Get best cost among all the planners. */
@@ -107,6 +105,8 @@ namespace ompl
 
             /** \brief Callback to be called everytime a new, better solution is found by a planner. */
             void newSolutionFound(const base::Planner *planner, const std::vector<const base::State *> &states, const base::Cost cost);
+
+            base::ValidStateSamplerPtr allocCForestValidStateSampler (const base::SpaceInformation *si);
 
         protected:
 

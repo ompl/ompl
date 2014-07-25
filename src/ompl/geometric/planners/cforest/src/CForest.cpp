@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Rice University
+*  Copyright (c) 2014, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -40,10 +40,12 @@
 #include <ompl/base/samplers/CForestStateSampler.h>
 #include <ompl/base/StateSpace.h>
 
-// Allocator for the CForest State Sampler.
-ompl::base::StateSamplerPtr allocCForestStateSampler(const ompl::base::StateSpace *ss)
-{
-    return ompl::base::StateSamplerPtr(new ompl::base::CForestStateSampler(ss));
+namespace {
+    // Allocator for the CForest State Sampler.
+    ompl::base::StateSamplerPtr allocCForestStateSampler(const ompl::base::StateSpace *ss)
+    {
+        return ompl::base::StateSamplerPtr(new ompl::base::CForestStateSampler(ss));
+    }
 }
 
 ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::Planner(si, "CForest")
