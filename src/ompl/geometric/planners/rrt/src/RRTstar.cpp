@@ -234,7 +234,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 for (std::size_t i = 0; i < goalMotions_.size(); ++i)
                     goalMotions_[i]->cost = pruneTreeCost_;
 
-                int n = pruneTree();
+                int n = pruneTree(pruneTreeCost_, pruneStatesThreshold_);
                 statesGenerated -= n;
                 bestCost_ = pruneTreeCost_;
             }
@@ -522,7 +522,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     if (opt_->isCostBetterThan(bestCost_, pruneTreeCost_))
                     {
                         pruneTreeCost_ = bestCost_;
-                        int n = pruneTree();
+                        int n = pruneTree(pruneTreeCost_, pruneStatesThreshold_);
                         statesGenerated -= n;
 
                         std::vector<const base::State *> spath;
@@ -588,7 +588,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     
     if (isCForest_)
     {
-        int n = pruneTree();
+        int n = pruneTree(pruneTreeCost_, pruneStatesThreshold_);
         statesGenerated -= n;
         detelePrunedMotions();
     }
@@ -712,7 +712,7 @@ void ompl::geometric::RRTstar::saveTree(const char * filename)
      fs.close();
 }
 
-int ompl::geometric::RRTstar::pruneTree()
+int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost, const double pruneStatesThreshold)
 {
     std::vector<Motion*> tree, newTree, toBePruned;
     tree.reserve(nn_->size()); 
@@ -731,7 +731,7 @@ int ompl::geometric::RRTstar::pruneTree()
         candidates.pop();
 
         const base::Cost costTotal = computeCTGHeuristic(candidate);
-        if ( opt_->isCostBetterThan(costTotal, pruneTreeCost_))
+        if ( opt_->isCostBetterThan(costTotal, pruneTreeCost))
         {
             newTree.push_back(candidate);
             for(std::size_t i = 0; i < candidate->children.size(); ++i)
@@ -744,7 +744,7 @@ int ompl::geometric::RRTstar::pruneTree()
 
     // To create the new nn takes one order of magnitude in time more than just checking how many 
     // states would be pruned. Therefore, only prune if it removes a significant amount of states.
-    if ((double)newTree.size() / tree.size() < pruneStatesThreshold_)
+    if ((double)newTree.size() / tree.size() < pruneStatesThreshold)
     {
         for (std::size_t i = 0; i < toBePruned.size(); ++i)
         {

@@ -264,7 +264,7 @@ namespace ompl
             
             /** \brief If CForest is activated, this function will prune the tree when the best cost is improved over a threshold prunePercentage_. 
                 returns the number of motions pruned. */
-            int pruneTree();
+            int pruneTree(const base::Cost pruneTreeCost, const double pruneStatesThreshold=1);
             
             /** \brief If CForest is activated, this function will delete the pruned motions at the end of the solve() function. */
             void detelePrunedMotions();
