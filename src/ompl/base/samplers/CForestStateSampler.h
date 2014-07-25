@@ -56,6 +56,12 @@ namespace ompl
             {
             }
 
+            /** \brief Destructor */
+            ~CForestStateSampler()
+            {
+                clearStatesToSample();
+            }
+
             virtual void sampleUniform(State *state);
             /** \brief Sample a state such that each component state[i] is
                 uniformly sampled from [near[i]-distance, near[i]+distance].
