@@ -172,7 +172,7 @@ bool ompl::geometric::SPARStwo::reachedFailureLimit() const
 
 bool ompl::geometric::SPARStwo::reachedTerminationCriterion() const
 {
-    return consecutiveFailures_ >= maxFailures_ || addedSolution_;
+    return consecutiveFailures_ >= maxFailures_;// || addedSolution_;
 }
 
 void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationCondition &ptc, bool stopOnMaxFail)

@@ -48,7 +48,7 @@
 
 /// AtlasStateSampler
 
-// Public
+/// Public
 ompl::base::AtlasStateSampler::AtlasStateSampler (const AtlasStateSpace &atlas)
 : StateSampler(&atlas), atlas_(atlas)
 {
@@ -87,25 +87,26 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     AtlasStateSpace::StateType *astate = state->as<AtlasStateSpace::StateType>();
     const AtlasStateSpace::StateType *anear = near->as<AtlasStateSpace::StateType>();
     Eigen::VectorXd r;
+    const AtlasChart *c;
     
     // Rejection sampling to find a point in the ball
     do
     {
-        const AtlasChart *c = &anear->getChart();
-        const Eigen::VectorXd u = c->psiInverse(astate->toVector());
-        r = c->psi(u + distance * Eigen::VectorXd::Random(atlas_.getManifoldDimension()));
-        if (atlas_.bigF(r).norm() > 10*atlas_.getProjectionTolerance())
-            continue;
-        
-        // It might belong to a different chart
-        c = atlas_.owningChart(r);
-        if (!c)
-            c = &atlas_.newChart(r);
-        else
-            r = c->psi(c->psiInverse(r));
+        c = &anear->getChart();
+        const Eigen::VectorXd uoffset = Eigen::VectorXd::Random(atlas_.getManifoldDimension());
+        const Eigen::VectorXd xoffset = c->phi(uoffset) - c->phi(Eigen::VectorXd::Zero(atlas_.getManifoldDimension()));
+        r = c->psi(c->psiInverse(anear->toVector() + distance * xoffset));
         astate->setRealState(r, *c);
     }
     while (atlas_.distance(near, state) > distance);
+    
+    // It might belong to a different chart
+    c = atlas_.owningChart(r);
+    if (!c)
+        c = &atlas_.newChart(r);
+    else
+        r = c->psi(c->psiInverse(r));
+    astate->setRealState(r, *c);
 }
 
 void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *mean, const double stdDev)
@@ -137,6 +138,35 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
         astate->setRealState(r, *c);
         break;
     }
+}
+
+/// AtlasValidStateSampler
+
+/// Public
+
+ompl::base::AtlasValidStateSampler::AtlasValidStateSampler (const AtlasStateSpacePtr &atlas, const SpaceInformation *si)
+: ValidStateSampler(si), sampler_(*atlas)
+{
+}
+
+bool ompl::base::AtlasValidStateSampler::sample (State *state)
+{
+    unsigned int fails = 0;
+    do
+        sampler_.sampleUniform(state);
+    while (!si_->isValid(state) && ++fails < attempts_);
+    
+    return fails < attempts_;
+}
+
+bool ompl::base::AtlasValidStateSampler::sampleNear (State *state, const State *near, const double distance)
+{
+    unsigned int fails = 0;
+    do
+        sampler_.sampleUniformNear(state, near, distance);
+    while (!si_->isValid(state) && ++fails < attempts_);
+    
+    return fails < attempts_;
 }
 
 /// AtlasMotionValidator

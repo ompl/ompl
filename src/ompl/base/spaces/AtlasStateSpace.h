@@ -39,6 +39,7 @@
 
 #include "ompl/base/MotionValidator.h"
 #include "ompl/base/StateSampler.h"
+#include "ompl/base/ValidStateSampler.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/datastructures/PDF.h"
 
@@ -78,6 +79,26 @@ namespace ompl
             
             /** \brief Atlas on which to sample. */
             const AtlasStateSpace &atlas_;
+        };
+        
+        /** \brief ValidStateSampler for use on an atlas. */
+        class AtlasValidStateSampler : public ValidStateSampler
+        {
+        public:
+            
+            /** \brief Constructor. */
+            AtlasValidStateSampler (const AtlasStateSpacePtr &atlas, const SpaceInformation *si);
+            
+            /** \brief Sample a state uniformly from the known charted regions of the manifold. Return in \a state. */
+            virtual bool sample (State *state);
+            
+            /** \brief Sample a state uniformly from the ball with center \a near and radius \a distance. Return in \a state. */
+            virtual bool sampleNear (State *state, const State *near, const double distance);
+            
+        private:
+            
+            /** \brief Underlying vanilla state sampler. */
+            AtlasStateSampler sampler_;
         };
         
         /** \brief Atlas-specific implementation of checkMotion(). */
