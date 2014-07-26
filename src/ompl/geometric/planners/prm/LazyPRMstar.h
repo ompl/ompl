@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of Rice University nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,52 +32,47 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Mark Moll, Ioan Sucan */
+/* Author: Ioan Sucan, James D. Marble */
 
-#ifndef OMPL_CONTROL_STEERED_CONTROL_SAMPLER_
-#define OMPL_CONTROL_STEERED_CONTROL_SAMPLER_
+#ifndef OMPL_GEOMETRIC_PLANNERS_PRM_PRM_STAR_
+#define OMPL_GEOMETRIC_PLANNERS_PRM_PRM_STAR_
 
-#include "ompl/control/DirectedControlSampler.h"
-#include "ompl/control/StatePropagator.h"
-#include <cmath>
+#include "ompl/geometric/planners/prm/LazyPRM.h"
 
 namespace ompl
 {
-    namespace control
+
+    namespace geometric
     {
 
+        /**
+           @anchor gLazyPRMstar
+           Run LazyPRM with the "star strategy". Instead of setting the
+           value "k" for how many neighbors to connect, automatically
+           compute it based on the coverage of the space, guaranteeing
+           optimality of solutions.
+           @par Short description
+           @par External documentation
+           R. Bohlin and L.E. Kavraki
+           Path Planning Using Lazy PRM
+           <em>IEEE International Conference on Robotics and Automation</em>, San Francisco, pp. 521–528, 2000.
+           DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844107">10.1109/ROBOT.2000.844107</a><br>
+           S. Karaman and E. Frazzoli, Sampling-based
+           Algorithms for Optimal Motion Planning, International Journal of Robotics
+           Research, vol. 30, no.7, pp. 846-894, 2011.
+           DOI: <a href="http://dx.doi.org/10.1177/0278364911406761">10.1177/0278364911406761</a><br>
+           <a href="http://www.kavrakilab.org/robotics/lazyprm.html">[more]</a>
+        */
 
-        /** \brief Abstract definition of a steered control sampler. It uses the
-            steering function in a state propagator to find the controls that
-            drive from one state to another. */
-        class SteeredControlSampler : public DirectedControlSampler
+        /** \brief PRM* planner */
+        class LazyPRMstar : public LazyPRM
         {
         public:
 
-            /** \brief Constructor takes the state space to construct samples for as argument */
-            SteeredControlSampler(const SpaceInformation *si) : DirectedControlSampler(si)
-            {
-            }
-
-            virtual ~SteeredControlSampler()
-            {
-            }
-
-            virtual unsigned int sampleTo(Control *control, const base::State *source, base::State *dest)
-            {
-                double duration;
-                if (!si_->getStatePropagator()->steer(source, dest, control, duration)) return 0;
-                unsigned int steps = std::floor(duration / si_->getMinControlDuration() + 0.5);
-                return si_->propagateWhileValid(source, control, steps, dest);
-            }
-
-            virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest)
-            {
-                return sampleTo(control, source, dest);
-            }
+            /** \brief Constructor */
+            LazyPRMstar(const base::SpaceInformationPtr &si);
         };
     }
 }
-
 
 #endif

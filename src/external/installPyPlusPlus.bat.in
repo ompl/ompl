@@ -50,13 +50,13 @@ del /S /Q "@CMAKE_CURRENT_LIST_DIR@/external/gccxml"
 del /S /Q "@CMAKE_CURRENT_LIST_DIR@/external/pygccxml"
 del /S /Q "@CMAKE_CURRENT_LIST_DIR@/external/pyplusplus"
 @CMAKE_COMMAND@ -DTEMPDIR="@PROJECT_BINARY_DIR@/tempdir" -P @CMAKE_CURRENT_LIST_DIR@/external/downloadPyPlusPlus.cmake
-@CMAKE_COMMAND@ -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/gccxml-2013-09-19.tgz"
-@CMAKE_COMMAND@ -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pygccxml-r579.tgz"
-@CMAKE_COMMAND@ -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pyplusplus-r1246.tgz"
+@CMAKE_COMMAND@ -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/gccxml.tgz"
+@CMAKE_COMMAND@ -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pygccxml.tgz"
+@CMAKE_COMMAND@ -E tar xfz "@PROJECT_BINARY_DIR@/tempdir/pyplusplus.tgz"
 
 :install-gccxml
-cd gccxml
-@CMAKE_COMMAND@ -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX="C:\gccxml"
+cd gccxml-ab651a2aa866351bdd089a4bf1d57f6a9bec2a66
+@CMAKE_COMMAND@ -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX="C:\gccxml" @CMAKE_GCCXML_ARGS@
 @CMAKE_COMMAND@ --build . --target install
 cd ..
 
@@ -69,15 +69,15 @@ setx PATH "%PATH%" /M 0>nul
 setx GCCXML_COMPILER g++ /M 0>nul
 
 :install-pygccxml
-cd pygccxml
+cd pygccxml-1.6.1
 @PYTHON_EXEC@ setup.py build
-@PYTHON_EXEC@ setup.py install
+@PYTHON_EXEC@ setup.py install @DISTUTILS_ARGS@
 cd ..
 
 :install-pyplusplus
 cd pyplusplus
 @PYTHON_EXEC@ setup.py build
-@PYTHON_EXEC@ setup.py install
+@PYTHON_EXEC@ setup.py install @DISTUTILS_ARGS@
 cd ..
 
 :END

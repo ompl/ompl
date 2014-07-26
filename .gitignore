@@ -12,6 +12,7 @@ CMakeModules/ompl.pc
 doc/markdown/api_overview.md
 doc/markdown/download.md
 doc/markdown/mainpage.md
+doc/header.html
 doc/html
 py-bindings/ompl/bindings_generator.py
 py-bindings/bindings
