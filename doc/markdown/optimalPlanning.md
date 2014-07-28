@@ -23,6 +23,10 @@ Lastly, the following planners provide a theoretical guarantee of _asymptotic ne
 - `ompl::geometric::SPARStwo`
 - `ompl::geometric::LBTRRT`
 
+#### CForest parallelization framework
+
+OMPL includes support for the CForest parallelization framework, boosting the convergence of optimal planners. [Learn more about CForest.](CForest.html)
+
 ## Optimization Objectives
 
 OMPL comes with several predefined optimization objectives:
