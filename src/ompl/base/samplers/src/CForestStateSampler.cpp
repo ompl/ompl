@@ -61,27 +61,35 @@ void ompl::base::CForestStateSampler::sampleGaussian(State *state, const State *
         sampler_->sampleGaussian(state, mean, stdDev);
 }
 
-void ompl::base::CForestStateSampler::addStateToSample(const State *state)
-{
-    statesToSample_.push_back(state);
-}
-
 void ompl::base::CForestStateSampler::setStatesToSample(const std::vector<const State *> &states)
 {
+    boost::mutex::scoped_lock slock(statesLock_);
+    for (size_t i = 0; i < statesToSample_.size(); ++i)
+        space_->freeState(statesToSample_[i]);
     statesToSample_.clear();
+
     statesToSample_.reserve(states.size());
     for (size_t i = 0; i < states.size(); ++i)
-        addStateToSample(states[i]);
+    {
+        State *s = space_->allocState();
+        space_->copyState(s, states[i]);
+        statesToSample_.push_back(s);
+    }
 }
 
 void ompl::base::CForestStateSampler::getNextSample(State *state)
 {
+    boost::mutex::scoped_lock slock(statesLock_);
     space_->copyState(state, statesToSample_.back());
+    space_->freeState(statesToSample_.back());
     statesToSample_.pop_back();
 }
 
 void ompl::base::CForestStateSampler::clear()
 {
+    boost::mutex::scoped_lock slock(statesLock_);
+    for (size_t i = 0; i < statesToSample_.size(); ++i)
+        space_->freeState(statesToSample_[i]);
     statesToSample_.clear();
     sampler_.reset();
 }

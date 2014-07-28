@@ -111,7 +111,7 @@ public:
 
         // Set the optimization objective (select one of them)
         pdef_->setOptimizationObjective(getPathLengthObjective(si_));
-        //pdef_->getOptimizationObjective()->setCostThreshold(ob::Cost(2070));
+        pdef_->getOptimizationObjective()->setCostThreshold(ob::Cost(2055));
 
         // Construct our optimal planner using the RRTstar algorithm.
         planner_.reset(new planner_t(si_));

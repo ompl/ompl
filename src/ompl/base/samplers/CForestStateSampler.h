@@ -39,6 +39,8 @@
 
 #include "ompl/base/StateSpace.h"
 
+#include <boost/thread/mutex.hpp>
+
 // TODO: allow to set the sampler_ to use instead of using default. How?
 
 namespace ompl
@@ -80,13 +82,13 @@ namespace ompl
 
         protected:
 
-            void addStateToSample(const State *state);
-
             void getNextSample(State *state);
 
-            std::vector<const State *> statesToSample_;
+            std::vector<State *> statesToSample_;
 
             StateSamplerPtr sampler_;
+
+            boost::mutex statesLock_;
         };
 
     }

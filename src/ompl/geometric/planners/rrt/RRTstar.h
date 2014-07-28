@@ -306,9 +306,6 @@ namespace ompl
              /** \brief If this vector contains motions, they will be deteled once the solve() function ends. */
             std::deque<Motion*>	                           toBeDeleted_;
 
-             /** \brief Lock for includeValidPath() and pathsToInclude_ */
-            boost::mutex                                   includePathsLock_;
-
             /** \brief If this value is set to true, the CForest parallelization framework will be activated. */
             bool                                           isCForest_;
 
@@ -332,7 +329,7 @@ namespace ompl
             unsigned int                                   collisionChecks_;
 
             /** \brief Best cost found so far by algorithm */
-            base::Cost                                     bestCost_;     
+            base::Cost                                     bestCost_;
         };
     }
 }

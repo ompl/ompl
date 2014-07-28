@@ -95,17 +95,11 @@ void ompl::geometric::CForest::getPlannerData(base::PlannerData &data) const
             }
         }
 
-
         for (unsigned int j = 0; j < pd.numGoalVertices(); ++j)
-        {
             data.markGoalState(pd.getGoalVertex(j).getState());
-        }
 
         for (unsigned int j = 0; j < pd.numStartVertices(); ++j)
-        {
             data.markStartState(pd.getStartVertex(j).getState());
-        }
-
     }
 
     data.properties["shared paths INTEGER"] = boost::lexical_cast<std::string>(pathsShared_);

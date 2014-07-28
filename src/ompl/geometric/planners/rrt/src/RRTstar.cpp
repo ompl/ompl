@@ -128,13 +128,11 @@ void ompl::geometric::RRTstar::clear()
     iterations_ = 0;
     collisionChecks_ = 0;
     bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
-    //pruneTreeCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
     pruneTreeCost_ = opt_->infiniteCost();
 }
 
 void ompl::geometric::RRTstar::includeValidPath(const std::vector<const base::State *> &states, const base::Cost cost) 
 {
-    boost::mutex::scoped_lock slock(includePathsLock_);
     if (opt_->isCostBetterThan(cost, pruneTreeCost_))
     {
         base::CForestStateSampler *cfss = dynamic_cast <base::CForestStateSampler *> (sampler_.get());
