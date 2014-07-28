@@ -217,7 +217,7 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
     y = Eigen::VectorXd(dim); y << 3, 0, 0;
     
     // Validity checker
-    isValid = always;
+    isValid = &always;
     
     // Atlas initialization
     return new ompl::base::AtlasStateSpace(dim, Ftorus, Jtorus);
@@ -263,14 +263,14 @@ int main (int, char *[])
     si->setup();
     
     // Choose the planner. Try others, like RRT, RRTstar, EST, PRM, ...
-    ompl::base::PlannerPtr planner(new ompl::geometric::RRTstar(si));
+    ompl::base::PlannerPtr planner(new ompl::geometric::EST(si));
     planner->setProblemDefinition(pdef);
     planner->setup();
     
     // Plan for at most 60 seconds
     std::clock_t tstart = std::clock();
     ompl::base::PlannerStatus stat;
-    if ((stat = planner->solve(120)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
+    if ((stat = planner->solve(300)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
     {
         double time = ((double)(std::clock()-tstart))/CLOCKS_PER_SEC;
         std::cout << "Solution found!\n";

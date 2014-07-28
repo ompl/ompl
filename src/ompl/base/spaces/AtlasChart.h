@@ -81,6 +81,11 @@ namespace ompl
                  * the neighboring chart. */
                 void checkNear (const Eigen::VectorXd &v) const;
                 
+                /** \brief Compute up to two vertices of intersection with a circle of radius \a r.
+                 * If one vertex is found, it is stored to both \a v1 and \a v2; if two are found, they are
+                 * stored to \a v1 and \a v2. If no vertex is found, returns false; otherwise returns true. */
+                bool circleIntersect (const double r, Eigen::VectorXd &v1, Eigen::VectorXd &v2) const;
+                
                 /** \brief Compute the vertex of intersection of two 1-dimensional inequalities \a l1 and \a l2. */
                 static Eigen::VectorXd intersect (const LinearInequality &l1, const LinearInequality &l2);
                 
@@ -134,8 +139,11 @@ namespace ompl
             /** \brief Check if a point \a u on the chart lies within its polytope P. If \a solitary
              * is not NULL, perform a thorough check to find solitary volations. If only one
              * of the linear inequalities is violated, its index is returned in \a solitary; otherwise
-             * \a solitary is set to the total number of linear inequalities. */
-            virtual bool inP (const Eigen::VectorXd &u, std::size_t *const solitary = NULL) const;
+             * \a solitary is set to the total number of linear inequalities. LinearInequalities
+             * \a ignore1 and \a ignore2, if specified, are ignored during the check.
+             */
+            virtual bool inP (const Eigen::VectorXd &u, std::size_t *const solitary = NULL,
+                              const LinearInequality *const ignore1 = NULL, const LinearInequality *const ignore2 = NULL) const;
             
             /** \brief Check if chart point \a v lies too close to any linear inequality. When it does,
              * expand the neighboring chart's polytope. */

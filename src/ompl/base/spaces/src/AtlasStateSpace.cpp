@@ -89,16 +89,20 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     Eigen::VectorXd r;
     const AtlasChart *c;
     
-    // Rejection sampling to find a point in the ball
+    // Sometimes the projection fails and we don't land on the manifold. Repeat until we do.
     do
     {
-        c = &anear->getChart();
-        const Eigen::VectorXd uoffset = Eigen::VectorXd::Random(atlas_.getManifoldDimension());
-        const Eigen::VectorXd xoffset = c->phi(uoffset) - c->phi(Eigen::VectorXd::Zero(atlas_.getManifoldDimension()));
-        r = c->psi(c->psiInverse(anear->toVector() + distance * xoffset));
-        astate->setRealState(r, *c);
+        // Rejection sampling to find a point in the ball
+        do
+        {
+            c = &anear->getChart();
+            const Eigen::VectorXd uoffset = Eigen::VectorXd::Random(atlas_.getManifoldDimension());
+            const Eigen::VectorXd xoffset = c->phi(uoffset) - c->phi(Eigen::VectorXd::Zero(atlas_.getManifoldDimension()));
+            r = c->psi(c->psiInverse(anear->toVector() + distance * xoffset));
+        }
+        while (atlas_.distance(near, state) > distance);
     }
-    while (atlas_.distance(near, state) > distance);
+    while (atlas_.bigF(r).norm() > 10*atlas_.getProjectionTolerance());
     
     // It might belong to a different chart
     c = atlas_.owningChart(r);
@@ -718,84 +722,9 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
         std::size_t fvcount = 0;
         for (std::size_t j = 0; j < vertices.size(); j++)
         {
-            // Handle a special case if vertex is outside the validity ball
-            if (c.psiInverse(vertices[j]).norm() > rho_)
-            {
-                std::size_t prev = (j == 0 ? vertices.size()-1 : j-1);
-                while (c.psiInverse(vertices[prev]).norm() > rho_ && prev != j)
-                    prev = (prev == 0 ? vertices.size()-1 : prev-1);
-                std::size_t next = (j+1) % vertices.size();
-                while (c.psiInverse(vertices[next]).norm() > rho_ && next != j)
-                    next = (next+1) % vertices.size();
-                if (prev == j)
-                {
-                    // Draw a full circle
-                    Eigen::VectorXd u_0(2); u_0 << rho_, 0;
-                    double step = M_PI/16;
-                    for (double a = 0; a < 2*M_PI; a += step)
-                    {
-                        const Eigen::VectorXd u = Eigen::Rotation2Dd(a)*u_0;
-                        if (!c.inP(u))
-                        {
-                            // Switch to fine-grained search for border
-                            if (step == M_PI/16)
-                            {
-                                a -= step;
-                                step = M_PI/128;
-                            }
-                            continue;
-                        }
-                        else
-                            step = M_PI/16;
-                        const Eigen::VectorXd x = c.phi(u);
-                        v << x[0] << " " << x[1] << " " << x[2] << "\n";
-                        poly << vcount++ << " ";
-                        fvcount++;
-                    }
-                    
-                    break;
-                }
-                else
-                {
-                    // Draw lines to the circle from prev and next and an arc between those two points
-                    const Eigen::VectorXd &p = c.psiInverse(vertices[prev]);
-                    const Eigen::VectorXd &n = c.psiInverse(vertices[next]);
-                    const Eigen::VectorXd &y = c.psiInverse(vertices[(prev+1) % vertices.size()]);
-                    const Eigen::VectorXd &z = c.psiInverse(vertices[next == 0 ? vertices.size()-1 : next-1]);
-                    double t = (-(p.dot(y-p)) + std::sqrt(p.dot(y-p)*p.dot(y-p) - (y-p).squaredNorm()*(p.squaredNorm()-rho_*rho_))) / (y-p).squaredNorm();
-                    const Eigen::VectorXd x1 = c.phi(p + t*(y-p));
-                    t = (-(n.dot(z-n)) + std::sqrt(n.dot(z-n)*n.dot(z-n) - (z-n).squaredNorm()*(n.squaredNorm()-rho_*rho_))) / (z-n).squaredNorm();
-                    const Eigen::VectorXd x2 = c.phi(n + t*(z-n));
-                    v << x1[0] << " " << x1[1] << " " << x1[2] << "\n";
-                    poly << vcount++ << " ";
-                    fvcount++;
-                    double angle = std::acos(x1.dot(x2) / (x1.norm()*x2.norm()));
-                    for (double a = 0; a < angle-M_PI/16; a += M_PI/16)
-                    {
-                        const Eigen::VectorXd u = Eigen::Rotation2Dd(a) * c.psiInverse(x1);
-                        if (!c.inP(u))
-                            continue;
-                        const Eigen::VectorXd x = c.phi(u);
-                        v << x[0] << " " << x[1] << " " << x[2] << "\n";
-                        poly << vcount++ << " ";
-                        fvcount++;
-                    }
-                    v << x2[0] << " " << x2[1] << " " << x2[2] << "\n";
-                    poly << vcount++ << " ";
-                    fvcount++;
-                    
-                    if (next < j)
-                        break;
-                    j = next-1;
-                }
-            }
-            else
-            {
-                const Eigen::VectorXd &x = vertices[j];
-                v << x[0] << " " << x[1] << " " << x[2] << "\n";
-                poly << vcount++ << " ";
-                fvcount++;
-            }
+            v << vertices[j].transpose() << "\n";
+            poly << vcount++ << " ";
+            fvcount++;
         }
         
         if (fvcount > 2)

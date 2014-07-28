@@ -74,7 +74,6 @@ const ompl::base::AtlasChart &ompl::base::AtlasChart::LinearInequality::getOwner
 
 bool ompl::base::AtlasChart::LinearInequality::accepts (const Eigen::VectorXd &v) const
 {
-    // Equation (10) in the Jaillet paper
     return v.dot(u_) <= rhs_;
 }
 
@@ -85,13 +84,33 @@ void ompl::base::AtlasChart::LinearInequality::checkNear (const Eigen::VectorXd 
         complement_->expandToInclude(owner_.psi(v));
 }
 
+bool ompl::base::AtlasChart::LinearInequality::circleIntersect (const double r, Eigen::VectorXd &v1, Eigen::VectorXd &v2) const
+{
+    if (owner_.atlas_.getManifoldDimension() != 2)
+        throw ompl::Exception("AtlasChart::LinearInequality::circleIntersect() only works on 2D manifolds.");
+    
+    const double discr = 4*r*r - u_.squaredNorm();
+    if (discr < 0)
+        return false;
+    
+    Eigen::VectorXd uRev(2); uRev << -u_[1], u_[0];
+    v1 = uRev * std::sqrt(discr);
+    v2 = -v1;
+    v1 += u_ * u_.norm();
+    v2 += u_ * u_.norm();
+    v1 /= 2*u_.norm();
+    v2 /= 2*u_.norm();
+    
+    return true;
+}
+
 /// Public static
 Eigen::VectorXd ompl::base::AtlasChart::LinearInequality::intersect (const LinearInequality &l1, const LinearInequality &l2)
 {
     if (&l1.owner_ != &l2.owner_)
         throw ompl::Exception("Cannot intersect linear inequalities on different charts.");
     if (l1.owner_.atlas_.getManifoldDimension() != 2)
-        throw ompl::Exception("AtlasChart::LinearInequality::intersect() only works on 2D manifolds/charts.");
+        throw ompl::Exception("AtlasChart::LinearInequality::intersect() only works on 2D manifolds.");
     
     Eigen::MatrixXd A(2,2);
     A.row(0) = l1.u_.transpose(); A.row(1) = l2.u_.transpose();
@@ -192,7 +211,8 @@ Eigen::VectorXd ompl::base::AtlasChart::psiInverse (const Eigen::VectorXd &x) co
     return bigPhi_t_ * (x - xorigin_);
 }
 
-bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, std::size_t *const solitary) const
+bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, std::size_t *const solitary, const LinearInequality *const ignore1,
+                                  const LinearInequality *const ignore2) const
 {
     bool inPolytope = true;
     if (solitary)
@@ -201,6 +221,9 @@ bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, std::size_t *const s
     std::size_t i = 0;
     for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++, i++)
     {
+        if (*l == ignore1 || *l == ignore2)
+            continue;
+        
         if (!(*l)->accepts(u))
         {
             // We can stop early if we're not interested in more information
@@ -295,21 +318,41 @@ void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
     if (atlas_.getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::toPolygon() only works on 2D manifold/charts.");
     
-    // Compile a list of all the vertices in P
+    // Compile a list of all the vertices in P and all the times the border intersects the rho circle
     vertices.clear();
     for (std::list<LinearInequality *>::const_iterator l1 = bigL_.begin(); l1 != bigL_.end(); l1++)
     {
         for (std::list<LinearInequality *>::const_iterator l2 = boost::next(l1); l2 != bigL_.end(); l2++)
         {
-            // Accept within a 1% margin in case of precision errors
-            Eigen::VectorXd v = 0.99*LinearInequality::intersect(**l1, **l2);
-            if (inP(v))
+            // Check if intersection of the lines is a part of the boundary and within rho
+            Eigen::VectorXd v = LinearInequality::intersect(**l1, **l2);
+            if (v.norm() <= atlas_.getRho() && inP(v, NULL, *l1, *l2))
                 vertices.push_back(phi(v));
+        }
+        
+        // Check if intersection with circle is part of the boundary
+        Eigen::VectorXd v1, v2;
+        if ((*l1)->circleIntersect(atlas_.getRho(), v1, v2))
+        {
+            if (inP(v1, NULL, *l1))
+                vertices.push_back(phi(v1));
+            if (inP(v2, NULL, *l1))
+                vertices.push_back(phi(v2));
         }
     }
     
+    // Throw in points approximating the circle, if they're inside P
+    Eigen::VectorXd v0(2); v0 << atlas_.getRho(), 0;
+    const double step = M_PI/16;
+    for (double a = 0; a < 2*M_PI; a += step)
+    {
+        const Eigen::VectorXd v = Eigen::Rotation2Dd(a)*v0;
+        if (inP(v))
+            vertices.push_back(phi(v));
+    }
+    
     // Put them in order
-    std::sort(vertices.begin(), vertices.end(), boost::bind(&AtlasChart::angleCompare, this, boost::lambda::_1, boost::lambda::_2));
+    std::sort(vertices.begin(), vertices.end(), boost::bind(&AtlasChart::angleCompare, this, _1, _2));
 }
 
 /// Public Static
