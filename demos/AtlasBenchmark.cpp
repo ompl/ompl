@@ -41,8 +41,11 @@
 #include <ompl/base/spaces/AtlasStateSpace.h>
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/planners/est/EST.h>
+#include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
+#include <ompl/geometric/planners/prm/SPARS.h>
+#include <ompl/geometric/planners/prm/SPARStwo.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
@@ -89,6 +92,42 @@ bool sphereValid (const ompl::base::State *state)
     return true;
 }
 
+/** Torus manifold. */
+Eigen::VectorXd Ftorus (const Eigen::VectorXd &x)
+{
+    Eigen::VectorXd f(1);
+    const double r1 = 2;
+    const double r2 = 1;
+    
+    Eigen::VectorXd c(3); c << x[0], x[1], 0;
+    f[0] = (x - r1 * c.normalized()).norm() - r2;
+    return f;
+}
+
+/** Torus manifold. */
+Eigen::MatrixXd Jtorus (const Eigen::VectorXd &x)
+{
+    Eigen::MatrixXd j(1, 3);
+    const double r1 = 2;
+    const double r2 = 1;
+    
+    const double xySquaredNorm = x[0]*x[0] + x[1]*x[1];
+    const double xyNorm = std::sqrt(xySquaredNorm);
+    const double denom = std::sqrt(x[2]*x[2] + (xyNorm - r1)*(xyNorm - r1));
+    const double c = (xyNorm - r1) * (xyNorm*xySquaredNorm) / (xySquaredNorm * xySquaredNorm * denom);
+    j(0,0) = x[0] * c;
+    j(0,1) = x[1] * c;
+    j(0,2) = x[2] / denom;
+    
+    return j;
+}
+
+/** Every state is valid. */
+bool always (const ompl::base::State *)
+{
+    return true;
+}
+
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
 ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
 {
@@ -105,19 +144,40 @@ ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::Vecto
     return new ompl::base::AtlasStateSpace(dim, Fsphere, Jsphere);
 }
 
+/** Initialize the atlas for the torus problem and store the start and goal vectors. */
+ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+{
+    const std::size_t dim = 3;
+    
+    // Start and goal points;
+    x = Eigen::VectorXd(dim); x << -3, 0, 0;
+    y = Eigen::VectorXd(dim); y << 3, 0, 0;
+    
+    // Validity checker
+    isValid = &always;
+    
+    // Atlas initialization
+    return new ompl::base::AtlasStateSpace(dim, Ftorus, Jtorus);
+}
+
+void resetStateSpace (const ompl::base::PlannerPtr &planner)
+{
+    planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>()->clear();
+}
+
 int main (int, char *[])
 {
     // Initialize the atlas for a problem
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
-    ompl::base::AtlasStateSpacePtr atlas(initSphereProblem(x, y, isValid));
+    ompl::base::AtlasStateSpacePtr atlas(initTorusProblem(x, y, isValid));
     ompl::base::StateSpacePtr space(atlas);
     ompl::geometric::SimpleSetup ss(space);
     ompl::base::SpaceInformationPtr si = ss.getSpaceInformation();
     atlas->setSpaceInformation(si);
     ss.setStateValidityChecker(isValid);
-    const ompl::base::AtlasChart &startChart = atlas->newChart(x);
-    const ompl::base::AtlasChart &goalChart = atlas->newChart(y);
+    const ompl::base::AtlasChart &startChart = atlas->anchorChart(x);
+    const ompl::base::AtlasChart &goalChart = atlas->anchorChart(y);
     ompl::base::ScopedState<> start(space);
     ompl::base::ScopedState<> goal(space);
     start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
@@ -145,10 +205,10 @@ int main (int, char *[])
     const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count);
     bench.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::RRT(si)));
     bench.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::RRTConnect(si)));
-    bench.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::RRTstar(si)));
     bench.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::EST(si)));
+    bench.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::KPIECE1(si)));
     bench.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::PRM(si)));
-    bench.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::PRMstar(si)));
+    bench.setPreRunEvent(&resetStateSpace);
     
     bench.benchmark(request);
     bench.saveResultsToFile("atlas.log");

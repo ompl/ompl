@@ -99,6 +99,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
             const Eigen::VectorXd uoffset = Eigen::VectorXd::Random(atlas_.getManifoldDimension());
             const Eigen::VectorXd xoffset = c->phi(uoffset) - c->phi(Eigen::VectorXd::Zero(atlas_.getManifoldDimension()));
             r = c->psi(c->psiInverse(anear->toVector() + distance * xoffset));
+            astate->setRealState(r, *c);
         }
         while (atlas_.distance(near, state) > distance);
     }
@@ -253,16 +254,23 @@ ompl::base::AtlasStateSpace::StateType::~StateType(void)
 
 void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd &x, const AtlasChart &c)
 {
+    mutex_.lock();
     for (std::size_t i = 0; i < dimension_; i++)
         (*this)[i]  = x[i];
-    setChart(c);
+    if (chart_)
+        chart_->disown(this);
+    chart_ = &c;
+    chart_->own(this);
+    mutex_.unlock();
 }
 
 Eigen::VectorXd ompl::base::AtlasStateSpace::StateType::toVector (void) const
 {
+    mutex_.lock_shared();
     Eigen::VectorXd x(dimension_);
     for (std::size_t i = 0; i < dimension_; i++)
         x[i] = (*this)[i];
+    mutex_.unlock_shared();
     return x;
 }
 
@@ -278,10 +286,12 @@ const ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart_s
 
 void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c, const bool fast)
 {
+    mutex_.lock();
     if (chart_ && !fast)
         chart_->disown(this);
     chart_ = &c;
     chart_->own(this);
+    mutex_.unlock();
 }
 
 /// AtlasStateSpace
@@ -308,7 +318,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     
     const std::size_t s = std::pow(std::sqrt(M_PI) * monteCarloThoroughness_, k_) / boost::math::tgamma(k_/2.0 + 1);
     OMPL_INFORM("Atlas: Monte Carlo integration using %d samples per chart.", s);
-    samples_.assign(s, Eigen::VectorXd::Zero(k_));
+    samples_.resize(s);
     
     setRho(0.1);
     setAlpha(M_PI/16);
@@ -329,6 +339,29 @@ void ompl::base::AtlasStateSpace::setup (void)
         throw ompl::Exception("Must associate a SpaceInformation object to the AtlasStateSpace via setStateInformation() before use.");
     RealVectorStateSpace::setup();
     setup_ = true;
+}
+
+void ompl::base::AtlasStateSpace::clear (void)
+{
+    alterRho(originalRho_);
+    
+    // Copy the list of charts
+    std::vector<AtlasChart *> oldCharts;
+    for (std::size_t i = 0; i < charts_.size(); i++)
+    {
+        oldCharts.push_back(charts_[i]);
+    }
+    
+    charts_.clear();
+    for (std::size_t i = 0; i < oldCharts.size(); i++)
+    {
+        if (oldCharts[i]->isAnchor())
+        {
+            // Reincarnate the chart
+            oldCharts[i]->substituteChart(anchorChart(oldCharts[i]->phi(Eigen::VectorXd::Zero(k_))));
+        }
+        delete oldCharts[i];
+    }
 }
 
 void ompl::base::AtlasStateSpace::setSpaceInformation (const SpaceInformationPtr &si)
@@ -357,28 +390,10 @@ void ompl::base::AtlasStateSpace::setEpsilon (const double epsilon)
     epsilon_ = epsilon;
 }
 
-void ompl::base::AtlasStateSpace::setRho (const double rho) const
+void ompl::base::AtlasStateSpace::setRho (const double rho)
 {
-    if (rho <= 0)
-        throw ompl::Exception("Please specify a positive rho.");
-    rho_ = rho;
-    rho_s_ = rho_ / std::pow(1 - exploration_, 1.0/k_);
-    ballMeasure_ = std::pow(std::sqrt(M_PI) * rho_, k_) / boost::math::tgamma(k_/2.0 + 1);
-    
-    // Generate random samples within the ball
-    for (std::size_t i = 0; i < samples_.size(); i++)
-    {
-        do
-            samples_[i] = Eigen::VectorXd::Random(k_) * rho_;
-        while (samples_[i].squaredNorm() > rho_*rho_);
-    }
-    
-    if (setup_)
-    {
-        // Completely recompute chart measures
-        for (std::size_t i = 0; i < charts_.size(); i++)
-            charts_[i]->approximateMeasure();
-    }
+    originalRho_ = rho;
+    alterRho(rho);
 }
 
 void ompl::base::AtlasStateSpace::setAlpha (const double alpha)
@@ -395,7 +410,7 @@ void ompl::base::AtlasStateSpace::setExploration (const double exploration)
     exploration_ = exploration;
     
     // Update sampling radius
-    setRho(getRho());
+    setRho(rho_);
 }
 
 void ompl::base::AtlasStateSpace::setLambda (const double lambda)
@@ -479,6 +494,11 @@ ompl::RNG &ompl::base::AtlasStateSpace::getRNG (void) const
     return rng_;
 }
 
+ompl::base::AtlasChart &ompl::base::AtlasStateSpace::anchorChart (const Eigen::VectorXd &xorigin) const
+{
+    return newChart(xorigin, true);
+}
+
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::sampleChart (void) const
 {
     if (charts_.size() < 1)
@@ -524,9 +544,9 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
     return bestC;
 }
 
-ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::VectorXd &xorigin) const
+ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::VectorXd &xorigin, const bool anchor) const
 {
-    AtlasChart &addedC = *new AtlasChart(*this, xorigin);
+    AtlasChart &addedC = *new AtlasChart(*this, xorigin, anchor);
     mutices_.charts_.lock();
     charts_.add(&addedC, addedC.getMeasure());
     mutices_.charts_.unlock();
@@ -652,7 +672,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             if (!c)
             {
                 OMPL_DEBUG("Atlas: Fell between the cracks! Patching in a new chart now. Using smaller rho in the future.");
-//                 setRho(0.8*getRho());
+                alterRho(0.8*rho_);
                 c = &newChart(x_n);
             }
             
@@ -846,10 +866,10 @@ void ompl::base::AtlasStateSpace::freeState (State *state) const
 }
 
 /// Protected
+
 Eigen::MatrixXd ompl::base::AtlasStateSpace::numericalJacobian (const Eigen::VectorXd &x) const
 {
-    Eigen::VectorXd y1 = x;
-    Eigen::VectorXd y2 = x;
+    Eigen::VectorXd y1, y2;
     Eigen::MatrixXd jac(n_-k_, n_);
     
     // Use a 7-point central difference stencil on each entire column at once
@@ -858,19 +878,41 @@ Eigen::MatrixXd ompl::base::AtlasStateSpace::numericalJacobian (const Eigen::Vec
         // Make step size as small as possible while still giving usable accuracy
         const double h = std::sqrt(std::numeric_limits<double>::epsilon()) * (x[j] >= 1 ? x[j] : 1);
         
-        y1[j] += h; y2[j] -= h;
+        y1[j] = x[j] + h; y2[j] = x[h] - h;
         const Eigen::VectorXd m1 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);   // Can't assume y1[j]-y2[j] == 2*h because of precision errors
-        y1[j] += h; y2[j] -= h;
+        y1[j] = x[j] + 2*h; y2[j] = x[h] - 2*h;
         const Eigen::VectorXd m2 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);
-        y1[j] += h; y2[j] -= h;
+        y1[j] = x[j] + 3*h; y2[j] = x[h] - 3*h;
         const Eigen::VectorXd m3 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);
         
-        jac.col(j) = 15*m1 - 6*m2 + m3;
-        
-        // Reset for next iteration
-        y1[j] = y2[j] = x[j];
+        jac.col(j) = 1.5*m1 - 0.6*m2 + 0.1*m3;
     }
     
-    // Saved this for last, so we only have to do it once
-    return jac/10;
+    return jac;
+}
+
+/// Private
+
+void ompl::base::AtlasStateSpace::alterRho (const double rho) const
+{
+    if (rho <= 0)
+        throw ompl::Exception("Please specify a positive rho.");
+    rho_ = rho;
+    rho_s_ = rho_ / std::pow(1 - exploration_, 1.0/k_);
+    ballMeasure_ = std::pow(std::sqrt(M_PI) * rho_, k_) / boost::math::tgamma(k_/2.0 + 1);
+    
+    // Generate random samples within the ball
+    for (std::size_t i = 0; i < samples_.size(); i++)
+    {
+        do
+            samples_[i] = Eigen::VectorXd::Random(k_) * rho_;
+        while (samples_[i].squaredNorm() > rho_*rho_);
+    }
+    
+    if (setup_)
+    {
+        // Completely recompute chart measures
+        for (std::size_t i = 0; i < charts_.size(); i++)
+            charts_[i]->approximateMeasure();
+    }
 }

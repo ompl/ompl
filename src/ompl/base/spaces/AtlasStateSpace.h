@@ -44,6 +44,7 @@
 #include "ompl/datastructures/PDF.h"
 
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/shared_mutex.hpp>
 
 #include <eigen3/Eigen/Core>
 
@@ -172,6 +173,9 @@ namespace ompl
                 
                 /** \brief Dimension of the real vector. */
                 const unsigned int dimension_;
+                
+                /** \brief Shared mutex for read/write access. */
+                mutable boost::shared_mutex mutex_;
             };
             
             /** \brief Constraint function type; input vector size is the ambient dimension;
@@ -197,6 +201,9 @@ namespace ompl
             /** \brief Final setup for the space. */
             virtual void setup (void);
             
+            /** \brief Reset the space (except for anchor charts). */
+            virtual void clear (void);
+            
             /** \brief Associate \a si with this space. Requires that \a si was constructed from this AtlasStateSpace. */
             void setSpaceInformation (const SpaceInformationPtr &si);
             
@@ -208,9 +215,8 @@ namespace ompl
             void setEpsilon (const double epsilon);
             
             /** \brief Set \a rho, the maximum radius for which a chart is valid. Default is 0.1. If this value
-             * is too large, it will be decreased during operation of the atlas. Marked 'const' because operation
-             * of the atlas is performed by other const methods. */
-            void setRho (const double rho) const;
+             * is too large, it will be decreased during operation of the atlas. */
+            void setRho (const double rho);
             
             /** \brief Set \a alpha, the maximum permissible angle between the chart and the manifold inside
              * the validity region of the chart. Default is pi/16. Must be within the range (0,pi/2). */
@@ -282,6 +288,9 @@ namespace ompl
              * at \a x. */
             const JacobianFn bigJ;
             
+            /** \brief Wrapper for newChart(). Charts created this way will persist through calls to clear(). */
+            AtlasChart &anchorChart (const Eigen::VectorXd &xorigin) const;
+            
             /** \brief Pick a chart at random with probability proportional the chart measure / atlas measure. */
             virtual AtlasChart &sampleChart (void) const;
             
@@ -290,8 +299,8 @@ namespace ompl
             virtual AtlasChart *owningChart (const Eigen::VectorXd &x, const AtlasChart *const neighbor = NULL) const;
             
             /** \brief Create a new chart for the atlas, centered at \a xorigin, which should be on
-             * the manifold. */
-            virtual AtlasChart &newChart (const Eigen::VectorXd &xorigin) const;
+             * the manifold. Chart may be an \a anchor chart. */
+            virtual AtlasChart &newChart (const Eigen::VectorXd &xorigin, const bool anchor = false) const;
             
             /** \brief Search for the border of chart \a c between \a xinside, which is assumed to be inside the
              * polytope of \a c, and \a xoutside. The returned point lies inside the border at a distance no farther
@@ -382,6 +391,9 @@ namespace ompl
             /** \brief Maximum radius of chart validity region. */
             mutable double rho_;
             
+            /** \brief Original setting for rho_. */
+            double originalRho_;
+            
             /** \brief Cosine of the maximum angle between a chart and the manifold inside its validity region. */
             double cos_alpha_;
             
@@ -406,11 +418,17 @@ namespace ompl
             /** \brief Whether setup() has been called. */
             bool setup_;
             
+            /** \brief List of centers of "anchor" charts. */
+            mutable std::vector<Eigen::VectorXd> anchorPoints_;
+            
             /** \brief Measure of a manifold-dimensional ball with radius rho. */
             mutable double ballMeasure_;
             
             /** \brief Collection of points to use in Monte Carlo integration. */
             mutable std::vector<Eigen::VectorXd> samples_;
+            
+            /** \brief Set \a rho without modifying the saved original value. */
+            void alterRho (const double rho) const;
             
             /** \brief Locks to keep some operations thread-safe. */
             mutable struct

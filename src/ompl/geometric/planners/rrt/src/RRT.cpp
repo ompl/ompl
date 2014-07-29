@@ -45,6 +45,7 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si) : base::Planner(s
     specs_.directed = true;
 
     goalBias_ = 0.05;
+    addIntermediateStates_ = false;
     maxDistance_ = 0.0;
     lastGoalMotion_ = NULL;
 
@@ -145,26 +146,56 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
             dstate = xstate;
         }
 
-        if (si_->checkMotion(nmotion->state, dstate))
+        if (addIntermediateStates_)
         {
-            /* create a motion */
-            Motion *motion = new Motion(si_);
-            si_->copyState(motion->state, dstate);
-            motion->parent = nmotion;
+            // TODO Add all the intermediate states
+            std::pair<base::State *, double> lastValid = std::make_pair(dstate, 0);
+            if (si_->checkMotion(nmotion->state, dstate, lastValid) || lastValid.second > 0)
+            {
+                /* create a motion */
+                Motion *motion = new Motion(si_);
+                si_->copyState(motion->state, dstate);
+                motion->parent = nmotion;
 
-            nn_->add(motion);
-            double dist = 0.0;
-            bool sat = goal->isSatisfied(motion->state, &dist);
-            if (sat)
-            {
-                approxdif = dist;
-                solution = motion;
-                break;
+                nn_->add(motion);
+                double dist = 0.0;
+                bool sat = goal->isSatisfied(motion->state, &dist);
+                if (sat)
+                {
+                    approxdif = dist;
+                    solution = motion;
+                    break;
+                }
+                if (dist < approxdif)
+                {
+                    approxdif = dist;
+                    approxsol = motion;
+                }
             }
-            if (dist < approxdif)
+        }
+        else
+        {
+            if (si_->checkMotion(nmotion->state, dstate))
             {
-                approxdif = dist;
-                approxsol = motion;
+                /* create a motion */
+                Motion *motion = new Motion(si_);
+                si_->copyState(motion->state, dstate);
+                motion->parent = nmotion;
+
+                nn_->add(motion);
+                double dist = 0.0;
+                bool sat = goal->isSatisfied(motion->state, &dist);
+                if (sat)
+                {
+                    approxdif = dist;
+                    solution = motion;
+                    break;
+                }
+                if (dist < approxdif)
+                {
+                    approxdif = dist;
+                    approxsol = motion;
+                }
             }
         }
     }

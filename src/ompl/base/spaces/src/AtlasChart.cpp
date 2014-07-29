@@ -143,9 +143,9 @@ void ompl::base::AtlasChart::LinearInequality::expandToInclude (const Eigen::Vec
 /// AtlasChart
 
 /// Public
-ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::VectorXd &xorigin)
+ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::VectorXd &xorigin, const bool anchor)
 : atlas_(atlas), n_(atlas_.getAmbientDimension()), k_(atlas_.getManifoldDimension()),
-  xorigin_(xorigin), id_(atlas_.getChartCount()), pruning_(std::numeric_limits<std::size_t>::max())
+  xorigin_(xorigin), id_(atlas_.getChartCount()), anchor_(anchor), pruning_(std::numeric_limits<std::size_t>::max())
 {
     if (atlas_.bigF(xorigin_).norm() > 10*atlas_.getProjectionTolerance())
         OMPL_WARN("AtlasChart created at point not on the manifold!");
@@ -277,6 +277,12 @@ void ompl::base::AtlasChart::disown (ompl::base::AtlasStateSpace::StateType *con
     mutices_.owned_.unlock();
 }
 
+void ompl::base::AtlasChart::substituteChart (const AtlasChart &replacement) const
+{
+    while (owned_.size() != 0)
+        owned_.front()->setChart(replacement);
+}
+
 const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eigen::VectorXd &x) const
 {
     const AtlasChart *bestC = NULL;
@@ -321,6 +327,11 @@ double ompl::base::AtlasChart::getMeasure (void) const
 unsigned int ompl::base::AtlasChart::getID (void) const
 {
     return id_;
+}
+
+bool ompl::base::AtlasChart::isAnchor (void) const
+{
+    return anchor_;
 }
 
 void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) const
@@ -401,6 +412,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace) con
                     (*s)->setChart(atlas_.newChart((*s)->toVector()), fast);
                 else
                     (*s)->setChart(comp->getOwner(), fast);
+                
                 // Manually disown here because it's faster since we already have the iterator
                 s = boost::prior(owned_.erase(s));
             }

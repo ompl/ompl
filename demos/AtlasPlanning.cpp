@@ -41,6 +41,7 @@
 #include <ompl/base/spaces/AtlasStateSpace.h>
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/planners/est/EST.h>
+#include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
@@ -178,11 +179,6 @@ bool almostAlways (const ompl::base::State *)
     return ((double) std::rand())/RAND_MAX < 0.95;
 }
 
-bool always (const ompl::base::State *)
-{
-    return true;
-}
-
 /** Print the state and its chart ID. */
 void printState (const ompl::base::AtlasStateSpace::StateType *state)
 {
@@ -221,7 +217,6 @@ ompl::base::AtlasStateSpace *initComplicatedProblem (Eigen::VectorXd &x, Eigen::
     return new ompl::base::AtlasStateSpace(dim, Fcomplicated, Jcomplicated);
 }
 
-<<<<<<< local
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
 ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, boost::function<bool (const ompl::base::State *)> &isValid)
 {
@@ -244,11 +239,11 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
     const std::size_t dim = 3;
     
     // Start and goal points;
-    x = Eigen::VectorXd(dim); x << -3, 0, 0;
-    y = Eigen::VectorXd(dim); y << 3, 0, 0;
+    x = Eigen::VectorXd(dim); x << -2, 0, -1;
+    y = Eigen::VectorXd(dim); y << 2, 0, 1;
     
     // Validity checker
-    isValid = &always;
+    isValid = &sphereValid;
     
     // Atlas initialization
     return new ompl::base::AtlasStateSpace(dim, Ftorus, Jtorus);
@@ -272,8 +267,8 @@ int main (int, char *[])
     atlas->setSpaceInformation(si);
     si->setStateValidityChecker(isValid);
     si->setValidStateSamplerAllocator(boost::bind(vssa, atlas, _1));
-    const ompl::base::AtlasChart &startChart = atlas->newChart(x);
-    const ompl::base::AtlasChart &goalChart = atlas->newChart(y);
+    const ompl::base::AtlasChart &startChart = atlas->anchorChart(x);
+    const ompl::base::AtlasChart &goalChart = atlas->anchorChart(y);
     ompl::base::ScopedState<> start(space);
     ompl::base::ScopedState<> goal(space);
     start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
@@ -295,7 +290,8 @@ int main (int, char *[])
     si->setup();
     
     // Choose the planner. Try others, like RRT, RRTstar, EST, PRM, ...
-    ompl::base::PlannerPtr planner(new ompl::geometric::EST(si));
+    ompl::base::PlannerPtr planner(new ompl::geometric::RRT(si));
+    planner->as<ompl::geometric::RRT>()->setIntermediateStates(true);
     planner->setProblemDefinition(pdef);
     planner->setup();
     

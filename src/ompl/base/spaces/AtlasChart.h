@@ -124,8 +124,9 @@ namespace ompl
         public:
             
             /** \brief Constructor; \a atlas is the atlas to which it belongs, and \a xorigin
-             * is the ambient space point on the manifold at which the chart will be centered. */
-            AtlasChart (const AtlasStateSpace &atlas, const Eigen::VectorXd &xorigin);
+             * is the ambient space point on the manifold at which the chart will be centered.
+             * Chart will persist through calls to AtlasStateSpace::clear() if \a anchor is true. */
+            AtlasChart (const AtlasStateSpace &atlas, const Eigen::VectorXd &xorigin, const bool anchor = false);
             
             /** \brief Destructor. */
             virtual ~AtlasChart (void);
@@ -158,6 +159,9 @@ namespace ompl
             /** \brief Stop tracking \a state. Assumes it is listed at most once. */
             void disown (ompl::base::AtlasStateSpace::StateType *const state) const;
             
+            /** \brief Make all tracked states belong to a \a replacement chart. */
+            void substituteChart (const AtlasChart &replacement) const;
+            
             /** \brief Check each of our neighboring charts to see if ambient point \a x lies within its
              * polytope when projected onto it. Returns NULL if none. */
             virtual const AtlasChart *owningNeighbor (const Eigen::VectorXd &x) const;
@@ -171,6 +175,9 @@ namespace ompl
             /** \brief Get this chart's unique identifier in its atlas. Same as its index in the atlas'
              * vector of charts. */
             unsigned int getID (void) const;
+            
+            /** \brief Is this chart marked as an anchor chart for the atlas? */
+            bool isAnchor (void) const;
             
             /** \brief If the manifold dimension is 2, compute the sequence of vertices for the polygon of this
              * chart and return them in \a vertices, in order. */
@@ -209,6 +216,9 @@ namespace ompl
             
             /** \brief Unique ID in the atlas. */
             const unsigned int id_;
+            
+            /** \brief Whether this chart is an anchor chart in the atlas. */
+            const bool anchor_;
             
             /** \brief Basis for the chart space. */
             Eigen::MatrixXd bigPhi_;
