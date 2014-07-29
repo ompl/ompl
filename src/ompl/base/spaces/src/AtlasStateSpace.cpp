@@ -46,6 +46,8 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 
+#define MAX_CHARTS_CREATED  20  // TODO magic
+
 /// AtlasStateSampler
 
 /// Public
@@ -262,10 +264,13 @@ void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd
     mutex_.lock();
     for (std::size_t i = 0; i < dimension_; i++)
         (*this)[i]  = x[i];
-    if (chart_)
-        chart_->disown(this);
+    if (chart_ != &c)
+    {
+        if (chart_)
+            chart_->disown(this);
+        c.own(this);
+    }
     chart_ = &c;
-    chart_->own(this);
     mutex_.unlock();
 }
 
@@ -292,10 +297,13 @@ const ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart_s
 void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c, const bool fast)
 {
     mutex_.lock();
-    if (chart_ && !fast)
-        chart_->disown(this);
+    if (chart_ != &c)
+    {
+        if (chart_ && !fast)
+            chart_->disown(this);
+        c.own(this);
+    }
     chart_ = &c;
-    chart_->own(this);
     mutex_.unlock();
 }
 
@@ -616,6 +624,7 @@ std::size_t ompl::base::AtlasStateSpace::getChartCount (void) const
 bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const StateType *to, const bool interpolate,
                                                   std::vector<StateType *> *const stateList) const
 {
+    unsigned int chartsCreated = 0;
     AtlasChart *c = const_cast<AtlasChart *>(&from->getChart());
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
     StateType *temp = allocState()->as<StateType>();
@@ -674,7 +683,10 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
                 c = &newChart(dichotomicSearch(*c, x_n, x_j));  // See paper's discussion of probabilistic completeness; this was left out of pseudocode
             }
             else
+            {
                 c = &newChart(x_n);
+            }
+            chartsCreated++;
             changedChart = true;
             //chartCreated = true;  // Again, unused
         }
@@ -690,6 +702,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
                 c->shrinkRadius();
                 updateMeasure(*c);
                 c = &newChart(x_n);
+                chartsCreated++;
             }
             else
             {
@@ -736,10 +749,11 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         
         // Check stopping criteria regarding how far we've gone
         d += d_s;
-        if (((x_0 - x_j).norm() > d_0 || d > lambda_*d_0))
+        if ((x_0 - x_j).norm() > d_0 || d > lambda_*d_0 || chartsCreated > MAX_CHARTS_CREATED)
             break;
     }
-    
+    if (chartsCreated > MAX_CHARTS_CREATED)
+        OMPL_DEBUG("Stopping extension early b/c too many charts created.");
     const bool reached = ((x_r - x_n).squaredNorm() < delta_*delta_);
     
     // Append a copy of the target state, since we're within delta, but didn't hit it exactly

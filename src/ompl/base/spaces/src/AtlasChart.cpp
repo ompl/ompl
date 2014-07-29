@@ -145,7 +145,7 @@ void ompl::base::AtlasChart::LinearInequality::expandToInclude (const Eigen::Vec
 /// Public
 ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::VectorXd &xorigin, const bool anchor)
 : atlas_(atlas), n_(atlas_.getAmbientDimension()), k_(atlas_.getManifoldDimension()),
-  xorigin_(xorigin), id_(atlas_.getChartCount()), anchor_(anchor), radius_(atlas_.getRho()), pruning_(20)
+  xorigin_(xorigin), id_(atlas_.getChartCount()), anchor_(anchor), radius_(atlas_.getRho()), pruning_(std::numeric_limits<double>::max())
 {
     if (atlas_.bigF(xorigin_).norm() > 10*atlas_.getProjectionTolerance())
         OMPL_WARN("AtlasChart created at point not on the manifold!");
