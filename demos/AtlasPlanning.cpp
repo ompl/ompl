@@ -233,7 +233,7 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
     y = Eigen::VectorXd(dim); y << 1, 1, 2.94481779371197;
     
     // Validity checker
-    isValid = boost::bind(unreachable, _1, y);
+    isValid = &always;
     
     // Atlas initialization
     return new ompl::base::AtlasStateSpace(dim, FKleinBottle);
@@ -296,14 +296,14 @@ int main (int, char *[])
     si->setup();
     
     // Choose the planner. Try others, like RRT, RRTstar, EST, PRM, ...
-    ompl::base::PlannerPtr planner(new ompl::geometric::PRM(si));
+    ompl::base::PlannerPtr planner(new ompl::geometric::RRTstar(si));
     planner->setProblemDefinition(pdef);
     planner->setup();
     
     // Plan
     std::clock_t tstart = std::clock();
     ompl::base::PlannerStatus stat;
-    if ((stat = planner->solve(60)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
+    if ((stat = planner->solve(300)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
     {
         double time = ((double)(std::clock()-tstart))/CLOCKS_PER_SEC;
         

@@ -148,7 +148,7 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::V
   xorigin_(xorigin), id_(atlas_.getChartCount()), anchor_(anchor), radius_(atlas_.getRho()), pruning_(std::numeric_limits<double>::max())
 {
     if (atlas_.bigF(xorigin_).norm() > 10*atlas_.getProjectionTolerance())
-        OMPL_WARN("AtlasChart created at point not on the manifold!");
+        OMPL_DEBUG("AtlasChart created at point not on the manifold!");
     
     // Initialize basis by computing the null space of the Jacobian and orthonormalizing
     Eigen::FullPivLU<Eigen::MatrixXd> decomp = atlas_.bigJ(xorigin_).fullPivLu();

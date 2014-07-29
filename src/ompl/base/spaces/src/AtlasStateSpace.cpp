@@ -674,18 +674,19 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         if (!interpolate && !svc->isValid(temp))
             break;
         
-        if ((x_j - c->phi(u_j)).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_ || u_j.squaredNorm() > rho_*rho_)
+        if (((x_j - c->phi(u_j)).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_ || u_j.squaredNorm() > rho_*rho_)
+            && u_n.squaredNorm() > delta_*delta_)   // Never create a chart too close to another one
         {
             // Left the validity region of the chart; make a new one
-            if (u_n.norm() < 1e-6)
-            {
+//             if (u_n.norm() < 1e-6)
+//             {
                 // Point we want to center the new chart on is already a chart center
-                c = &newChart(dichotomicSearch(*c, x_n, x_j));  // See paper's discussion of probabilistic completeness; this was left out of pseudocode
-            }
-            else
-            {
+//                 c = &newChart(dichotomicSearch(*c, x_n, x_j));  // See paper's discussion of probabilistic completeness; this was left out of pseudocode
+//             }
+//             else
+//             {
                 c = &newChart(x_n);
-            }
+//             }
             chartsCreated++;
             changedChart = true;
             //chartCreated = true;  // Again, unused
