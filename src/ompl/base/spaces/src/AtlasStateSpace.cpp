@@ -869,7 +869,7 @@ void ompl::base::AtlasStateSpace::freeState (State *state) const
 
 Eigen::MatrixXd ompl::base::AtlasStateSpace::numericalJacobian (const Eigen::VectorXd &x) const
 {
-    Eigen::VectorXd y1, y2;
+    Eigen::VectorXd y1(n_), y2(n_);
     Eigen::MatrixXd jac(n_-k_, n_);
     
     // Use a 7-point central difference stencil on each entire column at once
