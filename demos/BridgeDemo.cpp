@@ -144,9 +144,8 @@ int main(int argc, char** argv)
     const oc::SpaceInformationPtr &si = ss.getSpaceInformation();
     oc::StatePropagatorPtr sp (new ReedsSheppStatePropagator(si));
     
-    ob::StateSpaceFromPropagator<ob::SE2StateSpace> mySE2;
-    ob::State *s = mySE2.allocState();
-    mySE2.printState(s,std::cout);
-
+    ob::StateSpaceFromPropagator<ob::SE2StateSpace> mySE2(sp);
+    ob::StateSpacePtr mySpace (new ob::StateSpaceFromPropagator<ob::SE2StateSpace>(sp));
+    ob::SpaceInformationPtr si2 (new ob::SpaceInformation(mySpace));
     return 0;
 }

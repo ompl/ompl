@@ -34,6 +34,23 @@
 
 /* Author: Javier V. Gomez */
 
-//#include "ompl/base/spaces/SE2StateSpace.h"
-//#include "ompl/tools/config/MagicConstants.h"
 #include "ompl/base/spaces/StateSpaceFromPropagator.h"
+
+void ompl::base::FromPropagatorMotionValidator::defaultSettings()
+{
+    //TODO: does this check even make sense? this motion validator is created in SpaceInformation::setDefaultMotionValidator()
+    // so that implies a stateSpace exists. Also, no type-check can be done as for other MotionValidators
+    stateSpace_ = si_->getStateSpace();
+    if (!stateSpace_)
+        throw Exception("No state space for motion validator");
+}
+
+bool ompl::base::FromPropagatorMotionValidator::checkMotion(const State *s1, const State *s2) const
+{
+    return true;
+}
+
+bool ompl::base::FromPropagatorMotionValidator::checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const
+{
+    return true;
+}

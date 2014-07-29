@@ -118,6 +118,11 @@ namespace ompl
             {
                 return false;
             }
+            
+            const SpaceInformation* getSpaceInformation() const
+            {
+                return si_;
+            }
 
         protected:
 

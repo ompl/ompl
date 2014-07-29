@@ -38,8 +38,10 @@
 #define OMPL_BASE_SPACES_STATE_SPACE_FROM_PROPAGATOR_
 
 #include "ompl/base/StateSpace.h"
-#include "ompl/base/spaces/RealVectorStateSpace.h"
-#include "ompl/base/spaces/SE2StateSpace.h"
+#include "ompl/control/StatePropagator.h"
+#include "ompl/control/SpaceInformation.h"
+
+#include "ompl/util/Exception.h"
 
 namespace ompl
 {
@@ -59,31 +61,59 @@ public:
         class StateSpaceFromPropagator : public T
         {
         public:
-
-            /** \brief */
-            /*class StateType : public T::StateType
+        
+            StateSpaceFromPropagator (const control::StatePropagatorPtr &sp) : T(), sp_(sp)
             {
-            public:
-                //StateType() : T::StateType()
-                StateType()
-                {
-                    std::cout << "State created." << std::endl;
-                }
-            };*/
+                if (sp_->getSpaceInformation()->getStateSpace()->getType() != T::getType())
+                    throw Exception("State propagator's state space does not match the template parameter for StateSpaceFromPropagator.");
 
-
-            //StateSpaceFromPropagator() : T()
-            StateSpaceFromPropagator<T>()
-            {
-                //setName("StateSpaceFromPropagator" + getName());
-                //type_ = STATE_SPACE_FROM_PROPAGATOR;
-                std::cout << "State space created" << std::endl;
+                T::setName("FromPropagator" + T::getName());
             }
 
-            virtual ~StateSpaceFromPropagator<T>()
+            virtual ~StateSpaceFromPropagator()
             {
             }
+
+            virtual double distance (const State *state1, const State *state2) const
+            {
+                return 1.0;
+            }
+
+            virtual void interpolate (const State *from, const State *to, const double t, State *state) const
+            {
+            }
+
+        protected:
+
+            control::StatePropagatorPtr sp_;
         };
+
+        class FromPropagatorMotionValidator : public MotionValidator
+        {
+        public:
+            FromPropagatorMotionValidator(SpaceInformation* si) : MotionValidator(si)
+            {
+                defaultSettings();
+            }
+            
+            FromPropagatorMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
+            {
+                defaultSettings();
+            }
+
+            virtual ~FromPropagatorMotionValidator(void)
+            {
+            }
+            
+            virtual bool checkMotion(const State *s1, const State *s2) const;
+
+            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
+
+        private:
+            //ReedsSheppStateSpace *stateSpace_;
+            StateSpacePtr stateSpace_;
+            void defaultSettings(void);
+           };
     }
 }
 
