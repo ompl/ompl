@@ -77,12 +77,12 @@ public:
     }
 
     // TODO how can this be a const function?
-    // This is a demo, so controls are not assigned since I deal with this problem in another branch.
-    virtual bool steer (const ob::State *from, const ob::State *to, oc::Control *result, double &duration) const
+    virtual bool steer (const ob::State *from, const ob::State *to, std::vector<oc::TimedControl> &controls, double &duration) const
     {
         ob::ReedsSheppStateSpace::ReedsSheppPath rsp = rs_.reedsShepp(from, to);
         oc::Control *c;
         int i = 0;
+        
         while (rsp.type_[i] != 0 && i<5)
         {
              c = si_->allocControl();
@@ -100,11 +100,13 @@ public:
 
             double cduration = std::abs(rsp.length_[i]);
             duration += cduration;
-
+            controls.push_back(std::make_pair(c,cduration));
             ++i;
         }
-
-        return true;
+        
+        if (!controls.empty())
+            return true;
+        return false;
     }
 
     virtual bool canSteer() const
@@ -147,5 +149,7 @@ int main(int argc, char** argv)
     ob::StateSpaceFromPropagator<ob::SE2StateSpace> mySE2(sp);
     ob::StateSpacePtr mySpace (new ob::StateSpaceFromPropagator<ob::SE2StateSpace>(sp));
     ob::SpaceInformationPtr si2 (new ob::SpaceInformation(mySpace));
+    
+    
     return 0;
 }

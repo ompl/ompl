@@ -81,6 +81,10 @@ public:
 
             virtual void interpolate (const State *from, const State *to, const double t, State *state) const
             {
+                std::vector<control::TimedControl> controls;
+                double duration = 0;
+                sp_->steer(from,to,controls,duration);
+                
             }
 
         protected:
