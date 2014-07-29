@@ -261,7 +261,7 @@ int main (int, char *[])
     // Initialize the atlas for a problem (you can try the other one too)
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
-    ompl::base::AtlasStateSpacePtr atlas(initTorusProblem(x, y, isValid));
+    ompl::base::AtlasStateSpacePtr atlas(initKleinBottleProblem(x, y, isValid));
     ompl::base::StateSpacePtr space(atlas);
     ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
     atlas->setSpaceInformation(si);
@@ -290,8 +290,7 @@ int main (int, char *[])
     si->setup();
     
     // Choose the planner. Try others, like RRT, RRTstar, EST, PRM, ...
-    ompl::base::PlannerPtr planner(new ompl::geometric::RRT(si));
-    planner->as<ompl::geometric::RRT>()->setIntermediateStates(true);
+    ompl::base::PlannerPtr planner(new ompl::geometric::EST(si));
     planner->setProblemDefinition(pdef);
     planner->setup();
     

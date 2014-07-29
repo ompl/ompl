@@ -878,11 +878,11 @@ Eigen::MatrixXd ompl::base::AtlasStateSpace::numericalJacobian (const Eigen::Vec
         // Make step size as small as possible while still giving usable accuracy
         const double h = std::sqrt(std::numeric_limits<double>::epsilon()) * (x[j] >= 1 ? x[j] : 1);
         
-        y1[j] = x[j] + h; y2[j] = x[h] - h;
+        y1[j] = x[j] + h; y2[j] = x[j] - h;
         const Eigen::VectorXd m1 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);   // Can't assume y1[j]-y2[j] == 2*h because of precision errors
-        y1[j] = x[j] + 2*h; y2[j] = x[h] - 2*h;
+        y1[j] = x[j] + 2*h; y2[j] = x[j] - 2*h;
         const Eigen::VectorXd m2 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);
-        y1[j] = x[j] + 3*h; y2[j] = x[h] - 3*h;
+        y1[j] = x[j] + 3*h; y2[j] = x[j] - 3*h;
         const Eigen::VectorXd m3 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);
         
         jac.col(j) = 1.5*m1 - 0.6*m2 + 0.1*m3;
