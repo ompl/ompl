@@ -145,14 +145,16 @@ void ompl::base::AtlasChart::LinearInequality::expandToInclude (const Eigen::Vec
 /// Public
 ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::VectorXd &xorigin, const bool anchor)
 : atlas_(atlas), n_(atlas_.getAmbientDimension()), k_(atlas_.getManifoldDimension()),
-  xorigin_(xorigin), id_(atlas_.getChartCount()), anchor_(anchor), pruning_(std::numeric_limits<std::size_t>::max())
+  xorigin_(xorigin), id_(atlas_.getChartCount()), anchor_(anchor), radius_(atlas_.getRho()), pruning_(std::numeric_limits<std::size_t>::max())
 {
     if (atlas_.bigF(xorigin_).norm() > 10*atlas_.getProjectionTolerance())
         OMPL_WARN("AtlasChart created at point not on the manifold!");
     
     // Initialize basis by computing the null space of the Jacobian and orthonormalizing
-    Eigen::MatrixXd nullJ = atlas_.bigJ(xorigin_).fullPivLu().kernel();
-    bigPhi_ = nullJ.householderQr().householderQ() * Eigen::MatrixXd::Identity(n_, k_);
+    Eigen::FullPivLU<Eigen::MatrixXd> decomp = atlas_.bigJ(xorigin_).fullPivLu();
+    Eigen::ColPivHouseholderQR<Eigen::MatrixXd> nullDecomp = decomp.kernel().colPivHouseholderQr();
+    rank_ = nullDecomp.rank();
+    bigPhi_ = nullDecomp.householderQ() * Eigen::MatrixXd::Identity(n_, k_);
     bigPhi_t_ = bigPhi_.transpose();
     
     // Initialize set of linear inequalities so the polytope is the k-dimensional cube of side
@@ -166,7 +168,7 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::V
         bigL_.push_front(new LinearInequality(*this, e));
         e[i] = 0;
     }
-    measure_ = atlas_.getMeasureRhoKBall();
+    measure_ = atlas_.getMeasureKBall() * std::pow(radius_, k_);
 }
 
 ompl::base::AtlasChart::~AtlasChart (void)
@@ -298,7 +300,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eige
         const AtlasChart &c = comp->getOwner();
         const Eigen::VectorXd psiInvX = c.psiInverse(x);
         const Eigen::VectorXd psiPsiInvX = c.psi(psiInvX);
-        if ((c.phi(psiInvX) - psiPsiInvX).norm() < atlas_.getEpsilon() && psiInvX.norm() < atlas_.getRho() && c.inP(psiInvX))
+        if ((c.phi(psiInvX) - psiPsiInvX).norm() < atlas_.getEpsilon() && psiInvX.norm() < radius_ && c.inP(psiInvX))
         {
             // The closer the point to where the chart puts it, the better
             double err = (psiPsiInvX - x).norm();
@@ -324,6 +326,16 @@ double ompl::base::AtlasChart::getMeasure (void) const
     return measure_;
 }
 
+std::size_t ompl::base::AtlasChart::getRank (void) const
+{
+    return rank_;
+}
+
+void ompl::base::AtlasChart::shrinkRadius (void) const
+{
+    radius_ *= 0.8;
+}
+        
 unsigned int ompl::base::AtlasChart::getID (void) const
 {
     return id_;
@@ -339,21 +351,21 @@ void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
     if (atlas_.getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::toPolygon() only works on 2D manifold/charts.");
     
-    // Compile a list of all the vertices in P and all the times the border intersects the rho circle
+    // Compile a list of all the vertices in P and all the times the border intersects the circle
     vertices.clear();
     for (std::list<LinearInequality *>::const_iterator l1 = bigL_.begin(); l1 != bigL_.end(); l1++)
     {
         for (std::list<LinearInequality *>::const_iterator l2 = boost::next(l1); l2 != bigL_.end(); l2++)
         {
-            // Check if intersection of the lines is a part of the boundary and within rho
+            // Check if intersection of the lines is a part of the boundary and within the circle
             Eigen::VectorXd v = LinearInequality::intersect(**l1, **l2);
-            if (v.norm() <= atlas_.getRho() && inP(v, NULL, *l1, *l2))
+            if (v.norm() <= radius_ && inP(v, NULL, *l1, *l2))
                 vertices.push_back(phi(v));
         }
         
         // Check if intersection with circle is part of the boundary
         Eigen::VectorXd v1, v2;
-        if ((*l1)->circleIntersect(atlas_.getRho(), v1, v2))
+        if ((*l1)->circleIntersect(radius_, v1, v2))
         {
             if (inP(v1, NULL, *l1))
                 vertices.push_back(phi(v1));
@@ -363,7 +375,7 @@ void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
     }
     
     // Throw in points approximating the circle, if they're inside P
-    Eigen::VectorXd v0(2); v0 << atlas_.getRho(), 0;
+    Eigen::VectorXd v0(2); v0 << radius_, 0;
     const double step = M_PI/16;
     for (double a = 0; a < 2*M_PI; a += step)
     {
@@ -430,14 +442,14 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace) con
             pruneCandidates[i] = true;
     }
     
-    // Perform Monte Carlo integration to estimate volume
+    // Perform Monte Carlo integration to estimate measure
     unsigned int countInside = 0;
     const std::vector<Eigen::VectorXd> &samples = atlas_.getMonteCarloSamples();
     for (std::size_t i = 0; i < samples.size(); i++)
     {
         // Take a sample and check if it's inside P \intersect k-Ball
         std::size_t soleViolation;
-        if (inP(samples[i], ((bigL_.size() > pruning_) ? &soleViolation : NULL)))
+        if (inP(samples[i]*radius_, ((bigL_.size() > pruning_) ? &soleViolation : NULL)))
             countInside++;
         
         // If there was a solitary violation, that inequalitiy is too important to prune
@@ -466,7 +478,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace) con
     mutices_.bigL_.unlock();
     
     // Update measure with new estimate
-    measure_ = countInside * (atlas_.getMeasureRhoKBall() / samples.size());
+    measure_ = countInside * (atlas_.getMeasureKBall() * std::pow(radius_, k_) / samples.size());
     atlas_.updateMeasure(*this);
 }
 

@@ -310,8 +310,8 @@ namespace ompl
             /** \brief Update the recorded measure of a chart. */
             void updateMeasure (const AtlasChart &c) const;
             
-            /** \brief Return the measure of a manifold-dimensional ball of radius rho. */
-            double getMeasureRhoKBall (void) const;
+            /** \brief Return the measure of a manifold-dimensional ball of radius 1. */
+            double getMeasureKBall (void) const;
             
             /** \brief Return the samples to use in chart measure estimation. */
             const std::vector<Eigen::VectorXd> &getMonteCarloSamples (void) const;
@@ -391,9 +391,6 @@ namespace ompl
             /** \brief Maximum radius of chart validity region. */
             mutable double rho_;
             
-            /** \brief Original setting for rho_. */
-            double originalRho_;
-            
             /** \brief Cosine of the maximum angle between a chart and the manifold inside its validity region. */
             double cos_alpha_;
             
@@ -426,9 +423,6 @@ namespace ompl
             
             /** \brief Collection of points to use in Monte Carlo integration. */
             mutable std::vector<Eigen::VectorXd> samples_;
-            
-            /** \brief Set \a rho without modifying the saved original value. */
-            void alterRho (const double rho) const;
             
             /** \brief Locks to keep some operations thread-safe. */
             mutable struct

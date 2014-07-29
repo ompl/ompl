@@ -172,6 +172,12 @@ namespace ompl
             /** \brief Get the measure (k_-dimensional volume) of this chart. */
             double getMeasure (void) const;
             
+            /** \brief Get the rank of the chart's basis. */
+            std::size_t getRank (void) const;
+            
+            /** \brief Reduce the valid radius of the chart. */
+            void shrinkRadius (void) const;
+            
             /** \brief Get this chart's unique identifier in its atlas. Same as its index in the atlas'
              * vector of charts. */
             unsigned int getID (void) const;
@@ -228,6 +234,12 @@ namespace ompl
             
             /** \brief List of states on this chart. */
             mutable std::list<ompl::base::AtlasStateSpace::StateType *> owned_;
+            
+            /** \brief Maximum valid radius of this chart. */
+            mutable double radius_;
+            
+            /** \brief Rank of the basis. */
+            std::size_t rank_;
             
             /** \brief Enables pruning of redundant linear inequalities. */
             const std::size_t pruning_;

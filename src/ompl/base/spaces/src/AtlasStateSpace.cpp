@@ -103,7 +103,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         }
         while (atlas_.distance(near, state) > distance);
     }
-    while (atlas_.bigF(r).norm() > 10*atlas_.getProjectionTolerance());
+    while (atlas_.bigF(r).norm() > atlas_.getProjectionTolerance());
     
     // It might belong to a different chart
     c = atlas_.owningChart(r);
@@ -322,6 +322,16 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     
     setRho(0.1);
     setAlpha(M_PI/16);
+    
+    ballMeasure_ = std::pow(std::sqrt(M_PI), k_) / boost::math::tgamma(k_/2.0 + 1);
+    
+    // Generate random samples within the ball
+    for (std::size_t i = 0; i < samples_.size(); i++)
+    {
+        do
+            samples_[i] = Eigen::VectorXd::Random(k_);
+        while (samples_[i].squaredNorm() > 1);
+    }
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
@@ -343,8 +353,6 @@ void ompl::base::AtlasStateSpace::setup (void)
 
 void ompl::base::AtlasStateSpace::clear (void)
 {
-    alterRho(originalRho_);
-    
     // Copy the list of charts
     std::vector<AtlasChart *> oldCharts;
     for (std::size_t i = 0; i < charts_.size(); i++)
@@ -392,8 +400,10 @@ void ompl::base::AtlasStateSpace::setEpsilon (const double epsilon)
 
 void ompl::base::AtlasStateSpace::setRho (const double rho)
 {
-    originalRho_ = rho;
-    alterRho(rho);
+    if (rho <= 0)
+        throw ompl::Exception("Please specify a positive rho.");
+    rho_ = rho;
+    rho_s_ = rho_ / std::pow(1 - exploration_, 1.0/k_);
 }
 
 void ompl::base::AtlasStateSpace::setAlpha (const double alpha)
@@ -579,7 +589,7 @@ void ompl::base::AtlasStateSpace::updateMeasure (const AtlasChart &c) const
     mutices_.charts_.unlock();
 }
 
-double ompl::base::AtlasStateSpace::getMeasureRhoKBall (void) const
+double ompl::base::AtlasStateSpace::getMeasureKBall (void) const
 {
     return ballMeasure_;
 }
@@ -666,14 +676,19 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         else if (!c->inP(u_j))
         {
             // Left the polytope of the chart; find the correct chart
-            c = owningChart(c->phi(u_j), c);   // Paper says this is a neighboring chart. That may not always be true, esp. for large delta
+            AtlasChart *newc = owningChart(c->phi(u_j), c);   // Paper says this is a neighboring chart. That may not always be true, esp. for large delta
             
             // Deviation: If rho is too big, charts have gaps between them; this fixes it on the fly
-            if (!c)
+            if (!newc)
             {
-                OMPL_DEBUG("Atlas: Fell between the cracks! Patching in a new chart now. Using smaller rho in the future.");
-                alterRho(0.8*rho_);
+                OMPL_DEBUG("Atlas: Fell between the cracks! Patching in a new chart now.");
+                c->shrinkRadius();
+                updateMeasure(*c);
                 c = &newChart(x_n);
+            }
+            else
+            {
+                c = newc;
             }
             
             // Deviation: again we can't know about 'explore' mode or whether a chart is in the current tree
@@ -740,6 +755,7 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
     std::size_t vcount = 0;
     std::size_t fcount = 0;
     std::vector<Eigen::VectorXd> vertices;
+    unsigned int degenerateCharts = 0;
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
         std::cout << "Dumping chart " << i << std::flush << "\r";
@@ -748,9 +764,20 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
         c.toPolygon(vertices);
         std::stringstream poly;
         std::size_t fvcount = 0;
+        unsigned int gray = 255 - 55*rng_.uniform01();
         for (std::size_t j = 0; j < vertices.size(); j++)
         {
-            v << vertices[j].transpose() << "\n";
+            v << vertices[j].transpose() << " ";
+            if (c.getRank() == 2)
+            {
+                v << gray << " " << gray << " " << gray;
+            }
+            else
+            {
+                degenerateCharts++;
+                v << "255 100 200";
+            }
+            v << "\n";
             poly << vcount++ << " ";
             fvcount++;
         }
@@ -761,14 +788,17 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
             fcount += 1;
         }
     }
-    
-    std::cout << "\nDone.\n";
+    std::cout << "Degenerate charts: " << degenerateCharts << "\n";
+    std::cout << "Done.\n";
     out << "ply\n";
     out << "format ascii 1.0\n";
     out << "element vertex " << vcount << "\n";
     out << "property float x\n";
     out << "property float y\n";
     out << "property float z\n";
+    out << "property uchar red\n";
+    out << "property uchar green\n";
+    out << "property uchar blue\n";
     out << "element face " << fcount << "\n";
     out << "property list uint uint vertex_index\n";
     out << "end_header\n";
@@ -893,30 +923,4 @@ Eigen::MatrixXd ompl::base::AtlasStateSpace::numericalJacobian (const Eigen::Vec
     }
     
     return jac;
-}
-
-/// Private
-
-void ompl::base::AtlasStateSpace::alterRho (const double rho) const
-{
-    if (rho <= 0)
-        throw ompl::Exception("Please specify a positive rho.");
-    rho_ = rho;
-    rho_s_ = rho_ / std::pow(1 - exploration_, 1.0/k_);
-    ballMeasure_ = std::pow(std::sqrt(M_PI) * rho_, k_) / boost::math::tgamma(k_/2.0 + 1);
-    
-    // Generate random samples within the ball
-    for (std::size_t i = 0; i < samples_.size(); i++)
-    {
-        do
-            samples_[i] = Eigen::VectorXd::Random(k_) * rho_;
-        while (samples_[i].squaredNorm() > rho_*rho_);
-    }
-    
-    if (setup_)
-    {
-        // Completely recompute chart measures
-        for (std::size_t i = 0; i < charts_.size(); i++)
-            charts_[i]->approximateMeasure();
-    }
 }

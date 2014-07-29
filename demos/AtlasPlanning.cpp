@@ -179,6 +179,12 @@ bool almostAlways (const ompl::base::State *)
     return ((double) std::rand())/RAND_MAX < 0.95;
 }
 
+/** States surrounding the goal are invalid, making it unreachable. */
+bool unreachable (const ompl::base::State *state, const Eigen::VectorXd &goal)
+{
+    return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->toVector() - goal).norm() - 0.25) > 0.249;
+}
+
 /** Print the state and its chart ID. */
 void printState (const ompl::base::AtlasStateSpace::StateType *state)
 {
@@ -227,9 +233,9 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
     y = Eigen::VectorXd(dim); y << 1, 1, 2.94481779371197;
     
     // Validity checker
-    isValid = &always;
+    isValid = boost::bind(unreachable, _1, y);
     
-    // Atlas initializatio
+    // Atlas initialization
     return new ompl::base::AtlasStateSpace(dim, FKleinBottle);
 }
 
@@ -246,7 +252,7 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
     isValid = &always;
     
     // Atlas initialization
-    return new ompl::base::AtlasStateSpace(dim, Ftorus/*, Jtorus*/);
+    return new ompl::base::AtlasStateSpace(dim, Ftorus, Jtorus);
 }
 
 /** Allocate a sampler for the atlas that only returns valid points. */
@@ -261,7 +267,7 @@ int main (int, char *[])
     // Initialize the atlas for a problem (you can try the other one too)
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
-    ompl::base::AtlasStateSpacePtr atlas(initTorusProblem(x, y, isValid));
+    ompl::base::AtlasStateSpacePtr atlas(initKleinBottleProblem(x, y, isValid));
     ompl::base::StateSpacePtr space(atlas);
     ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
     atlas->setSpaceInformation(si);
@@ -297,7 +303,7 @@ int main (int, char *[])
     // Plan
     std::clock_t tstart = std::clock();
     ompl::base::PlannerStatus stat;
-    if ((stat = planner->solve(300)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
+    if ((stat = planner->solve(2)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
     {
         double time = ((double)(std::clock()-tstart))/CLOCKS_PER_SEC;
         
