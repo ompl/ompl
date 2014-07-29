@@ -145,7 +145,7 @@ void ompl::base::AtlasChart::LinearInequality::expandToInclude (const Eigen::Vec
 /// Public
 ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::VectorXd &xorigin, const bool anchor)
 : atlas_(atlas), n_(atlas_.getAmbientDimension()), k_(atlas_.getManifoldDimension()),
-  xorigin_(xorigin), id_(atlas_.getChartCount()), anchor_(anchor), radius_(atlas_.getRho()), pruning_(std::numeric_limits<std::size_t>::max())
+  xorigin_(xorigin), id_(atlas_.getChartCount()), anchor_(anchor), radius_(atlas_.getRho()), pruning_(20)
 {
     if (atlas_.bigF(xorigin_).norm() > 10*atlas_.getProjectionTolerance())
         OMPL_WARN("AtlasChart created at point not on the manifold!");
@@ -333,7 +333,8 @@ std::size_t ompl::base::AtlasChart::getRank (void) const
 
 void ompl::base::AtlasChart::shrinkRadius (void) const
 {
-    radius_ *= 0.8;
+    if (radius_ > atlas_.getDelta())
+        radius_ *= 0.8;
 }
         
 unsigned int ompl::base::AtlasChart::getID (void) const
@@ -409,7 +410,9 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace) con
 {
     if (halfspace)
     {
+        mutices_.bigL_.lock();
         bigL_.push_front(halfspace);
+        mutices_.bigL_.unlock();
         
         // Find tracked states which need to be moved to a different chart
         mutices_.owned_.lock();
@@ -420,10 +423,8 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace) con
             if (!halfspace->accepts(psiInverse((*s)->toVector())))
             {
                 const LinearInequality *const comp = halfspace->getComplement();
-                if (!comp)
-                    (*s)->setChart(atlas_.newChart((*s)->toVector()), fast);
-                else
-                    (*s)->setChart(comp->getOwner(), fast);
+                assert(comp);
+                (*s)->setChart(comp->getOwner(), fast);
                 
                 // Manually disown here because it's faster since we already have the iterator
                 s = boost::prior(owned_.erase(s));
@@ -464,7 +465,8 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace) con
         std::size_t i = 0;
         for (std::list<LinearInequality *>::iterator l = bigL_.begin(); l != bigL_.end(); l++, i++)
         {
-            if (pruneCandidates[i])
+            // Be careful not to prune the one we just added because it messes up our neighbor
+            if (pruneCandidates[i] && (*l) != halfspace)
             {
                 LinearInequality *const comp = (*l)->getComplement();
                 if (comp)

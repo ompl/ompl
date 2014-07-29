@@ -86,8 +86,9 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
 {
     AtlasStateSpace::StateType *astate = state->as<AtlasStateSpace::StateType>();
     const AtlasStateSpace::StateType *anear = near->as<AtlasStateSpace::StateType>();
+    Eigen::VectorXd n = anear->toVector();
     Eigen::VectorXd r;
-    const AtlasChart *c;
+    const AtlasChart *c = &anear->getChart();
     
     // Sometimes the projection fails and we don't land on the manifold. Repeat until we do.
     do
@@ -95,13 +96,17 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         // Rejection sampling to find a point in the ball
         do
         {
-            c = &anear->getChart();
-            const Eigen::VectorXd uoffset = Eigen::VectorXd::Random(atlas_.getManifoldDimension());
-            const Eigen::VectorXd xoffset = c->phi(uoffset) - c->phi(Eigen::VectorXd::Zero(atlas_.getManifoldDimension()));
-            r = c->psi(c->psiInverse(anear->toVector() + distance * xoffset));
-            astate->setRealState(r, *c);
+            do
+            {
+                const Eigen::VectorXd uoffset = Eigen::VectorXd::Random(atlas_.getManifoldDimension());
+                const Eigen::VectorXd xoffset = c->phi(uoffset) - c->phi(Eigen::VectorXd::Zero(atlas_.getManifoldDimension()));
+                r = anear->toVector() + distance * xoffset;
+            }
+            while ((r - n).squaredNorm() > distance*distance);
+            r = c->psi(c->psiInverse(r));
         }
-        while (atlas_.distance(near, state) > distance);
+        while ((r - n).squaredNorm() > distance*distance);
+        astate->setRealState(r, *c);
     }
     while (atlas_.bigF(r).norm() > atlas_.getProjectionTolerance());
     
