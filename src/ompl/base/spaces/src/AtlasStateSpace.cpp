@@ -276,9 +276,9 @@ const ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart_s
     return chart_;
 }
 
-void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c)
+void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c, const bool fast)
 {
-    if (chart_)
+    if (chart_ && !fast)
         chart_->disown(this);
     chart_ = &c;
     chart_->own(this);
@@ -484,7 +484,10 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::sampleChart (void) const
     if (charts_.size() < 1)
         throw ompl::Exception("Atlas sampled before any charts were made. Use AtlasStateSpace::newChart() first.");
     
-    return *charts_.sample(rng_.uniform01());
+    mutices_.rng_.lock();
+    const double r = rng_.uniform01();
+    mutices_.rng_.unlock();
+    return *charts_.sample(r);
 }
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::VectorXd &x, const AtlasChart *const neighbor) const
@@ -524,7 +527,9 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::VectorXd &xorigin) const
 {
     AtlasChart &addedC = *new AtlasChart(*this, xorigin);
+    mutices_.charts_.lock();
     charts_.add(&addedC, addedC.getMeasure());
+    mutices_.charts_.unlock();
     
     // Ensure all charts respect boundaries of the new one, and vice versa
     for (std::size_t i = 0; i < charts_.size()-1; i++)
@@ -549,7 +554,9 @@ Eigen::VectorXd ompl::base::AtlasStateSpace::dichotomicSearch (const AtlasChart 
 
 void ompl::base::AtlasStateSpace::updateMeasure (const AtlasChart &c) const
 {
+    mutices_.charts_.lock();
     charts_.update(charts_.getElements()[c.getID()], c.getMeasure());
+    mutices_.charts_.unlock();
 }
 
 double ompl::base::AtlasStateSpace::getMeasureRhoKBall (void) const
@@ -645,7 +652,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             if (!c)
             {
                 OMPL_DEBUG("Atlas: Fell between the cracks! Patching in a new chart now. Using smaller rho in the future.");
-                setRho(0.8*getRho());
+//                 setRho(0.8*getRho());
                 c = &newChart(x_n);
             }
             
@@ -715,6 +722,7 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
     std::vector<Eigen::VectorXd> vertices;
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
+        std::cout << "Dumping chart " << i << std::flush << "\r";
         // Write the vertices and the faces
         const AtlasChart &c = *charts_[i];
         c.toPolygon(vertices);
@@ -734,6 +742,7 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
         }
     }
     
+    std::cout << "\nDone.\n";
     out << "ply\n";
     out << "format ascii 1.0\n";
     out << "element vertex " << vcount << "\n";

@@ -43,6 +43,8 @@
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/datastructures/PDF.h"
 
+#include <boost/thread/mutex.hpp>
+
 #include <eigen3/Eigen/Core>
 
 namespace ompl
@@ -131,8 +133,7 @@ namespace ompl
             void checkSpace (void);
         };
         
-        /** \brief State space encapsulating the atlas algorithm to assist planning on a constraint manifold.
-         * \warning Does not comply with OMPL thread-safety assumptions. TODO */
+        /** \brief State space encapsulating the atlas algorithm to assist planning on a constraint manifold. */
         class AtlasStateSpace : public RealVectorStateSpace
         {
         public:
@@ -161,8 +162,8 @@ namespace ompl
                 /** \brief Get the (possibly NULL) pointer to the chart. */
                 const AtlasChart *getChart_safe (void) const;
                 
-                /** \brief Set the chart for the state. */
-                void setChart (const AtlasChart &c);
+                /** \brief Set the chart \a c for the state. Skip the disown() step if \a fast. */
+                void setChart (const AtlasChart &c, const bool fast = false);
                 
             private:
                 
@@ -410,6 +411,13 @@ namespace ompl
             
             /** \brief Collection of points to use in Monte Carlo integration. */
             mutable std::vector<Eigen::VectorXd> samples_;
+            
+            /** \brief Locks to keep some operations thread-safe. */
+            mutable struct
+            {
+                boost::mutex charts_;
+                boost::mutex rng_;
+            } mutices_;
         };
     }
 }

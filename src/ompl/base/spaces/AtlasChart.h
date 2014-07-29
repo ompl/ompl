@@ -41,6 +41,9 @@
 
 #include <list>
 
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/recursive_mutex.hpp>
+
 #include <eigen3/Eigen/LU>
 
 namespace ompl
@@ -160,7 +163,7 @@ namespace ompl
             virtual const AtlasChart *owningNeighbor (const Eigen::VectorXd &x) const;
             
             /** \brief Perform calculations to approximate the measure of this chart. */
-            virtual void approximateMeasure (void);
+            virtual void approximateMeasure (void) const;
             
             /** \brief Get the measure (k_-dimensional volume) of this chart. */
             double getMeasure (void) const;
@@ -183,15 +186,15 @@ namespace ompl
             const AtlasStateSpace &atlas_;
             
             /** \brief Measure of the convex polytope P. */
-            double measure_;
+            mutable double measure_;
             
             /** \brief Set of linear inequalities defining the polytope P. */
-            std::list<LinearInequality *> bigL_;
+            mutable std::list<LinearInequality *> bigL_;
             
             /** \brief Introduce a new linear inequality \a halfspace to bound the polytope P. Updates
              * approximate measure and prune redundant inequalities. This chart assumes
              * responsibility for deleting \a halfspace. If \a halfspace is NULL, it is not added. */
-            virtual void addBoundary (LinearInequality *const halfspace = NULL);
+            virtual void addBoundary (LinearInequality *const halfspace = NULL) const;
             
         private:
             
@@ -216,11 +219,18 @@ namespace ompl
             /** \brief List of states on this chart. */
             mutable std::list<ompl::base::AtlasStateSpace::StateType *> owned_;
             
+            /** \brief Enables pruning of redundant linear inequalities. */
+            const std::size_t pruning_;
+            
+            /** \brief Locks to keep some operations thread-safe. */
+            mutable struct
+            {
+                boost::recursive_mutex bigL_;
+                boost::mutex owned_;
+            } mutices_;
+            
             /** \brief Compare the angles \a v1 and \a v2 make with the origin. */
             bool angleCompare (const Eigen::VectorXd &v1, const Eigen::VectorXd &v2) const;
-            
-            /** \brief Enables pruning of redundant linear inequalities. */
-            const bool pruning;
         };
     }
 }

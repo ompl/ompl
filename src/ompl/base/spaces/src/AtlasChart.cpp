@@ -145,7 +145,7 @@ void ompl::base::AtlasChart::LinearInequality::expandToInclude (const Eigen::Vec
 /// Public
 ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::VectorXd &xorigin)
 : atlas_(atlas), n_(atlas_.getAmbientDimension()), k_(atlas_.getManifoldDimension()),
-  xorigin_(xorigin), id_(atlas_.getChartCount()), pruning(false)
+  xorigin_(xorigin), id_(atlas_.getChartCount()), pruning_(std::numeric_limits<std::size_t>::max())
 {
     if (atlas_.bigF(xorigin_).norm() > 10*atlas_.getProjectionTolerance())
         OMPL_WARN("AtlasChart created at point not on the manifold!");
@@ -215,6 +215,7 @@ bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, std::size_t *const s
                                   const LinearInequality *const ignore2) const
 {
     bool inPolytope = true;
+    mutices_.bigL_.lock();
     if (solitary)
         *solitary = bigL_.size();
     
@@ -241,24 +242,30 @@ bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, std::size_t *const s
             *solitary = i;
         }
     }
+    mutices_.bigL_.unlock();
     
     return inPolytope;
 }
 
 void ompl::base::AtlasChart::borderCheck (const Eigen::VectorXd &v) const
 {
+    mutices_.bigL_.lock();
     for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++)
         (*l)->checkNear(v);
+    mutices_.bigL_.unlock();
 }
 
 void ompl::base::AtlasChart::own (ompl::base::AtlasStateSpace::StateType *const state) const
 {
     assert(state != NULL);
+    mutices_.owned_.lock();
     owned_.push_front(state);
+    mutices_.owned_.unlock();
 }
 
 void ompl::base::AtlasChart::disown (ompl::base::AtlasStateSpace::StateType *const state) const
 {
+    mutices_.owned_.lock();
     for (std::list<ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
     {
         if (*s == state)
@@ -267,12 +274,14 @@ void ompl::base::AtlasChart::disown (ompl::base::AtlasStateSpace::StateType *con
             break;
         }
     }
+    mutices_.owned_.unlock();
 }
 
 const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eigen::VectorXd &x) const
 {
     const AtlasChart *bestC = NULL;
     double best = std::numeric_limits<double>::infinity();
+    mutices_.bigL_.lock();
     for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++)
     {
         const LinearInequality *const comp = (*l)->getComplement();
@@ -294,11 +303,12 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eige
             }
         }
     }
+    mutices_.bigL_.unlock();
     
     return bestC;
 }
 
-void ompl::base::AtlasChart::approximateMeasure (void)
+void ompl::base::AtlasChart::approximateMeasure (void) const
 {
     addBoundary();
 }
@@ -372,30 +382,36 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
 }
 
 /// Protected
-void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace)
+void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace) const
 {
     if (halfspace)
-        bigL_.push_front(halfspace);
-    
-    // Find tracked states which need to be moved to a different chart
-    for (std::list<ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
     {
-        assert(*s != NULL);
-        std::list<ompl::base::AtlasStateSpace::StateType *>::iterator p = boost::prior(s);
-        if (!halfspace->accepts(psiInverse((*s)->toVector())))
+        bigL_.push_front(halfspace);
+        
+        // Find tracked states which need to be moved to a different chart
+        mutices_.owned_.lock();
+        const bool fast = true;
+        for (std::list<ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
         {
-            const LinearInequality *const comp = halfspace->getComplement();
-            if (!comp)
-                (*s)->setChart(atlas_.newChart((*s)->toVector()));
-            else
-                (*s)->setChart(comp->getOwner());
-            s = p;
+            assert(*s != NULL);
+            if (!halfspace->accepts(psiInverse((*s)->toVector())))
+            {
+                const LinearInequality *const comp = halfspace->getComplement();
+                if (!comp)
+                    (*s)->setChart(atlas_.newChart((*s)->toVector()), fast);
+                else
+                    (*s)->setChart(comp->getOwner(), fast);
+                // Manually disown here because it's faster since we already have the iterator
+                s = boost::prior(owned_.erase(s));
+            }
         }
+        mutices_.owned_.unlock();
     }
     
     // Initialize list of inequalities marked for pruning
+    mutices_.bigL_.lock();
     std::vector<bool> pruneCandidates;
-    if (pruning)
+    if (bigL_.size() > pruning_)
     {
         pruneCandidates.resize(bigL_.size() + 1);  // dummy at the end for convenience
         for (std::size_t i = 0; i < bigL_.size(); i++)
@@ -409,17 +425,17 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace)
     {
         // Take a sample and check if it's inside P \intersect k-Ball
         std::size_t soleViolation;
-        if (inP(samples[i], (pruning ? NULL : &soleViolation)))
+        if (inP(samples[i], ((bigL_.size() > pruning_) ? &soleViolation : NULL)))
             countInside++;
         
         // If there was a solitary violation, that inequalitiy is too important to prune
-        if (pruning)
+        if (bigL_.size() > pruning_)
             pruneCandidates[soleViolation] = false;
     }
     
     // Prune at most one candidate (If two inequalities are too close together, we won't sample
     //  between them, so we don't know which is redundant and which is important.)
-    if (pruning)
+    if (bigL_.size() > pruning_)
     {
         std::size_t i = 0;
         for (std::list<LinearInequality *>::iterator l = bigL_.begin(); l != bigL_.end(); l++, i++)
@@ -435,6 +451,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality *const halfspace)
             }
         }
     }
+    mutices_.bigL_.unlock();
     
     // Update measure with new estimate
     measure_ = countInside * (atlas_.getMeasureRhoKBall() / samples.size());

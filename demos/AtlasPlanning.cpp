@@ -126,25 +126,34 @@ Eigen::MatrixXd Jcomplicated (const Eigen::VectorXd &x)
     return j;
 }
 
+/** Klein bottle manifold. */
+Eigen::VectorXd FKleinBottle (const Eigen::VectorXd &x)
+{
+    const double p = x.squaredNorm() + 2*x[1] - 1;
+    const double n = x.squaredNorm() - 2*x[1] - 1;
+    Eigen::VectorXd f(1);
+    f[0] = p*(n*n - 8*x[2]*x[2]) + 16*x[0]*x[1]*n;
+    
+    return f;
+}
+
 /** Torus manifold. */
 Eigen::VectorXd Ftorus (const Eigen::VectorXd &x)
 {
     Eigen::VectorXd f(1);
     const double r1 = 2;
     const double r2 = 1;
-    
     Eigen::VectorXd c(3); c << x[0], x[1], 0;
     f[0] = (x - r1 * c.normalized()).norm() - r2;
+    
     return f;
 }
 
-/** Torus manifold. */
 Eigen::MatrixXd Jtorus (const Eigen::VectorXd &x)
 {
     Eigen::MatrixXd j(1, 3);
     const double r1 = 2;
     const double r2 = 1;
-    
     const double xySquaredNorm = x[0]*x[0] + x[1]*x[1];
     const double xyNorm = std::sqrt(xySquaredNorm);
     const double denom = std::sqrt(x[2]*x[2] + (xyNorm - r1)*(xyNorm - r1));
@@ -167,6 +176,11 @@ bool always (const ompl::base::State *)
 bool almostAlways (const ompl::base::State *)
 {
     return ((double) std::rand())/RAND_MAX < 0.95;
+}
+
+bool always (const ompl::base::State *)
+{
+    return true;
 }
 
 /** Print the state and its chart ID. */
@@ -207,6 +221,23 @@ ompl::base::AtlasStateSpace *initComplicatedProblem (Eigen::VectorXd &x, Eigen::
     return new ompl::base::AtlasStateSpace(dim, Fcomplicated, Jcomplicated);
 }
 
+<<<<<<< local
+/** Initialize the atlas for the sphere problem and store the start and goal vectors. */
+ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, boost::function<bool (const ompl::base::State *)> &isValid)
+{
+    const std::size_t dim = 3;
+    
+    // Start and goal points
+    x = Eigen::VectorXd(dim); x << 0, 0, 1;
+    y = Eigen::VectorXd(dim); y << 1, 1, 2.94481779371197;
+    
+    // Validity checker
+    isValid = &always;
+    
+    // Atlas initializatio
+    return new ompl::base::AtlasStateSpace(dim, FKleinBottle);
+}
+
 /** Initialize the atlas for the torus problem and store the start and goal vectors. */
 ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
 {
@@ -229,6 +260,7 @@ ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atl
     return ompl::base::ValidStateSamplerPtr(new ompl::base::AtlasValidStateSampler(atlas, si));
 }
 
+
 int main (int, char *[])
 {
     // Initialize the atlas for a problem (you can try the other one too)
@@ -247,7 +279,7 @@ int main (int, char *[])
     start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
     goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
     
-    atlas->setExploration(0.8);
+    atlas->setExploration(0.5);
     atlas->setRho(0.1);
     atlas->setAlpha(M_PI/32);
     atlas->setEpsilon(0.05);
@@ -267,13 +299,12 @@ int main (int, char *[])
     planner->setProblemDefinition(pdef);
     planner->setup();
     
-    // Plan for at most 60 seconds
+    // Plan
     std::clock_t tstart = std::clock();
     ompl::base::PlannerStatus stat;
     if ((stat = planner->solve(300)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
     {
         double time = ((double)(std::clock()-tstart))/CLOCKS_PER_SEC;
-        std::cout << "Solution found!\n";
         
         // Extract the solution path by re-interpolating between the saved states
         std::stringstream v;
@@ -323,10 +354,10 @@ int main (int, char *[])
         std::cout << "Length: " << length << "\n";
         std::cout << "Took " << time << " seconds.\n";
     }
-    else if (stat == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
-        std::cout << "Not enough time!\n";
     else
+    {
         std::cout << "No solution found.\n";
+    }
     
     std::cout << "Atlas created " << atlas->getChartCount() << " charts.\n";
     
