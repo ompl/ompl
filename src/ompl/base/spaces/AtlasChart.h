@@ -205,9 +205,8 @@ namespace ompl
             mutable std::list<LinearInequality *> bigL_;
             
             /** \brief Introduce a new linear inequality \a halfspace to bound the polytope P. Updates
-             * approximate measure and prune redundant inequalities. This chart assumes
-             * responsibility for deleting \a halfspace. If \a halfspace is NULL, it is not added. */
-            virtual void addBoundary (LinearInequality *const halfspace = NULL) const;
+             * approximate measure. This chart assumes responsibility for deleting \a halfspace. */
+            virtual void addBoundary (LinearInequality &halfspace) const;
             
         private:
             
@@ -240,9 +239,6 @@ namespace ompl
             
             /** \brief Rank of the basis. */
             std::size_t rank_;
-            
-            /** \brief Enables pruning of redundant linear inequalities. */
-            const std::size_t pruning_;
             
             /** \brief Locks to keep some operations thread-safe. */
             mutable struct

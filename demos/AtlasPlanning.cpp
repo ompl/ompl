@@ -49,6 +49,8 @@
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 
+#include <eigen3/Eigen/Dense>
+
 /** Simple manifold example: the unit sphere. */
 Eigen::VectorXd Fsphere (const Eigen::VectorXd &x)
 {
@@ -233,7 +235,7 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
     y = Eigen::VectorXd(dim); y << 1, 1, 2.94481779371197;
     
     // Validity checker
-    isValid = &always;
+    isValid = boost::bind(&unreachable, _1, y);
     
     // Atlas initialization
     return new ompl::base::AtlasStateSpace(dim, FKleinBottle);
@@ -296,7 +298,8 @@ int main (int, char *[])
     si->setup();
     
     // Choose the planner. Try others, like RRT, RRTstar, EST, PRM, ...
-    ompl::base::PlannerPtr planner(new ompl::geometric::RRTstar(si));
+    ompl::base::PlannerPtr planner(new ompl::geometric::EST(si));
+    planner->as<ompl::geometric::EST>()->setRange(1);
     planner->setProblemDefinition(pdef);
     planner->setup();
     
