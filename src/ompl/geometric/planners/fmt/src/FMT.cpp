@@ -53,7 +53,6 @@ ompl::geometric::FMT::FMT(const base::SpaceInformationPtr &si)
     , numSamples_(1000)
     , radiusMultiplier_(1.1)
 {
-    maxSampleAttempts_ = 10 * numSamples_;
     freeSpaceVolume_ = std::pow(si_->getMaximumExtent() / std::sqrt(si_->getStateDimension()), si_->getStateDimension());
     lastGoalMotion_ = NULL;
 
@@ -182,14 +181,12 @@ double ompl::geometric::FMT::calculateRadius(const unsigned int dimension, const
 void ompl::geometric::FMT::sampleFree(const base::PlannerTerminationCondition &ptc)
 {
     unsigned int nodeCount = 0;
-    unsigned int sampleAttempts = 0;
     Motion *motion = new Motion(si_);
 
     // Sample numSamples_ number of nodes from the free configuration space
-    while (nodeCount < numSamples_ && sampleAttempts < maxSampleAttempts_ && !ptc)
+    while (nodeCount < numSamples_ && !ptc)
     {
         sampler_->sampleUniform(motion->getState());
-        sampleAttempts++;
 
         bool collision_free = si_->isValid(motion->getState());
 
