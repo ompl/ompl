@@ -733,7 +733,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             // Deviation: If rho is too big, charts have gaps between them; this fixes it on the fly
             if (!newc)
             {
-                OMPL_DEBUG("Atlas: Fell between the cracks! Patching in a new chart now.");
+                OMPL_DEBUG("Fell between the cracks! Patching in a new chart now.");
                 c->shrinkRadius();
                 updateMeasure(*c);
                 c = &newChart(x_n);

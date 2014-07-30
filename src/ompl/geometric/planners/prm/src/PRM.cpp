@@ -407,7 +407,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     base::PlannerTerminationCondition ptcOrSolutionFound =
         base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&PRM::addedNewSolution, this)));
 
-    constructRoadmap(ptcOrSolutionFound);
+    constructRoadmap(ptc);//OrSolutionFound);
 
     // Ensure slnThread is ceased before exiting solve
     slnThread.join();

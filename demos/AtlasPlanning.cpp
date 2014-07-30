@@ -44,6 +44,7 @@
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
+#include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
@@ -281,9 +282,19 @@ ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atl
     return ompl::base::ValidStateSamplerPtr(new ompl::base::AtlasValidStateSampler(atlas, si));
 }
 
-
-int main (int, char *[])
+/** Print usage information. Does not return. */
+void usage (void)
 {
+    std::cout << "Usage: demo_AtlasPlanning <planner> <timelimit>\n";
+    std::cout << "Available planners: RRT RRTstar RRTConnect PRM PRMstar EST KPIECE1 SPARS SPARStwo\n";
+    exit(0);
+}
+
+int main (int argc, char **argv)
+{
+    if (argc != 3)
+        usage();
+    
     // Initialize the atlas for a problem (you can try the other one too)
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
@@ -316,15 +327,40 @@ int main (int, char *[])
     pdef->setStartAndGoalStates(start, goal);
     si->setup();
     
-    // Choose the planner. Try others, like RRT, RRTstar, EST, PRM, ...
-    ompl::base::PlannerPtr planner(new ompl::geometric::RRTstar(si));
+    // Choose the planner.
+    ompl::base::PlannerPtr planner;
+    if (std::strcmp(argv[1], "RRT") == 0)
+        planner = ompl::base::PlannerPtr(new ompl::geometric::RRT(si));
+    else if (std::strcmp(argv[1], "RRTstar") == 0)
+        planner = ompl::base::PlannerPtr(new ompl::geometric::RRTstar(si));
+    else if (std::strcmp(argv[1], "RRTConnect") == 0)
+        planner = ompl::base::PlannerPtr(new ompl::geometric::RRTConnect(si));
+    else if (std::strcmp(argv[1], "PRM") == 0)
+        planner = ompl::base::PlannerPtr(new ompl::geometric::PRM(si));
+    else if (std::strcmp(argv[1], "PRMstar") == 0)
+        planner = ompl::base::PlannerPtr(new ompl::geometric::PRMstar(si));
+    else if (std::strcmp(argv[1], "EST") == 0)
+        planner = ompl::base::PlannerPtr(new ompl::geometric::EST(si));
+    else if (std::strcmp(argv[1], "KPIECE1") == 0)
+        planner = ompl::base::PlannerPtr(new ompl::geometric::KPIECE1(si));
+    else if (std::strcmp(argv[1], "SPARS") == 0)
+        planner = ompl::base::PlannerPtr(new ompl::geometric::SPARS(si));
+    else if (std::strcmp(argv[1], "SPARStwo") == 0)
+        planner = ompl::base::PlannerPtr(new ompl::geometric::SPARStwo(si));
+    else
+        usage();
     planner->setProblemDefinition(pdef);
     planner->setup();
+    
+    // Set the time limit
+    const double timelimit = std::atof(argv[2]);
+    if (timelimit <= 0)
+        usage();
     
     // Plan
     std::clock_t tstart = std::clock();
     ompl::base::PlannerStatus stat;
-    if ((stat = planner->solve(120)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
+    if ((stat = planner->solve(timelimit)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
     {
         double time = ((double)(std::clock()-tstart))/CLOCKS_PER_SEC;
         
