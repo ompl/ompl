@@ -91,12 +91,23 @@ void ompl::geometric::RRTstar::setup()
     // If no optimization objective was specified, then default to
     // optimizing path length as computed by the distance() function
     // in the state space.
-    if (pdef_->hasOptimizationObjective())
-        opt_ = pdef_->getOptimizationObjective();
-    else
+    if(pdef_)
     {
+      if (pdef_->hasOptimizationObjective())
+      {
+        OMPL_INFORM("RRTStar retrieving optimization objective from problem definition.");
+        opt_ = pdef_->getOptimizationObjective();
+      }
+      else
+      {
         OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length for the allowed planning time.", getName().c_str());
         opt_.reset(new base::PathLengthOptimizationObjective(si_));
+      }
+    }
+    else
+    {
+      OMPL_INFORM("[RRTStar] problem definition is not set, deferring setup completion...");
+      setup_ = false;
     }
 }
 
