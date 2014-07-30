@@ -440,7 +440,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     }
 
     OMPL_INFORM("Done configuring planners.");
-    /*OMPL_INFORM("Saving planner setup information ...");
+    OMPL_INFORM("Saving planner setup information ...");
 
     std::stringstream setupInfo;
     if (gsetup_)
@@ -453,7 +453,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
     exp_.setupInfo = setupInfo.str();
 
-    OMPL_INFORM("Done saving information");*/
+    OMPL_INFORM("Done saving information");
 
     OMPL_INFORM("Beginning benchmark");
     msg::OutputHandler *oh = msg::getOutputHandler();
