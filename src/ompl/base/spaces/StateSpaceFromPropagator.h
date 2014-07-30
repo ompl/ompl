@@ -84,6 +84,23 @@ public:
                 std::vector<control::TimedControl> controls;
                 double duration = 0;
                 sp_->steer(from,to,controls,duration);
+
+                // Rescaling the relative t to the maximum control duration given by steer().
+                double interp_t = t*duration;
+                double current_t = 0;
+                int i = 0;
+                sp_->getSpaceInformation()->copyState(state,from);
+                
+                // Propagate complete TimedControls until interp_t.
+                while (current_t + controls[i].second < interp_t)
+                {
+                    // TODO: The propagate API should change according to the steer(). Also interpolate() API? Maybe not this one. 
+                    sp_->propagate(state, controls[i].first, controls[i].second, state);
+                    current_t += controls[i].second;
+                    ++i;
+                }
+                // Propagate the rest of the time.
+                sp_->propagate(state, controls[i].first, interp_t - current_t, state);
                 
             }
 
