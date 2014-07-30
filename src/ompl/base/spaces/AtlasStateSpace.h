@@ -38,10 +38,12 @@
 #define OMPL_BASE_SPACE_ATLAS_STATE_SPACE_
 
 #include "ompl/base/MotionValidator.h"
+#include "ompl/base/PlannerData.h"
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/ValidStateSampler.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/datastructures/PDF.h"
+#include "ompl/geometric/PathGeometric.h"
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/shared_mutex.hpp>
@@ -241,7 +243,7 @@ namespace ompl
             
             /** \brief Sometimes manifold traversal creates an inordinate number of tiny charts. This parameter limits
              * the number of charts that can be created in one pass. */
-            void setMaxChartsToCreate (unsigned int charts);
+            void setMaxChartsPerExtension (unsigned int charts);
             
             /** \brief Get delta. */
             double getDelta (void) const;
@@ -271,7 +273,7 @@ namespace ompl
             unsigned int getProjectionMaxIterations (void) const;
             
             /** \brief Get the maximum number of charts to create in one pass. */
-            unsigned int getMaxChartsToCreate (void) const;
+            unsigned int getMaxChartsPerExtension (void) const;
             
             /** \brief Get the dimension of the ambient space. */
             unsigned int getAmbientDimension (void) const;
@@ -335,6 +337,12 @@ namespace ompl
             
             /** \brief Write a mesh representation of the atlas to a stream. */
             void dumpMesh (std::ostream &out) const;
+            
+            /** \brief Write a mesh of a Boost graph on the atlas to a stream. */
+            void dumpGraph (const PlannerData::Graph &graph, std::ostream &out) const;
+            
+            /** \brief Write a mesh of a path on the atlas to stream. */
+            void dumpPath (ompl::geometric::PathGeometric &path, std::ostream &out) const;
             
             /** @} */
             
@@ -417,7 +425,7 @@ namespace ompl
             unsigned int projectionMaxIterations_;
             
             /** \brief Maximum number of charts that can be created in one manifold traversal. */
-            unsigned int maxChartsToCreate_;
+            unsigned int maxChartsPerExtension_;
             
             /** \brief Parameter which tunes the number of samples used by Monte Carlo integration. */
             double monteCarloThoroughness_;

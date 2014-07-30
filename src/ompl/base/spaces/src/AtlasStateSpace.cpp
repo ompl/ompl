@@ -34,11 +34,14 @@
 
 /* Author: Caleb Voss */
 
-#include "ompl/base/SpaceInformation.h"
 #include "ompl/base/spaces/AtlasStateSpace.h"
+
+#include "ompl/base/PlannerDataGraph.h"
+#include "ompl/base/SpaceInformation.h"
 #include "ompl/base/spaces/AtlasChart.h"
 #include "ompl/util/Exception.h"
 
+#include <boost/foreach.hpp>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/lambda.hpp>
@@ -313,7 +316,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     bigF(constraints),
     bigJ(jacobian ? jacobian : boost::bind(&AtlasStateSpace::numericalJacobian, this, boost::lambda::_1)),
     n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
-    projectionTolerance_(1e-8), projectionMaxIterations_(200), maxChartsToCreate_(20), monteCarloThoroughness_(3.5), setup_(false)
+    projectionTolerance_(1e-8), projectionMaxIterations_(200), maxChartsPerExtension_(20), monteCarloThoroughness_(3.5), setup_(false)
 {
     setName("Atlas" + RealVectorStateSpace::getName());
     
@@ -455,9 +458,9 @@ void ompl::base::AtlasStateSpace::setProjectionMaxIterations (unsigned int itera
     projectionMaxIterations_ = iterations;
 }
 
-void ompl::base::AtlasStateSpace::setMaxChartsToCreate (unsigned int charts)
+void ompl::base::AtlasStateSpace::setMaxChartsPerExtension (unsigned int charts)
 {
-    maxChartsToCreate_ = charts;
+    maxChartsPerExtension_ = charts;
 }
 
 double ompl::base::AtlasStateSpace::getDelta (void) const
@@ -505,9 +508,9 @@ unsigned int ompl::base::AtlasStateSpace::getProjectionMaxIterations (void) cons
     return projectionMaxIterations_;
 }
 
-unsigned int ompl::base::AtlasStateSpace::getMaxChartsToCreate (void) const
+unsigned int ompl::base::AtlasStateSpace::getMaxChartsPerExtension (void) const
 {
-    return maxChartsToCreate_;
+    return maxChartsPerExtension_;
 }
 
 unsigned int ompl::base::AtlasStateSpace::getAmbientDimension (void) const
@@ -647,11 +650,13 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     }
     
     Eigen::VectorXd x_n, x_r, x_j, x_0, u_n, u_r, u_j;
+    std::list<Eigen::VectorXd> lastTenX;
+    double lastTenD = 0;
     x_n = from->toVector();
     x_r = to->toVector();
     
     // We will stop if we exit the ball of radius d_0 centered at x_0
-    x_0 = x_n;
+    x_0 = x_j = x_n;
     double d_0 = (x_n - x_r).norm();
     double d = 0;
     
@@ -671,10 +676,30 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     //bool chartCreated = false;    // Unused for now
     while ((u_r - u_n).squaredNorm() > delta_*delta_)
     {
+        lastTenX.push_back(x_n);
+        lastTenD += (x_n - x_j).norm();
+        if (lastTenX.size() > 10)
+        {
+            lastTenD -= (lastTenX.front() - *boost::next(lastTenX.begin())).norm();
+            lastTenX.pop_front();
+            if ((lastTenX.front() - lastTenX.back()).norm() < 0.1*lastTenD)
+            {
+                // No way to get out
+                OMPL_DEBUG("Probably got stuck in local minimum.");
+                break;
+            }
+        }
+        
+        
         // Step by delta toward the target and project
-        u_j = u_n + delta_*(u_r - u_n).normalized();    // Note the difference to pseudocode (line 13): a similar mistake
+        u_j = u_n + delta_*(u_r - u_n).normalized();    // Note the difference to pseudocode (line 13): a similar mistake to line 8
         x_j = c->psi(u_j);
         double d_s = (x_n - x_j).norm();
+        if (d_s > 5*delta_)
+        {
+            OMPL_DEBUG("Projection broke down.");
+            break;
+        }
         bool changedChart = false;
         
         // Collision check unless interpolating
@@ -759,10 +784,10 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         
         // Check stopping criteria regarding how far we've gone
         d += d_s;
-        if ((x_0 - x_j).norm() > d_0 || d > lambda_*d_0 || chartsCreated > maxChartsToCreate_)
+        if ((x_0 - x_j).norm() > d_0 || d > lambda_*d_0 || chartsCreated > maxChartsPerExtension_)
             break;
     }
-    if (chartsCreated > maxChartsToCreate_)
+    if (chartsCreated > maxChartsPerExtension_)
         OMPL_DEBUG("Stopping extension early b/c too many charts created.");
     const bool reached = ((x_r - x_n).squaredNorm() < delta_*delta_);
     
@@ -784,29 +809,17 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
     std::size_t vcount = 0;
     std::size_t fcount = 0;
     std::vector<Eigen::VectorXd> vertices;
-    unsigned int degenerateCharts = 0;
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
-        std::cout << "Dumping chart " << i << std::flush << "\r";
         // Write the vertices and the faces
+        std::cout << "\rDumping chart " << i << std::flush;
         const AtlasChart &c = *charts_[i];
         c.toPolygon(vertices);
         std::stringstream poly;
         std::size_t fvcount = 0;
-        unsigned int gray = 255 - 55*rng_.uniform01();
         for (std::size_t j = 0; j < vertices.size(); j++)
         {
-            v << vertices[j].transpose() << " ";
-            if (c.getRank() == 2)
-            {
-                v << gray << " " << gray << " " << gray;
-            }
-            else
-            {
-                degenerateCharts++;
-                v << "255 100 200";
-            }
-            v << "\n";
+            v << vertices[j].transpose() << "\n";
             poly << vcount++ << " ";
             fvcount++;
         }
@@ -817,17 +830,98 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
             fcount += 1;
         }
     }
-    std::cout << "Degenerate charts: " << degenerateCharts << "\n";
-    std::cout << "Done.\n";
+    std::cout << "\n";
     out << "ply\n";
     out << "format ascii 1.0\n";
     out << "element vertex " << vcount << "\n";
     out << "property float x\n";
     out << "property float y\n";
     out << "property float z\n";
-    out << "property uchar red\n";
-    out << "property uchar green\n";
-    out << "property uchar blue\n";
+    out << "element face " << fcount << "\n";
+    out << "property list uint uint vertex_index\n";
+    out << "end_header\n";
+    out << v.str() << f.str();
+}
+
+void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, std::ostream &out) const
+{
+    std::stringstream v, f;
+    std::size_t vcount = 0;
+    std::size_t fcount = 0;
+    
+    BOOST_FOREACH (PlannerData::Graph::Edge edge, boost::edges(graph))
+    {
+        std::vector<StateType *> stateList;
+        const State *source = boost::get(vertex_type, graph, boost::source(edge, graph))->getState();
+        const State *target = boost::get(vertex_type, graph, boost::target(edge, graph))->getState();
+        
+        followManifold(source->as<StateType>(), target->as<StateType>(), true, &stateList);
+        StateType *from = stateList[0];
+        v << from->toVector().transpose() << "\n";
+        vcount++;
+        bool reset = true;
+        for (std::size_t i = 1; i < stateList.size(); i++)
+        {
+            StateType *to = stateList[i];
+            StateType *from = stateList[i-1];
+            v << to->toVector().transpose() << "\n";
+            v << from->toVector().transpose() << "\n";
+            vcount += 2;
+            f << 3 << " " << (reset ? vcount-3 : vcount-4) << " " << vcount-2 << " " << vcount-1 << "\n";
+            fcount++;
+            reset = false;
+        }
+    }
+    
+    out << "ply\n";
+    out << "format ascii 1.0\n";
+    out << "element vertex " << vcount << "\n";
+    out << "property float x\n";
+    out << "property float y\n";
+    out << "property float z\n";
+    out << "element face " << fcount << "\n";
+    out << "property list uint uint vertex_index\n";
+    out << "end_header\n";
+    out << v.str() << f.str();
+}
+
+void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path, std::ostream &out) const
+{
+    std::stringstream v, f;
+    std::size_t vcount = 0;
+    std::size_t fcount = 0;
+    
+    const std::vector<State *> &waypoints = path.getStates();
+    for (std::size_t i = 0; i < waypoints.size()-1; i++)
+    {
+        std::vector<StateType *> stateList;
+        State *source = waypoints[i];
+        State *target = waypoints[i+1];
+        
+        followManifold(source->as<StateType>(), target->as<StateType>(), true, &stateList);
+        StateType *from = stateList[0];
+        v << from->toVector().transpose() << "\n";
+        vcount++;
+        bool reset = true;
+        for (std::size_t i = 1; i < stateList.size(); i++)
+        {
+            StateType *to = stateList[i];
+            StateType *from = stateList[i-1];
+            v << to->toVector().transpose() << "\n";
+            v << from->toVector().transpose() << "\n";
+            vcount += 2;
+            f << 3 << " " << (reset ? vcount-3 : vcount-4) << " " << vcount-2 << " " << vcount-1 << "\n";
+            fcount++;
+            reset = false;
+        }
+    }
+    
+    out << "ply\n";
+    out << "format ascii 1.0\n";
+    out << "element vertex " << vcount << "\n";
+    out << "property float x\n";
+    out << "property float y\n";
+    out << "property float z\n";
     out << "element face " << fcount << "\n";
     out << "property list uint uint vertex_index\n";
     out << "end_header\n";

@@ -120,7 +120,7 @@ Eigen::MatrixXd Jcomplicated (const Eigen::VectorXd &x)
     p2 = x.segment(3, 3);
     p3 = x.segment(6, 3);
     
-    Eigen::MatrixXd j = Eigen::MatrixXd::Zero(5, 9);
+    Eigen::MatrixXd j = Eigen::MatrixXd::Zero(5,9);
     j(0,0) = 1; j(0,3) = -1;
     j(1,1) = 1; j(1,4) = -1;
     j(2,2) = 1; j(2,5) = -1;
@@ -134,10 +134,27 @@ Eigen::VectorXd FKleinBottle (const Eigen::VectorXd &x)
 {
     const double p = x.squaredNorm() + 2*x[1] - 1;
     const double n = x.squaredNorm() - 2*x[1] - 1;
+    const double u = n*n - 8*x[2]*x[2];
+    
     Eigen::VectorXd f(1);
-    f[0] = p*(n*n - 8*x[2]*x[2]) + 16*x[0]*x[1]*n;
+    f[0] = p*u + 16*x[0]*x[1]*n;
     
     return f;
+}
+
+/** Jacobian of FKleinBottle(x). */
+Eigen::MatrixXd JKleinBottle (const Eigen::VectorXd &x)
+{
+    const double p = x.squaredNorm() + 2*x[1] - 1;
+    const double n = x.squaredNorm() - 2*x[1] - 1;
+    const double u = n*n - 8*x[2]*x[2];
+    
+    Eigen::MatrixXd j(1,3);
+    j(0,0) = 32*x[0]*x[0]*x[1] + 16*x[1]*n + 4*x[0]*n*p + 2*x[0]*u;
+    j(1,0) = 32*x[0]*x[1]*(x[1]-1) + 16*x[0]*n + 4*(x[1]-1)*n*p + 2*(x[1]+1)*u;
+    j(2,0) = 2*x[2]*(16*x[0]*x[1] + 2*p*(n-4) + u);
+    
+    return j;
 }
 
 /** Torus manifold. */
@@ -152,9 +169,10 @@ Eigen::VectorXd Ftorus (const Eigen::VectorXd &x)
     return f;
 }
 
+/** Jacobian of Ftorus(x). */
 Eigen::MatrixXd Jtorus (const Eigen::VectorXd &x)
 {
-    Eigen::MatrixXd j(1, 3);
+    Eigen::MatrixXd j(1,3);
     const double r1 = 2;
     const double r2 = 1;
     const double xySquaredNorm = x[0]*x[0] + x[1]*x[1];
@@ -231,14 +249,14 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
     const std::size_t dim = 3;
     
     // Start and goal points
-    x = Eigen::VectorXd(dim); x << 0, 0, 1;
-    y = Eigen::VectorXd(dim); y << 1, 1, 2.94481779371197;
+    x = Eigen::VectorXd(dim); x << -0.5, -0.25, 0.1892222244330081;
+    y = Eigen::VectorXd(dim); y << 2.5, -1.5, 1.0221854181962458;
     
     // Validity checker
-    isValid = boost::bind(&unreachable, _1, y);
+    isValid = &always;
     
     // Atlas initialization
-    return new ompl::base::AtlasStateSpace(dim, FKleinBottle);
+    return new ompl::base::AtlasStateSpace(dim, FKleinBottle, JKleinBottle);
 }
 
 /** Initialize the atlas for the torus problem and store the start and goal vectors. */
@@ -287,6 +305,7 @@ int main (int, char *[])
     atlas->setAlpha(M_PI/32);
     atlas->setEpsilon(0.05);
     atlas->setDelta(0.01);
+    atlas->setMaxChartsPerExtension(50);
     
     // More setup for the space and problem definition
     ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());
@@ -298,23 +317,24 @@ int main (int, char *[])
     si->setup();
     
     // Choose the planner. Try others, like RRT, RRTstar, EST, PRM, ...
-    ompl::base::PlannerPtr planner(new ompl::geometric::EST(si));
-    planner->as<ompl::geometric::EST>()->setRange(1);
+    ompl::base::PlannerPtr planner(new ompl::geometric::RRTstar(si));
     planner->setProblemDefinition(pdef);
     planner->setup();
     
     // Plan
     std::clock_t tstart = std::clock();
     ompl::base::PlannerStatus stat;
-    if ((stat = planner->solve(300)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
+    if ((stat = planner->solve(120)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
     {
         double time = ((double)(std::clock()-tstart))/CLOCKS_PER_SEC;
         
+        ompl::geometric::PathGeometric &path = *boost::dynamic_pointer_cast<ompl::geometric::PathGeometric>(pdef->getSolutionPath());
+        std::ofstream pathFile("path.ply");
+        atlas->dumpPath(path, pathFile);
+        pathFile.close();
+        
         // Extract the solution path by re-interpolating between the saved states
-        std::stringstream v;
-        std::size_t vcount = 0;
-        const std::vector<ompl::base::State *> &waypoints =
-            boost::dynamic_pointer_cast<ompl::geometric::PathGeometric>(pdef->getSolutionPath())->getStates();
+        const std::vector<ompl::base::State *> &waypoints = path.getStates();
         double length = 0;
         for (std::size_t i = 0; i < waypoints.size()-1; i++)
         {
@@ -333,9 +353,6 @@ int main (int, char *[])
                 for (std::size_t i = 1; i < stateList.size(); i++)
                 {
                     printState(stateList[i]);
-                    const Eigen::VectorXd x = stateList[i]->toVector();
-                    v << x[0] << " " << x[1] << " " << x[2] << "\n";
-                    vcount++;
                     length += atlas->distance(stateList[i-1], stateList[i]);
                 }
             }
@@ -344,16 +361,6 @@ int main (int, char *[])
             for (std::size_t i = 0; i < stateList.size(); i++)
                 atlas->freeState(stateList[i]);
         }
-        std::ofstream pathFile("path.ply");
-        pathFile << "ply\n";
-        pathFile << "format ascii 1.0\n";
-        pathFile << "element vertex " << vcount << "\n";
-        pathFile << "property float x\n";
-        pathFile << "property float y\n";
-        pathFile << "property float z\n";
-        pathFile << "end_header\n";
-        pathFile << v.str();
-        pathFile.close();
         std::cout << "-----\n";
         std::cout << "Length: " << length << "\n";
         std::cout << "Took " << time << " seconds.\n";
@@ -368,6 +375,12 @@ int main (int, char *[])
     std::ofstream atlasFile("atlas.ply");
     atlas->dumpMesh(atlasFile);
     atlasFile.close();
+    
+    std::ofstream graphFile("graph.ply");
+    ompl::base::PlannerData pd(si);
+    planner->getPlannerData(pd);
+    atlas->dumpGraph(pd.toBoostGraph(), graphFile);
+    graphFile.close();
     
     return 0;
 }
