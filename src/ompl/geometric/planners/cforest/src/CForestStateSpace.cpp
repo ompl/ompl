@@ -32,64 +32,21 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Javier V. Gómez*/
+/* Authors: Mark Moll */
 
-#include "ompl/base/samplers/CForestStateSampler.h"
+#include "ompl/geometric/planners/cforest/CForestStateSpace.h"
+#include "ompl/geometric/planners/cforest/CForest.h"
 
-
-void ompl::base::CForestStateSampler::sampleUniform(State *state)
+ompl::base::StateSamplerPtr ompl::base::CForestStateSpace::allocDefaultStateSampler() const
 {
-    if (!statesToSample_.empty())
-        getNextSample(state);
-    else
-        sampler_->sampleUniform(state);
+    StateSamplerPtr sampler = StateSamplerPtr(new CForestStateSampler(this, space_->allocDefaultStateSampler()));
+    cforest_->addSampler(sampler);
+    return sampler;
 }
 
-void ompl::base::CForestStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
+ompl::base::StateSamplerPtr ompl::base::CForestStateSpace::allocStateSampler() const
 {
-    if (!statesToSample_.empty())
-        getNextSample(state);
-    else
-        sampler_->sampleUniformNear(state, near, distance);
-}
-
-void ompl::base::CForestStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
-{
-    if (!statesToSample_.empty())
-        getNextSample(state);
-    else
-        sampler_->sampleGaussian(state, mean, stdDev);
-}
-
-void ompl::base::CForestStateSampler::setStatesToSample(const std::vector<const State *> &states)
-{
-    boost::mutex::scoped_lock slock(statesLock_);
-    for (size_t i = 0; i < statesToSample_.size(); ++i)
-        space_->freeState(statesToSample_[i]);
-    statesToSample_.clear();
-
-    statesToSample_.reserve(states.size());
-    for (size_t i = 0; i < states.size(); ++i)
-    {
-        State *s = space_->allocState();
-        space_->copyState(s, states[i]);
-        statesToSample_.push_back(s);
-    }
-}
-
-void ompl::base::CForestStateSampler::getNextSample(State *state)
-{
-    boost::mutex::scoped_lock slock(statesLock_);
-    space_->copyState(state, statesToSample_.back());
-    space_->freeState(statesToSample_.back());
-    statesToSample_.pop_back();
-}
-
-void ompl::base::CForestStateSampler::clear()
-{
-    boost::mutex::scoped_lock slock(statesLock_);
-    for (size_t i = 0; i < statesToSample_.size(); ++i)
-        space_->freeState(statesToSample_[i]);
-    statesToSample_.clear();
-    sampler_.reset();
+    StateSamplerPtr sampler = StateSamplerPtr(new CForestStateSampler(this, space_->allocStateSampler()));
+    cforest_->addSampler(sampler);
+    return sampler;
 }

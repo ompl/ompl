@@ -34,9 +34,11 @@
 
 /* Authors: Javier V. Gómez, Ioan Sucan, Mark Moll */
 
-#ifndef OMPL_CONTRIB_C_FOREST_CFOREST_
-#define OMPL_CONTRIB_C_FOREST_CFOREST_
+#ifndef OMPL_GEOMETRIC_PLANNERS_CFOREST_CFOREST_
+#define OMPL_GEOMETRIC_PLANNERS_CFOREST_CFOREST_
 
+
+#include "ompl/geometric/planners/cforest/CForestStateSpace.h"
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/tools/config/SelfConfig.h"
 
@@ -52,9 +54,6 @@ namespace ompl
         class CForest : public base::Planner
         {
         public:
-            
-            /** \brief Function signature to report intermediate solutions found by the underlying planner. */
-            typedef boost::function<void(const Planner*, const std::vector<const base::State*> &, const base::Cost)> ReportIntermediateSolutionFn;
 
             CForest(const base::SpaceInformationPtr &si);
 
@@ -64,54 +63,61 @@ namespace ompl
 
             virtual void clear();
 
-            /** \brief Set the number of planner instances and the type T that will be running in different threads.*/
+            /** \brief Add an specific planner instance. */
             template <class T>
-            void setPlannerInstances(const std::size_t n)
+            void addPlannerInstances(std::size_t num = 2)
             {
-                planners_.clear();
-                planners_.reserve(n);
-                for (std::size_t i = 0 ; i < n; ++i)
+                planners_.reserve(planners_.size() + num);
+                for (std::size_t i = 0 ; i < num; ++i)
                 {
-                    base::PlannerPtr planner (new T(si_));
-                    planner->as<T>()->activateCForest();
+                    base::CForestStateSpace* cfspace = new base::CForestStateSpace(this, si_->getStateSpace().get());
+                    base::StateSpacePtr space(cfspace);
+                    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+                    base::PlannerPtr planner (new T(si));
+
+                    std::cerr << "planner " << i << ' ' << planner.get() << std::endl;
+                    cfspace->setPlanner(planner.get());
+                    si->setStateValidityChecker(si_->getStateValidityChecker());
+                    si->setMotionValidator(si_->getMotionValidator());
                     planner->setProblemDefinition(pdef_);
                     planners_.push_back(planner);
                 }
             }
-            
-            /** \brief Add an specific planner instance. */
-            void addPlannerInstance(const base::PlannerPtr &planner);
+            /** \brief remove all planner instances */
+            void clearPlannerInstances()
+            {
+                planners_.clear();
+            }
+            /** \brief Return an specific planner instance. */
+            base::PlannerPtr& getPlannerInstance(const std::size_t idx)
+            {
+                return planners_[idx];
+            }
 
             virtual void setup();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            /** \brief Get an specific planner instance. */
-            const base::PlannerPtr& getPlanner(const std::size_t idx) const
+            void addSampler(base::StateSamplerPtr sampler)
             {
-                return planners_[idx];
+                samplers_.push_back(sampler);
             }
 
-            ///////////////////////////////////////
-            // Planner progress property functions
             /** \brief Get best cost among all the planners. */
             std::string getBestCost() const;
 
             /** \brief Get number of paths shared by the algorithm. */
             std::string getPathsShared() const;
-            ///////////////////////////////////////
 
         private:
 
             /** \brief Callback to be called everytime a new, better solution is found by a planner. */
             void newSolutionFound(const base::Planner *planner, const std::vector<const base::State *> &states, const base::Cost cost);
 
-            base::ValidStateSamplerPtr allocCForestValidStateSampler (const base::SpaceInformation *si);
-
         protected:
 
             /** \brief Manages the call to solve() for each individual planner. */
-            void solveOne(base::Planner *planner, const base::PlannerTerminationCondition *ptc);
+            void solve(base::Planner *planner, const base::PlannerTerminationCondition &ptc);
 
             /** \brief Optimization objective taken into account when planning. */
             base::OptimizationObjectivePtr               opt_;
@@ -119,17 +125,14 @@ namespace ompl
             /** \brief The set of planners to be used. */
             std::vector<base::PlannerPtr>                planners_;
 
-            /** \brief The maximum length of a motion to be added to a tree. */
-            double                                       maxDistance_;
+            /** \brief The set of sampler allocated by the planners */
+            std::vector<base::StateSamplerPtr>           samplers_;
 
-            //////////////////////////////
-            // Planner progress properties
              /** \brief Cost of the best path found so far among planners. */
-            base::Cost                                   totalBestCost_;
-
+            base::Cost                                   bestCost_;
             /** \brief Number of paths shared among threads. */
-            int                                          pathsShared_;
-            
+            unsigned int                                 pathsShared_;
+
             boost::mutex                                 newSolutionFoundMutex_;
         };
     }

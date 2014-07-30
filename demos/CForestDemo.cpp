@@ -45,8 +45,6 @@
 #include <ompl/util/PPM.h>
 #include <../tests/resources/config.h>
 
-#include <ompl/base/samplers/CForestStateSampler.h>
-
 #include <boost/filesystem.hpp>
 
 namespace ob = ompl::base;
