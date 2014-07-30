@@ -46,8 +46,6 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 
-#define MAX_CHARTS_CREATED  20  // TODO magic
-
 /// AtlasStateSampler
 
 /// Public
@@ -315,7 +313,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     bigF(constraints),
     bigJ(jacobian ? jacobian : boost::bind(&AtlasStateSpace::numericalJacobian, this, boost::lambda::_1)),
     n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
-    projectionTolerance_(1e-8), projectionMaxIterations_(200), monteCarloThoroughness_(3.5), setup_(false)
+    projectionTolerance_(1e-8), projectionMaxIterations_(200), maxChartsToCreate_(20), monteCarloThoroughness_(3.5), setup_(false)
 {
     setName("Atlas" + RealVectorStateSpace::getName());
     
@@ -457,6 +455,11 @@ void ompl::base::AtlasStateSpace::setProjectionMaxIterations (unsigned int itera
     projectionMaxIterations_ = iterations;
 }
 
+void ompl::base::AtlasStateSpace::setMaxChartsToCreate (unsigned int charts)
+{
+    maxChartsToCreate_ = charts;
+}
+
 double ompl::base::AtlasStateSpace::getDelta (void) const
 {
     return delta_;
@@ -500,6 +503,11 @@ double ompl::base::AtlasStateSpace::getProjectionTolerance (void) const
 unsigned int ompl::base::AtlasStateSpace::getProjectionMaxIterations (void) const
 {
     return projectionMaxIterations_;
+}
+
+unsigned int ompl::base::AtlasStateSpace::getMaxChartsToCreate (void) const
+{
+    return maxChartsToCreate_;
 }
 
 unsigned int ompl::base::AtlasStateSpace::getAmbientDimension (void) const
@@ -675,18 +683,19 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             break;
         
         if (((x_j - c->phi(u_j)).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_ || u_j.squaredNorm() > rho_*rho_)
-            && u_n.squaredNorm() > delta_*delta_)   // Never create a chart too close to another one
+            && u_n.squaredNorm() > delta_*delta_)   // Deviation: Never create a chart too close to another one
         {
             // Left the validity region of the chart; make a new one
-//             if (u_n.norm() < 1e-6)
-//             {
-                // Point we want to center the new chart on is already a chart center
-//                 c = &newChart(dichotomicSearch(*c, x_n, x_j));  // See paper's discussion of probabilistic completeness; this was left out of pseudocode
-//             }
-//             else
-//             {
+            // Deviation: No need for this now
+            //if (u_n.norm() < 1e-6)
+            //{
+            //    // Point we want to center the new chart on is already a chart center
+            //     c = &newChart(dichotomicSearch(*c, x_n, x_j));  // See paper's discussion of probabilistic completeness; this was left out of pseudocode
+            //}
+            //else
+            //{
                 c = &newChart(x_n);
-//             }
+            //}
             chartsCreated++;
             changedChart = true;
             //chartCreated = true;  // Again, unused
@@ -750,10 +759,10 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         
         // Check stopping criteria regarding how far we've gone
         d += d_s;
-        if ((x_0 - x_j).norm() > d_0 || d > lambda_*d_0 || chartsCreated > MAX_CHARTS_CREATED)
+        if ((x_0 - x_j).norm() > d_0 || d > lambda_*d_0 || chartsCreated > maxChartsToCreate_)
             break;
     }
-    if (chartsCreated > MAX_CHARTS_CREATED)
+    if (chartsCreated > maxChartsToCreate_)
         OMPL_DEBUG("Stopping extension early b/c too many charts created.");
     const bool reached = ((x_r - x_n).squaredNorm() < delta_*delta_);
     

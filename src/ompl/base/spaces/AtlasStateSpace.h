@@ -239,6 +239,10 @@ namespace ompl
              * Default is 200. */
             void setProjectionMaxIterations (unsigned int iterations);
             
+            /** \brief Sometimes manifold traversal creates an inordinate number of tiny charts. This parameter limits
+             * the number of charts that can be created in one pass. */
+            void setMaxChartsToCreate (unsigned int charts);
+            
             /** \brief Get delta. */
             double getDelta (void) const;
             
@@ -265,6 +269,9 @@ namespace ompl
             
             /** \brief Get the maximum number of projection iterations. */
             unsigned int getProjectionMaxIterations (void) const;
+            
+            /** \brief Get the maximum number of charts to create in one pass. */
+            unsigned int getMaxChartsToCreate (void) const;
             
             /** \brief Get the dimension of the ambient space. */
             unsigned int getAmbientDimension (void) const;
@@ -408,6 +415,9 @@ namespace ompl
             
             /** \brief Maximum number of iterations for Newton method used in projection onto manifold. */
             unsigned int projectionMaxIterations_;
+            
+            /** \brief Maximum number of charts that can be created in one manifold traversal. */
+            unsigned int maxChartsToCreate_;
             
             /** \brief Parameter which tunes the number of samples used by Monte Carlo integration. */
             double monteCarloThoroughness_;
