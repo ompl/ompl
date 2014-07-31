@@ -81,27 +81,37 @@ public:
 
             virtual void interpolate (const State *from, const State *to, const double t, State *state) const
             {
-                std::vector<control::TimedControl> controls;
+                if (t<0 || t>1)
+                    throw Exception("Interpolation failed, time t out of bounds [0,1].");
+
+                std::vector<control::TimedControl> tcontrols;
                 double duration = 0;
-                sp_->steer(from,to,controls,duration);
+                sp_->steer(from,to,tcontrols,duration);
 
                 // Rescaling the relative t to the maximum control duration given by steer().
-                double interp_t = t*duration;
-                double current_t = 0;
+                double interpT = t*duration;
+                double currentT = 0;
+                double totalControlT = tcontrols[0].second;
                 int i = 0;
-                sp_->getSpaceInformation()->copyState(state,from);
+                T::copyState(state,from);
                 
-                // Propagate complete TimedControls until interp_t.
-                while (current_t + controls[i].second < interp_t)
+                // \TODO: The number or steps and stepTime can be improved to reduce error but
+                // this propagation error cannot be avoided.
+                const int steps = 100;
+                const double stepTime = (double)(duration/steps);
+                
+                while (currentT <= interpT)
                 {
-                    // TODO: The propagate API should change according to the steer(). Also interpolate() API? Maybe not this one. 
-                    sp_->propagate(state, controls[i].first, controls[i].second, state);
-                    current_t += controls[i].second;
-                    ++i;
+                     sp_->propagate(state, tcontrols[i].first, stepTime, state);
+                    currentT += stepTime;
+                    //std::cout << currentT << "\t" << stepTime << std::endl;
+                    // Look for which control action to apply
+                    if (currentT > totalControlT)
+                    {
+                        ++i;
+                        totalControlT += tcontrols[i].second;
+                    }
                 }
-                // Propagate the rest of the time.
-                sp_->propagate(state, controls[i].first, interp_t - current_t, state);
-                
             }
 
         protected:

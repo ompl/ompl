@@ -101,9 +101,10 @@ public:
             double cduration = std::abs(rsp.length_[i]);
             duration += cduration;
             controls.push_back(std::make_pair(c,cduration));
+
             ++i;
         }
-        
+
         if (!controls.empty())
             return true;
         return false;
@@ -143,12 +144,38 @@ int main(int argc, char** argv)
     oc::SimpleSetup ss(cspace);
 
     // set the state propagation routine
-    const oc::SpaceInformationPtr &si = ss.getSpaceInformation();
-    oc::StatePropagatorPtr sp (new ReedsSheppStatePropagator(si));
+    // The state propagator works with a control::SpaceInformation...
+    const oc::SpaceInformationPtr &siC = ss.getSpaceInformation();
+    oc::StatePropagatorPtr sp (new ReedsSheppStatePropagator(siC));
     
     ob::StateSpaceFromPropagator<ob::SE2StateSpace> mySE2(sp);
     ob::StateSpacePtr mySpace (new ob::StateSpaceFromPropagator<ob::SE2StateSpace>(sp));
+    // ... but here we are creating a base::SpaceInformation with the new state space (no control used).
     ob::SpaceInformationPtr si2 (new ob::SpaceInformation(mySpace));
+
+    ob::ScopedState<> start(mySpace), goal(mySpace);
+    start[0] = start[1] = start[2] = 0.; // From (0,0,0)
+    goal[0] = goal[1] = 0.; goal[2] = boost::math::constants::pi<double>(); // To (0,0,pi)
+    
+    ob::State *istate = si2->allocState();
+    
+    for(double t = 0.01; t<=1; t+=0.01)
+    {
+        mySpace->interpolate(start.get(), goal.get(),t, istate);
+        
+        std::cout << istate->as<ob::StateSpaceFromPropagator<ob::SE2StateSpace>::StateType >()->getX() << "\t" 
+                  << istate->as<ob::StateSpaceFromPropagator<ob::SE2StateSpace>::StateType >()->getY() << "\t" 
+                  << istate->as<ob::StateSpaceFromPropagator<ob::SE2StateSpace>::StateType >()->getYaw() <<std::endl;
+    }
+    
+    /*mySpace->interpolate(start.get(), goal.get(),1/3., istate);
+    si2->printState(istate);
+    
+    mySpace->interpolate(start.get(), goal.get(),2/3., istate);
+    si2->printState(istate);
+    
+    mySpace->interpolate(start.get(), goal.get(),1, istate);
+    si2->printState(istate);*/
     
     
     return 0;
