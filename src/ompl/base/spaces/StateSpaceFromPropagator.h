@@ -69,14 +69,21 @@ public:
 
                 T::setName("FromPropagator" + T::getName());
             }
+            
 
             virtual ~StateSpaceFromPropagator()
             {
             }
-
+            
+            // \TODO: now the duration is used as distance. The test statePropagator has always velocity = 1,
+            // so duration = distance. How to distinguish for a general system?
             virtual double distance (const State *state1, const State *state2) const
             {
-                return 1.0;
+                std::vector<control::TimedControl> tcontrols;
+                double duration = 0;
+                if (sp_->steer(state1,state2,tcontrols,duration))
+                    return duration;
+                return -1.0;
             }
 
             virtual void interpolate (const State *from, const State *to, const double t, State *state) const
@@ -86,30 +93,32 @@ public:
 
                 std::vector<control::TimedControl> tcontrols;
                 double duration = 0;
-                sp_->steer(from,to,tcontrols,duration);
-
-                // Rescaling the relative t to the maximum control duration given by steer().
-                double interpT = t*duration;
-                double currentT = 0;
-                double totalControlT = tcontrols[0].second;
-                int i = 0;
                 T::copyState(state,from);
                 
-                // \TODO: The number or steps and stepTime can be improved to reduce error but
-                // this propagation error cannot be avoided.
-                const int steps = 100;
-                const double stepTime = (double)(duration/steps);
-                
-                while (currentT <= interpT)
+                if(sp_->steer(from,to,tcontrols,duration))
                 {
-                     sp_->propagate(state, tcontrols[i].first, stepTime, state);
-                    currentT += stepTime;
-                    //std::cout << currentT << "\t" << stepTime << std::endl;
-                    // Look for which control action to apply
-                    if (currentT > totalControlT)
+                    // Rescaling the relative t to the maximum control duration given by steer().
+                    double interpT = t*duration;
+                    double currentT = 0;
+                    double totalControlT = tcontrols[0].second;
+                    int i = 0;
+
+                    // \TODO: The number or steps and stepTime can be improved to reduce error but
+                    // this propagation error cannot be avoided.
+                    const int steps = 100;
+                    const double stepTime = (double)(duration/steps);
+                    
+                    while (currentT <= interpT)
                     {
-                        ++i;
-                        totalControlT += tcontrols[i].second;
+                         sp_->propagate(state, tcontrols[i].first, stepTime, state);
+                        currentT += stepTime;
+                        //std::cout << currentT << "\t" << stepTime << std::endl;
+                        // Look for which control action to apply
+                        if (currentT > totalControlT)
+                        {
+                            ++i;
+                            totalControlT += tcontrols[i].second;
+                        }
                     }
                 }
             }

@@ -35,23 +35,26 @@
 /* Author: Javier V. Gomez */
 
 #include <ompl/control/SimpleSetup.h>
+#include <ompl/control/StatePropagator.h>
 #include <ompl/control/SpaceInformation.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
 
-#include <ompl/control/StatePropagator.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/spaces/ReedsSheppStateSpace.h>
 #include <ompl/base/spaces/StateSpaceFromPropagator.h>
 
+#include <ompl/geometric/SimpleSetup.h>
+#include <ompl/geometric/planners/rrt/RRT.h>
+#include <ompl/geometric/planners/rrt/RRTConnect.h>
+
+
 namespace ob = ompl::base;
-//namespace og = ompl::geometric;
-//namespace ot = ompl::time;
+namespace og = ompl::geometric;
 namespace oc = ompl::control;
 
-bool isStateValid(const oc::SpaceInformationPtr &si, const ob::State *state)
+bool isStateValid(const ob::State *state)
 {
-    // return a value that is always true
-    return si->satisfiesBounds(state); 
+    return true;
 }
 
 // TODO: for any reason I am not able to generalize to any radius. Try it again.
@@ -129,8 +132,8 @@ int main(int argc, char** argv)
 
     // set the bounds for the R^2 part of SE(2)
     ob::RealVectorBounds bounds(2);
-    bounds.setLow(-5);
-    bounds.setHigh(5);
+    bounds.setLow(-10);
+    bounds.setHigh(10);
     space->as<ob::SE2StateSpace>()->setBounds(bounds);
 
     // create a control space - RealVector space is not the most correct space, but easier to use.
@@ -140,43 +143,47 @@ int main(int argc, char** argv)
     cbounds.setHigh(1);
     cspace->as<oc::RealVectorControlSpace>()->setBounds(bounds);
     
-    // define a simple setup class
-    oc::SimpleSetup ss(cspace);
+    // define the space information of the real, controlled system
+    oc::SpaceInformationPtr siC (new  oc::SpaceInformation(space,cspace));
 
     // set the state propagation routine
-    // The state propagator works with a control::SpaceInformation...
-    const oc::SpaceInformationPtr &siC = ss.getSpaceInformation();
     oc::StatePropagatorPtr sp (new ReedsSheppStatePropagator(siC));
     
-    ob::StateSpaceFromPropagator<ob::SE2StateSpace> mySE2(sp);
-    ob::StateSpacePtr mySpace (new ob::StateSpaceFromPropagator<ob::SE2StateSpace>(sp));
-    // ... but here we are creating a base::SpaceInformation with the new state space (no control used).
-    ob::SpaceInformationPtr si2 (new ob::SpaceInformation(mySpace));
+    // and now, with the control space information and state propagator, we create the geometric version
+    ob::StateSpacePtr fromPropSpace (new ob::StateSpaceFromPropagator<ob::SE2StateSpace>(sp));
+    fromPropSpace->as<ob::StateSpaceFromPropagator<ob::SE2StateSpace> >()->setBounds(bounds);
+    
+    // creating the new simple setup for geometric planning
+    og::SimpleSetup ss (fromPropSpace);
+    ss.setStateValidityChecker(boost::bind(&isStateValid, _1));
+    
+    ob::ScopedState<> start(fromPropSpace), goal(fromPropSpace);
+    start[0] = 0.;
+    start[1] = 0.;
+    start[2] = 0.;
+    goal[0] = 8.;
+    goal[1] = 7.; 
+    goal[2] = boost::math::constants::pi<double>()/2;
+    
+    // set the start and goal states
+    ss.setStartAndGoalStates(start, goal);
 
-    ob::ScopedState<> start(mySpace), goal(mySpace);
-    start[0] = start[1] = start[2] = 0.; // From (0,0,0)
-    goal[0] = goal[1] = 0.; goal[2] = boost::math::constants::pi<double>(); // To (0,0,pi)
-    
-    ob::State *istate = si2->allocState();
-    
-    for(double t = 0.01; t<=1; t+=0.01)
+    // set the planner
+    ob::PlannerPtr planner(new og::RRTConnect(ss.getSpaceInformation()));
+    ss.setPlanner(planner);
+
+    // attempt to solve the problem within one second of planning time
+    ob::PlannerStatus solved = ss.solve(1.0);
+
+    if (solved)
     {
-        mySpace->interpolate(start.get(), goal.get(),t, istate);
-        
-        std::cout << istate->as<ob::StateSpaceFromPropagator<ob::SE2StateSpace>::StateType >()->getX() << "\t" 
-                  << istate->as<ob::StateSpaceFromPropagator<ob::SE2StateSpace>::StateType >()->getY() << "\t" 
-                  << istate->as<ob::StateSpaceFromPropagator<ob::SE2StateSpace>::StateType >()->getYaw() <<std::endl;
+        std::cout << "Found solution:" << std::endl;
+        // print the path to screen
+        //ss.simplifySolution();
+        ss.getSolutionPath().print(std::cout);
     }
-    
-    /*mySpace->interpolate(start.get(), goal.get(),1/3., istate);
-    si2->printState(istate);
-    
-    mySpace->interpolate(start.get(), goal.get(),2/3., istate);
-    si2->printState(istate);
-    
-    mySpace->interpolate(start.get(), goal.get(),1, istate);
-    si2->printState(istate);*/
-    
-    
+    else
+        std::cout << "No solution found" << std::endl;
+
     return 0;
 }
