@@ -47,19 +47,11 @@ namespace ompl
 {
     namespace base
     {
-/*T is a base State Space (namely SE2)
-template <typename T>
-class Bridge : public T {
-public:
-    Bridge(const StatePropagatorPtr &s) : T(), s_(s) {
-                // check if the stateprop state space is the same as T (signature)}
-    virtual void interpolate()...
-}
-*/
         /** \brief  */
         template <typename T>
         class StateSpaceFromPropagator : public T
         {
+            // \TODO: I cannot find a proper way of freeing the controls allocated when calling steer().
         public:
         
             StateSpaceFromPropagator (const control::StatePropagatorPtr &sp) : T(), sp_(sp)
@@ -69,19 +61,21 @@ public:
 
                 T::setName("FromPropagator" + T::getName());
             }
-            
 
             virtual ~StateSpaceFromPropagator()
             {
             }
             
             // \TODO: now the duration is used as distance. The test statePropagator has always velocity = 1,
-            // so duration = distance. How to distinguish for a general system?
+            // so duration = distance. How to distinguish for a general system? It is probably system-dependent.
             virtual double distance (const State *state1, const State *state2) const
             {
                 std::vector<control::TimedControl> tcontrols;
+                // How to avoid to use tcontrols here? Not used.
                 double duration = 0;
-                if (sp_->steer(state1,state2,tcontrols,duration))
+                bool steered = sp_->steer(state1,state2,tcontrols,duration);
+                
+                if (steered)
                     return duration;
                 return -1.0;
             }
@@ -91,10 +85,10 @@ public:
                 if (t<0 || t>1)
                     throw Exception("Interpolation failed, time t out of bounds [0,1].");
 
-                std::vector<control::TimedControl> tcontrols;
                 double duration = 0;
                 T::copyState(state,from);
                 
+                std::vector<control::TimedControl> tcontrols;
                 if(sp_->steer(from,to,tcontrols,duration))
                 {
                     // Rescaling the relative t to the maximum control duration given by steer().
@@ -107,12 +101,11 @@ public:
                     // this propagation error cannot be avoided.
                     const int steps = 100;
                     const double stepTime = (double)(duration/steps);
-                    
+
                     while (currentT <= interpT)
                     {
-                         sp_->propagate(state, tcontrols[i].first, stepTime, state);
+                        sp_->propagate(state, tcontrols[i].first, stepTime, state);
                         currentT += stepTime;
-                        //std::cout << currentT << "\t" << stepTime << std::endl;
                         // Look for which control action to apply
                         if (currentT > totalControlT)
                         {

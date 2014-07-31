@@ -88,7 +88,7 @@ public:
         
         while (rsp.type_[i] != 0 && i<5)
         {
-             c = si_->allocControl();
+            c = si_->allocControl();
             if (rsp.length_[i] > 0) // Forward
                 c->as<oc::RealVectorControlSpace::ControlType>()->values[0] = 1;
             else // Backwards
@@ -122,9 +122,6 @@ private:
     ob::ReedsSheppStateSpace rs_;
 };
 
-
-
-
 int main(int argc, char** argv)
 {
     // construct the state space we are planning in
@@ -142,21 +139,21 @@ int main(int argc, char** argv)
     cbounds.setLow(-1);
     cbounds.setHigh(1);
     cspace->as<oc::RealVectorControlSpace>()->setBounds(bounds);
-    
+
     // define the space information of the real, controlled system
     oc::SpaceInformationPtr siC (new  oc::SpaceInformation(space,cspace));
 
     // set the state propagation routine
     oc::StatePropagatorPtr sp (new ReedsSheppStatePropagator(siC));
-    
+
     // and now, with the control space information and state propagator, we create the geometric version
     ob::StateSpacePtr fromPropSpace (new ob::StateSpaceFromPropagator<ob::SE2StateSpace>(sp));
     fromPropSpace->as<ob::StateSpaceFromPropagator<ob::SE2StateSpace> >()->setBounds(bounds);
-    
+
     // creating the new simple setup for geometric planning
     og::SimpleSetup ss (fromPropSpace);
     ss.setStateValidityChecker(boost::bind(&isStateValid, _1));
-    
+
     ob::ScopedState<> start(fromPropSpace), goal(fromPropSpace);
     start[0] = 0.;
     start[1] = 0.;
@@ -164,7 +161,7 @@ int main(int argc, char** argv)
     goal[0] = 8.;
     goal[1] = 7.; 
     goal[2] = boost::math::constants::pi<double>()/2;
-    
+
     // set the start and goal states
     ss.setStartAndGoalStates(start, goal);
 
