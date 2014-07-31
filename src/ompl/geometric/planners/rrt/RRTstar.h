@@ -311,7 +311,6 @@ namespace ompl
             /** \brief The cost used to prune the tree. It is set by CForest functions. */
             base::Cost                                     pruneTreeCost_;
 
-
             /** \brief Stores the Motion containing the initial start state for CForest (assumes there is only 1 start state). */
             Motion *                                       startMotion_;
 

@@ -73,9 +73,6 @@ namespace ompl
                     base::CForestStateSpace* cfspace = new base::CForestStateSpace(this, si_->getStateSpace().get());
                     base::StateSpacePtr space(cfspace);
                     base::SpaceInformationPtr si(new base::SpaceInformation(space));
-                    /*T *plannerptr = new T(si);
-                    plannerptr->setPrune(true);
-                    base::PlannerPtr planner (plannerptr)*/
                     base::PlannerPtr planner (new T(si));
                     planner->as<T>()->setPrune(true);
 
