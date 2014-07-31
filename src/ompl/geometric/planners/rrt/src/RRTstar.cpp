@@ -58,7 +58,7 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     delayCC_ = true;
     lastGoalMotion_ = NULL;
 
-    prune_ = true;
+    prune_ = false;
     pruneTreeCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
     pruneStatesThreshold_ = 0.95;
 
