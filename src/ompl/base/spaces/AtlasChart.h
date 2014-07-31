@@ -42,7 +42,7 @@
 #include <list>
 
 #include <boost/thread/mutex.hpp>
-#include <boost/thread/recursive_mutex.hpp>
+#include <boost/thread/shared_mutex.hpp>
 
 #include <eigen3/Eigen/LU>
 
@@ -243,7 +243,7 @@ namespace ompl
             /** \brief Locks to keep some operations thread-safe. */
             mutable struct
             {
-                boost::recursive_mutex bigL_;
+                boost::shared_mutex bigL_;
                 boost::mutex owned_;
             } mutices_;
             

@@ -38,7 +38,6 @@
 
 #include <boost/bind.hpp>
 #include <boost/lambda/lambda.hpp>
-#include <boost/thread/lock_guard.hpp>
 
 #include <eigen3/Eigen/Dense>
 
@@ -217,7 +216,7 @@ Eigen::VectorXd ompl::base::AtlasChart::psiInverse (const Eigen::VectorXd &x) co
 bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, std::size_t *const solitary, const LinearInequality *const ignore1,
                                   const LinearInequality *const ignore2) const
 {
-    boost::lock_guard<boost::recursive_mutex> lock(mutices_.bigL_);
+    boost::shared_lock<boost::shared_mutex> readLock(mutices_.bigL_);
     bool inPolytope = true;
     if (solitary)
         *solitary = bigL_.size();
@@ -251,7 +250,7 @@ bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, std::size_t *const s
 
 void ompl::base::AtlasChart::borderCheck (const Eigen::VectorXd &v) const
 {
-    boost::lock_guard<boost::recursive_mutex> lock(mutices_.bigL_);
+    boost::shared_lock<boost::shared_mutex> readLock(mutices_.bigL_);
     for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++)
         (*l)->checkNear(v);
 }
@@ -288,7 +287,7 @@ void ompl::base::AtlasChart::substituteChart (const AtlasChart &replacement) con
 
 const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eigen::VectorXd &x) const
 {
-    boost::lock_guard<boost::recursive_mutex> lock(mutices_.bigL_);
+    boost::shared_lock<boost::shared_mutex> readLock(mutices_.bigL_);
     const AtlasChart *bestC = NULL;
     double best = std::numeric_limits<double>::infinity();
     for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++)
@@ -361,7 +360,7 @@ bool ompl::base::AtlasChart::isAnchor (void) const
 
 void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) const
 {
-    boost::lock_guard<boost::recursive_mutex> lock(mutices_.bigL_);
+    boost::shared_lock<boost::shared_mutex> readLock(mutices_.bigL_);
     if (atlas_.getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::toPolygon() only works on 2D manifold/charts.");
     
@@ -422,12 +421,12 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
 void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace) const
 {
     {
-        boost::lock_guard<boost::recursive_mutex> lock(mutices_.bigL_);
+        boost::unique_lock<boost::shared_mutex> writeLock(mutices_.bigL_);
         bigL_.push_front(&halfspace);
-    
-        // Update the measure estimate
-        approximateMeasure();
     }
+    
+    // Update the measure estimate
+    approximateMeasure();
     
     // Find tracked states which need to be moved to a different chart
     boost::lock_guard<boost::mutex> lock(mutices_.owned_);

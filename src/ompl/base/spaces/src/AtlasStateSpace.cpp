@@ -100,6 +100,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         // Rejection sampling to find a point in the ball
         do
         {
+            // This inner loop checks the radius on the chart first, before the projection to the manifold, to save time
             do
             {
                 const Eigen::VectorXd uoffset = Eigen::VectorXd::Random(atlas_.getManifoldDimension());
@@ -141,7 +142,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
         for (std::size_t i = 0; i < k; i++)
             rand[i] = rng_.gaussian(0, s);
         r = c->psi(u + rand);
-        if (atlas_.bigF(r).norm() > 10*atlas_.getProjectionTolerance())
+        if (atlas_.bigF(r).norm() > atlas_.getProjectionTolerance())
             continue;
         
         // It might belong to a different chart
@@ -315,7 +316,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     bigF(constraints),
     bigJ(jacobian ? jacobian : boost::bind(&AtlasStateSpace::numericalJacobian, this, boost::lambda::_1)),
     n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
-    projectionTolerance_(1e-8), projectionMaxIterations_(200), maxChartsPerExtension_(20), monteCarloThoroughness_(3.5), setup_(false)
+    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(20), monteCarloThoroughness_(3.5), setup_(false)
 {
     setName("Atlas" + RealVectorStateSpace::getName());
     
@@ -695,12 +696,8 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         // Step by delta toward the target and project
         u_j = u_n + delta_*(u_r - u_n).normalized();    // Note the difference to pseudocode (line 13): a similar mistake to line 8
         x_j = c->psi(u_j);
+        
         double d_s = (x_n - x_j).norm();
-        if (d_s > 5*delta_)
-        {
-            OMPL_DEBUG("Projection broke down.");
-            break;
-        }
         bool changedChart = false;
         
         // Collision check unless interpolating
@@ -754,7 +751,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         
         if (changedChart)
         {
-            // Re-projecet onto the different chart
+            // Re-project onto the different chart
             u_j = c->psiInverse(x_j);
             u_r = c->psiInverse(x_r);
             
