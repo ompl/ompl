@@ -33,6 +33,7 @@
 *********************************************************************/
 
 /* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Luis G. Torres, Ioan Sucan */
+/* CForest Authors: Javier V Gomez */
 
 #ifndef OMPL_CONTRIB_RRT_STAR_RRTSTAR_
 #define OMPL_CONTRIB_RRT_STAR_RRTSTAR_
@@ -43,6 +44,7 @@
 #include <limits>
 #include <vector>
 #include <utility>
+#include <boost/thread/mutex.hpp>
 
 
 namespace ompl
@@ -85,6 +87,8 @@ namespace ompl
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             virtual void clear();
+
+            virtual void includeValidPath(const std::vector<const base::State *> &states, const base::Cost cost);
 
             /** \brief Set the goal bias
 
@@ -147,6 +151,33 @@ namespace ompl
                 return delayCC_;
             }
 
+            /** \brief Set the percentage threshold (between 0 and 1) for pruning the tree. If best cost is improved
+                over this percentage, the  tree will be pruned. */
+            void setPruneCostImprovementThreshold (const double pp)
+            {
+                pruneCostThreshold_ = pp;
+            }
+
+            /** \brief Get the current prune cost percentage threshold parameter. */
+            
+            double getPruneCostImprovementThreshold() const
+            {
+                return pruneCostThreshold_;
+            }
+
+            /** \brief Set the percentage threshold (between 0 and 1) for pruning the tree. If the new tree has removed
+                at least this percentage of states, the tree will be finally pruned. */
+            void setPruneStatesImprovementThreshold(const double pp)
+            {
+                pruneStatesThreshold_ = pp;
+            }
+
+            /** \brief Get the current prune states percentage threshold parameter. */
+            double getPruneStatesImprovementThreshold () const
+            {
+                return pruneStatesThreshold_;
+            }
+
             virtual void setup();
 
             ///////////////////////////////////////
@@ -157,6 +188,21 @@ namespace ompl
 
             std::string getBestCost() const;
             ///////////////////////////////////////
+
+            /** \brief TO BE REMOVED in the final version. */
+            void saveTree(const char * filename);
+
+            /** \brief When called, the CForest parallelization framework is activated. */
+            virtual void activateCForest() 
+            {
+                isCForest_ = true;
+            }
+
+            /** \brief When called, the CForest parallelization framework is deactivated. */
+            virtual void deactivateCForest() 
+            {
+                isCForest_ = false;
+            }
 
         protected:
 
@@ -191,9 +237,6 @@ namespace ompl
                 std::vector<Motion*> children;
             };
 
-            /** \brief Free the memory allocated by this planner */
-            void freeMemory();
-
             // For sorting a list of costs and getting only their sorted indices
             struct CostIndexCompare
             {
@@ -210,6 +253,9 @@ namespace ompl
             };
 
             enum DistanceDirection { FROM_NEIGHBORS, TO_NEIGHBORS };
+            
+            /** \brief Free the memory allocated by this planner */
+            void freeMemory();
 
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion *a, const Motion *b) const
@@ -229,6 +275,20 @@ namespace ompl
 
             /** \brief Updates the cost of the children of this node if the cost up to this node has changed */
             void updateChildCosts(Motion *m);
+            
+            /** \brief If CForest is activated, this function will prune the tree when the best cost is improved over a threshold prunePercentage_. 
+                returns the number of motions pruned. */
+            int pruneTree();
+            
+            /** \brief If CForest is activated, this function will delete the pruned motions at the end of the solve() function. */
+            void detelePrunedMotions();
+
+            /** \brief Given a seed Motion, looks for the root Motion of the tree. */
+            Motion* getRootMotion(Motion *seed);
+
+            /** \brief For a given random motion, rmotion, looks for the initial parent to be linked with (nearest neighbor in RRTstar)
+             * or previous motion when sharing CForest states. */
+            ompl::geometric::RRTstar::Motion* getInitialParent(Motion *rmotion, base::State *dstate, base::State *xstate);
 
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;
@@ -249,13 +309,51 @@ namespace ompl
             bool                                           delayCC_;
 
             /** \brief Objective we're optimizing */
-            base::OptimizationObjectivePtr opt_;
+            base::OptimizationObjectivePtr                 opt_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
             Motion                                         *lastGoalMotion_;
 
             /** \brief A list of states in the tree that satisfy the goal condition */
             std::vector<Motion*>                           goalMotions_;
+
+            /** \brief Directionality of distance computation for
+                 nearest neighbors. Either from neighbors to new state,
+                 or from new state to neighbors. */
+            DistanceDirection                              distanceDirection_;
+
+            /** \brief If this vector contains states, they will be included to the tree in the next iterations of solve(). */
+            std::vector<base::State*>                      statesToInclude_;
+
+             /** \brief If this vector contains motions, they will be deteled once the solve() function ends. */
+            std::deque<Motion*>	                           toBeDeleted_;
+
+             /** \brief Lock for includeValidPath() and pathsToInclude_ */
+            boost::mutex                                   includePathsLock_;
+
+            /** \brief If this value is set to true, the CForest parallelization framework will be activated. */
+            bool                                           isCForest_;
+
+            /** \brief CForest-related parameter. The tree is only pruned if there is a cost improvement over this percentage (between 0 and 1). */
+            double                                         pruneCostThreshold_;
+
+            /** \brief CForest-related parameter. The tree is only pruned is the percentage of states to prune is above this threshold (between 0 and 1). */
+            double                                         pruneStatesThreshold_;
+
+            /** \brief The cost used to prune the tree. It is set by CForest functions. */
+            base::Cost                                     pruneTreeCost_;
+
+            /** \brief Stores the previous motion added when using CForest. */
+            Motion *                                       prevMotion_;
+
+            /** \brief Flag to indicate that the state being added to the tree is shared by CForest. */
+            bool                                           addingSharedState_;
+
+            /** \brief Stores the Motion containing the initial start state for CForest (assumes there is only 1 start state). */
+            Motion *                                       startMotion_;
+
+            /** \brief Flag to indicate that the previous motion has to be restarted to the start motion in CForest. */
+            bool                                           restartPrevMotion_;
 
             //////////////////////////////
             // Planner progress properties
@@ -267,14 +365,8 @@ namespace ompl
             unsigned int                                   collisionChecks_;
 
             /** \brief Best cost found so far by algorithm */
-            base::Cost                                     bestCost_;
-
-            /** \brief Directionality of distance computation for
-                nearest neighbors. Either from neighbors to new state,
-                or from new state to neighbors. */
-            DistanceDirection                              distanceDirection_;
+            base::Cost                                     bestCost_;     
         };
-
     }
 }
 
