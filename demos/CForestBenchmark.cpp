@@ -111,8 +111,8 @@ int main(int argc, char **argv)
     
 
     // by default, use the Benchmark class
-    double runtime_limit = 30, memory_limit = 4096;
-    int run_count = 30;
+    double runtime_limit = 5, memory_limit = 4096;
+    int run_count = 10;
     ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count);
     ompl::tools::Benchmark b(ss, "HyperCube");
 

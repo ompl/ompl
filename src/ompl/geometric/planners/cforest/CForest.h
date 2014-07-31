@@ -74,6 +74,7 @@ namespace ompl
                     base::StateSpacePtr space(cfspace);
                     base::SpaceInformationPtr si(new base::SpaceInformation(space));
                     base::PlannerPtr planner (new T(si));
+                    planner->as<T>()->setPrune(true);
 
                     std::cerr << "planner " << i << ' ' << planner.get() << std::endl;
                     cfspace->setPlanner(planner.get());

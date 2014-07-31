@@ -39,6 +39,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include "ompl/geometric/planners/cforest/CForestStateSpace.h"
 #include <algorithm>
 #include <limits>
 #include <map>
@@ -58,7 +59,7 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     delayCC_ = true;
     lastGoalMotion_ = NULL;
 
-    prune_ = true;
+    prune_ = false;
     pruneTreeCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
     pruneStatesThreshold_ = 0.95;
 
@@ -160,6 +161,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
+    bool isCForest = false;
+    const base::CForestStateSpace *cfspace = dynamic_cast<base::CForestStateSpace*>(si_->getStateSpace().get());
+    if (cfspace)
+        isCForest = true;
+
     Motion *solution       = lastGoalMotion_;
 
     // \TODO Make this variable unnecessary, or at least have it
@@ -201,7 +207,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     {
         iterations_++;
 
-        if (prune_)
+        /*if (isCForest && prune_)
         {
             if (opt_->isCostBetterThan(pruneTreeCost_, bestCost_))
             {
@@ -213,7 +219,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 statesGenerated -= n;
                 bestCost_ = pruneTreeCost_;
             }
-        }
+        }*/
 
         // sample random state (with goal biasing)
         // Goal samples are only sampled until maxSampleCount() goals are in the tree, to prohibit duplicate goal states.
@@ -493,25 +499,31 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     }
                 }
 
-                if (prune_ && updatedSolution )
+                if (updatedSolution)
                 {
                     if (opt_->isCostBetterThan(bestCost_, pruneTreeCost_))
                     {
-                        pruneTreeCost_ = bestCost_;
-                        int n = pruneTree(pruneTreeCost_, pruneStatesThreshold_);
-                        statesGenerated -= n;
-
-                        std::vector<const base::State *> spath;
-                        Motion *intermediate_solution = solution->parent; // Do not include goal state to simplify code.
-
-                        do
+                        if (prune_)
                         {
-                            spath.push_back(intermediate_solution->state);
-                            intermediate_solution = intermediate_solution->parent;
-                        } while (intermediate_solution->parent != 0); // Do not include the start state.
+                            pruneTreeCost_ = bestCost_;
+                            int n = pruneTree(pruneTreeCost_, pruneStatesThreshold_);
+                            statesGenerated -= n;
+                        }
 
-                        // \FIXME this is related to CForest not pruning. Shouldn't this always be called, regardless of whether prune_ is true?
-                        pdef_->getIntermediateSolutionCallback()(this, spath, bestCost_);
+                        if (isCForest)
+                        {
+                            std::vector<const base::State *> spath;
+                            Motion *intermediate_solution = solution->parent; // Do not include goal state to simplify code.
+
+                            do
+                            {
+                                spath.push_back(intermediate_solution->state);
+                                intermediate_solution = intermediate_solution->parent;
+                            } while (intermediate_solution->parent != 0); // Do not include the start state.
+
+                            pdef_->getIntermediateSolutionCallback()(this, spath, bestCost_);
+                        }
+
                     }
                 }
             }
