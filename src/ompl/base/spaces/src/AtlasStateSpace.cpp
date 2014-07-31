@@ -45,6 +45,7 @@
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/lambda.hpp>
+#include <boost/thread/lock_guard.hpp>
 
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
@@ -130,6 +131,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     const std::size_t k = atlas_.getManifoldDimension();
     
     // Rejection sampling to find a point in the ball
+    boost::lock_guard<boost::mutex> lock(mutices_.rng_);
     while (true)
     {
         const AtlasChart *c = &amean->getChart();
@@ -137,7 +139,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
         Eigen::VectorXd rand(k);
         const double s = stdDev / std::sqrt(k);
         for (std::size_t i = 0; i < k; i++)
-            rand[i] = atlas_.getRNG().gaussian(0, s);
+            rand[i] = rng_.gaussian(0, s);
         r = c->psi(u + rand);
         if (atlas_.bigF(r).norm() > 10*atlas_.getProjectionTolerance())
             continue;
@@ -262,7 +264,7 @@ ompl::base::AtlasStateSpace::StateType::~StateType(void)
 
 void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd &x, const AtlasChart &c)
 {
-    mutex_.lock();
+    boost::lock_guard<boost::mutex> lock(mutex_);
     for (std::size_t i = 0; i < dimension_; i++)
         (*this)[i]  = x[i];
     if (chart_ != &c)
@@ -272,16 +274,14 @@ void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd
         c.own(this);
     }
     chart_ = &c;
-    mutex_.unlock();
 }
 
 Eigen::VectorXd ompl::base::AtlasStateSpace::StateType::toVector (void) const
 {
-    mutex_.lock_shared();
+    boost::lock_guard<boost::mutex> lock(mutex_);
     Eigen::VectorXd x(dimension_);
     for (std::size_t i = 0; i < dimension_; i++)
         x[i] = (*this)[i];
-    mutex_.unlock_shared();
     return x;
 }
 
@@ -297,7 +297,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart_s
 
 void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c, const bool fast)
 {
-    mutex_.lock();
+    boost::lock_guard<boost::mutex> lock(mutex_);
     if (chart_ != &c)
     {
         if (chart_ && !fast)
@@ -305,7 +305,6 @@ void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c, cons
         c.own(this);
     }
     chart_ = &c;
-    mutex_.unlock();
 }
 
 /// AtlasStateSpace
@@ -369,12 +368,16 @@ void ompl::base::AtlasStateSpace::clear (void)
 {
     // Copy the list of charts
     std::vector<AtlasChart *> oldCharts;
-    for (std::size_t i = 0; i < charts_.size(); i++)
     {
-        oldCharts.push_back(charts_[i]);
+        boost::lock_guard<boost::mutex> lock(mutices_.chartsVector_);
+        for (std::size_t i = 0; i < charts_.size(); i++)
+        {
+            oldCharts.push_back(charts_[i]);
+        }
+        
+        charts_.clear();
     }
     
-    charts_.clear();
     for (std::size_t i = 0; i < oldCharts.size(); i++)
     {
         if (oldCharts[i]->isAnchor())
@@ -523,11 +526,6 @@ unsigned int ompl::base::AtlasStateSpace::getManifoldDimension (void) const
     return k_;
 }
 
-ompl::RNG &ompl::base::AtlasStateSpace::getRNG (void) const
-{
-    return rng_;
-}
-
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::anchorChart (const Eigen::VectorXd &xorigin) const
 {
     return newChart(xorigin, true);
@@ -535,12 +533,16 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::anchorChart (const Eigen::V
 
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::sampleChart (void) const
 {
+    double r;
+    {
+        boost::lock_guard<boost::mutex> lock(mutices_.rng_);
+        r = rng_.uniform01();
+    }
+    
+    boost::lock_guard<boost::mutex> lock1(mutices_.chartsVector_);
+    boost::lock_guard<boost::mutex> lock2(mutices_.chartsWeights_);
     if (charts_.size() < 1)
         throw ompl::Exception("Atlas sampled before any charts were made. Use AtlasStateSpace::newChart() first.");
-    
-    mutices_.rng_.lock();
-    const double r = rng_.uniform01();
-    mutices_.rng_.unlock();
     return *charts_.sample(r);
 }
 
@@ -556,6 +558,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
     }
     
     // If not found, search through all charts for the best match
+    boost::lock_guard<boost::mutex> lock(mutices_.chartsVector_);
     double best = delta_;
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
@@ -581,9 +584,8 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::VectorXd &xorigin, const bool anchor) const
 {
     AtlasChart &addedC = *new AtlasChart(*this, xorigin, anchor);
-    mutices_.charts_.lock();
+    boost::lock_guard<boost::mutex> lock(mutices_.chartsVector_);
     charts_.add(&addedC, addedC.getMeasure());
-    mutices_.charts_.unlock();
     
     // Ensure all charts respect boundaries of the new one, and vice versa
     for (std::size_t i = 0; i < charts_.size()-1; i++)
@@ -608,9 +610,8 @@ Eigen::VectorXd ompl::base::AtlasStateSpace::dichotomicSearch (const AtlasChart 
 
 void ompl::base::AtlasStateSpace::updateMeasure (const AtlasChart &c) const
 {
-    mutices_.charts_.lock();
+    boost::lock_guard<boost::mutex> lock(mutices_.chartsWeights_);
     charts_.update(charts_.getElements()[c.getID()], c.getMeasure());
-    mutices_.charts_.unlock();
 }
 
 double ompl::base::AtlasStateSpace::getMeasureKBall (void) const
@@ -803,6 +804,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
 
 void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
 {
+    boost::lock_guard<boost::mutex> lock(mutices_.chartsVector_);
     std::stringstream v, f;
     std::size_t vcount = 0;
     std::size_t fcount = 0;

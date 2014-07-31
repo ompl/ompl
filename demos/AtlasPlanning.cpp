@@ -49,6 +49,7 @@
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/rrt/pRRT.h>
 
 #include <eigen3/Eigen/Dense>
 
@@ -286,7 +287,7 @@ ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atl
 void usage (void)
 {
     std::cout << "Usage: demo_AtlasPlanning <planner> <timelimit>\n";
-    std::cout << "Available planners: RRT RRTstar RRTConnect PRM PRMstar EST KPIECE1 SPARS SPARStwo\n";
+    std::cout << "Available planners: RRT RRTstar RRTConnect pRRT PRM PRMstar EST KPIECE1 SPARS SPARStwo\n";
     exit(0);
 }
 
@@ -335,6 +336,8 @@ int main (int argc, char **argv)
         planner = ompl::base::PlannerPtr(new ompl::geometric::RRTstar(si));
     else if (std::strcmp(argv[1], "RRTConnect") == 0)
         planner = ompl::base::PlannerPtr(new ompl::geometric::RRTConnect(si));
+    else if (std::strcmp(argv[1], "pRRT") == 0)
+        planner = ompl::base::PlannerPtr(new ompl::geometric::pRRT(si));
     else if (std::strcmp(argv[1], "PRM") == 0)
         planner = ompl::base::PlannerPtr(new ompl::geometric::PRM(si));
     else if (std::strcmp(argv[1], "PRMstar") == 0)

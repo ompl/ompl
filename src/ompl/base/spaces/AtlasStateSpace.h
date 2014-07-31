@@ -46,7 +46,6 @@
 #include "ompl/geometric/PathGeometric.h"
 
 #include <boost/thread/mutex.hpp>
-#include <boost/thread/shared_mutex.hpp>
 
 #include <eigen3/Eigen/Core>
 
@@ -84,6 +83,15 @@ namespace ompl
             
             /** \brief Atlas on which to sample. */
             const AtlasStateSpace &atlas_;
+            
+            /** \brief Random number generator. */
+            mutable RNG rng_;
+            
+            /** \brief Locks to keep some operations thread-safe. */
+            mutable struct
+            {
+                boost::mutex rng_;
+            } mutices_;
         };
         
         /** \brief ValidStateSampler for use on an atlas. */
@@ -177,7 +185,7 @@ namespace ompl
                 const unsigned int dimension_;
                 
                 /** \brief Shared mutex for read/write access. */
-                mutable boost::shared_mutex mutex_;
+                mutable boost::mutex mutex_;
             };
             
             /** \brief Constraint function type; input vector size is the ambient dimension;
@@ -280,9 +288,6 @@ namespace ompl
             
             /** \brief Get the dimension of the constraint manifold. */
             unsigned int getManifoldDimension (void) const;
-            
-            /** \brief Access the random number generator of the atlas. */
-            RNG &getRNG (void) const;
             
             /** @} */
             
@@ -445,7 +450,8 @@ namespace ompl
             /** \brief Locks to keep some operations thread-safe. */
             mutable struct
             {
-                boost::mutex charts_;
+                boost::mutex chartsVector_;
+                boost::mutex chartsWeights_;
                 boost::mutex rng_;
             } mutices_;
         };

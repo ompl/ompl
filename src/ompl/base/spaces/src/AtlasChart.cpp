@@ -38,6 +38,7 @@
 
 #include <boost/bind.hpp>
 #include <boost/lambda/lambda.hpp>
+#include <boost/thread/lock_guard.hpp>
 
 #include <eigen3/Eigen/Dense>
 
@@ -216,8 +217,8 @@ Eigen::VectorXd ompl::base::AtlasChart::psiInverse (const Eigen::VectorXd &x) co
 bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, std::size_t *const solitary, const LinearInequality *const ignore1,
                                   const LinearInequality *const ignore2) const
 {
+    boost::lock_guard<boost::recursive_mutex> lock(mutices_.bigL_);
     bool inPolytope = true;
-    mutices_.bigL_.lock();
     if (solitary)
         *solitary = bigL_.size();
     
@@ -244,30 +245,27 @@ bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, std::size_t *const s
             *solitary = i;
         }
     }
-    mutices_.bigL_.unlock();
     
     return inPolytope;
 }
 
 void ompl::base::AtlasChart::borderCheck (const Eigen::VectorXd &v) const
 {
-    mutices_.bigL_.lock();
+    boost::lock_guard<boost::recursive_mutex> lock(mutices_.bigL_);
     for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++)
         (*l)->checkNear(v);
-    mutices_.bigL_.unlock();
 }
 
 void ompl::base::AtlasChart::own (ompl::base::AtlasStateSpace::StateType *const state) const
 {
+    boost::lock_guard<boost::mutex> lock(mutices_.owned_);
     assert(state != NULL);
-    mutices_.owned_.lock();
     owned_.push_front(state);
-    mutices_.owned_.unlock();
 }
 
 void ompl::base::AtlasChart::disown (ompl::base::AtlasStateSpace::StateType *const state) const
 {
-    mutices_.owned_.lock();
+    boost::lock_guard<boost::mutex> lock(mutices_.owned_);
     for (std::list<ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
     {
         if (*s == state)
@@ -276,20 +274,23 @@ void ompl::base::AtlasChart::disown (ompl::base::AtlasStateSpace::StateType *con
             break;
         }
     }
-    mutices_.owned_.unlock();
 }
 
 void ompl::base::AtlasChart::substituteChart (const AtlasChart &replacement) const
 {
+    boost::lock_guard<boost::mutex> lock(mutices_.owned_);
     while (owned_.size() != 0)
-        owned_.front()->setChart(replacement);
+    {
+        owned_.front()->setChart(replacement, true);
+        owned_.pop_front();
+    }
 }
 
 const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eigen::VectorXd &x) const
 {
+    boost::lock_guard<boost::recursive_mutex> lock(mutices_.bigL_);
     const AtlasChart *bestC = NULL;
     double best = std::numeric_limits<double>::infinity();
-    mutices_.bigL_.lock();
     for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++)
     {
         const LinearInequality *const comp = (*l)->getComplement();
@@ -311,7 +312,6 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eige
             }
         }
     }
-    mutices_.bigL_.unlock();
     
     return bestC;
 }
@@ -361,6 +361,7 @@ bool ompl::base::AtlasChart::isAnchor (void) const
 
 void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) const
 {
+    boost::lock_guard<boost::recursive_mutex> lock(mutices_.bigL_);
     if (atlas_.getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::toPolygon() only works on 2D manifold/charts.");
     
@@ -420,12 +421,16 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
 /// Protected
 void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace) const
 {
-    mutices_.bigL_.lock();
-    bigL_.push_front(&halfspace);
-    mutices_.bigL_.unlock();
+    {
+        boost::lock_guard<boost::recursive_mutex> lock(mutices_.bigL_);
+        bigL_.push_front(&halfspace);
+    
+        // Update the measure estimate
+        approximateMeasure();
+    }
     
     // Find tracked states which need to be moved to a different chart
-    mutices_.owned_.lock();
+    boost::lock_guard<boost::mutex> lock(mutices_.owned_);
     const bool fast = true;
     for (std::list<ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
     {
@@ -440,10 +445,6 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace) const
             s = boost::prior(owned_.erase(s));
         }
     }
-    mutices_.owned_.unlock();
-    
-    // Update the measure estimate
-    approximateMeasure();
 }
 
 // Private
