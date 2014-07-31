@@ -34,19 +34,9 @@
 
 /* Authors: Javier V. Gómez, Ioan Sucan, Mark Moll */
 
-#include <ompl/geometric/planners/cforest/CForest.h>
-#include <ompl/geometric/planners/rrt/RRTstar.h>
-#include <ompl/base/objectives/PathLengthOptimizationObjective.h>
-#include <ompl/base/samplers/CForestStateSampler.h>
-#include <ompl/base/StateSpace.h>
-
-namespace {
-    // Allocator for the CForest State Sampler.
-    ompl::base::StateSamplerPtr allocCForestStateSampler(const ompl::base::StateSpace *ss)
-    {
-        return ompl::base::StateSamplerPtr(new ompl::base::CForestStateSampler(ss));
-    }
-}
+#include "ompl/geometric/planners/cforest/CForest.h"
+#include "ompl/geometric/planners/rrt/RRTstar.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
 ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::Planner(si, "CForest")
 {
@@ -60,8 +50,6 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
                                boost::bind(&CForest::getBestCost, this));
     addPlannerProgressProperty("shared paths INTEGER",
                                boost::bind(&CForest::getPathsShared, this));
-
-    si_->getStateSpace()->setStateSamplerAllocator(allocCForestStateSampler);
 }
 
 ompl::geometric::CForest::~CForest()
@@ -102,29 +90,28 @@ void ompl::geometric::CForest::getPlannerData(base::PlannerData &data) const
             data.markStartState(pd.getStartVertex(j).getState());
     }
 
-    data.properties["shared paths INTEGER"] = boost::lexical_cast<std::string>(pathsShared_);
+    data.properties["shared paths INTEGER"] = getPathsShared();
 }
 
 void ompl::geometric::CForest::clear()
 {
     Planner::clear();
-    for (std::size_t i = 0 ; i < planners_.size() ; ++i)
+    for (std::size_t i = 0; i < planners_.size(); ++i)
         planners_[i]->clear();
 
-    totalBestCost_ = opt_->infiniteCost();
+    bestCost_ = opt_->infiniteCost();
     pathsShared_ = 0;
-}
 
-void ompl::geometric::CForest::addPlannerInstance(const base::PlannerPtr &planner)
-{
-    if (!planner || planner->getSpaceInformation().get() != si_.get())
-      throw Exception("Planner instance not constructed for the correct SpaceInformation instance");
-
-    planners_.push_back(planner);
+    std::vector<base::StateSamplerPtr> samplers;
+    samplers.reserve(samplers_.size());
+    for (std::size_t i = 0; i < samplers_.size(); ++i)
+        if (samplers_[i].use_count() > 1)
+            samplers.push_back(samplers_[i]);
+    samplers_.swap(samplers);
 }
 
 void ompl::geometric::CForest::setup()
-{  
+{
     Planner::setup();
     if (pdef_->hasOptimizationObjective())
         opt_ = pdef_->getOptimizationObjective();
@@ -134,15 +121,15 @@ void ompl::geometric::CForest::setup()
         opt_.reset(new base::PathLengthOptimizationObjective(si_));
     }
 
-    totalBestCost_ = opt_->infiniteCost();
+    bestCost_ = opt_->infiniteCost();
 
     if (planners_.empty())
     {
         OMPL_INFORM("%s: Number and type of instances not specified. Defaulting to 2 instances of RRTstar", getName().c_str());
-        setPlannerInstances<RRTstar>(2);
+        addPlannerInstances<RRTstar>(2);
     }
 
-    for (std::size_t i = 0 ; i < planners_.size() ; ++i) 
+    for (std::size_t i = 0; i < planners_.size() ; ++i)
         planners_[i]->setup();
 }
 
@@ -152,18 +139,17 @@ ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTer
 
     time::point start = time::now();
     std::vector<boost::thread*> threads(planners_.size());
-
-    const ReportIntermediateSolutionFn prevSolutionCallback = getProblemDefinition()->getIntermediateSolutionCallback();
+    const base::ReportIntermediateSolutionFn prevSolutionCallback = getProblemDefinition()->getIntermediateSolutionCallback();
 
     if (prevSolutionCallback)
         OMPL_WARN("Cannot use intermediate solution callback with %s", getName().c_str());
 
     pdef_->setIntermediateSolutionCallback(boost::bind(&CForest::newSolutionFound, this, _1, _2, _3));
 
-    // run planners each in its own thread, with the same ptc.
+    // run each planner in its own thread, with the same ptc.
     for (std::size_t i = 0 ; i < threads.size() ; ++i)
-        threads[i] = new boost::thread(boost::bind(&CForest::solveOne, this, planners_[i].get(), &ptc));
-        
+        threads[i] = new boost::thread(boost::bind(&CForest::solve, this, planners_[i].get(), ptc));
+
     for (std::size_t i = 0 ; i < threads.size() ; ++i)
     {
         threads[i]->join();
@@ -172,15 +158,13 @@ ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTer
 
     // restore callback
     getProblemDefinition()->setIntermediateSolutionCallback(prevSolutionCallback);
-
     OMPL_INFORM("Solution found in %f seconds", time::seconds(time::now() - start));
-    
     return base::PlannerStatus(pdef_->hasSolution(), pdef_->hasApproximateSolution());
 }
 
 std::string ompl::geometric::CForest::getBestCost() const
 {
-    return boost::lexical_cast<std::string>(totalBestCost_.v);
+    return boost::lexical_cast<std::string>(bestCost_.v);
 }
 
 std::string ompl::geometric::CForest::getPathsShared() const
@@ -192,28 +176,36 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, co
 {
     bool change = false;
     newSolutionFoundMutex_.lock();
-    if (opt_->isCostBetterThan(cost, totalBestCost_))
+    if (opt_->isCostBetterThan(cost, bestCost_))
     {
-            pathsShared_++;
-            totalBestCost_ = cost;
-            change = true;
+        pathsShared_++;
+        bestCost_ = cost;
+        change = true;
     }
     newSolutionFoundMutex_.unlock();
-    
+
     if (!change) return;
-    
-    for (std::size_t i = 0 ; i < planners_.size() ; ++i)
+
+    for (std::size_t i = 0; i < samplers_.size(); ++i)
     {
-        if (planners_[i].get() != planner)
-            planners_[i]->includeValidPath(states, cost);
+        base::CForestStateSampler* sampler = dynamic_cast<base::CForestStateSampler*>(samplers_[i].get());
+        const base::CForestStateSpace *space = dynamic_cast<const base::CForestStateSpace*>(sampler->getStateSpace());
+        const base::Planner *cfplanner = space->getPlanner();
+        if (cfplanner != planner)
+        {
+            // std::cerr<<"states for "<<i<<' '<<samplers_[i].use_count()<<' '<<cfplanner<<' '<<planner<<' '<<sampler<<std::endl;
+            sampler->setStatesToSample(states);
+        }
+        // else
+        //     std::cerr << "planner is different " << i<<std::endl;
     }
 }
 
-void ompl::geometric::CForest::solveOne(base::Planner *planner, const base::PlannerTerminationCondition *ptc)
+void ompl::geometric::CForest::solve(base::Planner *planner, const base::PlannerTerminationCondition &ptc)
 {
     OMPL_DEBUG("Starting %s", planner->getName().c_str());
     time::point start = time::now();
-    if (planner->solve(*ptc))
+    if (planner->solve(ptc))
     {
         double duration = time::seconds(time::now() - start);
         OMPL_DEBUG("Solution found by %s in %lf seconds", planner->getName().c_str(), duration);

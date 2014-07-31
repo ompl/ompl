@@ -39,7 +39,6 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
-#include "ompl/base/samplers/CForestStateSampler.h"
 #include <algorithm>
 #include <limits>
 #include <map>
@@ -58,9 +57,9 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     maxDistance_ = 0.0;
     delayCC_ = true;
     lastGoalMotion_ = NULL;
-    
+
+    prune_ = true;
     pruneTreeCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
-    isCForest_ = false;
     pruneStatesThreshold_ = 0.95;
 
     iterations_ = 0;
@@ -71,8 +70,9 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
     Planner::declareParam<bool>("delay_collision_checking", this, &RRTstar::setDelayCC, &RRTstar::getDelayCC, "0,1");
+    Planner::declareParam<bool>("prune", this, &RRTstar::setPrune, &RRTstar::getPrune, "0,1");
     Planner::declareParam<double>("prune_states_threshold", this, &RRTstar::setPruneStatesImprovementThreshold, &RRTstar::getPruneStatesImprovementThreshold, "0.:.01:1.");
-    
+
     addPlannerProgressProperty("iterations INTEGER",
                                boost::bind(&RRTstar::getIterationCount, this));
     addPlannerProgressProperty("collision checks INTEGER",
@@ -94,7 +94,6 @@ void ompl::geometric::RRTstar::setup()
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
-        
     nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
 
 
@@ -131,21 +130,6 @@ void ompl::geometric::RRTstar::clear()
     pruneTreeCost_ = opt_->infiniteCost();
 }
 
-void ompl::geometric::RRTstar::includeValidPath(const std::vector<const base::State *> &states, const base::Cost cost) 
-{
-    if (opt_->isCostBetterThan(cost, pruneTreeCost_))
-    {
-        base::CForestStateSampler *cfss = dynamic_cast <base::CForestStateSampler *> (sampler_.get());
-        if(cfss)
-        {
-            cfss->setStatesToSample(states);
-            pruneTreeCost_ = cost;
-        }
-        else
-            OMPL_WARN("Sampler using with CForest is not properly set.");
-    }
-}
-
 ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
@@ -169,12 +153,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     {
         OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
-    }
-    
-    if (isCForest_ && pdef_->getStartStateCount() > 1)
-    {
-        OMPL_WARN("%s: There are more than 1 initial states. CForest is deactivated." , getName().c_str());
-        isCForest_ = false;
     }
 
     if (!sampler_)
@@ -223,8 +201,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     {
         iterations_++;
 
-        // CForest: a new path has been shared by other thread.
-        if (isCForest_)
+        if (prune_)
         {
             if (opt_->isCostBetterThan(pruneTreeCost_, bestCost_))
             {
@@ -246,7 +223,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         {
             sampler_->sampleUniform(rstate);
 
-            if (isCForest_)
+            if (prune_)
             {
                 const base::Cost costTotal =  computeCTGHeuristic(rmotion);
                 if (opt_->isCostBetterThan(pruneTreeCost_, costTotal))
@@ -271,8 +248,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
            dstate = xstate;
        }
 
-        if (isCForest_ && si_->equalStates(nmotion->state, rstate))
-            continue;
+       // \FIXME why is this needed for CForest
+        // if (isCForest_ && si_->equalStates(nmotion->state, rstate))
+        //     continue;
 
         // Check if the motion between the nearest state and the state to add is valid
         ++collisionChecks_;
@@ -289,7 +267,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             unsigned int k = std::ceil(k_rrg * log((double)(nn_->size() + 1)));
             nn_->nearestK(motion, k, nbh);
             rewireTest += nbh.size();
-            ++statesGenerated;
+            statesGenerated++;
 
             // cache for distance computations
             //
@@ -395,7 +373,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 }
             }
 
-            if (isCForest_)
+            if (prune_)
             {
                 const base::Cost costTotal = computeCTGHeuristic(motion, false);
                 if (opt_->isCostBetterThan(costTotal, pruneTreeCost_))
@@ -413,6 +391,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             }
             else
             {
+                // add motion to the tree
                 nn_->add(motion);
                 motion->parent->children.push_back(motion);
             }
@@ -514,8 +493,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     }
                 }
 
-                // CFOREST sharing path only when there are not more shared states to include.
-                if (isCForest_ && updatedSolution )
+                if (prune_ && updatedSolution )
                 {
                     if (opt_->isCostBetterThan(bestCost_, pruneTreeCost_))
                     {
@@ -532,6 +510,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                             intermediate_solution = intermediate_solution->parent;
                         } while (intermediate_solution->parent != 0); // Do not include the start state.
 
+                        // \FIXME this is related to CForest not pruning. Shouldn't this always be called, regardless of whether prune_ is true?
                         pdef_->getIntermediateSolutionCallback()(this, spath, bestCost_);
                     }
                 }
@@ -583,8 +562,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
         addedSolution = true;
     }
-    
-    if (isCForest_)
+
+    // \FIXME: why prune the tree if we have already computed the solution?
+    if (prune_)
     {
         int n = pruneTree(pruneTreeCost_, pruneStatesThreshold_);
         statesGenerated -= n;

@@ -32,11 +32,10 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Luis G. Torres, Ioan Sucan */
-/* CForest Authors: Javier V Gomez */
+/* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Luis G. Torres, Ioan Sucan, Javier V Gomez */
 
-#ifndef OMPL_CONTRIB_RRT_STAR_RRTSTAR_
-#define OMPL_CONTRIB_RRT_STAR_RRTSTAR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_RRT_RRTSTAR_
+#define OMPL_GEOMETRIC_PLANNERS_RRT_RRTSTAR_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/OptimizationObjective.h"
@@ -87,8 +86,6 @@ namespace ompl
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             virtual void clear();
-
-            virtual void includeValidPath(const std::vector<const base::State *> &states, const base::Cost cost);
 
             /** \brief Set the goal bias
 
@@ -151,6 +148,17 @@ namespace ompl
                 return delayCC_;
             }
 
+            /* \brief Option to control whether the tree is pruned during the search. */
+            void setPrune(bool prune)
+            {
+                prune_ = prune;
+            }
+            /* \brief Get the state of the pruning option. */
+            bool getPrune() const
+            {
+                return prune_;
+            }
+
             /** \brief Set the percentage threshold (between 0 and 1) for pruning the tree. If the new tree has removed
                 at least this percentage of states, the tree will be finally pruned. */
             void setPruneStatesImprovementThreshold(const double pp)
@@ -177,18 +185,6 @@ namespace ompl
 
             /** \brief TO BE REMOVED in the final version. */
             void saveTree(const char * filename);
-
-            /** \brief When called, the CForest parallelization framework is activated. */
-            virtual void activateCForest() 
-            {
-                isCForest_ = true;
-            }
-
-            /** \brief When called, the CForest parallelization framework is deactivated. */
-            virtual void deactivateCForest() 
-            {
-                isCForest_ = false;
-            }
 
         protected:
 
@@ -261,11 +257,11 @@ namespace ompl
 
             /** \brief Updates the cost of the children of this node if the cost up to this node has changed */
             void updateChildCosts(Motion *m);
-            
+
             /** \brief If CForest is activated, this function will prune the tree when the best cost is improved over a threshold prunePercentage_. 
                 returns the number of motions pruned. */
             int pruneTree(const base::Cost pruneTreeCost, const double pruneStatesThreshold=1);
-            
+
             /** \brief If CForest is activated, this function will delete the pruned motions at the end of the solve() function. */
             void detelePrunedMotions();
 
@@ -304,10 +300,10 @@ namespace ompl
             DistanceDirection                              distanceDirection_;
 
              /** \brief If this vector contains motions, they will be deteled once the solve() function ends. */
-            std::deque<Motion*>	                           toBeDeleted_;
+            std::deque<Motion*>                            toBeDeleted_;
 
-            /** \brief If this value is set to true, the CForest parallelization framework will be activated. */
-            bool                                           isCForest_;
+            /** \brief If this value is set to true, tree pruning will be enabled. */
+            bool                                           prune_;
 
             /** \brief CForest parameter. The tree is only pruned is the percentage of states to prune is above this threshold (between 0 and 1). */
             double                                         pruneStatesThreshold_;

@@ -54,7 +54,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            CForestStateSampler(const StateSpace *space) : StateSampler(space), sampler_(space_->allocDefaultStateSampler())
+            CForestStateSampler(const StateSpace *space, StateSamplerPtr sampler) : StateSampler(space), sampler_(sampler)
             {
             }
 
@@ -65,17 +65,13 @@ namespace ompl
             }
 
             virtual void sampleUniform(State *state);
-            /** \brief Sample a state such that each component state[i] is
-                uniformly sampled from [near[i]-distance, near[i]+distance].
-                If this interval exceeds the state space bounds, the
-                interval is truncated. */
             virtual void sampleUniformNear(State *state, const State *near, const double distance);
-            /** \brief Sample a state such that each component state[i] has
-                a Gaussian distribution with mean mean[i] and standard
-                deviation stdDev. If the sampled value exceeds the state
-                space boundary, it is thresholded to the nearest boundary. */
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
 
+            const StateSpace* getStateSpace() const
+            {
+                return space_;
+            }
             void setStatesToSample(const std::vector<const State *> &states);
 
             void clear();
@@ -84,7 +80,7 @@ namespace ompl
 
             void getNextSample(State *state);
 
-            std::vector<State *> statesToSample_;
+            std::vector<State*> statesToSample_;
 
             StateSamplerPtr sampler_;
 
