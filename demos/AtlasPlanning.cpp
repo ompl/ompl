@@ -254,7 +254,7 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
     y = Eigen::VectorXd(dim); y << 2.5, -1.5, 1.0221854181962458;
     
     // Validity checker
-    isValid = &always;
+    isValid = boost::bind(&unreachable, _1, y);
     
     // Atlas initialization
     return new ompl::base::AtlasStateSpace(dim, FKleinBottle, JKleinBottle);
