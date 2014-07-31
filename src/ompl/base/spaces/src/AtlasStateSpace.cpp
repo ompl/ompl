@@ -63,27 +63,29 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
     Eigen::VectorXd r(atlas_.getManifoldDimension());
     AtlasChart *c;
     
-    // Rejection sampling to find a point inside a chart's polytope
     do
     {
-        // Pick a chart according to measure
-        c = &atlas_.sampleChart();
-        
-        // Sample a point within rho_s of the center
+        // Rejection sampling to find a point inside a chart's polytope
         do
         {
-            r.setRandom();
+            // Pick a chart according to measure
+            c = &atlas_.sampleChart();
+            
+            // Sample a point within rho_s of the center
+            do
+                r.setRandom();
+            while (r.squaredNorm() > 1);
             r *= atlas_.getRho_s();
         }
-        while (r.norm() > atlas_.getRho_s());
+        while (!c->inP(r));
+        
+        r = c->psi(r);
     }
-    while (!c->inP(r));
+    while (r.hasNaN() || atlas_.bigF(r).norm() > atlas_.getProjectionTolerance());
     
     // Extend polytope of neighboring chart wherever point is near the border
-    c->borderCheck(r);
-    
-    // Project onto manifold
-    state->as<AtlasStateSpace::StateType>()->setRealState(c->psi(r), *c);
+    c->borderCheck(c->psiInverse(r));
+    state->as<AtlasStateSpace::StateType>()->setRealState(r, *c);
 }
 
 void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State *near, const double distance)
@@ -94,26 +96,19 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     Eigen::VectorXd r;
     const AtlasChart *c = &anear->getChart();
     
-    // Sometimes the projection fails and we don't land on the manifold. Repeat until we do.
+    // Rejection sampling to find a point on the manifold
     do
     {
-        // Rejection sampling to find a point in the ball
+        // Sample within radius of distance
+        Eigen::VectorXd uoffset(atlas_.getManifoldDimension());
         do
-        {
-            // This inner loop checks the radius on the chart first, before the projection to the manifold, to save time
-            do
-            {
-                const Eigen::VectorXd uoffset = Eigen::VectorXd::Random(atlas_.getManifoldDimension());
-                const Eigen::VectorXd xoffset = c->phi(uoffset) - c->phi(Eigen::VectorXd::Zero(atlas_.getManifoldDimension()));
-                r = anear->toVector() + distance * xoffset;
-            }
-            while ((r - n).squaredNorm() > distance*distance);
-            r = c->psi(c->psiInverse(r));
-        }
-        while ((r - n).squaredNorm() > distance*distance);
-        astate->setRealState(r, *c);
+            uoffset.setRandom();
+        while (uoffset.squaredNorm() > 1);
+        const Eigen::VectorXd xoffset = c->phi(uoffset) - c->phi(Eigen::VectorXd::Zero(atlas_.getManifoldDimension()));
+        r = c->psi(c->psiInverse(n + distance * xoffset.normalized()));
     }
-    while (atlas_.bigF(r).norm() > atlas_.getProjectionTolerance());
+    while (r.hasNaN() || atlas_.bigF(r).norm() > atlas_.getProjectionTolerance()  /*|| (r - n).squaredNorm() > distance*distance*/);
+    astate->setRealState(r, *c);
     
     // It might belong to a different chart
     c = atlas_.owningChart(r);
@@ -132,28 +127,27 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     const std::size_t k = atlas_.getManifoldDimension();
     
     // Rejection sampling to find a point in the ball
+    const AtlasChart *c;
     boost::lock_guard<boost::mutex> lock(mutices_.rng_);
-    while (true)
+    do
     {
-        const AtlasChart *c = &amean->getChart();
+        c = &amean->getChart();
         const Eigen::VectorXd u = c->psiInverse(astate->toVector());
         Eigen::VectorXd rand(k);
         const double s = stdDev / std::sqrt(k);
         for (std::size_t i = 0; i < k; i++)
             rand[i] = rng_.gaussian(0, s);
         r = c->psi(u + rand);
-        if (atlas_.bigF(r).norm() > atlas_.getProjectionTolerance())
-            continue;
-        
-        // It might belong to a different chart
-        c = atlas_.owningChart(r);
-        if (!c)
-            c = &atlas_.newChart(r);
-        else
-            r = c->psi(c->psiInverse(r));
-        astate->setRealState(r, *c);
-        break;
     }
+    while (r.hasNaN() || atlas_.bigF(r).norm() > atlas_.getProjectionTolerance());
+    
+    // It might belong to a different chart
+    c = atlas_.owningChart(r);
+    if (!c)
+        c = &atlas_.newChart(r);
+    else
+        r = c->psi(c->psiInverse(r));
+    astate->setRealState(r, *c);
 }
 
 /// AtlasValidStateSampler
@@ -316,8 +310,9 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     bigF(constraints),
     bigJ(jacobian ? jacobian : boost::bind(&AtlasStateSpace::numericalJacobian, this, boost::lambda::_1)),
     n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
-    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(20), monteCarloThoroughness_(3.5), setup_(false)
+    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(20), monteCarloThoroughness_(3), setup_(false)
 {
+    Eigen::initParallel();
     setName("Atlas" + RealVectorStateSpace::getName());
     
     // Infer the manifold dimension
@@ -952,19 +947,22 @@ void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *
     
     // Find the two adjacent states between which lies t
     std::size_t i = 0;
+    double tt;
     if (d[n-1] == 0)
     {
-        // Corner case where total distance is 0; prevents division by 0
+        // Corner case where total distance is near 0; prevents division by 0
         i = n-1;
+        tt = t;
     }
     else
     {
         while (i < n-1 && d[i]/d[n-1] <= t)
             i++;
+        tt = t-d[i-1]/d[n-1];
     }
     
     // Interpolate between these two states
-    RealVectorStateSpace::interpolate(stateList[i-1], stateList[i], t-d[i-1]/d[n-1], state);
+    RealVectorStateSpace::interpolate(stateList[i-1], stateList[i], tt, state);
     delete [] d;
     
     // Set the correct chart, guessing it might be one of the adjacent charts first

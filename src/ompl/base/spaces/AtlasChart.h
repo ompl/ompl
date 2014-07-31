@@ -172,9 +172,6 @@ namespace ompl
             /** \brief Get the measure (k_-dimensional volume) of this chart. */
             double getMeasure (void) const;
             
-            /** \brief Get the rank of the chart's basis. */
-            std::size_t getRank (void) const;
-            
             /** \brief Reduce the valid radius of the chart. */
             void shrinkRadius (void) const;
             
@@ -236,9 +233,6 @@ namespace ompl
             
             /** \brief Maximum valid radius of this chart. */
             mutable double radius_;
-            
-            /** \brief Rank of the basis. */
-            std::size_t rank_;
             
             /** \brief Locks to keep some operations thread-safe. */
             mutable struct

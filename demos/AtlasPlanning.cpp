@@ -188,6 +188,45 @@ Eigen::MatrixXd Jtorus (const Eigen::VectorXd &x)
     return j;
 }
 
+#define CHAINDIM    3
+#define CHAINLINKS  5
+/** Kinematic chain manifold. 5 links in 3D space. */
+Eigen::VectorXd Fchain (const Eigen::VectorXd &x)
+{
+    Eigen::VectorXd f(CHAINLINKS+1);
+    
+    // Consecutive joints must be a fixed distance apart
+    const double linkLength = 1;
+    Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(CHAINDIM);
+    for (std::size_t i = 0; i < CHAINLINKS; i++)
+    {
+        const Eigen::VectorXd joint2 = x.segment(CHAINDIM*i, CHAINDIM);
+        f[i] = (joint1 - joint2).norm() - linkLength;
+        
+        joint1 = joint2;
+    }
+    
+    // End effector must lie on a sphere of radius 3
+    f[CHAINLINKS] = x.tail(CHAINDIM).norm() - 3;
+    
+    return f;
+}
+
+/** Jacobian of Fchain(x). */
+Eigen::MatrixXd Jchain (const Eigen::VectorXd &x)
+{
+    Eigen::MatrixXd j = Eigen::MatrixXd::Zero(CHAINLINKS+1, CHAINDIM*CHAINLINKS);
+    Eigen::VectorXd plus(CHAINDIM*(CHAINLINKS+1)); plus.head(CHAINDIM*CHAINLINKS) = x; plus.tail(CHAINDIM) = Eigen::VectorXd::Zero(CHAINDIM);
+    Eigen::VectorXd minus(CHAINDIM*(CHAINLINKS+1)); minus.head(CHAINDIM) = Eigen::VectorXd::Zero(CHAINDIM); minus.tail(CHAINDIM*CHAINLINKS) = x;
+    const Eigen::VectorXd diagonal = plus - minus;
+    for (std::size_t i = 0; i < CHAINLINKS; i++)
+        j.row(i).segment(CHAINDIM*i, CHAINDIM) = diagonal.segment(CHAINDIM*i, CHAINDIM).normalized();
+    j.block(1, 0, CHAINLINKS, CHAINDIM*(CHAINLINKS-1)) -= j.block(1, CHAINDIM, CHAINLINKS, CHAINDIM*(CHAINLINKS-1));
+    j.row(CHAINLINKS).tail(CHAINDIM) = -diagonal.tail(CHAINDIM).normalized().transpose();
+    
+    return j;
+}
+
 /** Every state is valid. */
 bool always (const ompl::base::State *)
 {
@@ -207,10 +246,20 @@ bool unreachable (const ompl::base::State *state, const Eigen::VectorXd &goal)
     return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->toVector() - goal).norm() - 0.25) > 0.249;
 }
 
-/** Print the state and its chart ID. */
-void printState (const ompl::base::AtlasStateSpace::StateType *state)
+/** For the chain example. Joints may not get too close to each other. */
+bool noIntersect (const ompl::base::State *state)
 {
-    std::cout << "[" << state->toVector().transpose() << "]  " << state->getChart().getID() << "\n";
+    const Eigen::VectorXd x = state->as<ompl::base::AtlasStateSpace::StateType>()->toVector();
+    for (std::size_t i = 0; i < CHAINLINKS-1; i++)
+    {
+        for (std::size_t j = i+1; j < CHAINLINKS; j++)
+        {
+            if ((x.segment(CHAINDIM*i, CHAINDIM) - x.segment(CHAINDIM*j, CHAINDIM)).cwiseAbs().maxCoeff() < 0.2)
+                return false;
+        }
+    }
+    
+    return true;
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
@@ -266,7 +315,7 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
 {
     const std::size_t dim = 3;
     
-    // Start and goal points;
+    // Start and goal points
     x = Eigen::VectorXd(dim); x << -2, 0, -1;
     y = Eigen::VectorXd(dim); y << 2, 0, 1;
     
@@ -275,6 +324,21 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
     
     // Atlas initialization
     return new ompl::base::AtlasStateSpace(dim, Ftorus, Jtorus);
+}
+
+/** Initialize the atlas for the kinematic chain problem. */
+ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+{
+    const std::size_t dim = 15;
+    
+    // Start and goal points
+    x = Eigen::VectorXd(dim); x << 1, 0, 0, 2, 0, 0, 2, -1, 0, 3, -1, 0, 3, 0, 0;
+    y = Eigen::VectorXd(dim); y << 0, -1, 0, -1, -1, 0, -1, 0, 0, -2, 0, 0, -3, 0, 0;
+    
+    // Validity checker
+    isValid = &noIntersect;
+    
+    return new ompl::base::AtlasStateSpace(dim, Fchain, Jchain);
 }
 
 /** Allocate a sampler for the atlas that only returns valid points. */
@@ -299,7 +363,7 @@ int main (int argc, char **argv)
     // Initialize the atlas for a problem (you can try the other one too)
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
-    ompl::base::AtlasStateSpacePtr atlas(initKleinBottleProblem(x, y, isValid));
+    ompl::base::AtlasStateSpacePtr atlas(initChainProblem(x, y, isValid));
     ompl::base::StateSpacePtr space(atlas);
     ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
     atlas->setSpaceInformation(si);
@@ -312,7 +376,7 @@ int main (int argc, char **argv)
     start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
     goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
     
-    atlas->setExploration(0.5);
+    atlas->setExploration(0.01);
     atlas->setRho(0.1);
     atlas->setAlpha(M_PI/32);
     atlas->setEpsilon(0.05);
@@ -343,7 +407,10 @@ int main (int argc, char **argv)
     else if (std::strcmp(argv[1], "PRMstar") == 0)
         planner = ompl::base::PlannerPtr(new ompl::geometric::PRMstar(si));
     else if (std::strcmp(argv[1], "EST") == 0)
+    {
         planner = ompl::base::PlannerPtr(new ompl::geometric::EST(si));
+        planner->as<ompl::geometric::EST>()->setRange(1);
+    }
     else if (std::strcmp(argv[1], "KPIECE1") == 0)
         planner = ompl::base::PlannerPtr(new ompl::geometric::KPIECE1(si));
     else if (std::strcmp(argv[1], "SPARS") == 0)
@@ -368,13 +435,17 @@ int main (int argc, char **argv)
         double time = ((double)(std::clock()-tstart))/CLOCKS_PER_SEC;
         
         ompl::geometric::PathGeometric &path = *boost::dynamic_pointer_cast<ompl::geometric::PathGeometric>(pdef->getSolutionPath());
-        std::ofstream pathFile("path.ply");
-        atlas->dumpPath(path, pathFile);
-        pathFile.close();
+        if (x.size() == 3)
+        {
+            std::ofstream pathFile("path.ply");
+            atlas->dumpPath(path, pathFile);
+            pathFile.close();
+        }
         
         // Extract the solution path by re-interpolating between the saved states
         const std::vector<ompl::base::State *> &waypoints = path.getStates();
         double length = 0;
+        std::ofstream animFile("anim.txt");
         for (std::size_t i = 0; i < waypoints.size()-1; i++)
         {
             // Denote that we are switching to the next saved state
@@ -391,7 +462,8 @@ int main (int argc, char **argv)
                 // Print the intermediate states
                 for (std::size_t i = 1; i < stateList.size(); i++)
                 {
-                    printState(stateList[i]);
+                    std::cout << "[" << stateList[i]->toVector().transpose() << "]  " << stateList[i]->getChart().getID() << "\n";
+                    animFile << stateList[i]->toVector().transpose() << "\n";
                     length += atlas->distance(stateList[i-1], stateList[i]);
                 }
             }
@@ -400,6 +472,7 @@ int main (int argc, char **argv)
             for (std::size_t i = 0; i < stateList.size(); i++)
                 atlas->freeState(stateList[i]);
         }
+        animFile.close();
         std::cout << "-----\n";
         std::cout << "Length: " << length << "\n";
         std::cout << "Took " << time << " seconds.\n";
@@ -411,15 +484,18 @@ int main (int argc, char **argv)
     
     std::cout << "Atlas created " << atlas->getChartCount() << " charts.\n";
     
-    std::ofstream atlasFile("atlas.ply");
-    atlas->dumpMesh(atlasFile);
-    atlasFile.close();
-    
-    std::ofstream graphFile("graph.ply");
-    ompl::base::PlannerData pd(si);
-    planner->getPlannerData(pd);
-    atlas->dumpGraph(pd.toBoostGraph(), graphFile);
-    graphFile.close();
+    if (x.size() == 3)
+    {
+        std::ofstream atlasFile("atlas.ply");
+        atlas->dumpMesh(atlasFile);
+        atlasFile.close();
+        
+        std::ofstream graphFile("graph.ply");
+        ompl::base::PlannerData pd(si);
+        planner->getPlannerData(pd);
+        atlas->dumpGraph(pd.toBoostGraph(), graphFile);
+        graphFile.close();
+    }
     
     return 0;
 }

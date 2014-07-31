@@ -152,8 +152,7 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::V
     
     // Initialize basis by computing the null space of the Jacobian and orthonormalizing
     Eigen::FullPivLU<Eigen::MatrixXd> decomp = atlas_.bigJ(xorigin_).fullPivLu();
-    Eigen::ColPivHouseholderQR<Eigen::MatrixXd> nullDecomp = decomp.kernel().colPivHouseholderQr();
-    rank_ = nullDecomp.rank();
+    Eigen::HouseholderQR<Eigen::MatrixXd> nullDecomp = decomp.kernel().householderQr();
     bigPhi_ = nullDecomp.householderQ() * Eigen::MatrixXd::Identity(n_, k_);
     bigPhi_t_ = bigPhi_.transpose();
     
@@ -204,7 +203,6 @@ Eigen::VectorXd ompl::base::AtlasChart::psi (const Eigen::VectorXd &u) const
         b.head(n_-k_) = -atlas_.bigF(x);
         b.tail(k_) = bigPhi_t_ * (x_0 - x);
     }
-    
     return x;
 }
 
@@ -335,11 +333,6 @@ void ompl::base::AtlasChart::approximateMeasure (void) const
 double ompl::base::AtlasChart::getMeasure (void) const
 {
     return measure_;
-}
-
-std::size_t ompl::base::AtlasChart::getRank (void) const
-{
-    return rank_;
 }
 
 void ompl::base::AtlasChart::shrinkRadius (void) const
