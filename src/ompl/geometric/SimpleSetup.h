@@ -131,6 +131,12 @@ namespace ompl
                 return psk_;
             }
 
+            /** \brief Get the optimization objective to use */
+            const base::OptimizationObjectivePtr& getOptimizationObjective()
+            {
+                return pdef_->getOptimizationObjective();
+            }
+
             /** \brief Return true if a solution path is available (previous call to solve() was successful) and the solution is exact (not approximate) */
             bool haveExactSolutionPath() const;
 
@@ -139,6 +145,9 @@ namespace ompl
             {
                 return pdef_->getSolutionPath().get();
             }
+
+            /** \brief Get the best solution's planer name. Throw an exception if no solution is available */
+            const std::string getSolutionPlannerName(void) const;
 
             /** \brief Get the solution path. Throw an exception if no solution is available */
             PathGeometric& getSolutionPath() const;
@@ -156,6 +165,12 @@ namespace ompl
             void setStateValidityChecker(const base::StateValidityCheckerFn &svc)
             {
                 si_->setStateValidityChecker(svc);
+            }
+
+            /** \brief Set the optimization objective to use */
+            void setOptimizationObjective(const base::OptimizationObjectivePtr &optimizationObjective)
+            {
+                pdef_->setOptimizationObjective(optimizationObjective);
             }
 
             /** \brief Set the start and goal states to use. */
@@ -229,7 +244,7 @@ namespace ompl
             /** \brief Return the status of the last planning attempt */
             base::PlannerStatus getLastPlannerStatus() const
             {
-                return last_status_;
+                return lastStatus_;
             }
 
             /** \brief Get the amount of time (in seconds) spent during the last planning step */
@@ -303,7 +318,7 @@ namespace ompl
             double                        simplifyTime_;
 
             /// The status of the last planning request
-            base::PlannerStatus           last_status_;
+            base::PlannerStatus           lastStatus_;
 
             /// The parameters that describe the planning context
             base::ParamSet                params_;
