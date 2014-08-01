@@ -149,10 +149,11 @@ namespace ompl
             }
 
             /* \brief Option to control whether the tree is pruned during the search. */
-            void setPrune(bool prune)
+            void setPrune(const bool prune)
             {
                 prune_ = prune;
             }
+
             /* \brief Get the state of the pruning option. */
             bool getPrune() const
             {

@@ -45,6 +45,7 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
     specs_.multithreaded = true;
 
     pathsShared_ = 0;
+    prune_ = true;
 
     addPlannerProgressProperty("best cost REAL",
                                boost::bind(&CForest::getBestCost, this));

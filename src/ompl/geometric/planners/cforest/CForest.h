@@ -74,9 +74,9 @@ namespace ompl
                     base::StateSpacePtr space(cfspace);
                     base::SpaceInformationPtr si(new base::SpaceInformation(space));
                     base::PlannerPtr planner (new T(si));
-                    planner->as<T>()->setPrune(true);
+                    planner->as<T>()->setPrune(prune_);
 
-                    std::cerr << "planner " << i << ' ' << planner.get() << std::endl;
+                    //std::cerr << "planner " << i << ' ' << planner.get() << std::endl;
                     cfspace->setPlanner(planner.get());
                     si->setStateValidityChecker(si_->getStateValidityChecker());
                     si->setMotionValidator(si_->getMotionValidator());
@@ -102,6 +102,18 @@ namespace ompl
             void addSampler(base::StateSamplerPtr sampler)
             {
                 samplers_.push_back(sampler);
+            }
+
+            /* \brief Option to control whether the tree is pruned during the search. */
+            void setPrune(const bool prune)
+            {
+                prune_ = prune;
+            }
+
+            /* \brief Get the state of the pruning option. */
+            bool getPrune() const
+            {
+                return prune_;
             }
 
             /** \brief Get best cost among all the planners. */
@@ -135,6 +147,8 @@ namespace ompl
             unsigned int                                 pathsShared_;
 
             boost::mutex                                 newSolutionFoundMutex_;
+
+            bool                                         prune_;
         };
     }
 }

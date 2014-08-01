@@ -116,6 +116,9 @@ public:
         // Set the problem instance for our planner to solve
         planner_->setProblemDefinition(pdef_);
 
+        // testing some specific configurations
+        //planner_->as<og::RRTstar>()->setPrune(true);
+        //planner_->as<og::CForest>()->setPrune(false);
         //planner_->as<og::CForest>()->setPlannerInstances<og::RRTstar>(3);
 
         planner_->setup();
@@ -162,10 +165,15 @@ public:
         ppm_.saveFile(filename);
     }
     
-   /* void saveTree(const char *filename, const size_t idx)
+    void saveTree(const char *filename, const size_t idx)
     {
         planner_->as<og::CForest>()->getPlannerInstance(idx)->as<og::RRTstar>()->saveTree(filename);
-    }*/
+    }
+
+    void saveTree(const char *filename)
+    {
+        planner_->as<og::RRTstar>()->saveTree(filename);
+    }
 
 private:
 
@@ -200,8 +208,8 @@ int main(int argc, char** argv)
         env_cf.recordSolution();
         env_cf.save("result_demo_cforest.ppm");
         //env.savePlannerData("plannerData");
-        //env_cf.saveTree("tree_0.txt", 0);
-        //env_cf.saveTree("tree_1.txt", 1);
+        env_cf.saveTree("tree_0.txt", 0);
+        env_cf.saveTree("tree_1.txt", 1);
         std::cout << "Final lowest cost CForest: " << env_cf.getLowestCost() << std::endl;
     }
 
@@ -212,9 +220,10 @@ int main(int argc, char** argv)
         OMPL_INFORM("**** Plan successful ****");
         env_rrts.recordSolution();
         env_rrts.save("result_demo_rrtstar.ppm");
+        env_rrts.saveTree("tree_rrt.txt");
         std::cout << "Final lowest cost RRTstar: " << env_rrts.getLowestCost() << std::endl;
-    }
-*/
+    }*/
+
     return 0;
 }
 
