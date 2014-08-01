@@ -531,6 +531,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     if (solution != 0)
     {
+        ptc.terminate();
         // construct the solution path
         std::vector<Motion*> mpath;
         while (solution != 0)
