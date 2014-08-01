@@ -353,7 +353,8 @@ ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atl
 void usage (void)
 {
     std::cout << "Usage: demo_AtlasPlanning <planner> <timelimit>\n";
-    std::cout << "Available planners: RRT RRTstar RRTConnect pRRT PRM PRMstar EST KPIECE1 SPARS SPARStwo\n";
+    std::cout << "Available planners: RRT RRTstar RRTConnect pRRTx PRM PRMstar EST KPIECE1 SPARS SPARStwo\n";
+    std::cout << " where the 'x' in pRRTx is the number of threads.\n";
     exit(0);
 }
 
@@ -405,8 +406,13 @@ int main (int argc, char **argv)
         planner = ompl::base::PlannerPtr(new ompl::geometric::RRTstar(si));
     else if (std::strcmp(argv[1], "RRTConnect") == 0)
         planner = ompl::base::PlannerPtr(new ompl::geometric::RRTConnect(si));
-    else if (std::strcmp(argv[1], "pRRT") == 0)
+    else if (std::strcmp(argv[1], "pRRT0") > 0 && std::strcmp(argv[1], "pRRT9") <= 0)
+    {
         planner = ompl::base::PlannerPtr(new ompl::geometric::pRRT(si));
+        const unsigned int nthreads = std::atoi(&argv[1][4]);
+        planner->as<ompl::geometric::pRRT>()->setThreadCount(nthreads);
+        std::cout << "Using " << nthreads << " threads.\n";
+    }
     else if (std::strcmp(argv[1], "PRM") == 0)
         planner = ompl::base::PlannerPtr(new ompl::geometric::PRM(si));
     else if (std::strcmp(argv[1], "PRMstar") == 0)
