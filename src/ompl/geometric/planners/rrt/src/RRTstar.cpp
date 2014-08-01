@@ -207,20 +207,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     {
         iterations_++;
 
-        /*if (isCForest && prune_)
-        {
-            if (opt_->isCostBetterThan(pruneTreeCost_, bestCost_))
-            {
-                // \TODO: this should be done automatically when updating the tree, not hard-coded this way.
-                for (std::size_t i = 0; i < goalMotions_.size(); ++i)
-                    goalMotions_[i]->cost = pruneTreeCost_;
-
-                int n = pruneTree(pruneTreeCost_, pruneStatesThreshold_);
-                statesGenerated -= n;
-                bestCost_ = pruneTreeCost_;
-            }
-        }*/
-
         // sample random state (with goal biasing)
         // Goal samples are only sampled until maxSampleCount() goals are in the tree, to prohibit duplicate goal states.
         if (goal_s && goalMotions_.size() < goal_s->maxSampleCount() && rng_.uniform01() < goalBias_ && goal_s->canSample())
