@@ -179,12 +179,15 @@ void ompl::geometric::SimpleSetup::simplifySolution(double duration)
         if (p)
         {
             time::point start = time::now();
+            PathGeometric &path = static_cast<PathGeometric&>(*p);
+            std::size_t numStates = path.getStateCount();
             if (duration < std::numeric_limits<double>::epsilon())
                 psk_->simplifyMax(static_cast<PathGeometric&>(*p));
             else
                 psk_->simplify(static_cast<PathGeometric&>(*p), duration);
             simplifyTime_ = time::seconds(time::now() - start);
-            OMPL_INFORM("Path simplification took %f seconds", simplifyTime_);
+            OMPL_INFORM("Path simplification took %f seconds and changed from %d to %d states",
+                        simplifyTime_, numStates, path.getStateCount());
             return;
         }
     }
