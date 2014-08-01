@@ -574,12 +574,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         addedSolution = true;
     }
 
-    // \FIXME: why prune the tree if we have already computed the solution?
-    if (prune_)
-    {
-        int n = pruneTree(pruneTreeCost_, pruneStatesThreshold_);
-        statesGenerated -= n;
-    }
     si_->freeState(xstate);
     if (rmotion->state)
         si_->freeState(rmotion->state);
