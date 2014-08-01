@@ -259,9 +259,12 @@ ompl::base::AtlasStateSpace::StateType::~StateType(void)
 
 void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd &x, const AtlasChart &c)
 {
-    boost::lock_guard<boost::mutex> lock(mutex_);
-    for (std::size_t i = 0; i < dimension_; i++)
-        (*this)[i]  = x[i];
+    {
+        boost::lock_guard<boost::mutex> lock(mutices_.vector_);
+        for (std::size_t i = 0; i < dimension_; i++)
+            (*this)[i]  = x[i];
+    }
+    boost::lock_guard<boost::mutex> lock(mutices_.chart_);
     if (chart_ != &c)
     {
         if (chart_)
@@ -273,7 +276,7 @@ void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd
 
 Eigen::VectorXd ompl::base::AtlasStateSpace::StateType::toVector (void) const
 {
-    boost::lock_guard<boost::mutex> lock(mutex_);
+    boost::lock_guard<boost::mutex> lock(mutices_.vector_);
     Eigen::VectorXd x(dimension_);
     for (std::size_t i = 0; i < dimension_; i++)
         x[i] = (*this)[i];
@@ -292,7 +295,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart_s
 
 void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c, const bool fast)
 {
-    boost::lock_guard<boost::mutex> lock(mutex_);
+    boost::lock_guard<boost::mutex> lock(mutices_.chart_);
     if (chart_ != &c)
     {
         if (chart_ && !fast)

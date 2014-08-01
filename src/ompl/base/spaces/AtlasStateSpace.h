@@ -184,8 +184,12 @@ namespace ompl
                 /** \brief Dimension of the real vector. */
                 const unsigned int dimension_;
                 
-                /** \brief Shared mutex for read/write access. */
-                mutable boost::mutex mutex_;
+                /** \brief Mutices for synchronization. */
+                mutable struct
+                {
+                    boost::mutex chart_;
+                    boost::mutex vector_;
+                } mutices_;
             };
             
             /** \brief Constraint function type; input vector size is the ambient dimension;
