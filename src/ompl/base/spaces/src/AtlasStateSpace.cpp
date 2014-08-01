@@ -562,7 +562,6 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
     }
     
     // If not found, search through all charts for the best match
-    boost::lock_guard<boost::mutex> lock(mutices_.chartsVector_);
     double best = delta_;
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
@@ -588,11 +587,13 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::VectorXd &xorigin, const bool anchor) const
 {
     AtlasChart &addedC = *new AtlasChart(*this, xorigin, anchor);
-    boost::lock_guard<boost::mutex> lock(mutices_.chartsVector_);
-    charts_.add(&addedC, addedC.getMeasure());
+    {
+        boost::lock_guard<boost::mutex> lock(mutices_.chartsVector_);
+        charts_.add(&addedC, addedC.getMeasure());
+    }
     
     // Ensure all charts respect boundaries of the new one, and vice versa
-    for (std::size_t i = 0; i < charts_.size()-1; i++)
+    for (std::size_t i = 0; charts_[i] != &addedC; i++)
     {
         // If the two charts are near enough, introduce a boundary
         AtlasChart &c = *charts_[i];
@@ -804,7 +805,6 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
 
 void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
 {
-    boost::lock_guard<boost::mutex> lock(mutices_.chartsVector_);
     std::stringstream v, f;
     std::size_t vcount = 0;
     std::size_t fcount = 0;

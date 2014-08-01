@@ -199,7 +199,7 @@ Eigen::VectorXd ompl::base::AtlasChart::psi (const Eigen::VectorXd &u) const
         A.block(n_-k_, 0, k_, n_) = bigPhi_t_;
         
         // Move in the direction that decreases F(x) and is perpendicular to the chart plane
-        x += A.colPivHouseholderQr().solve(b);
+        x += A.householderQr().solve(b);
         
         b.head(n_-k_) = -atlas_.bigF(x);
         b.tail(k_) = bigPhi_t_ * (x_0 - x);
