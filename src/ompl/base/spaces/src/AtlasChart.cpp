@@ -38,6 +38,7 @@
 
 #include <boost/bind.hpp>
 #include <boost/lambda/lambda.hpp>
+#include <boost/thread/lock_guard.hpp>
 
 #include <eigen3/Eigen/Dense>
 
@@ -211,45 +212,36 @@ Eigen::VectorXd ompl::base::AtlasChart::psiInverse (const Eigen::VectorXd &x) co
     return bigPhi_t_ * (x - xorigin_);
 }
 
-bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, std::size_t *const solitary, const LinearInequality *const ignore1,
+bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, const LinearInequality *const ignore1,
                                   const LinearInequality *const ignore2) const
 {
-    boost::shared_lock<boost::shared_mutex> readLock(mutices_.bigL_);
-    bool inPolytope = true;
-    if (solitary)
-        *solitary = bigL_.size();
-    
-    std::size_t i = 0;
-    for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++, i++)
+    std::list<LinearInequality *>::const_iterator b, e;
+    {
+        boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
+        b = bigL_.begin();
+        e = bigL_.end();
+    }
+    for (std::list<LinearInequality *>::const_iterator l = b; l != e; l++)
     {
         if (*l == ignore1 || *l == ignore2)
             continue;
         
         if (!(*l)->accepts(u))
-        {
-            // We can stop early if we're not interested in more information
-            inPolytope = false;
-            if (!solitary)
-                break;
-            if (*solitary != bigL_.size())
-            {
-                // This is the second violation; give up
-                *solitary = bigL_.size();
-                break;
-            }
-            
-            // This could be the solitary violation
-            *solitary = i;
-        }
+            return false;
     }
     
-    return inPolytope;
+    return true;
 }
 
 void ompl::base::AtlasChart::borderCheck (const Eigen::VectorXd &v) const
 {
-    boost::shared_lock<boost::shared_mutex> readLock(mutices_.bigL_);
-    for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++)
+    std::list<LinearInequality *>::const_iterator b, e;
+    {
+        boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
+        b = bigL_.begin();
+        e = bigL_.end();
+    }
+    for (std::list<LinearInequality *>::const_iterator l = b; l != e; l++)
         (*l)->checkNear(v);
 }
 
@@ -285,10 +277,15 @@ void ompl::base::AtlasChart::substituteChart (const AtlasChart &replacement) con
 
 const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eigen::VectorXd &x) const
 {
-    boost::shared_lock<boost::shared_mutex> readLock(mutices_.bigL_);
+    std::list<LinearInequality *>::const_iterator b, e;
+    {
+        boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
+        b = bigL_.begin();
+        e = bigL_.end();
+    }
     const AtlasChart *bestC = NULL;
     double best = std::numeric_limits<double>::infinity();
-    for (std::list<LinearInequality *>::const_iterator l = bigL_.begin(); l != bigL_.end(); l++)
+    for (std::list<LinearInequality *>::const_iterator l = b; l != e; l++)
     {
         const LinearInequality *const comp = (*l)->getComplement();
         if (!comp)
@@ -353,19 +350,24 @@ bool ompl::base::AtlasChart::isAnchor (void) const
 
 void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) const
 {
-    boost::shared_lock<boost::shared_mutex> readLock(mutices_.bigL_);
+    std::list<LinearInequality *>::const_iterator b, e;
+    {
+        boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
+        b = bigL_.begin();
+        e = bigL_.end();
+    }
     if (atlas_.getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::toPolygon() only works on 2D manifold/charts.");
     
     // Compile a list of all the vertices in P and all the times the border intersects the circle
     vertices.clear();
-    for (std::list<LinearInequality *>::const_iterator l1 = bigL_.begin(); l1 != bigL_.end(); l1++)
+    for (std::list<LinearInequality *>::const_iterator l1 = b; l1 != e; l1++)
     {
-        for (std::list<LinearInequality *>::const_iterator l2 = boost::next(l1); l2 != bigL_.end(); l2++)
+        for (std::list<LinearInequality *>::const_iterator l2 = boost::next(l1); l2 != e; l2++)
         {
             // Check if intersection of the lines is a part of the boundary and within the circle
             Eigen::VectorXd v = LinearInequality::intersect(**l1, **l2);
-            if (v.norm() <= radius_ && inP(v, NULL, *l1, *l2))
+            if (v.norm() <= radius_ && inP(v, *l1, *l2))
                 vertices.push_back(phi(v));
         }
         
@@ -373,9 +375,9 @@ void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
         Eigen::VectorXd v1, v2;
         if ((*l1)->circleIntersect(radius_, v1, v2))
         {
-            if (inP(v1, NULL, *l1))
+            if (inP(v1, *l1))
                 vertices.push_back(phi(v1));
-            if (inP(v2, NULL, *l1))
+            if (inP(v2, *l1))
                 vertices.push_back(phi(v2));
         }
     }
@@ -414,7 +416,7 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
 void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace) const
 {
     {
-        boost::unique_lock<boost::shared_mutex> writeLock(mutices_.bigL_);
+        boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
         bigL_.push_front(&halfspace);
     }
     

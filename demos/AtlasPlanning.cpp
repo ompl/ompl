@@ -252,6 +252,8 @@ bool noIntersect (const ompl::base::State *state)
     const Eigen::VectorXd x = state->as<ompl::base::AtlasStateSpace::StateType>()->toVector();
     for (std::size_t i = 0; i < CHAINLINKS-1; i++)
     {
+        if (x.segment(CHAINDIM*i, CHAINDIM).cwiseAbs().maxCoeff() < 0.2)
+            return false;
         for (std::size_t j = i+1; j < CHAINLINKS; j++)
         {
             if ((x.segment(CHAINDIM*i, CHAINDIM) - x.segment(CHAINDIM*j, CHAINDIM)).cwiseAbs().maxCoeff() < 0.2)
@@ -433,7 +435,7 @@ int main (int argc, char **argv)
     // Plan
     std::clock_t tstart = std::clock();
     ompl::base::PlannerStatus stat;
-    if ((stat = planner->solve(timelimit)) == ompl::base::PlannerStatus::EXACT_SOLUTION)
+    if ((stat = planner->solve(timelimit)))
     {
         double time = ((double)(std::clock()-tstart))/CLOCKS_PER_SEC;
         
@@ -477,6 +479,8 @@ int main (int argc, char **argv)
         }
         animFile.close();
         std::cout << "-----\n";
+        if (stat == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
+            std::cout << "Solution is approximate.\n";
         std::cout << "Length: " << length << "\n";
         std::cout << "Took " << time << " seconds.\n";
     }

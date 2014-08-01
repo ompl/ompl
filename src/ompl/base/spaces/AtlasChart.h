@@ -42,7 +42,6 @@
 #include <list>
 
 #include <boost/thread/mutex.hpp>
-#include <boost/thread/shared_mutex.hpp>
 
 #include <eigen3/Eigen/LU>
 
@@ -140,14 +139,9 @@ namespace ompl
             /** \brief Logarithmic mapping; projects ambient point \a x onto the chart. */
             Eigen::VectorXd psiInverse (const Eigen::VectorXd &x) const;
             
-            /** \brief Check if a point \a u on the chart lies within its polytope P. If \a solitary
-             * is not NULL, perform a thorough check to find solitary volations. If only one
-             * of the linear inequalities is violated, its index is returned in \a solitary; otherwise
-             * \a solitary is set to the total number of linear inequalities. LinearInequalities
-             * \a ignore1 and \a ignore2, if specified, are ignored during the check.
-             */
-            virtual bool inP (const Eigen::VectorXd &u, std::size_t *const solitary = NULL,
-                              const LinearInequality *const ignore1 = NULL, const LinearInequality *const ignore2 = NULL) const;
+            /** \brief Check if a point \a u on the chart lies within its polytope P. LinearInequalities
+             * \a ignore1 and \a ignore2, if specified, are ignored during the check. */
+            virtual bool inP (const Eigen::VectorXd &u, const LinearInequality *const ignore1 = NULL, const LinearInequality *const ignore2 = NULL) const;
             
             /** \brief Check if chart point \a v lies too close to any linear inequality. When it does,
              * expand the neighboring chart's polytope. */
@@ -237,7 +231,7 @@ namespace ompl
             /** \brief Locks to keep some operations thread-safe. */
             mutable struct
             {
-                boost::shared_mutex bigL_;
+                boost::mutex bigL_;
                 boost::mutex owned_;
             } mutices_;
             
