@@ -136,7 +136,8 @@ public:
 
         const ob::PathPtr &pPtr = pdef_->getSolutionPath();
         og::PathGeometric &p = static_cast<og::PathGeometric&>(*pPtr);
-       
+        p.printAsMatrix(std::cout);
+
         p.interpolate();
         for (std::size_t i = 0 ; i < p.getStateCount() ; ++i)
         {

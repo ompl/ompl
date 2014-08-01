@@ -254,9 +254,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
            dstate = xstate;
        }
 
-       // \FIXME why is this needed for CForest
-        // if (isCForest_ && si_->equalStates(nmotion->state, rstate))
-        //     continue;
+        if (isCForest && si_->equalStates(nmotion->state, rstate))
+            continue;
 
         // Check if the motion between the nearest state and the state to add is valid
         ++collisionChecks_;
