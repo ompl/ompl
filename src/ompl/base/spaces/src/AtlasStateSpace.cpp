@@ -310,7 +310,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     bigF(constraints),
     bigJ(jacobian ? jacobian : boost::bind(&AtlasStateSpace::numericalJacobian, this, boost::lambda::_1)),
     n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
-    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(20), monteCarloThoroughness_(3), setup_(false)
+    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(20), monteCarloThoroughness_(2.5), setup_(false)
 {
     Eigen::initParallel();
     setName("Atlas" + RealVectorStateSpace::getName());

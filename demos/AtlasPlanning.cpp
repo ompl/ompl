@@ -395,7 +395,10 @@ int main (int argc, char **argv)
     // Choose the planner.
     ompl::base::PlannerPtr planner;
     if (std::strcmp(argv[1], "RRT") == 0)
+    {
         planner = ompl::base::PlannerPtr(new ompl::geometric::RRT(si));
+        planner->as<ompl::geometric::RRT>()->setIntermediateStates(true);
+    }
     else if (std::strcmp(argv[1], "RRTstar") == 0)
         planner = ompl::base::PlannerPtr(new ompl::geometric::RRTstar(si));
     else if (std::strcmp(argv[1], "RRTConnect") == 0)
