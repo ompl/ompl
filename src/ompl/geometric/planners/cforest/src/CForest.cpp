@@ -47,6 +47,8 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
     pathsShared_ = 0;
     prune_ = true;
 
+    Planner::declareParam<bool>("prune", this, &CForest::setPrune, &CForest::getPrune, "0,1");
+
     addPlannerProgressProperty("best cost REAL",
                                boost::bind(&CForest::getBestCost, this));
     addPlannerProgressProperty("shared paths INTEGER",
