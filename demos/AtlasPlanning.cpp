@@ -41,15 +41,25 @@
 #include <ompl/base/spaces/AtlasStateSpace.h>
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/planners/est/EST.h>
+#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
+#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
+#include <ompl/geometric/planners/pdst/PDST.h>
+#include <ompl/geometric/planners/prm/LazyPRM.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
+#include <ompl/geometric/planners/rrt/LazyRRT.h>
+#include <ompl/geometric/planners/rrt/LBTRRT.h>
+#include <ompl/geometric/planners/rrt/pRRT.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
-#include <ompl/geometric/planners/rrt/pRRT.h>
+#include <ompl/geometric/planners/rrt/TRRT.h>
+#include <ompl/geometric/planners/sbl/pSBL.h>
+#include <ompl/geometric/planners/sbl/SBL.h>
+#include <ompl/geometric/planners/stride/STRIDE.h>
 
 #include <eigen3/Eigen/Dense>
 
@@ -353,8 +363,11 @@ ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atl
 void usage (void)
 {
     std::cout << "Usage: demo_AtlasPlanning <planner> <timelimit>\n";
-    std::cout << "Available planners: RRT RRTstar RRTConnect pRRTx PRM PRMstar EST KPIECE1 SPARS SPARStwo\n";
-    std::cout << " where the 'x' in pRRTx is the number of threads.\n";
+    std::cout << "Available planners:\n";
+    std::cout << "    EST RRT RRTConnect RRTstar LazyRRT TRRT LBTRRT pRRTx\n";
+    std::cout << "    KPIECE1 BKPIECE1 LBKPIECE1 PDST PRM PRMstar LazyPRM\n";
+    std::cout << "    SBL pSBLx SPARS SPARStwo STRIDE\n";
+    std::cout << " where the 'x' in pRRTx and pSBLx is the number of threads.\n";
     exit(0);
 }
 
@@ -397,42 +410,97 @@ int main (int argc, char **argv)
     si->setup();
     
     // Choose the planner.
+    const double range = 3;
     ompl::base::PlannerPtr planner;
-    if (std::strcmp(argv[1], "RRT") == 0)
+    if (std::strcmp(argv[1], "EST") == 0)
+    {
+        planner = ompl::base::PlannerPtr(new ompl::geometric::EST(si));
+        planner->as<ompl::geometric::EST>()->setRange(range);
+    }
+    else if (std::strcmp(argv[1], "RRT") == 0)
     {
         planner = ompl::base::PlannerPtr(new ompl::geometric::RRT(si));
         planner->as<ompl::geometric::RRT>()->setIntermediateStates(true);
+        planner->as<ompl::geometric::RRT>()->setRange(range);
+    }
+    else if (std::strcmp(argv[1], "RRTConnect") == 0)
+    {
+        planner = ompl::base::PlannerPtr(new ompl::geometric::RRTConnect(si));
+        planner->as<ompl::geometric::RRTConnect>()->setRange(range);
     }
     else if (std::strcmp(argv[1], "RRTstar") == 0)
+    {
         planner = ompl::base::PlannerPtr(new ompl::geometric::RRTstar(si));
-    else if (std::strcmp(argv[1], "RRTConnect") == 0)
-        planner = ompl::base::PlannerPtr(new ompl::geometric::RRTConnect(si));
+        planner->as<ompl::geometric::RRTstar>()->setRange(range);
+    }
+    else if (std::strcmp(argv[1], "LazyRRT") == 0)
+    {
+        planner = ompl::base::PlannerPtr(new ompl::geometric::LazyRRT(si));
+        planner->as<ompl::geometric::LazyRRT>()->setRange(range);
+    }
+    else if (std::strcmp(argv[1], "TRRT") == 0)
+    {
+        planner = ompl::base::PlannerPtr(new ompl::geometric::TRRT(si));
+        planner->as<ompl::geometric::TRRT>()->setRange(range);
+    }
+    else if (std::strcmp(argv[1], "LBTRRT") == 0)
+    {
+        planner = ompl::base::PlannerPtr(new ompl::geometric::LBTRRT(si));
+        planner->as<ompl::geometric::LBTRRT>()->setRange(range);
+    }
     else if (std::strcmp(argv[1], "pRRT0") > 0 && std::strcmp(argv[1], "pRRT9") <= 0)
     {
         planner = ompl::base::PlannerPtr(new ompl::geometric::pRRT(si));
+        planner->as<ompl::geometric::pRRT>()->setRange(range);
         const unsigned int nthreads = std::atoi(&argv[1][4]);
         planner->as<ompl::geometric::pRRT>()->setThreadCount(nthreads);
         std::cout << "Using " << nthreads << " threads.\n";
     }
+    else if (std::strcmp(argv[1], "KPIECE1") == 0)
+    {
+        planner = ompl::base::PlannerPtr(new ompl::geometric::KPIECE1(si));
+        planner->as<ompl::geometric::KPIECE1>()->setRange(range);
+    }
+    else if (std::strcmp(argv[1], "BKPIECE1") == 0)
+    {
+        planner = ompl::base::PlannerPtr(new ompl::geometric::BKPIECE1(si));
+        planner->as<ompl::geometric::BKPIECE1>()->setRange(range);
+    }
+    else if (std::strcmp(argv[1], "LBKPIECE1") == 0)
+    {
+        planner = ompl::base::PlannerPtr(new ompl::geometric::LBKPIECE1(si));
+        planner->as<ompl::geometric::LBKPIECE1>()->setRange(range);
+    }
+    else if (std::strcmp(argv[1], "PDST") == 0)
+        planner = ompl::base::PlannerPtr(new ompl::geometric::PDST(si));
     else if (std::strcmp(argv[1], "PRM") == 0)
         planner = ompl::base::PlannerPtr(new ompl::geometric::PRM(si));
     else if (std::strcmp(argv[1], "PRMstar") == 0)
         planner = ompl::base::PlannerPtr(new ompl::geometric::PRMstar(si));
-    else if (std::strcmp(argv[1], "EST") == 0)
+    else if (std::strcmp(argv[1], "LazyPRM") == 0)
+        planner = ompl::base::PlannerPtr(new ompl::geometric::PRM(si));
+    else if (std::strcmp(argv[1], "SBL") == 0)
     {
-        planner = ompl::base::PlannerPtr(new ompl::geometric::EST(si));
-        planner->as<ompl::geometric::EST>()->setRange(1);
+        planner = ompl::base::PlannerPtr(new ompl::geometric::SBL(si));
+        planner->as<ompl::geometric::SBL>()->setRange(range);
     }
-    else if (std::strcmp(argv[1], "KPIECE1") == 0)
+    else if (std::strcmp(argv[1], "pSBL0") > 0 && std::strcmp(argv[1], "pSBL9") <= 0)
     {
-        planner = ompl::base::PlannerPtr(new ompl::geometric::KPIECE1(si));
-        planner->as<ompl::geometric::KPIECE1>()->setRange(1);
-        planner->as<ompl::geometric::KPIECE1>()->setGoalBias(0.1);
+        planner = ompl::base::PlannerPtr(new ompl::geometric::pSBL(si));
+        planner->as<ompl::geometric::SBL>()->setRange(range);
+        const unsigned int nthreads = std::atoi(&argv[1][4]);
+        planner->as<ompl::geometric::pSBL>()->setThreadCount(nthreads);
+        std::cout << "Using " << nthreads << " threads.\n";
     }
     else if (std::strcmp(argv[1], "SPARS") == 0)
         planner = ompl::base::PlannerPtr(new ompl::geometric::SPARS(si));
     else if (std::strcmp(argv[1], "SPARStwo") == 0)
         planner = ompl::base::PlannerPtr(new ompl::geometric::SPARStwo(si));
+    else if (std::strcmp(argv[1], "STRIDE") == 0)
+    {
+        planner = ompl::base::PlannerPtr(new ompl::geometric::STRIDE(si));
+        planner->as<ompl::geometric::STRIDE>()->setRange(range);
+    }
     else
         usage();
     planner->setProblemDefinition(pdef);
