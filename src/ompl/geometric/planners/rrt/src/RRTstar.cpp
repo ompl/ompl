@@ -168,10 +168,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     Motion *solution       = lastGoalMotion_;
 
-    // \TODO Make this variable unnecessary, or at least have it
-    // persist across solve runs
-    base::Cost bestCost    = opt_->infiniteCost();
-    bestCost_ = bestCost;
+    bestCost_ = opt_->infiniteCost();
 
     Motion *approximation  = NULL;
     double approximatedist = std::numeric_limits<double>::infinity();
@@ -463,10 +460,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 bool updatedSolution = false;
                 for (size_t i = 0; i < goalMotions_.size(); ++i)
                 {
-                    if (opt_->isCostBetterThan(goalMotions_[i]->cost, bestCost))
+                    if (opt_->isCostBetterThan(goalMotions_[i]->cost, bestCost_))
                     {
-                        bestCost = goalMotions_[i]->cost;
-                        bestCost_ = bestCost;
+                        bestCost_ = goalMotions_[i]->cost;
                         updatedSolution = true;
                     }
 

@@ -213,7 +213,7 @@ int main(int argc, char** argv)
         std::cout << "Final lowest cost CForest: " << env_cf.getLowestCost() << std::endl;
     }
 
-    /*Plane2DEnvironment<og::RRTstar> env_rrts((path / "ppm/floor.ppm").string().c_str());
+    Plane2DEnvironment<og::RRTstar> env_rrts((path / "ppm/floor.ppm").string().c_str());
 
     if (env_rrts.plan(0, 0, 1140, 1402))
     {
@@ -222,7 +222,7 @@ int main(int argc, char** argv)
         env_rrts.save("result_demo_rrtstar.ppm");
         env_rrts.saveTree("tree_rrt.txt");
         std::cout << "Final lowest cost RRTstar: " << env_rrts.getLowestCost() << std::endl;
-    }*/
+    }
 
     return 0;
 }

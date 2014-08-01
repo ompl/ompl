@@ -41,8 +41,6 @@
 
 #include <boost/thread/mutex.hpp>
 
-// TODO: allow to set the sampler_ to use instead of using default. How?
-
 namespace ompl
 {
     namespace base
