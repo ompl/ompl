@@ -310,7 +310,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     bigF(constraints),
     bigJ(jacobian ? jacobian : boost::bind(&AtlasStateSpace::numericalJacobian, this, boost::lambda::_1)),
     n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
-    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), monteCarloThoroughness_(2), setup_(false)
+    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), monteCarloSampleCount_(100), setup_(false)
 {
     Eigen::initParallel();
     setName("Atlas" + RealVectorStateSpace::getName());
@@ -325,9 +325,6 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     else if (bigJ(zero).rows() != bigF(zero).size() || bigJ(zero).cols() != n_)
         throw ompl::Exception("Dimensions of the Jacobian are incorrect! Should be n-k by n, where n, k are the ambient, manifold dimensions.");
     
-    const std::size_t s = std::pow(std::sqrt(M_PI) * monteCarloThoroughness_, k_) / boost::math::tgamma(k_/2.0 + 1);
-    OMPL_INFORM("Atlas: Monte Carlo integration using %d samples per chart.", s);
-    samples_.resize(s);
     
     setRho(0.1);
     setAlpha(M_PI/16);
@@ -335,6 +332,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     ballMeasure_ = std::pow(std::sqrt(M_PI), k_) / boost::math::tgamma(k_/2.0 + 1);
     
     // Generate random samples within the ball
+    samples_.resize(monteCarloSampleCount_);
     for (std::size_t i = 0; i < samples_.size(); i++)
     {
         do
@@ -450,16 +448,21 @@ void ompl::base::AtlasStateSpace::setProjectionTolerance (const double tolerance
     projectionTolerance_ = tolerance;
 }
 
-void ompl::base::AtlasStateSpace::setProjectionMaxIterations (unsigned int iterations)
+void ompl::base::AtlasStateSpace::setProjectionMaxIterations (const unsigned int iterations)
 {
     if (iterations == 0)
         throw ompl::Exception("Please specify a positive maximum projection iteration count.");
     projectionMaxIterations_ = iterations;
 }
 
-void ompl::base::AtlasStateSpace::setMaxChartsPerExtension (unsigned int charts)
+void ompl::base::AtlasStateSpace::setMaxChartsPerExtension (const unsigned int charts)
 {
     maxChartsPerExtension_ = charts;
+}
+
+void ompl::base::AtlasStateSpace::setMonteCarloSampleCount (const unsigned int count)
+{
+    monteCarloSampleCount_ = count;;
 }
 
 double ompl::base::AtlasStateSpace::getDelta (void) const
@@ -510,6 +513,11 @@ unsigned int ompl::base::AtlasStateSpace::getProjectionMaxIterations (void) cons
 unsigned int ompl::base::AtlasStateSpace::getMaxChartsPerExtension (void) const
 {
     return maxChartsPerExtension_;
+}
+
+unsigned int ompl::base::AtlasStateSpace::getMonteCarloSampleCount (void) const
+{
+    return monteCarloSampleCount_;
 }
 
 unsigned int ompl::base::AtlasStateSpace::getAmbientDimension (void) const

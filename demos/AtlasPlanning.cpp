@@ -379,12 +379,13 @@ int main (int argc, char **argv)
     start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
     goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
     
-    atlas->setExploration(0.01);
+    atlas->setExploration(0.9);
     atlas->setRho(0.1);
     atlas->setAlpha(M_PI/32);
     atlas->setEpsilon(0.05);
     atlas->setDelta(0.01);
-    atlas->setMaxChartsPerExtension(50);
+    atlas->setMaxChartsPerExtension(200);
+    atlas->setMonteCarloSampleCount(0);
     
     // More setup for the space and problem definition
     ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());
@@ -423,7 +424,11 @@ int main (int argc, char **argv)
         planner->as<ompl::geometric::EST>()->setRange(1);
     }
     else if (std::strcmp(argv[1], "KPIECE1") == 0)
+    {
         planner = ompl::base::PlannerPtr(new ompl::geometric::KPIECE1(si));
+        planner->as<ompl::geometric::KPIECE1>()->setRange(1);
+        planner->as<ompl::geometric::KPIECE1>()->setGoalBias(0.1);
+    }
     else if (std::strcmp(argv[1], "SPARS") == 0)
         planner = ompl::base::PlannerPtr(new ompl::geometric::SPARS(si));
     else if (std::strcmp(argv[1], "SPARStwo") == 0)
@@ -468,7 +473,12 @@ int main (int argc, char **argv)
             // Traverse the manifold
             std::vector<ompl::base::AtlasStateSpace::StateType *> stateList;
             atlas->followManifold(from, to, true, &stateList);
-            if (!atlas->equalStates(stateList.front(), stateList.back()))
+            if (atlas->equalStates(stateList.front(), stateList.back()))
+            {
+                std::cout << "[" << stateList.front()->toVector().transpose() << "]  " << stateList.front()->getChart().getID() << "\n";
+                animFile << stateList.front()->toVector().transpose() << "\n";
+            }
+            else
             {
                 // Print the intermediate states
                 for (std::size_t i = 1; i < stateList.size(); i++)

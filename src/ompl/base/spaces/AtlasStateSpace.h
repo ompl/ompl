@@ -247,11 +247,15 @@ namespace ompl
             
             /** \brief Projection from a chart to the manifold will stop after at most \a iterations iterations.
              * Default is 200. */
-            void setProjectionMaxIterations (unsigned int iterations);
+            void setProjectionMaxIterations (const unsigned int iterations);
             
             /** \brief Sometimes manifold traversal creates an inordinate number of tiny charts. This parameter limits
              * the number of charts that can be created in one pass. */
-            void setMaxChartsPerExtension (unsigned int charts);
+            void setMaxChartsPerExtension (const unsigned int charts);
+            
+            /** \brief Set the number of samples to use in Monte Carlo estimation of chart measure. A value of 0 results
+             * in all charts having the same measure. */
+            void setMonteCarloSampleCount (const unsigned int count);
             
             /** \brief Get delta. */
             double getDelta (void) const;
@@ -282,6 +286,9 @@ namespace ompl
             
             /** \brief Get the maximum number of charts to create in one pass. */
             unsigned int getMaxChartsPerExtension (void) const;
+            
+            /** \brief Get the number of samples to use in Monte Carlo estimation of chart volume. */
+            unsigned int getMonteCarloSampleCount (void) const;
             
             /** \brief Get the dimension of the ambient space. */
             unsigned int getAmbientDimension (void) const;
@@ -433,7 +440,7 @@ namespace ompl
             unsigned int maxChartsPerExtension_;
             
             /** \brief Parameter which tunes the number of samples used by Monte Carlo integration. */
-            double monteCarloThoroughness_;
+            unsigned int monteCarloSampleCount_;
             
             /** \brief Whether setup() has been called. */
             bool setup_;

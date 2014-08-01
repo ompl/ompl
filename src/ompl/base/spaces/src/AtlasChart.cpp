@@ -188,7 +188,7 @@ Eigen::VectorXd ompl::base::AtlasChart::psi (const Eigen::VectorXd &u) const
     const Eigen::VectorXd x_0 = phi(u);
     Eigen::VectorXd x = x_0;
     
-    unsigned iter = 0;
+    unsigned int iter = 0;
     Eigen::VectorXd b(n_);
     b.head(n_-k_) = -atlas_.bigF(x);
     b.tail(k_) = Eigen::VectorXd::Zero(k_);
@@ -322,8 +322,10 @@ void ompl::base::AtlasChart::approximateMeasure (void) const
             countInside++;
     }
     
-    // Update measure with new estimate
-    measure_ = countInside * (atlas_.getMeasureKBall() * std::pow(radius_, k_) / samples.size());
+    // Update measure with new estimate. If 0 samples, then pretend we are just a sphere.
+    measure_ = atlas_.getMeasureKBall() * std::pow(radius_, k_);
+    if (samples.size() > 0)
+        measure_ = countInside * (measure_ / samples.size());
     atlas_.updateMeasure(*this);
 }
 
