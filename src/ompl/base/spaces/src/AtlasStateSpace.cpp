@@ -587,16 +587,22 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::VectorXd &xorigin, const bool anchor) const
 {
     AtlasChart &addedC = *new AtlasChart(*this, xorigin, anchor);
+    std::vector<AtlasChart *> oldCharts;
     {
         boost::lock_guard<boost::mutex> lock(mutices_.chartsVector_);
+        for (std::size_t i = 0; i < charts_.size(); i++)
+        {
+            oldCharts.push_back(charts_[i]);
+        }
+        addedC.setID(charts_.size());
         charts_.add(&addedC, addedC.getMeasure());
     }
     
     // Ensure all charts respect boundaries of the new one, and vice versa
-    for (std::size_t i = 0; charts_[i] != &addedC; i++)
+    for (std::size_t i = 0; i < oldCharts.size(); i++)
     {
         // If the two charts are near enough, introduce a boundary
-        AtlasChart &c = *charts_[i];
+        AtlasChart &c = *oldCharts[i];
         if ((c.phi(Eigen::VectorXd::Zero(k_)) - addedC.phi(Eigen::VectorXd::Zero(k_))).norm() < 2*rho_)
             AtlasChart::generateHalfspace(c, addedC);
     }

@@ -169,6 +169,10 @@ namespace ompl
             /** \brief Reduce the valid radius of the chart. */
             void shrinkRadius (void) const;
             
+            /** \brief Set this chart's unique identifier in its atlas. Needs to be its index in the atlas'
+             * vector of charts. */
+            void setID (unsigned int);
+            
             /** \brief Get this chart's unique identifier in its atlas. Same as its index in the atlas'
              * vector of charts. */
             unsigned int getID (void) const;
@@ -211,7 +215,7 @@ namespace ompl
             const Eigen::VectorXd xorigin_;
             
             /** \brief Unique ID in the atlas. */
-            const unsigned int id_;
+            unsigned int id_;
             
             /** \brief Whether this chart is an anchor chart in the atlas. */
             const bool anchor_;
