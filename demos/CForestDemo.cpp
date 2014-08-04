@@ -132,7 +132,7 @@ public:
         return v;
     }
 
-    void recordSolution()
+    void recordSolution(const char *filename)
     {
         if (!pdef_->getSolutionPath().get())
             return;
@@ -151,6 +151,8 @@ public:
             c.green = 0;
             c.blue = 0;
         }
+
+        ppm_.saveFile(filename);
     }
 
     double getLowestCost() const 
@@ -158,11 +160,6 @@ public:
         if (!pdef_->getSolutionPath().get())
             return -1.0;
         return pdef_->getSolutionPath()->cost(getPathLengthObjective(si_)).v;
-    }
-
-    void save(const char *filename)
-    {
-        ppm_.saveFile(filename);
     }
 
 private:
@@ -182,7 +179,6 @@ private:
     int maxWidth_;
     int maxHeight_;
     ompl::PPM ppm_;
-
 };
 
 
@@ -195,8 +191,7 @@ int main(int argc, char** argv)
     {
 
         OMPL_INFORM("**** Plan successful ****");
-        //env_cf.recordSolution();
-        //env_cf.save("result_demo_cforest.ppm");
+        env_cf.recordSolution("result_demo_cforest.ppm");
         //env.savePlannerData("plannerData");
         std::cout << "Final lowest cost CForest: " << env_cf.getLowestCost() << std::endl;
     }
@@ -206,8 +201,7 @@ int main(int argc, char** argv)
     if (env_rrts.plan(0, 0, 1140, 1402))
     {
         OMPL_INFORM("**** Plan successful ****");
-        //env_rrts.recordSolution();
-        //env_rrts.save("result_demo_rrtstar.ppm");
+        env_rrts.recordSolution("result_demo_rrtstar.ppm");
         std::cout << "Final lowest cost RRTstar: " << env_rrts.getLowestCost() << std::endl;
     }
 

@@ -32,8 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Luis G. Torres, Ioan Sucan */
-/* CForest modifications authors: Javier V Gomez */
+/* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Luis G. Torres, Ioan Sucan, Javier V Gomez */
 
 #include "ompl/geometric/planners/rrt/RRTstar.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
@@ -57,7 +56,6 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     lastGoalMotion_ = NULL;
 
     prune_ = false;
-    pruneTreeCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
     pruneStatesThreshold_ = 0.95;
 
     iterations_ = 0;
@@ -107,8 +105,6 @@ void ompl::geometric::RRTstar::setup()
         OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length for the allowed planning time.", getName().c_str());
         opt_.reset(new base::PathLengthOptimizationObjective(si_));
     }
-
-    pruneTreeCost_ = opt_->infiniteCost();
 }
 
 void ompl::geometric::RRTstar::clear()
@@ -125,7 +121,6 @@ void ompl::geometric::RRTstar::clear()
     iterations_ = 0;
     collisionChecks_ = 0;
     bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
-    pruneTreeCost_ = opt_->infiniteCost();
 }
 
 ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTerminationCondition &ptc)
@@ -215,7 +210,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             if (prune_)
             {
                 const base::Cost costTotal =  computeCTGHeuristic(rmotion);
-                if (opt_->isCostBetterThan(pruneTreeCost_, costTotal))
+                if (opt_->isCostBetterThan(bestCost_, costTotal))
                     continue;
             }
         }
@@ -364,12 +359,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             if (prune_)
             {
                 const base::Cost costTotal = computeCTGHeuristic(motion, false);
-                if (opt_->isCostBetterThan(costTotal, pruneTreeCost_))
+                if (opt_->isCostBetterThan(costTotal, bestCost_))
                 {
                     nn_->add(motion);
                     motion->parent->children.push_back(motion);
                 }
-                else // If the new motion does not improve the pruneTreeCost_ it is ignored.
+                else // If the new motion does not improve the best cost it is ignored.
                 {
                     --statesGenerated;
                     si_->freeState(motion->state);
@@ -482,31 +477,26 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
                 if (updatedSolution)
                 {
-                    if (opt_->isCostBetterThan(bestCost_, pruneTreeCost_))
+                    if (prune_)
                     {
-                        if (prune_)
-                        {
-                            pruneTreeCost_ = bestCost_;
-                            int n = pruneTree(pruneTreeCost_, pruneStatesThreshold_);
-                            statesGenerated -= n;
-                        }
-
-                        if (isCForest)
-                        {
-                            std::vector<const base::State *> spath;
-                            Motion *intermediate_solution = solution->parent; // Do not include goal state to simplify code.
-
-                            do
-                            {
-                                spath.push_back(intermediate_solution->state);
-                                intermediate_solution = intermediate_solution->parent;
-                            } while (intermediate_solution->parent != 0); // Do not include the start state.
-
-                            pdef_->getIntermediateSolutionCallback()(this, spath, bestCost_);
-                        }
-
+                        int n = pruneTree(bestCost_, pruneStatesThreshold_);
+                        statesGenerated -= n;
                     }
-                }
+
+                    if (isCForest)
+                    {
+                        std::vector<const base::State *> spath;
+                        Motion *intermediate_solution = solution->parent; // Do not include goal state to simplify code.
+
+                        do
+                        {
+                            spath.push_back(intermediate_solution->state);
+                            intermediate_solution = intermediate_solution->parent;
+                        } while (intermediate_solution->parent != 0); // Do not include the start state.
+
+                        pdef_->getIntermediateSolutionCallback()(this, spath, bestCost_);
+                    }
+            }
             }
 
             // Checking for approximate solution (closest state found to the goal)

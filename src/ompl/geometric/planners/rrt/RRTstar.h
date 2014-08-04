@@ -308,9 +308,6 @@ namespace ompl
             /** \brief CForest parameter. The tree is only pruned is the percentage of states to prune is above this threshold (between 0 and 1). */
             double                                         pruneStatesThreshold_;
 
-            /** \brief The cost used to prune the tree. It is set by CForest functions. */
-            base::Cost                                     pruneTreeCost_;
-
             /** \brief Stores the Motion containing the initial start state for CForest (assumes there is only 1 start state). */
             Motion *                                       startMotion_;
 
