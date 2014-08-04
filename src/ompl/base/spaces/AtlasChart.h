@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2014, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,8 @@
 
 /* Author: Caleb Voss */
 
-#ifndef OMPL_BASE_SPACE_ATLAS_CHART_
-#define OMPL_BASE_SPACE_ATLAS_CHART_
+#ifndef OMPL_BASE_SPACES_ATLAS_CHART_
+#define OMPL_BASE_SPACES_ATLAS_CHART_
 
 #include "ompl/base/spaces/AtlasStateSpace.h"
 

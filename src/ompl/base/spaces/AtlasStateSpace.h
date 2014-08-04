@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 201, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,8 @@
 
 /* Author: Caleb Voss */
 
-#ifndef OMPL_BASE_SPACE_ATLAS_STATE_SPACE_
-#define OMPL_BASE_SPACE_ATLAS_STATE_SPACE_
+#ifndef OMPL_BASE_SPACES_ATLAS_STATE_SPACE_
+#define OMPL_BASE_SPACES_ATLAS_STATE_SPACE_
 
 #include "ompl/base/MotionValidator.h"
 #include "ompl/base/PlannerData.h"
@@ -59,7 +59,7 @@ namespace ompl
         OMPL_CLASS_FORWARD(AtlasStateSpace);
         /// @endcond
         
-        /** \class ompl::base::SpaceInformationPtr
+        /** \class ompl::base::AtlasStateSpacePtr
             \brief A boost shared pointer wrapper for ompl::base::AtlasStateSpace. */
         
         /** \brief StateSampler for use on an atlas. */
