@@ -40,7 +40,7 @@
 #include <vector>
 #include <limits>
 #include <boost/function.hpp>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 
 #include "ompl/base/Constraint.h"
 #include "ompl/util/RandomNumbers.h"

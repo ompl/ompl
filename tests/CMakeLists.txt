@@ -51,8 +51,8 @@ if(OMPL_EXTENSION_MORSE)
 endif(OMPL_EXTENSION_MORSE)
 
 # Test constraints
-add_constraints_test(test_PositionOrientation geometric/TestPositionOrientationConstraints.cpp)
-add_constraints_test(test_Kinematics geometric/TestKinematicConstraint.cpp)
+add_ompl_test(test_PositionOrientation geometric/TestPositionOrientationConstraints.cpp)
+add_ompl_test(test_Kinematics geometric/TestKinematicConstraint.cpp)
 
 # Python unit tests
 if(PYTHON_FOUND AND OMPL_BUILD_PYTESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../py-bindings/bindings")

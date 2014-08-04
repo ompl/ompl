@@ -42,7 +42,7 @@
 #include "ompl/util/RandomNumbers.h"
 
 #include <boost/math/constants/constants.hpp>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 
 #include <limits>
 #include <cmath>

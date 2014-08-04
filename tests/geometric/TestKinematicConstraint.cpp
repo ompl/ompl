@@ -44,7 +44,7 @@
 
 #include <ompl/geometric/constraints/KinematicConstraint.h>
 
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;

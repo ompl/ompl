@@ -34,8 +34,8 @@
 
 /* Author: Caleb Voss */
 
-#ifndef OMPL_BASE_SPACE_ATLAS_CHART_
-#define OMPL_BASE_SPACE_ATLAS_CHART_
+#ifndef OMPL_BASE_SPACES_ATLAS_CHART_
+#define OMPL_BASE_SPACES_ATLAS_CHART_
 
 #include "ompl/base/spaces/AtlasStateSpace.h"
 

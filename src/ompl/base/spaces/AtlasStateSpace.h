@@ -34,8 +34,8 @@
 
 /* Author: Caleb Voss */
 
-#ifndef OMPL_BASE_SPACE_ATLAS_STATE_SPACE_
-#define OMPL_BASE_SPACE_ATLAS_STATE_SPACE_
+#ifndef OMPL_BASE_SPACES_ATLAS_STATE_SPACE_
+#define OMPL_BASE_SPACES_ATLAS_STATE_SPACE_
 
 #include "ompl/base/MotionValidator.h"
 #include "ompl/base/PlannerData.h"
