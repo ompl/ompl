@@ -148,29 +148,42 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 
         if (addIntermediateStates_)
         {
-            // TODO Add all the intermediate states
-            std::pair<base::State *, double> lastValid = std::make_pair(dstate, 0);
-            if (si_->checkMotion(nmotion->state, dstate, lastValid) || lastValid.second > 0)
+            const unsigned int count = 1 + si_->distance(nmotion->state, dstate) / si_->getStateValidityCheckingResolution();
+            std::vector<base::State *> states;
+            si_->getMotionStates(nmotion->state, dstate, states, count, true, true);
+            if (si_->distance(states[states.size()-2], states.back()) > si_->getStateValidityCheckingResolution())
+                states.pop_back();
+            unsigned int firstInvalid = states.size();
+            si_->checkMotion(states, states.size(), firstInvalid);
+            Motion *motion;
+            si_->freeState(states[0]);
+            for (std::size_t i = 1; i < states.size(); i++)
             {
-                /* create a motion */
-                Motion *motion = new Motion(si_);
-                si_->copyState(motion->state, dstate);
-                motion->parent = nmotion;
+                if (i < firstInvalid)
+                {
+                    /* create a motion */
+                    motion = new Motion(si_);
+                    si_->copyState(motion->state, states[i]);
+                    motion->parent = nmotion;
 
-                nn_->add(motion);
-                double dist = 0.0;
-                bool sat = goal->isSatisfied(motion->state, &dist);
-                if (sat)
-                {
-                    approxdif = dist;
-                    solution = motion;
-                    break;
+                    nn_->add(motion);
+                    nmotion = motion;
                 }
-                if (dist < approxdif)
-                {
-                    approxdif = dist;
-                    approxsol = motion;
-                }
+                si_->freeState(states[i]);
+            }
+            
+            double dist = 0.0;
+            bool sat = goal->isSatisfied(motion->state, &dist);
+            if (sat)
+            {
+                approxdif = dist;
+                solution = motion;
+                break;
+            }
+            if (dist < approxdif)
+            {
+                approxdif = dist;
+                approxsol = motion;
             }
         }
         else

@@ -396,6 +396,8 @@ void ompl::base::AtlasStateSpace::setSpaceInformation (const SpaceInformationPtr
     
     // Save only a raw pointer to prevent a cycle
     si_ = si.get();
+    
+    si_->setStateValidityCheckingResolution(delta_);
 }
 
 void ompl::base::AtlasStateSpace::setDelta (const double delta)
@@ -403,6 +405,9 @@ void ompl::base::AtlasStateSpace::setDelta (const double delta)
     if (delta <= 0)
         throw ompl::Exception("Please specify a positive delta.");
     delta_  = delta;
+    
+    if (si_)
+        si_->setStateValidityCheckingResolution(delta_);
 }
 
 void ompl::base::AtlasStateSpace::setEpsilon (const double epsilon)
@@ -865,6 +870,16 @@ void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, st
         const State *target = boost::get(vertex_type, graph, boost::target(edge, graph))->getState();
         
         followManifold(source->as<StateType>(), target->as<StateType>(), true, &stateList);
+        if (stateList.size() == 1)
+        {
+            v << source->as<StateType>()->toVector().transpose() << "\n";
+            v << target->as<StateType>()->toVector().transpose() << "\n";
+            v << source->as<StateType>()->toVector().transpose() << "\n";
+            vcount += 3;
+            f << 3 << " " << vcount-3 << " " << vcount-2 << " " << vcount-1 << "\n";
+            fcount++;
+            continue;
+        }
         StateType *from = stateList[0];
         v << from->toVector().transpose() << "\n";
         vcount++;
@@ -908,6 +923,16 @@ void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path
         State *target = waypoints[i+1];
         
         followManifold(source->as<StateType>(), target->as<StateType>(), true, &stateList);
+        if (stateList.size() == 1)
+        {
+            v << source->as<StateType>()->toVector().transpose() << "\n";
+            v << target->as<StateType>()->toVector().transpose() << "\n";
+            v << source->as<StateType>()->toVector().transpose() << "\n";
+            vcount += 3;
+            f << 3 << " " << vcount-3 << " " << vcount-2 << " " << vcount-1 << "\n";
+            fcount++;
+            continue;
+        }
         StateType *from = stateList[0];
         v << from->toVector().transpose() << "\n";
         vcount++;

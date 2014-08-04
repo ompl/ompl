@@ -188,7 +188,6 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
 
             double dist = 0.0;
             bool sat = goal->isSatisfied(motion->state, &dist);
-            // cav2
             if (sat)
             {
                 approxdif = dist;
@@ -200,11 +199,6 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
                 approxdif = dist;
                 approxSol = motion;
             }
-//             if (sat || dist < approxdif)
-//             {
-//                 approxdif = dist;
-//                 solution = motion;
-//             }
         }
     }
 
