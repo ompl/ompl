@@ -443,10 +443,10 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     OMPL_INFORM("Saving planner setup information ...");
 
     std::stringstream setupInfo;
-    if (gsetup_)
-        gsetup_->print(setupInfo);
-    else
-        csetup_->print(setupInfo);
+//     if (gsetup_)
+//         gsetup_->print(setupInfo);
+//     else
+//         csetup_->print(setupInfo);
     setupInfo << std::endl << "Properties of benchmarked planners:" << std::endl;
     for (unsigned int i = 0 ; i < planners_.size() ; ++i)
         planners_[i]->printProperties(setupInfo);

@@ -363,14 +363,9 @@ ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atl
 /** Print usage information. Does not return. */
 void usage (void)
 {
-    std::cout << "Usage: demo_AtlasPlanning <problem> <planner> <timelimit>\n";
+    std::cout << "Usage: demo_AtlasPlanning <problem> <timelimit>\n";
     std::cout << "Available problems:\n";
     std::cout << "    sphere torus klein chain\n";
-    std::cout << "Available planners:\n";
-    std::cout << "    EST RRT AtlasRRT RRTConnect RRTstar LazyRRT TRRT LBTRRT pRRTx\n";
-    std::cout << "    KPIECE1 BKPIECE1 LBKPIECE1 PDST PRM PRMstar LazyPRM\n";
-    std::cout << "    SBL pSBLx SPARS SPARStwo STRIDE\n";
-    std::cout << " where the 'x' in pRRTx and pSBLx is the number of threads.\n";
     exit(0);
 }
 
@@ -392,7 +387,7 @@ ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::Vec
 
 ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::SpaceInformationPtr &si)
 {
-    const double range = 3;
+    const double range = 0.75;
     if (std::strcmp(planner, "EST") == 0)
     {
         ompl::geometric::EST *est = new ompl::geometric::EST(si);
@@ -515,7 +510,7 @@ void resetStateSpace (const ompl::base::PlannerPtr &planner)
 
 int main (int argc, char **argv)
 {
-    if (argc != 4)
+    if (argc != 3)
         usage();
     
     // Initialize the atlas for a problem (you can try the other one too)
@@ -553,10 +548,16 @@ int main (int argc, char **argv)
     
     // Benchmark the planners
     ompl::tools::Benchmark bench(ss, "Atlas");
-    const double runtime_limit = 120;
+    const double runtime_limit = std::atof(argv[2]);
+    if (runtime_limit <= 0)
+        usage();
     const double memory_limit = 1024;
-    const int run_count = 20;
-    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count);
+    const int run_count = 10;
+    const double update_interval = 0.1;
+    const bool progress = true;
+    const bool save_output = false;
+    const bool use_threads = true;
+    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress, save_output, use_threads);
     const char *planners[] = {"EST", "RRT", "AtlasRRT", "RRTConnect", "LazyRRT", "TRRT", "LBTRRT", "KPIECE1", "BKPIECE1", "LBKPIECE1",
                               "PDST", "PRM", "LazyPRM", "SBL", "SPARS", "SPARStwo", "STRIDE"};
     for (std::size_t i = 0; i < sizeof(planners)/sizeof(char *); i++)
