@@ -34,6 +34,8 @@ if (OMPL_BUILD_DEMOS)
 
   add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
   add_ompl_demo(demo_PlannerProgressProperties PlannerProgressProperties.cpp)
+  
+  add_ompl_demo(demo_KinematicPlanning KinematicPlanning.cpp)
 
   if (OMPL_EXTENSION_OPENDE)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)
