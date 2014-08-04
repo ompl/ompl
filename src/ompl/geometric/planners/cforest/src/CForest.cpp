@@ -195,12 +195,7 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, co
         const base::CForestStateSpace *space = dynamic_cast<const base::CForestStateSpace*>(sampler->getStateSpace());
         const base::Planner *cfplanner = space->getPlanner();
         if (cfplanner != planner)
-        {
-            // std::cerr<<"states for "<<i<<' '<<samplers_[i].use_count()<<' '<<cfplanner<<' '<<planner<<' '<<sampler<<std::endl;
             sampler->setStatesToSample(states);
-        }
-        // else
-        //     std::cerr << "planner is different " << i<<std::endl;
     }
 }
 

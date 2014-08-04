@@ -40,6 +40,8 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/geometric/planners/cforest/CForest.h"
+
 #include <limits>
 #include <vector>
 #include <utility>
@@ -183,9 +185,6 @@ namespace ompl
 
             std::string getBestCost() const;
             ///////////////////////////////////////
-
-            /** \brief TO BE REMOVED in the final version. */
-            void saveTree(const char * filename);
 
         protected:
 

@@ -101,7 +101,7 @@ int main(int argc, char **argv)
     ss.setStateValidityChecker(&isStateValid);
     ss.getSpaceInformation()->setStateValidityCheckingResolution(0.001);
     ss.getProblemDefinition()->setOptimizationObjective(getPathLengthObjective(ss.getSpaceInformation()));
-    
+
     for(unsigned int i = 0; i < NDIM; ++i)
     {
         start[i] = 0.;

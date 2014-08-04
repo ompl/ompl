@@ -71,6 +71,11 @@ namespace ompl
                 return planner_;
             }
 
+            geometric::CForest* getCForestInstance() const
+            {
+                return cforest_;
+            }
+
             virtual StateSamplerPtr allocDefaultStateSampler() const;
             virtual StateSamplerPtr allocStateSampler() const;
 

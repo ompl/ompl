@@ -46,9 +46,6 @@
 #include <queue>
 #include <boost/math/constants/constants.hpp>
 
-#include <fstream>
-#include "ompl/base/spaces/RealVectorStateSpace.h" // TO BE REMOVED
-
 ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::Planner(si, "RRTstar")
 {
     specs_.approximateSolutions = true;
@@ -164,7 +161,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     bool isCForest = false;
     const base::CForestStateSpace *cfspace = dynamic_cast<base::CForestStateSpace*>(si_->getStateSpace().get());
     if (cfspace)
+    {
         isCForest = true;
+        prune_ = cfspace->getCForestInstance()->getPrune();
+    }
 
     Motion *solution       = lastGoalMotion_;
 
@@ -643,38 +643,6 @@ std::string ompl::geometric::RRTstar::getCollisionCheckCount() const
 std::string ompl::geometric::RRTstar::getBestCost() const
 {
   return boost::lexical_cast<std::string>(bestCost_.v);
-}
-
-///////////////////////////////////////
-// Javi added code.
-void ompl::geometric::RRTstar::saveTree(const char * filename) 
-{
-     OMPL_INFORM("Saving into %s", filename);
-
-     std::vector<Motion*> tree;
-     nn_->list(tree);
-
-     std::fstream fs;
-     fs.open (filename, std::fstream::out | std::fstream::trunc);
-
-     fs << tree.size() << std::endl;
-
-     // First node has no parent.
-     fs << startMotion_->state->as<ompl::base::RealVectorStateSpace::StateType>()->values[0] << "\t"
-        << startMotion_->state->as<ompl::base::RealVectorStateSpace::StateType>()->values[1] << std::endl;
-
-     for (size_t i = 0; i < tree.size(); ++i)
-     {
-         if(startMotion_ != tree[i])
-         {
-         fs << tree[i]->state->as<ompl::base::RealVectorStateSpace::StateType>()->values[0]	<< "\t"
-            << tree[i]->state->as<ompl::base::RealVectorStateSpace::StateType>()->values[1] << "\t"
-            << tree[i]->parent->state->as<ompl::base::RealVectorStateSpace::StateType>()->values[0] << "\t"
-            << tree[i]->parent->state->as<ompl::base::RealVectorStateSpace::StateType>()->values[1] << std::endl;
-         }
-     }
-
-     fs.close();
 }
 
 int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost, const double pruneStatesThreshold)
