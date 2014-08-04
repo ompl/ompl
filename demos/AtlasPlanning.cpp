@@ -186,7 +186,6 @@ Eigen::MatrixXd Jtorus (const Eigen::VectorXd &x)
 {
     Eigen::MatrixXd j(1,3);
     const double r1 = 2;
-    const double r2 = 1;
     const double xySquaredNorm = x[0]*x[0] + x[1]*x[1];
     const double xyNorm = std::sqrt(xySquaredNorm);
     const double denom = std::sqrt(x[2]*x[2] + (xyNorm - r1)*(xyNorm - r1));
@@ -527,7 +526,17 @@ int main (int argc, char **argv)
     ompl::base::ScopedState<> goal(space);
     start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
     goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
+    ompl::base::ProblemDefinitionPtr pdef(new ompl::base::ProblemDefinition(si));
+    pdef->setStartAndGoalStates(start, goal);
+    si->setup();
     
+    // Bounds
+    ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());
+    bounds.setLow(-10);
+    bounds.setHigh(10);
+    atlas->setBounds(bounds);
+    
+    // Atlas parameters
     atlas->setExploration(0.9);
     atlas->setRho(0.1);
     atlas->setAlpha(M_PI/32);
@@ -535,15 +544,6 @@ int main (int argc, char **argv)
     atlas->setDelta(0.01);
     atlas->setMaxChartsPerExtension(200);
     atlas->setMonteCarloSampleCount(0);
-    
-    // More setup for the space and problem definition
-    ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());
-    bounds.setLow(-10);
-    bounds.setHigh(10);
-    atlas->setBounds(bounds);
-    ompl::base::ProblemDefinitionPtr pdef(new ompl::base::ProblemDefinition(si));
-    pdef->setStartAndGoalStates(start, goal);
-    si->setup();
     
     // Choose the planner.
     ompl::base::PlannerPtr planner(parsePlanner(argv[2], si));

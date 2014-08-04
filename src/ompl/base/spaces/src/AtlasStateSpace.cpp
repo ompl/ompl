@@ -1004,13 +1004,13 @@ void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *
     }
     
     // Interpolate between these two states
-    RealVectorStateSpace::interpolate(stateList[i-1], stateList[i], tt, state);
+    RealVectorStateSpace::interpolate(stateList[i > 0 ? i-1 : 0], stateList[i], tt, state);
     delete [] d;
     
     // Set the correct chart, guessing it might be one of the adjacent charts first
     StateType *astate = state->as<StateType>();
     const Eigen::VectorXd x = astate->toVector();
-    const AtlasChart &c1 = stateList[i-1]->getChart();
+    const AtlasChart &c1 = stateList[i > 0 ? i-1 : 0]->getChart();
     const AtlasChart &c2 = stateList[i]->getChart();
     if (c1.inP(c1.psiInverse(x)))
         astate->setChart(c1);
