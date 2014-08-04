@@ -172,7 +172,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     Motion *rmotion        = new Motion(si_);
     base::State *rstate    = rmotion->state;
     base::State *xstate    = si_->allocState();
- 
 
     // e+e/d.  K-nearest RRT*
     double k_rrg           = boost::math::constants::e<double>() +
@@ -220,8 +219,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         if (!symDist)
             distanceDirection_ = FROM_NEIGHBORS;
 
-        // find closest state in the tree
+       // find closest state in the tree
        Motion *nmotion = nn_->nearest(rmotion);
+
+       if (isCForest && si_->equalStates(nmotion->state, rstate))
+           continue;
+
        base::State *dstate = rstate;
 
        // find state to add to the tree
@@ -231,9 +234,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
            si_->getStateSpace()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
            dstate = xstate;
        }
-
-        if (isCForest && si_->equalStates(nmotion->state, rstate))
-            continue;
 
         // Check if the motion between the nearest state and the state to add is valid
         ++collisionChecks_;
@@ -496,7 +496,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
                         pdef_->getIntermediateSolutionCallback()(this, spath, bestCost_);
                     }
-            }
+                }
             }
 
             // Checking for approximate solution (closest state found to the goal)
