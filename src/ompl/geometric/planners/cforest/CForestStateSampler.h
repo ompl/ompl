@@ -46,7 +46,8 @@ namespace ompl
     namespace base
     {
 
-        /** \brief Extended state sampler to use with the CForest planning algorithm. */
+        /** \brief Extended state sampler to use with the CForest planning algorithm. It wraps the user-specified
+            state sampler.*/
         class CForestStateSampler : public StateSampler
         {
         public:
@@ -62,26 +63,41 @@ namespace ompl
                 clear();
             }
 
+            /** \brief It will sample the next state of the vector StatesToSample_. If this is empty,
+                it will call the sampleUniform() method of the specified sampler. */
             virtual void sampleUniform(State *state);
+
+            /** \brief It will sample the next state of the vector StatesToSample_. If this is empty,
+                it will call the sampleUniformNear() method of the specified sampler. */
             virtual void sampleUniformNear(State *state, const State *near, const double distance);
+
+            /** \brief It will sample the next state of the vector StatesToSample_. If this is empty,
+                it will call the sampleGaussian() method of the specified sampler. */
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
 
             const StateSpace* getStateSpace() const
             {
                 return space_;
             }
+
+            /** \brief Fills the vector StatesToSample_ of states to be sampled in the next
+                calls to sampleUniform(), sampleUniformNear() or sampleGaussian(). */
             void setStatesToSample(const std::vector<const State *> &states);
 
             void clear();
 
         protected:
 
+            /** \brief Extracts the next sample when statesToSample_ is not empty. */
             void getNextSample(State *state);
 
+            /** \brief States to be sampled */
             std::vector<State*> statesToSample_;
 
+            /** \brief Underlying, user-specified state sampler. */
             StateSamplerPtr sampler_;
 
+            /** \brief Lock to control the access to the statesToSample_ vector. */
             boost::mutex statesLock_;
         };
 

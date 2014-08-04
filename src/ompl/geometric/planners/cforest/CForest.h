@@ -51,6 +51,27 @@ namespace ompl
 
     namespace geometric
     {
+
+        /**
+           @anchor gCForest
+           @par Short description
+           \ref gCForest (Coupled Forest of Random Engrafting Search Trees) is a
+           parallelization framework that is designed for single-query shortest
+           path planning algorithms. It is not a planning algorithm <em>per se</em>.
+
+           CForest is designed to be used with any random tree algorithm that operates
+           in any configuration space such that: 1) the search tree has almost sure
+           convergence to the optimal solution and 2) the configuration space obeys
+           the triangle inequality. It relies in the OptimizationObjective set for
+           the underlying planners.
+
+           @par External documentation
+           M. Otte, N. Correll, C-FOREST: Parallel Shortest Path Planning With
+           Superlinear Speedup, IEEE Transactions on Robotics, Vol 20, No 3, 2013.
+           <a href="http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=6425493</a>
+        */
+
+        /** \brief Coupled Forest of Random Engrafting Search Trees */
         class CForest : public base::Planner
         {
         public:
@@ -82,7 +103,7 @@ namespace ompl
                     planners_.push_back(planner);
                 }
             }
-            /** \brief remove all planner instances */
+            /** \brief Remove all planner instances */
             void clearPlannerInstances()
             {
                 planners_.clear();
@@ -141,11 +162,14 @@ namespace ompl
 
              /** \brief Cost of the best path found so far among planners. */
             base::Cost                                   bestCost_;
+
             /** \brief Number of paths shared among threads. */
             unsigned int                                 pathsShared_;
 
+            /** \brief Mutex to control the access to the newSolutionFound() method. */
             boost::mutex                                 newSolutionFoundMutex_;
 
+            /** \brief Flag to control the tree pruning. */
             bool                                         prune_;
         };
     }

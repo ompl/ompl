@@ -70,7 +70,7 @@ namespace ompl
            @par External documentation
            S. Karaman and E. Frazzoli, Sampling-based
            Algorithms for Optimal Motion Planning, International Journal of Robotics
-           Research (to appear), 2011.
+           Research, Vol 30, No 7, 2011.
            <a href="http://arxiv.org/abs/1105.1186">http://arxiv.org/abs/1105.1186</a>
         */
 
@@ -150,7 +150,7 @@ namespace ompl
                 return delayCC_;
             }
 
-            /* \brief Option to control whether the tree is pruned during the search. */
+            /* \brief Controls whether the tree is pruned during the search. */
             void setPrune(const bool prune)
             {
                 prune_ = prune;
@@ -258,11 +258,11 @@ namespace ompl
             /** \brief Updates the cost of the children of this node if the cost up to this node has changed */
             void updateChildCosts(Motion *m);
 
-            /** \brief If CForest is activated, this function will prune the tree when the best cost is improved over a threshold prunePercentage_. 
-                returns the number of motions pruned. */
-            int pruneTree(const base::Cost pruneTreeCost, const double pruneStatesThreshold=1);
+            /** \brief Prunes all those states which estimated total cost is higher than pruneTreeCost.
+                Returns the number of motions pruned. Depends on the parameter set by setPruneStatesImprovementThreshold() */
+            int pruneTree(const base::Cost pruneTreeCost);
 
-            /** \brief If CForest is activated, this function will delete the pruned motions at the end of the solve() function. */
+            /** \brief Deletes the pruned motions. */
             void detelePrunedMotions();
 
             base::Cost computeCTGHeuristic(const Motion *motion, const bool shortest = true) const;
@@ -299,13 +299,13 @@ namespace ompl
                  or from new state to neighbors. */
             DistanceDirection                              distanceDirection_;
 
-             /** \brief If this vector contains motions, they will be deteled once the solve() function ends. */
+             /** \brief If this vector contains motions, they will be deteled in the deletePrunedMotion() method. */
             std::deque<Motion*>                            toBeDeleted_;
 
             /** \brief If this value is set to true, tree pruning will be enabled. */
             bool                                           prune_;
 
-            /** \brief CForest parameter. The tree is only pruned is the percentage of states to prune is above this threshold (between 0 and 1). */
+            /** \brief The tree is only pruned is the percentage of states to prune is above this threshold (between 0 and 1). */
             double                                         pruneStatesThreshold_;
 
             /** \brief Stores the Motion containing the initial start state for CForest (assumes there is only 1 start state). */

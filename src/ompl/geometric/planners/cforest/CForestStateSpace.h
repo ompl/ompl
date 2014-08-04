@@ -50,6 +50,8 @@ namespace ompl
 
     namespace base
     {
+        /** \brief State space wrapper to use together with CForest. It adds some functionalities
+           to the regular state spaces necessary to CForest. */
         class CForestStateSpace : public StateSpace
         {
         public:
@@ -66,6 +68,7 @@ namespace ompl
             {
                 planner_ = planner;
             }
+
             const base::Planner* getPlanner() const
             {
                 return planner_;
@@ -77,6 +80,7 @@ namespace ompl
             }
 
             virtual StateSamplerPtr allocDefaultStateSampler() const;
+
             virtual StateSamplerPtr allocStateSampler() const;
 
             virtual bool isCompound() const

@@ -479,7 +479,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 {
                     if (prune_)
                     {
-                        int n = pruneTree(bestCost_, pruneStatesThreshold_);
+                        int n = pruneTree(bestCost_);
                         statesGenerated -= n;
                     }
 
@@ -635,7 +635,7 @@ std::string ompl::geometric::RRTstar::getBestCost() const
   return boost::lexical_cast<std::string>(bestCost_.v);
 }
 
-int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost, const double pruneStatesThreshold)
+int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost)
 {
     const int tree_size = nn_->size();
     std::vector<Motion*> newTree, toBePruned;
@@ -665,7 +665,7 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost, const do
 
     // To create the new nn takes one order of magnitude in time more than just checking how many 
     // states would be pruned. Therefore, only prune if it removes a significant amount of states.
-    if ((double)newTree.size() / tree_size < pruneStatesThreshold)
+    if ((double)newTree.size() / tree_size < pruneStatesThreshold_)
     {
         for (std::size_t i = 0; i < toBePruned.size(); ++i)
         {
