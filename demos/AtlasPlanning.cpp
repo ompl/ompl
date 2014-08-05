@@ -40,6 +40,7 @@
 #include <ompl/base/spaces/AtlasChart.h>
 #include <ompl/base/spaces/AtlasConstraint.h>
 #include <ompl/base/spaces/AtlasStateSpace.h>
+#include <ompl/geometric/ConstrainedSimpleSetup.h>
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/kpiece/BKPIECE1.h>
@@ -539,10 +540,10 @@ int main (int argc, char **argv)
         cons = true;
     if (cons)
         atlas->stopBeingAnAtlas(true);
-    ompl::base::StateSpacePtr space(atlas);
-    ompl::base::ConstrainedSpaceInformationPtr si(new ompl::base::ConstrainedSpaceInformation(space));
+    ompl::geometric::ConstrainedSimpleSetup ss(atlas);
+    ompl::base::ConstrainedSpaceInformationPtr si = ss.getConstrainedSpaceInformation();
     atlas->setSpaceInformation(si);
-    si->setStateValidityChecker(isValid);
+    ss.setStateValidityChecker(isValid);
     si->setValidStateSamplerAllocator(boost::bind(vssa, atlas, _1));
     ompl::base::ConstraintInformationPtr ci(new ompl::base::ConstraintInformation);
     ompl::base::ConstraintPtr c(new ompl::base::AtlasConstraint(atlas));
@@ -550,19 +551,17 @@ int main (int argc, char **argv)
     si->setConstraintInformation(ci);
     const ompl::base::AtlasChart &startChart = atlas->anchorChart(x);
     const ompl::base::AtlasChart &goalChart = atlas->anchorChart(y);
-    ompl::base::ScopedState<> start(space);
-    ompl::base::ScopedState<> goal(space);
+    ompl::base::ScopedState<> start(atlas);
+    ompl::base::ScopedState<> goal(atlas);
     start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
     goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
-    ompl::base::ProblemDefinitionPtr pdef(new ompl::base::ProblemDefinition(si));
-    pdef->setStartAndGoalStates(start, goal);
+    ss.setStartAndGoalStates(start, goal);
     
     // Bounds
     ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());
     bounds.setLow(-10);
     bounds.setHigh(10);
-    space->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
-    si->setup();
+    atlas->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
     
     // Atlas parameters
     atlas->setExploration(0.9);
@@ -575,8 +574,8 @@ int main (int argc, char **argv)
     
     // Choose the planner.
     ompl::base::PlannerPtr planner(parsePlanner(argv[2], si, plannerRange));
-    planner->setProblemDefinition(pdef);
-    planner->setup();
+    ss.setPlanner(planner);
+    ss.setup();
     
     // Set the time limit
     const double timelimit = std::atof(argv[3]);
@@ -590,7 +589,7 @@ int main (int argc, char **argv)
     {
         double time = ((double)(std::clock()-tstart))/CLOCKS_PER_SEC;
         
-        ompl::geometric::PathGeometric &path = *boost::dynamic_pointer_cast<ompl::geometric::PathGeometric>(pdef->getSolutionPath());
+        ompl::geometric::PathGeometric &path = ss.getSolutionPath();
         if (x.size() == 3)
         {
             std::ofstream pathFile("path.ply");
@@ -659,7 +658,8 @@ int main (int argc, char **argv)
         std::cout << "No solution found.\n";
     }
     
-    std::cout << "Atlas created " << atlas->getChartCount() << " charts.\n";
+    if (!cons)
+        std::cout << "Atlas created " << atlas->getChartCount() << " charts.\n";
     
     if (x.size() == 3)
     {

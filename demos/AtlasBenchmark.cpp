@@ -38,9 +38,10 @@
 
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/spaces/AtlasChart.h>
+#include <ompl/base/spaces/AtlasConstraint.h>
 #include <ompl/base/spaces/AtlasStateSpace.h>
+#include <ompl/geometric/ConstrainedSimpleSetup.h>
 #include <ompl/geometric/PathGeometric.h>
-#include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/kpiece/BKPIECE1.h>
 #include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
@@ -51,6 +52,8 @@
 #include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
+#include <ompl/geometric/planners/rrt/CBiRRT2.h>
+#include <ompl/geometric/planners/rrt/ConstrainedRRT.h>
 #include <ompl/geometric/planners/rrt/LazyRRT.h>
 #include <ompl/geometric/planners/rrt/LBTRRT.h>
 #include <ompl/geometric/planners/rrt/pRRT.h>
@@ -317,7 +320,7 @@ ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atl
 /** Print usage information. Does not return. */
 void usage (void)
 {
-    std::cout << "Usage: demo_AtlasBenchmark <problem> <timelimit>\n";
+    std::cout << "Usage: demo_AtlasBenchmark <problem> <timelimit> <runcount>\n";
     std::cout << "Available problems:\n";
     std::cout << "    sphere torus klein chain\n";
     exit(0);
@@ -393,6 +396,16 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
         std::cout << "Using " << nthreads << " threads.\n";
         return prrt;
     }
+    else if (std::strcmp(planner, "ConstrainedRRT") == 0)
+    {
+        ompl::geometric::ConstrainedRRT *constrainedrrt = new ompl::geometric::ConstrainedRRT(si);
+        return constrainedrrt;
+    }
+    else if (std::strcmp(planner, "CBiRRT2") == 0)
+    {
+        ompl::geometric::CBiRRT2 *cbirrt2 = new ompl::geometric::CBiRRT2(si);
+        return cbirrt2;
+    }
     else if (std::strcmp(planner, "KPIECE1") == 0)
     {
         ompl::geometric::KPIECE1 *kpiece1 = new ompl::geometric::KPIECE1(si);
@@ -454,12 +467,25 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
 
 void resetStateSpace (const ompl::base::PlannerPtr &planner)
 {
-    planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>()->clear();
+    static std::string cur_planner = "";
+    static unsigned int run = 0;
+    if (cur_planner != planner->getName())
+    {
+        run = 0;
+        cur_planner = planner->getName();
+    }
+    std::cout << cur_planner << " run " << run++ << "\n";
+    ompl::base::AtlasStateSpace *atlas = planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>();
+    atlas->clear();
+    if (std::strcmp(cur_planner.c_str(), "ConstrainedRRT") == 0 || std::strcmp(cur_planner.c_str(), "CBiRRT2") == 0)
+        atlas->stopBeingAnAtlas(true);
+    else
+        atlas->stopBeingAnAtlas(false);
 }
 
 int main (int argc, char **argv)
 {
-    if (argc != 3)
+    if (argc != 4)
         usage();
     
     // Initialize the atlas for a problem (you can try the other one too)
@@ -467,16 +493,19 @@ int main (int argc, char **argv)
     ompl::base::StateValidityCheckerFn isValid;
     double plannerRange;
     ompl::base::AtlasStateSpacePtr atlas(parseProblem(argv[1], x, y, isValid, plannerRange));
-    ompl::base::StateSpacePtr space(atlas);
-    ompl::geometric::SimpleSetup ss(space);
-    ompl::base::SpaceInformationPtr si = ss.getSpaceInformation();
+    ompl::geometric::ConstrainedSimpleSetup ss(atlas);
+    ompl::base::ConstrainedSpaceInformationPtr si = ss.getConstrainedSpaceInformation();
     atlas->setSpaceInformation(si);
     ss.setStateValidityChecker(isValid);
     si->setValidStateSamplerAllocator(boost::bind(vssa, atlas, _1));
+    ompl::base::ConstraintInformationPtr ci(new ompl::base::ConstraintInformation);
+    ompl::base::ConstraintPtr c(new ompl::base::AtlasConstraint(atlas));
+    ci->addConstraint(c);
+    si->setConstraintInformation(ci);
     const ompl::base::AtlasChart &startChart = atlas->anchorChart(x);
     const ompl::base::AtlasChart &goalChart = atlas->anchorChart(y);
-    ompl::base::ScopedState<> start(space);
-    ompl::base::ScopedState<> goal(space);
+    ompl::base::ScopedState<> start(atlas);
+    ompl::base::ScopedState<> goal(atlas);
     start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
     goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
     ss.setStartAndGoalStates(start, goal);
@@ -485,7 +514,8 @@ int main (int argc, char **argv)
     ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());
     bounds.setLow(-10);
     bounds.setHigh(10);
-    atlas->setBounds(bounds);
+    atlas->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
+    atlas->setup();
     
     // Atlas parameters
     atlas->setExploration(0.9);
@@ -502,14 +532,16 @@ int main (int argc, char **argv)
     if (runtime_limit <= 0)
         usage();
     const double memory_limit = 1024;
-    const int run_count = 5;
+    const int run_count = std::atoi(argv[3]);
+    if (run_count < 1)
+        usage();
     const double update_interval = 0.1;
-    const bool progress = true;
+    const bool progress = false;
     const bool save_output = false;
     const bool use_threads = true;
     const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress, save_output, use_threads);
-    const char *planners[] = {"EST", "RRT", "AtlasRRT", "RRTConnect", "LazyRRT", "TRRT", "LBTRRT", "KPIECE1", "BKPIECE1", "LBKPIECE1",
-                              "PDST", "PRM", "LazyPRM", "SBL", "SPARS", "SPARStwo", "STRIDE"};
+    const char *planners[] = {"EST", "RRT", "AtlasRRT", "RRTConnect", "LazyRRT", "TRRT", "LBTRRT", "ConstrainedRRT", "CBiRRT2", "KPIECE1", "BKPIECE1",
+                              "LBKPIECE1", "PDST", "PRM", "LazyPRM", "SBL", "SPARS", "SPARStwo", "STRIDE"};
     for (std::size_t i = 0; i < sizeof(planners)/sizeof(char *); i++)
         bench.addPlanner(ompl::base::PlannerPtr(parsePlanner(planners[i], si, plannerRange)));
     bench.setPreRunEvent(&resetStateSpace);

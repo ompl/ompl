@@ -105,7 +105,7 @@ bool ompl::geometric::ConstrainedRRT::constrainedExtend(const base::State* a, co
     // Assuming a is valid and on constraint manifold
     base::StateSpacePtr ss = si_->getStateSpace();
 
-    int n = 20*ss->validSegmentCount(a, b);  // number of steps between a and b in the state space
+    int n = si_->distance(a, b) / si_->getStateValidityCheckingResolution();  // number of steps between a and b in the state space
     double step = 1;
 
     double prevDist = std::numeric_limits<double>::max();

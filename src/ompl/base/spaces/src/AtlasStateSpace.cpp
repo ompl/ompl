@@ -313,7 +313,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     bigF(constraints),
     bigJ(jacobian ? jacobian : boost::bind(&AtlasStateSpace::numericalJacobian, this, boost::lambda::_1)),
     n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
-    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), monteCarloSampleCount_(100), setup_(false), noAtlas_(true)
+    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), monteCarloSampleCount_(100), setup_(false), noAtlas_(false)
 {
     Eigen::initParallel();
     setName("Atlas" + RealVectorStateSpace::getName());
@@ -661,7 +661,16 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
                                                   std::vector<StateType *> *const stateList) const
 {
     unsigned int chartsCreated = 0;
+    Eigen::VectorXd x_r, x_n;
+    x_r = to->toVector();
+    x_n = from->toVector();
     AtlasChart *c = const_cast<AtlasChart *>(&from->getChart());
+    if (!c)
+    {
+        c = owningChart(x_n, c);
+        if (!c)
+            c = &newChart(x_n);
+    }
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
     StateType *temp = allocState()->as<StateType>();
     
@@ -674,11 +683,9 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         stateList->push_back(fromCopy);
     }
     
-    Eigen::VectorXd x_n, x_r, x_j, x_0, u_n, u_r, u_j;
+    Eigen::VectorXd x_j, x_0, u_n, u_r, u_j;
     std::list<Eigen::VectorXd> lastTenX;
     double lastTenD = 0;
-    x_n = from->toVector();
-    x_r = to->toVector();
     
     // We will stop if we exit the ball of radius d_0 centered at x_0
     x_0 = x_j = x_n;
@@ -884,6 +891,8 @@ void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, st
             vcount += 3;
             f << 3 << " " << vcount-3 << " " << vcount-2 << " " << vcount-1 << "\n";
             fcount++;
+            for (std::size_t j = 0; j < stateList.size(); j++)
+                freeState(stateList[j]);
             continue;
         }
         StateType *from = stateList[0];
@@ -899,8 +908,10 @@ void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, st
             vcount += 2;
             f << 3 << " " << (reset ? vcount-3 : vcount-4) << " " << vcount-2 << " " << vcount-1 << "\n";
             fcount++;
+            freeState(stateList[i-1]);
             reset = false;
         }
+        freeState(stateList.back());
     }
     
     out << "ply\n";
@@ -938,6 +949,8 @@ void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path
             vcount += 3;
             f << 3 << " " << vcount-3 << " " << vcount-2 << " " << vcount-1 << "\n";
             fcount++;
+            for (std::size_t j = 0; j < stateList.size(); j++)
+                freeState(stateList[j]);
             continue;
         }
         StateType *from = stateList[0];
@@ -953,8 +966,10 @@ void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path
             vcount += 2;
             f << 3 << " " << (reset ? vcount-3 : vcount-4) << " " << vcount-2 << " " << vcount-1 << "\n";
             fcount++;
+            freeState(stateList[i-1]);
             reset = false;
         }
+        freeState(stateList.back());
     }
     
     out << "ply\n";
