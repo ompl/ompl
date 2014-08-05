@@ -274,8 +274,10 @@ bool noIntersect (const ompl::base::State *state)
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                                ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
 {
+    plannerRange = 0.75;
     const std::size_t dim = 3;
     
     // Start and goal points
@@ -289,25 +291,11 @@ ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::Vecto
     return new ompl::base::AtlasStateSpace(dim, Fsphere, Jsphere);
 }
 
-/** Initialize the atlas for the complicated problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initComplicatedProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
-{
-    const std::size_t dim = 9;
-    
-    // Start and goal points
-    x = Eigen::VectorXd(dim); x << 0, 0, 3, 0, 0, 0, 2, 0, 3;
-    y = Eigen::VectorXd(dim); y << -4, -4, 0, -4, -4, -3, -4, -4, 2;
-    
-    // Validity checker
-    isValid = &almostAlways;
-    
-    // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is faster)
-    return new ompl::base::AtlasStateSpace(dim, Fcomplicated, Jcomplicated);
-}
-
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, boost::function<bool (const ompl::base::State *)> &isValid)
+ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                                     ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
 {
+    plannerRange = 1.5;
     const std::size_t dim = 3;
     
     // Start and goal points
@@ -322,8 +310,10 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
 }
 
 /** Initialize the atlas for the torus problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                               ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
 {
+    plannerRange = 1;
     const std::size_t dim = 3;
     
     // Start and goal points
@@ -338,8 +328,10 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
 }
 
 /** Initialize the atlas for the kinematic chain problem. */
-ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                               ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
 {
+    plannerRange = 3;
     const std::size_t dim = 15;
     
     // Start and goal points
@@ -372,25 +364,25 @@ void usage (void)
     exit(0);
 }
 
-ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                           ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
 {
     if (std::strcmp(problem, "sphere") == 0)
-        return initSphereProblem(x, y, isValid);
+        return initSphereProblem(x, y, isValid, plannerRange);
     else if (std::strcmp(problem, "torus") == 0)
-        return initTorusProblem(x, y, isValid);
+        return initTorusProblem(x, y, isValid, plannerRange);
     else if (std::strcmp(problem, "klein") == 0)
-        return initKleinBottleProblem(x, y, isValid);
+        return initKleinBottleProblem(x, y, isValid, plannerRange);
     else if (std::strcmp(problem, "chain") == 0)
-        return initChainProblem(x, y, isValid);
+        return initChainProblem(x, y, isValid, plannerRange);
     else
         usage();
     
     std::abort();
 }
 
-ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::SpaceInformationPtr &si)
+ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::SpaceInformationPtr &si, const double range)
 {
-    const double range = 3;
     if (std::strcmp(planner, "EST") == 0)
     {
         ompl::geometric::EST *est = new ompl::geometric::EST(si);
@@ -406,6 +398,7 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
     else if (std::strcmp(planner, "AtlasRRT") == 0)
     {
         ompl::geometric::RRT *atlasrrt = new ompl::geometric::RRT(si);
+        atlasrrt->setName("AtlasRRT");
         atlasrrt->setIntermediateStates(true);
         atlasrrt->setRange(range);
         return atlasrrt;
@@ -514,7 +507,8 @@ int main (int argc, char **argv)
     // Initialize the atlas for a problem (you can try the other one too)
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
-    ompl::base::AtlasStateSpacePtr atlas(parseProblem(argv[1], x, y, isValid));
+    double plannerRange;
+    ompl::base::AtlasStateSpacePtr atlas(parseProblem(argv[1], x, y, isValid, plannerRange));
     ompl::base::StateSpacePtr space(atlas);
     ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
     atlas->setSpaceInformation(si);
@@ -528,13 +522,13 @@ int main (int argc, char **argv)
     goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
     ompl::base::ProblemDefinitionPtr pdef(new ompl::base::ProblemDefinition(si));
     pdef->setStartAndGoalStates(start, goal);
-    si->setup();
     
     // Bounds
     ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());
     bounds.setLow(-10);
     bounds.setHigh(10);
     atlas->setBounds(bounds);
+    si->setup();
     
     // Atlas parameters
     atlas->setExploration(0.9);
@@ -546,7 +540,7 @@ int main (int argc, char **argv)
     atlas->setMonteCarloSampleCount(0);
     
     // Choose the planner.
-    ompl::base::PlannerPtr planner(parsePlanner(argv[2], si));
+    ompl::base::PlannerPtr planner(parsePlanner(argv[2], si, plannerRange));
     planner->setProblemDefinition(pdef);
     planner->setup();
     

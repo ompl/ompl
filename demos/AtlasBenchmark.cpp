@@ -105,44 +105,6 @@ bool sphereValid (const ompl::base::State *state)
     return true;
 }
 
-/** More complicated manifold example: Consider three points in 3D space: p1, p2, and p3. Put p1 exactly
- * 3 units above p2, and have p3 orbit p1 at a distance of 2 in a plane perpendicular to p1. That's 9
- * dimensions, with 5 constraints, to create a 4D manifold. */
-Eigen::VectorXd Fcomplicated (const Eigen::VectorXd &x)
-{
-    Eigen::VectorXd f(5);
-    Eigen::VectorXd p1, p2, p3;
-    
-    // Separate out the three points
-    p1 = x.segment(0, 3);
-    p2 = x.segment(3, 3);
-    p3 = x.segment(6, 3);
-    
-    f[0] = p1[0] - p2[0];           // p1, p2 have same x coordinate
-    f[1] = p1[1] - p2[1];           // p1, p2 have same y coordinate
-    f[2] = p1[2] - p2[2] - 3;       // p1 is 3 units above p2
-    f[3] = (p1 - p3).norm() - 2;    // p3 is 2 units away from p1
-    f[4] = (p3 - p1).dot(p1);       // p3 lies in the plane perpendicular to p1
-    return f;
-}
-
-/** Jacobian of Fcomplicated(x).*/
-Eigen::MatrixXd Jcomplicated (const Eigen::VectorXd &x)
-{
-    Eigen::VectorXd p1, p2, p3;
-    p1 = x.segment(0, 3);
-    p2 = x.segment(3, 3);
-    p3 = x.segment(6, 3);
-    
-    Eigen::MatrixXd j = Eigen::MatrixXd::Zero(5,9);
-    j(0,0) = 1; j(0,3) = -1;
-    j(1,1) = 1; j(1,4) = -1;
-    j(2,2) = 1; j(2,5) = -1;
-    j.row(3).head(3) = (p1 - p3).transpose().normalized(); j.row(3).tail(3) = -j.row(3).head(3);
-    j.row(4).head(3) = (p3 - 2*p1).transpose(); j.row(4).tail(3) = p1.transpose();
-    return j;
-}
-
 /** Klein bottle manifold. */
 Eigen::VectorXd FKleinBottle (const Eigen::VectorXd &x)
 {
@@ -276,8 +238,10 @@ bool noIntersect (const ompl::base::State *state)
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                                ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
 {
+    plannerRange = 0.75;
     const std::size_t dim = 3;
     
     // Start and goal points
@@ -291,25 +255,11 @@ ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::Vecto
     return new ompl::base::AtlasStateSpace(dim, Fsphere, Jsphere);
 }
 
-/** Initialize the atlas for the complicated problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initComplicatedProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
-{
-    const std::size_t dim = 9;
-    
-    // Start and goal points
-    x = Eigen::VectorXd(dim); x << 0, 0, 3, 0, 0, 0, 2, 0, 3;
-    y = Eigen::VectorXd(dim); y << -4, -4, 0, -4, -4, -3, -4, -4, 2;
-    
-    // Validity checker
-    isValid = &almostAlways;
-    
-    // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is faster)
-    return new ompl::base::AtlasStateSpace(dim, Fcomplicated, Jcomplicated);
-}
-
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, boost::function<bool (const ompl::base::State *)> &isValid)
+ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                                     ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
 {
+    plannerRange = 1.5;
     const std::size_t dim = 3;
     
     // Start and goal points
@@ -324,8 +274,10 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
 }
 
 /** Initialize the atlas for the torus problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                               ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
 {
+    plannerRange = 1;
     const std::size_t dim = 3;
     
     // Start and goal points
@@ -340,8 +292,10 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
 }
 
 /** Initialize the atlas for the kinematic chain problem. */
-ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                               ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
 {
+    plannerRange = 3;
     const std::size_t dim = 15;
     
     // Start and goal points
@@ -369,25 +323,25 @@ void usage (void)
     exit(0);
 }
 
-ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                           ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
 {
     if (std::strcmp(problem, "sphere") == 0)
-        return initSphereProblem(x, y, isValid);
+        return initSphereProblem(x, y, isValid, plannerRange);
     else if (std::strcmp(problem, "torus") == 0)
-        return initTorusProblem(x, y, isValid);
+        return initTorusProblem(x, y, isValid, plannerRange);
     else if (std::strcmp(problem, "klein") == 0)
-        return initKleinBottleProblem(x, y, isValid);
+        return initKleinBottleProblem(x, y, isValid, plannerRange);
     else if (std::strcmp(problem, "chain") == 0)
-        return initChainProblem(x, y, isValid);
+        return initChainProblem(x, y, isValid, plannerRange);
     else
         usage();
     
     std::abort();
 }
 
-ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::SpaceInformationPtr &si)
+ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::SpaceInformationPtr &si, const double range)
 {
-    const double range = 0.75;
     if (std::strcmp(planner, "EST") == 0)
     {
         ompl::geometric::EST *est = new ompl::geometric::EST(si);
@@ -403,6 +357,7 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
     else if (std::strcmp(planner, "AtlasRRT") == 0)
     {
         ompl::geometric::RRT *atlasrrt = new ompl::geometric::RRT(si);
+        atlasrrt->setName("AtlasRRT");
         atlasrrt->setIntermediateStates(true);
         atlasrrt->setRange(range);
         return atlasrrt;
@@ -516,7 +471,8 @@ int main (int argc, char **argv)
     // Initialize the atlas for a problem (you can try the other one too)
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
-    ompl::base::AtlasStateSpacePtr atlas(parseProblem(argv[1], x, y, isValid));
+    double plannerRange;
+    ompl::base::AtlasStateSpacePtr atlas(parseProblem(argv[1], x, y, isValid, plannerRange));
     ompl::base::StateSpacePtr space(atlas);
     ompl::geometric::SimpleSetup ss(space);
     ompl::base::SpaceInformationPtr si = ss.getSpaceInformation();
@@ -552,7 +508,7 @@ int main (int argc, char **argv)
     if (runtime_limit <= 0)
         usage();
     const double memory_limit = 1024;
-    const int run_count = 10;
+    const int run_count = 5;
     const double update_interval = 0.1;
     const bool progress = true;
     const bool save_output = false;
@@ -561,7 +517,7 @@ int main (int argc, char **argv)
     const char *planners[] = {"EST", "RRT", "AtlasRRT", "RRTConnect", "LazyRRT", "TRRT", "LBTRRT", "KPIECE1", "BKPIECE1", "LBKPIECE1",
                               "PDST", "PRM", "LazyPRM", "SBL", "SPARS", "SPARStwo", "STRIDE"};
     for (std::size_t i = 0; i < sizeof(planners)/sizeof(char *); i++)
-        bench.addPlanner(ompl::base::PlannerPtr(parsePlanner(planners[i], si)));
+        bench.addPlanner(ompl::base::PlannerPtr(parsePlanner(planners[i], si, plannerRange)));
     bench.setPreRunEvent(&resetStateSpace);
     
     bench.benchmark(request);

@@ -967,7 +967,13 @@ void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *t
     // Traverse the manifold and save all the intermediate states
     std::vector<StateType *> stateList;
     const bool noCollisionChecking = true;
-    followManifold(from->as<StateType>(), to->as<StateType>(), noCollisionChecking, &stateList);
+    if (!followManifold(from->as<StateType>(), to->as<StateType>(), noCollisionChecking, &stateList))
+    {
+        // If we cannot reach the to state, we cannot know how far away it is. Assume infinite distance
+        // and just return the to state for all t > 0.
+        copyState(state, t > 0 ? to : from);
+        return;
+    }
     
     // Compute the state at time t
     fastInterpolate(stateList, t, state);
