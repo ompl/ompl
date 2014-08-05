@@ -40,7 +40,6 @@
 
 ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::Planner(si, "CForest")
 {
-    specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;
     specs_.multithreaded = true;
 
