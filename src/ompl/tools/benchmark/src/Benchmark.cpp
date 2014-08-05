@@ -615,7 +615,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                         gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
 
                         // simplify solution
-                        time::point timeStart = time::now();
+                        /*time::point timeStart = time::now();
                         gsetup_->simplifySolution();
                         double timeUsed = time::seconds(time::now() - timeStart);
                         run["simplification time REAL"] = boost::lexical_cast<std::string>(timeUsed);
@@ -626,7 +626,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                         run["simplified correct solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
                         gsetup_->getStateSpace()->setValidSegmentCountFactor(factor * 4);
                         run["simplified correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
-                        gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
+                        gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);*/
                     }
                     else
                     {

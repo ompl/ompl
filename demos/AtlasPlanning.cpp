@@ -392,7 +392,6 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
     else if (std::strcmp(planner, "RRT") == 0)
     {
         ompl::geometric::RRT *rrt = new ompl::geometric::RRT(si);
-        rrt->setRange(range);
         return rrt;
     }
     else if (std::strcmp(planner, "AtlasRRT") == 0)
@@ -400,43 +399,36 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
         ompl::geometric::RRT *atlasrrt = new ompl::geometric::RRT(si);
         atlasrrt->setName("AtlasRRT");
         atlasrrt->setIntermediateStates(true);
-        atlasrrt->setRange(range);
         return atlasrrt;
     }
     else if (std::strcmp(planner, "RRTConnect") == 0)
     {
         ompl::geometric::RRTConnect *rrtconnect = new ompl::geometric::RRTConnect(si);
-        rrtconnect->setRange(range);
         return rrtconnect;
     }
     else if (std::strcmp(planner, "RRTstar") == 0)
     {
         ompl::geometric::RRTstar *rrtstar = new ompl::geometric::RRTstar(si);
-        rrtstar->setRange(range);
         return rrtstar;
     }
     else if (std::strcmp(planner, "LazyRRT") == 0)
     {
         ompl::geometric::LazyRRT *lazyrrt = new ompl::geometric::LazyRRT(si);
-        lazyrrt->setRange(range);
         return lazyrrt;
     }
     else if (std::strcmp(planner, "TRRT") == 0)
     {
         ompl::geometric::TRRT *trrt = new ompl::geometric::TRRT(si);
-        trrt->setRange(range);
         return trrt;
     }
     else if (std::strcmp(planner, "LBTRRT") == 0)
     {
         ompl::geometric::LBTRRT *lbtrrt = new ompl::geometric::LBTRRT(si);
-        lbtrrt->setRange(range);
         return lbtrrt;
     }
     else if (std::strcmp(planner, "pRRT0") > 0 && std::strcmp(planner, "pRRT9") <= 0)
     {
         ompl::geometric::pRRT *prrt = new ompl::geometric::pRRT(si);
-        prrt->setRange(range);
         const unsigned int nthreads = std::atoi(&planner[4]);
         prrt->setThreadCount(nthreads);
         std::cout << "Using " << nthreads << " threads.\n";
@@ -467,7 +459,7 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
     else if (std::strcmp(planner, "PRMstar") == 0)
         return new ompl::geometric::PRMstar(si);
     else if (std::strcmp(planner, "LazyPRM") == 0)
-        return new ompl::geometric::PRM(si);
+        return new ompl::geometric::LazyPRM(si);
     else if (std::strcmp(planner, "SBL") == 0)
     {
         ompl::geometric::SBL *sbl = new ompl::geometric::SBL(si);
