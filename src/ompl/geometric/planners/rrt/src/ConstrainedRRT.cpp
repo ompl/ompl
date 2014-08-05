@@ -105,7 +105,7 @@ bool ompl::geometric::ConstrainedRRT::constrainedExtend(const base::State* a, co
     // Assuming a is valid and on constraint manifold
     base::StateSpacePtr ss = si_->getStateSpace();
 
-    int n = ss->validSegmentCount(a, b);  // number of steps between a and b in the state space
+    int n = 20*ss->validSegmentCount(a, b);  // number of steps between a and b in the state space
     double step = 1;
 
     double prevDist = std::numeric_limits<double>::max();
@@ -115,7 +115,7 @@ bool ompl::geometric::ConstrainedRRT::constrainedExtend(const base::State* a, co
         ss->interpolate(a, b, step++/n, scratchState);
 
         // Project new state onto constraint manifold
-        if (!ci_->project(scratchState) && si_->isValid(scratchState))
+        if (!ci_->project(scratchState) || !si_->isValid(scratchState))
         {
             ss->freeState(scratchState);
             break;

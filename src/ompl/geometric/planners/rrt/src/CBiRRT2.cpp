@@ -183,7 +183,7 @@ bool ompl::geometric::CBiRRT2::constrainedExtend(const base::State* a, const bas
     const base::State* previous = a;
 
     // number of discrete steps between a and b in the state space
-    int n = ss->validSegmentCount(a, b);
+    int n = 20*ss->validSegmentCount(a, b);
 
     if (n == 0) // don't divide by zero
         return true;

@@ -50,7 +50,7 @@ namespace ompl
         public:
             
             /** \brief Constructor. */
-            AtlasConstraint (AtlasStateSpace &atlas);
+            AtlasConstraint (AtlasStateSpacePtr &atlas);
             
             /** \brief Does \a state lie within a tolerance of the constraints? */
             bool isSatisfied (const State *state) const;
@@ -60,11 +60,17 @@ namespace ompl
             
             /** \brief This just projects a uniform sample. Returns false if
              * the projection failed. */
-            bool sample (State *state) const;
+            bool sample (State *state);
             
             /** \brief Project state to nearest point on the manifold. Return false
              * if projection fails. */
-            bool project (State *state) const;
+            bool project (State *state);
+            
+            /** \brief Convert RealVectorState to Eigen vector. */
+            Eigen::VectorXd toVector(const State *state) const;
+            
+            /** \brief Convert Eigen vector to RealVectorState. */
+            void fromVector(State *state, const Eigen::VectorXd &x) const;
             
         private:
             

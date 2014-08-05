@@ -38,8 +38,8 @@
 
 #include <eigen3/Eigen/Dense>
 
-ompl::base::AtlasConstraint::AtlasConstraint (AtlasStateSpace &atlas)
-: Constraint(boost::shared_ptr<StateSpace>((StateSpace *)&atlas)), atlas_(atlas), sampler_(&atlas_)
+ompl::base::AtlasConstraint::AtlasConstraint (AtlasStateSpacePtr &atlas)
+: Constraint(boost::dynamic_pointer_cast<StateSpace>(atlas)), atlas_(*atlas), sampler_(&atlas_)
 {
 }
 
@@ -50,25 +50,47 @@ bool ompl::base::AtlasConstraint::isSatisfied (const State *state) const
 
 double ompl::base::AtlasConstraint::distance (const State *state) const
 {
-    return atlas_.bigF(state->as<AtlasStateSpace::StateType>()->toVector()).norm();
+    return atlas_.bigF(toVector(state)).norm();
 }
 
-bool ompl::base::AtlasConstraint::sample (State *state) const
+bool ompl::base::AtlasConstraint::sample (State *state)
 {
-    sampler_.sampleUniform(state);
+    sampler_.sampleUniform(state->as<ompl::base::RealVectorStateSpace::StateType>());
     return project(state);
 }
 
-bool ompl::base::AtlasConstraint::project (State *state) const
+bool ompl::base::AtlasConstraint::project (State *state)
 {
-    // Perform gradient descent
-    AtlasStateSpace::StateType *astate = state->as<AtlasStateSpace::StateType>();
-    Eigen::VectorXd x_n = astate->toVector();
+    Eigen::VectorXd x_n = toVector(state);
     unsigned int iter = 0;
-    while (!isSatisfied(state) && iter++ < atlas_.getProjectionMaxIterations())
+    while (atlas_.bigF(x_n).norm() > atlas_.getProjectionTolerance() && iter++ < atlas_.getProjectionMaxIterations())
     {
-        x_n -= atlas_.bigJ(x_n).colPivHouseholderQr().inverse() * atlas_.bigF(x_n);
+        // Compute pseudoinverse of Jacobian
+        Eigen::MatrixXd mat = atlas_.bigJ(x_n);
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd  = mat.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+        double tolerance = std::numeric_limits<double>::epsilon() * std::max(mat.cols(), mat.rows())
+            * svd.singularValues().array().abs().maxCoeff();
+        mat = svd.matrixV()
+            * Eigen::MatrixXd((svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0)).asDiagonal()
+            * svd.matrixU().adjoint();
+        
+        x_n -= mat * atlas_.bigF(x_n);
     }
+    fromVector(state, x_n);
     
     return isSatisfied(state);
+}
+
+Eigen::VectorXd ompl::base::AtlasConstraint::toVector(const State *state) const
+{
+    Eigen::VectorXd x(atlas_.getAmbientDimension());
+    for (unsigned int i = 0; i < x.size(); i++)
+        x[i] = state->as<RealVectorStateSpace::StateType>()->values[i];
+    return x;
+}
+
+void ompl::base::AtlasConstraint::fromVector(State *state, const Eigen::VectorXd &x) const
+{
+    for (unsigned int i = 0; i < x.size(); i++)
+        state->as<RealVectorStateSpace::StateType>()->values[i] = x[i];
 }

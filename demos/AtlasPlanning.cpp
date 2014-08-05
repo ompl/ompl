@@ -38,6 +38,7 @@
 
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/spaces/AtlasChart.h>
+#include <ompl/base/spaces/AtlasConstraint.h>
 #include <ompl/base/spaces/AtlasStateSpace.h>
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/planners/est/EST.h>
@@ -50,6 +51,8 @@
 #include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
+#include <ompl/geometric/planners/rrt/CBiRRT2.h>
+#include <ompl/geometric/planners/rrt/ConstrainedRRT.h>
 #include <ompl/geometric/planners/rrt/LazyRRT.h>
 #include <ompl/geometric/planners/rrt/LBTRRT.h>
 #include <ompl/geometric/planners/rrt/pRRT.h>
@@ -270,6 +273,26 @@ bool noIntersect (const ompl::base::State *state)
         }
     }
     
+    const Eigen::VectorXd end = x.tail(CHAINDIM)/3;
+    if (-0.75 < end[0] && end[0] < -0.6)
+    {
+        if (-0.2 < end[1] && end[1] < 0.2)
+            return end[2] > 0;
+        return false;
+    }
+    else if (-0.125 < end[0] && end[0] < 0.125)
+    {
+        if (-0.2 < end[1] && end[1] < 0.2)
+            return end[2] < 0;
+        return false;
+    }
+    else if (0.6 < end[0] && end[0] < 0.75)
+    {
+        if (-0.2 < end[2] && end[2] < 0.2)
+            return end[1] > 0;
+        return false;
+    }
+    
     return true;
 }
 
@@ -366,8 +389,8 @@ void usage (void)
     std::cout << "    sphere torus klein chain\n";
     std::cout << "Available planners:\n";
     std::cout << "    EST RRT AtlasRRT RRTConnect RRTstar LazyRRT TRRT LBTRRT pRRTx\n";
-    std::cout << "    KPIECE1 BKPIECE1 LBKPIECE1 PDST PRM PRMstar LazyPRM\n";
-    std::cout << "    SBL pSBLx SPARS SPARStwo STRIDE\n";
+    std::cout << "    ConstrainedRRT CBiRRT2 KPIECE1 BKPIECE1 LBKPIECE1 PDST\n";
+    std::cout << "    PRM PRMstar LazyPRM SBL pSBLx SPARS SPARStwo STRIDE\n";
     std::cout << " where the 'x' in pRRTx and pSBLx is the number of threads.\n";
     exit(0);
 }
@@ -400,54 +423,56 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
     else if (std::strcmp(planner, "RRT") == 0)
     {
         ompl::geometric::RRT *rrt = new ompl::geometric::RRT(si);
-        rrt->setRange(range);
         return rrt;
     }
     else if (std::strcmp(planner, "AtlasRRT") == 0)
     {
         ompl::geometric::RRT *atlasrrt = new ompl::geometric::RRT(si);
         atlasrrt->setIntermediateStates(true);
-        atlasrrt->setRange(range);
         return atlasrrt;
     }
     else if (std::strcmp(planner, "RRTConnect") == 0)
     {
         ompl::geometric::RRTConnect *rrtconnect = new ompl::geometric::RRTConnect(si);
-        rrtconnect->setRange(range);
         return rrtconnect;
     }
     else if (std::strcmp(planner, "RRTstar") == 0)
     {
         ompl::geometric::RRTstar *rrtstar = new ompl::geometric::RRTstar(si);
-        rrtstar->setRange(range);
         return rrtstar;
     }
     else if (std::strcmp(planner, "LazyRRT") == 0)
     {
         ompl::geometric::LazyRRT *lazyrrt = new ompl::geometric::LazyRRT(si);
-        lazyrrt->setRange(range);
         return lazyrrt;
     }
     else if (std::strcmp(planner, "TRRT") == 0)
     {
         ompl::geometric::TRRT *trrt = new ompl::geometric::TRRT(si);
-        trrt->setRange(range);
         return trrt;
     }
     else if (std::strcmp(planner, "LBTRRT") == 0)
     {
         ompl::geometric::LBTRRT *lbtrrt = new ompl::geometric::LBTRRT(si);
-        lbtrrt->setRange(range);
         return lbtrrt;
     }
     else if (std::strcmp(planner, "pRRT0") > 0 && std::strcmp(planner, "pRRT9") <= 0)
     {
         ompl::geometric::pRRT *prrt = new ompl::geometric::pRRT(si);
-        prrt->setRange(range);
         const unsigned int nthreads = std::atoi(&planner[4]);
         prrt->setThreadCount(nthreads);
         std::cout << "Using " << nthreads << " threads.\n";
         return prrt;
+    }
+    else if (std::strcmp(planner, "ConstrainedRRT") == 0)
+    {
+        ompl::geometric::ConstrainedRRT *constrainedrrt = new ompl::geometric::ConstrainedRRT(si);
+        return constrainedrrt;
+    }
+    else if (std::strcmp(planner, "CBiRRT2") == 0)
+    {
+        ompl::geometric::CBiRRT2 *cbirrt2 = new ompl::geometric::CBiRRT2(si);
+        return cbirrt2;
     }
     else if (std::strcmp(planner, "KPIECE1") == 0)
     {
@@ -474,7 +499,7 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
     else if (std::strcmp(planner, "PRMstar") == 0)
         return new ompl::geometric::PRMstar(si);
     else if (std::strcmp(planner, "LazyPRM") == 0)
-        return new ompl::geometric::PRM(si);
+        return new ompl::geometric::LazyPRM(si);
     else if (std::strcmp(planner, "SBL") == 0)
     {
         ompl::geometric::SBL *sbl = new ompl::geometric::SBL(si);
@@ -515,11 +540,20 @@ int main (int argc, char **argv)
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
     ompl::base::AtlasStateSpacePtr atlas(parseProblem(argv[1], x, y, isValid));
+    bool cons = false;
+    if (std::strcmp(argv[2], "ConstrainedRRT") == 0 || std::strcmp(argv[2], "CBiRRT2") == 0)
+        cons = true;
+    if (cons)
+        atlas->stopBeingAnAtlas(true);
     ompl::base::StateSpacePtr space(atlas);
-    ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
+    ompl::base::ConstrainedSpaceInformationPtr si(new ompl::base::ConstrainedSpaceInformation(space));
     atlas->setSpaceInformation(si);
     si->setStateValidityChecker(isValid);
     si->setValidStateSamplerAllocator(boost::bind(vssa, atlas, _1));
+    ompl::base::ConstraintInformationPtr ci(new ompl::base::ConstraintInformation);
+    ompl::base::ConstraintPtr c(new ompl::base::AtlasConstraint(atlas));
+    ci->addConstraint(c);
+    si->setConstraintInformation(ci);
     const ompl::base::AtlasChart &startChart = atlas->anchorChart(x);
     const ompl::base::AtlasChart &goalChart = atlas->anchorChart(y);
     ompl::base::ScopedState<> start(space);
@@ -528,13 +562,13 @@ int main (int argc, char **argv)
     goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
     ompl::base::ProblemDefinitionPtr pdef(new ompl::base::ProblemDefinition(si));
     pdef->setStartAndGoalStates(start, goal);
-    si->setup();
     
     // Bounds
     ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());
     bounds.setLow(-10);
     bounds.setHigh(10);
-    atlas->setBounds(bounds);
+    space->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
+    si->setup();
     
     // Atlas parameters
     atlas->setExploration(0.9);
@@ -566,47 +600,61 @@ int main (int argc, char **argv)
         if (x.size() == 3)
         {
             std::ofstream pathFile("path.ply");
-            atlas->dumpPath(path, pathFile);
+            atlas->dumpPath(path, pathFile, cons);
             pathFile.close();
         }
         
         // Extract the solution path by re-interpolating between the saved states
         const std::vector<ompl::base::State *> &waypoints = path.getStates();
         double length = 0;
-        std::ofstream animFile("anim.txt");
-        for (std::size_t i = 0; i < waypoints.size()-1; i++)
+        if (cons)
         {
-            // Denote that we are switching to the next saved state
-            std::cout << "-----\n";
-            ompl::base::AtlasStateSpace::StateType *from, *to;
-            from = waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>();
-            to = waypoints[i+1]->as<ompl::base::AtlasStateSpace::StateType>();
-            
-            // Traverse the manifold
-            std::vector<ompl::base::AtlasStateSpace::StateType *> stateList;
-            atlas->followManifold(from, to, true, &stateList);
-            if (atlas->equalStates(stateList.front(), stateList.back()))
+            std::ofstream animFile("anim.txt");
+            for (std::size_t i = 0; i < waypoints.size(); i++)
             {
-                std::cout << "[" << stateList.front()->toVector().transpose() << "]  " << stateList.front()->getChart().getID() << "\n";
-                animFile << stateList.front()->toVector().transpose() << "\n";
+                std::cout << "[" << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->toVector().transpose() << "]\n";
+                animFile << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->toVector().transpose() << "\n";
             }
-            else
-            {
-                // Print the intermediate states
-                for (std::size_t i = 1; i < stateList.size(); i++)
-                {
-                    std::cout << "[" << stateList[i]->toVector().transpose() << "]  " << stateList[i]->getChart().getID() << "\n";
-                    animFile << stateList[i]->toVector().transpose() << "\n";
-                    length += atlas->distance(stateList[i-1], stateList[i]);
-                }
-            }
-            
-            // Delete the intermediate states
-            for (std::size_t i = 0; i < stateList.size(); i++)
-                atlas->freeState(stateList[i]);
+            animFile.close();
+            length = path.length();
         }
-        animFile.close();
-        std::cout << "-----\n";
+        else
+        {
+            std::ofstream animFile("anim.txt");
+            for (std::size_t i = 0; i < waypoints.size()-1; i++)
+            {
+                // Denote that we are switching to the next saved state
+                std::cout << "-----\n";
+                ompl::base::AtlasStateSpace::StateType *from, *to;
+                from = waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>();
+                to = waypoints[i+1]->as<ompl::base::AtlasStateSpace::StateType>();
+                
+                // Traverse the manifold
+                std::vector<ompl::base::AtlasStateSpace::StateType *> stateList;
+                atlas->followManifold(from, to, true, &stateList);
+                if (atlas->equalStates(stateList.front(), stateList.back()))
+                {
+                    std::cout << "[" << stateList.front()->toVector().transpose() << "]  " << stateList.front()->getChart().getID() << "\n";
+                    animFile << stateList.front()->toVector().transpose() << "\n";
+                }
+                else
+                {
+                    // Print the intermediate states
+                    for (std::size_t i = 1; i < stateList.size(); i++)
+                    {
+                        std::cout << "[" << stateList[i]->toVector().transpose() << "]  " << stateList[i]->getChart().getID() << "\n";
+                        animFile << stateList[i]->toVector().transpose() << "\n";
+                        length += atlas->distance(stateList[i-1], stateList[i]);
+                    }
+                }
+                
+                // Delete the intermediate states
+                for (std::size_t i = 0; i < stateList.size(); i++)
+                    atlas->freeState(stateList[i]);
+            }
+            animFile.close();
+            std::cout << "-----\n";
+        }
         if (stat == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
             std::cout << "Solution is approximate.\n";
         std::cout << "Length: " << length << "\n";
@@ -621,14 +669,17 @@ int main (int argc, char **argv)
     
     if (x.size() == 3)
     {
-        std::ofstream atlasFile("atlas.ply");
-        atlas->dumpMesh(atlasFile);
-        atlasFile.close();
+        if (!cons)
+        {
+            std::ofstream atlasFile("atlas.ply");
+            atlas->dumpMesh(atlasFile);
+            atlasFile.close();
+        }
         
         std::ofstream graphFile("graph.ply");
         ompl::base::PlannerData pd(si);
         planner->getPlannerData(pd);
-        atlas->dumpGraph(pd.toBoostGraph(), graphFile);
+        atlas->dumpGraph(pd.toBoostGraph(), graphFile, cons);
         graphFile.close();
     }
     
