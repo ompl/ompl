@@ -144,7 +144,7 @@ ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTer
     const base::ReportIntermediateSolutionFn prevSolutionCallback = getProblemDefinition()->getIntermediateSolutionCallback();
 
     if (prevSolutionCallback)
-        OMPL_WARN("Cannot use intermediate solution callback with %s", getName().c_str());
+        OMPL_WARN("Cannot use previously set intermediate solution callback with %s", getName().c_str());
 
     pdef_->setIntermediateSolutionCallback(boost::bind(&CForest::newSolutionFound, this, _1, _2, _3));
 

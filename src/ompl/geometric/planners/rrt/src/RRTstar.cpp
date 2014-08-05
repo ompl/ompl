@@ -154,13 +154,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
-    bool isCForest = false;
     const base::CForestStateSpace *cfspace = dynamic_cast<base::CForestStateSpace*>(si_->getStateSpace().get());
     if (cfspace)
-    {
-        isCForest = true;
         prune_ = cfspace->getCForestInstance()->getPrune();
-    }
+
+    const base::ReportIntermediateSolutionFn intermediateSolutionCallback = pdef_->getIntermediateSolutionCallback();
 
     Motion *solution       = lastGoalMotion_;
 
@@ -223,7 +221,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
        // find closest state in the tree
        Motion *nmotion = nn_->nearest(rmotion);
 
-       if (isCForest && si_->equalStates(nmotion->state, rstate))
+       if (intermediateSolutionCallback && si_->equalStates(nmotion->state, rstate))
            continue;
 
        base::State *dstate = rstate;
@@ -484,7 +482,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         statesGenerated -= n;
                     }
 
-                    if (isCForest)
+                    if (intermediateSolutionCallback)
                     {
                         std::vector<const base::State *> spath;
                         Motion *intermediate_solution = solution->parent; // Do not include goal state to simplify code.
@@ -495,7 +493,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                             intermediate_solution = intermediate_solution->parent;
                         } while (intermediate_solution->parent != 0); // Do not include the start state.
 
-                        pdef_->getIntermediateSolutionCallback()(this, spath, bestCost_);
+                        intermediateSolutionCallback(this, spath, bestCost_);
                     }
                 }
             }
