@@ -317,7 +317,7 @@ ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atl
 /** Print usage information. Does not return. */
 void usage (void)
 {
-    std::cout << "Usage: demo_AtlasPlanning <problem> <timelimit>\n";
+    std::cout << "Usage: demo_AtlasBenchmark <problem> <timelimit>\n";
     std::cout << "Available problems:\n";
     std::cout << "    sphere torus klein chain\n";
     exit(0);

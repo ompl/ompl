@@ -313,7 +313,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     bigF(constraints),
     bigJ(jacobian ? jacobian : boost::bind(&AtlasStateSpace::numericalJacobian, this, boost::lambda::_1)),
     n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
-    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), monteCarloSampleCount_(100), setup_(false)
+    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), monteCarloSampleCount_(100), setup_(false), noAtlas_(true)
 {
     Eigen::initParallel();
     setName("Atlas" + RealVectorStateSpace::getName());
@@ -348,6 +348,11 @@ ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
 {
     for (std::size_t i = 0; i < charts_.size(); i++)
         delete charts_[i];
+}
+
+void ompl::base::AtlasStateSpace::stopBeingAnAtlas (const bool yes)
+{
+    noAtlas_ = yes;
 }
 
 void ompl::base::AtlasStateSpace::setup (void)
@@ -857,7 +862,7 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
     out << v.str() << f.str();
 }
 
-void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, std::ostream &out) const
+void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, std::ostream &out, const bool asIs) const
 {
     std::stringstream v, f;
     std::size_t vcount = 0;
@@ -869,8 +874,9 @@ void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, st
         const State *source = boost::get(vertex_type, graph, boost::source(edge, graph))->getState();
         const State *target = boost::get(vertex_type, graph, boost::target(edge, graph))->getState();
         
-        followManifold(source->as<StateType>(), target->as<StateType>(), true, &stateList);
-        if (stateList.size() == 1)
+        if (!asIs)
+            followManifold(source->as<StateType>(), target->as<StateType>(), true, &stateList);
+        if (asIs || stateList.size() == 1)
         {
             v << source->as<StateType>()->toVector().transpose() << "\n";
             v << target->as<StateType>()->toVector().transpose() << "\n";
@@ -909,7 +915,7 @@ void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, st
     out << v.str() << f.str();
 }
 
-void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path, std::ostream &out) const
+void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path, std::ostream &out, const bool asIs) const
 {
     std::stringstream v, f;
     std::size_t vcount = 0;
@@ -922,8 +928,9 @@ void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path
         State *source = waypoints[i];
         State *target = waypoints[i+1];
         
-        followManifold(source->as<StateType>(), target->as<StateType>(), true, &stateList);
-        if (stateList.size() == 1)
+        if (!asIs)
+            followManifold(source->as<StateType>(), target->as<StateType>(), true, &stateList);
+        if (asIs || stateList.size() == 1)
         {
             v << source->as<StateType>()->toVector().transpose() << "\n";
             v << target->as<StateType>()->toVector().transpose() << "\n";
@@ -964,6 +971,12 @@ void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path
 
 void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *to, const double t, State *state) const
 {
+    if (noAtlas_)
+    {
+        RealVectorStateSpace::interpolate(from, to, t, state);
+        return;
+    }
+    
     // Traverse the manifold and save all the intermediate states
     std::vector<StateType *> stateList;
     const bool noCollisionChecking = true;
@@ -1033,6 +1046,8 @@ void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *
 
 bool ompl::base::AtlasStateSpace::hasSymmetricInterpolate (void) const
 {
+    if (noAtlas_)
+        return RealVectorStateSpace::hasSymmetricInterpolate();
     return false;
 }
 
@@ -1044,6 +1059,8 @@ void ompl::base::AtlasStateSpace::copyState (State *destination, const State *so
 
 ompl::base::StateSamplerPtr ompl::base::AtlasStateSpace::allocDefaultStateSampler (void) const
 {
+    if (noAtlas_)
+        return RealVectorStateSpace::allocDefaultStateSampler();
     return StateSamplerPtr(new AtlasStateSampler(*this));
 }
 

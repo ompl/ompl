@@ -212,6 +212,9 @@ namespace ompl
             /** @name Setup and tuning of atlas parameters
              * @{ */
             
+            /** \brief Behave exactly like the underlying RealVectorStateSpace for all overridden functions. */
+            void stopBeingAnAtlas (const bool yes);
+            
             /** \brief Final setup for the space. */
             virtual void setup (void);
             
@@ -355,10 +358,10 @@ namespace ompl
             void dumpMesh (std::ostream &out) const;
             
             /** \brief Write a mesh of a Boost graph on the atlas to a stream. */
-            void dumpGraph (const PlannerData::Graph &graph, std::ostream &out) const;
+            void dumpGraph (const PlannerData::Graph &graph, std::ostream &out, const bool asIs = false) const;
             
-            /** \brief Write a mesh of a path on the atlas to stream. */
-            void dumpPath (ompl::geometric::PathGeometric &path, std::ostream &out) const;
+            /** \brief Write a mesh of a path on the atlas to stream. Don't try to interpolate between path states if \a asIs. */
+            void dumpPath (ompl::geometric::PathGeometric &path, std::ostream &out, const bool asIs = false) const;
             
             /** @} */
             
@@ -448,6 +451,9 @@ namespace ompl
             
             /** \brief Whether setup() has been called. */
             bool setup_;
+            
+            /** \brief Whether we are not being an atlas. */
+            bool noAtlas_;
             
             /** \brief List of centers of "anchor" charts. */
             mutable std::vector<Eigen::VectorXd> anchorPoints_;
