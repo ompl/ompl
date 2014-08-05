@@ -46,7 +46,9 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
     pathsShared_ = 0;
     prune_ = true;
 
+    numThreads_ = std::max(boost::thread::hardware_concurrency(), 2u);
     Planner::declareParam<bool>("prune", this, &CForest::setPrune, &CForest::getPrune, "0,1");
+    Planner::declareParam<unsigned int>("num_threads", this, &CForest::setNumThreads, &CForest::getNumThreads, "0,64");
 
     addPlannerProgressProperty("best cost REAL",
                                boost::bind(&CForest::getBestCost, this));
@@ -127,8 +129,8 @@ void ompl::geometric::CForest::setup()
 
     if (planners_.empty())
     {
-        OMPL_INFORM("%s: Number and type of instances not specified. Defaulting to 2 instances of RRTstar", getName().c_str());
-        addPlannerInstances<RRTstar>(2);
+        OMPL_INFORM("%s: Number and type of instances not specified. Defaulting to %d instances of RRTstar.", getName().c_str(), numThreads_);
+        addPlannerInstances<RRTstar>(numThreads_);
     }
 
     for (std::size_t i = 0; i < planners_.size() ; ++i)

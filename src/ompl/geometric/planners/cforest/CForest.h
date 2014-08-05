@@ -128,16 +128,29 @@ namespace ompl
                 samplers_.push_back(sampler);
             }
 
-            /* \brief Option to control whether the tree is pruned during the search. */
+            /** \brief Option to control whether the tree is pruned during the search. */
             void setPrune(const bool prune)
             {
                 prune_ = prune;
             }
 
-            /* \brief Get the state of the pruning option. */
+            /** \brief Get the state of the pruning option. */
             bool getPrune() const
             {
                 return prune_;
+            }
+
+            /** \brief Set default number of threads to use when no planner instances are specified by the user. */
+            void setNumThreads(unsigned int numThreads = 0)
+            {
+                numThreads_ = numThreads ? numThreads
+                    : std::max(boost::thread::hardware_concurrency(), 2u);
+            }
+
+            /** \brief Get default number of threads used by CForest when no planner instances are specified by the user. */
+            unsigned int getNumThreads()
+            {
+                return numThreads_;
             }
 
             /** \brief Get best cost among all the planners. */
@@ -176,6 +189,9 @@ namespace ompl
 
             /** \brief Flag to control the tree pruning. */
             bool                                         prune_;
+
+            /** \brief Default number of threads to use when no planner instances are specified by the user */
+            unsigned int                                 numThreads_;
         };
     }
 }
