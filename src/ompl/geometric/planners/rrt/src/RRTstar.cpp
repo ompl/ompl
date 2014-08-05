@@ -38,7 +38,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
-#include "ompl/geometric/planners/cforest/CForestStateSpace.h"
+#include "ompl/geometric/planners/cforest/CForestStateSpaceWrapper.h"
 #include <algorithm>
 #include <limits>
 #include <map>
@@ -154,7 +154,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
-    const base::CForestStateSpace *cfspace = dynamic_cast<base::CForestStateSpace*>(si_->getStateSpace().get());
+    const base::CForestStateSpaceWrapper *cfspace = dynamic_cast<base::CForestStateSpaceWrapper*>(si_->getStateSpace().get());
     if (cfspace)
         prune_ = cfspace->getCForestInstance()->getPrune();
 

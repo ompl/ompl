@@ -38,7 +38,7 @@
 #define OMPL_GEOMETRIC_PLANNERS_CFOREST_CFOREST_
 
 
-#include "ompl/geometric/planners/cforest/CForestStateSpace.h"
+#include "ompl/geometric/planners/cforest/CForestStateSpaceWrapper.h"
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/tools/config/SelfConfig.h"
 
@@ -91,7 +91,7 @@ namespace ompl
                 planners_.reserve(planners_.size() + num);
                 for (std::size_t i = 0 ; i < num; ++i)
                 {
-                    base::CForestStateSpace* cfspace = new base::CForestStateSpace(this, si_->getStateSpace().get());
+                    base::CForestStateSpaceWrapper* cfspace = new base::CForestStateSpaceWrapper(this, si_->getStateSpace().get());
                     base::StateSpacePtr space(cfspace);
                     base::SpaceInformationPtr si(new base::SpaceInformation(space));
                     base::PlannerPtr planner (new T(si));

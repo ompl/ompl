@@ -191,7 +191,7 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, co
     for (std::size_t i = 0; i < samplers_.size(); ++i)
     {
         base::CForestStateSampler* sampler = dynamic_cast<base::CForestStateSampler*>(samplers_[i].get());
-        const base::CForestStateSpace *space = dynamic_cast<const base::CForestStateSpace*>(sampler->getStateSpace());
+        const base::CForestStateSpaceWrapper *space = dynamic_cast<const base::CForestStateSpaceWrapper*>(sampler->getStateSpace());
         const base::Planner *cfplanner = space->getPlanner();
         if (cfplanner != planner)
             sampler->setStatesToSample(states);
