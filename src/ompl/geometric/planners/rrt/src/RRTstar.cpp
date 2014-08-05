@@ -49,6 +49,7 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
 {
     specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;
+    specs_.canReportIntermediateSolutions = true;
 
     goalBias_ = 0.05;
     maxDistance_ = 0.0;

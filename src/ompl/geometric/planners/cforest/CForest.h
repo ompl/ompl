@@ -96,11 +96,16 @@ namespace ompl
                     base::SpaceInformationPtr si(new base::SpaceInformation(space));
                     base::PlannerPtr planner (new T(si));
 
-                    cfspace->setPlanner(planner.get());
-                    si->setStateValidityChecker(si_->getStateValidityChecker());
-                    si->setMotionValidator(si_->getMotionValidator());
-                    planner->setProblemDefinition(pdef_);
-                    planners_.push_back(planner);
+                    if (!planner->getSpecs().canReportIntermediateSolutions)
+                        OMPL_WARN("%s cannot report intermediate solutions, not added as CForest planner.", planner->getName().c_str());
+                    else
+                    {
+                        cfspace->setPlanner(planner.get());
+                        si->setStateValidityChecker(si_->getStateValidityChecker());
+                        si->setMotionValidator(si_->getMotionValidator());
+                        planner->setProblemDefinition(pdef_);
+                        planners_.push_back(planner);
+                    }
                 }
             }
             /** \brief Remove all planner instances */

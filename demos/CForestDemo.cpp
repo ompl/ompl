@@ -41,7 +41,6 @@
 
 #include <ompl/geometric/planners/cforest/CForest.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
-//#include <ompl/geometric/planners/prm/PRMstar.h>
 
 #include <ompl/util/PPM.h>
 #include <../tests/resources/config.h>
@@ -120,7 +119,7 @@ public:
         // testing some specific configurations
         //planner_->as<og::RRTstar>()->setPrune(true);
         //planner_->as<og::CForest>()->setPrune(false);
-        //planner_->as<og::CForest>()->setPlannerInstances<og::RRTstar>(3);
+        //planner_->as<og::CForest>()->addPlannerInstances<og::RRTstar>(4);
 
         planner_->setup();
 
@@ -187,8 +186,6 @@ int main(int argc, char** argv)
 {
     boost::filesystem::path path(TEST_RESOURCES_DIR);
     Plane2DEnvironment<og::CForest> env_cf((path / "ppm/floor.ppm").string().c_str());
-    //Plane2DEnvironment<og::PRMstar> env_cf((path / "ppm/floor.ppm").string().c_str());
-
     if (env_cf.plan(0, 0, 1140, 1402))
     {
 
@@ -199,7 +196,6 @@ int main(int argc, char** argv)
     }
 
     Plane2DEnvironment<og::RRTstar> env_rrts((path / "ppm/floor.ppm").string().c_str());
-
     if (env_rrts.plan(0, 0, 1140, 1402))
     {
         OMPL_INFORM("**** Plan successful ****");

@@ -41,16 +41,18 @@ ompl::base::PlannerPtr planner(new ompl::geometric::CForest(ss.getSpaceInformati
 planner->as<ompl::geometric::CForest>()->addPlannerInstances<ompl::geometric::RRTstar>(5);
 ~~~
 
-The call \c addPlannerInstances<T>() will check the planner type given with the \c activateCForest() method. All planners that support CForest should have this method implemented. Otherwise, the following error will appear during compilation (test with PRM*):
+The call \c addPlannerInstances<T>() will check the \c PlannerSpecs of the planner type given. CForest only supports all those planners with the \c canReportIntermediateSolutions spec true. Otherwise, the following warning will appear during execution (test with PRM*):**
 
 ~~~{.cpp}
 planner->as<ompl::geometric::CForest>()->addPlannerInstances<ompl::geometric::PRMstar>(2);
 ~~~
-    /ompl/src/ompl/geometric/planners/cforest/CForest.h:76:21: error: ‘class ompl::geometric::PRMstar’ has no member named ‘activateCForest’
-                     planner->as<T>()->activateCForest();
-                     ^
+    Warning: PRMstar cannot report intermediate solutions, not added as CForest planner.
+             at line 100 in ompl/geometric/planners/cforest/CForest.h
 
-\note No Python bindings are available at the moment for this planner due to its multithreaded implementation.
+If not valid planners are added by the user, two instances of RRTstar will be automatically set.
+
+
+\note No Python bindings are available for this planner due to its multithreaded implementation.
 
 ### Main differences with the paper version
 When implementing CForest, the focus was modify the underlying planner as less as possible. Although the main idea of CForest remains, the actual implementation differs from the one proposed in the paper:
@@ -257,5 +259,7 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
     } // while ptc
 }
 ~~~
+
+\note You should implement the pruneTree() function for your code. Most probably, the available RRTstar::pruneTree() method would be directly applicable.
 
 For a complete example of how to make these modifications, it is recommended to analyze the [RRTstar::solve() method](RRTstar_8cpp_source.html).
