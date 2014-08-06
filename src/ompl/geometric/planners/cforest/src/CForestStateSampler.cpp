@@ -36,7 +36,6 @@
 
 #include "ompl/geometric/planners/cforest/CForestStateSampler.h"
 
-
 void ompl::base::CForestStateSampler::sampleUniform(State *state)
 {
     if (!statesToSample_.empty())
