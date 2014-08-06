@@ -130,6 +130,9 @@ namespace ompl
             /** \brief Destructor. */
             virtual ~AtlasChart (void);
             
+            /** \brief Returns phi(0), the center of the chart in ambient space. */
+            const Eigen::VectorXd &getXorigin (void) const;
+            
             /** \brief Write a chart point \a u in ambient space coordinates. */
             Eigen::VectorXd phi (const Eigen::VectorXd &u) const;
             

@@ -104,7 +104,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         do
             uoffset.setRandom();
         while (uoffset.squaredNorm() > 1);
-        const Eigen::VectorXd xoffset = c->phi(uoffset) - c->phi(Eigen::VectorXd::Zero(atlas_.getManifoldDimension()));
+        const Eigen::VectorXd xoffset = c->phi(uoffset) - c->getXorigin();
         r = c->psi(c->psiInverse(n + distance * xoffset.normalized()));
     }
     while (r.hasNaN() || atlas_.bigF(r).norm() > atlas_.getProjectionTolerance()  /*|| (r - n).squaredNorm() > distance*distance*/);
@@ -313,7 +313,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     bigF(constraints),
     bigJ(jacobian ? jacobian : boost::bind(&AtlasStateSpace::numericalJacobian, this, boost::lambda::_1)),
     n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
-    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), monteCarloSampleCount_(100), setup_(false), noAtlas_(false)
+    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), monteCarloSampleCount_(0), setup_(false), noAtlas_(false)
 {
     Eigen::initParallel();
     setName("Atlas" + RealVectorStateSpace::getName());
@@ -331,17 +331,9 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, cons
     
     setRho(0.1);
     setAlpha(M_PI/16);
+    setMonteCarloSampleCount(100);
     
     ballMeasure_ = std::pow(std::sqrt(M_PI), k_) / boost::math::tgamma(k_/2.0 + 1);
-    
-    // Generate random samples within the ball
-    samples_.resize(monteCarloSampleCount_);
-    for (std::size_t i = 0; i < samples_.size(); i++)
-    {
-        do
-            samples_[i] = Eigen::VectorXd::Random(k_);
-        while (samples_[i].squaredNorm() > 1);
-    }
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
@@ -385,7 +377,7 @@ void ompl::base::AtlasStateSpace::clear (void)
         if (oldCharts[i]->isAnchor())
         {
             // Reincarnate the chart
-            oldCharts[i]->substituteChart(anchorChart(oldCharts[i]->phi(Eigen::VectorXd::Zero(k_))));
+            oldCharts[i]->substituteChart(anchorChart(oldCharts[i]->getXorigin()));
         }
         delete oldCharts[i];
     }
@@ -475,7 +467,15 @@ void ompl::base::AtlasStateSpace::setMaxChartsPerExtension (const unsigned int c
 
 void ompl::base::AtlasStateSpace::setMonteCarloSampleCount (const unsigned int count)
 {
-    monteCarloSampleCount_ = count;;
+    samples_.resize(count);
+    // Generate random samples within the ball
+    for (std::size_t i = monteCarloSampleCount_; i < samples_.size(); i++)
+    {
+        do
+            samples_[i] = Eigen::VectorXd::Random(k_);
+        while (samples_[i].squaredNorm() > 1);
+    }
+    monteCarloSampleCount_ = count;
 }
 
 double ompl::base::AtlasStateSpace::getDelta (void) const
@@ -616,7 +616,7 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::Vect
     {
         // If the two charts are near enough, introduce a boundary
         AtlasChart &c = *oldCharts[i];
-        if ((c.phi(Eigen::VectorXd::Zero(k_)) - addedC.phi(Eigen::VectorXd::Zero(k_))).norm() < 2*rho_)
+        if ((c.getXorigin() - addedC.getXorigin()).norm() < 2*rho_)
             AtlasChart::generateHalfspace(c, addedC);
     }
     
