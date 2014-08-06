@@ -820,7 +820,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     }
     if (chartsCreated > maxChartsPerExtension_)
         OMPL_DEBUG("Stopping extension early b/c too many charts created.");
-    const bool reached = ((x_r - x_n).squaredNorm() < delta_*delta_);
+    const bool reached = ((x_r - x_n).squaredNorm() <= delta_*delta_);
     
     // Append a copy of the target state, since we're within delta, but didn't hit it exactly
     if (reached && stateList)
@@ -996,24 +996,7 @@ void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *t
         RealVectorStateSpace::interpolate(from, to, t, state);
         return;
     }
-    
-    // Traverse the manifold and save all the intermediate states
-    std::vector<StateType *> stateList;
-    const bool noCollisionChecking = true;
-    if (!followManifold(from->as<StateType>(), to->as<StateType>(), noCollisionChecking, &stateList))
-    {
-        // If we cannot reach the to state, we cannot know how far away it is. Assume infinite distance
-        // and just return the to state for all t > 0.
-        copyState(state, t > 0 ? to : from);
-        return;
-    }
-    
-    // Compute the state at time t
-    fastInterpolate(stateList, t, state);
-    
-    // We are resposible for freeing these states
-    for (std::size_t i = 0; i < stateList.size(); i++)
-        freeState(stateList[i]);
+    copyState(state, t == 0 ? from : to);
 }
 
 void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *> &stateList, const double t, State *state) const

@@ -347,7 +347,7 @@ void printPlanners (void)
     std::cout << "Available planners:\n";
     std::cout << "    EST RRT AtlasRRT RRTConnect RRTstar LazyRRT TRRT LBTRRT pRRTx\n";
     std::cout << "    ConstrainedRRT CBiRRT2 KPIECE1 BKPIECE1 LBKPIECE1 PDST\n";
-    std::cout << "    PRM PRMstar LazyPRM SBL pSBLx SPARS SPARStwo STRIDE\n";
+    std::cout << "    PRM PRMstar SBL pSBLx SPARS SPARStwo STRIDE\n";
     std::cout << " where the 'x' in pRRTx and pSBLx is the number of threads.\n";
 }
 
@@ -455,8 +455,6 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
         return new ompl::geometric::PRM(si);
     else if (std::strcmp(planner, "PRMstar") == 0)
         return new ompl::geometric::PRMstar(si);
-    else if (std::strcmp(planner, "LazyPRM") == 0)
-        return new ompl::geometric::LazyPRM(si);
     else if (std::strcmp(planner, "SBL") == 0)
     {
         ompl::geometric::SBL *sbl = new ompl::geometric::SBL(si);
