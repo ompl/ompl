@@ -42,8 +42,36 @@
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/tools/benchmark/Benchmark.h>
 #include "ompl/tools/config/MagicConstants.h"
+#include <boost/program_options.hpp>
 
-/*
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
+namespace ot = ompl::tools;
+namespace po = boost::program_options;
+
+ompl::base::OptimizationObjectivePtr getPathLengthObjective(const ompl::base::SpaceInformationPtr& si)
+{
+    return ompl::base::OptimizationObjectivePtr(new ompl::base::PathLengthOptimizationObjective(si));
+}
+
+bool isStateValid(double radiusSquared, const ob::State *state)
+{
+    const ob::SE2StateSpace::StateType *s = state->as<ob::SE2StateSpace::StateType>();
+    double x=s->getX(), y=s->getY();
+    x = std::abs(x - std::floor(x));
+    y = std::abs(y - std::floor(y));
+    x = std::min(x, 1. - x);
+    y = std::min(y, 1. - y);
+    return x*x + y*y > radiusSquared;
+}
+
+int main(int argc, char **argv)
+{
+    int distance, gridLimit ;
+    double obstacleRadius, turningRadius;
+
+    ob::StateSpacePtr space(new ob::SE2StateSpace());
+
     po::options_description desc("Options");
 
     desc.add_options()
@@ -73,34 +101,6 @@
         space = ob::StateSpacePtr(new ob::DubinsStateSpace(turningRadius, true));
     if (vm.count("reedsshepp"))
         space = ob::StateSpacePtr(new ob::ReedsSheppStateSpace(turningRadius));
-}*/
-
-namespace ob = ompl::base;
-namespace og = ompl::geometric;
-namespace ot = ompl::tools;
-
-ompl::base::OptimizationObjectivePtr getPathLengthObjective(const ompl::base::SpaceInformationPtr& si)
-{
-    return ompl::base::OptimizationObjectivePtr(new ompl::base::PathLengthOptimizationObjective(si));
-}
-
-bool isStateValid(double radiusSquared, const ob::State *state)
-{
-    const ob::SE2StateSpace::StateType *s = state->as<ob::SE2StateSpace::StateType>();
-    double x=s->getX(), y=s->getY();
-    x = std::abs(x - std::floor(x));
-    y = std::abs(y - std::floor(y));
-    x = std::min(x, 1. - x);
-    y = std::min(y, 1. - y);
-    return x*x + y*y > radiusSquared;
-}
-
-int main(int argc, char **argv)
-{
-    int distance = 3, gridLimit = 10;
-    double obstacleRadius = 0.25;
-
-    ob::StateSpacePtr space(new ob::SE2StateSpace());
 
     // set the bounds for the R^2 part of SE(2)
     ob::RealVectorBounds bounds(2);
