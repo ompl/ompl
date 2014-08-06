@@ -1,5 +1,16 @@
 # CForest Parallelization Framework
 
+__Contents:__
+
+- \ref cf_ompl
+- \ref cf_diff
+- \ref cf_examples
+- \ref cf_results
+- \ref cf_advanced
+- \ref cf_implementation
+- \ref cf_limitations
+- \ref cf_compatible
+
 CForest was proposed by M.Otte and N. Correll in [this paper.](http://www.mit.edu/~ottemw/html_stuff/pdf_files/otte_ieeetro2013.pdf)
 
 The main idea behind CForest is that many trees are built in parallel between the same start and goal states. Each time a better solution is found, it is shared to all other trees. The three main characteristics of CForest are:
@@ -12,7 +23,7 @@ CForest is designed to be used with any random tree algorithm under the followin
 1. The search tree has almost sure convergence to the optimal solution.
 2. The configuration space obeys the [triangle inequality.](http://en.wikipedia.org/wiki/Triangle_inequality) That is, there exists an admissible heuristic.
 
-## CForest in OMPL
+## CForest in OMPL {#cf_ompl}
 
 CForest has been included into OMPL as a new [optimizing planner](optimalPlanning.html):
 
@@ -54,7 +65,7 @@ If not valid planners are added by the user, two instances of RRTstar will be au
 
 \note No Python bindings are available for this planner due to its multithreaded implementation.
 
-### Main differences with the paper version
+### Main differences with the paper version {#cf_diff}
 When implementing CForest, the focus was modify the underlying planner as less as possible. Although the main idea of CForest remains, the actual implementation differs from the one proposed in the paper:
 
 - No message passing is used. But shared memory and boost::threads are employed.
@@ -64,40 +75,56 @@ When implementing CForest, the focus was modify the underlying planner as less a
 - Start and goal states are not included in the shared paths in order to keep code simpler.
 - Before pruning a tree, it is checked how many states would be removed. If the ratio size new tree/size old tree is not small enough, pruning will not be carried out. This allows to save time since the creation of a NearestNeighbors datastructure is time consuming and sometimes, just a few states are being removed.
 
-### Results
+### Examples {#cf_examples}
+
+- [CForest demo](CForestDemo_8cpp_source.html). It shows how CForest can be used (as any other planner) and how to configure it.
+- [Circle Grid benchmark](CForestCircleGridBenchmark_8cpp_source.html). Compares the perfomance of CForest against RRT  in a specific 2D circle grid problem.
+
+### Results {#cf_results}
 Note that CForest does not imply to find a first solution faster than the underlying planner used. However, it guarantees a probabilistic speed up in the optimization convergence.
 
-The following images show the performance of CForest, using 2 RRTstar threads, in comparison with the standard RRTstar, solving the Alpha 1.5 puzzle.
+CForest produces many interesting results. All these results are obtained with the alpha 1.5 puzzle benchmark configuration included in the OMPLapp. Following figure shows the results of running CForest in 2 and 16 threads in a **16-core** machine. Also, the standard RRT* and the pruned version are included in the benchmark.
 
 \htmlonly
 <div class="row">
 <div class="col-md-6 col-sm-6">
-  <img src="../images/cforest_cost.png" width="100%"><br>
-<b>Best cost evolution through time</b> CForest converges faster towards the minimum cost (optimal solution).
+  <img src="../images/cforest.png" width="100%"><br>
+<b>Best cost evolution through time</b> CForest converges faster towards the minimum cost (optimal solution) as the threads are increased. Pruned RRT* also improves the standard RRT*.
 </div>
 <div class="col-md-6 col-sm-6">
-  <img src="../images/cforest_paths.png" width="100%"><br>
+  <img src="../images/sharedpaths.png" width="100%"><br>
 <b>Number of paths shared by CForest.</b>
 </div>
 </div>
 \endhtmlonly
 
-A [CForest demo](CForestDemo_8cpp_source.html) is available.
+Another interesting experiment is to run CForest with pruning deactivated and compare it to the standard CForest:
 
-### Advanced information
-#### Implementation details
+\htmlonly
+<div class="row">
+<div class="col-md-6 col-sm-6">
+  <img src="../images/prunevsnoprune.png" width="100%"><br>
+<b>Best cost evolution through time</b> Not pruning trees affects negatively on the convergence. However, it still improves the standard RRT.
+</div>
+</div>
+\endhtmlonly
+
+Finally..._write here about n threads in m cores, n>m_
+
+### Advanced information {#cf_advanced}
+#### Implementation details {#cf_implementation}
 The CForest _planner_ comes together with its own state sampler ompl::base::CForestStateSampler and its own state space ompl::base::CForestStateSpace. They are completely transparent to the user as the ompl::geometric::CForest handles the creation of these.
 
 CForest operates on the user specified ompl::base::SpaceInformation. However, CForest instantiates the underlying planners with an individual SpaceInformation instance for each planner, containing an instance of a CForestStateSpace. When the underlying planner allocates the StateSampler, CForestStateSpace creates an instance of a CForestStateSampler which wraps the user specified state sampler (or the default sampler if none was provided).
 
 Therefore, CForest tracks the creation of the planners but, thanks to the CForestStateSpace, it also tracks the creation of the state samplers as well. This allows to have a planner-sampler correspondence required to shared paths between trees.
 
-#### Limitations
+#### Limitations {#cf_limitations}
 - CForest is designed to solve single-query, shortest path planning problems. Therefore, not all the ompl::base::OptimizationObjective instantiations are valid. The cost metric have to obey the triangle inequiality. It is important to note that shortest path planning does not mean that only the path length can be optimized. Other metrics could be specified: time, energy, etc. However, clearance or smoothness optimization are examples of non-valid optimization objetives.
 
 - Whenever the tree is pruned, the states are removed from the NearestNeighbours data structure. However, current implementation does not remove pruned states until the planner instance is destroyed. This is specific for the underlying planner implementations but this is the most efficient way in terms of computation time.
 
-#### Make your planner CForest-compatible
+#### Make your planner CForest-compatible {#cf_compatible}
 If you have implemented an __incremental, optimizing planner__ in OMPL and want make it complatible with CForest, there are few modifications you should carry out on your planner.
 
 There are three main components that should be included:
