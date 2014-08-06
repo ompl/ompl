@@ -229,6 +229,9 @@ namespace ompl
             /** \brief Transpose of basis. */
             Eigen::MatrixXd bigPhi_t_;
             
+            /** \brief Pseudoinverse of the transpose of basis. */
+            Eigen::MatrixXd bigPhi_t_pinv_;
+            
             /** \brief List of states on this chart. */
             mutable std::list<ompl::base::AtlasStateSpace::StateType *> owned_;
             

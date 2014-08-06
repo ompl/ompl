@@ -176,6 +176,9 @@ namespace ompl
                 /** \brief Set the chart \a c for the state. Skip the disown() step if \a fast. */
                 void setChart (const AtlasChart &c, const bool fast = false);
                 
+                /** \brief Set the chart to NULL. Does not invoke disown() on the old chart. */
+                void clearChart (void);
+                
             private:
                 
                 /** \brief Chart owning the real vector. */

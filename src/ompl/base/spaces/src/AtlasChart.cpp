@@ -173,8 +173,14 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::V
 
 ompl::base::AtlasChart::~AtlasChart (void)
 {
-    for (std::list<LinearInequality *>::iterator l = bigL_.begin(); l != bigL_.end(); l++)
-        delete *l;
+    {
+        boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
+        for (std::list<LinearInequality *>::iterator l = bigL_.begin(); l != bigL_.end(); l++)
+            delete *l;
+    }
+    boost::lock_guard<boost::mutex> lock(mutices_.owned_);
+    for (std::list<ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
+        (*s)->clearChart();
 }
 
 const Eigen::VectorXd &ompl::base::AtlasChart::getXorigin (void) const
@@ -209,6 +215,7 @@ Eigen::VectorXd ompl::base::AtlasChart::psi (const Eigen::VectorXd &u) const
         b.head(n_-k_) = -atlas_.bigF(x);
         b.tail(k_) = bigPhi_t_ * (x_0 - x);
     }
+    
     return x;
 }
 

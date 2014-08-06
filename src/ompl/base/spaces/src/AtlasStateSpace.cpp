@@ -305,6 +305,11 @@ void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c, cons
     chart_ = &c;
 }
 
+void ompl::base::AtlasStateSpace::StateType::clearChart (void)
+{
+    chart_ = NULL;
+}
+
 /// AtlasStateSpace
 
 /// Public
