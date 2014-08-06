@@ -157,7 +157,10 @@ namespace ompl
             std::string getBestCost() const;
 
             /** \brief Get number of paths shared by the algorithm. */
-            std::string getPathsShared() const;
+            std::string getNumPathsShared() const;
+
+            /** \brief Get number of states actually shared by the algorithm. */
+            std::string getNumStatesShared() const;
 
         private:
 
@@ -178,11 +181,17 @@ namespace ompl
             /** \brief The set of sampler allocated by the planners */
             std::vector<base::StateSamplerPtr>           samplers_;
 
-             /** \brief Cost of the best path found so far among planners. */
+            /** \brief Stores the states already shared to check if a specific state has been shared. */
+            boost::unordered_set<const base::State *>    statesShared_;
+
+            /** \brief Cost of the best path found so far among planners. */
             base::Cost                                   bestCost_;
 
             /** \brief Number of paths shared among threads. */
-            unsigned int                                 pathsShared_;
+            unsigned int                                 numPathsShared_;
+
+            /** \brief Number of states shared among threads. */
+            unsigned int                                 numStatesShared_;
 
             /** \brief Mutex to control the access to the newSolutionFound() method. */
             boost::mutex                                 newSolutionFoundMutex_;

@@ -221,8 +221,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
        // find closest state in the tree
        Motion *nmotion = nn_->nearest(rmotion);
 
-       if (intermediateSolutionCallback && si_->equalStates(nmotion->state, rstate))
-           continue;
+       //if (intermediateSolutionCallback && si_->equalStates(nmotion->state, rstate))
+       //    continue;
 
        base::State *dstate = rstate;
 

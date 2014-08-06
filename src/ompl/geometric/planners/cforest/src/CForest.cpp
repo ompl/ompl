@@ -43,7 +43,8 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
     specs_.optimizingPaths = true;
     specs_.multithreaded = true;
 
-    pathsShared_ = 0;
+    numPathsShared_ = 0;
+    numStatesShared_ = 0;
     prune_ = true;
 
     numThreads_ = std::max(boost::thread::hardware_concurrency(), 2u);
@@ -53,7 +54,9 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
     addPlannerProgressProperty("best cost REAL",
                                boost::bind(&CForest::getBestCost, this));
     addPlannerProgressProperty("shared paths INTEGER",
-                               boost::bind(&CForest::getPathsShared, this));
+                               boost::bind(&CForest::getNumPathsShared, this));
+    addPlannerProgressProperty("shared states INTEGER",
+                               boost::bind(&CForest::getNumStatesShared, this));
 }
 
 ompl::geometric::CForest::~CForest()
@@ -94,7 +97,8 @@ void ompl::geometric::CForest::getPlannerData(base::PlannerData &data) const
             data.markStartState(pd.getStartVertex(j).getState());
     }
 
-    data.properties["shared paths INTEGER"] = getPathsShared();
+    data.properties["shared paths INTEGER"] = getNumPathsShared();
+    data.properties["shared states INTEGER"] = getNumStatesShared();
 }
 
 void ompl::geometric::CForest::clear()
@@ -104,7 +108,8 @@ void ompl::geometric::CForest::clear()
         planners_[i]->clear();
 
     bestCost_ = opt_->infiniteCost();
-    pathsShared_ = 0;
+    numPathsShared_ = 0;
+    numStatesShared_ = 0;
 
     std::vector<base::StateSamplerPtr> samplers;
     samplers.reserve(samplers_.size());
@@ -171,22 +176,40 @@ std::string ompl::geometric::CForest::getBestCost() const
     return boost::lexical_cast<std::string>(bestCost_.v);
 }
 
-std::string ompl::geometric::CForest::getPathsShared() const
+std::string ompl::geometric::CForest::getNumPathsShared() const
 {
-    return boost::lexical_cast<std::string>(pathsShared_);
+    return boost::lexical_cast<std::string>(numPathsShared_);
+}
+
+std::string ompl::geometric::CForest::getNumStatesShared() const
+{
+    return boost::lexical_cast<std::string>(numStatesShared_);
 }
 
 void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, const std::vector<const base::State *> &states, const base::Cost cost)
 {
     bool change = false;
-    newSolutionFoundMutex_.lock();
-    if (opt_->isCostBetterThan(cost, bestCost_))
-    {
-        pathsShared_++;
-        bestCost_ = cost;
-        change = true;
-    }
-    newSolutionFoundMutex_.unlock();
+    std::vector<const base::State *> statesToShare;
+     newSolutionFoundMutex_.lock();
+     if (opt_->isCostBetterThan(cost, bestCost_))
+     {
+         ++numPathsShared_;
+         bestCost_ = cost;
+         change = true;
+
+        // Filtering the states to add only those not already added.
+        statesToShare.reserve(states.size());
+        for (std::vector<const base::State *>::const_iterator st = states.begin(); st != states.end(); ++st)
+        {
+            if (statesShared_.find(*st) == statesShared_.end())
+            {
+                statesShared_.insert(*st);
+                statesToShare.push_back(*st);
+                ++numStatesShared_;
+            }
+        }
+     }
+     newSolutionFoundMutex_.unlock();
 
     if (!change) return;
 
@@ -196,7 +219,7 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, co
         const base::CForestStateSpaceWrapper *space = dynamic_cast<const base::CForestStateSpaceWrapper*>(sampler->getStateSpace());
         const base::Planner *cfplanner = space->getPlanner();
         if (cfplanner != planner)
-            sampler->setStatesToSample(states);
+            sampler->setStatesToSample(statesToShare);
     }
 }
 
