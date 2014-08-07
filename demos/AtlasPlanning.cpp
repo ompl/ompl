@@ -75,6 +75,15 @@ int main (int argc, char **argv)
     ci->addConstraint(c);
     si->setConstraintInformation(ci);
     
+    // Atlas parameters
+    atlas->setExploration(0.9);
+    atlas->setRho(0.2);
+    atlas->setAlpha(M_PI/8);
+    atlas->setEpsilon(0.1);
+    atlas->setDelta(0.02);
+    atlas->setMaxChartsPerExtension(200);
+    atlas->setMonteCarloSampleCount(0);
+    
     // The atlas needs some place to start sampling from. We will make start and goal charts.
     const ompl::base::AtlasChart &startChart = atlas->anchorChart(x);
     const ompl::base::AtlasChart &goalChart = atlas->anchorChart(y);
@@ -89,15 +98,6 @@ int main (int argc, char **argv)
     bounds.setLow(-10);
     bounds.setHigh(10);
     atlas->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
-    
-    // Atlas parameters
-    atlas->setExploration(0.9);
-    atlas->setRho(0.1);
-    atlas->setAlpha(M_PI/32);
-    atlas->setEpsilon(0.05);
-    atlas->setDelta(0.01);
-    atlas->setMaxChartsPerExtension(200);
-    atlas->setMonteCarloSampleCount(0);
     
     // Choose the planner.
     ompl::base::PlannerPtr planner(parsePlanner(argv[2], si, atlas->getRho_s()));
