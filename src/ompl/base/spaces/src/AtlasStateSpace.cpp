@@ -202,44 +202,31 @@ bool ompl::base::AtlasMotionValidator::checkMotion (const State *s1, const State
 
 bool ompl::base::AtlasMotionValidator::checkMotion (const State *s1, const State *s2, std::pair<State *, double> &lastValid) const
 {
-    // Invoke the advanced version of the manifold-traversing algorithm to save intermediate states
+    // Invoke the of the manifold-traversing algorithm to save intermediate states
     std::vector<AtlasStateSpace::StateType *> stateList;
-    const bool noCollisionChecking = true;
-    bool reached = atlas_.followManifold(s1->as<AtlasStateSpace::StateType>(), s2->as<AtlasStateSpace::StateType>(),
-        noCollisionChecking, &stateList);
+    const AtlasStateSpace::StateType *const as1 = s1->as<AtlasStateSpace::StateType>();
+    const AtlasStateSpace::StateType *const as2 = s2->as<AtlasStateSpace::StateType>();
+    bool reached = atlas_.followManifold(as1, as2, false, &stateList);
     
-    // Go back and collision check by hand
-    const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
-    double length = 0;
-    bool foundCollision = false;
-    for (std::size_t i = 1; i < stateList.size(); i++)
-    {
-        if (!foundCollision && !svc->isValid(stateList[i]))
-        {
-            // This is the first point in collision; save the previous state and length so far
-            foundCollision = true;
-            lastValid.second = length;
-            if (lastValid.first)
-                atlas_.copyState(lastValid.first, stateList[i-1]);
-        }
-        length += atlas_.distance(stateList[i-1], stateList[i]);
-        atlas_.freeState(stateList[i-1]);
-    }
+    for (std::size_t i = 0; i < stateList.size()-1; i++)
+        atlas_.freeState(stateList[i]);
+    
     // Check if manifold traversal stopped early and set its final state as lastValid
-    if (!foundCollision && !reached)
-    {
-        if (lastValid.first)
-            atlas_.copyState(lastValid.first, stateList.back());
-        foundCollision = true;
-    }
+    if (!reached &&lastValid.first)
+        atlas_.copyState(lastValid.first, stateList.back());
     atlas_.freeState(stateList.back());
     
     // Compute the interpolation parameter of the last valid state
     // (although if you then interpolate, you probably won't get this state back)
-    if (foundCollision)
-        lastValid.second /= length;
+    if (!reached)
+    {
+        const Eigen::VectorXd x = lastValid.first->as<AtlasStateSpace::StateType>()->toVector();
+        const Eigen::VectorXd a = as1->toVector();
+        const Eigen::VectorXd b = as2->toVector();
+        lastValid.second = (x-a).dot(b-a) / (b-a).squaredNorm();
+    }
     
-    return !foundCollision;
+    return !reached;
 }
 
 /// Private
