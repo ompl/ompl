@@ -3,18 +3,19 @@
 __Contents:__
 
 - \ref cf_ompl
-- \ref cf_diff
-- \ref cf_examples
-- \ref cf_results
-- \ref cf_advanced
-- \ref cf_implementation
-- \ref cf_limitations
-- \ref cf_compatible
+ - \ref cf_diff
+ - \ref cf_examples
+ - \ref cf_results
+ - \ref cf_advanced
+  - \ref cf_implementation
+  - \ref cf_limitations
+  - \ref cf_compatible
 
 CForest was proposed by M.Otte and N. Correll in [this paper.](http://www.mit.edu/~ottemw/html_stuff/pdf_files/otte_ieeetro2013.pdf)
 
-The main idea behind CForest is that many trees are built in parallel between the same start and goal states. Each time a better solution is found, it is shared to all other trees. The three main characteristics of CForest are:
+The main idea behind CForest is that many trees are built in parallel between the same start and goal states. The key concepts of CForest are:
 
+- Every time a tree finds a better solution, it is shared to all other trees so that all trees have the best solution found so far.
 - Trees are expanded into regions that are known to be beneficial. Samples that cannot lead to a better solution are immediately discarded.
 - Trees are pruned every time a better solution is found. Those states in the tree that do not help to find a better solution are removed from the tree.
 
@@ -33,9 +34,11 @@ Currently RRT* (ompl::geometric::RRTstar) is the only underlying planner availab
 
 The CForest planner is the responsible of coordinating the different trees and sharing the solutions found. Path sharing is done through a specific CForest state sampler (ompl::base::CForestStateSampler). This sampler allows to add states to sample: if a state has been added to the sampler, it will _sample_ it in the following call to \c sampleUniform() (or any of the other sampling calls).
 
-From the user perspective, CForest can be used is any other planning algorithm:
+From the user perspective, CForest can be used as any other planning algorithm:
 
 ~~~{.cpp}
+#include <ompl/geometric/planners/cforest/CForest.h>
+...
 // Setting up the planning problem with SimpleSetup
 SimpleSetup ss;
 ...
@@ -62,11 +65,17 @@ planner->as<ompl::geometric::CForest>()->addPlannerInstances<ompl::geometric::PR
 
 If not valid planners are added by the user, two instances of RRTstar will be automatically set.
 
+Alternatively, only the number of threads could be specified and the default underlying planner (RRT*) will be chosen. This is specially useful when using the planner with a benchmark configuration file:
+
+~~~{.cpp}
+// Using 6 threads of the default planner
+planner->as<ompl::geometric::CForest>()->setNumThreads(6);
+~~~
 
 \note No Python bindings are available for this planner due to its multithreaded implementation.
 
 ### Main differences with the paper version {#cf_diff}
-When implementing CForest, the focus was modify the underlying planner as less as possible. Although the main idea of CForest remains, the actual implementation differs from the one proposed in the paper:
+When implementing CForest, the focus was o modify the underlying planner as less as possible. Although the main idea of CForest remains, the actual implementation differs from the one proposed in the paper:
 
 - No message passing is used. But shared memory and boost::threads are employed.
 - The paper creates two different versions: sequential (many trees expanding in the same CPU) and parallel (1 tree per CPU). Since boost::threads are used, the trees/CPU division is done by the scheduler.
@@ -75,7 +84,7 @@ When implementing CForest, the focus was modify the underlying planner as less a
 - Start and goal states are not included in the shared paths in order to keep code simpler.
 - Before pruning a tree, it is checked how many states would be removed. If the ratio size new tree/size old tree is not small enough, pruning will not be carried out. This allows to save time since the creation of a NearestNeighbors datastructure is time consuming and sometimes, just a few states are being removed.
 
-\note Despite all these differences, the CForest implementation greatly improves the performance of the underlying single-threaded planner. However, an implementation more close to the one described in the paper should improve the performance even more (specially with message passing and not treating all the states the same way). Please, take that into account if you plan to compare your algorithm against CForest.
+\note Despite all these differences, the CForest implementation greatly improves the performance of the underlying  planner. However, an implementation more close to the one described in the paper should improve the performance even more (specially with message passing and not treating all the states the same way). Please, take that into account if you plan to compare your algorithm against CForest.
 
 
 ### Examples {#cf_examples}
@@ -105,27 +114,32 @@ Another interesting experiment is to run CForest with pruning deactivated and co
 
 \htmlonly
 <div class="row">
-<div class="col-md-6 col-sm-6">
   <img src="../images/prunevsnoprune.png" width="100%"><br>
 <b>Best cost evolution through time</b> Not pruning trees affects negatively on the convergence. However, it still improves the standard RRT.
 </div>
+\endhtmlonly
+
+In case you only have one core available, CForest still improves the RRTstar performance! The following figure shows that using CForest in one single core but with many threads (in the picture 4 and 8) also improves the convergence rate against standard RRT* and its pruned version, reaching lower cost solutions in much less time.
+
+<div class="row">
+  <img src="../images/threadscforest.png" width="100%"><br>
+<b>Best cost evolution through time</b> Sequential version of the CForest: many threads working in the same core.
 </div>
 \endhtmlonly
 
-Finally..._write here about n threads in m cores, n>m_
 
 ### Advanced information {#cf_advanced}
 #### Implementation details {#cf_implementation}
-The CForest _planner_ comes together with its own state sampler ompl::base::CForestStateSampler and its own state space ompl::base::CForestStateSpace. They are completely transparent to the user as the ompl::geometric::CForest handles the creation of these.
+The CForest _planner_ comes together with its own state sampler ompl::base::CForestStateSampler and its own state space ompl::base::CForestStateSpaceWrapper. They are completely transparent to the user as the ompl::geometric::CForest handles the creation of these.
 
-CForest operates on the user specified ompl::base::SpaceInformation. However, CForest instantiates the underlying planners with an individual SpaceInformation instance for each planner, containing an instance of a CForestStateSpace. When the underlying planner allocates the StateSampler, CForestStateSpace creates an instance of a CForestStateSampler which wraps the user specified state sampler (or the default sampler if none was provided).
+CForest operates on the user specified ompl::base::SpaceInformation. However, CForest instantiates the underlying planners with an individual SpaceInformation instance for each planner, containing an instance of a \c CForestStateSpaceWrapper. When the underlying planner allocates the \c StateSampler, \c CForestStateSpaceWrapper creates an instance of a \c CForestStateSampler which wraps the user specified state sampler (or the default sampler if none was provided).
 
-Therefore, CForest tracks the creation of the planners but, thanks to the CForestStateSpace, it also tracks the creation of the state samplers as well. This allows to have a planner-sampler correspondence required to shared paths between trees.
+Therefore, CForest tracks the creation of the planners but, thanks to the \c CForestStateSpace, it also tracks the creation of the state samplers as well. This allows to have a planner-sampler correspondence required to shared paths between trees.
 
 #### Limitations {#cf_limitations}
 - CForest is designed to solve single-query, shortest path planning problems. Therefore, not all the ompl::base::OptimizationObjective instantiations are valid. The cost metric have to obey the triangle inequiality. It is important to note that shortest path planning does not mean that only the path length can be optimized. Other metrics could be specified: time, energy, etc. However, clearance or smoothness optimization are examples of non-valid optimization objetives.
 
-- Whenever the tree is pruned, the states are removed from the NearestNeighbours data structure. However, current implementation does not remove pruned states until the planner instance is destroyed. This is specific for the underlying planner implementations but this is the most efficient way in terms of computation time.
+- Whenever the tree is pruned, the states are removed from the \c NearestNeighbours data structure. However, current implementation does not remove pruned states until the planner instance is destroyed. This is specific for the underlying planner implementations but this is the most efficient way in terms of computation time.
 
 #### Make your planner CForest-compatible {#cf_compatible}
 If you have implemented an __incremental, optimizing planner__ in OMPL and want make it complatible with CForest, there are few modifications you should carry out on your planner.
@@ -137,33 +151,31 @@ There are three main components that should be included:
 
 
 ##### CForest activation and configuration
-Firstly, your planner needs to know it will work under the CForest framework. Therefore, in the solve() function, you need to add the following code:
+Firstly, your planner needs to know it will work under the CForest framework. Therefore, in the \c solve() function, you need to add the following code:
 
 ~~~{.cpp}
 ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
 {
     // Configuration before entering the main solving loop.
     ....
-    bool isCForest = false;
     bool prune = true;
     const base::CForestStateSpace *cfspace = dynamic_cast<base::CForestStateSpace*>(si_->getStateSpace().get());
     if (cfspace)
-    {
-        isCForest = true;
         prune = cfspace->getCForestInstance()->getPrune();
     }
+    const base::ReportIntermediateSolutionFn intermediateSolutionCallback = pdef_->getIntermediateSolutionCallback();
     ...
     while (ptc == false) // Main loop
     ...
 }
 ~~~
 
-If the CForest framework is being used, the state space of the MyPlanner instance will be of type CForestStateSpace. Therefore, it is possible to activate the two different flags we need for the CForest: _isCForest_ and _prune_. _isCForest_ controls the part of the code related to path sharing and _prune_ that part related to tree pruning and early state rejection.
+If the CForest framework is being used, the state space of the MyPlanner instance will be of type \c CForestStateSpaceWrapper. Therefore, it is possible to configure the _prune_ flag, which manages the code related to tree pruning and early state rejection. Also, \c intermediateSolutionCallback will be helpful to check the path sharing.
 
-\note Note that both flags are independent, so CForest can be used wihtout pruning, _vice-versa_. In this case, the prune flag is activated only if the CForest::setPrune(true) method was called (it is activated by default).
+\note CForest can be used wihtout pruning. In this case, the prune flag is activated only if the ompl::geometricCForest::setPrune() method was called with a true argument (it is activated by default).
 
 ##### Path sharing
-As CForest is designed to incremental, optimizing planners, it is assume you will have a flag in your code to indicate when a new, better path has been found and a pointer to the motion which contains the last state (goal) of the solution. Therefore, at the end of the main loop within the solve function, you should add a code similar to the following:
+As CForest is designed to use incremental, optimizing planners, it is assumed you will have a flag in your code to indicate when a new, better path has been found and a pointer to the motion which contains the last state (goal) of the solution. Therefore, at the end of the main loop within the solve function, you should add a code similar to the following:
 
 ~~~{.cpp}
 ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
@@ -182,7 +194,7 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
 		if (updatedSolution)
         {
             ...
-            if (isCForest)
+            if (intermediateSolutionCallback)
             {
                 std::vector<const base::State *> spath;
                 Motion *intermediate_solution = solution->parent;
@@ -193,18 +205,18 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
                     intermediate_solution = intermediate_solution->parent;
                 } while (intermediate_solution->parent != 0);
 
-                pdef_->getIntermediateSolutionCallback()(this, spath, bestCost_);
+                intermediateSolutionCallback(this, spath, bestCost_);
             }
         } // if updated solution
     } // while ptc
 }
 ~~~
 
-\note The spath vector has to contain the states of the solution from the goal to the start.
+\note The spath vector has to contain the states of the solution from the goal to the start (in this specific order).
 
-In this case, the goal and start states are not being included since it is harder to deal with those two states. Code simplicity prevails.
+In this case, the goal and start states are not being included since it is usually harder to deal with those two states. Code simplicity prevails, but this really depends on the underlying planner used together with CForest.
 
-It is likely to share more than one path in which one or more states are modified. This would imply that the tree and solution path would have repeated states. To avoid this, add the following code within the solve() method just after sampling a new state:
+It is likely to share more than one path in which one or more states are modified. This would imply that the tree and solution path would have repeated states. To avoid this, add the following code within the \c solve() method just after sampling a new state:
 
 ~~~{.cpp}
 ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
@@ -217,7 +229,7 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
         ...
         // find closest state in the tree
         Motion *nmotion = nn_->nearest(rmotion);
-        if (isCForest && si_->equalStates(nmotion->state, rstate))
+        if (intermediateSolutionCallback && si_->equalStates(nmotion->state, rstate))
             continue;
         ...
     }
@@ -227,11 +239,11 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
 If a sampled state is repeated it will be discarded and the next iteration of the main loop will start.
 
 ##### Tree pruning
-Tree and stated can be pruned in two different ways: 1) prune those states of the tree that do not lead to a better solution and 2) not including in the tree those states, so they are not pruned afterwards. In both cases, all the modifications are again within the solve() method. Tree main modifications are done:
+Prunning refers to two different ways of remove states: 1) prune those states already on the tree that do not lead to a better solution and 2) reject those states before adding them to the tree. In both cases, all the modifications are again within the \c solve() method. Tree main modifications are done:
 
-1. Check if random samples can lead to a better solution (cost used: heuristic from start to state + heuristic from state to goal).
-2. Most of the states satisfy 1., but once they are wired into the tree, they cannot lead to a better solution (cost used: cost to go from start to state + heuristic from state to goal).
-3. If a new, better solution is found, prune the states of the tree so that all those states which higher cost than the current best cost are removed.
+1. **Early state rejection** Check if random samples can lead to a better solution (cost used: heuristic from start to state + heuristic from state to goal)
+2. **State rejection**Most of the states satisfy 1., but once they are wired into the tree, they cannot lead to a better solution (cost used: cost to go from start to state + heuristic from state to goal)  (early state rejection)..
+3. **Tree pruning** If a new, better solution is found, the pruning threshold will be decreased, therefore prune the states of the tree so that all those states which higher cost than the current best cost are removed.
 
 All these modifications are included in the following code example:
 
@@ -247,7 +259,7 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
         ...
         sampler_->sampleUniform(rstate);
 
-        if (prune) // Modification 1.
+        if (prune) // Modification 1 - early state rejection
         {
             const base::Cost costTotal =  computeLowestCostToGo(rmotion);
             if (opt_->isCostBetterThan(bestCost_, costTotal))
@@ -256,7 +268,7 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
 
         // Addind states to the tree.
         ...
-        if (prune) // Modification 2.
+        if (prune) // Modification 2 - state rejection.
         {
             const base::Cost costTotal = computeCostToGoal(motion);
             if (opt_->isCostBetterThan(costTotal, bestCost_))
@@ -282,7 +294,7 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
 		if (updatedSolution)
         {
              ...
-             if (prune_) // Modification 3.
+             if (prune_) // Modification 3 - tree pruning.
                  pruneTree(bestCost_);
              ...
         } // if updated solution
@@ -290,6 +302,6 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
 }
 ~~~
 
-\note You should implement the pruneTree() function for your code. Most probably, the available RRTstar::pruneTree() method would be directly applicable.
+\note You should implement the \c pruneTree() function for your code. Most probably, the available RRTstar::pruneTree() method would be directly applicable. It is possible to use CForest without this method. However, it is highly recommended to at least include the modifications 1 & 2 about state rejection.
 
-For a complete example of how to make these modifications, it is recommended to analyze the [RRTstar::solve() method](RRTstar_8cpp_source.html).
+For a complete example of how to make these modifications, it is recommended to analyze the ompl::geometric::RRTstar::solve() method.

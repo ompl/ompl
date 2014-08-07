@@ -65,18 +65,10 @@ bool isStateValid(double radiusSquared, const ob::State *state)
     return x*x + y*y > radiusSquared;
 }
 
-void addPlanner(ompl::tools::Benchmark& benchmark, ompl::base::PlannerPtr planner, double range)
-{
-    ompl::base::ParamSet& params = planner->params();
-    if (params.hasParam(std::string("range")))
-        params.setParam(std::string("range"), boost::lexical_cast<std::string>(range));
-    benchmark.addPlanner(planner);
-}
-
 int main(int argc, char **argv)
 {
-    int distance, gridLimit ;
-    double obstacleRadius, turningRadius;
+    int distance, gridLimit, runCount;
+    double obstacleRadius, turningRadius, runtimeLimit;
 
     ob::StateSpacePtr space(new ob::SE2StateSpace());
 
@@ -91,6 +83,8 @@ int main(int argc, char **argv)
         ("obstacle-radius", po::value<double>(&obstacleRadius)->default_value(.25), "radius of obstacles")
         ("turning-radius", po::value<double>(&turningRadius)->default_value(.5), "turning radius of robot (ignored for default point robot)")
         ("grid-limit", po::value<int>(&gridLimit)->default_value(10), "size of the grid")
+        ("runtime-limit", po::value<double>(&runtimeLimit)->default_value(5), "time limit for every test")
+        ("run-count", po::value<int>(&runCount)->default_value(20), "number of times to run each planner")
     ;
 
     po::variables_map vm;
@@ -135,13 +129,27 @@ int main(int argc, char **argv)
     ss.getProblemDefinition()->setOptimizationObjective(getPathLengthObjective(ss.getSpaceInformation()));
 
     // by default, use the Benchmark class
-    double runtime_limit = 5, memory_limit = 4096;
-    int run_count = 20;
-    ot::Benchmark::Request request(runtime_limit, memory_limit, run_count);
+    double memoryLimit = 4096;
+    ot::Benchmark::Request request(runtimeLimit, memoryLimit, runCount);
     ot::Benchmark b(ss, "CircleGrid");
 
-    b.addPlanner(ob::PlannerPtr(new og::RRTstar(ss.getSpaceInformation())));
-    b.addPlanner(ob::PlannerPtr(new og::CForest(ss.getSpaceInformation())));
+    og::CForest *cforest2 = new og::CForest(ss.getSpaceInformation());
+    ob::PlannerPtr cf2 = ob::PlannerPtr(cforest2);
+    cforest2->setName("CForest2-2");
+    og::CForest *cforest4 = new og::CForest(ss.getSpaceInformation());
+    cforest4->setNumThreads(4);
+    cforest4->setName("CForest2-4");
+    ob::PlannerPtr cf4 = ob::PlannerPtr(cforest4);
+    og::CForest *cforest8 = new og::CForest(ss.getSpaceInformation());
+    cforest8->setNumThreads(8);
+    cforest8->setName("CForest2-8");
+    ob::PlannerPtr cf8 = ob::PlannerPtr(cforest8);
+
+    b.addPlanner(cf2);
+    b.addPlanner(cf4);
+    b.addPlanner(cf8);
+    //b.addPlanner(ob::PlannerPtr(new og::RRTstar(ss.getSpaceInformation())));
+    //b.addPlanner(ob::PlannerPtr(new og::CForest(ss.getSpaceInformation())));
     b.benchmark(request);
     b.saveResultsToFile("circleGrid.log");
 
