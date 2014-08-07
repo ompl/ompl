@@ -62,21 +62,8 @@ bool ompl::base::AtlasConstraint::sample (State *state)
 bool ompl::base::AtlasConstraint::project (State *state)
 {
     Eigen::VectorXd x = toVector(state);
-    unsigned int iter = 0;
-    // Newton's method
-    while (atlas_.bigF(x).norm() > atlas_.getProjectionTolerance() && iter++ < atlas_.getProjectionMaxIterations())
-    {
-        // Compute pseudoinverse of Jacobian
-        Eigen::MatrixXd pinvJ = atlas_.bigJ(x);
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd  = atlas_.bigJ(x).jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-        const double tolerance = std::numeric_limits<double>::epsilon() * atlas_.getAmbientDimension() * svd.singularValues().array().abs().maxCoeff();
-        pinvJ = svd.matrixV()
-            * Eigen::MatrixXd((svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0)).asDiagonal()
-            * svd.matrixU().adjoint();
-        
-        x -= pinvJ * atlas_.bigF(x);
-    }
-    fromVector(state, x);
+    if (atlas_.project(x, x))
+        fromVector(state, x);
     
     return isSatisfied(state);
 }

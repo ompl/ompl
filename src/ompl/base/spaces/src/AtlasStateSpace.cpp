@@ -85,7 +85,7 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
     
     // Extend polytope of neighboring chart wherever point is near the border
     c->borderCheck(c->psiInverse(r));
-    state->as<AtlasStateSpace::StateType>()->setRealState(r, *c);
+    state->as<AtlasStateSpace::StateType>()->setRealState(r, c);
 }
 
 void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State *near, const double distance)
@@ -108,7 +108,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         r = c->psi(c->psiInverse(n + distance * xoffset.normalized()));
     }
     while (r.hasNaN() || atlas_.bigF(r).norm() > atlas_.getProjectionTolerance()  /*|| (r - n).squaredNorm() > distance*distance*/);
-    astate->setRealState(r, *c);
+    astate->setRealState(r, c);
     
     // It might belong to a different chart
     c = atlas_.owningChart(r);
@@ -116,7 +116,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         c = &atlas_.newChart(r);
     else
         r = c->psi(c->psiInverse(r));
-    astate->setRealState(r, *c);
+    astate->setRealState(r, c);
 }
 
 void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *mean, const double stdDev)
@@ -147,7 +147,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
         c = &atlas_.newChart(r);
     else
         r = c->psi(c->psiInverse(r));
-    astate->setRealState(r, *c);
+    astate->setRealState(r, c);
 }
 
 /// AtlasValidStateSampler
@@ -225,13 +225,21 @@ bool ompl::base::AtlasMotionValidator::checkMotion (const State *s1, const State
         length += atlas_.distance(stateList[i-1], stateList[i]);
         atlas_.freeState(stateList[i-1]);
     }
+    // Check if manifold traversal stopped early and set its final state as lastValid
+    if (!foundCollision && !reached)
+    {
+        if (lastValid.first)
+            atlas_.copyState(lastValid.first, stateList.back());
+        foundCollision = true;
+    }
     atlas_.freeState(stateList.back());
     
     // Compute the interpolation parameter of the last valid state
-    if (!reached)
+    // (although if you then interpolate, you probably won't get this state back)
+    if (foundCollision)
         lastValid.second /= length;
     
-    return reached;
+    return !foundCollision;
 }
 
 /// Private
@@ -257,21 +265,12 @@ ompl::base::AtlasStateSpace::StateType::~StateType(void)
     delete [] values;
 }
 
-void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd &x, const AtlasChart &c)
+void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd &x, const AtlasChart *const c)
 {
-    {
-        boost::lock_guard<boost::mutex> lock(mutices_.vector_);
-        for (std::size_t i = 0; i < dimension_; i++)
-            (*this)[i]  = x[i];
-    }
-    boost::lock_guard<boost::mutex> lock(mutices_.chart_);
-    if (chart_ != &c)
-    {
-        if (chart_)
-            chart_->disown(this);
-        c.own(this);
-    }
-    chart_ = &c;
+    setChart(c);
+    boost::lock_guard<boost::mutex> lock(mutices_.vector_);
+    for (std::size_t i = 0; i < dimension_; i++)
+        (*this)[i]  = x[i];
 }
 
 Eigen::VectorXd ompl::base::AtlasStateSpace::StateType::toVector (void) const
@@ -285,6 +284,8 @@ Eigen::VectorXd ompl::base::AtlasStateSpace::StateType::toVector (void) const
 
 const ompl::base::AtlasChart &ompl::base::AtlasStateSpace::StateType::getChart (void) const
 {
+    if (!chart_)
+        throw ompl::Exception("Tried to get NULL chart.");
     return *chart_;
 }
 
@@ -293,21 +294,17 @@ const ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart_s
     return chart_;
 }
 
-void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart &c, const bool fast)
+void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart *const c, const bool fast)
 {
     boost::lock_guard<boost::mutex> lock(mutices_.chart_);
-    if (chart_ != &c)
+    if (chart_ != c)
     {
         if (chart_ && !fast)
             chart_->disown(this);
-        c.own(this);
+        if (c)
+            c->own(this);
     }
-    chart_ = &c;
-}
-
-void ompl::base::AtlasStateSpace::StateType::clearChart (void)
-{
-    chart_ = NULL;
+    chart_ = c;
 }
 
 /// AtlasStateSpace
@@ -669,7 +666,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     Eigen::VectorXd x_r, x_n;
     x_r = to->toVector();
     x_n = from->toVector();
-    AtlasChart *c = const_cast<AtlasChart *>(&from->getChart());
+    AtlasChart *c = const_cast<AtlasChart *>(from->getChart_safe());
     if (!c)
     {
         c = owningChart(x_n, c);
@@ -736,7 +733,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         bool changedChart = false;
         
         // Collision check unless interpolating
-        temp->setRealState(x_j, *c);
+        temp->setRealState(x_j, c);
         if (!interpolate && !svc->isValid(temp))
             break;
         
@@ -805,7 +802,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         if (stateList)
         {
             StateType *intermediate = allocState()->as<StateType>();
-            intermediate->setRealState(x_j, *c);
+            intermediate->setRealState(x_j, c);
             stateList->push_back(intermediate);
         }
         
@@ -827,6 +824,14 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     {
         StateType *toCopy = allocState()->as<StateType>();
         copyState(toCopy, to);
+        c = const_cast<AtlasChart *>(toCopy->getChart_safe());
+        if (!c)
+        {
+            c = owningChart(x_n, c);
+            if (!c)
+                c = &newChart(x_n);
+            toCopy->setChart(c);
+        }
         stateList->push_back(toCopy);
     }
     
@@ -883,8 +888,8 @@ void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, st
     BOOST_FOREACH (PlannerData::Graph::Edge edge, boost::edges(graph))
     {
         std::vector<StateType *> stateList;
-        const State *source = boost::get(vertex_type, graph, boost::source(edge, graph))->getState();
-        const State *target = boost::get(vertex_type, graph, boost::target(edge, graph))->getState();
+        const State *const source = boost::get(vertex_type, graph, boost::source(edge, graph))->getState();
+        const State *const target = boost::get(vertex_type, graph, boost::target(edge, graph))->getState();
         
         if (!asIs)
             followManifold(source->as<StateType>(), target->as<StateType>(), true, &stateList);
@@ -900,14 +905,14 @@ void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, st
                 freeState(stateList[j]);
             continue;
         }
-        StateType *from = stateList[0];
+        StateType *to, *from = stateList[0];
         v << from->toVector().transpose() << "\n";
         vcount++;
         bool reset = true;
         for (std::size_t i = 1; i < stateList.size(); i++)
         {
-            StateType *to = stateList[i];
-            StateType *from = stateList[i-1];
+            to = stateList[i];
+            from = stateList[i-1];
             v << to->toVector().transpose() << "\n";
             v << from->toVector().transpose() << "\n";
             vcount += 2;
@@ -941,8 +946,8 @@ void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path
     for (std::size_t i = 0; i < waypoints.size()-1; i++)
     {
         std::vector<StateType *> stateList;
-        State *source = waypoints[i];
-        State *target = waypoints[i+1];
+        const State *const source = waypoints[i];
+        const State *const target = waypoints[i+1];
         
         if (!asIs)
             followManifold(source->as<StateType>(), target->as<StateType>(), true, &stateList);
@@ -958,14 +963,14 @@ void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path
                 freeState(stateList[j]);
             continue;
         }
-        StateType *from = stateList[0];
+        StateType *to, *from = stateList[0];
         v << from->toVector().transpose() << "\n";
         vcount++;
         bool reset = true;
         for (std::size_t i = 1; i < stateList.size(); i++)
         {
-            StateType *to = stateList[i];
-            StateType *from = stateList[i-1];
+            to = stateList[i];
+            from = stateList[i-1];
             v << to->toVector().transpose() << "\n";
             v << from->toVector().transpose() << "\n";
             vcount += 2;
@@ -989,14 +994,43 @@ void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path
     out << v.str() << f.str();
 }
 
+bool ompl::base::AtlasStateSpace::project (const Eigen::VectorXd &in, Eigen::VectorXd &out) const
+{
+    // Newton's method
+    Eigen::VectorXd x = in;
+    unsigned int iter = 0;
+    while (bigF(x).norm() > projectionTolerance_ && iter++ < projectionMaxIterations_)
+    {
+        // Compute pseudoinverse of Jacobian
+        Eigen::MatrixXd pinvJ = bigJ(x);
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd  = bigJ(x).jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+        const double tolerance = std::numeric_limits<double>::epsilon() * getAmbientDimension() * svd.singularValues().array().abs().maxCoeff();
+        pinvJ = svd.matrixV()
+            * Eigen::MatrixXd((svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0)).asDiagonal()
+            * svd.matrixU().adjoint();
+        
+        x -= pinvJ * bigF(x);
+    }
+    
+    if (iter > projectionMaxIterations_)
+        return false;
+    
+    out = x;
+    return true;
+}
+
 void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *to, const double t, State *state) const
 {
+    RealVectorStateSpace::interpolate(from, to, t, state);
     if (noAtlas_)
-    {
-        RealVectorStateSpace::interpolate(from, to, t, state);
         return;
-    }
-    copyState(state, t == 0 ? from : to);
+    
+    StateType *const astate = state->as<StateType>();
+    Eigen::VectorXd proj;
+    if (project(astate->toVector(), proj))
+        astate->setRealState(proj, NULL);
+    else
+        copyState(state, t == 0 ? from : to);
 }
 
 void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *> &stateList, const double t, State *state) const
@@ -1035,29 +1069,27 @@ void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *
     const AtlasChart &c1 = stateList[i > 0 ? i-1 : 0]->getChart();
     const AtlasChart &c2 = stateList[i]->getChart();
     if (c1.inP(c1.psiInverse(x)))
-        astate->setChart(c1);
+        astate->setChart(&c1);
     else if (c2.inP(c2.psiInverse(x)))
-        astate->setChart(c2);
+        astate->setChart(&c2);
     else
     {
         const AtlasChart *c = owningChart(x);
         if (!c)
             c = &newChart(x);
-        astate->setChart(*c);
+        astate->setChart(c);
     }
 }
 
 bool ompl::base::AtlasStateSpace::hasSymmetricInterpolate (void) const
 {
-    if (noAtlas_)
-        return RealVectorStateSpace::hasSymmetricInterpolate();
-    return false;
+    return true;
 }
 
 void ompl::base::AtlasStateSpace::copyState (State *destination, const State *source) const
 {
     RealVectorStateSpace::copyState(destination, source);
-    destination->as<StateType>()->setChart(source->as<StateType>()->getChart());
+    destination->as<StateType>()->setChart(source->as<StateType>()->getChart_safe());
 }
 
 ompl::base::StateSamplerPtr ompl::base::AtlasStateSpace::allocDefaultStateSampler (void) const

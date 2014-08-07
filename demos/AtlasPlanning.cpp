@@ -81,8 +81,8 @@ int main (int argc, char **argv)
     const ompl::base::AtlasChart &goalChart = atlas->anchorChart(y);
     ompl::base::ScopedState<> start(atlas);
     ompl::base::ScopedState<> goal(atlas);
-    start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
-    goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
+    start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, &startChart);
+    goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, &goalChart);
     ss.setStartAndGoalStates(start, goal);
     
     // Bounds

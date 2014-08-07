@@ -180,7 +180,7 @@ ompl::base::AtlasChart::~AtlasChart (void)
     }
     boost::lock_guard<boost::mutex> lock(mutices_.owned_);
     for (std::list<ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
-        (*s)->clearChart();
+        (*s)->setChart(NULL, true);
 }
 
 const Eigen::VectorXd &ompl::base::AtlasChart::getXorigin (void) const
@@ -282,7 +282,7 @@ void ompl::base::AtlasChart::substituteChart (const AtlasChart &replacement) con
     boost::lock_guard<boost::mutex> lock(mutices_.owned_);
     while (owned_.size() != 0)
     {
-        owned_.front()->setChart(replacement, true);
+        owned_.front()->setChart(&replacement, true);
         owned_.pop_front();
     }
 }
@@ -452,7 +452,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace) const
         {
             const LinearInequality *const comp = halfspace.getComplement();
             assert(comp);
-            (*s)->setChart(comp->getOwner(), fast);
+            (*s)->setChart(&comp->getOwner(), fast);
             
             // Manually disown here because it's faster since we already have the iterator
             s = boost::prior(owned_.erase(s));

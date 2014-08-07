@@ -162,7 +162,7 @@ namespace ompl
                 
                 /** \brief Set the real vector to the values in \a x and the chart to \a c.
                  * Assumes \a x is of the same dimensionality as the state. */
-                void setRealState (const Eigen::VectorXd &x, const AtlasChart &c);
+                void setRealState (const Eigen::VectorXd &x, const AtlasChart *const c);
                 
                 /** \brief Convert this state to an Eigen::VectorXd. */
                 Eigen::VectorXd toVector (void) const;
@@ -174,10 +174,7 @@ namespace ompl
                 const AtlasChart *getChart_safe (void) const;
                 
                 /** \brief Set the chart \a c for the state. Skip the disown() step if \a fast. */
-                void setChart (const AtlasChart &c, const bool fast = false);
-                
-                /** \brief Set the chart to NULL. Does not invoke disown() on the old chart. */
-                void clearChart (void);
+                void setChart (const AtlasChart *const c, const bool fast = false);
                 
             private:
                 
@@ -370,6 +367,11 @@ namespace ompl
             
             /** @name Interpolation and state management
              * @{ */
+            
+            /** \brief Try to project the vector \a in onto the manifold, agnostic of charts. Result retuned in
+             * \a out. Returns whether the projection succeeded, and \a out is unmodified if it failed. Vectors
+             * \a in and \a out may occupy the same memory. */
+            bool project (const Eigen::VectorXd &in, Eigen::VectorXd &out) const;
             
             /** \brief Find the state between \a from and \a to at time \a t, where \a t = 0 is \a from, and \a t = 1 is the final
              * state reached by followManifold(\a from, \a to, true, ...), which may not be \a to. State returned in \a state. */
