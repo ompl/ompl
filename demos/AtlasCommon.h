@@ -221,7 +221,7 @@ bool always (const ompl::base::State *)
  * until time runs out, so we can see the big picture. */
 bool unreachable (const ompl::base::State *state, const Eigen::VectorXd &goal, const double radius)
 {
-    return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->toVector() - goal).norm() - radius) > radius-1e06;
+    return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->toVector() - goal).norm() - radius) > radius-0.01;
 }
 
 /** For the chain example. Joints may not get too close to each other. If \a tough, then the end effector
@@ -281,7 +281,7 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
     y = Eigen::VectorXd(dim); y <<  2, 0,  1;
     
     // Validity checker
-    isValid = &always;
+    isValid = boost::bind(&unreachable, _1, y, 0.1);
     
     return new ompl::base::AtlasStateSpace(dim, Ftorus, Jtorus);
 }
