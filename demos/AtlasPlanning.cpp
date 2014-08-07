@@ -53,8 +53,7 @@ int main (int argc, char **argv)
     // Initialize the atlas for the problem's manifold
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
-    double plannerRange;
-    ompl::base::AtlasStateSpacePtr atlas(parseProblem(argv[1], x, y, isValid, plannerRange));
+    ompl::base::AtlasStateSpacePtr atlas(parseProblem(argv[1], x, y, isValid));
     if (!atlas)
         usage(argv[0]);
     
@@ -101,7 +100,7 @@ int main (int argc, char **argv)
     atlas->setMonteCarloSampleCount(0);
     
     // Choose the planner.
-    ompl::base::PlannerPtr planner(parsePlanner(argv[2], si, plannerRange));
+    ompl::base::PlannerPtr planner(parsePlanner(argv[2], si, atlas->getRho_s()));
     if (!planner)
         usage(argv[0]);
     ss.setPlanner(planner);

@@ -73,7 +73,8 @@ namespace ompl
             /** \brief Sample a state uniformly from the known charted regions of the manifold. Return in \a state. */
             virtual void sampleUniform (State *state);
             
-            /** \brief Sample a state uniformly from the ball with center \a near and radius \a distance. Return in \a state. */
+            /** \brief Sample a state uniformly from the ball with center \a near and radius \a distance. Return in \a state.
+             * Note: This can take a long time if \a distance >> rho_s. */
             virtual void sampleUniformNear (State *state, const State *near, const double distance);
             
             /** \brief Not implemented. */
@@ -174,12 +175,12 @@ namespace ompl
                 const AtlasChart *getChart_safe (void) const;
                 
                 /** \brief Set the chart \a c for the state. Skip the disown() step if \a fast. */
-                void setChart (const AtlasChart *const c, const bool fast = false);
+                void setChart (const AtlasChart *const c, const bool fast = false) const;
                 
             private:
                 
                 /** \brief Chart owning the real vector. */
-                const AtlasChart *chart_;
+                mutable const AtlasChart *chart_;
                 
                 /** \brief Dimension of the real vector. */
                 const unsigned int dimension_;
@@ -323,7 +324,8 @@ namespace ompl
             virtual AtlasChart &sampleChart (void) const;
             
             /** \brief Find the chart to which \a x belongs. Use \a neighbor to hint that the chart
-             * may be its neighbor, if that information is available. Returns NULL if no chart found. */
+             * may be its neighbor, if that information is available. Returns NULL if no chart found. 
+             * Assumes \a x is already on the manifold. */
             virtual AtlasChart *owningChart (const Eigen::VectorXd &x, const AtlasChart *const neighbor = NULL) const;
             
             /** \brief Create a new chart for the atlas, centered at \a xorigin, which should be on

@@ -179,7 +179,7 @@ ompl::base::AtlasChart::~AtlasChart (void)
             delete *l;
     }
     boost::lock_guard<boost::mutex> lock(mutices_.owned_);
-    for (std::list<ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
+    for (std::list<const ompl::base::AtlasStateSpace::StateType *>::const_iterator s = owned_.begin(); s != owned_.end(); s++)
         (*s)->setChart(NULL, true);
 }
 
@@ -257,17 +257,17 @@ void ompl::base::AtlasChart::borderCheck (const Eigen::VectorXd &v) const
         (*l)->checkNear(v);
 }
 
-void ompl::base::AtlasChart::own (ompl::base::AtlasStateSpace::StateType *const state) const
+void ompl::base::AtlasChart::own (const ompl::base::AtlasStateSpace::StateType *const state) const
 {
     boost::lock_guard<boost::mutex> lock(mutices_.owned_);
     assert(state != NULL);
     owned_.push_front(state);
 }
 
-void ompl::base::AtlasChart::disown (ompl::base::AtlasStateSpace::StateType *const state) const
+void ompl::base::AtlasChart::disown (const ompl::base::AtlasStateSpace::StateType *const state) const
 {
     boost::lock_guard<boost::mutex> lock(mutices_.owned_);
-    for (std::list<ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
+    for (std::list<const ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
     {
         if (*s == state)
         {
@@ -295,8 +295,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eige
         b = bigL_.begin();
         e = bigL_.end();
     }
-    const AtlasChart *bestC = NULL;
-    double best = std::numeric_limits<double>::infinity();
+    
     for (std::list<LinearInequality *>::const_iterator l = b; l != e; l++)
     {
         const LinearInequality *const comp = (*l)->getComplement();
@@ -306,20 +305,11 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eige
         // Project onto the chart and check if it's in the validity region and polytope
         const AtlasChart &c = comp->getOwner();
         const Eigen::VectorXd psiInvX = c.psiInverse(x);
-        const Eigen::VectorXd psiPsiInvX = c.psi(psiInvX);
-        if ((c.phi(psiInvX) - psiPsiInvX).norm() < atlas_.getEpsilon() && psiInvX.norm() < radius_ && c.inP(psiInvX))
-        {
-            // The closer the point to where the chart puts it, the better
-            double err = (psiPsiInvX - x).norm();
-            if (err < best)
-            {
-                bestC = &c;
-                best = err;
-            }
-        }
+        if ((c.phi(psiInvX) - x).norm() < atlas_.getEpsilon() && psiInvX.norm() < radius_ && c.inP(psiInvX))
+            return &c;
     }
     
-    return bestC;
+    return NULL;
 }
 
 void ompl::base::AtlasChart::approximateMeasure (void) const
@@ -445,7 +435,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace) const
     // Find tracked states which need to be moved to a different chart
     boost::lock_guard<boost::mutex> lock(mutices_.owned_);
     const bool fast = true;
-    for (std::list<ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
+    for (std::list<const ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
     {
         assert(*s != NULL);
         if (!halfspace.accepts(psiInverse((*s)->toVector())))

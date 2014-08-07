@@ -252,17 +252,13 @@ bool chainValid (const ompl::base::State *state, const bool tough)
 
 /**
  * Problem initialization functions set the dimension, the manifold, start and goal points \a x and \a y,
- * the validity checker \a isValid, and a range \a plannerRange for planners which invoke sampleNear().
+ * and the validity checker \a isValid.
  */
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                                ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
+ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
 {
     const std::size_t dim = 3;
-    
-    // This value will be used as the sampleNear() distance.
-    plannerRange = 0.75;
     
     // Start and goal points
     x = Eigen::VectorXd(dim); x << 0, 0, -1;
@@ -276,11 +272,9 @@ ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::Vecto
 }
 
 /** Initialize the atlas for the torus problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                               ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
+ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
 {
     const std::size_t dim = 3;
-    plannerRange = 1;
     
     // Start and goal points
     x = Eigen::VectorXd(dim); x << -2, 0, -1;
@@ -293,11 +287,9 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                                     ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
+ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
 {
     const std::size_t dim = 3;
-    plannerRange = 1.5;
     
     // Start and goal points
     x = Eigen::VectorXd(dim); x << -0.5, -0.25, 0.1892222244330081;
@@ -310,11 +302,9 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
 }
 
 /** Initialize the atlas for the kinematic chain problem. */
-ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                               ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
+ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
 {
     const std::size_t dim = 15;
-    plannerRange = 3;
     
     // Start and goal points (each triple is the 3D location of a joint)
     x = Eigen::VectorXd(dim); x << 1,  0, 0,  2,  0, 0,  2, -1, 0,  3, -1, 0,  3, 0, 0;
@@ -352,16 +342,16 @@ void printPlanners (void)
 
 /** Initialize the problem specified in the string. */
 ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                           ompl::base::StateValidityCheckerFn &isValid, double &plannerRange)
+                                           ompl::base::StateValidityCheckerFn &isValid)
 {
     if (std::strcmp(problem, "sphere") == 0)
-        return initSphereProblem(x, y, isValid, plannerRange);
+        return initSphereProblem(x, y, isValid);
     else if (std::strcmp(problem, "torus") == 0)
-        return initTorusProblem(x, y, isValid, plannerRange);
+        return initTorusProblem(x, y, isValid);
     else if (std::strcmp(problem, "klein") == 0)
-        return initKleinBottleProblem(x, y, isValid, plannerRange);
+        return initKleinBottleProblem(x, y, isValid);
     else if (std::strcmp(problem, "chain") == 0)
-        return initChainProblem(x, y, isValid, plannerRange);
+        return initChainProblem(x, y, isValid);
     else
         return NULL;
 }

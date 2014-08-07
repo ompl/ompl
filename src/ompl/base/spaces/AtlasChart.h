@@ -151,10 +151,10 @@ namespace ompl
             virtual void borderCheck (const Eigen::VectorXd &v) const;
             
             /** \brief Track that this chart owns \a state. Assumes we are not already tracking it. */
-            void own (ompl::base::AtlasStateSpace::StateType *const state) const;
+            void own (const ompl::base::AtlasStateSpace::StateType *const state) const;
             
             /** \brief Stop tracking \a state. Assumes it is listed at most once. */
-            void disown (ompl::base::AtlasStateSpace::StateType *const state) const;
+            void disown (const ompl::base::AtlasStateSpace::StateType *const state) const;
             
             /** \brief Make all tracked states belong to a \a replacement chart. */
             void substituteChart (const AtlasChart &replacement) const;
@@ -233,7 +233,7 @@ namespace ompl
             Eigen::MatrixXd bigPhi_t_pinv_;
             
             /** \brief List of states on this chart. */
-            mutable std::list<ompl::base::AtlasStateSpace::StateType *> owned_;
+            mutable std::list<const ompl::base::AtlasStateSpace::StateType *> owned_;
             
             /** \brief Maximum valid radius of this chart. */
             mutable double radius_;

@@ -63,6 +63,7 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
     Eigen::VectorXd r(atlas_.getManifoldDimension());
     AtlasChart *c;
     
+    // Rejection sampling to find a point on the manifold
     do
     {
         // Rejection sampling to find a point inside a chart's polytope
@@ -94,28 +95,30 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     const AtlasStateSpace::StateType *anear = near->as<AtlasStateSpace::StateType>();
     Eigen::VectorXd n = anear->toVector();
     Eigen::VectorXd r;
-    const AtlasChart *c = &anear->getChart();
+    const AtlasChart *c = anear->getChart_safe();
+    if (!c)
+    {
+        c = atlas_.owningChart(n);
+        if (!c)
+            c = &atlas_.newChart(n);
+        anear->setChart(c);
+    }
     
     // Rejection sampling to find a point on the manifold
     do
     {
-        // Sample within radius of distance
+        // Sample within distance
         Eigen::VectorXd uoffset(atlas_.getManifoldDimension());
         do
             uoffset.setRandom();
         while (uoffset.squaredNorm() > 1);
-        const Eigen::VectorXd xoffset = c->phi(uoffset) - c->getXorigin();
-        r = c->psi(c->psiInverse(n + distance * xoffset.normalized()));
+        r = c->phi(c->psiInverse(n) + distance * uoffset);
     }
-    while (r.hasNaN() || atlas_.bigF(r).norm() > atlas_.getProjectionTolerance()  /*|| (r - n).squaredNorm() > distance*distance*/);
-    astate->setRealState(r, c);
+    while (!atlas_.project(r, r));
     
-    // It might belong to a different chart
-    c = atlas_.owningChart(r);
-    if (!c)
-        c = &atlas_.newChart(r);
-    else
-        r = c->psi(c->psiInverse(r));
+    // Be lazy about determining the new chart if we are not in the old one
+    if (!c->inP(c->psiInverse(r)))
+        c = NULL;
     astate->setRealState(r, c);
 }
 
@@ -123,30 +126,36 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
 {
     AtlasStateSpace::StateType *astate = state->as<AtlasStateSpace::StateType>();
     const AtlasStateSpace::StateType *amean = mean->as<AtlasStateSpace::StateType>();
+    Eigen::VectorXd m = amean->toVector();
     Eigen::VectorXd r;
     const std::size_t k = atlas_.getManifoldDimension();
-    
-    // Rejection sampling to find a point in the ball
-    const AtlasChart *c;
-    boost::lock_guard<boost::mutex> lock(mutices_.rng_);
-    do
-    {
-        c = &amean->getChart();
-        const Eigen::VectorXd u = c->psiInverse(astate->toVector());
-        Eigen::VectorXd rand(k);
-        const double s = stdDev / std::sqrt(k);
-        for (std::size_t i = 0; i < k; i++)
-            rand[i] = rng_.gaussian(0, s);
-        r = c->psi(u + rand);
-    }
-    while (r.hasNaN() || atlas_.bigF(r).norm() > atlas_.getProjectionTolerance());
-    
-    // It might belong to a different chart
-    c = atlas_.owningChart(r);
+    const AtlasChart *c = amean->getChart_safe();
     if (!c)
-        c = &atlas_.newChart(r);
-    else
-        r = c->psi(c->psiInverse(r));
+    {
+        c = atlas_.owningChart(m);
+        if (!c)
+            c = &atlas_.newChart(m);
+        amean->setChart(c);
+    }
+    const Eigen::VectorXd u = c->psiInverse(m);
+    
+    // Rejection sampling to find a point on the manifold
+    {
+        boost::lock_guard<boost::mutex> lock(mutices_.rng_);
+        do
+        {
+            Eigen::VectorXd rand(k);
+            const double s = stdDev / std::sqrt(k);
+            for (std::size_t i = 0; i < k; i++)
+                rand[i] = rng_.gaussian(0, s);
+            r = c->phi(u + rand);
+        }
+        while (!atlas_.project(r, r));
+    }
+    
+    // Be lazy about determining the new chart if we are not in the old one
+    if (!c->inP(c->psiInverse(r)))
+        c = NULL;
     astate->setRealState(r, c);
 }
 
@@ -162,21 +171,23 @@ ompl::base::AtlasValidStateSampler::AtlasValidStateSampler (const AtlasStateSpac
 bool ompl::base::AtlasValidStateSampler::sample (State *state)
 {
     unsigned int fails = 0;
+    bool valid;
     do
         sampler_.sampleUniform(state);
-    while (!si_->isValid(state) && ++fails < attempts_);
+    while (!(valid = si_->isValid(state)) && ++fails < attempts_);
     
-    return fails < attempts_;
+    return valid;
 }
 
 bool ompl::base::AtlasValidStateSampler::sampleNear (State *state, const State *near, const double distance)
 {
     unsigned int fails = 0;
+    bool valid;
     do
         sampler_.sampleUniformNear(state, near, distance);
-    while (!si_->isValid(state) && ++fails < attempts_);
+    while (!(valid = si_->isValid(state)) && ++fails < attempts_);
     
-    return fails < attempts_;
+    return valid;
 }
 
 /// AtlasMotionValidator
@@ -281,7 +292,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart_s
     return chart_;
 }
 
-void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart *const c, const bool fast)
+void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart *const c, const bool fast) const
 {
     boost::lock_guard<boost::mutex> lock(mutices_.chart_);
     if (chart_ != c)
@@ -555,35 +566,24 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::sampleChart (void) const
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::VectorXd &x, const AtlasChart *const neighbor) const
 {
     // Use hint first if available
-    AtlasChart *bestC = NULL;
     if (neighbor)
     {
-        bestC = const_cast<AtlasChart *>(neighbor->owningNeighbor(x));
+        AtlasChart *bestC = const_cast<AtlasChart *>(neighbor->owningNeighbor(x));
         if (bestC)
             return bestC;
     }
     
-    // If not found, search through all charts for the best match
-    double best = delta_;
+    // If not found, search through all charts for a match
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
         // The point must lie in the chart's validity region and polytope
         AtlasChart &c = *charts_[i];
         const Eigen::VectorXd psiInvX = c.psiInverse(x);
-        const Eigen::VectorXd psiPsiInvX = c.psi(psiInvX);
-        if ((c.phi(psiInvX) - psiPsiInvX).norm() < epsilon_ && psiInvX.norm() < rho_ && c.inP(psiInvX))
-        {
-            // The closer the point to where the chart puts it, the better
-            double err = (psiPsiInvX - x).norm();
-            if (err < best)
-            {
-                bestC = &c;
-                best = err;
-            }
-        }
+        if ((c.phi(psiInvX) - x).norm() < epsilon_ && psiInvX.norm() < rho_ && c.inP(psiInvX))
+            return &c;
     }
     
-    return bestC;
+    return NULL;
 }
 
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::VectorXd &xorigin, const bool anchor) const
@@ -653,12 +653,13 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     Eigen::VectorXd x_r, x_n;
     x_r = to->toVector();
     x_n = from->toVector();
-    AtlasChart *c = const_cast<AtlasChart *>(from->getChart_safe());
+    const AtlasChart *c = from->getChart_safe();
     if (!c)
     {
         c = owningChart(x_n, c);
         if (!c)
             c = &newChart(x_n);
+        from->setChart(c);
     }
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
     StateType *temp = allocState()->as<StateType>();
@@ -811,14 +812,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     {
         StateType *toCopy = allocState()->as<StateType>();
         copyState(toCopy, to);
-        c = const_cast<AtlasChart *>(toCopy->getChart_safe());
-        if (!c)
-        {
-            c = owningChart(x_n, c);
-            if (!c)
-                c = &newChart(x_n);
-            toCopy->setChart(c);
-        }
+        toCopy->setChart(c);
         stateList->push_back(toCopy);
     }
     

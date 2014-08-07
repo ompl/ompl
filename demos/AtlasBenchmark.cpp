@@ -74,8 +74,7 @@ int main (int argc, char **argv)
     // Initialize the atlas
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
-    double plannerRange;
-    ompl::base::AtlasStateSpacePtr atlas(parseProblem(argv[1], x, y, isValid, plannerRange));
+    ompl::base::AtlasStateSpacePtr atlas(parseProblem(argv[1], x, y, isValid));
     if (!atlas)
         usage(argv[0]);
     
@@ -132,7 +131,7 @@ int main (int argc, char **argv)
     const char *planners[] = {"EST", "RRT", "AtlasRRT", "RRTConnect", "TRRT", "LBTRRT", "ConstrainedRRT", "CBiRRT2", "KPIECE1", "BKPIECE1",
                               "LBKPIECE1", "PDST", "PRM", "SBL", "SPARS", "SPARStwo", "STRIDE"};
     for (std::size_t i = 0; i < sizeof(planners)/sizeof(char *); i++)
-        bench.addPlanner(ompl::base::PlannerPtr(parsePlanner(planners[i], si, plannerRange)));
+        bench.addPlanner(ompl::base::PlannerPtr(parsePlanner(planners[i], si, atlas->getRho_s())));
     bench.setPreRunEvent(&resetStateSpace);
     
     // Execute
