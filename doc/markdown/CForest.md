@@ -29,7 +29,7 @@ CForest has been included into OMPL as a new [optimizing planner](optimalPlannin
 
 - `ompl::geometric::CForest`
 
-Currently, CForest is implemented with RRT* (ompl::geometric::RRTstar) as underlying planner, since it is the only single-query, incremental, optimal planning algorithm available.
+Currently RRT* (ompl::geometric::RRTstar) is the only underlying planner available, since it is the only single-query, incremental, optimal planning algorithm implemented in OMPL.
 
 The CForest planner is the responsible of coordinating the different trees and sharing the solutions found. Path sharing is done through a specific CForest state sampler (ompl::base::CForestStateSampler). This sampler allows to add states to sample: if a state has been added to the sampler, it will _sample_ it in the following call to \c sampleUniform() (or any of the other sampling calls).
 
@@ -74,6 +74,9 @@ When implementing CForest, the focus was modify the underlying planner as less a
 - Sampling bounds are not explicitly set. Samples are created and then checked to know if they can lead to a better solution using the established heuristic.
 - Start and goal states are not included in the shared paths in order to keep code simpler.
 - Before pruning a tree, it is checked how many states would be removed. If the ratio size new tree/size old tree is not small enough, pruning will not be carried out. This allows to save time since the creation of a NearestNeighbors datastructure is time consuming and sometimes, just a few states are being removed.
+
+\note Despite all these differences, the CForest implementation greatly improves the performance of the underlying single-threaded planner. However, an implementation more close to the one described in the paper should improve the performance even more (specially with message passing and not treating all the states the same way). Please, take that into account if you plan to compare your algorithm against CForest.
+
 
 ### Examples {#cf_examples}
 

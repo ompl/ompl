@@ -65,6 +65,14 @@ bool isStateValid(double radiusSquared, const ob::State *state)
     return x*x + y*y > radiusSquared;
 }
 
+void addPlanner(ompl::tools::Benchmark& benchmark, ompl::base::PlannerPtr planner, double range)
+{
+    ompl::base::ParamSet& params = planner->params();
+    if (params.hasParam(std::string("range")))
+        params.setParam(std::string("range"), boost::lexical_cast<std::string>(range));
+    benchmark.addPlanner(planner);
+}
+
 int main(int argc, char **argv)
 {
     int distance, gridLimit ;
@@ -127,13 +135,13 @@ int main(int argc, char **argv)
     ss.getProblemDefinition()->setOptimizationObjective(getPathLengthObjective(ss.getSpaceInformation()));
 
     // by default, use the Benchmark class
-    double runtime_limit = 3, memory_limit = 4096;
-    int run_count = 2;
+    double runtime_limit = 5, memory_limit = 4096;
+    int run_count = 20;
     ot::Benchmark::Request request(runtime_limit, memory_limit, run_count);
     ot::Benchmark b(ss, "CircleGrid");
 
-    b.addPlanner(ob::PlannerPtr(new og::CForest(ss.getSpaceInformation())));
     b.addPlanner(ob::PlannerPtr(new og::RRTstar(ss.getSpaceInformation())));
+    b.addPlanner(ob::PlannerPtr(new og::CForest(ss.getSpaceInformation())));
     b.benchmark(request);
     b.saveResultsToFile("circleGrid.log");
 
