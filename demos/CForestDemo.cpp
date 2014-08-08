@@ -116,14 +116,21 @@ public:
         // Set the problem instance for our planner to solve
         planner_->setProblemDefinition(pdef_);
 
-        // testing some specific configurations
+        // testing some specific configurations. Uncomment only one option accordingly to the
+        // planner given as template parameter. Otherwise, default configurations would be used.
+            // when using RRTstar, set the prune flag.
         //planner_->as<og::RRTstar>()->setPrune(true);
+            // when using CForest, deactivate pruning in CForest.
         //planner_->as<og::CForest>()->setPrune(false);
+            // when using CForest, how to specify number and type of planners.
         //planner_->as<og::CForest>()->addPlannerInstances<og::RRTstar>(4);
+            // when using CForest, set number of threads using the default planner.
+        //planner_->as<og::CForest>()->setNumThreads(6);
 
         planner_->setup();
+        planner_->printProperties(std::cout);
 
-        // attempt to solve the planning problem within one second of
+        // attempt to solve the planning problem within five seconds of
         // planning time
         ot::point start_t = ot::now();
         bool v = planner_->solve(5.0);
@@ -140,6 +147,7 @@ public:
         const ob::PathPtr &pPtr = pdef_->getSolutionPath();
         og::PathGeometric &p = static_cast<og::PathGeometric&>(*pPtr);
         //p.printAsMatrix(std::cout);
+        //p.print(std::cout);
 
         p.interpolate();
         for (std::size_t i = 0 ; i < p.getStateCount() ; ++i)
