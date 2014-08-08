@@ -668,7 +668,7 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost)
     }
 
     // avoid excesive tree pruning.
-    if (newTree.size() < 10) return 0;
+    if (newTree.size() < 100) return 0;
 
     // To create the new nn takes one order of magnitude in time more than just checking how many 
     // states would be pruned. Therefore, only prune if it removes a significant amount of states.
