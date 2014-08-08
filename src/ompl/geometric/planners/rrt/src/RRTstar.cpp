@@ -162,6 +162,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     Motion *solution       = lastGoalMotion_;
 
+    // \TODO Make this variable unnecessary, or at least have it
+    // persist across solve runs
+    base::Cost bestCost    = opt_->infiniteCost();
+
     bestCost_ = opt_->infiniteCost();
 
     Motion *approximation  = NULL;
@@ -454,9 +458,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 bool updatedSolution = false;
                 for (size_t i = 0; i < goalMotions_.size(); ++i)
                 {
-                    if (opt_->isCostBetterThan(goalMotions_[i]->cost, bestCost_))
+                    if (opt_->isCostBetterThan(goalMotions_[i]->cost, bestCost))
                     {
-                        bestCost_ = goalMotions_[i]->cost;
+                        bestCost = goalMotions_[i]->cost;
+                        bestCost_ = bestCost;
                         updatedSolution = true;
                     }
 
@@ -661,6 +666,9 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost)
         else
             toBePruned.push_back(candidate);
     }
+
+    // avoid excesive tree pruning.
+    if (newTree.size() < 10) return 0;
 
     // To create the new nn takes one order of magnitude in time more than just checking how many 
     // states would be pruned. Therefore, only prune if it removes a significant amount of states.

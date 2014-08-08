@@ -41,7 +41,6 @@
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/tools/benchmark/Benchmark.h>
-#include "ompl/tools/config/MagicConstants.h"
 #include <boost/program_options.hpp>
 
 namespace ob = ompl::base;
@@ -133,23 +132,8 @@ int main(int argc, char **argv)
     ot::Benchmark::Request request(runtimeLimit, memoryLimit, runCount);
     ot::Benchmark b(ss, "CircleGrid");
 
-    og::CForest *cforest2 = new og::CForest(ss.getSpaceInformation());
-    ob::PlannerPtr cf2 = ob::PlannerPtr(cforest2);
-    cforest2->setName("CForest2-2");
-    og::CForest *cforest4 = new og::CForest(ss.getSpaceInformation());
-    cforest4->setNumThreads(4);
-    cforest4->setName("CForest2-4");
-    ob::PlannerPtr cf4 = ob::PlannerPtr(cforest4);
-    og::CForest *cforest8 = new og::CForest(ss.getSpaceInformation());
-    cforest8->setNumThreads(8);
-    cforest8->setName("CForest2-8");
-    ob::PlannerPtr cf8 = ob::PlannerPtr(cforest8);
-
-    b.addPlanner(cf2);
-    b.addPlanner(cf4);
-    b.addPlanner(cf8);
     //b.addPlanner(ob::PlannerPtr(new og::RRTstar(ss.getSpaceInformation())));
-    //b.addPlanner(ob::PlannerPtr(new og::CForest(ss.getSpaceInformation())));
+    b.addPlanner(ob::PlannerPtr(new og::CForest(ss.getSpaceInformation())));
     b.benchmark(request);
     b.saveResultsToFile("circleGrid.log");
 

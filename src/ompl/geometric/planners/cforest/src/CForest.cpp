@@ -190,12 +190,12 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, co
 {
     bool change = false;
     std::vector<const base::State *> statesToShare;
-     newSolutionFoundMutex_.lock();
-     if (opt_->isCostBetterThan(cost, bestCost_))
-     {
-         ++numPathsShared_;
-         bestCost_ = cost;
-         change = true;
+    newSolutionFoundMutex_.lock();
+    if (opt_->isCostBetterThan(cost, bestCost_))
+    {
+        ++numPathsShared_;
+        bestCost_ = cost;
+        change = true;
 
         // Filtering the states to add only those not already added.
         statesToShare.reserve(states.size());
@@ -211,7 +211,7 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, co
      }
      newSolutionFoundMutex_.unlock();
 
-    if (!change) return;
+    if (!change || statesToShare.empty()) return;
 
     for (std::size_t i = 0; i < samplers_.size(); ++i)
     {
