@@ -678,8 +678,6 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     }
     
     Eigen::VectorXd x_j, x_0, u_n, u_r, u_j;
-    std::list<Eigen::VectorXd> lastTenX;
-    double lastTenD = 0;
     
     // We will stop if we exit the ball of radius d_0 centered at x_0
     x_0 = x_j = x_n;
@@ -702,21 +700,6 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     //bool chartCreated = false;    // Unused for now
     while ((u_r - u_n).squaredNorm() > delta_*delta_)
     {
-        lastTenX.push_back(x_n);
-        lastTenD += (x_n - x_j).norm();
-        if (lastTenX.size() > 10)
-        {
-            lastTenD -= (lastTenX.front() - *boost::next(lastTenX.begin())).norm();
-            lastTenX.pop_front();
-            if ((lastTenX.front() - lastTenX.back()).norm() < 0.1*lastTenD)
-            {
-                // No way to get out
-                OMPL_DEBUG("Probably got stuck in local minimum.");
-                break;
-            }
-        }
-        
-        
         // Step by delta toward the target and project
         u_j = u_n + delta_*(u_r - u_n).normalized();    // Note the difference to pseudocode (line 13): a similar mistake to line 8
         x_j = c->psi(u_j);

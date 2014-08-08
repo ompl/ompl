@@ -148,28 +148,20 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 
         if (addIntermediateStates_)
         {
-            const unsigned int count = 1 + si_->distance(nmotion->state, dstate) / si_->getStateValidityCheckingResolution();
             std::vector<base::State *> states;
+            const unsigned int count = 1 + si_->distance(nmotion->state, dstate) / si_->getStateValidityCheckingResolution();
             si_->getMotionStates(nmotion->state, dstate, states, count, true, true);
-            if (si_->distance(states[states.size()-2], states.back()) > si_->getStateValidityCheckingResolution())
-                states.pop_back();
-            unsigned int firstInvalid = states.size();
-            si_->checkMotion(states, states.size(), firstInvalid);
             Motion *motion;
             si_->freeState(states[0]);
             for (std::size_t i = 1; i < states.size(); i++)
             {
-                if (i < firstInvalid)
-                {
-                    /* create a motion */
-                    motion = new Motion(si_);
-                    si_->copyState(motion->state, states[i]);
-                    motion->parent = nmotion;
+                /* create a motion */
+                motion = new Motion(si_);
+                motion->state = states[i];
+                motion->parent = nmotion;
 
-                    nn_->add(motion);
-                    nmotion = motion;
-                }
-                si_->freeState(states[i]);
+                nn_->add(motion);
+                nmotion = motion;
             }
             
             double dist = 0.0;

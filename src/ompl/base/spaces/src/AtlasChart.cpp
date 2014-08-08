@@ -432,6 +432,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace) const
     // Update the measure estimate
     approximateMeasure();
     
+    /* Testing if this can be omitted even though the paper calls for it
     // Find tracked states which need to be moved to a different chart
     boost::lock_guard<boost::mutex> lock(mutices_.owned_);
     const bool fast = true;
@@ -447,7 +448,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace) const
             // Manually disown here because it's faster since we already have the iterator
             s = boost::prior(owned_.erase(s));
         }
-    }
+    }*/
 }
 
 // Private

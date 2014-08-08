@@ -253,21 +253,25 @@ unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, cons
     AtlasStateSpace *atlas = dynamic_cast<AtlasStateSpace *>(stateSpace_.get());
     std::vector<AtlasStateSpace::StateType *> stateList;
     if (atlas)
-        atlas->followManifold(s1->as<AtlasStateSpace::StateType>(), s2->as<AtlasStateSpace::StateType>(), true, &stateList);
+    {
+        atlas->followManifold(s1->as<AtlasStateSpace::StateType>(), s2->as<AtlasStateSpace::StateType>(), false, &stateList);
+        if (alloc)
+            freeState(states[0]);
+        states.resize(stateList.size());
+        for (unsigned int j = 0; j < stateList.size(); j++)
+            states[j] = stateList[j];
+        return states.size();
+    }
         
     /* find the states in between */
     for (unsigned int j = 1 ; j < count && added < states.size() ; ++j)
     {
         if (alloc)
             states[added] = allocState();
-        // More HACK
-        if (atlas)
-            atlas->fastInterpolate(stateList, (double)j / (double)count, states[added]);
-        else
-            stateSpace_->interpolate(s1, s2, (double)j / (double)count, states[added]);
+        stateSpace_->interpolate(s1, s2, (double)j / (double)count, states[added]);
         added++;
     }
-
+    
     if (added < states.size() && endpoints)
     {
         if (alloc)
