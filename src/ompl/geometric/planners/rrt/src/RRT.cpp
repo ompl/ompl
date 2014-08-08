@@ -156,7 +156,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
             for (std::size_t i = 1; i < states.size(); i++)
             {
                 /* create a motion */
-                motion = new Motion(si_);
+                motion = new Motion;
                 motion->state = states[i];
                 motion->parent = nmotion;
 
