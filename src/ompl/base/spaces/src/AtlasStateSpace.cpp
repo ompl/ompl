@@ -119,6 +119,8 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     // Be lazy about determining the new chart if we are not in the old one
     if (!c->inP(c->psiInverse(r)))
         c = NULL;
+    else
+        c->borderCheck(c->psiInverse(r));
     astate->setRealState(r, c);
 }
 
@@ -156,6 +158,8 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     // Be lazy about determining the new chart if we are not in the old one
     if (!c->inP(c->psiInverse(r)))
         c = NULL;
+    else
+        c->borderCheck(c->psiInverse(r));
     astate->setRealState(r, c);
 }
 
