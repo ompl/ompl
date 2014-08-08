@@ -302,7 +302,7 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
 }
 
 /** Initialize the atlas for the kinematic chain problem. */
-ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const bool tough)
 {
     const std::size_t dim = 15;
     
@@ -311,7 +311,6 @@ ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::Vector
     y = Eigen::VectorXd(dim); y << 0, -1, 0, -1, -1, 0, -1,  0, 0, -2,  0, 0, -3, 0, 0;
     
     // Validity checker
-    const bool tough = false;
     isValid = boost::bind(&chainValid, _1, tough);
     
     return new ompl::base::AtlasStateSpace(dim, Fchain, Jchain);
@@ -327,7 +326,7 @@ ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atl
 void printProblems (void)
 {
     std::cout << "Available problems:\n";
-    std::cout << "    sphere torus klein chain\n";
+    std::cout << "    sphere torus klein chain chain_tough\n";
 }
 
 /** Print usage information. */
@@ -351,7 +350,9 @@ ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::Vec
     else if (std::strcmp(problem, "klein") == 0)
         return initKleinBottleProblem(x, y, isValid);
     else if (std::strcmp(problem, "chain") == 0)
-        return initChainProblem(x, y, isValid);
+        return initChainProblem(x, y, isValid, false);
+    else if (std::strcmp(problem, "chain_tough") == 0)
+        return initChainProblem(x, y, isValid, true);
     else
         return NULL;
 }
