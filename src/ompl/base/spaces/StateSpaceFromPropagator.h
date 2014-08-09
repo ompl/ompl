@@ -88,31 +88,25 @@ namespace ompl
                 double duration = 0;
                 T::copyState(state,from);
                 
+                if (t == 0)
+                    return;
+                
                 std::vector<control::TimedControl> tcontrols;
                 if(sp_->steer(from,to,tcontrols,duration))
                 {
-                    // Rescaling the relative t to the maximum control duration given by steer().
-                    double interpT = t*duration;
-                    double currentT = 0;
-                    double totalControlT = tcontrols[0].second;
-                    int i = 0;
+                    double interpT = t*duration, currentT = 0;
+                    unsigned int i = 0;
 
-                    // \TODO: The number or steps and stepTime can be improved to reduce error but
-                    // this propagation error cannot be avoided.
-                    const int steps = 100;
-                    const double stepTime = (double)(duration/steps);
-
-                    while (currentT <= interpT)
+                    // applying complete timed controls
+                    while(currentT + tcontrols[i].second < interpT)
                     {
-                        sp_->propagate(state, tcontrols[i].first, stepTime, state);
-                        currentT += stepTime;
-                        // Look for which control action to apply
-                        if (currentT > totalControlT)
-                        {
-                            ++i;
-                            totalControlT += tcontrols[i].second;
-                        }
+                        currentT += tcontrols[i].second;
+                        ++i;
+                        sp_->propagate(state, tcontrols[i].first, tcontrols[i].second, state);
                     }
+                    
+                    // propagating the rest of the time
+                    sp_->propagate(state, tcontrols[i].first, interpT - currentT, state);                    
                 }
             }
 

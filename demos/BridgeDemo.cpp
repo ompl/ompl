@@ -63,20 +63,44 @@ class ReedsSheppStatePropagator : public oc::StatePropagator
 public:
     ReedsSheppStatePropagator (const oc::SpaceInformationPtr &si) : oc::StatePropagator(si)
     {
+        rho_ = 1.0;
     }
 
     virtual void propagate (const ob::State *state, const oc::Control *control, const double duration, ob::State *result) const
     {
-        const ob::SE2StateSpace::StateType *se2state = state->as<ob::SE2StateSpace::StateType>();
-        const double* pos = se2state->as<ob::RealVectorStateSpace::StateType>(0)->values;
-        const double rot = se2state->as<ob::SO2StateSpace::StateType>(1)->value;
-        const double* ctrl = control->as<oc::RealVectorControlSpace::ControlType>()->values;
+        ob::ReedsSheppStateSpace::StateType* s = rs_.allocState()->as<ob::ReedsSheppStateSpace::StateType>();
+        double phi,v, seg = duration;
+        s->setXY(state->as<ob::ReedsSheppStateSpace::StateType>()->getX(), state->as<ob::ReedsSheppStateSpace::StateType>()->getY());
+        s->setYaw(state->as<ob::ReedsSheppStateSpace::StateType>()->getYaw());
+        phi = s->getYaw();
 
-        result->as<ob::SE2StateSpace::StateType>()->setXY(
-            pos[0] + ctrl[0] * duration * cos(rot),
-            pos[1] + ctrl[0] * duration * sin(rot));
-        result->as<ob::SE2StateSpace::StateType>()->setYaw(
-            rot    + ctrl[0]*ctrl[1] * duration);
+        if ((int)control->as<oc::RealVectorControlSpace::ControlType>()->values[1] < 0)
+             v = -seg;
+        else
+             v = seg;
+
+        int steering = (int)control->as<oc::RealVectorControlSpace::ControlType>()->values[1];
+
+        switch(steering)
+        {
+            case 1:
+                s->setXY(s->getX() + sin(phi+v) - sin(phi), s->getY() - cos(phi+v) + cos(phi));
+                s->setYaw(phi+v);
+                break;
+            case -1:
+                s->setXY(s->getX() - sin(phi-v) + sin(phi), s->getY() + cos(phi-v) - cos(phi));
+                s->setYaw(phi-v);
+                break;
+            case 0:
+                s->setXY(s->getX() + v * cos(phi), s->getY() + v * sin(phi));
+                break;
+        }
+
+        result->as<ob::ReedsSheppStateSpace::StateType>()->setX(s->getX() * rho_ + state->as<ob::ReedsSheppStateSpace::StateType>()->getX());
+        result->as<ob::ReedsSheppStateSpace::StateType>()->setY(s->getY() * rho_ + state->as<ob::ReedsSheppStateSpace::StateType>()->getY());
+        rs_.getSubspace(1)->enforceBounds(s->as<ob::SO2StateSpace::StateType>(1));
+        result->as<ob::ReedsSheppStateSpace::StateType>()->setYaw(s->getYaw());
+        rs_.freeState(s);
     }
 
     // TODO how can this be a const function?
@@ -120,6 +144,7 @@ public:
 
 private:
     ob::ReedsSheppStateSpace rs_;
+    double rho_;
 };
 
 int main(int argc, char** argv)
@@ -170,7 +195,7 @@ int main(int argc, char** argv)
     ss.setPlanner(planner);
 
     // attempt to solve the problem within one second of planning time
-    ob::PlannerStatus solved = ss.solve(1.0);
+    /*ob::PlannerStatus solved = ss.solve(1.0);
 
     if (solved)
     {
@@ -180,7 +205,29 @@ int main(int argc, char** argv)
         ss.getSolutionPath().print(std::cout);
     }
     else
-        std::cout << "No solution found" << std::endl;
-
+        std::cout << "No solution found" << std::endl;*/
+        
+    ob::ScopedState<> s1(fromPropSpace), s2(fromPropSpace);
+    s1[0] = 0.;
+    s1[1] = 0.;
+    s1[2] = 0.;
+    s2[0] = 0.;
+    s2[1] = 0.; 
+    s2[2] = boost::math::constants::pi<double>();
+    
+    ob::State *istate = fromPropSpace->allocState();
+    
+    for (double i = 0; i <= 1; i+= 0.01)
+    {
+        fromPropSpace->interpolate(s1.get(),s2.get(),i,istate);
+        std::cout << istate->as<ob::SE2StateSpace::StateType>()->getX() << "\t"
+                  << istate->as<ob::SE2StateSpace::StateType>()->getY() << "\t"
+                  << istate->as<ob::SE2StateSpace::StateType>()->getYaw() << std::endl;
+    }
+    /*fromPropSpace->interpolate(s1.get(),s2.get(),1,istate);
+    std::cout << istate->as<ob::SE2StateSpace::StateType>()->getX() << "\t"
+                  << istate->as<ob::SE2StateSpace::StateType>()->getY() << "\t"
+                  << istate->as<ob::SE2StateSpace::StateType>()->getYaw() << std::endl;
+*/
     return 0;
 }
