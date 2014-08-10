@@ -69,17 +69,19 @@ public:
     virtual void propagate (const ob::State *state, const oc::Control *control, const double duration, ob::State *result) const
     {
         ob::ReedsSheppStateSpace::StateType* s = rs_.allocState()->as<ob::ReedsSheppStateSpace::StateType>();
-        double phi,v, seg = duration;
+        double phi,v;
         s->setXY(state->as<ob::ReedsSheppStateSpace::StateType>()->getX(), state->as<ob::ReedsSheppStateSpace::StateType>()->getY());
         s->setYaw(state->as<ob::ReedsSheppStateSpace::StateType>()->getYaw());
         phi = s->getYaw();
-
-        if ((int)control->as<oc::RealVectorControlSpace::ControlType>()->values[1] < 0)
-             v = -seg;
-        else
-             v = seg;
-
         int steering = (int)control->as<oc::RealVectorControlSpace::ControlType>()->values[1];
+        
+       // std::cout << control->as<oc::RealVectorControlSpace::ControlType>()->values[0] << "\t"
+        //          << control->as<oc::RealVectorControlSpace::ControlType>()->values[1] << std::endl;
+                  
+        if (steering < 0)
+             v = -duration;
+        else
+             v = duration;
 
         switch(steering)
         {
@@ -96,8 +98,10 @@ public:
                 break;
         }
 
-        result->as<ob::ReedsSheppStateSpace::StateType>()->setX(s->getX() * rho_ + state->as<ob::ReedsSheppStateSpace::StateType>()->getX());
-        result->as<ob::ReedsSheppStateSpace::StateType>()->setY(s->getY() * rho_ + state->as<ob::ReedsSheppStateSpace::StateType>()->getY());
+        //result->as<ob::ReedsSheppStateSpace::StateType>()->setX(s->getX() * rho_ + state->as<ob::ReedsSheppStateSpace::StateType>()->getX());
+        //result->as<ob::ReedsSheppStateSpace::StateType>()->setY(s->getY() * rho_ + state->as<ob::ReedsSheppStateSpace::StateType>()->getY());
+        result->as<ob::ReedsSheppStateSpace::StateType>()->setX(s->getX() * rho_);
+        result->as<ob::ReedsSheppStateSpace::StateType>()->setY(s->getY() * rho_ );
         rs_.getSubspace(1)->enforceBounds(s->as<ob::SO2StateSpace::StateType>(1));
         result->as<ob::ReedsSheppStateSpace::StateType>()->setYaw(s->getYaw());
         rs_.freeState(s);
@@ -217,17 +221,13 @@ int main(int argc, char** argv)
     
     ob::State *istate = fromPropSpace->allocState();
     
-    for (double i = 0; i <= 1; i+= 0.01)
+    for (double i = 0; i <= 1.000001; i+= 0.01)
     {
         fromPropSpace->interpolate(s1.get(),s2.get(),i,istate);
         std::cout << istate->as<ob::SE2StateSpace::StateType>()->getX() << "\t"
                   << istate->as<ob::SE2StateSpace::StateType>()->getY() << "\t"
                   << istate->as<ob::SE2StateSpace::StateType>()->getYaw() << std::endl;
     }
-    /*fromPropSpace->interpolate(s1.get(),s2.get(),1,istate);
-    std::cout << istate->as<ob::SE2StateSpace::StateType>()->getX() << "\t"
-                  << istate->as<ob::SE2StateSpace::StateType>()->getY() << "\t"
-                  << istate->as<ob::SE2StateSpace::StateType>()->getYaw() << std::endl;
-*/
+
     return 0;
 }

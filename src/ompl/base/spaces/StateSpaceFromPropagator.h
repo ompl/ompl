@@ -82,18 +82,24 @@ namespace ompl
 
             virtual void interpolate (const State *from, const State *to, const double t, State *state) const
             {
-                if (t<0 || t>1)
-                    throw Exception("Interpolation failed, time t out of bounds [0,1].");
+                if (t>=1.)
+                {
+                    if (to != state)
+                        T::copyState(state, to);
+                    return;
+                }
+                
+                if (from != state)
+                    T::copyState(state, from);
+                    
+                if (t<=0.)
+                    return;
 
                 double duration = 0;
-                T::copyState(state,from);
-                
-                if (t == 0)
-                    return;
-                
+
                 std::vector<control::TimedControl> tcontrols;
                 if(sp_->steer(from,to,tcontrols,duration))
-                {
+                {                    
                     double interpT = t*duration, currentT = 0;
                     unsigned int i = 0;
 
@@ -101,12 +107,11 @@ namespace ompl
                     while(currentT + tcontrols[i].second < interpT)
                     {
                         currentT += tcontrols[i].second;
-                        ++i;
                         sp_->propagate(state, tcontrols[i].first, tcontrols[i].second, state);
+                        ++i;
                     }
-                    
                     // propagating the rest of the time
-                    sp_->propagate(state, tcontrols[i].first, interpT - currentT, state);                    
+                    sp_->propagate(state, tcontrols[i].first, interpT - currentT, state);                  
                 }
             }
 
