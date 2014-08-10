@@ -45,7 +45,9 @@
 
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
-#include <ompl/geometric/planners/rrt/RRTConnect.h>
+//#include <ompl/geometric/planners/rrt/RRTConnect.h>
+
+#include <fstream>
 
 
 namespace ob = ompl::base;
@@ -193,23 +195,34 @@ int main(int argc, char** argv)
     ss.setStartAndGoalStates(start, goal);
 
     // set the planner
-    ob::PlannerPtr planner(new og::RRTConnect(ss.getSpaceInformation()));
+    ob::PlannerPtr planner(new og::RRT(ss.getSpaceInformation()));
+    
+    ob::ParamSet& params = planner->params();
+    if (params.hasParam(std::string("range")))
+        params.setParam(std::string("range"), boost::lexical_cast<std::string>(1));
+        
     ss.setPlanner(planner);
 
     // attempt to solve the problem within one second of planning time
-    /*ob::PlannerStatus solved = ss.solve(1.0);
+    ob::PlannerStatus solved = ss.solve(1.0);
 
     if (solved)
     {
+        std::fstream fs;
+        fs.open ("path.txt", std::fstream::out | std::fstream::trunc);
         std::cout << "Found solution:" << std::endl;
         // print the path to screen
         //ss.simplifySolution();
-        ss.getSolutionPath().print(std::cout);
+        og::PathGeometric& p = ss.getSolutionPath();
+        //p.printAsMatrix(std::cout);
+        p.interpolate(1000);
+        p.printAsMatrix(fs);
+        fs.close();
     }
     else
-        std::cout << "No solution found" << std::endl;*/
+        std::cout << "No solution found" << std::endl;
         
-    ob::ScopedState<> s1(fromPropSpace), s2(fromPropSpace);
+    /*ob::ScopedState<> s1(fromPropSpace), s2(fromPropSpace);
     s1[0] = 0.;
     s1[1] = 0.;
     s1[2] = 0.;
@@ -226,6 +239,6 @@ int main(int argc, char** argv)
                   << istate->as<ob::SE2StateSpace::StateType>()->getY() << "\t"
                   << istate->as<ob::SE2StateSpace::StateType>()->getYaw() << std::endl;
     }
-
+*/
     return 0;
 }
