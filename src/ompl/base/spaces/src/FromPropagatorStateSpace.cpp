@@ -34,12 +34,12 @@
 
 /* Author: Javier V. Gomez */
 
-#include "ompl/base/spaces/StateSpaceFromPropagator.h"
+#include "ompl/base/spaces/FromPropagatorStateSpace.h"
 
 void ompl::base::FromPropagatorMotionValidator::defaultSettings()
 {
     //TODO: does this check even make sense? this motion validator is created in SpaceInformation::setDefaultMotionValidator()
-    // so that implies a stateSpace exists. Also, no type-check can be done as for other MotionValidators
+    // so that implies a stateSpace exists. No cast check can be done unless this class is also templated as FromPropagatorStateSpace
     stateSpace_ = si_->getStateSpace();
     if (!stateSpace_)
         throw Exception("No state space for motion validator");

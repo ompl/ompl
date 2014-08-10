@@ -34,8 +34,8 @@
 
 /* Author: Javier V. Gomez */
 
-#ifndef OMPL_BASE_SPACES_STATE_SPACE_FROM_PROPAGATOR_
-#define OMPL_BASE_SPACES_STATE_SPACE_FROM_PROPAGATOR_
+#ifndef OMPL_BASE_SPACES_STATE_FROM_PROPAGATOR_SPACE_
+#define OMPL_BASE_SPACES_STATE_FROM_PROPAGATOR_SPACE_
 
 #include "ompl/base/StateSpace.h"
 #include "ompl/control/StatePropagator.h"
@@ -49,20 +49,20 @@ namespace ompl
     {
         /** \brief  */
         template <typename T>
-        class StateSpaceFromPropagator : public T
+        class FromPropagatorStateSpace : public T
         {
             // \TODO: I cannot find a proper way of freeing the controls allocated when calling steer().
         public:
         
-            StateSpaceFromPropagator (const control::StatePropagatorPtr &sp) : T(), sp_(sp)
+            FromPropagatorStateSpace (const control::StatePropagatorPtr &sp) : T(), sp_(sp)
             {
                 if (sp_->getSpaceInformation()->getStateSpace()->getType() != T::getType())
-                    throw Exception("State propagator's state space does not match the template parameter for StateSpaceFromPropagator.");
+                    throw Exception("State propagator's state space does not match the template parameter for FromPropagatorStateSpace.");
 
                 T::setName("FromPropagator" + T::getName());
             }
 
-            virtual ~StateSpaceFromPropagator()
+            virtual ~FromPropagatorStateSpace()
             {
             }
             

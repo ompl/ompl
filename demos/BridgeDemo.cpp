@@ -41,7 +41,7 @@
 
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/spaces/ReedsSheppStateSpace.h>
-#include <ompl/base/spaces/StateSpaceFromPropagator.h>
+#include <ompl/base/spaces/FromPropagatorStateSpace.h>
 
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
@@ -68,16 +68,16 @@ public:
 
     virtual void propagate (const ob::State *state, const oc::Control *control, const double duration, ob::State *result) const
     {
+        // Code extracted from ReedsSheppStateSpace::interpolate()
         ob::ReedsSheppStateSpace::StateType* s = rs_.allocState()->as<ob::ReedsSheppStateSpace::StateType>();
+        
         double phi,v;
+        int steering = (int)control->as<oc::RealVectorControlSpace::ControlType>()->values[1];
+        
         s->setXY(state->as<ob::ReedsSheppStateSpace::StateType>()->getX(), state->as<ob::ReedsSheppStateSpace::StateType>()->getY());
         s->setYaw(state->as<ob::ReedsSheppStateSpace::StateType>()->getYaw());
         phi = s->getYaw();
-        int steering = (int)control->as<oc::RealVectorControlSpace::ControlType>()->values[1];
-        
-       // std::cout << control->as<oc::RealVectorControlSpace::ControlType>()->values[0] << "\t"
-        //          << control->as<oc::RealVectorControlSpace::ControlType>()->values[1] << std::endl;
-                  
+
         if (steering < 0)
              v = -duration;
         else
@@ -97,9 +97,7 @@ public:
                 s->setXY(s->getX() + v * cos(phi), s->getY() + v * sin(phi));
                 break;
         }
-
-        //result->as<ob::ReedsSheppStateSpace::StateType>()->setX(s->getX() * rho_ + state->as<ob::ReedsSheppStateSpace::StateType>()->getX());
-        //result->as<ob::ReedsSheppStateSpace::StateType>()->setY(s->getY() * rho_ + state->as<ob::ReedsSheppStateSpace::StateType>()->getY());
+        
         result->as<ob::ReedsSheppStateSpace::StateType>()->setX(s->getX() * rho_);
         result->as<ob::ReedsSheppStateSpace::StateType>()->setY(s->getY() * rho_ );
         rs_.getSubspace(1)->enforceBounds(s->as<ob::SO2StateSpace::StateType>(1));
@@ -176,8 +174,8 @@ int main(int argc, char** argv)
     oc::StatePropagatorPtr sp (new ReedsSheppStatePropagator(siC));
 
     // and now, with the control space information and state propagator, we create the geometric version
-    ob::StateSpacePtr fromPropSpace (new ob::StateSpaceFromPropagator<ob::SE2StateSpace>(sp));
-    fromPropSpace->as<ob::StateSpaceFromPropagator<ob::SE2StateSpace> >()->setBounds(bounds);
+    ob::StateSpacePtr fromPropSpace (new ob::FromPropagatorStateSpace<ob::SE2StateSpace>(sp));
+    fromPropSpace->as<ob::FromPropagatorStateSpace<ob::SE2StateSpace> >()->setBounds(bounds);
 
     // creating the new simple setup for geometric planning
     og::SimpleSetup ss (fromPropSpace);
