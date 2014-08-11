@@ -47,7 +47,7 @@ ss.setPlanner(planner);
 ...
 ~~~
 
-By default, it will use 2 instances of RRT*. The number of instances and the underlying planner can be modified calling the \c addPlannerInstances<T>() method:
+By default, it will use as many RRT* instances as cores available. The number of instances and the underlying planner can be modified calling the \c addPlannerInstances<T>() method:
 
 ~~~{.cpp}
 ompl::base::PlannerPtr planner(new ompl::geometric::CForest(ss.getSpaceInformation()));
@@ -162,7 +162,7 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
     const base::CForestStateSpace *cfspace = dynamic_cast<base::CForestStateSpace*>(si_->getStateSpace().get());
     if (cfspace)
         prune = cfspace->getCForestInstance()->getPrune();
-    }
+
     const base::ReportIntermediateSolutionFn intermediateSolutionCallback = pdef_->getIntermediateSolutionCallback();
     ...
     while (ptc == false) // Main loop
