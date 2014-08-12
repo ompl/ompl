@@ -152,6 +152,16 @@ void ompl::base::Planner::printSettings(std::ostream &out) const
     params_.print(out);
 }
 
+void ompl::base::Planner::visualizeCallback()
+{
+    visualizationCallback_(this);
+}
+
+void ompl::base::Planner::setVisualizationCallback(VisualizationCallback visualizationCallback)
+{
+    visualizationCallback_ = visualizationCallback;
+}
+
 void ompl::base::PlannerInputStates::clear()
 {
     if (tempState_)
@@ -353,3 +363,4 @@ bool ompl::base::PlannerInputStates::haveMoreGoalStates() const
             return sampledGoalsCount_ < pdef_->getGoal()->as<GoalSampleableRegion>()->maxSampleCount();
     return false;
 }
+
