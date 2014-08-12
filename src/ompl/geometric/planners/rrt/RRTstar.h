@@ -150,13 +150,13 @@ namespace ompl
                 return delayCC_;
             }
 
-            /* \brief Controls whether the tree is pruned during the search. */
+            /** \brief Controls whether the tree is pruned during the search. */
             void setPrune(const bool prune)
             {
                 prune_ = prune;
             }
 
-            /* \brief Get the state of the pruning option. */
+            /** \brief Get the state of the pruning option. */
             bool getPrune() const
             {
                 return prune_;
