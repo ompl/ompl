@@ -305,7 +305,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eige
         // Project onto the chart and check if it's in the validity region and polytope
         const AtlasChart &c = comp->getOwner();
         const Eigen::VectorXd psiInvX = c.psiInverse(x);
-        if ((c.phi(psiInvX) - x).norm() < atlas_.getEpsilon() && psiInvX.norm() < radius_ && c.inP(psiInvX))
+        if ((c.phi(psiInvX) - x).norm() < atlas_.getEpsilon() && psiInvX.norm() < atlas_.getRho() && c.inP(psiInvX))
             return &c;
     }
     
@@ -338,8 +338,8 @@ double ompl::base::AtlasChart::getMeasure (void) const
 
 void ompl::base::AtlasChart::shrinkRadius (void) const
 {
-    if (radius_ > atlas_.getDelta())
-        radius_ *= 0.8;
+//     if (radius_ > atlas_.getDelta())
+//         radius_ *= 0.8;
 }
 
 void ompl::base::AtlasChart::setID (unsigned int id)

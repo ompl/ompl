@@ -41,6 +41,8 @@
 #include "ompl/base/spaces/AtlasChart.h"
 #include "ompl/util/Exception.h"
 
+#include <signal.h>
+
 #include <boost/foreach.hpp>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/lambda/bind.hpp>
@@ -657,7 +659,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     const AtlasChart *c = from->getChart();
     if (!c)
     {
-        c = owningChart(x_n, c);
+        c = owningChart(x_n);
         if (!c)
             c = &newChart(x_n);
         from->setChart(c);
@@ -711,24 +713,35 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         
         if (((x_j - c->phi(u_j)).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_ || u_j.squaredNorm() > rho_*rho_))
         {
-            // Left the validity region of the chart; make a new one
-            if (u_n.norm() < 1e-6)
+            // Left the validity region of the chart; find or make a new one
+            // The paper says we should always make (never find) one here, but, empirically, that's not always the case
+            AtlasChart *newc = owningChart(c->phi(u_j), c);
+            if (!newc)
             {
-               // Point we want to center the new chart on is already a chart center
-                c = &newChart(dichotomicSearch(*c, x_n, x_j));  // See paper's discussion of probabilistic completeness; this was left out of pseudocode
+                if ((x_n - c->getXorigin()).norm() < delta_/cos_alpha_)
+                {
+                    // Point we want to center the new chart on is already a chart center
+                    c = &newChart(dichotomicSearch(*c, x_n, x_j));  // See paper's discussion of probabilistic completeness; this was left out of pseudocode
+                }
+                else
+                {
+                    c = &newChart(x_n);
+                }
+                chartsCreated++;
             }
             else
             {
-                c = &newChart(x_n);
+                c = newc;
             }
-            chartsCreated++;
             changedChart = true;
             //chartCreated = true;  // Again, unused
         }
         else if (!c->inP(u_j))
         {
             // Left the polytope of the chart; find the correct chart
-            AtlasChart *newc = owningChart(c->phi(u_j), c);   // Paper says this is a neighboring chart. That may not always be true, esp. for large delta
+            // Paper says this is a neighboring chart. That may not always be true, esp. for large delta
+            // So, this function call uses c as a hint, hoping one of its neighbors is who we're looking for, but falls back to a full search otherwise
+            AtlasChart *newc = owningChart(c->phi(u_j), c);
             
             // Deviation: If rho is too big, charts have gaps between them; this fixes it on the fly
             if (!newc)
@@ -736,7 +749,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
                 OMPL_DEBUG("Fell between the cracks! Patching in a new chart now.");
                 c->shrinkRadius();
                 updateMeasure(*c);
-                c = &newChart(x_n);
+                c = &newChart(c->phi(u_j));
                 chartsCreated++;
             }
             else

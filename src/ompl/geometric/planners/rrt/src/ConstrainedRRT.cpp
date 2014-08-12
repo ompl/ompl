@@ -108,7 +108,7 @@ bool ompl::geometric::ConstrainedRRT::constrainedExtend(const base::State* a, co
     int n = ss->validSegmentCount(a, b);  // number of steps between a and b in the state space
     double step = 1;
 
-    double prevDist = std::numeric_limits<double>::max();
+    double prevDist = std::numeric_limits<double>::max();   // TODO shouldn't this be disdtance(a,b) at first?
     while (true)
     {
         base::State* scratchState = ss->allocState();
