@@ -82,12 +82,12 @@ namespace ompl
 
             virtual void interpolate (const State *from, const State *to, const double t, State *state) const
             {
-                if (t>=1.)
+                /*if (t>=1.)
                 {
                     if (to != state)
                         T::copyState(state, to);
                     return;
-                }
+                }*/
                 
                 if (from != state)
                     T::copyState(state, from);
@@ -98,13 +98,15 @@ namespace ompl
                 double duration = 0;
 
                 std::vector<control::TimedControl> tcontrols;
+                sp_->getSpaceInformation()->printState(from);
+                sp_->getSpaceInformation()->printState(to);
                 if(sp_->steer(from,to,tcontrols,duration))
                 {                    
                     double interpT = t*duration, currentT = 0;
                     unsigned int i = 0;
 
                     // applying complete timed controls
-                    while(currentT + tcontrols[i].second < interpT)
+                    while(currentT + tcontrols[i].second + 0.0001 < interpT)
                     {
                         currentT += tcontrols[i].second;
                         sp_->propagate(state, tcontrols[i].first, tcontrols[i].second, state);

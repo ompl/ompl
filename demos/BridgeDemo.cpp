@@ -48,6 +48,7 @@
 //#include <ompl/geometric/planners/rrt/RRTConnect.h>
 
 #include <fstream>
+#include <limits>
 
 
 namespace ob = ompl::base;
@@ -187,10 +188,10 @@ int main(int argc, char** argv)
     start[0] = 0.;
     start[1] = 0.;
     start[2] = 0.;
-    goal[0] = 8.;
-    goal[1] = 7.; 
-    goal[2] = boost::math::constants::pi<double>()/2;
-
+    goal[0] = boost::lexical_cast<double>(argv[1]);
+    goal[1] = boost::lexical_cast<double>(argv[2]);
+    goal[2] = boost::lexical_cast<double>(argv[3]);
+    
     // set the start and goal states
     ss.setStartAndGoalStates(start, goal);
 
@@ -204,7 +205,7 @@ int main(int argc, char** argv)
     ss.setPlanner(planner);
 
     // attempt to solve the problem within one second of planning time
-    ob::PlannerStatus solved = ss.solve(1.0);
+    /*ob::PlannerStatus solved = ss.solve(1.0);
 
     if (solved)
     {
@@ -220,25 +221,35 @@ int main(int argc, char** argv)
         fs.close();
     }
     else
-        std::cout << "No solution found" << std::endl;
+        std::cout << "No solution found" << std::endl;*/
         
-    /*ob::ScopedState<> s1(fromPropSpace), s2(fromPropSpace);
+    ob::ScopedState<> s1(fromPropSpace), s2(fromPropSpace);
     s1[0] = 0.;
     s1[1] = 0.;
     s1[2] = 0.;
-    s2[0] = 0.;
-    s2[1] = 0.; 
+    s2[0] = 0.1;
+    s2[1] = 0.1; 
     s2[2] = boost::math::constants::pi<double>();
+    
+    /*s2[0] = boost::lexical_cast<double>(argv[1]);
+    s2[1] = boost::lexical_cast<double>(argv[2]); 
+    s2[2] = boost::lexical_cast<double>(argv[3]);*/
+    //boost::math::constants::pi<double>();
     
     ob::State *istate = fromPropSpace->allocState();
     
-    for (double i = 0; i <= 1.000001; i+= 0.01)
+    std::fstream fs;
+    fs.open ("test.txt", std::fstream::out | std::fstream::trunc);
+          
+    for (double i = 0; i <= 1.0001; i+= 0.01)
     {
         fromPropSpace->interpolate(s1.get(),s2.get(),i,istate);
-        std::cout << istate->as<ob::SE2StateSpace::StateType>()->getX() << "\t"
+       
+        fs << istate->as<ob::SE2StateSpace::StateType>()->getX() << "\t"
                   << istate->as<ob::SE2StateSpace::StateType>()->getY() << "\t"
                   << istate->as<ob::SE2StateSpace::StateType>()->getYaw() << std::endl;
     }
-*/
+
+    fs.close();
     return 0;
 }
