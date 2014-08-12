@@ -157,7 +157,7 @@ int main (int argc, char **argv)
                 atlas->followManifold(from, to, true, &stateList);
                 if (atlas->equalStates(stateList.front(), stateList.back()))
                 {
-                    std::cout << "[" << stateList.front()->toVector().transpose() << "]  " << stateList.front()->getChart().getID() << "\n";
+                    std::cout << "[" << stateList.front()->toVector().transpose() << "]  " << stateList.front()->getChart()->getID() << "\n";
                     animFile << stateList.front()->toVector().transpose() << "\n";
                 }
                 else
@@ -165,7 +165,7 @@ int main (int argc, char **argv)
                     // Print the intermediate states
                     for (std::size_t i = 1; i < stateList.size(); i++)
                     {
-                        std::cout << "[" << stateList[i]->toVector().transpose() << "]  " << stateList[i]->getChart().getID() << "\n";
+                        std::cout << "[" << stateList[i]->toVector().transpose() << "]  " << stateList[i]->getChart()->getID() << "\n";
                         animFile << stateList[i]->toVector().transpose() << "\n";
                         length += atlas->distance(stateList[i-1], stateList[i]);
                     }

@@ -146,7 +146,7 @@ namespace ompl
         };
         
         /** \brief State space encapsulating the atlas algorithm to assist planning on a constraint manifold. */
-        class AtlasStateSpace : public RealVectorStateSpace
+        class AtlasStateSpace : public RealVectorStateSpace // TODO Inherit from StateSpace, and utilize copyToReals(), etc.
         {
         public:
             
@@ -168,11 +168,8 @@ namespace ompl
                 /** \brief Convert this state to an Eigen::VectorXd. */
                 Eigen::VectorXd toVector (void) const;
                 
-                /** \brief Get the chart for the state. Unsafe if state not initalized. */
-                const AtlasChart &getChart (void) const;
-                
-                /** \brief Get the (possibly NULL) pointer to the chart. */
-                const AtlasChart *getChart_safe (void) const;
+                /** \brief Get the chart this state is on. */
+                const AtlasChart *getChart (void) const;
                 
                 /** \brief Set the chart \a c for the state. Skip the disown() step if \a fast. */
                 void setChart (const AtlasChart *const c, const bool fast = false) const;

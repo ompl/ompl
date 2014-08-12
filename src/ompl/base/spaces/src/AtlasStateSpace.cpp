@@ -95,7 +95,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     const AtlasStateSpace::StateType *anear = near->as<AtlasStateSpace::StateType>();
     Eigen::VectorXd n = anear->toVector();
     Eigen::VectorXd r;
-    const AtlasChart *c = anear->getChart_safe();
+    const AtlasChart *c = anear->getChart();
     if (!c)
     {
         c = atlas_.owningChart(n);
@@ -131,7 +131,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     Eigen::VectorXd m = amean->toVector();
     Eigen::VectorXd r;
     const std::size_t k = atlas_.getManifoldDimension();
-    const AtlasChart *c = amean->getChart_safe();
+    const AtlasChart *c = amean->getChart();
     if (!c)
     {
         c = atlas_.owningChart(m);
@@ -284,14 +284,7 @@ Eigen::VectorXd ompl::base::AtlasStateSpace::StateType::toVector (void) const
     return x;
 }
 
-const ompl::base::AtlasChart &ompl::base::AtlasStateSpace::StateType::getChart (void) const
-{
-    if (!chart_)
-        throw ompl::Exception("Tried to get NULL chart.");
-    return *chart_;
-}
-
-const ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart_safe (void) const
+const ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart (void) const
 {
     return chart_;
 }
@@ -356,10 +349,12 @@ void ompl::base::AtlasStateSpace::setup (void)
     if (setup_)
         return;
     
+    setup_ = true;
+    
     if (!si_)
         throw ompl::Exception("Must associate a SpaceInformation object to the AtlasStateSpace via setStateInformation() before use.");
+    setDelta(delta_);   // This makes some setup-related calls
     RealVectorStateSpace::setup();
-    setup_ = true;
 }
 
 void ompl::base::AtlasStateSpace::clear (void)
@@ -407,8 +402,10 @@ void ompl::base::AtlasStateSpace::setDelta (const double delta)
         throw ompl::Exception("Please specify a positive delta.");
     delta_  = delta;
     
-    if (si_)
-        si_->setStateValidityCheckingResolution(delta_);
+    if (setup_)
+    {
+        setLongestValidSegmentFraction(delta_ / getMaximumExtent());
+    }
 }
 
 void ompl::base::AtlasStateSpace::setEpsilon (const double epsilon)
@@ -657,7 +654,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     Eigen::VectorXd x_r, x_n;
     x_r = to->toVector();
     x_n = from->toVector();
-    const AtlasChart *c = from->getChart_safe();
+    const AtlasChart *c = from->getChart();
     if (!c)
     {
         c = owningChart(x_n, c);
@@ -1034,8 +1031,8 @@ void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *
     // Set the correct chart, guessing it might be one of the adjacent charts first
     StateType *astate = state->as<StateType>();
     const Eigen::VectorXd x = astate->toVector();
-    const AtlasChart &c1 = stateList[i > 0 ? i-1 : 0]->getChart();
-    const AtlasChart &c2 = stateList[i]->getChart();
+    const AtlasChart &c1 = *stateList[i > 0 ? i-1 : 0]->getChart();
+    const AtlasChart &c2 = *stateList[i]->getChart();
     if (c1.inP(c1.psiInverse(x)))
         astate->setChart(&c1);
     else if (c2.inP(c2.psiInverse(x)))
@@ -1057,7 +1054,7 @@ bool ompl::base::AtlasStateSpace::hasSymmetricInterpolate (void) const
 void ompl::base::AtlasStateSpace::copyState (State *destination, const State *source) const
 {
     RealVectorStateSpace::copyState(destination, source);
-    destination->as<StateType>()->setChart(source->as<StateType>()->getChart_safe());
+    destination->as<StateType>()->setChart(source->as<StateType>()->getChart());
 }
 
 ompl::base::StateSamplerPtr ompl::base::AtlasStateSpace::allocDefaultStateSampler (void) const
@@ -1075,7 +1072,7 @@ ompl::base::State *ompl::base::AtlasStateSpace::allocState (void) const
 void ompl::base::AtlasStateSpace::freeState (State *state) const
 {
     StateType *const astate = state->as<StateType>();
-    const AtlasChart *const c = astate->getChart_safe();
+    const AtlasChart *const c = astate->getChart();
     if (c)
         c->disown(astate);
     delete astate;

@@ -119,7 +119,7 @@ int main (int argc, char **argv)
     const double runtime_limit = std::atof(argv[2]);
     if (runtime_limit <= 0)
         usage(argv[0]);
-    const double memory_limit = 1024;
+    const double memory_limit = 2048;
     const int run_count = std::atoi(argv[3]);
     if (run_count < 1)
         usage(argv[0]);
