@@ -163,6 +163,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         OMPL_WARN("%s: tree pruning was activated but the state space %s does not obey the triangle inequality (is not metric). Pruning is now deactivated."
                   , getName().c_str(), si_->getStateSpace()->getName().c_str());
         prune_ = false;
+
+        if (cfspace)
+            cfspace->getCForestInstance()->setPrune(false);
     }
 
     const base::ReportIntermediateSolutionFn intermediateSolutionCallback = pdef_->getIntermediateSolutionCallback();

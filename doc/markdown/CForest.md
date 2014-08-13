@@ -162,6 +162,15 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
     const base::CForestStateSpace *cfspace = dynamic_cast<base::CForestStateSpace*>(si_->getStateSpace().get());
     if (cfspace)
         prune = cfspace->getCForestInstance()->getPrune();
+        
+    if (prune_ && !si_->getStateSpace()->isMetricSpace())
+    {
+        OMPL_WARN("%s: tree pruning was activated but the state space %s does not obey the triangle inequality (is not metric). Pruning is now deactivated.", getName().c_str(), si_->getStateSpace()->getName().c_str());
+        prune_ = false;
+
+        if (cfspace)
+            cfspace->getCForestInstance()->setPrune(false);
+    }
 
     const base::ReportIntermediateSolutionFn intermediateSolutionCallback = pdef_->getIntermediateSolutionCallback();
     ...
@@ -170,9 +179,9 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
 }
 ~~~
 
-If the CForest framework is being used, the state space of the MyPlanner instance will be of type \c CForestStateSpaceWrapper. Therefore, it is possible to configure the _prune_ flag, which manages the code related to tree pruning and early state rejection. Also, \c intermediateSolutionCallback will be helpful to check the path sharing.
+If the CForest framework is being used, the state space of the MyPlanner instance will be of type \c CForestStateSpaceWrapper. Therefore, it is possible to configure the \c prune_ flag, which manages the code related to tree pruning and early state rejection. The second if checs is the pruning is active and then it checks if the state space obeys the triangle inequality. It case it does not, pruning is deactivated (in the tree and in CForest if necessary). Also, \c intermediateSolutionCallback will be helpful to check the path sharing.
 
-\note CForest can be used wihtout pruning. In this case, the prune flag is activated only if the ompl::geometricCForest::setPrune() method was called with a true argument (it is activated by default).
+\note CForest can be used wihtout pruning. In this case, the \c prune_ flag is activated only if the ompl::geometricCForest::setPrune() method was called with a true argument (it is activated by default). Tree pruning in RRTstar can be used as an independent feature.
 
 ##### Path sharing
 As CForest is designed to use incremental, optimizing planners, it is assumed you will have a flag in your code to indicate when a new, better path has been found and a pointer to the motion which contains the last state (goal) of the solution. Therefore, at the end of the main loop within the solve function, you should add a code similar to the following:
