@@ -128,7 +128,6 @@ public:
         //planner_->as<og::CForest>()->setNumThreads(6);
 
         planner_->setup();
-        planner_->printProperties(std::cout);
 
         // attempt to solve the planning problem within five seconds of
         // planning time
