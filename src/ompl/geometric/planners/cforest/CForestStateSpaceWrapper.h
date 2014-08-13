@@ -58,6 +58,7 @@ namespace ompl
             CForestStateSpaceWrapper(geometric::CForest *cforest, base::StateSpace *space)
                 : cforest_(cforest), space_(space), planner_(NULL)
             {
+                setName(space->getName() + "CForestWrapper");
             }
 
             ~CForestStateSpaceWrapper()
@@ -82,6 +83,8 @@ namespace ompl
             virtual StateSamplerPtr allocDefaultStateSampler() const;
 
             virtual StateSamplerPtr allocStateSampler() const;
+
+            virtual void setup();
 
             virtual bool isCompound() const
             {
@@ -210,10 +213,6 @@ namespace ompl
             virtual void computeLocations()
             {
                 space_->computeLocations();
-            }
-            virtual void setup()
-            {
-                space_->setup();
             }
 
         protected:
