@@ -249,7 +249,7 @@ unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, cons
         added++;
     }
 
-    // HACK for speed
+    // HACK for use by RRT on an atlas with addIntermediateStates_ set to true
     AtlasStateSpace *atlas = dynamic_cast<AtlasStateSpace *>(stateSpace_.get());
     std::vector<AtlasStateSpace::StateType *> stateList;
     if (atlas)
