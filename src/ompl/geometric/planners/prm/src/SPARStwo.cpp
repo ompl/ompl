@@ -153,8 +153,12 @@ bool ompl::geometric::SPARStwo::haveSolution(const std::vector<Vertex> &starts, 
 
             if (same_component && g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
             {
-                solution = constructSolution(start, goal);
-                return true;
+                // Make sure that the start and goal aren't so close together that they find the same vertex
+                if (start != goal)
+                {
+                    solution = constructSolution(start, goal);
+                    return true;
+                }
             }
         }
     return false;
