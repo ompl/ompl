@@ -110,7 +110,6 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructGeometricPath(const boost
 {
     // first, get the solution states without copying them
     std::vector<const base::State*> states;
-    Vertex prevVertex = goal;
     for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
     {
         const base::State *st = stateProperty_[pos];
@@ -128,37 +127,43 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructGeometricPath(const boost
             boost::remove_vertex(pos, g_);
             break;
         }
-        else
-        {
-            // check the edge too, if the vertex was valid
-            if (prevVertex != pos)
-            {
-                Edge e = boost::lookup_edge(prevVertex, pos, g_).first;
-                unsigned int &evd = edgeValidityProperty_[e];
-                if ((evd & VALIDITY_TRUE) == 0)
-                    if (si_->checkMotion(states.back(), st))
-                        evd |= VALIDITY_TRUE;
-                if ((evd & VALIDITY_TRUE) == 0)
-                {
-                    states.clear();
-                    boost::remove_edge(e, g_);
-                    break;
-                }
-            }
-        }
-        prevVertex = pos;
         states.push_back(st);
+    }
+
+    // check the edges too, if the vertices were valid
+    if (!states.empty())
+    {
+        // start is checked for validity already
+        states.push_back(stateProperty_[start]);
+
+        std::vector<const base::State*>::const_reverse_iterator prevState = states.rbegin(), state = prevState + 1;
+        Vertex prevVertex = goal, pos = prev[goal];
+        do
+        {
+            Edge e = boost::lookup_edge(prevVertex, pos, g_).first;
+            unsigned int &evd = edgeValidityProperty_[e];
+            if ((evd & VALIDITY_TRUE) == 0)
+                if (si_->checkMotion(*prevState, *state))
+                    evd |= VALIDITY_TRUE;
+            if ((evd & VALIDITY_TRUE) == 0)
+            {
+                states.clear();
+                boost::remove_edge(e, g_);
+                break;
+            }
+            prevState = state;
+            state++;
+            prevVertex = pos;
+            pos = prev[pos];
+        }
+        while (prevVertex != pos);
     }
 
     if (states.empty())
         return base::PathPtr();
-    else
-        // start is checked for validity already
-        states.push_back(stateProperty_[start]);
 
     PathGeometric *p = new PathGeometric(si_);
-    for (std::size_t i = 0 ; i < states.size() ; ++i)
-        p->append(states[i]);
-    p->reverse();
+    for (std::vector<const base::State*>::const_reverse_iterator st = states.rbegin(); st != states.rend(); st++)
+        p->append(*st);
     return base::PathPtr(p);
 }

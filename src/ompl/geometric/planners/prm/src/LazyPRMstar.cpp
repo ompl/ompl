@@ -32,52 +32,12 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Mark Moll, Ioan Sucan */
+/* Author: Ioan Sucan, James D. Marble, Ryan Luna */
 
-#ifndef OMPL_CONTROL_STEERED_CONTROL_SAMPLER_
-#define OMPL_CONTROL_STEERED_CONTROL_SAMPLER_
+#include "ompl/geometric/planners/prm/LazyPRMstar.h"
 
-#include "ompl/control/DirectedControlSampler.h"
-#include "ompl/control/StatePropagator.h"
-#include <cmath>
-
-namespace ompl
+ompl::geometric::LazyPRMstar::LazyPRMstar(const base::SpaceInformationPtr &si) : LazyPRM(si, true)
 {
-    namespace control
-    {
-
-
-        /** \brief Abstract definition of a steered control sampler. It uses the
-            steering function in a state propagator to find the controls that
-            drive from one state to another. */
-        class SteeredControlSampler : public DirectedControlSampler
-        {
-        public:
-
-            /** \brief Constructor takes the state space to construct samples for as argument */
-            SteeredControlSampler(const SpaceInformation *si) : DirectedControlSampler(si)
-            {
-            }
-
-            virtual ~SteeredControlSampler()
-            {
-            }
-
-            virtual unsigned int sampleTo(Control *control, const base::State *source, base::State *dest)
-            {
-                double duration;
-                if (!si_->getStatePropagator()->steer(source, dest, control, duration)) return 0;
-                unsigned int steps = std::floor(duration / si_->getMinControlDuration() + 0.5);
-                return si_->propagateWhileValid(source, control, steps, dest);
-            }
-
-            virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest)
-            {
-                return sampleTo(control, source, dest);
-            }
-        };
-    }
+    setName("LazyPRMstar");
+    params_.remove("max_nearest_neighbors");
 }
-
-
-#endif

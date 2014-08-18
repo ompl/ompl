@@ -357,6 +357,12 @@ namespace ompl
             /** \brief Returns the average valence of the spanner graph */
             double averageValence() const;
 
+            /** \brief Print debug information about planner */
+            void printDebug(std::ostream &out = std::cout) const;
+
+            /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_  */
+            bool reachedFailureLimit() const;
+
         protected:
 
             /** \brief Attempt to add a single sample to the roadmap. */
@@ -427,9 +433,6 @@ namespace ompl
 
             /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_ or if a solution was added */
             bool reachedTerminationCriterion() const;
-
-            /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_  */
-            bool reachedFailureLimit() const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
             base::PathPtr constructSolution(const SparseVertex start, const SparseVertex goal) const;

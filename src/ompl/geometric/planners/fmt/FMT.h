@@ -105,24 +105,6 @@ namespace ompl
                 return numSamples_;
             }
 
-            /** \brief Set the number of states that the planner can try to
-                sample before it must move on to planning, even if the desired
-                number of valid states have not been found yet. The default
-                value is ten times numSamples_. Ideally, it should be related to
-                numSamples_/(the fraction of the configuration space that is obstacle-free) */
-            void setMaxSampleAttempts(const unsigned int maxSampleAttempts)
-            {
-                maxSampleAttempts_ = maxSampleAttempts;
-            }
-
-            /** \brief Get the number of states that the planner can try to
-                sample before it must move on to planning, even if the desired
-                number of valid states have not been found yet */
-            unsigned int getMaxSampleAttempts() const
-            {
-                return maxSampleAttempts_;
-            }
-
             /** \brief The planner searches for neighbors of a node within a
                 cost r, where r is the value described for FMT* in Section 4
                 of [L. Janson, A. Clark, and M. Pavone, "Fast Marching Trees: a Fast
@@ -351,11 +333,6 @@ namespace ompl
 
             /** \brief The number of samples to use when planning */
             unsigned int numSamples_;
-
-            /** \brief The number of samples the planner can try to take before
-                it must continue on in the planning process, even if numSamples_
-                of valid states have not been found yet */
-            unsigned int maxSampleAttempts_;
 
             /** \brief The volume of the free configuration space */
             double freeSpaceVolume_;

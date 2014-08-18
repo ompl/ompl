@@ -17,7 +17,11 @@ First, you'll need to [install MORSE (version 1.0 or later)](http://www.openrobo
 
     $ morse check
 
-Second, follow the general instructions for installing OMPL with the Python bindings, but take care to set the variables Boost_PYTHON_LIBRARY_DEBUG and Boost_PYTHON_LIBRARY_RELEASE to the exact Python 3 version of these libraries that is used by Morse. This version is included in the output of `morse check`.
+Second, follow the general instructions for installing OMPL with the Python bindings. Since Blender and MORSE require Python 3, it is essential you also use Python 3 for the OMPL python bindings:
+
+    $ cmake -DPYTHON_EXEC=/usr/bin/python3 .
+
+You may also need to install the Python3 libraries and headers if they aren't already (for example, on Ubuntu this is the python3-dev package). You should also take care to set the variables Boost_PYTHON_LIBRARY_DEBUG and Boost_PYTHON_LIBRARY_RELEASE to the exact Python 3 version of these libraries that is used by Morse. This version is included in the output of `morse check`.
 
 At the moment, there is one Python script that should be installed as a Blender add-on. This is not done automatically. You'll find the add-on located at ${PREFIX}/share/ompl/addons/ompl_addon.py (by default, ${PREFIX} is equal to /usr/local). To install it, open Blender, navigate to File > User Preferences > Addons > Install addon... and select the ompl_addon.py file. Then enable this addon by clicking its check box. Finally, you'll want to Save As Default so that it will always be enabled when Blender starts.
 

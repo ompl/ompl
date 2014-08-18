@@ -240,8 +240,7 @@ namespace ompl
             /// \brief Retrieves the error values from the most recent integration
             ODESolver::StateType getError ()
             {
-                ODESolver::StateType error (error_.begin (), error_.end ());
-                return error;
+                return error_;
             }
 
         protected:
@@ -257,7 +256,7 @@ namespace ompl
                 solver.adjust_size (state);
 
                 double time = 0.0;
-                while (time < duration)
+                while (time < duration + std::numeric_limits<float>::epsilon())
                 {
                     solver.do_step (odefunc, state, time, intStep_, error_);
                     time += intStep_;
@@ -318,7 +317,11 @@ namespace ompl
             {
                 ODESolver::ODEFunctor odefunc (ode_, control);
 
+#if BOOST_VERSION < 105600
                 odeint::controlled_runge_kutta< Solver > solver (odeint::default_error_checker<double>(maxError_, maxEpsilonError_));
+#else
+                typename boost::numeric::odeint::result_of::make_controlled< Solver >::type solver = make_controlled( 1.0e-6 , 1.0e-6 , Solver() );
+#endif
                 odeint::integrate_adaptive (solver, odefunc, state, 0.0, duration, intStep_);
             }
 
