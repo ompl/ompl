@@ -53,7 +53,7 @@ ompl::geometric::FMT::FMT(const base::SpaceInformationPtr &si)
     , numSamples_(1000)
     , radiusMultiplier_(1.1)
 {
-    freeSpaceVolume_ = std::pow(si_->getMaximumExtent() / std::sqrt(si_->getStateDimension()), si_->getStateDimension());
+    freeSpaceVolume_ = std::pow(si_->getMaximumExtent() / std::sqrt(si_->getStateDimension()), (int)si_->getStateDimension());
     lastGoalMotion_ = NULL;
 
     specs_.approximateSolutions = false;
