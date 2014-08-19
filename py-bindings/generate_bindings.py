@@ -473,6 +473,14 @@ class ompl_geometric_generator_t(code_generator_t):
             return s.str();
         }
         """)
+        replacement['printDebug'] = ('def("printDebug", &__printDebug)', """
+        std::string __printDebug(%s* obj)
+        {
+            std::ostringstream s;
+            obj->printDebug(s);
+            return s.str();
+        }
+        """)
         code_generator_t.__init__(self, 'geometric', ['bindings/util', 'bindings/base'], replacement)
 
     def filter_declarations(self):
@@ -483,6 +491,8 @@ class ompl_geometric_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
         # print paths as matrices
         self.replace_member_functions(self.ompl_ns.member_functions('printAsMatrix'))
+        # print debug info
+        self.replace_member_functions(self.ompl_ns.member_functions('printDebug'))
         self.ompl_ns.member_functions('freeGridMotions').exclude()
         self.ompl_ns.class_('PRM').member_functions('haveSolution').exclude()
         self.ompl_ns.class_('PRM').member_functions('growRoadmap',
