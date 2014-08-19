@@ -152,6 +152,17 @@ void ompl::base::Planner::printSettings(std::ostream &out) const
     params_.print(out);
 }
 
+void ompl::base::Planner::visualizeCallback()
+{
+    if (visualizationCallback_)
+        visualizationCallback_(this);
+}
+
+void ompl::base::Planner::setVisualizationCallback(VisualizationCallback visualizationCallback)
+{
+    visualizationCallback_ = visualizationCallback;
+}
+
 void ompl::base::PlannerInputStates::clear()
 {
     if (tempState_)
