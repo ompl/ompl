@@ -288,6 +288,7 @@ namespace ompl
                 {
                     motions.clear();
                     covGridCells.clear();
+                    pdfElem = NULL;
                 }
 
                 /** \brief The cells of the underlying coverage grid that contain tree motions from this region */
