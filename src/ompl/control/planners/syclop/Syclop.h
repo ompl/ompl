@@ -106,12 +106,12 @@ namespace ompl
             {
                 specs_.approximateSolutions = true;
 
-                Planner::declareParam<int>   ("free_volume_samples", this, &Syclop::setNumFreeVolumeSamples, &Syclop::getNumFreeVolumeSamples);
-                Planner::declareParam<int>   ("num_region_expansions", this, &Syclop::setNumRegionExpansions, &Syclop::getNumRegionExpansions);
-                Planner::declareParam<int>   ("num_tree_expansions", this, &Syclop::setNumTreeExpansions, &Syclop::getNumTreeExpansions);
-                Planner::declareParam<double>("prob_abandon_lead_early", this, &Syclop::setProbAbandonLeadEarly, &Syclop::getProbAbandonLeadEarly);
-                Planner::declareParam<double>("prob_add_available_regions", this, &Syclop::setProbAddingToAvailableRegions, &Syclop::getProbAddingToAvailableRegions);
-                Planner::declareParam<double>("prob_shortest_path_lead", this, &Syclop::setProbShortestPathLead, &Syclop::getProbShortestPathLead);
+                Planner::declareParam<int>   ("free_volume_samples", this, &Syclop::setNumFreeVolumeSamples, &Syclop::getNumFreeVolumeSamples, "10000:10000:500000");
+                Planner::declareParam<int>   ("num_region_expansions", this, &Syclop::setNumRegionExpansions, &Syclop::getNumRegionExpansions, "10:10:500");
+                Planner::declareParam<int>   ("num_tree_expansions", this, &Syclop::setNumTreeExpansions, &Syclop::getNumTreeExpansions, "0:1:100");
+                Planner::declareParam<double>("prob_abandon_lead_early", this, &Syclop::setProbAbandonLeadEarly, &Syclop::getProbAbandonLeadEarly, "0.:.05:1.");
+                Planner::declareParam<double>("prob_add_available_regions", this, &Syclop::setProbAddingToAvailableRegions, &Syclop::getProbAddingToAvailableRegions, "0.:.05:1.");
+                Planner::declareParam<double>("prob_shortest_path_lead", this, &Syclop::setProbShortestPathLead, &Syclop::getProbShortestPathLead, "0.:.05:1.");
             }
 
             virtual ~Syclop()
