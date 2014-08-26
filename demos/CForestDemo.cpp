@@ -201,12 +201,12 @@ int main(int argc, char** argv)
     }
 
     Plane2DEnvironment<og::RRTstar> env_rrts((path / "ppm/floor.ppm").string().c_str());
-    if (env_rrts.plan(0, 0, 1140, 1402))
+    /*if (env_rrts.plan(0, 0, 1140, 1402))
     {
         OMPL_INFORM("**** Plan successful ****");
         env_rrts.recordSolution("result_demo_rrtstar.ppm");
         std::cout << "Final lowest cost RRTstar: " << env_rrts.getLowestCost() << std::endl;
-    }
+    }*/
 
     return 0;
 }

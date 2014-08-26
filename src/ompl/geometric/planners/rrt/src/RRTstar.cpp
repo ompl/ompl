@@ -608,8 +608,6 @@ void ompl::geometric::RRTstar::freeMemory()
             delete motions[i];
         }
     }
-
-    detelePrunedMotions();
 }
 
 void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
@@ -653,11 +651,11 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost)
 {
     const int tree_size = nn_->size();
     std::vector<Motion*> newTree, toBePruned;
+    std::queue<Motion*> candidates;
+    Motion *candidate;
+
     newTree.reserve(tree_size);
     toBePruned.reserve(tree_size);
-
-    Motion *candidate;
-    std::queue<Motion*> candidates;
 
     candidates.push(startMotion_);
 
@@ -678,6 +676,7 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost)
     }
 
     // avoid excesive tree pruning.
+    // TODO: remove this check or at least set the threshold a bit more intelligently
     if (newTree.size() < 100) return 0;
 
     // To create the new nn takes one order of magnitude in time more than just checking how many 
@@ -685,10 +684,7 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost)
     if ((double)newTree.size() / tree_size < pruneStatesThreshold_)
     {
         for (std::size_t i = 0; i < toBePruned.size(); ++i)
-        {
-            removeFromParent(toBePruned[i]);
-            toBeDeleted_.push_back(toBePruned[i]);
-        }
+            deleteBranch(toBePruned[i]);
 
         nn_->clear();
         nn_->add(newTree);
@@ -698,15 +694,20 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost)
     return 0;
 }
 
-void ompl::geometric::RRTstar::detelePrunedMotions()
+void ompl::geometric::RRTstar::deleteBranch(Motion *motion)
 {
-    while (!toBeDeleted_.empty())
+    removeFromParent(motion);
+
+    std::vector<Motion *> toDelete;
+    toDelete.push_back(motion);
+
+    while (!toDelete.empty())
     {
-        Motion *mto_delete = toBeDeleted_.front();
-        toBeDeleted_.pop_front();
+        Motion *mto_delete = toDelete.back();
+        toDelete.pop_back();
 
         for(std::size_t i = 0; i < mto_delete->children.size(); ++i)
-            toBeDeleted_.push_back(mto_delete->children[i]);
+            toDelete.push_back(mto_delete->children[i]);
 
         si_->freeState(mto_delete->state);
         delete mto_delete;

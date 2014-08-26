@@ -262,8 +262,8 @@ namespace ompl
                 Returns the number of motions pruned. Depends on the parameter set by setPruneStatesImprovementThreshold() */
             int pruneTree(const base::Cost pruneTreeCost);
 
-            /** \brief Deletes the pruned motions. */
-            void detelePrunedMotions();
+            /** \brief Deletes (frees memory) the motion and its children motions. */
+            void deleteBranch(Motion *motion);
 
             base::Cost computeCTGHeuristic(const Motion *motion, const bool shortest = true) const;
 
@@ -298,9 +298,6 @@ namespace ompl
                  nearest neighbors. Either from neighbors to new state,
                  or from new state to neighbors. */
             DistanceDirection                              distanceDirection_;
-
-             /** \brief If this vector contains motions, they will be deteled in the deletePrunedMotion() method. */
-            std::deque<Motion*>                            toBeDeleted_;
 
             /** \brief If this value is set to true, tree pruning will be enabled. */
             bool                                           prune_;
