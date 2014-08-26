@@ -720,7 +720,7 @@ ompl::base::Cost ompl::geometric::RRTstar::computeCTGHeuristic(const Motion *mot
     if (shortest)
         costToCome = opt_->motionCost(startMotion_->state, motion->state); // h_s
     else
-        costToCome = opt_->combineCosts(motion->parent->cost, opt_->motionCost(motion->parent->state, motion->state)); // d_s
+        costToCome = motion->cost; //d_s
 
     const base::Cost costToGo = base::goalRegionCostToGo(motion->state, pdef_->getGoal().get()); // h_g
     return opt_->combineCosts(costToCome, costToGo); // h_s + h_g

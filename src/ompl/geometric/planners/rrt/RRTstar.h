@@ -265,6 +265,9 @@ namespace ompl
             /** \brief Deletes (frees memory) the motion and its children motions. */
             void deleteBranch(Motion *motion);
 
+            /** \brief Computes the Cost To Go heuristic as the cost to come from start to motion plus
+                 the cost to go from motion to goal. If \e shortest is true, the estimated cost to come
+                 start-motion is given. Otherwise, this cost to come is the current motion cost. */
             base::Cost computeCTGHeuristic(const Motion *motion, const bool shortest = true) const;
 
             /** \brief State sampler */
