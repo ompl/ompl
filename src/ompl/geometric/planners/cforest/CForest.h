@@ -104,6 +104,7 @@ namespace ompl
                         si->setStateValidityChecker(si_->getStateValidityChecker());
                         si->setMotionValidator(si_->getMotionValidator());
                         planner->setProblemDefinition(pdef_);
+                        planner->as<T>()->setPrune(prune_);
                         planners_.push_back(planner);
                     }
                 }

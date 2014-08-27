@@ -154,10 +154,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
-    const base::CForestStateSpaceWrapper *cfspace = dynamic_cast<base::CForestStateSpaceWrapper*>(si_->getStateSpace().get());
-    if (cfspace)
-        prune_ = cfspace->getCForestInstance()->getPrune();
-
     if (prune_ && !si_->getStateSpace()->isMetricSpace())
         OMPL_WARN("%s: tree pruning was activated but since the state space %s is not a metric space, "
                   "the optimization objective might not satisfy the triangle inequality. You may need to disable pruning."
