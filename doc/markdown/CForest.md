@@ -153,26 +153,15 @@ There are three main components that should be included:
 
 
 ##### CForest activation and configuration
-Firstly, your planner needs to know it will work under the CForest framework. Therefore, in the \c solve() function, you need to add the following code:
+Firstly, if working under CForest, the corresponding callback for sharing intermediate solutions must be set. Also, a check should be included to figure out if the pruning would cause some errors. Therefore, in the \c solve() function, you need to add the following code:
 
 ~~~{.cpp}
 ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
 {
     // Configuration before entering the main solving loop.
     ....
-    bool prune = true;
-    const base::CForestStateSpace *cfspace = dynamic_cast<base::CForestStateSpace*>(si_->getStateSpace().get());
-    if (cfspace)
-        prune = cfspace->getCForestInstance()->getPrune();
-        
     if (prune_ && !si_->getStateSpace()->isMetricSpace())
-    {
-        OMPL_WARN("%s: tree pruning was activated but the state space %s does not obey the triangle inequality (is not metric). Pruning is now deactivated.", getName().c_str(), si_->getStateSpace()->getName().c_str());
-        prune_ = false;
-
-        if (cfspace)
-            cfspace->getCForestInstance()->setPrune(false);
-    }
+       OMPL_WARN("%s: tree pruning was activated but since the state space %s is not a metric space, the optimization objective might not satisfy the triangle inequality. You may need to disable pruning.", getName().c_str(), si_->getStateSpace()->getName().c_str());
 
     const base::ReportIntermediateSolutionFn intermediateSolutionCallback = pdef_->getIntermediateSolutionCallback();
     ...
@@ -181,7 +170,7 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
 }
 ~~~
 
-If the CForest framework is being used, the state space of the MyPlanner instance will be of type \c CForestStateSpaceWrapper. Therefore, it is possible to configure the \c prune_ flag, which manages the code related to tree pruning and early state rejection. The second if checs is the pruning is active and then it checks if the state space obeys the triangle inequality. It case it does not, pruning is deactivated (in the tree and in CForest if necessary). Also, \c intermediateSolutionCallback will be helpful to check the path sharing.
+\c prune_ flag will be set but the user or the CForest framework. This flag manages the code related to tree pruning and early state rejection. If \c intermediateSolutionCallback is false, then the path sharing code will not be executed.
 
 \note CForest can be used wihtout pruning. In this case, the \c prune_ flag is activated only if the ompl::geometricCForest::setPrune() method was called with a true argument (it is activated by default). Tree pruning in RRTstar can be used as an independent feature.
 

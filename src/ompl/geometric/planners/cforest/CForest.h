@@ -40,6 +40,7 @@
 
 #include "ompl/geometric/planners/cforest/CForestStateSpaceWrapper.h"
 #include "ompl/geometric/planners/PlannerIncludes.h"
+#include "ompl/geometric/planners/rrt/RRTstar.h"
 #include "ompl/tools/config/SelfConfig.h"
 
 #include <boost/thread.hpp>
@@ -104,7 +105,8 @@ namespace ompl
                         si->setStateValidityChecker(si_->getStateValidityChecker());
                         si->setMotionValidator(si_->getMotionValidator());
                         planner->setProblemDefinition(pdef_);
-                        planner->as<T>()->setPrune(prune_);
+                        if (dynamic_cast<ompl::geometric::RRTstar*>(planner.get()))
+                            planner->as<T>()->setPrune(prune_);
                         planners_.push_back(planner);
                     }
                 }

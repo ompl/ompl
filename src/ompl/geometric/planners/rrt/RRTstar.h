@@ -40,7 +40,6 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
-#include "ompl/geometric/planners/cforest/CForest.h"
 
 #include <limits>
 #include <vector>
@@ -308,7 +307,7 @@ namespace ompl
             /** \brief The tree is only pruned is the percentage of states to prune is above this threshold (between 0 and 1). */
             double                                         pruneStatesThreshold_;
 
-            /** \brief Stores the Motion containing the initial start state for CForest (assumes there is only 1 start state). */
+            /** \brief Stores the Motion containing the last added initial start state. */
             Motion *                                       startMotion_;
 
             //////////////////////////////
