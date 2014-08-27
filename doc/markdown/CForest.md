@@ -30,6 +30,8 @@ CForest has been included into OMPL as a new [optimizing planner](optimalPlannin
 
 - `ompl::geometric::CForest`
 
+\Note CForest is designed to optimize path lengths. In OMPL, it is implemented focused on \c PathLengthOptimizationObjective. However, other shortest-paths problems could be faced: shortest in terms of time, consumed energy (not tested). Therefore, CForest in OMPL requirements are not for the state space but for the optimization objective. It requires an optimization objective with an admissible heuristic. Since this is complex to check, a warning is shown if the state space is not a metric space (although this does not mean that the optimization objective is not valid to be used with CForest).
+
 Currently RRT* (ompl::geometric::RRTstar) is the only underlying planner available, since it is the only single-query, incremental, optimal planning algorithm implemented in OMPL.
 
 The CForest planner is the responsible of coordinating the different trees and sharing the solutions found. Path sharing is done through a specific CForest state sampler (ompl::base::CForestStateSampler). This sampler allows to add states to sample: if a state has been added to the sampler, it will _sample_ it in the following call to \c sampleUniform() (or any of the other sampling calls).

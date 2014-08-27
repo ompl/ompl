@@ -38,7 +38,6 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
-#include "ompl/geometric/planners/cforest/CForestStateSpaceWrapper.h"
 #include <algorithm>
 #include <limits>
 #include <map>
