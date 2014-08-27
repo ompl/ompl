@@ -132,7 +132,7 @@ int main(int argc, char **argv)
     ot::Benchmark::Request request(runtimeLimit, memoryLimit, runCount);
     ot::Benchmark b(ss, "CircleGrid");
 
-    //b.addPlanner(ob::PlannerPtr(new og::RRTstar(ss.getSpaceInformation())));
+    b.addPlanner(ob::PlannerPtr(new og::RRTstar(ss.getSpaceInformation())));
     b.addPlanner(ob::PlannerPtr(new og::CForest(ss.getSpaceInformation())));
     b.benchmark(request);
     b.saveResultsToFile("circleGrid.log");
