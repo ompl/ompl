@@ -209,19 +209,10 @@ namespace ompl
                 const base::OptimizationObjective &opt_;
             };
 
-            enum DistanceDirection { FROM_NEIGHBORS, TO_NEIGHBORS };
-
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion *a, const Motion *b) const
             {
-                switch (distanceDirection_)
-                {
-                case FROM_NEIGHBORS:
-                    return si_->distance(a->state, b->state);
-                case TO_NEIGHBORS:
-                    return si_->distance(b->state, a->state);
-                }
-                return 0; // remove warning
+                return si_->distance(a->state, b->state);
             }
 
             /** \brief Removes the given motion from the parent's child list */
@@ -268,11 +259,6 @@ namespace ompl
 
             /** \brief Best cost found so far by algorithm */
             base::Cost                                     bestCost_;
-
-            /** \brief Directionality of distance computation for
-                nearest neighbors. Either from neighbors to new state,
-                or from new state to neighbors. */
-            DistanceDirection                              distanceDirection_;
         };
 
     }

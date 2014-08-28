@@ -56,7 +56,6 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) : base::P
     iterations_ = 0;
     collisionChecks_ = 0;
     bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
-    distanceDirection_ = FROM_NEIGHBORS;
 
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
@@ -80,18 +79,21 @@ void ompl::geometric::RRTstar::setup()
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
+    if (!si_->getStateSpace()->hasSymmetricDistance() || !si_->getStateSpace()->hasSymmetricInterpolate())
+    {
+        OMPL_WARN("%s requires a state space with symmetric distance and symmetric interpolation.", getName().c_str());
+    }
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
-
 
     // Setup optimization objective
     //
     // If no optimization objective was specified, then default to
     // optimizing path length as computed by the distance() function
     // in the state space.
-    if(pdef_)
+    if (pdef_)
     {
         if (pdef_->hasOptimizationObjective())
             opt_ = pdef_->getOptimizationObjective();
@@ -131,8 +133,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     base::Goal                  *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
-    bool symDist = si_->getStateSpace()->hasSymmetricDistance();
-    bool symInterp = si_->getStateSpace()->hasSymmetricInterpolate();
     bool symCost = opt_->isSymmetric();
 
     while (const base::State *st = pis_.nextStart())
@@ -200,11 +200,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         else
             sampler_->sampleUniform(rstate);
 
-        // Set directionality of nearest neighbors computation to be
-        // FROM neighbors TO new state
-        if (!symDist)
-            distanceDirection_ = FROM_NEIGHBORS;
-
         // find closest state in the tree
         Motion *nmotion = nn_->nearest(rmotion);
 
@@ -251,12 +246,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             //
             // Our validity caches only increase in size, so they're
             // only resized if they can't fit the current neighborhood
-            if (symDist && symInterp)
-            {
-                if (valid.size() < nbh.size())
-                    valid.resize(nbh.size());
-                std::fill(valid.begin(), valid.begin()+nbh.size(), 0);
-            }
+            if (valid.size() < nbh.size())
+                valid.resize(nbh.size());
+            std::fill(valid.begin(), valid.begin() + nbh.size(), 0);
 
             // Finding the nearest neighbor to connect to
             // By default, neighborhood states are sorted by cost, and collision checking
@@ -276,7 +268,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 // original, unsorted indices
                 for (std::size_t i = 0; i < nbh.size(); ++i)
                     sortedCostIndices[i] = i;
-                std::sort(sortedCostIndices.begin(), sortedCostIndices.begin()+nbh.size(),
+                std::sort(sortedCostIndices.begin(), sortedCostIndices.begin() + nbh.size(),
                           compareFn);
 
                 // collision check until a valid motion is found
@@ -286,7 +278,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 // already has a connection to the tree through
                 // nmotion (with populated cost fields!).
                 for (std::vector<std::size_t>::const_iterator i = sortedCostIndices.begin();
-                     i != sortedCostIndices.begin()+nbh.size();
+                     i != sortedCostIndices.begin() + nbh.size();
                      ++i)
                 {
                     if (nbh[*i] != nmotion)
@@ -296,12 +288,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         motion->incCost = incCosts[*i];
                         motion->cost = costs[*i];
                         motion->parent = nbh[*i];
-                        if (symDist && symInterp)
-                            valid[*i] = 1;
+                        valid[*i] = 1;
                         break;
                     }
-                    else if (symDist && symInterp)
-                        valid[*i] = -1;
+                    else valid[*i] = -1;
                 }
             }
             else // if not delayCC
@@ -323,19 +313,16 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                                 motion->incCost = incCosts[i];
                                 motion->cost = costs[i];
                                 motion->parent = nbh[i];
-                                if (symDist && symInterp)
-                                    valid[i] = 1;
+                                valid[i] = 1;
                             }
-                            else if (symDist && symInterp)
-                                valid[i] = -1;
+                            else valid[i] = -1;
                         }
                     }
                     else
                     {
                         incCosts[i] = motion->incCost;
                         costs[i] = motion->cost;
-                        if (symDist && symInterp)
-                            valid[i] = 1;
+                        valid[i] = 1;
                     }
                 }
             }
@@ -345,24 +332,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             motion->parent->children.push_back(motion);
 
             bool checkForSolution = false;
-            // rewire tree if needed
-            //
-            // Set directionality of distance function to be FROM new
-            // state TO neighbors, since this is how the routing
-            // should occur in tree rewiring
-            if (!symDist)
-            {
-                distanceDirection_ = TO_NEIGHBORS;
-                nn_->nearestK(motion, k, nbh);
-                rewireTest += nbh.size();
-            }
-
             for (std::size_t i = 0; i < nbh.size(); ++i)
             {
                 if (nbh[i] != motion->parent)
                 {
                     base::Cost nbhIncCost;
-                    if (symDist && symCost)
+                    if (symCost)
                         nbhIncCost = incCosts[i];
                     else
                         nbhIncCost = opt_->motionCost(motion->state, nbh[i]->state);
@@ -370,22 +345,14 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     if (opt_->isCostBetterThan(nbhNewCost, nbh[i]->cost))
                     {
                         bool motionValid;
-                        if (symDist && symInterp)
-                        {
-                            if (valid[i] == 0)
-                            {
-                                ++collisionChecks_;
-                                motionValid = si_->checkMotion(motion->state, nbh[i]->state);
-                            }
-                            else
-                                motionValid = (valid[i] == 1);
-
-                        }
-                        else
+                        if (valid[i] == 0)
                         {
                             ++collisionChecks_;
                             motionValid = si_->checkMotion(motion->state, nbh[i]->state);
                         }
+                        else
+                            motionValid = (valid[i] == 1);
+
                         if (motionValid)
                         {
                             // Remove this node from its parent list
