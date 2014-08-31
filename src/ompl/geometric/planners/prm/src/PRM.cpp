@@ -120,7 +120,8 @@ void ompl::geometric::PRM::setup()
     else
     {
         opt_.reset(new base::PathLengthOptimizationObjective(si_));
-        opt_->setCostThreshold(opt_->infiniteCost());
+        if (!starStrategy_)
+            opt_->setCostThreshold(opt_->infiniteCost());
     }
 }
 
