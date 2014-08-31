@@ -542,6 +542,9 @@ class ompl_geometric_generator_t(code_generator_t):
         PRM_cls.add_registration_code("""def("solve",
             (::ompl::base::PlannerStatus(::ompl::geometric::PRM::*)( ::ompl::base::PlannerTerminationCondition const &))(&PRM_wrapper::solve),
             (::ompl::base::PlannerStatus(PRM_wrapper::*)( ::ompl::base::PlannerTerminationCondition const & ))(&PRM_wrapper::default_solve), bp::arg("ptc") )""")
+        # exclude PRM*, define it in python to use the single-threaded version
+        # of PRM with the k* connection strategy
+        self.ompl_ns.class_('PRMstar').exclude()
 
         # Py++ seems to get confused by some methods declared in one module
         # that are *not* overridden in a derived class in another module. The
@@ -552,7 +555,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'PRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT']:
             self.ompl_ns.class_(planner).add_registration_code("""
             def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )""")
             if planner!='PRM':
