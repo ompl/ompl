@@ -115,13 +115,23 @@ void ompl::geometric::PRM::setup()
     if (!connectionFilter_)
         connectionFilter_ = boost::lambda::constant(true);
 
-    if (pdef_->hasOptimizationObjective())
+   
+
+    if (pdef_)
+    {
+        if (pdef_->hasOptimizationObjective())
         opt_ = pdef_->getOptimizationObjective();
+        else
+        {
+            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+            if (!starStrategy_)
+                opt_->setCostThreshold(opt_->infiniteCost());
+        }
+    }
     else
     {
-        opt_.reset(new base::PathLengthOptimizationObjective(si_));
-        if (!starStrategy_)
-            opt_->setCostThreshold(opt_->infiniteCost());
+        OMPL_INFORM("%s: problem definition is not set, deferring setup completion...", getName().c_str());
+        setup_ = false;
     }
 }
 
