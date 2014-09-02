@@ -656,14 +656,14 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost)
 
         const base::Cost costTotal = computeCTGHeuristic(candidate);
 
-        if (costTotal.v <= pruneTreeCost.v)
+        if ( opt_->isCostBetterThan(costTotal, pruneTreeCost))
         {
             newTree.push_back(candidate);
             for(std::size_t i = 0; i < candidate->children.size(); ++i)
                 candidates.push(candidate->children[i]);
         }
         else
-            toBePruned.push_back(candidate);
+            toBePruned.push_back(candidate);*/
 
         if (opt_->isCostBetterThan(pruneTreeCost, costTotal))
             toBePruned.push_back(candidate);
