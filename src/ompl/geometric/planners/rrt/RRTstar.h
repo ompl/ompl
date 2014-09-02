@@ -287,11 +287,6 @@ namespace ompl
             /** \brief A list of states in the tree that satisfy the goal condition */
             std::vector<Motion*>                           goalMotions_;
 
-            /** \brief Directionality of distance computation for
-                 nearest neighbors. Either from neighbors to new state,
-                 or from new state to neighbors. */
-            DistanceDirection                              distanceDirection_;
-
             /** \brief If this value is set to true, tree pruning will be enabled. */
             bool                                           prune_;
 

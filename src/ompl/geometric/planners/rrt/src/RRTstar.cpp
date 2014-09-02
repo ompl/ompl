@@ -638,7 +638,7 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost)
                 candidates.push(candidate->children[i]);
         }
         else
-            toBePruned.push_back(candidate);*/
+            toBePruned.push_back(candidate);
 
         if (opt_->isCostBetterThan(pruneTreeCost, costTotal))
             toBePruned.push_back(candidate);
