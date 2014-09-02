@@ -652,7 +652,6 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost)
 
         return (tree_size - newTree.size());
     }
-   
     return 0;
 }
 
