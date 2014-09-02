@@ -252,7 +252,7 @@ namespace ompl
             }
 
             /** \brief Removes the given motion from the parent's child list */
-            void removeFromParent(Motion *m);
+            void removeFromParent(Motion *m); 
 
             /** \brief Updates the cost of the children of this node if the cost up to this node has changed */
             void updateChildCosts(Motion *m);
