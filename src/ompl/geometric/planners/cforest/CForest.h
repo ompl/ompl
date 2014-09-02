@@ -200,7 +200,7 @@ namespace ompl
 
             /** \brief Mutex to control the access to the newSolutionFound() method. */
             boost::mutex                                 newSolutionFoundMutex_;
-
+            
             /** \brief Mutex to control the access to samplers_ */
             boost::mutex                                 addSamplerMutex_;
 
