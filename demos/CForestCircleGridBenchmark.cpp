@@ -82,8 +82,8 @@ int main(int argc, char **argv)
         ("obstacle-radius", po::value<double>(&obstacleRadius)->default_value(.25), "radius of obstacles")
         ("turning-radius", po::value<double>(&turningRadius)->default_value(.5), "turning radius of robot (ignored for default point robot)")
         ("grid-limit", po::value<int>(&gridLimit)->default_value(10), "size of the grid")
-        ("runtime-limit", po::value<double>(&runtimeLimit)->default_value(5), "time limit for every test")
-        ("run-count", po::value<int>(&runCount)->default_value(20), "number of times to run each planner")
+        ("runtime-limit", po::value<double>(&runtimeLimit)->default_value(2), "time limit for every test")
+        ("run-count", po::value<int>(&runCount)->default_value(100), "number of times to run each planner")
     ;
 
     po::variables_map vm;
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
     ot::Benchmark::Request request(runtimeLimit, memoryLimit, runCount);
     ot::Benchmark b(ss, "CircleGrid");
 
-    //b.addPlanner(ob::PlannerPtr(new og::RRTstar(ss.getSpaceInformation())));
+    b.addPlanner(ob::PlannerPtr(new og::RRTstar(ss.getSpaceInformation())));
     b.addPlanner(ob::PlannerPtr(new og::CForest(ss.getSpaceInformation())));
     b.benchmark(request);
     b.saveResultsToFile("circleGrid.log");

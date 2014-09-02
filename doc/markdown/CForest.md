@@ -172,6 +172,22 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
 
 \c prune_ flag will be set but the user or the CForest framework. This flag manages the code related to tree pruning and early state rejection. If \c intermediateSolutionCallback is false, then the path sharing code will not be executed.
 
+Since all CForest threads share the same \c PlannerTerminationCondition, it is recommended to include the following call once the main loop of the solve() function has finished:
+
+~~~{.cpp}
+ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
+{
+    while (ptc == false) // Main loop
+    {
+        ...
+    }
+    
+    ptc.terminate(); // Will force other threads to stop.
+}
+~~~
+
+This is particularly useful when one of the threads breaks out the loop but the ptc will still evaluate to true. For instance, this happens in RRTstar everytime a cost threshold is set.
+
 \note CForest can be used wihtout pruning. In this case, the \c prune_ flag is activated only if the ompl::geometricCForest::setPrune() method was called with a true argument (it is activated by default). Tree pruning in RRTstar can be used as an independent feature.
 
 ##### Path sharing

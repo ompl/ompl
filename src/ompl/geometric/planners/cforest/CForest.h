@@ -128,7 +128,9 @@ namespace ompl
 
             void addSampler(base::StateSamplerPtr sampler)
             {
+                addSamplerMutex_.lock();
                 samplers_.push_back(sampler);
+                addSamplerMutex_.unlock();
             }
 
             /** \brief Option to control whether the tree is pruned during the search. */
@@ -198,6 +200,9 @@ namespace ompl
 
             /** \brief Mutex to control the access to the newSolutionFound() method. */
             boost::mutex                                 newSolutionFoundMutex_;
+            
+            /** \brief Mutex to control the access to samplers_ */
+            boost::mutex                                 addSamplerMutex_;
 
             /** \brief Flag to control the tree pruning. */
             bool                                         prune_;
