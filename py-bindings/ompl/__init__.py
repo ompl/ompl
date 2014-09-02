@@ -44,8 +44,18 @@ class PlanningAlgorithms(object):
                         ompl.base.RealVectorStateSpace(1),1)))"""  % planner)
                 params = plannerObject.params()
             except:
-                # skip planners like Syclop that don't have a basic constructor
-                return
+                try:
+                    # Syclop* planners require a decomposition
+                    plannerObject = eval("""%s(ompl.control.SpaceInformation(
+                    ompl.base.RealVectorStateSpace(1),
+                    ompl.control.RealVectorControlSpace(
+                        ompl.base.RealVectorStateSpace(1),1)),
+                        ompl.control.GridDecomposition(1,1,
+                        ompl.base.RealVectorBounds(1)))""" % planner)
+                    params = plannerObject.params()
+                except:
+                    # skip other planners that don't have a basic constructor
+                    return
             pnames = ompl.util.vectorString()
             params.getParamNames(pnames)
             paramMap = {}

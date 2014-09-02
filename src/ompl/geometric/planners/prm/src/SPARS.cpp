@@ -303,7 +303,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     addedSolution_ = false;
     resetFailures();
     base::PathPtr sol;
-    base::PlannerTerminationCondition ptcOrFail = 
+    base::PlannerTerminationCondition ptcOrFail =
         base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
     boost::thread slnThread(boost::bind(&SPARS::checkForSolution, this, ptcOrFail, boost::ref(sol)));
 
@@ -663,6 +663,22 @@ double ompl::geometric::SPARS::averageValence() const
         degree += (double)boost::out_degree(v, s_);
     degree /= (double)boost::num_vertices(s_);
     return degree;
+}
+
+void ompl::geometric::SPARS::printDebug(std::ostream &out) const
+{
+    out << "SPARS Debug Output: " << std::endl;
+    out << "  Settings: " << std::endl;
+    out << "    Max Failures: " << getMaxFailures() << std::endl;
+    out << "    Dense Delta Fraction: " << getDenseDeltaFraction() << std::endl;
+    out << "    Sparse Delta Fraction: " << getSparseDeltaFraction() << std::endl;
+    out << "    Stretch Factor: " << getStretchFactor() << std::endl;
+    out << "  Status: " << std::endl;
+    out << "    Milestone Count: " << milestoneCount() << std::endl;
+    out << "    Guard Count: " << guardCount() << std::endl;
+    out << "    Iterations: " << getIterations() << std::endl;
+    out << "    Average Valence: " << averageValence() << std::endl;
+    out << "    Consecutive Failures: " << consecutiveFailures_ << std::endl;
 }
 
 void ompl::geometric::SPARS::getSparseNeighbors(base::State *inState, std::vector<SparseVertex> &graphNeighborhood)

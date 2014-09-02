@@ -110,6 +110,9 @@ find_package(Threads QUIET)
 
 enable_testing()
 
+find_package(Python QUIET)
+find_package(Boost COMPONENTS python QUIET)
+
 # MORSE is only needed for Modular OpenRobots Simulation Engine bindings
 find_package(MORSE QUIET)
 set(OMPL_EXTENSION_MORSE ${MORSE_FOUND})
