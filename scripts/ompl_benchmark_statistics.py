@@ -472,9 +472,17 @@ def computeViews(dbname):
     conn = sqlite3.connect(dbname)
     c = conn.cursor()
     c.execute('PRAGMA FOREIGN_KEYS = ON')
-    s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid, solved, time + simplification_time AS total_time
-        FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
-        ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
+    c.execute('PRAGMA table_info(runs)')
+    # kinodynamic paths cannot be simplified (or least not easily),
+    # so simplification_time may not exist as a database column
+    if 'simplification_time' in [col[1] for col in c.fetchall()]:
+        s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid, solved, time + simplification_time AS total_time
+            FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
+            ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
+    else:
+        s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid, solved, time AS total_time
+            FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
+            ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
     s1 = """SELECT plannerid, plannerName, experimentid, AVG(solved) AS avg_solved, AVG(total_time) AS avg_total_time
         FROM (%s) GROUP BY plannerid, experimentid""" % s0
     s2 = """SELECT plannerid, experimentid, MIN(avg_solved) AS avg_solved, avg_total_time

@@ -170,6 +170,12 @@ namespace ompl
                 si_->setStatePropagator(sp);
             }
 
+            /** \brief Set the optimization objective to use */
+            void setOptimizationObjective(const base::OptimizationObjectivePtr &optimizationObjective)
+            {
+                pdef_->setOptimizationObjective(optimizationObjective);
+            }
+
             /** \brief Set the start and goal states to use. */
             void setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon())
             {

@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan, James D. Marble */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_PRM_PRM_STAR_
-#define OMPL_GEOMETRIC_PLANNERS_PRM_PRM_STAR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_PRM_LAZYPRM_STAR_
+#define OMPL_GEOMETRIC_PLANNERS_PRM_LAZYPRM_STAR_
 
 #include "ompl/geometric/planners/prm/LazyPRM.h"
 

@@ -59,6 +59,7 @@ void ompl::control::Syclop::clear()
     base::Planner::clear();
     lead_.clear();
     availDist_.clear();
+    clearEdgeCostFactors();
     clearGraphDetails();
     startRegions_.clear();
     goalRegions_.clear();
