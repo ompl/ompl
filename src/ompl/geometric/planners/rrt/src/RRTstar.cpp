@@ -655,7 +655,8 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost)
         candidates.pop();
 
         const base::Cost costTotal = computeCTGHeuristic(candidate);
-        if ( opt_->isCostBetterThan(costTotal, pruneTreeCost))
+
+        if (costTotal.v <= pruneTreeCost.v)
         {
             newTree.push_back(candidate);
             for(std::size_t i = 0; i < candidate->children.size(); ++i)
@@ -663,11 +664,16 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost)
         }
         else
             toBePruned.push_back(candidate);
-    }
 
-    // avoid excesive tree pruning.
-    // TODO: remove this check or at least set the threshold a bit more intelligently
-    if (newTree.size() < 100) return 0;
+        if (opt_->isCostBetterThan(pruneTreeCost, costTotal))
+            toBePruned.push_back(candidate);
+        else
+        {
+            newTree.push_back(candidate);
+            for(std::size_t i = 0; i < candidate->children.size(); ++i)
+                candidates.push(candidate->children[i]);
+        }
+    }
 
     // To create the new nn takes one order of magnitude in time more than just checking how many 
     // states would be pruned. Therefore, only prune if it removes a significant amount of states.
