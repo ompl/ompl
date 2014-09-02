@@ -89,7 +89,7 @@ namespace ompl
 
         /** \brief When running algorithms such as  RRT*, rewire updates are made when the cost of a path appears better than the cost of another.
             The minimum margin for a path to be better than another one is specified by this parameter. This is used to avoid
-            numerical issues that can otherise arise. */
+            numerical issues that can otherwise arise. */
         static const double BETTER_PATH_COST_MARGIN = std::numeric_limits<double>::epsilon() * 1e3;
 
         /** \brief When multiple attempts are needed to generate valid

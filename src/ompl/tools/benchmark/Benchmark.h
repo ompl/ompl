@@ -156,10 +156,11 @@ namespace ompl
                 /** \brief Constructor that provides default values for all members */
                 Request(double maxTime = 5.0, double maxMem = 4096.0,
                         unsigned int runCount = 100,
-                        double timeBetweenUpdates = 0.001,
+                        double timeBetweenUpdates = 0.05,
                         bool displayProgress = true,
                         bool saveConsoleOutput = true, bool useThreads = true)
                     : maxTime(maxTime), maxMem(maxMem), runCount(runCount),
+                    timeBetweenUpdates(timeBetweenUpdates),
                     displayProgress(displayProgress), saveConsoleOutput(saveConsoleOutput),
                     useThreads(useThreads)
                 {
