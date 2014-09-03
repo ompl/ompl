@@ -83,11 +83,6 @@ const ompl::base::PlannerInputStates& ompl::base::Planner::getPlannerInputStates
     return pis_;
 }
 
-void ompl::base::Planner::includeValidPath(const std::vector<const State *> &states, const Cost cost)
-{
-    throw Exception("Including valid paths in exploration data structures is not implemented for " + name_);
-}
-
 void ompl::base::Planner::setup()
 {
     if (!si_->isSetup())

@@ -107,7 +107,7 @@ void ompl::geometric::CForest::clear()
     for (std::size_t i = 0; i < planners_.size(); ++i)
         planners_[i]->clear();
 
-    bestCost_ = opt_->infiniteCost();
+    bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
     numPathsShared_ = 0;
     numStatesShared_ = 0;
 

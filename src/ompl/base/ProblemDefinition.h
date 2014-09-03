@@ -120,9 +120,9 @@ namespace ompl
             /** \brief Name of planner type that generated this solution, as received from Planner.getName() */
             std::string plannerName_;
         };
-        
+
         class Planner;
-        
+
         /** \brief When a planner has an intermediate solution (e.g., optimizing planners), a function with this signature can be called
             to report the states of that solution. */
         typedef boost::function<void(const Planner*, const std::vector<const base::State*> &, const Cost)> ReportIntermediateSolutionFn;
@@ -259,7 +259,7 @@ namespace ompl
                 optimizationObjective_ = optimizationObjective;
             }
 
-            /** \brief When this function returns a valid function pointer, that function should be called 
+            /** \brief When this function returns a valid function pointer, that function should be called
                 by planners that compute intermediate solutions every time a better solution is found */
             const ReportIntermediateSolutionFn& getIntermediateSolutionCallback() const
             {
@@ -376,7 +376,7 @@ namespace ompl
 
             /** \brief The objective to be optimized while solving the planning problem */
             OptimizationObjectivePtr     optimizationObjective_;
-            
+
             /** \brief Callback function which is called when a new intermediate solution has been found.*/
             ReportIntermediateSolutionFn     intermediateSolutionCallback_;
 

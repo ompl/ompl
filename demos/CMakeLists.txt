@@ -13,8 +13,6 @@ if (OMPL_BUILD_DEMOS)
       ${Boost_PROGRAM_OPTIONS_LIBRARY})
   endmacro(add_ompl_demo)
 
-  add_ompl_demo(demo_CForest CForestDemo.cpp)
-  add_ompl_demo(demo_CForestCircleGridBenchmark CForestCircleGridBenchmark.cpp)
   add_ompl_demo(demo_RigidBodyPlanning RigidBodyPlanning.cpp)
   add_ompl_demo(demo_RigidBodyPlanningWithIK RigidBodyPlanningWithIK.cpp)
   add_ompl_demo(demo_RigidBodyPlanningWithControls RigidBodyPlanningWithControls.cpp)
@@ -34,6 +32,7 @@ if (OMPL_BUILD_DEMOS)
 
   add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
   add_ompl_demo(demo_PlannerProgressProperties PlannerProgressProperties.cpp)
+  add_ompl_demo(demo_CForestCircleGridBenchmark CForestCircleGridBenchmark.cpp)
 
   if (OMPL_EXTENSION_OPENDE)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)

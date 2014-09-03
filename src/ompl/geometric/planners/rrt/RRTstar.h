@@ -44,7 +44,6 @@
 #include <limits>
 #include <vector>
 #include <utility>
-#include <boost/thread/mutex.hpp>
 
 
 namespace ompl
@@ -255,10 +254,10 @@ namespace ompl
             /** \brief Deletes (frees memory) the motion and its children motions. */
             void deleteBranch(Motion *motion);
 
-            /** \brief Computes the Cost To Go heuristic as the cost to come from start to motion plus
+            /** \brief Computes the Cost To Go heuristically as the cost to come from start to motion plus
                  the cost to go from motion to goal. If \e shortest is true, the estimated cost to come
                  start-motion is given. Otherwise, this cost to come is the current motion cost. */
-            base::Cost computeCTGHeuristic(const Motion *motion, const bool shortest = true) const;
+            base::Cost costToGo(const Motion *motion, const bool shortest = true) const;
 
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;
@@ -292,6 +291,8 @@ namespace ompl
 
             /** \brief The tree is only pruned is the percentage of states to prune is above this threshold (between 0 and 1). */
             double                                         pruneStatesThreshold_;
+
+            struct PruneScratchSpace { std::vector<Motion*> newTree, toBePruned, candidates; } pruneScratchSpace_;
 
             /** \brief Stores the Motion containing the last added initial start state. */
             Motion *                                       startMotion_;
