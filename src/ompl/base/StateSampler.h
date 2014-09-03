@@ -40,6 +40,7 @@
 #include "ompl/base/State.h"
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/ClassForward.h"
+#include "ompl/util/Console.h"
 #include <vector>
 #include <string>
 #include <boost/function.hpp>

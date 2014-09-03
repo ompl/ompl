@@ -27,5 +27,7 @@
 - [Hypercube benchmark.](HypercubeBenchmark_8cpp_source.html) A simple benchmark where the configuration space consists of a hypercube in R<sup>n</sup> and the free space is a narrow corridor along edges of the hypercube. The exploration progress of a planner is therefore hard to capture in a low-dimensional projection.
 - [Kinematic chain benchmark.](KinematicChainBenchmark_8cpp_source.html) A benchmark for an _n_-link kinematic chain to get out of a narrow passage. It requires the chain to fold up and expand again. As in the previous benchmark, the free space is hard to capture by a low-dimensional projection of the configuration space.
 - [2D point planning using a PPM image as a map](Point2DPlanning_8cpp_source.html) [[Python version](Point2DPlanning_8py_source.html)]
+- [Using the CForest framework](CForestDemo_8cpp_source.html) Modifies the same 2D point planning as before but the problem is solved with the CForest parallelization framework and compared with RRTstar.
+- [Circle Grid benchmark](CForestCircleGridBenchmark_8cpp_source.html). Implements a configurable 2D circle grid benchmark problem, where the user can specify state space, size of the grid and circles, so that the problem can be as hard as desired.
 
 @}

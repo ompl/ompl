@@ -198,7 +198,9 @@ namespace ompl
         /** \brief Properties that planners may have */
         struct PlannerSpecs
         {
-            PlannerSpecs() : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false), optimizingPaths(false), directed(false), provingSolutionNonExistence(false)
+            PlannerSpecs() : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false),
+                             optimizingPaths(false), directed(false), provingSolutionNonExistence(false),
+                             canReportIntermediateSolutions(false)
             {
             }
 
@@ -221,6 +223,9 @@ namespace ompl
 
             /** \brief Flag indicating whether the planner is able to prove that no solution path exists. */
             bool     provingSolutionNonExistence;
+
+            /** \brief Flag indicating whether the planner is able to report the computation of intermediate paths. */
+            bool     canReportIntermediateSolutions;
         };
 
         /** \brief Base class for a planner */
@@ -299,6 +304,10 @@ namespace ompl
                 settings are not affected. Subsequent calls to solve()
                 will ignore all previous work. */
             virtual void clear();
+
+            /** \brief Given a path known to be valid with a given cost, include the states that make up the path
+                in the planner's exploration data structures. */
+            virtual void includeValidPath(const std::vector<const State *> &states, const Cost cost);	
 
             /** \brief Get information about the current run of the
                 motion planner. Repeated calls to this function will
