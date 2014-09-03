@@ -136,3 +136,20 @@ iframe#externalpagewrapper { min-width:980px; width:100%; height:1600px; margin:
         height: 527px;
     }
 }
+
+div.plannerlist > ul > li { margin-bottom: 20px; }
+div.plannerlist > ul > li::first-line {
+    font-size: 150%;
+    font-weight: bold;
+}
+div.plannerlist > ul > li > ul > li::first-line {
+    font-size: 150%;
+    font-weight: bold;
+}
+div.plannerlist > dl.attention > dt { display: none; }
+div.plannerlist > dl.attention > dd::first-line {
+    line-height: 2;
+    font-weight: 700;
+    color: #428bca;
+    font-size: 16px;
+}

@@ -14,9 +14,9 @@ Below are more detailed installation instructions for [Linux](#install_linux), [
 
 \htmlonly
 <div class="btn-group">
-  <a class="btn" href="#install_linux_ubuntu">Linux</a>
-  <a class="btn" href="#install_mac_os">OS X</a>
-  <a class="btn" href="#install_windows">Windows</a>
+  <a class="btn btn-default" href="#install_linux">Linux</a>
+  <a class="btn btn-default" href="#install_osx">OS X</a>
+  <a class="btn btn-default" href="#install_windows">Windows</a>
 </div>
 \endhtmlonly
 
@@ -28,9 +28,13 @@ Below are installation instructions for Ubuntu Linux. Similar steps can be taken
 
 ## Ubuntu Linux {#install_linux_ubuntu}
 
-###  Installation from repository
+###  Installation from repositories
 
-For recent versions of Ubuntu, deb packages for the latest version of OMPL are found in ROS distributions. All you need to do is add the repository to your list of sources (you probably have added this already if you are using ROS):
+Starting with Ubuntu 14.04, you can install OMPL like so
+
+    apt-get install libompl-dev ompl-demos
+
+Debian packages for the latest version of OMPL are also found in ROS distributions. All you need to do is add the ROS repository to your list of sources (you probably have added this already if you are using ROS):
 
     sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
     wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
@@ -43,17 +47,11 @@ and install OMPL:
 
 ### Installation from source
 
-- If you are using Ubuntu 11.04 or earlier, the supplied Boost version is too old. You need Boost 1.44+ for full functionality. You can install Boost from [source](http://www.boost.org/users/download), but it is simpler to add another repository:
-
-      sudo add-apt-repository ppa:boost-latest/ppa
-      sudo apt-get update
-
-- The default version of CMake should suffice. If needed, you can download the latest version from [here](http://www.cmake.org/cmake/resources/software.html).
 - Install Boost and CMake
 
       sudo apt-get install libboost-all-dev cmake
 
-  Some versions of Linux offer multiple versions of Boost. It is strongly advised to install only one version. Note that for Ubuntu 12.04 versions and older, a warning will appear stating that not all features are compatible with version of Boost before 1.51. This is unavoidable unless you compile Boost from source, and can be ignored.
+  Some versions of Linux offer multiple versions of Boost. It is strongly advised to install only one version.
 - To be able to generate documentation, generate Python bindings, build the ODE extension, the following packages are also needed:
 
       sudo apt-get install doxygen graphviz python-dev libode-dev
