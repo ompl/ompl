@@ -1,0 +1,58 @@
+@import url("http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css");
+
+h1, h2 { font-weight: 200; color: #034170; }
+
+.navbar { padding-bottom: 20px; }
+.navbar-inverse .navbar-inner {
+    background-color: #022845;
+    background-image: -moz-linear-gradient(top, #034170, #000);
+    background-image: -ms-linear-gradient(top, #034170, #000);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#034170), to(#000));
+    background-image: -webkit-linear-gradient(top, #034170, #000);
+    background-image: -o-linear-gradient(top, #034170, #000);
+    background-image: linear-gradient(top, #034170, #000);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#034170', endColorstr='#000', GradientType=0);
+}
+.navbar .brand { color:#fff; font-weight: 200; font-size: 24px; }
+.navbar-inverse .nav > li > a { color: #ccc; }
+
+label[disabled] { color: #999; }
+label.checkbox {
+    min-width: 100px;
+    display:inline-block;
+}
+.table td {
+    font-family: monospace;
+    white-space: pre;
+}
+.btn a:hover, .btn a:focus {
+    text-decoration: none;
+}
+
+.shiny-output-error {
+    margin: 30px;
+    color: #3a87ad;
+    padding: 12px 24px;
+    font-size: 150%;
+    font-weight: bold;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    background-color: #d9edf7;
+    border: 1px solid #bce8f1;
+}
+
+.footer {
+    padding: 10px;
+    background-color: #f0f0f0;
+    font-size: small;
+    font-weight: bold;
+    color: #666;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    margin-top: 30px;
+    margin-left: -20px;
+    margin-right: -20px;
+}
+.footer a {
+    color: #666;
+}

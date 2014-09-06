@@ -1,37 +1,71 @@
 library(shiny)
 
-shinyUI(fluidPage(
-    tags$head(tags$link(rel="stylesheet", type="text/css", href="ompl.css")),
-    titlePanel("OMPL Planner Arena"),
-    sidebarLayout(
-        sidebarPanel(
-            fileInput("database",
-                label = h4("Benchmark database"),
-                accept = c("application/x-sqlite3", ".db")
-            ),
-            selectInput("plotType", label = h4("Plot type"),
-                choices = list(
-                    "Regression plot" = 1,
-                    "Overall performance" = 2,
-                    "Progress" = 3
+shinyUI(
+    navbarPage("Planner Arena",
+        tabPanel("Overall performance",
+            sidebarLayout(
+                sidebarPanel(
+                    uiOutput("perfProblemSelect"),
+                    uiOutput("perfAttrSelect"),
+                    uiOutput("perfVersionSelect"),
+                    uiOutput("perfPlannerSelect")
                 ),
-                selected = 2
+                mainPanel(
+                    span(downloadLink('perfDownloadPlot', 'Download as PDF'), class="btn"),
+                    plotOutput("perfPlot")
+                )
             ),
-            uiOutput("problemSelect"),
-            uiOutput("attrSelect"),
-            uiOutput("progressSelect"),
-            uiOutput("versionSelect"),
-            uiOutput("plannerSelect")
-        ),
-        mainPanel(
+            value="performance",
+            icon=icon("area-chart")),
+        tabPanel("Progress",
+            uiOutput("progressPage"),
+            value="progress",
+            icon=icon("area-chart")),
+        tabPanel("Regression",
+            uiOutput("regressionPage"),
+            value="regression",
+            icon=icon("bar-chart")),
+        tabPanel("Database info",
             tabsetPanel(
-                tabPanel("Plot",
-                    span(downloadLink('downloadPlot', 'Download as PDF'), class="btn"),
-                    plotOutput("plot")),
-                tabPanel("Benchmark Info", tableOutput("benchmarkInfo")),
+                tabPanel("Benchmark setup",  tableOutput("benchmarkInfo")),
                 tabPanel("Planner Configurations", tableOutput("plannerConfigs"))
+            ),
+            value="dbinfo",
+            icon=icon("info-circle")),
+        tabPanel("Change database",
+            div(class="span10 offset1",
+                fileInput("database",
+                    label = h2("Upload benchmark database"),
+                    accept = c("application/x-sqlite3", ".db")
+                ),
+                h2("Default benchmark database"),
+                tags$ul(
+                    tags$li(a(href="javascript:history.go(0)", "Reset to default database")),
+                    tags$li(a(href="benchmark.db", "Download default database"))
+                )
+            ),
+            value="database",
+            icon=icon("database")),
+        tabPanel("Help",
+            div(class="span10 offset1",
+                includeMarkdown("www/help.md")
+            ),
+            value="help",
+            icon=icon("question-circle")),
+        id = "navbar",
+        header = tags$link(rel="stylesheet", type="text/css", href="plannerarena.css"),
+        footer = div(class="footer",
+            div(class="container",
+                p(
+                    a(href="http://www.kavrakilab.org", "Physical and Biological Computing Group"),
+                    "•",
+                    a(href="http://www.cs.rice.edu", "Department of Computer Science"),
+                    "•",
+                    a(href="http://www.rice.edu", "Rice University")
+                )
             )
-        )
+        ),
+        inverse = TRUE
     )
-))
+)
 
