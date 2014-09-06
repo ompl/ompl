@@ -63,7 +63,8 @@ shinyUI(
                     "•",
                     a(href="http://www.rice.edu", "Rice University")
                 )
-            )
+            ),
+            includeScript('www/ga.js')
         ),
         inverse = TRUE
     )
