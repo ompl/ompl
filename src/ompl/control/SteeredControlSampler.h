@@ -66,10 +66,9 @@ namespace ompl
             virtual unsigned int sampleTo(Control *control, const base::State *source, base::State *dest)
             {
                 double duration;
-
                 if (!si_->getStatePropagator()->steer(source, dest, control, duration)) return 0;
                 unsigned int steps = std::floor(duration / si_->getMinControlDuration() + 0.5);
-                return si_->propagateWhileValid(source, control, steps, dest);*/
+                return si_->propagateWhileValid(source, control, steps, dest);
             }
 
             virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest)
