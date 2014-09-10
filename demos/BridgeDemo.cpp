@@ -50,10 +50,11 @@
 #include <fstream>
 #include <limits>
 
-
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 namespace oc = ompl::control;
+
+ob::ReedsSheppStateSpace::ReedsSheppPath grsp;
 
 bool isStateValid(const ob::State *state)
 {
@@ -76,15 +77,16 @@ public:
         
         double phi,v;
         int steering = (int)control->as<oc::RealVectorControlSpace::ControlType>()->values[1];
+        int forward = (int)control->as<oc::RealVectorControlSpace::ControlType>()->values[0];
         
         s->setXY(state->as<ob::ReedsSheppStateSpace::StateType>()->getX(), state->as<ob::ReedsSheppStateSpace::StateType>()->getY());
         s->setYaw(state->as<ob::ReedsSheppStateSpace::StateType>()->getYaw());
         phi = s->getYaw();
 
-        if (steering < 0)
-             v = -duration;
-        else
+        if (forward > 0)
              v = duration;
+        else
+             v = -duration;
 
         switch(steering)
         {
@@ -102,7 +104,7 @@ public:
         }
         
         result->as<ob::ReedsSheppStateSpace::StateType>()->setX(s->getX() * rho_);
-        result->as<ob::ReedsSheppStateSpace::StateType>()->setY(s->getY() * rho_ );
+        result->as<ob::ReedsSheppStateSpace::StateType>()->setY(s->getY() * rho_);
         rs_.getSubspace(1)->enforceBounds(s->as<ob::SO2StateSpace::StateType>(1));
         result->as<ob::ReedsSheppStateSpace::StateType>()->setYaw(s->getYaw());
         rs_.freeState(s);
@@ -112,10 +114,11 @@ public:
     virtual bool steer (const ob::State *from, const ob::State *to, std::vector<oc::TimedControl> &controls, double &duration) const
     {
         ob::ReedsSheppStateSpace::ReedsSheppPath rsp = rs_.reedsShepp(from, to);
+        grsp = rsp;
         oc::Control *c;
         int i = 0;
         
-        while (rsp.type_[i] != 0 && i<5)
+        while (rsp.type_[i] != 0 && i < 5)
         {
             c = si_->allocControl();
             if (rsp.length_[i] > 0) // Forward
@@ -176,7 +179,10 @@ int main(int argc, char** argv)
     // set the state propagation routine
     oc::StatePropagatorPtr sp (new ReedsSheppStatePropagator(siC));
 
-    // and now, with the control space information and state propagator, we create the geometric version
+    ////////////////////////////
+    // and now, with the control space information and state propagator
+    // we create the geometric version of the problem.
+    ////////////////////////////
     ob::StateSpacePtr fromPropSpace (new ob::FromPropagatorStateSpace<ob::SE2StateSpace>(sp));
     fromPropSpace->as<ob::FromPropagatorStateSpace<ob::SE2StateSpace> >()->setBounds(bounds);
 
@@ -191,7 +197,7 @@ int main(int argc, char** argv)
     goal[0] = boost::lexical_cast<double>(argv[1]);
     goal[1] = boost::lexical_cast<double>(argv[2]);
     goal[2] = boost::lexical_cast<double>(argv[3]);
-    
+
     // set the start and goal states
     ss.setStartAndGoalStates(start, goal);
 
@@ -205,37 +211,29 @@ int main(int argc, char** argv)
     ss.setPlanner(planner);
 
     // attempt to solve the problem within one second of planning time
-    /*ob::PlannerStatus solved = ss.solve(1.0);
+    ob::PlannerStatus solved = ss.solve(1.0);
 
     if (solved)
     {
         std::fstream fs;
         fs.open ("path.txt", std::fstream::out | std::fstream::trunc);
-        std::cout << "Found solution:" << std::endl;
-        // print the path to screen
         //ss.simplifySolution();
         og::PathGeometric& p = ss.getSolutionPath();
-        //p.printAsMatrix(std::cout);
-        p.interpolate(1000);
+        p.interpolate(100);
         p.printAsMatrix(fs);
         fs.close();
     }
     else
-        std::cout << "No solution found" << std::endl;*/
-        
-    ob::ScopedState<> s1(fromPropSpace), s2(fromPropSpace);
-    s1[0] = 0.;
-    s1[1] = 0.;
-    s1[2] = 0.;
-    s2[0] = 0.1;
-    s2[1] = 0.1; 
-    s2[2] = boost::math::constants::pi<double>();
-    
-    /*s2[0] = boost::lexical_cast<double>(argv[1]);
-    s2[1] = boost::lexical_cast<double>(argv[2]); 
-    s2[2] = boost::lexical_cast<double>(argv[3]);*/
-    //boost::math::constants::pi<double>();
-    
+        std::cout << "No solution found" << std::endl;
+
+    /*ob::ScopedState<> s1(fromPropSpace), s2(fromPropSpace);
+    s1[0] = 1.23822;
+    s1[1] = 0.484691;
+    s1[2] = -2.73113;
+    s2[0] = boost::lexical_cast<double>(argv[1]);
+    s2[1] = boost::lexical_cast<double>(argv[2]);
+    s2[2] = boost::lexical_cast<double>(argv[3]);
+
     ob::State *istate = fromPropSpace->allocState();
     
     std::fstream fs;
@@ -251,5 +249,25 @@ int main(int argc, char** argv)
     }
 
     fs.close();
+
+    int i = 0;
+    while (grsp.type_[i] != 0 && i < 5)
+    {
+        std::cout << std::abs(grsp.length_[i]);
+        if (grsp.length_[i] > 0) // Forward
+            std::cout << " Forward ";
+        else // Backwards
+            std::cout << " Backward ";
+
+        if (grsp.type_[i] == 1) // Left
+            std::cout << "Left" << std::endl;
+        else if (grsp.type_[i] == 3) // Right
+            std::cout << "Right" << std::endl;
+        else // Straight
+            std::cout << "Straight" << std::endl;
+
+        ++i;
+    }*/
+
     return 0;
 }

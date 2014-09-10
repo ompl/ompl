@@ -43,6 +43,8 @@
 
 #include "ompl/util/Exception.h"
 
+#define eps std::numeric_limits<double>::epsilon()
+
 namespace ompl
 {
     namespace base
@@ -82,38 +84,36 @@ namespace ompl
 
             virtual void interpolate (const State *from, const State *to, const double t, State *state) const
             {
-                /*if (t>=1.)
+                if (t>=1.)
                 {
                     if (to != state)
                         T::copyState(state, to);
                     return;
-                }*/
-                
+                }
+
                 if (from != state)
                     T::copyState(state, from);
-                    
+
                 if (t<=0.)
                     return;
 
                 double duration = 0;
 
                 std::vector<control::TimedControl> tcontrols;
-                sp_->getSpaceInformation()->printState(from);
-                sp_->getSpaceInformation()->printState(to);
                 if(sp_->steer(from,to,tcontrols,duration))
-                {                    
+                {
                     double interpT = t*duration, currentT = 0;
+                    double control_time = 0;
                     unsigned int i = 0;
 
-                    // applying complete timed controls
-                    while(currentT + tcontrols[i].second + 0.0001 < interpT)
+                    // applying timed controls until the requested interpolation time is reached.
+                    while(currentT + eps*1e3 < interpT)
                     {
-                        currentT += tcontrols[i].second;
-                        sp_->propagate(state, tcontrols[i].first, tcontrols[i].second, state);
+                        control_time = std::min(interpT - currentT, tcontrols[i].second);
+                        sp_->propagate(state, tcontrols[i].first, control_time,  state);
+                        currentT += control_time;
                         ++i;
                     }
-                    // propagating the rest of the time
-                    sp_->propagate(state, tcontrols[i].first, interpT - currentT, state);                  
                 }
             }
 
