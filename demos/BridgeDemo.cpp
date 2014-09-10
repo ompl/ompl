@@ -45,7 +45,6 @@
 
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
-//#include <ompl/geometric/planners/rrt/RRTConnect.h>
 
 #include <fstream>
 #include <limits>
@@ -53,8 +52,6 @@
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 namespace oc = ompl::control;
-
-ob::ReedsSheppStateSpace::ReedsSheppPath grsp;
 
 bool isStateValid(const ob::State *state)
 {
@@ -114,7 +111,6 @@ public:
     virtual bool steer (const ob::State *from, const ob::State *to, std::vector<oc::TimedControl> &controls, double &duration) const
     {
         ob::ReedsSheppStateSpace::ReedsSheppPath rsp = rs_.reedsShepp(from, to);
-        grsp = rsp;
         oc::Control *c;
         int i = 0;
         
@@ -248,26 +244,7 @@ int main(int argc, char** argv)
                   << istate->as<ob::SE2StateSpace::StateType>()->getYaw() << std::endl;
     }
 
-    fs.close();
-
-    int i = 0;
-    while (grsp.type_[i] != 0 && i < 5)
-    {
-        std::cout << std::abs(grsp.length_[i]);
-        if (grsp.length_[i] > 0) // Forward
-            std::cout << " Forward ";
-        else // Backwards
-            std::cout << " Backward ";
-
-        if (grsp.type_[i] == 1) // Left
-            std::cout << "Left" << std::endl;
-        else if (grsp.type_[i] == 3) // Right
-            std::cout << "Right" << std::endl;
-        else // Straight
-            std::cout << "Straight" << std::endl;
-
-        ++i;
-    }*/
+    fs.close();*/
 
     return 0;
 }

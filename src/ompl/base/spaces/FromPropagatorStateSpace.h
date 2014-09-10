@@ -67,16 +67,18 @@ namespace ompl
             virtual ~FromPropagatorStateSpace()
             {
             }
-            
-            // \TODO: now the duration is used as distance. The test statePropagator has always velocity = 1,
+
+            // \TODO: now the duration is used as distance. The demo has always velocity = 1,
             // so duration = distance. How to distinguish for a general system? It is probably system-dependent.
             virtual double distance (const State *state1, const State *state2) const
             {
                 std::vector<control::TimedControl> tcontrols;
-                // How to avoid to use tcontrols here? Not used.
+                // \TODO: How to avoid to use tcontrols here? Not used. steer function overload? with only 3 arguments?
                 double duration = 0;
                 bool steered = sp_->steer(state1,state2,tcontrols,duration);
-                
+                for (size_t i = 0; i < tcontrols.size(); ++i)
+                    sp_->getSpaceInformation()->freeControl(tcontrols[i].first);
+
                 if (steered)
                     return duration;
                 return -1.0;
@@ -115,10 +117,12 @@ namespace ompl
                         ++i;
                     }
                 }
+
+                for (size_t i = 0; i < tcontrols.size(); ++i)
+                        sp_->getSpaceInformation()->freeControl(tcontrols[i].first);
             }
 
         protected:
-
             control::StatePropagatorPtr sp_;
         };
 
