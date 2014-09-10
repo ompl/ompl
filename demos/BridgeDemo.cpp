@@ -73,9 +73,9 @@ public:
         ob::ReedsSheppStateSpace::StateType* s = rs_.allocState()->as<ob::ReedsSheppStateSpace::StateType>();
         
         double phi,v;
-        int steering = (int)control->as<oc::RealVectorControlSpace::ControlType>()->values[1];
-        int forward = (int)control->as<oc::RealVectorControlSpace::ControlType>()->values[0];
-        
+        const int steering = (int)control->as<oc::RealVectorControlSpace::ControlType>()->values[1];
+        const int forward = (int)control->as<oc::RealVectorControlSpace::ControlType>()->values[0];
+
         s->setXY(state->as<ob::ReedsSheppStateSpace::StateType>()->getX(), state->as<ob::ReedsSheppStateSpace::StateType>()->getY());
         s->setYaw(state->as<ob::ReedsSheppStateSpace::StateType>()->getYaw());
         phi = s->getYaw();

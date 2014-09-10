@@ -49,6 +49,7 @@ namespace ompl
 {
     namespace base
     {
+        typedef std::vector<control::TimedControl> TimedControls;
         /** \brief  */
         template <typename T>
         class FromPropagatorStateSpace : public T
@@ -56,7 +57,7 @@ namespace ompl
             // \TODO: I cannot find a proper way of freeing the controls allocated when calling steer().
         public:
         
-            FromPropagatorStateSpace (const control::StatePropagatorPtr &sp) : T(), sp_(sp)
+            FromPropagatorStateSpace(const control::StatePropagatorPtr &sp) : T(), sp_(sp)
             {
                 if (sp_->getSpaceInformation()->getStateSpace()->getType() != T::getType())
                     throw Exception("State propagator's state space does not match the template parameter for FromPropagatorStateSpace.");
@@ -70,9 +71,9 @@ namespace ompl
 
             // \TODO: now the duration is used as distance. The demo has always velocity = 1,
             // so duration = distance. How to distinguish for a general system? It is probably system-dependent.
-            virtual double distance (const State *state1, const State *state2) const
+            virtual double distance(const State *state1, const State *state2) const
             {
-                std::vector<control::TimedControl> tcontrols;
+                TimedControls tcontrols;
                 // \TODO: How to avoid to use tcontrols here? Not used. steer function overload? with only 3 arguments?
                 double duration = 0;
                 bool steered = sp_->steer(state1,state2,tcontrols,duration);
@@ -84,45 +85,65 @@ namespace ompl
                 return -1.0;
             }
 
-            virtual void interpolate (const State *from, const State *to, const double t, State *state) const
+            virtual void interpolate(const State *from, const State *to, const double t, State *state) const
             {
-                if (t>=1.)
-                {
-                    if (to != state)
-                        T::copyState(state, to);
-                    return;
-                }
-
-                if (from != state)
-                    T::copyState(state, from);
-
-                if (t<=0.)
-                    return;
-
-                double duration = 0;
-
-                std::vector<control::TimedControl> tcontrols;
-                if(sp_->steer(from,to,tcontrols,duration))
-                {
-                    double interpT = t*duration, currentT = 0;
-                    double control_time = 0;
-                    unsigned int i = 0;
-
-                    // applying timed controls until the requested interpolation time is reached.
-                    while(currentT + eps*1e3 < interpT)
-                    {
-                        control_time = std::min(interpT - currentT, tcontrols[i].second);
-                        sp_->propagate(state, tcontrols[i].first, control_time,  state);
-                        currentT += control_time;
-                        ++i;
-                    }
-                }
+                bool firstTime = true;
+                TimedControls tcontrols;
+                interpolate(from, to, t, firstTime, tcontrols, state);
 
                 for (size_t i = 0; i < tcontrols.size(); ++i)
                         sp_->getSpaceInformation()->freeControl(tcontrols[i].first);
             }
 
+            virtual void interpolate(const State *from, const State *to, const double t,
+                                     bool &firstTime, TimedControls &tcontrols, State *state) const
+            {
+                if (firstTime)
+                {
+                    double duration = 0;
+                    if (t >= 1.)
+                    {
+                        if (to != state)
+                            T::copyState(state, to);
+                        return;
+                    }
+                    else if (t <= 0.)
+                    {
+                        if (from != state)
+                            T::copyState(state, from);
+                        return;
+                    }
+                    sp_->steer(from,to,tcontrols,duration);
+                    firstTime = false;
+                }
+                interpolate(from, tcontrols, t, state);
+            }
+
         protected:
+
+            virtual void interpolate(const State *from, const TimedControls &tcontrols, double t, State *state) const
+            {
+                // \TODO: receive this duration as argument. Is that OK?
+                double duration = 0;
+                for (size_t i = 0; i < tcontrols.size(); ++i)
+                    duration += tcontrols[i].second;
+
+                double interpT = duration*t, currentT = 0;
+                double control_time = 0;
+                unsigned int i = 0;
+
+                T::copyState(state, from);
+
+                // applying timed controls until the requested interpolation time is reached.
+                while(currentT + eps*1e3 < interpT)
+                {
+                    control_time = std::min(interpT - currentT, tcontrols[i].second);
+                    sp_->propagate(state, tcontrols[i].first, control_time,  state);
+                    currentT += control_time;
+                    ++i;
+                }
+            }
+
             control::StatePropagatorPtr sp_;
         };
 
