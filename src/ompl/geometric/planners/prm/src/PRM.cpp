@@ -83,13 +83,20 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
                   boost::get(boost::vertex_predecessor, g_)),
     maxEdgeID_(0),
     userSetConnectionStrategy_(false),
-    addedSolution_(false)
+    addedSolution_(false),
+    iterations_(0),
+    bestCost_(std::numeric_limits<double>::quiet_NaN())
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;
 
     Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors, std::string("8:1000"));
+
+    addPlannerProgressProperty("iterations INTEGER",
+                               boost::bind(&PRM::getIterationCount, this));
+    addPlannerProgressProperty("best cost REAL",
+                               boost::bind(&PRM::getBestCost, this));
 }
 
 ompl::geometric::PRM::~PRM()
@@ -115,12 +122,15 @@ void ompl::geometric::PRM::setup()
     if (!connectionFilter_)
         connectionFilter_ = boost::lambda::constant(true);
 
-   
-
+    // Setup optimization objective
+    //
+    // If no optimization objective was specified, then default to
+    // optimizing path length as computed by the distance() function
+    // in the state space.
     if (pdef_)
     {
         if (pdef_->hasOptimizationObjective())
-        opt_ = pdef_->getOptimizationObjective();
+            opt_ = pdef_->getOptimizationObjective();
         else
         {
             opt_.reset(new base::PathLengthOptimizationObjective(si_));
@@ -168,6 +178,9 @@ void ompl::geometric::PRM::clear()
         nn_->clear();
     clearQuery();
     maxEdgeID_ = 0;
+
+    iterations_ = 0;
+    bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
 }
 
 void ompl::geometric::PRM::freeMemory()
@@ -213,6 +226,7 @@ void ompl::geometric::PRM::expandRoadmap(const base::PlannerTerminationCondition
 
     while (ptc == false)
     {
+        iterations_++;
         Vertex v = pdf.sample(rng_.uniform01());
         unsigned int s = si_->randomBounceMotion(simpleSampler_, stateProperty_[v], workStates.size(), workStates, false);
         if (s > 0)
@@ -281,6 +295,7 @@ void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &
     /* grow roadmap in the regular fashion -- sample valid states, add them to the roadmap, add valid connections */
     while (ptc == false)
     {
+        iterations_++;
         // search for a valid state
         bool found = false;
         while (!found && ptc == false)
@@ -323,8 +338,7 @@ void ompl::geometric::PRM::checkForSolution(const base::PlannerTerminationCondit
 bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
-    base::Cost sol_cost(0.0);
-    bool sol_cost_set = false;
+    base::Cost sol_cost(opt_->infiniteCost());
     foreach (Vertex start, starts)
     {
         foreach (Vertex goal, goals)
@@ -339,18 +353,19 @@ bool ompl::geometric::PRM::haveSolution(const std::vector<Vertex> &starts, const
                 base::PathPtr p = constructSolution(start, goal);
                 if (p)
                 {
-                    // Check if optimization objective is satisfied
                     base::Cost pathCost = p->cost(opt_);
+                    if (opt_->isCostBetterThan(pathCost, bestCost_))
+                        bestCost_ = pathCost;
+                    // Check if optimization objective is satisfied
                     if (opt_->isSatisfied(pathCost))
                     {
                         solution = p;
                         return true;
                     }
-                    else if (!sol_cost_set || opt_->isCostBetterThan(pathCost, sol_cost))
+                    else if (opt_->isCostBetterThan(pathCost, sol_cost))
                     {
                         solution = p;
                         sol_cost = pathCost;
-                        sol_cost_set = true;
                     }
                 }
             }
@@ -452,6 +467,7 @@ void ompl::geometric::PRM::constructRoadmap(const base::PlannerTerminationCondit
     si_->allocStates(xstates);
     bool grow = true;
 
+    bestCost_ = opt_->infiniteCost();
     while (ptc() == false)
     {
         // maintain a 2:1 ratio for growing/expansion of roadmap
@@ -580,6 +596,7 @@ void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
         data.tagState(stateProperty_[v1], const_cast<PRM*>(this)->disjointSets_.find_set(v1));
         data.tagState(stateProperty_[v2], const_cast<PRM*>(this)->disjointSets_.find_set(v2));
     }
+    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
 }
 
 ompl::base::Cost ompl::geometric::PRM::costHeuristic(Vertex u, Vertex v) const

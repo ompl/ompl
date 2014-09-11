@@ -225,7 +225,7 @@ namespace ompl
                 boost::property < boost::vertex_rank_t, VertexIndexType,
                 boost::property < vertex_color_t, GuardType,
                 boost::property < vertex_interface_data_t, InterfaceHashStruct > > > > >,
-                boost::property < boost::edge_weight_t, double >
+                boost::property < boost::edge_weight_t, base::Cost >
             > Graph;
 
             /** \brief Vertex in Graph */
@@ -346,13 +346,21 @@ namespace ompl
                 return boost::num_vertices(g_);
             }
 
-            /** \brief Get the number of iterations the algorithm performed */
-            long unsigned int getIterations() const
-            {
-                return iterations_;
-            }
-
             virtual void getPlannerData(base::PlannerData &data) const;
+
+            /** \brief Print debug information about planner */
+            void printDebug(std::ostream &out = std::cout) const;
+
+            ///////////////////////////////////////
+            // Planner progress property functions
+            std::string getIterationCount() const
+            {
+                return boost::lexical_cast<std::string>(iterations_);
+            }
+            std::string getBestCost() const
+            {
+                return boost::lexical_cast<std::string>(bestCost_.v);
+            }
 
         protected:
 
@@ -506,9 +514,6 @@ namespace ompl
             /** \brief A counter for the number of consecutive failed iterations of the algorithm */
             unsigned int                                                        consecutiveFailures_;
 
-            /** \brief A counter for the number of iterations of the algorithm */
-            long unsigned int                                                   iterations_;
-
             /** \brief Maximum visibility range for nodes in the graph */
             double                                                              sparseDelta_;
 
@@ -518,6 +523,18 @@ namespace ompl
             /** \brief Mutex to guard access to the Graph member (g_) */
             mutable boost::mutex                                                graphMutex_;
 
+            /** \brief Objective cost function for PRM graph edges */
+            base::OptimizationObjectivePtr                                      opt_;
+
+            /** \brief Given two vertices, returns a heuristic on the cost of the path connecting them. This method wraps OptimizationObjective::motionCostHeuristic */
+            base::Cost costHeuristic(Vertex u, Vertex v) const;
+
+            //////////////////////////////
+            // Planner progress properties
+            /** \brief A counter for the number of iterations of the algorithm */
+            long unsigned int                                                   iterations_;
+            /** \brief Best cost found so far by algorithm */
+            base::Cost                                                          bestCost_;
         };
 
     }

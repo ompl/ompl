@@ -151,12 +151,14 @@ namespace ompl
 
             ///////////////////////////////////////
             // Planner progress property functions
-            std::string getIterationCount() const;
-
-            std::string getCollisionCheckCount() const;
-
-            std::string getBestCost() const;
-            ///////////////////////////////////////
+            std::string getIterationCount() const
+            {
+                return boost::lexical_cast<std::string>(iterations_);
+            }
+            std::string getBestCost() const
+            {
+                return boost::lexical_cast<std::string>(bestCost_.v);
+            }
 
         protected:
 
@@ -240,7 +242,7 @@ namespace ompl
             bool                                           delayCC_;
 
             /** \brief Objective we're optimizing */
-            base::OptimizationObjectivePtr opt_;
+            base::OptimizationObjectivePtr                 opt_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
             Motion                                         *lastGoalMotion_;
@@ -250,13 +252,8 @@ namespace ompl
 
             //////////////////////////////
             // Planner progress properties
-
             /** \brief Number of iterations the algorithm performed */
             unsigned int                                   iterations_;
-
-            /** \brief Number of collisions checks performed by the algorithm */
-            unsigned int                                   collisionChecks_;
-
             /** \brief Best cost found so far by algorithm */
             base::Cost                                     bestCost_;
         };

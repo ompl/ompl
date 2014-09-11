@@ -37,6 +37,7 @@
 #include "ompl/geometric/planners/prm/SPARS.h"
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/bind.hpp>
@@ -63,18 +64,19 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
     sparseDJSets_(boost::get(boost::vertex_rank, s_),
                   boost::get(boost::vertex_predecessor, s_)),
     consecutiveFailures_(0),
-    iterations_(0),
     stretchFactor_(3.),
     maxFailures_(1000),
     addedSolution_(false),
     denseDeltaFraction_(.001),
     sparseDeltaFraction_(.25),
     denseDelta_(0.),
-    sparseDelta_(0.)
+    sparseDelta_(0.),
+    iterations_(0),
+    bestCost_(std::numeric_limits<double>::quiet_NaN())
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
-    specs_.optimizingPaths = false;
+    specs_.optimizingPaths = true;
 
     psimp_.reset(new PathSimplifier(si_));
     psimp_->freeStates(false);
@@ -83,6 +85,11 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
     Planner::declareParam<double>("sparse_delta_fraction", this, &SPARS::setSparseDeltaFraction, &SPARS::getSparseDeltaFraction, "0.0:0.01:1.0");
     Planner::declareParam<double>("dense_delta_fraction", this, &SPARS::setDenseDeltaFraction, &SPARS::getDenseDeltaFraction, "0.0:0.0001:0.1");
     Planner::declareParam<unsigned int>("max_failures", this, &SPARS::setMaxFailures, &SPARS::getMaxFailures, "100:10:3000");
+
+    addPlannerProgressProperty("iterations INTEGER",
+                               boost::bind(&SPARS::getIterationCount, this));
+    addPlannerProgressProperty("best cost REAL",
+                               boost::bind(&SPARS::getBestCost, this));
 }
 
 ompl::geometric::SPARS::~SPARS()
@@ -104,6 +111,28 @@ void ompl::geometric::SPARS::setup()
     double maxExt = si_->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
     denseDelta_ = denseDeltaFraction_ * maxExt;
+
+    // Setup optimization objective
+    //
+    // If no optimization objective was specified, then default to
+    // optimizing path length as computed by the distance() function
+    // in the state space.
+    if (pdef_)
+    {
+        if (pdef_->hasOptimizationObjective())
+        {
+            opt_ = pdef_->getOptimizationObjective();
+            if (!dynamic_cast<base::PathLengthOptimizationObjective*>(opt_.get()))
+                OMPL_WARN("%s: Asymptotic optimality has only been proven with path length optimizaton; convergence for other optimizaton objectives is not guaranteed.", getName().c_str());
+        }
+        else
+            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+    }
+    else
+    {
+        OMPL_INFORM("%s: problem definition is not set, deferring setup completion...", getName().c_str());
+        setup_ = false;
+    }
 }
 
 void ompl::geometric::SPARS::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
@@ -137,6 +166,7 @@ void ompl::geometric::SPARS::clear()
     clearQuery();
     resetFailures();
     iterations_ = 0;
+    bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
 }
 
 void ompl::geometric::SPARS::freeMemory()
@@ -205,6 +235,7 @@ void ompl::geometric::SPARS::checkForSolution(const base::PlannerTerminationCond
 bool ompl::geometric::SPARS::haveSolution(const std::vector<DenseVertex> &starts, const std::vector<DenseVertex> &goals, base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
+    base::Cost sol_cost(opt_->infiniteCost());
     foreach (DenseVertex start, starts)
     {
         foreach (DenseVertex goal, goals)
@@ -216,8 +247,24 @@ bool ompl::geometric::SPARS::haveSolution(const std::vector<DenseVertex> &starts
 
             if (same_component && g->isStartGoalPairValid(sparseStateProperty_[goal], sparseStateProperty_[start]))
             {
-                solution = constructSolution(start, goal);
-                return true;
+                base::PathPtr p = constructSolution(start, goal);
+                if (p)
+                {
+                    base::Cost pathCost = p->cost(opt_);
+                    if (opt_->isCostBetterThan(pathCost, bestCost_))
+                        bestCost_ = pathCost;
+                    // Check if optimization objective is satisfied
+                    if (opt_->isSatisfied(pathCost))
+                    {
+                        solution = p;
+                        return true;
+                    }
+                    else if (opt_->isCostBetterThan(pathCost, sol_cost))
+                    {
+                        solution = p;
+                        sol_cost = pathCost;
+                    }
+                }
             }
         }
     }
@@ -343,6 +390,8 @@ void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCond
 {
     checkQueryStateInitialization();
 
+    if (!isSetup())
+        setup();
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
     if (!simpleSampler_)
@@ -359,6 +408,7 @@ void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCond
     /* Storage for the interface neighborhood, populated by getInterfaceNeighborhood() */
     std::vector<DenseVertex> interfaceNeighborhood;
 
+    bestCost_ = opt_->infiniteCost();
     while (ptc == false)
     {
         iterations_++;
@@ -456,7 +506,7 @@ ompl::geometric::SPARS::SparseVertex ompl::geometric::SPARS::addGuard(base::Stat
 
 void ompl::geometric::SPARS::connectSparsePoints(SparseVertex v, SparseVertex vp)
 {
-    const double weight = sparseDistanceFunction(v, vp);
+    const base::Cost weight(costHeuristic(v, vp));
     const SpannerGraph::edge_property_type properties(weight);
     boost::mutex::scoped_lock _(graphMutex_);
     boost::add_edge(v, vp, properties, s_);
@@ -676,7 +726,7 @@ void ompl::geometric::SPARS::printDebug(std::ostream &out) const
     out << "  Status: " << std::endl;
     out << "    Milestone Count: " << milestoneCount() << std::endl;
     out << "    Guard Count: " << guardCount() << std::endl;
-    out << "    Iterations: " << getIterations() << std::endl;
+    out << "    Iterations: " << getIterationCount() << std::endl;
     out << "    Average Valence: " << averageValence() << std::endl;
     out << "    Consecutive Failures: " << consecutiveFailures_ << std::endl;
 }
@@ -904,9 +954,16 @@ ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const SparseVertex
 
     try
     {
+        // Consider using a persistent distance_map if it's slow
         boost::astar_search(s_, start,
-                            boost::bind(&SPARS::sparseDistanceFunction, this, _1, goal),
+                            boost::bind(&SPARS::costHeuristic, this, _1, goal),
                             boost::predecessor_map(prev).
+                            distance_compare(boost::bind(&base::OptimizationObjective::
+                                                         isCostBetterThan, opt_.get(), _1, _2)).
+                            distance_combine(boost::bind(&base::OptimizationObjective::
+                                                         combineCosts, opt_.get(), _1, _2)).
+                            distance_inf(opt_->infiniteCost()).
+                            distance_zero(opt_->identityCost()).
                             visitor(AStarGoalVisitor<SparseVertex>(goal)));
     }
     catch (AStarFoundGoal&)
@@ -984,4 +1041,9 @@ void ompl::geometric::SPARS::getPlannerData(base::PlannerData &data) const
         if (boost::out_degree( n, s_ ) == 0)
             data.addVertex( base::PlannerDataVertex(sparseStateProperty_[n], (int)sparseColorProperty_[n]));
     data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
+}
+
+ompl::base::Cost ompl::geometric::SPARS::costHeuristic(SparseVertex u, SparseVertex v) const
+{
+    return opt_->motionCostHeuristic(stateProperty_[u], stateProperty_[v]);
 }

@@ -32,33 +32,39 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Oren Salzman, Sertac Karaman, Ioan Sucan */
+/* Author: Oren Salzman, Sertac Karaman, Ioan Sucan, Mark Moll */
 
 #include "ompl/geometric/planners/rrt/LBTRRT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/tools/config/SelfConfig.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include <limits>
 #include <math.h>
 
 const double ompl::geometric::LBTRRT::kRRG = 5.5;
 
-ompl::geometric::LBTRRT::LBTRRT(const base::SpaceInformationPtr &si)
-    : base::Planner(si, "LBTRRT")
-{
+ompl::geometric::LBTRRT::LBTRRT(const base::SpaceInformationPtr &si) :
+    base::Planner(si, "LBTRRT"),
+    goalBias_(0.05),
+    maxDistance_(0.0),
+    epsilon_(0.4),
+    lastGoalMotion_(NULL),
+    iterations_(0),
+    bestCost_(std::numeric_limits<double>::quiet_NaN())
+    {
 
     specs_.approximateSolutions = true;
     specs_.directed = true;
 
-    goalBias_ = 0.05;
-    maxDistance_ = 0.0;
-    lastGoalMotion_ = NULL;
-    epsilon_ = 0.4;
+    Planner::declareParam<double>("range", this, &LBTRRT::setRange, &LBTRRT::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &LBTRRT::setGoalBias, &LBTRRT::getGoalBias, "0.:.05:1.");
+    Planner::declareParam<double>("epsilon", this, &LBTRRT::setApproximationFactor, &LBTRRT::getApproximationFactor, "0.:.1:10.");
 
+    addPlannerProgressProperty("iterations INTEGER",
+                               boost::bind(&LBTRRT::getIterationCount, this));
+    addPlannerProgressProperty("best cost REAL",
+                               boost::bind(&LBTRRT::getBestCost, this));
 
-    Planner::declareParam<double>("range", this, &LBTRRT::setRange, &LBTRRT::getRange);
-    Planner::declareParam<double>("goal_bias", this, &LBTRRT::setGoalBias, &LBTRRT::getGoalBias);
-    Planner::declareParam<double>("epsilon", this, &LBTRRT::setApproximationFactor, &LBTRRT::getApproximationFactor);
 }
 
 ompl::geometric::LBTRRT::~LBTRRT()
@@ -74,6 +80,10 @@ void ompl::geometric::LBTRRT::clear()
     if (nn_)
         nn_->clear();
     lastGoalMotion_ = NULL;
+    goalMotions_.clear();
+
+    iterations_ = 0;
+    bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
 }
 
 void ompl::geometric::LBTRRT::setup()
@@ -83,8 +93,30 @@ void ompl::geometric::LBTRRT::setup()
     sc.configurePlannerRange(maxDistance_);
 
     if (!nn_)
-        nn_.reset(new NearestNeighborsGNAT<Motion*>());
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
     nn_->setDistanceFunction(boost::bind(&LBTRRT::distanceFunction, this, _1, _2));
+
+    // Setup optimization objective
+    //
+    // If no optimization objective was specified, then default to
+    // optimizing path length as computed by the distance() function
+    // in the state space.
+    if (pdef_)
+    {
+        if (pdef_->hasOptimizationObjective())
+        {
+            opt_ = pdef_->getOptimizationObjective();
+            if (!dynamic_cast<base::PathLengthOptimizationObjective*>(opt_.get()))
+                OMPL_WARN("%s: Asymptotic optimality has only been proven with path length optimizaton; convergence for other optimizaton objectives is not guaranteed.", getName().c_str());
+        }
+        else
+            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+    }
+    else
+    {
+        OMPL_INFORM("%s: problem definition is not set, deferring setup completion...", getName().c_str());
+        setup_ = false;
+    }
 }
 
 void ompl::geometric::LBTRRT::freeMemory()
@@ -112,32 +144,42 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     {
         Motion *motion = new Motion(si_);
         si_->copyState(motion->state, st);
+        motion->costLb_ = motion->costApx_ = opt_->identityCost();
         nn_->add(motion);
     }
 
     if (nn_->size() == 0)
     {
-        OMPL_ERROR("There are no valid initial states!");
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("Starting planning with %u states already in datastructure", nn_->size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
-    Motion *solution  = NULL;
-    Motion *approxSol = NULL;
-    double  approxdif = std::numeric_limits<double>::infinity();
+    Motion *solution             = lastGoalMotion_;
 
-    Motion *rmotion   = new Motion(si_);
-    base::State *rstate = rmotion->state;
-    base::State *xstate = si_->allocState();
+    // \TODO Make this variable unnecessary, or at least have it
+    // persist across solve runs
+    base::Cost bestCost          = opt_->infiniteCost();
+    Motion *approximation        = NULL;
 
-    while ( ptc() == false )
+    double  approximatedist      = std::numeric_limits<double>::infinity();
+    bool sufficientlyShort       = false;
+
+    Motion *rmotion              = new Motion(si_);
+    base::State *rstate          = rmotion->state;
+    base::State *xstate          = si_->allocState();
+    unsigned int statesGenerated = 0;
+
+    while (ptc() == false)
     {
+        iterations_++;
         /* sample random state (with goal biasing) */
-        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+        // Goal samples are only sampled until maxSampleCount() goals are in the tree, to prohibit duplicate goal states.
+        if (goal_s && goalMotions_.size() < goal_s->maxSampleCount() && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
         else
             sampler_->sampleUniform(rstate);
@@ -156,6 +198,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
 
         if (si_->checkMotion(nmotion->state, dstate))
         {
+            statesGenerated++;
             /* create a motion */
             Motion *motion = new Motion(si_);
             si_->copyState(motion->state, dstate);
@@ -163,58 +206,82 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
             /* update fields */
             motion->parentLb_ = nmotion;
             motion->parentApx_ = nmotion;
-            double distN = distanceFunction(nmotion, motion);
-            motion->costLb_ = nmotion->costLb_ + distN;
-            motion->costApx_ = nmotion->costApx_ + distN;
+            motion->incCost_ = costFunction(nmotion, motion);
+            motion->costLb_ = opt_->combineCosts(nmotion->costLb_, motion->incCost_);
+            motion->costApx_ = opt_->combineCosts(nmotion->costApx_, motion->incCost_);
 
             nmotion->childrenLb_.push_back(motion);
             nmotion->childrenApx_.push_back(motion);
 
             nn_->add(motion);
 
+            bool checkForSolution = false;
             /* do lazy rewiring */
-            double k = std::log(double(nn_->size())) * kRRG;
+            unsigned int k = std::ceil(std::log(double(nn_->size())) * kRRG);
             std::vector<Motion *> nnVec;
-            nn_->nearestK(rmotion, static_cast<int>(k), nnVec);
+            nn_->nearestK(rmotion, k, nnVec);
 
-            IsLessThan  isLessThan(this,motion);
-            std::sort (nnVec.begin(), nnVec.end(), isLessThan);
-
-            for (std::size_t i = 0; i < nnVec.size(); ++i)
-                attemptNodeUpdate(motion, nnVec[i]);
+            CostCompare costCompare(*opt_, motion);
+            std::sort(nnVec.begin(), nnVec.end(), costCompare);
 
             for (std::size_t i = 0; i < nnVec.size(); ++i)
-                attemptNodeUpdate(nnVec[i], motion);
+                checkForSolution |= attemptNodeUpdate(motion, nnVec[i]);
 
-            double dist = 0.0;
-            bool sat = goal->isSatisfied(motion->state, &dist);
-            if (sat)
+            for (std::size_t i = 0; i < nnVec.size(); ++i)
+                checkForSolution |= attemptNodeUpdate(nnVec[i], motion);
+
+            double distanceFromGoal;
+            if (goal->isSatisfied(motion->state, &distanceFromGoal))
             {
-                approxdif = dist;
-                solution = motion;
-                break;
+                goalMotions_.push_back(motion);
+                checkForSolution = true;
             }
-            if (dist < approxdif)
+
+            // Checking for solution or iterative improvement
+            if (checkForSolution)
             {
-                approxdif = dist;
-                approxSol = motion;
+                for (size_t i = 0; i < goalMotions_.size(); ++i)
+                {
+                    if (opt_->isCostBetterThan(goalMotions_[i]->costApx_, bestCost))
+                    {
+                        bestCost = goalMotions_[i]->costApx_;
+                        bestCost_ = bestCost;
+                    }
+
+                    sufficientlyShort = opt_->isSatisfied(goalMotions_[i]->costApx_);
+                    if (sufficientlyShort)
+                    {
+                        solution = goalMotions_[i];
+                        break;
+                    }
+                    else if (!solution ||
+                             opt_->isCostBetterThan(goalMotions_[i]->costApx_, solution->costApx_))
+                        solution = goalMotions_[i];
+                }
+            }
+
+            // Checking for approximate solution (closest state found to the goal)
+            if (goalMotions_.size() == 0 && distanceFromGoal < approximatedist)
+            {
+                approximation = motion;
+                approximatedist = distanceFromGoal;
             }
         }
+
+        // terminate if a sufficient solution is found
+        if (solution && sufficientlyShort)
+            break;
     }
 
-    bool solved = false;
-    bool approximate = false;
-
-    if (solution == NULL)
-    {
-        solution = approxSol;
-        approximate = true;
-    }
+    bool approximate = (solution == 0);
+    bool addedSolution = false;
+    if (approximate)
+        solution = approximation;
+    else
+        lastGoalMotion_ = solution;
 
     if (solution != NULL)
     {
-        lastGoalMotion_ = solution;
-
         /* construct the solution path */
         std::vector<Motion*> mpath;
         while (solution != NULL)
@@ -224,11 +291,20 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
         }
 
         /* set the solution path */
-        PathGeometric *path = new PathGeometric(si_);
+        PathGeometric *geoPath = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            path->append(mpath[i]->state);
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
-        solved = true;
+            geoPath->append(mpath[i]->state);
+
+        base::PathPtr path(geoPath);
+        // Add the solution path, whether it is approximate (not reaching the goal), and the
+        // distance from the end of the path to the goal (-1 if satisfying the goal).
+        base::PlannerSolution psol(path, approximate, approximate ? approximatedist : -1.0, getName());
+        // Does the solution satisfy the optimization objective?
+        psol.optimized_ = sufficientlyShort;
+
+        pdef_->addSolutionPath (psol);
+
+        addedSolution = true;
     }
 
     si_->freeState(xstate);
@@ -236,54 +312,55 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
         si_->freeState(rmotion->state);
     delete rmotion;
 
-    OMPL_INFORM("Created %u states", nn_->size());
+    OMPL_INFORM("%s: Created %u states. %u goal states in tree.", getName().c_str(), statesGenerated, goalMotions_.size());
 
-    return base::PlannerStatus(solved, approximate);
+    return base::PlannerStatus(addedSolution, approximate);
 }
 
-void ompl::geometric::LBTRRT::attemptNodeUpdate(Motion *potentialParent, Motion *child)
+bool ompl::geometric::LBTRRT::attemptNodeUpdate(Motion *potentialParent, Motion *child)
 {
-    double dist = distanceFunction(potentialParent, child);
-    double potentialLb = potentialParent->costLb_ + dist;
-    double potentialApx = potentialParent->costApx_ + dist;
+    base::Cost incCost = costFunction(potentialParent, child);
+    base::Cost potentialLb = opt_->combineCosts(potentialParent->costLb_, incCost);
+    base::Cost potentialApx = opt_->combineCosts(potentialParent->costApx_, incCost);
 
-    if (child->costLb_ <= potentialLb)
-        return;
+    if (!opt_->isCostBetterThan(potentialLb, child->costLb_))
+        return false;
 
-    if (child->costApx_ > 1.0 + epsilon_ *  potentialLb)
+    if (opt_->isCostBetterThan(base::Cost((1.0 + epsilon_) *  potentialLb.v), child->costApx_))
     {
         if (si_->checkMotion(potentialParent->state, child->state) == false)
-            return;
+            return false;
 
         removeFromParentLb(child);
-        double deltaLb = potentialLb - child->costLb_;
         child->parentLb_ = potentialParent;
         potentialParent->childrenLb_.push_back(child);
         child->costLb_ = potentialLb;
-        updateChildCostsLb(child, deltaLb);
+        child->incCost_ = incCost;
+        updateChildCostsLb(child);
 
 
-        if (child->costApx_ <= potentialApx)
-            return;
+        if (!opt_->isCostBetterThan(potentialApx, child->costApx_))
+            return false;
 
         removeFromParentApx(child);
-        double deltaApx = potentialApx - child->costApx_;
         child->parentApx_ = potentialParent;
         potentialParent->childrenApx_.push_back(child);
         child->costApx_ = potentialApx;
-        updateChildCostsApx(child, deltaApx);
+        updateChildCostsApx(child);
+
+        if (opt_->isCostBetterThan(potentialApx, bestCost_))
+            return true;
     }
-    else //(child->costApx_ <= 1 + epsilon_ *  potentialLb)
+    else //(child->costApx_ <= (1 + epsilon_) *  potentialLb)
     {
         removeFromParentLb(child);
-        double deltaLb = potentialLb - child->costLb_;
         child->parentLb_ = potentialParent;
         potentialParent->childrenLb_.push_back(child);
         child->costLb_ = potentialLb;
-        updateChildCostsLb(child, deltaLb);
+        child->incCost_ = incCost;
+        updateChildCostsLb(child);
     }
-
-    return;
+    return false;
 }
 
 void ompl::geometric::LBTRRT::getPlannerData(base::PlannerData &data) const
@@ -305,23 +382,24 @@ void ompl::geometric::LBTRRT::getPlannerData(base::PlannerData &data) const
             data.addEdge(base::PlannerDataVertex(motions[i]->parentApx_->state),
                          base::PlannerDataVertex(motions[i]->state));
     }
+    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
 }
 
 
-void ompl::geometric::LBTRRT::updateChildCostsLb(Motion *m, double delta)
+void ompl::geometric::LBTRRT::updateChildCostsLb(Motion *m)
 {
-    for (size_t i = 0; i < m->childrenLb_.size(); ++i)
+    for (std::size_t i = 0; i < m->childrenLb_.size(); ++i)
     {
-        m->childrenLb_[i]->costLb_ += delta;
-        updateChildCostsLb(m->childrenLb_[i], delta);
+        m->childrenLb_[i]->costLb_ = opt_->combineCosts(m->costLb_, m->childrenLb_[i]->incCost_);
+        updateChildCostsLb(m->childrenLb_[i]);
     }
 }
-void ompl::geometric::LBTRRT::updateChildCostsApx(Motion *m, double delta)
+void ompl::geometric::LBTRRT::updateChildCostsApx(Motion *m)
 {
-    for (size_t i = 0; i < m->childrenApx_.size(); ++i)
+    for (std::size_t i = 0; i < m->childrenApx_.size(); ++i)
     {
-        m->childrenApx_[i]->costApx_ += delta;
-        updateChildCostsApx(m->childrenApx_[i], delta);
+        m->childrenApx_[i]->costApx_ = opt_->combineCosts(m->costApx_, m->childrenApx_[i]->incCost_);
+        updateChildCostsApx(m->childrenApx_[i]);
     }
 }
 
@@ -335,15 +413,10 @@ void ompl::geometric::LBTRRT::removeFromParentApx(Motion *m)
 }
 void ompl::geometric::LBTRRT::removeFromParent(const Motion *m, std::vector<Motion*>& vec)
 {
-    std::vector<Motion*>::iterator it = vec.begin ();
-    while (it != vec.end ())
-    {
+    for (std::vector<Motion*>::iterator it = vec.begin (); it != vec.end(); ++it)
         if (*it == m)
         {
-            it = vec.erase(it);
-            it = vec.end ();
+            vec.erase(it);
+            break;
         }
-        else
-            ++it;
-    }
 }

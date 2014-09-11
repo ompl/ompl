@@ -285,6 +285,17 @@ namespace ompl
                 return nn_;
             }
 
+            ///////////////////////////////////////
+            // Planner progress property functions
+            std::string getIterationCount() const
+            {
+                return boost::lexical_cast<std::string>(iterations_);
+            }
+            std::string getBestCost() const
+            {
+                return boost::lexical_cast<std::string>(bestCost_.v);
+            }
+
         protected:
 
             /** \brief Free all the memory allocated by the planner */
@@ -395,6 +406,13 @@ namespace ompl
 
             /** \brief Given two vertices, returns a heuristic on the cost of the path connecting them. This method wraps OptimizationObjective::motionCostHeuristic */
             base::Cost costHeuristic(Vertex u, Vertex v) const;
+
+            //////////////////////////////
+            // Planner progress properties
+            /** \brief Number of iterations the algorithm performed */
+            unsigned int                                           iterations_;
+            /** \brief Best cost found so far by algorithm */
+            base::Cost                                             bestCost_;
         };
 
     }
