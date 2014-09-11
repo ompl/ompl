@@ -567,6 +567,9 @@ class ompl_geometric_generator_t(code_generator_t):
             def("checkValidity",&::ompl::base::Planner::checkValidity,
                 &%s_wrapper::default_checkValidity )""" % planner)
 
+        # used in SPARS
+        self.std_ns.class_('deque<ompl::base::State*>').rename('dequeState')
+
         # needed to able to set connection strategy for PRM
         # the PRM::Vertex type is typedef-ed to boost::graph_traits<Graph>::vertex_descriptor. This can
         # be equal to an unsigned long or unsigned int, depending on architecture (or version of boost?)
@@ -576,12 +579,16 @@ class ompl_geometric_generator_t(code_generator_t):
             self.ompl_ns.class_('NearestNeighborsLinear<unsigned long>').rename('NearestNeighborsLinear')
             self.ompl_ns.class_('KStrategy<unsigned long>').rename('KStrategy')
             self.ompl_ns.class_('KStarStrategy<unsigned long>').rename('KStarStrategy')
+            # used in SPARStwo
+            self.std_ns.class_('map<unsigned long, ompl::base::State*>').rename('mapVertexToState')
         except:
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').include()
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').rename('NearestNeighbors')
             self.ompl_ns.class_('NearestNeighborsLinear<unsigned int>').rename('NearestNeighborsLinear')
             self.ompl_ns.class_('KStrategy<unsigned int>').rename('KStrategy')
             self.ompl_ns.class_('KStarStrategy<unsigned int>').rename('KStarStrategy')
+            # used in SPARStwo
+            self.std_ns.class_('map<unsigned int, ompl::base::State*>').rename('mapVertexToState')
 
 class ompl_tools_generator_t(code_generator_t):
     def __init__(self):
