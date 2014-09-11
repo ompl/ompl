@@ -11,12 +11,12 @@ shinyUI(
                     uiOutput("perfPlannerSelect")
                 ),
                 mainPanel(
-                    span(downloadLink('perfDownloadPlot', 'Download as PDF'), class="btn"),
+                    span(downloadLink('perfDownloadPlot', 'Download plot as PDF'), class="btn"),
                     plotOutput("perfPlot")
                 )
             ),
             value="performance",
-            icon=icon("area-chart")),
+            icon=icon("bar-chart")),
         tabPanel("Progress",
             uiOutput("progressPage"),
             value="progress",

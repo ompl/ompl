@@ -169,6 +169,7 @@ shinyServer(function(input, output, session) {
             input$perfVersion,
             paste(sapply(input$perfPlanners, sqlPlannerSelect), collapse=" OR "))
         data <- dbGetQuery(con(), query)
+        data$name <- factor(data$name, unique(data$name), labels = sapply(unique(data$name), plannerNameMapping))
         attribs <- perfAttrs(con())
         if (attribs$type[match(attr, attribs$name)] == "ENUM")
         {
@@ -187,7 +188,7 @@ shinyServer(function(input, output, session) {
         {
             p <- ggplot(data, aes_string(x = "name", y = attr, group = "name")) +
                 # labels
-                scale_x_discrete('planner', labels = sapply(input$perfPlanners, plannerNameMapping)) +
+                xlab('planner') +
                 ylab(input$attr) +
                 theme(legend.position="none") +
                 # box plots for boolean, integer, and real-valued attributes
@@ -222,6 +223,7 @@ shinyServer(function(input, output, session) {
             attr,
             paste(sapply(input$progPlanners, sqlPlannerSelect), collapse=" OR "))
         data <- dbGetQuery(con(), query)
+        data$name <- factor(data$name, unique(data$name), labels = sapply(unique(data$name), plannerNameMapping))
         p <- ggplot(data, aes_string(x = "time", y = attr, group = "name", color = "name", fill = "name")) +
             # labels
             xlab('time (s)') +
@@ -261,6 +263,7 @@ shinyServer(function(input, output, session) {
         data <- dbGetQuery(con(), query)
         # order by order listed in data frame (i.e., "0.9.*" before "0.10.*")
         data$version <- factor(data$version, unique(data$version))
+        data$name <- factor(data$name, unique(data$name), labels = sapply(unique(data$name), plannerNameMapping))
         ggplot(data, aes_string(x = "version", y = attr, fill = "name", group = "name")) +
             # labels
             xlab('version') +
@@ -299,7 +302,7 @@ shinyServer(function(input, output, session) {
                 uiOutput("progPlannerSelect")
             ),
             mainPanel(
-                span(downloadLink('progDownloadPlot', 'Download as PDF'), class="btn"),
+                span(downloadLink('progDownloadPlot', 'Download plot as PDF'), class="btn"),
                 plotOutput("progPlot")
             )
         )
@@ -317,7 +320,7 @@ shinyServer(function(input, output, session) {
                 uiOutput("regrPlannerSelect")
             ),
             mainPanel(
-                span(downloadLink('regrDownloadPlot', 'Download as PDF'), class="btn"),
+                span(downloadLink('regrDownloadPlot', 'Download plot as PDF'), class="btn"),
                 plotOutput("regrPlot")
             )
         )
