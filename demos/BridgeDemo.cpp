@@ -46,6 +46,13 @@
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 
+#include <ompl/util/PPM.h>
+#include <ompl/config.h>
+#include <../tests/resources/config.h>
+
+#include <boost/filesystem.hpp>
+#include <iostream>
+
 #include <fstream>
 #include <limits>
 
@@ -53,12 +60,7 @@ namespace ob = ompl::base;
 namespace og = ompl::geometric;
 namespace oc = ompl::control;
 
-bool isStateValid(const ob::State *state)
-{
-    return true;
-}
-
-// TODO: for any reason I am not able to generalize to any radius. Try it again.
+// TODO: generalize for any radius.
 class ReedsSheppStatePropagator : public oc::StatePropagator
 {
 public:
@@ -107,7 +109,6 @@ public:
         rs_.freeState(s);
     }
 
-    // TODO how can this be a const function?
     virtual bool steer (const ob::State *from, const ob::State *to, std::vector<oc::TimedControl> &controls, double &duration) const
     {
         ob::ReedsSheppStateSpace::ReedsSheppPath rsp = rs_.reedsShepp(from, to);
@@ -151,100 +152,154 @@ private:
     double rho_;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+class CarIn2D
+{
+public:
+
+    CarIn2D(const char *ppm_file)
+    {
+        bool ok = false;
+        try
+        {
+            ppm_.loadFile(ppm_file);
+            ok = true;
+        }
+        catch(ompl::Exception &ex)
+        {
+            OMPL_ERROR("Unable to load %s.\n%s", ppm_file, ex.what());
+        }
+        if (ok)
+        {
+            // construct the state space we are planning in
+            ob::StateSpacePtr space(new ob::SE2StateSpace());
+
+            // set the bounds for the R^2 part of SE(2)
+            ob::RealVectorBounds bounds(2);
+            bounds.setLow(0, 0);
+            bounds.setHigh(0, ppm_.getWidth());
+            bounds.setLow(1, 0);
+            bounds.setHigh(1, ppm_.getHeight());
+            space->as<ob::SE2StateSpace>()->setBounds(bounds);
+            maxWidth_ = ppm_.getWidth() - 1;
+            maxHeight_ = ppm_.getHeight() - 1;
+
+            // create a control space - RealVector space is not the most correct space, but easier to use.
+            oc::ControlSpacePtr cspace(new oc::RealVectorControlSpace(space, 2));
+            ob::RealVectorBounds cbounds(2);
+            cbounds.setLow(-1);
+            cbounds.setHigh(1);
+            cspace->as<oc::RealVectorControlSpace>()->setBounds(bounds);
+
+            // define the space information of the real, controlled system
+            siC_.reset(new  oc::SpaceInformation(space,cspace));
+
+            // set the state propagation routine
+            oc::StatePropagatorPtr sp (new ReedsSheppStatePropagator(siC_));
+
+            ////////////////////////////
+            // and now, with the control space information and state propagator
+            // we create the geometric version of the problem.
+            ////////////////////////////
+            ob::StateSpace *fromPropSpace (new ob::FromPropagatorStateSpace<ob::SE2StateSpace>(sp));
+            fromPropSpace->as<ob::FromPropagatorStateSpace<ob::SE2StateSpace> >()->setBounds(bounds);
+
+            // creating the new simple setup for geometric planning
+            ss_.reset(new og::SimpleSetup(ob::StateSpacePtr(fromPropSpace)));
+            ss_->setStateValidityChecker(boost::bind(&CarIn2D::isStateValid, this, _1));
+            ss_->getSpaceInformation()->setStateValidityCheckingResolution(1.0 / fromPropSpace->getMaximumExtent());
+
+        }
+    }
+
+    bool plan(unsigned int goal_row, unsigned int goal_col,  double goal_theta)
+    {
+        if (!ss_)
+            return false;
+
+        ob::ScopedState<> start(ss_->getStateSpace()), goal(ss_->getStateSpace());
+        start[0] = 800.;
+        start[1] = 500.;
+        start[2] = 0.;
+        goal[0] = goal_row;
+        goal[1] = goal_col;
+        goal[2] = goal_theta;
+
+        // set the start and goal states
+        ss_->setStartAndGoalStates(start, goal);
+
+        // set the planner
+        ob::PlannerPtr planner(new og::RRT(ss_->getSpaceInformation()));
+
+        ss_->setPlanner(planner);
+
+        // attempt to solve the problem within one second of planning time
+        ss_->solve(1.0);
+
+        if (ss_->haveSolutionPath())
+            return true;
+        else
+            return false;
+    }
+
+    void recordSolution()
+    {
+        if (!ss_ || !ss_->haveSolutionPath())
+            return;
+        og::PathGeometric &p = ss_->getSolutionPath();
+        p.interpolate();
+        for (std::size_t i = 0 ; i < p.getStateCount() ; ++i)
+        {
+            const int w = std::min(maxWidth_, (int)p.getState(i)->as<ob::FromPropagatorStateSpace<ob::SE2StateSpace>::StateType>()->getX());
+            const int h = std::min(maxHeight_, (int)p.getState(i)->as<ob::FromPropagatorStateSpace<ob::SE2StateSpace>::StateType>()->getY());
+            ompl::PPM::Color &c = ppm_.getPixel(h, w);
+            c.red = 255;
+            c.green = 0;
+            c.blue = 0;
+        }
+    }
+
+    void save(const char *filename)
+    {
+        if (!ss_)
+            return;
+        ppm_.saveFile(filename);
+    }
+
+private:
+
+    bool isStateValid(const ob::State *state) const
+    {
+        const int w = std::min((int)state->as<ob::FromPropagatorStateSpace<ob::SE2StateSpace>::StateType>()->getX(), maxWidth_);
+        const int h = std::min((int)state->as<ob::FromPropagatorStateSpace<ob::SE2StateSpace>::StateType>()->getY(), maxHeight_);
+
+        const ompl::PPM::Color &c = ppm_.getPixel(h, w);
+        return c.red > 127 && c.green > 127 && c.blue > 127;
+    }
+
+    og::SimpleSetupPtr ss_;
+    oc::SpaceInformationPtr siC_;
+    int maxWidth_;
+    int maxHeight_;
+    ompl::PPM ppm_;
+
+};
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 int main(int argc, char** argv)
 {
-    // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::SE2StateSpace());
+    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    CarIn2D env((path / "ppm/floor.ppm").string().c_str());
 
-    // set the bounds for the R^2 part of SE(2)
-    ob::RealVectorBounds bounds(2);
-    bounds.setLow(-10);
-    bounds.setHigh(10);
-    space->as<ob::SE2StateSpace>()->setBounds(bounds);
-
-    // create a control space - RealVector space is not the most correct space, but easier to use.
-    oc::ControlSpacePtr cspace(new oc::RealVectorControlSpace(space, 2));
-    ob::RealVectorBounds cbounds(2);
-    cbounds.setLow(-1);
-    cbounds.setHigh(1);
-    cspace->as<oc::RealVectorControlSpace>()->setBounds(bounds);
-
-    // define the space information of the real, controlled system
-    oc::SpaceInformationPtr siC (new  oc::SpaceInformation(space,cspace));
-
-    // set the state propagation routine
-    oc::StatePropagatorPtr sp (new ReedsSheppStatePropagator(siC));
-
-    ////////////////////////////
-    // and now, with the control space information and state propagator
-    // we create the geometric version of the problem.
-    ////////////////////////////
-    ob::StateSpacePtr fromPropSpace (new ob::FromPropagatorStateSpace<ob::SE2StateSpace>(sp));
-    fromPropSpace->as<ob::FromPropagatorStateSpace<ob::SE2StateSpace> >()->setBounds(bounds);
-
-    // creating the new simple setup for geometric planning
-    og::SimpleSetup ss (fromPropSpace);
-    ss.setStateValidityChecker(boost::bind(&isStateValid, _1));
-
-    ob::ScopedState<> start(fromPropSpace), goal(fromPropSpace);
-    start[0] = 0.;
-    start[1] = 0.;
-    start[2] = 0.;
-    goal[0] = boost::lexical_cast<double>(argv[1]);
-    goal[1] = boost::lexical_cast<double>(argv[2]);
-    goal[2] = boost::lexical_cast<double>(argv[3]);
-
-    // set the start and goal states
-    ss.setStartAndGoalStates(start, goal);
-
-    // set the planner
-    ob::PlannerPtr planner(new og::RRT(ss.getSpaceInformation()));
-    
-    ob::ParamSet& params = planner->params();
-    if (params.hasParam(std::string("range")))
-        params.setParam(std::string("range"), boost::lexical_cast<std::string>(1));
-        
-    ss.setPlanner(planner);
-
-    // attempt to solve the problem within one second of planning time
-    ob::PlannerStatus solved = ss.solve(1.0);
-
-    if (solved)
+    if (env.plan(boost::lexical_cast<int>(argv[1]),boost::lexical_cast<int>(argv[2]), boost::lexical_cast<double>(argv[3])))
     {
-        std::fstream fs;
-        fs.open ("path.txt", std::fstream::out | std::fstream::trunc);
-        //ss.simplifySolution();
-        og::PathGeometric& p = ss.getSolutionPath();
-        p.interpolate(100);
-        p.printAsMatrix(fs);
-        fs.close();
+        env.recordSolution();
+        env.save("result_demo.ppm");
     }
-    else
-        std::cout << "No solution found" << std::endl;
-
-    /*ob::ScopedState<> s1(fromPropSpace), s2(fromPropSpace);
-    s1[0] = 1.23822;
-    s1[1] = 0.484691;
-    s1[2] = -2.73113;
-    s2[0] = boost::lexical_cast<double>(argv[1]);
-    s2[1] = boost::lexical_cast<double>(argv[2]);
-    s2[2] = boost::lexical_cast<double>(argv[3]);
-
-    ob::State *istate = fromPropSpace->allocState();
-    
-    std::fstream fs;
-    fs.open ("test.txt", std::fstream::out | std::fstream::trunc);
-          
-    for (double i = 0; i <= 1.0001; i+= 0.01)
-    {
-        fromPropSpace->interpolate(s1.get(),s2.get(),i,istate);
-       
-        fs << istate->as<ob::SE2StateSpace::StateType>()->getX() << "\t"
-                  << istate->as<ob::SE2StateSpace::StateType>()->getY() << "\t"
-                  << istate->as<ob::SE2StateSpace::StateType>()->getYaw() << std::endl;
-    }
-
-    fs.close();*/
 
     return 0;
 }
