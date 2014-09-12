@@ -111,9 +111,9 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
 
 void ompl::base::SpaceInformation::setDefaultMotionValidator()
 {
-    // TODO: How to generalize for FromPropagatorStateSpace<T>? Provide a default type?
+    // TODO: How to generalize for FromPropagatorStateSpace<T>? Provide a default type for the template param T?
     if (dynamic_cast<FromPropagatorStateSpace<SE2StateSpace>*>(stateSpace_.get()))
-        motionValidator_.reset(new FromPropagatorMotionValidator(this));
+        motionValidator_.reset(stateSpace_->as<FromPropagatorStateSpace<SE2StateSpace> >()->allocMotionValidator(this));
     else if (dynamic_cast<ReedsSheppStateSpace*>(stateSpace_.get()))
         motionValidator_.reset(new ReedsSheppMotionValidator(this));
     else if (dynamic_cast<DubinsStateSpace*>(stateSpace_.get()))

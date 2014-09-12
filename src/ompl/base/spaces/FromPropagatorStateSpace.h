@@ -43,6 +43,8 @@
 
 #include "ompl/util/Exception.h"
 
+#include <queue>
+
 #define eps std::numeric_limits<double>::epsilon()
 
 namespace ompl
@@ -50,6 +52,10 @@ namespace ompl
     namespace base
     {
         typedef std::vector<control::TimedControl> TimedControls;
+
+        template <typename T>
+        class FromPropagatorMotionValidator;
+
         /** \brief  */
         template <typename T>
         class FromPropagatorStateSpace : public T
@@ -59,7 +65,8 @@ namespace ompl
         
             FromPropagatorStateSpace(const control::StatePropagatorPtr &sp) : T(), sp_(sp)
             {
-                if (sp_->getSpaceInformation()->getStateSpace()->getType() != T::getType())
+                siC_ = sp_->getSpaceInformation();
+                if (siC_->getStateSpace()->getType() != T::getType())
                     throw Exception("State propagator's state space does not match the template parameter for FromPropagatorStateSpace.");
 
                 T::setName("FromPropagator" + T::getName());
@@ -67,6 +74,15 @@ namespace ompl
 
             virtual ~FromPropagatorStateSpace()
             {
+            }
+
+            // \TODO This is the best way I found to solve this problem. Currently the MotionValidator requires both
+            //        si and siC and we cannot set siC from the outside of this class.
+            MotionValidator* allocMotionValidator(SpaceInformation *si)
+            {
+                si_ = si;
+                MotionValidator *mv = new FromPropagatorMotionValidator< FromPropagatorStateSpace<T> >(siC_, si_);
+                return mv;
             }
 
             // \TODO: now the duration is used as distance. The demo has always velocity = 1,
@@ -123,7 +139,7 @@ namespace ompl
 
             virtual void interpolate(const State *from, const TimedControls &tcontrols, double t, State *state) const
             {
-                // \TODO: receive this duration as argument. Is that OK?
+                // \TODO: receive this duration as argument or set as a class attribute. Is that OK?
                 double duration = 0;
                 for (size_t i = 0; i < tcontrols.size(); ++i)
                     duration += tcontrols[i].second;
@@ -145,34 +161,141 @@ namespace ompl
             }
 
             control::StatePropagatorPtr sp_;
+            SpaceInformation *si_;
+            control::SpaceInformation *siC_;
         };
 
+        template <typename T>
         class FromPropagatorMotionValidator : public MotionValidator
         {
         public:
-            FromPropagatorMotionValidator(SpaceInformation* si) : MotionValidator(si)
+            FromPropagatorMotionValidator(control::SpaceInformation *siC, SpaceInformation *si) : MotionValidator(si), siC_(siC)
             {
                 defaultSettings();
             }
-            
-            FromPropagatorMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
+            FromPropagatorMotionValidator(const control::SpaceInformationPtr &siC, const SpaceInformationPtr &si) : MotionValidator(si), siC_(siC.get())
             {
                 defaultSettings();
             }
-
-            virtual ~FromPropagatorMotionValidator(void)
+            virtual ~FromPropagatorMotionValidator()
             {
             }
-            
-            virtual bool checkMotion(const State *s1, const State *s2) const;
 
-            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
+            virtual bool checkMotion(const State *s1, const State *s2) const
+            {
+                /* assume motion starts in a valid configuration so s1 is valid */
+                if (!si_->isValid(s2))
+                    return false;
+
+                bool result = true, firstTime = true;
+                TimedControls tcontrols;
+                int nd = stateSpace_->as<T>()->validSegmentCount(s1, s2);
+
+                /* initialize the queue of test positions */
+                std::queue< std::pair<int, int> > pos;
+                if (nd >= 2)
+                {
+                    pos.push(std::make_pair(1, nd - 1));
+
+                    /* temporary storage for the checked state */
+                    State *test = si_->allocState();
+
+                    /* repeatedly subdivide the path segment in the middle (and check the middle) */
+                    while (!pos.empty())
+                    {
+                        std::pair<int, int> x = pos.front();
+
+                        int mid = (x.first + x.second) / 2;
+                        stateSpace_->as<T>()->interpolate(s1, s2, (double)mid / (double)nd, firstTime, tcontrols, test);
+
+                        if (!si_->isValid(test))
+                        {
+                            result = false;
+                            break;
+                        }
+
+                        pos.pop();
+
+                        if (x.first < mid)
+                            pos.push(std::make_pair(x.first, mid - 1));
+                        if (x.second > mid)
+                            pos.push(std::make_pair(mid + 1, x.second));
+                    }
+
+                    si_->freeState(test);
+                    for (size_t i = 0; i < tcontrols.size(); ++i)
+                        siC_->freeControl(tcontrols[i].first);
+                }
+
+                if (result)
+                    valid_++;
+                else
+                    invalid_++;
+
+                return result;
+            }
+
+            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const
+            {
+                /* assume motion starts in a valid configuration so s1 is valid */
+                bool result = true, firstTime = true;
+                TimedControls tcontrols;
+                int nd = stateSpace_->as<T>()->validSegmentCount(s1, s2);
+
+                if (nd > 1)
+                {
+                    /* temporary storage for the checked state */
+                    State *test = si_->allocState();
+
+                    for (int j = 1 ; j < nd ; ++j)
+                    {
+                        stateSpace_->as<T>()->interpolate(s1, s2, (double)j / (double)nd, firstTime, tcontrols, test);
+                        if (!si_->isValid(test))
+                        {
+                            lastValid.second = (double)(j - 1) / (double)nd;
+                            if (lastValid.first)
+                                stateSpace_->as<T>()->interpolate(s1, s2, lastValid.second, firstTime, tcontrols, lastValid.first);
+                            result = false;
+                            break;
+                        }
+                    }
+                    si_->freeState(test);
+                    for (size_t i = 0; i < tcontrols.size(); ++i)
+                        siC_->freeControl(tcontrols[i].first);
+                }
+
+                if (result)
+                    if (!si_->isValid(s2))
+                    {
+                        lastValid.second = (double)(nd - 1) / (double)nd;
+                        if (lastValid.first)
+                            stateSpace_->as<T>()->interpolate(s1, s2, lastValid.second, firstTime, tcontrols, lastValid.first);
+                        result = false;
+                    }
+
+                if (result)
+                    valid_++;
+                else
+                    invalid_++;
+
+                return result;
+            }
 
         private:
-            //ReedsSheppStateSpace *stateSpace_;
             StateSpacePtr stateSpace_;
-            void defaultSettings(void);
-           };
+
+            // Required to free controls allocated when interpolating.
+            control::SpaceInformation *siC_;
+
+            void defaultSettings()
+            {
+                //TODO: does this check even make sense? this motion validator is created in SpaceInformation::setDefaultMotionValidator()
+                // so that implies a stateSpace exists. No cast check can be done unless this class is also templated as FromPropagatorStateSpace
+                stateSpace_ = si_->getStateSpace();
+                if (!stateSpace_)
+                    throw Exception("No state space for motion validator");
+            }
+        };
     }
 }
 

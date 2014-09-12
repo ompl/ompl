@@ -81,7 +81,7 @@ public:
         phi = s->getYaw();
 
         if (forward > 0)
-             v = duration;
+             v =  duration;
         else
              v = -duration;
 

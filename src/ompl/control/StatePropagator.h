@@ -123,8 +123,8 @@ namespace ompl
             {
                 return false;
             }
-            
-            const SpaceInformation* getSpaceInformation() const
+
+            SpaceInformation* getSpaceInformation() const
             {
                 return si_;
             }
