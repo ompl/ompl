@@ -3,18 +3,7 @@ library(shiny)
 shinyUI(
     navbarPage("Planner Arena",
         tabPanel("Overall performance",
-            sidebarLayout(
-                sidebarPanel(
-                    uiOutput("perfProblemSelect"),
-                    uiOutput("perfAttrSelect"),
-                    uiOutput("perfVersionSelect"),
-                    uiOutput("perfPlannerSelect")
-                ),
-                mainPanel(
-                    span(downloadLink('perfDownloadPlot', 'Download plot as PDF'), class="btn"),
-                    plotOutput("perfPlot")
-                )
-            ),
+            uiOutput("performancePage"),
             value="performance",
             icon=icon("bar-chart")),
         tabPanel("Progress",
@@ -26,10 +15,7 @@ shinyUI(
             value="regression",
             icon=icon("bar-chart")),
         tabPanel("Database info",
-            tabsetPanel(
-                tabPanel("Benchmark setup",  tableOutput("benchmarkInfo")),
-                tabPanel("Planner Configurations", tableOutput("plannerConfigs"))
-            ),
+            uiOutput('dbinfoPage'),
             value="dbinfo",
             icon=icon("info-circle")),
         tabPanel("Change database",

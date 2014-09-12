@@ -4,6 +4,8 @@ library(RSQLite)
 
 defaultDatabase <- "www/benchmark.db"
 
+noDatabaseText <- "No database loaded yet. Upload one by clicking on “Change database”."
+
 disable <- function(x) {
   if (inherits(x, 'shiny.tag')) {
     if (x$name %in% c('input', 'select', 'label'))
@@ -89,12 +91,23 @@ options(shiny.maxRequestSize = 30*1024^2, warn = -1)
 
 shinyServer(function(input, output, session) {
     con <- reactive({
-        if (is.null(input$database))
+        if (is.null(input$database) || is.null(input$database$datapath))
             database <- defaultDatabase
         else
             database <- input$database$datapath
-        dbConnect(dbDriver("SQLite"), database)
+        #return(normalizePath(database))
+        if (file.exists(database))
+            dbConnect(dbDriver("SQLite"), database)
+        else
+            NULL
     })
+
+    # Go straight to the database upload page if there is no default database
+    observe({
+        if (is.null(con()))
+            updateTabsetPanel(session, "navbar", selected = "database")
+    })
+
 
     output$perfProblemSelect <- renderUI({ problemSelectWidget(con(), "perfProblem") })
     output$progProblemSelect <- renderUI({ problemSelectWidget(con(), "progProblem") })
@@ -146,12 +159,11 @@ shinyServer(function(input, output, session) {
     })
 
     benchmarkInfo <- reactive({
-        if (!is.null(input$perfVersion))
-        {
-            query <- sprintf("SELECT * FROM experiments WHERE name=\"%s\" AND version=\"%s\"",
-                input$perfProblem, input$perfVersion)
-            dbGetQuery(con(), query)
-        }
+        validate(need(con(), noDatabaseText))
+        validate(need(input$perfVersion, "Select a version on the “Overall performance” page"))
+        query <- sprintf("SELECT * FROM experiments WHERE name=\"%s\" AND version=\"%s\"",
+            input$perfProblem, input$perfVersion)
+        dbGetQuery(con(), query)
     })
     output$benchmarkInfo <- renderTable({ t(benchmarkInfo()) })
     output$plannerConfigs <- renderTable({
@@ -181,8 +193,8 @@ shinyServer(function(input, output, session) {
                 levels=enum$value, labels=enum$description)
             p <- qplot(name, data=data, geom="histogram", fill=attrAsFactor) +
                 # labels
-                scale_x_discrete('planner', labels = names(input$perfProblem))
-                theme(legend.title=element_blank())
+                scale_x_discrete('planner', labels = names(input$perfProblem)) +
+                theme(legend.title = element_blank(), text = element_text(size = 20))
         }
         else
         {
@@ -190,7 +202,7 @@ shinyServer(function(input, output, session) {
                 # labels
                 xlab('planner') +
                 ylab(input$attr) +
-                theme(legend.position="none") +
+                theme(legend.position = "none", text = element_text(size = 20)) +
                 # box plots for boolean, integer, and real-valued attributes
                 geom_boxplot(color = I("#3073ba"), fill = I("#99c9eb"))
         }
@@ -228,6 +240,7 @@ shinyServer(function(input, output, session) {
             # labels
             xlab('time (s)') +
             ylab(input$progress) +
+            theme(text = element_text(size = 20)) +
             # smooth interpolating curve
             geom_smooth(method = "gam")
         # optionally, add individual measurements as semi-transparent points
@@ -268,7 +281,7 @@ shinyServer(function(input, output, session) {
             # labels
             xlab('version') +
             ylab(input$regrAttr) +
-            theme(legend.title = element_blank()) +
+            theme(legend.title = element_blank(), text = element_text(size = 20)) +
             # plot mean and error bars
             stat_summary(fun.data = "mean_cl_boot", geom="bar", position = position_dodge()) +
             stat_summary(fun.data = "mean_cl_boot", geom="errorbar", position = position_dodge())
@@ -290,10 +303,24 @@ shinyServer(function(input, output, session) {
         }
     )
 
-    output$progressPage <- renderUI({
-        validate(
-            need(!is.na(progAttrs()[1]), "There is no progress data in this database")
+    output$performancePage <- renderUI({
+        validate(need(con(), noDatabaseText))
+        sidebarLayout(
+            sidebarPanel(
+                uiOutput("perfProblemSelect"),
+                uiOutput("perfAttrSelect"),
+                uiOutput("perfVersionSelect"),
+                uiOutput("perfPlannerSelect")
+            ),
+            mainPanel(
+                span(downloadLink('perfDownloadPlot', 'Download plot as PDF'), class="btn"),
+                plotOutput("perfPlot")
+            )
         )
+    })
+    output$progressPage <- renderUI({
+        validate(need(con(), noDatabaseText))
+        validate(need(progAttrs()[1], "There is no progress data in this database."))
         sidebarLayout(
             sidebarPanel(
                 uiOutput("progProblemSelect"),
@@ -309,9 +336,8 @@ shinyServer(function(input, output, session) {
     })
 
     output$regressionPage <- renderUI({
-        validate(
-            need(numVersions(con())>1, "Only one version of OMPL was used for the benchmarks")
-        )
+        validate(need(con(), noDatabaseText))
+        validate(need(numVersions(con())>1, "Only one version of OMPL was used for the benchmarks."))
         sidebarLayout(
             sidebarPanel(
                 uiOutput("regrProblemSelect"),
@@ -323,6 +349,14 @@ shinyServer(function(input, output, session) {
                 span(downloadLink('regrDownloadPlot', 'Download plot as PDF'), class="btn"),
                 plotOutput("regrPlot")
             )
+        )
+    })
+
+    output$dbinfoPage <- renderUI({
+        validate(need(con(), noDatabaseText))
+        tabsetPanel(
+            tabPanel("Benchmark setup",  tableOutput("benchmarkInfo")),
+            tabPanel("Planner Configurations", tableOutput("plannerConfigs"))
         )
     })
 })
