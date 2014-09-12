@@ -63,9 +63,8 @@ namespace ompl
             // \TODO: I cannot find a proper way of freeing the controls allocated when calling steer().
         public:
         
-            FromPropagatorStateSpace(const control::StatePropagatorPtr &sp) : T(), sp_(sp)
+            FromPropagatorStateSpace(const control::StatePropagatorPtr &sp) : T(), sp_(sp), siC_(sp_->getSpaceInformation())
             {
-                siC_ = sp_->getSpaceInformation();
                 if (siC_->getStateSpace()->getType() != T::getType())
                     throw Exception("State propagator's state space does not match the template parameter for FromPropagatorStateSpace.");
 
@@ -162,14 +161,14 @@ namespace ompl
 
             control::StatePropagatorPtr sp_;
             SpaceInformation *si_;
-            control::SpaceInformation *siC_;
+            const control::SpaceInformation *siC_;
         };
 
         template <typename T>
         class FromPropagatorMotionValidator : public MotionValidator
         {
         public:
-            FromPropagatorMotionValidator(control::SpaceInformation *siC, SpaceInformation *si) : MotionValidator(si), siC_(siC)
+            FromPropagatorMotionValidator(const control::SpaceInformation *siC, SpaceInformation *si) : MotionValidator(si), siC_(siC)
             {
                 defaultSettings();
             }
@@ -285,7 +284,7 @@ namespace ompl
             StateSpacePtr stateSpace_;
 
             // Required to free controls allocated when interpolating.
-            control::SpaceInformation *siC_;
+            const control::SpaceInformation *siC_;
 
             void defaultSettings()
             {
