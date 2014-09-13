@@ -35,23 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/control/SimpleSetup.h"
-#include "ompl/control/planners/rrt/RRT.h"
-#include "ompl/control/planners/kpiece/KPIECE1.h"
-
-ompl::base::PlannerPtr ompl::control::getDefaultPlanner(const base::GoalPtr &goal)
-{
-    base::PlannerPtr planner;
-    if (!goal)
-        throw Exception("Unable to allocate default planner for unspecified goal definition");
-
-    SpaceInformationPtr si = boost::static_pointer_cast<SpaceInformation, base::SpaceInformation>(goal->getSpaceInformation());
-    if (si->getStateSpace()->hasDefaultProjection())
-        planner = base::PlannerPtr(new KPIECE1(si));
-    else
-        planner = base::PlannerPtr(new RRT(si));
-
-    return planner;
-}
+#include "ompl/tools/config/SelfConfig.h"
 
 ompl::control::SimpleSetup::SimpleSetup(const SpaceInformationPtr &si) :
     configured_(false), planTime_(0.0), last_status_(base::PlannerStatus::UNKNOWN)
@@ -82,7 +66,7 @@ void ompl::control::SimpleSetup::setup()
             if (!planner_)
             {
                 OMPL_INFORM("No planner specified. Using default.");
-                planner_ = getDefaultPlanner(getGoal());
+                planner_ = tools::SelfConfig::getDefaultPlanner(getGoal());
             }
         }
         planner_->setProblemDefinition(pdef_);

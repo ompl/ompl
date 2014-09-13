@@ -35,42 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/SimpleSetup.h"
-#include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/geometric/planners/rrt/RRTConnect.h"
-#include "ompl/geometric/planners/rrt/RRT.h"
-#include "ompl/geometric/planners/kpiece/LBKPIECE1.h"
-#include "ompl/geometric/planners/kpiece/KPIECE1.h"
-
-ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &goal)
-{
-    base::PlannerPtr planner;
-    if (!goal)
-        throw Exception("Unable to allocate default planner for unspecified goal definition");
-
-    // if we can sample the goal region, use a bi-directional planner
-    if (goal->hasType(base::GOAL_SAMPLEABLE_REGION))
-    {
-        // if we have a default projection
-        if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection())
-            planner = base::PlannerPtr(new LBKPIECE1(goal->getSpaceInformation()));
-        else
-            planner = base::PlannerPtr(new RRTConnect(goal->getSpaceInformation()));
-    }
-    // other use a single-tree planner
-    else
-    {
-        // if we have a default projection
-        if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection())
-            planner = base::PlannerPtr(new KPIECE1(goal->getSpaceInformation()));
-        else
-            planner = base::PlannerPtr(new RRT(goal->getSpaceInformation()));
-    }
-
-    if (!planner)
-        throw Exception("Unable to allocate default planner");
-
-    return planner;
-}
+#include "ompl/tools/config/SelfConfig.h"
 
 ompl::geometric::SimpleSetup::SimpleSetup(const base::SpaceInformationPtr &si) :
     configured_(false), planTime_(0.0), simplifyTime_(0.0), lastStatus_(base::PlannerStatus::UNKNOWN)
@@ -103,7 +68,7 @@ void ompl::geometric::SimpleSetup::setup()
             if (!planner_)
             {
                 OMPL_INFORM("No planner specified. Using default.");
-                planner_ = getDefaultPlanner(getGoal());
+                planner_ = tools::SelfConfig::getDefaultPlanner(getGoal());
             }
         }
         planner_->setProblemDefinition(pdef_);
