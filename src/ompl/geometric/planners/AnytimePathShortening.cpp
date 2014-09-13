@@ -37,20 +37,29 @@
 #include "ompl/geometric/planners/AnytimePathShortening.h"
 #include "ompl/geometric/PathHybridization.h"
 #include "ompl/geometric/PathSimplifier.h"
-
+#include "ompl/tools/config/SelfConfig.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
 #include <boost/thread.hpp>
 
-ompl::geometric::AnytimePathShortening::AnytimePathShortening (const ompl::base::SpaceInformationPtr &si) : ompl::base::Planner(si, "APS"), shortcut_(true), hybridize_(true), maxHybridPaths_(24)
+ompl::geometric::AnytimePathShortening::AnytimePathShortening (const ompl::base::SpaceInformationPtr &si) :
+    ompl::base::Planner(si, "APS"),
+    shortcut_(true),
+    hybridize_(true),
+    maxHybridPaths_(24),
+    defaultNumPlanners_(std::max(1u, boost::thread::hardware_concurrency()))
 {
     specs_.approximateSolutions = true;
     specs_.multithreaded = true;
     specs_.optimizingPaths = true;
 
-    Planner::declareParam<bool>("Shortcut", this, &AnytimePathShortening::setShortcut, &AnytimePathShortening::isShortcutting);
-    Planner::declareParam<bool>("Hybridize", this, &AnytimePathShortening::setHybridize, &AnytimePathShortening::isHybridizing);
-    Planner::declareParam<unsigned int>("Max Hybrid Paths", this, &AnytimePathShortening::setMaxHybridizationPath, &AnytimePathShortening::maxHybridizationPaths, "0:1:50");
+    Planner::declareParam<bool>("shortcut", this, &AnytimePathShortening::setShortcut, &AnytimePathShortening::isShortcutting, "0:1");
+    Planner::declareParam<bool>("hybridize", this, &AnytimePathShortening::setHybridize, &AnytimePathShortening::isHybridizing, "0:1");
+    Planner::declareParam<unsigned int>("max_hybrid_paths", this, &AnytimePathShortening::setMaxHybridizationPath, &AnytimePathShortening::maxHybridizationPaths, "0:1:50");
+    Planner::declareParam<unsigned int>("num_planners", this, &AnytimePathShortening::setDefaultNumPlanners);
+
+    addPlannerProgressProperty("best cost REAL",
+                               boost::bind(&AnytimePathShortening::getBestCost, this));
 }
 
 ompl::geometric::AnytimePathShortening::~AnytimePathShortening()
@@ -87,12 +96,6 @@ void ompl::geometric::AnytimePathShortening::setProblemDefinition(const ompl::ba
 
 ompl::base::PlannerStatus ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
-    if (planners_.size() == 0)
-    {
-        OMPL_ERROR("There are no planners specified!");
-        return ompl::base::PlannerStatus::CRASH;
-    }
-
     base::Goal *goal = pdef_->getGoal().get();
     std::vector<boost::thread*> threads(planners_.size());
     geometric::PathHybridization phybrid(si_);
@@ -213,7 +216,21 @@ void ompl::geometric::AnytimePathShortening::getPlannerData(ompl::base::PlannerD
 
 void ompl::geometric::AnytimePathShortening::setup(void)
 {
+
     ompl::base::Planner::setup();
+
+    if (planners_.size() == 0)
+    {
+        planners_.reserve(defaultNumPlanners_);
+        for (unsigned int i = 0; i < defaultNumPlanners_; ++i)
+        {
+            planners_.push_back(tools::SelfConfig::getDefaultPlanner(pdef_->getGoal()));
+            planners_.back()->setProblemDefinition(pdef_);
+        }
+        OMPL_INFORM("%s: No planners specified; using %u instances of %s",
+            getName().c_str(), planners_.size(), planners_[0]->getName().c_str());
+    }
+
     for (size_t i = 0; i < planners_.size(); ++i)
         planners_[i]->setup();
 }
@@ -263,4 +280,17 @@ unsigned int ompl::geometric::AnytimePathShortening::maxHybridizationPaths(void)
 void ompl::geometric::AnytimePathShortening::setMaxHybridizationPath(unsigned int maxPathCount)
 {
     maxHybridPaths_ = maxPathCount;
+}
+
+void ompl::geometric::AnytimePathShortening::setDefaultNumPlanners(unsigned int numPlanners)
+{
+    defaultNumPlanners_ = numPlanners;
+}
+
+std::string ompl::geometric::AnytimePathShortening::getBestCost() const
+{
+    base::Cost bestCost(std::numeric_limits<double>::quiet_NaN());
+    if (pdef_ && pdef_->getSolutionCount() > 0)
+        bestCost = base::Cost(pdef_->getSolutionPath()->length());
+    return boost::lexical_cast<std::string>(bestCost.v);
 }

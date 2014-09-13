@@ -66,10 +66,10 @@ namespace ompl
         {
         public:
             /// \brief Constructor requires the space information to plan in
-            AnytimePathShortening (const base::SpaceInformationPtr &si);
+            AnytimePathShortening(const base::SpaceInformationPtr &si);
 
             /// \brief Destructor
-            virtual ~AnytimePathShortening (void);
+            virtual ~AnytimePathShortening(void);
 
             /// \brief Adds the given planner to the set of planners used to
             /// compute candidate paths.
@@ -137,10 +137,17 @@ namespace ompl
             /// \brief Set the maximum number of paths that will be hybridized
             void setMaxHybridizationPath(unsigned int maxPathCount);
 
+            /// \brief Set default number of planners to use if none are specified.
+            /// This has no effect if planners have already been added.
+            void setDefaultNumPlanners(unsigned int numPlanners);
+
+            /** \brief Return best cost found so far by algorithm */
+            std::string getBestCost() const;
+
         protected:
             /// \brief The function that the planning threads execute when
             /// solving a motion planning problem.
-            virtual void threadSolve (base::Planner* planner, const base::PlannerTerminationCondition &ptc);
+            virtual void threadSolve(base::Planner *planner, const base::PlannerTerminationCondition &ptc);
 
             /// \brief The list of planners used for solving the problem.
             std::vector<base::PlannerPtr> planners_;
@@ -154,6 +161,9 @@ namespace ompl
             /// \brief The maximum number of paths that will be hybridized.  This
             /// prohibits hybridization of a very large path set, which may take significant time.
             unsigned int maxHybridPaths_;
+
+            /// \brief The number of planners to use if none are specified. This defaults to the number of cores.
+            unsigned int defaultNumPlanners_;
         };
     }
 }
