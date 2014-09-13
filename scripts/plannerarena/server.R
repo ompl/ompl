@@ -59,7 +59,8 @@ plannerNameMapping <- function(fullname) {
     sub("control_", " ", sub("geometric_", "", fullname))
 }
 plannerSelectWidget <- function(con, name, problem, version) {
-    planners <- dbGetQuery(con, "SELECT DISTINCT name, settings FROM plannerConfigs")
+    query <- sprintf("SELECT DISTINCT plannerConfigs.name AS name FROM experiments INNER JOIN plannerConfigs INNER JOIN runs ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\";", problem, version)
+    planners <- dbGetQuery(con, query)
     planners <- unique(unlist(planners$name))
     names(planners) <- sapply(planners, plannerNameMapping)
     # select first 4 planners (or all if there are less than 4)
@@ -84,6 +85,11 @@ perfAttrSelectWidget <- function(con, name) {
         selection <- NULL
     selectInput(name, label = h4("Benchmark attribute"),
         choices = attrNames, selected = selection)
+}
+
+hasProgressData <- function(con) {
+    count <- dbGetQuery(con, "SELECT COUNT(*) FROM progress")
+    count > 0
 }
 
 # limit file uploads to 30MB, suppress warnings
@@ -113,6 +119,21 @@ shinyServer(function(input, output, session) {
     output$progProblemSelect <- renderUI({ problemSelectWidget(con(), "progProblem") })
     output$regrProblemSelect <- renderUI({ problemSelectWidget(con(), "regrProblem") })
 
+    output$perfAttrSelect <- renderUI({ perfAttrSelectWidget(con(), "perfAttr") })
+    output$regrAttrSelect <- renderUI({ perfAttrSelectWidget(con(), "regrAttr") })
+    output$progAttrSelect <- renderUI({
+        progressAttrs <- dbGetQuery(con(), "PRAGMA table_info(progress)")
+        # strip off first 2 names, which correspond to an internal id and time
+        attrs <- gsub("_", " ", progressAttrs$name[3:length(progressAttrs$name)])
+        list(
+            conditionalDisable(selectInput("progress", label = h4("Progress attribute"),
+                choices = attrs
+            ), length(attrs) < 2),
+            checkboxInput("progressShowMeasurements", label = h6("Show individual measurements")),
+            sliderInput("progressOpacity", label = h6("Measurement opacity"), 0, 100, 50)
+        )
+    })
+
     output$perfVersionSelect <- renderUI({ versionSelectWidget(con(), "perfVersion", FALSE) })
     output$progVersionSelect <- renderUI({ versionSelectWidget(con(), "progVersion", FALSE) })
     output$regrVersionSelect <- renderUI({ versionSelectWidget(con(), "regrVersions", TRUE) })
@@ -139,24 +160,6 @@ shinyServer(function(input, output, session) {
         plannerSelectWidget(con(), "regrPlanners", input$regrProblem, tail(input$regrVersions, n=1))
     })
 
-    output$perfAttrSelect <- renderUI({ perfAttrSelectWidget(con(), "perfAttr") })
-    output$regrAttrSelect <- renderUI({ perfAttrSelectWidget(con(), "regrAttr") })
-
-    progAttrs <- reactive({
-        progressAttrs <- dbGetQuery(con(), "PRAGMA table_info(progress)")
-        # strip off first 2 names, which correspond to an internal id and time
-        gsub("_", " ", progressAttrs$name[3:length(progressAttrs$name)])
-    })
-    output$progAttrSelect <- renderUI({
-        attrs <- progAttrs()
-        list(
-            conditionalDisable(selectInput("progress", label = h4("Progress attribute"),
-                choices = attrs
-            ), length(attrs) < 2),
-            checkboxInput("progressShowMeasurements", label = h6("Show individual measurements")),
-            sliderInput("progressOpacity", label = h6("Measurement opacity"), 0, 100, 50)
-        )
-    })
 
     benchmarkInfo <- reactive({
         validate(need(con(), noDatabaseText))
@@ -193,7 +196,7 @@ shinyServer(function(input, output, session) {
                 levels=enum$value, labels=enum$description)
             p <- qplot(name, data=data, geom="histogram", fill=attrAsFactor) +
                 # labels
-                scale_x_discrete('planner', labels = names(input$perfProblem)) +
+                xlab('planner') +
                 theme(legend.title = element_blank(), text = element_text(size = 20))
         }
         else
@@ -201,7 +204,7 @@ shinyServer(function(input, output, session) {
             p <- ggplot(data, aes_string(x = "name", y = attr, group = "name")) +
                 # labels
                 xlab('planner') +
-                ylab(input$attr) +
+                ylab(input$perfAttr) +
                 theme(legend.position = "none", text = element_text(size = 20)) +
                 # box plots for boolean, integer, and real-valued attributes
                 geom_boxplot(color = I("#3073ba"), fill = I("#99c9eb"))
@@ -320,7 +323,7 @@ shinyServer(function(input, output, session) {
     })
     output$progressPage <- renderUI({
         validate(need(con(), noDatabaseText))
-        validate(need(progAttrs()[1], "There is no progress data in this database."))
+        validate(need(hasProgressData(con()), "There is no progress data in this database."))
         sidebarLayout(
             sidebarPanel(
                 uiOutput("progProblemSelect"),

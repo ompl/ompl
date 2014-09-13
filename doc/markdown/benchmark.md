@@ -295,7 +295,9 @@ The ompl_benchmark_statistics.py script can produce a series of plots from a dat
   - *timelimit:* time limit for each individual run in seconds.
   - *memorylimit:* memory limit for each individual run in MB.
   - *runcount:* the number of times each planner configuration was run.
+  - *version:* the version of OMPL that was used.
   - *hostname:* the host name of the machine on which the experiment was performed.
+  - *cpuinfo:* CPU information about the machine on which the experiment was performed.
   - *date:* the date on which the experiment was performed.
   - *seed:* the random seed used.
   - *setup:* a string containing a “print-out” of all the settings of the SimpleSetup object used during benchmarking.
