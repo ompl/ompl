@@ -44,7 +44,7 @@ namespace ompl
 {
     namespace geometric
     {
-
+        /// @anchor gAPS
         /// @par Short description
         /// Anytime path shortening is a generic wrapper around one or more
         /// geometric motion planners that repeatedly applies shortcutting

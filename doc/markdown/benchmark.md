@@ -44,7 +44,7 @@ heading:
 - __save_paths__: This _optional_ parameter can be set to \c none, \c all, or \c shortest to save _no_ solution paths (the default value), _all_ solution paths (including approximate solutions), or the _shortest_ exact solution for each planner, respectively. These paths can then be “played back” in the [OMPL.app GUI](gui.html#gui_paths).
 
 The last required element to specify are the planners to benchmark.  These are specified under the “<b>[planner]</b>” heading.  The following planners are valid for geometric benchmarking:
-kpiece, \c bkpiece, \c lbkpiece, \c est, \c sbl, \c prm, \c lazyprm, \c lazyprmstar, \c rrt, \c rrtconnect, \c lazyrrt, \c rrtstar, \c lbtrrt, \c trrt, \c spars, \c spars2, \c stride, \c pdst, and \c fmt.
+kpiece, \c bkpiece, \c lbkpiece, \c est, \c sbl, \c prm, \c lazyprm, \c lazyprmstar, \c rrt, \c rrtconnect, \c lazyrrt, \c rrtstar, \c lbtrrt, \c trrt, \c spars, \c spars2, \c stride, \c pdst, \c fmt, and \c aps.
 The following planners are valid for kinodynamic planning (i.e., when the \c control parameter is set):
 \c kpiece, \c rrt, \c est, \c pdst, \c sycloprrt, and \c syclopest.
 

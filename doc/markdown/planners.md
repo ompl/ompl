@@ -71,6 +71,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
   - [SPARS](\ref gSPARS)<br> An asymptotically near-optimal roadmap-based planner.
   - [SPARS2](\ref gSPARStwo)<br> An asymptotically near-optimal roadmap-based planner.
   - [FMT*](\ref gFMT)<br> An asymptotically near-optimal tree-based planner.
+  - [AnytimePathShortening (APS)](\ref gAPS)<br> APS is a generic wrapper around one or more geometric motion planners that repeatedly applies [shortcutting](\ref ompl::geometric::PathSimplifier) and [hybridization](\ref ompl::geometric::PathHybridization) to a set of solution paths. Any number and combination of planners can be specified, each is run in a separate thread.
 .
 
 \attention How OMPL selects a geometric planner<br>
