@@ -242,7 +242,11 @@ def readBenchmarkLog(dbname, filenames):
                         values = tuple([runIds[j]] + \
                             [None if len(x) == 0 or x == 'nan' or x == 'inf' else x
                             for x in dataSample.split(',')[:-1]])
-                        c.execute(insertFmtStr, values)
+                        try:
+                            c.execute(insertFmtStr, values)
+                        except sqlite3.IntegrityError:
+                            print('Ignoring duplicate progress data. Consider increasing ompl::tools::Benchmark::Request::timeBetweenUpdates.')
+                            pass
 
                 logfile.readline()
         logfile.close()
