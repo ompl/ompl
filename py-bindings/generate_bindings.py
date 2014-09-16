@@ -567,6 +567,19 @@ class ompl_geometric_generator_t(code_generator_t):
             def("checkValidity",&::ompl::base::Planner::checkValidity,
                 &%s_wrapper::default_checkValidity )""" % planner)
 
+        # do this for all multithreaded planners
+        for planner in ['SPARS', 'SPARStwo']:
+            cls = self.ompl_ns.class_(planner)
+            cls.constructor(arg_types=["::ompl::base::SpaceInformationPtr const &"]).exclude()
+            cls.add_registration_code('def(bp::init<ompl::base::SpaceInformationPtr const &>(bp::arg("si")))')
+            cls.add_wrapper_code("""
+            {0}_wrapper(::ompl::base::SpaceInformationPtr const &si) : ompl::geometric::{0}(si),
+                bp::wrapper<ompl::geometric::{0}>()
+            {{
+                OMPL_WARN("%s: this planner uses multiple threads and might crash if your StateValidityChecker, OptimizationObjective, etc., are allocated within Python.", getName().c_str());
+            }}
+            """.format(planner))
+
         # used in SPARS
         self.std_ns.class_('deque<ompl::base::State*>').rename('dequeState')
 

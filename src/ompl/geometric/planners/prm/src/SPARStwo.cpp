@@ -73,6 +73,7 @@ ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si) :
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
     specs_.optimizingPaths = true;
+    specs_.multithreaded = true;
 
     psimp_.reset(new PathSimplifier(si_));
 

@@ -96,8 +96,11 @@ class PlanningAlgorithms(object):
         return self.plannerMap
 
 def initializePlannerLists():
-    import ompl.geometric, ompl.control
+    import ompl.geometric, ompl.control, ompl.util
+    logLevel = ompl.util.getLogLevel()
+    ompl.util.setLogLevel(ompl.util.LogLevel.LOG_ERROR)
     if ompl.geometric.planners == None:
         ompl.geometric.planners = ompl.PlanningAlgorithms(ompl.geometric)
     if ompl.control.planners == None:
         ompl.control.planners = ompl.PlanningAlgorithms(ompl.control)
+    ompl.util.setLogLevel(logLevel)
