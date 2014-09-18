@@ -30,6 +30,19 @@ label.checkbox {
     text-decoration: none;
 }
 
+.table tbody > tr:nth-child(even) > td, .table tbody > tr:nth-child(even) > th {
+    background-color: #f9f9f9;
+}
+.table-bordered { border: none; }
+.table-bordered th, .table-bordered td { border-left: none; }
+.table tr:first-child > td, .table tr:first-child > th {
+    background-color: #666;
+    color: #fff;
+}
+.table-condensed th { padding: 4px 10px; }
+
+.well-light { background-color: #fafafa; }
+
 .shiny-output-error {
     margin: 30px;
     color: #3a87ad;

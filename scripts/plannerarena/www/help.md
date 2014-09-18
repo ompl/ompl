@@ -40,14 +40,14 @@ The overall performance plots can show how different planners compare on various
 
 The overall performance page allows you to select a motion planning problem that was benchmarked, a particular benchmark attribute to plot, the OMPL version (in case the database contains data for multiple versions), and the planners to compare. If there is only choice in a particular category, it will be disabled (since there is no other choice available).
 
-Most of the measures are plotted as [box plots](http://en.wikipedia.org/wiki/Box_plot). Missing data is ignored. This is _very_ important to keep in mind: if a planner failed to solve a problem 99 times out of a 100 runs, then the average solution length is determined by one run!
+Most of the measures are plotted as [box plots](http://en.wikipedia.org/wiki/Box_plot). Missing data is ignored. This is _very_ important to keep in mind: if a planner failed to solve a problem 99 times out of a 100 runs, then the average solution length is determined by one run! To make missing data more apparent, a table below the plot shows how many data points there were for each planner and how many of those were missing values (i.e., `NULL`, `None`, `NA`, etc.).
 
 
 ## <a name="progress"></a>Progress plots
 
 Some planners in OMPL can not only report information _after_ a run is completed, but also periodically report information _during_ a run. In particular, for asymptotically optimal planners it is interesting to look at the convergence rate of the best path cost. Typically, the path cost is simply path length, but OMPL allows you to specify different [optimization objectives](http://ompl.kavrakilab.org/optimalPlanning.html). See also the [benchmarking tutorial](http://ompl.kavrakilab.org/benchmark.html) for information on how to specify objectives in the input files for `ompl_benchmark`.
 
-By default, Planner Arena will plot the smoothed mean as well as a 95% confidence interval for the mean.
+By default, Planner Arena will plot the smoothed mean as well as a 95% confidence interval for the mean. Analogous to the performance plots, missing data is ignored. During the first couple seconds of a run, a planner may never find a solution path. Below the progress plot, we therefore plot the number of data points available for a particular planner at a particular 1 second time interval.
 
 ## <a name="regression"></a>Regression plots
 

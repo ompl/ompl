@@ -59,7 +59,7 @@ plannerNameMapping <- function(fullname) {
     sub("control_", " ", sub("geometric_", "", fullname))
 }
 plannerSelectWidget <- function(con, name, problem, version) {
-    query <- sprintf("SELECT DISTINCT plannerConfigs.name AS name FROM experiments INNER JOIN plannerConfigs INNER JOIN runs ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\";", problem, version)
+    query <- sprintf("SELECT DISTINCT plannerConfigs.name AS name FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\";", problem, version)
     planners <- dbGetQuery(con, query)
     planners <- unique(unlist(planners$name))
     names(planners) <- sapply(planners, plannerNameMapping)
@@ -129,8 +129,10 @@ shinyServer(function(input, output, session) {
             conditionalDisable(selectInput("progress", label = h4("Progress attribute"),
                 choices = attrs
             ), length(attrs) < 2),
-            checkboxInput("progressShowMeasurements", label = h6("Show individual measurements")),
-            sliderInput("progressOpacity", label = h6("Measurement opacity"), 0, 100, 50)
+            div(class="well well-light",
+                checkboxInput("progressShowMeasurements", label = "Show individual measurements"),
+                sliderInput("progressOpacity", label = "Measurement opacity", 0, 100, 50)
+            )
         )
     })
 
@@ -161,30 +163,30 @@ shinyServer(function(input, output, session) {
     })
 
 
-    benchmarkInfo <- reactive({
+    output$benchmarkInfo <- renderTable({
         validate(need(con(), noDatabaseText))
         validate(need(input$perfVersion, "Select a version on the “Overall performance” page"))
         query <- sprintf("SELECT * FROM experiments WHERE name=\"%s\" AND version=\"%s\"",
             input$perfProblem, input$perfVersion)
-        dbGetQuery(con(), query)
-    })
-    output$benchmarkInfo <- renderTable({ t(benchmarkInfo()) })
+        data <- dbGetQuery(con(), query)
+        t(data)
+    }, include.colnames=FALSE)
     output$plannerConfigs <- renderTable({
-        query <- sprintf("SELECT DISTINCT plannerConfigs.name, plannerConfigs.settings FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid AND plannerConfigs.id = runs.plannerid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\";",
+        query <- sprintf("SELECT DISTINCT plannerConfigs.name, plannerConfigs.settings FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\";",
             input$perfProblem, input$perfVersion)
         dbGetQuery(con(), query)
-    })
+    }, include.rownames=FALSE)
 
     # plot of overall performance
     perfPlot <- reactive({
         attr <- gsub(" ", "_", input$perfAttr)
-        query <- sprintf("SELECT plannerConfigs.name AS name, runs.%s, experiments.version FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid AND plannerConfigs.id = runs.plannerid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND (%s);",
+        query <- sprintf("SELECT plannerConfigs.name AS planner, runs.%s FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND (%s);",
             attr,
             input$perfProblem,
             input$perfVersion,
             paste(sapply(input$perfPlanners, sqlPlannerSelect), collapse=" OR "))
         data <- dbGetQuery(con(), query)
-        data$name <- factor(data$name, unique(data$name), labels = sapply(unique(data$name), plannerNameMapping))
+        data$planner <- factor(data$planner, unique(data$planner), labels = sapply(unique(data$planner), plannerNameMapping))
         attribs <- perfAttrs(con())
         if (attribs$type[match(attr, attribs$name)] == "ENUM")
         {
@@ -194,16 +196,14 @@ shinyServer(function(input, output, session) {
             names(val) <- enum$description
             attrAsFactor <- factor(data[,match(attr, colnames(data))],
                 levels=enum$value, labels=enum$description)
-            p <- qplot(name, data=data, geom="histogram", fill=attrAsFactor) +
+            p <- qplot(planner, data=data, geom="histogram", fill=attrAsFactor) +
                 # labels
-                xlab('planner') +
                 theme(legend.title = element_blank(), text = element_text(size = 20))
         }
         else
         {
-            p <- ggplot(data, aes_string(x = "name", y = attr, group = "name")) +
+            p <- ggplot(data, aes_string(x = "planner", y = attr, group = "planner")) +
                 # labels
-                xlab('planner') +
                 ylab(input$perfAttr) +
                 theme(legend.position = "none", text = element_text(size = 20)) +
                 # box plots for boolean, integer, and real-valued attributes
@@ -227,43 +227,77 @@ shinyServer(function(input, output, session) {
             dev.off()
         }
     )
+    output$perfMissingDataTable <- renderTable({
+        validate(
+            need(input$perfVersion, 'Select a version'),
+            need(input$perfProblem, 'Select a problem'),
+            need(input$perfAttr, 'Select a benchmark attribute'),
+            need(input$perfPlanners, 'Select some planners')
+        )
+        attr <- gsub(" ", "_", input$perfAttr)
+        query <- sprintf("SELECT plannerConfigs.name AS planner, SUM(runs.%s IS NULL) AS missing, COUNT(*) AS total FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND (%s) GROUP BY plannerConfigs.name;",
+            attr,
+            input$perfProblem,
+            input$perfVersion,
+            paste(sapply(input$perfPlanners, sqlPlannerSelect), collapse=" OR "))
+        data <- dbGetQuery(con(), query)
+        data$planner <- factor(data$planner, unique(data$planner), labels = sapply(unique(data$planner), plannerNameMapping))
+        data
+    }, include.rownames=FALSE)
 
     # progress plot
-    progPlot <- reactive({
-        attr <- gsub(" ", "_", input$progress)
-        query <- sprintf("SELECT plannerConfigs.name AS name, progress.time, progress.%s FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid AND plannerConfigs.id = runs.plannerid INNER JOIN progress ON progress.runid = runs.id WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND progress.%s IS NOT NULL AND (%s);",
-            attr,
-            input$progProblem,
-            input$progVersion,
-            attr,
-            paste(sapply(input$progPlanners, sqlPlannerSelect), collapse=" OR "))
-        data <- dbGetQuery(con(), query)
-        data$name <- factor(data$name, unique(data$name), labels = sapply(unique(data$name), plannerNameMapping))
-        p <- ggplot(data, aes_string(x = "time", y = attr, group = "name", color = "name", fill = "name")) +
-            # labels
-            xlab('time (s)') +
-            ylab(input$progress) +
-            theme(text = element_text(size = 20)) +
-            # smooth interpolating curve
-            geom_smooth(method = "gam")
-        # optionally, add individual measurements as semi-transparent points
-        if (input$progressShowMeasurements)
-            p <- p + geom_point(alpha=I(input$progressOpacity / 100))
-        p
-    })
-    output$progPlot <- renderPlot({
+    progPlotData <- reactive({
         validate(
             need(input$progVersion, 'Select a version'),
             need(input$progProblem, 'Select a problem'),
             need(input$progress, 'Select a benchmark attribute'),
             need(input$progPlanners, 'Select some planners')
         )
-        print(progPlot())
+        attr <- gsub(" ", "_", input$progress)
+        query <- sprintf("SELECT plannerConfigs.name AS planner, progress.time, progress.%s FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid INNER JOIN progress ON progress.runid = runs.id WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND progress.%s IS NOT NULL AND (%s);",
+            attr,
+            input$progProblem,
+            input$progVersion,
+            attr,
+            paste(sapply(input$progPlanners, sqlPlannerSelect), collapse=" OR "))
+        data <- dbGetQuery(con(), query)
+        data$planner <- factor(data$planner, unique(data$planner), labels = sapply(unique(data$planner), plannerNameMapping))
+        data
     })
+    progPlot <- reactive({
+        attr <- gsub(" ", "_", input$progress)
+        data <- progPlotData()
+        p <- ggplot(data, aes_string(x = "time", y = attr, group = "planner", color = "planner", fill = "planner")) +
+            # labels
+            xlab('time (s)') +
+            ylab(input$progress) +
+            theme(text = element_text(size = 20)) +
+            # smooth interpolating curve
+            geom_smooth(method = "gam") +
+            coord_cartesian(xlim = c(0, trunc(max(data$time))))
+        # optionally, add individual measurements as semi-transparent points
+        if (input$progressShowMeasurements)
+            p <- p + geom_point(alpha=I(input$progressOpacity / 100))
+        p
+    })
+    output$progPlot <- renderPlot({ progPlot() })
+    progNumMeasurementsPlot <- reactive({
+        data <- progPlotData()
+        p <- ggplot(data, aes(x = time, group = planner, color = planner)) +
+            # labels
+            xlab('time (s)') +
+            ylab(sprintf("# measurements for %s", input$progress)) +
+            theme(text = element_text(size = 20)) +
+            geom_freqpoly(binwidth=1) +
+            coord_cartesian(xlim = c(0, trunc(max(data$time))))
+        p
+    })
+    output$progNumMeasurementsPlot <- renderPlot({ progNumMeasurementsPlot() })
     output$progDownloadPlot <- downloadHandler(filename = 'plot.pdf',
         content = function(file) {
             pdf(file=file, width=12, height=8)
             print(progPlot())
+            print(progNumMeasurementsPlot())
             dev.off()
         }
     )
@@ -282,7 +316,6 @@ shinyServer(function(input, output, session) {
         data$name <- factor(data$name, unique(data$name), labels = sapply(unique(data$name), plannerNameMapping))
         ggplot(data, aes_string(x = "version", y = attr, fill = "name", group = "name")) +
             # labels
-            xlab('version') +
             ylab(input$regrAttr) +
             theme(legend.title = element_blank(), text = element_text(size = 20)) +
             # plot mean and error bars
@@ -317,7 +350,9 @@ shinyServer(function(input, output, session) {
             ),
             mainPanel(
                 span(downloadLink('perfDownloadPlot', 'Download plot as PDF'), class="btn"),
-                plotOutput("perfPlot")
+                plotOutput("perfPlot"),
+                h4("Number of missing data points out of the total number of runs per planner"),
+                tableOutput("perfMissingDataTable")
             )
         )
     })
@@ -333,7 +368,8 @@ shinyServer(function(input, output, session) {
             ),
             mainPanel(
                 span(downloadLink('progDownloadPlot', 'Download plot as PDF'), class="btn"),
-                plotOutput("progPlot")
+                plotOutput("progPlot"),
+                plotOutput("progNumMeasurementsPlot")
             )
         )
     })
