@@ -37,6 +37,11 @@
 #include "ompl/control/SimpleSetup.h"
 #include "ompl/tools/config/SelfConfig.h"
 
+ompl::base::PlannerPtr ompl::control::getDefaultPlanner(const base::GoalPtr &goal)
+{
+    return tools::SelfConfig::getDefaultPlanner(goal);
+}
+
 ompl::control::SimpleSetup::SimpleSetup(const SpaceInformationPtr &si) :
     configured_(false), planTime_(0.0), last_status_(base::PlannerStatus::UNKNOWN)
 {

@@ -45,6 +45,7 @@
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/Deprecation.h"
 
 namespace ompl
 {
@@ -327,6 +328,9 @@ namespace ompl
             base::ParamSet                params_;
         };
 
+        /** \brief Given a goal specification, decide on a planner for that goal.
+            \deprecated Use tools::SelfConfig::getDefaultPlanner() instead. */
+        OMPL_DEPRECATED base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
     }
 
 }
