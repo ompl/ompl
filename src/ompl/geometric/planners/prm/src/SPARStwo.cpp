@@ -619,7 +619,7 @@ void ompl::geometric::SPARStwo::findCloseRepresentatives(base::State *workArea, 
         } while ((!si_->isValid(workArea) || si_->distance(qNew, workArea) > denseDelta_ || !si_->checkMotion(qNew, workArea)) && ptc == false);
 
         // if we were not successful at sampling a desirable state, we are out of time
-        if (ptc == false)
+        if (ptc == true)
             break;
 
         // Compute who his graph neighbors are
