@@ -53,10 +53,10 @@ ompl::geometric::AnytimePathShortening::AnytimePathShortening (const ompl::base:
     specs_.multithreaded = true;
     specs_.optimizingPaths = true;
 
-    Planner::declareParam<bool>("shortcut", this, &AnytimePathShortening::setShortcut, &AnytimePathShortening::isShortcutting, "0:1");
-    Planner::declareParam<bool>("hybridize", this, &AnytimePathShortening::setHybridize, &AnytimePathShortening::isHybridizing, "0:1");
+    Planner::declareParam<bool>("shortcut", this, &AnytimePathShortening::setShortcut, &AnytimePathShortening::isShortcutting, "0,1");
+    Planner::declareParam<bool>("hybridize", this, &AnytimePathShortening::setHybridize, &AnytimePathShortening::isHybridizing, "0,1");
     Planner::declareParam<unsigned int>("max_hybrid_paths", this, &AnytimePathShortening::setMaxHybridizationPath, &AnytimePathShortening::maxHybridizationPaths, "0:1:50");
-    Planner::declareParam<unsigned int>("num_planners", this, &AnytimePathShortening::setDefaultNumPlanners);
+    Planner::declareParam<unsigned int>("num_planners", this, &AnytimePathShortening::setDefaultNumPlanners, &AnytimePathShortening::getDefaultNumPlanners, "0:64");
 
     addPlannerProgressProperty("best cost REAL",
                                boost::bind(&AnytimePathShortening::getBestCost, this));
@@ -286,6 +286,12 @@ void ompl::geometric::AnytimePathShortening::setDefaultNumPlanners(unsigned int 
 {
     defaultNumPlanners_ = numPlanners;
 }
+
+unsigned int ompl::geometric::AnytimePathShortening::getDefaultNumPlanners() const
+{
+    return defaultNumPlanners_;
+}
+
 
 std::string ompl::geometric::AnytimePathShortening::getBestCost() const
 {

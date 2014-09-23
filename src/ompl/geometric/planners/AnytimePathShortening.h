@@ -138,8 +138,10 @@ namespace ompl
             void setMaxHybridizationPath(unsigned int maxPathCount);
 
             /// \brief Set default number of planners to use if none are specified.
-            /// This has no effect if planners have already been added.
             void setDefaultNumPlanners(unsigned int numPlanners);
+
+            /// \brief Get default number of planners used if none are specified.
+            unsigned int getDefaultNumPlanners() const;
 
             /** \brief Return best cost found so far by algorithm */
             std::string getBestCost() const;
@@ -163,6 +165,7 @@ namespace ompl
             unsigned int maxHybridPaths_;
 
             /// \brief The number of planners to use if none are specified. This defaults to the number of cores.
+            /// This parameter has no effect if planners have already been added.
             unsigned int defaultNumPlanners_;
         };
     }

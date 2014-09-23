@@ -49,7 +49,7 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
 
     numThreads_ = std::max(boost::thread::hardware_concurrency(), 2u);
     Planner::declareParam<bool>("prune", this, &CForest::setPrune, &CForest::getPrune, "0,1");
-    Planner::declareParam<unsigned int>("num_threads", this, &CForest::setNumThreads, &CForest::getNumThreads, "0,64");
+    Planner::declareParam<unsigned int>("num_threads", this, &CForest::setNumThreads, &CForest::getNumThreads, "0:64");
 
     addPlannerProgressProperty("best cost REAL",
                                boost::bind(&CForest::getBestCost, this));
