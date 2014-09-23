@@ -261,6 +261,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart()
 
 const ompl::base::State* ompl::base::PlannerInputStates::nextGoal()
 {
+    // This initialization is safe since we are in a non-const function anyway.
     static PlannerTerminationCondition ptc = plannerAlwaysTerminatingCondition();
     return nextGoal(ptc);
 }
