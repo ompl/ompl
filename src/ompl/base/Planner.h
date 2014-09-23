@@ -198,7 +198,9 @@ namespace ompl
         /** \brief Properties that planners may have */
         struct PlannerSpecs
         {
-            PlannerSpecs() : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false), optimizingPaths(false), directed(false), provingSolutionNonExistence(false)
+            PlannerSpecs() : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false),
+                             optimizingPaths(false), directed(false), provingSolutionNonExistence(false),
+                             canReportIntermediateSolutions(false)
             {
             }
 
@@ -221,6 +223,9 @@ namespace ompl
 
             /** \brief Flag indicating whether the planner is able to prove that no solution path exists. */
             bool     provingSolutionNonExistence;
+
+            /** \brief Flag indicating whether the planner is able to report the computation of intermediate paths. */
+            bool     canReportIntermediateSolutions;
         };
 
         /** \brief Base class for a planner */

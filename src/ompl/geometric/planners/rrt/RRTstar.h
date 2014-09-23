@@ -32,14 +32,15 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Luis G. Torres, Ioan Sucan */
+/* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Luis G. Torres, Ioan Sucan, Javier V Gomez */
 
-#ifndef OMPL_CONTRIB_RRT_STAR_RRTSTAR_
-#define OMPL_CONTRIB_RRT_STAR_RRTSTAR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_RRT_RRTSTAR_
+#define OMPL_GEOMETRIC_PLANNERS_RRT_RRTSTAR_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+
 #include <limits>
 #include <vector>
 #include <utility>
@@ -67,7 +68,7 @@ namespace ompl
            @par External documentation
            S. Karaman and E. Frazzoli, Sampling-based
            Algorithms for Optimal Motion Planning, International Journal of Robotics
-           Research (to appear), 2011.
+           Research, Vol 30, No 7, 2011.
            <a href="http://arxiv.org/abs/1105.1186">http://arxiv.org/abs/1105.1186</a>
         */
 
@@ -147,6 +148,31 @@ namespace ompl
                 return delayCC_;
             }
 
+            /** \brief Controls whether the tree is pruned during the search. */
+            void setPrune(const bool prune)
+            {
+                prune_ = prune;
+            }
+
+            /** \brief Get the state of the pruning option. */
+            bool getPrune() const
+            {
+                return prune_;
+            }
+
+            /** \brief Set the percentage threshold (between 0 and 1) for pruning the tree. If the new tree has removed
+                at least this percentage of states, the tree will be finally pruned. */
+            void setPruneStatesImprovementThreshold(const double pp)
+            {
+                pruneStatesThreshold_ = pp;
+            }
+
+            /** \brief Get the current prune states percentage threshold parameter. */
+            double getPruneStatesImprovementThreshold () const
+            {
+                return pruneStatesThreshold_;
+            }
+
             virtual void setup();
 
             ///////////////////////////////////////
@@ -218,10 +244,22 @@ namespace ompl
             }
 
             /** \brief Removes the given motion from the parent's child list */
-            void removeFromParent(Motion *m);
+            void removeFromParent(Motion *m); 
 
             /** \brief Updates the cost of the children of this node if the cost up to this node has changed */
             void updateChildCosts(Motion *m);
+
+            /** \brief Prunes all those states which estimated total cost is higher than pruneTreeCost.
+                Returns the number of motions pruned. Depends on the parameter set by setPruneStatesImprovementThreshold() */
+            int pruneTree(const base::Cost pruneTreeCost);
+
+            /** \brief Deletes (frees memory) the motion and its children motions. */
+            void deleteBranch(Motion *motion);
+
+            /** \brief Computes the Cost To Go heuristically as the cost to come from start to motion plus
+                 the cost to go from motion to goal. If \e shortest is true, the estimated cost to come
+                 start-motion is given. Otherwise, this cost to come is the current motion cost. */
+            base::Cost costToGo(const Motion *motion, const bool shortest = true) const;
 
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;
@@ -250,6 +288,17 @@ namespace ompl
             /** \brief A list of states in the tree that satisfy the goal condition */
             std::vector<Motion*>                           goalMotions_;
 
+            /** \brief If this value is set to true, tree pruning will be enabled. */
+            bool                                           prune_;
+
+            /** \brief The tree is only pruned is the percentage of states to prune is above this threshold (between 0 and 1). */
+            double                                         pruneStatesThreshold_;
+
+            struct PruneScratchSpace { std::vector<Motion*> newTree, toBePruned, candidates; } pruneScratchSpace_;
+
+            /** \brief Stores the Motion containing the last added initial start state. */
+            Motion *                                       startMotion_;
+
             //////////////////////////////
             // Planner progress properties
             /** \brief Number of iterations the algorithm performed */
@@ -257,7 +306,6 @@ namespace ompl
             /** \brief Best cost found so far by algorithm */
             base::Cost                                     bestCost_;
         };
-
     }
 }
 

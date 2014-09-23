@@ -121,6 +121,12 @@ namespace ompl
             std::string plannerName_;
         };
 
+        class Planner;
+
+        /** \brief When a planner has an intermediate solution (e.g., optimizing planners), a function with this signature can be called
+            to report the states of that solution. */
+        typedef boost::function<void(const Planner*, const std::vector<const base::State*> &, const Cost)> ReportIntermediateSolutionFn;
+
         OMPL_CLASS_FORWARD(OptimizationObjective);
 
         /** \brief Definition of a problem to be solved. This includes
@@ -253,6 +259,18 @@ namespace ompl
                 optimizationObjective_ = optimizationObjective;
             }
 
+            /** \brief When this function returns a valid function pointer, that function should be called
+                by planners that compute intermediate solutions every time a better solution is found */
+            const ReportIntermediateSolutionFn& getIntermediateSolutionCallback() const
+            {
+                return intermediateSolutionCallback_;
+            }
+
+            /** \brief Set the callback to be called by planners that can compute intermediate solutions */
+            void setIntermediateSolutionCallback(const ReportIntermediateSolutionFn &callback) {
+                intermediateSolutionCallback_ = callback;
+             }
+
             /** \brief A problem is trivial if a given starting state already
                 in the goal region, so we need no motion planning. startID
                 will be set to the index of the starting state that
@@ -358,6 +376,9 @@ namespace ompl
 
             /** \brief The objective to be optimized while solving the planning problem */
             OptimizationObjectivePtr     optimizationObjective_;
+
+            /** \brief Callback function which is called when a new intermediate solution has been found.*/
+            ReportIntermediateSolutionFn     intermediateSolutionCallback_;
 
         private:
 

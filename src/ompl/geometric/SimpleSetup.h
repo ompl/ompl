@@ -283,18 +283,6 @@ namespace ompl
                 function automatically. */
             virtual void setup();
 
-            /** \brief Get the  parameters for this planning context */
-            base::ParamSet& params()
-            {
-                return params_;
-            }
-
-            /** \brief Get the  parameters for this planning context */
-            const base::ParamSet& params() const
-            {
-                return params_;
-            }
-
         protected:
 
             /// The created space information
@@ -323,9 +311,6 @@ namespace ompl
 
             /// The status of the last planning request
             base::PlannerStatus           lastStatus_;
-
-            /// The parameters that describe the planning context
-            base::ParamSet                params_;
         };
 
         /** \brief Given a goal specification, decide on a planner for that goal.
