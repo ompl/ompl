@@ -63,6 +63,24 @@ ompl::geometric::CForest::~CForest()
 {
 }
 
+void ompl::geometric::CForest::setNumThreads(unsigned int numThreads)
+{
+    numThreads_ = numThreads ? numThreads : std::max(boost::thread::hardware_concurrency(), 2u);
+}
+
+void ompl::geometric::CForest::addPlannerInstanceInternal(const base::PlannerPtr &planner)
+{
+    if (!planner->getSpecs().canReportIntermediateSolutions)
+        OMPL_WARN("%s cannot report intermediate solutions, not added as CForest planner.", planner->getName().c_str());
+    else
+    {
+        planner->setProblemDefinition(pdef_);
+        if (planner->params().hasParam("prune"))
+            planner->params()["prune"] = prune_;
+        planners_.push_back(planner);
+    }
+}
+
 void ompl::geometric::CForest::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
@@ -139,7 +157,11 @@ void ompl::geometric::CForest::setup()
     }
 
     for (std::size_t i = 0; i < planners_.size() ; ++i)
-        planners_[i]->setup();
+        if (!planners_[i]->isSetup())
+            planners_[i]->setup();
+
+    // This call is needed to make sure the ParamSet is up to date after changes induced by the planner setup calls above, via the state space wrappers for CForest.
+    si_->setup();
 }
 
 ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTerminationCondition &ptc)
@@ -215,8 +237,8 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, co
 
     for (std::size_t i = 0; i < samplers_.size(); ++i)
     {
-        base::CForestStateSampler* sampler = dynamic_cast<base::CForestStateSampler*>(samplers_[i].get());
-        const base::CForestStateSpaceWrapper *space = dynamic_cast<const base::CForestStateSpaceWrapper*>(sampler->getStateSpace());
+        base::CForestStateSampler *sampler = static_cast<base::CForestStateSampler*>(samplers_[i].get());
+        const base::CForestStateSpaceWrapper *space = static_cast<const base::CForestStateSpaceWrapper*>(sampler->getStateSpace());
         const base::Planner *cfplanner = space->getPlanner();
         if (cfplanner != planner)
             sampler->setStatesToSample(statesToShare);

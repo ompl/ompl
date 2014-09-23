@@ -54,10 +54,13 @@ ompl::base::StateSamplerPtr ompl::base::CForestStateSpaceWrapper::allocStateSamp
 void ompl::base::CForestStateSpaceWrapper::setup()
 {
     space_->setup();
+    maxExtent_ = space_->getMaximumExtent();
     longestValidSegmentFraction_ = space_->getLongestValidSegmentFraction();
     longestValidSegmentCountFactor_ = space_->getValidSegmentCountFactor();
+    longestValidSegment_ = space_->getLongestValidSegmentLength();
     projections_ = space_->getRegisteredProjections();
     params_ = space_->params();
+
     valueLocationsInOrder_ = space_->getValueLocations();
     valueLocationsByName_ = space_->getValueLocationsByName();
     substateLocationsByName_ = space_->getSubstateLocationsByName();

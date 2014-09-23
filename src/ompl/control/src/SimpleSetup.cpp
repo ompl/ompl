@@ -58,7 +58,6 @@ ompl::control::SimpleSetup::SimpleSetup(const SpaceInformationPtr &si) :
 {
     si_ = si;
     pdef_.reset(new base::ProblemDefinition(si_));
-    params_.include(si_->params());
 }
 
 ompl::control::SimpleSetup::SimpleSetup(const ControlSpacePtr &space) :
@@ -66,7 +65,6 @@ ompl::control::SimpleSetup::SimpleSetup(const ControlSpacePtr &space) :
 {
     si_.reset(new SpaceInformation(space->getStateSpace(), space));
     pdef_.reset(new base::ProblemDefinition(si_));
-    params_.include(si_->params());
 }
 
 void ompl::control::SimpleSetup::setup()
@@ -89,9 +87,6 @@ void ompl::control::SimpleSetup::setup()
         if (!planner_->isSetup())
             planner_->setup();
 
-        params_.clear();
-        params_.include(si_->params());
-        params_.include(planner_->params());
         configured_ = true;
     }
 }

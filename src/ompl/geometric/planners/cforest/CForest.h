@@ -40,7 +40,6 @@
 
 #include "ompl/geometric/planners/cforest/CForestStateSpaceWrapper.h"
 #include "ompl/geometric/planners/PlannerIncludes.h"
-#include "ompl/geometric/planners/rrt/RRTstar.h"
 #include "ompl/tools/config/SelfConfig.h"
 
 #include <boost/thread.hpp>
@@ -87,30 +86,29 @@ namespace ompl
 
             /** \brief Add an specific planner instance. */
             template <class T>
+            void addPlannerInstance()
+            {
+                base::CForestStateSpaceWrapper *cfspace = new base::CForestStateSpaceWrapper(this, si_->getStateSpace().get());
+                base::StateSpacePtr space(cfspace);
+                base::SpaceInformationPtr si(new base::SpaceInformation(space));
+                si->setStateValidityChecker(si_->getStateValidityChecker());
+                si->setMotionValidator(si_->getMotionValidator());
+                base::PlannerPtr planner(new T(si));
+                cfspace->setPlanner(planner.get());
+                addPlannerInstanceInternal(planner);
+            }
+
+            /** \brief Add an specific planner instance. */
+            template <class T>
             void addPlannerInstances(std::size_t num = 2)
             {
                 planners_.reserve(planners_.size() + num);
                 for (std::size_t i = 0 ; i < num; ++i)
                 {
-                    base::CForestStateSpaceWrapper* cfspace = new base::CForestStateSpaceWrapper(this, si_->getStateSpace().get());
-                    base::StateSpacePtr space(cfspace);
-                    base::SpaceInformationPtr si(new base::SpaceInformation(space));
-                    base::PlannerPtr planner (new T(si));
-
-                    if (!planner->getSpecs().canReportIntermediateSolutions)
-                        OMPL_WARN("%s cannot report intermediate solutions, not added as CForest planner.", planner->getName().c_str());
-                    else
-                    {
-                        cfspace->setPlanner(planner.get());
-                        si->setStateValidityChecker(si_->getStateValidityChecker());
-                        si->setMotionValidator(si_->getMotionValidator());
-                        planner->setProblemDefinition(pdef_);
-                        if (dynamic_cast<ompl::geometric::RRTstar*>(planner.get()))
-                            planner->as<T>()->setPrune(prune_);
-                        planners_.push_back(planner);
-                    }
+                    addPlannerInstance<T>();
                 }
             }
+
             /** \brief Remove all planner instances */
             void clearPlannerInstances()
             {
@@ -146,11 +144,7 @@ namespace ompl
             }
 
             /** \brief Set default number of threads to use when no planner instances are specified by the user. */
-            void setNumThreads(unsigned int numThreads = 0)
-            {
-                numThreads_ = numThreads ? numThreads
-                    : std::max(boost::thread::hardware_concurrency(), 2u);
-            }
+            void setNumThreads(unsigned int numThreads = 0);
 
             /** \brief Get default number of threads used by CForest when no planner instances are specified by the user. */
             unsigned int getNumThreads()
@@ -168,6 +162,9 @@ namespace ompl
             std::string getNumStatesShared() const;
 
         private:
+
+            /** \brief Helper function to add a planner instance. */
+            void addPlannerInstanceInternal(const base::PlannerPtr &planner);
 
             /** \brief Callback to be called everytime a new, better solution is found by a planner. */
             void newSolutionFound(const base::Planner *planner, const std::vector<const base::State *> &states, const base::Cost cost);

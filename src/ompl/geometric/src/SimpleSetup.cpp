@@ -78,7 +78,6 @@ ompl::geometric::SimpleSetup::SimpleSetup(const base::SpaceInformationPtr &si) :
     si_ = si;
     pdef_.reset(new base::ProblemDefinition(si_));
     psk_.reset(new PathSimplifier(si_));
-    params_.include(si_->params());
 }
 
 ompl::geometric::SimpleSetup::SimpleSetup(const base::StateSpacePtr &space) :
@@ -87,7 +86,6 @@ ompl::geometric::SimpleSetup::SimpleSetup(const base::StateSpacePtr &space) :
     si_.reset(new base::SpaceInformation(space));
     pdef_.reset(new base::ProblemDefinition(si_));
     psk_.reset(new PathSimplifier(si_));
-    params_.include(si_->params());
 }
 
 void ompl::geometric::SimpleSetup::setup()
@@ -109,10 +107,6 @@ void ompl::geometric::SimpleSetup::setup()
         planner_->setProblemDefinition(pdef_);
         if (!planner_->isSetup())
             planner_->setup();
-
-        params_.clear();
-        params_.include(si_->params());
-        params_.include(planner_->params());
         configured_ = true;
     }
 }
