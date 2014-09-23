@@ -267,6 +267,7 @@ shinyServer(function(input, output, session) {
     progPlot <- reactive({
         attr <- gsub(" ", "_", input$progress)
         data <- progPlotData()
+        validate(need(nrow(data) > 0, 'No progress data available; select a different benchmark, progress attribute, or planners.'))
         p <- ggplot(data, aes_string(x = "time", y = attr, group = "planner", color = "planner", fill = "planner")) +
             # labels
             xlab('time (s)') +
@@ -283,14 +284,17 @@ shinyServer(function(input, output, session) {
     output$progPlot <- renderPlot({ progPlot() })
     progNumMeasurementsPlot <- reactive({
         data <- progPlotData()
-        p <- ggplot(data, aes(x = time, group = planner, color = planner)) +
-            # labels
-            xlab('time (s)') +
-            ylab(sprintf("# measurements for %s", input$progress)) +
-            theme(text = element_text(size = 20)) +
-            geom_freqpoly(binwidth=1) +
-            coord_cartesian(xlim = c(0, trunc(max(data$time))))
-        p
+        if (nrow(data) > 0)
+        {
+            p <- ggplot(data, aes(x = time, group = planner, color = planner)) +
+                # labels
+                xlab('time (s)') +
+                ylab(sprintf("# measurements for %s", input$progress)) +
+                theme(text = element_text(size = 20)) +
+                geom_freqpoly(binwidth=1) +
+                coord_cartesian(xlim = c(0, trunc(max(data$time))))
+            p
+        }
     })
     output$progNumMeasurementsPlot <- renderPlot({ progNumMeasurementsPlot() })
     output$progDownloadPlot <- downloadHandler(filename = 'plot.pdf',
