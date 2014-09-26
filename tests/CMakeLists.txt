@@ -71,3 +71,5 @@ if(PYTHON_FOUND AND OMPL_BUILD_PYTESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.
         WORKING_DIRECTORY "${LIBRARY_OUTPUT_PATH}")
     add_ompl_python_test(util/test_py_boost_function.py)
 endif()
+
+add_subdirectory(regression_tests)
