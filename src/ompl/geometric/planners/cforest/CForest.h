@@ -65,6 +65,8 @@ namespace ompl
            the triangle inequality. It relies in the OptimizationObjective set for
            the underlying planners.
 
+           See also the extensive documentation [here](CForest.html).
+
            @par External documentation
            M. Otte, N. Correll, C-FOREST: Parallel Shortest Path Planning With
            Superlinear Speedup, IEEE Transactions on Robotics, Vol 20, No 3, 2013.
