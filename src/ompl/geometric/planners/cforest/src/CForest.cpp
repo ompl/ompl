@@ -176,6 +176,7 @@ ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTer
         OMPL_WARN("Cannot use previously set intermediate solution callback with %s", getName().c_str());
 
     pdef_->setIntermediateSolutionCallback(boost::bind(&CForest::newSolutionFound, this, _1, _2, _3));
+    bestCost_ = opt_->infiniteCost();
 
     // run each planner in its own thread, with the same ptc.
     for (std::size_t i = 0 ; i < threads.size() ; ++i)
