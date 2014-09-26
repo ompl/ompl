@@ -71,6 +71,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
   - [SPARS](\ref gSPARS)<br> An asymptotically near-optimal roadmap-based planner.
   - [SPARS2](\ref gSPARStwo)<br> An asymptotically near-optimal roadmap-based planner.
   - [FMT*](\ref gFMT)<br> An asymptotically near-optimal tree-based planner.
+  - [CForest](\ref gCForest)<br> A meta-planner that runs several instances of asymptotically optimal planners in different threads. When one thread finds a better solution path, the states along the path are passed on to the other threads.
   - [AnytimePathShortening (APS)](\ref gAPS)<br> APS is a generic wrapper around one or more geometric motion planners that repeatedly applies [shortcutting](\ref ompl::geometric::PathSimplifier) and [hybridization](\ref ompl::geometric::PathHybridization) to a set of solution paths. Any number and combination of planners can be specified, each is run in a separate thread.
 .
 
@@ -99,8 +100,10 @@ If the system under consideration is subject to differential constraints, then a
   Syclop is a meta-planner that combines a high-level guide computed over a decomposition of the state space with a low-level planning algorithm. The progress that the low-level planner makes is fed back to the high-level planner which uses this information to update the guide. There are two different versions of Syclop:
    - [Syclop using RRT as the low-level planner](\ref cSyclopRRT)
    - [Syclop using EST as the low-level planner](\ref cSyclopEST)
+- [Linear Temporal Logical Planner (LTLPlanner)](\ref cLTLPlanner) \[__experimental__\]<br>
+  LTLPlanner finds solutions for motion planning problems where the goal is specified by a Linear Temporal Logic (LTL) specification.
 
 \attention How OMPL selects a control-based planner<br>
-If you use the ompl::control::SimpleSetup class (highly recommended) to define and solve your motion planning problem, then OMPL will automatically select an appropriate planner (unless you have explicitly specified one). If the state space has a default projection (which is going to be the case if you use any of the built-in state spaces), then it will use [KPIECE](\ref cKPIECE1). This planner has been shown to work well consistently across many real-world motion planning problems, which is why it is the default choice. In case the state space has no default projection, [RRT](\ref cRRT) will be used. Note that there are no bidirectional control-based planners, since we do assume that there is a steering function that can connect two states _exactly_.
+If you use the ompl::control::SimpleSetup class (highly recommended) to define and solve your motion planning problem, then OMPL will automatically select an appropriate planner (unless you have explicitly specified one). If the state space has a default projection (which is going to be the case if you use any of the built-in state spaces), then it will use [KPIECE](\ref cKPIECE1). This planner has been shown to work well consistently across many real-world motion planning problems, which is why it is the default choice. In case the state space has no default projection, [RRT](\ref cRRT) will be used. Note that there are no bidirectional control-based planners, since we do not assume that there is a steering function that can connect two states _exactly_.
 
 </div>

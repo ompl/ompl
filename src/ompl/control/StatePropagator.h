@@ -114,6 +114,7 @@ namespace ompl
                 return false;
             }
 
+            /** \brief Return true if the steer() function has been implemented */
             virtual bool canSteer() const
             {
                 return false;
