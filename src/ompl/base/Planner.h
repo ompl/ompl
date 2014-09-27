@@ -305,6 +305,14 @@ namespace ompl
                 will ignore all previous work. */
             virtual void clear();
 
+            /** \brief Given a path known to be valid with a given cost, include the states that make up the path
+                in the planner's exploration data structures. */
+            virtual void includeValidPath(const std::vector<const State *> &states, const Cost cost);	
+
+            /** \brief For the tree-based, optimizing planners (currently only RRT* is supported) this function
+                activates the CForest parallelization framework. */
+            virtual void activateCForest();
+
             /** \brief Get information about the current run of the
                 motion planner. Repeated calls to this function will
                 update \e data (only additions are made). This is
