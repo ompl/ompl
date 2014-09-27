@@ -72,7 +72,7 @@ namespace ompl
            A. Dobson, K. Bekris,
            Improving Sparse Roadmap Spanners,
            <em>IEEE International Conference on Robotics and Automation (ICRA)</em> May 2013.
-           <a href="http://www.cs.rutgers.edu/~kb572/pubs/spars2.pdf">[PDF]</a>
+           [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/spars2.pdf)
         */
 
         /** \brief <b> SPArse Roadmap Spanner Version 2.0 </b> */

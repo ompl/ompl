@@ -74,9 +74,9 @@ namespace ompl
            L.E. Kavraki, P.Švestka, J.-C. Latombe, and M.H. Overmars,
            Probabilistic roadmaps for path planning in high-dimensional configuration spaces,
            <em>IEEE Trans. on Robotics and Automation</em>, vol. 12, pp. 566–580, Aug. 1996.
-           DOI: <a href="http://dx.doi.org/10.1109/70.508439">10.1109/70.508439</a><br>
-           <a href="http://ieeexplore.ieee.org/ielx4/70/11078/00508439.pdf?tp=&arnumber=508439&isnumber=11078">[PDF]</a>
-           <a href="http://www.kavrakilab.org/robotics/prm.html">[more]</a>
+           DOI: [10.1109/70.508439](http://dx.doi.org/10.1109/70.508439)<br>
+           [[PDF]](http://ieeexplore.ieee.org/ielx4/70/11078/00508439.pdf?tp=&arnumber=508439&isnumber=11078)
+           [[more]](http://www.kavrakilab.org/robotics/prm.html)
         */
 
         /** \brief Probabilistic RoadMap planner */

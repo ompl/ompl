@@ -73,7 +73,7 @@ namespace ompl
            A. Dobson, A. Krontiris, K. Bekris,
            Sparse Roadmap Spanners,
            <em>Workshop on the Algorithmic Foundations of Robotics (WAFR)</em> 2012.
-           <a href="http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf">[PDF]</a>
+           [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf)
          */
 
         /** \brief <b> SPArse Roadmap Spanner technique. </b> */

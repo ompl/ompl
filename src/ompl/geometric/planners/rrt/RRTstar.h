@@ -69,7 +69,7 @@ namespace ompl
            S. Karaman and E. Frazzoli, Sampling-based
            Algorithms for Optimal Motion Planning, International Journal of Robotics
            Research, Vol 30, No 7, 2011.
-           <a href="http://arxiv.org/abs/1105.1186">http://arxiv.org/abs/1105.1186</a>
+           http://arxiv.org/abs/1105.1186
         */
 
         /** \brief Optimal Rapidly-exploring Random Trees */

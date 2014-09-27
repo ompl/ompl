@@ -55,8 +55,8 @@ namespace ompl
            R. Bohlin and L.E. Kavraki
            Path Planning Using Lazy PRM
            <em>IEEE International Conference on Robotics and Automation</em>, San Francisco, pp. 521–528, 2000.
-           DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844107">10.1109/ROBOT.2000.844107</a><br>
-           <a href="http://www.kavrakilab.org/robotics/lazyprm.html">[more]</a>
+           DOI: [10.1109/ROBOT.2000.844107](http://dx.doi.org/10.1109/ROBOT.2000.844107)<br>
+           [[more]](http://www.kavrakilab.org/robotics/lazyprm.html)
         */
 
         /** \brief Lazy Probabilistic RoadMap planner */

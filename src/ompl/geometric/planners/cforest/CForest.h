@@ -70,8 +70,8 @@ namespace ompl
            @par External documentation
            M. Otte, N. Correll, C-FOREST: Parallel Shortest Path Planning With
            Superlinear Speedup, IEEE Transactions on Robotics, Vol 20, No 3, 2013.
-           DOI: <a href="http://dx.doi.org/10.1109/TRO.2013.2240176">10.1109/TRO.2013.2240176</a><br>
-           <a href="http:​/​/​ieeexplore.ieee.org/​ielx5/​8860/​6522877/​06425493.pdf?​tp=&​arnumber=6425493&​isnumber=6522877">[PDF]</a>
+           DOI: [10.1109/TRO.2013.2240176](http://dx.doi.org/10.1109/TRO.2013.2240176)<br>
+           [[PDF]](http://ieeexplore.ieee.org/ielx5/8860/6522877/06425493.pdf?tp=&amp;arnumber=6425493&amp;isnumber=6522877)
         */
 
         /** \brief Coupled Forest of Random Engrafting Search Trees */

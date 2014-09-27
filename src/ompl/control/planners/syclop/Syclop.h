@@ -63,7 +63,7 @@ namespace ompl
            E. Plaku, L.E. Kavraki, and M.Y. Vardi,
            Motion Planning with Dynamics by a Synergistic Combination of Layers of Planning,
            in <em>IEEE Transactions on Robotics</em>, 2010.
-           DOI: <a href="http://dx.doi.org/10.1109/TRO.2010.2047820">10.1109/TRO.2010.2047820</a><br>
+           DOI: [10.1109/TRO.2010.2047820](http://dx.doi.org/10.1109/TRO.2010.2047820)<br>
         */
 
         /** \brief Synergistic Combination of Layers of Planning. */

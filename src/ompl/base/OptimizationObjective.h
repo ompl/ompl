@@ -66,7 +66,7 @@ namespace ompl
 
         /** \brief Abstract definition of optimization objectives.
 
-            \note This implementation has greatly benefited from discussions with <a href="http://www.cs.indiana.edu/~hauserk/">Kris Hauser</a> */
+            \note This implementation has greatly benefited from discussions with Kris Hauser */
         class OptimizationObjective : private boost::noncopyable
         {
         public:

@@ -2,13 +2,39 @@
 
 This page includes a list of extensions to OMPL provided by the community. Please read the [directions on writing a contribution](contrib.html) and the suggested [style guide](styleGuide.html) if you would like to submit your own contribution.
 
+# CForest (Coupled Forest of Random Engrafting Search Trees)
+
+### Author: Javier Gomez (Universidad Carlos III de Madrid)
+
+CForest is a parallelization framework that is designed for single-query shortest
+path planning algorithms. It is not a planning algorithm <em>per se</em>.
+
+CForest is designed to be used with any random tree algorithm that operates
+in any configuration space such that: 1) the search tree has almost sure
+convergence to the optimal solution and 2) the configuration space obeys
+the triangle inequality. It relies in the OptimizationObjective set for
+the underlying planners.
+
+See also the extensive documentation [here](CForest.html). This also describes how our implementation differs from the algorithm as described in:
+- M. Otte, N. Correll, C-FOREST: Parallel Shortest Path Planning With
+Superlinear Speedup, IEEE Transactions on Robotics, Vol 20, No 3, 2013.
+DOI: [10.1109/TRO.2013.2240176](http://dx.doi.org/10.1109/TRO.2013.2240176)<br>
+[[PDF]](http://ieeexplore.ieee.org/ielx5/8860/6522877/06425493.pdf?tp=&amp;arnumber=6425493&amp;isnumber=6522877)
+
+# Fast Marching Tree algorithm (FMT∗)
+
+### Authors: Ashley Clark and Wolfgang Pointner (Stanford University)
+
+[FMT∗](\ref gFMT) is a new asymptotically optimal algorithm contributed by Marco Pavone's Autonomous Systems Laboratory. The FMT∗ algorithm performs a “lazy” dynamic programming recursion on a set of probabilistically-drawn samples to grow a tree of paths, which moves outward in cost-to-come space. The algorithm is described in:
+- L. Janson, A. Clark, and M. Pavone, Fast Marching Trees: a Fast Marching Sampling-Based Method for Optimal Motion Planning in Many Dimensions, International Journal on Robotics Research, 2014. Submitted. http://arxiv.org/pdf/1306.3532v3.pdf
+
 # Generalized Optimal Path Planning Framework
 
 ### Author: Luis Torres (University of North Carolina at Chapel Hill)
 
 Extend OMPL's support for optimal path planning. Users can plan robot paths that optimize a variety of ready-to-use metrics such as path length and clearance from obstacles. Users can also plan optimal paths under their own customized path metrics without changing OMPL's optimizing planners. Additional benchmarking data has also been added so users can efficiently track the progress of an optimizing planner on their planning problem. Tutorials for use of the framework can be found [here](optimalPlanning.html).
 
-# LBT-RRT contribution
+# LBT-RRT implementation
 
 ### Author: Oren Salzman (Tel Aviv University)
 
@@ -16,7 +42,7 @@ Extend OMPL's support for optimal path planning. Users can plan robot paths that
 - Oren Salzman and Dan Halperin, Asymptotically near-optimal RRT for fast, high-quality, motion planning,
 _arXiv_, 2013 [[PDF]](http://arxiv.org/pdf/1308.0189.pdf)
 
-# SPARS and SPARS2 contribution
+# SPARS and SPARS2 implementations
 
 ### Author: Andrew Dobson (Rutgers University)
 
@@ -24,14 +50,14 @@ _arXiv_, 2013 [[PDF]](http://arxiv.org/pdf/1308.0189.pdf)
     - A. Dobson, A. Krontiris, K. Bekris, Sparse Roadmap Spanners, _Workshop on the Algorithmic Foundations of Robotics (WAFR)_ 2012. [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf)
     - A. Dobson, K. Bekris, Improving Sparse Roadmap Spanners, _IEEE International Conference on Robotics and Automation (ICRA)_ May 2013. [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/spars2.pdf)
 
-# T-RRT Implementation
+# T-RRT implementation
 
 ### Author: Dave Coleman (University of Colorado Boulder)
 
 - [T-RRT](\ref gTRRT) is an RRT variant and tree-based motion planner that takes into consideration state costs to compute low-cost paths that follow valleys and saddle points of the configuration-space costmap. It uses transition tests from stochastic optimization methods to accept or reject new potential sates. [An example use of TRRT](https://github.com/davetcoleman/ompl_rviz_viewer).
     - L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in IEEE Transactions on Robotics, 26(4):635–646, August 2010, [[PDF]](http://homepages.laas.fr/nic/Papers/10TRO.pdf)
 
-# ROS Interface to OMPL
+# ROS interface to OMPL
 
 ### Authors: Ioan Sucan and Sachin Chitta (Willow Garage)
 
