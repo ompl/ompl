@@ -4,7 +4,7 @@ This page includes a list of extensions to OMPL provided by the community. Pleas
 
 # CForest (Coupled Forest of Random Engrafting Search Trees)
 
-### Author: Javier Gomez (Universidad Carlos III de Madrid)
+### Author: Javier V Gomez (Universidad Carlos III de Madrid)
 
 CForest is a parallelization framework that is designed for single-query shortest
 path planning algorithms. It is not a planning algorithm <em>per se</em>.
