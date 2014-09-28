@@ -45,7 +45,8 @@ namespace ompl
 
     namespace control
     {
-
+        typedef std::pair<Control*, double> TimedControl;
+        
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(SpaceInformation);
         /// @endcond
@@ -109,7 +110,9 @@ namespace ompl
 
                 \note If false is returned, the content of \e result and \e duration may have been changed,
                 but it does not represent a solution; */
-            virtual bool steer(const base::State* /*from*/, const base::State* /*to*/, Control* /*result*/, double& /*duration*/) const
+            // TODO: update this documentation
+            //virtual bool steer(const base::State* /*from*/, const base::State* /*to*/, Control* /*result*/, double& /*duration*/) const
+            virtual bool steer(const base::State* /*from*/, const base::State* /*to*/, std::vector<TimedControl>& /*controls*/, double & /*duration*/) const
             {
                 return false;
             }
@@ -120,6 +123,11 @@ namespace ompl
                 return false;
             }
 
+            const SpaceInformation* getSpaceInformation() const
+            {
+                return si_;
+            }
+            
         protected:
 
             /** \brief The instance of space information this state propagator operates on */

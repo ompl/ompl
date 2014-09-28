@@ -39,9 +39,11 @@
 #include "ompl/base/DiscreteMotionValidator.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
+#include "ompl/base/spaces/FromPropagatorStateSpace.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Time.h"
 #include "ompl/tools/config/MagicConstants.h"
+#include "ompl/base/spaces/SE2StateSpace.h"
 #include <queue>
 #include <cassert>
 
@@ -109,12 +111,15 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
 
 void ompl::base::SpaceInformation::setDefaultMotionValidator()
 {
+    // TODO: How to generalize for FromPropagatorStateSpace<T>? Provide a default type for the template param T?
+    if (dynamic_cast<FromPropagatorStateSpace<SE2StateSpace>*>(stateSpace_.get()))
+        motionValidator_.reset(stateSpace_->as<FromPropagatorStateSpace<SE2StateSpace> >()->allocMotionValidator(this));
     if (dynamic_cast<ReedsSheppStateSpace*>(stateSpace_.get()))
-         motionValidator_.reset(new ReedsSheppMotionValidator(this));
-     else if (dynamic_cast<DubinsStateSpace*>(stateSpace_.get()))
-         motionValidator_.reset(new DubinsMotionValidator(this));
-     else
-         motionValidator_.reset(new DiscreteMotionValidator(this));
+        motionValidator_.reset(new ReedsSheppMotionValidator(this));
+    else if (dynamic_cast<DubinsStateSpace*>(stateSpace_.get()))
+        motionValidator_.reset(new DubinsMotionValidator(this));
+    else
+        motionValidator_.reset(new DiscreteMotionValidator(this));
 }
 
 
