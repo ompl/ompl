@@ -12,7 +12,7 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 
 # Contributors:
 
-- Javier Gomez, Universidad Carlos III de Madrid
+- [Javier V Gomez](http://www.javiervgomez.com), Universidad Carlos III de Madrid
 - Ashley Clark, Stanford University
 - Caleb Voss, Rice University
 - [Matt Maly](http://kavrakilab.org/profiles/mmaly), Rice University (now at Google)
