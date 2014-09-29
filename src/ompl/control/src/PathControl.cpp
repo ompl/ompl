@@ -38,6 +38,7 @@
 #include "ompl/control/spaces/DiscreteControlSpace.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
+#include "ompl/base/OptimizationObjective.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
 #include <numeric>
@@ -120,6 +121,12 @@ void ompl::control::PathControl::copyFrom(const PathControl &other)
         controls_[i] = si->cloneControl(other.controls_[i]);
 
     controlDurations_ = other.controlDurations_;
+}
+
+ompl::base::Cost ompl::control::PathControl::cost(const base::OptimizationObjectivePtr &opt) const
+{
+    OMPL_ERROR("Error: Cost computation is only implemented for paths of type PathGeometric.");
+    return opt->identityCost();
 }
 
 double ompl::control::PathControl::length() const

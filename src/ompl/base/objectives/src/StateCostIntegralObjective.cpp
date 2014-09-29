@@ -45,6 +45,11 @@ StateCostIntegralObjective(const SpaceInformationPtr &si,
     description_ = "State Cost Integral";
 }
 
+ompl::base::Cost ompl::base::StateCostIntegralObjective::stateCost(const State *s) const
+{
+    return Cost(1.0);
+}
+
 ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State *s1,
                                                                     const State *s2) const
 {

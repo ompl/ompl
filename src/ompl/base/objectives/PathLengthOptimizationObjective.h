@@ -49,6 +49,9 @@ namespace ompl
         public:
             PathLengthOptimizationObjective(const SpaceInformationPtr &si);
 
+            /** \brief Returns identity cost. */
+            virtual Cost stateCost(const State *s) const;
+
             /** \brief Motion cost for this objective is defined as
                 the configuration space distance between \e s1 and \e
                 s2, using the method SpaceInformation::distance(). */

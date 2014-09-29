@@ -44,9 +44,15 @@
 
 namespace ompl
 {
+    namespace base
+    {
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(OptimizationObjective);
+        /// @endcond
+    }
+
     namespace control
     {
-
         /** \brief Definition of a control path.
 
          This is the type of path produced when planning with
@@ -68,6 +74,9 @@ namespace ompl
 
             /** \brief Assignment operator */
             PathControl& operator=(const PathControl &other);
+
+            /** \brief Not yet implemented. */
+            virtual base::Cost cost(const base::OptimizationObjectivePtr& obj) const;
 
             /** \brief The path length (sum of control durations) */
             virtual double length() const;
