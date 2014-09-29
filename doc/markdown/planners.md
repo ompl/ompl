@@ -89,7 +89,7 @@ If you use the ompl::geometric::SimpleSetup class (highly recommended) to define
 # Control-based planners {#control_planners}
 
 <div class="plannerlist">
-If the system under consideration is subject to differential constraints, then a control-based planner is used. These planners rely on [state propagation](\ref ompl::control::StatePropagator) rather than simple interpolation to generate motions. These planners do not require [a steering function](\ref ompl::control::StatePropagator::steer), but all of them (except KPIECE) will use it if the user implements it. Most of the planners below are kinodynamic adaptations of the corresponding geometric planners above.
+If the system under consideration is subject to differential constraints, then a control-based planner is used. These planners rely on [state propagation](\ref ompl::control::StatePropagator) rather than simple interpolation to generate motions. These planners do not require [a steering function](\ref ompl::control::StatePropagator::steer), but all of them (except KPIECE) will use it if the user implements it. The first two planners below are kinodynamic adaptations of the corresponding geometric planners above.
 - [Rapidly-exploring Random Trees (RRT)](\ref cRRT)
 - [Expansive Space Trees (EST)](\ref cEST)
 - [Kinodynamic Planning by Interior-Exterior Cell Exploration (KPIECE)](\ref cKPIECE1)<br>
