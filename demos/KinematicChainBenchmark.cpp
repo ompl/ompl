@@ -304,10 +304,10 @@ int main(int argc, char **argv)
     }
 
     // by default, use the Benchmark class
-    double runtime_limit = 7200, memory_limit = 1024;
+    double runtime_limit = 60, memory_limit = 1024;
     int run_count = 20;
-    ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count);
-    ompl::tools::Benchmark b(ss, "KinematicChain");
+    ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, 0.5);
+    ompl::tools::Benchmark b(ss, boost::str(boost::format("KinematicChain%i") % numLinks));
 
     b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::STRIDE(ss.getSpaceInformation())));
     b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::EST(ss.getSpaceInformation())));
