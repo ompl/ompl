@@ -92,7 +92,7 @@ public:
         /* instantiate problem definition */
         base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
         base::OptimizationObjectivePtr opt(new base::PathLengthOptimizationObjective(si));
-        /* make optimizing planners when any solution is found */
+        /* make optimizing planners stop when any solution is found */
         opt->setCostThreshold(opt->infiniteCost());
         pdef->setOptimizationObjective(opt);
 
