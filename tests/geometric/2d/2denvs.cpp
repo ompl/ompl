@@ -61,7 +61,7 @@
 #include "ompl/geometric/planners/prm/LazyPRM.h"
 #include "ompl/geometric/planners/prm/SPARS.h"
 #include "ompl/geometric/planners/prm/SPARStwo.h"
-
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
 #include "../../BoostTestTeamCityReporter.h"
 #include "../../base/PlannerTest.h"
@@ -91,6 +91,10 @@ public:
 
         /* instantiate problem definition */
         base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
+        base::OptimizationObjectivePtr opt(new base::PathLengthOptimizationObjective(si));
+        /* make optimizing planners when any solution is found */
+        opt->setCostThreshold(opt->infiniteCost());
+        pdef->setOptimizationObjective(opt);
 
         /* instantiate motion planner */
         base::PlannerPtr planner = newPlanner(si);
