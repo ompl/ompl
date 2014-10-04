@@ -69,3 +69,12 @@ label.checkbox {
 .footer a {
     color: #666;
 }
+.video {
+    width: 280px;
+    margin-left: 30px;
+    float: left;
+    min-height: 300px;
+}
+@media (min-width: 980px) and (max-width: 1199px) {
+    #videocollection { margin-left: -60px; margin-right: -100px; }
+}

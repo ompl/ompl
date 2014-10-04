@@ -220,11 +220,17 @@ shinyServer(function(input, output, session) {
         )
         print(perfPlot())
     })
-    output$perfDownloadPlot <- downloadHandler(filename = 'plot.pdf',
+    output$perfDownloadPlot <- downloadHandler(filename = 'perfplot.pdf',
         content = function(file) {
             pdf(file=file, width=12, height=8)
             print(perfPlot())
             dev.off()
+        }
+    )
+    output$perfDownloadRdata <- downloadHandler(filename = 'perfplot.RData',
+        content = function(file) {
+            perfplot <- perfPlot()
+            save(perfplot, file = file)
         }
     )
     output$perfMissingDataTable <- renderTable({
@@ -297,12 +303,19 @@ shinyServer(function(input, output, session) {
         }
     })
     output$progNumMeasurementsPlot <- renderPlot({ progNumMeasurementsPlot() })
-    output$progDownloadPlot <- downloadHandler(filename = 'plot.pdf',
+    output$progDownloadPlot <- downloadHandler(filename = 'progplot.pdf',
         content = function(file) {
             pdf(file=file, width=12, height=8)
             print(progPlot())
             print(progNumMeasurementsPlot())
             dev.off()
+        }
+    )
+    output$progDownloadRdata <- downloadHandler(filename = 'progplot.RData',
+        content = function(file) {
+            progplot <- progPlot()
+            prognummeasurementsplot <- progNumMeasurementsPlot()
+            save(progplot, prognummeasurementsplot, file = file)
         }
     )
 
@@ -335,11 +348,17 @@ shinyServer(function(input, output, session) {
         )
         print(regrPlot())
     })
-    output$regrDownloadPlot <- downloadHandler(filename = 'plot.pdf',
+    output$regrDownloadPlot <- downloadHandler(filename = 'regrplot.pdf',
         content = function(file) {
             pdf(file=file, width=12, height=8)
             print(regrPlot())
             dev.off()
+        }
+    )
+    output$regrDownloadRdata <- downloadHandler(filename = 'regrplot.RData',
+        content = function(file) {
+            regrplot <- regrPlot()
+            save(regrplot, file = file)
         }
     )
 
@@ -354,6 +373,7 @@ shinyServer(function(input, output, session) {
             ),
             mainPanel(
                 span(downloadLink('perfDownloadPlot', 'Download plot as PDF'), class="btn"),
+                span(downloadLink('perfDownloadRdata', 'Download plot as RData'), class="btn"),
                 plotOutput("perfPlot"),
                 h4("Number of missing data points out of the total number of runs per planner"),
                 tableOutput("perfMissingDataTable")
@@ -372,6 +392,7 @@ shinyServer(function(input, output, session) {
             ),
             mainPanel(
                 span(downloadLink('progDownloadPlot', 'Download plot as PDF'), class="btn"),
+                span(downloadLink('progDownloadRdata', 'Download plot as RData'), class="btn"),
                 plotOutput("progPlot"),
                 plotOutput("progNumMeasurementsPlot")
             )
@@ -390,6 +411,7 @@ shinyServer(function(input, output, session) {
             ),
             mainPanel(
                 span(downloadLink('regrDownloadPlot', 'Download plot as PDF'), class="btn"),
+                span(downloadLink('regrDownloadRdata', 'Download plot as RData'), class="btn"),
                 plotOutput("regrPlot")
             )
         )

@@ -134,6 +134,9 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
         print('Processing ' + filename)
         logfile = open(filename,'r')
         version = readOptionalLogValue(logfile, -1, {0 : "OMPL", 1 : "version"})
+        if version == None:
+            # set the version number to make Planner Arena happy
+            version = "0.0.0"
         expname = readRequiredLogValue("experiment name", logfile, -1, {0 : "Experiment"})
         hostname = readRequiredLogValue("hostname", logfile, -1, {0 : "Running"})
         date = ' '.join(ensurePrefix(logfile.readline(), "Starting").split()[2:])
@@ -526,7 +529,7 @@ if __name__ == "__main__":
         help="Create a PDF of plots")
     parser.add_option("-m", "--mysql", dest="mysqldb", default=None,
         help="Save SQLite3 database as a MySQL dump file")
-    parser.add_option("--moveit", dest="moveit", default=False,
+    parser.add_option("--moveit", action="store_true", dest="moveit", default=False,
         help="Log files are produced by MoveIt!")
     (options, args) = parser.parse_args()
 
