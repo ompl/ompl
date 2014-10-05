@@ -114,26 +114,24 @@ namespace ompl
             typedef boost::adjacency_list <
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property < vertex_state_t, base::State*,
-                boost::property < vertex_total_connection_attempts_t, unsigned int,
-                boost::property < vertex_successful_connection_attempts_t, unsigned int,
+                boost::property < vertex_total_connection_attempts_t, unsigned long int,
+                boost::property < vertex_successful_connection_attempts_t, unsigned long int,
                 boost::property < boost::vertex_predecessor_t, unsigned long int,
                 boost::property < boost::vertex_rank_t, unsigned long int > > > > >,
                 boost::property < boost::edge_weight_t, base::Cost >
             > Graph;
 
+            /** @brief The type for a vertex in the roadmap. */
             typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+            /** @brief The type for an edge in the roadmap. */
             typedef boost::graph_traits<Graph>::edge_descriptor   Edge;
 
+            /** @brief A nearest neighbors data structure for roadmap vertices. */
             typedef boost::shared_ptr< NearestNeighbors<Vertex> > RoadmapNeighbors;
 
             /** @brief A function returning the milestones that should be
-             * attempted to connect to
-             *
-             * @note Can't use the prefered boost::function syntax here because
-             * the Python bindings don't like it.
-             */
-            typedef boost::function<std::vector<Vertex>&(const Vertex)>
-                ConnectionStrategy;
+             * attempted to connect to. */
+            typedef boost::function<std::vector<Vertex>&(const Vertex)> ConnectionStrategy;
 
             /** @brief A function that can reject connections.
 
@@ -258,7 +256,7 @@ namespace ompl
             }
 
             /** \brief Return the number of milestones currently in the graph */
-            unsigned int milestoneCount() const
+            unsigned long int milestoneCount() const
             {
                 return boost::num_vertices(g_);
             }
@@ -391,7 +389,7 @@ namespace ompl
             //////////////////////////////
             // Planner progress properties
             /** \brief Number of iterations the algorithm performed */
-            unsigned int                                           iterations_;
+            unsigned long int                                      iterations_;
             /** \brief Best cost found so far by algorithm */
             base::Cost                                             bestCost_;
         };

@@ -92,12 +92,17 @@ namespace ompl
                 typedef boost::edge_property_tag kind;
             };
 
+            /** @brief The type for a vertex in the roadmap. */
+            typedef boost::adjacency_list_traits<boost::vecS, boost::listS,
+                                                 boost::undirectedS>::vertex_descriptor Vertex;
+
             /**
              @brief The underlying roadmap graph.
 
              @par Any BGL graph representation could be used here. Because we
              expect the roadmap to be sparse (m<n^2), an adjacency_list is more
-             appropriate than an adjacency_matrix.
+             appropriate than an adjacency_matrix. We use listS for the vertex list
+             because vertex descriptors are invalidated by remove operations if using vecS.
 
              @par Obviously, a ompl::base::State* vertex property is required.
              The incremental connected components algorithm requires
@@ -107,12 +112,10 @@ namespace ompl
 
              @par Edges should be undirected and have a weight property.
              */
-            typedef boost::adjacency_list_traits<boost::vecS, boost::listS,
-                                                 boost::undirectedS>::vertex_descriptor Vertex;
             typedef boost::adjacency_list <
                 boost::vecS, boost::listS, boost::undirectedS,
                 boost::property < vertex_state_t, base::State*,
-                boost::property < boost::vertex_index_t, unsigned int,
+                boost::property < boost::vertex_index_t, unsigned long int,
                 boost::property < vertex_flags_t, unsigned int,
                 boost::property < vertex_component_t, unsigned long int,
                 boost::property < boost::vertex_predecessor_t, Vertex,
@@ -121,17 +124,15 @@ namespace ompl
                 boost::property < edge_flags_t, unsigned int > >
             > Graph;
 
+            /** @brief The type for an edge in the roadmap. */
             typedef boost::graph_traits<Graph>::edge_descriptor   Edge;
+
+            /** @brief A nearest neighbors data structure for roadmap vertices. */
             typedef boost::shared_ptr< NearestNeighbors<Vertex> > RoadmapNeighbors;
 
             /** @brief A function returning the milestones that should be
-             * attempted to connect to
-             *
-             * @note Can't use the prefered boost::function syntax here because
-             * the Python bindings don't like it.
-             */
-            typedef boost::function<std::vector<Vertex>&(const Vertex)>
-                ConnectionStrategy;
+             * attempted to connect to. */
+            typedef boost::function<std::vector<Vertex>&(const Vertex)> ConnectionStrategy;
 
             /** @brief A function that can reject connections.
 
@@ -201,7 +202,7 @@ namespace ompl
             }
 
             /** \brief Return the number of milestones currently in the graph */
-            unsigned int milestoneCount() const
+            unsigned long int milestoneCount() const
             {
                 return boost::num_vertices(g_);
             }
@@ -215,7 +216,7 @@ namespace ompl
             /** \brief Clear the query previously loaded from the ProblemDefinition.
                 Subsequent calls to solve() will reuse the previously computed roadmap,
                 but will clear the set of input states constructed by the previous call to solve().
-                This enables multi-query functionality for PRM. */
+                This enables multi-query functionality for LazyPRM. */
             void clearQuery();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);

@@ -39,7 +39,6 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/tools/config/SelfConfig.h"
-#include "ompl/tools/config/MagicConstants.h"
 #include <boost/lambda/bind.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
@@ -49,6 +48,21 @@
 #include "GoalVisitor.hpp"
 
 #define foreach BOOST_FOREACH
+
+namespace ompl
+{
+    namespace magic
+    {
+        /** \brief The number of nearest neighbors to consider by
+            default in the construction of the PRM roadmap */
+        static const unsigned int DEFAULT_NEAREST_NEIGHBORS_LAZY = 5;
+
+        /** \brief When optimizing solutions with lazy planners, this is the minimum
+            number of path segments to add before attempting a new optimized solution
+            extraction */
+        static const unsigned int MIN_ADDED_SEGMENTS_FOR_LAZY_OPTIMIZATION = 5;
+    }
+}
 
 ompl::geometric::LazyPRM::LazyPRM(const base::SpaceInformationPtr &si, bool starStrategy) :
     base::Planner(si, "LazyPRM"),
@@ -93,7 +107,7 @@ void ompl::geometric::LazyPRM::setup()
         if (starStrategy_)
             connectionStrategy_ = KStarStrategy<Vertex>(boost::bind(&LazyPRM::milestoneCount, this), nn_, si_->getStateDimension());
         else
-            connectionStrategy_ = KStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS, nn_);
+            connectionStrategy_ = KStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS_LAZY, nn_);
     }
     if (!connectionFilter_)
         connectionFilter_ = boost::lambda::constant(true);
@@ -234,8 +248,8 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
         }
     }
 
-    unsigned int nrStartStates = boost::num_vertices(g_);
-    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nrStartStates);
+    unsigned long int nrStartStates = boost::num_vertices(g_);
+    OMPL_INFORM("%s: Starting planning with %lu states already in datastructure", getName().c_str(), nrStartStates);
 
     bestCost_ = opt_->infiniteCost();
     base::State *workState = si_->allocState();
@@ -307,8 +321,8 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
 
 void ompl::geometric::LazyPRM::uniteComponents(Vertex a, Vertex b)
 {
-    unsigned int componentA = vertexComponentProperty_[a];
-    unsigned int componentB = vertexComponentProperty_[b];
+    unsigned long int componentA = vertexComponentProperty_[a];
+    unsigned long int componentB = vertexComponentProperty_[b];
     if (componentA == componentB) return;
     if (componentSize_[componentA] > componentSize_[componentB])
     {

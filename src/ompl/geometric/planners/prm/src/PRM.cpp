@@ -51,7 +51,6 @@
 #include "GoalVisitor.hpp"
 
 #define foreach BOOST_FOREACH
-#define foreach_reverse BOOST_REVERSE_FOREACH
 
 namespace ompl
 {
@@ -64,6 +63,10 @@ namespace ompl
 
         /** \brief The time in seconds for a single roadmap building operation (dt)*/
         static const double ROADMAP_BUILD_TIME = 0.2;
+
+        /** \brief The number of nearest neighbors to consider by
+            default in the construction of the PRM roadmap */
+        static const unsigned int DEFAULT_NEAREST_NEIGHBORS = 10;
     }
 }
 
@@ -210,7 +213,7 @@ void ompl::geometric::PRM::expandRoadmap(const base::PlannerTerminationCondition
     PDF<Vertex> pdf;
     foreach (Vertex v, boost::vertices(g_))
     {
-        const unsigned int t = totalConnectionAttemptsProperty_[v];
+        const unsigned long int t = totalConnectionAttemptsProperty_[v];
         pdf.add(v, (double)(t - successfulConnectionAttemptsProperty_[v]) / (double)t);
     }
 
@@ -412,8 +415,8 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
         }
     }
 
-    unsigned int nrStartStates = boost::num_vertices(g_);
-    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nrStartStates);
+    unsigned long int nrStartStates = boost::num_vertices(g_);
+    OMPL_INFORM("%s: Starting planning with %lu states already in datastructure", getName().c_str(), nrStartStates);
 
     // Reset addedNewSolution_ member and create solution checking thread
     addedNewSolution_ = false;

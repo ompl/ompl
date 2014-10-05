@@ -163,6 +163,10 @@ public:
 
         /* instantiate problem definition */
         base::ProblemDefinitionPtr pdef = geometric::problemDefinition2DMap(si, env);
+        base::OptimizationObjectivePtr opt(new base::PathLengthOptimizationObjective(si));
+        /* make optimizing planners stop when any solution is found */
+        opt->setCostThreshold(opt->infiniteCost());
+        pdef->setOptimizationObjective(opt);
 
         /* instantiate motion planner */
         base::PlannerPtr planner = newPlanner(si);
@@ -555,6 +559,12 @@ public:
     {
         geometric::SimpleSetup2DMap s(env_);
         s.setPlanner(p->newPlanner(s.getSpaceInformation()));
+
+        base::OptimizationObjectivePtr opt(new base::PathLengthOptimizationObjective(s.getSpaceInformation()));
+        /* make optimizing planners stop when any solution is found */
+        opt->setCostThreshold(opt->infiniteCost());
+        s.setOptimizationObjective(opt);
+
         s.setup();
         base::PlannerTest pt(s.getPlanner());
         pt.test();
