@@ -473,7 +473,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             break;
     }
 
-    bool approximate = (solution == 0);
+    bool approximate = (solution == NULL);
     bool addedSolution = false;
     if (approximate)
         solution = approximation;

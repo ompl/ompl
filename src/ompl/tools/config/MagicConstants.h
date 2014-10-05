@@ -102,6 +102,15 @@ namespace ompl
             should not really be changed. */
         static const unsigned int FIND_VALID_STATE_ATTEMPTS_WITHOUT_TERMINATION_CHECK = 2;
 
+        /** \brief The number of nearest neighbors to consider by
+            default in the construction of the PRM roadmap */
+        static const unsigned int DEFAULT_NEAREST_NEIGHBORS = 10;
+
+        /** \brief When optimizing solutions with lazy planners, this is the minimum
+            number of path segments to add before attempting a new optimized solution
+            extraction */
+        static const unsigned int MIN_ADDED_SEGMENTS_FOR_LAZY_OPTIMIZATION = 5;
+
         /** \brief When multiple states need to be generated as part
             of the computation of various information (usually through
             stochastic processes), this parameter controls how many

@@ -96,14 +96,6 @@ namespace ompl
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct vertex_flags_t {
-                typedef boost::vertex_property_tag kind;
-            };
-
-            struct edge_flags_t {
-                typedef boost::edge_property_tag kind;
-            };
-
             /**
              @brief The underlying roadmap graph.
 
@@ -124,12 +116,9 @@ namespace ompl
                 boost::property < vertex_state_t, base::State*,
                 boost::property < vertex_total_connection_attempts_t, unsigned int,
                 boost::property < vertex_successful_connection_attempts_t, unsigned int,
-                boost::property < vertex_flags_t, unsigned int,
                 boost::property < boost::vertex_predecessor_t, unsigned long int,
-                boost::property < boost::vertex_rank_t, unsigned long int > > > > > >,
-                boost::property < boost::edge_weight_t, base::Cost,
-                boost::property < boost::edge_index_t, unsigned int,
-                boost::property < edge_flags_t, unsigned int > > >
+                boost::property < boost::vertex_rank_t, unsigned long int > > > > >,
+                boost::property < boost::edge_weight_t, base::Cost >
             > Graph;
 
             typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
@@ -205,27 +194,27 @@ namespace ompl
 
             /** \brief While the termination condition allows, this function will construct the roadmap (using growRoadmap() and expandRoadmap(),
                 maintaining a 2:1 ratio for growing/expansion of roadmap) */
-            virtual void constructRoadmap(const base::PlannerTerminationCondition &ptc);
+            void constructRoadmap(const base::PlannerTerminationCondition &ptc);
 
             /** \brief If the user desires, the roadmap can be
                 improved for the given time (seconds). The solve()
                 method will also improve the roadmap, as needed.*/
-            virtual void growRoadmap(double growTime);
+            void growRoadmap(double growTime);
 
             /** \brief If the user desires, the roadmap can be
                 improved until a given condition is true. The solve()
                 method will also improve the roadmap, as needed.*/
-            virtual void growRoadmap(const base::PlannerTerminationCondition &ptc);
+            void growRoadmap(const base::PlannerTerminationCondition &ptc);
 
             /** \brief Attempt to connect disjoint components in the roadmap
                 using random bouncing motions (the PRM expansion step) for the
                 given time (seconds). */
-            virtual void expandRoadmap(double expandTime);
+            void expandRoadmap(double expandTime);
 
             /** \brief Attempt to connect disjoint components in the roadmap
                 using random bouncing motions (the PRM expansion step) until the
                 given condition evaluates true. */
-            virtual void expandRoadmap(const base::PlannerTerminationCondition &ptc);
+            void expandRoadmap(const base::PlannerTerminationCondition &ptc);
 
             /** \brief Function that can solve the motion planning
                 problem. Grows a roadmap using
@@ -268,13 +257,7 @@ namespace ompl
                 return g_;
             }
 
-            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
-            double distanceFunction(const Vertex a, const Vertex b) const
-            {
-                return si_->distance(stateProperty_[a], stateProperty_[b]);
-            }
-
-            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
+            /** \brief Return the number of milestones currently in the graph */
             unsigned int milestoneCount() const
             {
                 return boost::num_vertices(g_);
@@ -303,7 +286,7 @@ namespace ompl
 
             /** \brief Construct a milestone for a given state (\e state), store it in the nearest neighbors data structure
                 and then connect it to the roadmap in accordance to the connection strategy. */
-            virtual Vertex addMilestone(base::State *state);
+            Vertex addMilestone(base::State *state);
 
             /** \brief Make two milestones (\e m1 and \e m2) be part of the same connected component. The component with fewer elements will get the id of the component with more elements. */
             void uniteComponents(Vertex m1, Vertex m2);
@@ -314,27 +297,34 @@ namespace ompl
             /** \brief Randomly sample the state space, add and connect milestones
                  in the roadmap. Stop this process when the termination condition
                  \e ptc returns true.  Use \e workState as temporary memory. */
-            virtual void growRoadmap(const base::PlannerTerminationCondition &ptc, base::State *workState);
+            void growRoadmap(const base::PlannerTerminationCondition &ptc, base::State *workState);
 
             /** \brief Attempt to connect disjoint components in the
                 roadmap using random bounding motions (the PRM
                 expansion step) */
-            virtual void expandRoadmap(const base::PlannerTerminationCondition &ptc, std::vector<base::State*> &workStates);
+            void expandRoadmap(const base::PlannerTerminationCondition &ptc, std::vector<base::State*> &workStates);
 
             /** Thread that checks for solution */
             void checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution);
 
-            /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If a solution is found, the path is saved. */
-            bool haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution);
+            /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If a solution is found, it is constructed in the \e solution argument. */
+            bool maybeConstructSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution);
 
-            /** \brief Returns the value of the addedSolution_ member. */
+            /** \brief Returns the value of the addedNewSolution_ member. */
             bool addedNewSolution() const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
-            virtual base::PathPtr constructSolution(const Vertex &start, const Vertex &goal);
+            base::PathPtr constructSolution(const Vertex &start, const Vertex &goal);
 
-            /** \brief Given a solution represented as a vector of predecesors in the roadmap, construct a geometric path */
-            virtual base::PathPtr constructGeometricPath(const boost::vector_property_map<Vertex> &prev, const Vertex &start, const Vertex &goal);
+            /** \brief Given two vertices, returns a heuristic on the cost of the path connecting them.
+                This method wraps OptimizationObjective::motionCostHeuristic */
+            base::Cost costHeuristic(Vertex u, Vertex v) const;
+
+            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
+            double distanceFunction(const Vertex a, const Vertex b) const
+            {
+                return si_->distance(stateProperty_[a], stateProperty_[b]);
+            }
 
             /** \brief Flag indicating whether the default connection strategy is the Star strategy */
             bool                                                   starStrategy_;
@@ -371,17 +361,11 @@ namespace ompl
             /** \brief Access to the weights of each Edge */
             boost::property_map<Graph, boost::edge_weight_t>::type weightProperty_;
 
-            /** \brief Access to the indices of each Edge */
-            boost::property_map<Graph, boost::edge_index_t>::type  edgeIDProperty_;
-
             /** \brief Data structure that maintains the connected components */
             boost::disjoint_sets<
                 boost::property_map<Graph, boost::vertex_rank_t>::type,
                 boost::property_map<Graph, boost::vertex_predecessor_t>::type >
                                                                    disjointSets_;
-
-            /** \brief Maximum unique id number used so for for edges */
-            unsigned int                                           maxEdgeID_;
 
             /** \brief Function that returns the milestones to attempt connections with */
             ConnectionStrategy                                     connectionStrategy_;
@@ -396,16 +380,13 @@ namespace ompl
             RNG                                                    rng_;
 
             /** \brief A flag indicating that a solution has been added during solve() */
-            bool                                                   addedSolution_;
+            bool                                                   addedNewSolution_;
 
             /** \brief Mutex to guard access to the Graph member (g_) */
             mutable boost::mutex                                   graphMutex_;
 
             /** \brief Objective cost function for PRM graph edges */
             base::OptimizationObjectivePtr                         opt_;
-
-            /** \brief Given two vertices, returns a heuristic on the cost of the path connecting them. This method wraps OptimizationObjective::motionCostHeuristic */
-            base::Cost costHeuristic(Vertex u, Vertex v) const;
 
             //////////////////////////////
             // Planner progress properties

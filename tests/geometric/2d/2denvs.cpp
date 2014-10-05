@@ -59,6 +59,7 @@
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/prm/LazyPRM.h"
+#include "ompl/geometric/planners/prm/LazyPRMstar.h"
 #include "ompl/geometric/planners/prm/SPARS.h"
 #include "ompl/geometric/planners/prm/SPARStwo.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
@@ -512,6 +513,18 @@ protected:
 
 };
 
+class LazyPRMstarTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::LazyPRMstar *prm = new geometric::LazyPRMstar(si);
+        return base::PlannerPtr(prm);
+    }
+
+};
+
 class SPARSTest : public TestPlanner
 {
 protected:
@@ -730,6 +743,7 @@ OMPL_PLANNER_TEST(STRIDE, 99.0, 0.02)
 OMPL_PLANNER_TEST(PRM, 98.0, 0.04)
 OMPL_PLANNER_TEST(PRMstar, 98.0, 0.04)
 OMPL_PLANNER_TEST(LazyPRM, 98.0, 0.04)
+OMPL_PLANNER_TEST(LazyPRMstar, 98.0, 0.04)
 OMPL_PLANNER_TEST(SPARS, 95.0, 0.04)
 OMPL_PLANNER_TEST(SPARStwo, 99.0, 0.04)
 

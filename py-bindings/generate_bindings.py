@@ -494,7 +494,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # print debug info
         self.replace_member_functions(self.ompl_ns.member_functions('printDebug'))
         self.ompl_ns.member_functions('freeGridMotions').exclude()
-        self.ompl_ns.class_('PRM').member_functions('haveSolution').exclude()
+        self.ompl_ns.class_('PRM').member_functions('maybeConstructSolution').exclude()
         self.ompl_ns.class_('PRM').member_functions('growRoadmap',
                 function=declarations.access_type_matcher_t('protected')).exclude()
         self.ompl_ns.class_('PRM').member_functions('expandRoadmap',
@@ -545,6 +545,8 @@ class ompl_geometric_generator_t(code_generator_t):
         # exclude PRM*, define it in python to use the single-threaded version
         # of PRM with the k* connection strategy
         self.ompl_ns.class_('PRMstar').exclude()
+        # LazyPRM's Vertex type is void* so exclude addMilestone which has return type void*
+        self.ompl_ns.class_('LazyPRM').member_function('addMilestone').exclude()
 
         # Py++ seems to get confused by some methods declared in one module
         # that are *not* overridden in a derived class in another module. The
@@ -555,7 +557,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT']:
             self.ompl_ns.class_(planner).add_registration_code("""
             def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )""")
             if planner!='PRM':

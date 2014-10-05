@@ -7,6 +7,11 @@ class PRMstar(PRM):
         super(PRMstar, self).__init__(si, True)
         self.setName("PRMstar")
 
+class LazyPRMstar(LazyPRM):
+    def __init__(self, si):
+        super(LazyPRMstar, self).__init__(si, True)
+        self.setName("LazyPRMstar")
+
 # call ompl.initializePlannerLists() to properly initialize this variable
 # with a dictionary of dictionaries, containing planners and associated
 # parameter info

@@ -5,6 +5,7 @@
 ../src/ompl/geometric/planners/prm/ConnectionStrategy.h
 ../src/ompl/geometric/planners/prm/PRM.h
 ../src/ompl/geometric/planners/prm/PRMstar.h
+../src/ompl/geometric/planners/prm/LazyPRM.h
 ../src/ompl/geometric/planners/prm/SPARS.h
 ../src/ompl/geometric/planners/prm/SPARStwo.h
 ../src/ompl/geometric/planners/est/EST.h

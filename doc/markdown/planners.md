@@ -21,7 +21,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
     - [PRM*](\ref gPRMstar)<br>
       While regular PRM attempts to connect states to a fixed number of neighbors, PRM* gradually increases the number of connection attempts as the roadmap grows in a way that provides convergence to the optimal path.
     - [LazyPRM*](\ref gLazyPRMstar)<br>
-      A version of PRM* with lazy state validity checking <b>[currently broken]</b>
+      A version of PRM* with lazy state validity checking.
   - [SPArse Roadmap Spanner algorithm (SPARS)](\ref gSPARS)<br>
     SPARS is a planner that provides asymptotic _near_-optimality (a solution that is within a constant factor of the optimal solution) and includes a meaningful stopping criterion. Although (because?) it does not guarantee optimality, its convergence rate tends to be much higher than PRM*.
   - [SPARS2](\ref gSPARStwo)<br>
