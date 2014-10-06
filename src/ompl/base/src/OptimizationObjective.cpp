@@ -67,12 +67,12 @@ void ompl::base::OptimizationObjective::setCostThreshold(Cost c)
 
 bool ompl::base::OptimizationObjective::isCostBetterThan(Cost c1, Cost c2) const
 {
-    return c1.v + magic::BETTER_PATH_COST_MARGIN < c2.v;
+    return c1.value() + magic::BETTER_PATH_COST_MARGIN < c2.value();
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::combineCosts(Cost c1, Cost c2) const
 {
-    return Cost(c1.v + c2.v);
+    return Cost(c1.value() + c2.value());
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::identityCost() const
@@ -114,7 +114,7 @@ ompl::base::Cost ompl::base::OptimizationObjective::averageStateCost(unsigned in
 
     si_->freeState(state);
 
-    return Cost(totalCost.v / (double)numStates);
+    return Cost(totalCost.value() / (double)numStates);
 }
 
 void ompl::base::OptimizationObjective::setCostToGoHeuristic(const CostToGoHeuristic& costToGo)
@@ -220,7 +220,7 @@ ompl::base::Cost ompl::base::MultiOptimizationObjective::stateCost(const State *
          comp != components_.end();
          ++comp)
     {
-        c.v += comp->weight * (comp->objective->stateCost(s).v);
+        c = Cost(c.value() + comp->weight * (comp->objective->stateCost(s).value()));
     }
 
     return c;
@@ -234,7 +234,7 @@ ompl::base::Cost ompl::base::MultiOptimizationObjective::motionCost(const State 
          comp != components_.end();
          ++comp)
      {
-         c.v += comp->weight*(comp->objective->motionCost(s1, s2).v);
+         c = Cost(c.value() + comp->weight * (comp->objective->motionCost(s1, s2).value()));
      }
 
      return c;

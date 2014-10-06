@@ -193,14 +193,14 @@ void ompl::geometric::AnytimePathShortening::threadSolve(base::Planner* planner,
 
 void ompl::geometric::AnytimePathShortening::clear(void)
 {
-    ompl::base::Planner::clear();
+    Planner::clear();
     for (size_t i = 0; i < planners_.size(); ++i)
         planners_[i]->clear();
 }
 
 void ompl::geometric::AnytimePathShortening::getPlannerData(ompl::base::PlannerData &data) const
 {
-    if(planners_.size() == 0)
+    if (planners_.size() == 0)
         return;
 
     OMPL_WARN("Returning planner data for planner #0");
@@ -216,8 +216,7 @@ void ompl::geometric::AnytimePathShortening::getPlannerData(ompl::base::PlannerD
 
 void ompl::geometric::AnytimePathShortening::setup(void)
 {
-
-    ompl::base::Planner::setup();
+    Planner::setup();
 
     if (planners_.size() == 0)
     {
@@ -292,11 +291,10 @@ unsigned int ompl::geometric::AnytimePathShortening::getDefaultNumPlanners() con
     return defaultNumPlanners_;
 }
 
-
 std::string ompl::geometric::AnytimePathShortening::getBestCost() const
 {
     base::Cost bestCost(std::numeric_limits<double>::quiet_NaN());
     if (pdef_ && pdef_->getSolutionCount() > 0)
         bestCost = base::Cost(pdef_->getSolutionPath()->length());
-    return boost::lexical_cast<std::string>(bestCost.v);
+    return boost::lexical_cast<std::string>(bestCost);
 }

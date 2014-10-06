@@ -196,7 +196,7 @@ ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTer
 
 std::string ompl::geometric::CForest::getBestCost() const
 {
-    return boost::lexical_cast<std::string>(bestCost_.v);
+    return boost::lexical_cast<std::string>(bestCost_);
 }
 
 std::string ompl::geometric::CForest::getNumPathsShared() const

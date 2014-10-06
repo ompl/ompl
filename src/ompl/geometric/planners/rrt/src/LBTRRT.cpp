@@ -327,7 +327,7 @@ bool ompl::geometric::LBTRRT::attemptNodeUpdate(Motion *potentialParent, Motion 
     if (!opt_->isCostBetterThan(potentialLb, child->costLb_))
         return false;
 
-    if (opt_->isCostBetterThan(base::Cost((1.0 + epsilon_) *  potentialLb.v), child->costApx_))
+    if (opt_->isCostBetterThan(base::Cost((1.0 + epsilon_) *  potentialLb.value()), child->costApx_))
     {
         if (si_->checkMotion(potentialParent->state, child->state) == false)
             return false;

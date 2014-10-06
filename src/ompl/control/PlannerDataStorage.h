@@ -169,7 +169,7 @@ namespace ompl
                             edgeData.endpoints_.second = j;
                             base::Cost weight;
                             pd.getEdgeWeight(i, j, &weight);
-                            edgeData.weight_ = weight.v;
+                            edgeData.weight_ = weight.value();
 
                             space->serialize(&ctrl[0], static_cast<const PlannerDataEdgeControl*>(edgeData.e_)->getControl());
                             edgeData.control_ = ctrl;

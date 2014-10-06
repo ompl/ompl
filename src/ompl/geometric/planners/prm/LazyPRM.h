@@ -229,7 +229,7 @@ namespace ompl
             }
             std::string getBestCost() const
             {
-                return boost::lexical_cast<std::string>(bestCost_.v);
+                return boost::lexical_cast<std::string>(bestCost_);
             }
 
         protected:

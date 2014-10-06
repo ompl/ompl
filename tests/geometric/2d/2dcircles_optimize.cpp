@@ -241,7 +241,7 @@ protected:
 
               // In dubins no-goal-bias case, we can't guarantee that
               // ini_cost is actually greater than prev_cost
-              BOOST_CHECK(ini_cost.v >= prev_cost.v);
+              BOOST_CHECK(ini_cost.value() >= prev_cost.value());
 
               pdef->clearSolutionPaths();
             }

@@ -264,7 +264,7 @@ namespace ompl
                 stored to avoid duplicate calculations */
             double distanceFunction(const Motion *a, const Motion *b) const
             {
-                return opt_->motionCost(a->getState(), b->getState()).v;
+                return opt_->motionCost(a->getState(), b->getState()).value();
             }
 
             /** \brief Free the memory allocated by this planner */

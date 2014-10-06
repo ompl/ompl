@@ -110,7 +110,7 @@ namespace ompl
                 c2 */
             Cost trapezoid(Cost c1, Cost c2, double dist) const
             {
-                return Cost(0.5 * dist * (c1.v + c2.v));
+                return Cost(0.5 * dist * (c1.value() + c2.value()));
             }
         };
     }

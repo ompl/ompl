@@ -273,7 +273,7 @@ namespace ompl
                             edgeData.endpoints_.second = j;
                             Cost weight;
                             pd.getEdgeWeight(i, j, &weight);
-                            edgeData.weight_ = weight.v;
+                            edgeData.weight_ = weight.value();
 
                             oa << edgeData;
                         }

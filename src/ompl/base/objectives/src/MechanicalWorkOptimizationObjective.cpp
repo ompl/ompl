@@ -59,6 +59,6 @@ ompl::base::Cost ompl::base::MechanicalWorkOptimizationObjective::motionCost(con
                                                                              const State *s2) const
 {
     // Only accrue positive changes in cost
-    double positiveCostAccrued = std::max(stateCost(s2).v - stateCost(s1).v, 0.0);
+    double positiveCostAccrued = std::max(stateCost(s2).value() - stateCost(s1).value(), 0.0);
     return Cost(positiveCostAccrued + pathLengthWeight_ * si_->distance(s1, s2));
 }

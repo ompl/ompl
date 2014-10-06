@@ -68,8 +68,8 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
             {
                 si_->getStateSpace()->interpolate(s1, s2, (double) j / (double) nd, test2);
                 Cost nextStateCost = this->stateCost(test2);
-                totalCost.v += this->trapezoid(prevStateCost, nextStateCost,
-                                               si_->distance(test1, test2)).v;
+                totalCost = Cost(totalCost.value() + this->trapezoid(prevStateCost, nextStateCost,
+                                                                     si_->distance(test1, test2)).value());
                 std::swap(test1, test2);
                 prevStateCost = nextStateCost;
             }
@@ -77,8 +77,8 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
         }
 
         // Lastly, add s2
-        totalCost.v += this->trapezoid(prevStateCost, this->stateCost(s2),
-                                       si_->distance(test1, s2)).v;
+        totalCost = Cost(totalCost.value() + this->trapezoid(prevStateCost, this->stateCost(s2),
+                                                             si_->distance(test1, s2)).value());
 
         si_->freeState(test1);
 

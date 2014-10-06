@@ -135,7 +135,7 @@ void ompl::geometric::TRRT::setup()
     if (kConstant_ < std::numeric_limits<double>::epsilon())
     {
         // Find the average cost of states by sampling
-        double averageCost = opt_->averageStateCost(magic::TEST_STATE_COUNT).v;
+        double averageCost = opt_->averageStateCost(magic::TEST_STATE_COUNT).value();
         kConstant_ = averageCost;
         OMPL_DEBUG("%s: K constant detected to be %lf", getName().c_str(), kConstant_);
     }
@@ -313,7 +313,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         base::Cost childCost = opt_->stateCost(newState);
 
         // Only add this motion to the tree if the tranistion test accepts it
-        if(!transitionTest(childCost.v, nearMotion->cost.v, motionDistance))
+        if (!transitionTest(childCost.value(), nearMotion->cost.value(), motionDistance))
         {
             continue; // give up on this one and try a new sample
         }
