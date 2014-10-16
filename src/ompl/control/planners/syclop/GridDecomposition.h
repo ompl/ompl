@@ -56,7 +56,7 @@ namespace ompl
             /** \brief Constructor. Creates a GridDecomposition as a hypercube with a given dimension, side length, and bounds.
                 The cells of the hypercube are referenced by integer coordinates of the form
                 \f$(r_1,\ldots,r_k)\f$, where \f$ 0 \leq r_i < \texttt{len}\f$. */
-            GridDecomposition(int len, int dim, const base::RealVectorBounds& b);
+            GridDecomposition(int len, int dim, const base::RealVectorBounds &b);
 
             virtual ~GridDecomposition()
             {
@@ -71,9 +71,9 @@ namespace ompl
 
             virtual void getNeighbors(int rid, std::vector<int>& neighbors) const;
 
-            virtual int locateRegion(const base::State* s) const;
+            virtual int locateRegion(const base::State *s) const;
 
-            virtual void sampleFromRegion(int rid, RNG& rng, std::vector<double>& coord) const;
+            virtual void sampleFromRegion(int rid, RNG &rng, std::vector<double>& coord) const;
 
         protected:
             /** \brief Helper method to return the bounds of a given region. */

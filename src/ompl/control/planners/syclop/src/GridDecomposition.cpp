@@ -42,7 +42,7 @@ namespace
     static int calcNumGridCells(int len, int dim);
 }
 
-ompl::control::GridDecomposition::GridDecomposition(int len, int dim, const base::RealVectorBounds& b)
+ompl::control::GridDecomposition::GridDecomposition(int len, int dim, const base::RealVectorBounds &b)
     : Decomposition(dim, b), length_(len), cellVolume_(b.getVolume()), numGridCells_(calcNumGridCells(len, dim))
 {
     double lenInv = 1.0 / len;
@@ -134,14 +134,14 @@ void ompl::control::GridDecomposition::getNeighbors(int rid, std::vector<int>& n
     }
 }
 
-int ompl::control::GridDecomposition::locateRegion(const base::State* s) const
+int ompl::control::GridDecomposition::locateRegion(const base::State *s) const
 {
     std::vector<double> coord(dimension_);
     project(s, coord);
     return coordToRegion(coord);
 }
 
-void ompl::control::GridDecomposition::sampleFromRegion(int rid, RNG& rng, std::vector<double>& coord) const
+void ompl::control::GridDecomposition::sampleFromRegion(int rid, RNG &rng, std::vector<double> &coord) const
 {
     coord.resize(dimension_);
     const base::RealVectorBounds& regionBounds(getRegionBounds(rid));
@@ -262,7 +262,7 @@ const ompl::base::RealVectorBounds& ompl::control::GridDecomposition::getRegionB
 {
     if (regToBounds_.count(rid) > 0)
         return *regToBounds_[rid].get();
-    ompl::base::RealVectorBounds* regionBounds = new ompl::base::RealVectorBounds(dimension_);
+    ompl::base::RealVectorBounds *regionBounds = new ompl::base::RealVectorBounds(dimension_);
     std::vector<int> rc(dimension_);
     regionToGridCoord(rid, rc);
     for (int i = 0; i < dimension_; ++i)

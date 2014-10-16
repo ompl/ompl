@@ -76,7 +76,7 @@ namespace ompl
 
             struct Triangle : public Polygon
             {
-                Triangle(void) : Polygon(3) {}
+                Triangle() : Polygon(3) {}
                 virtual ~Triangle() {}
                 std::vector<int> neighbors;
                 double volume;
@@ -88,9 +88,9 @@ namespace ompl
                 The triangulation will respect the boundaries of any regions of interest, given as a list of
                 polygons. No two obstacles may overlap, and no two regions of interest may overlap.*/
             TriangularDecomposition(
-                const base::RealVectorBounds& bounds,
-                const std::vector<Polygon>& holes = std::vector<Polygon>(),
-                const std::vector<Polygon>& intRegs = std::vector<Polygon>()
+                const base::RealVectorBounds &bounds,
+                const std::vector<Polygon> &holes = std::vector<Polygon>(),
+                const std::vector<Polygon> &intRegs = std::vector<Polygon>()
             );
 
             virtual ~TriangularDecomposition(void);
@@ -143,7 +143,7 @@ namespace ompl
             class LocatorGrid : public GridDecomposition
             {
             public:
-                LocatorGrid(int len, const Decomposition* d) :
+                LocatorGrid(int len, const Decomposition *d) :
                     GridDecomposition(len, d->getDimension(), d->getBounds()),
                     triDecomp(d)
                 {
@@ -153,16 +153,16 @@ namespace ompl
                 {
                 }
 
-                virtual void project(const base::State* s, std::vector<double>& coord) const
+                virtual void project(const base::State *s, std::vector<double>& coord) const
                 {
                     triDecomp->project(s, coord);
                 }
 
-                virtual void sampleFullState(const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State* s) const
+                virtual void sampleFullState(const base::StateSamplerPtr& /*sampler*/, const std::vector<double>& /*coord*/, base::State* /*s*/) const
                 {
                 }
 
-                const std::vector<int>& locateTriangles(const base::State* s) const
+                const std::vector<int>& locateTriangles(const base::State *s) const
                 {
                     return regToTriangles_[locateRegion(s)];
                 }
@@ -170,7 +170,7 @@ namespace ompl
                 void buildTriangleMap(const std::vector<Triangle>& triangles);
 
             protected:
-                const Decomposition* triDecomp;
+                const Decomposition *triDecomp;
                 /* map from locator grid cell ID to set of triangles with which
                  * that cell intersects */
                 std::vector<std::vector<int> > regToTriangles_;

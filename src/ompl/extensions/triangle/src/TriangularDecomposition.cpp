@@ -58,8 +58,8 @@ extern "C"
     #include <triangle.h>
 }
 
-ompl::control::TriangularDecomposition::TriangularDecomposition(const base::RealVectorBounds& bounds,
-    const std::vector<Polygon>& holes, const std::vector<Polygon>& intRegs) :
+ompl::control::TriangularDecomposition::TriangularDecomposition(const base::RealVectorBounds &bounds,
+    const std::vector<Polygon> &holes, const std::vector<Polygon> &intRegs) :
     Decomposition(2, bounds),
     holes_(holes),
     intRegs_(intRegs),
@@ -133,7 +133,7 @@ double ompl::control::TriangularDecomposition::getRegionVolume(int triID)
     return tri.volume;
 }
 
-void ompl::control::TriangularDecomposition::getNeighbors(int triID, std::vector<int>& neighbors) const
+void ompl::control::TriangularDecomposition::getNeighbors(int triID, std::vector<int> &neighbors) const
 {
     neighbors = triangles_[triID].neighbors;
 }
@@ -193,7 +193,7 @@ ompl::control::TriangularDecomposition::Vertex::Vertex(double vx, double vy) : x
 {
 }
 
-bool ompl::control::TriangularDecomposition::Vertex::operator==(const Vertex& v) const
+bool ompl::control::TriangularDecomposition::Vertex::operator==(const Vertex &v) const
 {
     return x == v.x && y == v.y;
 }
@@ -202,7 +202,7 @@ namespace ompl
 {
     namespace control
     {
-        std::size_t hash_value(const TriangularDecomposition::Vertex& v)
+        std::size_t hash_value(const TriangularDecomposition::Vertex &v)
         {
             std::size_t hash = 0;
             boost::hash_combine(hash, v.x);
@@ -218,7 +218,7 @@ int ompl::control::TriangularDecomposition::createTriangles()
        where each triangle takes up no more than triAreaPct_ percentage of
        the total area of the decomposition space */
     const base::RealVectorBounds& bounds = getBounds();
-    const double maxTriangleArea = bounds.getVolume()*triAreaPct_;
+    const double maxTriangleArea = bounds.getVolume() * triAreaPct_;
     std::string triswitches = "pDznQA -a" + boost::lexical_cast<std::string>(maxTriangleArea);
     struct triangulateio in;
 

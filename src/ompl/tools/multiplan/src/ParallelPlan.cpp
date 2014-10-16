@@ -145,7 +145,6 @@ void ompl::tools::ParallelPlan::solveOne(base::Planner *planner, std::size_t min
         foundSolCountLock_.unlock();
         if (nrSol >= minSolCount)
             ptc->terminate();
-
         OMPL_DEBUG("ParallelPlan.solveOne: Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
     }
 }
