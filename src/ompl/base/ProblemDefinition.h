@@ -123,7 +123,7 @@ namespace ompl
             /** \brief The achieved difference between the found solution and the desired goal */
             double  difference_;
 
-            /** \brief True of the solution was optimized to meet the specified optimization criterion */
+            /** \brief True if the solution was optimized to meet the specified optimization criterion */
             bool    optimized_;
 
             /** \brief Optimization objective that was used to optimize this solution */

@@ -133,7 +133,7 @@ namespace ompl
             }
 
             /** \brief Get the optimization objective to use */
-            const base::OptimizationObjectivePtr& getOptimizationObjective()
+            const base::OptimizationObjectivePtr& getOptimizationObjective() const
             {
                 return pdef_->getOptimizationObjective();
             }
