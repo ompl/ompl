@@ -216,7 +216,7 @@ namespace ompl
                     return "";
             }
 
-         protected:
+        protected:
 
             /** \brief The setter function for this parameter */
             SetterFn setter_;
