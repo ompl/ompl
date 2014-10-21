@@ -380,7 +380,7 @@ void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCond
     {
         resetFailures();
         base::PlannerTerminationCondition ptcOrFail =
-	    base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
+            base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
         constructRoadmap(ptcOrFail);
     }
     else
@@ -1040,8 +1040,7 @@ void ompl::geometric::SPARS::getPlannerData(base::PlannerData &data) const
     // Make sure to add edge-less nodes as well
     foreach (const SparseVertex n, boost::vertices(s_))
         if (boost::out_degree( n, s_ ) == 0)
-            data.addVertex( base::PlannerDataVertex(sparseStateProperty_[n], (int)sparseColorProperty_[n]));
-    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
+            data.addVertex(base::PlannerDataVertex(sparseStateProperty_[n], (int)sparseColorProperty_[n]));
 }
 
 ompl::base::Cost ompl::geometric::SPARS::costHeuristic(SparseVertex u, SparseVertex v) const

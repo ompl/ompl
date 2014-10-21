@@ -228,8 +228,8 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
     if (stopOnMaxFail)
     {
         resetFailures();
-	base::PlannerTerminationCondition ptcOrFail =
-	    base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedFailureLimit, this)));
+        base::PlannerTerminationCondition ptcOrFail =
+            base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARStwo::reachedFailureLimit, this)));
         constructRoadmap(ptcOrFail);
     }
     else
@@ -876,8 +876,6 @@ void ompl::geometric::SPARStwo::getPlannerData(base::PlannerData &data) const
     foreach (const Vertex n, boost::vertices(g_))
         if (boost::out_degree(n, g_) == 0)
             data.addVertex(base::PlannerDataVertex(stateProperty_[n], (int)colorProperty_[n]));
-
-    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
 }
 
 ompl::base::Cost ompl::geometric::SPARStwo::costHeuristic(Vertex u, Vertex v) const

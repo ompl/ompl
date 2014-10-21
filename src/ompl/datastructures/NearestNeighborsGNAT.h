@@ -129,6 +129,7 @@ namespace ompl
             if (tree_)
                 rebuildDataStructure();
         }
+
         virtual void clear()
         {
             if (tree_)
@@ -140,6 +141,11 @@ namespace ompl
             removed_.clear();
             if (rebuildSize_ != std::numeric_limits<std::size_t>::max())
                 rebuildSize_ = maxNumPtsPerLeaf_ * degree_;
+        }
+
+        virtual bool reportsSortedResults() const
+        {
+            return true;
         }
 
         virtual void add(const _T &data)

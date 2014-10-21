@@ -115,8 +115,10 @@ void ompl::base::Planner::clear()
     pis_.update();
 }
 
-void ompl::base::Planner::getPlannerData(PlannerData & /*data*/) const
+void ompl::base::Planner::getPlannerData(PlannerData &data) const
 {
+    for (PlannerProgressProperties::const_iterator it = plannerProgressProperties_.begin() ; it != plannerProgressProperties_.end() ; ++it)
+        data.properties[it->first] = it->second();
 }
 
 ompl::base::PlannerStatus ompl::base::Planner::solve(const PlannerTerminationConditionFn &ptc, double checkInterval)
