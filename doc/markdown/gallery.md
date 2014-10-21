@@ -87,7 +87,7 @@ An example of using OMPL to plan for a robotic system simulated with [ODE](http:
 <div class="row">
   <div class="col-md-8 col-sm-10 col-md-offset-2 col-sm-offset-1">
     <div class="embed-responsive embed-responsive-4by3">
-      <iframe src="http://www.youtube.com/embed/bX23YA-pasg"></iframe>
+      <iframe src="http://player.vimeo.com/video/108137623?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
     </div>
   </div>
 </div>
