@@ -446,6 +446,11 @@ void ompl::geometric::PathGeometric::append(const PathGeometric &path)
         overlay(path, states_.size());
 }
 
+void ompl::geometric::PathGeometric::prepend(const base::State *state)
+{
+    states_.insert(states_.begin(), si_->cloneState(state));
+}
+
 void ompl::geometric::PathGeometric::keepAfter(const base::State *state)
 {
     int index = getClosestIndex(state);

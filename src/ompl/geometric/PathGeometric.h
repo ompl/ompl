@@ -193,6 +193,9 @@ namespace ompl
             */
             void append(const PathGeometric &path);
 
+            /** \brief Prepend \e state to the start of this path. The memory for \e state is copied. */
+            void prepend(const base::State *state);
+
             /** \brief Keep the part of the path that is after \e state (getClosestIndex() is used to find out which way-point is closest to \e state) */
             void keepAfter(const base::State *state);
 
