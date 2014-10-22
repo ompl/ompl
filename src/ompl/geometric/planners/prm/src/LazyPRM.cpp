@@ -44,6 +44,7 @@
 #include <boost/graph/incremental_components.hpp>
 #include <boost/graph/lookup_edge.hpp>
 #include <boost/foreach.hpp>
+#include <queue>
 
 #include "GoalVisitor.hpp"
 
@@ -55,7 +56,7 @@ namespace ompl
     {
         /** \brief The number of nearest neighbors to consider by
             default in the construction of the PRM roadmap */
-        static const unsigned int DEFAULT_NEAREST_NEIGHBORS_LAZY = 5;
+        static const unsigned int DEFAULT_NEAREST_NEIGHBORS_LAZY = 50;
 
         /** \brief When optimizing solutions with lazy planners, this is the minimum
             number of path segments to add before attempting a new optimized solution
@@ -68,6 +69,7 @@ ompl::geometric::LazyPRM::LazyPRM(const base::SpaceInformationPtr &si, bool star
     base::Planner(si, "LazyPRM"),
     starStrategy_(starStrategy),
     userSetConnectionStrategy_(false),
+    maxDistance_(0.0),
     indexProperty_(boost::get(boost::vertex_index_t(), g_)),
     stateProperty_(boost::get(vertex_state_t(), g_)),
     weightProperty_(boost::get(boost::edge_weight, g_)),
@@ -82,12 +84,17 @@ ompl::geometric::LazyPRM::LazyPRM(const base::SpaceInformationPtr &si, bool star
     specs_.approximateSolutions = false;
     specs_.optimizingPaths = true;
 
+    Planner::declareParam<double>("range", this, &LazyPRM::setRange, &LazyPRM::getRange, "0.:1.:10000.");
     Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &LazyPRM::setMaxNearestNeighbors, std::string("8:1000"));
 
     addPlannerProgressProperty("iterations INTEGER",
                                boost::bind(&LazyPRM::getIterationCount, this));
     addPlannerProgressProperty("best cost REAL",
                                boost::bind(&LazyPRM::getBestCost, this));
+    addPlannerProgressProperty("milestone count INTEGER",
+                               boost::bind(&LazyPRM::getMilestoneCountString, this));
+    addPlannerProgressProperty("edge count INTEGER",
+                               boost::bind(&LazyPRM::getEdgeCountString, this));
 }
 
 ompl::geometric::LazyPRM::~LazyPRM()
@@ -97,6 +104,9 @@ ompl::geometric::LazyPRM::~LazyPRM()
 void ompl::geometric::LazyPRM::setup()
 {
     Planner::setup();
+    tools::SelfConfig sc(si_, getName());
+    sc.configurePlannerRange(maxDistance_);
+
     if (!nn_)
     {
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(si_->getStateSpace()));
@@ -107,7 +117,7 @@ void ompl::geometric::LazyPRM::setup()
         if (starStrategy_)
             connectionStrategy_ = KStarStrategy<Vertex>(boost::bind(&LazyPRM::milestoneCount, this), nn_, si_->getStateDimension());
         else
-            connectionStrategy_ = KStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS_LAZY, nn_);
+            connectionStrategy_ = KBoundedStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS_LAZY, maxDistance_, nn_);
     }
     if (!connectionFilter_)
         connectionFilter_ = boost::lambda::constant(true);
@@ -137,14 +147,28 @@ void ompl::geometric::LazyPRM::setup()
     sampler_ = si_->allocStateSampler();
 }
 
+void ompl::geometric::LazyPRM::setRange(double distance)
+{
+    maxDistance_ = distance;
+    if (!userSetConnectionStrategy_)
+        connectionStrategy_.clear();
+    if (isSetup())
+        setup();
+}
+
 void ompl::geometric::LazyPRM::setMaxNearestNeighbors(unsigned int k)
 {
+    if (starStrategy_)
+        throw Exception("Cannot set the maximum nearest neighbors for " + getName());
     if (!nn_)
     {
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(si_->getStateSpace()));
         nn_->setDistanceFunction(boost::bind(&LazyPRM::distanceFunction, this, _1, _2));
     }
-    connectionStrategy_ = KStrategy<Vertex>(k, nn_);
+    if (!userSetConnectionStrategy_)
+        connectionStrategy_.clear();
+    if (isSetup())
+        setup();
 }
 
 void ompl::geometric::LazyPRM::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
@@ -190,8 +214,7 @@ ompl::geometric::LazyPRM::Vertex ompl::geometric::LazyPRM::addMilestone(base::St
     componentSize_[newComponent] = 1;
 
     // Which milestones will we attempt to connect to?
-    const std::vector<Vertex>& neighbors = connectionStrategy_(m);
-
+    const std::vector<Vertex> &neighbors = connectionStrategy_(m);
     foreach (Vertex n, neighbors)
         if (connectionFilter_(m, n))
         {
@@ -262,6 +285,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
     // Grow roadmap in lazy fashion -- add vertices and edges without checking validity
     while (ptc == false)
     {
+        ++iterations_;
         sampler_->sampleUniform(workState);
         Vertex addedVertex = addMilestone(si_->cloneState(workState));
 
@@ -281,7 +305,13 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
                     continue;
                 optimizingComponentSegments = 0;
             }
-            base::PathPtr solution = constructSolution(startM_[startGoalPair.first], goalM_[startGoalPair.second]);
+            Vertex startV = startM_[startGoalPair.first];
+            Vertex goalV = goalM_[startGoalPair.second];
+            base::PathPtr solution;
+            do
+            {
+                solution = constructSolution(startV, goalV);
+            } while (!solution && vertexComponentProperty_[startV] == vertexComponentProperty_[goalV]);
             if (solution)
             {
                 someSolutionFound = true;
@@ -316,6 +346,8 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
         pdef_->addSolutionPath(psol);
     }
 
+    OMPL_INFORM("%s: Created %u states", getName().c_str(), boost::num_vertices(g_) - nrStartStates);
+
     return bestSolution ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
@@ -334,17 +366,24 @@ void ompl::geometric::LazyPRM::uniteComponents(Vertex a, Vertex b)
 
 void ompl::geometric::LazyPRM::markComponent(Vertex v, unsigned long int newComponent)
 {
-    unsigned long int &component = vertexComponentProperty_[v];
-    if (component == newComponent) return;
-    if (componentSize_[component] == 1)
-        componentSize_.erase(component);
-    else
-        componentSize_[component]--;
-    component = newComponent;
-    componentSize_[newComponent]++;
-    boost::graph_traits<Graph>::adjacency_iterator nbh, last;
-    for (boost::tie(nbh, last) = boost::adjacent_vertices(v, g_) ; nbh != last ; ++nbh)
-        markComponent(*nbh, newComponent);
+    std::queue<Vertex> q;
+    q.push(v);
+    while (!q.empty())
+    {
+        Vertex n = q.front();
+        q.pop();
+        unsigned long int &component = vertexComponentProperty_[n];
+        if (component == newComponent) continue;
+        if (componentSize_[component] == 1)
+            componentSize_.erase(component);
+        else
+            componentSize_[component]--;
+        component = newComponent;
+        componentSize_[newComponent]++;
+        boost::graph_traits<Graph>::adjacency_iterator nbh, last;
+        for (boost::tie(nbh, last) = boost::adjacent_vertices(n, g_) ; nbh != last ; ++nbh)
+            q.push(*nbh);
+    }
 }
 
 long int ompl::geometric::LazyPRM::solutionComponent(std::pair<std::size_t, std::size_t> *startGoalPair) const
@@ -395,8 +434,11 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &st
     if (prev[goal] == goal)
         throw Exception(name_, "Could not find solution path");
 
-    // first, get the solution states without copying them
+    // First, get the solution states without copying them, and check them for validity.
+    // We do all the node validity checks for the vertices, as this may remove a larger
+    // part of the graph (compared to removing an edge).
     std::vector<const base::State*> states(1, stateProperty_[goal]);
+    std::set<Vertex> milestonesToRemove;
     for (Vertex pos = prev[goal]; prev[pos] != pos; pos = prev[pos])
     {
         const base::State *st = stateProperty_[pos];
@@ -405,75 +447,77 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &st
             if (si_->isValid(st))
                 vd |= VALIDITY_TRUE;
         if ((vd & VALIDITY_TRUE) == 0)
-        {
-            // This is how we remember there is no solution to be constructed.
-            states.clear();
-            // Remember the current neighbors.
-            std::vector<Vertex> neighbors;
-            unsigned long int comp = vertexComponentProperty_[pos];
-            boost::graph_traits<Graph>::adjacency_iterator nbh, last;
-            for (boost::tie(nbh, last) = boost::adjacent_vertices(pos, g_) ; nbh != last ; ++nbh)
-                neighbors.push_back(*nbh);
-
-            // Remove vertex from nearest neighbors data structure.
-            nn_->remove(pos);
-            // Free vertex state.
-            si_->freeState(stateProperty_[pos]);
-            // Remove all edges.
-            boost::clear_vertex(pos, g_);
-            // Remove the vertex.
-            boost::remove_vertex(pos, g_);
-            // Update the connected component ID for neighbors.
-            for (std::size_t i = 0 ; i < neighbors.size() ; ++i)
-            {
-                if (comp == vertexComponentProperty_[neighbors[i]])
-                {
-                    unsigned long int newComponent = componentCount_++;
-                    componentSize_[newComponent] = 0;
-                    markComponent(neighbors[i], newComponent);
-                }
-            }
-            break;
-        }
-        states.push_back(st);
+            milestonesToRemove.insert(pos);
+        if (milestonesToRemove.empty())
+            states.push_back(st);
     }
 
-    // check the edges too, if the vertices were valid
-    if (!states.empty())
+    // We remove *all* invalid vertices. This is not entirely as described in the original LazyPRM
+    // paper, as the paper suggest removing the first vertex only, and then recomputing the
+    // shortest path. Howeve, the paper says the focus is on efficient vertex & edge removal,
+    // rather than collision checking, so this modification is in the spirit of the paper.
+    if (!milestonesToRemove.empty())
     {
-        // start is checked for validity already
-        states.push_back(stateProperty_[start]);
-
-        std::vector<const base::State*>::const_iterator prevState = states.begin(), state = prevState + 1;
-        Vertex prevVertex = goal, pos = prev[goal];
-        do
+        unsigned long int comp = vertexComponentProperty_[start];
+        // Remember the current neighbors.
+        std::set<Vertex> neighbors;
+        for (std::set<Vertex>::iterator it = milestonesToRemove.begin() ; it != milestonesToRemove.end() ; ++it)
         {
-            Edge e = boost::lookup_edge(pos, prevVertex, g_).first;
-            unsigned int &evd = edgeValidityProperty_[e];
-            if ((evd & VALIDITY_TRUE) == 0)
+            boost::graph_traits<Graph>::adjacency_iterator nbh, last;
+            for (boost::tie(nbh, last) = boost::adjacent_vertices(*it, g_) ; nbh != last ; ++nbh)
+                if (milestonesToRemove.find(*nbh) == milestonesToRemove.end())
+                    neighbors.insert(*nbh);
+            // Remove vertex from nearest neighbors data structure.
+            nn_->remove(*it);
+            // Free vertex state.
+            si_->freeState(stateProperty_[*it]);
+            // Remove all edges.
+            boost::clear_vertex(*it, g_);
+            // Remove the vertex.
+            boost::remove_vertex(*it, g_);
+        }
+        // Update the connected component ID for neighbors.
+        for (std::set<Vertex>::iterator it = neighbors.begin() ; it != neighbors.end() ; ++it)
+        {
+            if (comp == vertexComponentProperty_[*it])
             {
-                if (si_->checkMotion(*state, *prevState))
-                    evd |= VALIDITY_TRUE;
-            }
-            if ((evd & VALIDITY_TRUE) == 0)
-            {
-                states.clear();
-                boost::remove_edge(e, g_);
                 unsigned long int newComponent = componentCount_++;
                 componentSize_[newComponent] = 0;
-                markComponent(pos, newComponent);
-                break;
+                markComponent(*it, newComponent);
             }
-            prevState = state;
-            ++state;
-            prevVertex = pos;
-            pos = prev[pos];
         }
-        while (prevVertex != pos);
+        return base::PathPtr();
     }
 
-    if (states.empty())
-        return base::PathPtr();
+    // start is checked for validity already
+    states.push_back(stateProperty_[start]);
+
+    // Check the edges too, if the vertices were valid. Remove the first invalid edge only.
+    std::vector<const base::State*>::const_iterator prevState = states.begin(), state = prevState + 1;
+    Vertex prevVertex = goal, pos = prev[goal];
+    do
+    {
+        Edge e = boost::lookup_edge(pos, prevVertex, g_).first;
+        unsigned int &evd = edgeValidityProperty_[e];
+        if ((evd & VALIDITY_TRUE) == 0)
+        {
+            if (si_->checkMotion(*state, *prevState))
+                evd |= VALIDITY_TRUE;
+        }
+        if ((evd & VALIDITY_TRUE) == 0)
+        {
+            boost::remove_edge(e, g_);
+            unsigned long int newComponent = componentCount_++;
+            componentSize_[newComponent] = 0;
+            markComponent(pos, newComponent);
+            return base::PathPtr();
+        }
+        prevState = state;
+        ++state;
+        prevVertex = pos;
+        pos = prev[pos];
+    }
+    while (prevVertex != pos);
 
     PathGeometric *p = new PathGeometric(si_);
     for (std::vector<const base::State*>::const_reverse_iterator st = states.rbegin(); st != states.rend(); ++st)
@@ -490,12 +534,13 @@ void ompl::geometric::LazyPRM::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    // Explicitly add start and goal states:
+    // Explicitly add start and goal states. Tag all states known to be valid as 1.
+    // Unchecked states are tagged as 0.
     for (size_t i = 0; i < startM_.size(); ++i)
-        data.addStartVertex(base::PlannerDataVertex(stateProperty_[startM_[i]], vertexComponentProperty_[startM_[i]]));
+        data.addStartVertex(base::PlannerDataVertex(stateProperty_[startM_[i]], 1));
 
     for (size_t i = 0; i < goalM_.size(); ++i)
-        data.addGoalVertex(base::PlannerDataVertex(stateProperty_[goalM_[i]], vertexComponentProperty_[goalM_[i]]));
+        data.addGoalVertex(base::PlannerDataVertex(stateProperty_[goalM_[i]], 1));
 
     // Adding edges and all other vertices simultaneously
     foreach(const Edge e, boost::edges(g_))
@@ -510,8 +555,7 @@ void ompl::geometric::LazyPRM::getPlannerData(base::PlannerData &data) const
                      base::PlannerDataVertex(stateProperty_[v1]));
 
         // Add tags for the newly added vertices
-        data.tagState(stateProperty_[v1], vertexComponentProperty_[v1]);
-        data.tagState(stateProperty_[v2], vertexComponentProperty_[v2]);
+        data.tagState(stateProperty_[v1], (vertexValidityProperty_[v1] & VALIDITY_TRUE) == 0 ? 0 : 1);
+        data.tagState(stateProperty_[v2], (vertexValidityProperty_[v2] & VALIDITY_TRUE) == 0 ? 0 : 1);
     }
-    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
 }
