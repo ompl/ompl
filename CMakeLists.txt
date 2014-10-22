@@ -76,15 +76,10 @@ else()
 endif()
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
-if (NOT ${Boost_VERSION} LESS 104400)
-  option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" ON)
-  if(${Boost_VERSION} LESS 105300)
-    # Include bundled version of boost::odeint if it isn't installed natively
-    set(ODEINT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/external")
-    include_directories(SYSTEM "${ODEINT_INCLUDE_DIR}")
-  endif()
-else()
-  option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" OFF)
+if(${Boost_VERSION} LESS 105300)
+  # Include bundled version of boost::odeint if it isn't installed natively
+  set(ODEINT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/external")
+  include_directories(SYSTEM "${ODEINT_INCLUDE_DIR}")
 endif()
 
 # on OS X we need to check whether to use libc++ or libstdc++ with clang++
@@ -169,15 +164,6 @@ if (NOT MSVC)
     DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
     COMPONENT ompl
     RENAME ompl-config.cmake)
-  if (NOT ${CMAKE_VERSION} VERSION_LESS 2.8.6)
-    include(WriteBasicConfigVersionFile)
-    write_basic_config_version_file(
-      "${CMAKE_CURRENT_BINARY_DIR}/ompl-config-version.cmake"
-      VERSION ${OMPL_VERSION} COMPATIBILITY SameMajorVersion)
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ompl-config-version.cmake"
-      DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
-      COMPONENT ompl)
-  endif()
 endif()
 
 # uninstall target

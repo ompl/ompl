@@ -48,17 +48,17 @@ namespace ompl
 {
     namespace tools
     {
-        /** \brief Monitor the properties a planner exposes, as the planner is running. 
+        /** \brief Monitor the properties a planner exposes, as the planner is running.
             Dump the planner properties to a stream, periodically. */
         class PlannerMonitor : private boost::noncopyable
         {
         public:
-            
-            /** \brief Monitor a planner instance, and dump its properties to a specified stream, periodically. 
-             
+
+            /** \brief Monitor a planner instance, and dump its properties to a specified stream, periodically.
+
                 Every time the properties are dumped, the stream offset is set to 0. It is often useful to have the
                 stream be a file, and then issue commands such as 'watch cat filename'. */
-            PlannerMonitor(const base::PlannerPtr &planner, std::ostream &out, double period = 0.5, bool autoStart = true) : 
+            PlannerMonitor(const base::PlannerPtr &planner, std::ostream &out, double period = 0.5, bool autoStart = true) :
                 planner_(planner), out_(out), period_(period), shouldMonitor_(false)
             {
                 if (autoStart)
@@ -76,7 +76,7 @@ namespace ompl
 
             /** \brief Stop the monitoring thread (automatically stopped by the destructor). */
             void stopMonitor();
-            
+
         private:
             void threadFunction();
 
@@ -84,7 +84,7 @@ namespace ompl
             std::ostream                     &out_;
             double                            period_;
             bool                              shouldMonitor_;
-            boost::scoped_ptr<boost::thread>  monitorThread_;            
+            boost::scoped_ptr<boost::thread>  monitorThread_;
         };
     }
 }
