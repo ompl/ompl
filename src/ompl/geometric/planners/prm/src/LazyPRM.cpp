@@ -56,7 +56,7 @@ namespace ompl
     {
         /** \brief The number of nearest neighbors to consider by
             default in the construction of the PRM roadmap */
-        static const unsigned int DEFAULT_NEAREST_NEIGHBORS_LAZY = 50;
+        static const unsigned int DEFAULT_NEAREST_NEIGHBORS_LAZY = 5;
 
         /** \brief When optimizing solutions with lazy planners, this is the minimum
             number of path segments to add before attempting a new optimized solution
