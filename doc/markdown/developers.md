@@ -23,7 +23,7 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 - Bryant Gipson, Rice University (now at Google)
 - [Alejandro Perez](http://people.csail.mit.edu/aperez/www), Seth Teller's [Robotics, Vision, and Sensor Networks Group](http://rvsn.csail.mit.edu), MIT
 - [Sertac Karaman](http://sertac.scripts.mit.edu/web), Emilio Frazzoli's [Aerospace Robotics and Embedded Systems Laboratory](http://ares.lids.mit.edu), MIT
-- [Jennifer Barry](http://people.csail.mit.edu/jbarry), Leslie Pack Kaelbling and Tomás Lozano-Pérez's [Learning in Intelligent Systems Group](http://lis.csail.mit.edu), MIT (now)
+- [Jennifer Barry](http://people.csail.mit.edu/jbarry), Leslie Pack Kaelbling and Tomás Lozano-Pérez's [Learning in Intelligent Systems Group](http://lis.csail.mit.edu), MIT (now at Rethink Robotics)
 - Elizabeth Fudge, Rice University
 - Jonathan Sobieski, Rice University
 - Beck Chen, Rice University
