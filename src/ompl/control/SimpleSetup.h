@@ -45,6 +45,7 @@
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/Deprecation.h"
 
 namespace ompl
 {
@@ -170,6 +171,12 @@ namespace ompl
                 si_->setStatePropagator(sp);
             }
 
+            /** \brief Set the optimization objective to use */
+            void setOptimizationObjective(const base::OptimizationObjectivePtr &optimizationObjective)
+            {
+                pdef_->setOptimizationObjective(optimizationObjective);
+            }
+
             /** \brief Set the start and goal states to use. */
             void setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon())
             {
@@ -262,18 +269,6 @@ namespace ompl
                 function automatically. */
             virtual void setup();
 
-            /** \brief Get the  parameters for this planning context */
-            base::ParamSet& params()
-            {
-                return params_;
-            }
-
-            /** \brief Get the  parameters for this planning context */
-            const base::ParamSet& params() const
-            {
-                return params_;
-            }
-
         protected:
 
             /// The created space information
@@ -296,13 +291,11 @@ namespace ompl
 
             /// The status of the last planning request
             base::PlannerStatus           last_status_;
-
-            /// The parameters that describe the planning context
-            base::ParamSet                params_;
         };
 
-        /** \brief Given a goal specification, decide on a planner for that goal */
-        base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
+        /** \brief Given a goal specification, decide on a planner for that goal.
+            \deprecated Use tools::SelfConfig::getDefaultPlanner() instead. */
+        OMPL_DEPRECATED base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
     }
 
 }

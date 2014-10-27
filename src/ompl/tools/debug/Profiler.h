@@ -35,8 +35,8 @@
 
 /* Author Ioan Sucan */
 
-#ifndef OMPL_UTIL_PROFILER_
-#define OMPL_UTIL_PROFILER_
+#ifndef OMPL_TOOLS_DEBUG_PROFILER_
+#define OMPL_TOOLS_DEBUG_PROFILER_
 
 #define ENABLE_PROFILING 1
 

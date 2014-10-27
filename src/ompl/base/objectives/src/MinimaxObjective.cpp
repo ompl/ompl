@@ -41,6 +41,11 @@ ompl::base::MinimaxObjective::MinimaxObjective(const SpaceInformationPtr &si) :
 {
 }
 
+ompl::base::Cost ompl::base::MinimaxObjective::stateCost(const State *s) const
+{
+    return Cost(1.0);
+}
+
 ompl::base::Cost ompl::base::MinimaxObjective::motionCost(const State *s1, const State *s2) const
 {
     Cost worstCost = this->identityCost();

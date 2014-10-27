@@ -109,6 +109,11 @@ namespace ompl
             data_.clear();
         }
 
+        virtual bool reportsSortedResults() const
+        {
+            return searchParams_.sorted;
+        }
+
         virtual void setDistanceFunction(const typename NearestNeighbors<_T>::DistanceFunction &distFun)
         {
             NearestNeighbors<_T>::setDistanceFunction(distFun);

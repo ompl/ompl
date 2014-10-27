@@ -38,11 +38,11 @@
 #include <boost/test/unit_test.hpp>
 
 #include "2DcirclesSetup.h"
-#include "2dcirclesSetupDubins.h"
 #include <iostream>
 
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
+#include "ompl/geometric/planners/cforest/CForest.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/base/goals/GoalState.h"
 #include "ompl/util/RandomNumbers.h"
@@ -241,7 +241,7 @@ protected:
 
               // In dubins no-goal-bias case, we can't guarantee that
               // ini_cost is actually greater than prev_cost
-              BOOST_CHECK(ini_cost.v >= prev_cost.v);
+              BOOST_CHECK(ini_cost.value() >= prev_cost.value());
 
               pdef->clearSolutionPaths();
             }
@@ -255,10 +255,6 @@ protected:
         base::ScopedState<> start(si);
         start[0] = q.startX_;
         start[1] = q.startY_;
-
-        // If this is a Dubins space, zero-out the SO2 subspace element.
-        if (boost::dynamic_pointer_cast<base::DubinsStateSpace>(si->getStateSpace()))
-            start[2] = 0.0;
 
         base::GoalPtr goal = genGoalFromQuery(q, si);
 
@@ -275,23 +271,10 @@ protected:
         goal2D[0] = q.goalX_;
         goal2D[1] = q.goalY_;
 
-        base::GoalPtr goal;
-        if (boost::dynamic_pointer_cast<base::DubinsStateSpace>(si->getStateSpace()))
-        {
-            geometric::DubinsXYGoal* dubinsGoal =
-                new geometric::DubinsXYGoal(si, goal2D.get());
-            dubinsGoal->setThreshold(1e-3);
-            goal = base::GoalPtr(dubinsGoal);
-        }
-        else
-        {
-            base::GoalState* goalState = new base::GoalState(si);
-            goalState->setState(goal2D);
-            goalState->setThreshold(1e-3);
-            goal = base::GoalPtr(goalState);
-        }
-
-        return goal;
+        base::GoalState* goalState = new base::GoalState(si);
+        goalState->setState(goal2D);
+        goalState->setThreshold(1e-3);
+        return base::GoalPtr(goalState);
     }
 };
 
@@ -328,38 +311,14 @@ protected:
     }
 };
 
-class RRTstarDubinsTest : public TestPlanner
+class CForestTest : public TestPlanner
 {
 protected:
+
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::RRTstar *rrt = new geometric::RRTstar(si);
-        return base::PlannerPtr(rrt);
-    }
-
-    void test2DCircles(const Circles2D& circles)
-    {
-        base::SpaceInformationPtr si = geometric::spaceInformation2DCirclesDubins(circles);
-        test2DCirclesGeneral(circles, si, 5.0);
-    }
-};
-
-// This is to test an edge case that I've only been able to reproduce
-// without goal bias.
-class RRTstarDubinsNoGoalBiasTest : public TestPlanner
-{
-protected:
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
-    {
-        geometric::RRTstar *rrt = new geometric::RRTstar(si);
-        rrt->setGoalBias(0.0);
-        return base::PlannerPtr(rrt);
-    }
-
-    void test2DCircles(const Circles2D& circles)
-    {
-        base::SpaceInformationPtr si = geometric::spaceInformation2DCirclesDubins(circles);
-        test2DCirclesNoGoalBias(circles, si, 5.0);
+        geometric::CForest *cforest = new geometric::CForest(si);
+        return base::PlannerPtr(cforest);
     }
 };
 
@@ -420,7 +379,6 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 OMPL_PLANNER_TEST(PRMstar)
 OMPL_PLANNER_TEST(PRM)
 OMPL_PLANNER_TEST(RRTstar)
-OMPL_PLANNER_TEST(RRTstarDubinsNoGoalBias)
-OMPL_PLANNER_TEST(RRTstarDubins)
+OMPL_PLANNER_TEST(CForest)
 
 BOOST_AUTO_TEST_SUITE_END()

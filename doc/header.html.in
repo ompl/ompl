@@ -52,7 +52,7 @@
               <li><a href="optimalPlanning.html">Optimal Planning</a></li>
               <li><a href="FAQ.html">FAQ</a></li>
               <li class="divider"></li>
-              <li>&nbsp;<em>External links:</em></li>
+              <li class="dropdown-header">External links</li>
               <li><a href="http://moveit.ros.org">MoveIt!</a></li>
               <li><a href="http://robotics.naist.jp/edu/text/?Robotics%2FOMPL">Japanese Introduction to OMPL</a></li>
               <li><a href="http://robotics.naist.jp/edu/text/?Robotics%2FExercise%2FOMPLProgramming">Japanese OMPL Tutorial</a></li>

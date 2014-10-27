@@ -53,7 +53,7 @@ ompl::geometric::FMT::FMT(const base::SpaceInformationPtr &si)
     , numSamples_(1000)
     , radiusMultiplier_(1.1)
 {
-    freeSpaceVolume_ = std::pow(si_->getMaximumExtent() / std::sqrt(si_->getStateDimension()), si_->getStateDimension());
+    freeSpaceVolume_ = std::pow(si_->getMaximumExtent() / std::sqrt(si_->getStateDimension()), (int)si_->getStateDimension());
     lastGoalMotion_ = NULL;
 
     specs_.approximateSolutions = false;
@@ -240,7 +240,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
     if (lastGoalMotion_) {
         OMPL_INFORM("solve() called before clear(); returning previous solution");
         traceSolutionPathThroughTree(lastGoalMotion_);
-        OMPL_DEBUG("Final path cost: %f", lastGoalMotion_->getCost().v);
+        OMPL_DEBUG("Final path cost: %f", lastGoalMotion_->getCost().value());
         return base::PlannerStatus(true, false);
     }
     else if (hElements_.size() > 0)
@@ -317,7 +317,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
         lastGoalMotion_ = z;
         traceSolutionPathThroughTree(lastGoalMotion_);
 
-        OMPL_DEBUG("Final path cost: %f", lastGoalMotion_->getCost().v);
+        OMPL_DEBUG("Final path cost: %f", lastGoalMotion_->getCost().value());
         return base::PlannerStatus(true, false);
     } // if plannerSuccess
     else
@@ -344,7 +344,7 @@ void ompl::geometric::FMT::traceSolutionPathThroughTree(Motion *goalMotion)
     int mPathSize = mpath.size();
     for (int i = mPathSize - 1 ; i >= 0 ; --i)
         path->append(mpath[i]->getState());
-    pdef_->addSolutionPath(base::PathPtr(path), false, lastGoalMotion_->getCost().v, getName());
+    pdef_->addSolutionPath(base::PathPtr(path), false, -1.0, getName());
 }
 
 bool ompl::geometric::FMT::expandTreeFromNode(Motion *&z, const double r)

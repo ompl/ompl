@@ -45,19 +45,19 @@
 
     \def OMPL_ERROR(fmt, ...)
     \brief Log a formatted error string.
-    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+    \remarks This macro takes the same arguments as [printf](http://www.cplusplus.com/reference/clibrary/cstdio/printf).
 
     \def OMPL_WARN(fmt, ...)
     \brief Log a formatted warning string.
-    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+    \remarks This macro takes the same arguments as [printf](http://www.cplusplus.com/reference/clibrary/cstdio/printf).
 
     \def OMPL_INFORM(fmt, ...)
     \brief Log a formatted information string.
-    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+    \remarks This macro takes the same arguments as [printf](http://www.cplusplus.com/reference/clibrary/cstdio/printf).
 
     \def OMPL_DEBUG(fmt, ...)
     \brief Log a formatted debugging string.
-    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+    \remarks This macro takes the same arguments as [printf](http://www.cplusplus.com/reference/clibrary/cstdio/printf).
 
     \}
 */

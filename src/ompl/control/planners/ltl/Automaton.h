@@ -80,6 +80,12 @@ namespace ompl
                     Returns -1 if no such transition exists. */
                 int eval(const World& w) const;
 
+                TransitionMap& operator=(const TransitionMap& tm)
+                {
+                    entries = tm.entries;
+                    return *this;
+                }
+
                 mutable boost::unordered_map<World, unsigned int> entries;
             };
 

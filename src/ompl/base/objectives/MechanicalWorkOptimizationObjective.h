@@ -54,6 +54,9 @@ namespace ompl
             /** \brief Set the factor to use for weighing path length in the mechanical work objective formulation. */
             virtual double getPathLengthWeight() const;
 
+            /** \brief Returns a cost with a value of 1. */
+            virtual Cost stateCost(const State *s) const;
+
             /** \brief Defines motion cost in terms of the mechanical work formulation used for TRRT. */
             virtual Cost motionCost(const State *s1, const State *s2) const;
 

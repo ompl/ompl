@@ -36,6 +36,7 @@
 
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
+#include "ompl/base/OptimizationObjective.h"
 #include "ompl/base/ScopedState.h"
 #include <algorithm>
 #include <cmath>
@@ -82,6 +83,17 @@ void ompl::geometric::PathGeometric::freeMemory()
 {
     for (unsigned int i = 0 ; i < states_.size() ; ++i)
         si_->freeState(states_[i]);
+}
+
+ompl::base::Cost ompl::geometric::PathGeometric::cost(const base::OptimizationObjectivePtr &opt) const
+{
+    if (states_.empty()) return opt->identityCost();
+    // Compute path cost by accumulating the cost along the path
+    base::Cost cost(opt->initialCost(states_.front()));
+    for (std::size_t i = 1; i < states_.size(); ++i)
+        cost = opt->combineCosts(cost, opt->motionCost(states_[i - 1], states_[i]));
+    cost = opt->combineCosts(cost, opt->terminalCost(states_.back()));
+    return cost;
 }
 
 double ompl::geometric::PathGeometric::length() const
@@ -432,6 +444,11 @@ void ompl::geometric::PathGeometric::append(const PathGeometric &path)
     }
     else
         overlay(path, states_.size());
+}
+
+void ompl::geometric::PathGeometric::prepend(const base::State *state)
+{
+    states_.insert(states_.begin(), si_->cloneState(state));
 }
 
 void ompl::geometric::PathGeometric::keepAfter(const base::State *state)

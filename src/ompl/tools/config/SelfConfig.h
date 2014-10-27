@@ -38,6 +38,8 @@
 #define OMPL_TOOLS_SELF_CONFIG_
 
 #include "ompl/config.h"
+#include "ompl/base/Goal.h"
+#include "ompl/base/Planner.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
@@ -95,6 +97,9 @@ namespace ompl
                 else
                     return new NearestNeighborsSqrtApprox<_T>();
             }
+
+            /** \brief Given a goal specification, decide on a planner for that goal */
+            static base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
 
         private:
 
