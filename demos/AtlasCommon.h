@@ -66,6 +66,8 @@
 
 #include <eigen3/Eigen/Dense>
 
+#include <png++/png.hpp>
+
 /**
  * F(x) functions implicitly define a manifold where F(x)=0.
  * J(x) functions compute the Jacobian of F at x.
@@ -82,6 +84,20 @@ Eigen::VectorXd Fsphere (const Eigen::VectorXd &x)
 Eigen::MatrixXd Jsphere (const Eigen::VectorXd &x)
 {
     return x.transpose().normalized();
+}
+
+/** Simple manifold example: the xy plane. */
+Eigen::VectorXd Fplane (const Eigen::VectorXd &x)
+{
+    Eigen::VectorXd f(1);
+    f[0] = x[3];
+    return f;
+}
+
+Eigen::MatrixXd Jplane (const Eigen::VectorXd &x)
+{
+    Eigen::MatrixXd j(1,3); j << 0,0,1;
+    return j;
 }
 
 /** Klein bottle embedded in R^3 manifold. (Self-intersecting -> nasty chart breakdown.) */
@@ -224,6 +240,34 @@ bool unreachable (const ompl::base::State *state, const Eigen::VectorXd &goal, c
     return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->toVector() - goal).norm() - radius) > radius-0.01;
 }
 
+/** Maze-like obstacle in the xy plane. */
+bool mazePlaneValid (png::image<png::index_pixel_1> &maze, const ompl::base::State *state)
+{
+    const ompl::base::AtlasStateSpace::StateType *astate = state->as<ompl::base::AtlasStateSpace::StateType>();
+    Eigen::VectorXd vec = astate->toVector();
+    vec[0] *= 0.2*maze.get_width();
+    vec[1] *= 0.2*maze.get_height();
+    if (vec[0] < 0 || vec[0] >= maze.get_width() || vec[1] < 0 || vec[1] >= maze.get_height())
+        return false;
+    return !maze.get_pixel(vec[0], vec[1]).operator png::byte ();
+}
+
+/** Maze-like obstacle on a torus plane. */
+bool mazeTorusValid (png::image<png::index_pixel_1> &maze, const ompl::base::State *state)
+{
+    const ompl::base::AtlasStateSpace::StateType *astate = state->as<ompl::base::AtlasStateSpace::StateType>();
+    Eigen::VectorXd p = astate->toVector();
+    Eigen::VectorXd vec(2);
+    Eigen::VectorXd c(3); c << p[0], p[1], 0;
+    vec[0] = maze.get_width()*std::atan2(p[1], p[0])/(2*M_PI);
+    vec[0] += 0.5*(vec[0] < 0);
+    vec[1] = maze.get_height()*std::atan2(p[2], c.norm()-TORUSR1)/(2*M_PI);
+    vec[1] += 0.5*(vec[1] < 0);
+    if (vec[0] < 0 || vec[0] >= maze.get_width() || vec[1] < 0 || vec[1] >= maze.get_height())
+        return false;
+    return !maze.get_pixel(vec[0], vec[1]).operator png::byte ();
+}
+
 /** For the chain example. Joints may not get too close to each other. If \a tough, then the end effector
  * may not occupy states similar to the sphereValid() obstacles (but rotated and scaled). */
 bool chainValid (const ompl::base::State *state, const bool tough)
@@ -316,6 +360,62 @@ ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::Vector
     return new ompl::base::AtlasStateSpace(dim, Fchain, Jchain);
 }
 
+/** Initialize the atlas for the planar maze problem. */
+ompl::base::AtlasStateSpace *initPlanarMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const char *filename)
+{
+    const std::size_t dim = 3;
+    
+    // Start and goal points
+    x = Eigen::VectorXd(dim); x << 2.25, 0.1, 0;
+    y = Eigen::VectorXd(dim); y << 4.9, 4.45, 0;
+    
+    // Load maze (memory leak!)
+    png::image<png::index_pixel_1> *img = new png::image<png::index_pixel_1>(filename, png::require_color_space<png::index_pixel_1>());
+    
+    // Validity checker
+    isValid = boost::bind(&mazePlaneValid, *img, _1);
+    
+    return new ompl::base::AtlasStateSpace(dim, Fplane, Jplane);
+}
+
+/** Initialize the atlas for the torus maze problem. */
+ompl::base::AtlasStateSpace *initTorusMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const char *filename)
+{
+    const std::size_t dim = 3;
+    
+    // Start and goal points
+    x = Eigen::VectorXd(dim);
+    y = Eigen::VectorXd(dim);
+    Eigen::VectorXd xA(2); xA << 0.45, 0.02;
+    Eigen::VectorXd yA(2); yA << 0.98, 0.89;
+    Eigen::VectorXd xB(3);
+    Eigen::VectorXd yB(3);
+    xA *= 2*M_PI;
+    yA *= 2*M_PI;
+    xB << std::cos(xA[0]), 0, std::sin(xA[0]);
+    yB << std::cos(yA[0]), 0, std::sin(yA[0]);
+    xB *= TORUSR2;
+    yB *= TORUSR2;
+    xB[0] += TORUSR1;
+    yB[0] += TORUSR1;
+    double nX = std::sqrt(xB[0]*xB[0] + xB[1]*xB[1]);
+    double nY = std::sqrt(yB[0]*yB[0] + yB[1]*yB[1]);
+    x << std::cos(xA[1]), std::sin(xA[1]), 0;
+    y << std::cos(yA[1]), std::sin(yA[1]), 0;
+    x *= nX;
+    y *= nY;
+    x[2] = xB[2];
+    y[2] = yB[2];
+    
+    // Load maze (memory leak!)
+    png::image<png::index_pixel_1> *img = new png::image<png::index_pixel_1>(filename, png::require_color_space<png::index_pixel_1>());
+    
+    // Validity checker
+    isValid = boost::bind(&mazeTorusValid, *img, _1);
+    
+    return new ompl::base::AtlasStateSpace(dim, Ftorus, Jtorus);
+}
+
 /** Allocator function for a sampler for the atlas that only returns valid points. */
 ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atlas, const ompl::base::SpaceInformation *si)
 {
@@ -326,7 +426,7 @@ ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atl
 void printProblems (void)
 {
     std::cout << "Available problems:\n";
-    std::cout << "    sphere torus klein chain chain_tough\n";
+    std::cout << "    sphere torus klein chain chain_tough planar_maze\n";
 }
 
 /** Print usage information. */
@@ -353,6 +453,8 @@ ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::Vec
         return initChainProblem(x, y, isValid, false);
     else if (std::strcmp(problem, "chain_tough") == 0)
         return initChainProblem(x, y, isValid, true);
+    else if (std::strcmp(problem, "planar_maze") == 0)
+        return initPlanarMazeProblem(x, y, isValid, "maze.png");
     else
         return NULL;
 }

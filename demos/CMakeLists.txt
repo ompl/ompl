@@ -10,7 +10,8 @@ if (OMPL_BUILD_DEMOS)
       ${Boost_SYSTEM_LIBRARY}
       ${Boost_THREAD_LIBRARY}
       ${Boost_DATE_TIME_LIBRARY}
-      ${Boost_PROGRAM_OPTIONS_LIBRARY})
+      ${Boost_PROGRAM_OPTIONS_LIBRARY}
+      png)
   endmacro(add_ompl_demo)
 
   add_ompl_demo(demo_RigidBodyPlanning RigidBodyPlanning.cpp)
