@@ -147,6 +147,18 @@ namespace ompl
                 return delayCC_;
             }
 
+            /** \brief Get the seed for the underlying RNG and StateSampler. Useful for running different settings with the exact same pseudorandom sequence. */
+            boost::uint32_t getRngLocalSeed() const
+            {
+                return sampler_->rng().getLocalSeed();
+            }
+
+            /** \brief Set the seed for the underlying and StateSampler. Useful for running different settings with the exact same pseudorandom sequence. */
+            void setRngLocalSeed(boost::uint32_t seed)
+            {
+                sampler_->rng().setLocalSeed(seed);
+            }
+
             virtual void setup();
 
             ///////////////////////////////////////
@@ -241,9 +253,6 @@ namespace ompl
 
             /** \brief The maximum length of a motion to be added to a tree */
             double                                         maxDistance_;
-
-            /** \brief The random number generator */
-            RNG                                            rng_;
 
             /** \brief Option to delay and reduce collision checking within iterations */
             bool                                           delayCC_;

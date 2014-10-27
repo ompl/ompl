@@ -113,12 +113,36 @@ void ompl::RNG::setSeed(boost::uint32_t seed)
         getUserSetSeed() = seed;
 }
 
-ompl::RNG::RNG() : generator_(nextSeed()),
+ompl::RNG::RNG() : localSeed_(nextSeed()),
+                    generator_(localSeed_),
                        uniDist_(0, 1),
                        normalDist_(0, 1),
                        uni_(generator_, uniDist_),
                        normal_(generator_, normalDist_)
 {
+}
+
+ompl::RNG::RNG(boost::uint32_t localSeed) : localSeed_(localSeed),
+                    generator_(localSeed_),
+                    uniDist_(0, 1),
+                    normalDist_(0, 1),
+                    uni_(generator_, uniDist_),
+                    normal_(generator_, normalDist_)
+{
+}
+
+void ompl::RNG::setLocalSeed(boost::uint32_t localSeed)
+{
+    // Store the seed
+    localSeed_ = localSeed;
+
+    // Change the generator's seed
+    generator_.seed(localSeed_);
+
+    // Reset the variate generators, as they can cache values
+    uni_.distribution().reset();
+    normal_.distribution().reset();
+
 }
 
 double ompl::RNG::halfNormalReal(double r_min, double r_max, double focus)
