@@ -105,6 +105,19 @@ namespace ompl
                 return numSamples_;
             }
 
+            std::string getCollisionCheckCount() const;
+
+            void setNearestK(bool nearestK)
+            {
+                nearestK_ = nearestK;
+            }
+
+            /** \brief Get the state of the delayed collision checking option */
+            bool getNearestK() const
+            {
+                return nearestK_;
+            }
+
             /** \brief The planner searches for neighbors of a node within a
                 cost r, where r is the value described for FMT* in Section 4
                 of [L. Janson, A. Clark, and M. Pavone, "Fast Marching Trees: a Fast
@@ -298,7 +311,7 @@ namespace ompl
             double calculateRadius(unsigned int dimension, unsigned int n) const;
 
             /** \brief Save the neighbors within a given radius of a state */
-            void saveNeighborhood(Motion *m, const double r);
+            void saveNeighborhood(Motion *m);
 
             /** \brief Trace the path from a goal state back to the start state
                 and save the result as a solution in the Problem Definiton.
@@ -311,7 +324,7 @@ namespace ompl
                 in set H. Remove all newly connected nodes from W and insert
                 them into H. Remove motion z from H, and update z to be the
                 current lowest cost-to-come node in H */
-            bool expandTreeFromNode(Motion *&z, const double r);
+            bool expandTreeFromNode(Motion *&z);
 
             /** \brief A binary heap for storing explored motions in
                 cost-to-come sorted order */
@@ -333,6 +346,14 @@ namespace ompl
 
             /** \brief The number of samples to use when planning */
             unsigned int numSamples_;
+
+            unsigned int collisionChecks_;
+
+            bool nearestK_;
+
+            double NNr;
+
+            unsigned int NNk;
 
             /** \brief The volume of the free configuration space */
             double freeSpaceVolume_;
