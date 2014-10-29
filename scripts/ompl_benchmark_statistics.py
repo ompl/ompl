@@ -103,7 +103,7 @@ def readRequiredMultilineValue(filevar):
     return value
 
 
-def readBenchmarkLog(dbname, filenames):
+def readBenchmarkLog(dbname, filenames, moveitformat):
     """Parse benchmark log files and store the parsed data in a sqlite3 database."""
 
     conn = sqlite3.connect(dbname)
@@ -134,14 +134,24 @@ def readBenchmarkLog(dbname, filenames):
         print('Processing ' + filename)
         logfile = open(filename,'r')
         version = readOptionalLogValue(logfile, -1, {0 : "OMPL", 1 : "version"})
+        if version == None:
+            # set the version number to make Planner Arena happy
+            version = "0.0.0"
         expname = readRequiredLogValue("experiment name", logfile, -1, {0 : "Experiment"})
         hostname = readRequiredLogValue("hostname", logfile, -1, {0 : "Running"})
         date = ' '.join(ensurePrefix(logfile.readline(), "Starting").split()[2:])
-        expsetup = readRequiredMultilineValue(logfile)
-        cpuinfo = readOptionalMultilineValue(logfile)
-        rseed = int(readRequiredLogValue("random seed", logfile, 0, {-2 : "random", -1 : "seed"}))
-        timelimit = float(readRequiredLogValue("time limit", logfile, 0, {-3 : "seconds", -2 : "per", -1 : "run"}))
-        memorylimit = float(readRequiredLogValue("memory limit", logfile, 0, {-3 : "MB", -2 : "per", -1 : "run"}))
+        if moveitformat:
+            expsetup = readRequiredLogValue("goal name", logfile, -1, {0: "Goal", 1: "name"})
+            cpuinfo = None
+            rseed = 0
+            timelimit = float(readRequiredLogValue("time limit", logfile, 0, {-3 : "seconds", -2 : "per", -1 : "run"}))
+            memorylimit = 0
+        else:
+            expsetup = readRequiredMultilineValue(logfile)
+            cpuinfo = readOptionalMultilineValue(logfile)
+            rseed = int(readRequiredLogValue("random seed", logfile, 0, {-2 : "random", -1 : "seed"}))
+            timelimit = float(readRequiredLogValue("time limit", logfile, 0, {-3 : "seconds", -2 : "per", -1 : "run"}))
+            memorylimit = float(readRequiredLogValue("memory limit", logfile, 0, {-3 : "MB", -2 : "per", -1 : "run"}))
         nrrunsOrNone = readOptionalLogValue(logfile, 0, {-3 : "runs", -2 : "per", -1 : "planner"})
         nrruns = -1
         if nrrunsOrNone != None:
@@ -242,7 +252,11 @@ def readBenchmarkLog(dbname, filenames):
                         values = tuple([runIds[j]] + \
                             [None if len(x) == 0 or x == 'nan' or x == 'inf' else x
                             for x in dataSample.split(',')[:-1]])
-                        c.execute(insertFmtStr, values)
+                        try:
+                            c.execute(insertFmtStr, values)
+                        except sqlite3.IntegrityError:
+                            print('Ignoring duplicate progress data. Consider increasing ompl::tools::Benchmark::Request::timeBetweenUpdates.')
+                            pass
 
                 logfile.readline()
         logfile.close()
@@ -468,13 +482,25 @@ def saveAsMysql(dbname, mysqldump):
         mysqldump.write(line)
     mysqldump.close()
 
-def computeViews(dbname):
+def computeViews(dbname, moveitformat):
     conn = sqlite3.connect(dbname)
     c = conn.cursor()
     c.execute('PRAGMA FOREIGN_KEYS = ON')
-    s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid, solved, time + simplification_time AS total_time
-        FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
-        ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
+    c.execute('PRAGMA table_info(runs)')
+    if moveitformat:
+        s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid, solved, total_time
+            FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
+            ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
+    # kinodynamic paths cannot be simplified (or least not easily),
+    # so simplification_time may not exist as a database column
+    elif 'simplification_time' in [col[1] for col in c.fetchall()]:
+        s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid, solved, time + simplification_time AS total_time
+            FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
+            ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
+    else:
+        s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid, solved, time AS total_time
+            FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
+            ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
     s1 = """SELECT plannerid, plannerName, experimentid, AVG(solved) AS avg_solved, AVG(total_time) AS avg_total_time
         FROM (%s) GROUP BY plannerid, experimentid""" % s0
     s2 = """SELECT plannerid, experimentid, MIN(avg_solved) AS avg_solved, avg_total_time
@@ -503,15 +529,17 @@ if __name__ == "__main__":
         help="Create a PDF of plots")
     parser.add_option("-m", "--mysql", dest="mysqldb", default=None,
         help="Save SQLite3 database as a MySQL dump file")
+    parser.add_option("--moveit", action="store_true", dest="moveit", default=False,
+        help="Log files are produced by MoveIt!")
     (options, args) = parser.parse_args()
 
     if len(args)>0:
-        readBenchmarkLog(options.dbname, args)
+        readBenchmarkLog(options.dbname, args, options.moveit)
         # If we update the database, we recompute the views as well
         options.view = True
 
     if options.view:
-        computeViews(options.dbname)
+        computeViews(options.dbname, options.moveit)
 
     if options.plot:
         plotStatistics(options.dbname, options.plot)

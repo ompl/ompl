@@ -61,7 +61,7 @@ namespace ompl
         /** \brief Properties that a state validity checker may have */
         struct StateValidityCheckerSpecs
         {
-	    /** \brief Specify the type of clearance computation */
+            /** \brief Specify the type of clearance computation */
             enum ClearanceComputationType
             {
                 /// Clearance computation is not implemented.

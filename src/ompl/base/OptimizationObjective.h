@@ -57,16 +57,12 @@ namespace ompl
         OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
 
-        /// @cond IGNORE
-        OMPL_CLASS_FORWARD(Path);
-        /// @endcond
-
         /** \class ompl::base::OptimizationObjectivePtr
             \brief A boost shared pointer wrapper for ompl::base::OptimizationObjective */
 
         /** \brief Abstract definition of optimization objectives.
 
-            \note This implementation has greatly benefited from discussions with <a href="http://www.cs.indiana.edu/~hauserk/">Kris Hauser</a> */
+            \note This implementation has greatly benefited from discussions with Kris Hauser */
         class OptimizationObjective : private boost::noncopyable
         {
         public:
@@ -89,14 +85,11 @@ namespace ompl
             /** \brief Set the cost threshold for objective satisfaction. When a path is found with a cost better than the cost threshold, the objective is considered satisfied. */
             void setCostThreshold(Cost c);
 
-            /** \brief Get the cost that corresponds to an entire path. This implementation assumes \e Path is of type \e PathGeometric.*/
-            virtual Cost getCost(const Path &path) const;
-
             /** \brief Check whether the the cost \e c1 is considered better than the cost \e c2. By default, this returns true only if c1 is less by at least some threshold amount, for numerical robustness. */
             virtual bool isCostBetterThan(Cost c1, Cost c2) const;
 
-            /** \brief Evaluate a cost map defined on the state space at a state \e s. Default implementation maps all states to 1.0. */
-            virtual Cost stateCost(const State *s) const;
+            /** \brief Evaluate a cost map defined on the state space at a state \e s. */
+            virtual Cost stateCost(const State *s) const = 0;
 
             /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
             virtual Cost motionCost(const State *s1, const State *s2) const = 0;

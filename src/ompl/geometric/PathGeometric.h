@@ -44,6 +44,12 @@
 
 namespace ompl
 {
+    namespace base
+    {
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(OptimizationObjective);
+        /// @endcond
+    }
 
     /** \brief This namespace contains code that is specific to planning under geometric constraints */
     namespace geometric
@@ -76,6 +82,11 @@ namespace ompl
 
             /** \brief Assignment operator */
             PathGeometric& operator=(const PathGeometric &other);
+            
+            /** \brief The sum of the costs for the sequence of segments that make up the path, computed using
+                OptimizationObjective::motionCost(). OptimizationObjective::initialCost() and OptimizationObjective::terminalCost() 
+                are also used in the computation for the first and last states, respectively. Empty paths have identity cost. */
+            virtual base::Cost cost(const base::OptimizationObjectivePtr &obj) const;
 
             /** \brief Compute the length of a geometric path (sum of lengths of segments that make up the path) */
             virtual double length() const;
@@ -181,6 +192,9 @@ namespace ompl
                 has components overwritten with ones in \e yi (if there are any common subspaces).
             */
             void append(const PathGeometric &path);
+
+            /** \brief Prepend \e state to the start of this path. The memory for \e state is copied. */
+            void prepend(const base::State *state);
 
             /** \brief Keep the part of the path that is after \e state (getClosestIndex() is used to find out which way-point is closest to \e state) */
             void keepAfter(const base::State *state);

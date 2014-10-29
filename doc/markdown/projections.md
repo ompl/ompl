@@ -36,8 +36,8 @@ virtual void defaultCellSizes(void)
 virtual void project(const base::State *state, base::EuclideanProjection &projection) const
 {
     const double *values = state->as<base::RealVectorStateSpace::StateType>()->values;
-    projection.values[0] = (values[0] + values[1]) / 2.0;
-    projection.values[1] = (values[2] + values[3]) / 2.0;
+    projection(0) = (values[0] + values[1]) / 2.0;
+    projection(1) = (values[2] + values[3]) / 2.0;
 }
 };
 ...

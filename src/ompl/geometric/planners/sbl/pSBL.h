@@ -78,8 +78,8 @@ namespace ompl
            no default projection is available either.
            @par External documentation
            G. Sánchez and J.-C. Latombe, A single-query bi-directional probabilistic roadmap planner with lazy collision checking, in <em>The Tenth International Symposium on Robotics Research</em>, pp. 403–417, 2001.
-           DOI: <a href="http://dx.doi.org/10.1007/3-540-36460-9_27">10.1007/3-540-36460-9_27</a><br>
-           <a href="http://www.springerlink.com/content/9843341054386hh6/fulltext.pdf">[PDF]</a>
+           DOI: [10.1007/3-540-36460-9_27](http://dx.doi.org/10.1007/3-540-36460-9_27)<br>
+           [[PDF]](http://www.springerlink.com/content/9843341054386hh6/fulltext.pdf)</a>
         */
 
 

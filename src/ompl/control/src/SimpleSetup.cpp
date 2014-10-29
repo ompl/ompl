@@ -35,22 +35,11 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/control/SimpleSetup.h"
-#include "ompl/control/planners/rrt/RRT.h"
-#include "ompl/control/planners/kpiece/KPIECE1.h"
+#include "ompl/tools/config/SelfConfig.h"
 
 ompl::base::PlannerPtr ompl::control::getDefaultPlanner(const base::GoalPtr &goal)
 {
-    base::PlannerPtr planner;
-    if (!goal)
-        throw Exception("Unable to allocate default planner for unspecified goal definition");
-
-    SpaceInformationPtr si = boost::static_pointer_cast<SpaceInformation, base::SpaceInformation>(goal->getSpaceInformation());
-    if (si->getStateSpace()->hasDefaultProjection())
-        planner = base::PlannerPtr(new KPIECE1(si));
-    else
-        planner = base::PlannerPtr(new RRT(si));
-
-    return planner;
+    return tools::SelfConfig::getDefaultPlanner(goal);
 }
 
 ompl::control::SimpleSetup::SimpleSetup(const SpaceInformationPtr &si) :
@@ -58,7 +47,6 @@ ompl::control::SimpleSetup::SimpleSetup(const SpaceInformationPtr &si) :
 {
     si_ = si;
     pdef_.reset(new base::ProblemDefinition(si_));
-    params_.include(si_->params());
 }
 
 ompl::control::SimpleSetup::SimpleSetup(const ControlSpacePtr &space) :
@@ -66,7 +54,6 @@ ompl::control::SimpleSetup::SimpleSetup(const ControlSpacePtr &space) :
 {
     si_.reset(new SpaceInformation(space->getStateSpace(), space));
     pdef_.reset(new base::ProblemDefinition(si_));
-    params_.include(si_->params());
 }
 
 void ompl::control::SimpleSetup::setup()
@@ -82,16 +69,13 @@ void ompl::control::SimpleSetup::setup()
             if (!planner_)
             {
                 OMPL_INFORM("No planner specified. Using default.");
-                planner_ = getDefaultPlanner(getGoal());
+                planner_ = tools::SelfConfig::getDefaultPlanner(getGoal());
             }
         }
         planner_->setProblemDefinition(pdef_);
         if (!planner_->isSetup())
             planner_->setup();
 
-        params_.clear();
-        params_.include(si_->params());
-        params_.include(planner_->params());
         configured_ = true;
     }
 }

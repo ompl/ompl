@@ -103,6 +103,16 @@ input[type="text"]:focus, select:focus {
 #nav-path ul {margin-right: -20px; }
 .contents table { margin-left: 20px; margin-right: 20px; }
 iframe { border: none; }
+.carousel-caption {
+    background-color: rgba(0,0,0,.4);
+    padding: 10px 10px 14px 10px;
+    left: 0%;
+    right: 0%;
+    bottom: 0px;
+    text-align: left;
+}
+.carousel-indicators { bottom: -10px;}
+.carousel-caption h4 { padding: 0px; margin: 4px 0px; font-size: 14px; font-weight: bold;}
 .carousel-caption ul { color: #fff; }
 .carousel-caption-inset { padding-left: 60px; padding-right: 60px; }
 .carousel-caption p a, .carousel-caption p a:hover, .carousel-caption p a:visited { color: #7ae; }
@@ -135,4 +145,21 @@ iframe#externalpagewrapper { min-width:980px; width:100%; height:1600px; margin:
         width: 724px;
         height: 527px;
     }
+}
+
+div.plannerlist > ul > li { margin-bottom: 20px; }
+div.plannerlist > ul > li::first-line {
+    font-size: 150%;
+    font-weight: bold;
+}
+div.plannerlist > ul > li > ul > li::first-line {
+    font-size: 150%;
+    font-weight: bold;
+}
+div.plannerlist > dl.attention > dt { display: none; }
+div.plannerlist > dl.attention > dd::first-line {
+    line-height: 2;
+    font-weight: 700;
+    color: #428bca;
+    font-size: 16px;
 }

@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan, James D. Marble */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_PRM_PRM_STAR_
-#define OMPL_GEOMETRIC_PLANNERS_PRM_PRM_STAR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_PRM_LAZYPRM_STAR_
+#define OMPL_GEOMETRIC_PLANNERS_PRM_LAZYPRM_STAR_
 
 #include "ompl/geometric/planners/prm/LazyPRM.h"
 
@@ -56,12 +56,12 @@ namespace ompl
            R. Bohlin and L.E. Kavraki
            Path Planning Using Lazy PRM
            <em>IEEE International Conference on Robotics and Automation</em>, San Francisco, pp. 521–528, 2000.
-           DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844107">10.1109/ROBOT.2000.844107</a><br>
+           DOI: [10.1109/ROBOT.2000.844107](http://dx.doi.org/10.1109/ROBOT.2000.844107)<br>
            S. Karaman and E. Frazzoli, Sampling-based
            Algorithms for Optimal Motion Planning, International Journal of Robotics
            Research, vol. 30, no.7, pp. 846-894, 2011.
-           DOI: <a href="http://dx.doi.org/10.1177/0278364911406761">10.1177/0278364911406761</a><br>
-           <a href="http://www.kavrakilab.org/robotics/lazyprm.html">[more]</a>
+           DOI: [10.1177/0278364911406761](http://dx.doi.org/10.1177/0278364911406761)<br>
+           [[more]](http://www.kavrakilab.org/robotics/lazyprm.html)
         */
 
         /** \brief PRM* planner */

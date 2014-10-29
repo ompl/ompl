@@ -8,9 +8,9 @@
 
 # Reporting Bugs
 
-To report a bug, please click [here](bitbucketIssues.html).
+To report a bug, please click [here](https://bitbucket.org/ompl/ompl/issues?status=new&status=open).
 
 \htmlonly</div><div class="col-md-6 col-sm-6">
 <h2>Contact form</h2>
-<iframe src="php/html-contact-form.php" width="100%" height="620"></iframe></div></div>
+<iframe src="php/html-contact-form.php" width="100%" height="780"></iframe></div></div>
 \endhtmlonly

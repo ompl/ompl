@@ -71,7 +71,7 @@ namespace ompl
 
             /** \brief Construct a termination condition that is evaluated every \e period seconds. The evaluation of
                 the condition consists of calling \e fn() in a separate thread. Calls to eval() will always return the
-        last value computed by the call to \e fn(). */
+                last value computed by the call to \e fn(). */
             PlannerTerminationCondition(const PlannerTerminationConditionFn &fn, double period);
 
             ~PlannerTerminationCondition()

@@ -66,8 +66,8 @@ namespace ompl
            @par External documentation
            D. Hsu, J.-C. Latombe, and R. Motwani, Path planning in expansive configuration spaces,
            <em>Intl. J. Computational Geometry and Applications</em>,
-           vol. 9, no. 4-5, pp. 495–512, 1999. DOI: <a href="http://dx.doi.org/10.1142/S0218195999000285">10.1142/S0218195999000285</a><br>
-           <a href="http://bigbird.comp.nus.edu.sg/pmwiki/farm/motion/uploads/Site/ijcga96.pdf">[PDF]</a>
+           vol. 9, no. 4-5, pp. 495–512, 1999. DOI: [10.1142/S0218195999000285](http://dx.doi.org/10.1142/S0218195999000285)<br>
+           [[PDF]](http://bigbird.comp.nus.edu.sg/pmwiki/farm/motion/uploads/Site/ijcga96.pdf)
         */
 
         /** \brief Expansive Space Trees */

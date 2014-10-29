@@ -54,9 +54,9 @@ namespace ompl
            @par External documentation
            K-control sampling is first believed to be proposed in:
 
-           S.M. LaValle and J.J. Kuffner, Randomized kinodynamic planning, <em>Intl. J. of Robotics Research</em>, vol. 20, pp. 378–400, May 2001. DOI: <a href="http://dx.doi.org/10.1177/02783640122067453">10.1177/02783640122067453</a><br>
-           <a href="http://ijr.sagepub.com/content/20/5/378.full.pdf">[PDF]</a>
-           <a href="http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html">[more]</a>*/
+           S.M. LaValle and J.J. Kuffner, Randomized kinodynamic planning, <em>Intl. J. of Robotics Research</em>, vol. 20, pp. 378–400, May 2001. DOI: [10.1177/02783640122067453](http://dx.doi.org/10.1177/02783640122067453)<br>
+           [[PDF]](http://ijr.sagepub.com/content/20/5/378.full.pdf)
+           [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html) */
         class SimpleDirectedControlSampler : public DirectedControlSampler
         {
         public:

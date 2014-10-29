@@ -17,7 +17,7 @@ mkdir -p ${ASSET_DIR}
 for f in html/*.html; do
     sed 's/="..\//=".\//g;s/href="md_doc_markdown_/href="/g' $f > ${ASSET_DIR}/`basename $f`
 done
-cp -r css js php images html/*.png html/*.map html/search ieee-ram-2012-ompl.pdf ${ASSET_DIR}
+cp -r css fonts js php images html/*.png html/*.map html/search ieee-ram-2012-ompl.pdf ${ASSET_DIR}
 
 # copy everything to web server and fix permissions
 tar cf - ${ASSET_DIR} | ssh ${SERVER} 'mkdir -p '${ASSETS_ROOT}'; cd '${ASSETS_ROOT}'; tar xf -; chmod -R a+rX '${ASSET_DIR}'; chgrp -R ompl '${ASSET_DIR}'; chmod -R g+w '${ASSET_DIR}

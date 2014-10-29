@@ -40,84 +40,115 @@
 #include <boost/random/lagged_fibonacci.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/once.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/math/constants/constants.hpp>
 
-/// The seed the user asked for (cannot be 0)
-static boost::uint32_t& getUserSetSeed()
+/// @cond IGNORE
+namespace
 {
-    static boost::uint32_t userSetSeed = 0;
-    return userSetSeed;
-}
+    /// We use a different random number generator for the seeds of the
+    /// other random generators. The root seed is from the number of
+    /// nano-seconds in the current time, or given by the user.
+    class RNGSeedGenerator
+    {
+    public:
+        RNGSeedGenerator() :
+            someSeedsGenerated_(false),
+            firstSeed_((boost::uint32_t)(boost::posix_time::microsec_clock::universal_time() -
+                boost::posix_time::ptime(boost::date_time::min_date_time)).total_microseconds()),
+            sGen_(firstSeed_),
+            sDist_(1, 1000000000),
+            s_(sGen_, sDist_)
+        {
+        }
 
-/// Flag indicating whether the first seed has already been generated or not
-static bool& getFirstSeedGenerated()
-{
-    static bool firstSeedGenerated = false;
-    return firstSeedGenerated;
-}
+        boost::uint32_t firstSeed()
+        {
+            boost::mutex::scoped_lock slock(rngMutex_);
+            return firstSeed_;
+        }
 
-/// Compute the first seed to be used; this function should be called only once
-static boost::uint32_t firstSeed()
-{
-    /// The value of the first seed
-    static boost::uint32_t firstSeedValue = 0;
+        void setSeed(boost::uint32_t seed)
+        {
+            boost::mutex::scoped_lock slock(rngMutex_);
+            if (seed > 0)
+            {
+                if (someSeedsGenerated_)
+                {
+                    OMPL_ERROR("Random number generation already started. Changing seed now will not lead to deterministic sampling.");
+                }
+                else
+                {
+                    // In this case, since no seeds have been generated yet, so we remember this seed as the first one.
+                    firstSeed_ = seed;
+                }
+            }
+            else
+            {
+                if (someSeedsGenerated_)
+                {
+                    OMPL_WARN("Random generator seed cannot be 0. Ignoring seed.");
+                    return;
+                }
+                else
+                {
+                    OMPL_WARN("Random generator seed cannot be 0. Using 1 instead.");
+                    seed = 1;
+                }
+            }
+            sGen_.seed(seed);
+        }
 
-    static boost::mutex fsLock;
-    boost::mutex::scoped_lock slock(fsLock);
+        boost::uint32_t nextSeed()
+        {
+            boost::mutex::scoped_lock slock(rngMutex_);
+            someSeedsGenerated_ = true;
+            return s_();
+        }
 
-    if (getFirstSeedGenerated())
-        return firstSeedValue;
+    private:
+        bool                       someSeedsGenerated_;
+        boost::uint32_t            firstSeed_;
+        boost::mutex               rngMutex_;
+        boost::lagged_fibonacci607 sGen_;
+        boost::uniform_int<>       sDist_;
+        boost::variate_generator<boost::lagged_fibonacci607&, boost::uniform_int<> > s_;
+    };
 
-    if (getUserSetSeed() != 0)
-        firstSeedValue = getUserSetSeed();
-    else
-        firstSeedValue =
-            (boost::uint32_t)(boost::posix_time::microsec_clock::universal_time() -
-                              boost::posix_time::ptime(boost::date_time::min_date_time)).total_microseconds();
-    getFirstSeedGenerated() = true;
+    static boost::once_flag g_once = BOOST_ONCE_INIT;
+    static boost::scoped_ptr<RNGSeedGenerator> g_RNGSeedGenerator;
 
-    return firstSeedValue;
-}
+    void initRNGSeedGenerator()
+    {
+        g_RNGSeedGenerator.reset(new RNGSeedGenerator());
+    }
 
-/// We use a different random number generator for the seeds of the
-/// Other random generators. The root seed is from the number of
-/// nano-seconds in the current time.
-static boost::uint32_t nextSeed()
-{
-    static boost::mutex rngMutex;
-    boost::mutex::scoped_lock slock(rngMutex);
-    static boost::lagged_fibonacci607 sGen(firstSeed());
-    static boost::uniform_int<>       sDist(1, 1000000000);
-    static boost::variate_generator<boost::lagged_fibonacci607&, boost::uniform_int<> > s(sGen, sDist);
-    return s();
-}
+    RNGSeedGenerator& getRNGSeedGenerator()
+    {
+        boost::call_once(&initRNGSeedGenerator, g_once);
+        return *g_RNGSeedGenerator;
+    }
+}  // namespace
+/// @endcond
 
 boost::uint32_t ompl::RNG::getSeed()
 {
-    return firstSeed();
+    return getRNGSeedGenerator().firstSeed();
 }
 
 void ompl::RNG::setSeed(boost::uint32_t seed)
 {
-    if (getFirstSeedGenerated())
-    {
-        OMPL_ERROR("Random number generation already started. Changing seed now will not lead to deterministic sampling.");
-    }
-    if (seed == 0)
-    {
-        OMPL_WARN("Random generator seed cannot be 0. Using 1 instead.");
-        getUserSetSeed() = 1;
-    }
-    else
-        getUserSetSeed() = seed;
+    getRNGSeedGenerator().setSeed(seed);
 }
 
-ompl::RNG::RNG() : generator_(nextSeed()),
-                       uniDist_(0, 1),
-                       normalDist_(0, 1),
-                       uni_(generator_, uniDist_),
-                       normal_(generator_, normalDist_)
+ompl::RNG::RNG() :
+    generator_(getRNGSeedGenerator().nextSeed()),
+    uniDist_(0, 1),
+    normalDist_(0, 1),
+    uni_(generator_, uniDist_),
+    normal_(generator_, normalDist_)
 {
 }
 

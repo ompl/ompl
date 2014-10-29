@@ -67,9 +67,10 @@ namespace ompl
             grow a tree of paths, which moves steadily outward in cost-to-come space.
            @par External documentation
            L. Janson, A. Clark, and M. Pavone, Fast Marching Trees: a Fast Marching
-           Sampling-Based Method for Optimal Motion Planning in Many Dimensions
-           , International Journal on Robotics Research, 2013.
-           <a href="http://arxiv.org/pdf/1306.3532v3.pdf">http://arxiv.org/pdf/1306.3532v3.pdf</a>
+           Sampling-Based Method for Optimal Motion Planning in Many Dimensions,
+           International Journal on Robotics Research, 2014. Submitted.
+           http://arxiv.org/pdf/1306.3532v3.pdf<br>
+           [[PDF]](http://web.stanford.edu/~pavone/papers/Janson.Pavone.IJRR14.pdf)
         */
         /** @brief Asymptotically Optimal Fast Marching Tree algorithm developed
             by L. Janson and M. Pavone. */
@@ -123,8 +124,7 @@ namespace ompl
                 of [L. Janson, A. Clark, and M. Pavone, "Fast Marching Trees: a Fast
                 Marching Sampling-Based Method for Optimal Motion Planning in
                 Many Dimensions," International Symposium on
-                Robotics Research, 2013. <a href="http://arxiv.org/pdf/1306.3532v3.pdf">
-                http://arxiv.org/pdf/1306.3532v3.pdf</a>] For guaranteed asymptotic
+                Robotics Research, 2013.               http://arxiv.org/pdf/1306.3532v3.pdf] For guaranteed asymptotic
                 convergence, the user should choose a constant multiplier for
                 the search radius that is greater than one. The default value is 1.1.
                 In general, a radius multiplier between 0.9 and 5 appears to
@@ -277,7 +277,7 @@ namespace ompl
                 stored to avoid duplicate calculations */
             double distanceFunction(const Motion *a, const Motion *b) const
             {
-                return opt_->motionCost(a->getState(), b->getState()).v;
+                return opt_->motionCost(a->getState(), b->getState()).value();
             }
 
             /** \brief Free the memory allocated by this planner */
@@ -303,8 +303,7 @@ namespace ompl
                 Pavone, "Fast Marching Trees: a Fast Marching Sampling-Based
                 Method for Optimal Motion Planning in Many Dimensions,"
                 International Journal on Robotics Research,
-                2013. <a href="http://arxiv.org/pdf/1306.3532v3.pdf">
-                http://arxiv.org/pdf/1306.3532v3.pdf</a>]. The radius depends on
+                2013. http://arxiv.org/pdf/1306.3532v3.pdf]. The radius depends on
                 the radiusMultiplier parameter, the volume of the free
                 configuration space, the volume of the unit ball in the current
                 dimension, and the number of nodes in the graph */
@@ -364,8 +363,7 @@ namespace ompl
                 Marching Trees: a Fast Marching Sampling-Based Method for
                 Optimal Motion Planning in Many Dimensions," International
                 Journal on Robotics Research, 2013.
-                <a href="http://arxiv.org/pdf/1306.3532v3.pdf">
-                http://arxiv.org/pdf/1306.3532v3.pdf</a>].  The radius multiplier
+                http://arxiv.org/pdf/1306.3532v3.pdf].  The radius multiplier
                 is the multiplier for the lower bound. For guaranteed asymptotic
                 convergence, the user should choose a multiplier for the search
                 radius that is greater than one. The default value is 1.1.

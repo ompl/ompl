@@ -52,7 +52,7 @@ namespace ompl
             encountered.
 
             @par External documentation
-            N. M. Amato, O. B. Bayazit, L. K. Dale, C. Jones, and D. Vallejo, OBPRM: an obstacle-based PRM for 3D workspaces, in <em> Third Workshop on the Algorithmic Foundations of Robotics</em>, pp. 155-168, 1998. DOI: <a href="http://dl.acm.org/citation.cfm?id=299002">http://dl.acm.org/citation.cfm?id=299002</a>
+            N. M. Amato, O. B. Bayazit, L. K. Dale, C. Jones, and D. Vallejo, OBPRM: an obstacle-based PRM for 3D workspaces, in <em> Third Workshop on the Algorithmic Foundations of Robotics</em>, pp. 155-168, 1998. [[URL]](https://parasol.tamu.edu/groups/amatogroup/research/OBPRM/)
         */
         class ObstacleBasedValidStateSampler : public ValidStateSampler
         {

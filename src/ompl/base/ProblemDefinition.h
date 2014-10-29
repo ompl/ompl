@@ -40,6 +40,7 @@
 #include "ompl/base/State.h"
 #include "ompl/base/Goal.h"
 #include "ompl/base/Path.h"
+#include "ompl/base/Cost.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/SolutionNonExistenceProof.h"
 #include "ompl/util/Console.h"
@@ -61,6 +62,7 @@ namespace ompl
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ProblemDefinition */
         OMPL_CLASS_FORWARD(ProblemDefinition);
+        OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
 
         /** \class ompl::base::ProblemDefinitionPtr
@@ -70,33 +72,40 @@ namespace ompl
         struct PlannerSolution
         {
             /** \brief Construct a solution that consists of a \e path and its attributes (whether it is \e approximate and the \e difference to the desired goal) */
-            PlannerSolution(const PathPtr &path, bool approximate = false, double difference = -1.0, const std::string& plannerName = "") :
+            PlannerSolution(const PathPtr &path) :
                 index_(-1), path_(path), length_(path->length()),
-                approximate_(approximate), difference_(difference),
-                optimized_(false), plannerName_(plannerName)
+                approximate_(false), difference_(-1), optimized_(false)
             {
             }
 
             /** \brief Return true if two solutions are the same */
-            bool operator==(const PlannerSolution& p) const
+            bool operator==(const PlannerSolution &p) const
             {
                 return path_ == p.path_;
             }
 
             /** \brief Define a ranking for solutions */
-            bool operator<(const PlannerSolution &b) const
+            bool operator<(const PlannerSolution &b) const;
+
+            /** \brief Specify that the solution is approximate and set the difference to the goal. */
+            void setApproximate(double difference)
             {
-                if (!approximate_ && b.approximate_)
-                    return true;
-                if (approximate_ && !b.approximate_)
-                    return false;
-                if (approximate_ && b.approximate_)
-                    return difference_ < b.difference_;
-                if (optimized_ && !b.optimized_)
-                    return true;
-                if (!optimized_ && b.optimized_)
-                    return false;
-                return length_ < b.length_;
+                approximate_ = true;
+                difference_ = difference;
+            }
+
+            /** \brief Set the optimization objective used to optimize this solution, the cost of the solution and whether it was optimized or not. */
+            void setOptimized(const OptimizationObjectivePtr &opt, Cost cost, bool meetsObjective)
+            {
+                opt_ = opt;
+                cost_ = cost;
+                optimized_ = meetsObjective;
+            }
+
+            /** \brief Set the name of the planner used to compute this solution */
+            void setPlannerName(const std::string &name)
+            {
+                plannerName_ = name;
             }
 
             /** \brief When multiple solutions are found, each is given a number starting at 0, so that the order in which the solutions was found can be retrieved. */
@@ -114,12 +123,24 @@ namespace ompl
             /** \brief The achieved difference between the found solution and the desired goal */
             double  difference_;
 
-            /** \brief True of the solution was optimized to meet the specified optimization criterion */
+            /** \brief True if the solution was optimized to meet the specified optimization criterion */
             bool    optimized_;
 
-            /** \brief Name of planner type that generated this solution, as received from Planner.getName() */
+            /** \brief Optimization objective that was used to optimize this solution */
+            OptimizationObjectivePtr opt_;
+
+            /** \brief The cost of this solution path, with respect to the optimization objective */
+            Cost cost_;
+
+             /** \brief Name of planner type that generated this solution, as received from Planner::getName() */
             std::string plannerName_;
         };
+
+        class Planner;
+
+        /** \brief When a planner has an intermediate solution (e.g., optimizing planners), a function with this signature can be called
+            to report the states of that solution. */
+        typedef boost::function<void(const Planner*, const std::vector<const base::State*> &, const Cost)> ReportIntermediateSolutionFn;
 
         OMPL_CLASS_FORWARD(OptimizationObjective);
 
@@ -253,6 +274,18 @@ namespace ompl
                 optimizationObjective_ = optimizationObjective;
             }
 
+            /** \brief When this function returns a valid function pointer, that function should be called
+                by planners that compute intermediate solutions every time a better solution is found */
+            const ReportIntermediateSolutionFn& getIntermediateSolutionCallback() const
+            {
+                return intermediateSolutionCallback_;
+            }
+
+            /** \brief Set the callback to be called by planners that can compute intermediate solutions */
+            void setIntermediateSolutionCallback(const ReportIntermediateSolutionFn &callback) {
+                intermediateSolutionCallback_ = callback;
+             }
+
             /** \brief A problem is trivial if a given starting state already
                 in the goal region, so we need no motion planning. startID
                 will be set to the index of the starting state that
@@ -358,6 +391,9 @@ namespace ompl
 
             /** \brief The objective to be optimized while solving the planning problem */
             OptimizationObjectivePtr     optimizationObjective_;
+
+            /** \brief Callback function which is called when a new intermediate solution has been found.*/
+            ReportIntermediateSolutionFn     intermediateSolutionCallback_;
 
         private:
 

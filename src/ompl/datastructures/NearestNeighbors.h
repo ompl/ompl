@@ -74,6 +74,10 @@ namespace ompl
             return distFun_;
         }
 
+        /** \brief Return true if the solutions reported by this data structure
+            are sorted, when calling nearestK / nearestR. */
+        virtual bool reportsSortedResults() const = 0;
+
         /** \brief Clear the datastructure */
         virtual void clear() = 0;
 
