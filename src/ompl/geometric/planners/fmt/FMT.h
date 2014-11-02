@@ -66,6 +66,13 @@ namespace ompl
             The \ref gFMT "FMT*" algorithm essentially performs a lazy dynamic
             programming recursion on a set of probabilistically-drawn samples to
             grow a tree of paths, which moves steadily outward in cost-to-come space.
+
+           @par Deviation from the paper
+           The implementation includes a cache in the collision checking since the original
+           algorithm could check the same collision more than once. It increases the
+           memory requirements to O(n logn), but as samples tend to infinity this
+           bound tend to O(n).
+
            @par External documentation
            L. Janson, A. Clark, and M. Pavone, Fast Marching Trees: a Fast Marching
            Sampling-Based Method for Optimal Motion Planning in Many Dimensions,
