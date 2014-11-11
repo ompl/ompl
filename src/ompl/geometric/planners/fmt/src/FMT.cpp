@@ -499,5 +499,5 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion *&z)
 
 std::string ompl::geometric::FMT::getCollisionCheckCount() const
 {
-  return boost::lexical_cast<std::string>(collisionChecks_);
+    return boost::lexical_cast<std::string>(collisionChecks_);
 }

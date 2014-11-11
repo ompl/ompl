@@ -114,6 +114,7 @@ namespace ompl
                 return numSamples_;
             }
 
+            /** \brief Get the count of collision checks performed */
             std::string getCollisionCheckCount() const;
 
             /** \brief If nearestK is true, FMT will be run using the Knearest strategy */
@@ -278,13 +279,13 @@ namespace ompl
                         tested and failed because of a collision */
                     bool alreadyCC(Motion *m)
                     {
-                        if(collChecksDone_.find(m) == collChecksDone_.end())
+                        if (collChecksDone_.find(m) == collChecksDone_.end())
                             return false;
                         return true;
                     }
 
                     /** \brief Caches a failed collision check to m */
-                    void addCC (Motion *m, bool val = false)
+                    void addCC(Motion *m, bool val = false)
                     {
                         collChecksDone_[m] = val;
                     }
