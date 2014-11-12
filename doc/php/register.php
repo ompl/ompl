@@ -82,7 +82,7 @@ function IsInjected($str)
 <head>
   <meta charset="utf-8">
   <title>Register</title>
-  <link href="../css/bootstrap.css" rel="stylesheet">
+  <link href="../css/bootstrap.min.css" rel="stylesheet">
   <link href="../css/ompl.css" rel="stylesheet">
 <!-- define some style elements-->
 <style>
@@ -91,53 +91,42 @@ textarea { resize: none; }
 </style>
 </head>
 
-<body style="padding-top:0px">
+<body style="padding:0px 20px 0px 20px;">
 <?php
 if(!empty($errors)){
 echo "<p class='err'>".nl2br($errors)."</p>";
 }
 ?>
-
+<div class="container">
 <div class="row">
-<p class="span8">Registration for OMPL is completely voluntary. We will not spam you with emails. Work on OMPL is funded in part by the National Science Foundation (NSF). It is extremely helpful for us if we can report to the NSF where and how our work is being used. Your cooperation would be highly appreciated.</p>
+<p>Registration for OMPL is completely voluntary. We will not spam you with emails. Work on OMPL is funded in part by the National Science Foundation (NSF). It is extremely helpful for us if we can report to the NSF where and how our work is being used. Your cooperation would be highly appreciated.</p>
+</div>
 <form method="POST" name="register_form"
-action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" class="form-horizontal span8">
-<fieldset>
-<div class="control-group">
-    <label class="control-label" for="email">email  (optional)</label>
-    <div class="controls">
-    <input class="span6" type="text" name="email" value="<?php echo htmlentities($email) ?>">
-    </div>
+action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" class="form">
+<div class="form-group">
+    <label for="email">email  (optional)</label>
+    <input class="form-control" type="text" name="email" value="<?php echo htmlentities($email) ?>">
 </div>
 
-<div class="control-group">
-    <label class="control-label" for="affiliation">school/employer</label>
-    <div class="controls">
-    <input class="span6" type="text" name="affiliation" value="<?php echo htmlentities($affiliation) ?>">
-    </div>
+<div class="form-group">
+    <label for="affiliation">school/employer</label>
+    <input class="form-control" type="text" name="affiliation" value="<?php echo htmlentities($affiliation) ?>">
 </div>
 
-<div class="control-group">
-    <label class="control-label" for="checkboxes">I plan to use OMPL for (check all that apply)</label>
-    <div class="controls">
-    <label class="checkbox"><input type="checkbox" name="research" value='yes'>research</label>
-    <label class="checkbox"><input type="checkbox" name="education" value='yes'>education</label>
-    <label class="checkbox"><input type="checkbox" name="industry" value='yes'>industrial applications</label>
-    </div>
+<div class="form-group">
+    <b>I plan to use OMPL for (check all that apply)</b>
+    <div class="checkbox"><label><input type="checkbox" name="research" value='yes'>research</label></div>
+    <div class="checkbox"><label><input type="checkbox" name="education" value='yes'>education</label></div>
+    <div class="checkbox"><label><input type="checkbox" name="industry" value='yes'>industrial applications</label></div>
 </div>
 
-<div class="control-group">
-    <label class="control-label" for="message">comments/suggestions (optional)</label>
-    <div class="controls">
-    <textarea name="message" rows=10 cols=20 class="span6"><?php echo htmlentities($message) ?></textarea>
-    </div>
+<div class="form-group">
+    <label for="message">comments/suggestions (optional)</label>
+    <textarea name="message" rows=10 cols=40 class="form-control"><?php echo htmlentities($message) ?></textarea>
 </div>
 
-<div class="form-actions">
-    <input type="submit" value="Submit" name="submit" class="btn btn-primary">
-</div>
+<input type="submit" value="Submit" name="submit" class="btn btn-primary">
 
-</fieldset>
 </form>
 </div>
 

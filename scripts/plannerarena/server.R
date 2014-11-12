@@ -40,15 +40,20 @@ numVersions <- function(con) {
     dbGetQuery(con, "SELECT COUNT(DISTINCT version) FROM experiments")
 }
 
+stripOMPLPrefix <- function(str) {
+    sub("OMPL ", "", str)
+}
 versionSelectWidget <- function(con, name, checkbox) {
     versions <- dbGetQuery(con, "SELECT DISTINCT version FROM experiments")
     versions <- versions$version
     if (checkbox)
+        # strip "OMPL " prefix, so we can fit more labels on the X-axis
+        versions <- sapply(stripLibnamePrefix, versions)
         widget <- checkboxGroupInput(name, label = h4("Selected versions"),
             choices = versions,
             selected = versions)
     else
-        widget <- selectInput(name, label = h4("OMPL version"),
+        widget <- selectInput(name, label = h4("Version"),
             choices = versions,
             # select most recent version by default
             selected = tail(versions, n=1))

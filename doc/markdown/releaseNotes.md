@@ -1,7 +1,7 @@
 # Release Notes
 
 
-# OMPL 1.0.0 (October 26, 2015)
+# OMPL 1.0.0 (October 26, 2014)
 
 - Added many new planners:
   - [Linear Temporal Logical Planner (LTLPlanner)](\ref cLTLPlanner): a planner that finds solutions for kinodynamic motion planning problems where the goal is specified by a Linear Temporal Logic (LTL) specification.
