@@ -292,8 +292,8 @@ The benchmark log files have a pretty simple structure. Below we have included t
 
 ~~~
 logfile               ::= preamble planners_data;
-preamble              ::= [version] experiment hostname date setup [cpuinfo];
-                          random_seed time_limit memory_limit [num_runs];
+preamble              ::= [version] experiment hostname date setup [cpuinfo]
+                          random_seed time_limit memory_limit [num_runs]
                           total_time [num_enums enums] num_planners;
 version               ::= library_name " version " version_number EOL;
 experiment            ::= "Experiment " experiment_name EOL;
