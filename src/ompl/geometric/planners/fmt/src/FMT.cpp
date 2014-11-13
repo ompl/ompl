@@ -55,7 +55,7 @@ ompl::geometric::FMT::FMT(const base::SpaceInformationPtr &si)
     : base::Planner(si, "FMT")
     , numSamples_(1000)
     , collisionChecks_(0)
-    , nearestK_(true)
+    , nearestK_(false)
     , cacheCC_(true)
     , heuristics_(false)
     , radiusMultiplier_(1.1)
@@ -304,6 +304,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
     // Calculate the nearest neighbor search radius
+    /// \TODO Create a PRM-like connection strategy
     if (nearestK_)
     {
         NNk_ = std::ceil(std::pow(2.0 * radiusMultiplier_, (double)si_->getStateDimension()) *
@@ -325,7 +326,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
 
     while (!ptc && !(plannerSuccess = goal->isSatisfied(z->getState())))
     {
-        successfulExpansion = expandTreeFromNode(z);
+        successfulExpansion = expandTreeFromNode(&z);
         if (!successfulExpansion)
             return base::PlannerStatus(false, false);
     } // While not at goal
@@ -367,12 +368,12 @@ void ompl::geometric::FMT::traceSolutionPathThroughTree(Motion *goalMotion)
     pdef_->addSolutionPath(base::PathPtr(path), false, -1.0, getName());
 }
 
-bool ompl::geometric::FMT::expandTreeFromNode(Motion *&z)
+bool ompl::geometric::FMT::expandTreeFromNode(Motion **z)
 {
     // Find all nodes that are near z, and also in set Unvisited
 
     std::vector<Motion*> xNear;
-    const std::vector<Motion*> &zNeighborhood = neighborhoods_[z];
+    const std::vector<Motion*> &zNeighborhood = neighborhoods_[*z];
     const unsigned int zNeighborhoodSize = zNeighborhood.size();
     xNear.reserve(zNeighborhoodSize);
 
@@ -386,7 +387,7 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion *&z)
             {
                 // Only include neighbors that are mutually k-nearest
                 // Relies on NN datastructure returning k-nearest in sorted order
-                const base::Cost connCost = opt_->motionCost(z->getState(), x->getState());
+                const base::Cost connCost = opt_->motionCost((*z)->getState(), x->getState());
                 const base::Cost worstCost = opt_->motionCost(neighborhoods_[x].back()->getState(), x->getState());
 
                 if (opt_->isCostBetterThan(worstCost, connCost))
@@ -474,7 +475,7 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion *&z)
 
     // Update Open
     Open_.pop();
-    z->setSetType(Motion::SET_CLOSED);
+    (*z)->setSetType(Motion::SET_CLOSED);
 
     // Add the nodes in H_new to H
     unsigned int openNewSize = Open_new.size();
@@ -492,12 +493,7 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion *&z)
     }
 
     // Take the top of Open as the new z
-    z = Open_.top()->data;
+    *z = Open_.top()->data;
 
     return true;
-}
-
-std::string ompl::geometric::FMT::getCollisionCheckCount() const
-{
-    return boost::lexical_cast<std::string>(collisionChecks_);
 }
