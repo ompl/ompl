@@ -133,11 +133,11 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
     for filename in filenames:
         print('Processing ' + filename)
         logfile = open(filename,'r')
-        start_pos = filevar.tell()
+        start_pos = logfile.tell()
         libname = readOptionalLogValue(logfile, 0, {1 : "version"})
         if libname == None:
             libname = "OMPL"
-        filevar.seek(start_pos)
+        logfile.seek(start_pos)
         version = readOptionalLogValue(logfile, -1, {1 : "version"})
         if version == None:
             # set the version number to make Planner Arena happy
