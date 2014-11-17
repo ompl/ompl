@@ -98,10 +98,10 @@ Below, some of the problem settings are changed for the second instance of \c kp
 When using multiple planner instances, a useful parameter is “name”, as it can be used to rename a planner. For example, two instances of geometric::PRM can be created but named differently. Having different names is useful when processing the resulting log data using the [benchmark script](#benchmark_log).
 
     prm=
-    prm.sampler=uniform
+    problem.sampler=uniform
     prm.name=uniprm
     prm=
-    prm.sampler=obstacle_based
+    problem.sampler=obstacle_based
     prm.name=obprm
 
 Finally, to execute the benchmark configuration file, simply run the \c ompl_benchmark executable in the OMPL.app bin directory, and supply the path to the config file as the first argument.
