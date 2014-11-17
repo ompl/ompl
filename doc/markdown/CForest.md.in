@@ -132,9 +132,9 @@ In case you only have one core available, CForest still improves the RRTstar per
 
 ## Design and implementation details {#cf_implementation}
 
-The CForest _planner_ comes together with its own state sampler ompl::base::CForestStateSampler and its own state space ompl::base::CForestStateSpaceWrapper. They are completely transparent to the user as the ompl::geometric::CForest handles the creation of these.
+The CForest _planner_ comes with its own state sampler ompl::base::CForestStateSampler and its own state space ompl::base::CForestStateSpaceWrapper. They are completely transparent to the user as the ompl::geometric::CForest handles the creation of these.
 
-CForest operates on the user specified ompl::base::SpaceInformation. However, CForest instantiates the underlying planners with an individual SpaceInformation instance for each planner, containing an instance of a \c CForestStateSpaceWrapper. When the underlying planner allocates the \c StateSampler, \c CForestStateSpaceWrapper creates an instance of a \c CForestStateSampler which wraps the user specified state sampler (or the default sampler if none was provided). This design is summarized in the following schema:
+CForest operates on the user-specified ompl::base::SpaceInformation. However, CForest instantiates the underlying planners with an individual SpaceInformation instance for each planner, containing an instance of a \c CForestStateSpaceWrapper. When the underlying planner allocates the \c StateSampler, \c CForestStateSpaceWrapper creates an instance of a \c CForestStateSampler which wraps the user-specified state sampler (or the default sampler if none was provided). This design is summarized in the following schema:
 
 \htmlonly
 @CFORESTSVG@
@@ -146,9 +146,9 @@ Whenever a planner calls \c SpaceInformation::allocStateSampler() (or \c allocDe
 @CFOREST_SAMPLERSVG@
 \endhtmlonly
 
-Therefore, CForest tracks the creation of the planners but, thanks to the \c CForestStateSpaceWrapper, it also tracks the creation of the state samplers as well. This allows to have a planner-sampler correspondence required to shared paths between trees.
+Therefore, CForest tracks the creation of the planners but, thanks to the \c CForestStateSpaceWrapper, it also tracks the creation of the state samplers. This allows CForest to maintain a planner-sampler correspondence required to shared paths between trees.
 
-This new state sampler allows to set states to be sampler. Therefore, when a new, better solution is found, CForest shares the states of the new solution to all samplers. \c CForestStateSampler will sample these states. Once states are sampled, it will continue sampling states according to its underlying state sampler
+This new state sampler allows given states (as opposed to random states) to be sampled. Therefore, when a new, better solution is found, CForest shares the states of the new solution to all samplers. \c CForestStateSampler will sample these states. Once states are sampled, it will continue sampling states according to its underlying state sampler.
 
 ## Limitations {#cf_limitations}
 
