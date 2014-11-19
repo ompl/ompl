@@ -131,7 +131,7 @@ namespace ompl
 
             /** @brief A function returning the milestones that should be
              * attempted to connect to. */
-            typedef boost::function<std::vector<Vertex>&(const Vertex)> ConnectionStrategy;
+            typedef boost::function<const std::vector<Vertex>&(const Vertex)> ConnectionStrategy;
 
             /** @brief A function that can reject connections.
 
@@ -261,20 +261,15 @@ namespace ompl
                 return boost::num_vertices(g_);
             }
 
+            /** \brief Return the number of edges currently in the graph */
+            unsigned long int edgeCount() const
+            {
+                return boost::num_edges(g_);
+            }
+
             const RoadmapNeighbors& getNearestNeighbors()
             {
                 return nn_;
-            }
-
-            ///////////////////////////////////////
-            // Planner progress property functions
-            std::string getIterationCount() const
-            {
-                return boost::lexical_cast<std::string>(iterations_);
-            }
-            std::string getBestCost() const
-            {
-                return boost::lexical_cast<std::string>(bestCost_);
             }
 
         protected:
@@ -322,6 +317,25 @@ namespace ompl
             double distanceFunction(const Vertex a, const Vertex b) const
             {
                 return si_->distance(stateProperty_[a], stateProperty_[b]);
+            }
+
+            ///////////////////////////////////////
+            // Planner progress property functions
+            std::string getIterationCount() const
+            {
+                return boost::lexical_cast<std::string>(iterations_);
+            }
+            std::string getBestCost() const
+            {
+                return boost::lexical_cast<std::string>(bestCost_);
+            }
+            std::string getMilestoneCountString() const
+            {
+                return boost::lexical_cast<std::string>(milestoneCount());
+            }
+            std::string getEdgeCountString() const
+            {
+                return boost::lexical_cast<std::string>(edgeCount());
             }
 
             /** \brief Flag indicating whether the default connection strategy is the Star strategy */

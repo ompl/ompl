@@ -1,6 +1,26 @@
 # Release Notes
 
 
+# OMPL 1.0.0 (October 26, 2014)
+
+- Added many new planners:
+  - [Linear Temporal Logical Planner (LTLPlanner)](\ref cLTLPlanner): a planner that finds solutions for kinodynamic motion planning problems where the goal is specified by a Linear Temporal Logic (LTL) specification.
+  - [Fast Marching Tree algorithm (FMT∗)](\ref gFMT): a new asymptotically optimal algorithm contributed by Marco Pavone's Autonomous Systems Laboratory at Stanford.
+  - [Coupled Forest of Random Engrafting Search Trees (CForest)](\ref gCForest): a meta-planner that runs several instances of asymptotically optimal planners in different threads. When one thread finds a better solution path, the states along the path are passed on to the other threads.
+  - [Anytime Path Shortening](\ref gAPS): a generic wrapper around one or more geometric motion planners that repeatedly applies [shortcutting](\ref ompl::geometric::PathSimplifier) and [hybridization](\ref ompl::geometric::PathHybridization) to a set of solution paths. Any number and combination of planners can be specified, each is run in a separate thread.
+  - [LazyPRM](\ref gLazyPRM) / [LazyPRMstar](\ref gLazyPRMstar): not entirely new, but completely re-implemented.
+- RRT* has a new option to periodically prune parts of the tree that are guaranteed *not* to contain the optimal solution. This idea was introduced in CForest, but it useful independently of the CForest parallelization. Although pruning is almost always useful, it is *disabled* by default to preserve the original behavior.
+- Created consistent behavior across all planners that can optimize paths. Calls to the solve method of RRT*, PRM*, SPARS, SPARStwo, and LBTRRT will terminate when (1) the planner termination condition is true or (2) the optimization objective is satisfied. To make these planners terminate when *any* solution is found, you can set the cost threshold for the optimization objective to, e.g., OptimizationObjective::infiniteCost(). For most of these planners, asymptotic (approximate) optimality is only guaranteed when using the PathLengthOptimizationObjective class.
+- Most control-based planners can now use steering functions. The user simply needs to override ompl::control::StatePropagator::steer() and ompl::control::StatePropagator::canSteer() in a derived class.
+- Several improvements to benchmarking functionality:
+  - [Planner Arena](http://plannerarena.org) has been relaunched and can be used to interactively visualize benchmark results.
+  - ompl_benchmark_statistics.py can now also parse MoveIt! benchmark log files using the flag `--moveit`.
+- Added ompl::tools::PlannerMonitor class, which periodically prints planner progress properties in a separate thread. Useful for developing / debugging new planners.
+- Updated Py++ toolchain. If you previously installed Py++ and have trouble generating the OMPL Python bindings, you may need to run "make installpyplusplus" again.
+- Minimum Boost version is now 1.48 and minimum CMake version is now 2.8.7.
+- Bug fixes.
+
+
 # OMPL 0.14.2 (May 23, 2014)
 
 - Changed the [benchmark database schema](\ref benchmark_database) to make it easier to create your own plots.

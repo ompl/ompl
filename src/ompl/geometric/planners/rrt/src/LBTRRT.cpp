@@ -383,9 +383,7 @@ void ompl::geometric::LBTRRT::getPlannerData(base::PlannerData &data) const
             data.addEdge(base::PlannerDataVertex(motions[i]->parentApx_->state),
                          base::PlannerDataVertex(motions[i]->state));
     }
-    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
 }
-
 
 void ompl::geometric::LBTRRT::updateChildCostsLb(Motion *m)
 {

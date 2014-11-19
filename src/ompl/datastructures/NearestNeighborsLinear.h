@@ -70,6 +70,11 @@ namespace ompl
             data_.clear();
         }
 
+        virtual bool reportsSortedResults() const
+        {
+            return true;
+        }
+
         virtual void add(const _T &data)
         {
             data_.push_back(data);

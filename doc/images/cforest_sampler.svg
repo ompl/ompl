@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="582.8631"
+   height="254.422"
+   id="svg3087"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="cforest_sampler.svg">
+  <defs
+     id="defs3089">
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Lend-6"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path4074-0"
+         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4047-2-4-1"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Lend-6-1"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path4074-0-7"
+         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4047-2-6"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker3200"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3202"
+         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4047-2-6-3"
+       is_visible="true" />
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker3205"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3207"
+         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4047-2-6-3-5"
+       is_visible="true" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.9899495"
+     inkscape:cx="242.69185"
+     inkscape:cy="35.866318"
+     inkscape:document-units="px"
+     inkscape:current-layer="g3165"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="927"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <metadata
+     id="metadata3092">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Capa 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-137.33253,-301.04945)">
+    <g
+       id="g3165"
+       transform="translate(-189.90868,-70.710678)">
+      <a
+         xlink:href="classompl_1_1geometric_1_1CForest.html"
+         id="a3561"
+         transform="translate(341.36223,102)">
+        <g
+           id="g3550">
+          <path
+             id="path207-4-2"
+             d="m 182.59444,340.76013 c 0,11.046 -8.059,20 -18,20 H 38.594448 c -9.941,0 -18,-8.954 -18,-20 v -50 c 0,-11.045 8.059,-20 18,-20 H 164.59444 c 9.941,0 18,8.955 18,20 v 50 z"
+             stroke-miterlimit="10"
+             inkscape:connector-curvature="0"
+             style="fill:#7992a2;stroke:#645d61;stroke-width:2;stroke-miterlimit:10" />
+          <text
+             sodipodi:linespacing="125%"
+             id="text3945-13"
+             y="292.76013"
+             x="101.29311"
+             style="font-size:14px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+             xml:space="preserve"><tspan
+               style="font-weight:bold;fill:#ffffff;-inkscape-font-specification:Sans Bold"
+               y="292.76013"
+               x="101.29311"
+               id="tspan3947-8"
+               sodipodi:role="line">CForest</tspan><tspan
+               style="fill:#ffffff"
+               y="310.26013"
+               x="103.52163"
+               sodipodi:role="line"
+               id="tspan3045">Implements the </tspan><tspan
+               style="fill:#ffffff"
+               id="tspan3949-7"
+               y="327.76013"
+               x="103.52163"
+               sodipodi:role="line">CForest meta-planner </tspan><tspan
+               style="fill:#ffffff"
+               id="tspan3951-4"
+               y="345.26013"
+               x="101.29311"
+               sodipodi:role="line">as a regular planner.</tspan></text>
+        </g>
+      </a>
+      <g
+         id="g3299">
+        <g
+           id="g3176">
+          <g
+             id="g3125"
+             transform="translate(189.90868,70.710678)">
+            <path
+               id="path471-9-8-1"
+               d="m 239.50267,517.38067 c 0,3.4796 -5.06859,6.3011 -11.31805,6.3011 h -79.22638 c -6.25134,0 -11.31806,-2.8215 -11.31806,-6.3011 v -15.75126 c 0,-3.47961 5.06672,-6.30111 11.31806,-6.30111 h 79.22638 c 6.24946,0 11.31805,2.8215 11.31805,6.30111 v 15.75126 z"
+               stroke-miterlimit="10"
+               inkscape:connector-curvature="0"
+               style="fill:#c0dcf3;stroke:#7992a2;stroke-width:0.61530203;stroke-miterlimit:10;stroke-dasharray:1.23552649, 1.23552649" />
+          </g>
+          <path
+             style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-end:url(#Arrow2Lend-6)"
+             d="m 429.68524,580.26346 251.01578,0"
+             id="path4045-8-6-4"
+             inkscape:path-effect="#path-effect4047-2-4-1"
+             inkscape:original-d="m 429.68524,580.26346 251.01578,0"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <text
+             y="566.81396"
+             x="437.04309"
+             style="font-size:10px;fill:#645d61;font-family:Helvetica-Oblique"
+             font-size="10"
+             id="text293-1-2">SpaceInformation::allocStateSampler()</text>
+          <text
+             y="576.77386"
+             x="437.06424"
+             style="font-size:10px;fill:#645d61;font-family:Helvetica-Oblique"
+             font-size="10"
+             id="text293-1-2-3">SpaceInformation::allocDefaultStateSampler()</text>
+        </g>
+        <text
+           transform="matrix(0,-1,1,0,0,0)"
+           id="text293-1-9-8"
+           font-size="10"
+           style="font-size:10px;fill:#645d61;font-family:Helvetica-Oblique"
+           x="-529.94385"
+           y="772.97223">StateSpace</text>
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           inkscape:original-d="m 775.87834,539.36552 0,-78.24965"
+           inkscape:path-effect="#path-effect4047-2-6"
+           id="path4045-8-5"
+           d="m 775.87834,539.36552 0,-78.24965"
+           style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-end:url(#Arrow2Lend-6)" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           inkscape:original-d="m 661.30743,417.9386 -134.89524,0"
+           inkscape:path-effect="#path-effect4047-2-6-3"
+           id="path4045-8-5-1"
+           d="m 661.30743,417.9386 -134.89524,0"
+           style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-end:url(#Arrow2Lend-6)" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           inkscape:original-d="M 661.53796,417.60602 390.07582,565.97605"
+           inkscape:path-effect="#path-effect4047-2-6-3-5"
+           id="path4045-8-5-1-0"
+           d="M 661.53796,417.60602 390.07582,565.97605"
+           style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-end:url(#Arrow2Lend-6)" />
+        <text
+           y="414.49271"
+           x="539.48126"
+           style="font-size:10px;fill:#645d61;font-family:Helvetica-Oblique"
+           font-size="10"
+           id="text293-1-2-9">CForest::addSampler()</text>
+        <text
+           transform="matrix(0.8660254,-0.5,0.5,0.8660254,0,0)"
+           y="683.83313"
+           x="175.83974"
+           style="font-size:10px;fill:#645d61;font-family:Helvetica-Oblique"
+           font-size="10"
+           id="text293-1-2-9-2">return sampler</text>
+      </g>
+      <a
+         xlink:href="classompl_1_1base_1_1CForestStateSpaceWrapper.html"
+         transform="translate(448.60535,119.94952)"
+         id="a6589-1">
+        <g
+           id="g6578-7">
+          <path
+             style="fill:#c0dcf3;stroke:#7992a2;stroke-width:1.60128808;stroke-miterlimit:10;stroke-dasharray:3.21538636, 3.21538636"
+             inkscape:connector-curvature="0"
+             stroke-miterlimit="10"
+             d="m 460.69829,486.24617 c 0,10.59481 -11.27423,19.1858 -25.17507,19.1858 H 259.29774 c -13.90503,0 -25.17507,-8.59099 -25.17507,-19.1858 v -47.95993 c 0,-10.59481 11.27004,-19.1858 25.17507,-19.1858 h 176.22548 c 13.90084,0 25.17507,8.59099 25.17507,19.1858 v 47.95993 z"
+             id="path471-9-4" />
+          <text
+             sodipodi:linespacing="125%"
+             id="text3945-1-0-2"
+             y="440.21381"
+             x="347.14423"
+             style="font-size:14px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+             xml:space="preserve"><tspan
+               style="font-weight:bold;fill:#000000;-inkscape-font-specification:Sans Bold"
+               y="440.21381"
+               x="347.14423"
+               sodipodi:role="line"
+               id="tspan5063-6-4">CForestStateSpaceWrapper</tspan><tspan
+               style="fill:#000000"
+               y="457.71381"
+               x="349.37274"
+               sodipodi:role="line"
+               id="tspan3092">Encapsulates the StateSpace </tspan><tspan
+               style="fill:#000000"
+               y="475.21381"
+               x="347.14423"
+               sodipodi:role="line"
+               id="tspan6033-5">provided by the user and adds</tspan><tspan
+               style="fill:#000000"
+               y="492.71381"
+               x="347.14423"
+               sodipodi:role="line"
+               id="tspan6027-5"> specific CForest funcionalities.</tspan></text>
+        </g>
+      </a>
+      <a
+         xlink:href="classompl_1_1base_1_1CForestStateSampler.html"
+         transform="translate(418.21756,-42.209934)"
+         id="a6589-7">
+        <g
+           id="g6578-6">
+          <path
+             id="path471-9-1"
+             d="m 469.28869,483.47897 c 0,10.16117 -11.20504,18.40054 -25.02056,18.40054 H 269.12425 c -13.81968,0 -25.02055,-8.23937 -25.02055,-18.40054 v -45.99696 c 0,-10.16117 11.20087,-18.40054 25.02055,-18.40054 h 175.14388 c 13.81552,0 25.02056,8.23937 25.02056,18.40054 v 45.99696 z"
+             stroke-miterlimit="10"
+             inkscape:connector-curvature="0"
+             style="fill:#c0dcf3;stroke:#7992a2;stroke-width:1.56335592;stroke-miterlimit:10;stroke-dasharray:3.13921874, 3.13921874" />
+          <text
+             xml:space="preserve"
+             style="font-size:14px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+             x="355.85852"
+             y="436.9281"
+             id="text3945-1-0-9"
+             sodipodi:linespacing="125%"><tspan
+               id="tspan5063-6-5"
+               sodipodi:role="line"
+               x="355.85852"
+               y="436.9281"
+               style="font-weight:bold;fill:#000000;-inkscape-font-specification:Sans Bold">CForestStateSampler</tspan><tspan
+               sodipodi:role="line"
+               x="358.08704"
+               y="454.4281"
+               style="fill:#000000"
+               id="tspan3086">Encapsulates the StateSampler </tspan><tspan
+               id="tspan6027-3"
+               sodipodi:role="line"
+               x="358.08704"
+               y="471.9281"
+               style="fill:#000000">provided and adds specific </tspan><tspan
+               sodipodi:role="line"
+               x="355.85852"
+               y="489.4281"
+               style="fill:#000000"
+               id="tspan3089">CForest funcionalities.</tspan></text>
+        </g>
+      </a>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3945-13-5"
+         y="584.38568"
+         x="377.84814"
+         style="font-size:14px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+         xml:space="preserve"><tspan
+           style="font-weight:bold;fill:#000000;-inkscape-font-specification:Sans Bold"
+           id="tspan3951-4-7"
+           y="584.38568"
+           x="377.84814"
+           sodipodi:role="line">planner_t</tspan></text>
+    </g>
+  </g>
+</svg>

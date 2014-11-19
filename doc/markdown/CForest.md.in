@@ -120,6 +120,7 @@ Another interesting experiment is to run CForest with pruning deactivated and co
 
 In case you only have one core available, CForest still improves the RRTstar performance! The following figure shows that using CForest in one single core but with many threads (in the picture 4 and 8) also improves the convergence rate against standard RRT* and its pruned version, reaching lower cost solutions in much less time.
 
+\htmlonly
 <div class="row">
   <img src="../images/threadscforest.png" width="100%"><br>
 <b>Best cost evolution through time</b> Sequential version of the CForest: many threads working in the same core.
@@ -129,13 +130,25 @@ In case you only have one core available, CForest still improves the RRTstar per
 
 # Advanced information {#cf_advanced}
 
-## Implementation details {#cf_implementation}
+## Design and implementation details {#cf_implementation}
 
-The CForest _planner_ comes together with its own state sampler ompl::base::CForestStateSampler and its own state space ompl::base::CForestStateSpaceWrapper. They are completely transparent to the user as the ompl::geometric::CForest handles the creation of these.
+The CForest _planner_ comes with its own state sampler ompl::base::CForestStateSampler and its own state space ompl::base::CForestStateSpaceWrapper. They are completely transparent to the user as the ompl::geometric::CForest handles the creation of these.
 
-CForest operates on the user specified ompl::base::SpaceInformation. However, CForest instantiates the underlying planners with an individual SpaceInformation instance for each planner, containing an instance of a \c CForestStateSpaceWrapper. When the underlying planner allocates the \c StateSampler, \c CForestStateSpaceWrapper creates an instance of a \c CForestStateSampler which wraps the user specified state sampler (or the default sampler if none was provided).
+CForest operates on the user-specified ompl::base::SpaceInformation. However, CForest instantiates the underlying planners with an individual SpaceInformation instance for each planner, containing an instance of a \c CForestStateSpaceWrapper. When the underlying planner allocates the \c StateSampler, \c CForestStateSpaceWrapper creates an instance of a \c CForestStateSampler which wraps the user-specified state sampler (or the default sampler if none was provided). This design is summarized in the following schema:
 
-Therefore, CForest tracks the creation of the planners but, thanks to the \c CForestStateSpace, it also tracks the creation of the state samplers as well. This allows to have a planner-sampler correspondence required to shared paths between trees.
+\htmlonly
+@CFORESTSVG@
+\endhtmlonly
+
+Whenever a planner calls \c SpaceInformation::allocStateSampler() (or \c allocDefaultStateSampler()), \C CForestStateSpaceWrapper allocates a \c CForestStateSampler which creates and wraps the provided \c StateSampler (or default if none was specified).
+
+\htmlonly
+@CFOREST_SAMPLERSVG@
+\endhtmlonly
+
+Therefore, CForest tracks the creation of the planners but, thanks to the \c CForestStateSpaceWrapper, it also tracks the creation of the state samplers. This allows CForest to maintain a planner-sampler correspondence required to shared paths between trees.
+
+This new state sampler allows given states (as opposed to random states) to be sampled. Therefore, when a new, better solution is found, CForest shares the states of the new solution to all samplers. \c CForestStateSampler will sample these states. Once states are sampled, it will continue sampling states according to its underlying state sampler.
 
 ## Limitations {#cf_limitations}
 
@@ -183,7 +196,7 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
     {
         ...
     }
-    
+
     ptc.terminate(); // Will force other threads to stop.
 }
 ~~~

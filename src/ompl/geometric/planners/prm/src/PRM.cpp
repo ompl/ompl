@@ -94,6 +94,10 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
                                boost::bind(&PRM::getIterationCount, this));
     addPlannerProgressProperty("best cost REAL",
                                boost::bind(&PRM::getBestCost, this));
+    addPlannerProgressProperty("milestone count INTEGER",
+                               boost::bind(&PRM::getMilestoneCountString, this));
+    addPlannerProgressProperty("edge count INTEGER",
+                               boost::bind(&PRM::getEdgeCountString, this));
 }
 
 ompl::geometric::PRM::~PRM()
@@ -144,12 +148,17 @@ void ompl::geometric::PRM::setup()
 
 void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
 {
+    if (starStrategy_)
+        throw Exception("Cannot set the maximum nearest neighbors for " + getName());
     if (!nn_)
     {
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(si_->getStateSpace()));
         nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
     }
-    connectionStrategy_ = KStrategy<Vertex>(k, nn_);
+    if (!userSetConnectionStrategy_)
+        connectionStrategy_.clear();
+    if (isSetup())
+        setup();
 }
 
 void ompl::geometric::PRM::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
@@ -582,7 +591,6 @@ void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const
         data.tagState(stateProperty_[v1], const_cast<PRM*>(this)->disjointSets_.find_set(v1));
         data.tagState(stateProperty_[v2], const_cast<PRM*>(this)->disjointSets_.find_set(v2));
     }
-    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
 }
 
 ompl::base::Cost ompl::geometric::PRM::costHeuristic(Vertex u, Vertex v) const

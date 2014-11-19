@@ -536,7 +536,7 @@ namespace ompl
                                                                                 sparseDJSets_;
 
             /** \brief Function that returns the milestones to attempt connections with */
-            boost::function<std::vector<DenseVertex>&(const DenseVertex)>       connectionStrategy_;
+            boost::function<const std::vector<DenseVertex>&(const DenseVertex)> connectionStrategy_;
 
             /** \brief A counter for the number of consecutive failed iterations of the algorithm */
             unsigned int                                                        consecutiveFailures_;

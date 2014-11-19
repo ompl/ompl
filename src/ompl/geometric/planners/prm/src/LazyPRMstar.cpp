@@ -39,5 +39,6 @@
 ompl::geometric::LazyPRMstar::LazyPRMstar(const base::SpaceInformationPtr &si) : LazyPRM(si, true)
 {
     setName("LazyPRMstar");
+    params_.remove("range");
     params_.remove("max_nearest_neighbors");
 }

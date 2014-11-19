@@ -41,7 +41,6 @@
 #include "ompl/datastructures/NearestNeighbors.h"
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/pending/disjoint_sets.hpp>
 #include <boost/function.hpp>
 #include <utility>
 #include <vector>
@@ -132,7 +131,7 @@ namespace ompl
 
             /** @brief A function returning the milestones that should be
              * attempted to connect to. */
-            typedef boost::function<std::vector<Vertex>&(const Vertex)> ConnectionStrategy;
+            typedef boost::function<const std::vector<Vertex>&(const Vertex)> ConnectionStrategy;
 
             /** @brief A function that can reject connections.
 
@@ -145,6 +144,15 @@ namespace ompl
             LazyPRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
 
             virtual ~LazyPRM();
+
+            /** \brief Set the maximum length of a motion to be added to the roadmap. */
+            void setRange(double distance);
+
+            /** \brief Get the range the planner is using */
+            double getRange() const
+            {
+                return maxDistance_;
+            }
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
@@ -172,7 +180,7 @@ namespace ompl
              attempt must be made. The default connection strategy is to connect
              a milestone's 10 closest neighbors.
              */
-            void setConnectionStrategy(const ConnectionStrategy& connectionStrategy)
+            void setConnectionStrategy(const ConnectionStrategy &connectionStrategy)
             {
                 connectionStrategy_ = connectionStrategy;
                 userSetConnectionStrategy_ = true;
@@ -196,7 +204,7 @@ namespace ompl
              a neighboring milestone and returns whether a connection should be
              attempted.
              */
-            void setConnectionFilter(const ConnectionFilter& connectionFilter)
+            void setConnectionFilter(const ConnectionFilter &connectionFilter)
             {
                 connectionFilter_ = connectionFilter;
             }
@@ -205,6 +213,12 @@ namespace ompl
             unsigned long int milestoneCount() const
             {
                 return boost::num_vertices(g_);
+            }
+
+            /** \brief Return the number of edges currently in the graph */
+            unsigned long int edgeCount() const
+            {
+                return boost::num_edges(g_);
             }
 
             virtual void getPlannerData(base::PlannerData &data) const;
@@ -221,6 +235,14 @@ namespace ompl
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
+        protected:
+
+            /** \brief Flag indicating validity of an edge of a vertex */
+            static const unsigned int VALIDITY_UNKNOWN = 0;
+
+            /** \brief Flag indicating validity of an edge of a vertex */
+            static const unsigned int VALIDITY_TRUE    = 1;
+
             ///////////////////////////////////////
             // Planner progress property functions
             std::string getIterationCount() const
@@ -231,14 +253,14 @@ namespace ompl
             {
                 return boost::lexical_cast<std::string>(bestCost_);
             }
-
-        protected:
-
-            /** \brief Flag indicating validity of an edge of a vertex */
-            static const unsigned int VALIDITY_UNKNOWN = 0;
-
-            /** \brief Flag indicating validity of an edge of a vertex */
-            static const unsigned int VALIDITY_TRUE    = 1;
+            std::string getMilestoneCountString() const
+            {
+                return boost::lexical_cast<std::string>(milestoneCount());
+            }
+            std::string getEdgeCountString() const
+            {
+                return boost::lexical_cast<std::string>(edgeCount());
+            }
 
             /** \brief Free all the memory allocated by the planner */
             void freeMemory();
@@ -279,6 +301,9 @@ namespace ompl
 
             /** \brief Flag indicating whether the employed connection strategy was set by the user (or defaults are assumed) */
             bool                                                   userSetConnectionStrategy_;
+
+            /** \brief The maximum length of a motion to be added to a tree */
+            double                                                 maxDistance_;
 
             /** \brief Sampler user for generating random in the state space */
             base::StateSamplerPtr                                  sampler_;

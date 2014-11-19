@@ -573,7 +573,6 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
             data.addEdge(base::PlannerDataVertex(motions[i]->parent->state),
                          base::PlannerDataVertex(motions[i]->state));
     }
-    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
 }
 
 int ompl::geometric::RRTstar::pruneTree(const base::Cost pruneTreeCost)

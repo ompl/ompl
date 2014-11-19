@@ -3,7 +3,7 @@
 [Boost](http://www.boost.org) provides an extension to the C++ standard template library, supplying the user with many generic, cross-platform concepts that are easily included in the developer's program. For users that are unfamiliar with Boost, this page will briefly describe the constructs from the Boost library used in OMPL. This tutorial makes no attempt to fully educate the user on the usage and API of the Boost library, only to give a high level overview of these components and why they were chosen for OMPL. For further detail on Boost, please consult the extensive [Boost documentation](http://www.boost.org/doc/libs/) directly.
 
 \attention
-OMPL requires Boost __version 1.44__ or greater.
+OMPL requires Boost __version 1.48__ or greater.
 
 
 # Shared Pointer (boost/shared_ptr.hpp)

@@ -27,10 +27,7 @@ add_ompl_test(test_state_operations base/state_operations.cpp)
 add_ompl_test(test_state_spaces base/state_spaces.cpp)
 add_ompl_test(test_state_storage base/state_storage.cpp)
 add_ompl_test(test_ptc base/ptc.cpp)
-# Only build the PlannerData test on Boost >= 1.44
-if(NOT "${Boost_VERSION}" LESS 104400)
-    add_ompl_test(test_planner_data base/planner_data.cpp)
-endif(NOT "${Boost_VERSION}" LESS 104400)
+add_ompl_test(test_planner_data base/planner_data.cpp)
 
 # Test kinematic motion planners in 2D environments
 add_ompl_test(test_2denvs_geometric geometric/2d/2denvs.cpp)
@@ -40,10 +37,7 @@ add_ompl_test(test_2dcircles_opt_geometric geometric/2d/2dcircles_optimize.cpp)
 
 # Test planning with controls on a 2D map
 add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)
-# Only build the PlannerData test on Boost >= 1.44
-if(NOT "${Boost_VERSION}" LESS 104400)
-    add_ompl_test(test_planner_data_control control/planner_data.cpp)
-endif(NOT "${Boost_VERSION}" LESS 104400)
+add_ompl_test(test_planner_data_control control/planner_data.cpp)
 
 # Test planning via MORSE extension
 if(OMPL_EXTENSION_MORSE)

@@ -114,9 +114,6 @@ void ompl::geometric::CForest::getPlannerData(base::PlannerData &data) const
         for (unsigned int j = 0; j < pd.numStartVertices(); ++j)
             data.markStartState(pd.getStartVertex(j).getState());
     }
-
-    data.properties["shared paths INTEGER"] = getNumPathsShared();
-    data.properties["shared states INTEGER"] = getNumStatesShared();
 }
 
 void ompl::geometric::CForest::clear()
