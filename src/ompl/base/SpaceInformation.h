@@ -212,7 +212,7 @@ namespace ompl
             }
 
             /** \brief Get a measure of the space (this can be thought of as a generalization of volume) */
-            double getMeasure() const
+            double getSpaceMeasure() const
             {
                 return stateSpace_->getMeasure();
             }

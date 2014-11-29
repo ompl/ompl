@@ -62,16 +62,16 @@ namespace
             sDist_(1, 1000000000),
             s_(sGen_, sDist_)
         {
-}
+        }
 
         boost::uint32_t firstSeed()
-{
+        {
             boost::mutex::scoped_lock slock(rngMutex_);
             return firstSeed_;
-}
+        }
 
         void setSeed(boost::uint32_t seed)
-{
+        {
             boost::mutex::scoped_lock slock(rngMutex_);
             if (seed > 0)
             {
@@ -123,13 +123,13 @@ namespace
     void initRNGSeedGenerator()
     {
         g_RNGSeedGenerator.reset(new RNGSeedGenerator());
-}
+    }
 
     RNGSeedGenerator& getRNGSeedGenerator()
-{
+    {
         boost::call_once(&initRNGSeedGenerator, g_once);
         return *g_RNGSeedGenerator;
-}
+    }
 }  // namespace
 /// @endcond
 
