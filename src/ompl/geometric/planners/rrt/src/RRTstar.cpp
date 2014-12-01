@@ -365,7 +365,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             bool checkForSolution = false;
             for (std::size_t i = 0; i < nbh.size(); ++i)
             {
-                if (nbh[i] != motion->parent)
+                // Make sure this rewire won't break the tree
+                if (!isAncestor(nbh[i], motion))
                 {
                     base::Cost nbhIncCost;
                     if (symCost)
@@ -528,6 +529,15 @@ void ompl::geometric::RRTstar::removeFromParent(Motion *m)
             m->parent->children.erase(it);
             break;
         }
+}
+
+bool ompl::geometric::RRTstar::isAncestor(const Motion *m1, const Motion *m2) const
+{
+    if (m2->parent == m1)
+        return true;
+    if (m2->parent == NULL)
+        return false;
+    return isAncestor(m1, m2->parent);
 }
 
 void ompl::geometric::RRTstar::updateChildCosts(Motion *m)

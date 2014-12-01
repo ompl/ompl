@@ -246,6 +246,9 @@ namespace ompl
             /** \brief Removes the given motion from the parent's child list */
             void removeFromParent(Motion *m); 
 
+            /** \brief Check if motion \a m1 is any ancestor (parent, grandparent, ...) of \a m2. */
+            bool isAncestor(const Motion *m1, const Motion *m2) const;
+
             /** \brief Updates the cost of the children of this node if the cost up to this node has changed */
             void updateChildCosts(Motion *m);
 
