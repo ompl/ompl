@@ -8,6 +8,7 @@ OMPL contains a ompl::Benchmark class that facilitates solving a motion planning
 - \ref benchmark_code
 - \ref benchmark_log
 - \ref benchmark_sample_results
+- \ref benchmark_logfile_format
 - \ref benchmark_database
 
 \ifnot OMPLAPP
@@ -97,11 +98,11 @@ Below, some of the problem settings are changed for the second instance of \c kp
 When using multiple planner instances, a useful parameter is “name”, as it can be used to rename a planner. For example, two instances of geometric::PRM can be created but named differently. Having different names is useful when processing the resulting log data using the [benchmark script](#benchmark_log).
 
     prm=
-    problem.sampler="uniform"
-    prm.name="uniprm"
+    problem.sampler=uniform
+    prm.name=uniprm
     prm=
-    problem.sampler="obstacle_based"
-    prm.name="obprm"
+    problem.sampler=obstacle_based
+    prm.name=obprm
 
 Finally, to execute the benchmark configuration file, simply run the \c ompl_benchmark executable in the OMPL.app bin directory, and supply the path to the config file as the first argument.
 \endif
@@ -284,6 +285,56 @@ For boolean measurements the script will create bar charts with the percentage o
 <div class="row"><img src="../images/Twistycool_solved.png" class="col-md-8 col-sm-10 col-md-offset-2 col-sm-offset-1 img-responsive"></div>
 
 Whenever measurements are not always available for a particular attribute, the columns for each planner are labeled with the number of runs for which no data was available. For instance, the boolean attribute __correct solution__ is not set if a solution is not found.
+
+# The benchmark logfile format {#benchmark_logfile_format}
+
+The benchmark log files have a pretty simple structure. Below we have included their syntax in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus–Naur_Form). This may be useful for someone interested in extending other planning libraries with similar logging capabilities (which would be helpful in a direct comparison of the performance of planning libraries). Log files in this format can be parsed by ompl_benchmark_statistics.py (see next section).
+
+~~~
+logfile               ::= preamble planners_data;
+preamble              ::= [version] experiment hostname date setup [cpuinfo]
+                          random_seed time_limit memory_limit [num_runs]
+                          total_time [num_enums enums] num_planners;
+version               ::= library_name " version " version_number EOL;
+experiment            ::= "Experiment " experiment_name EOL;
+hostname              ::= "Running on " host EOL;
+date                  ::= "Starting at " date_string EOL;
+setup                 ::= multi_line_string;
+cpuinfo               ::= multi_line_string;
+multi_line_string     ::= "<<<|" EOL strings "|>>>" EOL
+strings               ::= string EOL | string EOL strings
+random_seed           ::= int " is the random seed" EOL;
+time_limit            ::= float " seconds per run" EOL;
+memory_limit          ::= float " MB per run" EOL;
+num_runs              ::= int " runs per planner" EOL;
+total_time            ::= float " seconds spent to collect the data" EOL;
+num_enums             ::= num " enum type" EOL;
+enums                 ::= enum | enum enums;
+enum                  ::= enum_name "|" enum_values EOL;
+enum_values           ::= enum_value | enum_value "|" enum_values;
+num_planners          ::= int " planners" EOL;
+planners_data         ::= planner_data | planner_data planners_data;
+planner_data          ::= planner_name EOL int " common properties" EOL
+                          planner_properties int " properties for each run" EOL
+                          run_properties int " runs" EOL run_measurements
+                          [int "progress properties for each run" EOL
+                          progress_properties int " runs" EOL
+                          progress_measurements] "." EOL;
+planner_properties    ::= "" | planner_property planner_properties;
+planner_property      ::= property_name " = " property_value EOL;
+run_properties        ::= property | property run_properties;
+progress_properties   ::= property | property progress_properties;
+property              ::= property_name " " property_type EOL;
+property_type         ::= "BOOLEAN" | "INTEGER" | "REAL";
+run_measurements      ::= run_measurement | run_measurement run_measurements;
+run_measurement       ::= data "; " | data "; " run_measurement;
+data                  ::= num | "inf" | "nan" | "";
+progress_measurements ::= progress_measurement EOL
+                         | progress_measurement EOL progress_measurements;
+progress_measurement  ::= prog_run_data | prog_run_data ";" progress_measurement;
+prog_run_data         ::= data "," | data "," prog_run_data;
+~~~
+Here, `EOL` denotes a newline character, `int` denotes an integer, `float` denotes a floating point number, `num` denotes an integer or float value and undefined symbols correspond to strings without whitespace characters. The exception is `property_name` which is a string that _can_ have whitespace characters. It is also assumed that if the log file says there is data for _k_ planners that that really is the case (likewise for the number of run measurements and the optional progress measurements).
 
 # The benchmark database schema {#benchmark_database}
 

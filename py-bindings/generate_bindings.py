@@ -439,8 +439,9 @@ class ompl_control_generator_t(code_generator_t):
         self.ompl_ns.namespace('control').class_('SimpleSetup').add_registration_code(
             'def("getPlannerAllocator", &ompl::control::SimpleSetup::getPlannerAllocator, bp::return_value_policy< bp::copy_const_reference >())')
 
-        # do this for all classes that exist with the same name in another namespace
-        for cls in ['SimpleSetup', 'KPIECE1', 'PDST', 'RRT', 'EST', 'SpaceInformation', 'Syclop', 'SyclopEST', 'SyclopRRT']:
+        # Do this for all classes that exist with the same name in another namespace
+        # (We also do it for all planners; see below)
+        for cls in ['SimpleSetup', 'SpaceInformation']:
             self.ompl_ns.namespace('control').class_(cls).wrapper_alias = 'Control%s_wrapper' % cls
 
         # Py++ seems to get confused by some methods declared in one module
@@ -453,6 +454,8 @@ class ompl_control_generator_t(code_generator_t):
 
         # do this for all planners
         for planner in ['KPIECE1', 'PDST', 'RRT', 'EST', 'Syclop', 'SyclopEST', 'SyclopRRT']:
+            # many planners  exist with the same name in another namespace
+            self.ompl_ns.namespace('control').class_(planner).wrapper_alias = 'Control%s_wrapper' % planner
             self.ompl_ns.class_(planner).add_registration_code("""
             def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )""")
             self.ompl_ns.class_(planner).add_registration_code("""

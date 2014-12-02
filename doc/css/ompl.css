@@ -116,6 +116,8 @@ iframe { border: none; }
 .carousel-caption ul { color: #fff; }
 .carousel-caption-inset { padding-left: 60px; padding-right: 60px; }
 .carousel-caption p a, .carousel-caption p a:hover, .carousel-caption p a:visited { color: #7ae; }
+.carousel img { margin-left: auto; margin-right: auto; }
+
 body, table, div, p, dl {
     font-family: "Lucida Grande", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
