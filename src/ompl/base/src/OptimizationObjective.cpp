@@ -140,6 +140,12 @@ const ompl::base::SpaceInformationPtr& ompl::base::OptimizationObjective::getSpa
     return si_;
 }
 
+void ompl::base::OptimizationObjective::print(std::ostream &out) const
+{
+    out << "Optimization Objective: " << description_ << " @" << this << std::endl;
+    out << "Optimization Threshold: " << threshold_ << std::endl;
+}
+
 ompl::base::Cost ompl::base::goalRegionCostToGo(const State *state, const Goal *goal)
 {
     const GoalRegion *goalRegion = goal->as<GoalRegion>();
