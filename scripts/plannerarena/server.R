@@ -47,11 +47,13 @@ versionSelectWidget <- function(con, name, checkbox) {
     versions <- dbGetQuery(con, "SELECT DISTINCT version FROM experiments")
     versions <- versions$version
     if (checkbox)
+    {
         # strip "OMPL " prefix, so we can fit more labels on the X-axis
         versions <- sapply(stripLibnamePrefix, versions)
         widget <- checkboxGroupInput(name, label = h4("Selected versions"),
             choices = versions,
             selected = versions)
+    }
     else
         widget <- selectInput(name, label = h4("Version"),
             choices = versions,
@@ -124,7 +126,17 @@ shinyServer(function(input, output, session) {
     output$progProblemSelect <- renderUI({ problemSelectWidget(con(), "progProblem") })
     output$regrProblemSelect <- renderUI({ problemSelectWidget(con(), "regrProblem") })
 
-    output$perfAttrSelect <- renderUI({ perfAttrSelectWidget(con(), "perfAttr") })
+    output$perfAttrSelect <- renderUI({
+        list(
+            perfAttrSelectWidget(con(), "perfAttr"),
+            checkboxInput('perfShowAdvOptions', 'Show advanced options', FALSE),
+            conditionalPanel(condition = 'input.perfShowAdvOptions',
+                div(class="well well-light",
+                    checkboxInput("perfShowAsCDF", label = "Show as cumulative distribution function")
+                )
+            )
+        )
+    })
     output$regrAttrSelect <- renderUI({ perfAttrSelectWidget(con(), "regrAttr") })
     output$progAttrSelect <- renderUI({
         progressAttrs <- dbGetQuery(con(), "PRAGMA table_info(progress)")
@@ -207,12 +219,25 @@ shinyServer(function(input, output, session) {
         }
         else
         {
-            p <- ggplot(data, aes_string(x = "planner", y = attr, group = "planner")) +
-                # labels
-                ylab(input$perfAttr) +
-                theme(legend.position = "none", text = element_text(size = 20)) +
-                # box plots for boolean, integer, and real-valued attributes
-                geom_boxplot(color = I("#3073ba"), fill = I("#99c9eb"))
+            if (input$perfShowAsCDF)
+            {
+                p <- ggplot(data, aes_string(x = attr, group = "planner", color = "planner")) +
+                    # labels
+                    xlab(input$perfAttr) +
+                    ylab('cumulative probability') +
+                    theme(text = element_text(size = 20)) +
+                    # empirical cumulative distribution function
+                    stat_ecdf()
+            }
+            else
+            {
+                p <- ggplot(data, aes_string(x = "planner", y = attr, group = "planner")) +
+                    # labels
+                    ylab(input$perfAttr) +
+                    theme(legend.position = "none", text = element_text(size = 20)) +
+                    # box plots for boolean, integer, and real-valued attributes
+                    geom_boxplot(color = I("#3073ba"), fill = I("#99c9eb"))
+            }
         }
         p
     })
