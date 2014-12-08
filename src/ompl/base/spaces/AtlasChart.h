@@ -63,7 +63,7 @@ namespace ompl
                 
                 /** \brief Constructor using the chart owning the inequality \a c and an explicit point \a u
                  * on \a c. Inequality inferred from center of \a c and point \a u. */
-                LinearInequality (const AtlasChart &c, const Eigen::VectorXd &u);
+                LinearInequality (const AtlasChart &c, Eigen::Ref<const Eigen::VectorXd> u);
                 
                 /** \brief Set the linear inequality which complements this one (though not exactly
                  * because it would lie on a different chart). */
@@ -76,20 +76,21 @@ namespace ompl
                 const AtlasChart &getOwner (void) const;
                 
                 /** \brief Return whether point \a v on the owning chart satisfies the inequality. */
-                bool accepts (const Eigen::VectorXd &v) const;
+                bool accepts (Eigen::Ref<const Eigen::VectorXd> v) const;
                 
                 /** \brief If point \a v on the owning chart is too close to this inequality, ask
                  * the complementary inequality to relax in order to accept \a v when projected onto
                  * the neighboring chart. */
-                void checkNear (const Eigen::VectorXd &v) const;
+                void checkNear (Eigen::Ref<const Eigen::VectorXd> v) const;
                 
                 /** \brief Compute up to two vertices of intersection with a circle of radius \a r.
                  * If one vertex is found, it is stored to both \a v1 and \a v2; if two are found, they are
                  * stored to \a v1 and \a v2. If no vertex is found, returns false; otherwise returns true. */
-                bool circleIntersect (const double r, Eigen::VectorXd &v1, Eigen::VectorXd &v2) const;
+                bool circleIntersect (const double r, Eigen::Ref<Eigen::VectorXd> v1, Eigen::Ref<Eigen::VectorXd> v2) const;
                 
-                /** \brief Compute the vertex of intersection of two 1-dimensional inequalities \a l1 and \a l2. */
-                static Eigen::VectorXd intersect (const LinearInequality &l1, const LinearInequality &l2);
+                /** \brief Compute the vertex of intersection of two 1-dimensional inequalities \a l1 and \a l2.
+                 * Result stored in \a out, which should be allocated to a size of 2. */
+                static void intersect (const LinearInequality &l1, const LinearInequality &l2, Eigen::Ref<Eigen::VectorXd> out);
                 
             private:
                 
@@ -113,11 +114,11 @@ namespace ompl
                 
                 /** \brief Compute the distance between a point \a v on our chart and the nearest point
                  * on this linear inequality as a scalar factor of u_. */
-                double distanceToPoint (const Eigen::VectorXd &v) const;
+                double distanceToPoint (Eigen::Ref<const Eigen::VectorXd> v) const;
                 
                 /** \brief Adjust the inequality to include ambient point \a x when it is projected
                  * onto our chart. */
-                void expandToInclude (const Eigen::VectorXd &x);
+                void expandToInclude (Eigen::Ref<const Eigen::VectorXd> x);
             };
             
         public:
@@ -125,30 +126,31 @@ namespace ompl
             /** \brief Constructor; \a atlas is the atlas to which it belongs, and \a xorigin
              * is the ambient space point on the manifold at which the chart will be centered.
              * Chart will persist through calls to AtlasStateSpace::clear() if \a anchor is true. */
-            AtlasChart (const AtlasStateSpace &atlas, const Eigen::VectorXd &xorigin, const bool anchor = false);
+            AtlasChart (const AtlasStateSpace &atlas, Eigen::Ref<const Eigen::VectorXd> xorigin, const bool anchor = false);
             
             /** \brief Destructor. */
             virtual ~AtlasChart (void);
             
             /** \brief Returns phi(0), the center of the chart in ambient space. */
-            const Eigen::VectorXd &getXorigin (void) const;
+            Eigen::Ref<const Eigen::VectorXd> getXorigin (void) const;
             
-            /** \brief Write a chart point \a u in ambient space coordinates. */
-            Eigen::VectorXd phi (const Eigen::VectorXd &u) const;
+            /** \brief Write a chart point \a u in ambient space coordinates. Result stored in \a out,
+             * which should be allocated to a size of ambient dimension. */
+            void phi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
             
             /** \brief Exponential mapping; projects chart point \a u onto the manifold. */
-            Eigen::VectorXd psi (const Eigen::VectorXd &u) const;
+            Eigen::VectorXd psi (Eigen::Ref<const Eigen::VectorXd> u) const;
             
             /** \brief Logarithmic mapping; projects ambient point \a x onto the chart. */
-            Eigen::VectorXd psiInverse (const Eigen::VectorXd &x) const;
+            Eigen::VectorXd psiInverse (Eigen::Ref<const Eigen::VectorXd> x) const;
             
             /** \brief Check if a point \a u on the chart lies within its polytope P. LinearInequalities
              * \a ignore1 and \a ignore2, if specified, are ignored during the check. */
-            virtual bool inP (const Eigen::VectorXd &u, const LinearInequality *const ignore1 = NULL, const LinearInequality *const ignore2 = NULL) const;
+            virtual bool inP (Eigen::Ref<const Eigen::VectorXd> u, const LinearInequality *const ignore1 = NULL, const LinearInequality *const ignore2 = NULL) const;
             
             /** \brief Check if chart point \a v lies too close to any linear inequality. When it does,
              * expand the neighboring chart's polytope. */
-            virtual void borderCheck (const Eigen::VectorXd &v) const;
+            virtual void borderCheck (Eigen::Ref<const Eigen::VectorXd> v) const;
             
             /** \brief Track that this chart owns \a state. Assumes we are not already tracking it. */
             void own (const ompl::base::AtlasStateSpace::StateType *const state) const;
@@ -161,7 +163,7 @@ namespace ompl
             
             /** \brief Check each of our neighboring charts to see if ambient point \a x lies within its
              * polytope when projected onto it. Returns NULL if none. */
-            virtual const AtlasChart *owningNeighbor (const Eigen::VectorXd &x) const;
+            virtual const AtlasChart *owningNeighbor (Eigen::Ref<const Eigen::VectorXd> x) const;
             
             /** \brief Perform calculations to approximate the measure of this chart. */
             virtual void approximateMeasure (void) const;
@@ -246,7 +248,7 @@ namespace ompl
             } mutices_;
             
             /** \brief Compare the angles \a v1 and \a v2 make with the origin. */
-            bool angleCompare (const Eigen::VectorXd &v1, const Eigen::VectorXd &v2) const;
+            bool angleCompare (Eigen::Ref<const Eigen::VectorXd> v1, Eigen::Ref<const Eigen::VectorXd> v2) const;
         };
     }
 }

@@ -50,7 +50,7 @@ bool ompl::base::AtlasConstraint::isSatisfied (const State *state) const
 
 double ompl::base::AtlasConstraint::distance (const State *state) const
 {
-    return atlas_.bigF(toVector(state)).norm();
+    return atlas_.bigF(vectorView(state)).norm();
 }
 
 bool ompl::base::AtlasConstraint::sample (State *state)
@@ -61,23 +61,13 @@ bool ompl::base::AtlasConstraint::sample (State *state)
 
 bool ompl::base::AtlasConstraint::project (State *state)
 {
-    Eigen::VectorXd x = toVector(state);
-    if (atlas_.project(x, x))
-        fromVector(state, x);
+    atlas_.project(vectorView(state));
     
     return isSatisfied(state);
 }
 
-Eigen::VectorXd ompl::base::AtlasConstraint::toVector(const State *state) const
+Eigen::Map<Eigen::VectorXd> ompl::base::AtlasConstraint::vectorView(const State *state) const
 {
-    Eigen::VectorXd x(atlas_.getAmbientDimension());
-    for (unsigned int i = 0; i < x.size(); i++)
-        x[i] = state->as<RealVectorStateSpace::StateType>()->values[i];
-    return x;
+    return Eigen::Map<Eigen::VectorXd>(state->as<RealVectorStateSpace::StateType>()->values, atlas_.getAmbientDimension());
 }
 
-void ompl::base::AtlasConstraint::fromVector(State *state, const Eigen::VectorXd &x) const
-{
-    for (unsigned int i = 0; i < x.size(); i++)
-        state->as<RealVectorStateSpace::StateType>()->values[i] = x[i];
-}

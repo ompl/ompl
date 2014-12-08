@@ -66,12 +66,9 @@ namespace ompl
              * if projection fails. */
             bool project (State *state);
             
-            /** \brief Convert RealVectorState to Eigen vector. */
-            Eigen::VectorXd toVector(const State *state) const;
-            
-            /** \brief Convert Eigen vector to RealVectorState. */
-            void fromVector(State *state, const Eigen::VectorXd &x) const;
-            
+            /** \brief View RealVectorState as Eigen vector. */
+            Eigen::Map<Eigen::VectorXd> vectorView (const State *state) const;
+                        
         private:
             
             /** \brief Atlas the constraints belong to. */

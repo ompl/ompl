@@ -52,7 +52,7 @@ ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c,
     setU(1.05*owner_.psiInverse(neighbor.getXorigin()));
 }
 
-ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c, const Eigen::VectorXd &u)
+ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c, Eigen::Ref<const Eigen::VectorXd> u)
 : owner_(c), complement_(NULL)
 {
     setU(u);
@@ -73,29 +73,30 @@ const ompl::base::AtlasChart &ompl::base::AtlasChart::LinearInequality::getOwner
     return owner_;
 }
 
-bool ompl::base::AtlasChart::LinearInequality::accepts (const Eigen::VectorXd &v) const
+bool ompl::base::AtlasChart::LinearInequality::accepts (Eigen::Ref<const Eigen::VectorXd> v) const
 {
     return v.dot(u_) <= rhs_;
 }
 
-void ompl::base::AtlasChart::LinearInequality::checkNear (const Eigen::VectorXd &v) const
+void ompl::base::AtlasChart::LinearInequality::checkNear (Eigen::Ref<const Eigen::VectorXd> v) const
 {
     // Threshold is 10% of the distance from the origin to the inequality
     if (complement_ && distanceToPoint(v) < 1.0/20)
         complement_->expandToInclude(owner_.psi(v));
 }
 
-bool ompl::base::AtlasChart::LinearInequality::circleIntersect (const double r, Eigen::VectorXd &v1, Eigen::VectorXd &v2) const
+bool ompl::base::AtlasChart::LinearInequality::circleIntersect (const double r, Eigen::Ref<Eigen::VectorXd> v1, Eigen::Ref<Eigen::VectorXd> v2) const
 {
     if (owner_.atlas_.getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::LinearInequality::circleIntersect() only works on 2D manifolds.");
     
-    const double discr = 4*r*r - u_.squaredNorm();
+    double discr = 4*r*r - u_.squaredNorm();
     if (discr < 0)
         return false;
+    discr = std::sqrt(discr);
     
-    Eigen::VectorXd uRev(2); uRev << -u_[1], u_[0];
-    v1 = uRev * std::sqrt(discr);
+    v1[0] = -u_[1] * discr;
+    v1[1] = u_[0] * discr;
     v2 = -v1;
     v1 += u_ * u_.norm();
     v2 += u_ * u_.norm();
@@ -106,7 +107,7 @@ bool ompl::base::AtlasChart::LinearInequality::circleIntersect (const double r, 
 }
 
 /// Public static
-Eigen::VectorXd ompl::base::AtlasChart::LinearInequality::intersect (const LinearInequality &l1, const LinearInequality &l2)
+void ompl::base::AtlasChart::LinearInequality::intersect (const LinearInequality &l1, const LinearInequality &l2, Eigen::Ref<Eigen::VectorXd> out)
 {
     if (&l1.owner_ != &l2.owner_)
         throw ompl::Exception("Cannot intersect linear inequalities on different charts.");
@@ -115,8 +116,8 @@ Eigen::VectorXd ompl::base::AtlasChart::LinearInequality::intersect (const Linea
     
     Eigen::MatrixXd A(2,2);
     A.row(0) = l1.u_.transpose(); A.row(1) = l2.u_.transpose();
-    Eigen::VectorXd b(2); b << l1.u_.squaredNorm(), l2.u_.squaredNorm();
-    return 0.5 * A.inverse() * b;
+    out[0] = l1.u_.squaredNorm(); out[1] = l2.u_.squaredNorm();
+    out = 0.5 * A.inverse() * out;
 }
 
 /// Private
@@ -126,12 +127,12 @@ void ompl::base::AtlasChart::LinearInequality::setU (const Eigen::VectorXd &u)
     rhs_ = u_.squaredNorm()/2;
 }
 
-double ompl::base::AtlasChart::LinearInequality::distanceToPoint (const Eigen::VectorXd &v) const
+double ompl::base::AtlasChart::LinearInequality::distanceToPoint (Eigen::Ref<const Eigen::VectorXd> v) const
 {
     return (0.5 - v.dot(u_) / u_.squaredNorm());
 }
 
-void ompl::base::AtlasChart::LinearInequality::expandToInclude (const Eigen::VectorXd &x)
+void ompl::base::AtlasChart::LinearInequality::expandToInclude (Eigen::Ref<const Eigen::VectorXd> x)
 {
     // Compute how far v = psiInverse(x) lies outside the inequality, if at all
     const double t = -distanceToPoint(owner_.psiInverse(x));
@@ -144,7 +145,7 @@ void ompl::base::AtlasChart::LinearInequality::expandToInclude (const Eigen::Vec
 /// AtlasChart
 
 /// Public
-ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, const Eigen::VectorXd &xorigin, const bool anchor)
+ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, Eigen::Ref<const Eigen::VectorXd> xorigin, const bool anchor)
 : atlas_(atlas), n_(atlas_.getAmbientDimension()), k_(atlas_.getManifoldDimension()),
   xorigin_(xorigin), id_(0), anchor_(anchor), radius_(atlas_.getRho())
 {
@@ -183,20 +184,21 @@ ompl::base::AtlasChart::~AtlasChart (void)
         (*s)->setChart(NULL, true);
 }
 
-const Eigen::VectorXd &ompl::base::AtlasChart::getXorigin (void) const
+Eigen::Ref<const Eigen::VectorXd> ompl::base::AtlasChart::getXorigin (void) const
 {
     return xorigin_;
 }
 
-Eigen::VectorXd ompl::base::AtlasChart::phi (const Eigen::VectorXd &u) const
+void ompl::base::AtlasChart::phi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const
 {
-    return xorigin_ + bigPhi_ * u;
+    out = xorigin_ + bigPhi_ * u;
 }
 
-Eigen::VectorXd ompl::base::AtlasChart::psi (const Eigen::VectorXd &u) const
+Eigen::VectorXd ompl::base::AtlasChart::psi (Eigen::Ref<const Eigen::VectorXd> u) const
 {
     // Initial guess for Newton's method
-    const Eigen::VectorXd x_0 = phi(u);
+    Eigen::VectorXd x_0(n_);
+    phi(u,x_0);
     Eigen::VectorXd x = x_0;
     
     unsigned int iter = 0;
@@ -219,12 +221,12 @@ Eigen::VectorXd ompl::base::AtlasChart::psi (const Eigen::VectorXd &u) const
     return x;
 }
 
-Eigen::VectorXd ompl::base::AtlasChart::psiInverse (const Eigen::VectorXd &x) const
+Eigen::VectorXd ompl::base::AtlasChart::psiInverse (Eigen::Ref<const Eigen::VectorXd> x) const
 {
     return bigPhi_t_ * (x - xorigin_);
 }
 
-bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, const LinearInequality *const ignore1,
+bool ompl::base::AtlasChart::inP (Eigen::Ref<const Eigen::VectorXd> u, const LinearInequality *const ignore1,
                                   const LinearInequality *const ignore2) const
 {
     std::list<LinearInequality *>::const_iterator b, e;
@@ -245,7 +247,7 @@ bool ompl::base::AtlasChart::inP (const Eigen::VectorXd &u, const LinearInequali
     return true;
 }
 
-void ompl::base::AtlasChart::borderCheck (const Eigen::VectorXd &v) const
+void ompl::base::AtlasChart::borderCheck (Eigen::Ref<const Eigen::VectorXd> v) const
 {
     std::list<LinearInequality *>::const_iterator b, e;
     {
@@ -287,7 +289,7 @@ void ompl::base::AtlasChart::substituteChart (const AtlasChart &replacement) con
     }
 }
 
-const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eigen::VectorXd &x) const
+const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (Eigen::Ref<const Eigen::VectorXd> x) const
 {
     std::list<LinearInequality *>::const_iterator b, e;
     {
@@ -296,6 +298,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eige
         e = bigL_.end();
     }
     
+    Eigen::VectorXd temp(n_);
     for (std::list<LinearInequality *>::const_iterator l = b; l != e; l++)
     {
         const LinearInequality *const comp = (*l)->getComplement();
@@ -305,7 +308,8 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (const Eige
         // Project onto the chart and check if it's in the validity region and polytope
         const AtlasChart &c = comp->getOwner();
         const Eigen::VectorXd psiInvX = c.psiInverse(x);
-        if ((c.phi(psiInvX) - x).norm() < atlas_.getEpsilon() && psiInvX.norm() < atlas_.getRho() && c.inP(psiInvX))
+        c.phi(psiInvX, temp);
+        if ((temp - x).norm() < atlas_.getEpsilon() && psiInvX.norm() < atlas_.getRho() && c.inP(psiInvX))
             return &c;
     }
     
@@ -370,24 +374,31 @@ void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
     
     // Compile a list of all the vertices in P and all the times the border intersects the circle
     vertices.clear();
+    Eigen::VectorXd v(2);
+    Eigen::VectorXd intersection(n_);
     for (std::list<LinearInequality *>::const_iterator l1 = b; l1 != e; l1++)
     {
         for (std::list<LinearInequality *>::const_iterator l2 = boost::next(l1); l2 != e; l2++)
         {
             // Check if intersection of the lines is a part of the boundary and within the circle
-            Eigen::VectorXd v = LinearInequality::intersect(**l1, **l2);
+            LinearInequality::intersect(**l1, **l2, v);
+            phi(v, intersection);
             if (v.norm() <= radius_ && inP(v, *l1, *l2))
-                vertices.push_back(phi(v));
+                vertices.push_back(intersection);
         }
         
         // Check if intersection with circle is part of the boundary
-        Eigen::VectorXd v1, v2;
+        Eigen::VectorXd v1(2), v2(2);
         if ((*l1)->circleIntersect(radius_, v1, v2))
         {
-            if (inP(v1, *l1))
-                vertices.push_back(phi(v1));
-            if (inP(v2, *l1))
-                vertices.push_back(phi(v2));
+            if (inP(v1, *l1)) {
+                phi(v1, intersection);
+                vertices.push_back(intersection);
+            }
+            if (inP(v2, *l1)) {
+                phi(v2, intersection);
+                vertices.push_back(intersection);
+            }
         }
     }
     
@@ -397,8 +408,11 @@ void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
     for (double a = 0; a < 2*M_PI; a += step)
     {
         const Eigen::VectorXd v = Eigen::Rotation2Dd(a)*v0;
-        if (inP(v))
-            vertices.push_back(phi(v));
+        
+        if (inP(v)) {
+            phi(v, intersection);
+            vertices.push_back(intersection);
+        }
     }
     
     // Put them in order
@@ -439,7 +453,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace) const
     for (std::list<const ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
     {
         assert(*s != NULL);
-        if (!halfspace.accepts(psiInverse((*s)->toVector())))
+        if (!halfspace.accepts(psiInverse((*s)->constVectorView())))
         {
             const LinearInequality *const comp = halfspace.getComplement();
             assert(comp);
@@ -452,7 +466,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace) const
 }
 
 // Private
-bool ompl::base::AtlasChart::angleCompare (const Eigen::VectorXd &x1, const Eigen::VectorXd &x2) const
+bool ompl::base::AtlasChart::angleCompare (Eigen::Ref<const Eigen::VectorXd> x1, Eigen::Ref<const Eigen::VectorXd> x2) const
 {
     const Eigen::VectorXd v1 = psiInverse(x1);
     const Eigen::VectorXd v2 = psiInverse(x2);

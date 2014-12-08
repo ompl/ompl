@@ -135,8 +135,8 @@ int main (int argc, char **argv)
             std::ofstream animFile("anim.txt");
             for (std::size_t i = 0; i < waypoints.size(); i++)
             {
-                std::cout << "[" << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->toVector().transpose() << "]\n";
-                animFile << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->toVector().transpose() << "\n";
+                std::cout << "[" << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose() << "]\n";
+                animFile << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose() << "\n";
             }
             animFile.close();
             length = path.length();
@@ -157,16 +157,16 @@ int main (int argc, char **argv)
                 atlas->followManifold(from, to, true, &stateList);
                 if (atlas->equalStates(stateList.front(), stateList.back()))
                 {
-                    std::cout << "[" << stateList.front()->toVector().transpose() << "]  " << stateList.front()->getChart()->getID() << "\n";
-                    animFile << stateList.front()->toVector().transpose() << "\n";
+                    std::cout << "[" << stateList.front()->constVectorView().transpose() << "]  " << stateList.front()->getChart()->getID() << "\n";
+                    animFile << stateList.front()->constVectorView().transpose() << "\n";
                 }
                 else
                 {
                     // Print the intermediate states
                     for (std::size_t i = 1; i < stateList.size(); i++)
                     {
-                        std::cout << "[" << stateList[i]->toVector().transpose() << "]  " << stateList[i]->getChart()->getID() << "\n";
-                        animFile << stateList[i]->toVector().transpose() << "\n";
+                        std::cout << "[" << stateList[i]->constVectorView().transpose() << "]  " << stateList[i]->getChart()->getID() << "\n";
+                        animFile << stateList[i]->constVectorView().transpose() << "\n";
                         length += atlas->distance(stateList[i-1], stateList[i]);
                     }
                 }

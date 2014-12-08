@@ -224,7 +224,7 @@ bool sphereValid_helper (const Eigen::VectorXd &x)
 /** Correct path on the sphere must snake around. */
 bool sphereValid (const ompl::base::State *state)
 {
-    return sphereValid_helper(state->as<ompl::base::AtlasStateSpace::StateType>()->toVector());
+    return sphereValid_helper(state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView());
 }
 
 /** Every state is valid. */
@@ -237,14 +237,14 @@ bool always (const ompl::base::State *)
  * until time runs out, so we can see the big picture. */
 bool unreachable (const ompl::base::State *state, const Eigen::VectorXd &goal, const double radius)
 {
-    return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->toVector() - goal).norm() - radius) > radius-0.01;
+    return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView() - goal).norm() - radius) > radius-0.01;
 }
 
 /** Maze-like obstacle in the xy plane. */
 bool mazePlaneValid (png::image<png::index_pixel_1> &maze, const ompl::base::State *state)
 {
     const ompl::base::AtlasStateSpace::StateType *astate = state->as<ompl::base::AtlasStateSpace::StateType>();
-    Eigen::VectorXd vec = astate->toVector();
+    Eigen::VectorXd vec = astate->constVectorView();
     vec[0] *= 0.2*maze.get_width();
     vec[1] *= 0.2*maze.get_height();
     if (vec[0] < 0 || vec[0] >= maze.get_width() || vec[1] < 0 || vec[1] >= maze.get_height())
@@ -256,7 +256,7 @@ bool mazePlaneValid (png::image<png::index_pixel_1> &maze, const ompl::base::Sta
 bool mazeTorusValid (png::image<png::index_pixel_1> &maze, const ompl::base::State *state)
 {
     const ompl::base::AtlasStateSpace::StateType *astate = state->as<ompl::base::AtlasStateSpace::StateType>();
-    Eigen::VectorXd p = astate->toVector();
+    Eigen::Ref<const Eigen::VectorXd> p = astate->constVectorView();
     Eigen::VectorXd vec(2);
     Eigen::VectorXd c(3); c << p[0], p[1], 0;
     vec[0] = maze.get_width()*std::atan2(p[1], p[0])/(2*M_PI);
@@ -272,7 +272,7 @@ bool mazeTorusValid (png::image<png::index_pixel_1> &maze, const ompl::base::Sta
  * may not occupy states similar to the sphereValid() obstacles (but rotated and scaled). */
 bool chainValid (const ompl::base::State *state, const bool tough)
 {
-    const Eigen::VectorXd x = state->as<ompl::base::AtlasStateSpace::StateType>()->toVector();
+    Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
     for (std::size_t i = 0; i < CHAINLINKS-1; i++)
     {
         if (x.segment(CHAINDIM*i, CHAINDIM).cwiseAbs().maxCoeff() < CHAINJOINTWIDTH)
