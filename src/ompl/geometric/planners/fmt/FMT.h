@@ -282,9 +282,9 @@ namespace ompl
                     }
 
                     /** \brief Caches a failed collision check to m */
-                    void addCC(Motion *m, bool val = false)
+                    void addCC(Motion *m)
                     {
-                        collChecksDone_[m] = val;
+                        collChecksDone_.insert(m);
                     }
 
                     /** \brief Set the cost to go heuristic cost */
@@ -317,7 +317,7 @@ namespace ompl
                     SetType currentSet_;
 
                     /** \brief Contains the connections attempted FROM this node */
-                    std::map<Motion*, bool> collChecksDone_;
+                    std::set<Motion*> collChecksDone_;
             };
 
             /** \brief Comparator used to order motions in a binary heap */
