@@ -1,6 +1,7 @@
 library(shiny)
 library(ggplot2)
 library(RSQLite)
+library(reshape2)
 
 defaultDatabase <- "www/benchmark.db"
 
@@ -132,7 +133,8 @@ shinyServer(function(input, output, session) {
             checkboxInput('perfShowAdvOptions', 'Show advanced options', FALSE),
             conditionalPanel(condition = 'input.perfShowAdvOptions',
                 div(class="well well-light",
-                    checkboxInput("perfShowAsCDF", label = "Show as cumulative distribution function")
+                    checkboxInput("perfShowAsCDF", label = "Show as cumulative distribution function"),
+                    checkboxInput("perfShowSimplified", label = "Include results after simplification")
                 )
             )
         )
@@ -196,15 +198,25 @@ shinyServer(function(input, output, session) {
 
     # plot of overall performance
     perfPlot <- reactive({
+        attribs <- perfAttrs(con())
         attr <- gsub(" ", "_", input$perfAttr)
-        query <- sprintf("SELECT plannerConfigs.name AS planner, runs.%s FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND (%s);",
-            attr,
-            input$perfProblem,
-            input$perfVersion,
-            paste(sapply(input$perfPlanners, sqlPlannerSelect), collapse=" OR "))
+        simplifiedAttr <- paste("simplified", attr, sep="_")
+        includeSimplifiedAttr <- input$perfShowSimplified && simplifiedAttr %in% attribs$name
+        if (includeSimplifiedAttr)
+            query <- sprintf("SELECT plannerConfigs.name AS planner, runs.%s, runs.%s FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND (%s);",
+                attr,
+                simplifiedAttr,
+                input$perfProblem,
+                input$perfVersion,
+                paste(sapply(input$perfPlanners, sqlPlannerSelect), collapse=" OR "))
+        else
+            query <- sprintf("SELECT plannerConfigs.name AS planner, runs.%s FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND (%s);",
+                attr,
+                input$perfProblem,
+                input$perfVersion,
+                paste(sapply(input$perfPlanners, sqlPlannerSelect), collapse=" OR "))
         data <- dbGetQuery(con(), query)
         data$planner <- factor(data$planner, unique(data$planner), labels = sapply(unique(data$planner), plannerNameMapping))
-        attribs <- perfAttrs(con())
         if (attribs$type[match(attr, attribs$name)] == "ENUM")
         {
             query <- sprintf("SELECT * FROM enums WHERE name=\"%s\";", attr)
@@ -219,24 +231,47 @@ shinyServer(function(input, output, session) {
         }
         else
         {
-            if (input$perfShowAsCDF)
+            if (includeSimplifiedAttr)
             {
-                p <- ggplot(data, aes_string(x = attr, group = "planner", color = "planner")) +
-                    # labels
-                    xlab(input$perfAttr) +
-                    ylab('cumulative probability') +
-                    theme(text = element_text(size = 20)) +
-                    # empirical cumulative distribution function
-                    stat_ecdf()
+                data <- melt(data, id.vars='planner', measure.vars=c(attr, simplifiedAttr))
+                if (input$perfShowAsCDF)
+                    p <- ggplot(data, aes(x = value, color = planner,
+                        group = interaction(planner, variable), linetype=variable)) +
+                        # labels
+                        xlab(input$perfAttr) +
+                        ylab('cumulative probability') +
+                        theme(text = element_text(size = 20)) +
+                        # empirical cumulative distribution function
+                        stat_ecdf(size = 1) +
+                        scale_linetype_discrete(name = "", labels = c("before simplification", "after simplification"))
+                else
+                    p <- ggplot(data, aes(x=planner, y=value, color=variable, fill=variable)) +
+                        # labels
+                        ylab(input$perfAttr) +
+                        theme(legend.title = element_blank(), text = element_text(size = 20)) +
+                        geom_boxplot() +
+                        scale_fill_manual(values = c("#99c9eb", "#ebc999"),
+                            labels = c("before simplification", "after simplification")) +
+                        scale_color_manual(values =c("#3073ba", "#ba7330"),
+                            labels = c("before simplification", "after simplification"))
             }
             else
             {
-                p <- ggplot(data, aes_string(x = "planner", y = attr, group = "planner")) +
-                    # labels
-                    ylab(input$perfAttr) +
-                    theme(legend.position = "none", text = element_text(size = 20)) +
-                    # box plots for boolean, integer, and real-valued attributes
-                    geom_boxplot(color = I("#3073ba"), fill = I("#99c9eb"))
+                if (input$perfShowAsCDF)
+                    p <- ggplot(data, aes_string(x = attr, group = "planner", color = "planner")) +
+                        # labels
+                        xlab(input$perfAttr) +
+                        ylab('cumulative probability') +
+                        theme(text = element_text(size = 20)) +
+                        # empirical cumulative distribution function
+                        stat_ecdf(size = 1)
+                else
+                    p <- ggplot(data, aes_string(x = "planner", y = attr, group = "planner")) +
+                        # labels
+                        ylab(input$perfAttr) +
+                        theme(legend.position = "none", text = element_text(size = 20)) +
+                        # box plots for boolean, integer, and real-valued attributes
+                        geom_boxplot(color = I("#3073ba"), fill = I("#99c9eb"))
             }
         }
         p
