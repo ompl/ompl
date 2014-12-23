@@ -12,12 +12,12 @@
 
 <div class="row"><div class="col-md-6 col-sm-12">\endhtmlonly
 \if OMPLAPP
-__OMPL__, the Open Motion Planning Library, consists of many state-of-the-art sampling-based motion planning algorithms. OMPL itself does not contain any code related to, e.g., collision checking or visualization. This is a deliberate design choice, so that OMPL is not tied to a particular collision checker or visualization front end.
+__OMPL__, the Open Motion Planning Library, consists of many state-of-the-art sampling-based motion planning algorithms. OMPL itself does not contain any code related to, e.g., collision checking or visualization. This is a deliberate design choice, so that OMPL is not tied to a particular collision checker or visualization front end. The library is designed so it can be easily integrated into [systems that provide the additional needed components](integration.html).
 
 __OMPL.app__, the front-end for [OMPL](/core), contains a lightweight wrapper for the  [FCL](http://gamma.cs.unc.edu/FCL) and [PQP](http://gamma.cs.unc.edu/SSV) collision checkers and a simple GUI based on [PyQt](http://www.riverbankcomputing.co.uk/software/pyqt/intro) / [PySide](http://www.pyside.org). The graphical front-end can be used for planning motions for rigid bodies and a few vehicle types (first-order and second-order cars, a blimp, and a quadrotor). It relies on the [Assimp](http://assimp.sf.net) library to import a large variety of mesh formats that can be used to represent the robot and its environment.
 
 \else
-The Open Motion Planning Library (__OMPL__) consists of a set of sampling-based motion planning algorithms. The content of the library is limited to these algorithms, which means there is no environment specification, no collision detection or visualization. The library is designed so it can be easily integrated into systems that provide the additional needed components. For examples of complete systems using OMPL, see [OMPL.app](http://ompl.kavrakilab.org) and  and [MoveIt!](http://moveit.ros.org). We have also developed a [educational module on motion planning](education.html) that is centered around OMPL.app. We are looking for educational partners to use and further develop the material. Please contact us for more information.
+The Open Motion Planning Library (__OMPL__) consists of a set of sampling-based motion planning algorithms. The content of the library is limited to these algorithms, which means there is no environment specification, no collision detection or visualization. The library is designed so it can be easily integrated into [systems that provide the additional needed components](integration.html). For examples of complete systems using OMPL, see [OMPL.app](http://ompl.kavrakilab.org) and [MoveIt!](http://moveit.ros.org). We have also developed a [educational module on motion planning](education.html) that is centered around OMPL.app. We are looking for educational partners to use and further develop the material. Please contact us for more information.
 
 OMPL is intended to be efficient, thread safe, easy to use, easily extensible and freely available (visit this project on [Bitbucket](https://bitbucket.org/ompl/ompl)).
 
@@ -108,6 +108,7 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 - [Frequently Asked Questions.](FAQ.html)
 - Familiarize yourself with the [Boost structures](boost.html) used throughout OMPL.
 - Learn how to integrate your own code with [OMPL's build system](buildSystem.html).
+- [Learn more about how OMPL is integrated within other systems](integration.html) (such as [MoveIt!](http://moveit.ros.org), [OpenRAVE](http://openrave.org), and [MORSE](https://www.openrobots.org/wiki/morse)).
 - If interested in using Python, make sure to read [the documentation for the Python bindings](python.html).
 
 \htmlonly</div><div class="col-md-4 col-sm-6">\endhtmlonly
