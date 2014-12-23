@@ -523,6 +523,27 @@ class ompl_geometric_generator_t(code_generator_t):
         self.ompl_ns.namespace('geometric').class_('SimpleSetup').add_registration_code(
             'def("getPlannerAllocator", &ompl::geometric::SimpleSetup::getPlannerAllocator, bp::return_value_policy< bp::copy_const_reference >())')
 
+        # Py++ seems to get confused by some methods declared in one module
+        # that are *not* overridden in a derived class in another module. The
+        # Planner class is defined in ompl::base and two of its virtual methods,
+        # setProblemDefinition and checkValidity, and not overridden by most
+        # planners. The code below forces Py++ to do the right thing (or at
+        # least make it work). It seems rather hacky and there may be a better
+        # solution.
+
+        # do this for all planners
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT']:
+            self.ompl_ns.class_(planner).add_registration_code("""
+            def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )""")
+            if planner!='PRM':
+                # PRM overrides setProblemDefinition, so we don't need to add this code
+                self.ompl_ns.class_(planner).add_registration_code("""
+                def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
+                    &%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner)
+            self.ompl_ns.class_(planner).add_registration_code("""
+            def("checkValidity",&::ompl::base::Planner::checkValidity,
+                &%s_wrapper::default_checkValidity )""" % planner)
+
         # The OMPL implementation of PRM uses two threads: one for constructing
         # the roadmap and another for checking for a solution. This causes
         # problems when both threads try to access the python interpreter
@@ -542,35 +563,31 @@ class ompl_geometric_generator_t(code_generator_t):
             ::ompl::base::PlannerStatus default_solve( ::ompl::base::PlannerTerminationCondition const & ptc );
             """)
         PRM_cls.add_declaration_code(open('PRM.SingleThreadSolve.cpp','r').read())
+        # This needs to be the last registration code added to the PRM_cls to the ugly hack below.
         PRM_cls.add_registration_code("""def("solve",
             (::ompl::base::PlannerStatus(::ompl::geometric::PRM::*)( ::ompl::base::PlannerTerminationCondition const &))(&PRM_wrapper::solve),
-            (::ompl::base::PlannerStatus(PRM_wrapper::*)( ::ompl::base::PlannerTerminationCondition const & ))(&PRM_wrapper::default_solve), bp::arg("ptc") )""")
-        # exclude PRM*, define it in python to use the single-threaded version
-        # of PRM with the k* connection strategy
-        self.ompl_ns.class_('PRMstar').exclude()
+            (::ompl::base::PlannerStatus(PRM_wrapper::*)( ::ompl::base::PlannerTerminationCondition const & ))(&PRM_wrapper::default_solve), bp::arg("ptc") );
+
+            // HACK ALERT: closing brace destroys bp::scope, so that PRMstar is not a nested class of PRM
+            }
+            {
+                // wrapper for PRMstar, derived from single-threaded PRM_wrapper
+                bp::class_<PRMstar_wrapper, bp::bases< PRM_wrapper >, boost::noncopyable >("PRMstar", bp::init< ompl::base::SpaceInformationPtr const & >( bp::arg("si") ) )
+            """)
+        # Add wrapper code for PRM*
+        PRM_cls.add_declaration_code("""
+        class PRMstar_wrapper : public PRM_wrapper
+        {
+        public:
+            PRMstar_wrapper(const ompl::base::SpaceInformationPtr &si) : PRM_wrapper(si, true)
+            {
+                setName("PRMstar");
+                params_.remove("max_nearest_neighbors");
+            }
+        };
+        """)
         # LazyPRM's Vertex type is void* so exclude addMilestone which has return type void*
         self.ompl_ns.class_('LazyPRM').member_function('addMilestone').exclude()
-
-        # Py++ seems to get confused by some methods declared in one module
-        # that are *not* overridden in a derived class in another module. The
-        # Planner class is defined in ompl::base and two of its virtual methods,
-        # setProblemDefinition and checkValidity, and not overridden by most
-        # planners. The code below forces Py++ to do the right thing (or at
-        # least make it work). It seems rather hacky and there may be a better
-        # solution.
-
-        # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT']:
-            self.ompl_ns.class_(planner).add_registration_code("""
-            def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )""")
-            if planner!='PRM':
-                # PRM overrides setProblemDefinition, so we don't need to add this code
-                self.ompl_ns.class_(planner).add_registration_code("""
-                def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
-                    &%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner)
-            self.ompl_ns.class_(planner).add_registration_code("""
-            def("checkValidity",&::ompl::base::Planner::checkValidity,
-                &%s_wrapper::default_checkValidity )""" % planner)
 
         # do this for all multithreaded planners
         for planner in ['SPARS', 'SPARStwo']:
