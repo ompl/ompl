@@ -48,7 +48,7 @@
               @OMPLAPP_GUI@
               <li><a href="python.html">Python Bindings</a></li>
               <li><a href="planners.html">Available Planners</a></li>
-              <li><a href="bechmark.html">Benchmarking Planners</a></li>
+              <li><a href="benchmark.html">Benchmarking Planners</a></li>
               <li><a href="spaces.html">Available State Spaces</a></li>
               <li><a href="optimalPlanning.html">Optimal Planning</a></li>
               <li><a href="FAQ.html">FAQ</a></li>
