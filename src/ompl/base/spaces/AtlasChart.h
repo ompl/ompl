@@ -39,7 +39,7 @@
 
 #include "ompl/base/spaces/AtlasStateSpace.h"
 
-#include <list>
+#include <vector>
 
 #include <boost/thread/mutex.hpp>
 
@@ -204,7 +204,7 @@ namespace ompl
             mutable double measure_;
             
             /** \brief Set of linear inequalities defining the polytope P. */
-            mutable std::list<LinearInequality *> bigL_;
+            mutable std::vector<LinearInequality *> bigL_;
             
             /** \brief Introduce a new linear inequality \a halfspace to bound the polytope P. Updates
              * approximate measure. This chart assumes responsibility for deleting \a halfspace. */
@@ -237,7 +237,7 @@ namespace ompl
             Eigen::MatrixXd bigPhi_t_pinv_;
             
             /** \brief List of states on this chart. */
-            mutable std::list<const ompl::base::AtlasStateSpace::StateType *> owned_;
+            mutable std::vector<const ompl::base::AtlasStateSpace::StateType *> owned_;
             
             /** \brief Maximum valid radius of this chart. */
             mutable double radius_;

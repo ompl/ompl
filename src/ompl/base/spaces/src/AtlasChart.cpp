@@ -172,9 +172,9 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, Eigen::Ref<con
     for (unsigned int i = 0; i < k_; i++)
     {
         e[i] = 2 * atlas_.getRho();
-        bigL_.push_front(new LinearInequality(*this, e));
+        bigL_.push_back(new LinearInequality(*this, e));
         e[i] *= -1;
-        bigL_.push_front(new LinearInequality(*this, e));
+        bigL_.push_back(new LinearInequality(*this, e));
         e[i] = 0;
     }
     measure_ = atlas_.getMeasureKBall() * std::pow(radius_, k_);
@@ -184,12 +184,12 @@ ompl::base::AtlasChart::~AtlasChart (void)
 {
     {
         boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
-        for (std::list<LinearInequality *>::iterator l = bigL_.begin(); l != bigL_.end(); l++)
-            delete *l;
+        for (std::size_t i = 0; i < bigL_.size(); i++)
+            delete bigL_[i];
     }
     boost::lock_guard<boost::mutex> lock(mutices_.owned_);
-    for (std::list<const ompl::base::AtlasStateSpace::StateType *>::const_iterator s = owned_.begin(); s != owned_.end(); s++)
-        (*s)->setChart(NULL, true);
+    for (std::size_t i = 0; i < owned_.size(); i++)
+        owned_[i]->setChart(NULL, true);
 }
 
 Eigen::Ref<const Eigen::VectorXd> ompl::base::AtlasChart::getXorigin (void) const
@@ -235,18 +235,12 @@ void ompl::base::AtlasChart::psiInverse (Eigen::Ref<const Eigen::VectorXd> x, Ei
 bool ompl::base::AtlasChart::inP (Eigen::Ref<const Eigen::VectorXd> u, const LinearInequality *const ignore1,
                                   const LinearInequality *const ignore2) const
 {
-    std::list<LinearInequality *>::const_iterator b, e;
+    for (std::size_t i = 0; i < bigL_.size(); i++)
     {
-        boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
-        b = bigL_.begin();
-        e = bigL_.end();
-    }
-    for (std::list<LinearInequality *>::const_iterator l = b; l != e; l++)
-    {
-        if (*l == ignore1 || *l == ignore2)
+        if (bigL_[i] == ignore1 || bigL_[i] == ignore2)
             continue;
         
-        if (!(*l)->accepts(u))
+        if (!bigL_[i]->accepts(u))
             return false;
     }
     
@@ -255,31 +249,26 @@ bool ompl::base::AtlasChart::inP (Eigen::Ref<const Eigen::VectorXd> u, const Lin
 
 void ompl::base::AtlasChart::borderCheck (Eigen::Ref<const Eigen::VectorXd> v) const
 {
-    std::list<LinearInequality *>::const_iterator b, e;
-    {
-        boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
-        b = bigL_.begin();
-        e = bigL_.end();
-    }
-    for (std::list<LinearInequality *>::const_iterator l = b; l != e; l++)
-        (*l)->checkNear(v);
+    for (std::size_t i = 0; i < bigL_.size(); i++)
+        bigL_[i]->checkNear(v);
 }
 
 void ompl::base::AtlasChart::own (const ompl::base::AtlasStateSpace::StateType *const state) const
 {
     boost::lock_guard<boost::mutex> lock(mutices_.owned_);
     assert(state != NULL);
-    owned_.push_front(state);
+    owned_.push_back(state);
 }
 
 void ompl::base::AtlasChart::disown (const ompl::base::AtlasStateSpace::StateType *const state) const
 {
     boost::lock_guard<boost::mutex> lock(mutices_.owned_);
-    for (std::list<const ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
+    for (std::size_t i = 0; i < owned_.size(); i++)
     {
-        if (*s == state)
+        if (owned_[i] == state)
         {
-            owned_.erase(s);
+            owned_[i] = owned_.back();
+            owned_.pop_back();
             break;
         }
     }
@@ -288,26 +277,17 @@ void ompl::base::AtlasChart::disown (const ompl::base::AtlasStateSpace::StateTyp
 void ompl::base::AtlasChart::substituteChart (const AtlasChart &replacement) const
 {
     boost::lock_guard<boost::mutex> lock(mutices_.owned_);
-    while (owned_.size() != 0)
-    {
-        owned_.front()->setChart(&replacement, true);
-        owned_.pop_front();
-    }
+    for (std::size_t i = 0; i < owned_.size(); i++)
+        owned_[i]->setChart(&replacement, true);
+    owned_.clear();
 }
 
 const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (Eigen::Ref<const Eigen::VectorXd> x) const
 {
-    std::list<LinearInequality *>::const_iterator b, e;
-    {
-        boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
-        b = bigL_.begin();
-        e = bigL_.end();
-    }
-    
     Eigen::VectorXd tempx(n_), tempu(k_);
-    for (std::list<LinearInequality *>::const_iterator l = b; l != e; l++)
+    for (std::size_t i = 0; i < bigL_.size(); i++)
     {
-        const LinearInequality *const comp = (*l)->getComplement();
+        const LinearInequality *const comp = bigL_[i]->getComplement();
         if (!comp)
             continue;
         
@@ -369,12 +349,6 @@ bool ompl::base::AtlasChart::isAnchor (void) const
 
 void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) const
 {
-    std::list<LinearInequality *>::const_iterator b, e;
-    {
-        boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
-        b = bigL_.begin();
-        e = bigL_.end();
-    }
     if (atlas_.getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::toPolygon() only works on 2D manifold/charts.");
     
@@ -382,26 +356,26 @@ void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
     vertices.clear();
     Eigen::VectorXd v(2);
     Eigen::VectorXd intersection(n_);
-    for (std::list<LinearInequality *>::const_iterator l1 = b; l1 != e; l1++)
+    for (std::size_t i = 0; i < bigL_.size(); i++)
     {
-        for (std::list<LinearInequality *>::const_iterator l2 = boost::next(l1); l2 != e; l2++)
+        for (std::size_t j = i+1; j < bigL_.size(); j++)
         {
             // Check if intersection of the lines is a part of the boundary and within the circle
-            LinearInequality::intersect(**l1, **l2, v);
+            LinearInequality::intersect(*bigL_[i], *bigL_[j], v);
             phi(v, intersection);
-            if (v.norm() <= radius_ && inP(v, *l1, *l2))
+            if (v.norm() <= radius_ && inP(v, bigL_[i], bigL_[j]))
                 vertices.push_back(intersection);
         }
         
         // Check if intersection with circle is part of the boundary
         Eigen::VectorXd v1(2), v2(2);
-        if ((*l1)->circleIntersect(radius_, v1, v2))
+        if ((bigL_[i])->circleIntersect(radius_, v1, v2))
         {
-            if (inP(v1, *l1)) {
+            if (inP(v1, bigL_[i])) {
                 phi(v1, intersection);
                 vertices.push_back(intersection);
             }
-            if (inP(v2, *l1)) {
+            if (inP(v2, bigL_[i])) {
                 phi(v2, intersection);
                 vertices.push_back(intersection);
             }
@@ -446,7 +420,7 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace) const
 {
     {
         boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
-        bigL_.push_front(&halfspace);
+        bigL_.push_back(&halfspace);
     }
     
     // Update the measure estimate
