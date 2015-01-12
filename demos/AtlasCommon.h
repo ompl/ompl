@@ -55,12 +55,10 @@
 #include <ompl/geometric/planners/rrt/ConstrainedRRT.h>
 #include <ompl/geometric/planners/rrt/LazyRRT.h>
 #include <ompl/geometric/planners/rrt/LBTRRT.h>
-#include <ompl/geometric/planners/rrt/pRRT.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/rrt/TRRT.h>
-#include <ompl/geometric/planners/sbl/pSBL.h>
 #include <ompl/geometric/planners/sbl/SBL.h>
 #include <ompl/geometric/planners/stride/STRIDE.h>
 
@@ -433,10 +431,9 @@ void printProblems (void)
 void printPlanners (void)
 {
     std::cout << "Available planners:\n";
-    std::cout << "    EST RRT AtlasRRT RRTConnect RRTstar LazyRRT TRRT LBTRRT pRRTx\n";
+    std::cout << "    EST RRT AtlasRRT RRTConnect RRTstar LazyRRT TRRT LBTRRT \n";
     std::cout << "    ConstrainedRRT CBiRRT2 KPIECE1 BKPIECE1 LBKPIECE1 PDST\n";
-    std::cout << "    PRM PRMstar SBL pSBLx SPARS SPARStwo STRIDE\n";
-    std::cout << " where the 'x' in pRRTx and pSBLx is the number of threads.\n";
+    std::cout << "    PRM PRMstar SBL SPARS SPARStwo STRIDE\n";
 }
 
 /** Initialize the problem specified in the string. */
@@ -505,14 +502,6 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
         ompl::geometric::LBTRRT *lbtrrt = new ompl::geometric::LBTRRT(si);
         return lbtrrt;
     }
-    else if (std::strcmp(planner, "pRRT0") > 0 && std::strcmp(planner, "pRRT9") <= 0)
-    {
-        ompl::geometric::pRRT *prrt = new ompl::geometric::pRRT(si);
-        const unsigned int nthreads = std::atoi(&planner[4]);
-        prrt->setThreadCount(nthreads);
-        std::cout << "Using " << nthreads << " threads.\n";
-        return prrt;
-    }
     else if (std::strcmp(planner, "ConstrainedRRT") == 0)
     {
         ompl::geometric::ConstrainedRRT *constrainedrrt = new ompl::geometric::ConstrainedRRT(si);
@@ -552,15 +541,6 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
         ompl::geometric::SBL *sbl = new ompl::geometric::SBL(si);
         sbl->setRange(range);
         return sbl;
-    }
-    else if (std::strcmp(planner, "pSBL0") > 0 && std::strcmp(planner, "pSBL9") <= 0)
-    {
-        ompl::geometric::pSBL *psbl = new ompl::geometric::pSBL(si);
-        psbl->setRange(range);
-        const unsigned int nthreads = std::atoi(&planner[4]);
-        psbl->setThreadCount(nthreads);
-        std::cout << "Using " << nthreads << " threads.\n";
-        return psbl;
     }
     else if (std::strcmp(planner, "SPARS") == 0)
         return new ompl::geometric::SPARS(si);

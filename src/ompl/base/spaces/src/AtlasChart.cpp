@@ -182,12 +182,9 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, Eigen::Ref<con
 
 ompl::base::AtlasChart::~AtlasChart (void)
 {
-    {
-        boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
-        for (std::size_t i = 0; i < bigL_.size(); i++)
-            delete bigL_[i];
-    }
-    boost::lock_guard<boost::mutex> lock(mutices_.owned_);
+    for (std::size_t i = 0; i < bigL_.size(); i++)
+        delete bigL_[i];
+    
     for (std::size_t i = 0; i < owned_.size(); i++)
         owned_[i]->setChart(NULL, true);
 }
@@ -253,16 +250,14 @@ void ompl::base::AtlasChart::borderCheck (Eigen::Ref<const Eigen::VectorXd> v) c
         bigL_[i]->checkNear(v);
 }
 
-void ompl::base::AtlasChart::own (const ompl::base::AtlasStateSpace::StateType *const state) const
+void ompl::base::AtlasChart::own (const ompl::base::AtlasStateSpace::StateType *const state)
 {
-    boost::lock_guard<boost::mutex> lock(mutices_.owned_);
     assert(state != NULL);
     owned_.push_back(state);
 }
 
-void ompl::base::AtlasChart::disown (const ompl::base::AtlasStateSpace::StateType *const state) const
+void ompl::base::AtlasChart::disown (const ompl::base::AtlasStateSpace::StateType *const state)
 {
-    boost::lock_guard<boost::mutex> lock(mutices_.owned_);
     for (std::size_t i = 0; i < owned_.size(); i++)
     {
         if (owned_[i] == state)
@@ -274,9 +269,8 @@ void ompl::base::AtlasChart::disown (const ompl::base::AtlasStateSpace::StateTyp
     }
 }
 
-void ompl::base::AtlasChart::substituteChart (const AtlasChart &replacement) const
+void ompl::base::AtlasChart::substituteChart (AtlasChart &replacement)
 {
-    boost::lock_guard<boost::mutex> lock(mutices_.owned_);
     for (std::size_t i = 0; i < owned_.size(); i++)
         owned_[i]->setChart(&replacement, true);
     owned_.clear();
@@ -302,7 +296,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (Eigen::Ref
     return NULL;
 }
 
-void ompl::base::AtlasChart::approximateMeasure (void) const
+void ompl::base::AtlasChart::approximateMeasure (void)
 {
     // Perform Monte Carlo integration to estimate measure
     unsigned int countInside = 0;
@@ -416,12 +410,9 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
 }
 
 /// Protected
-void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace) const
+void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace)
 {
-    {
-        boost::lock_guard<boost::mutex> lock(mutices_.bigL_);
-        bigL_.push_back(&halfspace);
-    }
+    bigL_.push_back(&halfspace);
     
     // Update the measure estimate
     approximateMeasure();

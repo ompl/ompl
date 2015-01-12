@@ -99,8 +99,8 @@ int main (int argc, char **argv)
     atlas->setMonteCarloSampleCount(0);
     
     // The atlas needs some place to start sampling from. We will make start and goal charts.
-    const ompl::base::AtlasChart &startChart = atlas->anchorChart(x);
-    const ompl::base::AtlasChart &goalChart = atlas->anchorChart(y);
+    ompl::base::AtlasChart &startChart = atlas->anchorChart(x);
+    ompl::base::AtlasChart &goalChart = atlas->anchorChart(y);
     ompl::base::ScopedState<> start(atlas);
     ompl::base::ScopedState<> goal(atlas);
     start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, &startChart);

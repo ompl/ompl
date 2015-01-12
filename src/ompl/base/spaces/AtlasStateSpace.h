@@ -163,7 +163,7 @@ namespace ompl
                 
                 /** \brief Set the real vector to the values in \a x and the chart to \a c.
                  * Assumes \a x is of the same dimensionality as the state. */
-                void setRealState (const Eigen::VectorXd &x, const AtlasChart *const c);
+                void setRealState (const Eigen::VectorXd &x, AtlasChart *const c);
                 
                 /** \brief View this state as an Eigen::VectorXd. */
                 Eigen::Map<Eigen::VectorXd> vectorView (void) const;
@@ -172,15 +172,15 @@ namespace ompl
                 Eigen::Map<const Eigen::VectorXd> constVectorView (void) const;
                 
                 /** \brief Get the chart this state is on. */
-                const AtlasChart *getChart (void) const;
+                AtlasChart *getChart (void) const;
                 
                 /** \brief Set the chart \a c for the state. Skip the disown() step if \a fast. */
-                void setChart (const AtlasChart *const c, const bool fast = false) const;
+                void setChart (AtlasChart *const c, const bool fast = false) const;
                 
             private:
                 
                 /** \brief Chart owning the real vector. */
-                mutable const AtlasChart *chart_;
+                mutable AtlasChart *chart_;
                 
                 /** \brief Dimension of the real vector. */
                 const unsigned int dimension_;

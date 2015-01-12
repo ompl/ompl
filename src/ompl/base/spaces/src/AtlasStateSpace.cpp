@@ -99,7 +99,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     const AtlasStateSpace::StateType *anear = near->as<AtlasStateSpace::StateType>();
     Eigen::Ref<const Eigen::VectorXd> n = anear->constVectorView();
     Eigen::VectorXd rx(atlas_.getAmbientDimension()), ru(atlas_.getManifoldDimension());
-    const AtlasChart *c = anear->getChart();
+    AtlasChart *c = anear->getChart();
     if (!c)
     {
         c = atlas_.owningChart(n);
@@ -136,7 +136,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     Eigen::Ref<const Eigen::VectorXd> m = amean->constVectorView();
     const std::size_t k = atlas_.getManifoldDimension();
     Eigen::VectorXd rx(atlas_.getAmbientDimension()), u(k);
-    const AtlasChart *c = amean->getChart();
+    AtlasChart *c = amean->getChart();
     if (!c)
     {
         c = atlas_.owningChart(m);
@@ -272,7 +272,7 @@ ompl::base::AtlasStateSpace::StateType::~StateType(void)
     delete [] values;
 }
 
-void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd &x, const AtlasChart *const c)
+void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd &x, AtlasChart *const c)
 {
     setChart(c);
     boost::lock_guard<boost::mutex> lock(mutices_.vector_);
@@ -290,12 +290,12 @@ Eigen::Map<const Eigen::VectorXd> ompl::base::AtlasStateSpace::StateType::constV
     return Eigen::Map<const Eigen::VectorXd>(values, dimension_);
 }
 
-const ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart (void) const
+ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart (void) const
 {
     return chart_;
 }
 
-void ompl::base::AtlasStateSpace::StateType::setChart (const AtlasChart *const c, const bool fast) const
+void ompl::base::AtlasStateSpace::StateType::setChart (AtlasChart *const c, const bool fast) const
 {
     boost::lock_guard<boost::mutex> lock(mutices_.chart_);
     if (chart_ != c)
@@ -662,7 +662,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     unsigned int chartsCreated = 0;
     Eigen::Ref<const Eigen::VectorXd> x_r = to->constVectorView();
     Eigen::VectorXd x_n = from->constVectorView();
-    const AtlasChart *c = from->getChart();
+    AtlasChart *c = from->getChart();
     if (!c)
     {
         c = owningChart(x_n);
@@ -1025,8 +1025,8 @@ void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *
     // Set the correct chart, guessing it might be one of the adjacent charts first
     StateType *astate = state->as<StateType>();
     Eigen::Ref<const Eigen::VectorXd> x = astate->constVectorView();
-    const AtlasChart &c1 = *stateList[i > 0 ? i-1 : 0]->getChart();
-    const AtlasChart &c2 = *stateList[i]->getChart();
+    AtlasChart &c1 = *stateList[i > 0 ? i-1 : 0]->getChart();
+    AtlasChart &c2 = *stateList[i]->getChart();
     Eigen::VectorXd u(k_);
     if (c1.psiInverse(x, u), c1.inP(u))
         astate->setChart(&c1);
@@ -1034,7 +1034,7 @@ void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *
         astate->setChart(&c2);
     else
     {
-        const AtlasChart *c = owningChart(x);
+        AtlasChart *c = owningChart(x);
         if (!c)
             c = &newChart(x);
         astate->setChart(c);
@@ -1067,7 +1067,7 @@ ompl::base::State *ompl::base::AtlasStateSpace::allocState (void) const
 void ompl::base::AtlasStateSpace::freeState (State *state) const
 {
     StateType *const astate = state->as<StateType>();
-    const AtlasChart *const c = astate->getChart();
+    AtlasChart *const c = astate->getChart();
     if (c)
         c->disown(astate);
     delete astate;

@@ -155,20 +155,20 @@ namespace ompl
             virtual void borderCheck (Eigen::Ref<const Eigen::VectorXd> v) const;
             
             /** \brief Track that this chart owns \a state. Assumes we are not already tracking it. */
-            void own (const ompl::base::AtlasStateSpace::StateType *const state) const;
+            void own (const ompl::base::AtlasStateSpace::StateType *const state);
             
             /** \brief Stop tracking \a state. Assumes it is listed at most once. */
-            void disown (const ompl::base::AtlasStateSpace::StateType *const state) const;
+            void disown (const ompl::base::AtlasStateSpace::StateType *const state);
             
             /** \brief Make all tracked states belong to a \a replacement chart. */
-            void substituteChart (const AtlasChart &replacement) const;
+            void substituteChart (AtlasChart &replacement);
             
             /** \brief Check each of our neighboring charts to see if ambient point \a x lies within its
              * polytope when projected onto it. Returns NULL if none. */
             virtual const AtlasChart *owningNeighbor (Eigen::Ref<const Eigen::VectorXd> x) const;
             
             /** \brief Perform calculations to approximate the measure of this chart. */
-            virtual void approximateMeasure (void) const;
+            virtual void approximateMeasure (void);
             
             /** \brief Get the measure (k_-dimensional volume) of this chart. */
             double getMeasure (void) const;
@@ -201,14 +201,14 @@ namespace ompl
             const AtlasStateSpace &atlas_;
             
             /** \brief Measure of the convex polytope P. */
-            mutable double measure_;
+            double measure_;
             
             /** \brief Set of linear inequalities defining the polytope P. */
-            mutable std::vector<LinearInequality *> bigL_;
+            std::vector<LinearInequality *> bigL_;
             
             /** \brief Introduce a new linear inequality \a halfspace to bound the polytope P. Updates
              * approximate measure. This chart assumes responsibility for deleting \a halfspace. */
-            virtual void addBoundary (LinearInequality &halfspace) const;
+            void addBoundary (LinearInequality &halfspace);
             
         private:
             
@@ -237,17 +237,10 @@ namespace ompl
             Eigen::MatrixXd bigPhi_t_pinv_;
             
             /** \brief List of states on this chart. */
-            mutable std::vector<const ompl::base::AtlasStateSpace::StateType *> owned_;
+            std::vector<const ompl::base::AtlasStateSpace::StateType *> owned_;
             
             /** \brief Maximum valid radius of this chart. */
-            mutable double radius_;
-            
-            /** \brief Locks to keep some operations thread-safe. */
-            mutable struct
-            {
-                boost::mutex bigL_;
-                boost::mutex owned_;
-            } mutices_;
+            double radius_;
             
             /** \brief Compare the angles \a v1 and \a v2 make with the origin. */
             bool angleCompare (Eigen::Ref<const Eigen::VectorXd> v1, Eigen::Ref<const Eigen::VectorXd> v2) const;
