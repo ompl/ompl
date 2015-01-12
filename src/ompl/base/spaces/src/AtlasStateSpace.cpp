@@ -83,12 +83,13 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
         }
         while (!c->inP(ru));
         
-        rx = c->psi(ru);
+        c->psi(ru, rx);
     }
     while (rx.hasNaN() || atlas_.bigF(rx).norm() > atlas_.getProjectionTolerance());
     
     // Extend polytope of neighboring chart wherever point is near the border
-    c->borderCheck(c->psiInverse(rx));
+    c->psiInverse(rx, ru);
+    c->borderCheck(ru);
     state->as<AtlasStateSpace::StateType>()->setChart(c);
 }
 
@@ -97,7 +98,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     AtlasStateSpace::StateType *astate = state->as<AtlasStateSpace::StateType>();
     const AtlasStateSpace::StateType *anear = near->as<AtlasStateSpace::StateType>();
     Eigen::Ref<const Eigen::VectorXd> n = anear->constVectorView();
-    Eigen::VectorXd r(atlas_.getAmbientDimension());
+    Eigen::VectorXd rx(atlas_.getAmbientDimension()), ru(atlas_.getManifoldDimension());
     const AtlasChart *c = anear->getChart();
     if (!c)
     {
@@ -115,16 +116,17 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         do
             uoffset.setRandom();
         while (uoffset.squaredNorm() > 1);
-        c->phi(c->psiInverse(n) + distance * uoffset, r);
+        c->psiInverse(n, ru);
+        c->phi(ru + distance * uoffset, rx);
     }
-    while (!atlas_.project(r));
+    while (!atlas_.project(rx));
     
     // Be lazy about determining the new chart if we are not in the old one
-    if (!c->inP(c->psiInverse(r)))
+    if (c->psiInverse(rx, ru), !c->inP(ru))
         c = NULL;
     else
-        c->borderCheck(c->psiInverse(r));
-    astate->setRealState(r, c);
+        c->borderCheck(ru);
+    astate->setRealState(rx, c);
 }
 
 void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *mean, const double stdDev)
@@ -132,8 +134,8 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     AtlasStateSpace::StateType *astate = state->as<AtlasStateSpace::StateType>();
     const AtlasStateSpace::StateType *amean = mean->as<AtlasStateSpace::StateType>();
     Eigen::Ref<const Eigen::VectorXd> m = amean->constVectorView();
-    Eigen::VectorXd r(atlas_.getAmbientDimension());
     const std::size_t k = atlas_.getManifoldDimension();
+    Eigen::VectorXd rx(atlas_.getAmbientDimension()), u(k);
     const AtlasChart *c = amean->getChart();
     if (!c)
     {
@@ -142,7 +144,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
             c = &atlas_.newChart(m);
         amean->setChart(c);
     }
-    const Eigen::VectorXd u = c->psiInverse(m);
+    c->psiInverse(m, u);
     
     // Rejection sampling to find a point on the manifold
     {
@@ -153,17 +155,17 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
             const double s = stdDev / std::sqrt(k);
             for (std::size_t i = 0; i < k; i++)
                 rand[i] = rng_.gaussian(0, s);
-            c->phi(u + rand, r);
+            c->phi(u + rand, rx);
         }
-        while (!atlas_.project(r));
+        while (!atlas_.project(rx));
     }
     
     // Be lazy about determining the new chart if we are not in the old one
-    if (!c->inP(c->psiInverse(r)))
+    if (c->psiInverse(rx, u), !c->inP(u))
         c = NULL;
     else
-        c->borderCheck(c->psiInverse(r));
-    astate->setRealState(r, c);
+        c->borderCheck(u);
+    astate->setRealState(rx, c);
 }
 
 /// AtlasValidStateSampler
@@ -579,14 +581,14 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
     }
     
     // If not found, search through all charts for a match
-    Eigen::VectorXd temp(n_);
+    Eigen::VectorXd tempx(n_), tempu(k_);
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
         // The point must lie in the chart's validity region and polytope
         AtlasChart &c = *charts_[i];
-        const Eigen::VectorXd psiInvX = c.psiInverse(x);
-        c.phi(psiInvX, temp);
-        if ((temp - x).norm() < epsilon_ && psiInvX.norm() < rho_ && c.inP(psiInvX))
+        c.psiInverse(x, tempu);
+        c.phi(tempu, tempx);
+        if ((tempx - x).norm() < epsilon_ && tempu.norm() < rho_ && c.inP(tempu))
             return &c;
     }
     
@@ -622,7 +624,8 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::Vect
 Eigen::VectorXd ompl::base::AtlasStateSpace::dichotomicSearch (const AtlasChart &c, const Eigen::VectorXd &xinside, Eigen::VectorXd xoutside) const
 {
     // Cut the distance in half, moving toward xinside until we are inside the chart
-    while (!c.inP(c.psiInverse(xoutside)))
+    Eigen::VectorXd u(k_);
+    while (c.psiInverse(xoutside, u), !c.inP(u))
         xoutside = 0.5 * (xinside + xoutside);
     
     return xoutside;
@@ -679,7 +682,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         stateList->push_back(fromCopy);
     }
     
-    Eigen::VectorXd x_j, x_0, u_n, u_r, u_j;
+    Eigen::VectorXd x_j, x_0, u_n(k_), u_r(k_), u_j(k_);
     
     // We will stop if we exit the ball of radius d_0 centered at x_0
     x_0 = x_j = x_n;
@@ -687,17 +690,8 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     double d = 0;
     
     // Project from and to points onto the chart
-    u_n = c->psiInverse(x_n);
-    u_r = c->psiInverse(x_r);
-    
-    // Deviation: we can't know whether we're in 'explore' mode. We typically actually want to reach the specified sample, not just to grow the atlas.
-    /*
-    if (explore)
-    {
-        u_r = u_n + d_0*(u_r - u_n).normalized();  // Note the difference between this and the pseudocode (line 8): it's a subtle mistake
-        x_r = c.phi(u_r, x_r);
-    }
-    */
+    c->psiInverse(x_n, u_n);
+    c->psiInverse(x_r, u_r);
     
     //bool chartCreated = false;    // Unused for now
     Eigen::VectorXd temp(n_);
@@ -705,7 +699,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     {
         // Step by delta toward the target and project
         u_j = u_n + delta_*(u_r - u_n).normalized();    // Note the difference to pseudocode (line 13): a similar mistake to line 8
-        x_j = c->psi(u_j);
+        c->psi(u_j, x_j);
         
         double d_s = (x_n - x_j).norm();
         bool changedChart = false;
@@ -762,30 +756,14 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
                 c = newc;
             }
             
-            // Deviation: again we can't know about 'explore' mode or whether a chart is in the current tree
-            /*
-            if (!interpolate && (chartCreated || (!explore && inTree(c))))
-                break;
-            */
-            
             changedChart = true;
         }
         
         if (changedChart)
         {
             // Re-project onto the different chart
-            u_j = c->psiInverse(x_j);
-            u_r = c->psiInverse(x_r);
-            
-            // Deviation: 'explore' mode issue, once again
-            /*
-            if (explore)
-            {
-                u_n = c->psiInverse(x_n);
-                u_r = u_n + (x_r - x_n).norm() * (u_r - u_n).normalized();  // Note the difference to pseudocode (line 37). More severe issue than line 8.
-                x_r = c->phi(u_r);
-            }
-            */
+            c->psiInverse(x_j, u_j);
+            c->psiInverse(x_r, u_r);
         }
         
         // Deviation: No control over the planner's tree, so we'll just keep the state in a list, if requested
@@ -1047,9 +1025,10 @@ void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *
     Eigen::Ref<const Eigen::VectorXd> x = astate->constVectorView();
     const AtlasChart &c1 = *stateList[i > 0 ? i-1 : 0]->getChart();
     const AtlasChart &c2 = *stateList[i]->getChart();
-    if (c1.inP(c1.psiInverse(x)))
+    Eigen::VectorXd u(k_);
+    if (c1.psiInverse(x, u), c1.inP(u))
         astate->setChart(&c1);
-    else if (c2.inP(c2.psiInverse(x)))
+    else if (c2.psiInverse(x, u), c2.inP(u))
         astate->setChart(&c2);
     else
     {

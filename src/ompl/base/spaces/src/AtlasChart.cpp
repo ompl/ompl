@@ -48,8 +48,10 @@
 ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c, const AtlasChart &neighbor)
 : owner_(c), complement_(NULL)
 {
-    // u_ should be neighbor's center projected onto our chart
-    setU(1.05*owner_.psiInverse(neighbor.getXorigin()));
+    // u should be neighbor's center projected onto our chart
+    Eigen::VectorXd u(owner_.k_);
+    owner_.psiInverse(neighbor.getXorigin(), u);
+    setU(1.05*u); // Add a little bit extra, to patch up the cracks
 }
 
 ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c, Eigen::Ref<const Eigen::VectorXd> u)
@@ -82,7 +84,11 @@ void ompl::base::AtlasChart::LinearInequality::checkNear (Eigen::Ref<const Eigen
 {
     // Threshold is 10% of the distance from the origin to the inequality
     if (complement_ && distanceToPoint(v) < 1.0/20)
-        complement_->expandToInclude(owner_.psi(v));
+    {
+        Eigen::VectorXd x(owner_.n_);
+        owner_.psi(v,x);
+        complement_->expandToInclude(x);
+    }
 }
 
 bool ompl::base::AtlasChart::LinearInequality::circleIntersect (const double r, Eigen::Ref<Eigen::VectorXd> v1, Eigen::Ref<Eigen::VectorXd> v2) const
@@ -135,7 +141,9 @@ double ompl::base::AtlasChart::LinearInequality::distanceToPoint (Eigen::Ref<con
 void ompl::base::AtlasChart::LinearInequality::expandToInclude (Eigen::Ref<const Eigen::VectorXd> x)
 {
     // Compute how far v = psiInverse(x) lies outside the inequality, if at all
-    const double t = -distanceToPoint(owner_.psiInverse(x));
+    Eigen::VectorXd u(owner_.k_);
+    owner_.psiInverse(x, u);
+    const double t = -distanceToPoint(u);
     
     // Move u_ away by twice that much
     if (t > 0)
@@ -194,36 +202,34 @@ void ompl::base::AtlasChart::phi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Re
     out = xorigin_ + bigPhi_ * u;
 }
 
-Eigen::VectorXd ompl::base::AtlasChart::psi (Eigen::Ref<const Eigen::VectorXd> u) const
+void ompl::base::AtlasChart::psi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const
 {
     // Initial guess for Newton's method
     Eigen::VectorXd x_0(n_);
     phi(u,x_0);
-    Eigen::VectorXd x = x_0;
+    out = x_0;
     
     unsigned int iter = 0;
     Eigen::VectorXd b(n_);
-    b.head(n_-k_) = -atlas_.bigF(x);
+    b.head(n_-k_) = -atlas_.bigF(out);
     b.tail(k_) = Eigen::VectorXd::Zero(k_);
     while (b.norm() > atlas_.getProjectionTolerance() && iter++ < atlas_.getProjectionMaxIterations())
     {
         Eigen::MatrixXd A(n_, n_);
-        A.block(0, 0, n_-k_, n_) = atlas_.bigJ(x);
+        A.block(0, 0, n_-k_, n_) = atlas_.bigJ(out);
         A.block(n_-k_, 0, k_, n_) = bigPhi_t_;
         
-        // Move in the direction that decreases F(x) and is perpendicular to the chart plane
-        x += A.householderQr().solve(b);
+        // Move in the direction that decreases F(out) and is perpendicular to the chart plane
+        out += A.householderQr().solve(b);
         
-        b.head(n_-k_) = -atlas_.bigF(x);
-        b.tail(k_) = bigPhi_t_ * (x_0 - x);
+        b.head(n_-k_) = -atlas_.bigF(out);
+        b.tail(k_) = bigPhi_t_ * (x_0 - out);
     }
-    
-    return x;
 }
 
-Eigen::VectorXd ompl::base::AtlasChart::psiInverse (Eigen::Ref<const Eigen::VectorXd> x) const
+void ompl::base::AtlasChart::psiInverse (Eigen::Ref<const Eigen::VectorXd> x, Eigen::Ref<Eigen::VectorXd> out) const
 {
-    return bigPhi_t_ * (x - xorigin_);
+    out = bigPhi_t_ * (x - xorigin_);
 }
 
 bool ompl::base::AtlasChart::inP (Eigen::Ref<const Eigen::VectorXd> u, const LinearInequality *const ignore1,
@@ -298,7 +304,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (Eigen::Ref
         e = bigL_.end();
     }
     
-    Eigen::VectorXd temp(n_);
+    Eigen::VectorXd tempx(n_), tempu(k_);
     for (std::list<LinearInequality *>::const_iterator l = b; l != e; l++)
     {
         const LinearInequality *const comp = (*l)->getComplement();
@@ -307,9 +313,9 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (Eigen::Ref
         
         // Project onto the chart and check if it's in the validity region and polytope
         const AtlasChart &c = comp->getOwner();
-        const Eigen::VectorXd psiInvX = c.psiInverse(x);
-        c.phi(psiInvX, temp);
-        if ((temp - x).norm() < atlas_.getEpsilon() && psiInvX.norm() < atlas_.getRho() && c.inP(psiInvX))
+        c.psiInverse(x, tempu);
+        c.phi(tempu, tempx);
+        if ((tempx - x).norm() < atlas_.getEpsilon() && tempu.norm() < atlas_.getRho() && c.inP(tempu))
             return &c;
     }
     
@@ -468,7 +474,8 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace) const
 // Private
 bool ompl::base::AtlasChart::angleCompare (Eigen::Ref<const Eigen::VectorXd> x1, Eigen::Ref<const Eigen::VectorXd> x2) const
 {
-    const Eigen::VectorXd v1 = psiInverse(x1);
-    const Eigen::VectorXd v2 = psiInverse(x2);
+    Eigen::VectorXd v1(k_), v2(k_);
+    psiInverse(x1, v1);
+    psiInverse(x2, v2);
     return std::atan2(v1[1], v1[0]) < std::atan2(v2[1], v2[0]);
 }

@@ -138,11 +138,13 @@ namespace ompl
              * which should be allocated to a size of ambient dimension. */
             void phi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
             
-            /** \brief Exponential mapping; projects chart point \a u onto the manifold. */
-            Eigen::VectorXd psi (Eigen::Ref<const Eigen::VectorXd> u) const;
+            /** \brief Exponential mapping; projects chart point \a u onto the manifold. Result stored in \a out,
+             * which should be allocated to a size of ambient dimension. */
+            void psi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
             
-            /** \brief Logarithmic mapping; projects ambient point \a x onto the chart. */
-            Eigen::VectorXd psiInverse (Eigen::Ref<const Eigen::VectorXd> x) const;
+            /** \brief Logarithmic mapping; projects ambient point \a x onto the chart. Result stored in \a out,
+             * which should be allocated to a size of manifold dimension.*/
+            void psiInverse (Eigen::Ref<const Eigen::VectorXd> x, Eigen::Ref<Eigen::VectorXd> out) const;
             
             /** \brief Check if a point \a u on the chart lies within its polytope P. LinearInequalities
              * \a ignore1 and \a ignore2, if specified, are ignored during the check. */
