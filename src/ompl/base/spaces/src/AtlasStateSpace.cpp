@@ -147,18 +147,15 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     c->psiInverse(m, u);
     
     // Rejection sampling to find a point on the manifold
+    do
     {
-        boost::lock_guard<boost::mutex> lock(mutices_.rng_);
-        do
-        {
-            Eigen::VectorXd rand(k);
-            const double s = stdDev / std::sqrt(k);
-            for (std::size_t i = 0; i < k; i++)
-                rand[i] = rng_.gaussian(0, s);
-            c->phi(u + rand, rx);
-        }
-        while (!atlas_.project(rx));
+        Eigen::VectorXd rand(k);
+        const double s = stdDev / std::sqrt(k);
+        for (std::size_t i = 0; i < k; i++)
+            rand[i] = rng_.gaussian(0, s);
+        c->phi(u + rand, rx);
     }
+    while (!atlas_.project(rx));
     
     // Be lazy about determining the new chart if we are not in the old one
     if (c->psiInverse(rx, u), !c->inP(u))
@@ -275,7 +272,6 @@ ompl::base::AtlasStateSpace::StateType::~StateType(void)
 void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd &x, AtlasChart *const c)
 {
     setChart(c);
-    boost::lock_guard<boost::mutex> lock(mutices_.vector_);
     for (std::size_t i = 0; i < dimension_; i++)
         (*this)[i]  = x[i];
 }
@@ -297,7 +293,6 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart (void) 
 
 void ompl::base::AtlasStateSpace::StateType::setChart (AtlasChart *const c, const bool fast) const
 {
-    boost::lock_guard<boost::mutex> lock(mutices_.chart_);
     if (chart_ != c)
     {
         if (chart_ && !fast)
@@ -367,15 +362,12 @@ void ompl::base::AtlasStateSpace::clear (void)
 {
     // Copy the list of charts
     std::vector<AtlasChart *> oldCharts;
+    for (std::size_t i = 0; i < charts_.size(); i++)
     {
-        boost::lock_guard<boost::mutex> lock(mutices_.chartsVector_);
-        for (std::size_t i = 0; i < charts_.size(); i++)
-        {
-            oldCharts.push_back(charts_[i]);
-        }
-        
-        charts_.clear();
+        oldCharts.push_back(charts_[i]);
     }
+    
+    charts_.clear();
     
     for (std::size_t i = 0; i < oldCharts.size(); i++)
     {
@@ -557,14 +549,8 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::anchorChart (const Eigen::V
 
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::sampleChart (void) const
 {
-    double r;
-    {
-        boost::lock_guard<boost::mutex> lock(mutices_.rng_);
-        r = rng_.uniform01();
-    }
+    double r = rng_.uniform01();
     
-    boost::lock_guard<boost::mutex> lock1(mutices_.chartsVector_);
-    boost::lock_guard<boost::mutex> lock2(mutices_.chartsWeights_);
     if (charts_.size() < 1)
         throw ompl::Exception("Atlas sampled before any charts were made. Use AtlasStateSpace::newChart() first.");
     return *charts_.sample(r);
@@ -599,15 +585,12 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::Vect
 {
     AtlasChart &addedC = *new AtlasChart(*this, xorigin, anchor);
     std::vector<AtlasChart *> oldCharts;
+    for (std::size_t i = 0; i < charts_.size(); i++)
     {
-        boost::lock_guard<boost::mutex> lock(mutices_.chartsVector_);
-        for (std::size_t i = 0; i < charts_.size(); i++)
-        {
-            oldCharts.push_back(charts_[i]);
-        }
-        addedC.setID(charts_.size());
-        charts_.add(&addedC, addedC.getMeasure());
+        oldCharts.push_back(charts_[i]);
     }
+    addedC.setID(charts_.size());
+    charts_.add(&addedC, addedC.getMeasure());
     
     // Ensure all charts respect boundaries of the new one, and vice versa
     for (std::size_t i = 0; i < oldCharts.size(); i++)
@@ -633,7 +616,6 @@ void ompl::base::AtlasStateSpace::dichotomicSearch (const AtlasChart &c, const E
 
 void ompl::base::AtlasStateSpace::updateMeasure (const AtlasChart &c) const
 {
-    boost::lock_guard<boost::mutex> lock(mutices_.chartsWeights_);
     charts_.update(charts_.getElements()[c.getID()], c.getMeasure());
 }
 
