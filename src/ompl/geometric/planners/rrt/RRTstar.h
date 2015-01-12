@@ -173,6 +173,18 @@ namespace ompl
                 return pruneStatesThreshold_;
             }
 
+            /** \brief Get the seed for the underlying RNG and StateSampler. Useful for running different settings with the exact same pseudorandom sequence. */
+            boost::uint32_t getRngLocalSeed() const
+            {
+                return sampler_->rng().getLocalSeed();
+            }
+
+            /** \brief Set the seed for the underlying and StateSampler. Useful for running different settings with the exact same pseudorandom sequence. */
+            void setRngLocalSeed(boost::uint32_t seed)
+            {
+                sampler_->rng().setLocalSeed(seed);
+            }
+
             virtual void setup();
 
             ///////////////////////////////////////
@@ -184,6 +196,10 @@ namespace ompl
             std::string getBestCost() const
             {
                 return boost::lexical_cast<std::string>(bestCost_);
+            }
+            std::string getCollisionCheckCount() const
+            {
+                return boost::lexical_cast<std::string>(collisionChecks_);
             }
 
         protected:
@@ -240,11 +256,11 @@ namespace ompl
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion *a, const Motion *b) const
             {
-                return si_->distance(a->state, b->state);
+                    return si_->distance(a->state, b->state);
             }
 
             /** \brief Removes the given motion from the parent's child list */
-            void removeFromParent(Motion *m); 
+            void removeFromParent(Motion *m);
 
             /** \brief Updates the cost of the children of this node if the cost up to this node has changed */
             void updateChildCosts(Motion *m);
@@ -273,9 +289,6 @@ namespace ompl
             /** \brief The maximum length of a motion to be added to a tree */
             double                                         maxDistance_;
 
-            /** \brief The random number generator */
-            RNG                                            rng_;
-
             /** \brief Option to delay and reduce collision checking within iterations */
             bool                                           delayCC_;
 
@@ -303,6 +316,8 @@ namespace ompl
             // Planner progress properties
             /** \brief Number of iterations the algorithm performed */
             unsigned int                                   iterations_;
+            /** \brief Number of collisions checks performed by the algorithm */
+            unsigned int                                   collisionChecks_;
             /** \brief Best cost found so far by algorithm */
             base::Cost                                     bestCost_;
         };

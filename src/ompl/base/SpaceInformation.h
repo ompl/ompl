@@ -211,6 +211,12 @@ namespace ompl
                 return stateSpace_->getDimension();
             }
 
+            /** \brief Get a measure of the space (this can be thought of as a generalization of volume) */
+            double getSpaceMeasure() const
+            {
+                return stateSpace_->getMeasure();
+            }
+
             /** @name State memory management
                 @{ */
 
