@@ -621,14 +621,14 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::Vect
     return addedC;
 }
 
-Eigen::VectorXd ompl::base::AtlasStateSpace::dichotomicSearch (const AtlasChart &c, const Eigen::VectorXd &xinside, Eigen::VectorXd xoutside) const
+void ompl::base::AtlasStateSpace::dichotomicSearch (const AtlasChart &c, const Eigen::VectorXd &xinside, const Eigen::VectorXd &xoutside,
+                                                    Eigen::Ref<Eigen::VectorXd> out) const
 {
     // Cut the distance in half, moving toward xinside until we are inside the chart
+    out = xoutside;
     Eigen::VectorXd u(k_);
-    while (c.psiInverse(xoutside, u), !c.inP(u))
-        xoutside = 0.5 * (xinside + xoutside);
-    
-    return xoutside;
+    while (c.psiInverse(out, u), !c.inP(u))
+        out = 0.5 * (xinside + out);
 }
 
 void ompl::base::AtlasStateSpace::updateMeasure (const AtlasChart &c) const
@@ -720,7 +720,9 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
                 if ((x_n - c->getXorigin()).norm() < delta_/cos_alpha_)
                 {
                     // Point we want to center the new chart on is already a chart center
-                    c = &newChart(dichotomicSearch(*c, x_n, x_j));  // See paper's discussion of probabilistic completeness; this was left out of pseudocode
+                    Eigen::VectorXd newCenter(n_);
+                    dichotomicSearch(*c, x_n, x_j, newCenter);  // See paper's discussion of probabilistic completeness; this was left out of pseudocode
+                    c = &newChart(newCenter);
                 }
                 else
                 {

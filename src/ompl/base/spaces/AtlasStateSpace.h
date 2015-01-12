@@ -333,9 +333,11 @@ namespace ompl
             virtual AtlasChart &newChart (const Eigen::VectorXd &xorigin, const bool anchor = false) const;
             
             /** \brief Search for the border of chart \a c between \a xinside, which is assumed to be inside the
-             * polytope of \a c, and \a xoutside. The returned point lies inside the border at a distance no farther
-             * than half the distance of \a xinside to the border. */
-            virtual Eigen::VectorXd dichotomicSearch (const AtlasChart &c, const Eigen::VectorXd &xinside, Eigen::VectorXd xoutside) const;
+             * polytope of \a c, and \a xoutside. The computed point lies inside the border at a distance no farther
+             * than half the distance of \a xinside to the border. The output is stored to \a out, which should be allocated
+             * to a size of ambient dimension. */
+            void dichotomicSearch (const AtlasChart &c, const Eigen::VectorXd &xinside, const Eigen::VectorXd &xoutside,
+                                   Eigen::Ref<Eigen::VectorXd> out) const;
             
             /** \brief Update the recorded measure of a chart. */
             void updateMeasure (const AtlasChart &c) const;
