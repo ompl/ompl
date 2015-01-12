@@ -202,8 +202,8 @@ std::pair<bool, bool> ompl::geometric::PathGeometric::checkAndRepair(unsigned in
     }
 
     // a path with invalid endpoints cannot be fixed; planners should not return such paths anyway
-    const int n1 = states_.size() - 1;
-    if (!si_->isValid(states_[0]) || !si_->isValid(states_[n1]))
+    const int n1 = states_.size();
+    if (!si_->isValid(states_[0]) || !si_->isValid(states_[n1 - 1]))
         return std::make_pair(false, false);
 
     base::State *temp = NULL;
