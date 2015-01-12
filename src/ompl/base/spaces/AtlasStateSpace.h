@@ -186,25 +186,24 @@ namespace ompl
                 const unsigned int dimension_;
             };
             
-            /** \brief Constraint function type; input vector size is the ambient dimension;
-             * output vector size is the number of constraints. */
-            typedef boost::function<Eigen::VectorXd (const Eigen::VectorXd &)> ConstraintsFn;
-            
-            /** \brief Jacobian function type; input vector size is the ambient dimension;
-             * output matrix is (number of constraints) by (ambient dimension). */
-            typedef boost::function<Eigen::MatrixXd (const Eigen::VectorXd &)> JacobianFn;
-            
-            /** \brief Constructor. The ambient space has dimension \a dimension. The manifold is implicitly defined
-             * as { x in R^(\a dimension) : \a constraints(x) = Zero }. The Jacobian of \a constraints at x is
-             * given by \a jacobian(x) if specified explicitly; otherwise numerical methods are used. Generally, an
-             * explicit Jacobian would be much faster. */
-            AtlasStateSpace (const unsigned int dimension, const ConstraintsFn constraints, const JacobianFn jacobian = NULL);
+            /** \brief Constructor. The ambient space has dimension \a ambient, and the manifold has dimension \a manifold. */
+            AtlasStateSpace (const unsigned int ambient, const unsigned int manifold);
             
             /** \brief Destructor. */
             virtual ~AtlasStateSpace (void);
             
             /** @name Setup and tuning of atlas parameters
              * @{ */
+            
+            
+            /** \brief Compute the constraint function at \a x. Result is returned in \a out, which should be allocated
+             * to have a size equal to the number of constraints. */
+            virtual void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const = 0;
+            
+            /** \brief Compute the Jacobian of the constraint function at \a x. Result is returned in \a out, which should
+             * be allocated to have dimensions (# constraints) by (ambient dimension). Default implementation performs the
+             * differentiation numerically, and may be slower and/or inaccurate. */
+            virtual void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const;
             
             /** \brief Behave exactly like the underlying RealVectorStateSpace for all overridden functions. */
             void stopBeingAnAtlas (const bool yes);
@@ -301,15 +300,7 @@ namespace ompl
             
             /** @name Manifold and chart operations
              *  @{ */
-            
-            /** \brief Constraint function. Accepts a vector \a x in ambient space. Returns a vector of the amount of violation of
-             * each constraint. Returns the zero vector when \a x is on the manifold. */
-            const ConstraintsFn bigF;
-            
-            /** \brief Jacobian of the constraint function, F. Accepts a vector \a x in ambient space. Returns the Jacobian of F
-             * at \a x. */
-            const JacobianFn bigJ;
-            
+                        
             /** \brief Wrapper for newChart(). Charts created this way will persist through calls to clear(). */
             AtlasChart &anchorChart (const Eigen::VectorXd &xorigin) const;
             
@@ -406,16 +397,13 @@ namespace ompl
             /** \brief List of charts, sampleable by weight. */
             mutable PDF<AtlasChart *> charts_;
             
-            /** \brief Numerically compute the Jacobian of the constraint function at \a x. */
-            virtual Eigen::MatrixXd numericalJacobian (const Eigen::VectorXd &x) const;
-            
         private:
             
             /** \brief Ambient space dimension. */
             const unsigned int n_;
             
             /** \brief Manifold dimension. */
-            unsigned int k_;
+            const unsigned int k_;
             
             /** \brief Step size when traversing the manifold and collision checking. */
             double delta_;

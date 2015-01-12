@@ -50,7 +50,9 @@ bool ompl::base::AtlasConstraint::isSatisfied (const State *state) const
 
 double ompl::base::AtlasConstraint::distance (const State *state) const
 {
-    return atlas_.bigF(vectorView(state)).norm();
+    Eigen::VectorXd f(atlas_.getAmbientDimension() - atlas_.getManifoldDimension());
+    atlas_.bigF(vectorView(state), f);
+    return f.norm();
 }
 
 bool ompl::base::AtlasConstraint::sample (State *state)

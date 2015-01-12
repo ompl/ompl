@@ -157,11 +157,14 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, Eigen::Ref<con
 : atlas_(atlas), n_(atlas_.getAmbientDimension()), k_(atlas_.getManifoldDimension()),
   xorigin_(xorigin), id_(0), anchor_(anchor), radius_(atlas_.getRho())
 {
-    if (atlas_.bigF(xorigin_).norm() > 10*atlas_.getProjectionTolerance())
+    Eigen::VectorXd f(n_-k_);
+    if (atlas_.bigF(xorigin_, f), f.norm() > 10*atlas_.getProjectionTolerance())
         OMPL_DEBUG("AtlasChart created at point not on the manifold!");
     
     // Initialize basis by computing the null space of the Jacobian and orthonormalizing
-    Eigen::FullPivLU<Eigen::MatrixXd> decomp = atlas_.bigJ(xorigin_).fullPivLu();
+    Eigen::MatrixXd j(n_-k_,n_);
+    atlas_.bigJ(xorigin_, j);
+    Eigen::FullPivLU<Eigen::MatrixXd> decomp = j.fullPivLu();
     Eigen::HouseholderQR<Eigen::MatrixXd> nullDecomp = decomp.kernel().householderQr();
     bigPhi_ = nullDecomp.householderQ() * Eigen::MatrixXd::Identity(n_, k_);
     bigPhi_t_ = bigPhi_.transpose();
@@ -208,19 +211,19 @@ void ompl::base::AtlasChart::psi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Re
     
     unsigned int iter = 0;
     Eigen::VectorXd b(n_);
-    b.head(n_-k_) = -atlas_.bigF(out);
+    atlas_.bigF(out, b.head(n_-k_));
     b.tail(k_) = Eigen::VectorXd::Zero(k_);
     while (b.norm() > atlas_.getProjectionTolerance() && iter++ < atlas_.getProjectionMaxIterations())
     {
         Eigen::MatrixXd A(n_, n_);
-        A.block(0, 0, n_-k_, n_) = atlas_.bigJ(out);
+        atlas_.bigJ(out, A.block(0, 0, n_-k_, n_));
         A.block(n_-k_, 0, k_, n_) = bigPhi_t_;
         
         // Move in the direction that decreases F(out) and is perpendicular to the chart plane
-        out += A.householderQr().solve(b);
+        out += A.householderQr().solve(-b);
         
-        b.head(n_-k_) = -atlas_.bigF(out);
-        b.tail(k_) = bigPhi_t_ * (x_0 - out);
+        atlas_.bigF(out, b.head(n_-k_));
+        b.tail(k_) = bigPhi_t_ * (out - x_0);
     }
 }
 

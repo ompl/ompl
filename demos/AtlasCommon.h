@@ -66,130 +66,152 @@
 
 #include <png++/png.hpp>
 
-/**
- * F(x) functions implicitly define a manifold where F(x)=0.
- * J(x) functions compute the Jacobian of F at x.
- */
-
 /** Simple manifold example: the unit sphere. */
-Eigen::VectorXd Fsphere (const Eigen::VectorXd &x)
+class SphereManifold : public ompl::base::AtlasStateSpace
 {
-    Eigen::VectorXd f(1);
-    f[0] = x.norm() - 1;
-    return f;
-}
+public:
+    
+    SphereManifold ()
+    : ompl::base::AtlasStateSpace(3, 2)
+    {
+    }
+    
+    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    {
+        out[0] = x.norm() - 1;
+    }
 
-Eigen::MatrixXd Jsphere (const Eigen::VectorXd &x)
-{
-    return x.transpose().normalized();
-}
+    void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    {
+        out = x.transpose().normalized();
+    }
+};
 
 /** Simple manifold example: the xy plane. */
-Eigen::VectorXd Fplane (const Eigen::VectorXd &x)
+class PlaneManifold : public ompl::base::AtlasStateSpace
 {
-    Eigen::VectorXd f(1);
-    f[0] = x[3];
-    return f;
-}
+public:
+    
+    PlaneManifold ()
+    : ompl::base::AtlasStateSpace(3, 2)
+    {
+    }
+        
+    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    {
+        out[0] = x[3];
+    }
 
-Eigen::MatrixXd Jplane (const Eigen::VectorXd &x)
-{
-    Eigen::MatrixXd j(1,3); j << 0,0,1;
-    return j;
-}
+    void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    {
+        out(0,0) = 0;
+        out(0,1) = 0;
+        out(0,2) = 1;
+    }
+};
 
 /** Klein bottle embedded in R^3 manifold. (Self-intersecting -> nasty chart breakdown.) */
-Eigen::VectorXd FKleinBottle (const Eigen::VectorXd &x)
+class KleinManifold : public ompl::base::AtlasStateSpace
 {
-    const double p = x.squaredNorm() + 2*x[1] - 1;
-    const double n = x.squaredNorm() - 2*x[1] - 1;
-    const double u = n*n - 8*x[2]*x[2];
+public:
     
-    Eigen::VectorXd f(1);
-    f[0] = p*u + 16*x[0]*x[1]*n;
-    
-    return f;
-}
+    KleinManifold ()
+    : ompl::base::AtlasStateSpace(3, 2)
+    {
+    }
+        
+    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    {
+        const double p = x.squaredNorm() + 2*x[1] - 1;
+        const double n = x.squaredNorm() - 2*x[1] - 1;
+        const double u = n*n - 8*x[2]*x[2];
+        
+        out[0] = p*u + 16*x[0]*x[1]*n;
+    }
 
-Eigen::MatrixXd JKleinBottle (const Eigen::VectorXd &x)
-{
-    const double p = x.squaredNorm() + 2*x[1] - 1;
-    const double n = x.squaredNorm() - 2*x[1] - 1;
-    const double u = n*n - 8*x[2]*x[2];
-    
-    Eigen::MatrixXd j(1,3);
-    j(0,0) = 32*x[0]*x[0]*x[1] + 16*x[1]*n + 4*x[0]*n*p + 2*x[0]*u;
-    j(0,1) = 32*x[0]*x[1]*(x[1]-1) + 16*x[0]*n + 4*(x[1]-1)*n*p + 2*(x[1]+1)*u;
-    j(0,2) = 2*x[2]*(16*x[0]*x[1] + 2*p*(n-4) + u);
-    
-    return j;
-}
+    void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    {
+        const double p = x.squaredNorm() + 2*x[1] - 1;
+        const double n = x.squaredNorm() - 2*x[1] - 1;
+        const double u = n*n - 8*x[2]*x[2];
+        
+        out(0,0) = 32*x[0]*x[0]*x[1] + 16*x[1]*n + 4*x[0]*n*p + 2*x[0]*u;
+        out(0,1) = 32*x[0]*x[1]*(x[1]-1) + 16*x[0]*n + 4*(x[1]-1)*n*p + 2*(x[1]+1)*u;
+        out(0,2) = 2*x[2]*(16*x[0]*x[1] + 2*p*(n-4) + u);
+    }
+};
 
+/** Torus manifold. */
 #define TORUSR1 2.0
 #define TORUSR2 1.0
-/** Torus manifold. */
-Eigen::VectorXd Ftorus (const Eigen::VectorXd &x)
+class TorusManifold : public ompl::base::AtlasStateSpace
 {
-    Eigen::VectorXd f(1);
-    Eigen::VectorXd c(3); c << x[0], x[1], 0;
-    f[0] = (x - TORUSR1 * c.normalized()).norm() - TORUSR2;
+public:
     
-    return f;
-}
-
-/** Jacobian of Ftorus(x). */
-Eigen::MatrixXd Jtorus (const Eigen::VectorXd &x)
-{
-    Eigen::MatrixXd j(1,3);
-    const double xySquaredNorm = x[0]*x[0] + x[1]*x[1];
-    const double xyNorm = std::sqrt(xySquaredNorm);
-    const double denom = std::sqrt(x[2]*x[2] + (xyNorm - TORUSR1)*(xyNorm - TORUSR1));
-    const double c = (xyNorm - TORUSR1) * (xyNorm*xySquaredNorm) / (xySquaredNorm * xySquaredNorm * denom);
-    j(0,0) = x[0] * c;
-    j(0,1) = x[1] * c;
-    j(0,2) = x[2] / denom;
+    TorusManifold ()
+    : ompl::base::AtlasStateSpace(3, 2)
+    {
+    }
     
-    return j;
-}
+    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    {
+        Eigen::VectorXd c(3); c << x[0], x[1], 0;
+        out[0] = (x - TORUSR1 * c.normalized()).norm() - TORUSR2;
+    }
 
+    void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    {
+        const double xySquaredNorm = x[0]*x[0] + x[1]*x[1];
+        const double xyNorm = std::sqrt(xySquaredNorm);
+        const double denom = std::sqrt(x[2]*x[2] + (xyNorm - TORUSR1)*(xyNorm - TORUSR1));
+        const double c = (xyNorm - TORUSR1) * (xyNorm*xySquaredNorm) / (xySquaredNorm * xySquaredNorm * denom);
+        out(0,0) = x[0] * c;
+        out(0,1) = x[1] * c;
+        out(0,2) = x[2] / denom;
+    }
+};
+
+/** Kinematic chain manifold. 5 links in 3D space. */
 #define CHAINDIM            3
 #define CHAINLINKS          5
 #define CHAINJOINTWIDTH     0.2
 #define CHAINLINKLENGTH     1.0
 #define CHAINEFFECTORRADIUS 3.0
-/** Kinematic chain manifold. 5 links in 3D space. */
-Eigen::VectorXd Fchain (const Eigen::VectorXd &x)
+class ChainManifold : public ompl::base::AtlasStateSpace
 {
-    Eigen::VectorXd f(CHAINLINKS+1);
+public:
     
-    // Consecutive joints must be a fixed distance apart
-    Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(CHAINDIM);
-    for (std::size_t i = 0; i < CHAINLINKS; i++)
+    ChainManifold ()
+    : ompl::base::AtlasStateSpace(CHAINDIM*CHAINLINKS, (CHAINDIM-1)*CHAINLINKS - 1)
     {
-        const Eigen::VectorXd joint2 = x.segment(CHAINDIM*i, CHAINDIM);
-        f[i] = (joint1 - joint2).norm() - CHAINLINKLENGTH;
-        joint1 = joint2;
     }
     
-    // End effector must lie on a sphere
-    f[CHAINLINKS] = x.tail(CHAINDIM).norm() - CHAINEFFECTORRADIUS;
-    
-    return f;
-}
+    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    {
+        // Consecutive joints must be a fixed distance apart
+        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(CHAINDIM);
+        for (std::size_t i = 0; i < CHAINLINKS; i++)
+        {
+            const Eigen::VectorXd joint2 = x.segment(CHAINDIM*i, CHAINDIM);
+            out[i] = (joint1 - joint2).norm() - CHAINLINKLENGTH;
+            joint1 = joint2;
+        }
+        
+        // End effector must lie on a sphere
+        out[CHAINLINKS] = x.tail(CHAINDIM).norm() - CHAINEFFECTORRADIUS;
+    }
 
-Eigen::MatrixXd Jchain (const Eigen::VectorXd &x)
-{
-    Eigen::MatrixXd j = Eigen::MatrixXd::Zero(CHAINLINKS+1, CHAINDIM*CHAINLINKS);
-    Eigen::VectorXd plus(CHAINDIM*(CHAINLINKS+1)); plus.head(CHAINDIM*CHAINLINKS) = x; plus.tail(CHAINDIM) = Eigen::VectorXd::Zero(CHAINDIM);
-    Eigen::VectorXd minus(CHAINDIM*(CHAINLINKS+1)); minus.head(CHAINDIM) = Eigen::VectorXd::Zero(CHAINDIM); minus.tail(CHAINDIM*CHAINLINKS) = x;
-    const Eigen::VectorXd diagonal = plus - minus;
-    for (std::size_t i = 0; i < CHAINLINKS; i++)
-        j.row(i).segment(CHAINDIM*i, CHAINDIM) = diagonal.segment(CHAINDIM*i, CHAINDIM).normalized();
-    j.block(1, 0, CHAINLINKS, CHAINDIM*(CHAINLINKS-1)) -= j.block(1, CHAINDIM, CHAINLINKS, CHAINDIM*(CHAINLINKS-1));
-    j.row(CHAINLINKS).tail(CHAINDIM) = -diagonal.tail(CHAINDIM).normalized().transpose();
-    
-    return j;
-}
+    void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    {
+        Eigen::VectorXd plus(CHAINDIM*(CHAINLINKS+1)); plus.head(CHAINDIM*CHAINLINKS) = x; plus.tail(CHAINDIM) = Eigen::VectorXd::Zero(CHAINDIM);
+        Eigen::VectorXd minus(CHAINDIM*(CHAINLINKS+1)); minus.head(CHAINDIM) = Eigen::VectorXd::Zero(CHAINDIM); minus.tail(CHAINDIM*CHAINLINKS) = x;
+        const Eigen::VectorXd diagonal = plus - minus;
+        for (std::size_t i = 0; i < CHAINLINKS; i++)
+            out.row(i).segment(CHAINDIM*i, CHAINDIM) = diagonal.segment(CHAINDIM*i, CHAINDIM).normalized();
+        out.block(1, 0, CHAINLINKS, CHAINDIM*(CHAINLINKS-1)) -= out.block(1, CHAINDIM, CHAINLINKS, CHAINDIM*(CHAINLINKS-1));
+        out.row(CHAINLINKS).tail(CHAINDIM) = -diagonal.tail(CHAINDIM).normalized().transpose();
+    }
+};
 
 /**
  * State validity checking functions implicitly define the free space where they return true.
@@ -310,7 +332,7 @@ ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::Vecto
     isValid = &sphereValid;
     
     // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is faster)
-    return new ompl::base::AtlasStateSpace(dim, Fsphere, Jsphere);
+    return new SphereManifold();
 }
 
 /** Initialize the atlas for the torus problem and store the start and goal vectors. */
@@ -325,7 +347,7 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
     // Validity checker
     isValid = boost::bind(&unreachable, _1, y, 0.1);
     
-    return new ompl::base::AtlasStateSpace(dim, Ftorus, Jtorus);
+    return new TorusManifold();
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
@@ -340,13 +362,13 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
     // Validity checker
     isValid = boost::bind(&unreachable, _1, y, 0.2);
     
-    return new ompl::base::AtlasStateSpace(dim, FKleinBottle, JKleinBottle);
+    return new KleinManifold();
 }
 
 /** Initialize the atlas for the kinematic chain problem. */
 ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const bool tough)
 {
-    const std::size_t dim = 15;
+    const std::size_t dim = CHAINDIM*CHAINLINKS;
     
     // Start and goal points (each triple is the 3D location of a joint)
     x = Eigen::VectorXd(dim); x << 1,  0, 0,  2,  0, 0,  2, -1, 0,  3, -1, 0,  3, 0, 0;
@@ -355,7 +377,7 @@ ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::Vector
     // Validity checker
     isValid = boost::bind(&chainValid, _1, tough);
     
-    return new ompl::base::AtlasStateSpace(dim, Fchain, Jchain);
+    return new ChainManifold();
 }
 
 /** Initialize the atlas for the planar maze problem. */
@@ -373,7 +395,7 @@ ompl::base::AtlasStateSpace *initPlanarMazeProblem (Eigen::VectorXd &x, Eigen::V
     // Validity checker
     isValid = boost::bind(&mazePlaneValid, *img, _1);
     
-    return new ompl::base::AtlasStateSpace(dim, Fplane, Jplane);
+    return new PlaneManifold();
 }
 
 /** Initialize the atlas for the torus maze problem. */
@@ -411,7 +433,7 @@ ompl::base::AtlasStateSpace *initTorusMazeProblem (Eigen::VectorXd &x, Eigen::Ve
     // Validity checker
     isValid = boost::bind(&mazeTorusValid, *img, _1);
     
-    return new ompl::base::AtlasStateSpace(dim, Ftorus, Jtorus);
+    return new TorusManifold();
 }
 
 /** Allocator function for a sampler for the atlas that only returns valid points. */

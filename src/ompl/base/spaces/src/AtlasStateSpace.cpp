@@ -67,6 +67,7 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
     AtlasChart *c;
     
     // Rejection sampling to find a point on the manifold
+    Eigen::VectorXd f(atlas_.getAmbientDimension()-atlas_.getManifoldDimension());
     do
     {
         // Rejection sampling to find a point inside a chart's polytope
@@ -85,7 +86,7 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
         
         c->psi(ru, rx);
     }
-    while (rx.hasNaN() || atlas_.bigF(rx).norm() > atlas_.getProjectionTolerance());
+    while (rx.hasNaN() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance()));
     
     // Extend polytope of neighboring chart wherever point is near the border
     c->psiInverse(rx, ru);
@@ -306,27 +307,14 @@ void ompl::base::AtlasStateSpace::StateType::setChart (AtlasChart *const c, cons
 /// AtlasStateSpace
 
 /// Public
-ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int dimension, const ConstraintsFn constraints, const JacobianFn jacobian)
-: RealVectorStateSpace(dimension),
-    bigF(constraints),
-    bigJ(jacobian ? jacobian : boost::bind(&AtlasStateSpace::numericalJacobian, this, boost::lambda::_1)),
-    n_(dimension), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
+ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int ambient, const unsigned int manifold)
+: RealVectorStateSpace(ambient),
+    n_(ambient), k_(manifold), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
     projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), monteCarloSampleCount_(0), setup_(false), noAtlas_(false)
 {
     Eigen::initParallel();
     setName("Atlas" + RealVectorStateSpace::getName());
-    
-    // Infer the manifold dimension
-    Eigen::VectorXd zero = Eigen::VectorXd::Zero(n_);
-    k_ = n_ - bigF(zero).size();
-    if (k_ <= 0)
-        throw ompl::Exception("Too many constraints! The manifold must be at least 1-dimensional.");
-    if (!jacobian)
-        OMPL_INFORM("Atlas: Jacobian not given. Using numerical methods to compute it. (May be slower and/or less accurate.)");
-    else if (bigJ(zero).rows() != bigF(zero).size() || bigJ(zero).cols() != n_)
-        throw ompl::Exception("Dimensions of the Jacobian are incorrect! Should be n-k by n, where n, k are the ambient, manifold dimensions.");
-    
-    
+        
     setRho(0.1);
     setAlpha(M_PI/16);
     setMonteCarloSampleCount(100);
@@ -338,6 +326,33 @@ ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
 {
     for (std::size_t i = 0; i < charts_.size(); i++)
         delete charts_[i];
+}
+
+void ompl::base::AtlasStateSpace::bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+{
+    Eigen::VectorXd y1 = x;
+    Eigen::VectorXd y2 = x;
+    Eigen::VectorXd t1(n_-k_);
+    Eigen::VectorXd t2(n_-k_);
+    
+    // Use a 7-point central difference stencil on each column
+    for (std::size_t j = 0; j < n_; j++)
+    {
+        // Make step size as small as possible while still giving usable accuracy
+        const double h = std::sqrt(std::numeric_limits<double>::epsilon()) * (x[j] >= 1 ? x[j] : 1);
+        
+        y1[j] += h; y2[j] -= h;
+        const Eigen::VectorXd m1 = (bigF(y1, t1),  bigF(y2, t2), (t1 - t2) / (y1[j]-y2[j]));   // Can't assume y1[j]-y2[j] == 2*h because of precision errors
+        y1[j] += h; y2[j] -= h;
+        const Eigen::VectorXd m2 = (bigF(y1, t1),  bigF(y2, t2), (t1 - t2) / (y1[j]-y2[j]));
+        y1[j] += h; y2[j] -= h;
+        const Eigen::VectorXd m3 = (bigF(y1, t1),  bigF(y2, t2), (t1 - t2) / (y1[j]-y2[j]));
+        
+        out.col(j) = 1.5*m1 - 0.6*m2 + 0.1*m3;
+        
+        // Reset for next iteration
+        y1[j] = y2[j] = x[j];
+    }
 }
 
 void ompl::base::AtlasStateSpace::stopBeingAnAtlas (const bool yes)
@@ -943,17 +958,20 @@ bool ompl::base::AtlasStateSpace::project (Eigen::Ref<Eigen::VectorXd> x) const
 {
     // Newton's method
     unsigned int iter = 0;
-    while (bigF(x).norm() > projectionTolerance_ && iter++ < projectionMaxIterations_)
+    Eigen::VectorXd f(n_-k_);
+    Eigen::MatrixXd j(n_-k_,n_);
+    Eigen::MatrixXd pinvJ;
+    while ((bigF(x, f), f.norm() > projectionTolerance_) && iter++ < projectionMaxIterations_)
     {
         // Compute pseudoinverse of Jacobian
-        Eigen::MatrixXd pinvJ = bigJ(x);
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd  = bigJ(x).jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+        bigJ(x, j);
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
         const double tolerance = std::numeric_limits<double>::epsilon() * getAmbientDimension() * svd.singularValues().array().abs().maxCoeff();
         pinvJ = svd.matrixV()
             * Eigen::MatrixXd((svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0)).asDiagonal()
             * svd.matrixU().adjoint();
         
-        x -= pinvJ * bigF(x);
+        x -= pinvJ * f;
     }
     
     if (iter > projectionMaxIterations_)
@@ -1053,34 +1071,4 @@ void ompl::base::AtlasStateSpace::freeState (State *state) const
     if (c)
         c->disown(astate);
     delete astate;
-}
-
-/// Protected
-
-Eigen::MatrixXd ompl::base::AtlasStateSpace::numericalJacobian (const Eigen::VectorXd &x) const
-{
-    Eigen::VectorXd y1 = x;
-    Eigen::VectorXd y2 = x;
-    Eigen::MatrixXd jac(n_-k_, n_);
-    
-    // Use a 7-point central difference stencil on each entire column at once
-    for (std::size_t j = 0; j < n_; j++)
-    {
-        // Make step size as small as possible while still giving usable accuracy
-        const double h = std::sqrt(std::numeric_limits<double>::epsilon()) * (x[j] >= 1 ? x[j] : 1);
-        
-        y1[j] += h; y2[j] -= h;
-        const Eigen::VectorXd m1 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);   // Can't assume y1[j]-y2[j] == 2*h because of precision errors
-        y1[j] += h; y2[j] -= h;
-        const Eigen::VectorXd m2 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);
-        y1[j] += h; y2[j] -= h;
-        const Eigen::VectorXd m3 = (bigF(y1) - bigF(y2)) / (y1[j]-y2[j]);
-        
-        jac.col(j) = 1.5*m1 - 0.6*m2 + 0.1*m3;
-        
-        // Reset for next iteration
-        y1[j] = y2[j] = x[j];
-    }
-    
-    return jac;
 }
