@@ -146,8 +146,8 @@ class TorusManifold : public ompl::base::AtlasStateSpace
 {
 public:
     
-    static const double R1 = 2;
-    static const double R2 = 1;
+    static const double R1;
+    static const double R2;
     
     TorusManifold ()
     : ompl::base::AtlasStateSpace(3, 2)
@@ -172,16 +172,19 @@ public:
     }
 };
 
+const double TorusManifold::R1 = 2;
+const double TorusManifold::R2 = 1;
+
 /** Kinematic chain manifold. 5 links in 3D space. */
 class ChainManifold : public ompl::base::AtlasStateSpace
 {
 public:
     
-    static const int DIM = 3;
-    static const int LINKS = 5;
-    static const double LINKLENGTH = 1;
-    static const double ENDEFFECTORRADIUS = 3;
-    static const double JOINTWIDTH = 0.2;
+    static const int DIM;
+    static const int LINKS;
+    static const double LINKLENGTH;
+    static const double ENDEFFECTORRADIUS;
+    static const double JOINTWIDTH;
     
     ChainManifold ()
     : ompl::base::AtlasStateSpace(DIM*LINKS, (DIM-1)*LINKS - 1)
@@ -192,7 +195,7 @@ public:
     {
         // Consecutive joints must be a fixed distance apart
         Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(DIM);
-        for (std::size_t i = 0; i < LINKS; i++)
+        for (int i = 0; i < LINKS; i++)
         {
             const Eigen::VectorXd joint2 = x.segment(DIM*i, DIM);
             out[i] = (joint1 - joint2).norm() - LINKLENGTH;
@@ -209,12 +212,18 @@ public:
         Eigen::VectorXd plus(DIM*(LINKS+1)); plus.head(DIM*LINKS) = x; plus.tail(DIM) = Eigen::VectorXd::Zero(DIM);
         Eigen::VectorXd minus(DIM*(LINKS+1)); minus.head(DIM) = Eigen::VectorXd::Zero(DIM); minus.tail(DIM*LINKS) = x;
         const Eigen::VectorXd diagonal = plus - minus;
-        for (std::size_t i = 0; i < LINKS; i++)
+        for (int i = 0; i < LINKS; i++)
             out.row(i).segment(DIM*i, DIM) = diagonal.segment(DIM*i, DIM).normalized();
         out.block(1, 0, LINKS, DIM*(LINKS-1)) -= out.block(1, DIM, LINKS, DIM*(LINKS-1));
         out.row(LINKS).tail(DIM) = -diagonal.tail(DIM).normalized().transpose();
     }
 };
+
+const int ChainManifold::DIM = 3;
+const int ChainManifold::LINKS = 5;
+const double ChainManifold::LINKLENGTH = 1;
+const double ChainManifold::ENDEFFECTORRADIUS = 3;
+const double ChainManifold::JOINTWIDTH = 0.2;
 
 /**
  * State validity checking functions implicitly define the free space where they return true.

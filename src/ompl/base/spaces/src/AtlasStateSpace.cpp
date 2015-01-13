@@ -76,11 +76,11 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
             // Pick a chart according to measure
             c = &atlas_.sampleChart();
             
-            // Sample a point within rho_s of the center TODO make this smarter and faster
-            do
-                ru.setRandom();
-            while (ru.squaredNorm() > 1);
-            ru *= atlas_.getRho_s();
+            // Sample a point within rho_s of the center. This is done by sampling uniformly on the surface =
+            // and multiplying by a distance whose distribution is biased according to spherical volume
+            for (int i = 0; i < ru.size(); i++)
+                ru[i] = rng_.gaussian01();
+            ru *= atlas_.getRho_s() * std::pow(rng_.uniform01(), 1.0/ru.size()) / ru.norm();
         }
         while (!c->inP(ru));
         
@@ -114,11 +114,11 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     {
         // Sample within distance
         Eigen::VectorXd uoffset(atlas_.getManifoldDimension());
-        do
-            uoffset.setRandom();
-        while (uoffset.squaredNorm() > 1);
+        for (int i = 0; i < uoffset.size(); i++)
+            uoffset[i] = rng_.gaussian01();
+        uoffset *=  distance * std::pow(rng_.uniform01(), 1.0/uoffset.size()) / uoffset.norm();
         c->psiInverse(n, ru);
-        c->phi(ru + distance * uoffset, rx);
+        c->phi(ru + uoffset, rx);
     }
     while (!atlas_.project(rx));
     
