@@ -76,7 +76,7 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
             // Pick a chart according to measure
             c = &atlas_.sampleChart();
             
-            // Sample a point within rho_s of the center
+            // Sample a point within rho_s of the center TODO make this smarter and faster
             do
                 ru.setRandom();
             while (ru.squaredNorm() > 1);

@@ -142,11 +142,12 @@ public:
 };
 
 /** Torus manifold. */
-#define TORUSR1 2.0
-#define TORUSR2 1.0
 class TorusManifold : public ompl::base::AtlasStateSpace
 {
 public:
+    
+    static const double R1 = 2;
+    static const double R2 = 1;
     
     TorusManifold ()
     : ompl::base::AtlasStateSpace(3, 2)
@@ -156,15 +157,15 @@ public:
     void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         Eigen::VectorXd c(3); c << x[0], x[1], 0;
-        out[0] = (x - TORUSR1 * c.normalized()).norm() - TORUSR2;
+        out[0] = (x - R1 * c.normalized()).norm() - R2;
     }
 
     void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         const double xySquaredNorm = x[0]*x[0] + x[1]*x[1];
         const double xyNorm = std::sqrt(xySquaredNorm);
-        const double denom = std::sqrt(x[2]*x[2] + (xyNorm - TORUSR1)*(xyNorm - TORUSR1));
-        const double c = (xyNorm - TORUSR1) * (xyNorm*xySquaredNorm) / (xySquaredNorm * xySquaredNorm * denom);
+        const double denom = std::sqrt(x[2]*x[2] + (xyNorm - R1)*(xyNorm - R1));
+        const double c = (xyNorm - R1) * (xyNorm*xySquaredNorm) / (xySquaredNorm * xySquaredNorm * denom);
         out(0,0) = x[0] * c;
         out(0,1) = x[1] * c;
         out(0,2) = x[2] / denom;
@@ -172,44 +173,46 @@ public:
 };
 
 /** Kinematic chain manifold. 5 links in 3D space. */
-#define CHAINDIM            3
-#define CHAINLINKS          5
-#define CHAINJOINTWIDTH     0.2
-#define CHAINLINKLENGTH     1.0
-#define CHAINEFFECTORRADIUS 3.0
 class ChainManifold : public ompl::base::AtlasStateSpace
 {
 public:
     
+    static const int DIM = 3;
+    static const int LINKS = 5;
+    static const double LINKLENGTH = 1;
+    static const double ENDEFFECTORRADIUS = 3;
+    static const double JOINTWIDTH = 0.2;
+    
     ChainManifold ()
-    : ompl::base::AtlasStateSpace(CHAINDIM*CHAINLINKS, (CHAINDIM-1)*CHAINLINKS - 1)
+    : ompl::base::AtlasStateSpace(DIM*LINKS, (DIM-1)*LINKS - 1)
     {
     }
     
     void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         // Consecutive joints must be a fixed distance apart
-        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(CHAINDIM);
-        for (std::size_t i = 0; i < CHAINLINKS; i++)
+        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(DIM);
+        for (std::size_t i = 0; i < LINKS; i++)
         {
-            const Eigen::VectorXd joint2 = x.segment(CHAINDIM*i, CHAINDIM);
-            out[i] = (joint1 - joint2).norm() - CHAINLINKLENGTH;
+            const Eigen::VectorXd joint2 = x.segment(DIM*i, DIM);
+            out[i] = (joint1 - joint2).norm() - LINKLENGTH;
             joint1 = joint2;
         }
         
         // End effector must lie on a sphere
-        out[CHAINLINKS] = x.tail(CHAINDIM).norm() - CHAINEFFECTORRADIUS;
+        out[LINKS] = x.tail(DIM).norm() - ENDEFFECTORRADIUS;
     }
 
     void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
-        Eigen::VectorXd plus(CHAINDIM*(CHAINLINKS+1)); plus.head(CHAINDIM*CHAINLINKS) = x; plus.tail(CHAINDIM) = Eigen::VectorXd::Zero(CHAINDIM);
-        Eigen::VectorXd minus(CHAINDIM*(CHAINLINKS+1)); minus.head(CHAINDIM) = Eigen::VectorXd::Zero(CHAINDIM); minus.tail(CHAINDIM*CHAINLINKS) = x;
+        out.setZero();
+        Eigen::VectorXd plus(DIM*(LINKS+1)); plus.head(DIM*LINKS) = x; plus.tail(DIM) = Eigen::VectorXd::Zero(DIM);
+        Eigen::VectorXd minus(DIM*(LINKS+1)); minus.head(DIM) = Eigen::VectorXd::Zero(DIM); minus.tail(DIM*LINKS) = x;
         const Eigen::VectorXd diagonal = plus - minus;
-        for (std::size_t i = 0; i < CHAINLINKS; i++)
-            out.row(i).segment(CHAINDIM*i, CHAINDIM) = diagonal.segment(CHAINDIM*i, CHAINDIM).normalized();
-        out.block(1, 0, CHAINLINKS, CHAINDIM*(CHAINLINKS-1)) -= out.block(1, CHAINDIM, CHAINLINKS, CHAINDIM*(CHAINLINKS-1));
-        out.row(CHAINLINKS).tail(CHAINDIM) = -diagonal.tail(CHAINDIM).normalized().transpose();
+        for (std::size_t i = 0; i < LINKS; i++)
+            out.row(i).segment(DIM*i, DIM) = diagonal.segment(DIM*i, DIM).normalized();
+        out.block(1, 0, LINKS, DIM*(LINKS-1)) -= out.block(1, DIM, LINKS, DIM*(LINKS-1));
+        out.row(LINKS).tail(DIM) = -diagonal.tail(DIM).normalized().transpose();
     }
 };
 
@@ -281,7 +284,7 @@ bool mazeTorusValid (png::image<png::index_pixel_1> &maze, const ompl::base::Sta
     Eigen::VectorXd c(3); c << p[0], p[1], 0;
     vec[0] = maze.get_width()*std::atan2(p[1], p[0])/(2*M_PI);
     vec[0] += 0.5*(vec[0] < 0);
-    vec[1] = maze.get_height()*std::atan2(p[2], c.norm()-TORUSR1)/(2*M_PI);
+    vec[1] = maze.get_height()*std::atan2(p[2], c.norm()-TorusManifold::R1)/(2*M_PI);
     vec[1] += 0.5*(vec[1] < 0);
     if (vec[0] < 0 || vec[0] >= maze.get_width() || vec[1] < 0 || vec[1] >= maze.get_height())
         return false;
@@ -293,13 +296,13 @@ bool mazeTorusValid (png::image<png::index_pixel_1> &maze, const ompl::base::Sta
 bool chainValid (const ompl::base::State *state, const bool tough)
 {
     Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
-    for (std::size_t i = 0; i < CHAINLINKS-1; i++)
+    for (std::size_t i = 0; i < ChainManifold::LINKS-1; i++)
     {
-        if (x.segment(CHAINDIM*i, CHAINDIM).cwiseAbs().maxCoeff() < CHAINJOINTWIDTH)
+        if (x.segment(ChainManifold::DIM*i, ChainManifold::DIM).cwiseAbs().maxCoeff() < ChainManifold::JOINTWIDTH)
             return false;
-        for (std::size_t j = i+1; j < CHAINLINKS; j++)
+        for (std::size_t j = i+1; j < ChainManifold::LINKS; j++)
         {
-            if ((x.segment(CHAINDIM*i, CHAINDIM) - x.segment(CHAINDIM*j, CHAINDIM)).cwiseAbs().maxCoeff() < CHAINJOINTWIDTH)
+            if ((x.segment(ChainManifold::DIM*i, ChainManifold::DIM) - x.segment(ChainManifold::DIM*j, ChainManifold::DIM)).cwiseAbs().maxCoeff() < ChainManifold::JOINTWIDTH)
                 return false;
         }
     }
@@ -307,7 +310,7 @@ bool chainValid (const ompl::base::State *state, const bool tough)
     if (!tough)
         return true;
     
-    Eigen::VectorXd end = x.tail(CHAINDIM)/CHAINEFFECTORRADIUS;
+    Eigen::VectorXd end = x.tail(ChainManifold::DIM)/ChainManifold::ENDEFFECTORRADIUS;
     const double tmp = end[0];
     end[0] = end[2];
     end[2] = tmp;
@@ -368,7 +371,7 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
 /** Initialize the atlas for the kinematic chain problem. */
 ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const bool tough)
 {
-    const std::size_t dim = CHAINDIM*CHAINLINKS;
+    const std::size_t dim = ChainManifold::DIM*ChainManifold::LINKS;
     
     // Start and goal points (each triple is the 3D location of a joint)
     x = Eigen::VectorXd(dim); x << 1,  0, 0,  2,  0, 0,  2, -1, 0,  3, -1, 0,  3, 0, 0;
@@ -414,10 +417,10 @@ ompl::base::AtlasStateSpace *initTorusMazeProblem (Eigen::VectorXd &x, Eigen::Ve
     yA *= 2*M_PI;
     xB << std::cos(xA[0]), 0, std::sin(xA[0]);
     yB << std::cos(yA[0]), 0, std::sin(yA[0]);
-    xB *= TORUSR2;
-    yB *= TORUSR2;
-    xB[0] += TORUSR1;
-    yB[0] += TORUSR1;
+    xB *= TorusManifold::R2;
+    yB *= TorusManifold::R2;
+    xB[0] += TorusManifold::R1;
+    yB[0] += TorusManifold::R1;
     double nX = std::sqrt(xB[0]*xB[0] + xB[1]*xB[1]);
     double nY = std::sqrt(yB[0]*yB[0] + yB[1]*yB[1]);
     x << std::cos(xA[1]), std::sin(xA[1]), 0;
