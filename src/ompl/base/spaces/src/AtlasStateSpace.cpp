@@ -485,9 +485,10 @@ void ompl::base::AtlasStateSpace::setMonteCarloSampleCount (const unsigned int c
     // Generate random samples within the ball
     for (std::size_t i = monteCarloSampleCount_; i < samples_.size(); i++)
     {
-        do
-            samples_[i] = Eigen::VectorXd::Random(k_);
-        while (samples_[i].squaredNorm() > 1);
+        samples_[i].resize(k_);
+        for (int j = 0; j < samples_[i].size(); j++)
+            samples_[i][j] = rng_.gaussian01();
+        samples_[i] *= std::pow(rng_.uniform01(), 1.0/samples_[i].size()) / samples_[i].norm();
     }
     monteCarloSampleCount_ = count;
 }
