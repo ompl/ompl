@@ -154,15 +154,6 @@ namespace ompl
              * expand the neighboring chart's polytope. */
             virtual void borderCheck (Eigen::Ref<const Eigen::VectorXd> v) const;
             
-            /** \brief Track that this chart owns \a state. Assumes we are not already tracking it. */
-            void own (const ompl::base::AtlasStateSpace::StateType *const state);
-            
-            /** \brief Stop tracking \a state. Assumes it is listed at most once. */
-            void disown (const ompl::base::AtlasStateSpace::StateType *const state);
-            
-            /** \brief Make all tracked states belong to a \a replacement chart. */
-            void substituteChart (AtlasChart &replacement);
-            
             /** \brief Check each of our neighboring charts to see if ambient point \a x lies within its
              * polytope when projected onto it. Returns NULL if none. */
             virtual const AtlasChart *owningNeighbor (Eigen::Ref<const Eigen::VectorXd> x) const;
@@ -235,9 +226,6 @@ namespace ompl
             
             /** \brief Pseudoinverse of the transpose of basis. */
             Eigen::MatrixXd bigPhi_t_pinv_;
-            
-            /** \brief List of states on this chart. */
-            std::vector<const ompl::base::AtlasStateSpace::StateType *> owned_;
             
             /** \brief Maximum valid radius of this chart. */
             double radius_;

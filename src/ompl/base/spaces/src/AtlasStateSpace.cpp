@@ -292,15 +292,8 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart (void) 
     return chart_;
 }
 
-void ompl::base::AtlasStateSpace::StateType::setChart (AtlasChart *const c, const bool fast) const
+void ompl::base::AtlasStateSpace::StateType::setChart (AtlasChart *const c) const
 {
-    if (chart_ != c)
-    {
-        if (chart_ && !fast)
-            chart_->disown(this);
-        if (c)
-            c->own(this);
-    }
     chart_ = c;
 }
 
@@ -376,22 +369,20 @@ void ompl::base::AtlasStateSpace::setup (void)
 void ompl::base::AtlasStateSpace::clear (void)
 {
     // Copy the list of charts
-    std::vector<AtlasChart *> oldCharts;
+    std::vector<AtlasChart *> oldAnchorCharts;
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
-        oldCharts.push_back(charts_[i]);
+        if (charts_[i]->isAnchor())
+            oldAnchorCharts.push_back(charts_[i]);
     }
     
     charts_.clear();
     
-    for (std::size_t i = 0; i < oldCharts.size(); i++)
+    // Reincarnate the anchor charts
+    for (std::size_t i = 0; i < oldAnchorCharts.size(); i++)
     {
-        if (oldCharts[i]->isAnchor())
-        {
-            // Reincarnate the chart
-            oldCharts[i]->substituteChart(anchorChart(oldCharts[i]->getXorigin()));
-        }
-        delete oldCharts[i];
+        anchorChart(oldAnchorCharts[i]->getXorigin());
+        delete oldAnchorCharts[i];
     }
 }
 
@@ -692,7 +683,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     c->psiInverse(x_r, u_r);
     
     //bool chartCreated = false;    // Unused for now
-    Eigen::VectorXd temp(n_);
+    Eigen::VectorXd tempx(n_);
     while ((u_r - u_n).squaredNorm() > delta_*delta_)
     {
         // Step by delta toward the target and project
@@ -707,12 +698,12 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         if (!interpolate && !svc->isValid(tempState))
             break;
         
-        c->phi(u_j, temp);
-        if (((x_j - temp).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_ || u_j.squaredNorm() > rho_*rho_))
+        c->phi(u_j, tempx);
+        if (((x_j - tempx).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_ || u_j.squaredNorm() > rho_*rho_))
         {
             // Left the validity region of the chart; find or make a new one
             // The paper says we should always make (never find) one here, but, empirically, that's not always the case
-            AtlasChart *newc = owningChart(temp, c);
+            AtlasChart *newc = owningChart(tempx, c);
             if (!newc)
             {
                 if ((x_n - c->getXorigin()).norm() < delta_/cos_alpha_)
@@ -740,7 +731,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             // Left the polytope of the chart; find the correct chart
             // Paper says this is a neighboring chart. That may not always be true, esp. for large delta
             // So, this function call uses c as a hint, hoping one of its neighbors is who we're looking for, but falls back to a full search otherwise
-            AtlasChart *newc = owningChart(temp, c);
+            AtlasChart *newc = owningChart(tempx, c);
             
             // Deviation: If rho is too big, charts have gaps between them; this fixes it on the fly
             if (!newc)
@@ -748,7 +739,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
                 OMPL_DEBUG("Fell between the cracks! Patching in a new chart now.");
                 c->shrinkRadius();
                 updateMeasure(*c);
-                c = &newChart(temp);
+                c = &newChart(tempx);
                 chartsCreated++;
             }
             else
@@ -1069,7 +1060,5 @@ void ompl::base::AtlasStateSpace::freeState (State *state) const
 {
     StateType *const astate = state->as<StateType>();
     AtlasChart *const c = astate->getChart();
-    if (c)
-        c->disown(astate);
     delete astate;
 }

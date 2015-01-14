@@ -187,9 +187,6 @@ ompl::base::AtlasChart::~AtlasChart (void)
 {
     for (std::size_t i = 0; i < bigL_.size(); i++)
         delete bigL_[i];
-    
-    for (std::size_t i = 0; i < owned_.size(); i++)
-        owned_[i]->setChart(NULL, true);
 }
 
 Eigen::Ref<const Eigen::VectorXd> ompl::base::AtlasChart::getXorigin (void) const
@@ -251,32 +248,6 @@ void ompl::base::AtlasChart::borderCheck (Eigen::Ref<const Eigen::VectorXd> v) c
 {
     for (std::size_t i = 0; i < bigL_.size(); i++)
         bigL_[i]->checkNear(v);
-}
-
-void ompl::base::AtlasChart::own (const ompl::base::AtlasStateSpace::StateType *const state)
-{
-    assert(state != NULL);
-    owned_.push_back(state);
-}
-
-void ompl::base::AtlasChart::disown (const ompl::base::AtlasStateSpace::StateType *const state)
-{
-    for (std::size_t i = 0; i < owned_.size(); i++)
-    {
-        if (owned_[i] == state)
-        {
-            owned_[i] = owned_.back();
-            owned_.pop_back();
-            break;
-        }
-    }
-}
-
-void ompl::base::AtlasChart::substituteChart (AtlasChart &replacement)
-{
-    for (std::size_t i = 0; i < owned_.size(); i++)
-        owned_[i]->setChart(&replacement, true);
-    owned_.clear();
 }
 
 const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (Eigen::Ref<const Eigen::VectorXd> x) const
@@ -419,24 +390,6 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace)
     
     // Update the measure estimate
     approximateMeasure();
-    
-    /* Testing if this can be omitted even though the paper calls for it
-    // Find tracked states which need to be moved to a different chart
-    boost::lock_guard<boost::mutex> lock(mutices_.owned_);
-    const bool fast = true;
-    for (std::list<const ompl::base::AtlasStateSpace::StateType *>::iterator s = owned_.begin(); s != owned_.end(); s++)
-    {
-        assert(*s != NULL);
-        if (!halfspace.accepts(psiInverse((*s)->constVectorView())))
-        {
-            const LinearInequality *const comp = halfspace.getComplement();
-            assert(comp);
-            (*s)->setChart(&comp->getOwner(), fast);
-            
-            // Manually disown here because it's faster since we already have the iterator
-            s = boost::prior(owned_.erase(s));
-        }
-    }*/
 }
 
 // Private

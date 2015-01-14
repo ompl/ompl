@@ -146,7 +146,7 @@ namespace ompl
         };
         
         /** \brief State space encapsulating the atlas algorithm to assist planning on a constraint manifold. */
-        class AtlasStateSpace : public RealVectorStateSpace // TODO Inherit from StateSpace, and utilize copyToReals(), etc.
+        class AtlasStateSpace : public RealVectorStateSpace
         {
         public:
             
@@ -174,8 +174,8 @@ namespace ompl
                 /** \brief Get the chart this state is on. */
                 AtlasChart *getChart (void) const;
                 
-                /** \brief Set the chart \a c for the state. Skip the disown() step if \a fast. */
-                void setChart (AtlasChart *const c, const bool fast = false) const;
+                /** \brief Set the chart \a c for the state. */
+                void setChart (AtlasChart *const c) const;
                 
             private:
                 
@@ -412,7 +412,7 @@ namespace ompl
             double epsilon_;
             
             /** \brief Maximum radius of chart validity region. */
-            mutable double rho_;
+            double rho_;
             
             /** \brief Cosine of the maximum angle between a chart and the manifold inside its validity region. */
             double cos_alpha_;
@@ -445,21 +445,13 @@ namespace ompl
             bool noAtlas_;
             
             /** \brief List of centers of "anchor" charts. */
-            mutable std::vector<Eigen::VectorXd> anchorPoints_;
+            std::vector<Eigen::VectorXd> anchorPoints_;
             
             /** \brief Measure of a manifold-dimensional ball with radius rho. */
             mutable double ballMeasure_;
             
             /** \brief Collection of points to use in Monte Carlo integration. */
-            mutable std::vector<Eigen::VectorXd> samples_;
-            
-            /** \brief Locks to keep some operations thread-safe. */
-            mutable struct
-            {
-                boost::mutex chartsVector_;
-                boost::mutex chartsWeights_;
-                boost::mutex rng_;
-            } mutices_;
+            std::vector<Eigen::VectorXd> samples_;
         };
     }
 }
