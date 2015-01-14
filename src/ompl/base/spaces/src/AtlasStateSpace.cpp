@@ -302,10 +302,9 @@ void ompl::base::AtlasStateSpace::StateType::setChart (AtlasChart *const c) cons
 /// Public
 ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int ambient, const unsigned int manifold)
 : RealVectorStateSpace(ambient),
-    n_(ambient), k_(manifold), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
+    n_(ambient), k_(manifold), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2), gnatRebuildThreshold(1),
     projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), monteCarloSampleCount_(0), setup_(false), noAtlas_(false)
 {
-    Eigen::initParallel();
     setName("Atlas" + RealVectorStateSpace::getName());
         
     setRho(0.1);
@@ -313,6 +312,8 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int ambient, const 
     setMonteCarloSampleCount(100);
     
     ballMeasure_ = std::pow(std::sqrt(M_PI), k_) / boost::math::tgamma(k_/2.0 + 1);
+    
+    chartNN_.setDistanceFunction(boost::bind(&chartNNDistanceFunction, _1, _2));
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
@@ -374,9 +375,12 @@ void ompl::base::AtlasStateSpace::clear (void)
     {
         if (charts_[i]->isAnchor())
             oldAnchorCharts.push_back(charts_[i]);
+        else
+            delete charts_[i];
     }
     
     charts_.clear();
+    chartNN_.clear();
     
     // Reincarnate the anchor charts
     for (std::size_t i = 0; i < oldAnchorCharts.size(); i++)
@@ -563,26 +567,20 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::sampleChart (void) const
     return *charts_.sample(r);
 }
 
-ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::VectorXd &x, const AtlasChart *const neighbor) const
+ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::VectorXd &x) const
 {
-    // Use hint first if available
-    if (neighbor)
-    {
-        AtlasChart *bestC = const_cast<AtlasChart *>(neighbor->owningNeighbor(x));
-        if (bestC)
-            return bestC;
-    }
-    
-    // If not found, search through all charts for a match
+    // Search through all nearby charts for a match
+    std::vector<NNElement> nearbyCharts;
+    chartNN_.nearestR(std::make_pair(&x, 0), rho_, nearbyCharts);
     Eigen::VectorXd tempx(n_), tempu(k_);
-    for (std::size_t i = 0; i < charts_.size(); i++)
+    for (std::size_t i = 0; i < nearbyCharts.size(); i++)
     {
         // The point must lie in the chart's validity region and polytope
-        AtlasChart &c = *charts_[i];
-        c.psiInverse(x, tempu);
-        c.phi(tempu, tempx);
-        if ((tempx - x).norm() < epsilon_ && tempu.norm() < rho_ && c.inP(tempu))
-            return &c;
+        AtlasChart *c = charts_[nearbyCharts[i].second];
+        c->psiInverse(x, tempu);
+        c->phi(tempu, tempx);
+        if ((tempx - x).norm() < epsilon_ && tempu.norm() < rho_ && c->inP(tempu))
+            return c;
     }
     
     return NULL;
@@ -591,26 +589,30 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::VectorXd &xorigin, const bool anchor) const
 {
     AtlasChart &addedC = *new AtlasChart(*this, xorigin, anchor);
-    std::vector<AtlasChart *> oldCharts;
-    for (std::size_t i = 0; i < charts_.size(); i++)
-    {
-        oldCharts.push_back(charts_[i]);
-    }
     addedC.setID(charts_.size());
-    charts_.add(&addedC, addedC.getMeasure());
     
-    // Ensure all charts respect boundaries of the new one, and vice versa
-    for (std::size_t i = 0; i < oldCharts.size(); i++)
+    // Ensure all charts respect boundaries of the new one, and vice versa, but only look at nearby ones
+    std::vector<NNElement> nearbyCharts;
+    chartNN_.nearestR(std::make_pair(addedC.getXoriginPtr(), 0), 2*rho_, nearbyCharts);
+    for (std::size_t i = 0; i < nearbyCharts.size(); i++)
+        AtlasChart::generateHalfspace(*charts_[nearbyCharts[i].second], addedC);
+    
+    charts_.add(&addedC, addedC.getMeasure());
+    chartNN_.add(std::make_pair<>(addedC.getXoriginPtr(), charts_.size()-1));
+    if (chartNN_.size() > gnatRebuildThreshold)
     {
-        // If the two charts are near enough, introduce a boundary
-        AtlasChart &c = *oldCharts[i];
-        if ((c.getXorigin() - addedC.getXorigin()).norm() < 2*rho_)
-            AtlasChart::generateHalfspace(c, addedC);
+        gnatRebuildThreshold *= k_;
+        chartNN_.rebuildDataStructure();
     }
     
     return addedC;
 }
 
+double ompl::base::AtlasStateSpace::chartNNDistanceFunction (const NNElement &e1, const NNElement &e2)
+{
+    return (*e1.first - *e2.first).norm();
+}
+        
 void ompl::base::AtlasStateSpace::dichotomicSearch (const AtlasChart &c, const Eigen::VectorXd &xinside, const Eigen::VectorXd &xoutside,
                                                     Eigen::Ref<Eigen::VectorXd> out) const
 {
@@ -623,7 +625,11 @@ void ompl::base::AtlasStateSpace::dichotomicSearch (const AtlasChart &c, const E
 
 void ompl::base::AtlasStateSpace::updateMeasure (const AtlasChart &c) const
 {
-    charts_.update(charts_.getElements()[c.getID()], c.getMeasure());
+    // It's possible we're not tracking this chart yet, in which case don't worry about it
+    std::size_t index = c.getID();
+    if (index >= charts_.size())
+        return;
+    charts_.update(charts_.getElements()[index], c.getMeasure());
 }
 
 double ompl::base::AtlasStateSpace::getMeasureKBall (void) const
@@ -703,7 +709,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         {
             // Left the validity region of the chart; find or make a new one
             // The paper says we should always make (never find) one here, but, empirically, that's not always the case
-            AtlasChart *newc = owningChart(tempx, c);
+            AtlasChart *newc = owningChart(tempx);
             if (!newc)
             {
                 if ((x_n - c->getXorigin()).norm() < delta_/cos_alpha_)
@@ -730,8 +736,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         {
             // Left the polytope of the chart; find the correct chart
             // Paper says this is a neighboring chart. That may not always be true, esp. for large delta
-            // So, this function call uses c as a hint, hoping one of its neighbors is who we're looking for, but falls back to a full search otherwise
-            AtlasChart *newc = owningChart(tempx, c);
+            AtlasChart *newc = owningChart(tempx);
             
             // Deviation: If rho is too big, charts have gaps between them; this fixes it on the fly
             if (!newc)
@@ -1059,6 +1064,5 @@ ompl::base::State *ompl::base::AtlasStateSpace::allocState (void) const
 void ompl::base::AtlasStateSpace::freeState (State *state) const
 {
     StateType *const astate = state->as<StateType>();
-    AtlasChart *const c = astate->getChart();
     delete astate;
 }

@@ -194,6 +194,11 @@ Eigen::Ref<const Eigen::VectorXd> ompl::base::AtlasChart::getXorigin (void) cons
     return xorigin_;
 }
 
+const Eigen::VectorXd *ompl::base::AtlasChart::getXoriginPtr (void) const
+{
+    return &xorigin_;
+}
+
 void ompl::base::AtlasChart::phi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const
 {
     out = xorigin_ + bigPhi_ * u;
@@ -203,18 +208,18 @@ void ompl::base::AtlasChart::psi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Re
 {
     // Initial guess for Newton's method
     Eigen::VectorXd x_0(n_);
-    phi(u,x_0);
+    phi(u, x_0);
     out = x_0;
     
     unsigned int iter = 0;
     Eigen::VectorXd b(n_);
     atlas_.bigF(out, b.head(n_-k_));
-    b.tail(k_) = Eigen::VectorXd::Zero(k_);
+    b.tail(k_).setZero();
+    Eigen::MatrixXd A(n_, n_);
+    A.block(n_-k_, 0, k_, n_) = bigPhi_t_;
     while (b.norm() > atlas_.getProjectionTolerance() && iter++ < atlas_.getProjectionMaxIterations())
     {
-        Eigen::MatrixXd A(n_, n_);
         atlas_.bigJ(out, A.block(0, 0, n_-k_, n_));
-        A.block(n_-k_, 0, k_, n_) = bigPhi_t_;
         
         // Move in the direction that decreases F(out) and is perpendicular to the chart plane
         out += A.householderQr().solve(-b);
@@ -381,6 +386,11 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
     l2->setComplement(l1);
     c1.addBoundary(*l1);
     c2.addBoundary(*l2);
+}
+
+double ompl::base::AtlasChart::distanceBetweenCenters (AtlasChart *c1, AtlasChart *c2)
+{
+    return (c1->getXorigin() - c2->getXorigin()).norm();
 }
 
 /// Protected

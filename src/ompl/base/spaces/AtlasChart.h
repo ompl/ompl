@@ -134,6 +134,9 @@ namespace ompl
             /** \brief Returns phi(0), the center of the chart in ambient space. */
             Eigen::Ref<const Eigen::VectorXd> getXorigin (void) const;
             
+            /** \brief Returns the pointer to the internal xorigin variable. */
+            const Eigen::VectorXd *getXoriginPtr (void) const;
+            
             /** \brief Write a chart point \a u in ambient space coordinates. Result stored in \a out,
              * which should be allocated to a size of ambient dimension. */
             void phi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
@@ -185,6 +188,9 @@ namespace ompl
             /** \brief Create two complementary linear inequalities dividing the space between charts \a c1 and \a c2,
              * and add them to the charts' polytopes. */
             static void generateHalfspace (AtlasChart &c1, AtlasChart &c2);
+            
+            /** \brief Compute the distance between the centers of the two charts. */
+            static double distanceBetweenCenters (AtlasChart *c1, AtlasChart *c2);
             
         protected:
             

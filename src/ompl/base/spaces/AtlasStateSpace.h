@@ -42,6 +42,7 @@
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/ValidStateSampler.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
+#include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/datastructures/PDF.h"
 #include "ompl/geometric/PathGeometric.h"
 
@@ -186,6 +187,8 @@ namespace ompl
                 const unsigned int dimension_;
             };
             
+            typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
+            
             /** \brief Constructor. The ambient space has dimension \a ambient, and the manifold has dimension \a manifold. */
             AtlasStateSpace (const unsigned int ambient, const unsigned int manifold);
             
@@ -307,14 +310,16 @@ namespace ompl
             /** \brief Pick a chart at random with probability proportional the chart measure / atlas measure. */
             virtual AtlasChart &sampleChart (void) const;
             
-            /** \brief Find the chart to which \a x belongs. Use \a neighbor to hint that the chart
-             * may be its neighbor, if that information is available. Returns NULL if no chart found. 
+            /** \brief Find the chart to which \a x belongs. Returns NULL if no chart found. 
              * Assumes \a x is already on the manifold. */
-            virtual AtlasChart *owningChart (const Eigen::VectorXd &x, const AtlasChart *const neighbor = NULL) const;
+            virtual AtlasChart *owningChart (const Eigen::VectorXd &x) const;
             
             /** \brief Create a new chart for the atlas, centered at \a xorigin, which should be on
              * the manifold. Chart may be an \a anchor chart. */
             virtual AtlasChart &newChart (const Eigen::VectorXd &xorigin, const bool anchor = false) const;
+            
+            /** Compute the distance between two charts represented by nearest-neighbor elements. */
+            static double chartNNDistanceFunction (const NNElement &e1, const NNElement &e2);
             
             /** \brief Search for the border of chart \a c between \a xinside, which is assumed to be inside the
              * polytope of \a c, and \a xoutside. The computed point lies inside the border at a distance no farther
@@ -394,8 +399,11 @@ namespace ompl
             /** \brief Random number generator. */
             mutable RNG rng_;
             
-            /** \brief List of charts, sampleable by weight. */
+            /** \brief Set of charts, sampleable by weight. */
             mutable PDF<AtlasChart *> charts_;
+            
+            /** \brief Set of charts, accessible by nearest-neighbor queries to the chart centers. */
+            mutable NearestNeighborsGNAT<NNElement> chartNN_;
             
         private:
             
@@ -425,6 +433,9 @@ namespace ompl
             
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
             mutable double rho_s_;
+            
+            /** \brief Size at which chartNN_ should rebuild itself. Threshold is increased when that happens. */
+            mutable std::size_t gnatRebuildThreshold;
             
             /** \brief Tolerance for Newton method used in projection onto manifold. */
             double projectionTolerance_;
