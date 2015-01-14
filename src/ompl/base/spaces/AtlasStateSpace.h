@@ -345,7 +345,7 @@ namespace ompl
              * if \a interpolate is true. If \a stateList is not NULL, the sequence of intermediates is saved to it, including
              * a copy of \a from, as well as the final state. Caller is responsible for freeing states returned in \a stateList. */
             virtual bool followManifold (const StateType *from, const StateType *to, const bool interpolate = false,
-                                         std::vector<StateType *> *const stateList = NULL) const;
+                                         std::vector<StateType *> *stateList = NULL) const;
             
             /** \brief Write a mesh representation of the atlas to a stream. */
             void dumpMesh (std::ostream &out) const;

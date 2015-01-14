@@ -99,7 +99,7 @@ public:
         
     void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
-        out[0] = x[3];
+        out[0] = x[2];
     }
 
     void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
@@ -277,8 +277,9 @@ bool mazePlaneValid (png::image<png::index_pixel_1> &maze, const ompl::base::Sta
 {
     const ompl::base::AtlasStateSpace::StateType *astate = state->as<ompl::base::AtlasStateSpace::StateType>();
     Eigen::VectorXd vec = astate->constVectorView();
-    vec[0] *= 0.2*maze.get_width();
-    vec[1] *= 0.2*maze.get_height();
+    // The factor of 1/7 is to preserve approximate length of the solution with the torus maze
+    vec[0] *= maze.get_width()/7;
+    vec[1] *= maze.get_height()/7;
     if (vec[0] < 0 || vec[0] >= maze.get_width() || vec[1] < 0 || vec[1] >= maze.get_height())
         return false;
     return !maze.get_pixel(vec[0], vec[1]).operator png::byte ();
@@ -291,10 +292,12 @@ bool mazeTorusValid (png::image<png::index_pixel_1> &maze, const ompl::base::Sta
     Eigen::Ref<const Eigen::VectorXd> p = astate->constVectorView();
     Eigen::VectorXd vec(2);
     Eigen::VectorXd c(3); c << p[0], p[1], 0;
-    vec[0] = maze.get_width()*std::atan2(p[1], p[0])/(2*M_PI);
-    vec[0] += 0.5*(vec[0] < 0);
-    vec[1] = maze.get_height()*std::atan2(p[2], c.norm()-TorusManifold::R1)/(2*M_PI);
-    vec[1] += 0.5*(vec[1] < 0);
+    vec[0] = std::atan2(p[2], c.norm()-TorusManifold::R1)/(2*M_PI);
+    vec[0] += (vec[0] < 0);
+    vec[0] *= maze.get_height();
+    vec[1] = std::atan2(p[1], p[0])/(2*M_PI);
+    vec[1] += (vec[1] < 0);
+    vec[1] *= maze.get_width();
     if (vec[0] < 0 || vec[0] >= maze.get_width() || vec[1] < 0 || vec[1] >= maze.get_height())
         return false;
     return !maze.get_pixel(vec[0], vec[1]).operator png::byte ();
@@ -398,8 +401,9 @@ ompl::base::AtlasStateSpace *initPlanarMazeProblem (Eigen::VectorXd &x, Eigen::V
     const std::size_t dim = 3;
     
     // Start and goal points
-    x = Eigen::VectorXd(dim); x << 2.25, 0.1, 0;
-    y = Eigen::VectorXd(dim); y << 4.9, 4.45, 0;
+    x = Eigen::VectorXd(dim); x << 0.45, 0.02, 0;
+    y = Eigen::VectorXd(dim); y << 0.98, 0.89, 0;
+    x *= 7; y *= 7;
     
     // Load maze (memory leak!)
     png::image<png::index_pixel_1> *img = new png::image<png::index_pixel_1>(filename, png::require_color_space<png::index_pixel_1>());
@@ -445,7 +449,8 @@ ompl::base::AtlasStateSpace *initTorusMazeProblem (Eigen::VectorXd &x, Eigen::Ve
     // Validity checker
     isValid = boost::bind(&mazeTorusValid, *img, _1);
     
-    return new TorusManifold();
+    ompl::base::AtlasStateSpace *atlas = new TorusManifold();
+    return atlas;
 }
 
 /** Allocator function for a sampler for the atlas that only returns valid points. */
@@ -458,7 +463,7 @@ ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atl
 void printProblems (void)
 {
     std::cout << "Available problems:\n";
-    std::cout << "    sphere torus klein chain chain_tough planar_maze\n";
+    std::cout << "    sphere torus klein chain chain_tough planar_maze torus_maze\n";
 }
 
 /** Print usage information. */
@@ -486,6 +491,8 @@ ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::Vec
         return initChainProblem(x, y, isValid, true);
     else if (std::strcmp(problem, "planar_maze") == 0)
         return initPlanarMazeProblem(x, y, isValid, "maze.png");
+    else if (std::strcmp(problem, "torus_maze") == 0)
+        return initTorusMazeProblem(x, y, isValid, "maze.png");
     else
         return NULL;
 }

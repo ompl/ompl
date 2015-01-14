@@ -114,8 +114,8 @@ int main (int argc, char **argv)
     // Plan. For 3D problems, we save the chart mesh, planner graph, and solution path in the .ply format.
     // Regardless of dimension, we write the doubles in the path states to a .txt file.
     std::clock_t tstart = std::clock();
-    ompl::base::PlannerStatus stat;
-    if ((stat = planner->solve(runtime_limit)))
+    ompl::base::PlannerStatus stat = planner->solve(runtime_limit);
+    if (stat)
     {
         const double time = ((double)(std::clock()-tstart))/CLOCKS_PER_SEC;
         

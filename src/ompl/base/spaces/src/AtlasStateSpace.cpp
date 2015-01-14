@@ -652,7 +652,7 @@ std::size_t ompl::base::AtlasStateSpace::getChartCount (void) const
     * if \a interpolate is true. If \a stateList is not NULL, the sequence of intermediates is saved to it, including
     * a copy of \a from, as well as the final state. */
 bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const StateType *to, const bool interpolate,
-                                                  std::vector<StateType *> *const stateList) const
+                                                  std::vector<StateType *> *stateList) const
 {
     unsigned int chartsCreated = 0;
     Eigen::Ref<const Eigen::VectorXd> x_r = to->constVectorView();
@@ -666,18 +666,17 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         from->setChart(c);
     }
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
-    StateType *tempState = allocState()->as<StateType>();
+    StateType *currentState = allocState()->as<StateType>();
     
     // Save a copy of the from state
     if (stateList)
     {
         stateList->clear();
-        StateType *fromCopy = allocState()->as<StateType>();
-        copyState(fromCopy, from);
-        stateList->push_back(fromCopy);
+        stateList->push_back(si_->cloneState(from)->as<StateType>());
     }
     
-    Eigen::VectorXd x_j, x_0, u_n(k_), u_r(k_), u_j(k_);
+    Eigen::VectorXd x_0(n_), u_n(k_), u_r(k_), u_j(k_);
+    Eigen::Ref<Eigen::VectorXd> x_j = currentState->vectorView();
     
     // We will stop if we exit the ball of radius d_0 centered at x_0
     x_0 = x_j = x_n;
@@ -688,7 +687,6 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     c->psiInverse(x_n, u_n);
     c->psiInverse(x_r, u_r);
     
-    //bool chartCreated = false;    // Unused for now
     Eigen::VectorXd tempx(n_);
     while ((u_r - u_n).squaredNorm() > delta_*delta_)
     {
@@ -700,8 +698,8 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         bool changedChart = false;
         
         // Collision check unless interpolating
-        tempState->setRealState(x_j, c);
-        if (!interpolate && !svc->isValid(tempState))
+        currentState->setChart(c);
+        if (!interpolate && !svc->isValid(currentState))
             break;
         
         c->phi(u_j, tempx);
@@ -716,7 +714,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
                 {
                     // Point we want to center the new chart on is already a chart center
                     Eigen::VectorXd newCenter(n_);
-                    dichotomicSearch(*c, x_n, x_j, newCenter);  // See paper's discussion of probabilistic completeness; this was left out of pseudocode
+                    dichotomicSearch(*c, x_n, x_j, newCenter);  // See paper's discussion of probabilistic completeness; left out of pseudocode
                     c = &newChart(newCenter);
                 }
                 else
@@ -730,7 +728,6 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
                 c = newc;
             }
             changedChart = true;
-            //chartCreated = true;  // Again, unused
         }
         else if (!c->inP(u_j))
         {
@@ -762,13 +759,9 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             c->psiInverse(x_r, u_r);
         }
         
-        // Deviation: No control over the planner's tree, so we'll just keep the state in a list, if requested
+        // Keep the state in a list, if requested
         if (stateList)
-        {
-            StateType *intermediate = allocState()->as<StateType>();
-            intermediate->setRealState(x_j, c);
-            stateList->push_back(intermediate);
-        }
+            stateList->push_back(si_->cloneState(currentState)->as<StateType>());
         
         // Update iteration variables
         u_n = u_j;
@@ -786,13 +779,12 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     // Append a copy of the target state, since we're within delta, but didn't hit it exactly
     if (reached && stateList)
     {
-        StateType *toCopy = allocState()->as<StateType>();
-        copyState(toCopy, to);
+        StateType *toCopy = si_->cloneState(to)->as<StateType>();
         toCopy->setChart(c);
         stateList->push_back(toCopy);
     }
     
-    freeState(tempState);
+    freeState(currentState);
     return reached;
 }
 
@@ -957,18 +949,16 @@ bool ompl::base::AtlasStateSpace::project (Eigen::Ref<Eigen::VectorXd> x) const
     unsigned int iter = 0;
     Eigen::VectorXd f(n_-k_);
     Eigen::MatrixXd j(n_-k_,n_);
-    Eigen::MatrixXd pinvJ;
     while ((bigF(x, f), f.norm() > projectionTolerance_) && iter++ < projectionMaxIterations_)
     {
         // Compute pseudoinverse of Jacobian
         bigJ(x, j);
         Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
         const double tolerance = std::numeric_limits<double>::epsilon() * getAmbientDimension() * svd.singularValues().array().abs().maxCoeff();
-        pinvJ = svd.matrixV()
+        x -= svd.matrixV()
             * Eigen::MatrixXd((svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0)).asDiagonal()
-            * svd.matrixU().adjoint();
-        
-        x -= pinvJ * f;
+            * svd.matrixU().adjoint()
+            * f;
     }
     
     if (iter > projectionMaxIterations_)
