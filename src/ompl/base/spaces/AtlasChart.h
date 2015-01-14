@@ -141,6 +141,9 @@ namespace ompl
              * which should be allocated to a size of ambient dimension. */
             void phi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
             
+            /** \brief Same as psi, except it starts from a point in ambient that is hopefully already close to the manifold. */
+            void psiFromGuess (Eigen::Ref<const Eigen::VectorXd> x_0, Eigen::Ref<Eigen::VectorXd> out) const;
+
             /** \brief Exponential mapping; projects chart point \a u onto the manifold. Result stored in \a out,
              * which should be allocated to a size of ambient dimension. */
             void psi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
@@ -216,7 +219,7 @@ namespace ompl
             const unsigned int k_;
             
             /** \brief Origin of the chart in ambient space coordinates. */
-            const Eigen::VectorXd xorigin_;
+            Eigen::VectorXd xorigin_;
             
             /** \brief Unique ID in the atlas. */
             unsigned int id_;
