@@ -8,7 +8,5 @@ fi
 
 blend=$1
 movie=$2
-rsync $blend cav2@dione:/tmp/$blend
-ssh -t dione blender -b /tmp/$blend -F AVIJPEG -o /tmp/$movie -t 8 -a
-rsync cav2@dione:/tmp/$movie $movie
+blender -b $blend -F AVIJPEG -o $movie -t 0 -a
 
