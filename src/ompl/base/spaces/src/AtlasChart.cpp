@@ -167,24 +167,24 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, Eigen::Ref<con
     bigPhi_ = nullDecomp.householderQ() * Eigen::MatrixXd::Identity(n_, k_);
     bigPhi_t_ = bigPhi_.transpose();
     
-    // Initialize set of linear inequalities so the polytope is the k-dimensional cube of side
-    //  length 2*rho so it completely contains the ball of radius rho
-    Eigen::VectorXd e = Eigen::VectorXd::Zero(k_);
-    for (unsigned int i = 0; i < k_; i++)
-    {
-        e[i] = 2 * atlas_.getRho();
-        bigL_.push_back(new LinearInequality(*this, e));
-        e[i] *= -1;
-        bigL_.push_back(new LinearInequality(*this, e));
-        e[i] = 0;
-    }
-    measure_ = atlas_.getMeasureKBall() * std::pow(radius_, k_);
+    init();
 }
 
 ompl::base::AtlasChart::~AtlasChart (void)
 {
     for (std::size_t i = 0; i < bigL_.size(); i++)
         delete bigL_[i];
+}
+
+void ompl::base::AtlasChart::clear (void)
+{
+    for (std::size_t i = 0; i < bigL_.size(); i++)
+        delete bigL_[i];
+    bigL_.clear();
+    
+    radius_ = atlas_.getRho();
+    
+    init();
 }
 
 Eigen::Ref<const Eigen::VectorXd> ompl::base::AtlasChart::getXorigin (void) const
@@ -405,7 +405,23 @@ void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace)
     approximateMeasure();
 }
 
-// Private
+/// Private
+void ompl::base::AtlasChart::init (void)
+{
+    // Initialize set of linear inequalities so the polytope is the k-dimensional cube of side
+    //  length 2*rho so it completely contains the ball of radius rho
+    Eigen::VectorXd e = Eigen::VectorXd::Zero(k_);
+    for (unsigned int i = 0; i < k_; i++)
+    {
+        e[i] = 2 * atlas_.getRho();
+        bigL_.push_back(new LinearInequality(*this, e));
+        e[i] *= -1;
+        bigL_.push_back(new LinearInequality(*this, e));
+        e[i] = 0;
+    }
+    measure_ = atlas_.getMeasureKBall() * std::pow(radius_, k_);
+}
+
 bool ompl::base::AtlasChart::angleCompare (Eigen::Ref<const Eigen::VectorXd> x1, Eigen::Ref<const Eigen::VectorXd> x2) const
 {
     Eigen::VectorXd v1(k_), v2(k_);

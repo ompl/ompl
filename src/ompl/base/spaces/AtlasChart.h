@@ -131,6 +131,9 @@ namespace ompl
             /** \brief Destructor. */
             virtual ~AtlasChart (void);
             
+            /** \brief Forget all acquired information like radius and linear inequalities. */
+            void clear (void);
+            
             /** \brief Returns phi(0), the center of the chart in ambient space. */
             Eigen::Ref<const Eigen::VectorXd> getXorigin (void) const;
             
@@ -238,6 +241,9 @@ namespace ompl
             
             /** \brief Maximum valid radius of this chart. */
             double radius_;
+            
+            /** \brief Perform initializations regarding measure estimate and linear inequalities. */
+            void init (void);
             
             /** \brief Compare the angles \a v1 and \a v2 make with the origin. */
             bool angleCompare (Eigen::Ref<const Eigen::VectorXd> v1, Eigen::Ref<const Eigen::VectorXd> v2) const;

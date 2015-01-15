@@ -370,11 +370,11 @@ void ompl::base::AtlasStateSpace::setup (void)
 void ompl::base::AtlasStateSpace::clear (void)
 {
     // Delete the non-anchor charts
-    std::vector<AtlasChart *> oldAnchorCharts;
+    std::vector<AtlasChart *> anchorCharts;
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
         if (charts_[i]->isAnchor())
-            oldAnchorCharts.push_back(charts_[i]);
+            anchorCharts.push_back(charts_[i]);
         else
             delete charts_[i];
     }
@@ -382,11 +382,18 @@ void ompl::base::AtlasStateSpace::clear (void)
     charts_.clear();
     chartNN_.clear();
     
-    // Reincarnate the anchor charts
-    for (std::size_t i = 0; i < oldAnchorCharts.size(); i++)
+    // Reinstate the anchor charts
+    for (std::size_t i = 0; i < anchorCharts.size(); i++)
     {
-        anchorChart(oldAnchorCharts[i]->getXorigin());
-        delete oldAnchorCharts[i];
+        AtlasChart &c = *anchorCharts[i];
+        c.clear();
+        c.setID(charts_.size());
+        
+        for (std::size_t j = 0; j < charts_.size(); j++)
+            AtlasChart::generateHalfspace(*charts_[j], c);
+    
+        charts_.add(&c, c.getMeasure());
+        chartNN_.add(std::make_pair<>(c.getXoriginPtr(), charts_.size()-1));
     }
 }
 
