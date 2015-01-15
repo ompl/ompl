@@ -136,7 +136,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     const AtlasStateSpace::StateType *amean = mean->as<AtlasStateSpace::StateType>();
     Eigen::Ref<const Eigen::VectorXd> m = amean->constVectorView();
     const std::size_t k = atlas_.getManifoldDimension();
-    Eigen::VectorXd rx(atlas_.getAmbientDimension()), u(k);
+    Eigen::VectorXd rx(atlas_.getAmbientDimension()), ru(k);
     AtlasChart *c = amean->getChart();
     if (!c)
     {
@@ -145,7 +145,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
             c = &atlas_.newChart(m);
         amean->setChart(c);
     }
-    c->psiInverse(m, u);
+    c->psiInverse(m, ru);
     
     // Rejection sampling to find a point on the manifold
     do
@@ -154,15 +154,15 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
         const double s = stdDev / std::sqrt(k);
         for (std::size_t i = 0; i < k; i++)
             rand[i] = rng_.gaussian(0, s);
-        c->phi(u + rand, rx);
+        c->phi(ru + rand, rx);
     }
     while (!atlas_.project(rx));
     
     // Be lazy about determining the new chart if we are not in the old one
-    if (c->psiInverse(rx, u), !c->inP(u))
+    if (c->psiInverse(rx, ru), !c->inP(ru))
         c = NULL;
     else
-        c->borderCheck(u);
+        c->borderCheck(ru);
     astate->setRealState(rx, c);
 }
 
@@ -369,7 +369,7 @@ void ompl::base::AtlasStateSpace::setup (void)
 
 void ompl::base::AtlasStateSpace::clear (void)
 {
-    // Copy the list of charts
+    // Delete the non-anchor charts
     std::vector<AtlasChart *> oldAnchorCharts;
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
@@ -738,7 +738,6 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             // Deviation: If rho is too big, charts have gaps between them; this fixes it on the fly
             if (!newc)
             {
-                OMPL_DEBUG("Fell between the cracks! Patching in a new chart now.");
                 c->shrinkRadius();
                 updateMeasure(*c);
                 c = &newChart(tempx);
@@ -969,14 +968,24 @@ bool ompl::base::AtlasStateSpace::project (Eigen::Ref<Eigen::VectorXd> x) const
 
 void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *to, const double t, State *state) const
 {
-    RealVectorStateSpace::interpolate(from, to, t, state);
-    if (noAtlas_)
-        return;
-    
+     // Interpolate like a real vector space
+     RealVectorStateSpace::interpolate(from, to, t, state);
+     if (noAtlas_)
+         return;
+     
+    // Find or make a chart for the point
     StateType *const astate = state->as<StateType>();
-    Eigen::VectorXd proj;
-    if (!project(astate->vectorView()))
-        copyState(state, t == 0 ? from : to);
+    AtlasChart *c = owningChart(astate->constVectorView());
+    if (!c)
+    {
+        project(astate->vectorView());
+        c = &newChart(astate->constVectorView());
+    }
+    astate->setChart(c);
+    
+    // Project using this chart
+    Eigen::VectorXd x = astate->constVectorView();
+    c->psiFromGuess(x, astate->vectorView()); 
 }
 
 void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *> &stateList, const double t, State *state) const
