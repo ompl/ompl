@@ -395,6 +395,8 @@ void ompl::base::AtlasStateSpace::clear (void)
         charts_.add(&c, c.getMeasure());
         chartNN_.add(std::make_pair<>(c.getXoriginPtr(), charts_.size()-1));
     }
+    
+    gnatRebuildThreshold = 1;
 }
 
 void ompl::base::AtlasStateSpace::setSpaceInformation (const SpaceInformationPtr &si)

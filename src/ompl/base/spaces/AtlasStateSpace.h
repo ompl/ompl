@@ -455,9 +455,6 @@ namespace ompl
             /** \brief Whether we are not being an atlas. */
             bool noAtlas_;
             
-            /** \brief List of centers of "anchor" charts. */
-            std::vector<Eigen::VectorXd> anchorPoints_;
-            
             /** \brief Measure of a manifold-dimensional ball with radius rho. */
             mutable double ballMeasure_;
             
