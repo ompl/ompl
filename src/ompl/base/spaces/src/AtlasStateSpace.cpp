@@ -109,17 +109,22 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         anear->setChart(c);
     }
     
-    // Sample within distance
-    Eigen::VectorXd uoffset(atlas_.getManifoldDimension());
-    for (int i = 0; i < uoffset.size(); i++)
-        uoffset[i] = rng_.gaussian01();
-    uoffset *=  distance * std::pow(rng_.uniform01(), 1.0/uoffset.size()) / uoffset.norm();
-    c->psiInverse(n, ru);
-    c->psi(ru + uoffset, rx);
+    // Rejection sampling to find a point on the manifold
+    do
+    {
+        // Sample within distance
+        Eigen::VectorXd uoffset(atlas_.getManifoldDimension());
+        for (int i = 0; i < uoffset.size(); i++)
+            uoffset[i] = rng_.gaussian01();
+        uoffset *=  distance * std::pow(rng_.uniform01(), 1.0/uoffset.size()) / uoffset.norm();
+        c->psiInverse(n, ru);
+        c->phi(ru + uoffset, rx);
+    }
+    while (!atlas_.project(rx));
     
-    // Determine the new chart if we are not in the old one
+    // Be lazy about determining the new chart if we are not in the old one
     if (c->psiInverse(rx, ru), !c->inP(ru))
-        c = &atlas_.newChart(rx);
+        c = NULL;
     else
         c->borderCheck(ru);
     astate->setRealState(rx, c);
@@ -141,16 +146,21 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
         amean->setChart(c);
     }
     c->psiInverse(m, u);
-
-    Eigen::VectorXd rand(k);
-    const double s = stdDev / std::sqrt(k);
-    for (std::size_t i = 0; i < k; i++)
-        rand[i] = rng_.gaussian(0, s);
-    c->psi(u + rand, rx);
     
-    // Determine the new chart if we are not in the old one
+    // Rejection sampling to find a point on the manifold
+    do
+    {
+        Eigen::VectorXd rand(k);
+        const double s = stdDev / std::sqrt(k);
+        for (std::size_t i = 0; i < k; i++)
+            rand[i] = rng_.gaussian(0, s);
+        c->phi(u + rand, rx);
+    }
+    while (!atlas_.project(rx));
+    
+    // Be lazy about determining the new chart if we are not in the old one
     if (c->psiInverse(rx, u), !c->inP(u))
-        c = &atlas_.newChart(rx);
+        c = NULL;
     else
         c->borderCheck(u);
     astate->setRealState(rx, c);
@@ -359,7 +369,7 @@ void ompl::base::AtlasStateSpace::setup (void)
 
 void ompl::base::AtlasStateSpace::clear (void)
 {
-    // Delete the non anchor charts
+    // Copy the list of charts
     std::vector<AtlasChart *> oldAnchorCharts;
     for (std::size_t i = 0; i < charts_.size(); i++)
     {
@@ -728,6 +738,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             // Deviation: If rho is too big, charts have gaps between them; this fixes it on the fly
             if (!newc)
             {
+                OMPL_DEBUG("Fell between the cracks! Patching in a new chart now.");
                 c->shrinkRadius();
                 updateMeasure(*c);
                 c = &newChart(tempx);
@@ -958,21 +969,14 @@ bool ompl::base::AtlasStateSpace::project (Eigen::Ref<Eigen::VectorXd> x) const
 
 void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *to, const double t, State *state) const
 {
-    // Interpolate like a real vector space
     RealVectorStateSpace::interpolate(from, to, t, state);
     if (noAtlas_)
         return;
     
-    // Find or make a chart for the point
     StateType *const astate = state->as<StateType>();
-    AtlasChart *c = owningChart(astate->constVectorView());
-    if (!c)
-        c = &newChart(astate->constVectorView());
-    astate->setChart(c);
-    
-    // Project using this chart
-    Eigen::VectorXd x = astate->constVectorView();
-    c->psiFromGuess(x, astate->vectorView()); 
+    Eigen::VectorXd proj;
+    if (!project(astate->vectorView()))
+        copyState(state, t == 0 ? from : to);
 }
 
 void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *> &stateList, const double t, State *state) const

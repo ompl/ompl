@@ -158,8 +158,8 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, Eigen::Ref<con
   xorigin_(xorigin), id_(0), anchor_(anchor), radius_(atlas_.getRho())
 {
     Eigen::VectorXd f(n_-k_);
-    if (atlas_.bigF(xorigin_, f), f.norm() > atlas_.getProjectionTolerance())
-        atlas_.project(xorigin_);
+    if (atlas_.bigF(xorigin_, f), f.norm() > 10*atlas_.getProjectionTolerance())
+        OMPL_DEBUG("AtlasChart created at point not on the manifold!");
     
     // Initialize basis by computing the null space of the Jacobian and orthonormalizing
     Eigen::MatrixXd j(n_-k_,n_);
@@ -204,8 +204,11 @@ void ompl::base::AtlasChart::phi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Re
     out = xorigin_ + bigPhi_ * u;
 }
 
-void ompl::base::AtlasChart::psiFromGuess (Eigen::Ref<const Eigen::VectorXd> x_0, Eigen::Ref<Eigen::VectorXd> out) const
+void ompl::base::AtlasChart::psi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const
 {
+    // Initial guess for Newton's method
+    Eigen::VectorXd x_0(n_);
+    phi(u, x_0);
     out = x_0;
     
     unsigned int iter = 0;
@@ -224,14 +227,6 @@ void ompl::base::AtlasChart::psiFromGuess (Eigen::Ref<const Eigen::VectorXd> x_0
         atlas_.bigF(out, b.head(n_-k_));
         b.tail(k_) = bigPhi_t_ * (out - x_0);
     }
-}
-
-void ompl::base::AtlasChart::psi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const
-{
-    // Initial guess for Newton's method
-    Eigen::VectorXd x_0(n_);
-    phi(u, x_0);
-    psiFromGuess(x_0, out);
 }
 
 void ompl::base::AtlasChart::psiInverse (Eigen::Ref<const Eigen::VectorXd> x, Eigen::Ref<Eigen::VectorXd> out) const
