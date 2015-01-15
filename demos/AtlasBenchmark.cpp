@@ -128,7 +128,7 @@ int main (int argc, char **argv)
     const bool save_output = false;
     const bool use_threads = true;
     const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress, save_output, use_threads);
-    const char *planners[] = {/*"EST", */"RRT", "AtlasRRT", "RRTConnect", "TRRT", "LBTRRT", "ConstrainedRRT", "CBiRRT2", "KPIECE1", "BKPIECE1",
+    const char *planners[] = {"EST", "RRT", "AtlasRRT", "RRTConnect", "TRRT", "LBTRRT", "ConstrainedRRT", "CBiRRT2", "KPIECE1", "BKPIECE1",
                               "LBKPIECE1", "PDST", "PRM", "SBL", "SPARS", "SPARStwo", "STRIDE"};
     for (std::size_t i = 0; i < sizeof(planners)/sizeof(char *); i++)
         bench.addPlanner(ompl::base::PlannerPtr(parsePlanner(planners[i], si, atlas->getRho_s())));
