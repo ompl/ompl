@@ -146,11 +146,11 @@ class TorusManifold : public ompl::base::AtlasStateSpace
 {
 public:
     
-    static const double R1;
-    static const double R2;
+    const double R1;
+    const double R2;
     
-    TorusManifold ()
-    : ompl::base::AtlasStateSpace(3, 2)
+    TorusManifold (double r1, double r2)
+    : ompl::base::AtlasStateSpace(3, 2), R1(r1), R2(r2)
     {
     }
     
@@ -172,22 +172,21 @@ public:
     }
 };
 
-const double TorusManifold::R1 = 2;
-const double TorusManifold::R2 = 1;
+bool sphereValid_helper (const Eigen::VectorXd &);
 
 /** Kinematic chain manifold. 5 links in 3D space. */
 class ChainManifold : public ompl::base::AtlasStateSpace
 {
 public:
     
-    static const int DIM;
-    static const int LINKS;
-    static const double LINKLENGTH;
-    static const double ENDEFFECTORRADIUS;
-    static const double JOINTWIDTH;
+    const unsigned int DIM;
+    const unsigned int LINKS;
+    const double LINKLENGTH;
+    const double ENDEFFECTORRADIUS;
+    const double JOINTWIDTH;
     
-    ChainManifold ()
-    : ompl::base::AtlasStateSpace(DIM*LINKS, (DIM-1)*LINKS - 1)
+    ChainManifold (unsigned int dim, unsigned int links)
+    : ompl::base::AtlasStateSpace(dim*links, (dim-1)*links - 1), DIM(dim), LINKS(links), LINKLENGTH(1), ENDEFFECTORRADIUS(3), JOINTWIDTH(0.2)
     {
     }
     
@@ -195,7 +194,7 @@ public:
     {
         // Consecutive joints must be a fixed distance apart
         Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(DIM);
-        for (int i = 0; i < LINKS; i++)
+        for (unsigned int i = 0; i < LINKS; i++)
         {
             const Eigen::VectorXd joint2 = x.segment(DIM*i, DIM);
             out[i] = (joint1 - joint2).norm() - LINKLENGTH;
@@ -212,18 +211,40 @@ public:
         Eigen::VectorXd plus(DIM*(LINKS+1)); plus.head(DIM*LINKS) = x; plus.tail(DIM) = Eigen::VectorXd::Zero(DIM);
         Eigen::VectorXd minus(DIM*(LINKS+1)); minus.head(DIM) = Eigen::VectorXd::Zero(DIM); minus.tail(DIM*LINKS) = x;
         const Eigen::VectorXd diagonal = plus - minus;
-        for (int i = 0; i < LINKS; i++)
+        for (unsigned int i = 0; i < LINKS; i++)
             out.row(i).segment(DIM*i, DIM) = diagonal.segment(DIM*i, DIM).normalized();
         out.block(1, 0, LINKS, DIM*(LINKS-1)) -= out.block(1, DIM, LINKS, DIM*(LINKS-1));
         out.row(LINKS).tail(DIM) = -diagonal.tail(DIM).normalized().transpose();
     }
+    
+    /** For the chain example. Joints may not get too close to each other. If \a tough, then the end effector
+    * may not occupy states similar to the sphereValid() obstacles (but rotated and scaled). */
+    bool isValid (const ompl::base::State *state, const bool tough)
+    {
+        Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
+        for (unsigned int i = 0; i < LINKS-1; i++)
+        {
+            if (x.segment(DIM*i, DIM).cwiseAbs().maxCoeff() < JOINTWIDTH)
+                return false;
+            for (unsigned int j = i+1; j < LINKS; j++)
+            {
+                if ((x.segment(DIM*i, DIM) - x.segment(DIM*j, DIM)).cwiseAbs().maxCoeff() < JOINTWIDTH)
+                    return false;
+            }
+        }
+        
+        if (!tough)
+            return true;
+        
+        Eigen::VectorXd end = x.tail(DIM)/ENDEFFECTORRADIUS;
+        const double tmp = end[0];
+        end[0] = end[2];
+        end[2] = tmp;
+        return sphereValid_helper(end);
+    }
+
 };
 
-const int ChainManifold::DIM = 3;
-const int ChainManifold::LINKS = 5;
-const double ChainManifold::LINKLENGTH = 1;
-const double ChainManifold::ENDEFFECTORRADIUS = 3;
-const double ChainManifold::JOINTWIDTH = 0.2;
 
 /**
  * State validity checking functions implicitly define the free space where they return true.
@@ -286,13 +307,13 @@ bool mazePlaneValid (png::image<png::index_pixel_1> &maze, const ompl::base::Sta
 }
 
 /** Maze-like obstacle on a torus plane. */
-bool mazeTorusValid (png::image<png::index_pixel_1> &maze, const ompl::base::State *state)
+bool mazeTorusValid (png::image<png::index_pixel_1> &maze, const ompl::base::State *state, double r1)
 {
     const ompl::base::AtlasStateSpace::StateType *astate = state->as<ompl::base::AtlasStateSpace::StateType>();
     Eigen::Ref<const Eigen::VectorXd> p = astate->constVectorView();
     Eigen::VectorXd vec(2);
     Eigen::VectorXd c(3); c << p[0], p[1], 0;
-    vec[0] = std::atan2(p[2], c.norm()-TorusManifold::R1)/(2*M_PI);
+    vec[0] = std::atan2(p[2], c.norm()-r1)/(2*M_PI);
     vec[0] += (vec[0] < 0);
     vec[0] *= maze.get_height();
     vec[1] = std::atan2(p[1], p[0])/(2*M_PI);
@@ -301,32 +322,6 @@ bool mazeTorusValid (png::image<png::index_pixel_1> &maze, const ompl::base::Sta
     if (vec[0] < 0 || vec[0] >= maze.get_width() || vec[1] < 0 || vec[1] >= maze.get_height())
         return false;
     return !maze.get_pixel(vec[0], vec[1]).operator png::byte ();
-}
-
-/** For the chain example. Joints may not get too close to each other. If \a tough, then the end effector
- * may not occupy states similar to the sphereValid() obstacles (but rotated and scaled). */
-bool chainValid (const ompl::base::State *state, const bool tough)
-{
-    Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
-    for (std::size_t i = 0; i < ChainManifold::LINKS-1; i++)
-    {
-        if (x.segment(ChainManifold::DIM*i, ChainManifold::DIM).cwiseAbs().maxCoeff() < ChainManifold::JOINTWIDTH)
-            return false;
-        for (std::size_t j = i+1; j < ChainManifold::LINKS; j++)
-        {
-            if ((x.segment(ChainManifold::DIM*i, ChainManifold::DIM) - x.segment(ChainManifold::DIM*j, ChainManifold::DIM)).cwiseAbs().maxCoeff() < ChainManifold::JOINTWIDTH)
-                return false;
-        }
-    }
-    
-    if (!tough)
-        return true;
-    
-    Eigen::VectorXd end = x.tail(ChainManifold::DIM)/ChainManifold::ENDEFFECTORRADIUS;
-    const double tmp = end[0];
-    end[0] = end[2];
-    end[2] = tmp;
-    return sphereValid_helper(end);
 }
 
 /**
@@ -362,7 +357,7 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
     // Validity checker
     isValid = boost::bind(&unreachable, _1, y, 0.1);
     
-    return new TorusManifold();
+    return new TorusManifold(2, 1);
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
@@ -383,16 +378,15 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
 /** Initialize the atlas for the kinematic chain problem. */
 ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const bool tough)
 {
-    const std::size_t dim = ChainManifold::DIM*ChainManifold::LINKS;
+    const std::size_t dim = 3*5;
     
     // Start and goal points (each triple is the 3D location of a joint)
     x = Eigen::VectorXd(dim); x << 1,  0, 0,  2,  0, 0,  2, -1, 0,  3, -1, 0,  3, 0, 0;
     y = Eigen::VectorXd(dim); y << 0, -1, 0, -1, -1, 0, -1,  0, 0, -2,  0, 0, -3, 0, 0;
     
-    // Validity checker
-    isValid = boost::bind(&chainValid, _1, tough);
-    
-    return new ChainManifold();
+    ChainManifold *atlas = new ChainManifold(3, 5);
+    isValid = boost::bind(&ChainManifold::isValid, atlas, _1, tough);
+    return atlas;
 }
 
 /** Initialize the atlas for the planar maze problem. */
@@ -418,6 +412,8 @@ ompl::base::AtlasStateSpace *initPlanarMazeProblem (Eigen::VectorXd &x, Eigen::V
 ompl::base::AtlasStateSpace *initTorusMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const char *filename)
 {
     const std::size_t dim = 3;
+    const double r1 = 2;
+    const double r2 = 1;
     
     // Start and goal points
     x = Eigen::VectorXd(dim);
@@ -430,10 +426,10 @@ ompl::base::AtlasStateSpace *initTorusMazeProblem (Eigen::VectorXd &x, Eigen::Ve
     yA *= 2*M_PI;
     xB << std::cos(xA[0]), 0, std::sin(xA[0]);
     yB << std::cos(yA[0]), 0, std::sin(yA[0]);
-    xB *= TorusManifold::R2;
-    yB *= TorusManifold::R2;
-    xB[0] += TorusManifold::R1;
-    yB[0] += TorusManifold::R1;
+    xB *= r2;
+    yB *= r2;
+    xB[0] += r1;
+    yB[0] += r1;
     double nX = std::sqrt(xB[0]*xB[0] + xB[1]*xB[1]);
     double nY = std::sqrt(yB[0]*yB[0] + yB[1]*yB[1]);
     x << std::cos(xA[1]), std::sin(xA[1]), 0;
@@ -447,9 +443,9 @@ ompl::base::AtlasStateSpace *initTorusMazeProblem (Eigen::VectorXd &x, Eigen::Ve
     png::image<png::index_pixel_1> *img = new png::image<png::index_pixel_1>(filename, png::require_color_space<png::index_pixel_1>());
     
     // Validity checker
-    isValid = boost::bind(&mazeTorusValid, *img, _1);
+    isValid = boost::bind(&mazeTorusValid, *img, _1, r1);
     
-    ompl::base::AtlasStateSpace *atlas = new TorusManifold();
+    ompl::base::AtlasStateSpace *atlas = new TorusManifold(r1, r2);
     return atlas;
 }
 
