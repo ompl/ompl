@@ -174,7 +174,7 @@ public:
 
 bool sphereValid_helper (const Eigen::VectorXd &);
 
-/** Kinematic chain manifold. 5 links in 3D space. */
+/** Kinematic chain manifold. */
 class ChainManifold : public ompl::base::AtlasStateSpace
 {
 public:
@@ -243,6 +243,103 @@ public:
         return sphereValid_helper(end);
     }
 
+};
+
+/** Kinematic chain solving the torus maze. */
+class ChainTorusManifold : public ompl::base::AtlasStateSpace
+{
+public:
+    
+    const double R1;
+    const double R2;
+    const unsigned int DIM;
+    const unsigned int LINKS;
+    const double LINKLENGTH;
+    const double JOINTWIDTH;
+    
+    const png::image<png::index_pixel_1> maze;
+
+    ChainTorusManifold (unsigned int links, double linklength, double r1, double r2)
+        : ompl::base::AtlasStateSpace(3*links, (3-1)*links - 1), R1(r1), R2(r2), DIM(3),
+          LINKS(links), LINKLENGTH(linklength), JOINTWIDTH(0.2),
+          maze("maze.png", png::require_color_space<png::index_pixel_1>())
+    {
+    }
+    
+    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    {
+        // Consecutive joints must be a fixed distance apart
+        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(DIM);
+        for (unsigned int i = 0; i < LINKS; i++)
+        {
+            const Eigen::VectorXd joint2 = x.segment(DIM*i, DIM);
+            out[i] = (joint1 - joint2).norm() - LINKLENGTH;
+            joint1 = joint2;
+        }
+        
+        // End effector must lie on the torus
+        Eigen::VectorXd c = x.tail(DIM);
+        c[2] = 0;
+        out[LINKS] = (x.tail(DIM) - R1 * c.normalized()).norm() - R2;
+    }
+
+    void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    {
+        out.setZero();
+        Eigen::VectorXd plus(DIM*(LINKS+1));
+        plus.head(DIM*LINKS) = x; plus.tail(DIM) = Eigen::VectorXd::Zero(DIM);
+        Eigen::VectorXd minus(DIM*(LINKS+1));
+        minus.head(DIM) = Eigen::VectorXd::Zero(DIM); minus.tail(DIM*LINKS) = x;
+        const Eigen::VectorXd diagonal = plus - minus;
+        for (unsigned int i = 0; i < LINKS; i++)
+            out.row(i).segment(DIM*i, DIM) = diagonal.segment(DIM*i, DIM).normalized();
+        out.block(1, 0, LINKS, DIM*(LINKS-1)) -= out.block(1, DIM, LINKS, DIM*(LINKS-1));
+        
+        // Torus part
+        Eigen::VectorXd end = x.tail(DIM);
+        const double xySquaredNorm = end[0]*end[0] + end[1]*end[1];
+        const double xyNorm = std::sqrt(xySquaredNorm);
+        const double denom = std::sqrt(end[2]*end[2] + (xyNorm - R1)*(xyNorm - R1));
+        const double c = (xyNorm - R1) * (xyNorm*xySquaredNorm) /
+            (xySquaredNorm * xySquaredNorm * denom);
+        end[0] *= c; end[1] *= c; end[2] /= denom;
+        out.row(LINKS).tail(DIM) = end;
+    }
+    
+    /** Joints may not get too close to each other. The end effector must not touch the walls of the
+     *  maze. */
+    bool isValid (const ompl::base::State *state)
+    {
+        // Check joints
+        Eigen::Ref<const Eigen::VectorXd> x =
+          state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
+        /*for (unsigned int i = 0; i < LINKS-1; i++)
+        {
+            if (x.segment(DIM*i, DIM).cwiseAbs().maxCoeff() < JOINTWIDTH)
+                return false;
+            for (unsigned int j = i+1; j < LINKS; j++)
+            {
+                if ((x.segment(DIM*i, DIM) - x.segment(DIM*j, DIM)).cwiseAbs().maxCoeff()
+                  < JOINTWIDTH)
+                    return false;
+            }
+        }*/
+
+        // Check maze
+        Eigen::Ref<const Eigen::VectorXd> p = x.tail(DIM);
+        Eigen::VectorXd vec(2);
+        Eigen::VectorXd c(3); c << p[0], p[1], 0;
+        vec[0] = std::atan2(p[2], c.norm()-R1)/(2*M_PI);
+        vec[0] += (vec[0] < 0);
+        vec[0] *= maze.get_height();
+        vec[1] = std::atan2(p[1], p[0])/(2*M_PI);
+        vec[1] += (vec[1] < 0);
+        vec[1] *= maze.get_width();
+        // I don't this this should ever happen...
+        if (vec[0] < 0 || vec[0] >= maze.get_width() || vec[1] < 0 || vec[1] >= maze.get_height())
+            return false;
+        return !maze.get_pixel(vec[0], vec[1]).operator png::byte ();
+    }
 };
 
 
@@ -449,6 +546,70 @@ ompl::base::AtlasStateSpace *initTorusMazeProblem (Eigen::VectorXd &x, Eigen::Ve
     return atlas;
 }
 
+/** Maps maze coordinates from [0,1]x[0,1] to 3D space on the torus. */
+void mazeToTorusCoords (double a, double b, Eigen::Ref<Eigen::VectorXd> x, double r1, double r2)
+{
+    Eigen::VectorXd xA(2); xA << a, b;
+    Eigen::VectorXd xB(3);
+    xA *= 2*M_PI;
+    xB << std::cos(xA[0]), 0, std::sin(xA[0]);
+    xB *= r2;
+    xB[0] += r1;
+    x[0] = std::cos(xA[1]); x[1] = std::sin(xA[1]); x[2] = 0;
+    x *= std::sqrt(xB[0]*xB[0] + xB[1]*xB[1]);;
+    x[2] = xB[2];
+}
+
+/** Find valid configurations for points x1, x2, given x3. */
+void threeLinkSolve (Eigen::Ref<Eigen::VectorXd> x1, Eigen::Ref<Eigen::VectorXd> x2,
+                     Eigen::Ref<const Eigen::VectorXd> x3, double linklength)
+{
+    // The first one has to have norm linklength. We'll put it in the same direction as the end point.
+    x1 = x3.normalized();
+
+    // The second one must be at a distance linklength from the first and from the end point.
+    const double s = std::sqrt(linklength*linklength - (x3-x1).squaredNorm()/4);
+    x2 = (x1+x3)/2;
+    // Fix all but one coefficient at 1, and solve for the final one
+    Eigen::VectorXd v = Eigen::VectorXd::Ones(x2.size());
+    int i;
+    Eigen::VectorXd w = x3-x1;
+    w.array().abs().maxCoeff(&i);
+    v[i] = - (w.sum() - w[i]) / w[i];
+    v *= s / v.norm();
+    x2 += v;
+}
+
+/** Initialize the atlas for the chain torus maze problem. */
+ompl::base::AtlasStateSpace *initChainTorusMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                                        ompl::base::StateValidityCheckerFn &isValid)
+{
+    const std::size_t dim = 3;
+    const std::size_t links = 3;
+    const double linklength = 1;
+    const double r1 = 2;
+    const double r2 = 1;
+    
+    // Start and goal locations for the end effector
+    x = Eigen::VectorXd(dim*links);
+    y = Eigen::VectorXd(dim*links);
+    Eigen::Ref<Eigen::VectorXd> x3(x.tail(dim));
+    Eigen::Ref<Eigen::VectorXd> y3(y.tail(dim));
+    mazeToTorusCoords(0.45, 0.02, x3, r1, r2);
+    mazeToTorusCoords(0.98, 0.89, y3, r1, r2);
+
+    // Determine locations of first two joints to satisfy the system
+    Eigen::Ref<Eigen::VectorXd> x1(x.head(dim)), y1(y.head(dim));
+    Eigen::Ref<Eigen::VectorXd> x2(x.segment(dim, dim)), y2(y.segment(dim, dim));
+    threeLinkSolve(x1, x2, x3, linklength);
+    threeLinkSolve(y1, y2, y3, linklength);
+
+    ChainTorusManifold *atlas = new ChainTorusManifold(links, linklength, r1, r2);
+    isValid = boost::bind(&ChainTorusManifold::isValid, atlas, _1);
+
+    return atlas;
+}
+
 /** Allocator function for a sampler for the atlas that only returns valid points. */
 ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atlas, const ompl::base::SpaceInformation *si)
 {
@@ -459,7 +620,7 @@ ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atl
 void printProblems (void)
 {
     std::cout << "Available problems:\n";
-    std::cout << "    sphere torus klein chain chain_tough planar_maze torus_maze\n";
+    std::cout << "    sphere torus klein chain chain_tough planar_maze torus_maze chain_torus_maze\n";
 }
 
 /** Print usage information. */
@@ -489,6 +650,8 @@ ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::Vec
         return initPlanarMazeProblem(x, y, isValid, "maze.png");
     else if (std::strcmp(problem, "torus_maze") == 0)
         return initTorusMazeProblem(x, y, isValid, "maze.png");
+    else if (std::strcmp(problem, "chain_torus_maze") == 0)
+        return initChainTorusMazeProblem(x, y, isValid);
     else
         return NULL;
 }

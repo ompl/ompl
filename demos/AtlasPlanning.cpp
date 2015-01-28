@@ -77,7 +77,7 @@ int main (int argc, char **argv)
     
     // Atlas parameters
     atlas->setExploration(0.9);
-    atlas->setRho(0.2);
+    atlas->setRho(0.4);
     atlas->setAlpha(M_PI/8);
     atlas->setEpsilon(0.1);
     atlas->setDelta(0.02);
