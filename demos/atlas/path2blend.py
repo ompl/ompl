@@ -2,8 +2,10 @@ import bpy
 
 # Syntax for each mapping entry is ("object name", "property name", [list of values])
 #  where a value of None indicates no change is to be made.
-mapping = lambda s: [("Node1", 'location', s[0:3]), ("Node2", 'location', s[3:6]), ("Node3", 'location', s[6:9]),
+_mapping5 = lambda s: [("Node1", 'location', s[0:3]), ("Node2", 'location', s[3:6]), ("Node3", 'location', s[6:9]),
                      ("Node4", 'location', s[9:12]), ("Node5", 'location', s[12:15])]
+_mapping3 = lambda s: [("Node1", 'location', s[0:3]), ("Node2", 'location', s[3:6]), ("Node3", 'location', s[6:9])]
+mapping = _mapping5
 filename = "anim.txt"
 speed = 2
 
