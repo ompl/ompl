@@ -306,8 +306,10 @@ public:
         out.row(LINKS).tail(DIM) = end;
     }
     
-    /** Joints may not get too close to each other. The end effector must not touch the walls of the
-     *  maze. */
+    /** 
+     * Joints may not get too close to each other. The end effector must not touch the walls of the
+     * maze.
+     */
     bool isValid (const ompl::base::State *state)
     {
         // Check joints
@@ -325,6 +327,84 @@ public:
             }
         }*/
 
+        // Check links and torus
+        for (unsigned int i = 0; i < LINKS; i++)
+        {
+            Eigen::VectorXd a;
+            Eigen::VectorXd b;
+            if (i == 0)
+                a = Eigen::VectorXd::Zero(DIM);
+            else
+                a = x.segment(DIM*(i-1), DIM);
+            b = x.segment(DIM*i, DIM);
+            
+            // Does the segment ab intersect the torus?
+            // First minimize g = ||ab - xycircle(0, R1)||
+            // Then clip 0 <= t <= 1 and check if f(t) < R2.
+            
+            // Minimize g(t,s) = || a + (b-a) t - {r cos s, r sin s, 0} ||
+            //  ==   (-r sin(s) + a_2 + t (b_2-a_2))^2
+            //     + (-r cos(s) + a_1 + t (b_1-a_1))^2
+            //     + (            a_3 + t (b_3-a_3))^2
+            //
+            // Solve {
+            //  0 ==   (b_1-a_1) (t (b_1-a_1) + a_1 - r cos(s))
+            //       + (b_2-a_2) (t (b_2-a_2) + a_2 - r sin(s))
+            //       + (b_3-a_3) (t (b_3-a_3) + a_3           )
+            //  0 ==   sin(s) (a_1 + t (b_1-a_1))
+            //       + cos(s) (a_2 + t (b_2-a_2))
+            // }
+
+            struct _equations
+            {
+                const Eigen::VectorXd &a, &b;
+                const double r;
+
+                _equations(Eigen::VectorXd &a, Eigen::VectorXd &b, double r)
+                    : a(a), b(b), r(r) {}
+
+                void F (double t, double s, double &f1, double &f2)
+                {
+                    Eigen::VectorXd c; c << std::cos(s), std::sin(s), 0;
+                    f1 = (b-a).dot(t*(b-a) + a - r*c);
+                    f2 = c.dot(a + t*(b-a));
+                }
+
+                void J (double t, double s,
+                               double &df1_t, double &df1_s, double &df2_t, double &df2_s)
+                {
+                    Eigen::VectorXd c; c << -std::sin(s), std::cos(s), 0;
+                    df1_t = (b-a).dot(b-a);
+                    df1_s = (b-a).dot(-r*c);
+                    c[0] *= -1;
+                    df2_t = c.dot(b-a);
+                    c[2] = -c[0]; c[0] = c[1]; c[1] = c[2]; c[2] = 0;
+                    df2_s = c.dot(a + t*(b-a));
+                }
+            };
+            
+            // We'll use a Newton method
+            double t = 0;
+            double s = 0;
+            double f1, f2;
+            _equations eq(a,b,R1);
+            while (eq.F(t,s,f1,f2), f1*f1 + f2*f2 > 1e-6)
+            {
+                // Compute Jacobian
+                double df1_t, df1_s, df2_t, df2_s;
+                eq.J(t, s, df1_t, df1_s, df2_t, df2_s);
+                // Invert
+                double det = df1_t * df2_s - df1_s * df2_t;
+                std::swap(df1_t, df2_s);
+                df1_s *= -1; df2_t *= -1;
+                // Update
+                t -= df1_t * f1 + df1_s * f2 / det;
+                s -= df2_t * f1 + df2_s * f2 / det;
+            }
+
+            // TODO
+        }
+
         // Check maze
         Eigen::Ref<const Eigen::VectorXd> p = x.tail(DIM);
         Eigen::VectorXd vec(2);
@@ -335,7 +415,7 @@ public:
         vec[1] = std::atan2(p[1], p[0])/(2*M_PI);
         vec[1] += (vec[1] < 0);
         vec[1] *= maze.get_width();
-        // I don't this this should ever happen...
+        // I don't think this should ever happen...
         if (vec[0] < 0 || vec[0] >= maze.get_width() || vec[1] < 0 || vec[1] >= maze.get_height())
             return false;
         return !maze.get_pixel(vec[0], vec[1]).operator png::byte ();
@@ -351,23 +431,23 @@ public:
 bool sphereValid_helper (const Eigen::VectorXd &x)
 {
     if (-0.75 < x[2] && x[2] < -0.6)
-    {
-        if (-0.2 < x[1] && x[1] < 0.2)
-            return x[0] > 0;
-        return false;
-    }
+        {
+            if (-0.2 < x[1] && x[1] < 0.2)
+                return x[0] > 0;
+            return false;
+        }
     else if (-0.125 < x[2] && x[2] < 0.125)
-    {
-        if (-0.2 < x[1] && x[1] < 0.2)
-            return x[0] < 0;
-        return false;
-    }
+        {
+            if (-0.2 < x[1] && x[1] < 0.2)
+                return x[0] < 0;
+            return false;
+        }
     else if (0.6 < x[2] && x[2] < 0.75)
-    {
-        if (-0.2 < x[0] && x[0] < 0.2)
-            return x[1] > 0;
-        return false;
-    }
+        {
+            if (-0.2 < x[0] && x[0] < 0.2)
+                return x[1] > 0;
+            return false;
+        }
     return true;
 }
 

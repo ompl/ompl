@@ -57,14 +57,16 @@ int main (int argc, char **argv)
     if (!atlas)
         usage(argv[0]);
     
-    // These two planners get special treatment. The atlas will pretend to be RealVectorStateSpace for them.
+    // These two planners get special treatment. The atlas will pretend to be RealVectorStateSpace
+    // for them.
     bool cons = false;
     if (std::strcmp(argv[2], "ConstrainedRRT") == 0 || std::strcmp(argv[2], "CBiRRT2") == 0)
         cons = true;
     if (cons)
         atlas->stopBeingAnAtlas(true);
     
-    // All the 'Constrained' classes are loose wrappers for the normal classes. No effect except on the two special planners.
+    // All the 'Constrained' classes are loose wrappers for the normal classes. No effect except on
+    // the two special planners.
     ompl::geometric::ConstrainedSimpleSetup ss(atlas);
     ompl::base::ConstrainedSpaceInformationPtr si = ss.getConstrainedSpaceInformation();
     atlas->setSpaceInformation(si);
