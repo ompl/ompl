@@ -20,7 +20,7 @@ Aside from the strict requirements, there are other methods which can be impleme
 - Return an informative value from ompl::base::PlannerStatus in the implementation of solve().
 - solve() should respect the ompl::base::PlannerTerminationCondition argument passed to it. When the given condition evaluates true, solve() should return as quickly as possible.
 - Repeated calls to solve() should not restart the planning process from scratch, but rather pick up the search where it left off previously.
-- Provide an implementation of ompl::base::Planner::clear().  This method should free any memory allocated by the planner and restore the planner to the state it was at creation.
+- Provide an implementation of ompl::base::Planner::clear().  This method should free any memory allocated by the planner and restore the planner to a state where ompl::base::Planner::solve() can be called again (without passing on information from previous calls to solve() ). If necessary, clear() can set ompl::base::Planner::setup_ to `false`, to communicate to solve() that setup() needs to be called again.
 - Provide an implementation of ompl::bas::Planner::getPlannerData() which translates the internal planner data structure to the ompl::base::PlannerData graph implementation. This method is particularly useful for debugging purposes since it allows the user to inspect the data structure.
 
 
