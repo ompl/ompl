@@ -671,7 +671,7 @@ void threeLinkSolve (Eigen::Ref<Eigen::VectorXd> x1, Eigen::Ref<Eigen::VectorXd>
     x2 = x1 * (x1.norm()+t) / x1.norm();
     // Add a vector v, of length s, to bring it to the third vertex of the triangle.
     // Fix all but one coefficient at 1, and solve for the final one.
-    Eigen::VectorXd v = -0.5*Eigen::VectorXd::Ones(x2.size());
+    Eigen::VectorXd v = -Eigen::VectorXd::Ones(x2.size());
     int i;
     Eigen::VectorXd w = x3-x1;
     w.array().abs().maxCoeff(&i);
@@ -699,7 +699,7 @@ ompl::base::AtlasStateSpace *initChainTorusMazeProblem (Eigen::VectorXd &x, Eige
     Eigen::Ref<Eigen::VectorXd> x3(x.tail(dim));
     Eigen::Ref<Eigen::VectorXd> y3(y.tail(dim));
     mazeToTorusCoords(0.45, 0.02, x3, r1, r2);
-    mazeToTorusCoords(0.98, 0.89, y3, r1, r2);
+    mazeToTorusCoords(0.75, 0.89, y3, r1, r2);
 
     // Determine locations of first two joints to satisfy the system
     Eigen::Ref<Eigen::VectorXd> x1(x.head(dim)), y1(y.head(dim));
