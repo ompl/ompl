@@ -327,9 +327,10 @@ public:
             }
         }
         */
+        
 
         // Check links and torus
-        /*for (unsigned int i = 0; i < LINKS; i++)
+        for (unsigned int i = 0; i < LINKS; i++)
         {
             Eigen::VectorXd a;
             Eigen::VectorXd b;
@@ -341,7 +342,7 @@ public:
             
             // Does the segment ab intersect the torus?
             // First minimize g = ||ab - xycircle(0, R1)||
-            // Then clip 0 <= t <= 1 and check if f(t) < R2.
+            // Then clip 0 <= t <= 1 and check if ab(t) is inside the torus.
             
             // Minimize g(t,s) = || a + (b-a) t - {r cos s, r sin s, 0} ||
             //  ==   (-r sin(s) + a_2 + t (b_2-a_2))^2
@@ -389,7 +390,8 @@ public:
             double s = 0;
             double f1, f2;
             _equations eq(a,b,R1);
-            while (eq.F(t,s,f1,f2), f1*f1 + f2*f2 > 1e-6)
+            int iters = 100;
+            while (iters-- > 0 && (eq.F(t,s,f1,f2), f1*f1 + f2*f2 > 1e-6))
             {
                 // Compute Jacobian
                 double df1_t, df1_s, df2_t, df2_s;
@@ -402,10 +404,19 @@ public:
                 t -= df1_t * f1 + df1_s * f2 / det;
                 s -= df2_t * f1 + df2_s * f2 / det;
             }
+            
+            // Clip t to be within the line segment
+            t = std::min(std::max(0.0, t), 1.0);
 
-            // TODO
+            // Check if this point is inside the torus
+            const Eigen::VectorXd p = a + (b-a)*t;
+            
+            // Use the xy-projection of p to check its distance to the major circle
+            Eigen::VectorXd pxy(3); pxy << p[0], p[1], 0;
+            pxy *= R1/pxy.norm();
+            if ((p - pxy).squaredNorm() < R2*R2)
+                return false;            
         }
-        */
 
         // Check maze
         Eigen::Ref<const Eigen::VectorXd> p = x.tail(DIM);
@@ -660,7 +671,7 @@ void threeLinkSolve (Eigen::Ref<Eigen::VectorXd> x1, Eigen::Ref<Eigen::VectorXd>
     x2 = x1 * (x1.norm()+t) / x1.norm();
     // Add a vector v, of length s, to bring it to the third vertex of the triangle.
     // Fix all but one coefficient at 1, and solve for the final one.
-    Eigen::VectorXd v = Eigen::VectorXd::Ones(x2.size());
+    Eigen::VectorXd v = -0.5*Eigen::VectorXd::Ones(x2.size());
     int i;
     Eigen::VectorXd w = x3-x1;
     w.array().abs().maxCoeff(&i);
@@ -676,7 +687,7 @@ ompl::base::AtlasStateSpace *initChainTorusMazeProblem (Eigen::VectorXd &x, Eige
     const std::size_t dim = 3;
     const std::size_t links = 3;
     std::vector<double> linklength;
-    linklength.push_back(0.5);
+    linklength.push_back(0.8);
     linklength.push_back(2);
     linklength.push_back(2);
     const double r1 = 2;
