@@ -254,15 +254,15 @@ public:
     const double R2;
     const unsigned int DIM;
     const unsigned int LINKS;
-    const double LINKLENGTH;
+    const std::vector<double> LINKLENGTH;
     const double JOINTWIDTH;
     
     const png::image<png::index_pixel_1> maze;
 
-    ChainTorusManifold (unsigned int links, double linklength, double r1, double r2)
+    ChainTorusManifold (unsigned int links, std::vector<double> linklength, double r1, double r2)
         : ompl::base::AtlasStateSpace(3*links, (3-1)*links - 1), R1(r1), R2(r2), DIM(3),
           LINKS(links), LINKLENGTH(linklength), JOINTWIDTH(0.2),
-          maze("maze.png", png::require_color_space<png::index_pixel_1>())
+          maze("../../demos/atlas/maze-wide.png", png::require_color_space<png::index_pixel_1>())
     {
     }
     
@@ -273,7 +273,7 @@ public:
         for (unsigned int i = 0; i < LINKS; i++)
         {
             const Eigen::VectorXd joint2 = x.segment(DIM*i, DIM);
-            out[i] = (joint1 - joint2).norm() - LINKLENGTH;
+            out[i] = (joint1 - joint2).norm() - LINKLENGTH[i];
             joint1 = joint2;
         }
         
@@ -325,10 +325,11 @@ public:
                   < JOINTWIDTH)
                     return false;
             }
-        }*/
+        }
+        */
 
         // Check links and torus
-        for (unsigned int i = 0; i < LINKS; i++)
+        /*for (unsigned int i = 0; i < LINKS; i++)
         {
             Eigen::VectorXd a;
             Eigen::VectorXd b;
@@ -365,7 +366,7 @@ public:
 
                 void F (double t, double s, double &f1, double &f2)
                 {
-                    Eigen::VectorXd c; c << std::cos(s), std::sin(s), 0;
+                    Eigen::VectorXd c(3); c << std::cos(s), std::sin(s), 0;
                     f1 = (b-a).dot(t*(b-a) + a - r*c);
                     f2 = c.dot(a + t*(b-a));
                 }
@@ -373,7 +374,7 @@ public:
                 void J (double t, double s,
                                double &df1_t, double &df1_s, double &df2_t, double &df2_s)
                 {
-                    Eigen::VectorXd c; c << -std::sin(s), std::cos(s), 0;
+                    Eigen::VectorXd c(3); c << -std::sin(s), std::cos(s), 0;
                     df1_t = (b-a).dot(b-a);
                     df1_s = (b-a).dot(-r*c);
                     c[0] *= -1;
@@ -404,6 +405,7 @@ public:
 
             // TODO
         }
+        */
 
         // Check maze
         Eigen::Ref<const Eigen::VectorXd> p = x.tail(DIM);
@@ -642,15 +644,22 @@ void mazeToTorusCoords (double a, double b, Eigen::Ref<Eigen::VectorXd> x, doubl
 
 /** Find valid configurations for points x1, x2, given x3. */
 void threeLinkSolve (Eigen::Ref<Eigen::VectorXd> x1, Eigen::Ref<Eigen::VectorXd> x2,
-                     Eigen::Ref<const Eigen::VectorXd> x3, double linklength)
+                     Eigen::Ref<const Eigen::VectorXd> x3, std::vector<double> linklength)
 {
     // The first one has to have norm linklength. We'll put it in the same direction as the end point.
-    x1 = x3.normalized();
+    x1 = linklength[0] * x3.normalized();
 
-    // The second one must be at a distance linklength from the first and from the end point.
-    const double s = std::sqrt(linklength*linklength - (x3-x1).squaredNorm()/4);
-    x2 = (x1+x3)/2;
-    // Fix all but one coefficient at 1, and solve for the final one
+    // The second one must be at appropriate distance from the first and from the end point.
+    // Compute s, the altitude of the triangle x1, x3, x2, with base x1, x3.
+    const double base = (x3-x1).norm();
+    const double halfp = (base + linklength[1] + linklength[2])/2;
+    const double s = (2.0/base)*std::sqrt(
+        halfp*(halfp-base)*(halfp-linklength[1])*(halfp-linklength[2]));
+    // Compute t, the distance between x1 and the altitude line.
+    const double t = std::sqrt(linklength[1]*linklength[1]-s*s);
+    x2 = x1 * (x1.norm()+t) / x1.norm();
+    // Add a vector v, of length s, to bring it to the third vertex of the triangle.
+    // Fix all but one coefficient at 1, and solve for the final one.
     Eigen::VectorXd v = Eigen::VectorXd::Ones(x2.size());
     int i;
     Eigen::VectorXd w = x3-x1;
@@ -666,13 +675,16 @@ ompl::base::AtlasStateSpace *initChainTorusMazeProblem (Eigen::VectorXd &x, Eige
 {
     const std::size_t dim = 3;
     const std::size_t links = 3;
-    const double linklength = 1;
+    std::vector<double> linklength;
+    linklength.push_back(0.5);
+    linklength.push_back(2);
+    linklength.push_back(2);
     const double r1 = 2;
     const double r2 = 1;
     
     // Start and goal locations for the end effector
-    x = Eigen::VectorXd(dim*links);
-    y = Eigen::VectorXd(dim*links);
+    x.resize(dim*links);
+    y.resize(dim*links);
     Eigen::Ref<Eigen::VectorXd> x3(x.tail(dim));
     Eigen::Ref<Eigen::VectorXd> y3(y.tail(dim));
     mazeToTorusCoords(0.45, 0.02, x3, r1, r2);
@@ -727,9 +739,9 @@ ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::Vec
     else if (std::strcmp(problem, "chain_tough") == 0)
         return initChainProblem(x, y, isValid, true);
     else if (std::strcmp(problem, "planar_maze") == 0)
-        return initPlanarMazeProblem(x, y, isValid, "maze.png");
+        return initPlanarMazeProblem(x, y, isValid, "../../demos/atlas/maze.png");
     else if (std::strcmp(problem, "torus_maze") == 0)
-        return initTorusMazeProblem(x, y, isValid, "maze.png");
+        return initTorusMazeProblem(x, y, isValid, "../../demos/atlas/maze.png");
     else if (std::strcmp(problem, "chain_torus_maze") == 0)
         return initChainTorusMazeProblem(x, y, isValid);
     else
