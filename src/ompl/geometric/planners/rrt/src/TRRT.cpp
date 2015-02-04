@@ -99,12 +99,12 @@ void ompl::geometric::TRRT::setup()
     tools::SelfConfig selfConfig(si_, getName());
 
     bool usingDefaultObjective = false;
-    if (!pdef_->hasOptimizationObjective())
+    if (!pdef_ || !pdef_->hasOptimizationObjective())
     {
         OMPL_INFORM("%s: No optimization objective specified.", getName().c_str());
         usingDefaultObjective = true;
     }
-    else 
+    else
     {
         usingDefaultObjective = false;
     }
