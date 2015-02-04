@@ -251,7 +251,7 @@ class ChainTorusManifold : public ompl::base::AtlasStateSpace
     inline double poly (const double &A, const double &B, const double &C, const double &D,
                         const double &E, const double &t) const
     {
-        return (((A*t + B)*t + C)*t + D)*t + E;
+        return (t == 0) ? E : (((A*t + B)*t + C)*t + D)*t + E;
     }
 
 public:
@@ -318,9 +318,22 @@ public:
      */
     bool isValid (const ompl::base::State *state)
     {
-        // Check joints
         Eigen::Ref<const Eigen::VectorXd> x =
           state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
+        // Check link lengths.
+        for (unsigned int i = 0; i < LINKS; i++)
+        {
+            Eigen::VectorXd joint1;
+            if (i == 0)
+                joint1 = Eigen::VectorXd::Zero(DIM);
+            else
+                joint1 = x.segment(DIM*(i-1), DIM);
+
+            Eigen::VectorXd joint2(x.segment(DIM*i, DIM));
+            if (std::abs((joint1 - joint2).norm() - LINKLENGTH[i]) > 0.1)
+                return false;
+        }
+        // Check joint proximity.
         /*for (unsigned int i = 0; i < LINKS-1; i++)
         {
             if (x.segment(DIM*i, DIM).cwiseAbs().maxCoeff() < JOINTWIDTH)
@@ -343,13 +356,13 @@ public:
                 P0 = Eigen::VectorXd::Zero(DIM);
             else
                 P0 = x.segment(DIM*(i-1), DIM);
-            P1 = x.segment(DIM*i, DIM);
+            P1 = x.segment(DIM*i, DIM) - P0;
 
             // Does the line segment P0 + tP1 intersect the torus with 0 <= t <= 1?
             
             // Compute polynomial At^4 + Bt^3 + Ct^2 + Dt + E, whose roots are the intersections.
             double a, b, c, d, e, f, g;
-            a = f = P1.norm();
+            a = f = P1.dot(P1);
             a -= P1[2]*P1[2];
             b = e = 2*P0.dot(P1);
             b -= 2*P0[2]*P1[2];
@@ -407,13 +420,16 @@ public:
                 if (crit[1] > crit[2])
                     std::swap(crit[1], crit[2]);
             }
-            // Cut off all values at [0,1].
-            crit = crit.cwiseMax(0).cwiseMin(1);
+            // Cut off all values at [0+e,1-e].
+            const double wiggleroom = JOINTWIDTH/2;
+            crit = crit.cwiseMax(wiggleroom).cwiseMin(1-wiggleroom);
 
             // Intersection occurs if the polynomial changes sign between any pair of crits.
+            crit[0] = poly(A,B,C,D,E, crit[0]);
             for (int j = 0; j < 4; j++)
             {
-                if (poly(A,B,C,D,E, crit[j]) * poly(A,B,C,D,E, crit[j+1] <= 0))
+                crit[j+1] = poly(A,B,C,D,E, crit[j+1]);
+                if (crit[j] * crit[j+1] <= 0)
                     return false;
             }
         }
@@ -658,8 +674,9 @@ void mazeToTorusCoords (double a, double b, Eigen::Ref<Eigen::VectorXd> x, doubl
 void threeLinkSolve (Eigen::Ref<Eigen::VectorXd> x1, Eigen::Ref<Eigen::VectorXd> x2,
                      Eigen::Ref<const Eigen::VectorXd> x3, std::vector<double> linklength)
 {
-    // The first one has to have norm linklength. We'll put it in the same direction as the end point.
-    x1 = linklength[0] * x3.normalized();
+    // The first one has to have norm linklength[0]. We'll put it facing straight down.
+    //x1 = linklength[0] * x3.normalized();
+    x1[0] = 0; x1[1] = 0; x1[2] = -linklength[0];
 
     // The second one must be at appropriate distance from the first and from the end point.
     // Compute s, the altitude of the triangle x1, x3, x2, with base x1, x3.
@@ -669,16 +686,16 @@ void threeLinkSolve (Eigen::Ref<Eigen::VectorXd> x1, Eigen::Ref<Eigen::VectorXd>
         halfp*(halfp-base)*(halfp-linklength[1])*(halfp-linklength[2]));
     // Compute t, the distance between x1 and the altitude line.
     const double t = std::sqrt(linklength[1]*linklength[1]-s*s);
-    x2 = x1 * (x1.norm()+t) / x1.norm();
+    x2 = x1 + t*((x3-x1).normalized());
     // Add a vector v, of length s, to bring it to the third vertex of the triangle.
-    // Fix all but one coefficient at 1, and solve for the final one.
+    // Fix all but one coefficient at -1, and solve for the final one.
     Eigen::VectorXd v = -Eigen::VectorXd::Ones(x2.size());
     int i;
     Eigen::VectorXd w = x3-x1;
     w.array().abs().maxCoeff(&i);
-    v[i] = - (w.sum() - w[i]) / w[i];
-    v *= s / v.norm();
-    x2 += v;
+    v[i] = 0;
+    v[i] = - (v.dot(w)) / w[i];
+    x2 += s*v.normalized();
 }
 
 /** Initialize the atlas for the chain torus maze problem. */
@@ -700,7 +717,7 @@ ompl::base::AtlasStateSpace *initChainTorusMazeProblem (Eigen::VectorXd &x, Eige
     Eigen::Ref<Eigen::VectorXd> x3(x.tail(dim));
     Eigen::Ref<Eigen::VectorXd> y3(y.tail(dim));
     mazeToTorusCoords(0.45, 0.02, x3, r1, r2);
-    mazeToTorusCoords(0.75, 0.89, y3, r1, r2);
+    mazeToTorusCoords(0.8, 0.89, y3, r1, r2);
 
     // Determine locations of first two joints to satisfy the system
     Eigen::Ref<Eigen::VectorXd> x1(x.head(dim)), y1(y.head(dim));
