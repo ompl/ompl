@@ -248,6 +248,12 @@ public:
 /** Kinematic chain solving the torus maze. */
 class ChainTorusManifold : public ompl::base::AtlasStateSpace
 {
+    inline double poly (const double &A, const double &B, const double &C, const double &D,
+                        const double &E, const double &t) const
+    {
+        return (((A*t + B)*t + C)*t + D)*t + E;
+    }
+
 public:
     
     const double R1;
@@ -332,91 +338,86 @@ public:
         // Check links and torus
         for (unsigned int i = 0; i < LINKS; i++)
         {
-            Eigen::VectorXd a;
-            Eigen::VectorXd b;
+            Eigen::VectorXd P0, P1;
             if (i == 0)
-                a = Eigen::VectorXd::Zero(DIM);
+                P0 = Eigen::VectorXd::Zero(DIM);
             else
-                a = x.segment(DIM*(i-1), DIM);
-            b = x.segment(DIM*i, DIM);
-            
-            // Does the segment ab intersect the torus?
-            // First minimize g = ||ab - xycircle(0, R1)||
-            // Then clip 0 <= t <= 1 and check if ab(t) is inside the torus.
-            
-            // Minimize g(t,s) = || a + (b-a) t - {r cos s, r sin s, 0} ||
-            //  ==   (-r sin(s) + a_2 + t (b_2-a_2))^2
-            //     + (-r cos(s) + a_1 + t (b_1-a_1))^2
-            //     + (            a_3 + t (b_3-a_3))^2
-            //
-            // Solve {
-            //  0 ==   (b_1-a_1) (t (b_1-a_1) + a_1 - r cos(s))
-            //       + (b_2-a_2) (t (b_2-a_2) + a_2 - r sin(s))
-            //       + (b_3-a_3) (t (b_3-a_3) + a_3           )
-            //  0 ==   sin(s) (a_1 + t (b_1-a_1))
-            //       + cos(s) (a_2 + t (b_2-a_2))
-            // }
+                P0 = x.segment(DIM*(i-1), DIM);
+            P1 = x.segment(DIM*i, DIM);
 
-            struct _equations
+            // Does the line segment P0 + tP1 intersect the torus with 0 <= t <= 1?
+            
+            // Compute polynomial At^4 + Bt^3 + Ct^2 + Dt + E, whose roots are the intersections.
+            double a, b, c, d, e, f, g;
+            a = f = P1.norm();
+            a -= P1[2]*P1[2];
+            b = e = 2*P0.dot(P1);
+            b -= 2*P0[2]*P1[2];
+            c = d = P0.dot(P0);
+            c -= P0[2]*P0[2];
+            d += R1*R1 - R2*R2;
+            g = -4*R1*R1;
+            const double A = f*f;
+            const double B = 2*f*e;
+            const double C = 2*f*d + e*e + g*a;
+            const double D = 2*e*d + g*b;
+            const double E = d*d + g*c;
+
+            // Rather than compute t, we only need to know if 0 <= t <= 1. So instead we'll check
+            // the signs of the critical points, which involves finding the roots of the derivative.
+            const double A2 = 4*A;
+            const double B2 = 3*B;
+            const double C2 = 2*C;
+            const double D2 = D;
+
+            // Explicit formula for roots of cubic polynomial.
+            const double discr0 = B2*B2 - 3*A2*C2;
+            const double discr1 = 2*B2*B2*B2 - 9*A2*(B2*C2 - 3*A2*D2);
+            const double sign = (discr1 > 0) ? 1 : -1;
+            std::complex<double> z1 = discr1*discr1 - 4*discr0*discr0*discr0;
+            z1 = std::pow((discr1 + sign * std::sqrt(z1))/2.0, 1.0/3);
+
+            Eigen::VectorXd crit(5);
+            crit[0] = 0; crit[4] = 1;
+            if (std::abs(z1) < 1e-6)
             {
-                const Eigen::VectorXd &a, &b;
-                const double r;
-
-                _equations(Eigen::VectorXd &a, Eigen::VectorXd &b, double r)
-                    : a(a), b(b), r(r) {}
-
-                void F (double t, double s, double &f1, double &f2)
-                {
-                    Eigen::VectorXd c(3); c << std::cos(s), std::sin(s), 0;
-                    f1 = (b-a).dot(t*(b-a) + a - r*c);
-                    f2 = c.dot(a + t*(b-a));
-                }
-
-                void J (double t, double s,
-                               double &df1_t, double &df1_s, double &df2_t, double &df2_s)
-                {
-                    Eigen::VectorXd c(3); c << -std::sin(s), std::cos(s), 0;
-                    df1_t = (b-a).dot(b-a);
-                    df1_s = (b-a).dot(-r*c);
-                    c[0] *= -1;
-                    df2_t = c.dot(b-a);
-                    c[2] = -c[0]; c[0] = c[1]; c[1] = c[2]; c[2] = 0;
-                    df2_s = c.dot(a + t*(b-a));
-                }
-            };
-            
-            // We'll use a Newton method
-            double t = 0;
-            double s = 0;
-            double f1, f2;
-            _equations eq(a,b,R1);
-            int iters = 100;
-            while (iters-- > 0 && (eq.F(t,s,f1,f2), f1*f1 + f2*f2 > 1e-6))
-            {
-                // Compute Jacobian
-                double df1_t, df1_s, df2_t, df2_s;
-                eq.J(t, s, df1_t, df1_s, df2_t, df2_s);
-                // Invert
-                double det = df1_t * df2_s - df1_s * df2_t;
-                std::swap(df1_t, df2_s);
-                df1_s *= -1; df2_t *= -1;
-                // Update
-                t -= df1_t * f1 + df1_s * f2 / det;
-                s -= df2_t * f1 + df2_s * f2 / det;
+                // Special case, ignoring redundant roots.
+                crit[3] = -B2/(3*A2);
+                crit[1] = crit[2] = 0;
             }
-            
-            // Clip t to be within the line segment
-            t = std::min(std::max(0.0, t), 1.0);
+            else
+            {
+                // General case, ignoring imaginary roots.
+                std::complex<double> z2 = (-1.0/(3*A2)) * (B2 + z1 + discr0/z1);
+                crit[1] = (std::abs(std::imag(z2)) < 1e-6) ? std::real(z2) : 0;
 
-            // Check if this point is inside the torus
-            const Eigen::VectorXd p = a + (b-a)*t;
-            
-            // Use the xy-projection of p to check its distance to the major circle
-            Eigen::VectorXd pxy(3); pxy << p[0], p[1], 0;
-            pxy *= R1/pxy.norm();
-            if ((p - pxy).squaredNorm() < R2*R2)
-                return false;            
+                std::complex<double> u(-1.0/2, std::sqrt(3.0)/2);
+                z2 = (-1.0/(3*A2)) * (B2 + z1*u + discr0/(z1*u));
+                crit[2] = (std::abs(std::imag(z2)) < 1e-6) ? std::real(z2) : 0;
+
+                u = std::conj(u);
+                z2 = (-1.0/(3*A2)) * (B2 + z1*u + discr0/(z1*u));
+                crit[3] = (std::abs(std::imag(z2)) < 1e-6) ? std::real(z2) : 0;
+
+                // Sort the roots.
+                if (crit[1] > crit[2])
+                    std::swap(crit[1], crit[2]);
+                if (crit[2] > crit[3])
+                    std::swap(crit[2], crit[3]);
+                if (crit[1] > crit[2])
+                    std::swap(crit[1], crit[2]);
+            }
+            // Cut off all values at [0,1].
+            crit = crit.cwiseMax(0).cwiseMin(1);
+
+            // Intersection occurs if the polynomial changes sign between any pair of crits.
+            for (int j = 0; j < 4; j++)
+            {
+                if (poly(A,B,C,D,E, crit[j]) * poly(A,B,C,D,E, crit[j+1] <= 0))
+                    return false;
+            }
         }
+            
 
         // Check maze
         Eigen::Ref<const Eigen::VectorXd> p = x.tail(DIM);
