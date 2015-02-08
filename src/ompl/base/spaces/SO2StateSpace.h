@@ -97,10 +97,10 @@ namespace ompl
 
             virtual double getMeasure() const;
 
-            /** \brief Normalize the value of the state to the interval (-Pi, Pi] */
+            /** \brief Normalize the value of the state to the interval [-Pi, Pi) */
             virtual void enforceBounds(State *state) const;
 
-            /** \brief Check if the value of the state is in the interval (-Pi, Pi] */
+            /** \brief Check if the value of the state is in the interval [-Pi, Pi) */
             virtual bool satisfiesBounds(const State *state) const;
 
             virtual void copyState(State *destination, const State *source) const;

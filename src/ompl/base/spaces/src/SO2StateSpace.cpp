@@ -83,18 +83,18 @@ double ompl::base::SO2StateSpace::getMeasure() const
 void ompl::base::SO2StateSpace::enforceBounds(State *state) const
 {
     double v = fmod(state->as<StateType>()->value, 2.0 * boost::math::constants::pi<double>());
-    if (v <= -boost::math::constants::pi<double>())
+    if (v < -boost::math::constants::pi<double>())
         v += 2.0 * boost::math::constants::pi<double>();
     else
-        if (v > boost::math::constants::pi<double>())
+        if (v >= boost::math::constants::pi<double>())
             v -= 2.0 * boost::math::constants::pi<double>();
     state->as<StateType>()->value = v;
 }
 
 bool ompl::base::SO2StateSpace::satisfiesBounds(const State *state) const
 {
-    return (state->as<StateType>()->value <= boost::math::constants::pi<double>()) &&
-           (state->as<StateType>()->value > -boost::math::constants::pi<double>());
+    return (state->as<StateType>()->value < boost::math::constants::pi<double>()) &&
+           (state->as<StateType>()->value >= -boost::math::constants::pi<double>());
 }
 
 void ompl::base::SO2StateSpace::copyState(State *destination, const State *source) const
