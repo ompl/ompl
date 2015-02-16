@@ -442,8 +442,8 @@ shinyServer(function(input, output, session) {
                 uiOutput("perfPlannerSelect")
             ),
             mainPanel(
-                span(downloadLink('perfDownloadPlot', 'Download plot as PDF'), class="btn"),
-                span(downloadLink('perfDownloadRdata', 'Download plot as RData'), class="btn"),
+                span(downloadLink('perfDownloadPlot', 'Download plot as PDF'), class="btn btn-default"),
+                span(downloadLink('perfDownloadRdata', 'Download plot as RData'), class="btn btn-default"),
                 plotOutput("perfPlot"),
                 h4("Number of missing data points out of the total number of runs per planner"),
                 tableOutput("perfMissingDataTable")
@@ -461,8 +461,8 @@ shinyServer(function(input, output, session) {
                 uiOutput("progPlannerSelect")
             ),
             mainPanel(
-                span(downloadLink('progDownloadPlot', 'Download plot as PDF'), class="btn"),
-                span(downloadLink('progDownloadRdata', 'Download plot as RData'), class="btn"),
+                span(downloadLink('progDownloadPlot', 'Download plot as PDF'), class="btn btn-default"),
+                span(downloadLink('progDownloadRdata', 'Download plot as RData'), class="btn btn-default"),
                 plotOutput("progPlot"),
                 plotOutput("progNumMeasurementsPlot")
             )
@@ -480,8 +480,8 @@ shinyServer(function(input, output, session) {
                 uiOutput("regrPlannerSelect")
             ),
             mainPanel(
-                span(downloadLink('regrDownloadPlot', 'Download plot as PDF'), class="btn"),
-                span(downloadLink('regrDownloadRdata', 'Download plot as RData'), class="btn"),
+                span(downloadLink('regrDownloadPlot', 'Download plot as PDF'), class="btn btn-default"),
+                span(downloadLink('regrDownloadRdata', 'Download plot as RData'), class="btn btn-default"),
                 plotOutput("regrPlot")
             )
         )

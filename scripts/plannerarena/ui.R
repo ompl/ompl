@@ -19,37 +19,43 @@ shinyUI(
             value="dbinfo",
             icon=icon("info-circle")),
         tabPanel("Change database",
-            div(class="span10 offset1",
-                fileInput("database",
-                    label = h2("Upload benchmark database"),
-                    accept = c("application/x-sqlite3", ".db")
-                ),
-                h2("Default benchmark database"),
-                tags$ul(
-                    tags$li(a(href="javascript:history.go(0)", "Reset to default database")),
-                    tags$li(a(href="benchmark.db", "Download default database"))
+            div(class="row",
+                div(class="col-sm-10 col-sm-offset-1",
+                    fileInput("database",
+                        label = h2("Upload benchmark database"),
+                        accept = c("application/x-sqlite3", ".db")
+                    ),
+                    h2("Default benchmark database"),
+                    tags$ul(
+                        tags$li(a(href="javascript:history.go(0)", "Reset to default database")),
+                        tags$li(a(href="benchmark.db", "Download default database"))
+                    )
                 )
             ),
             value="database",
             icon=icon("database")),
         tabPanel("Help",
-            div(class="span10 offset1",
-                includeMarkdown("www/help.md")
+            div(class="row",
+                div(class="col-sm-10 col-sm-offset-1",
+                    includeMarkdown("www/help.md")
+                )
             ),
             value="help",
             icon=icon("question-circle")),
         tabPanel("Settings",
-            div(class="span10 offset1",
-                h2("Plot settings"),
-                h3("Font settings"),
-                selectInput("fontFamily",
-                        label = "Font family",
-                        choices = c("Courier", "Helvetica", "Palatino", "Times"),
-                        selected ="Helvetica"),
-                numericInput("fontSize", "Font size", 20, min=1, max=100),
-                h3("PDF export paper size (in inches)"),
-                numericInput("paperWidth", "Width", 12, min=1, max=50),
-                numericInput("paperHeight", "Height", 8, min=1, max=50)
+            div(class="row",
+                div(class="col-sm-10 col-sm-offset-1",
+                    h2("Plot settings"),
+                    h3("Font settings"),
+                    selectInput("fontFamily",
+                            label = "Font family",
+                            choices = c("Courier", "Helvetica", "Palatino", "Times"),
+                            selected ="Helvetica"),
+                    numericInput("fontSize", "Font size", 20, min=1, max=100),
+                    h3("PDF export paper size (in inches)"),
+                    numericInput("paperWidth", "Width", 12, min=1, max=50),
+                    numericInput("paperHeight", "Height", 8, min=1, max=50)
+                )
             ),
             value="settings",
             icon=icon("gear")),
