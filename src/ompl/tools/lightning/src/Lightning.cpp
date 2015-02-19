@@ -82,16 +82,16 @@ void ompl::tools::Lightning::setup(void)
 {
     if (!configured_ || !si_->isSetup() || !planner_->isSetup() || !rrPlanner_->isSetup() )
     {
-        OMPL_ERROR("Setting up Lightning Framework");
+        OMPL_INFORM("Setting up the Lightning Framework");
 
         if (!configured_)
-            OMPL_ERROR("  Because not configured_");
+            OMPL_INFORM("  Setting up because not configured");
         else if(!si_->isSetup())
-            OMPL_ERROR("  Because not si->isSetup");
+            OMPL_INFORM("  Setting up because not si->isSetup");
         else if(!planner_->isSetup())
-            OMPL_ERROR("  Because not planner->isSetup");
+            OMPL_INFORM("  Setting up because not planner->isSetup");
         else if(!rrPlanner_->isSetup())
-            OMPL_ERROR("  Because not rrPlanner->isSetup");
+            OMPL_INFORM("  Setting up because not rrPlanner->isSetup");
 
         // Setup Space Information if we haven't already done so
         if (!si_->isSetup())
@@ -283,7 +283,7 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
                 //  From Dave: Actually I think I already made the getPathsScore function length-invariant by dividing the score by the path
                 if (score < 4) //10)
                 {
-                    OMPL_ERROR("NOT saving to database because best solution was from database and is too similar (score %f)", score);
+                    OMPL_WARN("NOT saving to database because best solution was from database and is too similar (score %f)", score);
 
                     // Logging
                     log.insertion_failed = 1;

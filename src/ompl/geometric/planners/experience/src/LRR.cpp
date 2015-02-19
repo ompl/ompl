@@ -184,7 +184,7 @@ ompl::base::PlannerStatus ompl::geometric::LRR::solve(const base::PlannerTermina
     // Repair chosen path
     if (!repairPath(*primaryPath, ptc))
     {
-        OMPL_WARN("repairPath failed");
+        OMPL_INFORM("repairPath failed or aborted");
         return base::PlannerStatus::CRASH;
     }
 
