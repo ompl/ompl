@@ -1,6 +1,7 @@
 library(shiny)
 library(ggplot2)
 library(RSQLite)
+library(reshape2)
 
 defaultDatabase <- "www/benchmark.db"
 
@@ -47,11 +48,13 @@ versionSelectWidget <- function(con, name, checkbox) {
     versions <- dbGetQuery(con, "SELECT DISTINCT version FROM experiments")
     versions <- versions$version
     if (checkbox)
+    {
         # strip "OMPL " prefix, so we can fit more labels on the X-axis
         versions <- sapply(stripLibnamePrefix, versions)
         widget <- checkboxGroupInput(name, label = h4("Selected versions"),
             choices = versions,
             selected = versions)
+    }
     else
         widget <- selectInput(name, label = h4("Version"),
             choices = versions,
@@ -124,7 +127,18 @@ shinyServer(function(input, output, session) {
     output$progProblemSelect <- renderUI({ problemSelectWidget(con(), "progProblem") })
     output$regrProblemSelect <- renderUI({ problemSelectWidget(con(), "regrProblem") })
 
-    output$perfAttrSelect <- renderUI({ perfAttrSelectWidget(con(), "perfAttr") })
+    output$perfAttrSelect <- renderUI({
+        list(
+            perfAttrSelectWidget(con(), "perfAttr"),
+            checkboxInput('perfShowAdvOptions', 'Show advanced options', FALSE),
+            conditionalPanel(condition = 'input.perfShowAdvOptions',
+                div(class="well well-light",
+                    checkboxInput("perfShowAsCDF", label = "Show as cumulative distribution function"),
+                    checkboxInput("perfShowSimplified", label = "Include results after simplification")
+                )
+            )
+        )
+    })
     output$regrAttrSelect <- renderUI({ perfAttrSelectWidget(con(), "regrAttr") })
     output$progAttrSelect <- renderUI({
         progressAttrs <- dbGetQuery(con(), "PRAGMA table_info(progress)")
@@ -182,17 +196,32 @@ shinyServer(function(input, output, session) {
         dbGetQuery(con(), query)
     }, include.rownames=FALSE)
 
+    # font selection
+    fontSelection <- reactive({
+        element_text(family = input$fontFamily, size = input$fontSize)
+    })
+
     # plot of overall performance
     perfPlot <- reactive({
+        attribs <- perfAttrs(con())
         attr <- gsub(" ", "_", input$perfAttr)
-        query <- sprintf("SELECT plannerConfigs.name AS planner, runs.%s FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND (%s);",
-            attr,
-            input$perfProblem,
-            input$perfVersion,
-            paste(sapply(input$perfPlanners, sqlPlannerSelect), collapse=" OR "))
+        simplifiedAttr <- paste("simplified", attr, sep="_")
+        includeSimplifiedAttr <- input$perfShowSimplified && simplifiedAttr %in% attribs$name
+        if (includeSimplifiedAttr)
+            query <- sprintf("SELECT plannerConfigs.name AS planner, runs.%s, runs.%s FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND (%s);",
+                attr,
+                simplifiedAttr,
+                input$perfProblem,
+                input$perfVersion,
+                paste(sapply(input$perfPlanners, sqlPlannerSelect), collapse=" OR "))
+        else
+            query <- sprintf("SELECT plannerConfigs.name AS planner, runs.%s FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND (%s);",
+                attr,
+                input$perfProblem,
+                input$perfVersion,
+                paste(sapply(input$perfPlanners, sqlPlannerSelect), collapse=" OR "))
         data <- dbGetQuery(con(), query)
         data$planner <- factor(data$planner, unique(data$planner), labels = sapply(unique(data$planner), plannerNameMapping))
-        attribs <- perfAttrs(con())
         if (attribs$type[match(attr, attribs$name)] == "ENUM")
         {
             query <- sprintf("SELECT * FROM enums WHERE name=\"%s\";", attr)
@@ -203,16 +232,52 @@ shinyServer(function(input, output, session) {
                 levels=enum$value, labels=enum$description)
             p <- qplot(planner, data=data, geom="histogram", fill=attrAsFactor) +
                 # labels
-                theme(legend.title = element_blank(), text = element_text(size = 20))
+                theme(legend.title = element_blank(), text = fontSelection())
         }
         else
         {
-            p <- ggplot(data, aes_string(x = "planner", y = attr, group = "planner")) +
-                # labels
-                ylab(input$perfAttr) +
-                theme(legend.position = "none", text = element_text(size = 20)) +
-                # box plots for boolean, integer, and real-valued attributes
-                geom_boxplot(color = I("#3073ba"), fill = I("#99c9eb"))
+            if (includeSimplifiedAttr)
+            {
+                data <- melt(data, id.vars='planner', measure.vars=c(attr, simplifiedAttr))
+                if (input$perfShowAsCDF)
+                    p <- ggplot(data, aes(x = value, color = planner,
+                        group = interaction(planner, variable), linetype=variable)) +
+                        # labels
+                        xlab(input$perfAttr) +
+                        ylab('cumulative probability') +
+                        theme(text = fontSelection()) +
+                        # empirical cumulative distribution function
+                        stat_ecdf(size = 1) +
+                        scale_linetype_discrete(name = "", labels = c("before simplification", "after simplification"))
+                else
+                    p <- ggplot(data, aes(x=planner, y=value, color=variable, fill=variable)) +
+                        # labels
+                        ylab(input$perfAttr) +
+                        theme(legend.title = element_blank(), text = fontSelection()) +
+                        geom_boxplot() +
+                        scale_fill_manual(values = c("#99c9eb", "#ebc999"),
+                            labels = c("before simplification", "after simplification")) +
+                        scale_color_manual(values =c("#3073ba", "#ba7330"),
+                            labels = c("before simplification", "after simplification"))
+            }
+            else
+            {
+                if (input$perfShowAsCDF)
+                    p <- ggplot(data, aes_string(x = attr, group = "planner", color = "planner")) +
+                        # labels
+                        xlab(input$perfAttr) +
+                        ylab('cumulative probability') +
+                        theme(text = fontSelection()) +
+                        # empirical cumulative distribution function
+                        stat_ecdf(size = 1)
+                else
+                    p <- ggplot(data, aes_string(x = "planner", y = attr, group = "planner")) +
+                        # labels
+                        ylab(input$perfAttr) +
+                        theme(legend.position = "none", text = fontSelection()) +
+                        # box plots for boolean, integer, and real-valued attributes
+                        geom_boxplot(color = I("#3073ba"), fill = I("#99c9eb"))
+            }
         }
         p
     })
@@ -227,7 +292,7 @@ shinyServer(function(input, output, session) {
     })
     output$perfDownloadPlot <- downloadHandler(filename = 'perfplot.pdf',
         content = function(file) {
-            pdf(file=file, width=12, height=8)
+            pdf(file=file, width=input$paperWidth, height=input$paperHeight)
             print(perfPlot())
             dev.off()
         }
@@ -283,7 +348,7 @@ shinyServer(function(input, output, session) {
             # labels
             xlab('time (s)') +
             ylab(input$progress) +
-            theme(text = element_text(size = 20)) +
+            theme(text = fontSelection()) +
             # smooth interpolating curve
             geom_smooth(method = "gam") +
             coord_cartesian(xlim = c(0, trunc(max(data$time))))
@@ -301,7 +366,7 @@ shinyServer(function(input, output, session) {
                 # labels
                 xlab('time (s)') +
                 ylab(sprintf("# measurements for %s", input$progress)) +
-                theme(text = element_text(size = 20)) +
+                theme(text = fontSelection()) +
                 geom_freqpoly(binwidth=1) +
                 coord_cartesian(xlim = c(0, trunc(max(data$time))))
             p
@@ -310,7 +375,7 @@ shinyServer(function(input, output, session) {
     output$progNumMeasurementsPlot <- renderPlot({ progNumMeasurementsPlot() })
     output$progDownloadPlot <- downloadHandler(filename = 'progplot.pdf',
         content = function(file) {
-            pdf(file=file, width=12, height=8)
+            pdf(file=file, width=input$paperWidth, height=input$paperHeight)
             print(progPlot())
             print(progNumMeasurementsPlot())
             dev.off()
@@ -339,7 +404,7 @@ shinyServer(function(input, output, session) {
         ggplot(data, aes_string(x = "version", y = attr, fill = "name", group = "name")) +
             # labels
             ylab(input$regrAttr) +
-            theme(legend.title = element_blank(), text = element_text(size = 20)) +
+            theme(legend.title = element_blank(), text = fontSelection()) +
             # plot mean and error bars
             stat_summary(fun.data = "mean_cl_boot", geom="bar", position = position_dodge()) +
             stat_summary(fun.data = "mean_cl_boot", geom="errorbar", position = position_dodge())
@@ -355,7 +420,7 @@ shinyServer(function(input, output, session) {
     })
     output$regrDownloadPlot <- downloadHandler(filename = 'regrplot.pdf',
         content = function(file) {
-            pdf(file=file, width=12, height=8)
+            pdf(file=file, width=input$paperWidth, height=input$paperHeight)
             print(regrPlot())
             dev.off()
         }
@@ -377,8 +442,8 @@ shinyServer(function(input, output, session) {
                 uiOutput("perfPlannerSelect")
             ),
             mainPanel(
-                span(downloadLink('perfDownloadPlot', 'Download plot as PDF'), class="btn"),
-                span(downloadLink('perfDownloadRdata', 'Download plot as RData'), class="btn"),
+                span(downloadLink('perfDownloadPlot', 'Download plot as PDF'), class="btn btn-default"),
+                span(downloadLink('perfDownloadRdata', 'Download plot as RData'), class="btn btn-default"),
                 plotOutput("perfPlot"),
                 h4("Number of missing data points out of the total number of runs per planner"),
                 tableOutput("perfMissingDataTable")
@@ -396,8 +461,8 @@ shinyServer(function(input, output, session) {
                 uiOutput("progPlannerSelect")
             ),
             mainPanel(
-                span(downloadLink('progDownloadPlot', 'Download plot as PDF'), class="btn"),
-                span(downloadLink('progDownloadRdata', 'Download plot as RData'), class="btn"),
+                span(downloadLink('progDownloadPlot', 'Download plot as PDF'), class="btn btn-default"),
+                span(downloadLink('progDownloadRdata', 'Download plot as RData'), class="btn btn-default"),
                 plotOutput("progPlot"),
                 plotOutput("progNumMeasurementsPlot")
             )
@@ -415,8 +480,8 @@ shinyServer(function(input, output, session) {
                 uiOutput("regrPlannerSelect")
             ),
             mainPanel(
-                span(downloadLink('regrDownloadPlot', 'Download plot as PDF'), class="btn"),
-                span(downloadLink('regrDownloadRdata', 'Download plot as RData'), class="btn"),
+                span(downloadLink('regrDownloadPlot', 'Download plot as PDF'), class="btn btn-default"),
+                span(downloadLink('regrDownloadRdata', 'Download plot as RData'), class="btn btn-default"),
                 plotOutput("regrPlot")
             )
         )

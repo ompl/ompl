@@ -181,7 +181,7 @@ double ompl::base::SO3StateSpace::getMaximumExtent() const
 
 double ompl::base::SO3StateSpace::getMeasure() const
 {
-    // half of the surface area of a unit 4-sphere
+    // half of the surface area of a unit 3-sphere
     return boost::math::constants::pi<double>() * boost::math::constants::pi<double>();
 }
 

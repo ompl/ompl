@@ -165,3 +165,10 @@ div.plannerlist > dl.attention > dd::first-line {
     color: #428bca;
     font-size: 16px;
 }
+
+:target {
+    display: block;
+    position: relative;
+    top: -42px;
+    visibility: hidden;
+}

@@ -43,6 +43,8 @@
 #include <boost/noncopyable.hpp>
 #include <boost/concept_check.hpp>
 
+#include <iostream>
+
 namespace ompl
 {
     namespace base
@@ -127,6 +129,8 @@ namespace ompl
             /** \brief Returns this objective's SpaceInformation. Needed for operators in MultiOptimizationObjective */
             const SpaceInformationPtr& getSpaceInformation() const;
 
+            /** \brief Print information about this optimization objective */
+            virtual void print(std::ostream &out) const;
         protected:
             /** \brief The space information for this objective */
             SpaceInformationPtr si_;

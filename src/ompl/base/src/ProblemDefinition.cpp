@@ -473,7 +473,12 @@ void ompl::base::ProblemDefinition::print(std::ostream &out) const
     else
         out << "Goal = NULL" << std::endl;
     if (optimizationObjective_)
+    {
+        optimizationObjective_->print(out);
         out << "Average state cost: " << optimizationObjective_->averageStateCost(magic::TEST_STATE_COUNT) << std::endl;
+    }
+    else
+        out << "OptimizationObjective = NULL" << std::endl;
     out << "There are " << solutions_->getSolutionCount() << " solutions" << std::endl;
 }
 
