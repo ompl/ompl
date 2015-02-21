@@ -136,13 +136,13 @@ namespace ompl
              * \param newPathSegment - the solution
              * \return true if path found
              */
-            bool replan(const ompl::base::State* start, const ompl::base::State* goal, ompl::geometric::PathGeometric &newPathSegment,
+            bool replan(const ompl::base::State *start, const ompl::base::State *goal, ompl::geometric::PathGeometric &newPathSegment,
                         const base::PlannerTerminationCondition &ptc);
           
             /**
              * \brief Getter for number of 'k' close solutions to choose from database for further filtering 
              */ 
-            int getNearestK()
+            int getNumNearestSolutions() const
             {
               return nearestK_;
             }
@@ -150,7 +150,7 @@ namespace ompl
             /**
              * \brief Setter for number of 'k' close solutions to choose from database for further filtering
              */
-            void setNearestK(int nearestK)
+            void setNumNearestSolutions(int nearestK)
             {
               nearestK_ = nearestK;
             }
@@ -170,9 +170,6 @@ namespace ompl
              * \return true if no error
              */
             bool findBestPath(const base::State *startState, const base::State *goalState, ompl::base::PlannerDataPtr& chosenPath);
-
-            /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
 
             /** \brief The database of motions to search through */
             ompl::tools::LightningDBPtr                           experienceDB_;

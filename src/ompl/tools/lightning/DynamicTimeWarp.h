@@ -49,7 +49,6 @@ namespace tools
 
 namespace og = ompl::geometric;
 namespace ob = ompl::base;
-//namespace ot = ompl::tools;
 
 /// @cond IGNORE
 OMPL_CLASS_FORWARD(DynamicTimeWarp);

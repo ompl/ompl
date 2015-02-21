@@ -98,8 +98,8 @@ namespace ompl
              * \param returned insertion time to add to db
              * \return true on success
              */
-            void addPath(ompl::geometric::PathGeometric& solutionPath, double& insertionTime);
-            void addPathHelper(ompl::geometric::PathGeometric& solutionPath);
+            void addPath(geometric::PathGeometric& solutionPath, double& insertionTime);
+            void addPathHelper(geometric::PathGeometric& solutionPath);
 
             /**
              * \brief Save loaded database to file, except skips saving if no paths have been added
@@ -143,7 +143,7 @@ namespace ompl
              */
             bool isEmpty()
             {
-                return !getExperiencesCount();
+                return getExperiencesCount() == 0;
             }
 
         private:

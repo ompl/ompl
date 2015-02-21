@@ -55,7 +55,7 @@ namespace ompl
 
         /** \brief Create the set of classes typically needed to solve a
             geometric problem */
-        class ExperienceSetup : public ompl::geometric::SimpleSetup
+        class ExperienceSetup : public geometric::SimpleSetup
         {
         public:
             /**
@@ -79,15 +79,21 @@ namespace ompl
 
                 double getAveragePlanningTime() const
                 {
+                    if (!numProblems_)
+                        return 0;
+
                     return totalPlanningTime_ / numProblems_;
                 }
 
                 double getAverageInsertionTime() const
                 {
+                    if (!numProblems_)
+                        return 0;
+
                     // Cleanup output
                     double time = totalInsertionTime_ / numProblems_;
-                    if (time < 0.00000001)
-                        return 0;
+                    if (time < 1e-8)
+                        return 0.0;
                     else
                         return totalInsertionTime_ / numProblems_;
                 }

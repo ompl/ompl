@@ -42,7 +42,7 @@ namespace // anonymous
     /**
      * \brief Calculate min for 3 numbers
      */
-    inline double min(double n1, double n2, double n3)
+    inline double min3(double n1, double n2, double n3)
     {
         return std::min(n1, std::min(n2, n3));
     }
@@ -73,7 +73,7 @@ double ompl::tools::DynamicTimeWarp::calcDTWDistance(const og::PathGeometric &pa
         for (std::size_t j = 1; j < m; ++j)
         {
             cost = si_->distance(path1.getState(i), path2.getState(j));
-            table[i][j] = cost + min(table[i-1][j], table[i][j-1], table[i-1][j-1]);
+            table[i][j] = cost + min3(table[i-1][j], table[i][j-1], table[i-1][j-1]);
         }
     }
 

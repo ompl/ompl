@@ -90,7 +90,6 @@ void ompl::tools::ExperienceSetup::convertLogToString(const ExperienceLog &log)
     << log.num_vertices << ","
     << log.num_edges << ","
     << log.num_connected_components
-    //<< ",0,0,0,0,0,0,0,0,0"
     << std::endl;
 }
 

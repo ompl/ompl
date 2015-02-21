@@ -108,6 +108,9 @@ namespace ompl
             samples are generated. */
         static const unsigned int TEST_STATE_COUNT = 1000;
 
+        /** \brief Default number of close solutions to choose from a path experience database 
+            (library) for further filtering used in the Lightning Framework */            
+        static const unsigned int NEAREST_K_RECALL_SOLUTIONS = 10;
     }
 }
 
