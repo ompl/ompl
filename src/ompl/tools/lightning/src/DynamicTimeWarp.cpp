@@ -70,48 +70,36 @@ double ompl::tools::DynamicTimeWarp::calcDTWDistance(const og::PathGeometric &pa
     double cost;
     for (std::size_t i = 1; i < n; ++i)
     {
+        const std::vector<double> &prev_row_cached = table[i-1];
+
         for (std::size_t j = 1; j < m; ++j)
         {
             cost = si_->distance(path1.getState(i), path2.getState(j));
-            table[i][j] = cost + min3(table[i-1][j], table[i][j-1], table[i-1][j-1]);
+            //table[i][j] = cost + min3(table[i-1][j], table[i][j-1], table[i-1][j-1]);
+            table[i][j] = cost + min3(prev_row_cached[j], table[i][j-1], prev_row_cached[j-1]);
         }
     }
 
     return table[n-1][m-1];
 }
 
-double ompl::tools::DynamicTimeWarp::getPathsScoreConst(const og::PathGeometric &path1, const og::PathGeometric &path2)
+double ompl::tools::DynamicTimeWarp::getPathsScore(const og::PathGeometric &path1, const og::PathGeometric &path2)
 {
     // Copy the path but not the states
     og::PathGeometric newPath1 = path1;
     og::PathGeometric newPath2 = path2;
-    return getPathsScoreNonConst(newPath1, newPath2);
-}
-
-double ompl::tools::DynamicTimeWarp::getPathsScoreHalfConst(const og::PathGeometric &path1, og::PathGeometric &path2)
-{
-    // Copy the path but not the states
-    og::PathGeometric newPath = path1;
-    return getPathsScoreNonConst(newPath, path2);
-}
-
-double ompl::tools::DynamicTimeWarp::getPathsScoreNonConst(og::PathGeometric &path1, og::PathGeometric &path2)
-{
-    // Debug
-    //std::size_t path1Count = path1.getStateCount();
-    //std::size_t path2Count = path2.getStateCount();
 
     // Interpolate both paths so that we have an even discretization of samples
-    path1.interpolate();
-    path2.interpolate();
-
-    // debug
-    //OMPL_INFORM("Path 1 interpolated with an increase of %ld states", path1.getStateCount() - path1Count);
-    //OMPL_INFORM("Path 2 interpolated with an increase of %ld states", path2.getStateCount() - path2Count);
+    newPath1.interpolate();
+    newPath2.interpolate();
 
     // compute the DTW between two vectors and divide by total path length of the longer path
-    double score = calcDTWDistance(path1, path2) / std::max(path1.getStateCount(),path2.getStateCount());
+    double max_states = std::max(newPath1.getStateCount(),newPath2.getStateCount());
 
-    return score;
+    // Prevent division by zero
+    if (max_states == 0)
+        return std::numeric_limits<double>::max(); // the worse score possible
+
+    return calcDTWDistance(newPath1, newPath2) / max_states;
 }
 

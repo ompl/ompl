@@ -72,36 +72,14 @@ public:
 
     /**
      * \brief Use dynamic time warping to compare the similarity of two paths
-     *        Note: this will not interpolate either of the paths
-     *        Note: before calling this function you might want to reverse one of the paths so that their
-     *        start and goals are property aligned (and match better)
-     * \param path1 - const, will not interpolate
-     * \param path2 - const, will not interpolate
-     * \return score
-     */
-    double getPathsScoreConst(const og::PathGeometric &path1, const og::PathGeometric &path2);
-
-    /**
-     * \brief Use dynamic time warping to compare the similarity of two paths
-     *        Note: this will interpolate the second path and it returns the change by reference
-     *        Note: before calling this function you might want to reverse one of the paths so that their
-     *        start and goals are property aligned (and match better)
-     * \param path1 - const, will not interpolate
-     * \param path2 - will interpolate
-     * \return score
-     */
-    double getPathsScoreHalfConst(const og::PathGeometric &path1, og::PathGeometric &path2);
-
-    /**
-     * \brief Use dynamic time warping to compare the similarity of two paths
      *        Note: this will interpolate both of the paths and it returns the change by reference
      *        Note: before calling this function you might want to reverse one of the paths so that their
      *        start and goals are property aligned (and match better)
-     * \param path1 - will interpolate
-     * \param path2 - will interpolate
+     * \param path1
+     * \param path2
      * \return score
      */
-    double getPathsScoreNonConst(og::PathGeometric &path1, og::PathGeometric &path2);
+    double getPathsScore(const og::PathGeometric &path1, const og::PathGeometric &path2);
 
 private:
 

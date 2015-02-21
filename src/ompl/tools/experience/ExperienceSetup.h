@@ -72,15 +72,15 @@ namespace ompl
                     , numSolutionsApproximate_(0)
                     , numSolutionsTooShort_(0)
                     , numProblems_(0)
-                    , totalPlanningTime_(0)
-                    , totalInsertionTime_(0)
+                    , totalPlanningTime_(0.0)
+                    , totalInsertionTime_(0.0)
                 {
                 }
 
                 double getAveragePlanningTime() const
                 {
                     if (!numProblems_)
-                        return 0;
+                        return 0.0;
 
                     return totalPlanningTime_ / numProblems_;
                 }
@@ -88,7 +88,7 @@ namespace ompl
                 double getAverageInsertionTime() const
                 {
                     if (!numProblems_)
-                        return 0;
+                        return 0.0;
 
                     // Cleanup output
                     double time = totalInsertionTime_ / numProblems_;
@@ -117,18 +117,18 @@ namespace ompl
             {
                 ExperienceLog()
                     // Defaults
-                    : planning_time(0),
-                      insertion_time(0),
+                    : planning_time(0.0),
+                      insertion_time(0.0),
                       planner("NA"),
                       result("NA"),
                       is_saved("NA"),
-                      approximate(0),
-                      too_short(0),
-                      insertion_failed(0),
-                      score(0),
-                      num_vertices(0),
-                      num_edges(0),
-                      num_connected_components(0)
+                      approximate(0.0),
+                      too_short(0.0),
+                      insertion_failed(0.0),
+                      score(0.0),
+                      num_vertices(0.0),
+                      num_edges(0.0),
+                      num_connected_components(0.0)
                 {}
                 // Times
                 double planning_time;

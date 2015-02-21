@@ -276,17 +276,15 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
                 // Reverse path2 if necessary so that it matches path1 better
                 reversePathIfNecessary(solutionPath, chosenRecallPath);
 
-                double score = dtw_->getPathsScoreHalfConst( solutionPath, chosenRecallPath );
+                double score = dtw_->getPathsScore( solutionPath, chosenRecallPath );
                 log.score = score;
 
-                //  TODO: From Ioan: It would be nice if we switch to percentages of path length for score, and maybe define this var in the magic namespace.
-                //  From Dave: Actually I think I already made the getPathsScore function length-invariant by dividing the score by the path
-                if (score < 4) //10)
+                if (score < 4)
                 {
                     OMPL_WARN("NOT saving to database because best solution was from database and is too similar (score %f)", score);
 
                     // Logging
-                    log.insertion_failed = 1;
+                    log.insertion_failed = true;
                     log.is_saved = "score_too_similar";
                 }
                 else
@@ -294,7 +292,7 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
                     OMPL_INFORM("Adding path to database because repaired path is different enough from original recalled path (score %f)", score);
 
                     // Logging
-                    log.insertion_failed = 0;
+                    log.insertion_failed = false;
                     log.is_saved = "score_different_enough";
 
                     // Stats
@@ -357,7 +355,7 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
 
 ompl::base::PlannerStatus ompl::tools::Lightning::solve(double time)
 {
-    ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition( time );
+    ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(time);
     return solve(ptc);
 }
 
@@ -408,8 +406,8 @@ void ompl::tools::Lightning::printLogs(std::ostream &out) const
 {
     out << "Lightning Framework Logging Results" << std::endl;
     out << "  Solutions Attempted:           " << stats_.numProblems_ << std::endl;
-    out << "     Solved from scratch:        " << stats_.numSolutionsFromScratch_ << " (" << stats_.numSolutionsFromScratch_/stats_.numProblems_*100 << "%)" << std::endl;
-    out << "     Solved from recall:         " << stats_.numSolutionsFromRecall_  << " (" << stats_.numSolutionsFromRecall_/stats_.numProblems_*100 << "%)" << std::endl;
+    out << "     Solved from scratch:        " << stats_.numSolutionsFromScratch_ << " (" << stats_.numSolutionsFromScratch_/stats_.numProblems_*100.0 << "%)" << std::endl;
+    out << "     Solved from recall:         " << stats_.numSolutionsFromRecall_  << " (" << stats_.numSolutionsFromRecall_/stats_.numProblems_*100.0 << "%)" << std::endl;
     out << "        That were saved:         " << stats_.numSolutionsFromRecallSaved_ << std::endl;
     out << "        That were discarded:     " << stats_.numSolutionsFromRecall_ - stats_.numSolutionsFromRecallSaved_ << std::endl;
     out << "        Less than 2 states:      " << stats_.numSolutionsTooShort_ << std::endl;

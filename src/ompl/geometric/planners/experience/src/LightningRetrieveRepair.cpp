@@ -74,7 +74,7 @@ void ompl::geometric::LightningRetrieveRepair::clear(void)
         repairPlanner_->clear();
 }
 
-void ompl::geometric::LightningRetrieveRepair::setLightningDB(ompl::tools::LightningDBPtr experienceDB)
+void ompl::geometric::LightningRetrieveRepair::setLightningDB(ompl::tools::LightningDBPtr &experienceDB)
 {
     experienceDB_ = experienceDB;
 }
@@ -125,6 +125,7 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     // Get a single start state TODO: more than one
     const base::State *startState = pis_.nextStart();
 
+    /* TODO Remove
     // Get a single goal state TODO: more than one
     const base::Goal *goal = pdef_->getGoal().get();
 
@@ -134,6 +135,7 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
         OMPL_ERROR("Goal cannot be converted into a goal state");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
+    */
 
     const base::State *goalState = pis_.nextGoal(ptc);
 
@@ -212,7 +214,7 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
 
     for (std::size_t pathID = 0; pathID < nearestPaths_.size(); ++pathID)
     {
-        const ompl::base::PlannerDataPtr currentPath = nearestPaths_[pathID];
+        const ompl::base::PlannerDataPtr &currentPath = nearestPaths_[pathID];
 
         // Error check
         if (currentPath->numVertices() < 2) // needs at least a start and a goal

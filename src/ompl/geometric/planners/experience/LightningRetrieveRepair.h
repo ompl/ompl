@@ -113,7 +113,7 @@ namespace ompl
             /**
              * \brief Pass a pointer of the database from the lightning framework
              */
-            void setLightningDB(ompl::tools::LightningDBPtr experienceDB);
+            void setLightningDB(ompl::tools::LightningDBPtr &experienceDB);
 
             /** \brief Set the planner that will be used for repairing invalid paths recalled from experience */
             void setRepairPlanner(const base::PlannerPtr &planner);
