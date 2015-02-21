@@ -119,14 +119,6 @@ void ompl::tools::Lightning::setup(void)
         if (!rrPlanner_->isSetup())
             rrPlanner_->setup();
 
-        // Setup parameters
-        /* TODO: what happened to this feature?
-        params_.clear();
-        params_.include(si_->params());
-        params_.include(planner_->params());
-        params_.include(rrPlanner_->params());
-        */
-
         // Create the parallel component for splitting into two threads
         pp_ = ot::ParallelPlanPtr(new ot::ParallelPlan(pdef_) );
         if (!scratchEnabled_ && !recallEnabled_)
