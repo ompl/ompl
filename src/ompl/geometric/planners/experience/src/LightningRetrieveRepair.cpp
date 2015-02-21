@@ -34,7 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#include "ompl/geometric/planners/experience/LRR.h"
+#include "ompl/geometric/planners/experience/LightningRetrieveRepair.h"
 #include "ompl/geometric/planners/rrt/RRTConnect.h"
 #include "ompl/base/goals/GoalState.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
@@ -45,8 +45,8 @@
 
 #include <limits>
 
-ompl::geometric::LRR::LRR(const base::SpaceInformationPtr &si, const ompl::tools::LightningDBPtr &experienceDB)
-    : base::Planner(si, "LRR"),
+ompl::geometric::LightningRetrieveRepair::LightningRetrieveRepair(const base::SpaceInformationPtr &si, const ompl::tools::LightningDBPtr &experienceDB)
+    : base::Planner(si, "LightningRetrieveRepair"),
       experienceDB_(experienceDB),
       nearestK_(10) // default value
 {
@@ -59,12 +59,12 @@ ompl::geometric::LRR::LRR(const base::SpaceInformationPtr &si, const ompl::tools
     psk_.reset(new ompl::geometric::PathSimplifier(si_));
 }
 
-ompl::geometric::LRR::~LRR(void)
+ompl::geometric::LightningRetrieveRepair::~LightningRetrieveRepair(void)
 {
     freeMemory();
 }
 
-void ompl::geometric::LRR::clear(void)
+void ompl::geometric::LightningRetrieveRepair::clear(void)
 {
     Planner::clear();
     freeMemory();
@@ -74,12 +74,12 @@ void ompl::geometric::LRR::clear(void)
         repairPlanner_->clear();
 }
 
-void ompl::geometric::LRR::setLightningDB(ompl::tools::LightningDBPtr experienceDB)
+void ompl::geometric::LightningRetrieveRepair::setLightningDB(ompl::tools::LightningDBPtr experienceDB)
 {
     experienceDB_ = experienceDB;
 }
 
-void ompl::geometric::LRR::setRepairPlanner(const base::PlannerPtr &planner)
+void ompl::geometric::LightningRetrieveRepair::setRepairPlanner(const base::PlannerPtr &planner)
 {
     if (planner && planner->getSpaceInformation().get() != si_.get())
         throw Exception("Repair planner instance does not match space information");
@@ -87,7 +87,7 @@ void ompl::geometric::LRR::setRepairPlanner(const base::PlannerPtr &planner)
     setup_ = false;
 }
 
-void ompl::geometric::LRR::setup(void)
+void ompl::geometric::LightningRetrieveRepair::setup(void)
 {
     Planner::setup();
 
@@ -111,11 +111,11 @@ void ompl::geometric::LRR::setup(void)
         repairPlanner_->setup();
 }
 
-void ompl::geometric::LRR::freeMemory(void)
+void ompl::geometric::LightningRetrieveRepair::freeMemory(void)
 {
 }
 
-ompl::base::PlannerStatus ompl::geometric::LRR::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const base::PlannerTerminationCondition &ptc)
 {
     bool solved = false;
     bool approximate = false;
@@ -124,7 +124,7 @@ ompl::base::PlannerStatus ompl::geometric::LRR::solve(const base::PlannerTermina
     // Check if the database is empty
     if (!experienceDB_->getExperiencesCount())
     {
-        OMPL_INFORM("Experience database is empty so unable to run LRR algorithm.");
+        OMPL_INFORM("Experience database is empty so unable to run LightningRetrieveRepair algorithm.");
 
         return base::PlannerStatus::CRASH;
     }
@@ -189,12 +189,12 @@ ompl::base::PlannerStatus ompl::geometric::LRR::solve(const base::PlannerTermina
     }
 
     // Smooth the result
-    OMPL_INFORM("LRR solve: Simplifying solution (smoothing)...");
+    OMPL_INFORM("LightningRetrieveRepair solve: Simplifying solution (smoothing)...");
     time::point simplifyStart = time::now();
     std::size_t numStates = primaryPath->getStateCount();
     psk_->simplify(*primaryPath, ptc);
     double simplifyTime = time::seconds(time::now() - simplifyStart);
-    OMPL_INFORM("LRR: Path simplification took %f seconds and removed %d states", simplifyTime, numStates - primaryPath->getStateCount());
+    OMPL_INFORM("LightningRetrieveRepair: Path simplification took %f seconds and removed %d states", simplifyTime, numStates - primaryPath->getStateCount());
 
     // Finished
     approxdif = 0;
@@ -203,7 +203,7 @@ ompl::base::PlannerStatus ompl::geometric::LRR::solve(const base::PlannerTermina
     return base::PlannerStatus(solved, approximate);
 }
 
-bool ompl::geometric::LRR::findBestPath(const base::State *startState, const base::State *goalState, ompl::base::PlannerDataPtr& chosenPath)
+bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *startState, const base::State *goalState, ompl::base::PlannerDataPtr& chosenPath)
 {
     OMPL_INFORM("Found %d similar paths. Filtering ---------------", nearestPaths_.size());
 
@@ -349,7 +349,7 @@ bool ompl::geometric::LRR::findBestPath(const base::State *startState, const bas
     return true;
 }
 
-bool ompl::geometric::LRR::repairPath(ompl::geometric::PathGeometric &primaryPath, const base::PlannerTerminationCondition &ptc)
+bool ompl::geometric::LightningRetrieveRepair::repairPath(ompl::geometric::PathGeometric &primaryPath, const base::PlannerTerminationCondition &ptc)
 {
     // \todo: we could reuse our collision checking from the previous step to make this faster
 
@@ -475,7 +475,7 @@ bool ompl::geometric::LRR::repairPath(ompl::geometric::PathGeometric &primaryPat
     return true;
 }
 
-bool ompl::geometric::LRR::replan(const ompl::base::State* start, const ompl::base::State* goal, PathGeometric &newPathSegment,
+bool ompl::geometric::LightningRetrieveRepair::replan(const ompl::base::State* start, const ompl::base::State* goal, PathGeometric &newPathSegment,
                                              const base::PlannerTerminationCondition &ptc)
 {
     // Reset problem definition
@@ -530,7 +530,7 @@ bool ompl::geometric::LRR::replan(const ompl::base::State* start, const ompl::ba
     std::size_t numStates = newPathSegment.getStateCount();
     psk_->simplify(newPathSegment, ptc);
     double simplifyTime = time::seconds(time::now() - simplifyStart);
-    OMPL_INFORM("LRR: Path simplification took %f seconds and removed %d states", simplifyTime, numStates - newPathSegment.getStateCount());
+    OMPL_INFORM("LightningRetrieveRepair: Path simplification took %f seconds and removed %d states", simplifyTime, numStates - newPathSegment.getStateCount());
 
     // Save the planner data for debugging purposes
     repairPlannerDatas_.push_back(ompl::base::PlannerDataPtr( new ompl::base::PlannerData(si_) ));
@@ -543,9 +543,9 @@ bool ompl::geometric::LRR::replan(const ompl::base::State* start, const ompl::ba
     return true;
 }
 
-void ompl::geometric::LRR::getPlannerData(base::PlannerData &data) const
+void ompl::geometric::LightningRetrieveRepair::getPlannerData(base::PlannerData &data) const
 {
-    OMPL_INFORM("LRR getPlannerData: including %d similar paths", nearestPaths_.size());
+    OMPL_INFORM("LightningRetrieveRepair getPlannerData: including %d similar paths", nearestPaths_.size());
 
     // Visualize the n candidate paths that we recalled from the database
     for (std::size_t i = 0 ; i < nearestPaths_.size() ; ++i)
@@ -560,27 +560,27 @@ void ompl::geometric::LRR::getPlannerData(base::PlannerData &data) const
     }
 }
 
-const std::vector<ompl::base::PlannerDataPtr>& ompl::geometric::LRR::getLastRecalledNearestPaths() const
+const std::vector<ompl::base::PlannerDataPtr>& ompl::geometric::LightningRetrieveRepair::getLastRecalledNearestPaths() const
 {
     return nearestPaths_; // list of candidate paths
 }
 
-const std::size_t& ompl::geometric::LRR::getLastRecalledNearestPathChosen() const
+const std::size_t& ompl::geometric::LightningRetrieveRepair::getLastRecalledNearestPathChosen() const
 {
     return nearestPathsChosenID_; // of the candidate paths list, the one we chose
 }
 
-ompl::base::PlannerDataPtr ompl::geometric::LRR::getChosenRecallPath() const
+ompl::base::PlannerDataPtr ompl::geometric::LightningRetrieveRepair::getChosenRecallPath() const
 {
     return nearestPaths_[nearestPathsChosenID_];
 }
 
-void ompl::geometric::LRR::getRepairPlannerDatas(std::vector<base::PlannerDataPtr> &data) const
+void ompl::geometric::LightningRetrieveRepair::getRepairPlannerDatas(std::vector<base::PlannerDataPtr> &data) const
 {
     data = repairPlannerDatas_;
 }
 
-std::size_t ompl::geometric::LRR::checkMotionScore(const ompl::base::State *s1, const ompl::base::State *s2) const
+std::size_t ompl::geometric::LightningRetrieveRepair::checkMotionScore(const ompl::base::State *s1, const ompl::base::State *s2) const
 {
     int segmentCount = si_->getStateSpace()->validSegmentCount(s1, s2);
 

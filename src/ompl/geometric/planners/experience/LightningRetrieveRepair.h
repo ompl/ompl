@@ -34,8 +34,8 @@
 
 /* Author: Dave Coleman */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_EXPERIENCE_LRR_
-#define OMPL_GEOMETRIC_PLANNERS_EXPERIENCE_LRR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_EXPERIENCE_LIGHTNING_RETRIEVE_REPAIR_
+#define OMPL_GEOMETRIC_PLANNERS_EXPERIENCE_LIGHTNING_RETRIEVE_REPAIR_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/geometric/PathGeometric.h"
@@ -53,17 +53,17 @@ namespace ompl
     {
 
         /// @cond IGNORE
-        /** \brief Forward declaration of ompl::base::LRR */
-        OMPL_CLASS_FORWARD(LRR);
+        /** \brief Forward declaration of ompl::base::LightningRetrieveRepair */
+        OMPL_CLASS_FORWARD(LightningRetrieveRepair);
         /// @endcond
 
-        /** \class ompl::base::LRRPtr
-            \brief A boost shared pointer wrapper for ompl::base::LRR */
+        /** \class ompl::base::LightningRetrieveRepairPtr
+            \brief A boost shared pointer wrapper for ompl::base::LightningRetrieveRepair */
 
         /**
-           @anchor LRR - Lightning Retrieve Repair
+           @anchor LightningRetrieveRepair - Lightning Retrieve Repair
            @par Short description
-           LRR is a experienced-based motion planner that recalls from a database of
+           LightningRetrieveRepair is a experienced-based motion planner that recalls from a database of
            previous actions the most similar one to the current planning problem and attempts to repair it
            @par External documentation
            Berenson, Dmitry, Pieter Abbeel, and Ken Goldberg: A robot path planning framework that learns from experience, in <em>Robotics and Automation (ICRA), 2012 IEEE International Conference on. IEEE</em>, 2012.
@@ -71,14 +71,14 @@ namespace ompl
         */
 
         /** \brief The Lightning Framework's Retrieve-Repair component */
-        class LRR : public base::Planner
+        class LightningRetrieveRepair : public base::Planner
         {
         public:
 
             /** \brief Constructor */
-            LRR(const base::SpaceInformationPtr &si, const ompl::tools::LightningDBPtr &experienceDB);
+            LightningRetrieveRepair(const base::SpaceInformationPtr &si, const ompl::tools::LightningDBPtr &experienceDB);
 
-            virtual ~LRR(void);
+            virtual ~LightningRetrieveRepair(void);
 
             /** \brief Get information about the exploration data structure the planning from scratch motion planner used. */
             virtual void getPlannerData(base::PlannerData &data) const;

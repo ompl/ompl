@@ -67,7 +67,7 @@ void ompl::tools::Lightning::initialize()
     experienceDB_.reset(new ompl::tools::LightningDB(si_->getStateSpace()));
 
     // Load the Retrieve repair database. We do it here so that setRepairPlanner() works
-    rrPlanner_ = ob::PlannerPtr(new og::LRR(si_, experienceDB_));
+    rrPlanner_ = ob::PlannerPtr(new og::LightningRetrieveRepair(si_, experienceDB_));
 
     OMPL_INFORM("Lightning Framework initialized.");
 }
@@ -269,7 +269,7 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
                 time::point startTime = time::now();
 
                 // Convert the original recalled path to PathGeometric
-                ob::PlannerDataPtr chosenRecallPathData = getLRRPlanner().getChosenRecallPath();
+                ob::PlannerDataPtr chosenRecallPathData = getLightningRetrieveRepairPlanner().getChosenRecallPath();
                 og::PathGeometric chosenRecallPath(si_);
                 convertPlannerData(chosenRecallPathData, chosenRecallPath);
 

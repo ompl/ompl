@@ -55,7 +55,7 @@
 
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/geometric/PathSimplifier.h"
-#include "ompl/geometric/planners/experience/LRR.h"
+#include "ompl/geometric/planners/experience/LightningRetrieveRepair.h"
 
 #include "ompl/tools/multiplan/ParallelPlan.h"
 #include "ompl/tools/config/SelfConfig.h"
@@ -132,17 +132,17 @@ namespace ompl
             /**
              * \brief Get a pointer to the retrieve repair planner
              */
-            ompl::geometric::LRR& getLRRPlanner() const
+            ompl::geometric::LightningRetrieveRepair& getLightningRetrieveRepairPlanner() const
             {
-                return static_cast<ompl::geometric::LRR&>(*rrPlanner_);
+                return static_cast<ompl::geometric::LightningRetrieveRepair&>(*rrPlanner_);
             }
 
             /** \brief Set the planner to use for repairing experience paths
-                inside the LRR planner. If the planner is not
+                inside the LightningRetrieveRepair planner. If the planner is not
                 set, a default planner is set. */
             void setRepairPlanner(const base::PlannerPtr &planner)
             {
-                static_cast<og::LRR&>(*rrPlanner_).setRepairPlanner(planner);
+                static_cast<og::LightningRetrieveRepair&>(*rrPlanner_).setRepairPlanner(planner);
             }
 
             /** \brief Set the planner allocator to use. This is only
