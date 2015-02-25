@@ -60,7 +60,6 @@ namespace ompl
                 }
                 si_->freeState(interp[interp.size()-1]);
                 interp.clear();
-                std::cout << cost << "\n";
                 return ompl::base::Cost(cost);
             }
     
