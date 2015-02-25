@@ -1,0 +1,21 @@
+This is the vf_rrt branch, implementing the VFRRT planner.
+
+Notes:
+ - VFRRT inherits from RRT. Maybe it would be cleaner to have it be separate.
+ - there are two optimization objectives added: the upstream criterion and mechanical work.
+ - the vector field is represented as a VectorField class, inside VFRRT. It might as well
+	just be a boost::function<> typedef though.
+
+Running the demos:
+ - 'bin/demo_VectorFieldConservative':
+ 	- generates paths through a hilly potential field
+	- uses VFRRT(upstream), TRRT(mechanical work), and RRT*(upstream)
+	- outputs to files '{vfrrt,trrt,rrtstar}-conservative.path'
+	- run 'demos/plotVectorFieldConservative.py' to plot the data
+ - 'bin/demo_VectorFieldNonconservative':
+	- generates a path through a rotating field
+	- uses VFRRT(upstream)
+	- outputs to file 'vfrrt-nonconservative.path'
+	- run 'demos/plotVectorFieldNonconservative.py' to plot the data
+
+
