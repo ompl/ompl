@@ -29,6 +29,8 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_HypercubeBenchmark HypercubeBenchmark.cpp)
   aux_source_directory(Koules Koules_SRC)
   add_ompl_demo(demo_Koules ${Koules_SRC})
+  add_ompl_demo(demo_VectorFieldConservative VectorFieldConservative.cpp)
+  add_ompl_demo(demo_VectorFieldNonconservative VectorFieldNonconservative.cpp)
 
   add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
   add_ompl_demo(demo_PlannerProgressProperties PlannerProgressProperties.cpp)
