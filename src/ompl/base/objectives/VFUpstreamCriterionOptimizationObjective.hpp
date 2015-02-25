@@ -55,7 +55,7 @@ namespace ompl
                 for (int i = 0; i < segments; i++)
                 {
                     Eigen::VectorXd f = vf(interp[i]);
-                    cost -= si_->distance(interp[i],interp[i+1])*(f.norm() - f.dot(qprime));
+                    cost += si_->distance(interp[i],interp[i+1])*(f.norm() - f.dot(qprime));
                     si_->freeState(interp[i]);
                 }
                 si_->freeState(interp[interp.size()-1]);
