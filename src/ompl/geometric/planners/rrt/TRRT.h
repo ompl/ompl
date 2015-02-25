@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Dave Coleman */
+/* Author: Dave Coleman, Ryan Luna */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_RRT_TRRT_
 #define OMPL_GEOMETRIC_PLANNERS_RRT_TRRT_
@@ -64,13 +64,15 @@ namespace ompl
            @par Short description
            T-RRT is an RRT variant and tree-based motion planner that takes into consideration state costs
            to compute low-cost paths that follow valleys and saddle points of the configuration-space
-           costmap. It uses transition tests from stoachastic optimization methods to accept or reject new
-           potential sates.
+           costmap. It uses transition tests from stochastic optimization methods to accept or reject new
+           potential states.
            @par Example usage
            Please see [Dave Coleman's example](https://github.com/davetcoleman/ompl_rviz_viewer/) to see how TRRT can be used.
            @par External documentation
            L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in <em>IEEE TRANSACTIONS ON ROBOTICS, VOL. 26, NO. 4, AUGUST 2010</em>. DOI: [10.1109/TRO.2010.2049527](http://dx.doi.org/10.1109/TRO.2010.2049527)<br />
            [[PDF]](http://homepages.laas.fr/nic/Papers/10TRO.pdf)
+           D. Devaurs, T. Siméon, J. Cortés, Enhancing the Transition-based RRT to Deal with Complex Cost Spaces, in <em>IEEE International Conference on Robotics and Automation, 2013, pp. 4120-4125. DOI: [10.1109/ICRA.2013.6631158](http://dx.doi.org/10.1109/ICRA.2013.6631158)<br/>
+           [[PDF]](https://hal.archives-ouvertes.fr/hal-00872224/document)
         */
 
         /** \brief Transition-based Rapidly-exploring Random Trees */
@@ -125,49 +127,44 @@ namespace ompl
                 return maxDistance_;
             }
 
-            /** \brief Set the maximum number of states that can be rejected before the temperature starts to rise */
-            void setMaxStatesFailed( double maxStatesFailed )
+            /** \brief Set the factor by which the temperature is increased
+                after a failed transition test.  This value should be in the
+                range (0, 1], typically close to zero (default is 0.1).
+                This value is an exponential (e^factor) that is multiplied with
+                the current temperature. */
+            void setTempChangeFactor( double factor )
             {
-                maxStatesFailed_ = maxStatesFailed;
+                tempChangeFactor_ = exp(factor);
             }
 
-            /** \brief Get the maximum number of states that can be rejected before the temperature starts to rise */
-            double getMaxStatesFailed( void ) const
-            {
-                return maxStatesFailed_;
-            }
-
-            /** \brief Set the factor by which the temperature rises or falls based on current acceptance/rejection rate */
-            void setTempChangeFactor( double tempChangeFactor )
-            {
-                tempChangeFactor_ = tempChangeFactor;
-            }
-
-            /** \brief Get the factor by which the temperature rises or falls based on current acceptance/rejection rate */
+            /** \brief Get the factor by which the temperature rises based on current acceptance/rejection rate */
             double getTempChangeFactor( void ) const
             {
-                return tempChangeFactor_;
+                return log(tempChangeFactor_);
             }
 
-            /** \brief Set the minimum the temperature can drop to before being floored at that value */
-            void setMinTemperature( double minTemperature )
+            /** \brief Set the maximum allowed state cost (default is infinity).
+                No state that exceeds this cost is expanded by the planner. */
+            void setMaxCostAllowed( double maxCost )
             {
-                minTemperature_ = minTemperature;
+                maxAllowedCost_ = maxCost;
             }
 
-            /** \brief Get the minimum the temperature can drop to before being floored at that value */
-            double getMinTemperature( void ) const
+            /** \brief Get the maximum allowed state cost (default is infinity).
+                 No state that exceeds this cost is expanded by the planner. */
+            double getMaxCostAllowed() const
             {
-                return minTemperature_;
+                return maxAllowedCost_;
             }
 
-            /** \brief Set the initial temperature at the beginning of the algorithm. Should be low */
+            /** \brief Set the initial temperature at the beginning of the algorithm. Should be high
+                       to allow for initial exploration. */
             void setInitTemperature( double initTemperature )
             {
                 initTemperature_ = initTemperature;
             }
 
-            /** \brief Get the initial temperature at the beginning of the algorithm. Should be low */
+            /** \brief Get the temperature at the start of planning. */
             double getInitTemperature( void ) const
             {
                 return initTemperature_;
@@ -199,18 +196,6 @@ namespace ompl
             double getFrontierNodeRatio( void ) const
             {
                 return frontierNodeRatio_;
-            }
-
-            /** \brief Set the constant value used to normalize the expression */
-            void setKConstant( double kConstant )
-            {
-                kConstant_ = kConstant;
-            }
-
-            /** \brief Get the constant value used to normalize the expression */
-            double getKConstant( void ) const
-            {
-                return kConstant_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
@@ -269,9 +254,8 @@ namespace ompl
             /** \brief Filter irrelevant configuration regarding the search of low-cost paths before inserting into tree
                 \param childCost - cost of current state
                 \param parentCost - cost of its ancestor parent state
-                \param distance - distance between parent and child
             */
-            bool transitionTest( double childCost, double parentCost, double distance );
+            bool transitionTest( double childCost, double parentCost );
 
             /** \brief Use ratio to prefer frontier nodes to nonfrontier ones */
             bool minExpansionControl( double randMotionDistance );
@@ -294,9 +278,6 @@ namespace ompl
             /** \brief The most recent goal motion.  Used for PlannerData computation */
             Motion                                         *lastGoalMotion_;
 
-            /** \brief Output debug info */
-            bool                                            verbose_;
-
             // *********************************************************************************************************
             // TRRT-Specific Variables
             // *********************************************************************************************************
@@ -308,40 +289,37 @@ namespace ompl
                 Dynamically tuned according to the information acquired during exploration */
             double                                          temp_;
 
-            /** \brief Constant value used to normalize expression. Based on order of magnitude of the considered costs.
-                Average cost of the query configurtaions since they are the only cost values known at the
-                beginning of the search process. */
-            double                                          kConstant_;
+            /** \brief The minimum cost value in the tree */
+            double                                          minCost_;
 
-            /// Max number of rejections allowed
-            unsigned int                                    maxStatesFailed_;
+            /** \brief The maximum cost value in the tree */
+            double                                          maxCost_;
 
-            /// Failure temperature factor used when max_num_failed_ failures occur
+            /** \brief The maximum allowed state cost (default is infinity) */
+            double                                          maxAllowedCost_;
+
+            /** \brief The value of the expression exp^T_rate.  The temperature
+                 is increased by this factor whenever the transition test fails. */
             double                                          tempChangeFactor_;
 
-            /// Prevent temperature from dropping too far
-            double                                          minTemperature_;
-
-            /// A very low value at initialization to authorize very easy positive slopes
+            /** \brief The initial value of \e temp_ */
             double                                          initTemperature_;
-
-            /// Failure counter for states that are rejected
-            unsigned int                                    numStatesFailed_;
-
 
             // Minimum Expansion Control --------------------------------------------------------------
 
-            /// Ratio counters for nodes that expand the search space versus those that do not
+            /** \brief The number of non-frontier nodes in the search tree */
             double                                          nonfrontierCount_;
+            /** \brief The number of frontier nodes in the search tree */
             double                                          frontierCount_;
 
-            /// The distance between an old state and a new state that qualifies it as a frontier state
+            /** \brief The distance between an old state and a new state that
+                qualifies it as a frontier state */
             double                                          frontierThreshold_;
 
-            /// Target ratio of nonfrontier nodes to frontier nodes. rho
+            /** \brief Target ratio of non-frontier nodes to frontier nodes. rho */
             double                                          frontierNodeRatio_;
 
-            /// The optimization objective being optimized by TRRT
+            /** \brief The optimization objective being optimized by TRRT */
             ompl::base::OptimizationObjectivePtr            opt_;
         };
     }
