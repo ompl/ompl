@@ -58,6 +58,7 @@ namespace ompl
         /// @par External documentation
         /// L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in <em>IEEE TRANSACTIONS ON ROBOTICS, VOL. 26, NO. 4, AUGUST 2010</em>. DOI: [10.1109/TRO.2010.2049527](http://dx.doi.org/10.1109/TRO.2010.2049527)<br />
         /// [[PDF]](http://homepages.laas.fr/nic/Papers/10TRO.pdf)
+        ///
         /// D. Devaurs, T. Siméon, J. Cortés, Enhancing the Transition-based RRT to Deal with Complex Cost Spaces, in <em>IEEE International Conference on Robotics and Automation (ICRA), 2013, pp. 4120-4125. DOI: [10.1109/ICRA.2013.6631158](http://dx.doi.org/10.1109/ICRA.2013.6631158)<br/>
         ///[[PDF]](https://hal.archives-ouvertes.fr/hal-00872224/document)
 
