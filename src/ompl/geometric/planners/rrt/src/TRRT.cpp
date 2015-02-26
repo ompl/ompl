@@ -57,7 +57,7 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
     // TRRT Specific Variables
     frontierThreshold_ = 0.0; // set in setup()
     setTempChangeFactor(0.1); // how much to increase the temp each time
-    maxAllowedCost_ = std::numeric_limits<double>::infinity();
+    costThreshold_ = base::Cost(std::numeric_limits<double>::infinity());
     initTemperature_ = 100; // where the temperature starts out
     frontierNodeRatio_ = 0.1; // 1/10, or 1 nonfrontier for every 10 frontier
 
@@ -65,7 +65,7 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
     Planner::declareParam<double>("init_temperature", this, &TRRT::setInitTemperature, &TRRT::getInitTemperature);
     Planner::declareParam<double>("frontier_threshold", this, &TRRT::setFrontierThreshold, &TRRT::getFrontierThreshold);
     Planner::declareParam<double>("frontierNodeRatio", this, &TRRT::setFrontierNodeRatio, &TRRT::getFrontierNodeRatio);
-    Planner::declareParam<double>("max_cost", this, &TRRT::setMaxCostAllowed, &TRRT::getMaxCostAllowed);
+    Planner::declareParam<double>("cost_threshold", this, &TRRT::setCostThreshold, &TRRT::getCostThreshold);
 }
 
 ompl::geometric::TRRT::~TRRT()
@@ -86,7 +86,8 @@ void ompl::geometric::TRRT::clear()
     temp_ = initTemperature_;
     nonfrontierCount_ = 1;
     frontierCount_ = 1; // init to 1 to prevent division by zero error
-    minCost_ = maxCost_ = 0.0;
+    if (opt_)
+        bestCost_ = worstCost_ = opt_->identityCost();
 }
 
 void ompl::geometric::TRRT::setup()
@@ -138,7 +139,7 @@ void ompl::geometric::TRRT::setup()
     temp_ = initTemperature_;
     nonfrontierCount_ = 1;
     frontierCount_ = 1; // init to 1 to prevent division by zero error
-    minCost_ = maxCost_ = 0.0;
+    bestCost_ = worstCost_ = opt_->identityCost();
 }
 
 void ompl::geometric::TRRT::freeMemory()
@@ -181,11 +182,8 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         // Set cost for this start state
         motion->cost = opt_->stateCost(motion->state);
 
-        if (nearestNeighbors_->size() == 0)  // do not overwrite min/max from previous call to solve
-        {
-            maxCost_ = motion->cost.value();
-            minCost_ = std::min(-maxCost_, maxCost_ - 1.0);  // guess a minCost_, but ensure that the value is less than maxCost_
-        }
+        if (nearestNeighbors_->size() == 0)  // do not overwrite best/worst from previous call to solve
+            worstCost_ = bestCost_ = motion->cost;
 
         // Add start motion to the tree
         nearestNeighbors_->add(motion);
@@ -289,7 +287,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         base::Cost childCost = opt_->stateCost(newState);
 
         // Only add this motion to the tree if the transition test accepts it
-        if (!transitionTest(childCost.value(), nearMotion->cost.value()))
+        if (!transitionTest(childCost, nearMotion->cost))
             continue; // give up on this one and try a new sample
 
         // V.
@@ -303,10 +301,10 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         // Add motion to data structure
         nearestNeighbors_->add(motion);
 
-        if(motion->cost.value() < minCost_)
-            minCost_ = motion->cost.value();
-        else if (motion->cost.value() > maxCost_)
-            maxCost_ = motion->cost.value();
+        if (opt_->isCostBetterThan(motion->cost, bestCost_)) // motion->cost is better than the existing best
+            bestCost_ = motion->cost;
+        if (opt_->isCostBetterThan(worstCost_, motion->cost)) // motion->cost is worse than the existing worst
+            worstCost_ = motion->cost;
 
         // VI.
 
@@ -397,22 +395,25 @@ void ompl::geometric::TRRT::getPlannerData(base::PlannerData &data) const
     }
 }
 
-bool ompl::geometric::TRRT::transitionTest(double childCost, double parentCost)
+bool ompl::geometric::TRRT::transitionTest(const base::Cost& childCost, const base::Cost& parentCost)
 {
-    // Disallow any state that exceeds the maximum allowed cost
-    if (childCost > maxAllowedCost_)
+    // Disallow any state that is not better than the cost threshold
+    if (!opt_->isCostBetterThan(childCost, costThreshold_))
         return false;
 
-    // Always accept if new state has same or lower cost than its predecessor
-    if (childCost <= parentCost)
+    // Always accept if the child has better cost than its predecessor
+    if (opt_->isCostBetterThan(childCost, parentCost))
         return true;
 
-    double dCost = childCost - parentCost;
+    double dCost = childCost.value() - parentCost.value();
     double transitionProbability = exp(-dCost / temp_);
     if (transitionProbability > 0.5)
     {
-        // Successful transition test.  Decrease the temperature slightly
-        temp_ /= exp(dCost / (0.1 * (maxCost_ - minCost_)));
+        double costRange = worstCost_.value() - bestCost_.value();
+        if (fabs(costRange) > 1e-4) // Do not divide by zero
+            // Successful transition test.  Decrease the temperature slightly
+            temp_ /= exp(dCost / (0.1 * costRange));
+
         return true;
     }
 
