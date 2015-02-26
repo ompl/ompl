@@ -95,21 +95,10 @@ void ompl::geometric::TRRT::setup()
     Planner::setup();
     tools::SelfConfig selfConfig(si_, getName());
 
-    bool usingDefaultObjective = false;
     if (!pdef_ || !pdef_->hasOptimizationObjective())
     {
-        OMPL_INFORM("%s: No optimization objective specified.", getName().c_str());
-        usingDefaultObjective = true;
-    }
-    else
-    {
-        usingDefaultObjective = false;
-    }
-
-    if (usingDefaultObjective)
-    {
+        OMPL_INFORM("%s: No optimization objective specified.  Defaulting to mechanical work minimization.", getName().c_str());
         opt_.reset(new base::MechanicalWorkOptimizationObjective(si_));
-        OMPL_INFORM("%s: Defaulting to optimizing path length.", getName().c_str());
     }
     else
         opt_ = pdef_->getOptimizationObjective();
