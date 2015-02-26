@@ -276,14 +276,6 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
 
         // IV.
         // this stage integrates collision detections in the presence of obstacles and checks for collisions
-
-        /** bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const
-            \brief Incrementally check if the path between two motions is valid. Also compute the last state that was
-            valid and the time of that state. The time is used to parametrize the motion from s1 to s2, s1 being at t =
-            0 and s2 being at t = 1. This function assumes s1 is valid.
-            \param s1 start state of the motion to be checked (assumed to be valid)
-            \param s2 final state of the motion to be checked
-        */
         if (!si_->checkMotion(nearMotion->state, newState))
             continue; // try a new sample
 
