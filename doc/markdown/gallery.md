@@ -156,11 +156,11 @@ In Fall 2010 OMPL was used for the first time in Lydia Kavraki's Algorithmic Rob
 \htmlonly
 <div class="row">
 <div class="col-md-6 col-sm-6">
-  <img src="../images/bspline_cubicle_smoother.png" width="100%"><br>
+  <img src="images/bspline_cubicle_smoother.png" width="100%"><br>
 <b>Path smoothing with B-splines.</b> The input path is shown in red, the optimized output path is shown in blue.
 </div>
 <div class="col-md-6 col-sm-6">
-  <img src="../images/hybridization_cubicle_shorter.png" width="100%"><br>
+  <img src="images/hybridization_cubicle_shorter.png" width="100%"><br>
 <b>Path shortening using path hybridization.</b> The colored paths are input, the solid black path is the optimized output path.
 </div>
 </div>

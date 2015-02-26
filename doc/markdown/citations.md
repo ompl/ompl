@@ -2,7 +2,7 @@
 
 If you use OMPL in your research, we kindly ask you to include the following citation in your publications:
 
-- Ioan A. Șucan, Mark Moll, Lydia E. Kavraki, The Open Motion Planning Library, _IEEE Robotics & Automation Magazine,_ 19(4):72--82, December 2012. DOI: [10.1109/MRA.2012.2205651](http://dx.doi.org/10.1109/MRA.2012.2205651) [[PDF]](../ieee-ram-2012-ompl.pdf) http://ompl.kavrakilab.org
+- Ioan A. Șucan, Mark Moll, Lydia E. Kavraki, The Open Motion Planning Library, _IEEE Robotics & Automation Magazine,_ 19(4):72--82, December 2012. DOI: [10.1109/MRA.2012.2205651](http://dx.doi.org/10.1109/MRA.2012.2205651) [[PDF]](ieee-ram-2012-ompl.pdf) http://ompl.kavrakilab.org
 
 ~~~
 @article{sucan2012the-open-motion-planning-library,

@@ -99,11 +99,11 @@ CForest produces many interesting results. All these results are obtained with t
 \htmlonly
 <div class="row">
 <div class="col-md-6 col-sm-6">
-  <img src="../images/cforest.png" width="100%"><br>
+  <img src="images/cforest.png" width="100%"><br>
 <b>Best cost evolution through time</b> CForest converges faster towards the minimum cost (optimal solution) as the threads are increased. Pruned RRT* also improves the standard RRT*.
 </div>
 <div class="col-md-6 col-sm-6">
-  <img src="../images/sharedpaths.png" width="100%"><br>
+  <img src="images/sharedpaths.png" width="100%"><br>
 <b>Number of paths shared by CForest.</b>
 </div>
 </div>
@@ -113,7 +113,7 @@ Another interesting experiment is to run CForest with pruning deactivated and co
 
 \htmlonly
 <div class="row">
-  <img src="../images/prunevsnoprune.png" width="100%"><br>
+  <img src="images/prunevsnoprune.png" width="100%"><br>
 <b>Best cost evolution through time</b> Not pruning trees affects negatively on the convergence. However, it still improves the standard RRT.
 </div>
 \endhtmlonly
@@ -122,7 +122,7 @@ In case you only have one core available, CForest still improves the RRTstar per
 
 \htmlonly
 <div class="row">
-  <img src="../images/threadscforest.png" width="100%"><br>
+  <img src="images/threadscforest.png" width="100%"><br>
 <b>Best cost evolution through time</b> Sequential version of the CForest: many threads working in the same core.
 </div>
 \endhtmlonly
@@ -275,7 +275,7 @@ If a sampled state is repeated it will be discarded and the next iteration of th
 Prunning refers to two different ways of remove states: 1) prune those states already on the tree that do not lead to a better solution and 2) reject those states before adding them to the tree. In both cases, all the modifications are again within the \c solve() method. Tree main modifications are done:
 
 1. **Early state rejection** Check if random samples can lead to a better solution (cost used: heuristic from start to state + heuristic from state to goal)
-2. **State rejection**Most of the states satisfy 1., but once they are wired into the tree, they cannot lead to a better solution (cost used: cost to go from start to state + heuristic from state to goal)  (early state rejection)..
+2. **State rejection**Most of the states satisfy 1., but once they are wired into the tree, they cannot lead to a better solution (cost used: cost to go from start to state + heuristic from state to goal)  (early state rejection).
 3. **Tree pruning** If a new, better solution is found, the pruning threshold will be decreased, therefore prune the states of the tree so that all those states which higher cost than the current best cost are removed.
 
 All these modifications are included in the following code example:

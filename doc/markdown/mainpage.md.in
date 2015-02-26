@@ -45,10 +45,10 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
     <!-- Wrapper for slides -->
     <div class="carousel-inner">
       <div class="item active">
-        <img src="../images/mp.jpg">
+        <img src="images/mp.jpg">
       </div>
       <!--<div class="item">
-        <img src="../images/mp.jpg" class="hidden" style="margin-top: 1px">
+        <img src="images/mp.jpg" class="hidden" style="margin-top: 1px">
         <div class="carousel-caption carousel-caption-inset"><h4>New in 0.11!</h4>
         <ul>
            <li>PlannerData now uses the Boost Graph Library; each planner can store arbitrary metadata in a graph.  All this PlannerData can easily be (de)serialized for messaging or storing/loading of planner data.
@@ -57,20 +57,20 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
         <p>See <a href="releaseNotes.html">release notes</a> for details</p>
       </div>-->
       <div class="item">
-        <img src="../images/T-RRT.jpg" style="padding-bottom: 2px">
+        <img src="images/T-RRT.jpg" style="padding-bottom: 2px">
         <div class="carousel-caption">
           <h4>Planning with costs</h4>
           <p>Visualization of the cost map explored by the T-RRT planner.</p>
         </div>
       </div>
       <div class="item">
-        <a href="http://ompl.kavrakilab.org/gui.html"><img src="../images/gui_path-small.jpg"></a>
+        <a href="http://ompl.kavrakilab.org/gui.html"><img src="images/gui_path-small.jpg"></a>
         <div class="carousel-caption">
           <h4>OMPL.app GUI</h4>
         </div>
       </div>
       <div class="item">
-        <a href="http://www.ros.org/wiki/ompl"><img src="../images/pr2.jpg"></a>
+        <a href="http://www.ros.org/wiki/ompl"><img src="images/pr2.jpg"></a>
         <div class="carousel-caption">
           <h4>OMPL Inside</h4>
           <p>OMPL is used inside ROS to plan motions for the PR2 and many other robots.</p>
@@ -127,7 +127,7 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 - [At ROSCON 2013, Sachin Chitta gave a presentation about MoveIt!](https://vimeo.com/66567049), the new  software framework for motion planning in ROS. It provides a common interface to motion planning libraries (including OMPL). The old ROS arm_navigation stack is now deprecated and all ROS users are encouraged to switch to MoveIt!.
 - [ICRA 2013 Tutorial on Motion Planning for Mobile Manipulation: State-of-the-art Methods and Tools](http://moveit.ros.org/wiki/Tutorials/ICRA2013). Both OMPL and [MoveIt!](http://moveit.ros.org) were heavily featured in this tutorial.
 - [OMPL has won the 2012 Open Source Software World Grand Challenge!](http://ompl.kavrakilab.org/blog/?p=178)
-- [An article about OMPL](../ieee-ram-2012-ompl.pdf) has been accepted for publication in IEEE's Robotics & Automation Magazine! It will appear in the December 2012 issue.
+- [An article about OMPL](ieee-ram-2012-ompl.pdf) has been accepted for publication in IEEE's Robotics & Automation Magazine! It will appear in the December 2012 issue.
 - [At ROSCON 2012, Sachin Chitta and Ioan Șucan gave a talk about MoveIt!](http://www.youtube.com/watch?v=r1zbuLc8RhI), the new motion planning stack in ROS. It provides a common interface to motion planning libraries in ROS (including OMPL). It will eventually replace the arm navigation stack.
 - [IROS 2011 Tutorial on Motion Planning for Real Robots](http://kavrakilab.org/OMPLtutorial). This hands-on tutorial described how to use the ROS and OMPL, but it also provided some background on sampling-based motion planning.
 
