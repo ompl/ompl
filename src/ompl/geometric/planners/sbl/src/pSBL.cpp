@@ -54,12 +54,12 @@ ompl::geometric::pSBL::pSBL(const base::SpaceInformationPtr &si) : base::Planner
     Planner::declareParam<unsigned int>("thread_count", this, &pSBL::setThreadCount, &pSBL::getThreadCount, "1:64");
 }
 
-ompl::geometric::pSBL::~pSBL(void)
+ompl::geometric::pSBL::~pSBL()
 {
     freeMemory();
 }
 
-void ompl::geometric::pSBL::setup(void)
+void ompl::geometric::pSBL::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -70,7 +70,7 @@ void ompl::geometric::pSBL::setup(void)
     tGoal_.grid.setDimension(projectionEvaluator_->getDimension());
 }
 
-void ompl::geometric::pSBL::clear(void)
+void ompl::geometric::pSBL::clear()
 {
     Planner::clear();
 
@@ -174,7 +174,7 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTer
                 PathGeometric *path = new PathGeometric(si_);
                 for (unsigned int i = 0 ; i < solution.size() ; ++i)
                     path->append(solution[i]->state);
-                pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
+                pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
             }
             sol->lock.unlock();
         }
@@ -238,7 +238,7 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
 
     samplerArray_.resize(threadCount_);
 
-    OMPL_INFORM("%s: Starting with %d states", getName().c_str(), (int)(tStart_.size + tGoal_.size));
+    OMPL_INFORM("%s: Starting planning with %d states already in datastructure", getName().c_str(), (int)(tStart_.size + tGoal_.size));
 
     SolutionInfo sol;
     sol.found = false;
@@ -370,7 +370,7 @@ ompl::geometric::pSBL::Motion* ompl::geometric::pSBL::selectMotion(RNG &rng, Tre
 {
     tree.lock.lock ();
     GridCell* cell = tree.pdf.sample(rng.uniform01());
-    Motion* result = cell && !cell->data.empty() ? cell->data[rng.uniformInt(0, cell->data.size() - 1)] : NULL;
+    Motion *result = cell && !cell->data.empty() ? cell->data[rng.uniformInt(0, cell->data.size() - 1)] : NULL;
     tree.lock.unlock ();
     return result;
 }

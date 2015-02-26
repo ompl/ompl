@@ -69,18 +69,18 @@ namespace ompl
             explicit
             OpenDESimpleSetup(const OpenDEEnvironmentPtr &env);
 
-            virtual ~OpenDESimpleSetup(void)
+            virtual ~OpenDESimpleSetup()
             {
             }
 
             /** \brief Get the OpenDE environment associated to the state and control spaces */
-            const OpenDEEnvironmentPtr& getEnvironment(void) const
+            const OpenDEEnvironmentPtr& getEnvironment() const
             {
                 return getStateSpace()->as<OpenDEStateSpace>()->getEnvironment();
             }
 
             /** \brief Get the current OpenDE state (read parameters from OpenDE bodies) */
-            base::ScopedState<OpenDEStateSpace> getCurrentState(void) const;
+            base::ScopedState<OpenDEStateSpace> getCurrentState() const;
 
             /** \brief Set the current OpenDE state (set parameters for OpenDE bodies) */
             void setCurrentState(const base::ScopedState<> &state);
@@ -117,11 +117,11 @@ namespace ompl
 
             /** \brief Simulate the OpenDE environment forward for \e steps simulation steps, using the control \e control.
                 Construct a path representing this action. */
-            base::PathPtr simulateControl(const double* control, unsigned int steps) const;
+            base::PathPtr simulateControl(const double *control, unsigned int steps) const;
 
             /** \brief Simulate the OpenDE environment forward for \e steps simulation steps, using the control \e control.
                 Construct a path representing this action. */
-            base::PathPtr simulateControl(const Control* control, unsigned int steps) const;
+            base::PathPtr simulateControl(const Control *control, unsigned int steps) const;
 
             /** \brief Simulate the OpenDE environment forward for \e
                 steps simulation steps, using the null control
@@ -129,11 +129,11 @@ namespace ompl
                 Construct a path representing this action. */
             base::PathPtr simulate(unsigned int steps) const;
 
-            virtual void setup(void);
+            virtual void setup();
 
         private:
 
-            void useEnvParams(void);
+            void useEnvParams();
 
         };
     }

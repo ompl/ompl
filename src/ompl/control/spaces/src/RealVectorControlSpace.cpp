@@ -50,7 +50,7 @@ void ompl::control::RealVectorControlUniformSampler::sample(Control *control)
         rcontrol->values[i] = rng_.uniformReal(bounds.low[i], bounds.high[i]);
 }
 
-void ompl::control::RealVectorControlSpace::setup(void)
+void ompl::control::RealVectorControlSpace::setup()
 {
     ControlSpace::setup();
     bounds_.check();
@@ -66,7 +66,7 @@ void ompl::control::RealVectorControlSpace::setBounds(const base::RealVectorBoun
     bounds_ = bounds;
 }
 
-unsigned int ompl::control::RealVectorControlSpace::getDimension(void) const
+unsigned int ompl::control::RealVectorControlSpace::getDimension() const
 {
     return dimension_;
 }
@@ -90,12 +90,12 @@ bool ompl::control::RealVectorControlSpace::equalControls(const Control *control
     return true;
 }
 
-ompl::control::ControlSamplerPtr ompl::control::RealVectorControlSpace::allocDefaultControlSampler(void) const
+ompl::control::ControlSamplerPtr ompl::control::RealVectorControlSpace::allocDefaultControlSampler() const
 {
     return ControlSamplerPtr(new RealVectorControlUniformSampler(this));
 }
 
-ompl::control::Control* ompl::control::RealVectorControlSpace::allocControl(void) const
+ompl::control::Control* ompl::control::RealVectorControlSpace::allocControl() const
 {
     ControlType *rcontrol = new ControlType();
     rcontrol->values = new double[dimension_];
@@ -157,7 +157,7 @@ void ompl::control::RealVectorControlSpace::printSettings(std::ostream &out) con
     out << std::endl;
 }
 
-unsigned int ompl::control::RealVectorControlSpace::getSerializationLength(void) const
+unsigned int ompl::control::RealVectorControlSpace::getSerializationLength() const
 {
     return controlBytes_;
 }

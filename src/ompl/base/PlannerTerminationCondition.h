@@ -71,15 +71,15 @@ namespace ompl
 
             /** \brief Construct a termination condition that is evaluated every \e period seconds. The evaluation of
                 the condition consists of calling \e fn() in a separate thread. Calls to eval() will always return the
-        last value computed by the call to \e fn(). */
+                last value computed by the call to \e fn(). */
             PlannerTerminationCondition(const PlannerTerminationConditionFn &fn, double period);
 
-            ~PlannerTerminationCondition(void)
+            ~PlannerTerminationCondition()
             {
             }
 
             /** \brief Return true if the planner should stop its computation */
-            bool operator()(void) const
+            bool operator()() const
             {
                 return eval();
             }
@@ -92,10 +92,10 @@ namespace ompl
 
             /** \brief Notify that the condition for termination should become true, regardless of what eval() returns.
                 This function may be called while the condition is being evaluated by other threads. */
-            void terminate(void) const;
+            void terminate() const;
 
             /** \brief The implementation of some termination condition. By default, this just calls \e fn_() */
-            bool eval(void) const;
+            bool eval() const;
 
         private:
 

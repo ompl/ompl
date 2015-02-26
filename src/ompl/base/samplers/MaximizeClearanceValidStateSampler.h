@@ -54,7 +54,7 @@ namespace ompl
             /** \brief Constructor */
             MaximizeClearanceValidStateSampler(const SpaceInformation *si);
 
-            virtual ~MaximizeClearanceValidStateSampler(void);
+            virtual ~MaximizeClearanceValidStateSampler();
 
             virtual bool sample(State *state);
 
@@ -67,7 +67,7 @@ namespace ompl
             }
 
             /** \brief Get the number of attempts to improve a sampled state */
-            unsigned int getNrImproveAttempts(void) const
+            unsigned int getNrImproveAttempts() const
             {
                 return improveAttempts_;
             }

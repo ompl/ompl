@@ -44,7 +44,7 @@ ompl::control::PDST::PDST(const SpaceInformationPtr &si)
     Planner::declareParam<double>("goal_bias", this, &PDST::setGoalBias, &PDST::getGoalBias, "0.:.05:1.");
 }
 
-ompl::control::PDST::~PDST(void)
+ompl::control::PDST::~PDST()
 {
     freeMemory();
 }
@@ -94,7 +94,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         return base::PlannerStatus::INVALID_START;
     }
 
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), priorityQueue_.size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), priorityQueue_.size());
 
     base::State *tmpState1 = si_->allocState(), *tmpState2 = si_->allocState();
     base::EuclideanProjection tmpProj1(ndim), tmpProj2(ndim);
@@ -143,7 +143,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     // If a solution path has been computed, save it in the problem definition object.
     if (hasSolution)
     {
-        Motion* m;
+        Motion *m;
         std::vector<unsigned int> durations(1,
             findDurationAndAncestor(lastGoalMotion_, lastGoalMotion_->endState_, tmpState1, m));
         std::vector<Motion*> mpath(1, m);
@@ -160,7 +160,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         for (int i = (int) mpath.size() - 2; i > 0; i--)
             path->append(mpath[i-1]->startState_, mpath[i]->control_, durations[i] * dt);
         path->append(lastGoalMotion_->endState_, mpath[0]->control_, durations[0] * dt);
-        pdef_->addSolutionPath(base::PathPtr(path), isApproximate, closestDistanceToGoal);
+        pdef_->addSolutionPath(base::PathPtr(path), isApproximate, closestDistanceToGoal, getName());
     }
 
     si_->freeState(tmpState1);
@@ -172,7 +172,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
 }
 
 ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
-    Motion* motion, base::State* start, base::State* rnd)
+    Motion *motion, base::State *start, base::State *rnd)
 {
     // sample a point along the trajectory given by motion
     unsigned int prevDuration = motion->controlDuration_;
@@ -200,7 +200,7 @@ ompl::control::PDST::Motion* ompl::control::PDST::propagateFrom(
         control, duration, ++iteration_, motion);
 }
 
-void ompl::control::PDST::addMotion(Motion *motion, Cell *bsp, base::State* prevState, base::State* state,
+void ompl::control::PDST::addMotion(Motion *motion, Cell *bsp, base::State *prevState, base::State *state,
     base::EuclideanProjection& prevProj, base::EuclideanProjection& proj)
 {
     // If the motion is at most 1 step, then it cannot be split across cell bounds.
@@ -222,7 +222,7 @@ void ompl::control::PDST::addMotion(Motion *motion, Cell *bsp, base::State* prev
         cell = bsp->stab(proj);
         if (duration > 0 && cell != prevCell)
         {
-            Motion* newMotion = new Motion(motion->startState_, si_->cloneState(prevState),
+            Motion *newMotion = new Motion(motion->startState_, si_->cloneState(prevState),
                 motion->control_, duration, motion->priority_, motion->parent_);
             newMotion->isSplit_ = true;
             prevCell->addMotion(newMotion);
@@ -241,8 +241,8 @@ void ompl::control::PDST::addMotion(Motion *motion, Cell *bsp, base::State* prev
 }
 
 
-unsigned int ompl::control::PDST::findDurationAndAncestor(Motion* motion, base::State* state,
-    base::State* scratch, Motion*& ancestor) const
+unsigned int ompl::control::PDST::findDurationAndAncestor(Motion *motion, base::State *state,
+    base::State *scratch, Motion*& ancestor) const
 {
     const double eps = std::numeric_limits<float>::epsilon();
     unsigned int duration;
@@ -281,7 +281,7 @@ unsigned int ompl::control::PDST::findDurationAndAncestor(Motion* motion, base::
     return findDurationAndAncestor(motion->parent_, state, scratch, ancestor);
 }
 
-void ompl::control::PDST::clear(void)
+void ompl::control::PDST::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -292,7 +292,7 @@ void ompl::control::PDST::clear(void)
     bsp_ = new Cell(1., projectionEvaluator_->getBounds(), 0);
 }
 
-void ompl::control::PDST::freeMemory(void)
+void ompl::control::PDST::freeMemory()
 {
     // Iterate over the elements in the priority queue and clear it
     std::vector<Motion*> motions;
@@ -315,7 +315,7 @@ void ompl::control::PDST::freeMemory(void)
     bsp_ = NULL;
 }
 
-void ompl::control::PDST::setup(void)
+void ompl::control::PDST::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -335,7 +335,7 @@ void ompl::control::PDST::getPlannerData(ompl::base::PlannerData &data) const
     base::Planner::getPlannerData(data);
 
     double dt = siC_->getPropagationStepSize();
-    base::State* scratch = si_->allocState();
+    base::State *scratch = si_->allocState();
     std::vector<Motion*> motions;
     motions.reserve(priorityQueue_.size());
     priorityQueue_.getContent(motions);

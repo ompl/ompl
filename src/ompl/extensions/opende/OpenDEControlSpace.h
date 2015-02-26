@@ -57,12 +57,12 @@ namespace ompl
                 OpenDEStateSpace, an exception is thrown. */
             OpenDEControlSpace(const base::StateSpacePtr &stateSpace);
 
-            virtual ~OpenDEControlSpace(void)
+            virtual ~OpenDEControlSpace()
             {
             }
 
             /** \brief Get the OpenDE environment this state space corresponds to */
-            const OpenDEEnvironmentPtr& getEnvironment(void) const
+            const OpenDEEnvironmentPtr& getEnvironment() const
             {
                 return stateSpace_->as<OpenDEStateSpace>()->getEnvironment();
             }

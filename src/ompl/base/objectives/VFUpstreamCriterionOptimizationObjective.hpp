@@ -37,7 +37,13 @@ namespace ompl
             {
                 return false;
             }
-    
+
+            /** \brief Returns a cost with a value of 0. */
+            virtual Cost stateCost(const State *s) const
+            {
+                return Cost(0.);
+            }
+
             /** Compute upstream criterion between two states. */
             ompl::base::Cost motionCost(const State *s1, const State *s2) const
             {

@@ -103,7 +103,7 @@ int main(int argc, char **argv)
             f << state[0] << " " << state[1] << "\n";
             
             if (i > 0)
-                cost += opt->motionCost(p.getState(i-1), p.getState(i)).v;
+                cost += opt->motionCost(p.getState(i-1), p.getState(i)).value();
         }
         std::cout << "Total cost: " << cost << "\n";
     }

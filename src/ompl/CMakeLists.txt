@@ -75,12 +75,11 @@ endif(MSVC)
 
 # install the library
 install(TARGETS ompl
-    DESTINATION lib/
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT ompl)
 if(NOT MSVC)
-    get_target_property(OMPL_LIBRARY_LOC ompl LOCATION)
     add_custom_command(TARGET ompl POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy "${OMPL_LIBRARY_LOC}"
+        COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:ompl>"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../py-bindings/ompl/util/libompl${CMAKE_SHARED_LIBRARY_SUFFIX}"
         WORKING_DIRECTORY "${LIBRARY_OUTPUT_PATH}")
 endif(NOT MSVC)

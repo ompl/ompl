@@ -37,6 +37,14 @@
 #include "ompl/base/GenericParam.h"
 #include "ompl/util/Exception.h"
 
+const std::string& ompl::base::GenericParam::truthValueTo01Str(const std::string &value)
+{
+    static const std::string falseValue = "0";
+    static const std::string trueValue = "1";
+    return (value.empty() || value == falseValue ||
+            value == "false" || value == "FALSE" || value == "False" || value == "f" || value == "F") ? falseValue : trueValue;
+}
+
 bool ompl::base::ParamSet::setParam(const std::string &key, const std::string &value)
 {
     std::map<std::string, GenericParamPtr>::const_iterator it = params_.find(key);
@@ -91,7 +99,7 @@ void ompl::base::ParamSet::getParamValues(std::vector<std::string> &vals) const
         vals[i] = params_.find(names[i])->second->getValue();
 }
 
-const std::map<std::string, ompl::base::GenericParamPtr>& ompl::base::ParamSet::getParams(void) const
+const std::map<std::string, ompl::base::GenericParamPtr>& ompl::base::ParamSet::getParams() const
 {
     return params_;
 }
@@ -145,7 +153,7 @@ void ompl::base::ParamSet::remove(const std::string &name)
     params_.erase(name);
 }
 
-void ompl::base::ParamSet::clear(void)
+void ompl::base::ParamSet::clear()
 {
     params_.clear();
 }

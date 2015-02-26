@@ -61,12 +61,12 @@ ompl::control::KPIECE1::KPIECE1(const SpaceInformationPtr &si) : base::Planner(s
     Planner::declareParam<double>("good_score_factor", this, &KPIECE1::setGoodCellScoreFactor, &KPIECE1::getGoodCellScoreFactor);
 }
 
-ompl::control::KPIECE1::~KPIECE1(void)
+ompl::control::KPIECE1::~KPIECE1()
 {
     freeMemory();
 }
 
-void ompl::control::KPIECE1::setup(void)
+void ompl::control::KPIECE1::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -82,7 +82,7 @@ void ompl::control::KPIECE1::setup(void)
     tree_.grid.setDimension(projectionEvaluator_->getDimension());
 }
 
-void ompl::control::KPIECE1::clear(void)
+void ompl::control::KPIECE1::clear()
 {
     Planner::clear();
     controlSampler_.reset();
@@ -93,7 +93,7 @@ void ompl::control::KPIECE1::clear(void)
     lastGoalMotion_ = NULL;
 }
 
-void ompl::control::KPIECE1::freeMemory(void)
+void ompl::control::KPIECE1::freeMemory()
 {
     freeGridMotions(tree_.grid);
 }
@@ -197,7 +197,7 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
     if (!controlSampler_)
         controlSampler_ = siC_->allocControlSampler();
 
-    OMPL_INFORM("%s: Starting with %u states", getName().c_str(), tree_.size);
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), tree_.size);
 
     Motion *solution  = NULL;
     Motion *approxsol = NULL;
@@ -335,7 +335,7 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
             else
                 path->append(mpath[i]->state);
 
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif);
+        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
         solved = true;
     }
 
@@ -425,7 +425,7 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
     {
         for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
         {
-            const Motion* m = cells[i]->data->motions[j];
+            const Motion *m = cells[i]->data->motions[j];
             if (m->parent)
             {
                 if (data.hasControls())

@@ -17,10 +17,7 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_RigidBodyPlanningWithIK RigidBodyPlanningWithIK.cpp)
   add_ompl_demo(demo_RigidBodyPlanningWithControls RigidBodyPlanningWithControls.cpp)
   add_ompl_demo(demo_RigidBodyPlanningWithIntegrationAndControls RigidBodyPlanningWithIntegrationAndControls.cpp)
-  if (OMPL_ODESOLVER)
-      add_ompl_demo(demo_RigidBodyPlanningWithODESolverAndControls RigidBodyPlanningWithODESolverAndControls.cpp)
-  endif()
-
+  add_ompl_demo(demo_RigidBodyPlanningWithODESolverAndControls RigidBodyPlanningWithODESolverAndControls.cpp)
   add_ompl_demo(demo_StateSampling StateSampling.cpp)
   add_ompl_demo(demo_GeometricCarPlanning GeometricCarPlanning.cpp)
   add_ompl_demo(demo_Point2DPlanning Point2DPlanning.cpp)
@@ -29,11 +26,13 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_HypercubeBenchmark HypercubeBenchmark.cpp)
   aux_source_directory(Koules Koules_SRC)
   add_ompl_demo(demo_Koules ${Koules_SRC})
+  add_ompl_demo(demo_PlannerData PlannerData.cpp)
   add_ompl_demo(demo_VectorFieldConservative VectorFieldConservative.cpp)
   add_ompl_demo(demo_VectorFieldNonconservative VectorFieldNonconservative.cpp)
 
   add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
   add_ompl_demo(demo_PlannerProgressProperties PlannerProgressProperties.cpp)
+  add_ompl_demo(demo_CForestCircleGridBenchmark CForestCircleGridBenchmark.cpp)
 
   if (OMPL_EXTENSION_OPENDE)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)
@@ -41,12 +40,9 @@ if (OMPL_BUILD_DEMOS)
 
   if (OMPL_EXTENSION_TRIANGLE)
     add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
+    add_ompl_demo(demo_LTLWithTriangulation LTLWithTriangulation)
   endif()
 
-# Only build the PlannerData demo on Boost >= 1.44
-  if(NOT "${Boost_VERSION}" LESS 104400)
-    add_ompl_demo(demo_PlannerData PlannerData.cpp)
-  endif(NOT "${Boost_VERSION}" LESS 104400)
 
 endif(OMPL_BUILD_DEMOS)
 

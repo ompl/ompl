@@ -57,7 +57,7 @@ ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const OpenDEEnvironmentPtr &
     useEnvParams();
 }
 
-void ompl::control::OpenDESimpleSetup::useEnvParams(void)
+void ompl::control::OpenDESimpleSetup::useEnvParams()
 {
     si_->setPropagationStepSize(getStateSpace()->as<OpenDEStateSpace>()->getEnvironment()->stepSize_);
     si_->setMinMaxControlDuration(getStateSpace()->as<OpenDEStateSpace>()->getEnvironment()->minControlSteps_,
@@ -65,7 +65,7 @@ void ompl::control::OpenDESimpleSetup::useEnvParams(void)
     si_->setStatePropagator(StatePropagatorPtr(new OpenDEStatePropagator(si_)));
 }
 
-ompl::base::ScopedState<ompl::control::OpenDEStateSpace> ompl::control::OpenDESimpleSetup::getCurrentState(void) const
+ompl::base::ScopedState<ompl::control::OpenDEStateSpace> ompl::control::OpenDESimpleSetup::getCurrentState() const
 {
     base::ScopedState<OpenDEStateSpace> current(getStateSpace());
     getStateSpace()->as<OpenDEStateSpace>()->readState(current.get());
@@ -82,7 +82,7 @@ void ompl::control::OpenDESimpleSetup::setCurrentState(const base::ScopedState<>
     getStateSpace()->as<OpenDEStateSpace>()->writeState(state.get());
 }
 
-void ompl::control::OpenDESimpleSetup::setup(void)
+void ompl::control::OpenDESimpleSetup::setup()
 {
     if (!si_->getStateValidityChecker())
     {
@@ -129,7 +129,7 @@ void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, doubl
     }
 }
 
-ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const double* control, unsigned int steps) const
+ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const double *control, unsigned int steps) const
 {
     Control *c = si_->allocControl();
     memcpy(c->as<OpenDEControlSpace::ControlType>()->values, control, sizeof(double) * getControlSpace()->getDimension());
@@ -138,7 +138,7 @@ ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const doub
     return path;
 }
 
-ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const Control* control, unsigned int steps) const
+ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const Control *control, unsigned int steps) const
 {
     PathControl *p = new PathControl(si_);
 

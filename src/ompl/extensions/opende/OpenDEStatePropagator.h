@@ -68,19 +68,19 @@ namespace ompl
                 OpenDEStateSpace, an exception is thrown. */
             OpenDEStatePropagator(const SpaceInformationPtr &si);
 
-            virtual ~OpenDEStatePropagator(void)
+            virtual ~OpenDEStatePropagator()
             {
             }
 
             /** \brief Get the OpenDE environment this state propagator operates on */
-            const OpenDEEnvironmentPtr& getEnvironment(void) const
+            const OpenDEEnvironmentPtr& getEnvironment() const
             {
                 return env_;
             }
 
-            virtual bool canPropagateBackward(void) const;
+            virtual bool canPropagateBackward() const;
 
-            virtual void propagate(const base::State *state, const Control* control, const double duration, base::State *result) const;
+            virtual void propagate(const base::State *state, const Control *control, const double duration, base::State *result) const;
 
         protected:
 

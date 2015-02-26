@@ -37,7 +37,7 @@
 #include "ompl/base/goals/GoalState.h"
 #include "ompl/base/SpaceInformation.h"
 
-ompl::base::GoalState::~GoalState(void)
+ompl::base::GoalState::~GoalState()
 {
     if (state_)
         si_->freeState(state_);
@@ -59,12 +59,12 @@ void ompl::base::GoalState::sampleGoal(base::State *st) const
     si_->copyState(st, state_);
 }
 
-unsigned int ompl::base::GoalState::maxSampleCount(void) const
+unsigned int ompl::base::GoalState::maxSampleCount() const
 {
     return 1;
 }
 
-void ompl::base::GoalState::setState(const State* st)
+void ompl::base::GoalState::setState(const State *st)
 {
     if (state_)
         si_->freeState(state_);
@@ -76,12 +76,12 @@ void ompl::base::GoalState::setState(const ScopedState<> &st)
     setState(st.get());
 }
 
-const ompl::base::State * ompl::base::GoalState::getState(void) const
+const ompl::base::State * ompl::base::GoalState::getState() const
 {
     return state_;
 }
 
-ompl::base::State * ompl::base::GoalState::getState(void)
+ompl::base::State * ompl::base::GoalState::getState()
 {
     return state_;
 }

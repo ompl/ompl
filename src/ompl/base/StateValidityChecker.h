@@ -61,15 +61,20 @@ namespace ompl
         /** \brief Properties that a state validity checker may have */
         struct StateValidityCheckerSpecs
         {
+            /** \brief Specify the type of clearance computation */
             enum ClearanceComputationType
             {
+                /// Clearance computation is not implemented.
                 NONE = 0,
+                /// Exact clearance computation is available.
                 EXACT,
+                /// Some approximation of clearance is computed, but it is not clear if this is above or below the exact clearance.
                 APPROXIMATE,
+                /// A lower bound on clearance is computed.
                 BOUNDED_APPROXIMATE,
             };
 
-            StateValidityCheckerSpecs(void) : clearanceComputationType(NONE), hasValidDirectionComputation(false)
+            StateValidityCheckerSpecs() : clearanceComputationType(NONE), hasValidDirectionComputation(false)
             {
             }
 
@@ -90,7 +95,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            StateValidityChecker(SpaceInformation* si) : si_(si)
+            StateValidityChecker(SpaceInformation *si) : si_(si)
             {
             }
 
@@ -99,7 +104,7 @@ namespace ompl
             {
             }
 
-            virtual ~StateValidityChecker(void)
+            virtual ~StateValidityChecker()
             {
             }
 
@@ -142,7 +147,7 @@ namespace ompl
             }
 
             /** \brief Return the specifications (capabilities of this state validity checker) */
-            const StateValidityCheckerSpecs& getSpecs(void) const
+            const StateValidityCheckerSpecs& getSpecs() const
             {
                 return specs_;
             }
@@ -150,7 +155,7 @@ namespace ompl
         protected:
 
             /** \brief The instance of space information this state validity checker operates on */
-            SpaceInformation*         si_;
+            SpaceInformation         *si_;
 
             /** \brief The specifications of the state validity checker (its capabilities) */
             StateValidityCheckerSpecs specs_;
@@ -163,7 +168,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            AllValidStateValidityChecker(SpaceInformation* si) : StateValidityChecker(si)
+            AllValidStateValidityChecker(SpaceInformation *si) : StateValidityChecker(si)
             {
             }
 

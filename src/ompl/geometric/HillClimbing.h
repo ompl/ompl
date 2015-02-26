@@ -66,7 +66,7 @@ namespace ompl
             {
             }
 
-            ~HillClimbing(void)
+            ~HillClimbing()
             {
             }
 
@@ -82,7 +82,7 @@ namespace ompl
             }
 
             /** \brief Get the number of steps to perform */
-            unsigned int getMaxImproveSteps(void) const
+            unsigned int getMaxImproveSteps() const
             {
                 return maxImproveSteps_;
             }
@@ -94,7 +94,7 @@ namespace ompl
             }
 
             /** \brief Get the state validity flag; if this is false, states are not checked for validity */
-            bool getValidityCheck(void) const
+            bool getValidityCheck() const
             {
                 return checkValidity_;
             }

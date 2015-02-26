@@ -37,12 +37,6 @@
 #ifndef OMPL_CONTROL_PLANNER_DATA_STORAGE_
 #define OMPL_CONTROL_PLANNER_DATA_STORAGE_
 
-// PlannerDataStorage requires Boost version >= 1.44
-#include <boost/version.hpp>
-#if BOOST_VERSION < 104400
-#warning Boost version >= 1.44 is required for PlannerDataStorage classes
-#else
-
 #include "ompl/base/PlannerDataStorage.h"
 #include "ompl/control/PlannerData.h"
 #include "ompl/control/SpaceInformation.h"
@@ -59,25 +53,25 @@ namespace ompl
         {
         public:
             /// \brief Default constructor
-            PlannerDataStorage(void);
+            PlannerDataStorage();
             /// \brief Destructor
-            virtual ~PlannerDataStorage(void);
+            virtual ~PlannerDataStorage();
 
             /// \brief Load the PlannerData structure from the given filename.
-            virtual void load(const char *filename, base::PlannerData& pd);
+            virtual void load(const char *filename, base::PlannerData &pd);
 
             /// \brief Deserializes the structure from the given stream.
-            virtual void load(std::istream &in, base::PlannerData& pd);
+            virtual void load(std::istream &in, base::PlannerData &pd);
 
             /// \brief Store (serialize) the structure to the given filename.
             /// The StateSpace and ControlSpace that was used to store the data
             /// must match those inside of the argument PlannerData.
-            virtual void store(const base::PlannerData& pd, const char *filename);
+            virtual void store(const base::PlannerData &pd, const char *filename);
 
             /// \brief Load the PlannerData structure from the given stream.
             /// The StateSpace and ControlSpace that was used to store the data
             /// must match those inside of the argument PlannerData.
-            virtual void store(const base::PlannerData& pd, std::ostream &out);
+            virtual void store(const base::PlannerData &pd, std::ostream &out);
 
         protected:
 
@@ -169,7 +163,7 @@ namespace ompl
                             edgeData.endpoints_.second = j;
                             base::Cost weight;
                             pd.getEdgeWeight(i, j, &weight);
-                            edgeData.weight_ = weight.v;
+                            edgeData.weight_ = weight.value();
 
                             space->serialize(&ctrl[0], static_cast<const PlannerDataEdgeControl*>(edgeData.e_)->getControl());
                             edgeData.control_ = ctrl;
@@ -182,7 +176,5 @@ namespace ompl
         };
     }
 }
-
-#endif
 
 #endif

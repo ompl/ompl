@@ -35,8 +35,8 @@
 
 /* Author Ioan Sucan */
 
-#ifndef OMPL_UTIL_PROFILER_
-#define OMPL_UTIL_PROFILER_
+#ifndef OMPL_TOOLS_DEBUG_PROFILER_
+#define OMPL_TOOLS_DEBUG_PROFILER_
 
 #define ENABLE_PROFILING 1
 
@@ -88,7 +88,7 @@ namespace ompl
                     prof_.begin(name);
                 }
 
-                ~ScopedBlock(void)
+                ~ScopedBlock()
                 {
                     prof_.end(name_);
                 }
@@ -112,7 +112,7 @@ namespace ompl
                         prof_.start();
                 }
 
-                ~ScopedStart(void)
+                ~ScopedStart()
                 {
                     if (!wasRunning_)
                         prof_.stop();
@@ -125,7 +125,7 @@ namespace ompl
             };
 
             /** \brief Return an instance of the class */
-            static Profiler& Instance(void);
+            static Profiler& Instance();
 
             /** \brief Constructor. It is allowed to separately instantiate this
                 class (not only as a singleton) */
@@ -136,38 +136,38 @@ namespace ompl
             }
 
             /** \brief Destructor */
-            ~Profiler(void)
+            ~Profiler()
             {
                 if (printOnDestroy_ && !data_.empty())
                     status();
             }
 
             /** \brief Start counting time */
-            static void Start(void)
+            static void Start()
             {
                 Instance().start();
             }
 
             /** \brief Stop counting time */
-            static void Stop(void)
+            static void Stop()
             {
                 Instance().stop();
             }
 
             /** \brief Clear counted time and events */
-            static void Clear(void)
+            static void Clear()
             {
                 Instance().clear();
             }
 
             /** \brief Start counting time */
-            void start(void);
+            void start();
 
             /** \brief Stop counting time */
-            void stop(void);
+            void stop();
 
             /** \brief Clear counted time and events */
-            void clear(void);
+            void clear();
 
             /** \brief Count a specific event for a number of times */
             static void Event(const std::string& name, const unsigned int times = 1)
@@ -220,23 +220,23 @@ namespace ompl
 
             /** \brief Print the status of the profiled code chunks and
                 events to the console (using msg::Console) */
-            static void Console(void)
+            static void Console()
             {
                 Instance().console();
             }
 
             /** \brief Print the status of the profiled code chunks and
                 events to the console (using msg::Console) */
-            void console(void);
+            void console();
 
             /** \brief Check if the profiler is counting time or not */
-            bool running(void) const
+            bool running() const
             {
                 return running_;
             }
 
             /** \brief Check if the profiler is counting time or not */
-            static bool Running(void)
+            static bool Running()
             {
                 return Instance().running();
             }
@@ -246,7 +246,7 @@ namespace ompl
             /** \brief Information about time spent in a section of the code */
             struct TimeInfo
             {
-                TimeInfo(void) : total(0, 0, 0, 0), shortest(boost::posix_time::pos_infin), longest(boost::posix_time::neg_infin), parts(0)
+                TimeInfo() : total(0, 0, 0, 0), shortest(boost::posix_time::pos_infin), longest(boost::posix_time::neg_infin), parts(0)
                 {
                 }
 
@@ -266,13 +266,13 @@ namespace ompl
                 time::point       start;
 
                 /** \brief Begin counting time */
-                void set(void)
+                void set()
                 {
                     start = time::now();
                 }
 
                 /** \brief Add the counted time to the total time */
-                void update(void)
+                void update()
                 {
                     const time::duration &dt = time::now() - start;
                     if (dt > longest)
@@ -347,7 +347,7 @@ namespace ompl
                 {
                 }
 
-                ~ScopedBlock(void)
+                ~ScopedBlock()
                 {
                 }
             };
@@ -360,42 +360,42 @@ namespace ompl
                 {
                 }
 
-                ~ScopedStart(void)
+                ~ScopedStart()
                 {
                 }
             };
 
-            static Profiler& Instance(void);
+            static Profiler& Instance();
 
             Profiler(bool = true, bool = true)
             {
             }
 
-            ~Profiler(void)
+            ~Profiler()
             {
             }
 
-            static void Start(void)
+            static void Start()
             {
             }
 
-            static void Stop(void)
+            static void Stop()
             {
             }
 
-            static void Clear(void)
+            static void Clear()
             {
             }
 
-            void start(void)
+            void start()
             {
             }
 
-            void stop(void)
+            void stop()
             {
             }
 
-            void clear(void)
+            void clear()
             {
             }
 
@@ -439,20 +439,20 @@ namespace ompl
             {
             }
 
-            static void Console(void)
+            static void Console()
             {
             }
 
-            void console(void)
+            void console()
             {
             }
 
-            bool running(void) const
+            bool running() const
             {
                 return false;
             }
 
-            static bool Running(void)
+            static bool Running()
             {
                 return false;
             }

@@ -40,6 +40,7 @@
 #include "ompl/base/State.h"
 #include "ompl/base/Goal.h"
 #include "ompl/base/Path.h"
+#include "ompl/base/Cost.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/SolutionNonExistenceProof.h"
 #include "ompl/util/Console.h"
@@ -61,6 +62,7 @@ namespace ompl
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ProblemDefinition */
         OMPL_CLASS_FORWARD(ProblemDefinition);
+        OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
 
         /** \class ompl::base::ProblemDefinitionPtr
@@ -70,33 +72,41 @@ namespace ompl
         struct PlannerSolution
         {
             /** \brief Construct a solution that consists of a \e path and its attributes (whether it is \e approximate and the \e difference to the desired goal) */
-            PlannerSolution(const PathPtr &path, bool approximate = false, double difference = -1.0) :
-                index_(-1), path_(path), length_(path->length()),
-                approximate_(approximate), difference_(difference),
-                optimized_(false)
+            PlannerSolution(const PathPtr &path) :
+                index_(-1), path_(path),
+                length_(path ? path->length() : std::numeric_limits<double>::infinity()),
+                approximate_(false), difference_(-1), optimized_(false)
             {
             }
 
             /** \brief Return true if two solutions are the same */
-            bool operator==(const PlannerSolution& p) const
+            bool operator==(const PlannerSolution &p) const
             {
                 return path_ == p.path_;
             }
 
             /** \brief Define a ranking for solutions */
-            bool operator<(const PlannerSolution &b) const
+            bool operator<(const PlannerSolution &b) const;
+
+            /** \brief Specify that the solution is approximate and set the difference to the goal. */
+            void setApproximate(double difference)
             {
-                if (!approximate_ && b.approximate_)
-                    return true;
-                if (approximate_ && !b.approximate_)
-                    return false;
-                if (approximate_ && b.approximate_)
-                    return difference_ < b.difference_;
-                if (optimized_ && !b.optimized_)
-                    return true;
-                if (!optimized_ && b.optimized_)
-                    return false;
-                return length_ < b.length_;
+                approximate_ = true;
+                difference_ = difference;
+            }
+
+            /** \brief Set the optimization objective used to optimize this solution, the cost of the solution and whether it was optimized or not. */
+            void setOptimized(const OptimizationObjectivePtr &opt, Cost cost, bool meetsObjective)
+            {
+                opt_ = opt;
+                cost_ = cost;
+                optimized_ = meetsObjective;
+            }
+
+            /** \brief Set the name of the planner used to compute this solution */
+            void setPlannerName(const std::string &name)
+            {
+                plannerName_ = name;
             }
 
             /** \brief When multiple solutions are found, each is given a number starting at 0, so that the order in which the solutions was found can be retrieved. */
@@ -114,9 +124,24 @@ namespace ompl
             /** \brief The achieved difference between the found solution and the desired goal */
             double  difference_;
 
-            /** \brief True of the solution was optimized to meet the specified optimization criterion */
+            /** \brief True if the solution was optimized to meet the specified optimization criterion */
             bool    optimized_;
+
+            /** \brief Optimization objective that was used to optimize this solution */
+            OptimizationObjectivePtr opt_;
+
+            /** \brief The cost of this solution path, with respect to the optimization objective */
+            Cost cost_;
+
+             /** \brief Name of planner type that generated this solution, as received from Planner::getName() */
+            std::string plannerName_;
         };
+
+        class Planner;
+
+        /** \brief When a planner has an intermediate solution (e.g., optimizing planners), a function with this signature can be called
+            to report the states of that solution. */
+        typedef boost::function<void(const Planner*, const std::vector<const base::State*> &, const Cost)> ReportIntermediateSolutionFn;
 
         OMPL_CLASS_FORWARD(OptimizationObjective);
 
@@ -130,13 +155,13 @@ namespace ompl
             /** \brief Create a problem definition given the SpaceInformation it is part of */
             ProblemDefinition(const SpaceInformationPtr &si);
 
-            virtual ~ProblemDefinition(void)
+            virtual ~ProblemDefinition()
             {
                 clearStartStates();
             }
 
             /** \brief Get the space information this problem definition is for */
-            const SpaceInformationPtr& getSpaceInformation(void) const
+            const SpaceInformationPtr& getSpaceInformation() const
             {
                 return si_;
             }
@@ -159,7 +184,7 @@ namespace ompl
             bool hasStartState(const State *state, unsigned int *startIndex = NULL);
 
             /** \brief Clear all start states (memory is freed) */
-            void clearStartStates(void)
+            void clearStartStates()
             {
                 for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
                     si_->freeState(startStates_[i]);
@@ -167,7 +192,7 @@ namespace ompl
             }
 
             /** \brief Returns the number of start states */
-            unsigned int getStartStateCount(void) const
+            unsigned int getStartStateCount() const
             {
                 return startStates_.size();
             }
@@ -191,13 +216,13 @@ namespace ompl
             }
 
             /** \brief Clear the goal. Memory is freed. */
-            void clearGoal(void)
+            void clearGoal()
             {
                 goal_.reset();
             }
 
             /** \brief Return the current goal */
-            const GoalPtr& getGoal(void) const
+            const GoalPtr& getGoal() const
             {
                 return goal_;
             }
@@ -233,13 +258,13 @@ namespace ompl
             }
 
             /** \brief Check if an optimization objective was defined for planning  */
-            bool hasOptimizationObjective(void) const
+            bool hasOptimizationObjective() const
             {
                 return optimizationObjective_.get();
             }
 
             /** \brief Get the optimization objective to be considered during planning */
-            const OptimizationObjectivePtr& getOptimizationObjective(void) const
+            const OptimizationObjectivePtr& getOptimizationObjective() const
             {
                 return optimizationObjective_;
             }
@@ -249,6 +274,18 @@ namespace ompl
             {
                 optimizationObjective_ = optimizationObjective;
             }
+
+            /** \brief When this function returns a valid function pointer, that function should be called
+                by planners that compute intermediate solutions every time a better solution is found */
+            const ReportIntermediateSolutionFn& getIntermediateSolutionCallback() const
+            {
+                return intermediateSolutionCallback_;
+            }
+
+            /** \brief Set the callback to be called by planners that can compute intermediate solutions */
+            void setIntermediateSolutionCallback(const ReportIntermediateSolutionFn &callback) {
+                intermediateSolutionCallback_ = callback;
+             }
 
             /** \brief A problem is trivial if a given starting state already
                 in the goal region, so we need no motion planning. startID
@@ -269,7 +306,7 @@ namespace ompl
                 \note When planning under differential constraints,
                 the system is propagated forward in time using the
                 null control. */
-            PathPtr isStraightLinePathValid(void) const;
+            PathPtr isStraightLinePathValid() const;
 
             /** \brief Many times the start or goal state will barely touch an obstacle. In this case, we may want to automatically
               * find a nearby state that is valid so motion planning can be performed. This function enables this behaviour.
@@ -278,51 +315,57 @@ namespace ompl
             bool fixInvalidInputStates(double distStart, double distGoal, unsigned int attempts);
 
             /** \brief Returns true if a solution path has been found (could be approximate) */
-            bool hasSolution(void) const;
+            bool hasSolution() const;
 
             /** \brief Return true if the top found solution is
                 approximate (does not actually reach the desired goal,
                 but hopefully is closer to it) */
-            bool hasApproximateSolution(void) const;
+            bool hasApproximateSolution() const;
 
             /** \brief Get the distance to the desired goal for the top solution. Return -1.0 if there are no solutions available. */
-            double getSolutionDifference(void) const;
+            double getSolutionDifference() const;
 
             /** \brief Return true if the top found solution is optimized (satisfies the specified optimization objective) */
-            bool hasOptimizedSolution(void) const;
+            bool hasOptimizedSolution() const;
 
             /** \brief Return the top solution path, if one is found. The top path is the shortest
                  one that was found, preference being given to solutions that are not approximate.
 
                 This will need to be casted into the specialization computed by the planner */
-            PathPtr getSolutionPath(void) const;
+            PathPtr getSolutionPath() const;
+
+            /** \brief Return true if a top solution is found, with the top solution passed by reference in the function header
+                 The top path is the shortest one that was found, preference being given to solutions that are not approximate.
+                This will need to be casted into the specialization computed by the planner */
+            bool getSolution(PlannerSolution& solution) const;
 
             /** \brief Add a solution path in a thread-safe manner. Multiple solutions can be set for a goal.
                 If a solution does not reach the desired goal it is considered approximate.
                 Optionally, the distance between the desired goal and the one actually achieved is set by \e difference.
+                Optionally, the name of the planner that generated the solution
             */
-            void addSolutionPath(const PathPtr &path, bool approximate = false, double difference = -1.0) const;
+            void addSolutionPath(const PathPtr &path, bool approximate = false, double difference = -1.0, const std::string& plannerName = "Unknown") const;
 
             /** \brief Add a solution path in a thread-safe manner. Multiple solutions can be set for a goal. */
             void addSolutionPath(const PlannerSolution &sol) const;
 
             /** \brief Get the number of solutions already found */
-            std::size_t getSolutionCount(void) const;
+            std::size_t getSolutionCount() const;
 
             /** \brief Get all the solution paths available for this goal */
-            std::vector<PlannerSolution> getSolutions(void) const;
+            std::vector<PlannerSolution> getSolutions() const;
 
             /** \brief Forget the solution paths (thread safe). Memory is freed. */
-            void clearSolutionPaths(void) const;
+            void clearSolutionPaths() const;
 
             /** \brief Returns true if the problem definition has a proof of non existence for a solution */
-            bool hasSolutionNonExistenceProof(void) const;
+            bool hasSolutionNonExistenceProof() const;
 
             /** \brief Removes any existing instance of SolutionNonExistenceProof */
-            void clearSolutionNonExistenceProof(void);
+            void clearSolutionNonExistenceProof();
 
             /** \brief Retrieve a pointer to the SolutionNonExistenceProof instance for this problem definition */
-            const SolutionNonExistenceProofPtr& getSolutionNonExistenceProof(void) const;
+            const SolutionNonExistenceProofPtr& getSolutionNonExistenceProof() const;
 
             /** \brief Set the instance of SolutionNonExistenceProof for this problem definition */
             void setSolutionNonExistenceProof(const SolutionNonExistenceProofPtr& nonExistenceProof);
@@ -349,6 +392,9 @@ namespace ompl
 
             /** \brief The objective to be optimized while solving the planning problem */
             OptimizationObjectivePtr     optimizationObjective_;
+
+            /** \brief Callback function which is called when a new intermediate solution has been found.*/
+            ReportIntermediateSolutionFn     intermediateSolutionCallback_;
 
         private:
 

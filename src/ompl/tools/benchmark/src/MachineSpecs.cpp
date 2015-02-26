@@ -36,6 +36,7 @@
 
 #include "ompl/tools/benchmark/MachineSpecs.h"
 #include "ompl/util/Console.h"
+#include <sstream>
 
 /// @cond IGNORE
 
@@ -47,7 +48,7 @@
 #include <stdio.h>
 #include <psapi.h>
 
-ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
+ompl::machine::MemUsage_t getProcessMemoryUsageAux()
 {
     HANDLE hProcess;
     PROCESS_MEMORY_COUNTERS pmc;
@@ -69,6 +70,23 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
     return result;
 }
 
+std::string getCPUInfoAux()
+{
+    static const int BUF_SIZE = 256;
+    char buffer[BUF_SIZE];
+    std::stringstream result;
+    FILE *cmdPipe = _popen("wmic cpu list full", "rt");
+    if (cmdPipe != NULL)
+    {
+        while (fgets(buffer, BUF_SIZE, cmdPipe))
+            result << buffer;
+        if (feof(cmdPipe))
+            _pclose(cmdPipe);
+    }
+    return result.str();
+}
+
+
 #else
 #if defined __APPLE__
 
@@ -81,7 +99,7 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
 #include <cstring>
 #include <unistd.h>
 
-ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
+ompl::machine::MemUsage_t getProcessMemoryUsageAux()
 {
 
     task_basic_info         info;
@@ -97,6 +115,22 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
     return info.resident_size;
 }
 
+std::string getCPUInfoAux()
+{
+    static const int BUF_SIZE = 256;
+    char buffer[BUF_SIZE];
+    std::stringstream result;
+    FILE *cmdPipe = popen("sysctl hw", "r");
+    if (cmdPipe != NULL)
+    {
+        while (fgets(buffer, BUF_SIZE, cmdPipe))
+            result << buffer;
+        if (feof(cmdPipe))
+            pclose(cmdPipe);
+    }
+    return result.str();
+}
+
 #else
 #if defined _POSIX_VERSION || defined _POSIX2_VERSION || defined __linux__
 // we need a posix compliant os that exposes /proc/self/stat
@@ -106,7 +140,7 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
 #include <iostream>
 #include <fstream>
 
-ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
+ompl::machine::MemUsage_t getProcessMemoryUsageAux()
 {
    using std::ios_base;
    using std::ifstream;
@@ -142,17 +176,39 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
    return 0;
 }
 
+std::string getCPUInfoAux()
+{
+    static const int BUF_SIZE = 4096;
+    char buffer[BUF_SIZE];
+    std::stringstream result;
+    FILE *cmdPipe = popen("lscpu", "r");
+    if (cmdPipe != NULL)
+    {
+        while (fgets(buffer, BUF_SIZE, cmdPipe))
+            result << buffer;
+        if (feof(cmdPipe))
+            pclose(cmdPipe);
+    }
+    return result.str();
+}
+
 #else
 // if we have no idea what to do, we return 0
-ompl::machine::MemUsage_t getProcessMemoryUsageAux(void)
+ompl::machine::MemUsage_t getProcessMemoryUsageAux()
 {
     return 0;
 }
+// if we have no idea what to do, we return an empty string
+std::string getCPUInfoAux()
+{
+    return std::string();
+}
+
 #endif // posix
 #endif // apple
 #endif // windows
 
-ompl::machine::MemUsage_t ompl::machine::getProcessMemoryUsage(void)
+ompl::machine::MemUsage_t ompl::machine::getProcessMemoryUsage()
 {
     MemUsage_t result = getProcessMemoryUsageAux();
     if (result == 0)
@@ -162,7 +218,17 @@ ompl::machine::MemUsage_t ompl::machine::getProcessMemoryUsage(void)
     return result;
 }
 
-std::string ompl::machine::getHostname(void)
+std::string ompl::machine::getCPUInfo()
+{
+    std::string result = getCPUInfoAux();
+    if (result.size() == 0)
+    {
+        OMPL_WARN("Unable to get CPU information");
+    }
+    return result;
+}
+
+std::string ompl::machine::getHostname()
 {
     static const int BUF_SIZE = 1024;
     char buffer[BUF_SIZE];

@@ -41,6 +41,7 @@
 #include "ompl/util/ClassForward.h"
 #include <boost/function.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/type_traits.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -70,12 +71,12 @@ namespace ompl
             {
             }
 
-            virtual ~GenericParam(void)
+            virtual ~GenericParam()
             {
             }
 
             /** \brief Get the name of the parameter */
-            const std::string& getName(void) const
+            const std::string& getName() const
             {
                 return name_;
             }
@@ -90,7 +91,7 @@ namespace ompl
             virtual bool setValue(const std::string &value) = 0;
 
             /** \brief Retrieve the value of the parameter, as a string. */
-            virtual std::string getValue(void) const = 0;
+            virtual std::string getValue() const = 0;
 
             /** \brief Assignment operator by type. This is just for convenience, as it just calls setValue() */
             template<typename T>
@@ -114,12 +115,20 @@ namespace ompl
             }
 
             /** \brief Get the suggested range of values */
-            const std::string& getRangeSuggestion(void) const
+            const std::string& getRangeSuggestion() const
             {
                 return rangeSuggestion_;
             }
 
         protected:
+
+            /** \brief Bool values such as "false" cannot be converted to bool using lexical_cast. We need to
+                map those to "0" or "1". */
+            template<typename T>
+            const std::string& maybeWrapBool(const std::string &value) const
+            {
+                return boost::is_same<T, bool>::value ? truthValueTo01Str(value) : value;
+            }
 
             /** \brief The name of the parameter */
             std::string name_;
@@ -138,6 +147,10 @@ namespace ompl
                   deduced correctly.
             */
             std::string rangeSuggestion_;
+
+         private:
+            /** \brief Map "false", "False", "FALSE",  "F", "f", "0" to "0" and everything else to "1". */
+            static const std::string& truthValueTo01Str(const std::string &value);
         };
 
 
@@ -158,11 +171,11 @@ namespace ompl
             SpecificParam(const std::string &name, const SetterFn &setter, const GetterFn &getter = GetterFn()) :
                 GenericParam(name), setter_(setter), getter_(getter)
             {
-                if (!setter_)
-                    OMPL_ERROR("Setter function must be specified for parameter");
+                if (!setter_ && !getter_)
+                    OMPL_ERROR("At least one setter or getter function must be specified for parameter");
             }
 
-            virtual ~SpecificParam(void)
+            virtual ~SpecificParam()
             {
             }
 
@@ -172,7 +185,7 @@ namespace ompl
                 try
                 {
                     if (setter_)
-                        setter_(boost::lexical_cast<T>(value));
+                        setter_(boost::lexical_cast<T>(GenericParam::maybeWrapBool<T>(value)));
                 }
                 catch (boost::bad_lexical_cast &e)
                 {
@@ -187,7 +200,7 @@ namespace ompl
                 return result;
             }
 
-            virtual std::string getValue(void) const
+            virtual std::string getValue() const
             {
                 if (getter_)
                     try
@@ -211,6 +224,11 @@ namespace ompl
             /** \brief The getter function for this parameter */
             GetterFn getter_;
         };
+
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::ParamSet */
+        OMPL_CLASS_FORWARD(ParamSet);
+        /// @endcond
 
         /** \brief Maintain a set of parameters */
         class ParamSet
@@ -269,7 +287,7 @@ namespace ompl
             void getParamValues(std::vector<std::string> &vals) const;
 
             /** \brief Get the map from parameter names to parameter descriptions */
-            const std::map<std::string, GenericParamPtr>& getParams(void) const;
+            const std::map<std::string, GenericParamPtr>& getParams() const;
 
             /** \brief Get the parameter that corresponds to a specified name. An empty shared ptr is returned if the parameter does not exist */
             const GenericParamPtr& getParam(const std::string &key) const;
@@ -281,13 +299,13 @@ namespace ompl
             GenericParam& operator[](const std::string &key);
 
             /** \brief Get the number of parameters maintained by this instance */
-            std::size_t size(void) const
+            std::size_t size() const
             {
                 return params_.size();
             }
 
             /** \brief Clear all the set parameters */
-            void clear(void);
+            void clear();
 
             /** \brief Print the parameters to a stream */
             void print(std::ostream &out) const;

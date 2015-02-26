@@ -37,6 +37,7 @@
 #include "ompl/tools/benchmark/Benchmark.h"
 #include "ompl/tools/benchmark/MachineSpecs.h"
 #include "ompl/util/Time.h"
+#include "ompl/config.h"
 #include <boost/scoped_ptr.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/progress.hpp>
@@ -118,22 +119,22 @@ namespace ompl
                     memUsed_ = 0;
             }
 
-            double getTimeUsed(void) const
+            double getTimeUsed() const
             {
                 return timeUsed_;
             }
 
-            machine::MemUsage_t getMemUsed(void) const
+            machine::MemUsage_t getMemUsed() const
             {
                 return memUsed_;
             }
 
-            base::PlannerStatus getStatus(void) const
+            base::PlannerStatus getStatus() const
             {
                 return status_;
             }
 
-            const Benchmark::RunProgressData& getRunProgressData(void) const
+            const Benchmark::RunProgressData& getRunProgressData() const
             {
                 return runProgressData_;
             }
@@ -247,7 +248,7 @@ bool ompl::tools::Benchmark::saveResultsToFile(const char *filename) const
     return result;
 }
 
-bool ompl::tools::Benchmark::saveResultsToFile(void) const
+bool ompl::tools::Benchmark::saveResultsToFile() const
 {
     std::string filename = getResultsFilename(exp_);
     return saveResultsToFile(filename.c_str());
@@ -267,10 +268,12 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
         return false;
     }
 
+    out << "OMPL version " << OMPL_VERSION << std::endl;
     out << "Experiment " << (exp_.name.empty() ? "NO_NAME" : exp_.name) << std::endl;
     out << "Running on " << (exp_.host.empty() ? "UNKNOWN" : exp_.host) << std::endl;
     out << "Starting at " << boost::posix_time::to_iso_extended_string(exp_.startTime) << std::endl;
     out << "<<<|" << std::endl << exp_.setupInfo << "|>>>" << std::endl;
+    out << "<<<|" << std::endl << exp_.cpuInfo << "|>>>" << std::endl;
 
     out << exp_.seed << " is the random seed" << std::endl;
     out << exp_.maxTime << " seconds per run" << std::endl;
@@ -413,6 +416,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     exp_.maxMem = req.maxMem;
     exp_.runCount = req.runCount;
     exp_.host = machine::getHostname();
+    exp_.cpuInfo = machine::getCPUInfo();
     exp_.seed = RNG::getSeed();
 
     exp_.startTime = time::now();

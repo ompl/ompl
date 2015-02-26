@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
+if(NOT ${CMAKE_VERSION} VERSION_LESS 3.0.0)
+    cmake_policy(SET CMP0042 OLD)
+endif()
 project(ompl CXX C)
 
 # set the default build type
@@ -21,6 +24,7 @@ if(MSVC OR MSVC90 OR MSVC10)
 endif (MSVC OR MSVC90 OR MSVC10)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
+include(GNUInstallDirs)
 include(CompilerSettings)
 include(OMPLVersion)
 include(OMPLUtils)
@@ -33,8 +37,6 @@ set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
 set(OMPL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(OMPL_DEMO_INSTALL_DIR "share/ompl${OMPL_INSTALL_SUFFIX}/demos"
     CACHE STRING "Relative path to directory where demos will be installed")
-set(OMPL_DOC_INSTALL_DIR "share/ompl${OMPL_INSTALL_SUFFIX}/doc"
-    CACHE STRING "Relative path to directory where documentation will be installed")
 
 include_directories("${OMPL_INCLUDE_DIR}")
 
@@ -74,15 +76,10 @@ else()
 endif()
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
-if (NOT ${Boost_VERSION} LESS 104400)
-  option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" ON)
-  if(${Boost_VERSION} LESS 105300)
-    # Include bundled version of boost::odeint if it isn't installed natively
-    set(ODEINT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/external")
-    include_directories(SYSTEM "${ODEINT_INCLUDE_DIR}")
-  endif()
-else()
-  option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" OFF)
+if(${Boost_VERSION} LESS 105300)
+  # Include bundled version of boost::odeint if it isn't installed natively
+  set(ODEINT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/external")
+  include_directories(SYSTEM "${ODEINT_INCLUDE_DIR}")
 endif()
 
 # on OS X we need to check whether to use libc++ or libstdc++ with clang++
@@ -107,6 +104,9 @@ endif()
 find_package(Threads QUIET)
 
 enable_testing()
+
+find_package(Python QUIET)
+find_package(Boost COMPONENTS python QUIET)
 
 # MORSE is only needed for Modular OpenRobots Simulation Engine bindings
 find_package(MORSE QUIET)
@@ -156,23 +156,14 @@ if (NOT MSVC)
   set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
   configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
   install(FILES "${pkg_conf_file}"
-    DESTINATION lib/pkgconfig/
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
     COMPONENT ompl
     RENAME "ompl${OMPL_INSTALL_SUFFIX}.pc")
 
   install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/markdown/FindOMPL.cmake"
-    DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}"
+    DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
     COMPONENT ompl
     RENAME ompl-config.cmake)
-  if (NOT ${CMAKE_VERSION} VERSION_LESS 2.8.6)
-    include(WriteBasicConfigVersionFile)
-    write_basic_config_version_file(
-      "${CMAKE_CURRENT_BINARY_DIR}/ompl-config-version.cmake"
-      VERSION ${OMPL_VERSION} COMPATIBILITY SameMajorVersion)
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ompl-config-version.cmake"
-      DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}"
-      COMPONENT ompl)
-  endif()
 endif()
 
 # uninstall target

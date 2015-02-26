@@ -18,13 +18,11 @@ The second step is to edit \c ompl/py-bindings/generate_bindings.py. For geometr
 
     # do this for all planners
 
-in the \c filter_declarations() method of the \c ompl_geometric_generator_t class. In the line below it, add the name of your planner to the end of the list. For control-based planners, do the same thing in the \c ompl_control_generator_t class. Additionally, if you have both a geometric and control-based version of your planner and both have the same name, then you need to add your planner's name to the list below this line:
-
-    # do this for all classes that exist with the same name in another namespace
+in the \c filter_declarations() method of the \c ompl_geometric_generator_t class. In the line below it, add the name of your planner to the end of the list. For control-based planners, do the same thing in the \c ompl_control_generator_t class.
 
 The next step is to regenerate the python bindings. It safest to remove the old ones first. Go to your build directory and type the following commands:
 
-    make clear_bindings
+    make clean_bindings
     make -j 3 update_bindings
 
 If something went wrong, the errors will be listed in pyplusplus_geometric.log and pyplusplus_control.log. If Py++ produces errors for methods that are not really needed at the Python level, you can explicitly exclude them in \c ompl/py-bindings/generate_bindings.py.

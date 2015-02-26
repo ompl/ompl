@@ -134,7 +134,7 @@ namespace ompl
                 }
             }
 
-            ~MorseEnvironment(void)
+            ~MorseEnvironment()
             {
             }
 

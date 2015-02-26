@@ -397,7 +397,7 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
 
     base::Cost w;
     BOOST_CHECK(data.getEdgeWeight(0, 1, &w));
-    BOOST_OMPL_EXPECT_NEAR( w.v, 1.234, 1e-4);
+    BOOST_OMPL_EXPECT_NEAR(w.value(), 1.234, 1e-4);
 
     BOOST_CHECK_EQUAL( data.getEdgeWeight(0, 5, &w), false ); // edge does not exist
     BOOST_CHECK_EQUAL( data.setEdgeWeight(0, 5, base::Cost(2.345)), false );

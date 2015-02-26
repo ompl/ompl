@@ -37,12 +37,6 @@
 #ifndef OMPL_BASE_PLANNER_DATA_STORAGE_
 #define OMPL_BASE_PLANNER_DATA_STORAGE_
 
-// PlannerDataStorage requires Boost version >= 1.44
-#include <boost/version.hpp>
-#if BOOST_VERSION < 104400
-#warning Boost version >= 1.44 is required for PlannerDataStorage classes
-#else
-
 #include "ompl/base/PlannerData.h"
 #include "ompl/util/Console.h"
 #include <boost/archive/binary_oarchive.hpp>
@@ -87,25 +81,25 @@ namespace ompl
         public:
 
             /// \brief Default constructor.
-            PlannerDataStorage(void);
+            PlannerDataStorage();
             /// \brief Destructor
-            virtual ~PlannerDataStorage(void);
+            virtual ~PlannerDataStorage();
 
             /// \brief Store (serialize) the PlannerData structure to the given filename.
-            virtual void store(const PlannerData& pd, const char *filename);
+            virtual void store(const PlannerData &pd, const char *filename);
 
             /// \brief Store (serialize) the PlannerData structure to the given stream.
-            virtual void store(const PlannerData& pd, std::ostream &out);
+            virtual void store(const PlannerData &pd, std::ostream &out);
 
             /// \brief Load the PlannerData structure from the given stream.
             /// The StateSpace that was used to store the data must match the
             /// StateSpace inside of the argument PlannerData.
-            virtual void load(const char *filename, PlannerData& pd);
+            virtual void load(const char *filename, PlannerData &pd);
 
             /// \brief Load the PlannerData structure from the given stream.
             /// The StateSpace that was used to store the data must match the
             /// StateSpace inside of the argument PlannerData.
-            virtual void load(std::istream &in, PlannerData& pd);
+            virtual void load(std::istream &in, PlannerData &pd);
 
         protected:
             /// \brief Information stored at the beginning of the PlannerData archive
@@ -152,7 +146,7 @@ namespace ompl
                     ar & type_;
                 }
 
-                const PlannerDataVertex* v_;
+                const PlannerDataVertex *v_;
                 std::vector<unsigned char> state_;
                 VertexType type_;
             };
@@ -168,7 +162,7 @@ namespace ompl
                     ar & weight_;
                 }
 
-                const PlannerDataEdge* e_;
+                const PlannerDataEdge *e_;
                 std::pair<unsigned int, unsigned int> endpoints_;
                 double weight_;
             };
@@ -176,8 +170,6 @@ namespace ompl
             /// \brief Read \e numVertices from the binary input \e ia and store them as PlannerData.
             virtual void loadVertices(PlannerData &pd, unsigned int numVertices, boost::archive::binary_iarchive &ia)
             {
-                OMPL_DEBUG("Loading %d PlannerDataVertex objects", numVertices);
-
                 const StateSpacePtr &space = pd.getSpaceInformation()->getStateSpace();
                 std::vector<State*> states;
                 for (unsigned int i = 0; i < numVertices; ++i)
@@ -189,7 +181,7 @@ namespace ompl
                     const PlannerDataVertex *v = vertexData.v_;
 
                     // Allocating a new state and deserializing it from the buffer
-                    State* state = space->allocState();
+                    State *state = space->allocState();
                     states.push_back(state);
                     space->deserialize (state, &vertexData.state_[0]);
                     const_cast<PlannerDataVertex*>(v)->state_ = state;
@@ -221,8 +213,6 @@ namespace ompl
             /// \brief Serialize and store all vertices in \e pd to the binary archive.
             virtual void storeVertices(const PlannerData &pd, boost::archive::binary_oarchive &oa)
             {
-                OMPL_DEBUG("Storing %d PlannerDataVertex objects", pd.numVertices());
-
                 const StateSpacePtr &space = pd.getSpaceInformation()->getStateSpace();
                 std::vector<unsigned char> state (space->getSerializationLength());
                 for (unsigned int i = 0; i < pd.numVertices(); ++i)
@@ -251,8 +241,6 @@ namespace ompl
             /// \brief Read \e numEdges from the binary input \e ia and store them as PlannerData.
             virtual void loadEdges(PlannerData &pd, unsigned int numEdges, boost::archive::binary_iarchive &ia)
             {
-                OMPL_DEBUG("Loading %d PlannerDataEdge objects", numEdges);
-
                 for (unsigned int i = 0; i < numEdges; ++i)
                 {
                     PlannerDataEdgeData edgeData;
@@ -268,8 +256,6 @@ namespace ompl
             /// \brief Serialize and store all edges in \e pd to the binary archive.
             virtual void storeEdges(const PlannerData &pd, boost::archive::binary_oarchive &oa)
             {
-                OMPL_DEBUG("Storing %d PlannerDataEdge objects", pd.numEdges());
-
                 for (unsigned int i = 0; i < pd.numVertices(); ++i)
                     for (unsigned int j = 0; j < pd.numVertices(); ++j)
                     {
@@ -281,7 +267,7 @@ namespace ompl
                             edgeData.endpoints_.second = j;
                             Cost weight;
                             pd.getEdgeWeight(i, j, &weight);
-                            edgeData.weight_ = weight.v;
+                            edgeData.weight_ = weight.value();
 
                             oa << edgeData;
                         }
@@ -290,7 +276,5 @@ namespace ompl
         };
     }
 }
-
-#endif
 
 #endif

@@ -52,9 +52,9 @@ namespace ompl
            The basic idea is to grow to RRTs, one from the start and
            one from the goal, and attempt to connect them.
            @par External documentation
-           J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844730">10.1109/ROBOT.2000.844730</a><br>
-           <a href="http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246">[PDF]</a>
-           <a href="http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html">[more]</a>
+           J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI: [10.1109/ROBOT.2000.844730](http://dx.doi.org/10.1109/ROBOT.2000.844730)<br>
+           [[PDF]](http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246)
+           [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
         */
 
         /** \brief RRT-Connect (RRTConnect) */
@@ -65,13 +65,13 @@ namespace ompl
             /** \brief Constructor */
             RRTConnect(const base::SpaceInformationPtr &si);
 
-            virtual ~RRTConnect(void);
+            virtual ~RRTConnect();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set the range the planner is supposed to use.
 
@@ -84,20 +84,20 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 tStart_.reset(new NN<Motion*>());
                 tGoal_.reset(new NN<Motion*>());
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
         protected:
 
@@ -106,7 +106,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : root(NULL), state(NULL), parent(NULL)
+                Motion() : root(NULL), state(NULL), parent(NULL)
                 {
                     parent = NULL;
                     state  = NULL;
@@ -116,7 +116,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -149,10 +149,10 @@ namespace ompl
                 };
 
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Compute distance between motions (actually distance between contained states) */
-            double distanceFunction(const Motion* a, const Motion* b) const
+            double distanceFunction(const Motion *a, const Motion *b) const
             {
                 return si_->distance(a->state, b->state);
             }

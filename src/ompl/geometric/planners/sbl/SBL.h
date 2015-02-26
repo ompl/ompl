@@ -76,8 +76,8 @@ namespace ompl
            no default projection is available either.
            @par External documentation
            G. Sánchez and J.-C. Latombe, A single-query bi-directional probabilistic roadmap planner with lazy collision checking, in <em>The Tenth International Symposium on Robotics Research</em>, pp. 403–417, 2001.
-           DOI: <a href="http://dx.doi.org/10.1007/3-540-36460-9_27">10.1007/3-540-36460-9_27</a><br>
-           <a href="http://www.springerlink.com/content/9843341054386hh6/fulltext.pdf">[PDF]</a>
+           DOI: [10.1007/3-540-36460-9_27](http://dx.doi.org/10.1007/3-540-36460-9_27)<br>
+           [[PDF]](http://www.springerlink.com/content/9843341054386hh6/fulltext.pdf)
         */
 
         /** \brief Single-Query Bi-Directional Probabilistic Roadmap
@@ -89,7 +89,7 @@ namespace ompl
             /** \brief The constructor needs the instance of the space information */
             SBL(const base::SpaceInformationPtr &si);
 
-            virtual ~SBL(void);
+            virtual ~SBL();
 
             /** \brief Set the projection evaluator. This class is
                 able to compute the projection of a given state. */
@@ -106,7 +106,7 @@ namespace ompl
             }
 
             /** \brief Get the projection evaluator. */
-            const base::ProjectionEvaluatorPtr& getProjectionEvaluator(void) const
+            const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
             {
                 return projectionEvaluator_;
             }
@@ -122,16 +122,16 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
@@ -151,7 +151,7 @@ namespace ompl
             public:
 
                 /** \brief Default constructor. Allocates no memory */
-                Motion(void) : root(NULL), state(NULL), parent(NULL), valid(false)
+                Motion() : root(NULL), state(NULL), parent(NULL), valid(false)
                 {
                 }
 
@@ -183,35 +183,35 @@ namespace ompl
                 {
                     return motions_[i];
                 }
-                std::vector<Motion*>::iterator begin (void)
+                std::vector<Motion*>::iterator begin()
                 {
-                    return motions_.begin ();
+                    return motions_.begin();
                 }
-                void erase (std::vector<Motion*>::iterator iter)
+                void erase(std::vector<Motion*>::iterator iter)
                 {
-                    motions_.erase (iter);
+                    motions_.erase(iter);
                 }
-                void push_back(Motion* m)
+                void push_back(Motion *m)
                 {
                     motions_.push_back(m);
                 }
-                unsigned int size(void) const
+                unsigned int size() const
                 {
                     return motions_.size();
                 }
-                bool empty(void) const
+                bool empty() const
                 {
                     return motions_.empty();
                 }
 
                 std::vector<Motion*> motions_;
-                CellPDF::Element*    elem_;
+                CellPDF::Element    *elem_;
             };
 
             /** \brief Representation of a search tree. Two instances will be used. One for start and one for goal */
             struct TreeData
             {
-                TreeData(void) : grid(0), size(0)
+                TreeData() : grid(0), size(0)
                 {
                 }
 
@@ -226,7 +226,7 @@ namespace ompl
             };
 
             /** \brief Free the memory allocated by the planner */
-            void freeMemory(void)
+            void freeMemory()
             {
                 freeGridMotions(tStart_.grid);
                 freeGridMotions(tGoal_.grid);

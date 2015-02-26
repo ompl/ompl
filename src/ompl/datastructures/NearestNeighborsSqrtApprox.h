@@ -57,15 +57,15 @@ namespace ompl
     class NearestNeighborsSqrtApprox : public NearestNeighborsLinear<_T>
     {
     public:
-        NearestNeighborsSqrtApprox(void) : NearestNeighborsLinear<_T>(), checks_(0), offset_(0)
+        NearestNeighborsSqrtApprox() : NearestNeighborsLinear<_T>(), checks_(0), offset_(0)
         {
         }
 
-        virtual ~NearestNeighborsSqrtApprox(void)
+        virtual ~NearestNeighborsSqrtApprox()
         {
         }
 
-        virtual void clear(void)
+        virtual void clear()
         {
             NearestNeighborsLinear<_T>::clear();
             checks_ = 0;
@@ -122,7 +122,7 @@ namespace ompl
     protected:
 
         /** \brief The maximum number of checks to perform when searching for a nearest neighbor */
-        inline void updateCheckCount(void)
+        inline void updateCheckCount()
         {
             checks_ = 1 + (std::size_t)floor(sqrt((double)NearestNeighborsLinear<_T>::data_.size()));
         }

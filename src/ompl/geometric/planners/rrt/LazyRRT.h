@@ -65,13 +65,13 @@ namespace ompl
            found, the invalid path segments are removed and the search
            process is continued.
            @par External documentation
-           - J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844730">10.1109/ROBOT.2000.844730</a><br>
-           <a href="http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246">[PDF]</a>
-           <a href="http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html">[more]</a>
+           - J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI: [10.1109/ROBOT.2000.844730](http://dx.doi.org/10.1109/ROBOT.2000.844730)<br>
+           [[PDF]](http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246)
+           [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
            - R. Bohlin and L.E. Kavraki, A Randomized Algorithm for Robot Path Planning Based on Lazy Evaluation, in <em>Handbook on Randomized Computing</em>, pp. 221–249, 2001.<br>
-           <a href="http://www.kavrakilab.org/sites/default/files/bohlin2001lazy-evaluation.pdf">[PDF]</a>
-           - R. Bohlin and L.E. Kavraki, Path planning using lazy PRM, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 521–528, 2000. DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844107">10.1109/ROBOT.2000.844107</a><br>
-           <a href="http://ieeexplore.ieee.org/ielx5/6794/18235/00844107.pdf?tp=&arnumber=844107&isnumber=18235">[PDF]
+           [[PDF]](http://www.kavrakilab.org/sites/default/files/bohlin2001lazy-evaluation.pdf)
+           - R. Bohlin and L.E. Kavraki, Path planning using lazy PRM, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 521–528, 2000. DOI: [10.1109/ROBOT.2000.844107](http://dx.doi.org/10.1109/ROBOT.2000.844107)<br>
+           [[PDF]](http://ieeexplore.ieee.org/ielx5/6794/18235/00844107.pdf?tp=&arnumber=844107&isnumber=18235)
         */
 
         /** \brief Lazy RRT */
@@ -82,13 +82,13 @@ namespace ompl
             /** \brief Constructor */
             LazyRRT(const base::SpaceInformationPtr &si);
 
-            virtual ~LazyRRT(void);
+            virtual ~LazyRRT();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set the goal biasing.
 
@@ -105,7 +105,7 @@ namespace ompl
             }
 
             /** \brief Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -121,19 +121,19 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 nn_.reset(new NN<Motion*>());
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
         protected:
 
@@ -142,7 +142,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : state(NULL), parent(NULL), valid(false)
+                Motion() : state(NULL), parent(NULL), valid(false)
                 {
                 }
 
@@ -151,7 +151,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -169,13 +169,13 @@ namespace ompl
             };
 
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Remove a motion from the tree datastructure */
             void removeMotion(Motion *motion);
 
             /** \brief Compute distance between motions (actually distance between contained states) */
-            double distanceFunction(const Motion* a, const Motion* b) const
+            double distanceFunction(const Motion *a, const Motion *b) const
             {
                 return si_->distance(a->state, b->state);
             }

@@ -73,7 +73,7 @@ namespace ompl
            A. Dobson, A. Krontiris, K. Bekris,
            Sparse Roadmap Spanners,
            <em>Workshop on the Algorithmic Foundations of Robotics (WAFR)</em> 2012.
-           <a href="http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf">[PDF]</a>
+           [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf)
          */
 
         /** \brief <b> SPArse Roadmap Spanner technique. </b> */
@@ -150,7 +150,7 @@ namespace ompl
                 boost::property < vertex_color_t, GuardType,
                 boost::property < vertex_list_t, std::set<VertexIndexType>,
                 boost::property < vertex_interface_list_t, InterfaceHashStruct > > > > > >,
-                boost::property < boost::edge_weight_t, double >
+                boost::property < boost::edge_weight_t, base::Cost >
             > SpannerGraph;
 
             /** \brief A vertex in the sparse roadmap that is constructed */
@@ -198,7 +198,7 @@ namespace ompl
             /** \brief Constructor. */
             SPARS(const base::SpaceInformationPtr &si);
             /** \brief Destructor. */
-            virtual ~SPARS(void);
+            virtual ~SPARS();
 
             virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
 
@@ -229,9 +229,9 @@ namespace ompl
                 Subsequent calls to solve() will reuse the previously computed roadmap,
                 but will clear the set of input states constructed by the previous call to solve().
                 This enables multi-query functionality for PRM. */
-            void clearQuery(void);
+            void clearQuery();
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set a different nearest neighbors datastructure for the roadmap graph.
                 This nearest neighbor structure contains only information on the nodes
@@ -239,7 +239,7 @@ namespace ompl
                 near-neighbor queries for the construction of that graph as well as for
                 determining which dense samples the sparse roadmap nodes should represent.*/
             template<template<typename T> class NN>
-            void setDenseNeighbors(void)
+            void setDenseNeighbors()
             {
                 nn_.reset(new NN<DenseVertex>());
                 connectionStrategy_.clear();
@@ -252,7 +252,7 @@ namespace ompl
                 the construction of the spanner.  It can also be queried to determine which
                 node in the spanner should represent a given state.*/
             template<template<typename T> class NN>
-            void setSparseNeighbors(void)
+            void setSparseNeighbors()
             {
                 snn_.reset(new NN<SparseVertex>());
                 if (isSetup())
@@ -298,65 +298,75 @@ namespace ompl
             }
 
             /** \brief Retrieve the maximum consecutive failure limit. */
-            unsigned getMaxFailures(void) const
+            unsigned getMaxFailures() const
             {
                 return maxFailures_;
             }
 
             /** \brief Retrieve the dense graph interface support delta fraction. */
-            double getDenseDeltaFraction(void) const
+            double getDenseDeltaFraction() const
             {
                 return denseDeltaFraction_;
             }
 
             /** \brief Retrieve the sparse graph visibility range delta fraction. */
-            double getSparseDeltaFraction(void) const
+            double getSparseDeltaFraction() const
             {
                 return sparseDeltaFraction_;
             }
 
             /** \brief Retrieve the spanner's set stretch factor. */
-            double getStretchFactor(void) const
+            double getStretchFactor() const
             {
                 return stretchFactor_;
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
-            /** \brief Retrieve the underlying dense graph structure.  This is built as a PRM*
-                and asymptotically approximates best paths through the space. */
-            const DenseGraph& getDenseGraph(void) const
+            /** \brief Retrieve the underlying dense graph structure.  This is built as a PRM* and asymptotically approximates best paths through the space. */
+            const DenseGraph& getDenseGraph() const
             {
                 return g_;
             }
 
             /** \brief Retrieve the sparse roadmap structure.  This is the structure which
                 answers given queries, and has the desired property of asymptotic near-optimality.*/
-            const SpannerGraph& getRoadmap(void) const
+            const SpannerGraph& getRoadmap() const
             {
                 return s_;
             }
 
             /** \brief Returns the number of milestones added to D */
-            unsigned int milestoneCount(void) const
+            unsigned int milestoneCount() const
             {
                 return boost::num_vertices(g_);
             }
 
             /** \brief Returns the number of guards added to S */
-            unsigned int guardCount(void) const
+            unsigned int guardCount() const
             {
                 return boost::num_vertices(s_);
             }
 
-            /** \brief Get the number of iterations the algorithm performed */
-            long unsigned int getIterations(void) const
-            {
-                return iterations_;
-            }
-
             /** \brief Returns the average valence of the spanner graph */
-            double averageValence(void) const;
+            double averageValence() const;
+
+            /** \brief Print debug information about planner */
+            void printDebug(std::ostream &out = std::cout) const;
+
+            /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_  */
+            bool reachedFailureLimit() const;
+
+            ///////////////////////////////////////
+            // Planner progress property functions
+            std::string getIterationCount() const
+            {
+                return boost::lexical_cast<std::string>(iterations_);
+            }
+            std::string getBestCost() const
+            {
+                return boost::lexical_cast<std::string>(bestCost_);
+            }
 
         protected:
 
@@ -364,7 +374,7 @@ namespace ompl
             DenseVertex addSample(base::State *workState, const base::PlannerTerminationCondition &ptc);
 
             /** \brief Check that the query vertex is initialized (used for internal nearest neighbor searches) */
-            void checkQueryStateInitialization(void);
+            void checkQueryStateInitialization();
 
             /** \brief Check that two vertices are in the same connected component */
             bool sameComponent(SparseVertex m1, SparseVertex m2);
@@ -382,10 +392,10 @@ namespace ompl
             void connectDensePoints(DenseVertex v, DenseVertex vp);
 
             /** \brief Checks the latest dense sample for the coverage property, and adds appropriately. */
-            bool checkAddCoverage(const base::State* lastState, const std::vector<SparseVertex> &neigh);
+            bool checkAddCoverage(const base::State *lastState, const std::vector<SparseVertex> &neigh);
 
             /** \brief Checks the latest dense sample for connectivity, and adds appropriately. */
-            bool checkAddConnectivity(const base::State* lastState, const std::vector<SparseVertex> &neigh);
+            bool checkAddConnectivity(const base::State *lastState, const std::vector<SparseVertex> &neigh);
 
             /** \brief Checks the latest dense sample for bridging an edge-less interface */
             bool checkAddInterface(const std::vector<DenseVertex>& graphNeighborhood, const std::vector<DenseVertex>& visibleNeighborhood, DenseVertex q);
@@ -397,7 +407,7 @@ namespace ompl
             DenseVertex getInterfaceNeighbor(DenseVertex q, SparseVertex rep);
 
             /** \brief Method for actually adding a dense path to the Roadmap Spanner, S. */
-            bool addPathToSpanner(const DensePath& p, SparseVertex vp, SparseVertex vpp);
+            bool addPathToSpanner(const DensePath &p, SparseVertex vp, SparseVertex vpp);
 
             /** \brief Automatically updates the representatives of all dense samplse within sparseDelta_ of v */
             void updateRepresentatives(SparseVertex v);
@@ -418,7 +428,7 @@ namespace ompl
             void computeX(DenseVertex v, DenseVertex vp, DenseVertex vpp, std::vector<SparseVertex> &Xs);
 
             /** \brief A reset function for resetting the failures count */
-            void resetFailures(void);
+            void resetFailures();
 
             /** Thread that checks for solution */
             void checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution);
@@ -427,10 +437,7 @@ namespace ompl
             bool haveSolution(const std::vector<DenseVertex> &start, const std::vector<DenseVertex> &goal, base::PathPtr &solution);
 
             /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_ or if a solution was added */
-            bool reachedTerminationCriterion(void) const;
-
-            /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_  */
-            bool reachedFailureLimit(void) const;
+            bool reachedTerminationCriterion() const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
             base::PathPtr constructSolution(const SparseVertex start, const SparseVertex goal) const;
@@ -439,13 +446,13 @@ namespace ompl
             void computeDensePath(const DenseVertex start, const DenseVertex goal, DensePath &path) const;
 
             /** \brief Free all the memory allocated by the planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Get all nodes in the sparse graph which are within sparseDelta_ of the given state. */
-            void getSparseNeighbors(base::State* inState, std::vector< SparseVertex > &graphNeighborhood);
+            void getSparseNeighbors(base::State *inState, std::vector< SparseVertex > &graphNeighborhood);
 
             /** \brief Get the visible neighbors */
-            void filterVisibleNeighbors(base::State* inState, const std::vector<SparseVertex> &graphNeighborhood, std::vector<SparseVertex> &visibleNeighborhood) const;
+            void filterVisibleNeighbors(base::State *inState, const std::vector<SparseVertex> &graphNeighborhood, std::vector<SparseVertex> &visibleNeighborhood) const;
 
             /** \brief Gets the representatives of all interfaces that q supports */
             void getInterfaceNeighborRepresentatives(DenseVertex q, std::set<SparseVertex> &interfaceRepresentatives);
@@ -529,13 +536,10 @@ namespace ompl
                                                                                 sparseDJSets_;
 
             /** \brief Function that returns the milestones to attempt connections with */
-            boost::function<std::vector<DenseVertex>&(const DenseVertex)>       connectionStrategy_;
+            boost::function<const std::vector<DenseVertex>&(const DenseVertex)> connectionStrategy_;
 
             /** \brief A counter for the number of consecutive failed iterations of the algorithm */
             unsigned int                                                        consecutiveFailures_;
-
-            /** \brief A counter for the number of iterations of the algorithm */
-            long unsigned int                                                   iterations_;
 
             /** \brief The stretch factor in terms of graph spanners for SPARS to check against */
             double                                                              stretchFactor_;
@@ -564,6 +568,18 @@ namespace ompl
             /** \brief Mutex to guard access to the graphs */
             mutable boost::mutex                                                graphMutex_;
 
+            /** \brief Objective cost function for PRM graph edges */
+            base::OptimizationObjectivePtr                                      opt_;
+
+            /** \brief Given two vertices, returns a heuristic on the cost of the path connecting them. This method wraps OptimizationObjective::motionCostHeuristic */
+            base::Cost costHeuristic(SparseVertex u, SparseVertex v) const;
+
+            //////////////////////////////
+            // Planner progress properties
+            /** \brief A counter for the number of iterations of the algorithm */
+            long unsigned int                                                   iterations_;
+            /** \brief Best cost found so far by algorithm */
+            base::Cost                                                          bestCost_;
         };
 
     }

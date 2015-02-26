@@ -67,7 +67,7 @@ namespace ompl
             }
 
         private:
-            const Circles2D &circles_;
+            const Circles2D circles_;
         };
 
         static base::SpaceInformationPtr spaceInformation2DCircles(const Circles2D &circles)

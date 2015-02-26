@@ -63,7 +63,7 @@ void ompl::base::TimeStateSampler::sampleGaussian(State *state, const State *mea
     space_->enforceBounds(state);
 }
 
-unsigned int ompl::base::TimeStateSpace::getDimension(void) const
+unsigned int ompl::base::TimeStateSpace::getDimension() const
 {
     return 1;
 }
@@ -78,9 +78,14 @@ void ompl::base::TimeStateSpace::setBounds(double minTime, double maxTime)
     bounded_ = true;
 }
 
-double ompl::base::TimeStateSpace::getMaximumExtent(void) const
+double ompl::base::TimeStateSpace::getMaximumExtent() const
 {
     return bounded_ ? maxTime_ - minTime_ : 1.0;
+}
+
+double ompl::base::TimeStateSpace::getMeasure() const
+{
+    return getMaximumExtent();
 }
 
 void ompl::base::TimeStateSpace::enforceBounds(State *state) const
@@ -106,7 +111,7 @@ void ompl::base::TimeStateSpace::copyState(State *destination, const State *sour
     destination->as<StateType>()->position = source->as<StateType>()->position;
 }
 
-unsigned int ompl::base::TimeStateSpace::getSerializationLength(void) const
+unsigned int ompl::base::TimeStateSpace::getSerializationLength() const
 {
     return sizeof(double);
 }
@@ -137,12 +142,12 @@ void ompl::base::TimeStateSpace::interpolate(const State *from, const State *to,
         (to->as<StateType>()->position - from->as<StateType>()->position) * t;
 }
 
-ompl::base::StateSamplerPtr ompl::base::TimeStateSpace::allocDefaultStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::TimeStateSpace::allocDefaultStateSampler() const
 {
     return StateSamplerPtr(new TimeStateSampler(this));
 }
 
-ompl::base::State* ompl::base::TimeStateSpace::allocState(void) const
+ompl::base::State* ompl::base::TimeStateSpace::allocState() const
 {
     return new StateType();
 }
@@ -152,7 +157,7 @@ void ompl::base::TimeStateSpace::freeState(State *state) const
     delete static_cast<StateType*>(state);
 }
 
-void ompl::base::TimeStateSpace::registerProjections(void)
+void ompl::base::TimeStateSpace::registerProjections()
 {
     class TimeDefaultProjection : public ProjectionEvaluator
     {
@@ -162,12 +167,12 @@ void ompl::base::TimeStateSpace::registerProjections(void)
         {
         }
 
-        virtual unsigned int getDimension(void) const
+        virtual unsigned int getDimension() const
         {
             return 1;
         }
 
-        virtual void defaultCellSizes(void)
+        virtual void defaultCellSizes()
         {
             cellSizes_.resize(1);
             if (space_->as<TimeStateSpace>()->isBounded())

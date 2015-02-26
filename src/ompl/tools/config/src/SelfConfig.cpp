@@ -36,6 +36,12 @@
 
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/tools/config/MagicConstants.h"
+#include "ompl/geometric/planners/rrt/RRTConnect.h"
+#include "ompl/geometric/planners/rrt/RRT.h"
+#include "ompl/geometric/planners/kpiece/LBKPIECE1.h"
+#include "ompl/geometric/planners/kpiece/KPIECE1.h"
+#include "ompl/control/planners/rrt/RRT.h"
+#include "ompl/control/planners/kpiece/KPIECE1.h"
 #include "ompl/util/Console.h"
 #include <boost/thread/mutex.hpp>
 #include <boost/shared_ptr.hpp>
@@ -62,7 +68,7 @@ namespace ompl
             {
             }
 
-            double getProbabilityOfValidState(void)
+            double getProbabilityOfValidState()
             {
                 base::SpaceInformationPtr si = wsi_.lock();
                 checkSetup(si);
@@ -71,7 +77,7 @@ namespace ompl
                 return probabilityOfValidState_;
             }
 
-            double getAverageValidMotionLength(void)
+            double getAverageValidMotionLength()
             {
                 base::SpaceInformationPtr si = wsi_.lock();
                 checkSetup(si);
@@ -128,7 +134,7 @@ namespace ompl
                     out << "EXPIRED" << std::endl;
             }
 
-            bool expired(void) const
+            bool expired() const
             {
                 return wsi_.expired();
             }
@@ -199,19 +205,19 @@ ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const s
     }
 }
 
-ompl::tools::SelfConfig::~SelfConfig(void)
+ompl::tools::SelfConfig::~SelfConfig()
 {
 }
 
 /* ------------------------------------------------------------------------ */
 
-double ompl::tools::SelfConfig::getProbabilityOfValidState(void)
+double ompl::tools::SelfConfig::getProbabilityOfValidState()
 {
     boost::mutex::scoped_lock iLock(impl_->lock_);
     return impl_->getProbabilityOfValidState();
 }
 
-double ompl::tools::SelfConfig::getAverageValidMotionLength(void)
+double ompl::tools::SelfConfig::getAverageValidMotionLength()
 {
     boost::mutex::scoped_lock iLock(impl_->lock_);
     return impl_->getAverageValidMotionLength();
@@ -239,4 +245,46 @@ void ompl::tools::SelfConfig::print(std::ostream &out) const
 {
     boost::mutex::scoped_lock iLock(impl_->lock_);
     impl_->print(out);
+}
+
+ompl::base::PlannerPtr ompl::tools::SelfConfig::getDefaultPlanner(const base::GoalPtr &goal)
+{
+    base::PlannerPtr planner;
+    if (!goal)
+        throw Exception("Unable to allocate default planner for unspecified goal definition");
+
+    base::SpaceInformationPtr si(goal->getSpaceInformation());
+    control::SpaceInformationPtr siC(boost::dynamic_pointer_cast<control::SpaceInformation, base::SpaceInformation>(si));
+    if (siC) // kinodynamic planning
+    {
+        // if we have a default projection
+        if (siC->getStateSpace()->hasDefaultProjection())
+            planner = base::PlannerPtr(new control::KPIECE1(siC));
+        // otherwise use a single-tree planner
+        else
+            planner = base::PlannerPtr(new control::RRT(siC));
+    }
+    // if we can sample the goal region, use a bi-directional planner
+    else if (goal->hasType(base::GOAL_SAMPLEABLE_REGION))
+    {
+        // if we have a default projection
+        if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection())
+            planner = base::PlannerPtr(new geometric::LBKPIECE1(goal->getSpaceInformation()));
+        else
+            planner = base::PlannerPtr(new geometric::RRTConnect(goal->getSpaceInformation()));
+    }
+    // otherwise use a single-tree planner
+    else
+    {
+        // if we have a default projection
+        if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection())
+            planner = base::PlannerPtr(new geometric::KPIECE1(goal->getSpaceInformation()));
+        else
+            planner = base::PlannerPtr(new geometric::RRT(goal->getSpaceInformation()));
+    }
+
+    if (!planner)
+        throw Exception("Unable to allocate default planner");
+
+    return planner;
 }

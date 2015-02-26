@@ -40,12 +40,17 @@
 #include "../BoostTestTeamCityReporter.h"
 #include <cstring>
 #include <cstdlib>
+#include <iostream>
 
 using namespace ompl;
 
 /* Just test we get some random values */
 BOOST_AUTO_TEST_CASE(Simple)
 {
+    BOOST_CHECK(machine::getHostname().size() > 0);
+
+    BOOST_CHECK(machine::getCPUInfo().size() > 0);
+
     machine::MemUsage_t start = machine::getProcessMemoryUsage();
 
     const unsigned int mb = 39;

@@ -54,11 +54,11 @@ namespace ompl
         /** \brief The definition of a distance function */
         typedef boost::function<double(const _T&, const _T&)> DistanceFunction;
 
-        NearestNeighbors(void)
+        NearestNeighbors()
         {
         }
 
-        virtual ~NearestNeighbors(void)
+        virtual ~NearestNeighbors()
         {
         }
 
@@ -69,13 +69,17 @@ namespace ompl
         }
 
         /** \brief Get the distance function used */
-        const DistanceFunction& getDistanceFunction(void) const
+        const DistanceFunction& getDistanceFunction() const
         {
             return distFun_;
         }
 
+        /** \brief Return true if the solutions reported by this data structure
+            are sorted, when calling nearestK / nearestR. */
+        virtual bool reportsSortedResults() const = 0;
+
         /** \brief Clear the datastructure */
-        virtual void clear(void) = 0;
+        virtual void clear() = 0;
 
         /** \brief Add an element to the datastructure */
         virtual void add(const _T &data) = 0;
@@ -108,7 +112,7 @@ namespace ompl
         virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const = 0;
 
         /** \brief Get the number of elements in the datastructure */
-        virtual std::size_t size(void) const = 0;
+        virtual std::size_t size() const = 0;
 
         /** \brief Get all the elements in the datastructure */
         virtual void list(std::vector<_T> &data) const = 0;

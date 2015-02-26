@@ -43,6 +43,8 @@
 #include <boost/noncopyable.hpp>
 #include <boost/concept_check.hpp>
 
+#include <iostream>
+
 namespace ompl
 {
     namespace base
@@ -57,46 +59,39 @@ namespace ompl
         OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
 
-        /// @cond IGNORE
-        OMPL_CLASS_FORWARD(Path);
-        /// @endcond
-
         /** \class ompl::base::OptimizationObjectivePtr
             \brief A boost shared pointer wrapper for ompl::base::OptimizationObjective */
 
         /** \brief Abstract definition of optimization objectives.
 
-            \note This implementation has greatly benefited from discussions with <a href="http://www.cs.indiana.edu/~hauserk/">Kris Hauser</a> */
+            \note This implementation has greatly benefited from discussions with Kris Hauser */
         class OptimizationObjective : private boost::noncopyable
         {
         public:
             /** \brief Constructor. The objective must always know the space information it is part of. The cost threshold for objective satisfaction defaults to 0.0. */
             OptimizationObjective(const SpaceInformationPtr &si);
 
-            virtual ~OptimizationObjective(void)
+            virtual ~OptimizationObjective()
             {
             }
 
             /** \brief Get the description of this optimization objective */
-            const std::string& getDescription(void) const;
+            const std::string& getDescription() const;
 
             /** \brief Verify that our objective is satisfied already and we can stop planning */
             virtual bool isSatisfied(Cost c) const;
 
             /** \brief Returns the cost threshold currently being checked for objective satisfaction */
-            Cost getCostThreshold(void) const;
+            Cost getCostThreshold() const;
 
             /** \brief Set the cost threshold for objective satisfaction. When a path is found with a cost better than the cost threshold, the objective is considered satisfied. */
             void setCostThreshold(Cost c);
 
-            /** \brief Get the cost that corresponds to an entire path. This implementation assumes \e Path is of type \e PathGeometric.*/
-            virtual Cost getCost(const Path &path) const;
-
             /** \brief Check whether the the cost \e c1 is considered better than the cost \e c2. By default, this returns true only if c1 is less by at least some threshold amount, for numerical robustness. */
             virtual bool isCostBetterThan(Cost c1, Cost c2) const;
 
-            /** \brief Evaluate a cost map defined on the state space at a state \e s. Default implementation maps all states to 1.0. */
-            virtual Cost stateCost(const State *s) const;
+            /** \brief Evaluate a cost map defined on the state space at a state \e s. */
+            virtual Cost stateCost(const State *s) const = 0;
 
             /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
             virtual Cost motionCost(const State *s1, const State *s2) const = 0;
@@ -117,7 +112,7 @@ namespace ompl
             virtual Cost terminalCost(const State *s) const;
 
             /** \brief Check if this objective has a symmetric cost metric, i.e. motionCost(s1, s2) = motionCost(s2, s1). Default implementation returns whether the underlying state space has symmetric interpolation. */
-            virtual bool isSymmetric(void) const;
+            virtual bool isSymmetric() const;
 
             /** \brief Compute the average state cost of this objective by taking a sample of \e numStates states */
             virtual Cost averageStateCost(unsigned int numStates) const;
@@ -126,14 +121,16 @@ namespace ompl
             void setCostToGoHeuristic(const CostToGoHeuristic& costToGo);
 
             /** \brief Uses a cost-to-go heuristic to calculate an admissible estimate of the optimal cost from a given state to a given goal. If no cost-to-go heuristic has been specified with setCostToGoHeuristic(), this function just returns the identity cost, which is sure to be an admissible heuristic if there are no negative costs. */
-            Cost costToGo(const State* state, const Goal* goal) const;
+            Cost costToGo(const State *state, const Goal *goal) const;
 
             /** \brief Defines an admissible estimate on the optimal cost on the motion between states \e s1 and \e s2. An admissible estimate always undervalues the true optimal cost of the motion. Used by some planners to speed up planning. The default implementation of this method returns this objective's identity cost, which is sure to be an admissible heuristic if there are no negative costs. */
-            virtual Cost motionCostHeuristic(const State* s1, const State* s2) const;
+            virtual Cost motionCostHeuristic(const State *s1, const State *s2) const;
 
             /** \brief Returns this objective's SpaceInformation. Needed for operators in MultiOptimizationObjective */
-            const SpaceInformationPtr& getSpaceInformation(void) const;
+            const SpaceInformationPtr& getSpaceInformation() const;
 
+            /** \brief Print information about this optimization objective */
+            virtual void print(std::ostream &out) const;
         protected:
             /** \brief The space information for this objective */
             SpaceInformationPtr si_;
@@ -156,7 +153,7 @@ namespace ompl
             exactly zero. Note: \e goal is assumed to be of type
             ompl::base::GoalRegion
         */
-        Cost goalRegionCostToGo(const State* state, const Goal* goal);
+        Cost goalRegionCostToGo(const State *state, const Goal *goal);
 
         /** \brief This class allows for the definition of multiobjective optimal planning problems. Objectives are added to this compound object, and motion costs are computed by taking a weighted sum of the individual objective costs. */
         class MultiOptimizationObjective : public OptimizationObjective
@@ -169,7 +166,7 @@ namespace ompl
                               double weight);
 
             /** \brief Returns the number of objectives that make up this multiobjective. */
-            std::size_t getObjectiveCount(void) const;
+            std::size_t getObjectiveCount() const;
 
             /** \brief Returns a specific objective from this multiobjective, where the individual objectives are in order of addition to the multiobjective, and \e idx is the zero-based index into this ordering. */
             const OptimizationObjectivePtr& getObjective(unsigned int idx) const;
@@ -181,22 +178,22 @@ namespace ompl
             void setObjectiveWeight(unsigned int idx, double weight);
 
             /** \brief This method "freezes" this multiobjective so that no more objectives can be added to it */
-            void lock(void);
+            void lock();
 
             /** \brief Returns whether this multiobjective has been locked from adding further objectives */
-            bool isLocked(void) const;
+            bool isLocked() const;
 
             /** The default implementation of this method is to use
               addition to add up all the individual objectives' state cost
               values, where each individual value is scaled by its
               weight */
-            virtual Cost stateCost(const State* s) const;
+            virtual Cost stateCost(const State *s) const;
 
             /** The default implementation of this method is to use
               addition to add up all the individual objectives' motion
               cost values, where each individual value is scaled by
               its weight */
-            virtual Cost motionCost(const State* s1, const State* s2) const;
+            virtual Cost motionCost(const State *s1, const State *s2) const;
 
         protected:
 

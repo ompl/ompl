@@ -64,8 +64,8 @@ namespace ompl
             B. Raveh, A. Enosh, and D. Halperin,
             A little more, a lot better: Improving path quality by a path-merging algorithm,
             <em>IEEE Trans. on Robotics</em>, vol. 27, pp. 365–371, Apr. 2011.
-            DOI: <a href="http://dx.doi.org/10.1109/TRO.2010.2098622">10.1109/TRO.2010.2098622</a><br>
-            <a href="http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5686946">[PDF]</a>
+            DOI: [10.1109/TRO.2010.2098622](http://dx.doi.org/10.1109/TRO.2010.2098622)<br>
+            [[PDF]](http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5686946)
         */
         class PathHybridization
         {
@@ -73,20 +73,20 @@ namespace ompl
 
             /** \brief The constructor needs to know about the space information of the paths it will operate on */
             PathHybridization(const base::SpaceInformationPtr &si);
-            ~PathHybridization(void);
+            ~PathHybridization();
 
             /** \brief Get the currently computed hybrid path. computeHybridPath() needs to have been called before. */
-            const base::PathPtr& getHybridPath(void) const;
+            const base::PathPtr& getHybridPath() const;
 
             /** \brief Run Dijkstra's algorithm to find out the shortest path among the mixed ones */
-            void computeHybridPath(void);
+            void computeHybridPath();
 
             /** \brief Add a path to the hybridization. If \e matchAcrossGaps is true, more possible edge connections are evaluated.
                 Return the number of attempted connections between paths. */
             unsigned int recordPath(const base::PathPtr &pp, bool matchAcrossGaps);
 
             /** \brief Get the number of paths that are currently considered as part of the hybridization */
-            std::size_t pathCount(void) const;
+            std::size_t pathCount() const;
 
             /** \brief Given two geometric paths \e p and \e q, compute the alignment of the paths using dynamic
                 programming in an edit-distance like fashion, as described in the referenced paper. The cost of a gap
@@ -97,10 +97,13 @@ namespace ompl
                             std::vector<int> &indexP, std::vector<int> &indexQ) const;
 
             /** \brief Clear all the stored paths */
-            void clear(void);
+            void clear();
 
             /** \brief Print information about the computed path */
             void print(std::ostream &out = std::cout) const;
+
+            /** \brief Get the name of the algorithm */
+            const std::string& getName() const;
 
         private:
 
@@ -153,6 +156,9 @@ namespace ompl
             Vertex                                            goal_;
             std::set<PathInfo>                                paths_;
             base::PathPtr                                     hpath_;
+
+            /** \brief The name of the path hybridization algorithm, used for tracking planner solution sources */
+            std::string                                       name_;
         };
     }
 }

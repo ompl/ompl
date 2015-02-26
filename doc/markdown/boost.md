@@ -3,7 +3,7 @@
 [Boost](http://www.boost.org) provides an extension to the C++ standard template library, supplying the user with many generic, cross-platform concepts that are easily included in the developer's program. For users that are unfamiliar with Boost, this page will briefly describe the constructs from the Boost library used in OMPL. This tutorial makes no attempt to fully educate the user on the usage and API of the Boost library, only to give a high level overview of these components and why they were chosen for OMPL. For further detail on Boost, please consult the extensive [Boost documentation](http://www.boost.org/doc/libs/) directly.
 
 \attention
-OMPL requires Boost __version 1.44__ or greater.
+OMPL requires Boost __version 1.48__ or greater.
 
 
 # Shared Pointer (boost/shared_ptr.hpp)
@@ -50,7 +50,7 @@ typedef boost::shared_ptr<Planner> PlannerPtr;
 
 # Function and Bind (boost/function.hpp and boost/bind.hpp)
 
-[Boost's Function library](http://www.boost.org/doc/libs/1_44_0/doc/html/function.html) provides a templated wrapper for function pointers and a generalized framework for [callbacks](http://en.wikipedia.org/wiki/Callback_%28computer_programming%29). It is very easy to encapsulate a function pointer into a single object using Boost. Function objects are templated with the first argument being the return type for the function, and subsequent arguments corresponding to the function's arguments. For example, assume we have a function called _computeMin_ that returns the minimum of two integers:
+[Boost's Function library](http://www.boost.org/libs/function) provides a templated wrapper for function pointers and a generalized framework for [callbacks](http://en.wikipedia.org/wiki/Callback_%28computer_programming%29). It is very easy to encapsulate a function pointer into a single object using Boost. Function objects are templated with the first argument being the return type for the function, and subsequent arguments corresponding to the function's arguments. For example, assume we have a function called _computeMin_ that returns the minimum of two integers:
 
 ~~~{.cpp}
 int computeMin (int x, int y)
@@ -71,7 +71,7 @@ The same object type using Boost looks like this:
 boost::function<int(int,int)> minFuncPtr(computeMin);
 ~~~
 
-In addition to improved readability and flexibility, we can also take advantage of the [Bind library](http://www.boost.org/doc/libs/1_44_0/libs/bind/bind.html) from Boost to create function pointers to class members (not nearly as easy with standard C++ syntax), and fix one or more variables of our function pointer.  In a more complex example, assume we have the class Math:
+In addition to improved readability and flexibility, we can also take advantage of the [Bind library](http://www.boost.org/libs/bind) from Boost to create function pointers to class members (not nearly as easy with standard C++ syntax), and fix one or more variables of our function pointer.  In a more complex example, assume we have the class Math:
 
 ~~~{.cpp}
 class Math
@@ -131,7 +131,7 @@ int theMin = minFuncPtr (1, 2);
 
 In a nutshell, boost::bind returns a function pointer to the method given in the first argument, using the instance (“math”) supplied in the second argument. _1 and _2 indicate that the first and second arguments of the boundedMin function will be supplied when the function is called. The zero is permanently bound to the function pointer as the third argument (the default value for “lowerBound”).
 
-[boost::function](http://www.boost.org/doc/libs/1_44_0/doc/html/function.html) and [boost::bind](http://www.boost.org/doc/libs/1_44_0/libs/bind/bind.html) are used in OMPL whenever a callback function is used to invoke methods on a global function or specific instance. These are used to improve readability of the code, as well as to simplify the use of callback functions across object barriers. Also, if an uninitialized Boost function pointer is accessed, a _bad_function_call_ exception is thrown, which is far more desirable than attempting to debug the segmentation fault that would occur with a standard uninitialized C++ function pointer.
+[boost::function](http://www.boost.org/libs/function) and [boost::bind](http://www.boost.org/libs/bind) are used in OMPL whenever a callback function is used to invoke methods on a global function or specific instance. These are used to improve readability of the code, as well as to simplify the use of callback functions across object barriers. Also, if an uninitialized Boost function pointer is accessed, a _bad_function_call_ exception is thrown, which is far more desirable than attempting to debug the segmentation fault that would occur with a standard uninitialized C++ function pointer.
 
 
 # NonCopyable (boost/noncopyable.hpp)
@@ -189,4 +189,4 @@ ThreadStruct tStruct;
 boost::thread myThread (tStruct, 1, "Two", std::vector <double> ());
 ~~~
 
-By using [Boost thread](http://www.boost.org/doc/libs/1_44_0/doc/html/thread.html), OMPL is able to remain operating system independent in multi-threaded applications, as long as the operating system employed by the user is supported by Boost.
+By using [Boost thread](http://www.boost.org/libs/thread), OMPL is able to remain operating system independent in multi-threaded applications, as long as the operating system employed by the user is supported by Boost.

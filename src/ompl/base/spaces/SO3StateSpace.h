@@ -99,7 +99,7 @@ namespace ompl
                 void setAxisAngle(double ax, double ay, double az, double angle);
 
                 /** \brief Set the state to identity -- no rotation */
-                void setIdentity(void);
+                void setIdentity();
 
                 /** \brief X component of quaternion vector */
                 double x;
@@ -114,22 +114,24 @@ namespace ompl
                 double w;
             };
 
-            SO3StateSpace(void) : StateSpace()
+            SO3StateSpace() : StateSpace()
             {
                 setName("SO3" + getName());
                 type_ = STATE_SPACE_SO3;
             }
 
-            virtual ~SO3StateSpace(void)
+            virtual ~SO3StateSpace()
             {
             }
 
             /** \brief Compute the norm of a state */
             double norm(const StateType *state) const;
 
-            virtual unsigned int getDimension(void) const;
+            virtual unsigned int getDimension() const;
 
-            virtual double getMaximumExtent(void) const;
+            virtual double getMaximumExtent() const;
+
+            virtual double getMeasure() const;
 
             virtual void enforceBounds(State *state) const;
 
@@ -137,7 +139,7 @@ namespace ompl
 
             virtual void copyState(State *destination, const State *source) const;
 
-            virtual unsigned int getSerializationLength(void) const;
+            virtual unsigned int getSerializationLength() const;
 
             virtual void serialize(void *serialization, const State *state) const;
 
@@ -149,9 +151,9 @@ namespace ompl
 
             virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
 
-            virtual StateSamplerPtr allocDefaultStateSampler(void) const;
+            virtual StateSamplerPtr allocDefaultStateSampler() const;
 
-            virtual State* allocState(void) const;
+            virtual State* allocState() const;
 
             virtual void freeState(State *state) const;
 
@@ -161,7 +163,7 @@ namespace ompl
 
             virtual void printSettings(std::ostream &out) const;
 
-            virtual void registerProjections(void);
+            virtual void registerProjections();
         };
     }
 }

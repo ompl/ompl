@@ -74,25 +74,25 @@ namespace ompl
             }
 
             /** \brief Destructor */
-            virtual ~Path(void)
+            virtual ~Path()
             {
             }
 
             /** \brief Get the space information associated to this class */
-            const SpaceInformationPtr& getSpaceInformation(void) const
+            const SpaceInformationPtr& getSpaceInformation() const
             {
                 return si_;
             }
 
             /** \brief Return the length of a path */
-            virtual double length(void) const = 0;
+            virtual double length() const = 0;
 
             /** \brief Return the cost of the path with respect to a
                 specified optimization objective. */
-            virtual Cost cost(const OptimizationObjectivePtr& obj) const;
+            virtual Cost cost(const OptimizationObjectivePtr& obj) const = 0;
 
             /** \brief Check if the path is valid */
-            virtual bool check(void) const = 0;
+            virtual bool check() const = 0;
 
             /** \brief Print the path to a stream */
             virtual void print(std::ostream &out) const = 0;

@@ -47,7 +47,9 @@ namespace ompl
 }
 
 ompl::geometric::PathHybridization::PathHybridization(const base::SpaceInformationPtr &si) :
-    si_(si), stateProperty_(boost::get(vertex_state_t(), g_))
+    si_(si),
+    stateProperty_(boost::get(vertex_state_t(), g_)),
+    name_("PathHybridization")
 {
     root_ = boost::add_vertex(g_);
     stateProperty_[root_] = NULL;
@@ -55,11 +57,11 @@ ompl::geometric::PathHybridization::PathHybridization(const base::SpaceInformati
     stateProperty_[goal_] = NULL;
 }
 
-ompl::geometric::PathHybridization::~PathHybridization(void)
+ompl::geometric::PathHybridization::~PathHybridization()
 {
 }
 
-void ompl::geometric::PathHybridization::clear(void)
+void ompl::geometric::PathHybridization::clear()
 {
     hpath_.reset();
     paths_.clear();
@@ -81,7 +83,12 @@ void ompl::geometric::PathHybridization::print(std::ostream &out) const
         out << "Hybridized path of length " << hpath_->length() << std::endl;
 }
 
-void ompl::geometric::PathHybridization::computeHybridPath(void)
+const std::string& ompl::geometric::PathHybridization::getName() const
+{
+    return name_;
+}
+
+void ompl::geometric::PathHybridization::computeHybridPath()
 {
     boost::vector_property_map<Vertex> prev(boost::num_vertices(g_));
     boost::dijkstra_shortest_paths(g_, root_, boost::predecessor_map(prev));
@@ -95,7 +102,7 @@ void ompl::geometric::PathHybridization::computeHybridPath(void)
     }
 }
 
-const ompl::base::PathPtr& ompl::geometric::PathHybridization::getHybridPath(void) const
+const ompl::base::PathPtr& ompl::geometric::PathHybridization::getHybridPath() const
 {
     return hpath_;
 }
@@ -247,7 +254,7 @@ void ompl::geometric::PathHybridization::attemptNewEdge(const PathInfo &p, const
     }
 }
 
-std::size_t ompl::geometric::PathHybridization::pathCount(void) const
+std::size_t ompl::geometric::PathHybridization::pathCount() const
 {
     return paths_.size();
 }

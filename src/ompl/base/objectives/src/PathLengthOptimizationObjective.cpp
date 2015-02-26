@@ -43,15 +43,17 @@ PathLengthOptimizationObjective(const SpaceInformationPtr &si) :
     description_ = "Path Length";
 }
 
-ompl::base::Cost
-ompl::base::PathLengthOptimizationObjective::motionCost(const State *s1, const State *s2) const
+ompl::base::Cost ompl::base::PathLengthOptimizationObjective::stateCost(const State *s) const
+{
+    return identityCost();
+}
+
+ompl::base::Cost ompl::base::PathLengthOptimizationObjective::motionCost(const State *s1, const State *s2) const
 {
     return Cost(si_->distance(s1, s2));
 }
 
-ompl::base::Cost
-ompl::base::PathLengthOptimizationObjective::motionCostHeuristic(const State *s1,
-                                                                 const State *s2) const
+ompl::base::Cost ompl::base::PathLengthOptimizationObjective::motionCostHeuristic(const State *s1, const State *s2) const
 {
     return motionCost(s1, s2);
 }

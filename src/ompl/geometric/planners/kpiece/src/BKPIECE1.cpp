@@ -56,11 +56,11 @@ ompl::geometric::BKPIECE1::BKPIECE1(const base::SpaceInformationPtr &si) : base:
     Planner::declareParam<double>("min_valid_path_fraction", this, &BKPIECE1::setMinValidPathFraction, &BKPIECE1::getMinValidPathFraction);
 }
 
-ompl::geometric::BKPIECE1::~BKPIECE1(void)
+ompl::geometric::BKPIECE1::~BKPIECE1()
 {
 }
 
-void ompl::geometric::BKPIECE1::setup(void)
+void ompl::geometric::BKPIECE1::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -91,7 +91,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion* motion = new Motion(si_);
+        Motion *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         motion->root = motion->state;
         projectionEvaluator_->computeCoordinates(motion->state, xcoord);
@@ -113,7 +113,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    OMPL_INFORM("%s: Starting with %d states", getName().c_str(), (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
+    OMPL_INFORM("%s: Starting planning with %d states already in datastructure", getName().c_str(), (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
 
     std::vector<Motion*> solution;
     base::State *xstate = si_->allocState();
@@ -133,7 +133,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
             const base::State *st = dGoal_.getMotionCount() == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
             if (st)
             {
-                Motion* motion = new Motion(si_);
+                Motion *motion = new Motion(si_);
                 si_->copyState(motion->state, st);
                 motion->root = motion->state;
                 projectionEvaluator_->computeCoordinates(motion->state, xcoord);
@@ -172,7 +172,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
 
                 if (cellC && !cellC->data->motions.empty())
                 {
-                    Motion* connectOther = cellC->data->motions[rng_.uniformInt(0, cellC->data->motions.size() - 1)];
+                    Motion *connectOther = cellC->data->motions[rng_.uniformInt(0, cellC->data->motions.size() - 1)];
 
                     if (goal->isStartGoalPairValid(startTree ? connectOther->root : motion->root, startTree ? motion->root : connectOther->root) &&
                         si_->checkMotion(motion->state, connectOther->state))
@@ -208,7 +208,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
                         for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
                             path->append(mpath2[i]->state);
 
-                        pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
+                        pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
                         solved = true;
                         break;
                     }
@@ -240,7 +240,7 @@ void ompl::geometric::BKPIECE1::freeMotion(Motion *motion)
     delete motion;
 }
 
-void ompl::geometric::BKPIECE1::clear(void)
+void ompl::geometric::BKPIECE1::clear()
 {
     Planner::clear();
 
