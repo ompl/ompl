@@ -71,6 +71,7 @@ namespace ompl
            @par External documentation
            L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in <em>IEEE TRANSACTIONS ON ROBOTICS, VOL. 26, NO. 4, AUGUST 2010</em>. DOI: [10.1109/TRO.2010.2049527](http://dx.doi.org/10.1109/TRO.2010.2049527)<br />
            [[PDF]](http://homepages.laas.fr/nic/Papers/10TRO.pdf)
+
            D. Devaurs, T. Siméon, J. Cortés, Enhancing the Transition-based RRT to Deal with Complex Cost Spaces, in <em>IEEE International Conference on Robotics and Automation, 2013, pp. 4120-4125. DOI: [10.1109/ICRA.2013.6631158](http://dx.doi.org/10.1109/ICRA.2013.6631158)<br/>
            [[PDF]](https://hal.archives-ouvertes.fr/hal-00872224/document)
         */
@@ -143,18 +144,20 @@ namespace ompl
                 return log(tempChangeFactor_);
             }
 
-            /** \brief Set the maximum allowed state cost (default is infinity).
-                No state that exceeds this cost is expanded by the planner. */
-            void setMaxCostAllowed( double maxCost )
+            /** \brief Set the cost threshold (default is infinity).
+                Any state cost that is not better than this cost (according to
+                the optimization objective) will not be expanded by the planner. */
+            void setCostThreshold( double maxCost )
             {
-                maxAllowedCost_ = maxCost;
+                costThreshold_ = base::Cost(maxCost);
             }
 
-            /** \brief Get the maximum allowed state cost (default is infinity).
-                 No state that exceeds this cost is expanded by the planner. */
-            double getMaxCostAllowed() const
+            /** \brief Get the cost threshold (default is infinity).
+                 Any state cost that is not better than this cost (according to
+                 the optimization objective) will not be expanded by the planner. */
+            double getCostThreshold() const
             {
-                return maxAllowedCost_;
+                return costThreshold_.value();
             }
 
             /** \brief Set the initial temperature at the beginning of the algorithm. Should be high
@@ -255,7 +258,7 @@ namespace ompl
                 \param childCost - cost of current state
                 \param parentCost - cost of its ancestor parent state
             */
-            bool transitionTest( double childCost, double parentCost );
+            bool transitionTest( const base::Cost& childCost, const base::Cost& parentCost );
 
             /** \brief Use ratio to prefer frontier nodes to nonfrontier ones */
             bool minExpansionControl( double randMotionDistance );
@@ -289,14 +292,14 @@ namespace ompl
                 Dynamically tuned according to the information acquired during exploration */
             double                                          temp_;
 
-            /** \brief The minimum cost value in the tree */
-            double                                          minCost_;
+            /** \brief The most desirable (e.g., minimum) cost value in the search tree */
+            base::Cost                                      bestCost_;
 
-            /** \brief The maximum cost value in the tree */
-            double                                          maxCost_;
+            /** \brief The least desirable (e.g., maximum) cost value in the search tree */
+            base::Cost                                      worstCost_;
 
-            /** \brief The maximum allowed state cost (default is infinity) */
-            double                                          maxAllowedCost_;
+            /** \brief All state costs must be better than this cost (default is infinity) */
+            base::Cost                                      costThreshold_;
 
             /** \brief The value of the expression exp^T_rate.  The temperature
                  is increased by this factor whenever the transition test fails. */
