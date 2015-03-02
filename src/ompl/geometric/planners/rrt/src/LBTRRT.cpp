@@ -161,7 +161,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
 
     Motion *solution             = lastGoalMotion_;
 
-    // \TODO Make this variable unnecessary, or at least have it
+    // \todo Make this variable unnecessary, or at least have it
     // persist across solve runs
     base::Cost bestCost          = opt_->infiniteCost();
     Motion *approximation        = NULL;

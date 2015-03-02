@@ -310,7 +310,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
     // Calculate the nearest neighbor search radius
-    /// \TODO Create a PRM-like connection strategy
+    /// \todo Create a PRM-like connection strategy
     if (nearestK_)
     {
         NNk_ = std::ceil(std::pow(2.0 * radiusMultiplier_, (double)si_->getStateDimension()) *

@@ -73,7 +73,7 @@ namespace ompl
             /** \brief Returns the World corresponding to a given region. */
             virtual World worldAtRegion(int rid) = 0;
 
-            /* TODO section off the below methods with a general description of
+            /* \todo section off the below methods with a general description of
                 "wrapper methods that simply call the underlying decomposition */
 
             /** \brief Returns the number of regions in this propositional decomposition's

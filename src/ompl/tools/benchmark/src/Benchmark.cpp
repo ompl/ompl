@@ -152,7 +152,7 @@ namespace ompl
                     // Only launch the planner progress property
                     // collector if there is any data for it to report
                     //
-                    // \TODO issue here is that at least one sample
+                    // \todo issue here is that at least one sample
                     // always gets taken before planner even starts;
                     // might be worth adding a short wait time before
                     // collector begins sampling

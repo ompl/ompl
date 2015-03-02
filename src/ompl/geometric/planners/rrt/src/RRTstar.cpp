@@ -162,7 +162,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     Motion *solution       = lastGoalMotion_;
 
-    // \TODO Make this variable unnecessary, or at least have it
+    // \todo Make this variable unnecessary, or at least have it
     // persist across solve runs
     base::Cost bestCost    = opt_->infiniteCost();
 

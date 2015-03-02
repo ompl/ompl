@@ -714,7 +714,7 @@ void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, 
             if (d.pointB_ == NULL) //But if the other guy doesn't exist, we can't compare.
             {
                 //Should probably keep the one that is further away from rep?  Not known what to do in this case.
-                // TODO: is this not part of the algorithm?
+                // \todo: is this not part of the algorithm?
             }
             else //We know both of these points exist, so we can check some distances
                 if (si_->distance(q, d.pointB_) < si_->distance(d.pointA_, d.pointB_))
