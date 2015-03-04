@@ -185,10 +185,6 @@ namespace ompl
             {
                 return boost::lexical_cast<std::string>(bestCost_);
             }
-            std::string getCollisionCheckCount() const
-            {
-                return boost::lexical_cast<std::string>(collisionChecks_);
-            }
 
         protected:
 
@@ -307,8 +303,6 @@ namespace ompl
             // Planner progress properties
             /** \brief Number of iterations the algorithm performed */
             unsigned int                                   iterations_;
-            /** \brief Number of collisions checks performed by the algorithm */
-            unsigned int                                   collisionChecks_;
             /** \brief Best cost found so far by algorithm */
             base::Cost                                     bestCost_;
         };
