@@ -207,7 +207,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
         // sample random state (with goal biasing)
         // Goal samples are only sampled until maxSampleCount() goals are in the tree, to prohibit duplicate goal states.
-        if (goal_s && goalMotions_.size() < goal_s->maxSampleCount() && sampler_->rng().uniform01() < goalBias_ && goal_s->canSample())
+        if (goal_s && goalMotions_.size() < goal_s->maxSampleCount() && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
         else
         {

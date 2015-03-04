@@ -76,12 +76,6 @@ namespace ompl
             {
             }
 
-            /** \brief The underlying RNG.*/
-            RNG& rng()
-            {
-                return rng_;
-            }
-
             /** \brief Sample a state */
             virtual void sampleUniform(State *state) = 0;
 
