@@ -278,7 +278,7 @@ namespace ompl
             double                                         maxDistance_;
 
             /** \brief The random number generator */
-            RNG rng_;
+            RNG                                             rng_;
 
             /** \brief Option to delay and reduce collision checking within iterations */
             bool                                           delayCC_;
