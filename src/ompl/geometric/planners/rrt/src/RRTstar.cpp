@@ -112,9 +112,6 @@ void ompl::geometric::RRTstar::setup()
         OMPL_INFORM("%s: problem definition is not set, deferring setup completion...", getName().c_str());
         setup_ = false;
     }
-
-    if (!sampler_)
-        sampler_ = si_->allocStateSampler();
 }
 
 void ompl::geometric::RRTstar::clear()
@@ -154,6 +151,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
+
+    if (!sampler_)
+        sampler_ = si_->allocStateSampler();
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
