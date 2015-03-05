@@ -95,6 +95,21 @@ namespace ompl
             /** \brief Check whether the the cost \e c1 is considered better than the cost \e c2. By default, this returns true only if c1 is less by at least some threshold amount, for numerical robustness. */
             virtual bool isCostBetterThan(Cost c1, Cost c2) const;
 
+            /** \brief Compare whether cost \e c1 is worse than cost \e c2. By default defined as isCostBetterThan(c2, c1), as if c2 is better than c1, then c1 is worse than c2. */
+            virtual bool isCostWorseThan(Cost c1, Cost c2) const;
+
+            /** \brief Compare whether cost \e c1 and cost \e c2 are equivalent. By default defined as !isCostBetterThan(c1, c2) && !isCostBetterThan(c2, c1), as if c1 is not better than c2, and c2 is not better than c1, then they are equal. */
+            virtual bool areCostsEquivalent(Cost c1, Cost c2) const;
+
+            /** \brief Compare whether cost \e c1 is better or equivalent to cost \e c2. By default defined by !isCostBetterThan(c2, c1), as if c2 is not better than c1, then c1 is better than, or equal to, c2. */
+            virtual bool isCostBetterThanOrEquivalentTo(Cost c1, Cost c2) const;
+
+            /** \brief Compare whether cost \e c1 is worse or equivalent to cost \e c2. By default defined by !this->isCostBetterThan(c1,c2) as if c1 is not better than c2, than c1 is worse than, or equal to, c2*/
+            virtual bool isCostWorseThanOrEquivalentTo(Cost a, Cost b) const;
+
+            /** \brief Returns whether the cost is finite or not. By default calls std::isfinite on Cost::value(). */
+            virtual bool isFinite(Cost cost) const;
+
             /** \brief Return the minimum cost given \e c1 and \e c2. Uses isCostBetterThan. */
             virtual Cost minCost(Cost c1, Cost c2) const;
 

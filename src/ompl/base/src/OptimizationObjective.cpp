@@ -106,6 +106,35 @@ bool ompl::base::OptimizationObjective::isCostBetterThan(Cost c1, Cost c2) const
     return c1.value() + magic::BETTER_PATH_COST_MARGIN < c2.value();
 }
 
+bool ompl::base::OptimizationObjective::isCostWorseThan(Cost c1, Cost c2) const
+{
+    //If c2 is better than c1, then c1 is worse than c2
+    return isCostBetterThan(c2, c1);
+}
+
+bool ompl::base::OptimizationObjective::areCostsEquivalent(Cost c1, Cost c2) const
+{
+    //If c1 is not better than c2, and c2 is not better than c1, then they are equal
+    return !isCostBetterThan(c1,c2) && !isCostBetterThan(c2,c1);
+}
+
+bool ompl::base::OptimizationObjective::isCostBetterThanOrEquivalentTo(Cost c1, Cost c2) const
+{
+    //If c2 is not better than c1, then c1 is better than, or equal to, c2
+    return !isCostBetterThan(c2,c1);
+}
+
+bool ompl::base::OptimizationObjective::isCostWorseThanOrEquivalentTo(Cost c1, Cost c2) const
+{
+    //If c1 is not better than c2, than c1 is worse than, or equal to, c2
+    return !isCostBetterThan(c1,c2);
+}
+
+bool ompl::base::OptimizationObjective::isFinite(Cost cost) const
+{
+    return std::isfinite(cost.value());
+}
+
 ompl::base::Cost ompl::base::OptimizationObjective::minCost(Cost c1, Cost c2) const
 {
     if (isCostBetterThan(c1, c2))
