@@ -58,6 +58,9 @@ namespace ompl
         /** \brief Constructor. Always sets a different random seed */
         RNG();
 
+        /** \brief Constructor. Set to the specified instance seed. */
+        RNG(boost::uint32_t localSeed);
+
         /** \brief Generate a random real between 0 and 1 */
         double uniform01()
         {
@@ -114,22 +117,36 @@ namespace ompl
         /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range (-pi, pi]. The computed value has the order (roll, pitch, yaw) */
         void   eulerRPY(double value[3]);
 
-        /** \brief Set the seed for random number generation. Use this
-            function to ensure the same sequence of random numbers is
-            generated. */
+        /** \brief Set the seed used to generate the seeds of each RNG instance. Use this
+            function to ensure the same sequence of random numbers is generated across multiple instances of RNG. */
         static void setSeed(boost::uint32_t seed);
 
-        /** \brief Get the seed used for random number
-            generation. Passing the returned value to setSeed() at a
-            subsequent execution of the code will ensure deterministic
-            (repeatable) behaviour. Useful for debugging. */
+        /** \brief Get the seed used to generate the seeds of each RNG instance.
+            Passing the returned value to setSeed() at a subsequent execution of the code will ensure deterministic
+            (repeatable) behaviour across multiple instances of RNG. Useful for debugging. */
         static boost::uint32_t getSeed();
+
+        /** \brief Set the seed used for the instance of a RNG. Use this function to ensure that an instance of
+            an RNG generates the same deterministic sequence of numbers. This function resets the member generators*/
+        void setLocalSeed(boost::uint32_t localSeed);
+
+        /** \brief Get the seed used for the instance of a RNG. Passing the returned value to the setInstanceSeed()
+            of another RNG will assure that the two objects generate the same sequence of numbers.
+            Useful for comparing different settings of a planner while maintaining the same stochastic behaviour,
+            assuming that every "random" decision made by the planner is made from the same RNG. */
+        boost::uint32_t getLocalSeed() const
+        {
+            return localSeed_;
+        }
 
     private:
 
+        /** \brief The seed used for the instance of a RNG */
+        boost::uint32_t                                                          localSeed_;
         boost::mt19937                                                           generator_;
         boost::uniform_real<>                                                    uniDist_;
         boost::normal_distribution<>                                             normalDist_;
+        // Variate generators must be reset when the seed changes
         boost::variate_generator<boost::mt19937&, boost::uniform_real<> >        uni_;
         boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > normal_;
 
