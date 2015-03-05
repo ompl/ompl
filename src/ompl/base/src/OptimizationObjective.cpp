@@ -35,6 +35,7 @@
 /* Author: Luis G. Torres, Ioan Sucan */
 
 #include "ompl/base/OptimizationObjective.h"
+#include "ompl/geometric/PathGeometric.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/base/goals/GoalRegion.h"
 #include <limits>
@@ -105,9 +106,31 @@ bool ompl::base::OptimizationObjective::isCostBetterThan(Cost c1, Cost c2) const
     return c1.value() + magic::BETTER_PATH_COST_MARGIN < c2.value();
 }
 
+ompl::base::Cost ompl::base::OptimizationObjective::minCost(Cost c1, Cost c2) const
+{
+    if (isCostBetterThan(c1, c2))
+    {
+        return c1;
+    }
+    else
+    {
+        return c2;
+    }
+}
+
 ompl::base::Cost ompl::base::OptimizationObjective::combineCosts(Cost c1, Cost c2) const
 {
     return Cost(c1.value() + c2.value());
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::combineCosts(Cost c1, Cost c2, Cost c3) const
+{
+    return combineCosts( combineCosts(c1, c2), c3 );
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::combineCosts(Cost c1, Cost c2, Cost c3, Cost c4) const
+{
+    return combineCosts( combineCosts(c1, c2, c3), c4 );
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::identityCost() const
