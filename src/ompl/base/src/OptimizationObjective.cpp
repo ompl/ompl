@@ -65,6 +65,41 @@ void ompl::base::OptimizationObjective::setCostThreshold(Cost c)
     threshold_ = c;
 }
 
+ompl::base::Cost ompl::base::OptimizationObjective::getCost(const Path &path) const
+{
+    // Cast path down to a PathGeometric
+    const geometric::PathGeometric *pathGeom = dynamic_cast<const geometric::PathGeometric*>(&path);
+
+    // Give up if this isn't a PathGeometric or if the path is empty.
+    if (!pathGeom)
+    {
+        OMPL_ERROR("Error: Cost computation is only implemented for paths of type PathGeometric.");
+        return this->identityCost();
+    }
+    else
+    {
+        std::size_t numStates = pathGeom->getStateCount();
+        if (numStates == 0)
+        {
+            OMPL_ERROR("Cannot compute cost of an empty path.");
+            return this->identityCost();
+        }
+        else
+        {
+            // Compute path cost by accumulating the cost along the path
+            Cost cost(this->identityCost());
+            for (std::size_t i = 1; i < numStates; ++i)
+            {
+                const State *s1 = pathGeom->getState(i-1);
+                const State *s2 = pathGeom->getState(i);
+                cost = this->combineCosts(cost, this->motionCost(s1, s2));
+            }
+
+            return cost;
+        }
+    }
+}
+
 bool ompl::base::OptimizationObjective::isCostBetterThan(Cost c1, Cost c2) const
 {
     return c1.value() + magic::BETTER_PATH_COST_MARGIN < c2.value();
