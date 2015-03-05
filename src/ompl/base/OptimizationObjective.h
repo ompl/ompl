@@ -95,6 +95,19 @@ namespace ompl
             /** \brief Check whether the the cost \e c1 is considered better than the cost \e c2. By default, this returns true only if c1 is less by at least some threshold amount, for numerical robustness. */
             virtual bool isCostBetterThan(Cost c1, Cost c2) const;
 
+            /** \brief Return the minimum cost given \e c1 and \e c2. Uses isCostBetterThan. */
+            virtual Cost minCost(Cost c1, Cost c2) const
+            {
+                if (isCostBetterThan(c1, c2))
+                {
+                    return c1;
+                }
+                else
+                {
+                    return c2;
+                }
+            }
+
             /** \brief Evaluate a cost map defined on the state space at a state \e s. */
             virtual Cost stateCost(const State *s) const = 0;
 
