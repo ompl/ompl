@@ -112,10 +112,16 @@ bool ompl::base::OptimizationObjective::isCostWorseThan(Cost c1, Cost c2) const
     return isCostBetterThan(c2, c1);
 }
 
-bool ompl::base::OptimizationObjective::areCostsEquivalent(Cost c1, Cost c2) const
+bool ompl::base::OptimizationObjective::isCostEquivalentTo(Cost c1, Cost c2) const
 {
     //If c1 is not better than c2, and c2 is not better than c1, then they are equal
     return !isCostBetterThan(c1,c2) && !isCostBetterThan(c2,c1);
+}
+
+bool ompl::base::OptimizationObjective::isCostNotEquivalentTo(Cost c1, Cost c2) const
+{
+    //If c1 is better than c2, or c2 is better than c1, then they are not equal
+    return isCostBetterThan(c1,c2) || isCostBetterThan(c2,c1);
 }
 
 bool ompl::base::OptimizationObjective::isCostBetterThanOrEquivalentTo(Cost c1, Cost c2) const
@@ -209,9 +215,14 @@ void ompl::base::OptimizationObjective::setCostToGoHeuristic(const CostToGoHeuri
     costToGoFn_ = costToGo;
 }
 
+bool ompl::base::OptimizationObjective::hasCostToGoHeuristic() const
+{
+    return static_cast<bool>(costToGoFn_);
+}
+
 ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State *state, const Goal *goal) const
 {
-    if (costToGoFn_)
+    if (hasCostToGoHeuristic())
         return costToGoFn_(state, goal);
     else
         return this->identityCost(); // assumes that identity < all costs

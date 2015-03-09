@@ -99,7 +99,10 @@ namespace ompl
             virtual bool isCostWorseThan(Cost c1, Cost c2) const;
 
             /** \brief Compare whether cost \e c1 and cost \e c2 are equivalent. By default defined as !isCostBetterThan(c1, c2) && !isCostBetterThan(c2, c1), as if c1 is not better than c2, and c2 is not better than c1, then they are equal. */
-            virtual bool areCostsEquivalent(Cost c1, Cost c2) const;
+            virtual bool isCostEquivalentTo(Cost c1, Cost c2) const;
+            
+            /** \brief Compare whether cost \e c1 and cost \e c2 are not equivalent. By default defined as isCostBetterThan(c1, c2) || isCostBetterThan(c2, c1), as if c1 is better than c2, or c2 is better than c1, then they are not equal. */
+            virtual bool isCostNotEquivalentTo(Cost c1, Cost c2) const;
 
             /** \brief Compare whether cost \e c1 is better or equivalent to cost \e c2. By default defined by !isCostBetterThan(c2, c1), as if c2 is not better than c1, then c1 is better than, or equal to, c2. */
             virtual bool isCostBetterThanOrEquivalentTo(Cost c1, Cost c2) const;
@@ -148,6 +151,9 @@ namespace ompl
 
             /** \brief Set the cost-to-go heuristic function for this objective. The cost-to-go heuristic is a function which returns an admissible estimate of the optimal path cost from a given state to a goal, where "admissible" means that the estimated cost is always less than the true optimal cost. */
             void setCostToGoHeuristic(const CostToGoHeuristic& costToGo);
+
+            /** \brief Check if this objective has a cost-to-go heuristic function. */
+            bool hasCostToGoHeuristic() const;
 
             /** \brief Uses a cost-to-go heuristic to calculate an admissible estimate of the optimal cost from a given state to a given goal. If no cost-to-go heuristic has been specified with setCostToGoHeuristic(), this function just returns the identity cost, which is sure to be an admissible heuristic if there are no negative costs. */
             Cost costToGo(const State *state, const Goal *goal) const;
