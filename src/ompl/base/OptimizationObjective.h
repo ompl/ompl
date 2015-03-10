@@ -126,10 +126,10 @@ namespace ompl
             virtual Cost combineCosts(Cost c1, Cost c2) const;
 
             /** \brief Combine three costs as (c1 + c2) + c3. By default uses the two-argument version of combineCosts */
-            virtual ompl::base::Cost combineCosts(Cost c1, Cost c2, Cost c3) const;
+            virtual Cost combineCosts(Cost c1, Cost c2, Cost c3) const;
 
             /** \brief Combine four costs as ((c1 + c2) + c3) + c4. By default uses the two-argument version of combineCosts */
-            virtual ompl::base::Cost combineCosts(Cost c1, Cost c2, Cost c3, Cost c4) const;
+            virtual Cost combineCosts(Cost c1, Cost c2, Cost c3, Cost c4) const;
 
             /** \brief Get the identity cost value. The identity cost value is the cost c_i such that, for all costs c, combineCosts(c, c_i) = combineCosts(c_i, c) = c. In other words, combining a cost with the identity cost does not change the original cost. By default, a cost with the value 0.0 is returned. It's very important to override this with the proper identity value for your optimization objectives, or else optimal planners may not work. */
             virtual Cost identityCost() const;
