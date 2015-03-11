@@ -242,11 +242,11 @@ double ompl::tools::LightningDB::distanceFunction(const ompl::base::PlannerDataP
     // Bi-directional implementation - check path b from [start, goal] and [goal, start]
     return std::min(
         // [ a.start, b.start] + [a.goal + b.goal]
-        si_->distance( a->getVertex(0).getState(), b->getVertex(0).getState() ) +
-        si_->distance( a->getVertex(a->numVertices()-1).getState(), b->getVertex(b->numVertices()-1).getState() ),
+        si_->distance(a->getVertex(0).getState(), b->getVertex(0).getState()) +
+        si_->distance(a->getVertex(a->numVertices()-1).getState(), b->getVertex(b->numVertices()-1).getState()),
         // [ a.start, b.goal] + [a.goal + b.start]
-        si_->distance( a->getVertex(0).getState(), b->getVertex(b->numVertices()-1).getState() ) +
-        si_->distance( a->getVertex(a->numVertices()-1).getState(), b->getVertex(0).getState() ) );
+        si_->distance(a->getVertex(0).getState(), b->getVertex(b->numVertices()-1).getState()) +
+        si_->distance(a->getVertex(a->numVertices()-1).getState(), b->getVertex(0).getState()));
 }
 
 std::size_t ompl::tools::LightningDB::getExperiencesCount() const

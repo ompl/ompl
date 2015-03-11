@@ -448,8 +448,8 @@ bool ompl::tools::Lightning::reversePathIfNecessary(og::PathGeometric &path1, og
     const ob::State* g1 = path1.getState(path1.getStateCount()-1);
     const ob::State* g2 = path2.getState(path2.getStateCount()-1);
 
-    double regularDistance  = si_->distance(s1,s2) + si_->distance(g1,g2);
-    double reversedDistance = si_->distance(s1,g2) + si_->distance(s2,g1);
+    double regularDistance  = si_->distance(s1, s2) + si_->distance(g1, g2);
+    double reversedDistance = si_->distance(s1, g2) + si_->distance(s2, g1);
 
     // Check if path is reversed from normal [start->goal] direction
     if ( regularDistance > reversedDistance )

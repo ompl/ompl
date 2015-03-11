@@ -195,15 +195,15 @@ namespace ompl
                 return dtw_;
             }
 
-          /**
-           * \brief If path1 and path2 have a better start/goal match when reverse, then reverse path2
-           * \param path to test against
-           * \param path to reverse
-           * \return true if reverse was necessary
-           */
-          bool reversePathIfNecessary(ompl::geometric::PathGeometric &path1, ompl::geometric::PathGeometric &path2);
-
         protected:
+
+            /**
+             * \brief If path1 and path2 have a better start/goal match when reverse, then reverse path2
+             * \param path to test against
+             * \param path to reverse
+             * \return true if reverse was necessary
+             */
+            bool reversePathIfNecessary(ompl::geometric::PathGeometric &path1, ompl::geometric::PathGeometric &path2);
 
             /// The maintained experience planner instance
             base::PlannerPtr                  rrPlanner_;

@@ -74,7 +74,7 @@ void ompl::geometric::LightningRetrieveRepair::clear(void)
         repairPlanner_->clear();
 }
 
-void ompl::geometric::LightningRetrieveRepair::setLightningDB(ompl::tools::LightningDBPtr &experienceDB)
+void ompl::geometric::LightningRetrieveRepair::setLightningDB(const ompl::tools::LightningDBPtr &experienceDB)
 {
     experienceDB_ = experienceDB;
 }
@@ -96,7 +96,7 @@ void ompl::geometric::LightningRetrieveRepair::setup(void)
     if (!repairPlanner_)
     {
         // Set the repair planner
-        repairPlanner_.reset( new ompl::geometric::RRTConnect( si_ ) );
+        repairPlanner_.reset(new ompl::geometric::RRTConnect(si_));
         OMPL_DEBUG("No repairing planner specified. Using default: %s", repairPlanner_->getName().c_str() );
     }
 
@@ -542,7 +542,7 @@ const std::vector<ompl::base::PlannerDataPtr>& ompl::geometric::LightningRetriev
     return nearestPaths_; // list of candidate paths
 }
 
-const std::size_t& ompl::geometric::LightningRetrieveRepair::getLastRecalledNearestPathChosen() const
+const std::size_t ompl::geometric::LightningRetrieveRepair::getLastRecalledNearestPathChosen() const
 {
     return nearestPathsChosenID_; // of the candidate paths list, the one we chose
 }
