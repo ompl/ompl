@@ -163,13 +163,6 @@ namespace ompl
             /** \brief Move data to string format and put in buffer */
             void convertLogToString(const ExperienceLog &log);
 
-            /** \brief Set the database file to load. Actual loading occurs when setup() is called
-             *  \param databaseName - used to name the database file, should be something like 'left_arm' or 'whole_body'
-             *  \param databaseDirecotry - the directory to save the database to, relative to the user directory $HOME
-             */
-            virtual bool setFile(const std::string &databaseName = "lightning_default_group", 
-                                 const std::string &databaseDirectory = "ompl_storage") = 0;
-
             /** \brief Display debug data about potential available solutions */
             virtual void printResultsInfo(std::ostream &out = std::cout) const = 0;
 
@@ -204,11 +197,13 @@ namespace ompl
             /** \brief Get the total number of paths stored in the database */
             virtual std::size_t getExperiencesCount() const = 0;
 
-            /** \brief Create the path location to load and save the database */
-            virtual bool getFilePath(const std::string &databaseName, const std::string &databaseDirectory);
-    
             /** \brief After setFile() is called, access the generated file path for loading and saving the experience database */
             virtual const std::string& getFilePath() const;
+
+            /** \brief Set the database file to load. Actual loading occurs when setup() is called
+             *  \param filePath - full absolute path to a experience database to load
+             */
+            virtual bool setFilePath(const std::string &filePath);
 
             /**
              * \brief Getter for logging data

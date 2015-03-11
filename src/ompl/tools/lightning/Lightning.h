@@ -117,11 +117,6 @@ namespace ompl
             void initialize();
 
         public:
-            /** \brief Set the database file to load. Actual loading occurs when setup() is called
-             *  \param databaseName - used to name the database file, should be something like 'left_arm' or 'whole_body'
-             *  \param databaseDirecotry - the directory to save the database to, relative to the user directory $HOME
-             */
-            bool setFile(const std::string &databaseName = "lightning_default_group", const std::string &databaseDirectory = "ompl_storage");
 
             /** \brief Display debug data about potential available solutions */
             void printResultsInfo(std::ostream &out = std::cout) const;

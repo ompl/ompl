@@ -39,9 +39,6 @@
 #include "ompl/tools/experience/ExperienceSetup.h"
 #include "ompl/tools/multiplan/ParallelPlan.h"
 
-// Boost
-#include <boost/filesystem.hpp>
-
 ompl::tools::ExperienceSetup::ExperienceSetup(const base::SpaceInformationPtr &si)
   : ompl::geometric::SimpleSetup(si)
 {
@@ -100,45 +97,15 @@ void ompl::tools::ExperienceSetup::saveDataLog(std::ostream &out)
     csvDataLogStream_.str("");
 }
 
-bool ompl::tools::ExperienceSetup::getFilePath(const std::string &databaseName, const std::string &databaseDirectory)
-{
-    namespace fs = boost::filesystem;
-
-    // Check that the directory exists, if not, create it
-    fs::path rootPath;
-    if (!std::string(getenv("HOME")).empty())
-        rootPath = fs::path(getenv("HOME")); // Support Linux/Mac
-    else if (!std::string(getenv("HOMEPATH")).empty())
-        rootPath = fs::path(getenv("HOMEPATH")); // Support Windows
-    else
-    {
-        OMPL_WARN("Unable to find a home path for this computer");
-        rootPath = fs::path("");
-    }
-
-    rootPath = rootPath / fs::path(databaseDirectory);
-
-    boost::system::error_code returnedError;
-    fs::create_directories( rootPath, returnedError );
-
-    if ( returnedError )
-    {
-        //did not successfully create directories
-        OMPL_ERROR("Unable to create directory %s", databaseDirectory.c_str());
-        return false;
-    }
-
-    //directories successfully created, append the group name as the file name
-    rootPath = rootPath / fs::path(databaseName + ".ompl");
-    filePath_ = rootPath.string();
-    OMPL_INFORM("Setting database to %s", filePath_.c_str());
-
-    return true;
-}
-
 const std::string& ompl::tools::ExperienceSetup::getFilePath() const
 {
     return filePath_;
+}
+
+bool ompl::tools::ExperienceSetup::setFilePath(const std::string &filePath)
+{
+    filePath_ = filePath;
+    return true;
 }
 
 void ompl::tools::ExperienceSetup::enablePlanningFromRecall(bool enable)

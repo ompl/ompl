@@ -58,7 +58,6 @@ void ompl::tools::Lightning::initialize()
 {
     recallEnabled_ = true;
     scratchEnabled_ = true;
-    filePath_ = "unloaded";
 
     // Load dynamic time warp
     dtw_.reset(new ot::DynamicTimeWarp(si_));
@@ -70,12 +69,6 @@ void ompl::tools::Lightning::initialize()
     rrPlanner_ = ob::PlannerPtr(new og::LightningRetrieveRepair(si_, experienceDB_));
 
     OMPL_INFORM("Lightning Framework initialized.");
-}
-
-bool ompl::tools::Lightning::setFile(const std::string &databaseName, const std::string &databaseDirectory)
-{
-    std::string fileName = "lightning_" + databaseName;
-    return ompl::tools::ExperienceSetup::getFilePath(fileName, databaseDirectory);
 }
 
 void ompl::tools::Lightning::setup(void)
@@ -134,8 +127,14 @@ void ompl::tools::Lightning::setup(void)
         // Check if experience database is already loaded
         if (experienceDB_->isEmpty())
         {
-            OMPL_ERROR("Loading database");
-            experienceDB_->load(filePath_); // load from file
+            if (filePath_.empty())
+            {
+                OMPL_ERROR("No file path has been specified, unable to load experience DB");
+            }
+            else
+            {
+                experienceDB_->load(filePath_); // load from file
+            }
         }
         else
             OMPL_ERROR("Attempting to load experience database when it is not empty");
@@ -353,11 +352,21 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(double time)
 
 bool ompl::tools::Lightning::save()
 {
+    if (filePath_.empty())
+    {
+        OMPL_ERROR("No file path has been specified, unable to save experience DB");
+        return false;
+    }
     return experienceDB_->save(filePath_);
 }
 
 bool ompl::tools::Lightning::saveIfChanged()
 {
+    if (filePath_.empty())
+    {
+        OMPL_ERROR("No file path has been specified, unable to save experience DB");
+        return false;
+    }
     return experienceDB_->saveIfChanged(filePath_);
 }
 
