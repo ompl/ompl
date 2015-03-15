@@ -82,14 +82,14 @@ namespace ompl
             /**
              * \brief Deconstructor
              */
-            virtual ~LightningDB(void);
+            virtual ~LightningDB();
 
             /**
              * \brief Load database from file
              * \param fileName - name of database file
              * \return true if file loaded successfully
              */
-            bool load(const std::string& fileName);
+            bool load(const std::string &fileName);
 
             /**
              * \brief Add a new solution path to our database. Des not actually save to file so
@@ -98,22 +98,22 @@ namespace ompl
              * \param returned insertion time to add to db
              * \return true on success
              */
-            void addPath(geometric::PathGeometric& solutionPath, double& insertionTime);
-            void addPathHelper(geometric::PathGeometric& solutionPath);
+            void addPath(geometric::PathGeometric &solutionPath, double &insertionTime);
+            void addPathHelper(geometric::PathGeometric &solutionPath);
 
             /**
              * \brief Save loaded database to file, except skips saving if no paths have been added
              * \param fileName - name of database file
              * \return true if file saved successfully
              */
-            bool saveIfChanged(const std::string& fileName);
+            bool saveIfChanged(const std::string &fileName);
 
             /**
              * \brief Save loaded database to file
              * \param fileName - name of database file
              * \return true if file saved successfully
              */
-            bool save(const std::string& fileName);
+            bool save(const std::string &fileName);
 
             /**
              * \brief Get a vector of all the paths in the nearest neighbor tree
@@ -123,7 +123,8 @@ namespace ompl
             /**
              * \brief Find the k nearest paths to our queries one
              */
-            std::vector<ompl::base::PlannerDataPtr> findNearestStartGoal(int nearestK, const base::State* start, const base::State* goal);
+            std::vector<ompl::base::PlannerDataPtr> findNearestStartGoal(int nearestK,
+                const base::State *start, const base::State *goal);
 
             /** \brief Get the total number of paths stored in the database */
             std::size_t getExperiencesCount() const;
@@ -148,7 +149,7 @@ namespace ompl
 
         private:
 
-            /** 
+            /**
              * \brief Add the distance between both path's starts and the distance between both path's ends together
              */
             double distanceFunction(const ompl::base::PlannerDataPtr a, const ompl::base::PlannerDataPtr b) const;
@@ -156,7 +157,7 @@ namespace ompl
         protected:
 
             /// The created space information
-            base::SpaceInformationPtr     si_;
+            base::SpaceInformationPtr si_;
 
             /// Helper class for storing each plannerData instance
             ompl::base::PlannerDataStorage plannerDataStorage_;

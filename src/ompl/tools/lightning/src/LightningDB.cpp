@@ -59,13 +59,13 @@ ompl::tools::LightningDB::LightningDB(const base::StateSpacePtr &space)
     nnSearchKey_.reset(new ompl::base::PlannerData(si_));
 }
 
-ompl::tools::LightningDB::~LightningDB(void)
+ompl::tools::LightningDB::~LightningDB()
 {
     if (numUnsavedPaths_)
         OMPL_WARN("The database is being unloaded with unsaved experiences");
 }
 
-bool ompl::tools::LightningDB::load(const std::string& fileName)
+bool ompl::tools::LightningDB::load(const std::string &fileName)
 {
     // Error checking
     if (fileName.empty())
@@ -119,7 +119,7 @@ bool ompl::tools::LightningDB::load(const std::string& fileName)
     return true;
 }
 
-void ompl::tools::LightningDB::addPath(ompl::geometric::PathGeometric& solutionPath, double& insertionTime)
+void ompl::tools::LightningDB::addPath(ompl::geometric::PathGeometric& solutionPath, double &insertionTime)
 {
     // Benchmark runtime
     time::point startTime = time::now();
@@ -129,7 +129,7 @@ void ompl::tools::LightningDB::addPath(ompl::geometric::PathGeometric& solutionP
     insertionTime = time::seconds(time::now() - startTime);
 }
 
-void ompl::tools::LightningDB::addPathHelper(ompl::geometric::PathGeometric& solutionPath)
+void ompl::tools::LightningDB::addPathHelper(ompl::geometric::PathGeometric &solutionPath)
 {
     // Create a new planner data instance
     ompl::base::PlannerDataPtr plannerData(new ompl::base::PlannerData(si_));
@@ -151,7 +151,7 @@ void ompl::tools::LightningDB::addPathHelper(ompl::geometric::PathGeometric& sol
     numUnsavedPaths_++;
 }
 
-bool ompl::tools::LightningDB::saveIfChanged(const std::string& fileName)
+bool ompl::tools::LightningDB::saveIfChanged(const std::string &fileName)
 {
     if (numUnsavedPaths_)
         return save(fileName);
@@ -160,7 +160,7 @@ bool ompl::tools::LightningDB::saveIfChanged(const std::string& fileName)
     return true;
 }
 
-bool ompl::tools::LightningDB::save(const std::string& fileName)
+bool ompl::tools::LightningDB::save(const std::string &fileName)
 {
     // Error checking
     if (fileName.empty())
@@ -216,18 +216,19 @@ void ompl::tools::LightningDB::getAllPlannerDatas(std::vector<ompl::base::Planne
     OMPL_DEBUG("Number of paths found: %d", plannerDatas.size());
 }
 
-std::vector<ompl::base::PlannerDataPtr> ompl::tools::LightningDB::findNearestStartGoal(int nearestK, const base::State* start, const base::State* goal)
+std::vector<ompl::base::PlannerDataPtr> ompl::tools::LightningDB::findNearestStartGoal(
+    int nearestK, const base::State *start, const base::State *goal)
 {
     // Fill in our pre-made PlannerData instance with the new start and goal states to be searched for
     if (nnSearchKey_->numVertices() == 2)
     {
-        nnSearchKey_->getVertex( 0 ) = ompl::base::PlannerDataVertex(start);
-        nnSearchKey_->getVertex( 1 ) = ompl::base::PlannerDataVertex(goal);
+        nnSearchKey_->getVertex(0) = ompl::base::PlannerDataVertex(start);
+        nnSearchKey_->getVertex(1) = ompl::base::PlannerDataVertex(goal);
     }
     else
     {
-        nnSearchKey_->addVertex( ompl::base::PlannerDataVertex(start) );
-        nnSearchKey_->addVertex( ompl::base::PlannerDataVertex(goal) );
+        nnSearchKey_->addVertex(ompl::base::PlannerDataVertex(start));
+        nnSearchKey_->addVertex(ompl::base::PlannerDataVertex(goal));
     }
     assert( nnSearchKey_->numVertices() == 2);
 

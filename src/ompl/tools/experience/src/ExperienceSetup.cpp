@@ -68,13 +68,13 @@ void ompl::tools::ExperienceSetup::logInitialize()
     // Hack for using python cause im lazy right now
     << "total_experiences,total_scratch,total_recall,total_failed,total_approximate,"
     << "total_too_short,total_insertion_failed,"
-    << "avg_planning_time,avg_insertion_time" 
+    << "avg_planning_time,avg_insertion_time"
     << std::endl;
 }
 
 void ompl::tools::ExperienceSetup::convertLogToString(const ExperienceLog &log)
 {
-  csvDataLogStream_ 
+  csvDataLogStream_
     << log.planning_time << ","
     << log.insertion_time << ","
     << log.planner << ","

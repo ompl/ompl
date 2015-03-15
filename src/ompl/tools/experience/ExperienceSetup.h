@@ -90,7 +90,7 @@ namespace ompl
                     if (!numProblems_)
                         return 0.0;
 
-                    // Cleanup output
+                    // Clean up output
                     double time = totalInsertionTime_ / numProblems_;
                     if (time < 1e-8)
                         return 0.0;
@@ -101,7 +101,7 @@ namespace ompl
                 double numSolutionsFromRecall_;
                 double numSolutionsFromRecallSaved_;
                 double numSolutionsFromScratch_;
-                double numSolutionsFailed_;                
+                double numSolutionsFailed_;
                 double numSolutionsTimedout_;
                 double numSolutionsApproximate_;
                 double numSolutionsTooShort_; // less than 3 states
@@ -223,9 +223,9 @@ namespace ompl
 
             /** \brief File location of database */
             std::string                       filePath_;
-          
+
             // output data to file to analyze performance externally
-            std::stringstream                 csvDataLogStream_; 
+            std::stringstream                 csvDataLogStream_;
 
             /** \brief States data for display to console  */
             ExperienceStats                   stats_;

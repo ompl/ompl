@@ -48,7 +48,6 @@ namespace tools
 {
 
 namespace og = ompl::geometric;
-namespace ob = ompl::base;
 
 /// @cond IGNORE
 OMPL_CLASS_FORWARD(DynamicTimeWarp);
@@ -68,7 +67,7 @@ public:
      * \param path2
      * \return score
      */
-    double calcDTWDistance(const og::PathGeometric &path1, const og::PathGeometric &path2 ) const;
+    double calcDTWDistance(const og::PathGeometric &path1, const og::PathGeometric &path2) const;
 
     /**
      * \brief Use dynamic time warping to compare the similarity of two paths

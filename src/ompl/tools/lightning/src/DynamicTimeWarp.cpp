@@ -61,7 +61,7 @@ double ompl::tools::DynamicTimeWarp::calcDTWDistance(const og::PathGeometric &pa
 
     // Intialize table to have all values of infinity
     // TODO reuse this memory by allocating it in the constructor!
-    std::vector<std::vector<double> > table(n,std::vector<double>(m, std::numeric_limits<double>::infinity()));     
+    std::vector<std::vector<double> > table(n, std::vector<double>(m, std::numeric_limits<double>::infinity()));
 
     // Set first value to zero
     table[0][0] = 0;

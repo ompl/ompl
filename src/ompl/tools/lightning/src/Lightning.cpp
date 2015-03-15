@@ -71,7 +71,7 @@ void ompl::tools::Lightning::initialize()
     OMPL_INFORM("Lightning Framework initialized.");
 }
 
-void ompl::tools::Lightning::setup(void)
+void ompl::tools::Lightning::setup()
 {
     if (!configured_ || !si_->isSetup() || !planner_->isSetup() || !rrPlanner_->isSetup() )
     {

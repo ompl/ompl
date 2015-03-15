@@ -61,13 +61,16 @@ namespace ompl
             \brief A boost shared pointer wrapper for ompl::base::LightningRetrieveRepair */
 
         /**
-           @anchor LightningRetrieveRepair - Lightning Retrieve Repair
+           @anchor LightningRetrieveRepair - Lightning Retrieve and Repair
            @par Short description
-           LightningRetrieveRepair is a experienced-based motion planner that recalls from a database of
-           previous actions the most similar one to the current planning problem and attempts to repair it
+           LightningRetrieveRepair is an experienced-based motion planner
+           that recalls from a database of previous actions the most similar
+           one to the current planning problem and attempts to repair it.
            @par External documentation
-           Berenson, Dmitry, Pieter Abbeel, and Ken Goldberg: A robot path planning framework that learns from experience, in <em>Robotics and Automation (ICRA), 2012 IEEE International Conference on. IEEE</em>, 2012.
-           <a href="http://users.wpi.edu/~dberenson/lightning.pdf">[PDF]</a>
+           Berenson, Dmitry, Pieter Abbeel, and Ken Goldberg: A robot path
+           planning framework that learns from experience, in _IEEE Intl.
+           Conf. Robotics and Automation (ICRA)_, 2012.
+           [[PDF]](http://users.wpi.edu/~dberenson/lightning.pdf)
         */
 
         /** \brief The Lightning Framework's Retrieve-Repair component */
@@ -78,7 +81,7 @@ namespace ompl
             /** \brief Constructor */
             LightningRetrieveRepair(const base::SpaceInformationPtr &si, const tools::LightningDBPtr &experienceDB);
 
-            virtual ~LightningRetrieveRepair(void);
+            virtual ~LightningRetrieveRepair();
 
             /** \brief Get information about the exploration data structure the planning from scratch motion planner used. */
             virtual void getPlannerData(base::PlannerData &data) const;
@@ -104,22 +107,17 @@ namespace ompl
             /** \brief Get information about the exploration data structure the repair motion planner used each call. */
             void getRepairPlannerDatas(std::vector<base::PlannerDataPtr> &data) const;
 
-            /** \brief See base class */
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            /** \brief See base class */
-            virtual void clear(void);
+            virtual void clear();
 
-            /**
-             * \brief Pass a pointer of the database from the lightning framework
-             */
+            /** \brief Pass a pointer of the database from the lightning framework */
             void setLightningDB(const tools::LightningDBPtr &experienceDB);
 
             /** \brief Set the planner that will be used for repairing invalid paths recalled from experience */
             void setRepairPlanner(const base::PlannerPtr &planner);
 
-            /** \brief See base class */
-            virtual void setup(void);
+            virtual void setup();
 
             /**
              * \brief Repairs a path to be valid in the current planning environment
@@ -138,10 +136,10 @@ namespace ompl
              */
             bool replan(const base::State *start, const base::State *goal, geometric::PathGeometric &newPathSegment,
                         const base::PlannerTerminationCondition &ptc);
-          
+
             /**
-             * \brief Getter for number of 'k' close solutions to choose from database for further filtering 
-             */ 
+             * \brief Getter for number of 'k' close solutions to choose from database for further filtering
+             */
             int getNumNearestSolutions() const
             {
               return nearestK_;
@@ -154,13 +152,13 @@ namespace ompl
             {
               nearestK_ = nearestK;
             }
-                    
+
         protected:
 
             /**
              * \brief Count the number of states along the discretized path that are in collision
-             *        Note: This is kind of an ill-defined score though. It depends on the resolution of collision checking. 
-             *        I am more inclined to try to compute the percent of the length of the motion that is valid. 
+             *        Note: This is kind of an ill-defined score though. It depends on the resolution of collision checking.
+             *        I am more inclined to try to compute the percent of the length of the motion that is valid.
              *        That could go in SpaceInformation, as a utility function.
              */
             std::size_t checkMotionScore(const base::State *s1, const base::State *s2) const;
