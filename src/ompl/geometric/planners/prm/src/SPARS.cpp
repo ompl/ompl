@@ -152,6 +152,10 @@ void ompl::geometric::SPARS::clearQuery()
     startM_.clear();
     goalM_.clear();
     pis_.restart();
+
+    // Clear past solutions if there are any
+    if (pdef_)
+      pdef_->clearSolutionPaths();
 }
 
 void ompl::geometric::SPARS::clear()
