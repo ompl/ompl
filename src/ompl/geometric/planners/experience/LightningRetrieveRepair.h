@@ -96,7 +96,7 @@ namespace ompl
              *  \brief Get debug information about the top recalled paths that were chosen for further filtering
              *  \return chosenID - the index of the PlannerData object that was chosen for repair
              */
-            const std::size_t getLastRecalledNearestPathChosen() const;
+            std::size_t getLastRecalledNearestPathChosen() const;
 
             /**
              * \brief Get the chosen path used from database for repair

@@ -171,7 +171,7 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
     time::point start = time::now();
 
     // Insertion time
-    double insertionTime;
+    double insertionTime = 0.;
 
     // Start both threads
     bool hybridize = false;
@@ -200,7 +200,7 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
     else if (!lastStatus_)
     {
         // Skip further processing if absolutely no path is available
-        OMPL_ERROR("Lightning Solve: Unknown failure, planner status: %s", lastStatus_);
+        OMPL_ERROR("Lightning Solve: Unknown failure, planner status: %s", lastStatus_.asString().c_str());
         stats_.numSolutionsFailed_++;
 
         // Logging

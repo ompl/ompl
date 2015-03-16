@@ -42,6 +42,8 @@
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/base/SpaceInformation.h>
 
+#include <boost/numeric/ublas/matrix.hpp>
+
 namespace ompl
 {
 namespace tools
@@ -84,6 +86,9 @@ private:
 
     /** \brief The created space information */
     base::SpaceInformationPtr     si_;
+
+    /** \brief Distance matrix */
+    mutable boost::numeric::ublas::matrix<double> table_;
 
 }; // end of class
 

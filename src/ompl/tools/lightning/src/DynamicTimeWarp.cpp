@@ -59,28 +59,28 @@ double ompl::tools::DynamicTimeWarp::calcDTWDistance(const og::PathGeometric &pa
     std::size_t n = path1.getStateCount();
     std::size_t m = path2.getStateCount();
 
-    // Intialize table to have all values of infinity
-    // TODO reuse this memory by allocating it in the constructor!
-    std::vector<std::vector<double> > table(n, std::vector<double>(m, std::numeric_limits<double>::infinity()));
-
+    // Intialize table
+    if (table_.size1() <= n || table_.size2() <= m)
+        table_.resize(n + 1, m + 1, false);
+    for (std::size_t i = 1; i <= n; ++i)
+        table_(i, 0) = std::numeric_limits<double>::infinity();
+    for (std::size_t i = 1; i <= m; ++i)
+        table_(0, i) = std::numeric_limits<double>::infinity();
     // Set first value to zero
-    table[0][0] = 0;
+    table_(0, 0) = 0;
 
     // Do calculations
     double cost;
-    for (std::size_t i = 1; i < n; ++i)
-    {
-        const std::vector<double> &prev_row_cached = table[i-1];
-
-        for (std::size_t j = 1; j < m; ++j)
+    for (std::size_t i = 1; i <= n; ++i)
+        for (std::size_t j = 1; j <= m; ++j)
         {
-            cost = si_->distance(path1.getState(i), path2.getState(j));
-            //table[i][j] = cost + min3(table[i-1][j], table[i][j-1], table[i-1][j-1]);
-            table[i][j] = cost + min3(prev_row_cached[j], table[i][j-1], prev_row_cached[j-1]);
+            cost = si_->distance(path1.getState(i - 1), path2.getState(j - 1));
+            table_(i, j) = cost + min3(table_(i - 1, j),
+                                       table_(i, j - 1),
+                                       table_(i - 1, j - 1));
         }
-    }
 
-    return table[n-1][m-1];
+    return table_(n, m);
 }
 
 double ompl::tools::DynamicTimeWarp::getPathsScore(const og::PathGeometric &path1, const og::PathGeometric &path2)

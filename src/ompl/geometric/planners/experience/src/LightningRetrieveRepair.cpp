@@ -549,7 +549,7 @@ const std::vector<ompl::base::PlannerDataPtr>& ompl::geometric::LightningRetriev
     return nearestPaths_; // list of candidate paths
 }
 
-const std::size_t ompl::geometric::LightningRetrieveRepair::getLastRecalledNearestPathChosen() const
+std::size_t ompl::geometric::LightningRetrieveRepair::getLastRecalledNearestPathChosen() const
 {
     return nearestPathsChosenID_; // of the candidate paths list, the one we chose
 }
