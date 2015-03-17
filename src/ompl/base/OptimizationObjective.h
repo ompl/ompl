@@ -89,32 +89,17 @@ namespace ompl
             /** \brief Set the cost threshold for objective satisfaction. When a path is found with a cost better than the cost threshold, the objective is considered satisfied. */
             void setCostThreshold(Cost c);
 
-            /** \brief Get the cost that corresponds to an entire path. This implementation assumes \e Path is of type \e PathGeometric.*/
-            virtual Cost getCost(const Path &path) const;
-
             /** \brief Check whether the the cost \e c1 is considered better than the cost \e c2. By default, this returns true only if c1 is less by at least some threshold amount, for numerical robustness. */
             virtual bool isCostBetterThan(Cost c1, Cost c2) const;
 
-            /** \brief Compare whether cost \e c1 is worse than cost \e c2. By default defined as isCostBetterThan(c2, c1), as if c2 is better than c1, then c1 is worse than c2. */
-            virtual bool isCostWorseThan(Cost c1, Cost c2) const;
-
             /** \brief Compare whether cost \e c1 and cost \e c2 are equivalent. By default defined as !isCostBetterThan(c1, c2) && !isCostBetterThan(c2, c1), as if c1 is not better than c2, and c2 is not better than c1, then they are equal. */
             virtual bool isCostEquivalentTo(Cost c1, Cost c2) const;
-            
-            /** \brief Compare whether cost \e c1 and cost \e c2 are not equivalent. By default defined as isCostBetterThan(c1, c2) || isCostBetterThan(c2, c1), as if c1 is better than c2, or c2 is better than c1, then they are not equal. */
-            virtual bool isCostNotEquivalentTo(Cost c1, Cost c2) const;
-
-            /** \brief Compare whether cost \e c1 is better or equivalent to cost \e c2. By default defined by !isCostBetterThan(c2, c1), as if c2 is not better than c1, then c1 is better than, or equal to, c2. */
-            virtual bool isCostBetterThanOrEquivalentTo(Cost c1, Cost c2) const;
-
-            /** \brief Compare whether cost \e c1 is worse or equivalent to cost \e c2. By default defined by !this->isCostBetterThan(c1,c2) as if c1 is not better than c2, than c1 is worse than, or equal to, c2*/
-            virtual bool isCostWorseThanOrEquivalentTo(Cost a, Cost b) const;
 
             /** \brief Returns whether the cost is finite or not. By default calls std::isfinite on Cost::value(). */
             virtual bool isFinite(Cost cost) const;
 
             /** \brief Return the minimum cost given \e c1 and \e c2. Uses isCostBetterThan. */
-            virtual Cost minCost(Cost c1, Cost c2) const;
+            virtual Cost betterCost(Cost c1, Cost c2) const;
 
             /** \brief Evaluate a cost map defined on the state space at a state \e s. */
             virtual Cost stateCost(const State *s) const = 0;
@@ -124,12 +109,6 @@ namespace ompl
 
             /** \brief Get the cost that corresponds to combining the costs \e c1 and \e c2. Default implementation defines this combination as an addition. */
             virtual Cost combineCosts(Cost c1, Cost c2) const;
-
-            /** \brief Combine three costs as (c1 + c2) + c3. By default uses the two-argument version of combineCosts */
-            virtual Cost combineCosts(Cost c1, Cost c2, Cost c3) const;
-
-            /** \brief Combine four costs as ((c1 + c2) + c3) + c4. By default uses the two-argument version of combineCosts */
-            virtual Cost combineCosts(Cost c1, Cost c2, Cost c3, Cost c4) const;
 
             /** \brief Get the identity cost value. The identity cost value is the cost c_i such that, for all costs c, combineCosts(c, c_i) = combineCosts(c_i, c) = c. In other words, combining a cost with the identity cost does not change the original cost. By default, a cost with the value 0.0 is returned. It's very important to override this with the proper identity value for your optimization objectives, or else optimal planners may not work. */
             virtual Cost identityCost() const;

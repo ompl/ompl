@@ -364,7 +364,7 @@ namespace ompl
             unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, unsigned int count, bool endpoints, bool alloc) const;
 
             /** \brief Get the total number of motion segments checked by the MotionValidator so far */
-            unsigned int getNumMotionsChecked() const
+            unsigned int getCheckedMotionCount() const
             {
                 return motionValidator_->getCheckedMotionCount();
             }

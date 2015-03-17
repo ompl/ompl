@@ -66,106 +66,29 @@ void ompl::base::OptimizationObjective::setCostThreshold(Cost c)
     threshold_ = c;
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::getCost(const Path &path) const
-{
-    // Cast path down to a PathGeometric
-    const geometric::PathGeometric *pathGeom = dynamic_cast<const geometric::PathGeometric*>(&path);
-
-    // Give up if this isn't a PathGeometric or if the path is empty.
-    if (!pathGeom)
-    {
-        OMPL_ERROR("Error: Cost computation is only implemented for paths of type PathGeometric.");
-        return this->identityCost();
-    }
-    else
-    {
-        std::size_t numStates = pathGeom->getStateCount();
-        if (numStates == 0)
-        {
-            OMPL_ERROR("Cannot compute cost of an empty path.");
-            return this->identityCost();
-        }
-        else
-        {
-            // Compute path cost by accumulating the cost along the path
-            Cost cost(this->identityCost());
-            for (std::size_t i = 1; i < numStates; ++i)
-            {
-                const State *s1 = pathGeom->getState(i-1);
-                const State *s2 = pathGeom->getState(i);
-                cost = this->combineCosts(cost, this->motionCost(s1, s2));
-            }
-
-            return cost;
-        }
-    }
-}
-
 bool ompl::base::OptimizationObjective::isCostBetterThan(Cost c1, Cost c2) const
 {
     return c1.value() + magic::BETTER_PATH_COST_MARGIN < c2.value();
-}
-
-bool ompl::base::OptimizationObjective::isCostWorseThan(Cost c1, Cost c2) const
-{
-    //If c2 is better than c1, then c1 is worse than c2
-    return isCostBetterThan(c2, c1);
 }
 
 bool ompl::base::OptimizationObjective::isCostEquivalentTo(Cost c1, Cost c2) const
 {
     //If c1 is not better than c2, and c2 is not better than c1, then they are equal
     return !isCostBetterThan(c1,c2) && !isCostBetterThan(c2,c1);
-}
-
-bool ompl::base::OptimizationObjective::isCostNotEquivalentTo(Cost c1, Cost c2) const
-{
-    //If c1 is better than c2, or c2 is better than c1, then they are not equal
-    return isCostBetterThan(c1,c2) || isCostBetterThan(c2,c1);
-}
-
-bool ompl::base::OptimizationObjective::isCostBetterThanOrEquivalentTo(Cost c1, Cost c2) const
-{
-    //If c2 is not better than c1, then c1 is better than, or equal to, c2
-    return !isCostBetterThan(c2,c1);
-}
-
-bool ompl::base::OptimizationObjective::isCostWorseThanOrEquivalentTo(Cost c1, Cost c2) const
-{
-    //If c1 is not better than c2, than c1 is worse than, or equal to, c2
-    return !isCostBetterThan(c1,c2);
-}
 
 bool ompl::base::OptimizationObjective::isFinite(Cost cost) const
 {
-    return std::isfinite(cost.value());
+    return isCostBetterThan(cost, infiniteCost());
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::minCost(Cost c1, Cost c2) const
+ompl::base::Cost ompl::base::OptimizationObjective::betterCost(Cost c1, Cost c2) const
 {
-    if (isCostBetterThan(c1, c2))
-    {
-        return c1;
-    }
-    else
-    {
-        return c2;
-    }
+    return isCostBetterThan(c1, c2) ? c1 : c2;
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::combineCosts(Cost c1, Cost c2) const
 {
     return Cost(c1.value() + c2.value());
-}
-
-ompl::base::Cost ompl::base::OptimizationObjective::combineCosts(Cost c1, Cost c2, Cost c3) const
-{
-    return combineCosts( combineCosts(c1, c2), c3 );
-}
-
-ompl::base::Cost ompl::base::OptimizationObjective::combineCosts(Cost c1, Cost c2, Cost c3, Cost c4) const
-{
-    return combineCosts( combineCosts(c1, c2, c3), c4 );
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::identityCost() const
