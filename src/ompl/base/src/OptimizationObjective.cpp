@@ -75,6 +75,7 @@ bool ompl::base::OptimizationObjective::isCostEquivalentTo(Cost c1, Cost c2) con
 {
     //If c1 is not better than c2, and c2 is not better than c1, then they are equal
     return !isCostBetterThan(c1,c2) && !isCostBetterThan(c2,c1);
+}
 
 bool ompl::base::OptimizationObjective::isFinite(Cost cost) const
 {
