@@ -288,6 +288,9 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
 
     while (ptc == false)
     {
+        // Swap start and goal trees
+        std::swap(tStart_, tGoal_);
+
         // Make sure that the goal tree has one state in it
         if (tGoal_->size() == 0 || pis_.getSampledGoalsCount() < tGoal_->size() / 2)
         {
