@@ -177,6 +177,9 @@ namespace ompl
 
             /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
             std::pair<base::State*, base::State*>      connectionPoint_;
+
+            /** \brief Distance between the nearest pair of start tree and goal tree nodes. */
+            double                        distanceBetweenTrees_;
         };
 
     }

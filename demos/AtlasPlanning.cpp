@@ -79,8 +79,8 @@ int main (int argc, char **argv)
     
     // Atlas parameters
     atlas->setExploration(0.9);
-    atlas->setRho(0.4);
-    atlas->setAlpha(M_PI/8);
+    atlas->setRho(0.2);
+    atlas->setAlpha(M_PI/8);   // TODO does this have any effect?
     atlas->setEpsilon(0.1);
     atlas->setDelta(0.02);
     atlas->setMaxChartsPerExtension(200);
@@ -190,6 +190,11 @@ int main (int argc, char **argv)
         std::cout << "No solution found.\n";
     }
     
+    ompl::base::PlannerData data(si);
+    planner->getPlannerData(data);
+    if (data.properties.find("approx goal distance REAL") != data.properties.end())
+        std::cout << "Approx goal distance: " << data.properties["approx goal distance REAL"] << "\n";
+
     if (!cons)
         std::cout << "Atlas created " << atlas->getChartCount() << " charts.\n";
     
