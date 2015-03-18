@@ -226,10 +226,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
         
         if (gs != TRAPPED)
         {
-            /* update distance between trees */
-            Motion *nearestInOther = otherTree->nearest(tgi.xmotion);
-            distanceBetweenTrees_ = std::min(distanceBetweenTrees_, otherTree->getDistanceFunction()(tgi.xmotion, nearestInOther));
-
             /* remember which motion was just added */
             Motion *addedMotion = tgi.xmotion;
 
@@ -240,21 +236,13 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
                 si_->copyState(rstate, tgi.xstate);
 
             GrowState gsc = ADVANCED;
-            bool some_progress = false;
             tgi.start = startTree;
             while (gsc == ADVANCED)
-            {
                 gsc = growTree(otherTree, tgi, rmotion);
-                if (gsc != TRAPPED)
-                    some_progress == true;
-            }
 
             /* update distance between trees */
-            if (some_progress)
-            {
-                Motion *nearestInTree = tree->nearest(tgi.xmotion);
-                distanceBetweenTrees_ = std::min(distanceBetweenTrees_, tree->getDistanceFunction()(tgi.xmotion, nearestInTree));
-            }
+            Motion *nearestInOther = otherTree->nearest(addedMotion);
+            distanceBetweenTrees_ = std::min(distanceBetweenTrees_, otherTree->getDistanceFunction()(addedMotion, nearestInOther));
 
             Motion *startMotion = startTree ? tgi.xmotion : addedMotion;
             Motion *goalMotion  = startTree ? addedMotion : tgi.xmotion;

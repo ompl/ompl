@@ -54,6 +54,7 @@ ompl::geometric::CBiRRT2::CBiRRT2(const base::SpaceInformationPtr &si) : base::P
         ci_ = csi->getConstraintInformation();
 
     Planner::declareParam<double>("range", this, &CBiRRT2::setRange, &CBiRRT2::getRange, "0.:1.:10000.");
+    distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
 }
 
 ompl::geometric::CBiRRT2::~CBiRRT2(void)
@@ -71,6 +72,7 @@ void ompl::geometric::CBiRRT2::clear(void)
     if (tGoal_)
         tGoal_->clear();
     connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
+    distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
 }
 
 void ompl::geometric::CBiRRT2::setup(void)
@@ -319,6 +321,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
 
         // Remember the state added to the start tree
         const Motion* startMotion = tgi.xmotion;
+        Motion *addedMotion = tgi.xmotion;
 
         // Now growing the goal tree
         tgi.start = false;
@@ -329,6 +332,9 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
         {
             growGoal = growTree(tGoal_, tgi, startMotion, tGoal_->nearest(tgi.xmotion));
         } while (growGoal == ADVANCED && !ptc);
+
+        // Update the distance between trees
+        distanceBetweenTrees_ = std::min(distanceBetweenTrees_, tStart_->getDistanceFunction()(addedMotion, tGoal_->nearest(addedMotion)));
 
         // Did not connect to start tree
         if (growGoal == TRAPPED || ptc)
@@ -494,4 +500,7 @@ void ompl::geometric::CBiRRT2::getPlannerData(base::PlannerData &data) const
 
     // Add the edge connecting the two trees
     data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
+
+    // Add some info.
+    data.properties["approx goal distance REAL"] = boost::lexical_cast<std::string>(distanceBetweenTrees_);
 }

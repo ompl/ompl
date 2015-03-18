@@ -183,6 +183,9 @@ namespace ompl
 
             /// \brief A pointer to the constraint information object that this planner uses
             base::ConstraintInformationPtr                 ci_;
+
+            /** \brief Distance between the nearest pair of start tree and goal tree nodes. */
+            double                        distanceBetweenTrees_;
         };
 
     }
