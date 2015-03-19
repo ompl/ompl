@@ -46,6 +46,7 @@ ompl::geometric::VFRRT::VFRRT (const base::SpaceInformationPtr &si, const Vector
     inefficientCount = 0;
     explorationInefficiency = 0;
     step = 0;
+    maxDistance_ = si->getStateValidityCheckingResolution();
 }
             
 ompl::geometric::VFRRT::~VFRRT () {}
@@ -90,6 +91,10 @@ Eigen::VectorXd ompl::geometric::VFRRT::getNewDirection (const base::State *qnea
     // Get the vector at qnear, and normalize
     Eigen::VectorXd vfield = vf_(qnear);
     const double lambdaScale = vfield.norm();
+    // In the case where there is no vector field present, vfield.norm() == 0, return the direction of the random state.
+    if (lambdaScale < 0.0001)
+        return vrand;
+
     vfield /= lambdaScale;
                 
     // Sample a weight from the distribution
@@ -135,29 +140,34 @@ Eigen::VectorXd ompl::geometric::VFRRT::computeAlphaBeta (double omega, const Ei
     return alpha*vfield + beta*vrand;
 }
             
-ompl::geometric::VFRRT::Motion *ompl::geometric::VFRRT::extendTree (Motion *m, const Eigen::VectorXd &v)
+ompl::geometric::VFRRT::Motion *ompl::geometric::VFRRT::extendTree (Motion *m, base::State* rstate, const Eigen::VectorXd &v)
 {
-    base::ScopedState<> state(si_);
-    si_->copyState(state.get(), m->state);
-                
-    const unsigned int d = state.reals().size();
-    const double delta = si_->getStateValidityCheckingResolution();
-    for (unsigned int i = 0; i < d; i++)
+    base::ScopedState<> newState(si_);
+    si_->copyState(newState.get(), m->state);
+    
+    double d = si_->distance(m->state, rstate);
+    if (d > maxDistance_)
+        d = maxDistance_;
+    const unsigned int dim = newState.reals().size();
+
+    for (unsigned int i = 0; i < dim; i++)
     {
-        state[i] += delta * v[i];
+        newState[i] += d * v[i];
     }
-    if (v.hasNaN() || !si_->isValid(state.get()))
+    if (!v.hasNaN() && si_->checkMotion(m->state, newState.get()))
+    {
+        Motion *motion = new Motion(si_);
+        si_->copyState(motion->state, newState.get());
+        motion->parent = m;
+        updateExplorationEfficiency(motion);
+        nn_->add(motion);
+        return motion;
+    }
+    else
     {
         inefficientCount++;
         return NULL;
     }
-
-    Motion *motion = new Motion(si_);
-    si_->copyState(motion->state, state.get());
-    motion->parent = m;
-    updateExplorationEfficiency(motion);
-    nn_->add(motion);
-    return motion;
 }
             
 void ompl::geometric::VFRRT::updateExplorationEfficiency(Motion *m)
@@ -215,7 +225,8 @@ ompl::base::PlannerStatus ompl::geometric::VFRRT::solve (const base::PlannerTerm
         Motion *nmotion = nn_->nearest(rmotion);
                     
         // Modify direction based on vector field before extending
-        Motion *motion = extendTree(nmotion, getNewDirection(nmotion->state, rstate));
+
+        Motion *motion = extendTree(nmotion, rstate, getNewDirection(nmotion->state, rstate));
         if (!motion)
             continue;
                     

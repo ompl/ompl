@@ -134,8 +134,7 @@ namespace ompl
              * This attempts to extend the tree from the motion m to a new motion 
              * in the direction specified by the vector v.   
              */
-            Motion *extendTree (Motion *m, const Eigen::VectorXd &v);
-
+            Motion *extendTree (Motion *m, base::State* rstate, const Eigen::VectorXd &v);
             /**
              * Updates measures for exploration efficiency if a given motion m is added to the
              * nearest NearestNeighbors structure.
