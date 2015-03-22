@@ -106,7 +106,7 @@ namespace ompl
             }
 
             /// \brief Set the cost threshold (default is infinity).
-            /// Any state cost that is not better than this cost (according to
+            /// Any motion cost that is not better than this cost (according to
             /// the optimization objective) will not be expanded by the planner.
             void setCostThreshold(double maxCost)
             {
@@ -114,7 +114,7 @@ namespace ompl
             }
 
             /// \brief Get the cost threshold (default is infinity).
-            /// Any state cost that is not better than this cost (according to
+            /// Any motion cost that is not better than this cost (according to
             /// the optimization objective) will not be expanded by the planner. */
             double getCostThreshold() const
             {
@@ -214,10 +214,10 @@ namespace ompl
             Motion* addMotion(const base::State* state, TreeData& tree, Motion* parent = NULL);
 
             /// \brief Transition test that filters transitions based on the
-            /// cost differential.  If childCost is better than parentCost, the motion is
-            /// always accepted, otherwise a probabilistic criterion based on
-            /// the temperature is used.
-            bool transitionTest(const base::Cost& childCost, const base::Cost& parentCost);
+            /// motion cost.  If the motion cost is near or below zero, the motion
+            /// is always accepted, otherwise a probabilistic criterion based on
+            /// the temperature and motionCost is used.
+            bool transitionTest(const base::Cost& motionCost);
 
             /// \brief Use frontier node ratio to filter nodes that do not add
             /// new information to the search tree.
@@ -265,7 +265,7 @@ namespace ompl
             /// \brief The least desirable (e.g., maximum) cost value in the search tree
             base::Cost                                      worstCost_;
 
-            /// \brief All state costs must be better than this cost (default is infinity)
+            /// \brief All motion costs must be better than this cost (default is infinity)
             base::Cost                                      costThreshold_;
 
             /// \brief The temperature that planning begins at.

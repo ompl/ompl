@@ -276,7 +276,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         base::Cost childCost = opt_->stateCost(newState);
 
         // Only add this motion to the tree if the transition test accepts it
-        if (!transitionTest(childCost, nearMotion->cost))
+        if (!transitionTest(opt_->motionCost(nearMotion->state, newState)))
             continue; // give up on this one and try a new sample
 
         // V.
@@ -384,17 +384,17 @@ void ompl::geometric::TRRT::getPlannerData(base::PlannerData &data) const
     }
 }
 
-bool ompl::geometric::TRRT::transitionTest(const base::Cost& childCost, const base::Cost& parentCost)
+bool ompl::geometric::TRRT::transitionTest(const base::Cost& motionCost)
 {
-    // Disallow any state that is not better than the cost threshold
-    if (!opt_->isCostBetterThan(childCost, costThreshold_))
+    // Disallow any cost that is not better than the cost threshold
+    if (!opt_->isCostBetterThan(motionCost, costThreshold_))
         return false;
 
-    // Always accept if the child has better cost than its predecessor
-    if (opt_->isCostBetterThan(childCost, parentCost))
+    // Always accept if the cost is near or below zero
+    if (motionCost.value() < 1e-4)
         return true;
 
-    double dCost = childCost.value() - parentCost.value();
+    double dCost = motionCost.value();
     double transitionProbability = exp(-dCost / temp_);
     if (transitionProbability > 0.5)
     {

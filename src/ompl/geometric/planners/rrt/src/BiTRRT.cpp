@@ -178,17 +178,17 @@ ompl::geometric::BiTRRT::Motion* ompl::geometric::BiTRRT::addMotion(const base::
     return motion;
 }
 
-bool ompl::geometric::BiTRRT::transitionTest(const base::Cost& childCost, const base::Cost& parentCost)
+bool ompl::geometric::BiTRRT::transitionTest(const base::Cost& motionCost)
 {
-    // Disallow any state that is not better than the cost threshold
-    if (!opt_->isCostBetterThan(childCost, costThreshold_))
+    // Disallow any cost that is not better than the cost threshold
+    if (!opt_->isCostBetterThan(motionCost, costThreshold_))
         return false;
 
-    // Always accept if the child has better cost than its predecessor
-    if (opt_->isCostBetterThan(childCost, parentCost))
+    // Always accept if the cost is near or below zero
+    if (motionCost.value() < 1e-4)
         return true;
 
-    double dCost = childCost.value() - parentCost.value();
+    double dCost = motionCost.value();
     double transitionProbability = exp(-dCost / temp_);
     if (transitionProbability > 0.5)
     {
@@ -223,7 +223,6 @@ bool ompl::geometric::BiTRRT::minExpansionControl(double dist)
     }
 }
 
-// This function MAY trash toMotion
 ompl::geometric::BiTRRT::GrowResult ompl::geometric::BiTRRT::extendTree(Motion* nearest, TreeData& tree, Motion* toMotion, Motion*& result)
 {
     bool reach = true;
@@ -245,7 +244,7 @@ ompl::geometric::BiTRRT::GrowResult ompl::geometric::BiTRRT::extendTree(Motion* 
     // expansion control to ensure high quality nodes are added.
     bool validMotion = (tree == tStart_ ? si_->checkMotion(nearest->state, toMotion->state) :
                         si_->isValid(toMotion->state) && si_->checkMotion(toMotion->state, nearest->state)) &&
-                       transitionTest(opt_->stateCost(toMotion->state), nearest->cost) &&
+                        transitionTest(opt_->motionCost(nearest->state, toMotion->state)) &&
                        minExpansionControl(d);
 
     if (validMotion)
@@ -286,6 +285,7 @@ bool ompl::geometric::BiTRRT::connectTrees(Motion* nmotion, TreeData& tree, Moti
     {
         // Extend tree from nearest toward xmotion
         // Store the result into next
+        // This function MAY trash xmotion
         result = extendTree(nearest, tree, xmotion, next);
 
         if (result == ADVANCED)

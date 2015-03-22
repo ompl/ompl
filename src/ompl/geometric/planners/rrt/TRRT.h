@@ -145,7 +145,7 @@ namespace ompl
             }
 
             /** \brief Set the cost threshold (default is infinity).
-                Any state cost that is not better than this cost (according to
+                Any motion cost that is not better than this cost (according to
                 the optimization objective) will not be expanded by the planner. */
             void setCostThreshold( double maxCost )
             {
@@ -153,7 +153,7 @@ namespace ompl
             }
 
             /** \brief Get the cost threshold (default is infinity).
-                 Any state cost that is not better than this cost (according to
+                 Any motion cost that is not better than this cost (according to
                  the optimization objective) will not be expanded by the planner. */
             double getCostThreshold() const
             {
@@ -255,10 +255,9 @@ namespace ompl
             }
 
             /** \brief Filter irrelevant configuration regarding the search of low-cost paths before inserting into tree
-                \param childCost - cost of current state
-                \param parentCost - cost of its ancestor parent state
+                \param motionCost - cost of the motion to be evaluated
             */
-            bool transitionTest( const base::Cost& childCost, const base::Cost& parentCost );
+            bool transitionTest( const base::Cost& motionCost );
 
             /** \brief Use ratio to prefer frontier nodes to nonfrontier ones */
             bool minExpansionControl( double randMotionDistance );
@@ -298,7 +297,7 @@ namespace ompl
             /** \brief The least desirable (e.g., maximum) cost value in the search tree */
             base::Cost                                      worstCost_;
 
-            /** \brief All state costs must be better than this cost (default is infinity) */
+            /** \brief All motion costs must be better than this cost (default is infinity) */
             base::Cost                                      costThreshold_;
 
             /** \brief The value of the expression exp^T_rate.  The temperature
