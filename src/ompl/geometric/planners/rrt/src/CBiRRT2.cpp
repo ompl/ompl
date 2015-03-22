@@ -132,7 +132,7 @@ ompl::geometric::CBiRRT2::GrowState ompl::geometric::CBiRRT2::growTree(TreeData 
         si_->getStateSpace()->interpolate(nmotion->state, rmotion->state, maxDistance_ / d, tgi.xstate);
 
         // Project new state onto constraint manifold and check its validity
-        if (!ci_->project(tgi.xstate) && si_->isValid(tgi.xstate))
+        if (!ci_->project(tgi.xstate) || !si_->isValid(tgi.xstate))
             return TRAPPED;
 
         dstate = tgi.xstate;
@@ -286,6 +286,10 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
     base::State *rstate = rmotion->state;
     bool solved         = false;
 
+    TreeData tree = tStart_;
+    TreeData otherTree = tGoal_;
+    tgi.start = true;  // begin planning with the start tree
+
     while (ptc == false)
     {
         // Make sure that the goal tree has one state in it
@@ -294,10 +298,15 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
             const base::State *st = tGoal_->size() == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
             if (st)
             {
-                Motion* motion = new Motion(si_);
-                si_->copyState(motion->state, st);
-                motion->root = motion->state;
-                tGoal_->add(motion);
+                if (ci_->isSatisfied(st))
+                {
+                    Motion* motion = new Motion(si_);
+                    si_->copyState(motion->state, st);
+                    motion->root = motion->state;
+                    tGoal_->add(motion);
+                }
+                else
+                    OMPL_WARN("%s: Sampled a goal state that does NOT satisfy path constraints!", getName().c_str());
             }
 
             if (tGoal_->size() == 0)
@@ -311,42 +320,47 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
         if (!ci_->sample(rstate) || !si_->isValid(rstate))
             continue;
 
-        // Grow start tree first
-        tgi.start = true;
-
-        // Try to connect the state we sampled to start tree
+        // Try to connect the state we sampled to tree
         // If we did not add any state to the tree, try again
-        if (growTree(tStart_, tgi, rmotion, tStart_->nearest(rmotion)) == TRAPPED)
+        if (growTree(tree, tgi, rmotion, tree->nearest(rmotion)) == TRAPPED)
             continue;
 
-        // Remember the state added to the start tree
+        // Remember the state added to the tree
         const Motion* startMotion = tgi.xmotion;
         Motion *addedMotion = tgi.xmotion;
 
-        // Now growing the goal tree
-        tgi.start = false;
+        // Now growing the other tree
+        tgi.start = !tgi.start;
 
-        // Now grow the goal tree toward the state we just added in the start tree
-        GrowState growGoal;
+        // Grow the other tree toward the state we just added in the initial tree
+        GrowState growOther;
         do
         {
-            growGoal = growTree(tGoal_, tgi, startMotion, tGoal_->nearest(tgi.xmotion));
-        } while (growGoal == ADVANCED && !ptc);
+            growOther = growTree(otherTree, tgi, startMotion, otherTree->nearest(tgi.xmotion));
+        } while (growOther == ADVANCED && !ptc);
 
         // Update the distance between trees
-        distanceBetweenTrees_ = std::min(distanceBetweenTrees_, tStart_->getDistanceFunction()(addedMotion, tGoal_->nearest(addedMotion)));
+        distanceBetweenTrees_ = std::min(distanceBetweenTrees_, tree->getDistanceFunction()(addedMotion, otherTree->nearest(addedMotion)));
 
-        // Did not connect to start tree
-        if (growGoal == TRAPPED || ptc)
+        // Did not connect to initial tree
+        if (growOther == TRAPPED || ptc)
+        {
+            // Swap the trees for the next iteration
+            std::swap(tree, otherTree);
             continue;
+        }
 
         // If we are here, we connected the trees!  If the trees are connected
         // in a valid way (start and goal pair is valid), we are done
-        if (goal->isStartGoalPairValid(startMotion->root, tgi.xmotion->root))
-        {
-            // Remember the state added to the goal tree
-            const Motion* goalMotion = tgi.xmotion;
+        // First, make sure the motion named startMotion is in the start tree,
+        // else swap with goalMotion
+        const Motion* goalMotion = tgi.xmotion;
 
+        if (tgi.start) // at this point, this means start was attempted after goal tree this iteration
+            std::swap(startMotion, goalMotion);
+
+        if (goal->isStartGoalPairValid(startMotion->root, goalMotion->root))
+        {
             // There is now a duplicate state in the start and goal trees
             // (the last state that was added).  startMotion and goalMotion
             // should be the same state.  To avoid the duplicate state, we
