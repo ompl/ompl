@@ -219,8 +219,9 @@ public:
     
     /** For the chain example. Joints may not get too close to each other. If \a tough, then the end effector
     * may not occupy states similar to the sphereValid() obstacles (but rotated and scaled). */
-    bool isValid (const ompl::base::State *state, const bool tough)
+    bool isValid (double sleep, const ompl::base::State *state, const bool tough)
     {
+        boost::this_thread::sleep(ompl::time::seconds(sleep));
         Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
         for (unsigned int i = 0; i < LINKS-1; i++)
         {
@@ -316,8 +317,9 @@ public:
      * Joints may not get too close to each other. The end effector must not touch the walls of the
      * maze.
      */
-    bool isValid (const ompl::base::State *state)
+    bool isValid (double sleep, const ompl::base::State *state)
     {
+        boost::this_thread::sleep(ompl::time::seconds(sleep));
         Eigen::Ref<const Eigen::VectorXd> x =
           state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
         // Check link lengths.
@@ -482,27 +484,31 @@ bool sphereValid_helper (const Eigen::VectorXd &x)
 }
 
 /** Correct path on the sphere must snake around. */
-bool sphereValid (const ompl::base::State *state)
+bool sphereValid (double sleep, const ompl::base::State *state)
 {
+    boost::this_thread::sleep(ompl::time::seconds(sleep));
     return sphereValid_helper(state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView());
 }
 
 /** Every state is valid. */
-bool always (const ompl::base::State *)
+bool always (double sleep, const ompl::base::State *)
 {
+    boost::this_thread::sleep(ompl::time::seconds(sleep));
     return true;
 }
 
 /** States surrounding the goal are invalid, making it unreachable. We can use this to build up an atlas
  * until time runs out, so we can see the big picture. */
-bool unreachable (const ompl::base::State *state, const Eigen::VectorXd &goal, const double radius)
+bool unreachable (double sleep, const ompl::base::State *state, const Eigen::VectorXd &goal, const double radius)
 {
+    boost::this_thread::sleep(ompl::time::seconds(sleep));
     return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView() - goal).norm() - radius) > radius-0.01;
 }
 
 /** Maze-like obstacle in the xy plane. */
-bool mazePlaneValid (png::image<png::index_pixel_1> &maze, const ompl::base::State *state)
+bool mazePlaneValid (double sleep, png::image<png::index_pixel_1> &maze, const ompl::base::State *state)
 {
+    boost::this_thread::sleep(ompl::time::seconds(sleep));
     const ompl::base::AtlasStateSpace::StateType *astate = state->as<ompl::base::AtlasStateSpace::StateType>();
     Eigen::VectorXd vec = astate->constVectorView();
     // The factor of 1/7 is to preserve approximate length of the solution with the torus maze
@@ -514,8 +520,9 @@ bool mazePlaneValid (png::image<png::index_pixel_1> &maze, const ompl::base::Sta
 }
 
 /** Maze-like obstacle on a torus plane. */
-bool mazeTorusValid (png::image<png::index_pixel_1> &maze, const ompl::base::State *state, double r1)
+bool mazeTorusValid (double sleep, png::image<png::index_pixel_1> &maze, const ompl::base::State *state, double r1)
 {
+    boost::this_thread::sleep(ompl::time::seconds(sleep));
     const ompl::base::AtlasStateSpace::StateType *astate = state->as<ompl::base::AtlasStateSpace::StateType>();
     Eigen::Ref<const Eigen::VectorXd> p = astate->constVectorView();
     Eigen::VectorXd vec(2);
@@ -537,7 +544,7 @@ bool mazeTorusValid (png::image<png::index_pixel_1> &maze, const ompl::base::Sta
  */
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
     
@@ -546,14 +553,14 @@ ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::Vecto
     y = Eigen::VectorXd(dim); y << 0, 0,  1;
     
     // Validity checker
-    isValid = &sphereValid;
+    isValid = boost::bind(&sphereValid, sleep, _1);;
     
     // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is faster)
     return new SphereManifold();
 }
 
 /** Initialize the atlas for the torus problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
     
@@ -562,13 +569,13 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
     y = Eigen::VectorXd(dim); y <<  2, 0,  1;
     
     // Validity checker
-    isValid = boost::bind(&unreachable, _1, y, 0.1);
+    isValid = boost::bind(&unreachable, sleep, _1, y, 0.1);
     
     return new TorusManifold(2, 1);
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid)
+ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
     
@@ -577,13 +584,13 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
     y = Eigen::VectorXd(dim); y <<  2.5, -1.5,  1.0221854181962458;
     
     // Validity checker
-    isValid = boost::bind(&unreachable, _1, y, 0.2);
+    isValid = boost::bind(&unreachable, sleep, _1, y, 0.2);
     
     return new KleinManifold();
 }
 
 /** Initialize the atlas for the kinematic chain problem. */
-ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const bool tough)
+ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const bool tough, double sleep)
 {
     const std::size_t dim = 3*5;
     
@@ -592,12 +599,12 @@ ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::Vector
     y = Eigen::VectorXd(dim); y << 0, -1, 0, -1, -1, 0, -1,  0, 0, -2,  0, 0, -3, 0, 0;
     
     ChainManifold *atlas = new ChainManifold(3, 5);
-    isValid = boost::bind(&ChainManifold::isValid, atlas, _1, tough);
+    isValid = boost::bind(&ChainManifold::isValid, atlas, sleep, _1, tough);
     return atlas;
 }
 
 /** Initialize the atlas for the planar maze problem. */
-ompl::base::AtlasStateSpace *initPlanarMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const char *filename)
+ompl::base::AtlasStateSpace *initPlanarMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const char *filename, double sleep)
 {
     const std::size_t dim = 3;
     
@@ -610,13 +617,13 @@ ompl::base::AtlasStateSpace *initPlanarMazeProblem (Eigen::VectorXd &x, Eigen::V
     png::image<png::index_pixel_1> *img = new png::image<png::index_pixel_1>(filename, png::require_color_space<png::index_pixel_1>());
     
     // Validity checker
-    isValid = boost::bind(&mazePlaneValid, *img, _1);
+    isValid = boost::bind(&mazePlaneValid, sleep, *img, _1);
     
     return new PlaneManifold();
 }
 
 /** Initialize the atlas for the torus maze problem. */
-ompl::base::AtlasStateSpace *initTorusMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const char *filename)
+ompl::base::AtlasStateSpace *initTorusMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const char *filename, double sleep)
 {
     const std::size_t dim = 3;
     const double r1 = 2;
@@ -650,7 +657,7 @@ ompl::base::AtlasStateSpace *initTorusMazeProblem (Eigen::VectorXd &x, Eigen::Ve
     png::image<png::index_pixel_1> *img = new png::image<png::index_pixel_1>(filename, png::require_color_space<png::index_pixel_1>());
     
     // Validity checker
-    isValid = boost::bind(&mazeTorusValid, *img, _1, r1);
+    isValid = boost::bind(&mazeTorusValid, sleep, *img, _1, r1);
     
     ompl::base::AtlasStateSpace *atlas = new TorusManifold(r1, r2);
     return atlas;
@@ -700,7 +707,7 @@ void threeLinkSolve (Eigen::Ref<Eigen::VectorXd> x1, Eigen::Ref<Eigen::VectorXd>
 
 /** Initialize the atlas for the chain torus maze problem. */
 ompl::base::AtlasStateSpace *initChainTorusMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                                        ompl::base::StateValidityCheckerFn &isValid)
+                                                        ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
     const std::size_t links = 3;
@@ -726,7 +733,7 @@ ompl::base::AtlasStateSpace *initChainTorusMazeProblem (Eigen::VectorXd &x, Eige
     threeLinkSolve(y1, y2, y3, linklength);
 
     ChainTorusManifold *atlas = new ChainTorusManifold(links, linklength, r1, r2);
-    isValid = boost::bind(&ChainTorusManifold::isValid, atlas, _1);
+    isValid = boost::bind(&ChainTorusManifold::isValid, atlas, sleep, _1);
 
     return atlas;
 }
@@ -755,24 +762,24 @@ void printPlanners (void)
 
 /** Initialize the problem specified in the string. */
 ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                           ompl::base::StateValidityCheckerFn &isValid)
+                                           ompl::base::StateValidityCheckerFn &isValid, double sleep = 0)
 {
     if (std::strcmp(problem, "sphere") == 0)
-        return initSphereProblem(x, y, isValid);
+        return initSphereProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "torus") == 0)
-        return initTorusProblem(x, y, isValid);
+        return initTorusProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "klein") == 0)
-        return initKleinBottleProblem(x, y, isValid);
+        return initKleinBottleProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "chain") == 0)
-        return initChainProblem(x, y, isValid, false);
+        return initChainProblem(x, y, isValid, false, sleep);
     else if (std::strcmp(problem, "chain_tough") == 0)
-        return initChainProblem(x, y, isValid, true);
+        return initChainProblem(x, y, isValid, true, sleep);
     else if (std::strcmp(problem, "planar_maze") == 0)
-        return initPlanarMazeProblem(x, y, isValid, "../../demos/atlas/maze.png");
+        return initPlanarMazeProblem(x, y, isValid, "../../demos/atlas/maze.png", sleep);
     else if (std::strcmp(problem, "torus_maze") == 0)
-        return initTorusMazeProblem(x, y, isValid, "../../demos/atlas/maze.png");
+        return initTorusMazeProblem(x, y, isValid, "../../demos/atlas/maze.png", sleep);
     else if (std::strcmp(problem, "chain_torus_maze") == 0)
-        return initChainTorusMazeProblem(x, y, isValid);
+        return initChainTorusMazeProblem(x, y, isValid, sleep);
     else
         return NULL;
 }

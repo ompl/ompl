@@ -47,13 +47,22 @@ void usage (const char *const progname)
 
 int main (int argc, char **argv)
 {
-    if (argc != 4)
+    if (argc != 4 && argc != 6)
         usage(argv[0]);
     
+    // Detect artifical validity checking delay.
+    double sleep = 0;
+    if (argc == 6)
+    {
+        if (strcmp(argv[4], "-s") != 0)
+            usage(argv[0]);
+        sleep = std::atof(argv[5]);
+    }
+
     // Initialize the atlas for the problem's manifold
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
-    ompl::base::AtlasStateSpacePtr atlas(parseProblem(argv[1], x, y, isValid));
+    ompl::base::AtlasStateSpacePtr atlas(parseProblem(argv[1], x, y, isValid, sleep));
     if (!atlas)
         usage(argv[0]);
     
