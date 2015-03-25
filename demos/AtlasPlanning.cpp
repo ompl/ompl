@@ -137,7 +137,7 @@ int main (int argc, char **argv)
             std::ofstream animFile("anim.txt");
             for (std::size_t i = 0; i < waypoints.size(); i++)
             {
-                std::cout << "[" << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose() << "]\n";
+                //std::cout << "[" << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose() << "]\n";
                 animFile << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose() << "\n";
             }
             animFile.close();
@@ -149,7 +149,7 @@ int main (int argc, char **argv)
             for (std::size_t i = 0; i < waypoints.size()-1; i++)
             {
                 // Denote that we are switching to the next saved state
-                std::cout << "-----\n";
+                //std::cout << "-----\n";
                 ompl::base::AtlasStateSpace::StateType *from, *to;
                 from = waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>();
                 to = waypoints[i+1]->as<ompl::base::AtlasStateSpace::StateType>();
@@ -159,7 +159,7 @@ int main (int argc, char **argv)
                 atlas->followManifold(from, to, true, &stateList);
                 if (atlas->equalStates(stateList.front(), stateList.back()))
                 {
-                    std::cout << "[" << stateList.front()->constVectorView().transpose() << "]  " << stateList.front()->getChart()->getID() << "\n";
+                    //std::cout << "[" << stateList.front()->constVectorView().transpose() << "]  " << stateList.front()->getChart()->getID() << "\n";
                     animFile << stateList.front()->constVectorView().transpose() << "\n";
                 }
                 else
@@ -167,7 +167,7 @@ int main (int argc, char **argv)
                     // Print the intermediate states
                     for (std::size_t i = 1; i < stateList.size(); i++)
                     {
-                        std::cout << "[" << stateList[i]->constVectorView().transpose() << "]  " << stateList[i]->getChart()->getID() << "\n";
+                        //std::cout << "[" << stateList[i]->constVectorView().transpose() << "]  " << stateList[i]->getChart()->getID() << "\n";
                         animFile << stateList[i]->constVectorView().transpose() << "\n";
                         length += atlas->distance(stateList[i-1], stateList[i]);
                     }
@@ -178,7 +178,7 @@ int main (int argc, char **argv)
                     atlas->freeState(stateList[i]);
             }
             animFile.close();
-            std::cout << "-----\n";
+            //std::cout << "-----\n";
         }
         if (stat == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
             std::cout << "Solution is approximate.\n";

@@ -241,8 +241,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
                 gsc = growTree(otherTree, tgi, rmotion);
 
             /* update distance between trees */
-            Motion *nearestInOther = otherTree->nearest(addedMotion);
-            distanceBetweenTrees_ = std::min(distanceBetweenTrees_, otherTree->getDistanceFunction()(addedMotion, nearestInOther));
+            const double newDist = tree->getDistanceFunction()(addedMotion, otherTree->nearest(addedMotion));
+            if (newDist < distanceBetweenTrees_)
+            {
+                distanceBetweenTrees_ = newDist;
+                OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
+            }
 
             Motion *startMotion = startTree ? tgi.xmotion : addedMotion;
             Motion *goalMotion  = startTree ? addedMotion : tgi.xmotion;
@@ -286,7 +290,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
                 pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
                 solved = true;
-                distanceBetweenTrees_ = 0;
                 break;
             }
         }

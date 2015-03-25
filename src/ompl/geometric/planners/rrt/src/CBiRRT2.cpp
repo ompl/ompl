@@ -340,7 +340,12 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
         } while (growOther == ADVANCED && !ptc);
 
         // Update the distance between trees
-        distanceBetweenTrees_ = std::min(distanceBetweenTrees_, tree->getDistanceFunction()(addedMotion, otherTree->nearest(addedMotion)));
+        const double newDist = tree->getDistanceFunction()(addedMotion, otherTree->nearest(addedMotion));
+        if (newDist < distanceBetweenTrees_)
+        {
+            distanceBetweenTrees_ = newDist;
+            OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
+        }
 
         // Did not connect to initial tree
         if (growOther == TRAPPED || ptc)
