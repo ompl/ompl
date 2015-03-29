@@ -38,8 +38,6 @@
 #ifndef OMPL_TOOLS_DEBUG_PROFILER_
 #define OMPL_TOOLS_DEBUG_PROFILER_
 
-#define ENABLE_PROFILING 1
-
 #ifndef ENABLE_PROFILING
 
 /** The ENABLE_PROFILING macro can be set externally. If it is not,
