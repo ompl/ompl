@@ -532,7 +532,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT', 'LightningRetrieveRepair']:
             self.ompl_ns.class_(planner).add_registration_code("""
             def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )""")
             if planner!='PRM':
@@ -588,6 +588,9 @@ class ompl_geometric_generator_t(code_generator_t):
         """)
         # LazyPRM's Vertex type is void* so exclude addMilestone which has return type void*
         self.ompl_ns.class_('LazyPRM').member_function('addMilestone').exclude()
+        # avoid difficulties in exporting the return type std::vector<base::PlannerDataPtr>
+        self.ompl_ns.class_('LightningRetrieveRepair').member_function('getLastRecalledNearestPaths').exclude()
+        self.ompl_ns.class_('LightningRetrieveRepair').member_function('getRepairPlannerDatas').exclude()
 
         # do this for all multithreaded planners
         for planner in ['SPARS', 'SPARStwo']:
@@ -634,6 +637,30 @@ class ompl_tools_generator_t(code_generator_t):
             ompl::tools::Benchmark::Request req(request);
             req.useThreads = false;
             obj->benchmark(request);
+        }
+        """)
+        replacement['printResultsInfo'] = ('def("printResultsInfo", &__printResultsInfo)', """
+        std::string __printResultsInfo(%s* obj)
+        {
+            std::ostringstream s;
+            obj->printResultsInfo(s);
+            return s.str();
+        }
+        """)
+        replacement['printLogs'] = ('def("printLogs", &__printLogs)', """
+        std::string __printLogs(%s* obj)
+        {
+            std::ostringstream s;
+            obj->printLogs(s);
+            return s.str();
+        }
+        """)
+        replacement['saveDataLog'] = ('def("saveDataLog", &__saveDataLog)', """
+        std::string __saveDataLog(%s* obj)
+        {
+            std::ostringstream s;
+            obj->saveDataLog(s);
+            return s.str();
         }
         """)
 
@@ -684,6 +711,20 @@ class ompl_tools_generator_t(code_generator_t):
         self.add_boost_function('void(const ompl::base::PlannerPtr&, ompl::tools::Benchmark::RunProperties&)',
             'PostSetupEvent', 'Post-setup event')
         benchmark_cls.class_('Request').no_init = False
+
+        experience = self.ompl_ns.class_('Experience')
+        lightning = self.ompl_ns.class_('Lightning')
+        # print Lightning results
+        self.replace_member_function(lightning.member_function('printResultsInfo'))
+        # print Lightning logs
+        self.replace_member_function(lightning.member_function('printLogs'))
+        # print Experience log
+        self.replace_member_functions(self.ompl_ns.member_functions('saveDataLog'))
+        # avoid problems with exporting a vector of shared pointers to PlannerData objects
+        self.ompl_ns.member_functions('getAllPlannerDatas').exclude()
+        # code generation fails because of same bug in gxxcml that requires us
+        # to patch the generated code with workaround_for_gccxml_bug.cmake
+        lightning.member_function('setPlannerAllocator').exclude()
 
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):

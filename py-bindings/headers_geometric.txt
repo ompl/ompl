@@ -22,6 +22,7 @@
 ../src/ompl/geometric/planners/sbl/SBL.h
 ../src/ompl/geometric/planners/stride/STRIDE.h
 ../src/ompl/geometric/planners/fmt/FMT.h
+../src/ompl/geometric/planners/experience/LightningRetrieveRepair.h
 ../src/ompl/datastructures/NearestNeighbors.h
 ../src/ompl/datastructures/NearestNeighborsLinear.h
 ompl_py_geometric.h

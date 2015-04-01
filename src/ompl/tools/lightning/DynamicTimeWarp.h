@@ -80,7 +80,7 @@ public:
      * \param path2
      * \return score
      */
-    double getPathsScore(const og::PathGeometric &path1, const og::PathGeometric &path2);
+    double getPathsScore(const og::PathGeometric &path1, const og::PathGeometric &path2) const;
 
 private:
 

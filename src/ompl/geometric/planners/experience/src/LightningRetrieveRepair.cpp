@@ -112,8 +112,6 @@ void ompl::geometric::LightningRetrieveRepair::setup()
 ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const base::PlannerTerminationCondition &ptc)
 {
     bool solved = false;
-    bool approximate = false;
-    double approxdif = std::numeric_limits<double>::infinity();
 
     // Check if the database is empty
     if (!experienceDB_->getExperiencesCount())
@@ -193,8 +191,7 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
         simplifyTime, numStates - primaryPath->getStateCount());
 
     // Finished
-    approxdif = 0.0;
-    pdef_->addSolutionPath(base::PathPtr(primaryPath), approximate, approxdif, getName());
+    pdef_->addSolutionPath(base::PathPtr(primaryPath), false, 0., getName());
     solved = true;
     return base::PlannerStatus(solved, approximate);
 }

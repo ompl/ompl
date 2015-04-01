@@ -49,8 +49,9 @@ namespace // anonymous
 }
 
 ompl::tools::DynamicTimeWarp::DynamicTimeWarp(const base::SpaceInformationPtr &si)
-    : si_(si)
+    : si_(si), table_(1, 1)
 {
+    table_(0, 0) = 0.;
 }
 
 double ompl::tools::DynamicTimeWarp::calcDTWDistance(const og::PathGeometric &path1, const og::PathGeometric &path2 ) const
@@ -58,16 +59,17 @@ double ompl::tools::DynamicTimeWarp::calcDTWDistance(const og::PathGeometric &pa
     // Get lengths
     std::size_t n = path1.getStateCount();
     std::size_t m = path2.getStateCount();
+    std::size_t nrows = table_.size1(), ncols = table_.size2();
 
     // Intialize table
-    if (table_.size1() <= n || table_.size2() <= m)
+    if (nrows <= n || ncols <= m)
+    {
         table_.resize(n + 1, m + 1, false);
-    for (std::size_t i = 1; i <= n; ++i)
-        table_(i, 0) = std::numeric_limits<double>::infinity();
-    for (std::size_t i = 1; i <= m; ++i)
-        table_(0, i) = std::numeric_limits<double>::infinity();
-    // Set first value to zero
-    table_(0, 0) = 0;
+        for (std::size_t i = nrows; i <= n; ++i)
+            table_(i, 0) = std::numeric_limits<double>::infinity();
+        for (std::size_t i = ncols; i <= m; ++i)
+            table_(0, i) = std::numeric_limits<double>::infinity();
+    }
 
     // Do calculations
     double cost;
@@ -83,7 +85,7 @@ double ompl::tools::DynamicTimeWarp::calcDTWDistance(const og::PathGeometric &pa
     return table_(n, m);
 }
 
-double ompl::tools::DynamicTimeWarp::getPathsScore(const og::PathGeometric &path1, const og::PathGeometric &path2)
+double ompl::tools::DynamicTimeWarp::getPathsScore(const og::PathGeometric &path1, const og::PathGeometric &path2) const
 {
     // Copy the path but not the states
     og::PathGeometric newPath1 = path1;
