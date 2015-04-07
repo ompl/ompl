@@ -712,7 +712,6 @@ class ompl_tools_generator_t(code_generator_t):
             'PostSetupEvent', 'Post-setup event')
         benchmark_cls.class_('Request').no_init = False
 
-        experience = self.ompl_ns.class_('Experience')
         lightning = self.ompl_ns.class_('Lightning')
         # print Lightning results
         self.replace_member_function(lightning.member_function('printResultsInfo'))
@@ -722,6 +721,14 @@ class ompl_tools_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('saveDataLog'))
         # avoid problems with exporting a vector of shared pointers to PlannerData objects
         self.ompl_ns.member_functions('getAllPlannerDatas').exclude()
+        # getAllPlannerDatas is pure virtual in ExperienceSetup, so need to
+        # add default implementation in wrapper
+        self.ompl_ns.class_('ExperienceSetup').add_wrapper_code("""
+        virtual void getAllPlannerDatas(std::vector<ompl::base::PlannerDataPtr> &plannerDatas) const
+        {
+            return;
+        }
+        """)
         # code generation fails because of same bug in gxxcml that requires us
         # to patch the generated code with workaround_for_gccxml_bug.cmake
         lightning.member_function('setPlannerAllocator').exclude()
