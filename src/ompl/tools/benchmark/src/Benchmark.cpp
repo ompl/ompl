@@ -613,20 +613,23 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                         gsetup_->getStateSpace()->setValidSegmentCountFactor(factor * 4);
                         run["correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
                         gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
-
-                        // simplify solution
-                        time::point timeStart = time::now();
-                        gsetup_->simplifySolution();
-                        double timeUsed = time::seconds(time::now() - timeStart);
-                        run["simplification time REAL"] = boost::lexical_cast<std::string>(timeUsed);
-                        run["simplified solution length REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().length());
-                        run["simplified solution smoothness REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().smoothness());
-                        run["simplified solution clearance REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().clearance());
-                        run["simplified solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().getStateCount() - 1);
-                        run["simplified correct solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
-                        gsetup_->getStateSpace()->setValidSegmentCountFactor(factor * 4);
-                        run["simplified correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
-                        gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
+                        
+                        if (simplify)
+                        {
+                            // simplify solution
+                            time::point timeStart = time::now();
+                            gsetup_->simplifySolution();
+                            double timeUsed = time::seconds(time::now() - timeStart);
+                            run["simplification time REAL"] = boost::lexical_cast<std::string>(timeUsed);
+                            run["simplified solution length REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().length());
+                            run["simplified solution smoothness REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().smoothness());
+                            run["simplified solution clearance REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().clearance());
+                            run["simplified solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().getStateCount() - 1);
+                            run["simplified correct solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
+                            gsetup_->getStateSpace()->setValidSegmentCountFactor(factor * 4);
+                            run["simplified correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
+                            gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
+                        }
                     }
                     else
                     {

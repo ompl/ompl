@@ -158,11 +158,13 @@ namespace ompl
                         unsigned int runCount = 100,
                         double timeBetweenUpdates = 0.05,
                         bool displayProgress = true,
-                        bool saveConsoleOutput = true, bool useThreads = true)
+                        bool saveConsoleOutput = true, bool useThreads = true,
+                        bool simplify = true)
                     : maxTime(maxTime), maxMem(maxMem), runCount(runCount),
                     timeBetweenUpdates(timeBetweenUpdates),
                     displayProgress(displayProgress), saveConsoleOutput(saveConsoleOutput),
-                    useThreads(useThreads)
+                    useThreads(useThreads),
+                    simplify(simplify)
                 {
                 }
 
