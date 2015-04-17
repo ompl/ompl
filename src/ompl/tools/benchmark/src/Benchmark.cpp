@@ -614,7 +614,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                         run["correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
                         gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
                         
-                        if (simplify)
+                        if (req.simplify)
                         {
                             // simplify solution
                             time::point timeStart = time::now();

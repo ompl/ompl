@@ -188,6 +188,9 @@ namespace ompl
 
                 /// \brief flag indicating whether planner runs should be run in a separate thread. It is advisable to set this to \c true, so that a crashing planner doesn't result in a crash of the benchmark program. However, in the Python bindings this is set to \c false to avoid multi-threading problems in Python.
                 bool         useThreads;
+
+                /// \brief flag indicating whether simplification should be applied to path; true by default
+                bool         simplify;
             };
 
             /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */
