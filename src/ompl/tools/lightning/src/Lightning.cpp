@@ -233,7 +233,7 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
             stats_.numSolutionsApproximate_++;
 
             // not sure what to do here, use case not tested
-            OMPL_WARN("NOT saving to database because the solution is APPROXIMATE");
+            OMPL_INFORM("NOT saving to database because the solution is APPROXIMATE");
         }
         // Use dynamic time warping to see if the repaired path is too similar to the original
         else if (getSolutionPlannerName() == rrPlanner_->getName())
@@ -272,7 +272,7 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
 
                 if (score < 4)
                 {
-                    OMPL_WARN("NOT saving to database because best solution was from database and is too similar (score %f)", score);
+                    OMPL_INFORM("NOT saving to database because best solution was from database and is too similar (score %f)", score);
 
                     // Logging
                     log.insertion_failed = true;
