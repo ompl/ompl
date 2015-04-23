@@ -59,10 +59,6 @@ namespace ompl
         OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
 
-        /// @cond IGNORE
-        OMPL_CLASS_FORWARD(Path);
-        /// @endcond
-
         /** \class ompl::base::OptimizationObjectivePtr
             \brief A boost shared pointer wrapper for ompl::base::OptimizationObjective */
 
@@ -97,7 +93,7 @@ namespace ompl
             /** \brief Compare whether cost \e c1 and cost \e c2 are equivalent. By default defined as !isCostBetterThan(c1, c2) && !isCostBetterThan(c2, c1), as if c1 is not better than c2, and c2 is not better than c1, then they are equal. */
             virtual bool isCostEquivalentTo(Cost c1, Cost c2) const;
 
-            /** \brief Returns whether the cost is finite or not. By default calls std::isfinite on Cost::value(). */
+            /** \brief Returns whether the cost is finite or not. */
             virtual bool isFinite(Cost cost) const;
 
             /** \brief Return the minimum cost given \e c1 and \e c2. Uses isCostBetterThan. */

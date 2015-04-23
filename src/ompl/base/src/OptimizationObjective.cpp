@@ -35,7 +35,6 @@
 /* Author: Luis G. Torres, Ioan Sucan */
 
 #include "ompl/base/OptimizationObjective.h"
-#include "ompl/geometric/PathGeometric.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/base/goals/GoalRegion.h"
 #include <limits>
