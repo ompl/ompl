@@ -317,6 +317,12 @@ namespace ompl
             /** \brief Returns true if a solution path has been found (could be approximate) */
             bool hasSolution() const;
 
+            /** \brief Returns true if an exact solution path has been found. Specifically returns hasSolution && !hasApproximateSolution() */
+            bool hasExactSolution() const
+            {
+                return this->hasSolution() && !this->hasApproximateSolution();
+            }
+
             /** \brief Return true if the top found solution is
                 approximate (does not actually reach the desired goal,
                 but hopefully is closer to it) */

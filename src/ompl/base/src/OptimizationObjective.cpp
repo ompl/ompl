@@ -35,6 +35,7 @@
 /* Author: Luis G. Torres, Ioan Sucan */
 
 #include "ompl/base/OptimizationObjective.h"
+#include "ompl/geometric/PathGeometric.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/base/goals/GoalRegion.h"
 #include <limits>
@@ -68,6 +69,22 @@ void ompl::base::OptimizationObjective::setCostThreshold(Cost c)
 bool ompl::base::OptimizationObjective::isCostBetterThan(Cost c1, Cost c2) const
 {
     return c1.value() + magic::BETTER_PATH_COST_MARGIN < c2.value();
+}
+
+bool ompl::base::OptimizationObjective::isCostEquivalentTo(Cost c1, Cost c2) const
+{
+    //If c1 is not better than c2, and c2 is not better than c1, then they are equal
+    return !isCostBetterThan(c1,c2) && !isCostBetterThan(c2,c1);
+}
+
+bool ompl::base::OptimizationObjective::isFinite(Cost cost) const
+{
+    return isCostBetterThan(cost, infiniteCost());
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::betterCost(Cost c1, Cost c2) const
+{
+    return isCostBetterThan(c1, c2) ? c1 : c2;
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::combineCosts(Cost c1, Cost c2) const
@@ -122,9 +139,14 @@ void ompl::base::OptimizationObjective::setCostToGoHeuristic(const CostToGoHeuri
     costToGoFn_ = costToGo;
 }
 
+bool ompl::base::OptimizationObjective::hasCostToGoHeuristic() const
+{
+    return static_cast<bool>(costToGoFn_);
+}
+
 ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State *state, const Goal *goal) const
 {
-    if (costToGoFn_)
+    if (hasCostToGoHeuristic())
         return costToGoFn_(state, goal);
     else
         return this->identityCost(); // assumes that identity < all costs

@@ -40,6 +40,7 @@
 #include "ompl/util/ClassForward.h"
 #include "ompl/base/Cost.h"
 #include <iostream>
+#include <boost/concept_check.hpp>
 #include <boost/noncopyable.hpp>
 
 namespace ompl
@@ -82,6 +83,26 @@ namespace ompl
             const SpaceInformationPtr& getSpaceInformation() const
             {
                 return si_;
+            }
+
+            /** \brief Cast this instance to a desired type. */
+            template<class T>
+            const T* as() const
+            {
+                /** \brief Make sure the type we are allocating is indeed a Path */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Path*>));
+
+                return static_cast<const T*>(this);
+            }
+
+            /** \brief Cast this instance to a desired type. */
+            template<class T>
+            T* as()
+            {
+                /** \brief Make sure the type we are allocating is indeed a Path */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Path*>));
+
+                return static_cast<T*>(this);
             }
 
             /** \brief Return the length of a path */

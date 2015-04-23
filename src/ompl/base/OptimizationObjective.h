@@ -59,6 +59,10 @@ namespace ompl
         OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
 
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(Path);
+        /// @endcond
+
         /** \class ompl::base::OptimizationObjectivePtr
             \brief A boost shared pointer wrapper for ompl::base::OptimizationObjective */
 
@@ -90,6 +94,15 @@ namespace ompl
             /** \brief Check whether the the cost \e c1 is considered better than the cost \e c2. By default, this returns true only if c1 is less by at least some threshold amount, for numerical robustness. */
             virtual bool isCostBetterThan(Cost c1, Cost c2) const;
 
+            /** \brief Compare whether cost \e c1 and cost \e c2 are equivalent. By default defined as !isCostBetterThan(c1, c2) && !isCostBetterThan(c2, c1), as if c1 is not better than c2, and c2 is not better than c1, then they are equal. */
+            virtual bool isCostEquivalentTo(Cost c1, Cost c2) const;
+
+            /** \brief Returns whether the cost is finite or not. By default calls std::isfinite on Cost::value(). */
+            virtual bool isFinite(Cost cost) const;
+
+            /** \brief Return the minimum cost given \e c1 and \e c2. Uses isCostBetterThan. */
+            virtual Cost betterCost(Cost c1, Cost c2) const;
+
             /** \brief Evaluate a cost map defined on the state space at a state \e s. */
             virtual Cost stateCost(const State *s) const = 0;
 
@@ -119,6 +132,9 @@ namespace ompl
 
             /** \brief Set the cost-to-go heuristic function for this objective. The cost-to-go heuristic is a function which returns an admissible estimate of the optimal path cost from a given state to a goal, where "admissible" means that the estimated cost is always less than the true optimal cost. */
             void setCostToGoHeuristic(const CostToGoHeuristic& costToGo);
+
+            /** \brief Check if this objective has a cost-to-go heuristic function. */
+            bool hasCostToGoHeuristic() const;
 
             /** \brief Uses a cost-to-go heuristic to calculate an admissible estimate of the optimal cost from a given state to a given goal. If no cost-to-go heuristic has been specified with setCostToGoHeuristic(), this function just returns the identity cost, which is sure to be an admissible heuristic if there are no negative costs. */
             Cost costToGo(const State *state, const Goal *goal) const;
