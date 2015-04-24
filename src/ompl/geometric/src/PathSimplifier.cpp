@@ -472,9 +472,9 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
         return false;
     }
 
-    unsigned int max_goals = std::min((unsigned)10, gsr_->maxSampleCount()); // the number of goals we will sample
-    unsigned int failed_tries = 0;
-    bool better_goal = false;
+    unsigned int maxGoals = std::min((unsigned)10, gsr_->maxSampleCount()); // the number of goals we will sample
+    unsigned int failedTries = 0;
+    bool betterGoal = false;
 
     const base::StateSpacePtr& ss = si_->getStateSpace();
     std::vector<base::State*> &states = path.getStates();
@@ -491,18 +491,18 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
     double rd = rangeRatio * dists.back();
 
     base::State* temp = si_->allocState();
-    base::State* temp_goal = si_->allocState();
+    base::State* tempGoal = si_->allocState();
 
-    while(!ptc && failed_tries++ < max_goals && !better_goal)
+    while(!ptc && failedTries++ < maxGoals && !betterGoal)
     {
-        gsr_->sampleGoal(temp_goal);
+        gsr_->sampleGoal(tempGoal);
 
         // Goal state is not compatible with the start state
-        if (!gsr_->isStartGoalPairValid(path.getState(0), temp_goal))
+        if (!gsr_->isStartGoalPairValid(path.getState(0), tempGoal))
             continue;
 
-        unsigned int num_samples = 0;
-        while (!ptc && num_samples++ < samplingAttempts && !better_goal)
+        unsigned int numSamples = 0;
+        while (!ptc && numSamples++ < samplingAttempts && !betterGoal)
         {
             // sample a state within rangeRatio
             double t = rng_.uniformReal(std::max(dists.back() - rd, 0.0), dists.back());    // Sample a random point within rd of the end of the path
@@ -512,85 +512,85 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
             while(start != dists.begin() && *start >= t)
                 start -= 1;
 
-            unsigned int start_index = start - dists.begin();
-            unsigned int end_index = end - dists.begin();
+            unsigned int startIndex = start - dists.begin();
+            unsigned int endIndex = end - dists.begin();
 
             // Snap the random point to the nearest vertex, if within the threshold
             if (t - (*start) < threshold) // snap to the starting waypoint
-                end_index = start_index;
+                endIndex = startIndex;
             if ((*end) - t < threshold)  // snap to the ending waypoint
-                start_index = end_index;
+                startIndex = endIndex;
 
             // Compute the state value and the accumulated cost up to that state
-            double cost_to_come = dists[start_index];
+            double costToCome = dists[startIndex];
             base::State* state;
-            if (start_index == end_index)
+            if (startIndex == endIndex)
             {
-                state = states[start_index];
+                state = states[startIndex];
             }
             else
             {
-                double t_seg = (t - (*start)) / (*end - *start);
-                ss->interpolate(states[start_index], states[end_index], t_seg, temp);
+                double tSeg = (t - (*start)) / (*end - *start);
+                ss->interpolate(states[startIndex], states[endIndex], tSeg, temp);
                 state = temp;
 
-                cost_to_come += si_->distance(states[start_index], state);
+                costToCome += si_->distance(states[startIndex], state);
             }
 
-            double cost_to_go = si_->distance(state, temp_goal);
-            double candidate_cost = cost_to_come + cost_to_go;
+            double costToGo = si_->distance(state, tempGoal);
+            double candidateCost = costToCome + costToGo;
 
             // Make sure we improve before attempting validation
-            if (candidate_cost < dists.back() && si_->checkMotion(state, temp_goal))
+            if (candidateCost < dists.back() && si_->checkMotion(state, tempGoal))
             {
                 // insert the new states
-                if (start_index == end_index)
+                if (startIndex == endIndex)
                 {
                     // new intermediate state
-                    si_->copyState(states[start_index], state);
+                    si_->copyState(states[startIndex], state);
                     // new goal state
-                    si_->copyState(states[start_index+1], temp_goal);
+                    si_->copyState(states[startIndex+1], tempGoal);
 
                     if (freeStates_)
                     {
-                        for(size_t i = start_index + 2; i < states.size(); ++i)
+                        for(size_t i = startIndex + 2; i < states.size(); ++i)
                             si_->freeState(states[i]);
                     }
-                    states.erase(states.begin() + start_index + 2, states.end());
+                    states.erase(states.begin() + startIndex + 2, states.end());
                 }
                 else
                 {
                     // overwriting the end of the segment with the new state
-                    si_->copyState(states[end_index], state);
-                    if (end_index == states.size()-1)
+                    si_->copyState(states[endIndex], state);
+                    if (endIndex == states.size()-1)
                     {
-                        path.append(temp_goal);
+                        path.append(tempGoal);
                     }
                     else
                     {
                         // adding goal new goal state
-                        si_->copyState(states[end_index + 1], temp_goal);
+                        si_->copyState(states[endIndex + 1], tempGoal);
                         if (freeStates_)
                         {
-                            for(size_t i = end_index + 2; i < states.size(); ++i)
+                            for(size_t i = endIndex + 2; i < states.size(); ++i)
                                 si_->freeState(states[i]);
                         }
-                        states.erase(states.begin() + end_index + 2, states.end());
+                        states.erase(states.begin() + endIndex + 2, states.end());
                     }
                 }
 
                 // fix the helper variables
                 dists.resize(states.size(), 0.0);
-                for (unsigned int j = start_index; j < dists.size() ; ++j)
+                for (unsigned int j = startIndex; j < dists.size() ; ++j)
                     dists[j] = dists[j-1] + si_->distance(states[j-1], states[j]);
 
-                better_goal = true;
+                betterGoal = true;
             }
         }
     }
 
     si_->freeState(temp);
-    si_->freeState(temp_goal);
+    si_->freeState(tempGoal);
 
-    return better_goal;
+    return betterGoal;
 }
