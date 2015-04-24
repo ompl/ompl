@@ -398,19 +398,8 @@ bool ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
 
 void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
 {
-    reduceVertices(path);
-    collapseCloseVertices(path);
-    // BSpline and checkAndRepair code only makes sense in a metric space.
-    if (si_->getStateSpace()->isMetricSpace())
-    {
-        smoothBSpline(path, 4, path.length()/100.0);
-        const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
-        if (!p.second)
-            OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
-        else
-            if (!p.first)
-                OMPL_DEBUG("The solution path was slightly touching on an invalid region of the state space, but it was successfully fixed.");
-    }
+    ompl::base::PlannerTerminationCondition neverTerminate = base::plannerNonTerminatingCondition();
+    simplify(path, neverTerminate);
 }
 
 void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, double maxTime)
