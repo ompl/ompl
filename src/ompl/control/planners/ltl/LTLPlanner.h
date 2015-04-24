@@ -54,7 +54,7 @@ namespace ompl
             a logical specification given by an automaton, the propositions
             of which are defined over a decomposition of the system's state space.
 
-            TODO cite papers */
+            \todo cite papers */
         class LTLPlanner : public base::Planner
         {
         public:

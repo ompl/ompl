@@ -11,6 +11,7 @@ lib/
 \.dylib$
 CMakeModules/ompl.pc$
 doc/markdown/api_overview.md$
+doc/markdown/CForest.md$
 doc/markdown/download.md$
 doc/markdown/mainpage.md$
 doc/header.html$

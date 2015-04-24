@@ -6,17 +6,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="author" content="Ioan A. Șucan, Mark Moll, Lydia E. Kavraki">
 
-  <link href="../css/tabs.css" rel="stylesheet">
-  <link href="../css/doxygen.css" rel="stylesheet">
-  <link href="../css/search.css" rel="stylesheet">
-  <link href="../css/bootstrap.min.css" rel="stylesheet">
-  <link href="../css/bootstrap-theme.min.css" rel="stylesheet">
-  <link href="../css/ompl.css" rel="stylesheet">
+  <link href="css/tabs.css" rel="stylesheet">
+  <link href="css/doxygen.css" rel="stylesheet">
+  <link href="css/search.css" rel="stylesheet">
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/bootstrap-theme.min.css" rel="stylesheet">
+  <link href="css/ompl.css" rel="stylesheet">
 
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
   <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
   <![endif]-->
+  <script src="search/searchdata.js"></script>
   <script src="search/search.js"></script>
 
 </head>
@@ -48,12 +49,14 @@
               @OMPLAPP_GUI@
               <li><a href="python.html">Python Bindings</a></li>
               <li><a href="planners.html">Available Planners</a></li>
+              <li><a href="benchmark.html">Benchmarking Planners</a></li>
               <li><a href="spaces.html">Available State Spaces</a></li>
               <li><a href="optimalPlanning.html">Optimal Planning</a></li>
               <li><a href="FAQ.html">FAQ</a></li>
               <li class="divider"></li>
               <li class="dropdown-header">External links</li>
               <li><a href="http://moveit.ros.org">MoveIt!</a></li>
+              <li><a href="http://plannerarena.org">Planner Arena</a></li>
               <li><a href="http://robotics.naist.jp/edu/text/?Robotics%2FOMPL">Japanese Introduction to OMPL</a></li>
               <li><a href="http://robotics.naist.jp/edu/text/?Robotics%2FExercise%2FOMPLProgramming">Japanese OMPL Tutorial</a></li>
               <li><a href="http://moveit.ros.org/wiki/Tutorials/ICRA2013">ICRA 2013 Tutorial</a></li>

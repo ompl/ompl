@@ -278,7 +278,7 @@ class ExampleProjection(om.MorseProjection):
     #    accepts the ompl.control.SpaceInformation object
     def __init__(self, space):
 
-        super(MyProjection, self).__init__(space)
+        super(ExampleProjection, self).__init__(space)
 
         ## \brief Convenience parameter for defining which subspace our
         #     projection uses; in this case, the position space of the first object

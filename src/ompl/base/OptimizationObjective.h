@@ -46,6 +46,8 @@
 #include <boost/noncopyable.hpp>
 #include <boost/concept_check.hpp>
 
+#include <iostream>
+
 namespace ompl
 {
     namespace base
@@ -58,10 +60,6 @@ namespace ompl
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::OptimizationObjective */
         OMPL_CLASS_FORWARD(OptimizationObjective);
-        /// @endcond
-
-        /// @cond IGNORE
-        OMPL_CLASS_FORWARD(Path);
         /// @endcond
 
         /** \class ompl::base::OptimizationObjectivePtr
@@ -98,7 +96,7 @@ namespace ompl
             /** \brief Compare whether cost \e c1 and cost \e c2 are equivalent. By default defined as !isCostBetterThan(c1, c2) && !isCostBetterThan(c2, c1), as if c1 is not better than c2, and c2 is not better than c1, then they are equal. */
             virtual bool isCostEquivalentTo(Cost c1, Cost c2) const;
 
-            /** \brief Returns whether the cost is finite or not. By default calls std::isfinite on Cost::value(). */
+            /** \brief Returns whether the cost is finite or not. */
             virtual bool isFinite(Cost cost) const;
 
             /** \brief Return the minimum cost given \e c1 and \e c2. Uses isCostBetterThan. */
@@ -148,6 +146,9 @@ namespace ompl
 
             /** \brief Allocate a heuristic-sampling state generator for this cost function, defaults to a basic rejection sampling scheme when the derived class does not provide a better method.*/
             virtual InformedStateSamplerPtr allocInformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost) const;
+
+            /** \brief Print information about this optimization objective */
+            virtual void print(std::ostream &out) const;
 
         protected:
             /** \brief The space information for this objective */

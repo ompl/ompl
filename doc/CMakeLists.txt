@@ -14,8 +14,12 @@ if(DOXYGEN)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/markdown/mainpage.md.in"
         "${CMAKE_CURRENT_SOURCE_DIR}/markdown/mainpage.md")
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/images/ompl.svg" OMPLSVG)
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/images/cforest.svg" CFORESTSVG)
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/images/cforest_sampler.svg" CFOREST_SAMPLERSVG)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/markdown/api_overview.md.in"
         "${CMAKE_CURRENT_SOURCE_DIR}/markdown/api_overview.md")
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/markdown/CForest.md.in"
+        "${CMAKE_CURRENT_SOURCE_DIR}/markdown/CForest.md")
 
     # add "doc" target if Doxygen is detected
     add_custom_target(doc

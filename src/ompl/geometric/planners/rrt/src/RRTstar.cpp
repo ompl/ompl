@@ -40,8 +40,6 @@
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include <algorithm>
 #include <limits>
-#include <map>
-#include <queue>
 #include <boost/math/constants/constants.hpp>
 
 ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
@@ -164,7 +162,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     Motion *solution       = lastGoalMotion_;
 
-    // \TODO Make this variable unnecessary, or at least have it
+    // \todo Make this variable unnecessary, or at least have it
     // persist across solve runs
     base::Cost bestCost    = opt_->infiniteCost();
 

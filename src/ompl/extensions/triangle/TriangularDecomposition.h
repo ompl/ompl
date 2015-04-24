@@ -54,7 +54,7 @@ namespace ompl
         /** \brief A TriangularDecomposition is a triangulation that ignores obstacles. */
         class TriangularDecomposition : public Decomposition
         {
-            // TODO: Switch all geometry code to use boost::geometry.
+            // \todo: Switch all geometry code to use boost::geometry.
             // This requires that we use boost version 1.47 or greater.
         public:
             struct Vertex

@@ -152,7 +152,7 @@ ompl::control::ProductGraph::computeLead(
 		lead.push_back(leadStack.top());
 		leadStack.pop();
         // Truncate the lead as early when it hits the desired automaton states
-        // TODO: more elegant way to do this?
+        // \todo: more elegant way to do this?
         if (lead.back()->cosafeState == solutionStates_.front()->cosafeState
             && lead.back()->safeState == solutionStates_.front()->safeState)
             break;

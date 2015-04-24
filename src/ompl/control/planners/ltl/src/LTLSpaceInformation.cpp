@@ -21,7 +21,7 @@ oc::LTLSpaceInformation::LTLSpaceInformation(const oc::SpaceInformationPtr& si,
     : oc::SpaceInformation(extendStateSpace(si->getStateSpace(), prod),
                            si->getControlSpace()), prod_(prod), lowSpace_(si)
 {
-    //TODO: Technically there's a bug here, as we've assigning LTLSpaceInformation's
+    //\todo: Technically there's a bug here, as we've assigning LTLSpaceInformation's
     //      control space to be si->getControlSpace(), which internally holds a pointer
     //      to si->getStateSpace() instead of this->getStateSpace(). In practice, this
     //      is fine for now, since control space never actually uses its internal state

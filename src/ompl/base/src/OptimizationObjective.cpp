@@ -36,7 +36,6 @@
 /* Edited by: Jonathan Gammell (allocInformedStateSampler) */
 
 #include "ompl/base/OptimizationObjective.h"
-#include "ompl/geometric/PathGeometric.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/base/goals/GoalRegion.h"
 #include "ompl/base/samplers/informed/RejectionInfSampler.h"
@@ -170,6 +169,12 @@ ompl::base::InformedStateSamplerPtr ompl::base::OptimizationObjective::allocInfo
 {
     OMPL_WARN("%s: No direct informed sampling scheme is defined, defaulting to rejection sampling.", description_.c_str());
     return boost::make_shared<RejectionInfSampler>(space, probDefn, bestCost);
+}
+
+void ompl::base::OptimizationObjective::print(std::ostream &out) const
+{
+    out << "Optimization Objective: " << description_ << " @" << this << std::endl;
+    out << "Optimization Threshold: " << threshold_ << std::endl;
 }
 
 ompl::base::Cost ompl::base::goalRegionCostToGo(const State *state, const Goal *goal)

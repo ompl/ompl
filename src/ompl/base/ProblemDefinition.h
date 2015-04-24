@@ -73,7 +73,8 @@ namespace ompl
         {
             /** \brief Construct a solution that consists of a \e path and its attributes (whether it is \e approximate and the \e difference to the desired goal) */
             PlannerSolution(const PathPtr &path) :
-                index_(-1), path_(path), length_(path->length()),
+                index_(-1), path_(path),
+                length_(path ? path->length() : std::numeric_limits<double>::infinity()),
                 approximate_(false), difference_(-1), optimized_(false)
             {
             }
