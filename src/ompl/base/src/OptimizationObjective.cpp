@@ -33,12 +33,16 @@
 *********************************************************************/
 
 /* Author: Luis G. Torres, Ioan Sucan */
+/* Edited by: Jonathan Gammell (allocInformedStateSampler) */
 
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/base/goals/GoalRegion.h"
+#include "ompl/base/samplers/informed/RejectionInfSampler.h"
 #include <limits>
+//For boost::make_shared
+#include "boost/make_shared.hpp"
 
 ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationPtr &si) :
     si_(si),
@@ -160,6 +164,12 @@ ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const St
 const ompl::base::SpaceInformationPtr& ompl::base::OptimizationObjective::getSpaceInformation() const
 {
     return si_;
+}
+
+ompl::base::InformedStateSamplerPtr ompl::base::OptimizationObjective::allocInformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost) const
+{
+    OMPL_WARN("%s: No direct informed sampling scheme is defined, defaulting to rejection sampling.", description_.c_str());
+    return boost::make_shared<RejectionInfSampler>(space, probDefn, bestCost);
 }
 
 ompl::base::Cost ompl::base::goalRegionCostToGo(const State *state, const Goal *goal)

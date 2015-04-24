@@ -43,8 +43,18 @@
 #include <boost/random/variate_generator.hpp>
 #include <cassert>
 
+#include <ompl/util/ClassForward.h>
+
+//The basic Eigen include
+#include <Eigen/Core>
+
 namespace ompl
 {
+    /// @cond IGNORE
+    //A forward declaration of the prolate hyperspheroid class
+    OMPL_CLASS_FORWARD(ProlateHyperspheroid);
+    /// @endcond
+
     /** \brief Random number generation. An instance of this class
         cannot be used by multiple threads at once (member functions
         are not const). However, the constructor is thread safe and
@@ -139,6 +149,30 @@ namespace ompl
             return localSeed_;
         }
 
+        /** \brief Uniform random sampling of a unit-length vector. I.e., the surface of an n-ball */
+        void uniformNormalVector(unsigned int n, double value[]);
+
+        /** \brief Uniform random sampling of the content of an n-ball, with a radius appropriately distributed between [0,r) so that the distribution is uniform in a Cartesian coordinate system. */
+        void uniformInBall(double r, unsigned int n, double value[]);
+
+        /** \brief Uniform random sampling of the surface of a prolate hyperspheroid, a special symmetric type of
+        n-dimensional ellipse.
+        @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
+        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic."
+        IROS 2014. DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
+        <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
+        <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
+        void uniformProlateHyperspheroidSurface(ProlateHyperspheroidPtr phsPtr, unsigned int n, double value[]);
+
+        /** \brief Uniform random sampling of a prolate hyperspheroid, a special symmetric type of
+        n-dimensional ellipse.
+        @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
+        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic."
+        IROS 2014. DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
+        <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
+        <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
+        void uniformProlateHyperspheroid(ProlateHyperspheroidPtr phsPtr, unsigned int n, double value[]);
+
     private:
 
         /** \brief The seed used for the instance of a RNG */
@@ -152,6 +186,81 @@ namespace ompl
 
     };
 
+
+    /** \brief A class describing a prolate hyperspheroid, a special symmetric type of n-dimensional ellipse,
+    for use in direct informed sampling for problems seeking to minimize path length.
+    @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
+    Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic."
+    IROS 2014. DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
+    <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
+    <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
+    class ProlateHyperspheroid
+    {
+    public:
+        /** \brief The description of an n-dimensional prolate hyperspheroid */
+        ProlateHyperspheroid(unsigned int n, const double focus1[], const double focus2[]);
+
+        /** \brief Set the transverse diameter of the PHS */
+        void setTransverseDiameter(double transverseDiameter);
+
+        /** \brief Transform a point from a sphere to PHS */
+        void transform(unsigned int n, const double sphere[], double phs[]);
+
+        /** \brief Check if the given point lies within the PHS */
+        bool isInPhs(unsigned int n, const double point[]);
+
+        /** \brief The dimension of the PHS */
+        inline unsigned int getPhsDimension(void) { return dim_; };
+
+        /** \brief The measure of the PHS */
+        double getPhsMeasure(void);
+
+        /** \brief The measure of the PHS for a given transverse diameter */
+        double getPhsMeasure(double tranDiam);
+
+        /** \brief The minimum transverse diameter of the PHS, i.e., the distance between the foci */
+        inline double getMinTransverseDiameter(void) { return minTransverseDiameter_; };
+
+        /** \brief Calculate length of a line that originates from one focus, passes through the given point, and terminates at the other focus, i.e., the transverse diameter of the ellipse on which the given sample lies*/
+        double getPathLength(unsigned int n, const double point[]);
+
+        /** \brief The "volume" of a unit n-ball */
+        static double unitNBallMeasure(unsigned int N);
+
+        /** \brief The "volume" of a general n-PHS given the distance between the foci (minTransverseDiameter) and the actual transverse diameter (transverseDiameter) */
+        static double calcPhsMeasure(unsigned int N, double minTransverseDiameter, double transverseDiameter);
+
+    protected:
+
+    private:
+        /** \brief The dimension of the prolate hyperspheroid.*/
+        unsigned int dim_;
+        /** \brief The minimum possible transverse diameter of the PHS. Defined as the distance between the two foci*/
+        double minTransverseDiameter_;
+        /** \brief The transverse diameter of the PHS. */
+        double transverseDiameter_;
+        /** \brief The measure of the PHS. */
+        double phsMeasure_;
+        /** \brief The first focus of the PHS (i.e., the start state of the planning problem)*/
+        Eigen::VectorXd xFocus1_;
+        /** \brief The second focus of the PHS (i.e., the goal state of the planning problem)*/
+        Eigen::VectorXd xFocus2_;
+        /** \brief The centre of the PHS. Defined as the average of the foci.*/
+        Eigen::VectorXd xCentre_;
+        /** \brief The rotation from PHS-frame to world frame. Is only calculated on construction. */
+        Eigen::MatrixXd rotationWorldFromEllipse_;
+        /** \brief The transformation from PHS-frame to world frame. Is calculated every time the transverse diameter changes. */
+        Eigen::MatrixXd transformationWorldFromEllipse_;
+        /** \brief Whether the transformation is up to date */
+        bool isTransformUpToDate_;
+
+        //Functions
+        /** \brief Calculate the rotation from the PHS frame to the world frame via singular-value decomposition using the transverse symmetry of the PHS. */
+        void updateRotation(void);
+
+        /** \brief Calculate the hyperspheroid to PHS transformation matrix */
+        void updateTransformation(void);
+    };
 }
 
 #endif

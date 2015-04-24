@@ -33,6 +33,7 @@
 *********************************************************************/
 
 /* Author: Luis G. Torres */
+/* Edited by: Jonathan Gammell (allocInformedStateSampler) */
 
 #ifndef OMPL_BASE_OBJECTIVES_PATH_LENGTH_OPTIMIZATION_OBJECTIVE_
 #define OMPL_BASE_OBJECTIVES_PATH_LENGTH_OPTIMIZATION_OBJECTIVE_
@@ -62,6 +63,9 @@ namespace ompl
                 and \e s2, since this is the optimal cost between any
                 two states assuming no obstacles. */
             virtual Cost motionCostHeuristic(const State *s1, const State *s2) const;
+
+            /** \brief Allocate a state sampler for the path-length objective (i.e., direct ellipsoidal sampling). */
+            virtual InformedStateSamplerPtr allocInformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost) const;
         };
     }
 }

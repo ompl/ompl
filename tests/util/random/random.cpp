@@ -42,6 +42,8 @@
 #include <cmath>
 #include <vector>
 #include <cstdio>
+//We use boost::make_shared
+#include <boost/make_shared.hpp>
 
 using namespace ompl;
 
@@ -204,4 +206,205 @@ static double errNormal(double stddev)
 BOOST_AUTO_TEST_CASE(NormalReals)
 {
     BOOST_OMPL_EXPECT_NEAR(avgNormalReals(10.0, 1.0), 10.0, errNormal(1.0));
+}
+
+
+BOOST_AUTO_TEST_CASE(SampleUnitSphere)
+{
+    //Variables
+    //The random number generator
+    RNG rng;
+    //The number of dimensions to test
+    unsigned int numDims = 25u;
+    //The number of samples to test per dimension
+    unsigned int numSamples = 1000u;
+    //The testing tolerance
+    double testTol = 10.0*std::numeric_limits<double>::epsilon();
+
+    //Iterate over a sequence of dimensions
+    for (unsigned int dim = 1u; dim <= numDims; ++dim)
+    {
+        //Iterate over a sequence of random samples
+        for (unsigned int j = 0u; j < numSamples; ++j)
+        {
+            //Variables
+            //Sample
+            std::vector<double> xRand(dim);
+            //Magnitude
+            double magnitude;
+
+            //Get the random sample
+            rng.uniformNormalVector(dim, &xRand[0]);
+
+            //Calculate the magnitude
+            magnitude = 0.0;
+            for (std::vector<double>::const_iterator iter = xRand.begin(); iter != xRand.end(); ++iter)
+            {
+                magnitude = magnitude + *iter * *iter;
+            }
+            magnitude = std::sqrt(magnitude);
+
+            //Check that it's close enough to 1.0
+            BOOST_OMPL_EXPECT_NEAR(magnitude, 1.0, testTol);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(SampleBall)
+{
+    //Variables
+    //The random number generator
+    RNG rng;
+    //The number of dimensions to test
+    unsigned int numDims = 25u;
+    //The number of samples to test per dimension
+    unsigned int numSamples = 1000u;
+
+    //Iterate over a sequence of dimensions
+    for (unsigned int dim = 1u; dim <= numDims; ++dim)
+    {
+        //Variables
+        //The radius
+        double radius;
+
+        //And a random radius
+        radius = rng.uniformReal(0.1, 10);
+
+        //Iterate over a sequence of random samples
+        for (unsigned int j = 0u; j < numSamples; ++j)
+        {
+            //Variables
+            //Sample
+            std::vector<double> xRand(dim);
+            //Magnitude
+            double magnitude;
+
+            //Get the random sample
+            rng.uniformInBall(radius, dim, &xRand[0]);
+
+            //Calculate the magnitude
+            magnitude = 0.0;
+            for (std::vector<double>::const_iterator iter = xRand.begin(); iter != xRand.end(); ++iter)
+            {
+                magnitude = magnitude + *iter * *iter;
+            }
+            magnitude = std::sqrt(magnitude);
+
+            //Check that it's close enough to 1.0
+            BOOST_CHECK_LT(magnitude, radius);
+        }
+    }
+}
+
+
+BOOST_AUTO_TEST_CASE(SamplePhsSurface)
+{
+    //Variables
+    //The random number generator
+    RNG rng;
+    //The number of dimensions to test
+    unsigned int numDims = 25u;
+    //The number of samples to test per dimension
+    unsigned int numSamples = 1000u;
+    //The testing tolerance
+    double testTol = 1E5*std::numeric_limits<double>::epsilon();
+
+    //Iterate over a sequence of dimensions
+    for (unsigned int dim = 1u; dim <= numDims; ++dim)
+    {
+        //Variables
+        //The foci
+        std::vector<double> v1(dim);
+        std::vector<double> v2(dim);
+        //The transverse diameter
+        double tDiameter;
+        //The PHS definition
+        ompl::ProlateHyperspheroidPtr phsPtr;
+
+        //Pick random foci
+        for (unsigned int i = 0u; i < dim; ++i)
+        {
+            v1.at(i) = rng.uniformReal(-25.0, 25.0);
+            v2.at(i) = rng.uniformReal(-25.0, 25.0);
+        }
+
+        //Create the PHS object
+        phsPtr = boost::make_shared<ompl::ProlateHyperspheroid>(dim, &v1[0], &v2[0]);
+
+        //Pick a random transverse diameter
+        tDiameter = rng.uniformReal(1.01*phsPtr->getMinTransverseDiameter(), 2.5*phsPtr->getMinTransverseDiameter());
+
+        //Set
+        phsPtr->setTransverseDiameter(tDiameter);
+
+        //Iterate over a sequence of random samples
+        for (unsigned int j = 0u; j < numSamples; ++j)
+        {
+            //Variables
+            //Sample
+            std::vector<double> xRand(dim);
+
+            //Get the random sample
+            rng.uniformProlateHyperspheroidSurface(phsPtr, dim, &xRand[0]);
+
+            //Check that the point lies on the surface
+            BOOST_OMPL_EXPECT_NEAR(phsPtr->getPathLength(dim, &xRand[0]), tDiameter, testTol);
+        }
+    }
+}
+
+
+BOOST_AUTO_TEST_CASE(SampleInPhs)
+{
+    //Variables
+    //The random number generator
+    RNG rng;
+    //The number of dimensions to test
+    unsigned int numDims = 25u;
+    //The number of samples to test per dimension
+    unsigned int numSamples = 1000u;
+
+    //Iterate over a sequence of dimensions
+    for (unsigned int dim = 1u; dim <= numDims; ++dim)
+    {
+        //Variables
+        //The foci
+        std::vector<double> v1(dim);
+        std::vector<double> v2(dim);
+        //The transverse diameter
+        double tDiameter;
+        //The PHS definition
+        ompl::ProlateHyperspheroidPtr phsPtr;
+
+        //Pick random foci
+        for (unsigned int i = 0u; i < dim; ++i)
+        {
+            v1.at(i) = rng.uniformReal(-25.0, 25.0);
+            v2.at(i) = rng.uniformReal(-25.0, 25.0);
+        }
+
+        //Create the PHS object
+        phsPtr = boost::make_shared<ompl::ProlateHyperspheroid>(dim, &v1[0], &v2[0]);
+
+        //Pick a random transverse diameter
+        tDiameter = rng.uniformReal(1.1*phsPtr->getMinTransverseDiameter(), 2.5*phsPtr->getMinTransverseDiameter());
+
+        //Set
+        phsPtr->setTransverseDiameter(tDiameter);
+
+        //Iterate over a sequence of random samples
+        for (unsigned int j = 0u; j < numSamples; ++j)
+        {
+            //Variables
+            //Sample
+            std::vector<double> xRand(dim);
+
+            //Get the random sample
+            rng.uniformProlateHyperspheroid(phsPtr, dim, &xRand[0]);
+
+            //Check that the point lies within the shape
+            BOOST_CHECK_GE(phsPtr->getPathLength(dim, &xRand[0]), phsPtr->getMinTransverseDiameter());
+            BOOST_CHECK_LT(phsPtr->getPathLength(dim, &xRand[0]), tDiameter);
+        }
+    }
 }

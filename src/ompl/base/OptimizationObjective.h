@@ -33,6 +33,7 @@
 *********************************************************************/
 
 /* Author: Luis G. Torres, Ioan Sucan */
+/* Edited by: Jonathan Gammell (allocInformedStateSampler) */
 
 #ifndef OMPL_BASE_OPTIMIZATION_OBJECTIVE_
 #define OMPL_BASE_OPTIMIZATION_OBJECTIVE_
@@ -40,6 +41,8 @@
 #include "ompl/base/Cost.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"
+#include "ompl/base/ProblemDefinition.h"
+#include "ompl/base/samplers/InformedStateSampler.h"
 #include <boost/noncopyable.hpp>
 #include <boost/concept_check.hpp>
 
@@ -142,6 +145,9 @@ namespace ompl
 
             /** \brief Returns this objective's SpaceInformation. Needed for operators in MultiOptimizationObjective */
             const SpaceInformationPtr& getSpaceInformation() const;
+
+            /** \brief Allocate a heuristic-sampling state generator for this cost function, defaults to a basic rejection sampling scheme when the derived class does not provide a better method.*/
+            virtual InformedStateSamplerPtr allocInformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost) const;
 
         protected:
             /** \brief The space information for this objective */
