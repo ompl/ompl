@@ -13,6 +13,7 @@ if (OMPL_BUILD_DEMOS)
       ${Boost_PROGRAM_OPTIONS_LIBRARY})
   endmacro(add_ompl_demo)
 
+  add_ompl_demo(demo_bridge BridgeDemo.cpp)
   add_ompl_demo(demo_RigidBodyPlanning RigidBodyPlanning.cpp)
   add_ompl_demo(demo_RigidBodyPlanningWithIK RigidBodyPlanningWithIK.cpp)
   add_ompl_demo(demo_RigidBodyPlanningWithControls RigidBodyPlanningWithControls.cpp)
