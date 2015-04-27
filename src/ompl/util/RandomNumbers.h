@@ -45,9 +45,6 @@
 
 #include <ompl/util/ClassForward.h>
 
-// The basic Eigen include
-#include <Eigen/Core>
-
 namespace ompl
 {
     /// @cond IGNORE
@@ -210,7 +207,7 @@ namespace ompl
         bool isInPhs(unsigned int n, const double point[]);
 
         /** \brief The dimension of the PHS */
-        inline unsigned int getPhsDimension(void) { return dim_; };
+        unsigned int getPhsDimension(void);
 
         /** \brief The measure of the PHS */
         double getPhsMeasure(void);
@@ -219,7 +216,7 @@ namespace ompl
         double getPhsMeasure(double tranDiam);
 
         /** \brief The minimum transverse diameter of the PHS, i.e., the distance between the foci */
-        inline double getMinTransverseDiameter(void) { return minTransverseDiameter_; };
+        double getMinTransverseDiameter(void);
 
         /** \brief Calculate length of a line that originates from one focus, passes through the given point, and terminates at the other focus, i.e., the transverse diameter of the ellipse on which the given sample lies*/
         double getPathLength(unsigned int n, const double point[]);
@@ -233,26 +230,11 @@ namespace ompl
     protected:
 
     private:
-        /** \brief The dimension of the prolate hyperspheroid.*/
-        unsigned int dim_;
-        /** \brief The minimum possible transverse diameter of the PHS. Defined as the distance between the two foci*/
-        double minTransverseDiameter_;
-        /** \brief The transverse diameter of the PHS. */
-        double transverseDiameter_;
-        /** \brief The measure of the PHS. */
-        double phsMeasure_;
-        /** \brief The first focus of the PHS (i.e., the start state of the planning problem)*/
-        Eigen::VectorXd xFocus1_;
-        /** \brief The second focus of the PHS (i.e., the goal state of the planning problem)*/
-        Eigen::VectorXd xFocus2_;
-        /** \brief The centre of the PHS. Defined as the average of the foci.*/
-        Eigen::VectorXd xCentre_;
-        /** \brief The rotation from PHS-frame to world frame. Is only calculated on construction. */
-        Eigen::MatrixXd rotationWorldFromEllipse_;
-        /** \brief The transformation from PHS-frame to world frame. Is calculated every time the transverse diameter changes. */
-        Eigen::MatrixXd transformationWorldFromEllipse_;
-        /** \brief Whether the transformation is up to date */
-        bool isTransformUpToDate_;
+        /** \brief A forward declaration to the data structure class for the PIMPL idiom. */
+        struct phsData;
+
+        /** \brief A shared pointer to the actual data of a ProlateHyperspheroid. Used to hide Eigen from the header. */
+        boost::shared_ptr<phsData> dataPtr_;
 
         // Functions
         /** \brief Calculate the rotation from the PHS frame to the world frame via singular-value decomposition using the transverse symmetry of the PHS. */
