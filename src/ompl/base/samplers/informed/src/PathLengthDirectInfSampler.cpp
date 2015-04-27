@@ -41,30 +41,28 @@
 #include "ompl/base/StateSpace.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 
-//For strncmp
-#include <string.h>
-//For boost::make_shared
+// For boost::make_shared
 #include "boost/make_shared.hpp"
 
 namespace ompl
 {
     namespace base
     {
-        //The direct ellipsoid sampling class for path-length:
+        // The direct ellipsoid sampling class for path-length:
         PathLengthDirectInfSampler::PathLengthDirectInfSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost)
           : InformedStateSampler(space, probDefn, bestCost),
             informedIdx_(0u),
             uninformedIdx_(0u)
         {
-            //Variables
-            //The foci of the ellipse as State* s
+            // Variables
+            // The foci of the ellipse as State* s
             State* startFocusState;
             State* goalFocusState;
-            //The foci of the ellipse as std::vectors
+            // The foci of the ellipse as std::vectors
             std::vector<double> startFocusVector;
             std::vector<double> goalFocusVector;
 
-            //Sanity check the problem.
+            // Sanity check the problem.
             if (probDefn_->getStartStateCount() != 1u)
             {
                 throw Exception("The direct path-length informed sampler currently only supports 1 start state.");
@@ -75,11 +73,11 @@ namespace ompl
                 throw Exception("The direct path-length informed sampler currently only supports goals that can be cast to goal states.");
             }
 
-            //Check that the provided statespace is compatible and extract the necessary indices.
-            //The statespace must either be R^n or SE(2) or SE(3)
+            // Check that the provided statespace is compatible and extract the necessary indices.
+            // The statespace must either be R^n or SE(2) or SE(3)
             if (StateSampler::space_->isCompound() == false)
             {
-                if ( std::strncmp(StateSampler::space_->getName().c_str(), "RealVector", std::strlen("RealVector")) == 0 )
+                if (StateSampler::space_->getType() == STATE_SPACE_REAL_VECTOR)
                 {
                     informedIdx_ = 0u;
                     uninformedIdx_ = 0u;
@@ -91,42 +89,42 @@ namespace ompl
             }
             else if (StateSampler::space_->isCompound() == true)
             {
-                //Check that it is SE2 or SE3
-                if ( std::strncmp(StateSampler::space_->getName().c_str(), "SE2", std::strlen("SE2")) == 0 || std::strncmp(StateSampler::space_->getName().c_str(), "SE3", std::strlen("SE3")) == 0 )
+                // Check that it is SE2 or SE3
+                if (StateSampler::space_->getType() == STATE_SPACE_SE2 || StateSampler::space_->getType() == STATE_SPACE_SE3)
                 {
-                    //Variable:
-                    //An ease of use upcasted pointer to the space as a compound space
+                    // Variable:
+                    // An ease of use upcasted pointer to the space as a compound space
                     const CompoundStateSpace* compoundSpace;
 
-                    //Get the space as a compound space
+                    // Get the space as a compound space
                     compoundSpace = StateSampler::space_->as<CompoundStateSpace>();
 
-                    //Sanity check
+                    // Sanity check
                     if (compoundSpace->getSubspaceCount() != 2u)
                     {
-                        //Pout
+                        // Pout
                         throw Exception("The provided compound StateSpace is SE(2) or SE(3) but does not have exactly 2 subspaces.");
                     }
 
-                    //Iterate over the state spaces, finding the real vector and so components.
+                    // Iterate over the state spaces, finding the real vector and SO components.
                     for (unsigned int idx = 0u; idx < StateSampler::space_->as<CompoundStateSpace>()->getSubspaceCount(); ++idx)
                     {
-                        //Check if the space is realvectored, so2 or so3
-                        if ( std::strncmp(compoundSpace->getSubspace(idx)->getName().c_str(), "RealVector", std::strlen("RealVector")) == 0 )
+                        // Check if the space is real-vectored, SO2 or SO3
+                        if (compoundSpace->getSubspace(idx)->getType() == STATE_SPACE_REAL_VECTOR)
                         {
                             informedIdx_ = idx;
                         }
-                        else if ( std::strncmp(compoundSpace->getSubspace(idx)->getName().c_str(), "SO2", std::strlen("SO2")) == 0 )
+                        else if (compoundSpace->getSubspace(idx)->getType() == STATE_SPACE_SO2)
                         {
                             uninformedIdx_ = idx;
                         }
-                        else if ( std::strncmp(compoundSpace->getSubspace(idx)->getName().c_str(), "SO3", std::strlen("SO3")) == 0 )
+                        else if (compoundSpace->getSubspace(idx)->getType() == STATE_SPACE_SO3)
                         {
                             uninformedIdx_ = idx;
                         }
                         else
                         {
-                            //Pout
+                            // Pout
                             throw Exception("The provided compound StateSpace is SE(2) or SE(3) but contains a subspace that is not R^2, R^3, SO(2), or SO(3).");
                         }
                     }
@@ -138,119 +136,119 @@ namespace ompl
             }
 
 
-            //Create a sampler for the whole space that we can use if we have no information
+            // Create a sampler for the whole space that we can use if we have no information
             baseSampler_ = StateSampler::space_->allocDefaultStateSampler();
 
-            //Check if the space is compound
+            // Check if the space is compound
             if (StateSampler::space_->isCompound() == false)
             {
-                //It is not.
+                // It is not.
 
-                //Store the foci
+                // Store the foci
                 startFocusState = probDefn_->getStartState(0u);
                 goalFocusState = probDefn_->getGoal()->as<GoalState>()->getState();
 
-                //The informed subspace is the full space
+                // The informed subspace is the full space
                 informedSubSpace_ = StateSampler::space_;
 
-                //And the uniformed subspace and its associated sampler are null
+                // And the uniformed subspace and its associated sampler are null
                 uninformedSubSpace_ = NULL;
                 uninformedSubSampler_ = StateSamplerPtr();
             }
             else
             {
-                //Store the foci
+                // Store the foci
                 startFocusState = probDefn_->getStartState(0u)->as<CompoundState>()->components[informedIdx_];
                 goalFocusState = probDefn_->getGoal()->as<GoalState>()->getState()->as<CompoundState>()->components[informedIdx_];
 
-                //The informed subset is the real vector space. StateSampler::space_ is a raw pointer, so for this variable to be able to hold all of space_, we need to store the raw pointer to the subspace...
+                // The informed subset is the real vector space. StateSampler::space_ is a raw pointer, so for this variable to be able to hold all of space_, we need to store the raw pointer to the subspace...
                 informedSubSpace_ = StateSampler::space_->as<CompoundStateSpace>()->getSubspace(informedIdx_).get();
 
-                //And the uninformed subspace is the remainder. Raw pointer for consistency with the above.
+                // And the uninformed subspace is the remainder. Raw pointer for consistency with the above.
                 uninformedSubSpace_ = StateSampler::space_->as<CompoundStateSpace>()->getSubspace(uninformedIdx_).get();
 
-                //Create a sampler for the uniformed subset:
+                // Create a sampler for the uniformed subset:
                 uninformedSubSampler_ = uninformedSubSpace_->allocDefaultStateSampler();
             }
 
-            //Now extract the foci of the ellipse
+            // Now extract the foci of the ellipse
             informedSubSpace_->copyToReals(startFocusVector, startFocusState);
             informedSubSpace_->copyToReals(goalFocusVector, goalFocusState);
 
-            //Create the definition of the PHS
+            // Create the definition of the PHS
             phsPtr_ = boost::make_shared<ProlateHyperspheroid>(informedSubSpace_->getDimension(), &startFocusVector[0], &goalFocusVector[0]);
         }
 
         PathLengthDirectInfSampler::~PathLengthDirectInfSampler()
         {
-            //dtor
+            // dtor
         }
 
 
         void PathLengthDirectInfSampler::sampleUniform(State* statePtr, const Cost& maxCost)
         {
-            //Check if a solution path has been found
+            // Check if a solution path has been found
             if (std::isfinite(maxCost.value()) == false)
             {
-                //We don't have a solution yet, we sample from our basic sampler instead...
+                // We don't have a solution yet, we sample from our basic sampler instead...
                 baseSampler_->sampleUniform(statePtr);
             }
-            else //We have a solution
+            else // We have a solution
             {
-                //Set the new transverse diameter
+                // Set the new transverse diameter
                 phsPtr_->setTransverseDiameter(maxCost.value());
 
-                //Check whether the problem domain (i.e., StateSpace) or PHS has the smaller measure. Sample the smaller directly and reject from the larger.
+                // Check whether the problem domain (i.e., StateSpace) or PHS has the smaller measure. Sample the smaller directly and reject from the larger.
                 if (informedSubSpace_->getMeasure() <= phsPtr_->getPhsMeasure())
                 {
-                    //The PHS is larger than the subspace, just sample from the subspace directly.
-                    //Variables
-                    //The informed subset of the sample as a vector
+                    // The PHS is larger than the subspace, just sample from the subspace directly.
+                    // Variables
+                    // The informed subset of the sample as a vector
                     std::vector<double> informedVector(informedSubSpace_->getDimension());
 
-                    //Sample from the state space until the sample is in the PHS
+                    // Sample from the state space until the sample is in the PHS
                     do
                     {
-                        //Generate a random sample
+                        // Generate a random sample
                         baseSampler_->sampleUniform(statePtr);
 
-                        //Is there an extra "uninformed" subspace to trim off before comparing to the PHS?
-                        if ( StateSampler::space_->isCompound() == false )
+                        // Is there an extra "uninformed" subspace to trim off before comparing to the PHS?
+                        if (StateSampler::space_->isCompound() == false)
                         {
-                            //No, space_ == informedSubSpace_
+                            // No, space_ == informedSubSpace_
                             informedSubSpace_->copyToReals(informedVector, statePtr);
                         }
                         else
                         {
-                            //Yes, we need to do some work to extract the subspace
+                            // Yes, we need to do some work to extract the subspace
                             informedSubSpace_->copyToReals(informedVector, statePtr->as<CompoundState>()->components[informedIdx_]);
                         }
                     }
-                    //Check if the informed state is in the PHS
-                    while ( phsPtr_->isInPhs(informedSubSpace_->getDimension(), &informedVector[0]) == false );
+                    // Check if the informed state is in the PHS
+                    while (phsPtr_->isInPhs(informedSubSpace_->getDimension(), &informedVector[0]) == false);
                 }
                 else
                 {
-                    //The PHS has a smaller volume than the subspace.
-                    //Sample from within the PHS until the sample is in the state space
+                    // The PHS has a smaller volume than the subspace.
+                    // Sample from within the PHS until the sample is in the state space
                     do
                     {
                         this->sampleUniformIgnoreBounds(statePtr, maxCost);
                     }
-                    while ( StateSampler::space_->satisfiesBounds(statePtr) == false );
+                    while (StateSampler::space_->satisfiesBounds(statePtr) == false);
                 }
             }
         }
 
         void PathLengthDirectInfSampler::sampleUniform(State* statePtr, const Cost& minCost, const Cost& maxCost)
         {
-            //Sample from the larger PHS until the sample does not lie within the smaller PHS.
-            //Since volume in a sphere/spheroid is proportionately concentrated near the surface, this isn't horribly inefficient, though a direct method would be better
+            // Sample from the larger PHS until the sample does not lie within the smaller PHS.
+            // Since volume in a sphere/spheroid is proportionately concentrated near the surface, this isn't horribly inefficient, though a direct method would be better
             do
             {
                 this->sampleUniform(statePtr, maxCost);
             }
-            while ( InformedStateSampler::opt_->isCostBetterThan(this->heuristicSolnCost(statePtr), minCost) );
+            while (InformedStateSampler::opt_->isCostBetterThan(this->heuristicSolnCost(statePtr), minCost));
         }
 
 
@@ -264,83 +262,83 @@ namespace ompl
 
         double PathLengthDirectInfSampler::getInformedMeasure(const Cost& currentCost) const
         {
-            //Variable
-            //The measure of the informed set
+            // Variable
+            // The measure of the informed set
             double informedMeasure;
 
-            //The informed measure is then the measure of the PHS for the given cost:
+            // The informed measure is then the measure of the PHS for the given cost:
             informedMeasure = phsPtr_->getPhsMeasure(currentCost.value());
 
-            //And if the space is compound, further multiplied by the measure of the uniformed subspace
-            if ( StateSampler::space_->isCompound() == true )
+            // And if the space is compound, further multiplied by the measure of the uniformed subspace
+            if (StateSampler::space_->isCompound() == true)
             {
-                informedMeasure = informedMeasure*uninformedSubSpace_->getMeasure();
+                informedMeasure = informedMeasure * uninformedSubSpace_->getMeasure();
             }
 
-            //Return the smaller of the two measures
+            // Return the smaller of the two measures
             return std::min(StateSampler::space_->getMeasure(), informedMeasure);
         }
 
         void PathLengthDirectInfSampler::sampleUniformIgnoreBounds(State* statePtr, const Cost& maxCost)
         {
-            //Variable
-            //The informed subset of the sample as a vector
+            // Variable
+            // The informed subset of the sample as a vector
             std::vector<double> informedVector(informedSubSpace_->getDimension());
 
-            //Set the new transverse diameter
+            // Set the new transverse diameter
             phsPtr_->setTransverseDiameter(maxCost.value());
 
-            //Sample the ellipse
+            // Sample the ellipse
             rng_.uniformProlateHyperspheroid(phsPtr_, informedSubSpace_->getDimension(), &informedVector[0]);
 
-            //If there is an extra "uninformed" subspace, we need to add that to the state before converting the raw vector representation into a state....
-            if ( StateSampler::space_->isCompound() == false )
+            // If there is an extra "uninformed" subspace, we need to add that to the state before converting the raw vector representation into a state....
+            if (StateSampler::space_->isCompound() == false)
             {
-                //No, space_ == informedSubSpace_
-                //Copy into the state pointer
+                // No, space_ == informedSubSpace_
+                // Copy into the state pointer
                 informedSubSpace_->copyFromReals(statePtr, informedVector);
             }
             else
             {
-                //Yes, we need to also sample the uninformed subspace
-                //Variables
-                //A state for the uninformed subspace
+                // Yes, we need to also sample the uninformed subspace
+                // Variables
+                // A state for the uninformed subspace
                 State* uninformedState = uninformedSubSpace_->allocState();
 
-                //Copy the informed subspace into the state pointer
+                // Copy the informed subspace into the state pointer
                 informedSubSpace_->copyFromReals(statePtr->as<CompoundState>()->components[informedIdx_], informedVector);
 
-                //Sample the uniformed subspace
+                // Sample the uniformed subspace
                 uninformedSubSampler_->sampleUniform(uninformedState);
 
-                //Copy the informed subspace into the state pointer
+                // Copy the informed subspace into the state pointer
                 uninformedSubSpace_->copyState(statePtr->as<CompoundState>()->components[uninformedIdx_], uninformedState);
 
-                //Free the state
+                // Free the state
                 uninformedSubSpace_->freeState(uninformedState);
             }
         }
 
         void PathLengthDirectInfSampler::sampleUniformIgnoreBounds(State* statePtr, const Cost& minCost, const Cost& maxCost)
         {
-            //Sample from the larger PHS until the sample does not lie within the smaller PHS.
-            //Since volume in a sphere/spheroid is proportionately concentrated near the surface, this isn't horribly inefficient, though a direct method would be better
+            // Sample from the larger PHS until the sample does not lie within the smaller PHS.
+            // Since volume in a sphere/spheroid is proportionately concentrated near the surface, this isn't horribly inefficient, though a direct method would be better
             do
             {
                 this->sampleUniformIgnoreBounds(statePtr, maxCost);
             }
-            while ( InformedStateSampler::opt_->isCostBetterThan(this->heuristicSolnCost(statePtr), minCost) );
+            while (InformedStateSampler::opt_->isCostBetterThan(this->heuristicSolnCost(statePtr), minCost));
         }
 
 
         Cost PathLengthDirectInfSampler::heuristicSolnCost(const State* statePtr) const
         {
-            //Variable
-            //The raw data in the state
+            // Variable
+            // The raw data in the state
             std::vector<double> rawData(informedSubSpace_->getDimension());
 
-            //Get the raw data
-            if ( StateSampler::space_->isCompound() == false )
+            // Get the raw data
+            if (StateSampler::space_->isCompound() == false)
             {
                 informedSubSpace_->copyToReals(rawData, statePtr);
             }
@@ -349,9 +347,9 @@ namespace ompl
                 informedSubSpace_->copyToReals(rawData, statePtr->as<CompoundState>()->components[informedIdx_]);
             }
 
-            //Calculate and return the length
+            // Calculate and return the length
             return Cost(phsPtr_->getPathLength(informedSubSpace_->getDimension(), &rawData[0]));
         }
 
-    }; //base
-};  //ompl
+    }; // base
+};  // ompl

@@ -32,7 +32,10 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Jonathan Gammell*/
+
+// Enable the use of shallow_array_adaptor to create a uBLAS-vector-view of C-style array without copying data
+#define BOOST_UBLAS_SHALLOW_ARRAY_ADAPTOR
 
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Exception.h"
@@ -45,16 +48,18 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/random/uniform_on_sphere.hpp>
-//For pre C++ 11 gamma function
+// For pre C++ 11 gamma function
 #include <boost/math/special_functions/gamma.hpp>
+// For boost::numeric::ublas::shallow_array_adaptor:
+#include <boost/numeric/ublas/vector.hpp>
 
-//The Eigen Includes:
-//Inversion and determinants
+// The Eigen Includes:
+// Inversion and determinants
 #include <Eigen/LU>
-//SVD decomposition
+// SVD decomposition
 #include <Eigen/SVD>
 
-//We want to throw some exceptions
+// We want to throw some exceptions
 #include "ompl/util/Exception.h"
 
 /// @cond IGNORE
@@ -233,59 +238,60 @@ void ompl::RNG::eulerRPY(double value[3])
 
 void ompl::RNG::uniformNormalVector(unsigned int n, double value[])
 {
-    //Construct the Boost distribution and generator. These would ideally be at the class level, but the spherical distribution requires dimension at construction
-    boost::uniform_on_sphere<> uniformSphereDist(n);
-    boost::variate_generator<boost::mt19937&, boost::uniform_on_sphere<> > normalizedVector(generator_, uniformSphereDist);
+    // Typedef the container type for the distribution and generator
+    typedef boost::numeric::ublas::shallow_array_adaptor<double> container_type_t;
 
-    //A temporary vector for the BOOST return value
-    std::vector<double> rVector;
+    // Construct the Boost distribution and generator. These would ideally be at the class level, but the spherical distribution requires dimension at construction.
+    // Tell them to return the type double in a shallow_array_adaptor container:
+    boost::uniform_on_sphere<double, container_type_t> uniformSphereDist(n);
+    boost::variate_generator<boost::mt19937&, boost::uniform_on_sphere<double, container_type_t> > normalizedVector(generator_, uniformSphereDist);
 
-    //Generate a random value, the variate_generator returns a std::vector
+    // Create a uBLAS-vector-view of the C-style array without copying data
+    container_type_t rVector(n, value);
+
+    // Generate a random value, the variate_generator is returning a shallow_array_adaptor, which will modify the value array:
     rVector = normalizedVector();
-
-    //Copy into the array, wish I knew of a better way than having used the temporary vector...
-    std::copy(rVector.begin(), rVector.end(), value);
 }
 
-//See: http://math.stackexchange.com/a/87238
+// See: http://math.stackexchange.com/a/87238
 void ompl::RNG::uniformInBall(double r, unsigned int n, double value[])
 {
-    //Draw a random point on the unit sphere
+    // Draw a random point on the unit sphere
     this->uniformNormalVector(n, value);
 
-    //Draw a random radius scale
+    // Draw a random radius scale
     double radiusScale = r*std::pow(this->uniformReal(0.0, 1.0), 1.0/static_cast<double>(n));
 
-    //Scale the point on the unit sphere
+    // Scale the point on the unit sphere
     for (unsigned int i = 0u; i < n; ++i)
     {
-        value[i] = radiusScale*value[i];
+        value[i] = radiusScale * value[i];
     }
 }
 
 void ompl::RNG::uniformProlateHyperspheroidSurface(ProlateHyperspheroidPtr phsPtr, unsigned int n, double value[])
 {
-    //Variables
-    //The spherical point as a std::vector
+    // Variables
+    // The spherical point as a std::vector
     std::vector<double> sphere(n);
 
-    //Get a random point on the sphere
+    // Get a random point on the sphere
     this->uniformNormalVector(n, &sphere[0]);
 
-    //Transform to the PHS
+    // Transform to the PHS
     phsPtr->transform(n, &sphere[0], value);
 }
 
 void ompl::RNG::uniformProlateHyperspheroid(ProlateHyperspheroidPtr phsPtr, unsigned int n, double value[])
 {
-    //Variables
-    //The spherical point as a std::vector
+    // Variables
+    // The spherical point as a std::vector
     std::vector<double> sphere(n);
 
-    //Get a random point in the sphere
+    // Get a random point in the sphere
     this->uniformInBall(1.0, n, &sphere[0]);
 
-    //Transform to the PHS
+    // Transform to the PHS
     phsPtr->transform(n, &sphere[0], value);
 }
 
@@ -297,20 +303,20 @@ void ompl::RNG::uniformProlateHyperspheroid(ProlateHyperspheroidPtr phsPtr, unsi
 
 ompl::ProlateHyperspheroid::ProlateHyperspheroid(unsigned int n, const double focus1[], const double focus2[])
   : dim_(n),
-  transverseDiameter_(0.0), //Initialize to something.
+  transverseDiameter_(0.0), // Initialize to something.
   isTransformUpToDate_(false)
 {
-    //Copy the arrays into their Eigen containers via the Eigen::Map "view"
+    // Copy the arrays into their Eigen containers via the Eigen::Map "view"
     xFocus1_ = Eigen::Map<const Eigen::VectorXd>(focus1, dim_);
     xFocus2_ = Eigen::Map<const Eigen::VectorXd>(focus2, dim_);
 
-    //Calculate the minimum transverse diameter
+    // Calculate the minimum transverse diameter
     minTransverseDiameter_ = (xFocus1_ - xFocus2_).norm();
 
-    //Calculate the centre:
+    // Calculate the centre:
     xCentre_ = 0.5*(xFocus1_ + xFocus2_);
 
-    //Calculate the rotation
+    // Calculate the rotation
     this->updateRotation();
 }
 
@@ -322,19 +328,19 @@ void ompl::ProlateHyperspheroid::setTransverseDiameter(double transverseDiameter
         throw Exception("Transverse diameter cannot be less than the distance between the foci.");
     }
 
-    //Store and update if changed
+    // Store and update if changed
     if (transverseDiameter_ != transverseDiameter)
     {
-        //Mark as out of date
+        // Mark as out of date
         isTransformUpToDate_ = false;
 
-        //Store
+        // Store
         transverseDiameter_ = transverseDiameter;
 
-        //Update the transform
+        // Update the transform
         this->updateTransformation();
     }
-    //No else, the diameter didn't change
+    // No else, the diameter didn't change
 }
 
 void ompl::ProlateHyperspheroid::transform(unsigned int n, const double sphere[], double phs[])
@@ -344,7 +350,7 @@ void ompl::ProlateHyperspheroid::transform(unsigned int n, const double sphere[]
       throw Exception("The transformation is not up to date in the PHS class. Has the transverse diameter been set?");
     }
 
-    //Calculate the tranformation and offset, using Eigen::Map views of the data
+    // Calculate the tranformation and offset, using Eigen::Map views of the data
     Eigen::Map<Eigen::VectorXd>(phs, n) = transformationWorldFromEllipse_*Eigen::Map<const Eigen::VectorXd>(sphere, n) + xCentre_;
 }
 
@@ -352,7 +358,7 @@ bool ompl::ProlateHyperspheroid::isInPhs(unsigned int n, const double point[])
 {
     if (isTransformUpToDate_ == false)
     {
-        //The transform is not up to date until the transverse diameter has been set
+        // The transform is not up to date until the transverse diameter has been set
         throw Exception ("The transverse diameter has not been set");
     }
 
@@ -363,12 +369,12 @@ double ompl::ProlateHyperspheroid::getPhsMeasure(void)
 {
     if (isTransformUpToDate_ == false)
     {
-        //The transform is not up to date until the transverse diameter has been set, therefore we have no transverse diameter and we have infinite measure
+        // The transform is not up to date until the transverse diameter has been set, therefore we have no transverse diameter and we have infinite measure
         return std::numeric_limits<double>::infinity();
     }
     else
     {
-        //Calculate and return:
+        // Calculate and return:
         return phsMeasure_;
     }
 }
@@ -389,26 +395,26 @@ double ompl::ProlateHyperspheroid::calcPhsMeasure(unsigned int N, double minTran
     {
         throw Exception("Transverse diameter cannot be less than the minimum transverse diameter.");
     }
-    //Variable
-    //The conjugate diameter:
+    // Variable
+    // The conjugate diameter:
     double conjugateDiameter;
-    //The Lebesgue measure return value
+    // The Lebesgue measure return value
     double lmeas;
 
-    //Calculate the conjugate diameter:
-    conjugateDiameter = std::sqrt(transverseDiameter*transverseDiameter - minTransverseDiameter*minTransverseDiameter);
+    // Calculate the conjugate diameter:
+    conjugateDiameter = std::sqrt(transverseDiameter * transverseDiameter - minTransverseDiameter * minTransverseDiameter);
 
-    //Calculate as a product series of the radii, noting that one is the transverse diameter/2.0, and the other N-1 are the conjugate diameter/2.0
+    // Calculate as a product series of the radii, noting that one is the transverse diameter/2.0, and the other N-1 are the conjugate diameter/2.0
     lmeas = transverseDiameter/2.0;
     for (unsigned int i = 1u; i < N; ++i)
     {
         lmeas = lmeas * conjugateDiameter/2.0;
     }
 
-    //Then multiplied by the volume of the unit n-ball.
-    lmeas = lmeas*unitNBallMeasure(N);
+    // Then multiplied by the volume of the unit n-ball.
+    lmeas = lmeas * unitNBallMeasure(N);
 
-    //Return:
+    // Return:
     return lmeas;
 }
 
@@ -419,10 +425,10 @@ double ompl::ProlateHyperspheroid::getPathLength(unsigned int n, const double po
 
 void ompl::ProlateHyperspheroid::updateRotation(void)
 {
-    //Mark the transform as out of date
+    // Mark the transform as out of date
     isTransformUpToDate_ = false;
 
-    //If the minTransverseDiameter_ is too close to 0, we treat this as a circle.
+    // If the minTransverseDiameter_ is too close to 0, we treat this as a circle.
     double circleTol = 1E-9;
     if (minTransverseDiameter_ < circleTol)
     {
@@ -430,59 +436,59 @@ void ompl::ProlateHyperspheroid::updateRotation(void)
     }
     else
     {
-        //Variables
-        //The transverse axis of the PHS expressed in the world frame.
+        // Variables
+        // The transverse axis of the PHS expressed in the world frame.
         Eigen::VectorXd transverseAxis(dim_);
-        //The matrix representation of the Wahba problem
+        // The matrix representation of the Wahba problem
         Eigen::MatrixXd wahbaProb(dim_, dim_);
-        //The middle diagonal matrix in the SVD solution to the Wahba problem
+        // The middle diagonal matrix in the SVD solution to the Wahba problem
         Eigen::VectorXd middleM(dim_);
 
-        //Calculate the major axis, storing as the first eigenvector
+        // Calculate the major axis, storing as the first eigenvector
         transverseAxis = (xFocus2_ - xFocus1_ )/minTransverseDiameter_;
 
-        //Calculate the rotation that will allow us to generate the remaining eigenvectors
-        //Formulate as a Wahba problem, first forming the matrix a_j*a_i' where a_j is the transverse axis if the ellipse in the world frame, and a_i is the first basis vector of the world frame (i.e., [1 0 .... 0])
-        wahbaProb = transverseAxis*Eigen::MatrixXd::Identity(dim_, dim_).col(0).transpose();
+        // Calculate the rotation that will allow us to generate the remaining eigenvectors
+        // Formulate as a Wahba problem, first forming the matrix a_j*a_i' where a_j is the transverse axis if the ellipse in the world frame, and a_i is the first basis vector of the world frame (i.e., [1 0 .... 0])
+        wahbaProb = transverseAxis * Eigen::MatrixXd::Identity(dim_, dim_).col(0).transpose();
 
-        //Then run it through the  SVD solver
+        // Then run it through the  SVD solver
         Eigen::JacobiSVD<Eigen::MatrixXd, Eigen::NoQRPreconditioner> svd(wahbaProb, Eigen::ComputeFullV | Eigen::ComputeFullU);
 
-        //Then calculate the rotation matrix from the U and V components of SVD
-        //Calculate the middle diagonal matrix
+        // Then calculate the rotation matrix from the U and V components of SVD
+        // Calculate the middle diagonal matrix
         middleM = Eigen::VectorXd::Ones(dim_);
-        //Make the last value equal to det(U)*det(V) (zero-based indexing remember)
+        // Make the last value equal to det(U)*det(V) (zero-based indexing remember)
         middleM(dim_ - 1) = svd.matrixU().determinant()*svd.matrixV().determinant();
 
-        //Calculate the rotation
+        // Calculate the rotation
         rotationWorldFromEllipse_ = svd.matrixU()*middleM.asDiagonal()*svd.matrixV().transpose();
     }
 }
 
 void ompl::ProlateHyperspheroid::updateTransformation(void)
 {
-    //Variables
-    //The radii of the ellipse
+    // Variables
+    // The radii of the ellipse
     Eigen::VectorXd diagAsVector(dim_);
-    //The conjugate diameters:
+    // The conjugate diameters:
     double conjugateDiamater;
 
-    //Calculate the conjugate radius
+    // Calculate the conjugate radius
     conjugateDiamater = std::sqrt(transverseDiameter_*transverseDiameter_ - minTransverseDiameter_*minTransverseDiameter_);
 
-    //Store into the diagonal matrix
-    //All the elements but one are the conjugate radius
+    // Store into the diagonal matrix
+    // All the elements but one are the conjugate radius
     diagAsVector.fill(conjugateDiamater/2.0);
 
-    //The first element in diagonal is the transverse radius
+    // The first element in diagonal is the transverse radius
     diagAsVector(0) = 0.5*transverseDiameter_;
 
-    //Calculate the transformation matrix
+    // Calculate the transformation matrix
     transformationWorldFromEllipse_ = rotationWorldFromEllipse_*diagAsVector.asDiagonal();
 
-    //Calculate the measure:
+    // Calculate the measure:
     phsMeasure_ = calcPhsMeasure(dim_, minTransverseDiameter_, transverseDiameter_);
 
-    //Mark as up to date
+    // Mark as up to date
     isTransformUpToDate_ = true;
 }

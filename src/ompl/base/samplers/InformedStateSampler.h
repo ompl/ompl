@@ -37,11 +37,11 @@
 #ifndef OMPL_BASE_SAMPLERS_INFORMED_SAMPLER_
 #define OMPL_BASE_SAMPLERS_INFORMED_SAMPLER_
 
-//We inherit from StateSampler
+// We inherit from StateSampler
 #include "ompl/base/StateSampler.h"
-//Deriving functions must be able to sample within a given cost
+// Deriving functions must be able to sample within a given cost
 #include "ompl/base/Cost.h"
-//We use a pointer to the problem definition to access problem and solution data.
+// We use a pointer to the problem definition to access problem and solution data.
 #include "ompl/base/ProblemDefinition.h"
 
 namespace ompl
@@ -106,4 +106,4 @@ namespace ompl
 }
 
 
-#endif //OMPL_BASE_SAMPLERS_INFORMED_SAMPLER_
+#endif // OMPL_BASE_SAMPLERS_INFORMED_SAMPLER_

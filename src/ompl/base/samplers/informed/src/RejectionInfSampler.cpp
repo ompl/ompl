@@ -41,40 +41,41 @@ namespace ompl
 {
     namespace base
     {
-        //The default rejection-sampling class:
+        // The default rejection-sampling class:
         RejectionInfSampler::RejectionInfSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost)
           : InformedStateSampler(space, probDefn, bestCost)
         {
-            //Create the basic sampler
+            // Create the basic sampler
             baseSampler_ = StateSampler::space_->allocDefaultStateSampler();
-            //Warn if a cost-to-go heuristic is not defined
+
+            // Warn if a cost-to-go heuristic is not defined
             if (InformedStateSampler::opt_->hasCostToGoHeuristic() == false)
             {
                 OMPL_WARN("RejectionInfSampler: The optimization objective does not have a cost-to-go heuristic defined. Informed sampling will likely have little to no effect.");
             }
-            //No else
+            // No else
         }
 
         void RejectionInfSampler::sampleUniform(State* statePtr, const Cost& maxCost)
         {
-            //Sample from the entire domain as long as the heuristic estimate of solution cost through the sample is worse than maxCost.
-            //i.e., stop when f(state) <= maxCost
+            // Sample from the entire domain as long as the heuristic estimate of solution cost through the sample is worse than maxCost.
+            // i.e., stop when f(state) <= maxCost
             do
             {
                 baseSampler_->sampleUniform(statePtr);
             }
-            while ( this->isCostWorseThan(InformedStateSampler::heuristicSolnCost(statePtr), maxCost) );
+            while (this->isCostWorseThan(InformedStateSampler::heuristicSolnCost(statePtr), maxCost));
         }
 
         void RejectionInfSampler::sampleUniform(State* statePtr, const Cost& minCost, const Cost& maxCost)
         {
-            //Sample from the larger cost bound as long as the heuristic estimate of the solution cost through sample is better than the smaller bound.
-            //i.e., stop when minCost <= f(state) <= maxCost
+            // Sample from the larger cost bound as long as the heuristic estimate of the solution cost through sample is better than the smaller bound.
+            // i.e., stop when minCost <= f(state) <= maxCost
             do
             {
                 this->sampleUniform(statePtr, maxCost);
             }
-            while ( InformedStateSampler::opt_->isCostBetterThan(InformedStateSampler::heuristicSolnCost(statePtr), minCost) );
+            while (InformedStateSampler::opt_->isCostBetterThan(InformedStateSampler::heuristicSolnCost(statePtr), minCost));
         }
 
         bool RejectionInfSampler::hasInformedMeasure() const
@@ -99,8 +100,8 @@ namespace ompl
 
         bool RejectionInfSampler::isCostWorseThan(const Cost& c1, const Cost& c2) const
         {
-            //If c2 is better than c1, then c1 is worse than c2
+            // If c2 is better than c1, then c1 is worse than c2
             return InformedStateSampler::opt_->isCostBetterThan(c2, c1);
         }
-    }; //base
-};  //ompl
+    }; // base
+};  // ompl

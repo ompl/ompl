@@ -37,7 +37,7 @@
 #ifndef OMPL_BASE_SAMPLERS_INFORMED_PATH_LENGTH_DIRECT_INFORMED_SAMPLER_
 #define OMPL_BASE_SAMPLERS_INFORMED_PATH_LENGTH_DIRECT_INFORMED_SAMPLER_
 
-//We inherit from InformedStateSampler
+// We inherit from InformedStateSampler
 #include "ompl/base/samplers/InformedStateSampler.h"
 
 namespace ompl
@@ -59,8 +59,7 @@ namespace ompl
         <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>.
 
-        @par TODO
-        - Handle compound spaces more gracefully.
+        \todo
         - Handle other types of goals? */
         class PathLengthDirectInfSampler : public InformedStateSampler
         {
@@ -88,14 +87,14 @@ namespace ompl
         protected:
 
         private:
-            //Helper functions:
+            // Helper functions:
             /** \brief Sample uniformly in the subset of the \e infinite state space whose heuristic solution estimates are less than the provided cost, i.e., ignores the bounds of the state space. */
             void sampleUniformIgnoreBounds(State* statePtr, const Cost& maxCost);
 
             /** \brief Sample uniformly in the subset of the \e infinite state space whose heuristic solution estimates are between the provided costs, i.e., ignores the bounds of the state space. */
             void sampleUniformIgnoreBounds(State* statePtr, const Cost& minCost, const Cost& maxCost);
 
-            //Variables
+            // Variables
             /** \brief The prolate hyperspheroid description of the sub problem */
             ompl::ProlateHyperspheroidPtr phsPtr_;
 
@@ -116,9 +115,9 @@ namespace ompl
 
             /** \brief A regular sampler to use on the uninformed subspace. */
             StateSamplerPtr uninformedSubSampler_;
-        }; //PathLengthDirectInfSampler
+        }; // PathLengthDirectInfSampler
     }
 }
 
 
-#endif //OMPL_BASE_SAMPLERS_INFORMED_DIRECT_PATH_LENGTH_INFORMED_SAMPLER_
+#endif // OMPL_BASE_SAMPLERS_INFORMED_DIRECT_PATH_LENGTH_INFORMED_SAMPLER_

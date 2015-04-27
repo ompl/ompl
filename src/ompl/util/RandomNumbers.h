@@ -45,13 +45,13 @@
 
 #include <ompl/util/ClassForward.h>
 
-//The basic Eigen include
+// The basic Eigen include
 #include <Eigen/Core>
 
 namespace ompl
 {
     /// @cond IGNORE
-    //A forward declaration of the prolate hyperspheroid class
+    // A forward declaration of the prolate hyperspheroid class
     OMPL_CLASS_FORWARD(ProlateHyperspheroid);
     /// @endcond
 
@@ -254,7 +254,7 @@ namespace ompl
         /** \brief Whether the transformation is up to date */
         bool isTransformUpToDate_;
 
-        //Functions
+        // Functions
         /** \brief Calculate the rotation from the PHS frame to the world frame via singular-value decomposition using the transverse symmetry of the PHS. */
         void updateRotation(void);
 

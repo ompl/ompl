@@ -40,7 +40,7 @@
 #include "ompl/base/goals/GoalRegion.h"
 #include "ompl/base/samplers/informed/RejectionInfSampler.h"
 #include <limits>
-//For boost::make_shared
+// For boost::make_shared
 #include "boost/make_shared.hpp"
 
 ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationPtr &si) :
@@ -76,7 +76,7 @@ bool ompl::base::OptimizationObjective::isCostBetterThan(Cost c1, Cost c2) const
 
 bool ompl::base::OptimizationObjective::isCostEquivalentTo(Cost c1, Cost c2) const
 {
-    //If c1 is not better than c2, and c2 is not better than c1, then they are equal
+    // If c1 is not better than c2, and c2 is not better than c1, then they are equal
     return !isCostBetterThan(c1,c2) && !isCostBetterThan(c2,c1);
 }
 

@@ -37,7 +37,7 @@
 #ifndef OMPL_BASE_SAMPLERS_INFORMED_GENERAL_REJECTION_INFORMED_SAMPLER_
 #define OMPL_BASE_SAMPLERS_INFORMED_GENERAL_REJECTION_INFORMED_SAMPLER_
 
-//We inherit from InformedStateSampler
+// We inherit from InformedStateSampler
 #include "ompl/base/samplers/InformedStateSampler.h"
 
 namespace ompl
@@ -77,7 +77,7 @@ namespace ompl
             virtual double getInformedMeasure(const Cost& /*minCost*/, const Cost& /*maxCost*/) const;
 
         private:
-            //Variables
+            // Variables
             /** \brief The basic raw sampler used to generate samples to keep/reject. */
             StateSamplerPtr baseSampler_;
 
@@ -88,4 +88,4 @@ namespace ompl
 }
 
 
-#endif //OMPL_BASE_SAMPLERS_INFORMED_REJECTION_INFORMED_SAMPLER_
+#endif // OMPL_BASE_SAMPLERS_INFORMED_REJECTION_INFORMED_SAMPLER_

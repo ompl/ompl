@@ -37,35 +37,35 @@
 #include "ompl/base/samplers/InformedStateSampler.h"
 #include "ompl/util/Exception.h"
 #include "ompl/base/OptimizationObjective.h"
-//The goal definitions
+// The goal definitions
 #include "ompl/base/Goal.h"
 
 namespace ompl
 {
     namespace base
     {
-        //The base InformedStateSampler class:
+        // The base InformedStateSampler class:
         InformedStateSampler::InformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost)
           : StateSampler(space),
             probDefn_(probDefn),
             bestCostPtr_(bestCost)
         {
-            //Sanity check the problem.
-            //Check that we were given a valid pointer
+            // Sanity check the problem.
+            // Check that we were given a valid pointer
             if (bestCostPtr_ == false)
             {
                 throw Exception ("InformedStateSampler: The cost pointer must be valid at construction.");
             }
-            //No else
+            // No else
 
-            //Check that there is an optimization objective
+            // Check that there is an optimization objective
             if (probDefn_->hasOptimizationObjective() == false)
             {
                 throw Exception ("InformedStateSampler: An optimization objective must be specified at construction.");
             }
-            //No else
+            // No else
 
-            //Make sure we have at least one start and warn if we have more than one
+            // Make sure we have at least one start and warn if we have more than one
             if (probDefn_->getStartStateCount() == 0u)
             {
                 throw Exception ("InformedStateSampler: At least one start state must be specified at construction.");
@@ -74,27 +74,27 @@ namespace ompl
             {
                 OMPL_WARN("InformedStateSampler: More than 1 start state present. Informed samplers will only use the first.");
             }
-            //No else
+            // No else
 
-            //Store the optimization objective for later ease.
+            // Store the optimization objective for later ease.
             opt_ = probDefn_->getOptimizationObjective();
         }
 
         void InformedStateSampler::sampleUniform(State* statePtr)
         {
-            //Call sample uniform with the current best cost, this function will be defined in the deriving class
+            // Call sample uniform with the current best cost, this function will be defined in the deriving class
             this->sampleUniform(statePtr, *bestCostPtr_);
         }
 
         double InformedStateSampler::getInformedMeasure() const
         {
-            //Get the informed measure for the current best solution
+            // Get the informed measure for the current best solution
             return this->getInformedMeasure(*bestCostPtr_);
         }
 
         double InformedStateSampler::getInformedMeasure(const Cost& minCost, const Cost& maxCost) const
         {
-            //Subtract the measures defined by the max and min costs. These will be defined in the deriving class.
+            // Subtract the measures defined by the max and min costs. These will be defined in the deriving class.
             return this->getInformedMeasure(maxCost) - this->getInformedMeasure(minCost);
         }
 
@@ -110,8 +110,8 @@ namespace ompl
 
         Cost InformedStateSampler::heuristicSolnCost(const State* statePtr) const
         {
-            //Combine heuristic estimates of the cost-to-come and cost-to-go from the state.
-            return opt_->combineCosts( opt_->motionCostHeuristic(probDefn_->getStartState(0u), statePtr), opt_->costToGo(statePtr, probDefn_->getGoal().get()) );
+            // Combine heuristic estimates of the cost-to-come and cost-to-go from the state.
+            return opt_->combineCosts(opt_->motionCostHeuristic(probDefn_->getStartState(0u), statePtr), opt_->costToGo(statePtr, probDefn_->getGoal().get()));
         }
-    }; //base
-};  //ompl
+    }; // base
+};  // ompl
