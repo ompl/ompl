@@ -213,6 +213,14 @@ namespace ompl
                 return stats_;
             }
 
+            /**
+             * \brief Allow accumlated experiences to be processed
+             */
+            virtual bool doPostProcessing()
+            {
+                return true;
+            }
+
         protected:
 
             /// Flag indicating whether recalled plans should be used to find solutions. Enabled by default.
