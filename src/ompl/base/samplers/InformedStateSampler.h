@@ -44,11 +44,17 @@
 // We use a pointer to the problem definition to access problem and solution data.
 #include "ompl/base/ProblemDefinition.h"
 
+//For boost::function
+#include <boost/function.hpp>
+
 namespace ompl
 {
     namespace base
     {
         OMPL_CLASS_FORWARD(InformedStateSampler);
+
+        /** \brief The definition of a function which queries the given solution cost. */
+        typedef boost::function<Cost ()> GetCurrentCost;
 
         /** \brief An abstract class for state samplers that use information
         about the current solution to limit future search to a planning
@@ -56,8 +62,8 @@ namespace ompl
         class InformedStateSampler : public StateSampler
         {
         public:
-            /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution. */
-            InformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost);
+            /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution. Requires a function pointer to a method to query the cost of the current solution. */
+            InformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr& probDefn, const GetCurrentCost& costFunc);
             virtual ~InformedStateSampler(void)
             {
             }
@@ -97,8 +103,8 @@ namespace ompl
             ProblemDefinitionPtr probDefn_;
             /** A copy of the optimization objective */
             OptimizationObjectivePtr opt_;
-            /** A pointer to the best cost found so far, the mechanism through which the sampler is "informed". */
-            const Cost* bestCostPtr_;
+            /** A function pointer to a method for querying the best cost found so far. This is the mechanism through which the sampler gets "informed" about the current solution. */
+            GetCurrentCost bestCostFunc_;
 
         private:
         };

@@ -66,7 +66,7 @@ namespace ompl
         public:
 
             /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution using a direct ellipsoidal method. */
-            PathLengthDirectInfSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost);
+            PathLengthDirectInfSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const GetCurrentCost& costFunc);
             virtual ~PathLengthDirectInfSampler();
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost. */

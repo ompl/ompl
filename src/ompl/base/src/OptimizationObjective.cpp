@@ -32,8 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Luis G. Torres, Ioan Sucan */
-/* Edited by: Jonathan Gammell (allocInformedStateSampler) */
+/* Author: Luis G. Torres, Ioan Sucan, Jonathan Gammell */
 
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/tools/config/MagicConstants.h"
@@ -41,7 +40,7 @@
 #include "ompl/base/samplers/informed/RejectionInfSampler.h"
 #include <limits>
 // For boost::make_shared
-#include "boost/make_shared.hpp"
+#include <boost/make_shared.hpp>
 
 ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationPtr &si) :
     si_(si),
@@ -56,7 +55,7 @@ const std::string& ompl::base::OptimizationObjective::getDescription() const
 
 bool ompl::base::OptimizationObjective::isSatisfied(Cost c) const
 {
-    return this->isCostBetterThan(c, threshold_);
+    return isCostBetterThan(c, threshold_);
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::getCostThreshold() const
@@ -124,12 +123,12 @@ ompl::base::Cost ompl::base::OptimizationObjective::averageStateCost(unsigned in
 {
     StateSamplerPtr ss = si_->allocStateSampler();
     State *state = si_->allocState();
-    Cost totalCost(this->identityCost());
+    Cost totalCost(identityCost());
 
     for (unsigned int i = 0 ; i < numStates ; ++i)
     {
         ss->sampleUniform(state);
-        totalCost = this->combineCosts(totalCost, this->stateCost(state));
+        totalCost = combineCosts(totalCost, stateCost(state));
     }
 
     si_->freeState(state);
@@ -152,12 +151,12 @@ ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State *state,
     if (hasCostToGoHeuristic())
         return costToGoFn_(state, goal);
     else
-        return this->identityCost(); // assumes that identity < all costs
+        return identityCost(); // assumes that identity < all costs
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const State *s1, const State *s2) const
 {
-    return this->identityCost(); // assumes that identity < all costs
+    return identityCost(); // assumes that identity < all costs
 }
 
 const ompl::base::SpaceInformationPtr& ompl::base::OptimizationObjective::getSpaceInformation() const
@@ -165,10 +164,10 @@ const ompl::base::SpaceInformationPtr& ompl::base::OptimizationObjective::getSpa
     return si_;
 }
 
-ompl::base::InformedStateSamplerPtr ompl::base::OptimizationObjective::allocInformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost) const
+ompl::base::InformedStateSamplerPtr ompl::base::OptimizationObjective::allocInformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const GetCurrentCost& costFunc) const
 {
     OMPL_WARN("%s: No direct informed sampling scheme is defined, defaulting to rejection sampling.", description_.c_str());
-    return boost::make_shared<RejectionInfSampler>(space, probDefn, bestCost);
+    return boost::make_shared<RejectionInfSampler>(space, probDefn, costFunc);
 }
 
 void ompl::base::OptimizationObjective::print(std::ostream &out) const
@@ -252,7 +251,7 @@ bool ompl::base::MultiOptimizationObjective::isLocked() const
 
 ompl::base::Cost ompl::base::MultiOptimizationObjective::stateCost(const State *s) const
 {
-    Cost c = this->identityCost();
+    Cost c = identityCost();
     for (std::vector<Component>::const_iterator comp = components_.begin();
          comp != components_.end();
          ++comp)
@@ -266,7 +265,7 @@ ompl::base::Cost ompl::base::MultiOptimizationObjective::stateCost(const State *
 ompl::base::Cost ompl::base::MultiOptimizationObjective::motionCost(const State *s1,
                                                                     const State *s2) const
 {
-    Cost c = this->identityCost();
+    Cost c = identityCost();
      for (std::vector<Component>::const_iterator comp = components_.begin();
          comp != components_.end();
          ++comp)

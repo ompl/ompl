@@ -32,8 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Luis G. Torres, Ioan Sucan */
-/* Edited by: Jonathan Gammell (allocInformedStateSampler) */
+/* Author: Luis G. Torres, Ioan Sucan, Jonathan Gammell */
 
 #ifndef OMPL_BASE_OPTIMIZATION_OBJECTIVE_
 #define OMPL_BASE_OPTIMIZATION_OBJECTIVE_
@@ -145,7 +144,7 @@ namespace ompl
             const SpaceInformationPtr& getSpaceInformation() const;
 
             /** \brief Allocate a heuristic-sampling state generator for this cost function, defaults to a basic rejection sampling scheme when the derived class does not provide a better method.*/
-            virtual InformedStateSamplerPtr allocInformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost) const;
+            virtual InformedStateSamplerPtr allocInformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const GetCurrentCost& costFunc) const;
 
             /** \brief Print information about this optimization objective */
             virtual void print(std::ostream &out) const;

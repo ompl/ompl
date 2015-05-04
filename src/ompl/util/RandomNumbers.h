@@ -43,15 +43,10 @@
 #include <boost/random/variate_generator.hpp>
 #include <cassert>
 
-#include <ompl/util/ClassForward.h>
+#include "ompl/util/ProlateHyperspheroid.h"
 
 namespace ompl
 {
-    /// @cond IGNORE
-    // A forward declaration of the prolate hyperspheroid class
-    OMPL_CLASS_FORWARD(ProlateHyperspheroid);
-    /// @endcond
-
     /** \brief Random number generation. An instance of this class
         cannot be used by multiple threads at once (member functions
         are not const). However, the constructor is thread safe and
@@ -118,10 +113,10 @@ namespace ompl
             with a bias towards \e r_max. The function is implemented on top of halfNormalReal() */
         int    halfNormalInt(int r_min, int r_max, double focus = 3.0);
 
-        /** \brief Uniform random unit quaternion sampling. The computed value has the order (x,y,z,w) */
+        /** \brief Uniform random unit quaternion sampling. The computed value has the order (x,y,z,w). The return variable \e value is expected to already exist. */
         void   quaternion(double value[4]);
 
-        /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range (-pi, pi]. The computed value has the order (roll, pitch, yaw) */
+        /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range (-pi, pi]. The computed value has the order (roll, pitch, yaw).  The return variable \e value is expected to already exist. */
         void   eulerRPY(double value[3]);
 
         /** \brief Set the seed used to generate the seeds of each RNG instance. Use this
@@ -146,29 +141,29 @@ namespace ompl
             return localSeed_;
         }
 
-        /** \brief Uniform random sampling of a unit-length vector. I.e., the surface of an n-ball */
+        /** \brief Uniform random sampling of a unit-length vector. I.e., the surface of an n-ball. The return variable \e value is expected to already exist. */
         void uniformNormalVector(unsigned int n, double value[]);
 
-        /** \brief Uniform random sampling of the content of an n-ball, with a radius appropriately distributed between [0,r) so that the distribution is uniform in a Cartesian coordinate system. */
+        /** \brief Uniform random sampling of the content of an n-ball, with a radius appropriately distributed between [0,r) so that the distribution is uniform in a Cartesian coordinate system. The return variable \e value is expected to already exist. */
         void uniformInBall(double r, unsigned int n, double value[]);
 
         /** \brief Uniform random sampling of the surface of a prolate hyperspheroid, a special symmetric type of
-        n-dimensional ellipse.
+        n-dimensional ellipse. The return variable \e value is expected to already exist.
         @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
         Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic."
         IROS 2014. DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
         <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
-        void uniformProlateHyperspheroidSurface(ProlateHyperspheroidPtr phsPtr, unsigned int n, double value[]);
+        void uniformProlateHyperspheroidSurface(const ProlateHyperspheroidPtr& phsPtr, unsigned int n, double value[]);
 
         /** \brief Uniform random sampling of a prolate hyperspheroid, a special symmetric type of
-        n-dimensional ellipse.
+        n-dimensional ellipse. The return variable \e value is expected to already exist.
         @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
         Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic."
         IROS 2014. DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
         <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
-        void uniformProlateHyperspheroid(ProlateHyperspheroidPtr phsPtr, unsigned int n, double value[]);
+        void uniformProlateHyperspheroid(const ProlateHyperspheroidPtr& phsPtr, unsigned int n, double value[]);
 
     private:
 
@@ -181,67 +176,6 @@ namespace ompl
         boost::variate_generator<boost::mt19937&, boost::uniform_real<> >        uni_;
         boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > normal_;
 
-    };
-
-
-    /** \brief A class describing a prolate hyperspheroid, a special symmetric type of n-dimensional ellipse,
-    for use in direct informed sampling for problems seeking to minimize path length.
-    @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
-    Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic."
-    IROS 2014. DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
-    <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
-    <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
-    class ProlateHyperspheroid
-    {
-    public:
-        /** \brief The description of an n-dimensional prolate hyperspheroid */
-        ProlateHyperspheroid(unsigned int n, const double focus1[], const double focus2[]);
-
-        /** \brief Set the transverse diameter of the PHS */
-        void setTransverseDiameter(double transverseDiameter);
-
-        /** \brief Transform a point from a sphere to PHS */
-        void transform(unsigned int n, const double sphere[], double phs[]);
-
-        /** \brief Check if the given point lies within the PHS */
-        bool isInPhs(unsigned int n, const double point[]);
-
-        /** \brief The dimension of the PHS */
-        unsigned int getPhsDimension(void);
-
-        /** \brief The measure of the PHS */
-        double getPhsMeasure(void);
-
-        /** \brief The measure of the PHS for a given transverse diameter */
-        double getPhsMeasure(double tranDiam);
-
-        /** \brief The minimum transverse diameter of the PHS, i.e., the distance between the foci */
-        double getMinTransverseDiameter(void);
-
-        /** \brief Calculate length of a line that originates from one focus, passes through the given point, and terminates at the other focus, i.e., the transverse diameter of the ellipse on which the given sample lies*/
-        double getPathLength(unsigned int n, const double point[]);
-
-        /** \brief The "volume" of a unit n-ball */
-        static double unitNBallMeasure(unsigned int N);
-
-        /** \brief The "volume" of a general n-PHS given the distance between the foci (minTransverseDiameter) and the actual transverse diameter (transverseDiameter) */
-        static double calcPhsMeasure(unsigned int N, double minTransverseDiameter, double transverseDiameter);
-
-    protected:
-
-    private:
-        /** \brief A forward declaration to the data structure class for the PIMPL idiom. */
-        struct phsData;
-
-        /** \brief A shared pointer to the actual data of a ProlateHyperspheroid. Used to hide Eigen from the header. */
-        boost::shared_ptr<phsData> dataPtr_;
-
-        // Functions
-        /** \brief Calculate the rotation from the PHS frame to the world frame via singular-value decomposition using the transverse symmetry of the PHS. */
-        void updateRotation(void);
-
-        /** \brief Calculate the hyperspheroid to PHS transformation matrix */
-        void updateTransformation(void);
     };
 }
 

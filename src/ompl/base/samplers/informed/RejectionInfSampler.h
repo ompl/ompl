@@ -53,7 +53,7 @@ namespace ompl
         {
         public:
             /** \brief Construct a rejection sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution. */
-            RejectionInfSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost);
+            RejectionInfSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const GetCurrentCost& costFunc);
             virtual ~RejectionInfSampler()
             {
             }

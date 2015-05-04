@@ -42,15 +42,15 @@
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 
 // For boost::make_shared
-#include "boost/make_shared.hpp"
+#include <boost/make_shared.hpp>
 
 namespace ompl
 {
     namespace base
     {
         // The direct ellipsoid sampling class for path-length:
-        PathLengthDirectInfSampler::PathLengthDirectInfSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost)
-          : InformedStateSampler(space, probDefn, bestCost),
+        PathLengthDirectInfSampler::PathLengthDirectInfSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const GetCurrentCost& costFunc)
+          : InformedStateSampler(space, probDefn, costFunc),
             informedIdx_(0u),
             uninformedIdx_(0u)
         {
@@ -94,10 +94,7 @@ namespace ompl
                 {
                     // Variable:
                     // An ease of use upcasted pointer to the space as a compound space
-                    const CompoundStateSpace* compoundSpace;
-
-                    // Get the space as a compound space
-                    compoundSpace = StateSampler::space_->as<CompoundStateSpace>();
+                    const CompoundStateSpace* compoundSpace = StateSampler::space_->as<CompoundStateSpace>();
 
                     // Sanity check
                     if (compoundSpace->getSubspaceCount() != 2u)
@@ -233,7 +230,7 @@ namespace ompl
                     // Sample from within the PHS until the sample is in the state space
                     do
                     {
-                        this->sampleUniformIgnoreBounds(statePtr, maxCost);
+                        sampleUniformIgnoreBounds(statePtr, maxCost);
                     }
                     while (StateSampler::space_->satisfiesBounds(statePtr) == false);
                 }
@@ -246,9 +243,9 @@ namespace ompl
             // Since volume in a sphere/spheroid is proportionately concentrated near the surface, this isn't horribly inefficient, though a direct method would be better
             do
             {
-                this->sampleUniform(statePtr, maxCost);
+                sampleUniform(statePtr, maxCost);
             }
-            while (InformedStateSampler::opt_->isCostBetterThan(this->heuristicSolnCost(statePtr), minCost));
+            while (InformedStateSampler::opt_->isCostBetterThan(heuristicSolnCost(statePtr), minCost));
         }
 
 
@@ -325,9 +322,9 @@ namespace ompl
             // Since volume in a sphere/spheroid is proportionately concentrated near the surface, this isn't horribly inefficient, though a direct method would be better
             do
             {
-                this->sampleUniformIgnoreBounds(statePtr, maxCost);
+                sampleUniformIgnoreBounds(statePtr, maxCost);
             }
-            while (InformedStateSampler::opt_->isCostBetterThan(this->heuristicSolnCost(statePtr), minCost));
+            while (InformedStateSampler::opt_->isCostBetterThan(heuristicSolnCost(statePtr), minCost));
         }
 
 

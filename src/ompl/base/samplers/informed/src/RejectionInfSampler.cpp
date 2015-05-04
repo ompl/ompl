@@ -42,8 +42,8 @@ namespace ompl
     namespace base
     {
         // The default rejection-sampling class:
-        RejectionInfSampler::RejectionInfSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost)
-          : InformedStateSampler(space, probDefn, bestCost)
+        RejectionInfSampler::RejectionInfSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const GetCurrentCost& costFunc)
+          : InformedStateSampler(space, probDefn, costFunc)
         {
             // Create the basic sampler
             baseSampler_ = StateSampler::space_->allocDefaultStateSampler();
@@ -64,7 +64,7 @@ namespace ompl
             {
                 baseSampler_->sampleUniform(statePtr);
             }
-            while (this->isCostWorseThan(InformedStateSampler::heuristicSolnCost(statePtr), maxCost));
+            while (isCostWorseThan(InformedStateSampler::heuristicSolnCost(statePtr), maxCost));
         }
 
         void RejectionInfSampler::sampleUniform(State* statePtr, const Cost& minCost, const Cost& maxCost)
@@ -73,7 +73,7 @@ namespace ompl
             // i.e., stop when minCost <= f(state) <= maxCost
             do
             {
-                this->sampleUniform(statePtr, maxCost);
+                sampleUniform(statePtr, maxCost);
             }
             while (InformedStateSampler::opt_->isCostBetterThan(InformedStateSampler::heuristicSolnCost(statePtr), minCost));
         }

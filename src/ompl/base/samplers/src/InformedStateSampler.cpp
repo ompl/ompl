@@ -45,19 +45,12 @@ namespace ompl
     namespace base
     {
         // The base InformedStateSampler class:
-        InformedStateSampler::InformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const Cost* bestCost)
+        InformedStateSampler::InformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr& probDefn, const GetCurrentCost& costFunc)
           : StateSampler(space),
             probDefn_(probDefn),
-            bestCostPtr_(bestCost)
+            bestCostFunc_(costFunc)
         {
             // Sanity check the problem.
-            // Check that we were given a valid pointer
-            if (bestCostPtr_ == false)
-            {
-                throw Exception ("InformedStateSampler: The cost pointer must be valid at construction.");
-            }
-            // No else
-
             // Check that there is an optimization objective
             if (probDefn_->hasOptimizationObjective() == false)
             {
@@ -83,19 +76,19 @@ namespace ompl
         void InformedStateSampler::sampleUniform(State* statePtr)
         {
             // Call sample uniform with the current best cost, this function will be defined in the deriving class
-            this->sampleUniform(statePtr, *bestCostPtr_);
+            sampleUniform(statePtr, bestCostFunc_());
         }
 
         double InformedStateSampler::getInformedMeasure() const
         {
             // Get the informed measure for the current best solution
-            return this->getInformedMeasure(*bestCostPtr_);
+            return getInformedMeasure(bestCostFunc_());
         }
 
         double InformedStateSampler::getInformedMeasure(const Cost& minCost, const Cost& maxCost) const
         {
             // Subtract the measures defined by the max and min costs. These will be defined in the deriving class.
-            return this->getInformedMeasure(maxCost) - this->getInformedMeasure(minCost);
+            return getInformedMeasure(maxCost) - getInformedMeasure(minCost);
         }
 
         void InformedStateSampler::sampleUniformNear(State* statePtr, const State* near, const double distance)
