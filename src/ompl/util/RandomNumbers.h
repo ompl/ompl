@@ -37,6 +37,7 @@
 #ifndef OMPL_UTIL_RANDOM_NUMBERS_
 #define OMPL_UTIL_RANDOM_NUMBERS_
 
+#include <boost/shared_ptr.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real.hpp>
 #include <boost/random/normal_distribution.hpp>
@@ -166,6 +167,8 @@ namespace ompl
         void uniformProlateHyperspheroid(const ProlateHyperspheroidPtr& phsPtr, unsigned int n, double value[]);
 
     private:
+        /** \brief A forward declaration to a data structure class holding data for spherical distributions of various dimension. */
+        class SphericalData;
 
         /** \brief The seed used for the instance of a RNG */
         boost::uint32_t                                                          localSeed_;
@@ -175,6 +178,8 @@ namespace ompl
         // Variate generators must be reset when the seed changes
         boost::variate_generator<boost::mt19937&, boost::uniform_real<> >        uni_;
         boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > normal_;
+        //A structure holding boost::uniform_on_sphere distributions and the associated boost::variate_generators for various dimension
+        boost::shared_ptr<SphericalData>                                        sphericalDataPtr_;
 
     };
 }

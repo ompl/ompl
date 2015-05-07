@@ -55,7 +55,7 @@
 
 
 
-struct ompl::ProlateHyperspheroid::phsData
+struct ompl::ProlateHyperspheroid::PhsData
 {
     /** \brief The dimension of the prolate hyperspheroid.*/
     unsigned int dim_;
@@ -81,7 +81,7 @@ struct ompl::ProlateHyperspheroid::phsData
 
 
 ompl::ProlateHyperspheroid::ProlateHyperspheroid(unsigned int n, const double focus1[], const double focus2[])
-  : dataPtr_ (boost::make_shared<phsData>())
+  : dataPtr_ (boost::make_shared<PhsData>())
 {
     //Initialize the data:
     dataPtr_->dim_ = n;

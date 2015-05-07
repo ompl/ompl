@@ -98,10 +98,10 @@ namespace ompl
 
     private:
         /** \brief A forward declaration to the data structure class for the PIMPL idiom. */
-        struct phsData;
+        struct PhsData;
 
         /** \brief A shared pointer to the actual data of a ProlateHyperspheroid. Used to hide Eigen from the header. */
-        boost::shared_ptr<phsData> dataPtr_;
+        boost::shared_ptr<PhsData> dataPtr_;
 
         // Functions
         /** \brief Calculate the rotation from the PHS frame to the world frame via singular-value decomposition using the transverse symmetry of the PHS. */
