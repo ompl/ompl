@@ -60,8 +60,8 @@ ompl::base::Cost ompl::base::PathLengthOptimizationObjective::motionCostHeuristi
     return motionCost(s1, s2);
 }
 
-ompl::base::InformedStateSamplerPtr ompl::base::PathLengthOptimizationObjective::allocInformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const GetCurrentCost& costFunc) const
+ompl::base::InformedSamplerPtr ompl::base::PathLengthOptimizationObjective::allocInformedStateSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls) const
 {
     // Make the direct path-length informed sampler and return
-    return boost::make_shared<PathLengthDirectInfSampler>(space, probDefn, costFunc);
+    return boost::make_shared<PathLengthDirectInfSampler>(probDefn, maxNumberCalls);
 }

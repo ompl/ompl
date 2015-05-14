@@ -164,10 +164,10 @@ const ompl::base::SpaceInformationPtr& ompl::base::OptimizationObjective::getSpa
     return si_;
 }
 
-ompl::base::InformedStateSamplerPtr ompl::base::OptimizationObjective::allocInformedStateSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const GetCurrentCost& costFunc) const
+ompl::base::InformedSamplerPtr ompl::base::OptimizationObjective::allocInformedStateSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls) const
 {
     OMPL_WARN("%s: No direct informed sampling scheme is defined, defaulting to rejection sampling.", description_.c_str());
-    return boost::make_shared<RejectionInfSampler>(space, probDefn, costFunc);
+    return boost::make_shared<RejectionInfSampler>(probDefn, maxNumberCalls);
 }
 
 void ompl::base::OptimizationObjective::print(std::ostream &out) const

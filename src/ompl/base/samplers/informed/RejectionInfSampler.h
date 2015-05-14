@@ -49,20 +49,20 @@ namespace ompl
         In general, direct sampling of the informed subset is much better, but this is a general default.
 
         */
-        class RejectionInfSampler : public InformedStateSampler
+        class RejectionInfSampler : public InformedSampler
         {
         public:
             /** \brief Construct a rejection sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution. */
-            RejectionInfSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const GetCurrentCost& costFunc);
+            RejectionInfSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls);
             virtual ~RejectionInfSampler()
             {
             }
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost. */
-            void sampleUniform(State* statePtr, const Cost& maxCost);
+            bool sampleUniform(State* statePtr, const Cost& maxCost);
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are between the provided costs. */
-            void sampleUniform(State* statePtr, const Cost& minCost, const Cost& maxCost);
+            bool sampleUniform(State* statePtr, const Cost& minCost, const Cost& maxCost);
 
             /** \brief Whether the sampler can provide a measure of the informed subset */
             bool hasInformedMeasure() const;
@@ -81,8 +81,8 @@ namespace ompl
             /** \brief The basic raw sampler used to generate samples to keep/reject. */
             StateSamplerPtr baseSampler_;
 
-            /** \brief A helper function to compare whether cost \e c1 is worse than cost \e c2. Defined as opt_->isCostBetterThan(c2, c1), as if c2 is better than c1, then c1 is worse than c2. */
-            bool isCostWorseThan(const Cost& c1, const Cost& c2) const;
+            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost using a persistent iteration counter */
+            bool sampleUniform(State* statePtr, const Cost& maxCost, unsigned int* iterPtr);
         };
     }
 }

@@ -61,19 +61,19 @@ namespace ompl
 
         \todo
         - Handle other types of goals? */
-        class PathLengthDirectInfSampler : public InformedStateSampler
+        class PathLengthDirectInfSampler : public InformedSampler
         {
         public:
 
             /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution using a direct ellipsoidal method. */
-            PathLengthDirectInfSampler(const StateSpace* space, const ProblemDefinitionPtr probDefn, const GetCurrentCost& costFunc);
+            PathLengthDirectInfSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls);
             virtual ~PathLengthDirectInfSampler();
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost. */
-            void sampleUniform(State* statePtr, const Cost& maxCost);
+            bool sampleUniform(State* statePtr, const Cost& maxCost);
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are between the provided costs. */
-            void sampleUniform(State* statePtr, const Cost& minCost, const Cost& maxCost);
+            bool sampleUniform(State* statePtr, const Cost& minCost, const Cost& maxCost);
 
             /** \brief Whether the sampler can provide a measure of the informed subset */
             bool hasInformedMeasure() const;
@@ -88,6 +88,9 @@ namespace ompl
 
         private:
             // Helper functions:
+            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost using a persistent iteration counter */
+            bool sampleUniform(State* statePtr, const Cost& maxCost, unsigned int* iterPtr);
+
             /** \brief Sample uniformly in the subset of the \e infinite state space whose heuristic solution estimates are less than the provided cost, i.e., ignores the bounds of the state space. */
             void sampleUniformIgnoreBounds(State* statePtr, const Cost& maxCost);
 
@@ -102,19 +105,22 @@ namespace ompl
             unsigned int informedIdx_;
 
             /** \brief The state space of the planning problem that is informed by the heuristics, i.e., in SE(2), R^2*/
-            const StateSpace* informedSubSpace_;
+            StateSpacePtr informedSubSpace_;
 
             /** \brief The index of the subspace of a compound StateSpace for which we cannot do informed sampling. Unused if the StateSpace is not compound. */
             unsigned int uninformedIdx_;
 
             /** \brief The state space of the planning problem that is \e not informed by the heuristics, i.e., in SE(2), SO(2)*/
-            const StateSpace* uninformedSubSpace_;
+            StateSpacePtr uninformedSubSpace_;
 
             /** \brief A regular sampler for the entire statespace for cases where informed sampling cannot be used or is not helpful. I.e., Before a solution is found, or if the solution does not reduce the search space. */
             StateSamplerPtr baseSampler_;
 
             /** \brief A regular sampler to use on the uninformed subspace. */
             StateSamplerPtr uninformedSubSampler_;
+
+            /** \brief An instance of a random number generator */
+            RNG rng_;
         }; // PathLengthDirectInfSampler
     }
 }
