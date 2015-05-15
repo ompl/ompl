@@ -65,13 +65,15 @@ namespace ompl
             // Sanity check the problem.
             if (probDefn_->getStartStateCount() != 1u)
             {
-                throw Exception("The direct path-length informed sampler currently only supports 1 start state.");
+                throw Exception("PathLengthDirectInfSampler: The direct path-length informed sampler currently only supports 1 start state.");
             }
 
             if (probDefn_->getGoal()->hasType(GOAL_STATE) == false)
             {
-                throw Exception("The direct path-length informed sampler currently only supports goals that can be cast to goal states.");
+                throw Exception("PathLengthDirectInfSampler: The direct path-length informed sampler currently only supports goals that can be cast to goal states.");
             }
+
+            /// \todo We don't check for the cost-to-go heuristic in the optimization objective, as this direct sampling is for Euclidean distance.
 
             // Check that the provided statespace is compatible and extract the necessary indices.
             // The statespace must either be R^n or SE(2) or SE(3)

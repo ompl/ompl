@@ -126,7 +126,7 @@ namespace ompl
                 baseSampler_->sampleUniform(statePtr);
 
                 // Check if it's found, i.e., if f(state) <= maxCost
-                foundSample = InformedSampler::opt_->isCostBetterThan(maxCost, InformedSampler::heuristicSolnCost(statePtr));
+                foundSample = InformedSampler::opt_->isCostBetterThan(InformedSampler::heuristicSolnCost(statePtr), maxCost);
             }
 
             // All done, one way or the other:
