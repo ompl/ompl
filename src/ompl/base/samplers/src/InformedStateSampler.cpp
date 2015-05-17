@@ -45,7 +45,7 @@ namespace ompl
     namespace base
     {
         // The base InformedSampler class:
-        InformedSampler::InformedSampler(const ProblemDefinitionPtr& probDefn, unsigned int maxNumberCalls)
+        InformedSampler::InformedSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls)
           : probDefn_(probDefn),
             space_(probDefn->getSpaceInformation()->getStateSpace()),
             numIters_(maxNumberCalls)
@@ -73,13 +73,13 @@ namespace ompl
             opt_ = probDefn_->getOptimizationObjective();
         }
 
-        double InformedSampler::getInformedMeasure(const Cost& minCost, const Cost& maxCost) const
+        double InformedSampler::getInformedMeasure(const Cost &minCost, const Cost &maxCost) const
         {
             // Subtract the measures defined by the max and min costs. These will be defined in the deriving class.
             return getInformedMeasure(maxCost) - getInformedMeasure(minCost);
         }
 
-        Cost InformedSampler::heuristicSolnCost(const State* statePtr) const
+        Cost InformedSampler::heuristicSolnCost(const State *statePtr) const
         {
             // Combine heuristic estimates of the cost-to-come and cost-to-go from the state.
             return opt_->combineCosts(opt_->motionCostHeuristic(probDefn_->getStartState(0u), statePtr), opt_->costToGo(statePtr, probDefn_->getGoal().get()));
@@ -91,7 +91,7 @@ namespace ompl
 
 
         // The base InformedStateSampler class:
-        InformedStateSampler::InformedStateSampler(const ProblemDefinitionPtr& probDefn, unsigned int maxNumberCalls, const GetCurrentCost& costFunc)
+        InformedStateSampler::InformedStateSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls, const GetCurrentCostFunc &costFunc)
           : StateSampler(probDefn->getSpaceInformation()->getStateSpace().get()),
             bestCostFunc_(costFunc),
             infSampler_()
@@ -103,7 +103,7 @@ namespace ompl
             infSampler_ = probDefn->getOptimizationObjective()->allocInformedStateSampler(probDefn, maxNumberCalls);
         }
 
-        void InformedStateSampler::sampleUniform(State* statePtr)
+        void InformedStateSampler::sampleUniform(State *statePtr)
         {
             // Variable
             // Whether informed sampling was successful
@@ -120,14 +120,14 @@ namespace ompl
             // No else.
         }
 
-        void InformedStateSampler::sampleUniformNear(State* statePtr, const State* near, const double distance)
+        void InformedStateSampler::sampleUniformNear(State *statePtr, const State *near, const double distance)
         {
             //Warn:
             OMPL_WARN("sampleUniformNear is not informed.");
             return baseSampler_->sampleUniformNear(statePtr, near, distance);
         }
 
-        void InformedStateSampler::sampleGaussian(State* statePtr, const State* mean, const double stdDev)
+        void InformedStateSampler::sampleGaussian(State *statePtr, const State *mean, const double stdDev)
         {
             //Warn:
             OMPL_WARN("sampleGaussian is not informed.");

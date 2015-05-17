@@ -56,7 +56,7 @@ namespace ompl
             // No else
         }
 
-        bool RejectionInfSampler::sampleUniform(State* statePtr, const Cost& maxCost)
+        bool RejectionInfSampler::sampleUniform(State *statePtr, const Cost &maxCost)
         {
             // Variable
             // The persistent iteration counter:
@@ -66,7 +66,7 @@ namespace ompl
             return sampleUniform(statePtr, maxCost, &iter);
         }
 
-        bool RejectionInfSampler::sampleUniform(State* statePtr, const Cost& minCost, const Cost& maxCost)
+        bool RejectionInfSampler::sampleUniform(State *statePtr, const Cost &minCost, const Cost &maxCost)
         {
             // Variable
             // Whether we were successful in creating an informed sample. Initially not:
@@ -101,19 +101,19 @@ namespace ompl
             return InformedSampler::space_->getMeasure();
         }
 
-        double RejectionInfSampler::getInformedMeasure(const Cost& /*currentCost*/) const
+        double RejectionInfSampler::getInformedMeasure(const Cost &/*currentCost*/) const
         {
             return InformedSampler::space_->getMeasure();
         }
 
-        double RejectionInfSampler::getInformedMeasure(const Cost& /*minCost*/, const Cost& /*maxCost*/) const
+        double RejectionInfSampler::getInformedMeasure(const Cost &/*minCost*/, const Cost &/*maxCost*/) const
         {
             return InformedSampler::space_->getMeasure();
         }
 
 
 
-        bool RejectionInfSampler::sampleUniform(State* statePtr, const Cost& maxCost, unsigned int* iterPtr)
+        bool RejectionInfSampler::sampleUniform(State *statePtr, const Cost &maxCost, unsigned int *iterPtr)
         {
             // Variable
             // Whether we were successful in creating an informed sample. Initially not:

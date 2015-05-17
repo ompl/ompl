@@ -56,9 +56,6 @@ namespace ompl
         OMPL_CLASS_FORWARD(InformedSampler);
         OMPL_CLASS_FORWARD(InformedStateSampler);
 
-        /** \brief The definition of a function pointer for querying the current solution cost. */
-        typedef boost::function<Cost ()> GetCurrentCost;
-
 
         /** \brief An abstract class for the concept of using information about the state space
         and the current solution cost to limit future search to a planning
@@ -68,29 +65,29 @@ namespace ompl
         public:
             /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution. Requires a function pointer to a method to query the cost of the current solution.
             If iteration is required, only maxNumberCalls are attempted, to assure that the function returns. */
-            InformedSampler(const ProblemDefinitionPtr& probDefn, unsigned int maxNumberCalls);
+            InformedSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls);
 
             virtual ~InformedSampler(void)
             {
             }
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost. Returns false if such a state was not found. */
-            virtual bool sampleUniform(State* statePtr, const Cost& maxCost) = 0;
+            virtual bool sampleUniform(State *statePtr, const Cost &maxCost) = 0;
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are between the provided costs. Returns false if such a state was not found.  */
-            virtual bool sampleUniform(State* statePtr, const Cost& minCost, const Cost& maxCost) = 0;
+            virtual bool sampleUniform(State *statePtr, const Cost &minCost, const Cost &maxCost) = 0;
 
             /** \brief Whether the sampler can provide a measure of the informed subset */
             virtual bool hasInformedMeasure() const = 0;
 
             /** \brief The measure of the subset of the state space defined by the current solution cost that is being searched. Does not consider problem boundaries but returns the measure of the entire space if no solution has been found or if a closed form expression for the measure does not exist. */
-            virtual double getInformedMeasure(const Cost& currentCost) const = 0;
+            virtual double getInformedMeasure(const Cost &currentCost) const = 0;
 
             /** \brief The measure of the subset of the state space defined by the current solution cost that is being searched. Does not consider problem boundaries but returns the measure of the entire space if no solution has been found or if a closed form expression for the measure does not exist.  By default calls the 1-argument overloaded version with the min and max costs and subtracts the differences; however, there may be more efficient ways to do this for some cost functions. */
-            virtual double getInformedMeasure(const Cost& minCost, const Cost& maxCost) const;
+            virtual double getInformedMeasure(const Cost &minCost, const Cost &maxCost) const;
 
             /** \brief A helper function to calculate the heuristic estimate of the solution cost for a given state using the optimization objective stored in the problem definition. */
-            virtual Cost heuristicSolnCost(const State* statePtr) const;
+            virtual Cost heuristicSolnCost(const State *statePtr) const;
 
         protected:
             /** \brief A copy of the problem definition */
@@ -110,25 +107,29 @@ namespace ompl
         class InformedStateSampler : public StateSampler
         {
         public:
+
+            /** \brief The definition of a function pointer for querying the current solution cost. */
+            typedef boost::function<Cost ()> GetCurrentCostFunc;
+
             /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution. Requires a function pointer to a method to query the cost of the current solution. */
-            InformedStateSampler(const ProblemDefinitionPtr& probDefn, unsigned int maxNumberCalls, const GetCurrentCost& costFunc);
+            InformedStateSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls, const GetCurrentCostFunc &costFunc);
 
             virtual ~InformedStateSampler(void)
             {
             }
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the current best cost (as defined by the pointer passed at construction). By default just calls sampleUniform(State*, Cost) with cost given by the member variable. */
-            virtual void sampleUniform(State* statePtr);
+            virtual void sampleUniform(State *statePtr);
 
             /** \brief By default sampleUniformNear throws. This can be overloaded by a specific informed sampler if desired. */
-            virtual void sampleUniformNear(State* statePtr, const State* near, const double distance);
+            virtual void sampleUniformNear(State *statePtr, const State *near, const double distance);
 
             /** \brief By default sampleGaussian throws. This can be overloaded by a specific informed sampler if desired. */
-            virtual void sampleGaussian(State* statePtr, const State* mean, const double stdDev);
+            virtual void sampleGaussian(State *statePtr, const State *mean, const double stdDev);
 
         private:
             /** \brief A function pointer to a method for querying the best cost found so far. This is the mechanism through which the sampler gets "informed" about the current solution. */
-            GetCurrentCost bestCostFunc_;
+            GetCurrentCostFunc bestCostFunc_;
             /** \brief A basic sampler */
             StateSamplerPtr baseSampler_;
             /** \brief The wrapped informed sampler */

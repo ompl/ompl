@@ -56,8 +56,8 @@ namespace ompl
         {
             // Variables
             // The foci of the ellipse as State* s
-            State* startFocusState;
-            State* goalFocusState;
+            State *startFocusState;
+            State *goalFocusState;
             // The foci of the ellipse as std::vectors
             std::vector<double> startFocusVector;
             std::vector<double> goalFocusVector;
@@ -180,11 +180,10 @@ namespace ompl
 
         PathLengthDirectInfSampler::~PathLengthDirectInfSampler()
         {
-            // dtor
         }
 
 
-        bool PathLengthDirectInfSampler::sampleUniform(State* statePtr, const Cost& maxCost)
+        bool PathLengthDirectInfSampler::sampleUniform(State *statePtr, const Cost &maxCost)
         {
             // Variable
             // The persistent iteration counter:
@@ -196,7 +195,7 @@ namespace ompl
 
 
 
-        bool PathLengthDirectInfSampler::sampleUniform(State* statePtr, const Cost& minCost, const Cost& maxCost)
+        bool PathLengthDirectInfSampler::sampleUniform(State *statePtr, const Cost &minCost, const Cost &maxCost)
         {
             // Sample from the larger PHS until the sample does not lie within the smaller PHS.
             // Since volume in a sphere/spheroid is proportionately concentrated near the surface, this isn't horribly inefficient, though a direct method would be better
@@ -233,7 +232,7 @@ namespace ompl
 
 
 
-        double PathLengthDirectInfSampler::getInformedMeasure(const Cost& currentCost) const
+        double PathLengthDirectInfSampler::getInformedMeasure(const Cost &currentCost) const
         {
             // Variable
             // The measure of the informed set
@@ -254,7 +253,7 @@ namespace ompl
 
 
 
-        bool PathLengthDirectInfSampler::sampleUniform(State* statePtr, const Cost& maxCost, unsigned int* iters)
+        bool PathLengthDirectInfSampler::sampleUniform(State *statePtr, const Cost &maxCost, unsigned int *iters)
         {
             // Variable
             // Whether we were successful in creating an informed sample. Initially not:
@@ -331,7 +330,7 @@ namespace ompl
 
 
 
-        void PathLengthDirectInfSampler::sampleUniformIgnoreBounds(State* statePtr, const Cost& maxCost)
+        void PathLengthDirectInfSampler::sampleUniformIgnoreBounds(State *statePtr, const Cost &maxCost)
         {
             // Variable
             // The informed subset of the sample as a vector
@@ -355,7 +354,7 @@ namespace ompl
                 // Yes, we need to also sample the uninformed subspace
                 // Variables
                 // A state for the uninformed subspace
-                State* uninformedState = uninformedSubSpace_->allocState();
+                State *uninformedState = uninformedSubSpace_->allocState();
 
                 // Copy the informed subspace into the state pointer
                 informedSubSpace_->copyFromReals(statePtr->as<CompoundState>()->components[informedIdx_], informedVector);
@@ -371,7 +370,7 @@ namespace ompl
             }
         }
 
-        void PathLengthDirectInfSampler::sampleUniformIgnoreBounds(State* statePtr, const Cost& minCost, const Cost& maxCost)
+        void PathLengthDirectInfSampler::sampleUniformIgnoreBounds(State *statePtr, const Cost &minCost, const Cost &maxCost)
         {
             // Sample from the larger PHS until the sample does not lie within the smaller PHS.
             // Since volume in a sphere/spheroid is proportionately concentrated near the surface, this isn't horribly inefficient, though a direct method would be better
@@ -392,7 +391,7 @@ namespace ompl
         }
 
 
-        Cost PathLengthDirectInfSampler::heuristicSolnCost(const State* statePtr) const
+        Cost PathLengthDirectInfSampler::heuristicSolnCost(const State *statePtr) const
         {
             // Variable
             // The raw data in the state

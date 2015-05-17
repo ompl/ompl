@@ -70,32 +70,30 @@ namespace ompl
             virtual ~PathLengthDirectInfSampler();
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost. */
-            bool sampleUniform(State* statePtr, const Cost& maxCost);
+            bool sampleUniform(State *statePtr, const Cost &maxCost);
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are between the provided costs. */
-            bool sampleUniform(State* statePtr, const Cost& minCost, const Cost& maxCost);
+            bool sampleUniform(State *statePtr, const Cost &minCost, const Cost &maxCost);
 
             /** \brief Whether the sampler can provide a measure of the informed subset */
             bool hasInformedMeasure() const;
 
             /** \brief The measure of the subset of the state space defined by the current solution cost that is being searched. Does not consider problem boundaries but returns the measure of the entire space if no solution has been found. */
-            virtual double getInformedMeasure(const Cost& currentCost) const;
+            virtual double getInformedMeasure(const Cost &currentCost) const;
 
             /** \brief A helper function to calculate the heuristic estimate of the solution cost for the informed subset of a given state. */
-            virtual Cost heuristicSolnCost(const State* statePtr) const;
-
-        protected:
+            virtual Cost heuristicSolnCost(const State *statePtr) const;
 
         private:
             // Helper functions:
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost using a persistent iteration counter */
-            bool sampleUniform(State* statePtr, const Cost& maxCost, unsigned int* iterPtr);
+            bool sampleUniform(State *statePtr, const Cost &maxCost, unsigned int *iterPtr);
 
             /** \brief Sample uniformly in the subset of the \e infinite state space whose heuristic solution estimates are less than the provided cost, i.e., ignores the bounds of the state space. */
-            void sampleUniformIgnoreBounds(State* statePtr, const Cost& maxCost);
+            void sampleUniformIgnoreBounds(State *statePtr, const Cost &maxCost);
 
             /** \brief Sample uniformly in the subset of the \e infinite state space whose heuristic solution estimates are between the provided costs, i.e., ignores the bounds of the state space. */
-            void sampleUniformIgnoreBounds(State* statePtr, const Cost& minCost, const Cost& maxCost);
+            void sampleUniformIgnoreBounds(State *statePtr, const Cost &minCost, const Cost &maxCost);
 
             // Variables
             /** \brief The prolate hyperspheroid description of the sub problem */

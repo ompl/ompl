@@ -59,10 +59,10 @@ namespace ompl
             }
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost. */
-            bool sampleUniform(State* statePtr, const Cost& maxCost);
+            bool sampleUniform(State *statePtr, const Cost &maxCost);
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are between the provided costs. */
-            bool sampleUniform(State* statePtr, const Cost& minCost, const Cost& maxCost);
+            bool sampleUniform(State *statePtr, const Cost &minCost, const Cost &maxCost);
 
             /** \brief Whether the sampler can provide a measure of the informed subset */
             bool hasInformedMeasure() const;
@@ -71,10 +71,10 @@ namespace ompl
             virtual double getInformedMeasure() const;
 
             /** \brief The measure of the subset of the state space defined by the current solution cost that is being searched. As rejection sampling has no closed-form knowledge of the informed subset, the measure of the informed space is always the measure of the entire space. */
-            virtual double getInformedMeasure(const Cost& /*currentCost*/) const;
+            virtual double getInformedMeasure(const Cost &/*currentCost*/) const;
 
             /** \brief The measure of the subset of the state space defined by the current solution cost that is being searched. As rejection sampling has no closed-form knowledge of the informed subset, the measure of the informed space is always the measure of the entire space. */
-            virtual double getInformedMeasure(const Cost& /*minCost*/, const Cost& /*maxCost*/) const;
+            virtual double getInformedMeasure(const Cost &/*minCost*/, const Cost &/*maxCost*/) const;
 
         private:
             // Variables
@@ -82,7 +82,7 @@ namespace ompl
             StateSamplerPtr baseSampler_;
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost using a persistent iteration counter */
-            bool sampleUniform(State* statePtr, const Cost& maxCost, unsigned int* iterPtr);
+            bool sampleUniform(State *statePtr, const Cost &maxCost, unsigned int *iterPtr);
         };
     }
 }
