@@ -37,11 +37,14 @@
 #ifndef OMPL_UTIL_RANDOM_NUMBERS_
 #define OMPL_UTIL_RANDOM_NUMBERS_
 
+#include <boost/shared_ptr.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <cassert>
+
+#include "ompl/util/ProlateHyperspheroid.h"
 
 namespace ompl
 {
@@ -111,10 +114,10 @@ namespace ompl
             with a bias towards \e r_max. The function is implemented on top of halfNormalReal() */
         int    halfNormalInt(int r_min, int r_max, double focus = 3.0);
 
-        /** \brief Uniform random unit quaternion sampling. The computed value has the order (x,y,z,w) */
+        /** \brief Uniform random unit quaternion sampling. The computed value has the order (x,y,z,w). The return variable \e value is expected to already exist. */
         void   quaternion(double value[4]);
 
-        /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range (-pi, pi]. The computed value has the order (roll, pitch, yaw) */
+        /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range (-pi, pi]. The computed value has the order (roll, pitch, yaw).  The return variable \e value is expected to already exist. */
         void   eulerRPY(double value[3]);
 
         /** \brief Set the seed used to generate the seeds of each RNG instance. Use this
@@ -139,7 +142,33 @@ namespace ompl
             return localSeed_;
         }
 
+        /** \brief Uniform random sampling of a unit-length vector. I.e., the surface of an n-ball. The return variable \e value is expected to already exist. */
+        void uniformNormalVector(unsigned int n, double value[]);
+
+        /** \brief Uniform random sampling of the content of an n-ball, with a radius appropriately distributed between [0,r) so that the distribution is uniform in a Cartesian coordinate system. The return variable \e value is expected to already exist. */
+        void uniformInBall(double r, unsigned int n, double value[]);
+
+        /** \brief Uniform random sampling of the surface of a prolate hyperspheroid, a special symmetric type of
+        n-dimensional ellipse. The return variable \e value is expected to already exist.
+        @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
+        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic."
+        IROS 2014. DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
+        <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
+        <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
+        void uniformProlateHyperspheroidSurface(const ProlateHyperspheroidPtr &phsPtr, unsigned int n, double value[]);
+
+        /** \brief Uniform random sampling of a prolate hyperspheroid, a special symmetric type of
+        n-dimensional ellipse. The return variable \e value is expected to already exist.
+        @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
+        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic."
+        IROS 2014. DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
+        <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
+        <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
+        void uniformProlateHyperspheroid(const ProlateHyperspheroidPtr &phsPtr, unsigned int n, double value[]);
+
     private:
+        /** \brief A forward declaration to a data structure class holding data for spherical distributions of various dimension. */
+        class SphericalData;
 
         /** \brief The seed used for the instance of a RNG */
         boost::uint32_t                                                          localSeed_;
@@ -149,9 +178,10 @@ namespace ompl
         // Variate generators must be reset when the seed changes
         boost::variate_generator<boost::mt19937&, boost::uniform_real<> >        uni_;
         boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > normal_;
+        //A structure holding boost::uniform_on_sphere distributions and the associated boost::variate_generators for various dimension
+        boost::shared_ptr<SphericalData>                                        sphericalDataPtr_;
 
     };
-
 }
 
 #endif

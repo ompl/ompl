@@ -7,14 +7,19 @@ This document provides a brief overview of OMPL coding standards. It is meant to
 
 - Each source block should be indented by 4 space characters. No tab characters should appear in source code.
 - Each enclosing brace should reside on its own line, but braces can be omitted if the enclosed block consists of exactly one line.
+- Each binary operator ('+', '-', '&', '=', '==', etc.) should be surrounded by spaces.
+- The '*' and '&' in pointers and references in function/method arguments or variable declarations should be preceded by a space. They should not be followed by a space.
 
 The following is an example of desirable code spacing.
 
 ~~~{.cpp}
-for (unsigned int i = 0 ; i < 50 ; ++i)
+int foo(int &n)
 {
-    if (i % 2 == 0)
-        std::cout << i << " ";
+    for (unsigned int i = 0; i < n; ++i)
+    {
+        if (i % 2 == 0)
+            std::cout << i << " ";
+    }
 }
 ~~~
 

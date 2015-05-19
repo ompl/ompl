@@ -133,6 +133,9 @@ if (FLANN_FOUND)
     include_directories(SYSTEM "${FLANN_INCLUDE_DIRS}")
 endif()
 
+find_package( Eigen REQUIRED )
+include_directories(SYSTEM "${Eigen_INCLUDE_DIRS}")
+
 option(OMPL_LOCAL_PYPLUSPLUS_INSTALL "Whether Py++ and dependencies should be installed in the build directory" OFF)
 set(SUDO "sudo")
 set(CMAKE_GCCXML_ARGS "")
