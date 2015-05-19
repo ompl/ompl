@@ -52,4 +52,7 @@
 ../src/ompl/base/samplers/MaximizeClearanceValidStateSampler.h
 ../src/ompl/base/samplers/ObstacleBasedValidStateSampler.h
 ../src/ompl/base/samplers/UniformValidStateSampler.h
+../src/ompl/base/samplers/InformedStateSampler.h
+../src/ompl/base/samplers/informed/PathLengthDirectInfSampler.h
+../src/ompl/base/samplers/informed/RejectionInfSampler.h
 ompl_py_base.h

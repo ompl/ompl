@@ -764,6 +764,11 @@ class ompl_util_generator_t(code_generator_t):
         self.std_ns.class_('map<std::string, std::string >').include()
         self.std_ns.class_('map<std::string, std::string >').rename('mapStringToString')
         self.std_ns.class_('vector< ompl::PPM::Color >').rename('vectorPPMColor')
+        # Exclude the ProlateHyperspheroid Class which needs Eigen, and the associated member functions in the RNG
+        self.ompl_ns.class_('ProlateHyperspheroid').exclude()
+        self.ompl_ns.class_('RNG').member_functions('uniformProlateHyperspheroidSurface').exclude()
+        self.ompl_ns.class_('RNG').member_functions('uniformProlateHyperspheroid').exclude()
+
 
 class ompl_morse_generator_t(code_generator_t):
     def __init__(self):

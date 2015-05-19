@@ -112,7 +112,7 @@ class code_generator_t(object):
         @dep name of another module this module depends on"""
         module_builder.set_logger_level( logging.INFO )
         candidate_include_paths = [ "@OMPL_INCLUDE_DIR@", "@OMPLAPP_INCLUDE_DIR@",
-            "@PYTHON_INCLUDE_DIRS@", "@Boost_INCLUDE_DIR@", "@ASSIMP_INCLUDE_DIRS@", "@ODEINT_INCLUDE_DIR@"]
+            "@PYTHON_INCLUDE_DIRS@", "@Boost_INCLUDE_DIR@", "@ASSIMP_INCLUDE_DIRS@", "@ODEINT_INCLUDE_DIR@", "@Eigen_INCLUDE_DIRS@"]
 
         # Adding standard windows headers
         if platform == 'win32':
