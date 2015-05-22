@@ -39,9 +39,6 @@
 
 //vector
 #include <vector>
-//std::set and std::multiset
-//#include <set>
-
 
 //Boost
 //shared and weak pointers
@@ -92,7 +89,7 @@ namespace ompl
             ~Vertex();
 
             /** \brief The (unique) vertex ID */
-            BITstar::vid_t getId() const;
+            BITstar::VertexId getId() const;
 
             /** \brief The optimization objective used by the vertex. */
             ompl::base::OptimizationObjectivePtr getOpt() const;
@@ -175,11 +172,10 @@ namespace ompl
 
         private:
             /** \brief The type of container used to store the failed children */
-            //typedef std::set<BITstar::vid_t>                          failedVIdsInTree_;
-            typedef boost::unordered_set<BITstar::vid_t>              failed_id_t;
+            typedef boost::unordered_set<BITstar::VertexId>             FailedIdUSet;
 
             /** \brief The vertex ID */
-            BITstar::vid_t                                           vId_;
+            BITstar::VertexId                                           vId_;
 
             /** \brief The state space used by the planner */
             ompl::base::SpaceInformationPtr                          si_;
@@ -215,7 +211,7 @@ namespace ompl
             std::vector<VertexWeakPtr>                           childWPtrs_;
 
             /** \brief The unordered set of failed child vertices*/
-            failed_id_t                                              failedVIds_;
+            FailedIdUSet                                              failedVIds_;
 
 
             /** \brief A helper function to check that the vertex is not pruned and throw if so */

@@ -37,11 +37,15 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IDGENERATOR_
 #define OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IDGENERATOR_
 
-//For locking the ID generator:
-#include <boost/thread/mutex.hpp>
-
 //I am member class of the BITstar class, so I need to include it's definition to be aware of the class BITstar. It has a forward declaration to me.
 #include "ompl/geometric/planners/bitstar/BITstar.h"
+
+//For locking the ID generator:
+#include <boost/thread/mutex.hpp>
+//For boost::scoped_ptr
+#include <boost/scoped_ptr.hpp>
+//For the boost::once_flag and other tools for making sure an init function is only called once.
+#include <boost/thread/once.hpp>
 
 
 namespace ompl
@@ -50,30 +54,59 @@ namespace ompl
     {
         /** @anchor IdGenerator
         @par Short description
-        A class to generate unique IDs for the \ref gVertex "Vertex" and
-        \ref gMultigraphVertex "MultigraphVertex" classes.
+        A class to generate unique IDs for the \ref gVertex "Vertex" class.
         */
 
         /** \brief An ID generator class for vertex IDs.*/
         class BITstar::IdGenerator
         {
         public:
-            /** \brief Generator a new id and increment the global/static counter of IDs. */
-            static BITstar::vid_t getNewId()
+            IdGenerator()
+                :  nextId_(0u)
             {
-                //STATIC variables:
-                //The next ID to be returned:
-                static BITstar::vid_t nextId = 0u;
-                //The mutex
-                static boost::mutex idMutex;
+            }
 
+            /** \brief Generator a new id and increment the global/static counter of IDs. */
+            BITstar::VertexId getNewId()
+            {
                 //Create a scoped mutex copy of idMutex that unlocks when it goes out of scope:
-                boost::lock_guard<boost::mutex> lockGuard(idMutex);
+                boost::lock_guard<boost::mutex> lockGuard(idMutex_);
 
                 //Return the next id, purposefully post-decrementing:
-                return nextId++;
+                return nextId_++;
             }
+
+        private:
+            //Variables:
+            //The next ID to be returned:
+            BITstar::VertexId nextId_;
+            //The mutex
+            boost::mutex idMutex_;
         };
     } //geometric
 } //ompl
+
+
+//An anonymous namespace to hide the instance:
+namespace
+{
+    //Global variables:
+    //The initialization flag stating that the ID generator has been created:
+    static boost::once_flag g_IdInited = BOOST_ONCE_INIT;
+    //A pointer to the actual ID generator
+    static boost::scoped_ptr<ompl::geometric::BITstar::IdGenerator> g_IdGenerator;
+
+    //A function to initialize the ID generator pointer:
+    void initIdGenerator()
+    {
+        g_IdGenerator.reset(new ompl::geometric::BITstar::IdGenerator());
+    }
+
+    //A function to get the current ID generator:
+    ompl::geometric::BITstar::IdGenerator& getIdGenerator()
+    {
+        boost::call_once(&initIdGenerator, g_IdInited);
+        return *g_IdGenerator;
+    }
+}
 #endif //OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IDGENERATOR_

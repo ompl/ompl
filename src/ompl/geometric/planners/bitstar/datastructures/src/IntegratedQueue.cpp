@@ -45,7 +45,7 @@ namespace ompl
 {
     namespace geometric
     {
-        BITstar::IntegratedQueue::IntegratedQueue(const VertexPtr& startVertex, const VertexPtr& goalVertex, const neighbourhood_func_t& nearSamplesFunc, const neighbourhood_func_t& nearVerticesFunc, const vertex_heuristic_func_t& lowerBoundHeuristicVertex, const vertex_heuristic_func_t& currentHeuristicVertex, const edge_heuristic_func_t& lowerBoundHeuristicEdge, const edge_heuristic_func_t& currentHeuristicEdge, const edge_heuristic_func_t& currentHeuristicEdgeTarget)
+        BITstar::IntegratedQueue::IntegratedQueue(const VertexPtr& startVertex, const VertexPtr& goalVertex, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget)
             :   opt_(startVertex->getOpt()),
                 startVertex_(startVertex),
                 goalVertex_(goalVertex),
@@ -90,7 +90,7 @@ namespace ompl
 
 
 
-        void BITstar::IntegratedQueue::insertEdge(const vertex_pair_t& newEdge)
+        void BITstar::IntegratedQueue::insertEdge(const VertexPtrPair& newEdge)
         {
             //Call my helper function:
             this->edgeInsertHelper(newEdge, edgeQueue_.end());
@@ -107,7 +107,7 @@ namespace ompl
             }
 
             //Remove it from vertx queue and lookup, and edge queues (as requested):
-            this->vertexRemoveHelper(oldVertex, vertex_nn_ptr_t(), vertex_nn_ptr_t(), true);
+            this->vertexRemoveHelper(oldVertex, VertexPtrNNPtr(), VertexPtrNNPtr(), true);
         }
 
 
@@ -128,7 +128,7 @@ namespace ompl
 
 
 
-        BITstar::IntegratedQueue::vertex_pair_t BITstar::IntegratedQueue::frontEdge()
+        BITstar::IntegratedQueue::VertexPtrPair BITstar::IntegratedQueue::frontEdge()
         {
             if (this->isEmpty() == true)
             {
@@ -160,7 +160,7 @@ namespace ompl
 
 
 
-        BITstar::IntegratedQueue::cost_pair_t BITstar::IntegratedQueue::frontEdgeValue()
+        BITstar::IntegratedQueue::CostPair BITstar::IntegratedQueue::frontEdgeValue()
         {
             if (this->isEmpty() == true)
             {
@@ -176,7 +176,7 @@ namespace ompl
 
 
 
-        void BITstar::IntegratedQueue::popFrontEdge(vertex_pair_t* bestEdge)
+        void BITstar::IntegratedQueue::popFrontEdge(VertexPtrPair* bestEdge)
         {
             if (this->isEmpty() == true)
             {
@@ -195,9 +195,9 @@ namespace ompl
 
 
 
-        BITstar::IntegratedQueue::vertex_pair_t BITstar::IntegratedQueue::popFrontEdge()
+        BITstar::IntegratedQueue::VertexPtrPair BITstar::IntegratedQueue::popFrontEdge()
         {
-            vertex_pair_t rval;
+            VertexPtrPair rval;
 
             this->popFrontEdge(&rval);
 
@@ -228,7 +228,7 @@ namespace ompl
                 {
                     //Variable:
                     //The iterator to the vector of edges to the child:
-                    vid_edge_queue_iter_umap_t::iterator toDeleteIter;
+                    VertexIdToEdgeQueueIterListUMap::iterator toDeleteIter;
 
                     //Get the vector of iterators
                     toDeleteIter = incomingEdges_.find(cVertex->getId());
@@ -237,14 +237,14 @@ namespace ompl
                     if (toDeleteIter != incomingEdges_.end())
                     {
                         //Iterate over the vector removing them from queue
-                        for (edge_queue_iter_list_t::iterator listIter = toDeleteIter->second.begin(); listIter != toDeleteIter->second.end(); ++listIter)
+                        for (EdgeQueueIterList::iterator listIter = toDeleteIter->second.begin(); listIter != toDeleteIter->second.end(); ++listIter)
                         {
                             //Erase the edge, removing it from the *other* lookup. No need to remove from this lookup, as that's being cleared:
                             this->edgeRemoveHelper(*listIter, false, true);
                         }
 
                         //Clear the list:
-                        toDeleteIter->second = edge_queue_iter_list_t();
+                        toDeleteIter->second = EdgeQueueIterList();
                     }
                     //No else, why was this called?
                 }
@@ -266,7 +266,7 @@ namespace ompl
                 {
                     //Variable:
                     //The iterator to the vector of edges from the parent:
-                    vid_edge_queue_iter_umap_t::iterator toDeleteIter;
+                    VertexIdToEdgeQueueIterListUMap::iterator toDeleteIter;
 
                     //Get the vector of iterators
                     toDeleteIter = outgoingEdges_.find(pVertex->getId());
@@ -275,14 +275,14 @@ namespace ompl
                     if (toDeleteIter != outgoingEdges_.end())
                     {
                         //Iterate over the vector removing them from queue
-                        for (edge_queue_iter_list_t::iterator listIter = toDeleteIter->second.begin(); listIter != toDeleteIter->second.end(); ++listIter)
+                        for (EdgeQueueIterList::iterator listIter = toDeleteIter->second.begin(); listIter != toDeleteIter->second.end(); ++listIter)
                         {
                             //Erase the edge, removing it from the *other* lookup. No need to remove from this lookup, as that's being cleared:
                             this->edgeRemoveHelper(*listIter, true, false);
                         }
 
                         //Clear the list:
-                        toDeleteIter->second = edge_queue_iter_list_t();
+                        toDeleteIter->second = EdgeQueueIterList();
                     }
                     //No else, why was this called?
                 }
@@ -304,7 +304,7 @@ namespace ompl
                 {
                     //Variable:
                     //The iterator to the key,value of the child-lookup map, i.e., an iterator to a pair whose second is a list of edges to the child (which are actually iterators to the queue):
-                    vid_edge_queue_iter_umap_t::iterator itersToVertex;
+                    VertexIdToEdgeQueueIterListUMap::iterator itersToVertex;
 
                     //Get my incoming edges as a vector of iterators
                     itersToVertex = incomingEdges_.find(cVertex->getId());
@@ -314,10 +314,10 @@ namespace ompl
                     {
                         //Variable
                         //The vector of edges to delete in the list:
-                        std::vector<edge_queue_iter_list_t::iterator> listItersToDelete;
+                        std::vector<EdgeQueueIterList::iterator> listItersToDelete;
 
                         //Iterate over the incoming edges and record those that are to be deleted
-                        for (edge_queue_iter_list_t::iterator listIter = itersToVertex->second.begin(); listIter != itersToVertex->second.end(); ++listIter)
+                        for (EdgeQueueIterList::iterator listIter = itersToVertex->second.begin(); listIter != itersToVertex->second.end(); ++listIter)
                         {
                             //Check if it is to be pruned
                             if ( this->edgePruneCondition((*listIter)->second) == true )
@@ -357,7 +357,7 @@ namespace ompl
                 {
                     //Variable:
                     //The iterator to the key, value of the parent-lookup map, i.e., an iterator to a pair whose second is a list of edges from the child (which are actually iterators to the queue):
-                    vid_edge_queue_iter_umap_t::iterator itersFromVertex;
+                    VertexIdToEdgeQueueIterListUMap::iterator itersFromVertex;
 
                     //Get my outgoing edges as a vector of iterators
                     itersFromVertex = outgoingEdges_.find(pVertex->getId());
@@ -367,10 +367,10 @@ namespace ompl
                     {
                         //Variable
                         //The vector of edges to delete in the list:
-                        std::vector<edge_queue_iter_list_t::iterator> listItersToDelete;
+                        std::vector<EdgeQueueIterList::iterator> listItersToDelete;
 
                         //Iterate over the incoming edges and record those that are to be deleted
-                        for (edge_queue_iter_list_t::iterator listIter = itersFromVertex->second.begin(); listIter != itersFromVertex->second.end(); ++listIter)
+                        for (EdgeQueueIterList::iterator listIter = itersFromVertex->second.begin(); listIter != itersFromVertex->second.end(); ++listIter)
                         {
                             //Check if it is to be pruned
                             if ( this->edgePruneCondition((*listIter)->second) == true )
@@ -408,15 +408,17 @@ namespace ompl
             resortVertices_.push_back(vertex);
 
             //This is the idea for a future assert:
-//            if (vertexIterLookup_.find(vertex->getId()) == vertexIterLookup_.end())
-//            {
-//                throw ompl::Exception("A vertex was marked that was not in the queue...");
-//            }
+            /*
+            if (vertexIterLookup_.find(vertex->getId()) == vertexIterLookup_.end())
+            {
+                throw ompl::Exception("A vertex was marked that was not in the queue...");
+            }
+            */
         }
 
 
 
-        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::prune(const vertex_nn_ptr_t& vertexNN, const vertex_nn_ptr_t& freeStateNN)
+        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::prune(const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN)
         {
             if (this->isSorted() == false)
             {
@@ -430,9 +432,9 @@ namespace ompl
             //The number of vertices and samples pruned:
             std::pair<unsigned int, unsigned int> numPruned;
             //The iterator into the lookup helper:
-            vid_vertex_queue_iter_umap_t::iterator lookupIter;
+            VertexIdToVertexQueueIterUMap::iterator lookupIter;
             //The iterator into the queue:
-            vertex_queue_iter_t queueIter;
+            VertexQueueIter queueIter;
 
             //Initialize the counters:
             numPruned = std::make_pair(0u, 0u);
@@ -462,7 +464,7 @@ namespace ompl
                     //The vertex should be pruned.
                     //Variables
                     //An iter to the vertex to prune:
-                    vertex_queue_iter_t pruneIter;
+                    VertexQueueIter pruneIter;
 
                     //Copy the iterator to prune:
                     pruneIter = queueIter;
@@ -485,11 +487,11 @@ namespace ompl
 
 
 
-        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::resort(const vertex_nn_ptr_t& vertexNN, const vertex_nn_ptr_t& freeStateNN)
+        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::resort(const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN)
         {
             //Variable:
-            typedef boost::unordered_map<BITstar::vid_t, VertexPtr> id_ptr_umap_t;
-            typedef std::map<unsigned int, id_ptr_umap_t> depth_id_ptr_map_t;
+            typedef boost::unordered_map<BITstar::VertexId, VertexPtr> VertexIdToVertexPtrUMap;
+            typedef std::map<unsigned int, VertexIdToVertexPtrUMap> DepthToUMapMap;
             //The number of vertices and samples pruned, respectively:
             std::pair<unsigned int, unsigned int> numPruned;
 
@@ -501,7 +503,7 @@ namespace ompl
             {
                 //Variable:
                 //The container ordered on vertex depth:
-                depth_id_ptr_map_t uniqueResorts;
+                DepthToUMapMap uniqueResorts;
 
                 //Iterate over the vector and place into the unique queue indexed on *depth*. This guarantees that we won't process a branch multiple times by being given different vertices down its chain
                 for (std::list<VertexPtr>::iterator vIter = resortVertices_.begin(); vIter != resortVertices_.end(); ++vIter)
@@ -515,9 +517,9 @@ namespace ompl
                 resortVertices_.clear();
 
                 //Now process the vertices in order of depth.
-                for (depth_id_ptr_map_t::iterator deepIter = uniqueResorts.begin(); deepIter != uniqueResorts.end(); ++deepIter)
+                for (DepthToUMapMap::iterator deepIter = uniqueResorts.begin(); deepIter != uniqueResorts.end(); ++deepIter)
                 {
-                    for (id_ptr_umap_t::iterator vIter = deepIter->second.begin(); vIter != deepIter->second.end(); ++vIter)
+                    for (VertexIdToVertexPtrUMap::iterator vIter = deepIter->second.begin(); vIter != deepIter->second.end(); ++vIter)
                     {
                         //Make sure it has not already been pruned:
                         if (vIter->second->isPruned() == false)
@@ -549,7 +551,7 @@ namespace ompl
 
                                         //Get a reference to the container for the children, all children are 1 level deeper than their parent.:
                                         //The [] return an reference to the existing entry, or create a new entry:
-                                        id_ptr_umap_t& depthContainer = uniqueResorts[vIter->second->getDepth() + 1u];
+                                        VertexIdToVertexPtrUMap& depthContainer = uniqueResorts[vIter->second->getDepth() + 1u];
 
                                         //Place the children into the container, as the container is a map, it will not allow the children to be entered twice.
                                         for (unsigned int i = 0u; i < resortChildren.size(); ++i)
@@ -650,7 +652,7 @@ namespace ompl
 
 
 
-        bool BITstar::IntegratedQueue::edgePruneCondition(const vertex_pair_t& edge) const
+        bool BITstar::IntegratedQueue::edgePruneCondition(const VertexPtrPair& edge) const
         {
             bool rval;
             //Threshold should always be g_t(x_g)
@@ -690,7 +692,7 @@ namespace ompl
             numToExpand = 0u;
 
             //Iterate until the end:
-            for (cost_vertex_multimap_t::const_iterator vIter = vertexToExpand_; vIter != vertexQueue_.end(); ++vIter)
+            for (CostToVertexMMap::const_iterator vIter = vertexToExpand_; vIter != vertexQueue_.end(); ++vIter)
             {
                 //Increment counter:
                 ++numToExpand;
@@ -718,7 +720,7 @@ namespace ompl
                 {
                     //Variable:
                     //The iterator to the vector of edges to the child:
-                    vid_edge_queue_iter_umap_t::const_iterator toIter;
+                    VertexIdToEdgeQueueIterListUMap::const_iterator toIter;
 
                     //Get the vector of iterators
                     toIter = incomingEdges_.find(cVertex->getId());
@@ -759,7 +761,7 @@ namespace ompl
                 {
                     //Variable:
                     //The iterator to the vector of edges from the parent:
-                    vid_edge_queue_iter_umap_t::const_iterator toIter;
+                    VertexIdToEdgeQueueIterListUMap::const_iterator toIter;
 
                     //Get the vector of iterators
                     toIter = outgoingEdges_.find(pVertex->getId());
@@ -817,7 +819,7 @@ namespace ompl
         {
             //Variable
             //The vertex iterator
-            vid_vertex_queue_iter_umap_t::const_iterator lkupIter;
+            VertexIdToVertexQueueIterUMap::const_iterator lkupIter;
 
             //Get the lookup iterator for the provided vertex
             lkupIter = vertexIterLookup_.find(vertex->getId());
@@ -849,7 +851,7 @@ namespace ompl
             vertexQueue->clear();
 
             //Iterate until the end, pushing back:
-            for (cost_vertex_multimap_t::const_iterator vIter = vertexToExpand_; vIter != vertexQueue_.end(); ++vIter)
+            for (CostToVertexMMap::const_iterator vIter = vertexToExpand_; vIter != vertexQueue_.end(); ++vIter)
             {
                 //Push back:
                 vertexQueue->push_back(vIter->second);
@@ -864,7 +866,7 @@ namespace ompl
             edgeQueue->clear();
 
             //I don't think there's a std::copy way to do this, so just iterate
-            for( cost_pair_vertex_pair_multimap_t::const_iterator eIter = edgeQueue_.begin(); eIter != edgeQueue_.end(); ++eIter )
+            for( CostToVertexPtrPairMMap::const_iterator eIter = edgeQueue_.begin(); eIter != edgeQueue_.end(); ++eIter )
             {
                 edgeQueue->push_back(eIter->second);
             }
@@ -913,22 +915,6 @@ namespace ompl
                     //There are no vertices left to expand
                     expand = false;
                 }
-
-
-//                //Prune back any edges in the front that have previously failed:
-//                if (useFailureTracking_ == true)
-//                {
-//                    if (edgeQueue_.begin()->second.first->hasAlreadyFailed(edgeQueue_.begin()->second.second) == true)
-//                    {
-//                        //Remove the edge from the queue:
-//                        this->edgeRemoveHelper(edgeQueue_.begin(), true, true);
-//
-//                        //Mark that we may need to expand a new vertex:
-//                        expand = true;
-//                    }
-//                    //No else
-//                }
-//                //No else
             }
         }
 
@@ -1060,7 +1046,7 @@ namespace ompl
             {
                 //Variable:
                 //The edge:
-                vertex_pair_t newEdge;
+                VertexPtrPair newEdge;
 
                 //Make the edge
                 newEdge = std::make_pair(parent, child);
@@ -1085,9 +1071,9 @@ namespace ompl
             //Whether the vertex is expanded.
             bool alreadyExpanded;
             //My entry in the vertex lookup:
-            vid_vertex_queue_iter_umap_t::iterator myLookup;
+            VertexIdToVertexQueueIterUMap::iterator myLookup;
             //The list of edges from the vertex:
-            vid_edge_queue_iter_umap_t::iterator edgeItersFromVertex;
+            VertexIdToEdgeQueueIterListUMap::iterator edgeItersFromVertex;
 
             //Get my iterator:
             myLookup = vertexIterLookup_.find(unorderedVertex->getId());
@@ -1116,7 +1102,7 @@ namespace ompl
             }
 
             //Remove myself, not touching my lookup entries
-            this->vertexRemoveHelper(unorderedVertex, vertex_nn_ptr_t(), vertex_nn_ptr_t(), false);
+            this->vertexRemoveHelper(unorderedVertex, VertexPtrNNPtr(), VertexPtrNNPtr(), false);
 
             //Reinsert myself, expanding if I cross the token if I am not already expanded
             this->vertexInsertHelper(unorderedVertex, alreadyExpanded == false);
@@ -1130,16 +1116,16 @@ namespace ompl
             {
                 //Variables
                 //The iterators to the edge queue from this vertex
-                edge_queue_iter_list_t edgeItersToResort;
+                EdgeQueueIterList edgeItersToResort;
 
                 //Copy the iters to resort
                 edgeItersToResort = edgeItersFromVertex->second;
 
                 //Clear the outgoing lookup
-                edgeItersFromVertex->second =  edge_queue_iter_list_t();
+                edgeItersFromVertex->second =  EdgeQueueIterList();
 
                 //Iterate over the list of iters to resort, inserting each one as a new edge, and then removing it as an iterator from the edge queue and the incoming lookup
-                for (edge_queue_iter_list_t::iterator resortIter = edgeItersToResort.begin(); resortIter != edgeItersToResort.end(); ++resortIter)
+                for (EdgeQueueIterList::iterator resortIter = edgeItersToResort.begin(); resortIter != edgeItersToResort.end(); ++resortIter)
                 {
                     //Check if the edge should be reinserted
                     if ( this->edgePruneCondition((*resortIter)->second) == false )
@@ -1158,7 +1144,7 @@ namespace ompl
 
 
 
-        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::pruneBranch(const VertexPtr& branchBase, const vertex_nn_ptr_t& vertexNN, const vertex_nn_ptr_t& freeStateNN)
+        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::pruneBranch(const VertexPtr& branchBase, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN)
         {
             //We must iterate over the children of this vertex and prune each one.
             //Then we must decide if this vertex (a) gets deleted or (b) placed back on the sample set.
@@ -1244,7 +1230,7 @@ namespace ompl
         {
             //Variable:
             //The iterator to the new edge in the queue:
-            vertex_queue_iter_t vertexIter;
+            VertexQueueIter vertexIter;
 
             //Insert into the order map, getting the interator
             vertexIter = vertexQueue_.insert( std::make_pair(this->vertexQueueValue(newVertex), newVertex) );
@@ -1283,7 +1269,7 @@ namespace ompl
 
                 //Variable:
                 //The vertex before the token. Remember that since we have already added the new vertex, this could be ourselves:
-                vertex_queue_iter_t preToken;
+                VertexQueueIter preToken;
 
                 //Get the vertex before the current token:
                 preToken = vertexToExpand_;
@@ -1322,7 +1308,7 @@ namespace ompl
 
 
 
-        unsigned int BITstar::IntegratedQueue::vertexRemoveHelper(VertexPtr oldVertex, const vertex_nn_ptr_t& vertexNN, const vertex_nn_ptr_t& freeStateNN, bool removeLookups)
+        unsigned int BITstar::IntegratedQueue::vertexRemoveHelper(VertexPtr oldVertex, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, bool removeLookups)
         {
             //Variable
             //The number of samples deleted (i.e., if this vertex is NOT moved to a sample, this is a 1)
@@ -1342,7 +1328,7 @@ namespace ompl
             {
                 //Variable
                 //The iterator into the lookup:
-                vid_vertex_queue_iter_umap_t::iterator lookupIter;
+                VertexIdToVertexQueueIterUMap::iterator lookupIter;
 
                 //Get my lookup iter:
                 lookupIter = vertexIterLookup_.find(oldVertex->getId());
@@ -1373,7 +1359,7 @@ namespace ompl
                 }
 
                 //Check if I have been given permission to change sets:
-                if (bool(vertexNN) == true && bool(freeStateNN) == true)
+                if (static_cast<bool>(vertexNN) == true && static_cast<bool>(freeStateNN) == true)
                 {
                     //Check if I should be discarded completely:
                     if (this->samplePruneCondition(oldVertex) == true)
@@ -1418,11 +1404,11 @@ namespace ompl
 
 
 
-        void BITstar::IntegratedQueue::edgeInsertHelper(const vertex_pair_t& newEdge, edge_queue_iter_t positionHint)
+        void BITstar::IntegratedQueue::edgeInsertHelper(const VertexPtrPair& newEdge, EdgeQueueIter positionHint)
         {
             //Variable:
             //The iterator to the new edge in the queue:
-            edge_queue_iter_t edgeIter;
+            EdgeQueueIter edgeIter;
 
             //Insert into the edge queue, getting the iter
             if (positionHint == edgeQueue_.end())
@@ -1453,7 +1439,7 @@ namespace ompl
 
 
 
-        void BITstar::IntegratedQueue::edgeRemoveHelper(const edge_queue_iter_t& oldEdgeIter, bool rmIncomingLookup, bool rmOutgoingLookup)
+        void BITstar::IntegratedQueue::edgeRemoveHelper(const EdgeQueueIter& oldEdgeIter, bool rmIncomingLookup, bool rmOutgoingLookup)
         {
             //Erase the lookup tables:
             if (rmIncomingLookup == true)
@@ -1476,7 +1462,7 @@ namespace ompl
 
 
 
-        void BITstar::IntegratedQueue::rmIncomingLookup(const edge_queue_iter_t& mmapIterToRm)
+        void BITstar::IntegratedQueue::rmIncomingLookup(const EdgeQueueIter& mmapIterToRm)
         {
             if (incomingLookupTables_ == true)
             {
@@ -1487,7 +1473,7 @@ namespace ompl
 
 
 
-        void BITstar::IntegratedQueue::rmOutgoingLookup(const edge_queue_iter_t& mmapIterToRm)
+        void BITstar::IntegratedQueue::rmOutgoingLookup(const EdgeQueueIter& mmapIterToRm)
         {
             if (outgoingLookupTables_ == true)
             {
@@ -1498,11 +1484,11 @@ namespace ompl
 
 
 
-        void BITstar::IntegratedQueue::rmEdgeLookupHelper(vid_edge_queue_iter_umap_t& lookup, const BITstar::vid_t& idx, const edge_queue_iter_t& mmapIterToRm)
+        void BITstar::IntegratedQueue::rmEdgeLookupHelper(VertexIdToEdgeQueueIterListUMap& lookup, const BITstar::VertexId& idx, const EdgeQueueIter& mmapIterToRm)
         {
             //Variable:
             //An iterator to the vertex,list pair in the lookup
-            vid_edge_queue_iter_umap_t::iterator iterToVertexListPair;
+            VertexIdToEdgeQueueIterListUMap::iterator iterToVertexListPair;
 
             //Get the list in the lookup for the given index:
             iterToVertexListPair = lookup.find(idx);
@@ -1514,14 +1500,14 @@ namespace ompl
                 //Whether I've found the mmapIterToRm in my list:
                 bool found;
                 //The iterator to the mmapIterToRm in my list:
-                edge_queue_iter_list_t::iterator iterToList;
+                EdgeQueueIterList::iterator iterToList;
 
                 //Start at the front:
                 iterToList = iterToVertexListPair->second.begin();
 
                 //Iterate through the list and find mmapIterToRm
                 found = false;
-                while(found == false && iterToList != iterToVertexListPair->second.end())
+                while (found == false && iterToList != iterToVertexListPair->second.end())
                 {
                     //Compare the value in the list to the target:
                     if (*iterToList == mmapIterToRm)
@@ -1576,7 +1562,7 @@ namespace ompl
 
 
 
-        BITstar::IntegratedQueue::cost_pair_t BITstar::IntegratedQueue::edgeQueueValue(const vertex_pair_t& edge) const
+        BITstar::IntegratedQueue::CostPair BITstar::IntegratedQueue::edgeQueueValue(const VertexPtrPair& edge) const
         {
             return std::make_pair(currentHeuristicEdgeFunc_(edge), edge.first->getCost());
         }
@@ -1591,7 +1577,7 @@ namespace ompl
 
 
 
-        bool BITstar::IntegratedQueue::edgeQueueComparison(const cost_pair_t& lhs, const cost_pair_t& rhs) const
+        bool BITstar::IntegratedQueue::edgeQueueComparison(const CostPair& lhs, const CostPair& rhs) const
         {
             bool lhsLTrhs;
 

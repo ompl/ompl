@@ -72,11 +72,21 @@ namespace ompl
             problems. BIT* accomplishes this by processing batches of samples with a heuristic.
             In doing so, it strikes a balance between algorithms like RRT* and FMT*.
 
-            @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Batch Informed Trees (BIT*): Sampling-based Optimal Planning via the Heuristically Guided Search of Implicit Random Geometric Graphs,"
-            To appear at ICRA 2015. <a href="http://arxiv.org/abs/1405.5848">arXiv:1405.5848 [cs.RO]</a>.
+            @par Associated publications:
+
+            J.D. Gammell, S. S. Srinivasa, T.D. Barfoot, "BIT*: Batch Informed Trees."
+            In Proceedings of the Information-based Grasp and Manipulation Planning Workshop at Robotics: Science and Systems (RSS).
+            Berkeley, CA, USA, 13 July 2014.
+            <a href="http://asrl.utias.utoronto.ca/~tdb/bib/gammell_rss14.pdf">Extended Abstract</a>.
+            <a href="http://asrl.utias.utoronto.ca/~tdb/bib/gammell_rss14_poster.pdf">Poster</a>.
+
+            J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Batch Informed Trees (BIT*): Sampling-based Optimal Planning via the Heuristically Guided Search of Implicit Random Geometric Graphs,"
+            In Proceedings of the IEEE International Conference on Robotics and Automation (ICRA).
+            Seattle, Washington, USA, 26-30 May 2015.
+            <a href="http://arxiv.org/abs/1405.5848">arXiv:1405.5848 [cs.RO]</a>.
             <a href="http://www.youtube.com/watch?v=MRzSfLpNBmA">Illustration video</a>.
 
-            @par TODO:
+            \todo
             - Make k-nearest correct.
             - Extend beyond single goal states to other samplable goals (i.e., goal sets).
             - Generalize heuristics to make proper use of the optimization class.
@@ -102,7 +112,7 @@ namespace ompl
             /** \brief An integrated queue shared pointer. */
             typedef boost::shared_ptr<IntegratedQueue> IntegratedQueuePtr;
             /** \brief The vertex id type */
-            typedef unsigned int vid_t;
+            typedef unsigned int VertexId;
 
             /** \brief Construct! */
             BITstar(const base::SpaceInformationPtr& si, const std::string& name = "BITstar");
@@ -123,7 +133,7 @@ namespace ompl
             virtual void getPlannerData(base::PlannerData& data) const;
 
             /** \brief Get the next edge to be processed. Causes vertices in the queue to be expanded (if necessary) and therefore effects the run timings of the algorithm, but helpful for some videos and debugging. */
-            std::pair<ompl::base::State const*, ompl::base::State const*> getNextEdgeInQueue();
+            std::pair<const ompl::base::State*, const ompl::base::State*> getNextEdgeInQueue();
 
             /** \brief Get the value of the next edge to be processed. Causes vertices in the queue to be expanded (if necessary) and therefore effects the run timings of the algorithm, but helpful for some videos and debugging. */
             ompl::base::Cost getNextEdgeValueInQueue();
@@ -288,10 +298,10 @@ namespace ompl
 
             //Typedefs:
             /** \brief A pair of vertices, i.e., an edge. */
-            typedef std::pair<VertexPtr, VertexPtr> vertex_pair_t;
+            typedef std::pair<VertexPtr, VertexPtr> VertexPtrPair;
 
             /** \brief The OMPL::NearestNeighbors structure. */
-            typedef boost::shared_ptr< NearestNeighbors<VertexPtr> > vertex_nn_ptr_t;
+            typedef boost::shared_ptr< NearestNeighbors<VertexPtr> > VertexPtrNNPtr;
 
             //Functions:
             /** \brief A debug function: Estimate the measure of the free/obstace space via sampling. */
@@ -324,16 +334,16 @@ namespace ompl
             void pruneSamples();
 
             /** \brief Checks an edge for collision. A wrapper to SpaceInformation->checkMotion that tracks number of collision checks. */
-            bool checkEdge(const vertex_pair_t& edge);
+            bool checkEdge(const VertexPtrPair& edge);
 
             /** \brief Actually remove a sample from its NN struct: */
             void dropSample(VertexPtr oldSample);
 
             /** \brief Add an edge from the edge queue to the tree. Will add the state to the vertex queue if it's new to the tree or otherwise replace the parent. Updates solution information if the solution improves. */
-            void addEdge(const vertex_pair_t& newEdge, const ompl::base::Cost& edgeCost, const bool& removeFromFree, const bool& updateDescendants);
+            void addEdge(const VertexPtrPair& newEdge, const ompl::base::Cost& edgeCost, const bool& removeFromFree, const bool& updateDescendants);
 
             /** \brief Replace the parent edge with the given new edge and cost */
-            void replaceParent(const vertex_pair_t& newEdge, const ompl::base::Cost& edgeCost, const bool& updateDescendants);
+            void replaceParent(const VertexPtrPair& newEdge, const ompl::base::Cost& edgeCost, const bool& updateDescendants);
 
             /** \brief The special work that needs to be done to update the goal vertex is the solution has changed. */
             void updateGoalVertex();
@@ -366,25 +376,25 @@ namespace ompl
             ompl::base::Cost currentHeuristicVertex(const VertexPtr& edgePair) const;
 
             /** \brief Calculates a heuristic estimate of the cost of a solution constrained to go through an edge, independent of the cost-to-come of the parent state. I.e., combines the heuristic estimates of the cost-to-come, edge cost, and cost-to-go. */
-            ompl::base::Cost lowerBoundHeuristicEdge(const vertex_pair_t& edgePair) const;
+            ompl::base::Cost lowerBoundHeuristicEdge(const VertexPtrPair& edgePair) const;
 
             /** \brief Calculates a heuristic estimate of the cost of a solution constrained to go through an edge, dependent on the cost-to-come of the parent state. I.e., combines the current cost-to-come with heuristic estimates of the edge cost, and cost-to-go. */
-            ompl::base::Cost currentHeuristicEdge(const vertex_pair_t& edgePair) const;
+            ompl::base::Cost currentHeuristicEdge(const VertexPtrPair& edgePair) const;
 
             /** \brief Calculates a heuristic estimate of the cost of a path to the \e target of an edge, dependent on the cost-to-come of the parent state. I.e., combines the current cost-to-come with heuristic estimates of the edge cost. */
-            ompl::base::Cost currentHeuristicEdgeTarget(const vertex_pair_t& edgePair) const;
+            ompl::base::Cost currentHeuristicEdgeTarget(const VertexPtrPair& edgePair) const;
 
             /** \brief Calculate a heuristic estimate of the cost-to-come for a Vertex */
             ompl::base::Cost costToComeHeuristic(const VertexPtr& vertex) const;
 
             /** \brief Calculate a heuristic estimate of the cost an edge between two Vertices */
-            ompl::base::Cost edgeCostHeuristic(const vertex_pair_t& edgePair) const;
+            ompl::base::Cost edgeCostHeuristic(const VertexPtrPair& edgePair) const;
 
             /** \brief Calculate a heuristic estimate of the cost-to-go for a Vertex */
             ompl::base::Cost costToGoHeuristic(const VertexPtr& vertex) const;
 
             /** \brief The true cost of an edge, including collisions.*/
-            ompl::base::Cost trueEdgeCost(const vertex_pair_t& edgePair) const;
+            ompl::base::Cost trueEdgeCost(const VertexPtrPair& edgePair) const;
 
             /** \brief Calculate the max req'd cost to define a neighbourhood around a state. I.e., For path-length problems, the cost equivalent of +2*r. */
             ompl::base::Cost neighbourhoodCost() const;
@@ -435,10 +445,10 @@ namespace ompl
             virtual void updateNearestTerms();
 
             /** \brief Calculate the r for r-disc nearest neighbours, a function of the current graph */
-            double r(unsigned int N) const;
+            double calculateR(unsigned int N) const;
 
             /** \brief Calculate the k for k-nearest neighours, a function of the current graph */
-            unsigned int k(unsigned int N) const;
+            unsigned int calculateK(unsigned int N) const;
 
             /** \brief Calculate the lower-bounding radius RGG term for asymptotic almost-sure convergence to the optimal path (i.e., r_rrg* in Karaman and Frazzoli IJRR 11). This is a function of the size of the problem domain. */
             double minimumRggR() const;
@@ -478,10 +488,10 @@ namespace ompl
             VertexPtr                                                goalVertex_;
 
             /** \brief The unconnected samples as a nearest-neighbours datastructure. Sorted by nnDistance. Size accessible via currentFreeProgressProperty */
-            vertex_nn_ptr_t                                          freeStateNN_;
+            VertexPtrNNPtr                                          freeStateNN_;
 
             /** \brief The vertices as a nearest-neighbours data structure. Sorted by nnDistance. Size accessible via currentVertexProgressProperty */
-            vertex_nn_ptr_t                                          vertexNN_;
+            VertexPtrNNPtr                                          vertexNN_;
 
             /** \brief The integrated queue of vertices to expand and edges to process ordered on "f-value", i.e., estimated solution cost. Remaining vertex queue "size" and edge queue size are accessible via vertexQueueSizeProgressProperty and edgeQueueSizeProgressProperty, respectively. */
             IntegratedQueuePtr                                       intQueue_;

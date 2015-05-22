@@ -36,16 +36,15 @@
 
 //Me!
 #include "ompl/geometric/planners/bitstar/datastructures/Vertex.h"
-//The ID generator class, this is actually included via BITstar, but to be clear.
+//The ID generator class, this is actually included via Vertex.h->BITstar.h, but to be clear.
 #include "ompl/geometric/planners/bitstar/datastructures/IdGenerator.h"
-
 
 namespace ompl
 {
     namespace geometric
     {
         BITstar::Vertex::Vertex(const ompl::base::SpaceInformationPtr& si, const ompl::base::OptimizationObjectivePtr& opt, bool root /*= false*/)
-          : vId_(BITstar::IdGenerator::getNewId()),
+          : vId_(getIdGenerator().getNewId()),
             si_(si),
             opt_(opt),
             state_( si_->allocState() ),
@@ -72,7 +71,7 @@ namespace ompl
             si_->freeState(state_);
         }
 
-        BITstar::vid_t BITstar::Vertex::getId() const
+        BITstar::VertexId BITstar::Vertex::getId() const
         {
             this->assertNotPruned();
             return vId_;
@@ -111,7 +110,7 @@ namespace ompl
         {
             this->assertNotPruned();
 
-            return bool(parentSPtr_);
+            return static_cast<bool>(parentSPtr_);
         }
 
         bool BITstar::Vertex::isInTree() const
