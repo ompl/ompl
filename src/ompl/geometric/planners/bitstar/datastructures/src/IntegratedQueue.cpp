@@ -1062,8 +1062,6 @@ namespace ompl
 
 
 
-
-
         void BITstar::IntegratedQueue::reinsertVertex(const VertexPtr& unorderedVertex)
         {
             //Variables:
