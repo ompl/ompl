@@ -1536,22 +1536,6 @@ namespace ompl
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         ompl::base::Cost BITstar::IntegratedQueue::vertexQueueValue(const VertexPtr& vertex) const
         {
             return currentHeuristicVertexFunc_(vertex);
