@@ -34,7 +34,7 @@
 
 /* Authors: Jonathan Gammell */
 
-//Myself:
+//My definition:
 #include "ompl/geometric/planners/bitstar/datastructures/IntegratedQueue.h"
 
 //OMPL:
@@ -45,6 +45,8 @@ namespace ompl
 {
     namespace geometric
     {
+        /////////////////////////////////////////////////////////////////////////////////////////////
+        //Public functions:
         BITstar::IntegratedQueue::IntegratedQueue(const VertexPtr& startVertex, const VertexPtr& goalVertex, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget)
             :   opt_(startVertex->getOpt()),
                 startVertex_(startVertex),
@@ -70,7 +72,7 @@ namespace ompl
                 costThreshold_( std::numeric_limits<double>::infinity() ), //Purposeful gibberish
                 hasSolution_(false)
         {
-            //The cost threshold:
+            //Set the the cost threshold to infinity to start:
             costThreshold_ = opt_->infiniteCost();
         }
 
@@ -871,15 +873,12 @@ namespace ompl
                 edgeQueue->push_back(eIter->second);
             }
         }
+        /////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
-
-
-
-
-
-
+        /////////////////////////////////////////////////////////////////////////////////////////////
+        //Private functions:
         void BITstar::IntegratedQueue::updateQueue()
         {
             //Variables:
@@ -1647,9 +1646,12 @@ namespace ompl
             //If a is not better than b, than a is worse than, or equal to, b
             return !this->isCostBetterThan(a,b);
         }
+        /////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
+        /////////////////////////////////////////////////////////////////////////////////////////////
+        //Boring sets/gets (Public):
         void BITstar::IntegratedQueue::setUseFailureTracking(bool trackFailures)
         {
             useFailureTracking_ = trackFailures;
@@ -1675,5 +1677,6 @@ namespace ompl
         {
             return delayRewiring_;
         }
+        /////////////////////////////////////////////////////////////////////////////////////////////
     } // geometric
 } //ompl

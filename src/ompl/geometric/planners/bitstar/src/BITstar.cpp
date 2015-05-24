@@ -34,7 +34,7 @@
 
 /* Authors: Jonathan Gammell */
 
-//Me!
+//My definition:
 #include "ompl/geometric/planners/bitstar/BITstar.h"
 
 //For, you know, math
@@ -69,6 +69,8 @@ namespace ompl
 {
     namespace geometric
     {
+        /////////////////////////////////////////////////////////////////////////////////////////////
+        //Public functions:
         BITstar::BITstar(const ompl::base::SpaceInformationPtr& si, const std::string& name /*= "BITstar"*/)
             : ompl::base::Planner(si, name),
             sampler_(),
@@ -530,25 +532,12 @@ namespace ompl
                 vertexNN_ = boost::make_shared< NN<VertexPtr> >();
             }
         }
+        /////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        /////////////////////////////////////////////////////////////////////////////////////////////
+        //Protected functions:
         void BITstar::estimateMeasures()
         {
             OMPL_INFORM("%s: Estimating the measure of the planning domain. This is a debugging function that does not have any effect on the planner.", Planner::getName().c_str());
@@ -1518,11 +1507,12 @@ namespace ompl
             }
             //No else, this message is below the log level
         }
+        /////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
-        //****************** A bunch of boring gets/sets ******************//
-
+        /////////////////////////////////////////////////////////////////////////////////////////////
+        //Boring sets/gets (Public) and progress properties (Protected):
         void BITstar::setRewireFactor(double rewireFactor)
         {
             rewireFactor_ = rewireFactor;
@@ -1827,5 +1817,6 @@ namespace ompl
         {
             return boost::lexical_cast<std::string>(numNearestNeighbours_);
         }
+        /////////////////////////////////////////////////////////////////////////////////////////////
     }//geometric
 }//ompl

@@ -215,84 +215,6 @@ namespace ompl
             bool getStopOnSolnImprovement() const;
             ///////////////////////////////////////
 
-            ///////////////////////////////////////
-            // Planner progress property functions
-            /** \brief Retrieve the best exact-solution cost found
-            as the raw data. (bestCost_) */
-            ompl::base::Cost bestCost() const;
-            /** \brief Retrieve the best exact-solution cost found
-            as a planner-progress property. (bestCost_) */
-            std::string bestCostProgressProperty() const;
-
-            /** \brief Retrieve the length of the best exact-solution found
-            as a planner-progress property. (bestLength_) */
-            std::string bestLengthProgressProperty() const;
-
-            /** \brief Retrieve the current number of free samples
-            as a planner-progress property. (size of freeStateNN_) */
-            std::string currentFreeProgressProperty() const;
-
-            /** \brief Retrieve the current number of vertices in the graph
-            as a planner-progress property. (Size of vertexNN_) */
-            std::string currentVertexProgressProperty() const;
-
-            /** \brief Retrieve the current number of vertices in the expansion queue
-            as a planner-progress property. (The position of the vertex subqueue of intQueue_) */
-            std::string vertexQueueSizeProgressProperty() const;
-
-            /** \brief Retrieve the current number of edges in the search queue
-            as a planner-progress property. (The size of the edge subqueue of intQueue_) */
-            std::string edgeQueueSizeProgressProperty() const;
-
-            /** \brief Retrieve the number of iterations
-            as a planner-progress property. (numIterations_) */
-            std::string iterationProgressProperty() const;
-
-            /** \brief Retrieve the number of batches processed
-            as the raw data. (numBatches_) */
-            unsigned int numBatches() const;
-            /** \brief Retrieve the number of batches processed
-            as a planner-progress property. (numBatches_) */
-            std::string batchesProgressProperty() const;
-
-            /** \brief Retrieve the number of graph prunings performed
-            as a planner-progress property. (numPrunings_) */
-            std::string pruningProgressProperty() const;
-
-            /** \brief Retrieve the \e total number of states generated
-            as a planner-progress property. (numSamples_) */
-            virtual std::string totalStatesCreatedProgressProperty() const;
-
-            /** \brief Retrieve the \e total number of vertices added to the graph
-            as a planner-progress property. (numVertices_) */
-            std::string verticesConstructedProgressProperty() const;
-
-            /** \brief Retrieve the number of states pruned from the problem
-            as a planner-progress property. (numFreeStatesPruned_) */
-            std::string statesPrunedProgressProperty() const;
-
-            /** \brief Retrieve the number of graph vertices that are disconnected and
-            either returned to the set of free samples or deleted completely
-            as a planner-progress property. (numVerticesDisconnected_) */
-            std::string verticesDisconnectedProgressProperty() const;
-
-            /** \brief Retrieve the number of global-search edges that rewired the graph
-            as a planner-progress property. (numRewirings_) */
-            std::string rewiringProgressProperty() const;
-
-            /** \brief Retrieve the number of state collisions checks (i.e., calls to SpaceInformation::isValid(...))
-            as a planner-progress property. (numStateCollisionChecks_) */
-            std::string stateCollisionCheckProgressProperty() const;
-
-            /** \brief Retrieve the number of edge (or motion) collision checks (i.e., calls to SpaceInformation::checkMotion(...))
-            as a planner-progress property. (numEdgeCollisionChecks_) */
-            std::string edgeCollisionCheckProgressProperty() const;
-
-            /** \brief Retrieve the number of nearest neighbour calls (i.e., NearestNeighbors<T>::nearestK(...) or NearestNeighbors<T>::nearestR(...))
-            as a planner-progress property. (numNearestNeighbours_) */
-            std::string nearestNeighbourProgressProperty() const;
-            ///////////////////////////////////////
-
         protected:
             //Everything is only protected so we can create modifications without duplicating code by deriving from the class:
 
@@ -471,6 +393,84 @@ namespace ompl
             /** \brief A debug-level status message for debugging. */
             virtual void statusMessage(const ompl::msg::LogLevel& msgLevel, const std::string& status) const;
             ///////////////////////////////////////////////////////////////////
+
+            ///////////////////////////////////////
+            // Planner progress property functions
+            /** \brief Retrieve the best exact-solution cost found
+            as the raw data. (bestCost_) */
+            ompl::base::Cost bestCost() const;
+            /** \brief Retrieve the best exact-solution cost found
+            as a planner-progress property. (bestCost_) */
+            std::string bestCostProgressProperty() const;
+
+            /** \brief Retrieve the length of the best exact-solution found
+            as a planner-progress property. (bestLength_) */
+            std::string bestLengthProgressProperty() const;
+
+            /** \brief Retrieve the current number of free samples
+            as a planner-progress property. (size of freeStateNN_) */
+            std::string currentFreeProgressProperty() const;
+
+            /** \brief Retrieve the current number of vertices in the graph
+            as a planner-progress property. (Size of vertexNN_) */
+            std::string currentVertexProgressProperty() const;
+
+            /** \brief Retrieve the current number of vertices in the expansion queue
+            as a planner-progress property. (The position of the vertex subqueue of intQueue_) */
+            std::string vertexQueueSizeProgressProperty() const;
+
+            /** \brief Retrieve the current number of edges in the search queue
+            as a planner-progress property. (The size of the edge subqueue of intQueue_) */
+            std::string edgeQueueSizeProgressProperty() const;
+
+            /** \brief Retrieve the number of iterations
+            as a planner-progress property. (numIterations_) */
+            std::string iterationProgressProperty() const;
+
+            /** \brief Retrieve the number of batches processed
+            as the raw data. (numBatches_) */
+            unsigned int numBatches() const;
+            /** \brief Retrieve the number of batches processed
+            as a planner-progress property. (numBatches_) */
+            std::string batchesProgressProperty() const;
+
+            /** \brief Retrieve the number of graph prunings performed
+            as a planner-progress property. (numPrunings_) */
+            std::string pruningProgressProperty() const;
+
+            /** \brief Retrieve the \e total number of states generated
+            as a planner-progress property. (numSamples_) */
+            virtual std::string totalStatesCreatedProgressProperty() const;
+
+            /** \brief Retrieve the \e total number of vertices added to the graph
+            as a planner-progress property. (numVertices_) */
+            std::string verticesConstructedProgressProperty() const;
+
+            /** \brief Retrieve the number of states pruned from the problem
+            as a planner-progress property. (numFreeStatesPruned_) */
+            std::string statesPrunedProgressProperty() const;
+
+            /** \brief Retrieve the number of graph vertices that are disconnected and
+            either returned to the set of free samples or deleted completely
+            as a planner-progress property. (numVerticesDisconnected_) */
+            std::string verticesDisconnectedProgressProperty() const;
+
+            /** \brief Retrieve the number of global-search edges that rewired the graph
+            as a planner-progress property. (numRewirings_) */
+            std::string rewiringProgressProperty() const;
+
+            /** \brief Retrieve the number of state collisions checks (i.e., calls to SpaceInformation::isValid(...))
+            as a planner-progress property. (numStateCollisionChecks_) */
+            std::string stateCollisionCheckProgressProperty() const;
+
+            /** \brief Retrieve the number of edge (or motion) collision checks (i.e., calls to SpaceInformation::checkMotion(...))
+            as a planner-progress property. (numEdgeCollisionChecks_) */
+            std::string edgeCollisionCheckProgressProperty() const;
+
+            /** \brief Retrieve the number of nearest neighbour calls (i.e., NearestNeighbors<T>::nearestK(...) or NearestNeighbors<T>::nearestR(...))
+            as a planner-progress property. (numNearestNeighbours_) */
+            std::string nearestNeighbourProgressProperty() const;
+            ///////////////////////////////////////
 
 
 

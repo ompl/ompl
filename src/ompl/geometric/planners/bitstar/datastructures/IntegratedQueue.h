@@ -312,7 +312,7 @@ namespace ompl
             EdgeHeuristicFunc                                    currentHeuristicEdgeFunc_;
 
             /** \brief The current heuristic to the end of an edge. */
-            EdgeHeuristicFunc                                    currentHeuristicEdgeTargetFunc_;
+            EdgeHeuristicFunc                                        currentHeuristicEdgeTargetFunc_;
 
             /** \brief Whether to use failure tracking or not */
             bool                                                     useFailureTracking_;
@@ -327,22 +327,22 @@ namespace ompl
             bool                                                     incomingLookupTables_;
 
             /** \brief The underlying queue of vertices. Sorted by vertex_sorting_func_t. */
-            CostToVertexMMap                                   vertexQueue_;
+            CostToVertexMMap                                         vertexQueue_;
 
             /** \brief The next vertex in the expansion queue to expand*/
-            VertexQueueIter                                      vertexToExpand_;
+            VertexQueueIter                                          vertexToExpand_;
 
             /** \brief The underlying queue of edges. Sorted by edge_sorting_func_t. */
-            CostToVertexPtrPairMMap                         edgeQueue_;
+            CostToVertexPtrPairMMap                                  edgeQueue_;
 
             /** \brief A lookup from vertex to iterator in the vertex queue */
-            VertexIdToVertexQueueIterUMap                             vertexIterLookup_;
+            VertexIdToVertexQueueIterUMap                            vertexIterLookup_;
 
             /** \brief A unordered map from a vertex to all the edges in the queue emanating from the vertex: */
-            VertexIdToEdgeQueueIterListUMap                               outgoingEdges_;
+            VertexIdToEdgeQueueIterListUMap                          outgoingEdges_;
 
             /** \brief A unordered map from a vertex to all the edges in the queue leading into the vertex: */
-            VertexIdToEdgeQueueIterListUMap                               incomingEdges_;
+            VertexIdToEdgeQueueIterListUMap                          incomingEdges_;
 
             /** \brief A list of vertices that we will need to process when resorting the queue: */
             std::list<VertexPtr>                                     resortVertices_;
@@ -351,7 +351,7 @@ namespace ompl
             ompl::base::Cost                                         costThreshold_;
 
             /** \brief Whether the problem has a solution */
-            bool                                                    hasSolution_;
+            bool                                                     hasSolution_;
             ////////////////////////////////
 
 
