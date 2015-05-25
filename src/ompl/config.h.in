@@ -54,6 +54,9 @@
 /** \brief Specify whether the OpenDE extension is built */
 #cmakedefine01 OMPL_EXTENSION_OPENDE
 
+/** \brief Specify whether Eigen is installed */
+#cmakedefine01 OMPL_HAVE_EIGEN3
+
 /** \brief Whether FLANN is installed */
 #cmakedefine01 OMPL_HAVE_FLANN
 

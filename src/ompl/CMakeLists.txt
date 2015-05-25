@@ -11,8 +11,11 @@ configure_file("${VERSION_DIR}/config.h.in" "${VERSION_DIR}/config.h")
 # correspond to the basic ompl library      #
 #############################################
 file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp geometric/*.cpp control/*.cpp tools/*.cpp)
-
-
+if(NOT OMPL_HAVE_EIGEN3)
+    list(REMOVE_ITEM OMPL_SOURCE_CODE
+        "${VERSION_DIR}/util/src/ProlateHyperSpheroid.cpp"
+        "${VERSION_DIR}/base/samplers/informed/src/PathLengthDirectInfSampler.cpp")
+endif()
 
 #############################################
 # Add enabled extensions to the source code #

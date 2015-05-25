@@ -44,7 +44,10 @@
 #include <boost/random/variate_generator.hpp>
 #include <cassert>
 
+#include "ompl/config.h"
+#if OMPL_HAVE_EIGEN3
 #include "ompl/util/ProlateHyperspheroid.h"
+#endif
 
 namespace ompl
 {
@@ -148,6 +151,7 @@ namespace ompl
         /** \brief Uniform random sampling of the content of an n-ball, with a radius appropriately distributed between [0,r) so that the distribution is uniform in a Cartesian coordinate system. The return variable \e value is expected to already exist. */
         void uniformInBall(double r, unsigned int n, double value[]);
 
+#if OMPL_HAVE_EIGEN3
         /** \brief Uniform random sampling of the surface of a prolate hyperspheroid, a special symmetric type of
         n-dimensional ellipse. The return variable \e value is expected to already exist.
         @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
@@ -165,6 +169,7 @@ namespace ompl
         <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
         void uniformProlateHyperspheroid(const ProlateHyperspheroidPtr &phsPtr, unsigned int n, double value[]);
+#endif
 
     private:
         /** \brief A forward declaration to a data structure class holding data for spherical distributions of various dimension. */

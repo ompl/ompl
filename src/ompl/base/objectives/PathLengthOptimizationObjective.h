@@ -63,8 +63,11 @@ namespace ompl
                 two states assuming no obstacles. */
             virtual Cost motionCostHeuristic(const State *s1, const State *s2) const;
 
+#if OMPL_HAVE_EIGEN3
             /** \brief Allocate a state sampler for the path-length objective (i.e., direct ellipsoidal sampling). */
             virtual InformedSamplerPtr allocInformedStateSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls) const;
+#endif
+
         };
     }
 }

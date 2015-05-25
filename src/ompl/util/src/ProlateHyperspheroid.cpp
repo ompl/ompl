@@ -34,13 +34,9 @@
 
 /* Author: Jonathan Gammell*/
 
-//Myself:
 #include "ompl/util/ProlateHyperspheroid.h"
-
-//OMPL Exceptions:
 #include "ompl/util/Exception.h"
-
-// For boost::make_shared
+#include "ompl/util/Console.h"
 #include <boost/make_shared.hpp>
 // For pre C++ 11 gamma function
 #include <boost/math/special_functions/gamma.hpp>
@@ -106,7 +102,7 @@ void ompl::ProlateHyperspheroid::setTransverseDiameter(double transverseDiameter
 {
     if (transverseDiameter < dataPtr_->minTransverseDiameter_)
     {
-        std::cout << transverseDiameter << " < " << dataPtr_->minTransverseDiameter_ << std::endl;
+        OMPL_ERROR("%g < %g", transverseDiameter, dataPtr_->minTransverseDiameter_);
         throw Exception("Transverse diameter cannot be less than the distance between the foci.");
     }
 
