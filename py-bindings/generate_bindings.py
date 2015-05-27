@@ -532,7 +532,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT', 'LightningRetrieveRepair']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT', 'LightningRetrieveRepair', 'BITstar']:
             self.ompl_ns.class_(planner).add_registration_code("""
             def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )""")
             if planner!='PRM':
@@ -627,6 +627,11 @@ class ompl_geometric_generator_t(code_generator_t):
             self.ompl_ns.class_('KStarStrategy<unsigned int>').rename('KStarStrategy')
             # used in SPARStwo
             self.std_ns.class_('map<unsigned int, ompl::base::State*>').rename('mapVertexToState')
+
+
+        # Exclude some functions from BIT* that cause some Py++ compilation problems:
+        self.ompl_ns.class_('BITstar').member_functions('getEdgeQueue').exclude() #I don't know why this doesn't work.
+        self.ompl_ns.class_('BITstar').member_functions('getVertexQueue').exclude() #I don't know why this doesn't work.
 
 class ompl_tools_generator_t(code_generator_t):
     def __init__(self):
