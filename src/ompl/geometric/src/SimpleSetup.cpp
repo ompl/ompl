@@ -110,7 +110,7 @@ void ompl::geometric::SimpleSetup::setGoal(const base::GoalPtr &goal)
 {
     pdef_->setGoal(goal);
 
-    if (goal->hasType(base::GOAL_SAMPLEABLE_REGION))
+    if (goal && goal->hasType(base::GOAL_SAMPLEABLE_REGION))
         psk_.reset(new PathSimplifier(si_, pdef_->getGoal()));
     else
         psk_.reset(new PathSimplifier(si_));
