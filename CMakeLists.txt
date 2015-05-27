@@ -112,7 +112,7 @@ find_package(Boost COMPONENTS python QUIET)
 find_package(Eigen3 QUIET)
 if (EIGEN3_FOUND)
     set(OMPL_HAVE_EIGEN3 1)
-    include_directories("${EIGEN3_INCLUDE_DIR}")
+    include_directories("${EIGEN3_INCLUDE_DIRS}")
 endif()
 
 # MORSE is only needed for Modular OpenRobots Simulation Engine bindings
@@ -139,9 +139,6 @@ if (FLANN_FOUND)
     set(OMPL_HAVE_FLANN 1)
     include_directories(SYSTEM "${FLANN_INCLUDE_DIRS}")
 endif()
-
-find_package( Eigen REQUIRED )
-include_directories(SYSTEM "${Eigen_INCLUDE_DIRS}")
 
 option(OMPL_LOCAL_PYPLUSPLUS_INSTALL "Whether Py++ and dependencies should be installed in the build directory" OFF)
 set(SUDO "sudo")
