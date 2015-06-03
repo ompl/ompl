@@ -10,7 +10,28 @@
 
 To report a bug, please click [here](https://bitbucket.org/ompl/ompl/issues?status=new&status=open).
 
-\htmlonly</div><div class="col-md-6 col-sm-6">
-<h2>Contact form</h2>
-<iframe src="php/html-contact-form.php" width="100%" height="780"></iframe></div></div>
+\htmlonly</div><div class="col-md-6 col-sm-6">\endhtmlonly
+# Contact form
+
+\htmlonly
+<form class="form" role="form" action="http://formspree.io/mmoll@rice.edu" method="POST">
+  <div class="form-group">
+    <label for="name">name</label>
+    <input type="text" class="form-control" name="name" value='' placeholder="name">
+  </div>
+  <div class="form-group">
+    <label for="email">email (optional)</label>
+    <input type="email" class="form-control" name="_replyto" value='' placeholder="email">
+  </div>
+  <div class="form-group">
+    <label for="message">comments/suggestions (optional)</label>
+    <textarea id="message" name="message" rows=6 class="form-control"></textarea>
+  </div>
+  <input type="hidden" name="_next" value="thank-you.html" />
+  <input type="hidden" name="_subject" value="OMPL contact form submission" />
+  <input type="text" name="_gotcha" style="display:none" />
+  <input type="submit" value="Send" name='submit' class="btn btn-primary" />
+</form>
+</div>
+</div>
 \endhtmlonly
