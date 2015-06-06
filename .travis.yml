@@ -7,7 +7,7 @@ os:
 
 compiler:
   - gcc
-  - clang
+  #- clang
 
 env:
   - BUILD_TYPE=Debug
@@ -34,13 +34,16 @@ script:
 
   # Generate python bindings
   - make -j2 update_bindings
+  - cat pyplusplus_util.log
 
   # Build
-  - make -j4
-
-  # Run unit tests
-  - make test
-
-  # Make sure we can install and uninstall with no issues
-  - make -j4 install 
-  - make -j4 uninstall
+  # - make -j4
+  #
+  # # Run unit tests
+  # - make test
+  #
+  # # Make sure we can install and uninstall with no issues
+  # - make -j4 install
+  # - ls -R tmp
+  # - make -j4 uninstall
+  # - ls -R tmp
