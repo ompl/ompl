@@ -1,0 +1,46 @@
+sudo: false
+cache: apt
+language: cpp
+
+os:
+  - linux
+
+compiler:
+  - gcc
+  - clang
+
+env:
+  - BUILD_TYPE=Debug
+  - BUILD_TYPE=Release
+
+addons:
+  apt:
+    packages:
+      - libboost-all-dev
+      - python-dev
+      - libode-dev
+
+script:
+  # Create build directory
+  - mkdir build
+  - cd build
+
+  # Configure
+  - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOMPL_LOCAL_PYPLUSPLUS_INSTALL=ON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp ..
+
+  # Install Py++
+  - make installpyplusplus
+  - cmake .
+
+  # Generate python bindings
+  - make -j2 update_bindings
+
+  # Build
+  - make -j4
+
+  # Run unit tests
+  - make test
+
+  # Make sure we can install and uninstall with no issues
+  - make -j4 install 
+  - make -j4 uninstall
