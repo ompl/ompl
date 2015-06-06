@@ -19,6 +19,7 @@ addons:
       - libboost-all-dev
       - python-dev
       - libode-dev
+      - libeigen3-dev
 
 script:
   # Create build directory
