@@ -30,20 +30,21 @@ script:
 
   # Install Py++
   - make installpyplusplus
-  - cmake .
+  - rm CMakeCache.txt
+  - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOMPL_LOCAL_PYPLUSPLUS_INSTALL=ON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp ..
 
   # Generate python bindings
   - make -j2 update_bindings
   - cat pyplusplus_util.log
 
   # Build
-  # - make -j4
-  #
-  # # Run unit tests
-  # - make test
-  #
-  # # Make sure we can install and uninstall with no issues
-  # - make -j4 install
-  # - ls -R tmp
-  # - make -j4 uninstall
-  # - ls -R tmp
+  - make -j4
+
+  # Run unit tests
+  - make test
+
+  # Make sure we can install and uninstall with no issues
+  - make -j4 install
+  - ls -R tmp
+  - make -j4 uninstall
+  - ls -R tmp
