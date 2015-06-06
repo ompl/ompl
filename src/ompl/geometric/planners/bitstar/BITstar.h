@@ -37,6 +37,11 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_BITSTAR_
 #define OMPL_GEOMETRIC_PLANNERS_BITSTAR_BITSTAR_
 
+#include <ompl/config.h>
+#if !OMPL_HAVE_EIGEN3
+#error The BITstar class uses Eigen3, which was not detected at build time.
+#endif
+
 //STL:
 //std::string
 #include <string>
