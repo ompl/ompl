@@ -4,10 +4,7 @@ language: cpp
 
 os:
   - linux
-
-compiler:
-  - gcc
-  - clang
+  - osx
 
 env:
   - BUILD_TYPE=Debug
@@ -20,6 +17,9 @@ addons:
       - python-dev
       - libode-dev
       - libeigen3-dev
+
+install:
+  - if [ "$TRAVIS_OS_NAME" = "osx"   ]; then brew install boost-python ode eigen; fi
 
 script:
   # Create build directory
