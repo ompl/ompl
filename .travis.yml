@@ -1,4 +1,4 @@
-sudo: false
+sudo: true
 cache: apt
 language: cpp
 
