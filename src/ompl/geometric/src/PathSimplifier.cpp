@@ -541,7 +541,7 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
             double candidateCost = costToCome + costToGo;
 
             // Make sure we improve before attempting validation
-            if (candidateCost < dists.back() && si_->checkMotion(state, tempGoal))
+            if (dists.back() - candidateCost > std::numeric_limits<float>::epsilon() && si_->checkMotion(state, tempGoal))
             {
                 // insert the new states
                 if (startIndex == endIndex)
@@ -581,7 +581,7 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
 
                 // fix the helper variables
                 dists.resize(states.size(), 0.0);
-                for (unsigned int j = startIndex; j < dists.size() ; ++j)
+                for (unsigned int j = std::max(1u, startIndex); j < dists.size() ; ++j)
                     dists[j] = dists[j-1] + si_->distance(states[j-1], states[j]);
 
                 betterGoal = true;
