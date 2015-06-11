@@ -39,6 +39,22 @@
 #include <iostream>
 #include <cstdio>
 #include <cstdarg>
+#ifdef _WIN32
+#include <stdio.h>
+#include <io.h>
+#define isatty(x) _isatty(x)
+#define fileno(x) _fileno(x)
+#else
+#include <unistd.h>
+#endif
+
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
 
 /// @cond IGNORE
 
@@ -130,19 +146,30 @@ ompl::msg::LogLevel ompl::msg::getLogLevel()
 }
 
 static const char *LogLevelString[4] = {"Debug:   ", "Info:    ", "Warning: ", "Error:   "};
+static const char *LogColorString[4] = {ANSI_COLOR_CYAN, ANSI_COLOR_YELLOW, ANSI_COLOR_YELLOW, ANSI_COLOR_RED};
 
 void ompl::msg::OutputHandlerSTD::log(const std::string &text, LogLevel level, const char *filename, int line)
 {
     if (level >= LOG_WARN)
     {
+        bool isTTY(isatty(fileno(stderr)));
+        if (isTTY)
+            std::cerr << LogColorString[level];
         std::cerr << LogLevelString[level] << text << std::endl;
         std::cerr << "         at line " << line << " in " << filename << std::endl;
+        if (isTTY)
+            std::cerr << ANSI_COLOR_RESET;
         std::cerr.flush();
     }
     else
     {
+        bool isTTY(isatty(fileno(stdout)));
+        if (isTTY)
+            std::cout << LogColorString[level];
         std::cout << LogLevelString[level] << text << std::endl;
         std::cout.flush();
+        if (isTTY)
+            std::cout << ANSI_COLOR_RESET;
     }
 }
 
