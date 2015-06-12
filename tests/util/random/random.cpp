@@ -37,6 +37,7 @@
 #define BOOST_TEST_MODULE "Random"
 #include <boost/test/unit_test.hpp>
 
+#include "ompl/config.h"
 #include "ompl/util/RandomNumbers.h"
 #include "../../BoostTestTeamCityReporter.h"
 #include <cmath>
@@ -296,6 +297,7 @@ BOOST_AUTO_TEST_CASE(SampleBall)
     }
 }
 
+#if OMPL_HAVE_EIGEN3
 
 BOOST_AUTO_TEST_CASE(SamplePhsSurface)
 {
@@ -408,3 +410,5 @@ BOOST_AUTO_TEST_CASE(SampleInPhs)
         }
     }
 }
+
+#endif // OMPL_HAVE_EIGEN3

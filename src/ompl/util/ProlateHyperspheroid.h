@@ -37,8 +37,11 @@
 #ifndef OMPL_UTIL_PROLATE_HYPERSPHEROID_
 #define OMPL_UTIL_PROLATE_HYPERSPHEROID_
 
+#include <ompl/config.h>
+#if !OMPL_HAVE_EIGEN3
+#error The ProlateHyperspheroid class uses Eigen3, which was not detected at build time.
+#endif
 
-// For boost::shared_ptr
 #include <boost/shared_ptr.hpp>
 
 //For ease-of-use shared_ptr definition

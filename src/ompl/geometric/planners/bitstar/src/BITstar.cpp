@@ -802,7 +802,7 @@ namespace ompl
                     //The number of vertices and samples pruned
                     std::pair<unsigned int, unsigned int> numPruned;
 
-                    OMPL_INFORM("%s: Pruning the planning problem from a solution of %.4f to %.4f, resulting in a change of problem size from %.4f to %.4f.", Planner::getName().c_str(), prunedCost_, bestCost_, prunedMeasure_, informedMeasure);
+                    OMPL_INFORM("%s: Pruning the planning problem from a solution of %.4f to %.4f, resulting in a change of problem size from %.4f to %.4f.", Planner::getName().c_str(), prunedCost_.value(), bestCost_.value(), prunedMeasure_, informedMeasure);
 
                     //Increment the pruning counter:
                     ++numPrunings_;
@@ -1421,7 +1421,7 @@ namespace ompl
 
         void BITstar::goalMessage() const
         {
-            OMPL_INFORM("%s: Found a solution consisting of %u vertices with a total cost of %.4f in %u iterations (%u vertices, %u rewirings). Graph currently has %u vertices.", Planner::getName().c_str(), bestLength_, bestCost_, numIterations_, numVertices_, numRewirings_, vertexNN_->size());
+            OMPL_INFORM("%s: Found a solution consisting of %u vertices with a total cost of %.4f in %u iterations (%u vertices, %u rewirings). Graph currently has %u vertices.", Planner::getName().c_str(), bestLength_, bestCost_.value(), numIterations_, numVertices_, numRewirings_, vertexNN_->size());
         }
 
 
