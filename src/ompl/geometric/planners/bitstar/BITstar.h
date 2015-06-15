@@ -377,6 +377,9 @@ namespace ompl
 
             /** \brief Calculate the lower-bounding k-nearest RGG term for asymptotic almost-sure convergence to the optimal path (i.e., k_rrg* in Karaman and Frazzoli IJRR 11). This is a function of the state dimension and is left as a double for later accuracy in calculate k */
             double minimumRggK() const;
+
+            /** \brief Calculate the measure (i.e., volume) of a unit n-ball */
+            double unitNBallMeasure(unsigned int N) const;
             ///////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////

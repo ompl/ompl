@@ -1398,9 +1398,9 @@ namespace ompl
             double dimDbl = static_cast<double>(Planner::si_->getStateDimension());
 
             //Calculate the term and return
-            return rewireFactor_*2.0*std::pow( (1.0 + 1.0/dimDbl)*( prunedMeasure_/ompl::ProlateHyperspheroid::unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRG radius (biggest for unit-volume problem)
-            //return rewireFactor_*std::pow( 2.0*(1.0 + 1.0/dimDbl)*( prunedMeasure_/ompl::ProlateHyperspheroid::unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRT* radius (smaller for unit-volume problem)
-            //return rewireFactor_*2.0*std::pow( (1.0/dimDbl)*( prunedMeasure_/ompl::ProlateHyperspheroid::unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //FMT* radius (smallest for R2, equiv to RRT* for R3 and then middle for higher d. All unit-volume)
+            return rewireFactor_*2.0*std::pow( (1.0 + 1.0/dimDbl)*( prunedMeasure_/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRG radius (biggest for unit-volume problem)
+            //return rewireFactor_*std::pow( 2.0*(1.0 + 1.0/dimDbl)*( prunedMeasure_/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRT* radius (smaller for unit-volume problem)
+            //return rewireFactor_*2.0*std::pow( (1.0/dimDbl)*( prunedMeasure_/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //FMT* radius (smallest for R2, equiv to RRT* for R3 and then middle for higher d. All unit-volume)
         }
 
 
@@ -1416,6 +1416,11 @@ namespace ompl
         }
 
 
+
+        double BITstar::unitNBallMeasure(unsigned int N) const
+        {
+            return std::pow(std::sqrt(boost::math::constants::pi<double>()), static_cast<double>(N)) / boost::math::tgamma(static_cast<double>(N)/2.0 + 1.0);
+        }
 
 
 

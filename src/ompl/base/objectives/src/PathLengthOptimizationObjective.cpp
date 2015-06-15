@@ -38,6 +38,8 @@
 #include <boost/make_shared.hpp>
 #if OMPL_HAVE_EIGEN3
 #include "ompl/base/samplers/informed/PathLengthDirectInfSampler.h"
+#else
+#include "ompl/base/samplers/informed/RejectionInfSampler.h"
 #endif
 
 ompl::base::PathLengthOptimizationObjective::
