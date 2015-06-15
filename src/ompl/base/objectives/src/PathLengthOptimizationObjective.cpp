@@ -35,10 +35,10 @@
 /* Author: Luis G. Torres, Jonathan Gammell */
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include <boost/make_shared.hpp>
 #if OMPL_HAVE_EIGEN3
 #include "ompl/base/samplers/informed/PathLengthDirectInfSampler.h"
 #endif
-#include <boost/make_shared.hpp>
 
 ompl::base::PathLengthOptimizationObjective::
 PathLengthOptimizationObjective(const SpaceInformationPtr &si) :
@@ -62,10 +62,13 @@ ompl::base::Cost ompl::base::PathLengthOptimizationObjective::motionCostHeuristi
     return motionCost(s1, s2);
 }
 
-#if OMPL_HAVE_EIGEN3
 ompl::base::InformedSamplerPtr ompl::base::PathLengthOptimizationObjective::allocInformedStateSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls) const
 {
-    // Make the direct path-length informed sampler and return
+    // Make the direct path-length informed sampler and return. If OMPL was compiled with Eigen, a direct version is available, if not a rejection-based technique can be used
+#if OMPL_HAVE_EIGEN3
     return boost::make_shared<PathLengthDirectInfSampler>(probDefn, maxNumberCalls);
-}
+#else
+    OMPL_INFORM("%s: Direct sampling of the path-length objective requires Eigen. As this version of OMPL was compiled without Eigen support, the informed sampling is defaulting to rejection sampling.", description_.c_str());
+    return boost::make_shared<RejectionInfSampler>(probDefn, maxNumberCalls);
 #endif
+}
