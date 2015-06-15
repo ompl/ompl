@@ -41,6 +41,7 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 // For ompl::msg::setLogLevel
 #include "ompl/util/Console.h"
+#include <ompl/config.h>
 
 // The supported optimal planners, in alphabetical order
 #include <ompl/geometric/planners/bitstar/BITstar.h>
@@ -77,7 +78,7 @@ enum planningObjective
 {
     OBJECTIVE_PATHCLEARANCE,
     OBJECTIVE_PATHLENGTH,
-    OBJECTIVE_PATHLENGTHWMIN,
+    OBJECTIVE_THRESHOLDPATHLENGTH,
     OBJECTIVE_WEIGHTEDCOMBO
 };
 
@@ -165,7 +166,7 @@ ob::OptimizationObjectivePtr allocateObjective(ob::SpaceInformationPtr si, plann
         case OBJECTIVE_PATHLENGTH:
             return getPathLengthObjective(si);
             break;
-        case OBJECTIVE_PATHLENGTHWMIN:
+        case OBJECTIVE_THRESHOLDPATHLENGTH:
             return getThresholdPathLengthObj(si);
             break;
         case OBJECTIVE_WEIGHTEDCOMBO:
@@ -213,11 +214,12 @@ void plan(std::string outputFile, optimalPlanner plannerType, planningObjective 
     // Set the start and goal states
     pdef->setStartAndGoalStates(start, goal);
 
-    // Since we want to find an optimal plan, we need to define what
-    // is optimal with an OptimizationObjective structure.
+    // Create the optimization objective specified by our command-line argument.
+    // This helper function is simply a switch statement.
     pdef->setOptimizationObjective(allocateObjective(si, objectiveType));
 
-    // Construct our optimal planner using the RRTstar algorithm.
+    // Construct the optimal planner specified by our command line argument.
+    // This helper function is simply a switch statement.
     ob::PlannerPtr optimizingPlanner = allocatePlanner(si, plannerType);
 
     // Set the problem instance for our planner to solve
@@ -232,8 +234,11 @@ void plan(std::string outputFile, optimalPlanner plannerType, planningObjective 
     {
         // Output the length of the path found
         std::cout
-            << "Found solution of path length "
-            << pdef->getSolutionPath()->length() << std::endl;
+            << optimizingPlanner->getName()
+            << " found a solution of length "
+            << pdef->getSolutionPath()->length()
+            << " with an optimization objective value of "
+            << pdef->getSolutionPath()->cost(pdef->getOptimizationObjective()) << std::endl;
 
         // If a filename was specified, output the path as a matrix to
         // that file for visualization
@@ -383,10 +388,10 @@ bool argParse(int argc, char** argv, std::string *outputFilePtr, optimalPlanner 
     bpo::options_description desc("Allowed options");
     desc.add_options()
         ("help,h", "produce help message")
-        ("output-file,f", bpo::value<std::string>(), "(Optional) Specify an output path for the final solution path.")
-        ("planner,p", bpo::value<std::string>(), "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. Valid options are BITstar, FMTstar, PRMstar, and RRTstar.") //Alphabetical order
-        ("objective,o", bpo::value<std::string>(), "(Optional) Specify the optimization objective to minimize, defaults to PathLength if not given. Valid options are PathClearance, PathLength, PathLengthWithMinimum, and WeightedPathLengthAndClearance.") //Alphabetical order
-        ("log-level,l", bpo::value<unsigned int>(), "(Optional) Set the OMPL log level. 0 for WARN, 1 for INFO, 2 for DEBUG. Defaults to WARN.");
+        ("file,f", bpo::value<std::string>()->default_value(""), "(Optional) Specify an output path for the found solution path.")
+        ("planner,p", bpo::value<std::string>()->default_value("RRTstar"), "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. Valid options are BITstar, FMTstar, PRMstar, and RRTstar.") //Alphabetical order
+        ("objective,o", bpo::value<std::string>()->default_value("PathLength"), "(Optional) Specify the optimization objective, defaults to PathLength if not given. Valid options are PathClearance, PathLength, ThresholdPathLength, and WeightedLengthAndClearanceCombo.") //Alphabetical order
+        ("info,i", bpo::value<unsigned int>()->default_value(0u), "(Optional) Set the OMPL log level. 0 for WARN, 1 for INFO, 2 for DEBUG. Defaults to WARN.");
     bpo::variables_map vm;
     bpo::store(bpo::parse_command_line(argc, argv, desc), vm);
     bpo::notify(vm);
@@ -398,116 +403,81 @@ bool argParse(int argc, char** argv, std::string *outputFilePtr, optimalPlanner 
         return false;
     }
 
-    // Check if the log-level has been set, this is an optional argument
-    if (vm.count("log-level"))
-    {
-        // It has
-        // Get the log-level uint
-        unsigned int logLevel = vm["log-level"].as<unsigned int>();
+    // Set the log-level
+    unsigned int logLevel = vm["info"].as<unsigned int>();
 
-        // Switch to setting the log level:
-        if (logLevel == 0u)
-        {
-            ompl::msg::setLogLevel(ompl::msg::LOG_WARN);
-        }
-        else if (logLevel == 1u)
-        {
-            ompl::msg::setLogLevel(ompl::msg::LOG_INFO);
-        }
-        else if (logLevel == 2u)
-        {
-            ompl::msg::setLogLevel(ompl::msg::LOG_DEBUG);
-        }
-        else
-        {
-            std::cout << "Invalid log-level integer." << std::endl << std::endl << desc << std::endl;
-            return false;
-        }
-    }
-    else
+    // Switch to setting the log level:
+    if (logLevel == 0u)
     {
-        // Not set, mark as default
         ompl::msg::setLogLevel(ompl::msg::LOG_WARN);
     }
-
-    // Check if an output file has been set, this is an optional argument
-    if (vm.count("output-file"))
+    else if (logLevel == 1u)
     {
-        // Set, get the string and store it in the return pointer
-        *outputFilePtr = vm["output-file"].as<std::string>();
+        ompl::msg::setLogLevel(ompl::msg::LOG_INFO);
     }
-    // No else, not specified
-
-    // Check if a planner has been set, this is an optional argument that defaults to RRT* if not specified
-    if (vm.count("planner"))
+    else if (logLevel == 2u)
     {
-        // It has
-        // Get the specified planner as a string
-        std::string plannerStr = vm["planner"].as<std::string>();
-
-        // Map the string to the enum
-        if (boost::iequals("BITstar", plannerStr))
-        {
-            *plannerPtr = PLANNER_BITSTAR;
-        }
-        else if (boost::iequals("FMTstar", plannerStr))
-        {
-            *plannerPtr = PLANNER_FMTSTAR;
-        }
-        else if (boost::iequals("PRMstar", plannerStr))
-        {
-            *plannerPtr = PLANNER_PRMSTAR;
-        }
-        else if (boost::iequals("RRTstar", plannerStr))
-        {
-            *plannerPtr = PLANNER_RRTSTAR;
-        }
-        else
-        {
-            std::cout << "Invalid planner string." << std::endl << std::endl << desc << std::endl;
-            return false;
-        }
+        ompl::msg::setLogLevel(ompl::msg::LOG_DEBUG);
     }
     else
     {
-        // Not set, set to RRTstar
+        std::cout << "Invalid log-level integer." << std::endl << std::endl << desc << std::endl;
+        return false;
+    }
+
+    // Get the output file string and store it in the return pointer
+    *outputFilePtr = vm["file"].as<std::string>();
+
+    // Get the specified planner as a string
+    std::string plannerStr = vm["planner"].as<std::string>();
+
+    // Map the string to the enum
+    if (boost::iequals("BITstar", plannerStr))
+    {
+        *plannerPtr = PLANNER_BITSTAR;
+    }
+    else if (boost::iequals("FMTstar", plannerStr))
+    {
+        *plannerPtr = PLANNER_FMTSTAR;
+    }
+    else if (boost::iequals("PRMstar", plannerStr))
+    {
+        *plannerPtr = PLANNER_PRMSTAR;
+    }
+    else if (boost::iequals("RRTstar", plannerStr))
+    {
         *plannerPtr = PLANNER_RRTSTAR;
     }
-
-    // Check if a objective has been set, this is an optional argument that defaults to path length if not specified
-    if (vm.count("objective"))
+    else
     {
-        // It has
-        // Get the specified objective as a string
-        std::string objectiveStr = vm["objective"].as<std::string>();
+        std::cout << "Invalid planner string." << std::endl << std::endl << desc << std::endl;
+        return false;
+    }
 
-        // Map the string to the enum
-        if (boost::iequals("PathClearance", objectiveStr))
-        {
-            *objectivePtr = OBJECTIVE_PATHCLEARANCE;
-        }
-        else if (boost::iequals("PathLength", objectiveStr))
-        {
-            *objectivePtr = OBJECTIVE_PATHLENGTH;
-        }
-        else if (boost::iequals("PathLengthWithMinimum", objectiveStr))
-        {
-            *objectivePtr = OBJECTIVE_PATHLENGTHWMIN;
-        }
-        else if (boost::iequals("WeightedPathLengthAndClearance", objectiveStr))
-        {
-            *objectivePtr = OBJECTIVE_WEIGHTEDCOMBO;
-        }
-        else
-        {
-            std::cout << "Invalid objective string." << std::endl << std::endl << desc << std::endl;
-            return false;
-        }
+    // Get the specified objective as a string
+    std::string objectiveStr = vm["objective"].as<std::string>();
+
+    // Map the string to the enum
+    if (boost::iequals("PathClearance", objectiveStr))
+    {
+        *objectivePtr = OBJECTIVE_PATHCLEARANCE;
+    }
+    else if (boost::iequals("PathLength", objectiveStr))
+    {
+        *objectivePtr = OBJECTIVE_PATHLENGTH;
+    }
+    else if (boost::iequals("ThresholdPathLength", objectiveStr))
+    {
+        *objectivePtr = OBJECTIVE_THRESHOLDPATHLENGTH;
+    }
+    else if (boost::iequals("WeightedLengthAndClearanceCombo", objectiveStr))
+    {
+        *objectivePtr = OBJECTIVE_WEIGHTEDCOMBO;
     }
     else
     {
-        // Not set, set to path length
-        *objectivePtr = OBJECTIVE_PATHLENGTH;
+        std::cout << "Invalid objective string." << std::endl << std::endl << desc << std::endl;
+        return false;
     }
 
     // Looks like we parsed the arguments successfully
