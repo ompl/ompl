@@ -46,7 +46,8 @@
 #include <boost/scoped_ptr.hpp>
 //For the boost::once_flag and other tools for making sure an init function is only called once.
 #include <boost/thread/once.hpp>
-#include <boost/thread/lock_guard.hpp>
+//For boost::lock_guard
+#include <boost/thread/locks.hpp>
 
 namespace ompl
 {
