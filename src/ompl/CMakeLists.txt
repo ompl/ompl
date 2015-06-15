@@ -15,10 +15,7 @@ file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp ge
 if(NOT OMPL_HAVE_EIGEN3)
     list(REMOVE_ITEM OMPL_SOURCE_CODE
         "${VERSION_DIR}/util/src/ProlateHyperspheroid.cpp"
-        "${VERSION_DIR}/base/samplers/informed/src/PathLengthDirectInfSampler.cpp"
-        "${VERSION_DIR}/geometric/planners/bitstar/src/BITstar.cpp"
-        "${VERSION_DIR}/geometric/planners/bitstar/datastructures/src/IntegratedQueue.cpp"
-        "${VERSION_DIR}/geometric/planners/bitstar/datastructures/src/Vertex.cpp")
+        "${VERSION_DIR}/base/samplers/informed/src/PathLengthDirectInfSampler.cpp")
 endif()
 
 #############################################
