@@ -41,7 +41,6 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 // For ompl::msg::setLogLevel
 #include "ompl/util/Console.h"
-#include <ompl/config.h>
 
 // The supported optimal planners, in alphabetical order
 #include <ompl/geometric/planners/bitstar/BITstar.h>

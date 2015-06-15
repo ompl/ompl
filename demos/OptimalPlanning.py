@@ -164,13 +164,8 @@ def getPathLengthObjWithCostToGo(si):
     return obj
 
 
-# Keep these in alphabetical order
+# Keep these in alphabetical order and all lower case
 def allocatePlanner(si, plannerType):
-    # 0 BITstar
-    # 1 FMTstar
-    # 2 PRMstar
-    # 3 RRTstar
-
     if plannerType.lower() == "bitstar":
         return og.BITstar(si)
     elif plannerType.lower() == "fmtstar":
@@ -180,15 +175,11 @@ def allocatePlanner(si, plannerType):
     elif plannerType.lower() == "rrtstar":
         return og.RRTstar(si)
     else:
-        OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
+        OMPL_ERROR("Planner-type is not implemented in allocation function.");
 
-# Keep these in alphabetical order
+
+# Keep these in alphabetical order and all lower case
 def allocateObjective(si, objectiveType):
-    # 0 PathClearance
-    # 1 PathLength
-    # 2 ThresholdPathLength
-    # 3 WeightedLengthAndClearanceCombo
-
     if objectiveType.lower() == "pathclearance":
         return getClearanceObjective(si)
     elif objectiveType.lower() == "pathlength":
@@ -198,7 +189,7 @@ def allocateObjective(si, objectiveType):
     elif objectiveType.lower() == "weightedlengthandclearancecombo":
         return getBalancedObjective1(si)
     else:
-        OMPL_ERROR("Optimization-objective enum is not implemented in allocation function.");
+        OMPL_ERROR("Optimization-objective is not implemented in allocation function.");
 
 
 
