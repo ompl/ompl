@@ -47,13 +47,15 @@
 #include <boost/make_shared.hpp>
 //For boost::bind
 #include <boost/bind.hpp>
-//For pre C++ 11 gamma function
-#include <boost/math/special_functions/gamma.hpp>
+//For boost math constants
+#include <boost/math/constants/constants.hpp>
 
 //For OMPL_INFORM et al.
 #include "ompl/util/Console.h"
 //For exceptions:
 #include "ompl/util/Exception.h"
+// For geometric equations like unitNBallMeasure
+#include "ompl/util/GeometricEquations.h"
 //For ompl::base::GoalStates:
 #include "ompl/base/goals/GoalState.h"
 //For getDefaultNearestNeighbors
@@ -1413,13 +1415,6 @@ namespace ompl
 
             //Calculate the term and return
             return rewireFactor_*(boost::math::constants::e<double>() + (boost::math::constants::e<double>() / dimDbl)); //RRG k-nearest
-        }
-
-
-
-        double BITstar::unitNBallMeasure(unsigned int N) const
-        {
-            return std::pow(std::sqrt(boost::math::constants::pi<double>()), static_cast<double>(N)) / boost::math::tgamma(static_cast<double>(N)/2.0 + 1.0);
         }
 
 

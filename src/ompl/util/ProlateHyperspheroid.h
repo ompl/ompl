@@ -91,12 +91,6 @@ namespace ompl
         /** \brief Calculate length of a line that originates from one focus, passes through the given point, and terminates at the other focus, i.e., the transverse diameter of the ellipse on which the given sample lies*/
         double getPathLength(unsigned int n, const double point[]);
 
-        /** \brief The "volume" of a unit n-ball */
-        static double unitNBallMeasure(unsigned int N);
-
-        /** \brief The "volume" of a general n-PHS given the distance between the foci (minTransverseDiameter) and the actual transverse diameter (transverseDiameter) */
-        static double calcPhsMeasure(unsigned int N, double minTransverseDiameter, double transverseDiameter);
-
     protected:
 
     private:

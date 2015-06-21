@@ -34,12 +34,17 @@
 
 /* Author: Jonathan Gammell*/
 
+// The class's header
 #include "ompl/util/ProlateHyperspheroid.h"
+// For OMPL exceptions
 #include "ompl/util/Exception.h"
+// For OMPL information
 #include "ompl/util/Console.h"
+// For geometric equations like prolateHyperspheroidMeasure
+#include "ompl/util/GeometricEquations.h"
+
+// For boost::make_shared
 #include <boost/make_shared.hpp>
-// For pre C++ 11 gamma function
-#include <boost/math/special_functions/gamma.hpp>
 
 // Eigen core:
 #include <Eigen/Core>
@@ -165,46 +170,12 @@ double ompl::ProlateHyperspheroid::getPhsMeasure(void)
 
 double ompl::ProlateHyperspheroid::getPhsMeasure(double tranDiam)
 {
-    return calcPhsMeasure(dataPtr_->dim_, dataPtr_->minTransverseDiameter_, tranDiam);
+    return prolateHyperspheroidMeasure(dataPtr_->dim_, dataPtr_->minTransverseDiameter_, tranDiam);
 }
 
 double ompl::ProlateHyperspheroid::getMinTransverseDiameter(void)
 {
     return dataPtr_->minTransverseDiameter_;
-}
-
-double ompl::ProlateHyperspheroid::unitNBallMeasure(unsigned int N)
-{
-    return std::pow(std::sqrt(boost::math::constants::pi<double>()), static_cast<double>(N)) / boost::math::tgamma(static_cast<double>(N)/2.0 + 1.0);
-}
-
-double ompl::ProlateHyperspheroid::calcPhsMeasure(unsigned int N, double minTransverseDiameter, double transverseDiameter)
-{
-    if (transverseDiameter < minTransverseDiameter)
-    {
-        throw Exception("Transverse diameter cannot be less than the minimum transverse diameter.");
-    }
-    // Variable
-    // The conjugate diameter:
-    double conjugateDiameter;
-    // The Lebesgue measure return value
-    double lmeas;
-
-    // Calculate the conjugate diameter:
-    conjugateDiameter = std::sqrt(transverseDiameter * transverseDiameter - minTransverseDiameter * minTransverseDiameter);
-
-    // Calculate as a product series of the radii, noting that one is the transverse diameter/2.0, and the other N-1 are the conjugate diameter/2.0
-    lmeas = transverseDiameter/2.0;
-    for (unsigned int i = 1u; i < N; ++i)
-    {
-        lmeas = lmeas * conjugateDiameter/2.0;
-    }
-
-    // Then multiplied by the volume of the unit n-ball.
-    lmeas = lmeas * unitNBallMeasure(N);
-
-    // Return:
-    return lmeas;
 }
 
 double ompl::ProlateHyperspheroid::getPathLength(unsigned int n, const double point[])
@@ -276,7 +247,7 @@ void ompl::ProlateHyperspheroid::updateTransformation(void)
     dataPtr_->transformationWorldFromEllipse_ = dataPtr_->rotationWorldFromEllipse_ * diagAsVector.asDiagonal();
 
     // Calculate the measure:
-    dataPtr_->phsMeasure_ = calcPhsMeasure(dataPtr_->dim_, dataPtr_->minTransverseDiameter_, dataPtr_->transverseDiameter_);
+    dataPtr_->phsMeasure_ = prolateHyperspheroidMeasure(dataPtr_->dim_, dataPtr_->minTransverseDiameter_, dataPtr_->transverseDiameter_);
 
     // Mark as up to date
     dataPtr_->isTransformUpToDate_ = true;
