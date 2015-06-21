@@ -82,7 +82,7 @@ enum planningObjective
 };
 
 // Parse the command-line arguments
-bool argParse(int argc, char** argv, std::string *outputFilePtr, optimalPlanner *plannerPtr, planningObjective *objectivePtr);
+bool argParse(int argc, char** argv, double *runTime, optimalPlanner *plannerPtr, planningObjective *objectivePtr, std::string *outputFilePtr);
 
 // Our "collision checker". For this demo, our robot's state space
 // lies in [0,1]x[0,1], with a circular obstacle of radius 0.25
@@ -178,7 +178,7 @@ ob::OptimizationObjectivePtr allocateObjective(ob::SpaceInformationPtr si, plann
     }
 }
 
-void plan(std::string outputFile, optimalPlanner plannerType, planningObjective objectiveType)
+void plan(double runTime, optimalPlanner plannerType, planningObjective objectiveType, std::string outputFile)
 {
     // Construct the robot state space in which we're planning. We're
     // planning in [0,1]x[0,1], a subset of R^2.
@@ -225,9 +225,8 @@ void plan(std::string outputFile, optimalPlanner plannerType, planningObjective 
     optimizingPlanner->setProblemDefinition(pdef);
     optimizingPlanner->setup();
 
-    // attempt to solve the planning problem within one second of
-    // planning time
-    ob::PlannerStatus solved = optimizingPlanner->solve(1.0);
+    // attempt to solve the planning problem in the given runtime
+    ob::PlannerStatus solved = optimizingPlanner->solve(runTime);
 
     if (solved)
     {
@@ -256,15 +255,16 @@ void plan(std::string outputFile, optimalPlanner plannerType, planningObjective 
 int main(int argc, char** argv)
 {
     // The parsed arguments
-    std::string outputFile;
+    double runTime;
     optimalPlanner plannerType;
     planningObjective objectiveType;
+    std::string outputFile;
 
     // Parse the arguments, returns true if successful, false otherwise
-    if (argParse(argc, argv, &outputFile, &plannerType, &objectiveType))
+    if (argParse(argc, argv, &runTime, &plannerType, &objectiveType, &outputFile))
     {
         // Plan
-        plan(outputFile, plannerType, objectiveType);
+        plan(runTime, plannerType, objectiveType, outputFile);
 
         // Return with success
         return 0;
@@ -379,7 +379,7 @@ ob::OptimizationObjectivePtr getPathLengthObjWithCostToGo(const ob::SpaceInforma
 }
 
 /** Parse the command line arguments into a string for an output file and the planner/optimization types */
-bool argParse(int argc, char** argv, std::string *outputFilePtr, optimalPlanner *plannerPtr, planningObjective *objectivePtr)
+bool argParse(int argc, char** argv, double* runTimePtr, optimalPlanner *plannerPtr, planningObjective *objectivePtr, std::string *outputFilePtr)
 {
     namespace bpo = boost::program_options;
 
@@ -387,9 +387,10 @@ bool argParse(int argc, char** argv, std::string *outputFilePtr, optimalPlanner 
     bpo::options_description desc("Allowed options");
     desc.add_options()
         ("help,h", "produce help message")
-        ("file,f", bpo::value<std::string>()->default_value(""), "(Optional) Specify an output path for the found solution path.")
+        ("runtime,t", bpo::value<double>()->default_value(1.0), "(Optional) Specify the runtime in seconds. Defaults to 1 and must be greater than 0.")
         ("planner,p", bpo::value<std::string>()->default_value("RRTstar"), "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. Valid options are BITstar, FMTstar, PRMstar, and RRTstar.") //Alphabetical order
         ("objective,o", bpo::value<std::string>()->default_value("PathLength"), "(Optional) Specify the optimization objective, defaults to PathLength if not given. Valid options are PathClearance, PathLength, ThresholdPathLength, and WeightedLengthAndClearanceCombo.") //Alphabetical order
+        ("file,f", bpo::value<std::string>()->default_value(""), "(Optional) Specify an output path for the found solution path.")
         ("info,i", bpo::value<unsigned int>()->default_value(0u), "(Optional) Set the OMPL log level. 0 for WARN, 1 for INFO, 2 for DEBUG. Defaults to WARN.");
     bpo::variables_map vm;
     bpo::store(bpo::parse_command_line(argc, argv, desc), vm);
@@ -424,8 +425,15 @@ bool argParse(int argc, char** argv, std::string *outputFilePtr, optimalPlanner 
         return false;
     }
 
-    // Get the output file string and store it in the return pointer
-    *outputFilePtr = vm["file"].as<std::string>();
+    // Get the runtime as a double
+    *runTimePtr = vm["runtime"].as<double>();
+
+    // Sanity check
+    if (*runTimePtr <= 0.0)
+    {
+        std::cout << "Invalid runtime." << std::endl << std::endl << desc << std::endl;
+        return false;
+    }
 
     // Get the specified planner as a string
     std::string plannerStr = vm["planner"].as<std::string>();
@@ -478,6 +486,9 @@ bool argParse(int argc, char** argv, std::string *outputFilePtr, optimalPlanner 
         std::cout << "Invalid objective string." << std::endl << std::endl << desc << std::endl;
         return false;
     }
+
+    // Get the output file string and store it in the return pointer
+    *outputFilePtr = vm["file"].as<std::string>();
 
     // Looks like we parsed the arguments successfully
     return true;

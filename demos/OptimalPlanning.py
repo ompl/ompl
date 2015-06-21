@@ -193,7 +193,7 @@ def allocateObjective(si, objectiveType):
 
 
 
-def plan(fname, plannerType, objectiveType):
+def plan(runTime, plannerType, objectiveType, fname):
     # Construct the robot state space in which we're planning. We're
     # planning in [0,1]x[0,1], a subset of R^2.
     space = ob.RealVectorStateSpace(2)
@@ -240,9 +240,8 @@ def plan(fname, plannerType, objectiveType):
     optimizingPlanner.setProblemDefinition(pdef)
     optimizingPlanner.setup()
 
-    # attempt to solve the planning problem within one second of
-    # planning time
-    solved = optimizingPlanner.solve(1.0)
+    # attempt to solve the planning problem in the given runtime
+    solved = optimizingPlanner.solve(runTime)
 
     if solved:
         # Output the length of the path found
@@ -261,13 +260,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Optimal motion planning demo program.')
 
     # Add a filename argument
-    parser.add_argument('-f', '--file',  default=None, help='(Optional) Specify an output path for the found solution path.')
-    parser.add_argument('-p', '--planner',  default='RRTstar', choices=['BITstar', 'FMTstar', 'PRMstar', 'RRTstar'], help='(Optional) Specify the optimal planner to use, defaults to RRTstar if not given.') # Alphabetical order
+    parser.add_argument('-t', '--runtime', type=float, default=1.0, help='(Optional) Specify the runtime in seconds. Defaults to 1 and must be greater than 0.')
+    parser.add_argument('-p', '--planner', default='RRTstar', choices=['BITstar', 'FMTstar', 'PRMstar', 'RRTstar'], help='(Optional) Specify the optimal planner to use, defaults to RRTstar if not given.') # Alphabetical order
     parser.add_argument('-o', '--objective', default='PathLength', choices=['PathClearance', 'PathLength', 'ThresholdPathLength', 'WeightedLengthAndClearanceCombo'], help='(Optional) Specify the optimization objective, defaults to PathLength if not given.') # Alphabetical order
+    parser.add_argument('-f', '--file',  default=None, help='(Optional) Specify an output path for the found solution path.')
     parser.add_argument('-i', '--info', type=int, default=0, choices=[0, 1, 2], help='(Optional) Set the OMPL log level. 0 for WARN, 1 for INFO, 2 for DEBUG. Defaults to WARN.')
 
     # Parse the arguments
     args = parser.parse_args()
+
+    # Check that time is positive
+    if args.runtime <= 0:
+        raise argparse.ArgumentTypeError("argument -t/--runtime: invalid choice: %r (choose a positive number greater than 0)"%(args.runtime,))
 
     # Set the log level
     if args.info == 0:
@@ -279,6 +283,7 @@ if __name__ == "__main__":
     else:
         OMPL_ERROR("Invalid log-level integer.");
 
-    plan(args.file, args.planner, args.objective)
+    # Solve the planning problem
+    plan(args.runtime, args.planner, args.objective, args.file)
 
 ## @endcond
