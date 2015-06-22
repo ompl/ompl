@@ -146,7 +146,18 @@ bool ompl::ProlateHyperspheroid::isInPhs(const double point[]) const
         throw Exception ("The transverse diameter has not been set");
     }
 
-    return (getPathLength(point) <= dataPtr_->transverseDiameter_);
+    return (getPathLength(point) < dataPtr_->transverseDiameter_);
+}
+
+bool ompl::ProlateHyperspheroid::isOnPhs(const double point[]) const
+{
+    if (dataPtr_->isTransformUpToDate_ == false)
+    {
+        // The transform is not up to date until the transverse diameter has been set
+        throw Exception ("The transverse diameter has not been set");
+    }
+
+    return (getPathLength(point) == dataPtr_->transverseDiameter_);
 }
 
 unsigned int ompl::ProlateHyperspheroid::getPhsDimension(void) const

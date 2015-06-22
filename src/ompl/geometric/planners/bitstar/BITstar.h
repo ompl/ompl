@@ -44,6 +44,8 @@
 #include <utility>
 //std::vector
 #include <vector>
+//std::list
+#include <list>
 
 //OMPL:
 //The base-class of planners:
@@ -88,9 +90,7 @@ namespace ompl
             <a href="http://www.youtube.com/watch?v=MRzSfLpNBmA">Illustration video</a>.
 
             \todo
-            - Make k-nearest correct.
-            - Extend beyond single goal states to other samplable goals (i.e., goal sets).
-            - Generalize heuristics to make proper use of the optimization class.
+            - Make k-nearest RGG calculation correct.
         */
         /** \brief Batch Informed Trees (BIT*)*/
         class BITstar : public ompl::base::Planner
@@ -210,6 +210,12 @@ namespace ompl
             /** \brief Get the fractional change in the solution cost necessary for pruning to occur. */
             double getPruneThresholdFraction() const;
 
+            /** \brief Drop unconnected samples on pruning. */
+            void setDropSamplesOnPrune(bool dropSamples);
+
+            /** \brief Get whether unconnected samples are dropped on pruning. */
+            bool getDropSamplesOnPrune() const;
+
             /** \brief Delay considering rewiring edges until an initial solution is found. This improves
             the time required to find an initial solution when doing so requires multiple batches and has
             no effects on theoretical asymptotic optimality (as the rewiring edges are eventually considered). */
@@ -263,6 +269,16 @@ namespace ompl
 
             ///////////////////////////////////////////////////////////////////
             //Helper functions for data manipulation and other low-level functions
+            /** \brief Extract the best solution, ordered \e from the goal to the \e start and including both the goal and the start. Used by both publishSolution and the ProblemDefinition::IntermediateSolutionCallback */
+            std::vector<const ompl::base::State*> bestPathFromGoalToStart() const;
+
+            /** \brief Adds any new goals or starts that have appeared in the problem definition to the list of vertices and the queue. Creates a new informed sampler. Returns true if new starts/goals are created. */
+            void updateStartAndGoalStates(const base::PlannerTerminationCondition& ptc);
+
+            /** \brief Prune the starts and goals that have a solution heuristic that is not less than bestCost_
+                \todo In the case where you are adding both starts \e and goals while BIT* is running, an earlier pruned start/goal may preclude a good solution upon addition of a new goal/start. */
+            void pruneStartsGoals();
+
             /** \brief Prune all samples with a solution heuristic that is not less than the bestCost_ */
             void pruneSamples();
 
@@ -477,20 +493,26 @@ namespace ompl
             /** \brief Optimization objective copied from ProblemDefinition */
             ompl::base::OptimizationObjectivePtr                     opt_;
 
-            /** \brief The start of the problem as a vertex*/
-            VertexPtr                                                startVertex_;
+            /** \brief The start states of the problem as vertices */
+            std::list<VertexPtr>                                     startVertices_;
 
-            /** \brief The goal of the problem as a vertex*/
-            VertexPtr                                                goalVertex_;
+            /** \brief The goal states of the problem as vertices */
+            std::list<VertexPtr>                                     goalVertices_;
+
+            /** \brief The goal vertex of the current best solution */
+            VertexPtr                                                curGoalVertex_;
 
             /** \brief The unconnected samples as a nearest-neighbours datastructure. Sorted by nnDistance. Size accessible via currentFreeProgressProperty */
-            VertexPtrNNPtr                                          freeStateNN_;
+            VertexPtrNNPtr                                           freeStateNN_;
 
             /** \brief The vertices as a nearest-neighbours data structure. Sorted by nnDistance. Size accessible via currentVertexProgressProperty */
-            VertexPtrNNPtr                                          vertexNN_;
+            VertexPtrNNPtr                                           vertexNN_;
 
             /** \brief The integrated queue of vertices to expand and edges to process ordered on "f-value", i.e., estimated solution cost. Remaining vertex queue "size" and edge queue size are accessible via vertexQueueSizeProgressProperty and edgeQueueSizeProgressProperty, respectively. */
             IntegratedQueuePtr                                       intQueue_;
+
+            /** \brief The number of states (vertices or samples) that were generated from a uniform distribution. Only valid when refreshSamplesOnPrune_ is true, in which case it's used to calculate the RGG term of the uniform subgraph.*/
+            unsigned int                                             numUniformStates_;
 
             /** \brief The resulting sampling density for a batch */
             double                                                   sampleDensity_;
@@ -550,9 +572,6 @@ namespace ompl
             /** \brief The number of states generated through sampling. Accessible via statesFromSamplingProgressProperty */
             unsigned int                                             numSamples_;
 
-            /** \brief The number of vertices generated through smoothing/shortcutting. Accessible via statesFromSmoothingProgressProperty */
-            unsigned int                                             numSmoothedVertices_;
-
             /** \brief The number of vertices ever added to the graph. Will count vertices twice if they spend any time disconnected. Accessible via verticesConstructedProgressProperty */
             unsigned int                                             numVertices_;
 
@@ -597,6 +616,9 @@ namespace ompl
 
             /** \brief The fractional decrease in solution cost required to trigger pruning (param) */
             double                                                   pruneFraction_;
+
+            /** \brief Whether to refresh (i.e., forget) unconnected samples on pruning (param) */
+            bool                                                     dropSamplesOnPrune_;
 
             /** \brief Whether to delay rewiring until a solution is found (param) */
             bool                                                     delayRewiring_;

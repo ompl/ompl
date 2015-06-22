@@ -56,8 +56,8 @@
 #include "ompl/util/Exception.h"
 // For geometric equations like unitNBallMeasure
 #include "ompl/util/GeometricEquations.h"
-//For ompl::base::GoalStates:
-#include "ompl/base/goals/GoalState.h"
+//For ompl::base::GoalSampleableRegion, which both GoalState and GoalStates derive from:
+#include "ompl/base/goals/GoalSampleableRegion.h"
 //For getDefaultNearestNeighbors
 #include "ompl/tools/config/SelfConfig.h"
 //For ompl::geometric::path
@@ -77,11 +77,13 @@ namespace ompl
             : ompl::base::Planner(si, name),
             sampler_(),
             opt_(),
-            startVertex_(),
-            goalVertex_(),
+            startVertices_(),
+            goalVertices_(),
+            curGoalVertex_(),
             freeStateNN_(),
             vertexNN_(),
             intQueue_(),
+            numUniformStates_(0u),
             sampleDensity_(0.0),
             r_(0.0), //Purposeful Gibberish
             k_rgg_(0.0), //Purposeful Gibberish
@@ -90,8 +92,8 @@ namespace ompl
             bestLength_(0u),
             prunedCost_( std::numeric_limits<double>::infinity() ), //Gets set in setup to the proper calls from OptimizationObjective
             prunedMeasure_(Planner::si_->getSpaceMeasure()),
-            minCost_( 0.0 ), //Gets set in setup to the proper calls from OptimizationObjective
-            costSampled_(0.0), //Gets set in setup to the proper calls from OptimizationObjective
+            minCost_( std::numeric_limits<double>::infinity() ), //Gets set in setup to the proper calls from OptimizationObjective
+            costSampled_( std::numeric_limits<double>::infinity() ), //Gets set in setup to the proper calls from OptimizationObjective
             hasSolution_(false),
             stopLoop_(false),
             approximateSoln_(false),
@@ -114,18 +116,18 @@ namespace ompl
             useKNearest_(false),
             usePruning_(true),
             pruneFraction_(0.02),
+            dropSamplesOnPrune_(false),
             delayRewiring_(false),
             stopOnSolnChange_(false)
         {
             //Specify my planner specs:
-            Planner::specs_.recognizedGoal = ompl::base::GOAL_STATE;
+            Planner::specs_.recognizedGoal = ompl::base::GOAL_SAMPLEABLE_REGION;
             Planner::specs_.multithreaded = false;
             Planner::specs_.approximateSolutions = false; //For now!
             Planner::specs_.optimizingPaths = true;
             Planner::specs_.directed = true;
             Planner::specs_.provingSolutionNonExistence = false;
 
-            OMPL_INFORM("%s: TODO: Implement goal-region support.", Planner::getName().c_str());
             OMPL_INFORM("%s: TODO: Implement approximate solution support.", Planner::getName().c_str());
 
             //Register my setting callbacks
@@ -137,8 +139,9 @@ namespace ompl
             //Planner::declareParam<bool>("use_edge_failure_tracking", this, &BITstar::setUseFailureTracking, &BITstar::getUseFailureTracking, "0,1");
             //Planner::declareParam<bool>("use_k_nearest", this, &BITstar::setKNearest, &BITstar::getKNearest, "0,1");
             //Planner::declareParam<bool>("use_graph_pruning", this, &BITstar::setPruning, &BITstar::getPruning, "0,1");
-            //Planner::declareParam<double>("prune_threshold_as_fractional_cost_change", this, &BITstar::setPruneThresholdFraction, &BITstar::getPruneThresholdFraction, "0.0:0.01:1.0");
-            //Planner::declareParam<bool>("delay_rewiring_to_first_solution", this, &BITstar::setDelayRewiringUntilInitialSolution, &BITstar::getDelayRewiringUntilInitialSolution, "0,1");
+            Planner::declareParam<double>("prune_threshold_as_fractional_cost_change", this, &BITstar::setPruneThresholdFraction, &BITstar::getPruneThresholdFraction, "0.0:0.01:1.0");
+            Planner::declareParam<bool>("drop_unconnected_samples_on_prune", this, &BITstar::setDropSamplesOnPrune, &BITstar::getDropSamplesOnPrune, "0,1");
+            Planner::declareParam<bool>("delay_rewiring_to_first_solution", this, &BITstar::setDelayRewiringUntilInitialSolution, &BITstar::getDelayRewiringUntilInitialSolution, "0,1");
             //Planner::declareParam<bool>("stop_on_each_solution_improvement", this, &BITstar::setStopOnSolnImprovement, &BITstar::getStopOnSolnImprovement, "0,1");
 
             //Register my progress info:
@@ -178,17 +181,9 @@ namespace ompl
 
             //Do some sanity checks
             //Make sure we have a problem definition
-            if(Planner::pdef_ == NULL)
+            if(static_cast<bool>(Planner::pdef_) == false)
             {
                 OMPL_ERROR("%s::setup() was called without a problem definition.", Planner::getName().c_str());
-                Planner::setup_ = false;
-                return;
-            }
-
-            //Make sure the problem only has one start state.
-            if (Planner::pdef_->getStartStateCount() != 1u)
-            {
-                OMPL_ERROR("%s::setup() was called with %u start states, instead of exactly 1.", Planner::getName().c_str(), Planner::pdef_->getStartStateCount());
                 Planner::setup_ = false;
                 return;
             }
@@ -199,6 +194,19 @@ namespace ompl
                 OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length.", Planner::getName().c_str());
                 Planner::pdef_->setOptimizationObjective( boost::make_shared<base::PathLengthOptimizationObjective> (Planner::si_) );
             }
+
+            //If the problem definition *has* a goal, make sure it is of appropriate type
+            if (static_cast<bool>(Planner::pdef_->getGoal()) == true)
+            {
+                if (Planner::pdef_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION) == false)
+                {
+                    OMPL_ERROR("%s::setup() BIT* currently only supports goals that can be cast to a sampleable goal region (i.e., are countable sets).", Planner::getName().c_str());
+                    Planner::setup_ = false;
+                    return;
+                }
+                //No else, of correct type.
+            }
+            //No else, called without a goal. Is this MoveIt?
 
             //Store the optimization objective for future ease of use
             opt_ = Planner::pdef_->getOptimizationObjective();
@@ -221,50 +229,26 @@ namespace ompl
             freeStateNN_->setDistanceFunction(boost::bind(&BITstar::nnDistance, this, _1, _2));
             vertexNN_->setDistanceFunction(boost::bind(&BITstar::nnDistance, this, _1, _2));
 
-            //Create the start as a vertex:
-            startVertex_ = boost::make_shared<Vertex>(Planner::si_, opt_, true);
-
-            //Copy the value of the start
-            Planner::si_->copyState(startVertex_->state(), pdef_->getStartState(0u));
-
-            //Create the goal as a vertex:
-            //Create a vertex
-            goalVertex_ = boost::make_shared<Vertex>(Planner::si_, opt_);
-
-            //Copy the value of the goal
-            Planner::si_->copyState(goalVertex_->state(), Planner::pdef_->getGoal()->as<ompl::base::GoalState>()->getState());
-
             //Configure the queue
             //boost::make_shared can only take 9 arguments, so be careful:
-            intQueue_ = boost::make_shared<IntegratedQueue> (startVertex_, goalVertex_, boost::bind(&BITstar::nearestSamples, this, _1, _2), boost::bind(&BITstar::nearestVertices, this, _1, _2), boost::bind(&BITstar::lowerBoundHeuristicVertex, this, _1), boost::bind(&BITstar::currentHeuristicVertex, this, _1), boost::bind(&BITstar::lowerBoundHeuristicEdge, this, _1), boost::bind(&BITstar::currentHeuristicEdge, this, _1), boost::bind(&BITstar::currentHeuristicEdgeTarget, this, _1));
+            intQueue_ = boost::make_shared<IntegratedQueue> (opt_, boost::bind(&BITstar::nearestSamples, this, _1, _2), boost::bind(&BITstar::nearestVertices, this, _1, _2), boost::bind(&BITstar::lowerBoundHeuristicVertex, this, _1), boost::bind(&BITstar::currentHeuristicVertex, this, _1), boost::bind(&BITstar::lowerBoundHeuristicEdge, this, _1), boost::bind(&BITstar::currentHeuristicEdge, this, _1), boost::bind(&BITstar::currentHeuristicEdgeTarget, this, _1));
             intQueue_->setUseFailureTracking(useFailureTracking_);
             intQueue_->setDelayedRewiring(delayRewiring_);
 
-            //Allocate a sampler:
-            sampler_ = opt_->allocInformedStateSampler(Planner::pdef_, std::numeric_limits<unsigned int>::max());
-
-            //Set the best-cost and pruned-cost to the proper opt_-based values:
+            //Set the best-cost, pruned-cost, sampled-cost and min-cost to the proper opt_-based values:
             bestCost_ = opt_->infiniteCost();
             prunedCost_ = opt_->infiniteCost();
+            minCost_ = opt_->infiniteCost();
+            costSampled_ = opt_->infiniteCost();
 
-            //Set the minimum cost as the cost-to-come of the goal:
-            minCost_ = this->costToComeHeuristic(goalVertex_);
-
-            //Set the cost sampled to the maximum. This forces us to first check the basic start-goal graph.
-            costSampled_ = bestCost_;
-
-            //Finally, as they depend on some of the above, insert the start and goal into the proper sets
-            //Add the goal to the set of samples.:
-            this->addSample(goalVertex_);
-
-            //Store the start into the tree and the queue:
-            this->addVertex(startVertex_, false);
+            //Add any start and goals vertices that exist to the queue, but do NOT wait for any more goals:
+            this->updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition());
 
             //Finally initialize the nearestNeighbour terms:
             this->initializeNearestTerms();
 
             //Debug: Output an estimate of the state measure:
-//            this->estimateMeasures();
+            //this->estimateMeasures();
         }
 
 
@@ -277,8 +261,9 @@ namespace ompl
             //The various convenience pointers:
             sampler_.reset();
             opt_.reset();
-            startVertex_.reset();
-            goalVertex_.reset();
+            startVertices_.clear();
+            goalVertices_.clear();
+            curGoalVertex_.reset();
 
             //The list of samples
             if (static_cast<bool>(freeStateNN_) == true)
@@ -310,10 +295,12 @@ namespace ompl
             //useKNearest_
             //usePruning_
             //pruneFraction_
+            //dropSamplesOnPrune_
             //delayRewiring_
             //stopOnSolnChange_
 
             //Reset the various calculations? TODO: Should I recalculate them?
+            numUniformStates_ = 0u;
             sampleDensity_ = 0.0;
             r_ = 0.0;
             k_rgg_ = 0.0; //This is a double for better rounding later
@@ -357,8 +344,14 @@ namespace ompl
             //Reset the manual stop to the iteration loop:
             stopLoop_ = false;
 
+            //If we don't have a goal yet, recall updateStartAndGoalStates, but wait for the first goal (or until the PTC comes true and we give up):
+            if (goalVertices_.empty() == true)
+            {
+                this->updateStartAndGoalStates(ptc);
+            }
+
             //Run the outerloop until we're stopped, a suitable cost is found, or until we find the minimum possible cost within tolerance:
-            while (opt_->isSatisfied(bestCost_) == false && ptc == false && opt_->isCostBetterThan(minCost_, bestCost_) == true && stopLoop_ == false)
+            while (opt_->isSatisfied(bestCost_) == false && ptc == false && (opt_->isCostBetterThan(minCost_, bestCost_) == true || Planner::pis_.haveMoreStartStates() == true || Planner::pis_.haveMoreGoalStates() == true) && stopLoop_ == false)
             {
                 this->iterate();
             }
@@ -438,7 +431,7 @@ namespace ompl
             //Did we find a solution?
             if (hasSolution_ == true)
             {
-                data.markGoalState(goalVertex_->stateConst());
+                data.markGoalState(curGoalVertex_->stateConst());
             }
         }
 
@@ -614,17 +607,20 @@ namespace ompl
                 this->resort();
             }
 
-            //Is the edge queue empty?
+            //Is the edge queue empty
             if (intQueue_->isEmpty() == true)
             {
-                //If is is AND it is not sorted, then we hit the (rare) condition where we emptied the queue without having to resort it. Sort!
+                //Is it also unsorted?
                 if (intQueue_->isSorted() == false)
                 {
+                    //If it is, then we've hit a rare condition where we emptied it without having to sort it, so address that
                     this->resort();
                 }
-
-                //If not, then we're either just starting the problem, or just finished a batch. Either way, make a batch of samples and fill the queue for the first time:
-                this->newBatch();
+                else
+                {
+                    //If not, then we're either just starting the problem, or just finished a batch. Either way, make a batch of samples and fill the queue for the first time:
+                    this->newBatch();
+                }
             }
             else
             {
@@ -703,26 +699,25 @@ namespace ompl
 
         void BITstar::newBatch()
         {
-            //Variable:
-            //The states as a vector:
-            std::vector<VertexPtr> vertices;
-
             //Info:
             ++numBatches_;
-
-            //Set the cost sampled to the minimum
-            costSampled_ = minCost_;
-
-            /* Clearing the samples would invalidate the uniform-density assumptions of the RGG:
-            //Clear the samples?
-            freeStateNN_->clear();
-            */
 
             //Reset the queue:
             intQueue_->reset();
 
+            //Do we need to update our starts or goals?
+            if (Planner::pis_.haveMoreStartStates() == true || Planner::pis_.haveMoreGoalStates() == true)
+            {
+                //There are new starts/goals to get.
+                this->updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition());
+            }
+            //No else, we have enough of a problem to do some work, and everything's up to date.
+
             //Prune the graph (if enabled)
             this->prune();
+
+            //Set the cost sampled to the minimum
+            costSampled_ = minCost_;
 
             //Calculate the sampling density (currently unused but for eventual JIT sampling)
             sampleDensity_ = static_cast<double>(samplesPerBatch_)/prunedMeasure_;
@@ -755,6 +750,9 @@ namespace ompl
                     {
                         //Add the new state as a sample
                         this->addSample(newState);
+
+                        //Update the number of uniformly distributed states
+                        ++numUniformStates_;
                     }
                 }
 
@@ -772,11 +770,8 @@ namespace ompl
         bool BITstar::prune()
         {
             //Variable:
-            //Whether or not we pruned
-            bool rval;
-
-            //Start as unpruned:
-            rval = false;
+            //Whether or not we pruned, start as unpruned
+            bool vertexPruned = false;
 
             //Test if we should we do a little tidying up:
             //Is pruning enabled? Do we have a solution? Has the solution changed enough?
@@ -800,12 +795,15 @@ namespace ompl
                     //Increment the pruning counter:
                     ++numPrunings_;
 
+                    //First, prune the starts/goals:
+                    this->pruneStartsGoals();
+
                     //Prune the samples
                     this->pruneSamples();
 
                     //Prune the graph. This can be done extra efficiently by using some info in the integrated queue.
-                    //This requires access to the nearest neighbour structures so vertices can be moved to free states.
-                    numPruned = intQueue_->prune(vertexNN_, freeStateNN_);
+                    //This requires access to the nearest neighbour structures so vertices can be moved to free states.s
+                    numPruned = intQueue_->prune(curGoalVertex_, vertexNN_, freeStateNN_);
 
                     //The number of vertices and samples pruned are incrementally updated.
                     numVerticesDisconnected_ = numVerticesDisconnected_ + numPruned.first;
@@ -818,13 +816,13 @@ namespace ompl
                     prunedMeasure_ = informedMeasure;
 
                     //Check if any states have actually been pruned
-                    rval = (numPruned.second > 0u);
+                    vertexPruned = (numPruned.second > 0u);
                 }
                 //No else, it's not worth the work to prune...
             }
             //No else, why was I called?
 
-            return rval;
+            return vertexPruned;
         }
 
 
@@ -851,25 +849,21 @@ namespace ompl
         void BITstar::publishSolution()
         {
             //Variable
-            //A vector of vertices from goal->start:
-            std::vector<VertexConstPtr> reversePath;
             //The path geometric
             boost::shared_ptr<ompl::geometric::PathGeometric> pathGeoPtr;
+            //The reverse path of state pointers
+            std::vector<const ompl::base::State*> reversePath;
 
             //Allocate the pathGeoPtr
             pathGeoPtr = boost::make_shared<ompl::geometric::PathGeometric>(Planner::si_);
 
-            //Iterate up the chain from the goal, creating a backwards vector:
-            for(VertexConstPtr vertex = goalVertex_; vertex != startVertex_; vertex = vertex->getParentConst())
-            {
-                reversePath.push_back(vertex);
-            }
-            reversePath.push_back(startVertex_);
+            //Get the reversed path
+            reversePath = this->bestPathFromGoalToStart();
 
             //Now iterate that vector in reverse, putting the states into the path geometric
-            for (std::vector<VertexConstPtr>::const_reverse_iterator vIter = reversePath.rbegin(); vIter != reversePath.rend(); ++vIter)
+            for (std::vector<const ompl::base::State*>::const_reverse_iterator sIter = reversePath.rbegin(); sIter != reversePath.rend(); ++sIter)
             {
-                pathGeoPtr->append( (*vIter)->stateConst() );
+                pathGeoPtr->append(*sIter);
             }
 
             //Now create the solution
@@ -893,25 +887,267 @@ namespace ompl
 
 
 
+        std::vector<const ompl::base::State*> BITstar::bestPathFromGoalToStart() const
+        {
+            //A vector of states from goal->start:
+            std::vector<const ompl::base::State*> reversePath;
+
+            //Iterate up the chain from the goal, creating a backwards vector:
+            reversePath.push_back(curGoalVertex_->stateConst());
+
+            //Then, use a vertex pointer like an iterator. Starting at the goal, we iterate up the chain pushing the *parent* of the iterator into the vector until the vertex has no parent.
+            //This will allows us to add the start (as the parent of the first child) and then stop when we get to the start itself, avoiding trying to find its nonexistent child
+            for (VertexConstPtr curVertex = curGoalVertex_; curVertex->isRoot() == false; curVertex = curVertex->getParentConst())
+            {
+                //Check the case where the chain ends incorrectly. This is unnecessary but sure helpful in debugging:
+                if (curVertex->hasParent() == false)
+                {
+                    throw ompl::Exception("The path to the goal does not originate at a start state. Something went wrong.");
+                }
+
+                //Push back the parent into the vector as a state pointer:
+                reversePath.push_back(curVertex->getParentConst()->stateConst());
+            }
+            return reversePath;
+        }
+
+
+
+        void BITstar::updateStartAndGoalStates(const base::PlannerTerminationCondition& ptc)
+        {
+            //Variable
+            //Whether we've added a state:
+            bool addedState = false;
+            //Whether we have to rebuid the queue, i.e.. whether we've called updateStartAndGoalStates before
+            bool rebuildQueue = false;
+
+            //Add the new starts and goals to the lists of said vertices.
+            //Do goals first, as they are only added as samples.
+            //We do this as nested conditions so we always call nextGoal(ptc) at least once (regardless of whether there are moreGoalStates or not)
+            //in case we have been given a non trivial PTC that wants us to wait, but do *not* call it again if there are no more goals
+            //(as in the nontrivial PTC case, doing so would cause us to wait out the ptc and never try to solve anything)
+            do
+            {
+                //Variable
+                //A new goal pointer, if there are none, it will be NULL.
+                //We will wait for the duration of PTC for a new goal to appear.
+                const ompl::base::State* newGoal = Planner::pis_.nextGoal(ptc);
+
+                //Check if it's valid
+                if (static_cast<bool>(newGoal) == true)
+                {
+                    //It is valid and we are adding a goal, we will need to rebuild the queue if any starts have previously been added as their (and any descendents') heuristic cost-to-go may change:
+                    rebuildQueue = (startVertices_.size() > 0u);
+
+                    //Allocate the vertex pointer
+                    goalVertices_.push_back(boost::make_shared<Vertex>(Planner::si_, opt_));
+
+                    //Copy the value into the state
+                    Planner::si_->copyState(goalVertices_.back()->state(), newGoal);
+
+                    //And add this goal to the set of samples:
+                    this->addSample(goalVertices_.back());
+
+                    //Mark that we've added:
+                    addedState = true;
+                }
+                //No else, there was no goal.
+            }
+            while (Planner::pis_.haveMoreGoalStates() == true);
+
+            //If we are going to rebuild the queue, flag the preexisting states now, so we don't resort the new ones
+            if (rebuildQueue == true)
+            {
+                //Flag the queue as unsorted downstream from every existing start.
+                for (std::list<VertexPtr>::const_iterator sIter = startVertices_.begin(); sIter != startVertices_.end(); ++sIter)
+                {
+                    intQueue_->markVertexUnsorted(*sIter);
+                }
+            }
+
+            //And then do the for starts. We do this last as the starts are added to the queue, which uses a cost-to-go heuristic in it's ordering, and for that we want all the goals updated.
+            //As there is no way to wait for new *start* states, this loop can be cleaner
+            //There is no need to rebuild the queue when we add start vertices, as the queue is ordered on current cost-to-come, and adding a start doesn't change that.
+            while (Planner::pis_.haveMoreStartStates() == true)
+            {
+                //Variable
+                //A new start pointer
+                const ompl::base::State* newStart = Planner::pis_.nextStart();
+
+                //Allocate the vertex pointer:
+                startVertices_.push_back(boost::make_shared<Vertex>(Planner::si_, opt_, true));
+
+                //Copy the value into the state:
+                Planner::si_->copyState(startVertices_.back()->state(), newStart);
+
+                //Add this start to the queue. It is not a sample, so skip that step:
+                this->addVertex(startVertices_.back(), false);
+
+                //Mark that we've added:
+                addedState = true;
+            }
+
+            //If we've added a state, we have some updating to do.
+            if (addedState == true)
+            {
+                //Update the minimum cost
+                for (std::list<VertexPtr>::const_iterator sIter = startVertices_.begin(); sIter != startVertices_.end(); ++sIter)
+                {
+                    //Take the better of the min cost so far and the cost-to-go from this start
+                    minCost_ = opt_->betterCost(minCost_, this->costToGoHeuristic(*sIter));
+                }
+
+                //If we have at least one start and goal, allocate a sampler
+                if (startVertices_.size() > 0u && goalVertices_.size() > 0u)
+                {
+                    //There is a start and goal, allocate
+                    sampler_ = opt_->allocInformedStateSampler(Planner::pdef_, std::numeric_limits<unsigned int>::max());
+                }
+                //No else, this will get allocated when we get the updated start/goal.
+
+                //Was there an existing queue that needs to be rebuilt?
+                if (rebuildQueue == true)
+                {
+                    //There was, inform
+                    OMPL_INFORM("%s: Updating starts/goals and rebuilding the queue.", Planner::getName().c_str());
+
+                    //Resort the queue. We have already flagged the start vertices that need to be restarted
+                    this->resort();
+                }
+                //No else
+            }
+            //No else, why were we called?
+
+            //Make sure that if we have a goal, we also have a start, since there's no way to wait for more *starts*
+            if (goalVertices_.empty() == false && startVertices_.empty() == true)
+            {
+                OMPL_WARN("%s, The problem has a goal but not a start. As PlannerInputStates provides no method to wait for a _start_ state, this will likely be problematic.", Planner::getName().c_str());
+            }
+            //No else
+        }
+
+
+
+        void BITstar::pruneStartsGoals()
+        {
+            //Are there superfluous starts to prune?
+            if (startVertices_.size() > 1u)
+            {
+                //Yes, Iterate through the list
+
+                //Variable
+                //The iterator to the start:
+                std::list<VertexPtr>::iterator startIter = startVertices_.begin();
+
+                //Run until at the end:
+                while (startIter != startVertices_.end())
+                {
+                    //Check if this start has met the criteria to be pruned
+                    if (intQueue_->vertexPruneCondition(*startIter)  == true)
+                    {
+                        //It has, update counters. By definition of the heuristics, start vertices are either in the tree or are deleted. Since we're pruning this one, that means we're going all the way to remove it:
+                        ++numVerticesDisconnected_;
+                        ++numFreeStatesPruned_;
+
+                        //Remove the start vertex completely, they don't have parents
+                        intQueue_->eraseVertex(*startIter, false, vertexNN_, freeStateNN_);
+
+                        //Remove from the list, this returns the next iterator
+                        startIter = startVertices_.erase(startIter);
+                    }
+                    else
+                    {
+                        //Still valid, move to the next one:
+                        ++startIter;
+                    }
+                }
+            }
+            //No else, can't prune 1 start.
+
+            //Are there superfluous goals to prune?
+            if (goalVertices_.size() > 1u)
+            {
+                //Yes, Iterate through the list
+
+                //Variable
+                //The iterator to the start:
+                std::list<VertexPtr>::iterator goalIter = goalVertices_.begin();
+
+                //Run until at the end:
+                while (goalIter != goalVertices_.end())
+                {
+                    //Check if this start has met the criteria to be pruned
+                    if (intQueue_->vertexPruneCondition(*goalIter)  == true)
+                    {
+                        //It has, remove the goal vertex completely
+                        //Check if this vertex is in the tree
+                        if ((*goalIter)->isInTree() == true)
+                        {
+                            //It is, increment the counters
+                            ++numVerticesDisconnected_;
+                            ++numFreeStatesPruned_;
+
+                            //And erase it from the queue:
+                            intQueue_->eraseVertex(*goalIter, (*goalIter)->hasParent(), vertexNN_, freeStateNN_);
+
+                            //Remove from the list, this returns the next iterator
+                            goalIter = goalVertices_.erase(goalIter);
+                        }
+                        else
+                        {
+                            //It is not, so we just delete it like a sample
+                            this->dropSample(*goalIter);
+
+                            //Remove from the list, this returns the next iterator
+                            goalIter = goalVertices_.erase(goalIter);
+                        }
+                    }
+                    else
+                    {
+                        //The goal is still valid, get the next
+                        ++goalIter;
+                    }
+                }
+            }
+            //No else, can't prune 1 goal.
+        }
+
+
+
         void BITstar::pruneSamples()
         {
-            //Variable:
-            //The list of samples:
-            std::vector<VertexPtr> samples;
-
-            //Get the list of samples
-            freeStateNN_->list(samples);
-
-            //Iterate through the list and remove any samples that have a heuristic larger than the bestCost_
-            for (unsigned int i = 0u; i < samples.size(); ++i)
+            //Are we dropping samples anytime we prune?
+            if (dropSamplesOnPrune_ == true)
             {
-                //Check if this state should be pruned:
-                if (intQueue_->samplePruneCondition(samples.at(i)) == true)
+                //We are, update the pruned counter
+                numFreeStatesPruned_ = numFreeStatesPruned_ + freeStateNN_->size();
+
+                //and the number of uniform samples
+                numUniformStates_ = 0u;
+
+                //Then remove all of the samples
+                freeStateNN_->clear();
+            }
+            else
+            {
+                //Variable:
+                //The list of samples:
+                std::vector<VertexPtr> samples;
+
+                //Get the list of samples
+                freeStateNN_->list(samples);
+
+                //Iterate through the list and remove any samples that have a heuristic larger than the bestCost_
+                for (unsigned int i = 0u; i < samples.size(); ++i)
                 {
-                    //Yes, remove it
-                    this->dropSample(samples.at(i));
+                    //Check if this state should be pruned:
+                    if (intQueue_->samplePruneCondition(samples.at(i)) == true)
+                    {
+                        //Yes, remove it
+                        this->dropSample(samples.at(i));
+                    }
+                    //No else, keep.
                 }
-                //No else, keep.
             }
         }
 
@@ -971,19 +1207,8 @@ namespace ompl
                 this->addVertex(newEdge.second, removeFromFree);
             }
 
-            //If the stored solution cost or solution length has changed, we update the info about the goal vertex:
-            //Is it connected yet?
-            if (goalVertex_->isInTree() == true)
-            {
-                //Is the stored info out of date?
-                if (opt_->isCostEquivalentTo(goalVertex_->getCost(), bestCost_) == false || (goalVertex_->getDepth() + 1u) != bestLength_)
-                {
-                    //Update the info about the goal vertex
-                    this->updateGoalVertex();
-                }
-                //No else, this edge didn't improve the solution. Don't worry little edge, I'm sure you'll still be useful.
-            }
-            //No else, the goal isn't in the tree yet
+            //If the path to the goal has changed, we may need to update the cached info about the solution cost or solution length:
+            this->updateGoalVertex();
         }
 
 
@@ -1024,31 +1249,102 @@ namespace ompl
 
         void BITstar::updateGoalVertex()
         {
-            //We have a better solution!
-            if (hasSolution_ == false)
+            //Variable
+            //Whether we've updated the goal, be pessimistic.
+            bool goalUpdated = false;
+            //The the new goal, start with the current goal
+            VertexPtr newBestGoal = curGoalVertex_;
+            //The new cost, start as the current bestCost_
+            ompl::base::Cost newCost = bestCost_;
+
+            //Iterate through the list of goals, and see if the solution has changed
+            for (std::list<VertexPtr>::const_iterator gIter = goalVertices_.begin(); gIter != goalVertices_.end(); ++gIter)
             {
-                approximateSoln_ = false;
-                approximateDiff_ = -1.0;
+                //First, is this goal even in the tree?
+                if ((*gIter)->isInTree() == true)
+                {
+                    //Next, is there currently a solution?
+                    if (static_cast<bool>(newBestGoal) == true)
+                    {
+                        //There is already a solution, is it to to this goal?
+                        if (*gIter == newBestGoal)
+                        {
+                            //Ah-ha, We meet again! Are we doing any better? We check the length as sometimes the path length changes with minimal change in cost.
+                            if (opt_->isCostEquivalentTo((*gIter)->getCost(), newCost) == false || ((*gIter)->getDepth() + 1u) != bestLength_)
+                            {
+                                //The path to the current best goal has changed, so we need to update it.
+                                goalUpdated = true;
+                                newBestGoal = *gIter;
+                                newCost = newBestGoal->getCost();
+                            }
+                            //No else, no change
+                        }
+                        else
+                        {
+                            //It is not to this goal, we have a second solution! What an easy problem... but is it better?
+                            if (opt_->isCostBetterThan((*gIter)->getCost(), newCost) == true)
+                            {
+                                //It is! Save this as a better goal:
+                                goalUpdated = true;
+                                newBestGoal = *gIter;
+                                newCost = newBestGoal->getCost();
+                            }
+                            //No else, not a better solution
+                        }
+                    }
+                    else
+                    {
+                        //There isn't a preexisting solution, that means that any goal is an update:
+                        goalUpdated = true;
+                        newBestGoal = *gIter;
+                        newCost = newBestGoal->getCost();
+                    }
+                }
+                //No else, can't be a better solution if it's not in the spanning tree, can it?
             }
 
-            //Mark that we have a solution
-            hasSolution_ = true;
-            intQueue_->hasSolution();
+            //Did we update the goal?
+            if (goalUpdated == true)
+            {
+                //We have a better solution!
+                if (hasSolution_ == false)
+                {
+                    approximateSoln_ = false;
+                    approximateDiff_ = -1.0;
+                }
 
-            //Update the best cost:
-            bestCost_ = goalVertex_->getCost();
+                //Mark that we have a solution
+                hasSolution_ = true;
+                intQueue_->hasSolution();
 
-            //and best length
-            bestLength_ = goalVertex_->getDepth() + 1u;
+                //Store the current goal
+                curGoalVertex_ = newBestGoal;
 
-            //Update the queue threshold:
-            intQueue_->setThreshold(bestCost_);
+                //Update the best cost:
+                bestCost_ = newCost;
 
-            //Stop the solution loop if enabled:
-            stopLoop_ = stopOnSolnChange_ ;
+                //and best length
+                bestLength_ = curGoalVertex_->getDepth() + 1u;
 
-            //Brag:
-            this->goalMessage();
+                //Update the queue threshold:
+                intQueue_->setThreshold(bestCost_);
+
+                //Stop the solution loop if enabled:
+                stopLoop_ = stopOnSolnChange_ ;
+
+                //Brag:
+                this->goalMessage();
+
+                //If enabled, pass the intermediate solution back through the call back:
+                if (static_cast<bool>(Planner::pdef_->getIntermediateSolutionCallback()) == true)
+                {
+                    //The form of path passed to the intermediate solution callback is not well documented, but it *appears* that it's not supposed
+                    //to include the start or goal; however, that makes no sense for multiple start/goal problems, so we're going to include it anyway (sorry).
+                    //Similarly, it appears to be ordered as (goal, goal-1, goal-2,...start+1, start) which conveniently allows us to reuse code.
+                    Planner::pdef_->getIntermediateSolutionCallback()(this, this->bestPathFromGoalToStart(), bestCost_);
+                }
+            }
+            //No else, the goal didn't change
         }
 
 
@@ -1181,7 +1477,19 @@ namespace ompl
 
         ompl::base::Cost BITstar::costToComeHeuristic(const VertexPtr& vertex) const
         {
-            return opt_->motionCostHeuristic(startVertex_->state(), vertex->state());
+            //Variable
+            //The current best cost to the state, initialize to infinity
+            ompl::base::Cost curBest = opt_->infiniteCost();
+
+            //Iterate over the list of starts, finding the minimum estimated cost-to-come to the state
+            for (std::list<VertexPtr>::const_iterator startIter = startVertices_.begin(); startIter != startVertices_.end(); ++startIter)
+            {
+                //Update the cost-to-come as the better of the best so far and the new one
+                curBest = opt_->betterCost(curBest, opt_->motionCostHeuristic((*startIter)->state(), vertex->state()));
+            }
+
+            //Return
+            return curBest;
         }
 
 
@@ -1195,8 +1503,19 @@ namespace ompl
 
         ompl::base::Cost BITstar::costToGoHeuristic(const VertexPtr& vertex) const
         {
-            //opt_->costToGo(vertex->state(), Planner::pdef_->getGoal().get());
-            return opt_->motionCostHeuristic(vertex->state(), goalVertex_->state());
+            //Variable
+            //The current best cost to a goal from the state, initialize to infinity
+            ompl::base::Cost curBest = opt_->infiniteCost();
+
+            //Iterate over the list of goals, finding the minimum estimated cost-to-go from the state
+            for (std::list<VertexPtr>::const_iterator goalIter = goalVertices_.begin(); goalIter != goalVertices_.end(); ++goalIter)
+            {
+                //Update the cost-to-go as the better of the best so far and the new one
+                curBest = opt_->betterCost(curBest, opt_->motionCostHeuristic(vertex->state(), (*goalIter)->state()));
+            }
+
+            //Return
+            return curBest;
         }
 
 
@@ -1298,11 +1617,20 @@ namespace ompl
         void BITstar::updateNearestTerms()
         {
             //Variables:
-            //The number of samples:
+            //The number of uniformly distributed states:
             unsigned int N;
 
-            //Calculate the number of N:
-            N = vertexNN_->size() + freeStateNN_->size();
+            //Calculate the number of N, are we dropping samples?
+            if (dropSamplesOnPrune_ == true)
+            {
+                //We arre, so we've been tracking the number of uniform states, just us that
+                N = numUniformStates_;
+            }
+            else
+            {
+                //We are not, so the all vertices and samples are uniform, less the starts and goals.
+                N = vertexNN_->size() + freeStateNN_->size() - startVertices_.size() - goalVertices_.size();
+            }
 
             if (useKNearest_ == true)
             {
@@ -1595,6 +1923,44 @@ namespace ompl
         {
             return pruneFraction_;
         }
+
+
+
+        void BITstar::setDropSamplesOnPrune(bool dropSamples)
+        {
+            //If we're turning the function on, make sure the number of uniform states is up to date.
+            if (dropSamples == true && dropSamplesOnPrune_ == false)
+            {
+                //Start at 0
+                numUniformStates_ = 0u;
+
+                //Add vertices and samples, if they exist
+                if (static_cast<bool>(vertexNN_) == true)
+                {
+                    numUniformStates_  = numUniformStates_ + vertexNN_->size();
+                }
+                if (static_cast<bool>(freeStateNN_) == true)
+                {
+                    numUniformStates_  = numUniformStates_ + freeStateNN_->size();
+                }
+
+                //Remove starts and goals if this won't make us negative. This protects against the case where the problem is setup with starts/goals but not started yet
+                if (numUniformStates_ >= (startVertices_.size() + goalVertices_.size()))
+                {
+                    numUniformStates_ = numUniformStates_ - startVertices_.size() - goalVertices_.size();
+                }
+            }
+
+            dropSamplesOnPrune_ = dropSamples;
+        }
+
+
+
+        bool BITstar::getDropSamplesOnPrune() const
+        {
+            return dropSamplesOnPrune_;
+        }
+
 
 
 

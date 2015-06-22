@@ -510,6 +510,7 @@ namespace ompl
         {
             if (isPruned_ == true)
             {
+                std::cout << std::endl << "vId: " << vId_  << std::endl;
                 throw ompl::Exception("Attempting to access a pruned vertex.");
             }
         }

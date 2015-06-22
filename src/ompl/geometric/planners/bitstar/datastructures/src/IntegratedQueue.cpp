@@ -47,10 +47,8 @@ namespace ompl
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
         //Public functions:
-        BITstar::IntegratedQueue::IntegratedQueue(const VertexPtr& startVertex, const VertexPtr& goalVertex, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget)
-            :   opt_(startVertex->getOpt()),
-                startVertex_(startVertex),
-                goalVertex_(goalVertex),
+        BITstar::IntegratedQueue::IntegratedQueue(const ompl::base::OptimizationObjectivePtr& opt, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget)
+            :   opt_(opt),
                 nearSamplesFunc_(nearSamplesFunc),
                 nearVerticesFunc_(nearVerticesFunc),
                 lowerBoundHeuristicVertexFunc_(lowerBoundHeuristicVertex),
@@ -100,7 +98,7 @@ namespace ompl
 
 
 
-        void BITstar::IntegratedQueue::eraseVertex(const VertexPtr& oldVertex, bool disconnectParent)
+        void BITstar::IntegratedQueue::eraseVertex(const VertexPtr& oldVertex, bool disconnectParent, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN)
         {
             //If requested, disconnect from parent, cascading cost updates:
             if (disconnectParent == true)
@@ -108,8 +106,8 @@ namespace ompl
                 this->disconnectParent(oldVertex, true);
             }
 
-            //Remove it from vertx queue and lookup, and edge queues (as requested):
-            this->vertexRemoveHelper(oldVertex, VertexPtrNNPtr(), VertexPtrNNPtr(), true);
+            //Remove it from vertex queue and lookup, and edge queues (as requested):
+            this->vertexRemoveHelper(oldVertex, vertexNN, freeStateNN, true);
         }
 
 
@@ -218,6 +216,13 @@ namespace ompl
         void BITstar::IntegratedQueue::setThreshold(const ompl::base::Cost& costThreshold)
         {
             costThreshold_ = costThreshold;
+        }
+
+
+
+        ompl::base::Cost BITstar::IntegratedQueue::getThreshold() const
+        {
+            return costThreshold_;
         }
 
 
@@ -420,7 +425,7 @@ namespace ompl
 
 
 
-        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::prune(const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN)
+        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::prune(const VertexPtr& pruneStartPtr, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN)
         {
             if (this->isSorted() == false)
             {
@@ -441,21 +446,18 @@ namespace ompl
             //Initialize the counters:
             numPruned = std::make_pair(0u, 0u);
 
-            //Get the iterator to the queue to the goal.
-            lookupIter = vertexIterLookup_.find(goalVertex_->getId());
+            //Get the iterator to the queue of the given starting point.
+            lookupIter = vertexIterLookup_.find(pruneStartPtr->getId());
 
             //Check that it was found
             if (lookupIter == vertexIterLookup_.end())
             {
                 //Complain
-                throw ompl::Exception("The goal vertex is not in the queue?");
+                throw ompl::Exception("The provided starting point is not in the queue?");
             }
 
-            //Get the iterator to the goal vertex in the queue:
+            //Get the vertex queue iterator:
             queueIter = lookupIter->second;
-
-            //Move to the one after:
-            ++queueIter;
 
             //Iterate through to the end of the queue
             while (queueIter != vertexQueue_.end())
@@ -1089,7 +1091,7 @@ namespace ompl
             }
             else if ( this->vertexQueueComparison(myLookup->second->first, vertexToExpand_->first) == true )
             {
-                //The vertexQueueCondition says that this vertex was enterted with a cost that is in front of the current token:
+                //The vertexQueueCondition says that this vertex was entered with a cost that is in front of the current token:
                 alreadyExpanded = true;
             }
             else
@@ -1149,16 +1151,6 @@ namespace ompl
             //(b) occurs if it doesn't.
 
             //Some asserts:
-            if (branchBase == goalVertex_)
-            {
-                throw ompl::Exception("Trying to prune goal vertex. Something went wrong.");
-            }
-
-            if (branchBase == startVertex_ )
-            {
-                throw ompl::Exception("Trying to prune start vertex. Something went wrong.");
-            }
-
             if (branchBase->isInTree() == false)
             {
                 throw ompl::Exception("Trying to prune a disconnected vertex. Something went wrong.");

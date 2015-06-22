@@ -120,7 +120,7 @@ namespace ompl
             //Public functions:
             /** \brief Construct an integrated queue. */
             //boost::make_shared can only take 9 arguments, so be careful:
-            IntegratedQueue(const VertexPtr& startVertex, const VertexPtr& goalVertex, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget);
+            IntegratedQueue(const ompl::base::OptimizationObjectivePtr& opt, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget);
 
             virtual ~IntegratedQueue();
 
@@ -140,14 +140,14 @@ namespace ompl
 
             //////////////////
             //Insert and erase
-            /** \brief Insert a vertex into the vertex expansion queue. Vertices remain in the vertex queue until pruned or manually removed. A moving token marks the line between expanded and not expanded vertices. */
+            /** \brief Insert a vertex into the vertex expansion queue. Vertices remain in the vertex queue until pruned or manually removed. A moving token marks the line between expanded and not expanded vertices.*/
             void insertVertex(const VertexPtr& newVertex);
 
             /** \brief Insert an edge into the edge processing queue. Edges are removed from the processing queue. This is only valid if the source vertex is already in the expansion queue (though it may already be expanded). */
             void insertEdge(const VertexPtrPair& newEdge);
 
-            /** \brief Erase a vertex from the vertex expansion queue. Will disconnect the vertex from its parent and remove the associated incoming and outgoing edges from the edge queue as requested. Assumes you've already dealt with removing from the NN structures.*/
-            void eraseVertex(const VertexPtr& oldVertex, bool disconnectParent);
+            /** \brief Erase a vertex from the vertex expansion queue. Will disconnect the vertex from its parent and remove the associated incoming and outgoing edges from the edge queue as requested.*/
+            void eraseVertex(const VertexPtr& oldVertex, bool disconnectParent, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN);
             //////////////////
 
             //////////////////
@@ -179,6 +179,9 @@ namespace ompl
             /** \brief Set the threshold of the queue */
             void setThreshold(const ompl::base::Cost& costThreshold);
 
+            /** \brief Get the threshold of the queue */
+            ompl::base::Cost getThreshold() const;
+
             /** \brief Erase all edges in the edge queue that lead to the given vertex */
             void removeEdgesTo(const VertexPtr& cVertex);
 
@@ -191,11 +194,11 @@ namespace ompl
             /** \brief Prune edges in the edge queue that leave from the given vertex using the prune function */
             void pruneEdgesFrom(const VertexPtr& pVertex);
 
-            /** \brief Mark the queue as requiring resorting */
+            /** \brief Mark the queue as requiring resorting downstream of the specified vertex */
             void markVertexUnsorted(const VertexPtr& vertex);
 
             /** \brief Prune the vertex queue of vertices whose their lower-bound heuristic is greater then the threshold. Descendents of pruned vertices that are not pruned themselves are returned to the set of free states. Returns the number of vertices pruned (either removed completely or moved to the set of free states). */
-            std::pair<unsigned int, unsigned int> prune(const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN);
+            std::pair<unsigned int, unsigned int> prune(const VertexPtr& pruneStartPtr, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN);
 
             /** \brief Resort the queue, only reinserting edges/vertices if their lower-bound heuristic is less then the threshold. Descendents of pruned vertices that are not pruned themselves are returned to the set of free states. Requires first marking the queue as unsorted. Returns the number of vertices pruned (either removed completely or moved to the set of free states). */
             std::pair<unsigned int, unsigned int> resort(const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN);
@@ -287,29 +290,23 @@ namespace ompl
             /** \brief My optimization objective. */
             ompl::base::OptimizationObjectivePtr                     opt_;
 
-            /** \brief My start vertex. */
-            VertexPtr                                                startVertex_;
-
-            /** \brief My goal vertex */
-            VertexPtr                                                goalVertex_;
+            /** \brief The function to find nearby samples. */
+            NeighbourhoodFunc                                        nearSamplesFunc_;
 
             /** \brief The function to find nearby samples. */
-            NeighbourhoodFunc                                     nearSamplesFunc_;
-
-            /** \brief The function to find nearby samples. */
-            NeighbourhoodFunc                                     nearVerticesFunc_;
+            NeighbourhoodFunc                                        nearVerticesFunc_;
 
             /** \brief The lower-bounding heuristic for a vertex. */
-            VertexHeuristicFunc                                  lowerBoundHeuristicVertexFunc_;
+            VertexHeuristicFunc                                      lowerBoundHeuristicVertexFunc_;
 
             /** \brief The current heuristic for a vertex. */
-            VertexHeuristicFunc                                  currentHeuristicVertexFunc_;
+            VertexHeuristicFunc                                      currentHeuristicVertexFunc_;
 
             /** \brief The lower-bounding heuristic for an edge. */
-            EdgeHeuristicFunc                                    lowerBoundHeuristicEdgeFunc_;
+            EdgeHeuristicFunc                                        lowerBoundHeuristicEdgeFunc_;
 
             /** \brief The current heuristic for an edge. */
-            EdgeHeuristicFunc                                    currentHeuristicEdgeFunc_;
+            EdgeHeuristicFunc                                        currentHeuristicEdgeFunc_;
 
             /** \brief The current heuristic to the end of an edge. */
             EdgeHeuristicFunc                                        currentHeuristicEdgeTargetFunc_;
@@ -326,13 +323,13 @@ namespace ompl
             /** \brief Whether to use child lookup tables or not */
             bool                                                     incomingLookupTables_;
 
-            /** \brief The underlying queue of vertices. Sorted by vertex_sorting_func_t. */
+            /** \brief The underlying queue of vertices. Sorted by vertexQueueComparison. */
             CostToVertexMMap                                         vertexQueue_;
 
             /** \brief The next vertex in the expansion queue to expand*/
             VertexQueueIter                                          vertexToExpand_;
 
-            /** \brief The underlying queue of edges. Sorted by edge_sorting_func_t. */
+            /** \brief The underlying queue of edges. Sorted by edgeQueueComparison. */
             CostToVertexPtrPairMMap                                  edgeQueue_;
 
             /** \brief A lookup from vertex to iterator in the vertex queue */
@@ -385,7 +382,7 @@ namespace ompl
             /** \brief Insert a vertex into the queue and lookups. Expands vertex into edges if it comes before the expansion token and expandIfBeforeToken is true. */
             void vertexInsertHelper(const VertexPtr& newVertex, bool expandIfBeforeToken);
 
-            /** \brief Remove a vertex from the queue and optionally its entries in the various lookups. */
+            /** \brief Remove a vertex from the queue and optionally its entries in the various lookups. Returns the number of vertices that are completely deleted. */
             //This is *NOT* by const-reference so that the oldVertex pointer doesn't go out of scope on me... which was happening if it was being called with an iter->second where the iter gets deleted in this function...
             unsigned int vertexRemoveHelper(VertexPtr oldVertex, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, bool removeLookups);
             ////////////////////////////////
@@ -441,7 +438,7 @@ namespace ompl
             bool isCostWorseThanOrEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const;
             ////////////////////////////////
         }; //class: IntegratedQueue
-    } // geometric
-} // ompl
+    } //geometric
+} //ompl
 #endif //OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_INTEGRATEDQUEUE_
 
