@@ -70,7 +70,7 @@ ompl::base::InformedSamplerPtr ompl::base::PathLengthOptimizationObjective::allo
 #if OMPL_HAVE_EIGEN3
     return boost::make_shared<PathLengthDirectInfSampler>(probDefn, maxNumberCalls);
 #else
-    OMPL_ERROR("%s: Direct sampling of the path-length objective requires Eigen, but OMPL was compiled without Eigen support. If possible, please install Eigen and recompile OMPL. If this is not possible, you can manually create an instantiation of RejectionInfSampler to approximate the behaviour of direct informed sampling. ", description_.c_str());
+    throw Exception("Direct sampling of the path-length objective requires Eigen, but this version of OMPL was compiled without Eigen support. If possible, please install Eigen and recompile OMPL. If this is not possible, you can manually create an instantiation of RejectionInfSampler to approximate the behaviour of direct informed sampling.");
     // Return a null pointer to avoid compiler warnings
     return ompl::base::InformedSamplerPtr();
 #endif
