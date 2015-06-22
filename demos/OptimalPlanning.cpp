@@ -46,6 +46,7 @@
 #include <ompl/geometric/planners/bitstar/BITstar.h>
 #include <ompl/geometric/planners/cforest/CForest.h>
 #include <ompl/geometric/planners/fmt/FMT.h>
+#include <ompl/geometric/planners/rrt/InformedRRTstar.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 
@@ -70,6 +71,7 @@ enum optimalPlanner
     PLANNER_BITSTAR,
     PLANNER_CFOREST,
     PLANNER_FMTSTAR,
+    PLANNER_INF_RRTSTAR,
     PLANNER_PRMSTAR,
     PLANNER_RRTSTAR
 };
@@ -139,24 +141,41 @@ ob::PlannerPtr allocatePlanner(ob::SpaceInformationPtr si, optimalPlanner planne
     switch (plannerType)
     {
         case PLANNER_BITSTAR:
+        {
             return boost::make_shared<og::BITstar>(si);
             break;
+        }
         case PLANNER_CFOREST:
+        {
             return boost::make_shared<og::CForest>(si);
             break;
+        }
         case PLANNER_FMTSTAR:
+        {
             return boost::make_shared<og::FMT>(si);
             break;
+        }
+        case PLANNER_INF_RRTSTAR:
+        {
+            return boost::make_shared<og::InformedRRTstar>(si);
+            break;
+        }
         case PLANNER_PRMSTAR:
-            return boost::make_shared<og::PRMstar>(si);;
+        {
+            return boost::make_shared<og::PRMstar>(si);
             break;
+        }
         case PLANNER_RRTSTAR:
-            return boost::make_shared<og::RRTstar>(si);;
+        {
+            return boost::make_shared<og::RRTstar>(si);
             break;
+        }
         default:
+        {
             OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
-            return ob::PlannerPtr();
+            return ob::PlannerPtr(); // Address compiler warning re: no return value.
             break;
+        }
     }
 }
 
@@ -393,7 +412,7 @@ bool argParse(int argc, char** argv, double* runTimePtr, optimalPlanner *planner
     desc.add_options()
         ("help,h", "produce help message")
         ("runtime,t", bpo::value<double>()->default_value(1.0), "(Optional) Specify the runtime in seconds. Defaults to 1 and must be greater than 0.")
-        ("planner,p", bpo::value<std::string>()->default_value("RRTstar"), "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. Valid options are BITstar, CForest, FMTstar, PRMstar, and RRTstar.") //Alphabetical order
+        ("planner,p", bpo::value<std::string>()->default_value("RRTstar"), "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. Valid options are BITstar, CForest, FMTstar, InformedRRTstar, PRMstar, and RRTstar.") //Alphabetical order
         ("objective,o", bpo::value<std::string>()->default_value("PathLength"), "(Optional) Specify the optimization objective, defaults to PathLength if not given. Valid options are PathClearance, PathLength, ThresholdPathLength, and WeightedLengthAndClearanceCombo.") //Alphabetical order
         ("file,f", bpo::value<std::string>()->default_value(""), "(Optional) Specify an output path for the found solution path.")
         ("info,i", bpo::value<unsigned int>()->default_value(0u), "(Optional) Set the OMPL log level. 0 for WARN, 1 for INFO, 2 for DEBUG. Defaults to WARN.");
@@ -455,6 +474,10 @@ bool argParse(int argc, char** argv, double* runTimePtr, optimalPlanner *planner
     else if (boost::iequals("FMTstar", plannerStr))
     {
         *plannerPtr = PLANNER_FMTSTAR;
+    }
+    else if (boost::iequals("InformedRRTstar", plannerStr))
+    {
+        *plannerPtr = PLANNER_INF_RRTSTAR;
     }
     else if (boost::iequals("PRMstar", plannerStr))
     {

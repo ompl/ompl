@@ -170,6 +170,8 @@ def allocatePlanner(si, plannerType):
         return og.BITstar(si)
     elif plannerType.lower() == "fmtstar":
         return og.FMT(si)
+    elif plannerType.lower() == "informedrrtstar":
+        return og.InformedRRTstar(si)
     elif plannerType.lower() == "prmstar":
         return og.PRMstar(si)
     elif plannerType.lower() == "rrtstar":
@@ -261,7 +263,7 @@ if __name__ == "__main__":
 
     # Add a filename argument
     parser.add_argument('-t', '--runtime', type=float, default=1.0, help='(Optional) Specify the runtime in seconds. Defaults to 1 and must be greater than 0.')
-    parser.add_argument('-p', '--planner', default='RRTstar', choices=['BITstar', 'FMTstar', 'PRMstar', 'RRTstar'], help='(Optional) Specify the optimal planner to use, defaults to RRTstar if not given.') # Alphabetical order
+    parser.add_argument('-p', '--planner', default='RRTstar', choices=['BITstar', 'FMTstar', 'InformedRRTstar', 'PRMstar', 'RRTstar'], help='(Optional) Specify the optimal planner to use, defaults to RRTstar if not given.') # Alphabetical order
     parser.add_argument('-o', '--objective', default='PathLength', choices=['PathClearance', 'PathLength', 'ThresholdPathLength', 'WeightedLengthAndClearanceCombo'], help='(Optional) Specify the optimization objective, defaults to PathLength if not given.') # Alphabetical order
     parser.add_argument('-f', '--file',  default=None, help='(Optional) Specify an output path for the found solution path.')
     parser.add_argument('-i', '--info', type=int, default=0, choices=[0, 1, 2], help='(Optional) Set the OMPL log level. 0 for WARN, 1 for INFO, 2 for DEBUG. Defaults to WARN.')

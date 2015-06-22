@@ -51,6 +51,7 @@ namespace ompl
     {
         /** \brief An informed sampler for problems seeking to minimize path length.
 
+        @par Short description
         It focuses the search to the subset of a problem that can improve a current solution, which is a prolate hyperspheroid (PHS)
         (a special type of an hyperellipsoid) and can be sampled directly.
         Doing so considers all homotopy classes that can provide a better solution while guaranteeing a non-zero probability
@@ -58,9 +59,14 @@ namespace ompl
         the current solution is to the theoretical minimum.
         Currently only implemented for problems with a single goal in R^n (i.e., RealVectorStateSpace), SE(2) (i.e., SE2StateSpace), and SE(3) (i.e., SE3StateSpace).
         Until an initial solution is found, this sampler simply passes-through to a uniform distribution over the entire state space.
-        @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
-        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic."
-        IROS 2014. DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
+
+        @par Associated publications:
+
+        J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
+        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic." In Proceedings
+        of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Chicago, IL, USA,
+        14-18 Sept. 2014.
+        DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
         <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>.
 

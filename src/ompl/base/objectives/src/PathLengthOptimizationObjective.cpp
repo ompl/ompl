@@ -47,6 +47,9 @@ PathLengthOptimizationObjective(const SpaceInformationPtr &si) :
     ompl::base::OptimizationObjective(si)
 {
     description_ = "Path Length";
+
+    //Setup a default cost-to-go heuristics:
+    setCostToGoHeuristic(boost::bind(&base::goalRegionCostToGo, _1, _2));
 }
 
 ompl::base::Cost ompl::base::PathLengthOptimizationObjective::stateCost(const State *s) const

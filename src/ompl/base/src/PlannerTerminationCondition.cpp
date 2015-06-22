@@ -222,7 +222,12 @@ ompl::base::PlannerTerminationCondition ompl::base::plannerAndTerminationConditi
 
 ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondition(double duration)
 {
-    return PlannerTerminationCondition(boost::bind(&timePassed, time::now() + time::seconds(duration)));
+    return timedPlannerTerminationCondition(time::seconds(duration));
+}
+
+ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondition(time::duration duration)
+{
+    return PlannerTerminationCondition(boost::bind(&timePassed, time::now() + duration));
 }
 
 ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondition(double duration, double interval)

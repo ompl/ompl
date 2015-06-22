@@ -45,10 +45,10 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
 
     numPathsShared_ = 0;
     numStatesShared_ = 0;
-    prune_ = true;
+    focusSearch_ = true;
 
     numThreads_ = std::max(boost::thread::hardware_concurrency(), 2u);
-    Planner::declareParam<bool>("prune", this, &CForest::setPrune, &CForest::getPrune, "0,1");
+    Planner::declareParam<bool>("focus_search", this, &CForest::setFocusSearch, &CForest::getFocusSearch, "0,1");
     Planner::declareParam<unsigned int>("num_threads", this, &CForest::setNumThreads, &CForest::getNumThreads, "0:64");
 
     addPlannerProgressProperty("best cost REAL",
@@ -75,8 +75,11 @@ void ompl::geometric::CForest::addPlannerInstanceInternal(const base::PlannerPtr
     else
     {
         planner->setProblemDefinition(pdef_);
-        if (planner->params().hasParam("prune"))
-            planner->params()["prune"] = prune_;
+        if (planner->params().hasParam("focus_search"))
+            planner->params()["focus_search"] = focusSearch_;
+        else
+            OMPL_WARN("%s does not appear to support search focusing.", planner->getName().c_str());
+
         planners_.push_back(planner);
     }
 }
