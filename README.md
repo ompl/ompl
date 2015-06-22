@@ -15,7 +15,7 @@ The following dependencies are optional:
 * [Py++](https://bitbucket.org/ompl/pyplusplus) (needed to generate Python bindings)
 * [Doxygen](http://www.doxygen.org) (needed to create a local copy of the documentation at
   http://ompl.kavrakilab.org/core)
-* [Eigen](http://eigen.tuxfamily.org) (needed for informed sampling techniques for path length)
+* [Eigen](http://eigen.tuxfamily.org) (needed for an informed sampling technique to improve the optimization of path length)
 
 Once dependencies are installed, you can build OMPL on Linux, OS X,
 and MS Windows. Go to the top-level directory of OMPL and type the
