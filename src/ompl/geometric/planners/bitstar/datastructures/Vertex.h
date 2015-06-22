@@ -130,10 +130,10 @@ namespace ompl
             bool hasChildren() const;
 
             /** \brief Get the children of a vertex as constant pointers */
-            void getChildrenConst(std::vector<VertexConstPtr> *children) const;
+            void getChildrenConst(VertexConstPtrVector *children) const;
 
             /** \brief Get the children of a vertex as mutable pointers */
-            void getChildren(std::vector<VertexPtr> *children);
+            void getChildren(VertexPtrVector *children);
 
             /** \brief Add a child vertex. Does not change this vertex's cost, and can update the child and its
              * descendent costs */
@@ -242,11 +242,11 @@ namespace ompl
 
             /** \brief The child states as weak pointers, such that the ownership loop is broken and a state can be
              * deleted once it's children are.*/
-            std::vector<VertexWeakPtr> childWPtrs_;
+            std::list<VertexWeakPtr> childWPtrs_;
 
             /** \brief A helper function to check that the vertex is not pruned and throw if so */
             void assertNotPruned() const;
         };  // class: Vertex
-    }  // geometric
+    }       // geometric
 }  // ompl
 #endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_VERTEX_

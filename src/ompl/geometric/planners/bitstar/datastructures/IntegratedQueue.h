@@ -37,11 +37,13 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_INTEGRATEDQUEUE_
 #define OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_INTEGRATEDQUEUE_
 
-// STL/Boost/etc.:
+// STL:
 // std::pair
 #include <utility>
 // std::vector
 #include <vector>
+// std::array
+#include <array>
 // std::list
 #include <list>
 // std::multimap
@@ -63,6 +65,8 @@
 // I am member class of the BITstar class, so I need to include it's definition to be aware of the class BITstar. It has
 // a forward declaration to me.
 #include "ompl/geometric/planners/bitstar/BITstar.h"
+// The cost-helper class:
+#include "ompl/geometric/planners/bitstar/datastructures/CostHelper.h"
 // The vertex class:
 #include "ompl/geometric/planners/bitstar/datastructures/Vertex.h"
 
@@ -75,7 +79,7 @@ namespace ompl
         An integrated two-stage queue that consists of vertices expanded into edges to be processed.
         The integrated queue consists of a vertex expansion queue and an edge processing queue.
         Vertices are expanded as needed from the vertex queue into edges places in the edge queue.
-        Edges are removed from the edge queue for processing by BIT*.
+        Edges are removed from the edge queue for processing by \ref gBITstar "BIT*".
         The vertex queue is implemented as a static ordered list of the vertices in the graph with a token (i.e., an
         iterator)
         pointing to the next vertex that needs to be expanded. This is specifically a multimap ordered on
@@ -97,36 +101,29 @@ namespace ompl
         public:
             ////////////////////////////////
             // Data alias declarations:
-            /** \brief An alias declaration for a pair of costs, i.e., the edge sorting key */
-            typedef std::pair<ompl::base::Cost, ompl::base::Cost> CostPair;
+            /** \brief An alias declaration for a pair of costs, i.e., the vertex sorting key. Done as an array instead
+             * of a pair for consistency with the EdgeQueue */
+            typedef std::array<ompl::base::Cost, 2u> CostDouble;
+            /** \brief An alias declaration for a triple of costs, i.e., the edge sorting key */
+            typedef std::array<ompl::base::Cost, 3u> CostTriple;
             ////////////////////////////////
 
             ////////////////////////////////
             // Function alias declarations:
-            /** \brief A std::function definition of a heuristic function for a vertex. */
-            typedef std::function<ompl::base::Cost(const VertexConstPtr &)> VertexHeuristicFunc;
-
-            /** \brief A std::function definition of a heuristic function for an edge. */
-            typedef std::function<ompl::base::Cost(const VertexConstPtrPair &)> EdgeHeuristicFunc;
-
             /** \brief A std::function definition for the distance between two vertices. */
             typedef std::function<double(const VertexConstPtr &, const VertexConstPtr &)> DistanceFunc;
 
             /** \brief A std::function definition for the neighbourhood of a vertex . */
-            typedef std::function<unsigned int(const VertexPtr &, std::vector<VertexPtr> *)> NeighbourhoodFunc;
+            typedef std::function<unsigned int(const VertexPtr &, VertexPtrVector *)> NeighbourhoodFunc;
             ////////////////////////////////
 
             ////////////////////////////////
             // Public functions:
             /** \brief Construct an integrated queue. */
-            // std::make_shared can only take 9 arguments, so be careful:
-            IntegratedQueue(ompl::base::OptimizationObjectivePtr opt, DistanceFunc distanceFunc,
-                            NeighbourhoodFunc nearSamplesFunc, NeighbourhoodFunc nearVerticesFunc,
-                            VertexHeuristicFunc lowerBoundHeuristicVertex, VertexHeuristicFunc currentHeuristicVertex,
-                            EdgeHeuristicFunc lowerBoundHeuristicEdge, EdgeHeuristicFunc currentHeuristicEdge,
-                            EdgeHeuristicFunc currentHeuristicEdgeTarget);
+            IntegratedQueue(std::shared_ptr<CostHelper> costHelpPtr, DistanceFunc distanceFunc,
+                            NeighbourhoodFunc nearSamplesFunc, NeighbourhoodFunc nearVerticesFunc);
 
-            virtual ~IntegratedQueue();
+            virtual ~IntegratedQueue() = default;
 
             /** \brief Delay considering rewiring edges until an initial solution is found. This improves
             the time required to find an initial solution when doing so requires multiple batches and has
@@ -150,7 +147,7 @@ namespace ompl
             /** \brief Erase a vertex from the vertex expansion queue. Will disconnect the vertex from its parent and
              * remove the associated incoming and outgoing edges from the edge queue as requested.*/
             void eraseVertex(const VertexPtr &oldVertex, bool disconnectParent, const VertexPtrNNPtr &vertexNN,
-                             const VertexPtrNNPtr &freeStateNN, std::vector<VertexPtr> *recycledVertices);
+                             const VertexPtrNNPtr &freeStateNN, VertexPtrVector *recycledVertices);
             //////////////////
 
             //////////////////
@@ -162,10 +159,10 @@ namespace ompl
             VertexPtrPair frontEdge();
 
             /** \brief Get the value of the best vertex on the queue without incrementing the vertex queue */
-            ompl::base::Cost frontVertexValue();
+            CostDouble frontVertexValue();
 
             /** \brief Get the value of the best edge on the queue, leaving it on the edge queue */
-            CostPair frontEdgeValue();
+            CostTriple frontEdgeValue();
 
             /** \brief Pop the best edge off the queue, removing it from the edge queue in the process. */
             void popFrontEdge(VertexPtrPair *bestEdge);
@@ -191,22 +188,25 @@ namespace ompl
             /** \brief Erase all edges in the edge queue that leave from the given vertex */
             void removeEdgesFrom(const VertexPtr &pVertex);
 
-            /** \brief Prune edges in the edge queue that lead to the given vertex using the prune function  */
-            void pruneEdgesTo(const VertexPtr &cVertex);
+            /** \brief Removes edges in the edge queue that lead to the given vertex that would not be added to the
+             * queue now */
+            void updateEdgesTo(const VertexPtr &cVertex);
 
-            /** \brief Prune edges in the edge queue that leave from the given vertex using the prune function */
-            void pruneEdgesFrom(const VertexPtr &pVertex);
+            /** \brief Removes edges in the edge queue that leave from the given vertex that would not be added to the
+             * queue now */
+            void updateEdgesFrom(const VertexPtr &pVertex);
 
             /** \brief Mark the queue as requiring resorting downstream of the specified vertex */
             void markVertexUnsorted(const VertexPtr &vertex);
 
             /** \brief Prune the vertex queue of vertices whose their lower-bound heuristic is greater then the
              * threshold. Descendents of pruned vertices that are not pruned themselves are returned to the set of free
-             * states. Returns the number of vertices pruned (either removed completely or moved to the set of free
-             * states). */
-            std::pair<unsigned int, unsigned int> prune(const VertexPtr &pruneStartPtr, const VertexPtrNNPtr &vertexNN,
+             * states. Returns the number of vertices removed, and the number of said
+             * vertices that are completely thrown away (i.e., are not even useful as a sample) */
+            std::pair<unsigned int, unsigned int> prune(const VertexConstPtr &pruneStartPtr,
+                                                        const VertexPtrNNPtr &vertexNN,
                                                         const VertexPtrNNPtr &freeStateNN,
-                                                        std::vector<VertexPtr> *recycledVertices);
+                                                        VertexPtrVector *recycledVertices);
 
             /** \brief Resort the queue, only reinserting edges/vertices if their lower-bound heuristic is less then the
              * threshold. Descendents of pruned vertices that are not pruned themselves are returned to the set of free
@@ -214,7 +214,7 @@ namespace ompl
              * removed completely or moved to the set of free states). */
             std::pair<unsigned int, unsigned int> resort(const VertexPtrNNPtr &vertexNN,
                                                          const VertexPtrNNPtr &freeStateNN,
-                                                         std::vector<VertexPtr> *recycledVertices);
+                                                         VertexPtrVector *recycledVertices);
 
             /** \brief Finish the queue, clearing all the edge containers and moving the vertex expansion token to the
              * end. After a call to finish, isEmpty() will return true. Keeps threshold, list of unsorted vertices,
@@ -232,19 +232,26 @@ namespace ompl
 
             //////////////////
             // Queue info:
-            /** \brief The condition used to prune vertices out of the queue. Compares lowerBoundHeuristicVertex to the
-             * given threshold. Returns true if the vertex's best cost is greater than the internally set threshold.
-             * Used internally during resort()*/
+            /** \brief The condition used to insert vertices into the queue. Compares lowerBoundHeuristicVertex to the
+             * given threshold. Returns true if the vertex's best cost is lower than the internally set threshold.*/
+            bool vertexInsertCondition(const VertexPtr &vertex) const;
+
+            /** \brief The condition used to insert edges into the queue. Compares lowerBoundHeuristicEdge to the given
+             * threshold. Returns true if the edge's best cost is lower than the internally set threshold.*/
+            bool edgeInsertCondition(const VertexPtrPair &edge) const;
+
+            /** \brief The condition used to prune vertices out of the queue. Compares currentHeuristicVertex to the
+             * given threshold. Returns true if the vertex's best cost is greater than the internally set threshold.*/
             bool vertexPruneCondition(const VertexPtr &vertex) const;
 
             /** \brief The condition used to prune disconnected samples from the free set. Compares
              * lowerBoundHeuristicVertex to the given threshold. Returns true if the vertex's best cost is greater than
-             * or equal to the internally set threshold. Used internally during resort()*/
+             * or equal to the internally set threshold.*/
             bool samplePruneCondition(const VertexPtr &vertex) const;
 
             /** \brief The condition used to prune edge (i.e., vertex-pair) out of the queue. Compares
-             * lowerBoundHeuristicEdge to the given threshold. Returns true if the edge's best cost is greater than the
-             * internally set threshold. Used internally during resort()*/
+             * currentHeuristicEdge to the given threshold. Returns true if the edge's best cost is greater than the
+             * internally set threshold.*/
             bool edgePruneCondition(const VertexPtrPair &edge) const;
 
             /** \brief Returns the number of edges in the queue */
@@ -277,10 +284,10 @@ namespace ompl
 
             /** \brief Get a copy of the vertices in the vertex queue that are left to be expanded. This is expensive
              * and is only meant for animations/debugging. */
-            void listVertices(std::vector<VertexConstPtr> *vertexQueue);
+            void getVertices(VertexConstPtrVector *vertexQueue);
 
             /** \brief Get a copy of the edge queue. This is expensive and is only meant for animations/debugging. */
-            void listEdges(std::vector<std::pair<VertexConstPtr, VertexConstPtr>> *edgeQueue);
+            void getEdges(VertexConstPtrPairVector *edgeQueue);
             //////////////////
             ////////////////////////////////
 
@@ -291,23 +298,23 @@ namespace ompl
              * over a multiset is that a copy of the key is stored with the value, which guarantees that the ordering
              * remains sane. Even if the inherent key for a value has changed, it will still be sorted under the old key
              * until manually updated and the map will be sorted */
-            typedef std::multimap<ompl::base::Cost, VertexPtr,
-                                  std::function<bool(const ompl::base::Cost &, const ompl::base::Cost &)>>
-                CostToVertexMMap;
+            typedef std::multimap<CostDouble, VertexPtr, std::function<bool(const CostDouble &, const CostDouble &)>>
+                QValueToVertexMMap;
 
             /** \brief An alias declaration to the underlying edge queue as a multimap. Multimapped for the same reason
-             * as CostToVertexMMap */
-            typedef std::multimap<CostPair, VertexPtrPair, std::function<bool(const CostPair &, const CostPair &)>>
-                CostToVertexPtrPairMMap;
+             * as QValueToVertexMMap */
+            typedef std::multimap<CostTriple, VertexPtrPair,
+                                  std::function<bool(const CostTriple &, const CostTriple &)>>
+                QValueToVertexPtrPairMMap;
 
             /** \brief An alias declaration for an iterator into the vertex queue multimap */
-            typedef CostToVertexMMap::iterator VertexQueueIter;
+            typedef QValueToVertexMMap::iterator VertexQueueIter;
 
             /** \brief An alias declaration for an unordered_map of vertex queue iterators indexed on vertex*/
             typedef std::unordered_map<BITstar::VertexId, VertexQueueIter> VertexIdToVertexQueueIterUMap;
 
             /** \brief An alias declaration for an iterator into the edge queue multimap */
-            typedef CostToVertexPtrPairMMap::iterator EdgeQueueIter;
+            typedef QValueToVertexPtrPairMMap::iterator EdgeQueueIter;
 
             /** \brief An alias declaration for a list of edge queue iterators*/
             typedef std::list<EdgeQueueIter> EdgeQueueIterList;
@@ -334,8 +341,8 @@ namespace ompl
 
             /** \brief Given two subsets containing (up to) the k-nearest members of each, finds the k-nearest of the
              * union */
-            void processKNearest(unsigned int k, const VertexConstPtr &vertex, std::vector<VertexPtr> *kNearSamples,
-                                 std::vector<VertexPtr> *kNearVertices);
+            void processKNearest(unsigned int k, const VertexConstPtr &vertex, VertexPtrVector *kNearSamples,
+                                 VertexPtrVector *kNearVertices);
             ////////////////////////////////
 
             ////////////////////////////////
@@ -348,7 +355,7 @@ namespace ompl
             std::pair<unsigned int, unsigned int> pruneBranch(const VertexPtr &branchBase,
                                                               const VertexPtrNNPtr &vertexNN,
                                                               const VertexPtrNNPtr &freeStateNN,
-                                                              std::vector<VertexPtr> *recycledVertices);
+                                                              VertexPtrVector *recycledVertices);
 
             /** \brief Disconnect a vertex from its parent by removing the edges stored in itself, and its parents.
              * Cascades cost updates if requested.*/
@@ -360,10 +367,8 @@ namespace ompl
 
             /** \brief Remove a vertex from the queue and optionally its entries in the various lookups. Returns the
              * number of vertices that are completely deleted. */
-            // This is *NOT* by const-reference so that the oldVertex pointer doesn't go out of scope on me... which was
-            // happening if it was being called with an iter->second where the iter gets deleted in this function...
             unsigned int vertexRemoveHelper(const VertexPtr &oldVertex, const VertexPtrNNPtr &vertexNN,
-                                            const VertexPtrNNPtr &freeStateNN, std::vector<VertexPtr> *recycledVertices,
+                                            const VertexPtrNNPtr &freeStateNN, VertexPtrVector *recycledVertices,
                                             bool removeLookups);
             ////////////////////////////////
 
@@ -389,42 +394,23 @@ namespace ompl
 
             ////////////////////////////////
             // Base-queue basic helper functions:
-            /** \brief A convenience function for the value of a vertex in the queue, uses currentHeuristicVertex */
-            ompl::base::Cost vertexQueueValue(const VertexPtr &vertex) const;
+            /** \brief A convenience function for the value of a vertex in the queue */
+            CostDouble vertexQueueValue(const VertexPtr &vertex) const;
 
-            /** \brief A convenience function for the value of an edge in the queue, uses currentHeuristicEdge */
-            CostPair edgeQueueValue(const VertexPtrPair &edge) const;
+            /** \brief A convenience function for the value of an edge in the queue */
+            CostTriple edgeQueueValue(const VertexPtrPair &edge) const;
 
-            /** \brief The comparison function for the cost associated with two vertices in the vertex queue. */
-            bool vertexQueueComparison(const ompl::base::Cost &lhs, const ompl::base::Cost &rhs) const;
-
-            /** A comparison function for the cost-pairs associated with two edges (i.e., vertex-pairs) in the edge
-             * queue. Sorts lexicographically */
-            bool edgeQueueComparison(const CostPair &lhs, const CostPair &rhs) const;
-            ////////////////////////////////
-
-            ////////////////////////////////
-            // Cost helpers
-            /** \brief Compare whether cost a is worse than cost b by checking whether b is better than a. */
-            bool isCostWorseThan(const ompl::base::Cost &a, const ompl::base::Cost &b) const;
-
-            /** \brief Compare whether cost a and cost b are not equivalent by checking if either a or b is better than
-             * the other. */
-            bool isCostNotEquivalentTo(const ompl::base::Cost &a, const ompl::base::Cost &b) const;
-
-            /** \brief Compare whether cost a is better or equivalent to cost b by checking that b is not better than a.
-             */
-            bool isCostBetterThanOrEquivalentTo(const ompl::base::Cost &a, const ompl::base::Cost &b) const;
-
-            /** \brief Compare whether cost a is worse or equivalent to cost b by checking that a is not better than b.
-             */
-            bool isCostWorseThanOrEquivalentTo(const ompl::base::Cost &a, const ompl::base::Cost &b) const;
+            /** A lexicographical comparison function for the std::arrays of costs. This is the sorting function for
+             * both the vertex and edge queues.*/
+            template <std::size_t SIZE>
+            bool queueComparison(const std::array<ompl::base::Cost, SIZE> &lhs,
+                                 const std::array<ompl::base::Cost, SIZE> &rhs) const;
             ////////////////////////////////
 
             ////////////////////////////////
             // Member variables:
-            /** \brief My optimization objective. */
-            ompl::base::OptimizationObjectivePtr opt_;
+            /** \brief The cost & heuristic helper class. */
+            std::shared_ptr<CostHelper> costHelpPtr_;
 
             /** \brief The distance function */
             DistanceFunc distanceFunc_;
@@ -434,21 +420,6 @@ namespace ompl
 
             /** \brief The function to find nearby samples. */
             NeighbourhoodFunc nearVerticesFunc_;
-
-            /** \brief The lower-bounding heuristic for a vertex. */
-            VertexHeuristicFunc lowerBoundHeuristicVertexFunc_;
-
-            /** \brief The current heuristic for a vertex. */
-            VertexHeuristicFunc currentHeuristicVertexFunc_;
-
-            /** \brief The lower-bounding heuristic for an edge. */
-            EdgeHeuristicFunc lowerBoundHeuristicEdgeFunc_;
-
-            /** \brief The current heuristic for an edge. */
-            EdgeHeuristicFunc currentHeuristicEdgeFunc_;
-
-            /** \brief The current heuristic to the end of an edge. */
-            EdgeHeuristicFunc currentHeuristicEdgeTargetFunc_;
 
             /** \brief Whether to delay rewiring until an initial solution is found or not */
             bool delayRewiring_;
@@ -460,13 +431,13 @@ namespace ompl
             bool incomingLookupTables_;
 
             /** \brief The underlying queue of vertices. Sorted by vertexQueueComparison. */
-            CostToVertexMMap vertexQueue_;
+            QValueToVertexMMap vertexQueue_;
 
             /** \brief The next vertex in the expansion queue to expand*/
             VertexQueueIter vertexToExpand_;
 
             /** \brief The underlying queue of edges. Sorted by edgeQueueComparison. */
-            CostToVertexPtrPairMMap edgeQueue_;
+            QValueToVertexPtrPairMMap edgeQueue_;
 
             /** \brief A lookup from vertex to iterator in the vertex queue */
             VertexIdToVertexQueueIterUMap vertexIterLookup_;
@@ -478,15 +449,22 @@ namespace ompl
             VertexIdToEdgeQueueIterListUMap incomingEdges_;
 
             /** \brief A list of vertices that we will need to process when resorting the queue: */
-            std::list<VertexPtr> resortVertices_;
+            VertexPtrList resortVertices_;
 
             /** \brief The maximum heuristic value allowed for vertices/edges in the queue.*/
             ompl::base::Cost costThreshold_;
 
             /** \brief Whether the problem has a solution */
-            bool hasSolution_;
+            bool hasExactSolution_;
             ////////////////////////////////
         };  // class: IntegratedQueue
+
+        ////////////////////////////////
+        // Basic helpers
+        template <typename T, typename U>
+        std::pair<T, U> operator+(const std::pair<T, U> &lhs, const std::pair<T, U> &rhs);
+        ////////////////////////////////
+
     }  // geometric
 }  // ompl
 #endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_INTEGRATEDQUEUE_

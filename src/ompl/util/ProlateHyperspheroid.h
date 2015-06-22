@@ -56,7 +56,7 @@ namespace ompl
 
     /** \brief A class describing a prolate hyperspheroid, a special symmetric type of n-dimensional ellipse,
     for use in direct informed sampling for problems seeking to minimize path length.
-    @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
+    @par J. D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
     Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic." In Proceedings
     of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Chicago, IL, USA,
     14-18 Sept. 2014.

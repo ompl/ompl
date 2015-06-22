@@ -229,7 +229,7 @@ namespace ompl
             return !childWPtrs_.empty();
         }
 
-        void BITstar::Vertex::getChildrenConst(std::vector<VertexConstPtr> *children) const
+        void BITstar::Vertex::getChildrenConst(VertexConstPtrVector *children) const
         {
             this->assertNotPruned();
 
@@ -250,24 +250,23 @@ namespace ompl
             }
         }
 
-        void BITstar::Vertex::getChildren(std::vector<VertexPtr> *children)
+        void BITstar::Vertex::getChildren(VertexPtrVector *children)
         {
             this->assertNotPruned();
 
             children->clear();
 
-            for (std::vector<VertexWeakPtr>::const_iterator cIter = childWPtrs_.begin(); cIter != childWPtrs_.end();
-                 ++cIter)
+            for (const auto &childWPtr : childWPtrs_)
             {
                 // Check that the weak pointer hasn't expired
-                if (cIter->expired() == true)
+                if (childWPtr.expired() == true)
                 {
                     throw ompl::Exception("A (weak) pointer to a child was found to have expired while calculating the "
                                           "children of a vertex.");
                 }
                 else
                 {
-                    children->push_back(cIter->lock());
+                    children->push_back(childWPtr.lock());
                 }
             }
         }
@@ -296,10 +295,11 @@ namespace ompl
 
             // Iterate over the list of children pointers until the child is found. Iterators make erase easier
             foundChild = false;
-            for (auto cIter = childWPtrs_.begin(); cIter != childWPtrs_.end() && foundChild == false; ++cIter)
+            for (auto childIter = childWPtrs_.begin(); childIter != childWPtrs_.end() && foundChild == false;
+                 ++childIter)
             {
                 // Check that the weak pointer hasn't expired
-                if (cIter->expired() == true)
+                if (childIter->expired() == true)
                 {
                     throw ompl::Exception("A (weak) pointer to a child was found to have expired while removing a "
                                           "child from a vertex.");
@@ -307,10 +307,10 @@ namespace ompl
                 // No else, weak pointer is valid
 
                 // Check if this is the child we're looking for
-                if (cIter->lock() == oldChild)
+                if (childIter->lock()->getId() == oldChild->getId())
                 {
                     // Remove the child from the vector
-                    childWPtrs_.erase(cIter);
+                    childWPtrs_.erase(childIter);
 
                     // Mark as found
                     foundChild = true;

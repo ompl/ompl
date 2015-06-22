@@ -73,7 +73,7 @@ namespace ompl
 
             @par Associated publication:
 
-            J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
+            J. D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
             Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic." In Proceedings
             of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Chicago, IL, USA,
             14-18 Sept. 2014.
