@@ -126,7 +126,7 @@ void ompl::ProlateHyperspheroid::setTransverseDiameter(double transverseDiameter
     // No else, the diameter didn't change
 }
 
-void ompl::ProlateHyperspheroid::transform(unsigned int n, const double sphere[], double phs[])
+void ompl::ProlateHyperspheroid::transform(unsigned int n, const double sphere[], double phs[]) const
 {
     if (dataPtr_->isTransformUpToDate_ == false)
     {
@@ -137,7 +137,7 @@ void ompl::ProlateHyperspheroid::transform(unsigned int n, const double sphere[]
     Eigen::Map<Eigen::VectorXd>(phs, n) = dataPtr_->transformationWorldFromEllipse_*Eigen::Map<const Eigen::VectorXd>(sphere, n) + dataPtr_->xCentre_;
 }
 
-bool ompl::ProlateHyperspheroid::isInPhs(unsigned int n, const double point[])
+bool ompl::ProlateHyperspheroid::isInPhs(unsigned int n, const double point[]) const
 {
     if (dataPtr_->isTransformUpToDate_ == false)
     {
@@ -148,13 +148,13 @@ bool ompl::ProlateHyperspheroid::isInPhs(unsigned int n, const double point[])
     return (getPathLength(n, point) <= dataPtr_->transverseDiameter_);
 }
 
-unsigned int ompl::ProlateHyperspheroid::getPhsDimension(void)
+unsigned int ompl::ProlateHyperspheroid::getPhsDimension(void) const
 {
     return dataPtr_->dim_;
 }
 
 
-double ompl::ProlateHyperspheroid::getPhsMeasure(void)
+double ompl::ProlateHyperspheroid::getPhsMeasure(void) const
 {
     if (dataPtr_->isTransformUpToDate_ == false)
     {
@@ -168,17 +168,17 @@ double ompl::ProlateHyperspheroid::getPhsMeasure(void)
     }
 }
 
-double ompl::ProlateHyperspheroid::getPhsMeasure(double tranDiam)
+double ompl::ProlateHyperspheroid::getPhsMeasure(double tranDiam) const
 {
     return prolateHyperspheroidMeasure(dataPtr_->dim_, dataPtr_->minTransverseDiameter_, tranDiam);
 }
 
-double ompl::ProlateHyperspheroid::getMinTransverseDiameter(void)
+double ompl::ProlateHyperspheroid::getMinTransverseDiameter(void) const
 {
     return dataPtr_->minTransverseDiameter_;
 }
 
-double ompl::ProlateHyperspheroid::getPathLength(unsigned int n, const double point[])
+double ompl::ProlateHyperspheroid::getPathLength(unsigned int n, const double point[]) const
 {
     return (dataPtr_->xFocus1_ - Eigen::Map<const Eigen::VectorXd>(point, n)).norm() + (Eigen::Map<const Eigen::VectorXd>(point, n) - dataPtr_->xFocus2_).norm();
 }
