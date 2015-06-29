@@ -38,6 +38,7 @@
 #define OMPL_DATASTRUCTURES_GREEDY_K_CENTERS_
 
 #include "ompl/util/RandomNumbers.h"
+#include <boost/numeric/ublas/matrix.hpp>
 
 namespace ompl
 {
@@ -50,6 +51,8 @@ namespace ompl
     public:
         /** \brief The definition of a distance function */
         typedef boost::function<double(const _T&, const _T&)> DistanceFunction;
+        /** \brief A matrix type for storing distances between points and centers */
+        typedef boost::numeric::ublas::matrix<double> Matrix;
 
         GreedyKCenters()
         {
@@ -76,11 +79,11 @@ namespace ompl
             \param k the desired number of centers
             \param centers a vector of length k containing the indices into
                 data of the k centers
-            \param dists a 2-dimensional array such that dists[i][j] is the distance
+            \param dists a matrix such that dists(i,j) is the distance
                 between data[i] and data[center[j]]
         */
         void kcenters(const std::vector<_T>& data, unsigned int k,
-            std::vector<unsigned int>& centers, std::vector<std::vector<double> >& dists)
+            std::vector<unsigned int>& centers, Matrix& dists)
         {
             // array containing the minimum distance between each data point
             // and the centers computed so far
@@ -88,7 +91,8 @@ namespace ompl
 
             centers.clear();
             centers.reserve(k);
-            dists.resize(data.size(), std::vector<double>(k));
+            if (dists.size1() < data.size() || dists.size2() < k)
+                dists.resize(std::max(2 * dists.size1() + 1, data.size()), k, false);
             // first center is picked randomly
             centers.push_back(rng_.uniformInt(0, data.size() - 1));
             for (unsigned i=1; i<k; ++i)
@@ -98,8 +102,8 @@ namespace ompl
                 double maxDist = -std::numeric_limits<double>::infinity();
                 for (unsigned j=0; j<data.size(); ++j)
                 {
-                    if ((dists[j][i-1] = distFun_(data[j], center)) < minDist[j])
-                        minDist[j] = dists[j][i - 1];
+                    if ((dists(j, i - 1) = distFun_(data[j], center)) < minDist[j])
+                        minDist[j] = dists(j, i - 1);
                     // the j-th center is the one furthest away from center 0,..,j-1
                     if (minDist[j] > maxDist)
                     {
@@ -115,7 +119,7 @@ namespace ompl
             const _T& center = data[centers.back()];
             unsigned i = centers.size() - 1;
             for (unsigned j = 0; j < data.size(); ++j)
-                dists[j][i] = distFun_(data[j], center);
+                dists(j, i) = distFun_(data[j], center);
         }
 
     protected:
