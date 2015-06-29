@@ -126,7 +126,7 @@ void ompl::ProlateHyperspheroid::setTransverseDiameter(double transverseDiameter
     // No else, the diameter didn't change
 }
 
-void ompl::ProlateHyperspheroid::transform(unsigned int n, const double sphere[], double phs[]) const
+void ompl::ProlateHyperspheroid::transform(const double sphere[], double phs[]) const
 {
     if (dataPtr_->isTransformUpToDate_ == false)
     {
@@ -134,10 +134,10 @@ void ompl::ProlateHyperspheroid::transform(unsigned int n, const double sphere[]
     }
 
     // Calculate the tranformation and offset, using Eigen::Map views of the data
-    Eigen::Map<Eigen::VectorXd>(phs, n) = dataPtr_->transformationWorldFromEllipse_*Eigen::Map<const Eigen::VectorXd>(sphere, n) + dataPtr_->xCentre_;
+    Eigen::Map<Eigen::VectorXd>(phs, dataPtr_->dim_) = dataPtr_->transformationWorldFromEllipse_*Eigen::Map<const Eigen::VectorXd>(sphere, dataPtr_->dim_) + dataPtr_->xCentre_;
 }
 
-bool ompl::ProlateHyperspheroid::isInPhs(unsigned int n, const double point[]) const
+bool ompl::ProlateHyperspheroid::isInPhs(const double point[]) const
 {
     if (dataPtr_->isTransformUpToDate_ == false)
     {
@@ -145,7 +145,7 @@ bool ompl::ProlateHyperspheroid::isInPhs(unsigned int n, const double point[]) c
         throw Exception ("The transverse diameter has not been set");
     }
 
-    return (getPathLength(n, point) <= dataPtr_->transverseDiameter_);
+    return (getPathLength(point) <= dataPtr_->transverseDiameter_);
 }
 
 unsigned int ompl::ProlateHyperspheroid::getPhsDimension(void) const
@@ -178,9 +178,14 @@ double ompl::ProlateHyperspheroid::getMinTransverseDiameter(void) const
     return dataPtr_->minTransverseDiameter_;
 }
 
-double ompl::ProlateHyperspheroid::getPathLength(unsigned int n, const double point[]) const
+double ompl::ProlateHyperspheroid::getPathLength(const double point[]) const
 {
-    return (dataPtr_->xFocus1_ - Eigen::Map<const Eigen::VectorXd>(point, n)).norm() + (Eigen::Map<const Eigen::VectorXd>(point, n) - dataPtr_->xFocus2_).norm();
+    return (dataPtr_->xFocus1_ - Eigen::Map<const Eigen::VectorXd>(point, dataPtr_->dim_)).norm() + (Eigen::Map<const Eigen::VectorXd>(point, dataPtr_->dim_) - dataPtr_->xFocus2_).norm();
+}
+
+unsigned int ompl::ProlateHyperspheroid::getDimension() const
+{
+    return dataPtr_->dim_;
 }
 
 void ompl::ProlateHyperspheroid::updateRotation(void)

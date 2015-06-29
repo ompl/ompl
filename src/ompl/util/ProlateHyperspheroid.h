@@ -71,10 +71,10 @@ namespace ompl
         void setTransverseDiameter(double transverseDiameter);
 
         /** \brief Transform a point from a sphere to PHS. The return variable \e phs is expected to already exist.  */
-        void transform(unsigned int n, const double sphere[], double phs[]) const;
+        void transform(const double sphere[], double phs[]) const;
 
         /** \brief Check if the given point lies within the PHS */
-        bool isInPhs(unsigned int n, const double point[]) const;
+        bool isInPhs(const double point[]) const;
 
         /** \brief The dimension of the PHS */
         unsigned int getPhsDimension(void) const;
@@ -89,7 +89,10 @@ namespace ompl
         double getMinTransverseDiameter(void) const;
 
         /** \brief Calculate length of a line that originates from one focus, passes through the given point, and terminates at the other focus, i.e., the transverse diameter of the ellipse on which the given sample lies*/
-        double getPathLength(unsigned int n, const double point[]) const;
+        double getPathLength(const double point[]) const;
+
+        /** \brief The state dimension of the PHS */
+        unsigned int getDimension() const;
 
     protected:
 

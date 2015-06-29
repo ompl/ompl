@@ -159,7 +159,7 @@ namespace ompl
         IROS 2014. DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
         <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
-        void uniformProlateHyperspheroidSurface(const ProlateHyperspheroidPtr &phsPtr, unsigned int n, double value[]);
+        void uniformProlateHyperspheroidSurface(const ProlateHyperspheroidPtr &phsPtr, double value[]);
 
         /** \brief Uniform random sampling of a prolate hyperspheroid, a special symmetric type of
         n-dimensional ellipse. The return variable \e value is expected to already exist.
@@ -168,7 +168,7 @@ namespace ompl
         IROS 2014. DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
         <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
-        void uniformProlateHyperspheroid(const ProlateHyperspheroidPtr &phsPtr, unsigned int n, double value[]);
+        void uniformProlateHyperspheroid(const ProlateHyperspheroidPtr &phsPtr, double value[]);
 #endif
 
     private:
