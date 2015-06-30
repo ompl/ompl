@@ -5,12 +5,10 @@ Registration for OMPL is completely voluntary. We will not spam you with emails.
 \htmlonly
 <form class="form" role="form" action="http://formspree.io/mmoll@rice.edu" method="POST">
   <div class="form-group">
-    <label for="email">email (optional)</label>
-    <input type="email" class="form-control" name="_replyto" value='' placeholder="email">
+    <input type="email" class="form-control" name="_replyto" value='' placeholder="Email (optional)">
   </div>
   <div class="form-group">
-    <label for="affiliation">school / employer</label>
-    <input type="text" class="form-control" name="name" value='' placeholder="school / employer">
+    <input type="text" class="form-control" name="name" value='' placeholder="School / employer">
   </div>
   <div class="form-group">
     <b>I plan to use OMPL for (check all that apply)</b>
@@ -19,8 +17,7 @@ Registration for OMPL is completely voluntary. We will not spam you with emails.
     <div class="checkbox"><label><input type="checkbox" name="industry" value='yes'>industrial applications</label></div>
   </div>
   <div class="form-group">
-    <label for="message">comments/suggestions (optional)</label>
-    <textarea id="message" name="message" rows=6 class="form-control"></textarea>
+    <textarea id="message" name="message" rows=6 class="form-control" placeholder="Comments / suggestions (optional)"></textarea>
   </div>
   <input type="hidden" name="_next" value="thank-you.html" />
   <input type="hidden" name="_subject" value="=== OMPL registration ===" />
