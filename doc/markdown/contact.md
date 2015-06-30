@@ -16,16 +16,13 @@ To report a bug, please click [here](https://bitbucket.org/ompl/ompl/issues?stat
 \htmlonly
 <form class="form" role="form" action="http://formspree.io/mmoll@rice.edu" method="POST">
   <div class="form-group">
-    <label for="name">name</label>
-    <input type="text" class="form-control" name="name" value='' placeholder="name">
+    <input type="text" class="form-control" name="name" value='' placeholder="Your name">
   </div>
   <div class="form-group">
-    <label for="email">email (optional)</label>
-    <input type="email" class="form-control" name="_replyto" value='' placeholder="email">
+    <input type="email" class="form-control" name="_replyto" value='' placeholder="Your email (optional)">
   </div>
   <div class="form-group">
-    <label for="message">comments/suggestions (optional)</label>
-    <textarea id="message" name="message" rows=6 class="form-control"></textarea>
+    <textarea id="message" name="message" rows=6 class="form-control" placeholder="Your message"></textarea>
   </div>
   <input type="hidden" name="_next" value="thank-you.html" />
   <input type="hidden" name="_subject" value="OMPL contact form submission" />

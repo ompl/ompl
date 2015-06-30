@@ -34,8 +34,8 @@
 
 /* Author: Mark Moll, Bryant Gipson */
 
-#ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_GNAT_
-#define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_GNAT_
+#ifndef OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_GNAT_NO_THREAD_SAFETY_
+#define OMPL_DATASTRUCTURES_NEAREST_NEIGHBORS_GNAT_NO_THREAD_SAFETY_
 
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/datastructures/GreedyKCenters.h"
@@ -67,7 +67,7 @@ namespace ompl
         [[PDF]](http://kavrakilab.org/sites/default/files/2013%20resolution%20independent%20density%20estimation%20for%20motion.pdf)
     */
     template<typename _T>
-    class NearestNeighborsGNAT : public NearestNeighbors<_T>
+    class NearestNeighborsGNATNoThreadSafety : public NearestNeighbors<_T>
     {
     protected:
         /// \cond IGNORE
@@ -82,23 +82,10 @@ namespace ompl
             }
         };
         typedef std::priority_queue<DataDist, std::vector<DataDist>, DataDistCompare> NearQueue;
-
-        // another internal data structure is a priority queue of nodes to
-        // check next for possible nearest neighbors
-        class Node;
-        typedef std::pair<Node*,double> NodeDist;
-        struct NodeDistCompare
-        {
-            bool operator()(const NodeDist& n0, const NodeDist& n1) const
-            {
-                return (n0.second - n0.first->maxRadius_) > (n1.second - n1.first->maxRadius_);
-            }
-        };
-        typedef std::priority_queue<NodeDist, std::vector<NodeDist>, NodeDistCompare> NodeQueue;
         /// \endcond
 
     public:
-        NearestNeighborsGNAT(unsigned int degree = 3, unsigned int minDegree = 2,
+        NearestNeighborsGNATNoThreadSafety(unsigned int degree = 3, unsigned int minDegree = 2,
             unsigned int maxDegree = 3, unsigned int maxNumPtsPerLeaf = 4,
             unsigned int removedCacheSize = 50, bool rebalancing = false
 #ifdef GNAT_SAMPLER
@@ -109,14 +96,15 @@ namespace ompl
             minDegree_(std::min(degree,minDegree)), maxDegree_(std::max(maxDegree,degree)),
             maxNumPtsPerLeaf_(maxNumPtsPerLeaf), size_(0),
             rebuildSize_(rebalancing ? maxNumPtsPerLeaf*degree : std::numeric_limits<std::size_t>::max()),
-            removedCacheSize_(removedCacheSize)
+            removedCacheSize_(removedCacheSize),
+            permutation_(maxDegree_), pivots_(maxDegree_)
 #ifdef GNAT_SAMPLER
             , estimatedDimension_(estimatedDimension)
 #endif
         {
         }
 
-        virtual ~NearestNeighborsGNAT()
+        virtual ~NearestNeighborsGNATNoThreadSafety()
         {
             if (tree_)
                 delete tree_;
@@ -195,17 +183,19 @@ namespace ompl
         virtual bool remove(const _T &data)
         {
             if (!size_) return false;
-            NearQueue nbhQueue;
             // find data in tree
-            bool isPivot = nearestKInternal(data, 1, nbhQueue);
-            if (*nbhQueue.top().first != data)
+            bool isPivot = nearestKInternal(data, 1);
+            const _T* d = nearQueue_.top().first;
+            nearQueue_.pop();
+            if (*d != data)
                 return false;
-            removed_.insert(nbhQueue.top().first);
+            removed_.insert(d);
             size_--;
             // if we removed a pivot or if the capacity of removed elements
             // has been reached, we rebuild the entire GNAT
             if (isPivot || removed_.size()>=removedCacheSize_)
                 rebuildDataStructure();
+            integrityCheck();
             return true;
         }
 
@@ -213,7 +203,7 @@ namespace ompl
         {
             if (size_)
             {
-                std::vector<_T> nbh;
+                static std::vector<_T> nbh(1);
                 nearestK(data, 1, nbh);
                 if (!nbh.empty()) return nbh[0];
             }
@@ -227,10 +217,11 @@ namespace ompl
             if (k == 0) return;
             if (size_)
             {
-                NearQueue nbhQueue;
-                nearestKInternal(data, k, nbhQueue);
-                postprocessNearest(nbhQueue, nbh);
+                nearestKInternal(data, k);
+                postprocessNearest(nbh);
             }
+            assert(nearQueue_.empty());
+            assert(nodeQueue_.empty());
         }
 
         /// Return the nearest neighbors within distance \c radius in sorted order
@@ -239,10 +230,11 @@ namespace ompl
             nbh.clear();
             if (size_)
             {
-                NearQueue nbhQueue;
-                nearestRInternal(data, radius, nbhQueue);
-                postprocessNearest(nbhQueue, nbh);
+                nearestRInternal(data, radius);
+                postprocessNearest(nbh);
             }
+            assert(nearQueue_.empty());
+            assert(nodeQueue_.empty());
         }
 
         virtual std::size_t size() const
@@ -270,7 +262,7 @@ namespace ompl
         }
 
         /// \brief Print a GNAT structure (mostly useful for debugging purposes).
-        friend std::ostream& operator<<(std::ostream& out, const NearestNeighborsGNAT<_T>& gnat)
+        friend std::ostream& operator<<(std::ostream& out, const NearestNeighborsGNATNoThreadSafety<_T>& gnat)
         {
             if (gnat.tree_)
             {
@@ -290,6 +282,8 @@ namespace ompl
         // for debugging purposes
         void integrityCheck()
         {
+            assert(nearQueue_.empty());
+            assert(nodeQueue_.empty());
             std::vector<_T> lst;
             boost::unordered_set<const _T*> tmp;
             // get all elements, including those marked for removal
@@ -320,7 +314,7 @@ namespace ompl
             assert(lst.size() == size_);
         }
     protected:
-        typedef NearestNeighborsGNAT<_T> GNAT;
+        typedef NearestNeighborsGNATNoThreadSafety<_T> GNAT;
 
         /// Return true iff data has been marked for removal.
         bool isRemoved(const _T& data) const
@@ -328,61 +322,73 @@ namespace ompl
             return !removed_.empty() && removed_.find(&data) != removed_.end();
         }
 
-        /// \brief Return in nbhQueue the k nearest neighbors of data.
+        /// Make sure there is enough scratch space
+        void reserveScratch(unsigned int numPoints) const
+        {
+            if (numPoints > distances_.size1())
+                distances_.resize(2 * distances_.size1() + 1, maxDegree_, false);
+        }
+        /// Clear the nodeQueue_
+        void clearNodeQueue() const
+        {
+            while (!nodeQueue_.empty())
+                nodeQueue_.pop();
+        }
+        /// \brief Return in nearQueue_ the k nearest neighbors of data.
         /// For k=1, return true if the nearest neighbor is a pivot.
         /// (which is important during removal; removing pivots is a
         /// special case).
-        bool nearestKInternal(const _T &data, std::size_t k, NearQueue& nbhQueue) const
+        bool nearestKInternal(const _T &data, std::size_t k) const
         {
             bool isPivot;
             double dist;
-            NodeDist nodeDist;
-            NodeQueue nodeQueue;
+            Node* node;
 
-            isPivot = tree_->insertNeighborK(nbhQueue, k, tree_->pivot_, data,
+            isPivot = tree_->insertNeighborK(nearQueue_, k, tree_->pivot_, data,
                 NearestNeighbors<_T>::distFun_(data, tree_->pivot_));
-            tree_->nearestK(*this, data, k, nbhQueue, nodeQueue, isPivot);
-            while (nodeQueue.size() > 0)
+            tree_->nearestK(*this, data, k, isPivot);
+            while (nodeQueue_.size() > 0)
             {
-                dist = nbhQueue.top().second; // note the difference with nearestRInternal
-                nodeDist = nodeQueue.top();
-                nodeQueue.pop();
-                if (nbhQueue.size() == k &&
-                    (nodeDist.second > nodeDist.first->maxRadius_ + dist ||
-                     nodeDist.second < nodeDist.first->minRadius_ - dist))
+                dist = nearQueue_.top().second; // note the difference with nearestRInternal
+                node = nodeQueue_.top();
+                nodeQueue_.pop();
+                if (nearQueue_.size() == k &&
+                    (node->distToPivot_ > node->maxRadius_ + dist ||
+                     node->distToPivot_ < node->minRadius_ - dist))
                     break;
-                nodeDist.first->nearestK(*this, data, k, nbhQueue, nodeQueue, isPivot);
+                node->nearestK(*this, data, k, isPivot);
             }
+            clearNodeQueue();
             return isPivot;
         }
-        /// \brief Return in nbhQueue the elements that are within distance radius of data.
-        void nearestRInternal(const _T &data, double radius, NearQueue& nbhQueue) const
+        /// \brief Return in nearQueue_ the elements that are within distance radius of data.
+        void nearestRInternal(const _T &data, double radius) const
         {
             double dist = radius; // note the difference with nearestKInternal
-            NodeQueue nodeQueue;
-            NodeDist nodeDist;
+            Node* node;
 
-            tree_->insertNeighborR(nbhQueue, radius, tree_->pivot_,
+            tree_->insertNeighborR(nearQueue_, radius, tree_->pivot_,
                 NearestNeighbors<_T>::distFun_(data, tree_->pivot_));
-            tree_->nearestR(*this, data, radius, nbhQueue, nodeQueue);
-            while (nodeQueue.size() > 0)
+            tree_->nearestR(*this, data, radius);
+            while (nodeQueue_.size() > 0)
             {
-                nodeDist = nodeQueue.top();
-                nodeQueue.pop();
-                if (nodeDist.second > nodeDist.first->maxRadius_ + dist ||
-                    nodeDist.second < nodeDist.first->minRadius_ - dist)
+                node = nodeQueue_.top();
+                nodeQueue_.pop();
+                if (node->distToPivot_ > node->maxRadius_ + dist ||
+                    node->distToPivot_ < node->minRadius_ - dist)
                     break;
-                nodeDist.first->nearestR(*this, data, radius, nbhQueue, nodeQueue);
+                node->nearestR(*this, data, radius);
             }
+            clearNodeQueue();
         }
         /// \brief Convert the internal data structure used for storing neighbors
         /// to the vector that NearestNeighbor API requires.
-        void postprocessNearest(NearQueue& nbhQueue, std::vector<_T> &nbh) const
+        void postprocessNearest(std::vector<_T> &nbh) const
         {
             typename std::vector<_T>::reverse_iterator it;
-            nbh.resize(nbhQueue.size());
-            for (it=nbh.rbegin(); it!=nbh.rend(); it++, nbhQueue.pop())
-                *it = *nbhQueue.top().first;
+            nbh.resize(nearQueue_.size());
+            for (it=nbh.rbegin(); it!=nbh.rend(); it++, nearQueue_.pop())
+                *it = *nearQueue_.top().first;
         }
 
         /// The class used internally to define the GNAT.
@@ -464,18 +470,17 @@ namespace ompl
                 }
                 else
                 {
-                    std::vector<double> dist(children_.size());
-                    double minDist = dist[0] = gnat.distFun_(data, children_[0]->pivot_);
+                    double minDist = children_[0]->distToPivot_ = gnat.distFun_(data, children_[0]->pivot_);
                     int minInd = 0;
 
                     for (unsigned int i=1; i<children_.size(); ++i)
-                        if ((dist[i] = gnat.distFun_(data, children_[i]->pivot_)) < minDist)
+                        if ((children_[i]->distToPivot_ = gnat.distFun_(data, children_[i]->pivot_)) < minDist)
                         {
-                            minDist = dist[i];
+                            minDist = children_[i]->distToPivot_;
                             minInd = i;
                         }
                     for (unsigned int i=0; i<children_.size(); ++i)
-                        children_[i]->updateRange(minInd, dist[i]);
+                        children_[i]->updateRange(minInd, children_[i]->distToPivot_);
                     children_[minInd]->updateRadius(minDist);
                     children_[minInd]->add(gnat, data);
                 }
@@ -491,8 +496,8 @@ namespace ompl
             /// child node.
             void split(GNAT& gnat)
             {
-                typename GreedyKCenters<_T>::Matrix dists(data_.size(), degree_);
-                std::vector<unsigned int> pivots;
+                typename GreedyKCenters<_T>::Matrix &dists = gnat.distances_;
+                std::vector<unsigned int>& pivots = gnat.pivots_;
 
                 children_.reserve(degree_);
                 gnat.pivotSelector_.kcenters(data_, degree_, pivots, dists);
@@ -559,11 +564,11 @@ namespace ompl
             /// \brief Compute the k nearest neighbors of data in the tree.
             /// For k=1, isPivot is true if the nearest neighbor is a pivot
             /// (which is important during removal; removing pivots is a
-            /// special case). The nodeQueue, which contains other Nodes
-            /// that need to be checked for nearest neighbors, is updated.
+            /// special case).
             void nearestK(const GNAT& gnat, const _T &data, std::size_t k,
-                NearQueue& nbh, NodeQueue& nodeQueue, bool &isPivot) const
+                bool &isPivot) const
             {
+                NearQueue& nbh = gnat.nearQueue_;
                 for (unsigned int i=0; i<data_.size(); ++i)
                     if (!gnat.isRemoved(data_[i]))
                     {
@@ -574,27 +579,26 @@ namespace ompl
                 {
                     double dist;
                     Node *child;
-                    std::vector<double> distToPivot(children_.size());
-                    std::vector<int> permutation(children_.size());
+                    std::vector<int>& permutation = gnat.permutation_;
 
-                    for (unsigned int i=0; i<permutation.size(); ++i)
+                    for (unsigned int i=0; i<children_.size(); ++i)
                         permutation[i] = i;
-                    std::random_shuffle(permutation.begin(), permutation.end());
+                    std::random_shuffle(permutation.begin(), permutation.begin() + children_.size());
 
                     for (unsigned int i=0; i<children_.size(); ++i)
                         if (permutation[i] >= 0)
                         {
                             child = children_[permutation[i]];
-                            distToPivot[permutation[i]] = gnat.distFun_(data, child->pivot_);
-                            if (insertNeighborK(nbh, k, child->pivot_, data, distToPivot[permutation[i]]))
+                            child->distToPivot_ = gnat.distFun_(data, child->pivot_);
+                            if (insertNeighborK(nbh, k, child->pivot_, data, child->distToPivot_))
                                 isPivot = true;
                             if (nbh.size()==k)
                             {
                                 dist = nbh.top().second; // note difference with nearestR
                                 for (unsigned int j=0; j<children_.size(); ++j)
                                     if (permutation[j] >=0 && i != j &&
-                                        (distToPivot[permutation[i]] - dist > child->maxRange_[permutation[j]] ||
-                                         distToPivot[permutation[i]] + dist < child->minRange_[permutation[j]]))
+                                        (child->distToPivot_ - dist > child->maxRange_[permutation[j]] ||
+                                         child->distToPivot_ + dist < child->minRange_[permutation[j]]))
                                         permutation[j] = -1;
                             }
                         }
@@ -605,9 +609,9 @@ namespace ompl
                         {
                             child = children_[permutation[i]];
                             if (nbh.size()<k ||
-                                (distToPivot[permutation[i]] - dist <= child->maxRadius_ &&
-                                 distToPivot[permutation[i]] + dist >= child->minRadius_))
-                                nodeQueue.push(std::make_pair(child, distToPivot[permutation[i]]));
+                                (child->distToPivot_ - dist <= child->maxRadius_ &&
+                                 child->distToPivot_ + dist >= child->minRadius_))
+                                gnat.nodeQueue_.push(child);
                         }
                 }
             }
@@ -618,10 +622,9 @@ namespace ompl
                     nbh.push(std::make_pair(&data, dist));
             }
             /// \brief Return all elements that are within distance r in nbh.
-            /// The nodeQueue, which contains other Nodes that need to
-            /// be checked for nearest neighbors, is updated.
-            void nearestR(const GNAT& gnat, const _T &data, double r, NearQueue& nbh, NodeQueue& nodeQueue) const
+            void nearestR(const GNAT& gnat, const _T &data, double r) const
             {
+                NearQueue& nbh = gnat.nearQueue_;
                 double dist = r; //note difference with nearestK
 
                 for (unsigned int i=0; i<data_.size(); ++i)
@@ -630,23 +633,22 @@ namespace ompl
                 if (children_.size() > 0)
                 {
                     Node *child;
-                    std::vector<double> distToPivot(children_.size());
-                    std::vector<int> permutation(children_.size());
+                    std::vector<int>& permutation = gnat.permutation_;
 
-                    for (unsigned int i=0; i<permutation.size(); ++i)
+                    for (unsigned int i=0; i<children_.size(); ++i)
                         permutation[i] = i;
-                    std::random_shuffle(permutation.begin(), permutation.end());
+                    std::random_shuffle(permutation.begin(), permutation.begin() + children_.size());
 
                     for (unsigned int i=0; i<children_.size(); ++i)
                         if (permutation[i] >= 0)
                         {
                             child = children_[permutation[i]];
-                            distToPivot[i] = gnat.distFun_(data, child->pivot_);
-                            insertNeighborR(nbh, r, child->pivot_, distToPivot[i]);
+                            child->distToPivot_ = gnat.distFun_(data, child->pivot_);
+                            insertNeighborR(nbh, r, child->pivot_, child->distToPivot_);
                             for (unsigned int j=0; j<children_.size(); ++j)
                                 if (permutation[j] >=0 && i != j &&
-                                    (distToPivot[i] - dist > child->maxRange_[permutation[j]] ||
-                                     distToPivot[i] + dist < child->minRange_[permutation[j]]))
+                                    (child->distToPivot_ - dist > child->maxRange_[permutation[j]] ||
+                                     child->distToPivot_ + dist < child->minRange_[permutation[j]]))
                                     permutation[j] = -1;
                         }
 
@@ -654,9 +656,9 @@ namespace ompl
                         if (permutation[i] >= 0)
                         {
                             child = children_[permutation[i]];
-                            if (distToPivot[i] - dist <= child->maxRadius_ &&
-                                distToPivot[i] + dist >= child->minRadius_)
-                                nodeQueue.push(std::make_pair(child, distToPivot[i]));
+                            if (child->distToPivot_ - dist <= child->maxRadius_ &&
+                                child->distToPivot_ + dist >= child->minRadius_)
+                                gnat.nodeQueue_.push(child);
                         }
                 }
             }
@@ -750,6 +752,10 @@ namespace ompl
             /// \brief The child nodes of this node. By definition, only internal nodes
             /// have child nodes.
             std::vector<Node*>  children_;
+
+            /// \brief Scratch space to store distance to pivot during nearest neighbor queries
+            mutable double      distToPivot_;
+
 #ifdef GNAT_SAMPLER
             /// Number of elements stored in the subtree rooted at this Node
             unsigned int        subtreeSize_;
@@ -760,6 +766,19 @@ namespace ompl
             int                 activity_;
 #endif
         };
+
+        /// \cond IGNORE
+        // another internal data structure is a priority queue of nodes to
+        // check next for possible nearest neighbors
+        struct NodeCompare
+        {
+            bool operator()(const Node *n0, const Node *n1) const
+            {
+                return (n0->distToPivot_ - n0->maxRadius_) > (n1->distToPivot_ - n1->maxRadius_);
+            }
+        };
+        typedef std::priority_queue<Node*, std::vector<Node*>, NodeCompare> NodeQueue;
+        /// \endcond
 
         /// \brief The data structure containing the elements stored in this structure.
         Node                           *tree_;
@@ -791,6 +810,21 @@ namespace ompl
         GreedyKCenters<_T>              pivotSelector_;
         /// \brief Cache of removed elements.
         boost::unordered_set<const _T*> removed_;
+
+        /// \name Internal scratch space
+        /// \{
+        /// \brief Internal data structure to store nearest neighbors
+        mutable NearQueue                           nearQueue_;
+        /// \brief Nodes yet to be processed for possible nearest neighbors
+        mutable NodeQueue                           nodeQueue_;
+        /// \brief Permutation of indices to process children of a node in random order
+        mutable std::vector<int>                    permutation_;
+        /// \brief Pivot indices within a vector of elements as selected by GreedyKCenters
+        mutable std::vector<unsigned int>           pivots_;
+        /// \brief Matrix of distances to pivots
+        mutable typename GreedyKCenters<_T>::Matrix distances_;
+        /// \}
+
 #ifdef GNAT_SAMPLER
         /// \brief Estimated dimension of the local free space.
         double                          estimatedDimension_;
