@@ -44,7 +44,8 @@ namespace ompl
 {
     namespace base
     {
-        // The base InformedSampler class:
+        /////////////////////////////////////////////////////////////////////////////////////////////
+        //InformedSampler
         InformedSampler::InformedSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls)
           : probDefn_(probDefn),
             space_(probDefn->getSpaceInformation()->getStateSpace()),
@@ -84,23 +85,39 @@ namespace ompl
             // Combine heuristic estimates of the cost-to-come and cost-to-go from the state.
             return opt_->combineCosts(opt_->motionCostHeuristic(probDefn_->getStartState(0u), statePtr), opt_->costToGo(statePtr, probDefn_->getGoal().get()));
         }
+        /////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
 
 
 
-        // The base InformedStateSampler class:
+        /////////////////////////////////////////////////////////////////////////////////////////////
+        //InformedStateSampler
         InformedStateSampler::InformedStateSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls, const GetCurrentCostFunc &costFunc)
-          : StateSampler(probDefn->getSpaceInformation()->getStateSpace().get()),
-            bestCostFunc_(costFunc),
-            infSampler_()
+          : StateSampler(probDefn->getSpaceInformation()->getStateSpace().get())
         {
-            // Allocate a base sampler:
-            baseSampler_ = StateSampler::space_->allocDefaultStateSampler();
+            // Call the common constructor with the default informed sampler
+            commonConstructor(costFunc, probDefn->getOptimizationObjective()->allocInformedStateSampler(probDefn, maxNumberCalls));
+        }
 
-            // Allocate the informed sampler.
-            infSampler_ = probDefn->getOptimizationObjective()->allocInformedStateSampler(probDefn, maxNumberCalls);
+        InformedStateSampler::InformedStateSampler(const ProblemDefinitionPtr &probDefn, const GetCurrentCostFunc &costFunc, const InformedSamplerPtr &infSampler)
+          : StateSampler(probDefn->getSpaceInformation()->getStateSpace().get())
+        {
+            // Call the common constructor with the given informed sampler
+            commonConstructor(costFunc, infSampler);
+        }
+
+        void InformedStateSampler::commonConstructor(const GetCurrentCostFunc &costFunc, const InformedSamplerPtr &infSampler)
+        {
+            // Store the cost function
+            bestCostFunc_ = costFunc;
+
+            // Store the informed sampler
+            infSampler_ = infSampler;
+
+            // Allocate a base sampler
+            baseSampler_ = StateSampler::space_->allocDefaultStateSampler();
         }
 
         void InformedStateSampler::sampleUniform(State *statePtr)
@@ -133,5 +150,6 @@ namespace ompl
             OMPL_WARN("sampleGaussian is not informed.");
             return baseSampler_->sampleGaussian(statePtr, mean, stdDev);
         }
+        /////////////////////////////////////////////////////////////////////////////////////////////
     }; // base
 };  // ompl

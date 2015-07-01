@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2015, University of Toronto
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the University of Toronto nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,42 +32,23 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Luis G. Torres, Jonathan Gammell (allocInformedStateSampler) */
+/* Author: Jonathan Gammell */
 
-#ifndef OMPL_BASE_OBJECTIVES_PATH_LENGTH_OPTIMIZATION_OBJECTIVE_
-#define OMPL_BASE_OBJECTIVES_PATH_LENGTH_OPTIMIZATION_OBJECTIVE_
-
-#include "ompl/base/OptimizationObjective.h"
+#ifndef OMPL_UTIL_GEOMETRIC_EQUATIONS
+#define OMPL_UTIL_GEOMETRIC_EQUATIONS
 
 namespace ompl
 {
-    namespace base
-    {
-        /** \brief An optimization objective which corresponds to optimizing path length. */
-        class PathLengthOptimizationObjective : public OptimizationObjective
-        {
-        public:
-            PathLengthOptimizationObjective(const SpaceInformationPtr &si);
+    /* A collection of general geometric equations. */
 
-            /** \brief Returns identity cost. */
-            virtual Cost stateCost(const State *s) const;
+    /** \brief The Lebesgue measure (i.e., "volume") of an n-dimensional ball of given radius. */
+    double nBallMeasure(unsigned int N, double r);
 
-            /** \brief Motion cost for this objective is defined as
-                the configuration space distance between \e s1 and \e
-                s2, using the method SpaceInformation::distance(). */
-            virtual Cost motionCost(const State *s1, const State *s2) const;
+    /** \brief The Lebesgue measure (i.e., "volume") of an n-dimensional ball with a unit radius. */
+    double unitNBallMeasure(unsigned int N);
 
-            /** \brief the motion cost heuristic for this objective is
-                simply the configuration space distance between \e s1
-                and \e s2, since this is the optimal cost between any
-                two states assuming no obstacles. */
-            virtual Cost motionCostHeuristic(const State *s1, const State *s2) const;
-
-            /** \brief Allocate a state sampler for the path-length objective (i.e., direct ellipsoidal sampling). */
-            virtual InformedSamplerPtr allocInformedStateSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls) const;
-
-        };
-    }
-}
+    /** \brief The Lebesgue measure (i.e., "volume") of an n-dimensional prolate hyperspheroid (a symmetric hyperellipse) given as the distance between the foci and the transverse diameter */
+    double prolateHyperspheroidMeasure(unsigned int N, double dFoci, double dTransverse);
+} //ompl
 
 #endif

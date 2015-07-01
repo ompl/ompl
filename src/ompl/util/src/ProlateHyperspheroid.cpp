@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2014, University of Toronto
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the University of Toronto nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,12 +34,17 @@
 
 /* Author: Jonathan Gammell*/
 
+// The class's header
 #include "ompl/util/ProlateHyperspheroid.h"
+// For OMPL exceptions
 #include "ompl/util/Exception.h"
+// For OMPL information
 #include "ompl/util/Console.h"
+// For geometric equations like prolateHyperspheroidMeasure
+#include "ompl/util/GeometricEquations.h"
+
+// For boost::make_shared
 #include <boost/make_shared.hpp>
-// For pre C++ 11 gamma function
-#include <boost/math/special_functions/gamma.hpp>
 
 // Eigen core:
 #include <Eigen/Core>
@@ -121,7 +126,7 @@ void ompl::ProlateHyperspheroid::setTransverseDiameter(double transverseDiameter
     // No else, the diameter didn't change
 }
 
-void ompl::ProlateHyperspheroid::transform(unsigned int n, const double sphere[], double phs[])
+void ompl::ProlateHyperspheroid::transform(const double sphere[], double phs[]) const
 {
     if (dataPtr_->isTransformUpToDate_ == false)
     {
@@ -129,10 +134,10 @@ void ompl::ProlateHyperspheroid::transform(unsigned int n, const double sphere[]
     }
 
     // Calculate the tranformation and offset, using Eigen::Map views of the data
-    Eigen::Map<Eigen::VectorXd>(phs, n) = dataPtr_->transformationWorldFromEllipse_*Eigen::Map<const Eigen::VectorXd>(sphere, n) + dataPtr_->xCentre_;
+    Eigen::Map<Eigen::VectorXd>(phs, dataPtr_->dim_) = dataPtr_->transformationWorldFromEllipse_*Eigen::Map<const Eigen::VectorXd>(sphere, dataPtr_->dim_) + dataPtr_->xCentre_;
 }
 
-bool ompl::ProlateHyperspheroid::isInPhs(unsigned int n, const double point[])
+bool ompl::ProlateHyperspheroid::isInPhs(const double point[]) const
 {
     if (dataPtr_->isTransformUpToDate_ == false)
     {
@@ -140,16 +145,16 @@ bool ompl::ProlateHyperspheroid::isInPhs(unsigned int n, const double point[])
         throw Exception ("The transverse diameter has not been set");
     }
 
-    return (getPathLength(n, point) <= dataPtr_->transverseDiameter_);
+    return (getPathLength(point) <= dataPtr_->transverseDiameter_);
 }
 
-unsigned int ompl::ProlateHyperspheroid::getPhsDimension(void)
+unsigned int ompl::ProlateHyperspheroid::getPhsDimension(void) const
 {
     return dataPtr_->dim_;
 }
 
 
-double ompl::ProlateHyperspheroid::getPhsMeasure(void)
+double ompl::ProlateHyperspheroid::getPhsMeasure(void) const
 {
     if (dataPtr_->isTransformUpToDate_ == false)
     {
@@ -163,53 +168,24 @@ double ompl::ProlateHyperspheroid::getPhsMeasure(void)
     }
 }
 
-double ompl::ProlateHyperspheroid::getPhsMeasure(double tranDiam)
+double ompl::ProlateHyperspheroid::getPhsMeasure(double tranDiam) const
 {
-    return calcPhsMeasure(dataPtr_->dim_, dataPtr_->minTransverseDiameter_, tranDiam);
+    return prolateHyperspheroidMeasure(dataPtr_->dim_, dataPtr_->minTransverseDiameter_, tranDiam);
 }
 
-double ompl::ProlateHyperspheroid::getMinTransverseDiameter(void)
+double ompl::ProlateHyperspheroid::getMinTransverseDiameter(void) const
 {
     return dataPtr_->minTransverseDiameter_;
 }
 
-double ompl::ProlateHyperspheroid::unitNBallMeasure(unsigned int N)
+double ompl::ProlateHyperspheroid::getPathLength(const double point[]) const
 {
-    return std::pow(std::sqrt(boost::math::constants::pi<double>()), static_cast<double>(N)) / boost::math::tgamma(static_cast<double>(N)/2.0 + 1.0);
+    return (dataPtr_->xFocus1_ - Eigen::Map<const Eigen::VectorXd>(point, dataPtr_->dim_)).norm() + (Eigen::Map<const Eigen::VectorXd>(point, dataPtr_->dim_) - dataPtr_->xFocus2_).norm();
 }
 
-double ompl::ProlateHyperspheroid::calcPhsMeasure(unsigned int N, double minTransverseDiameter, double transverseDiameter)
+unsigned int ompl::ProlateHyperspheroid::getDimension() const
 {
-    if (transverseDiameter < minTransverseDiameter)
-    {
-        throw Exception("Transverse diameter cannot be less than the minimum transverse diameter.");
-    }
-    // Variable
-    // The conjugate diameter:
-    double conjugateDiameter;
-    // The Lebesgue measure return value
-    double lmeas;
-
-    // Calculate the conjugate diameter:
-    conjugateDiameter = std::sqrt(transverseDiameter * transverseDiameter - minTransverseDiameter * minTransverseDiameter);
-
-    // Calculate as a product series of the radii, noting that one is the transverse diameter/2.0, and the other N-1 are the conjugate diameter/2.0
-    lmeas = transverseDiameter/2.0;
-    for (unsigned int i = 1u; i < N; ++i)
-    {
-        lmeas = lmeas * conjugateDiameter/2.0;
-    }
-
-    // Then multiplied by the volume of the unit n-ball.
-    lmeas = lmeas * unitNBallMeasure(N);
-
-    // Return:
-    return lmeas;
-}
-
-double ompl::ProlateHyperspheroid::getPathLength(unsigned int n, const double point[])
-{
-    return (dataPtr_->xFocus1_ - Eigen::Map<const Eigen::VectorXd>(point, n)).norm() + (Eigen::Map<const Eigen::VectorXd>(point, n) - dataPtr_->xFocus2_).norm();
+    return dataPtr_->dim_;
 }
 
 void ompl::ProlateHyperspheroid::updateRotation(void)
@@ -276,7 +252,7 @@ void ompl::ProlateHyperspheroid::updateTransformation(void)
     dataPtr_->transformationWorldFromEllipse_ = dataPtr_->rotationWorldFromEllipse_ * diagAsVector.asDiagonal();
 
     // Calculate the measure:
-    dataPtr_->phsMeasure_ = calcPhsMeasure(dataPtr_->dim_, dataPtr_->minTransverseDiameter_, dataPtr_->transverseDiameter_);
+    dataPtr_->phsMeasure_ = prolateHyperspheroidMeasure(dataPtr_->dim_, dataPtr_->minTransverseDiameter_, dataPtr_->transverseDiameter_);
 
     // Mark as up to date
     dataPtr_->isTransformUpToDate_ = true;

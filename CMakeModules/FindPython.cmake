@@ -1,11 +1,15 @@
 # This code sets the following variables:
-# PYTHON_EXEC         - path to python executable
-# PYTHON_LIBRARIES    - path to the python library
-# PYTHON_INCLUDE_DIRS - path to where Python.h is found
-# PTYHON_SITE_MODULES - path to site-packages
-# PYTHON_ARCH         - name of architecture to be used for platform-specific
-#                       binary modules
-# PYTHON_VERSION      - version of python
+# PYTHON_FOUND         - boolean that indicates success
+# PYTHON_EXEC          - path to python executable
+# PYTHON_LIBRARIES     - path to the python library
+# PYTHON_INCLUDE_DIRS  - path to where Python.h is found
+# PYTHON_SITE_MODULES  - path to site-packages
+# PYTHON_ARCH          - name of architecture to be used for platform-specific
+#                        binary modules
+# PYTHON_VERSION       - version of python
+# PYTHON_VERSION_MAJOR - major version number
+# PYTHON_VERSION_MAJOR - minor version number
+# PYTHON_VERSION_MICRO - micro version number
 #
 # You can optionally include the version number when using this package
 # like so:
@@ -69,10 +73,14 @@ string(REGEX REPLACE "/bin/python.*" "" PYTHON_PREFIX "${PYTHON_EXEC_}")
 string(REGEX REPLACE "/bin/python.*" "" PYTHON_PREFIX2 "${PYTHON_EXEC}")
 
 execute_process(COMMAND "${PYTHON_EXEC}" "-c"
-    "import sys; print('%d.%d' % (sys.version_info[0],sys.version_info[1]))"
-    OUTPUT_VARIABLE PYTHON_VERSION
+    "import sys; print('%d;%d;%d' % (sys.version_info[0],sys.version_info[1],sys.version_info[2]))"
+    OUTPUT_VARIABLE PYTHON_VERSION_INFO
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-string(REPLACE "." "" PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
+list(GET PYTHON_VERSION_INFO 0 PYTHON_VERSION_MAJOR)
+list(GET PYTHON_VERSION_INFO 1 PYTHON_VERSION_MINOR)
+list(GET PYTHON_VERSION_INFO 2 PYTHON_VERSION_MICRO)
+set(PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+set(PYTHON_VERSION_NO_DOTS "${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
 
 find_library(PYTHON_LIBRARIES
     NAMES "python${PYTHON_VERSION_NO_DOTS}" "python${PYTHON_VERSION}" "python${PYTHON_VERSION}m"
