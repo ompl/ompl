@@ -347,10 +347,10 @@ BOOST_AUTO_TEST_CASE(SamplePhsSurface)
             std::vector<double> xRand(dim);
 
             // Get the random sample
-            rng.uniformProlateHyperspheroidSurface(phsPtr, dim, &xRand[0]);
+            rng.uniformProlateHyperspheroidSurface(phsPtr, &xRand[0]);
 
             // Check that the point lies on the surface
-            BOOST_OMPL_EXPECT_NEAR(phsPtr->getPathLength(dim, &xRand[0]), tDiameter, testTol);
+            BOOST_OMPL_EXPECT_NEAR(phsPtr->getPathLength(&xRand[0]), tDiameter, testTol);
         }
     }
 }
@@ -402,11 +402,11 @@ BOOST_AUTO_TEST_CASE(SampleInPhs)
             std::vector<double> xRand(dim);
 
             // Get the random sample
-            rng.uniformProlateHyperspheroid(phsPtr, dim, &xRand[0]);
+            rng.uniformProlateHyperspheroid(phsPtr, &xRand[0]);
 
             // Check that the point lies within the shape
-            BOOST_CHECK_GE(phsPtr->getPathLength(dim, &xRand[0]), phsPtr->getMinTransverseDiameter());
-            BOOST_CHECK_LT(phsPtr->getPathLength(dim, &xRand[0]), tDiameter);
+            BOOST_CHECK_GE(phsPtr->getPathLength(&xRand[0]), phsPtr->getMinTransverseDiameter());
+            BOOST_CHECK_LT(phsPtr->getPathLength(&xRand[0]), tDiameter);
         }
     }
 }

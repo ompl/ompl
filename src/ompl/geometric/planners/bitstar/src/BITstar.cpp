@@ -47,13 +47,15 @@
 #include <boost/make_shared.hpp>
 //For boost::bind
 #include <boost/bind.hpp>
-//For pre C++ 11 gamma function
-#include <boost/math/special_functions/gamma.hpp>
+//For boost math constants
+#include <boost/math/constants/constants.hpp>
 
 //For OMPL_INFORM et al.
 #include "ompl/util/Console.h"
 //For exceptions:
 #include "ompl/util/Exception.h"
+// For geometric equations like unitNBallMeasure
+#include "ompl/util/GeometricEquations.h"
 //For ompl::base::GoalStates:
 #include "ompl/base/goals/GoalState.h"
 //For getDefaultNearestNeighbors
@@ -351,7 +353,6 @@ namespace ompl
         {
             Planner::checkValidity();
             OMPL_INFORM("%s: Searching for a solution to the given planning problem.", Planner::getName().c_str());
-            this->statusMessage(ompl::msg::LOG_DEBUG, "Start solve");
 
             //Reset the manual stop to the iteration loop:
             stopLoop_ = false;
@@ -372,8 +373,6 @@ namespace ompl
             {
                 this->endFailureMessage();
             }
-
-            this->statusMessage(ompl::msg::LOG_DEBUG, "End solve");
 
             //PlannerStatus(addedSolution, approximate)
             return ompl::base::PlannerStatus(hasSolution_, approximateSoln_);
@@ -605,8 +604,6 @@ namespace ompl
 
         void BITstar::iterate()
         {
-            this->statusMessage(ompl::msg::LOG_DEBUG, "Iterate");
-
             //Info:
             ++numIterations_;
 
@@ -689,7 +686,6 @@ namespace ompl
                 }
                 else
                 {
-                    this->statusMessage(ompl::msg::LOG_DEBUG, "Clearing queue!");
                     //Else, I cannot improve the current solution, and as the queue is perfectly sorted and I am the best edge, no one can improve the current solution . Give up on the batch:
                     intQueue_->finish();
                 }
@@ -706,7 +702,6 @@ namespace ompl
 
             //Info:
             ++numBatches_;
-            this->statusMessage(ompl::msg::LOG_DEBUG, "Start new batch.");
 
             //Set the cost sampled to the minimum
             costSampled_ = minCost_;
@@ -724,8 +719,6 @@ namespace ompl
 
             //Calculate the sampling density (currently unused but for eventual JIT sampling)
             sampleDensity_ = static_cast<double>(samplesPerBatch_)/prunedMeasure_;
-
-            this->statusMessage(ompl::msg::LOG_DEBUG, "End new batch.");
         }
 
 
@@ -735,9 +728,6 @@ namespace ompl
             //Check if we need to sample (This is in preparation for JIT sampling:)
             if (this->isCostBetterThan(costSampled_, bestCost_))
             {
-                //Info:
-                this->statusMessage(ompl::msg::LOG_DEBUG, "Start update samples");
-
                 //Update the sampler counter:
                 numSamples_ = numSamples_ + samplesPerBatch_;
 
@@ -766,8 +756,6 @@ namespace ompl
 
                 //Finally, update the nearest-neighbour terms
                 this->updateNearestTerms();
-
-                this->statusMessage(ompl::msg::LOG_DEBUG, "End update samples");
             }
             //No else, the samples are up to date
         }
@@ -787,8 +775,6 @@ namespace ompl
             //Is pruning enabled? Do we have a solution? Has the solution changed enough?
             if ( (usePruning_ == true) && (hasSolution_ == true) && (std::abs(this->fractionalChange(bestCost_, prunedCost_)) > pruneFraction_) )
             {
-                this->statusMessage(ompl::msg::LOG_DEBUG, "Start pruning.");
-
                 //Variables:
                 //The current measure of the problem space:
                 double informedMeasure;
@@ -828,8 +814,6 @@ namespace ompl
                     rval = (numPruned.second > 0u);
                 }
                 //No else, it's not worth the work to prune...
-
-                this->statusMessage(ompl::msg::LOG_DEBUG, "End pruning.");
             }
             //No else, why was I called?
 
@@ -859,8 +843,6 @@ namespace ompl
 
         void BITstar::publishSolution()
         {
-            this->statusMessage(ompl::msg::LOG_DEBUG, "Start publish solution.");
-
             //Variable
             //A vector of vertices from goal->start:
             std::vector<VertexConstPtr> reversePath;
@@ -900,16 +882,12 @@ namespace ompl
 
             //Add the solution to the Problem Definition:
             Planner::pdef_->addSolutionPath(soln);
-
-            this->statusMessage(ompl::msg::LOG_DEBUG, "End publish solution.");
         }
 
 
 
         void BITstar::pruneSamples()
         {
-            this->statusMessage(ompl::msg::LOG_DEBUG, "Start prune samples.");
-
             //Variable:
             //The list of samples:
             std::vector<VertexPtr> samples;
@@ -928,8 +906,6 @@ namespace ompl
                 }
                 //No else, keep.
             }
-
-            this->statusMessage(ompl::msg::LOG_DEBUG, "End prune samples.");
         }
 
 
@@ -1398,9 +1374,9 @@ namespace ompl
             double dimDbl = static_cast<double>(Planner::si_->getStateDimension());
 
             //Calculate the term and return
-            return rewireFactor_*2.0*std::pow( (1.0 + 1.0/dimDbl)*( prunedMeasure_/ompl::ProlateHyperspheroid::unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRG radius (biggest for unit-volume problem)
-            //return rewireFactor_*std::pow( 2.0*(1.0 + 1.0/dimDbl)*( prunedMeasure_/ompl::ProlateHyperspheroid::unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRT* radius (smaller for unit-volume problem)
-            //return rewireFactor_*2.0*std::pow( (1.0/dimDbl)*( prunedMeasure_/ompl::ProlateHyperspheroid::unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //FMT* radius (smallest for R2, equiv to RRT* for R3 and then middle for higher d. All unit-volume)
+            return rewireFactor_*2.0*std::pow( (1.0 + 1.0/dimDbl)*( prunedMeasure_/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRG radius (biggest for unit-volume problem)
+            //return rewireFactor_*std::pow( 2.0*(1.0 + 1.0/dimDbl)*( prunedMeasure_/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRT* radius (smaller for unit-volume problem)
+            //return rewireFactor_*2.0*std::pow( (1.0/dimDbl)*( prunedMeasure_/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //FMT* radius (smallest for R2, equiv to RRT* for R3 and then middle for higher d. All unit-volume)
         }
 
 
@@ -1414,8 +1390,6 @@ namespace ompl
             //Calculate the term and return
             return rewireFactor_*(boost::math::constants::e<double>() + (boost::math::constants::e<double>() / dimDbl)); //RRG k-nearest
         }
-
-
 
 
 

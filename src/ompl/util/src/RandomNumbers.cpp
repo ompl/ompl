@@ -348,29 +348,29 @@ void ompl::RNG::uniformInBall(double r, unsigned int n, double value[])
 }
 
 #if OMPL_HAVE_EIGEN3
-void ompl::RNG::uniformProlateHyperspheroidSurface(const ProlateHyperspheroidPtr &phsPtr, unsigned int n, double value[])
+void ompl::RNG::uniformProlateHyperspheroidSurface(const ProlateHyperspheroidPtr &phsPtr, double value[])
 {
     // Variables
     // The spherical point as a std::vector
-    std::vector<double> sphere(n);
+    std::vector<double> sphere(phsPtr->getDimension());
 
     // Get a random point on the sphere
-    uniformNormalVector(n, &sphere[0]);
+    uniformNormalVector(phsPtr->getDimension(), &sphere[0]);
 
     // Transform to the PHS
-    phsPtr->transform(n, &sphere[0], value);
+    phsPtr->transform(&sphere[0], value);
 }
 
-void ompl::RNG::uniformProlateHyperspheroid(const ProlateHyperspheroidPtr &phsPtr, unsigned int n, double value[])
+void ompl::RNG::uniformProlateHyperspheroid(const ProlateHyperspheroidPtr &phsPtr, double value[])
 {
     // Variables
     // The spherical point as a std::vector
-    std::vector<double> sphere(n);
+    std::vector<double> sphere(phsPtr->getDimension());
 
     // Get a random point in the sphere
-    uniformInBall(1.0, n, &sphere[0]);
+    uniformInBall(1.0, phsPtr->getDimension(), &sphere[0]);
 
     // Transform to the PHS
-    phsPtr->transform(n, &sphere[0], value);
+    phsPtr->transform(&sphere[0], value);
 }
 #endif

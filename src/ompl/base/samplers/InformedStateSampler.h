@@ -111,8 +111,11 @@ namespace ompl
             /** \brief The definition of a function pointer for querying the current solution cost. */
             typedef boost::function<Cost ()> GetCurrentCostFunc;
 
-            /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution. Requires a function pointer to a method to query the cost of the current solution. */
+            /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution using the default informed sampler for the current optimization objective. Requires a function pointer to a method to query the cost of the current solution. */
             InformedStateSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls, const GetCurrentCostFunc &costFunc);
+
+            /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution using the provided informed sampler. Requires a function pointer to a method to query the cost of the current solution. */
+            InformedStateSampler(const ProblemDefinitionPtr &probDefn, const GetCurrentCostFunc &costFunc, const InformedSamplerPtr &infSampler);
 
             virtual ~InformedStateSampler(void)
             {
@@ -128,6 +131,9 @@ namespace ompl
             virtual void sampleGaussian(State *statePtr, const State *mean, const double stdDev);
 
         private:
+            /** \brief A helper function for construction */
+            void commonConstructor(const GetCurrentCostFunc &costFunc, const InformedSamplerPtr &infSampler);
+
             /** \brief A function pointer to a method for querying the best cost found so far. This is the mechanism through which the sampler gets "informed" about the current solution. */
             GetCurrentCostFunc bestCostFunc_;
             /** \brief A basic sampler */

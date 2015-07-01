@@ -305,7 +305,7 @@ namespace ompl
                         }
 
                         // Check if the informed state is in the PHS, if it is we've found a sample
-                        foundSample = phsPtr_->isInPhs(informedSubSpace_->getDimension(), &informedVector[0]);
+                        foundSample = phsPtr_->isInPhs(&informedVector[0]);
                     }
                 }
                 else
@@ -340,7 +340,7 @@ namespace ompl
             phsPtr_->setTransverseDiameter(maxCost.value());
 
             // Sample the ellipse
-            rng_.uniformProlateHyperspheroid(phsPtr_, informedSubSpace_->getDimension(), &informedVector[0]);
+            rng_.uniformProlateHyperspheroid(phsPtr_, &informedVector[0]);
 
             // If there is an extra "uninformed" subspace, we need to add that to the state before converting the raw vector representation into a state....
             if (InformedSampler::space_->isCompound() == false)
@@ -408,7 +408,7 @@ namespace ompl
             }
 
             // Calculate and return the length
-            return Cost(phsPtr_->getPathLength(informedSubSpace_->getDimension(), &rawData[0]));
+            return Cost(phsPtr_->getPathLength(&rawData[0]));
         }
 
     }; // base

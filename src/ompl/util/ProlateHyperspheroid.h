@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2014, University of Toronto
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the University of Toronto nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -71,31 +71,28 @@ namespace ompl
         void setTransverseDiameter(double transverseDiameter);
 
         /** \brief Transform a point from a sphere to PHS. The return variable \e phs is expected to already exist.  */
-        void transform(unsigned int n, const double sphere[], double phs[]);
+        void transform(const double sphere[], double phs[]) const;
 
         /** \brief Check if the given point lies within the PHS */
-        bool isInPhs(unsigned int n, const double point[]);
+        bool isInPhs(const double point[]) const;
 
         /** \brief The dimension of the PHS */
-        unsigned int getPhsDimension(void);
+        unsigned int getPhsDimension(void) const;
 
         /** \brief The measure of the PHS */
-        double getPhsMeasure(void);
+        double getPhsMeasure(void) const;
 
         /** \brief The measure of the PHS for a given transverse diameter */
-        double getPhsMeasure(double tranDiam);
+        double getPhsMeasure(double tranDiam) const;
 
         /** \brief The minimum transverse diameter of the PHS, i.e., the distance between the foci */
-        double getMinTransverseDiameter(void);
+        double getMinTransverseDiameter(void) const;
 
         /** \brief Calculate length of a line that originates from one focus, passes through the given point, and terminates at the other focus, i.e., the transverse diameter of the ellipse on which the given sample lies*/
-        double getPathLength(unsigned int n, const double point[]);
+        double getPathLength(const double point[]) const;
 
-        /** \brief The "volume" of a unit n-ball */
-        static double unitNBallMeasure(unsigned int N);
-
-        /** \brief The "volume" of a general n-PHS given the distance between the foci (minTransverseDiameter) and the actual transverse diameter (transverseDiameter) */
-        static double calcPhsMeasure(unsigned int N, double minTransverseDiameter, double transverseDiameter);
+        /** \brief The state dimension of the PHS */
+        unsigned int getDimension() const;
 
     protected:
 
