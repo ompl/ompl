@@ -43,6 +43,7 @@
 #include "ompl/config.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
+#include "ompl/datastructures/NearestNeighborsGNATNoThreadSafety.h"
 #if OMPL_HAVE_FLANN
 #include "ompl/datastructures/NearestNeighborsFLANN.h"
 #endif
@@ -92,6 +93,14 @@ class NearestNeighborsGNATs : public NearestNeighborsGNAT<_T>
 {
 public:
     NearestNeighborsGNATs() : NearestNeighborsGNAT<_T>(4,2,6,5,5)
+    {
+    }
+};
+template<typename _T>
+class NearestNeighborsGNATNoThreadSafetys : public NearestNeighborsGNATNoThreadSafety<_T>
+{
+public:
+    NearestNeighborsGNATNoThreadSafetys() : NearestNeighborsGNATNoThreadSafety<_T>(4,2,6,5,5)
     {
     }
 };
@@ -293,6 +302,7 @@ BOOST_AUTO_TEST_CASE(RandomAccessPatternSE3##T)          \
 NN_TEST_CASES(Linear, false)
 NN_TEST_CASES(SqrtApprox, true)
 NN_TEST_CASES(GNATs, false)
+NN_TEST_CASES(GNATNoThreadSafetys, false)
 #if OMPL_HAVE_FLANN
 NN_TEST_CASES(FLANNLinear, false)
 NN_TEST_CASES(FLANNHierarchicalClustering, true)

@@ -245,7 +245,7 @@ def plan(runTime, plannerType, objectiveType, fname):
 
     if solved:
         # Output the length of the path found
-        print "{0} found solution of path length {1:.4f} with an optimization objective value of {2:.4f}".format(optimizingPlanner.getName(), pdef.getSolutionPath().length(), pdef.getSolutionPath().cost(pdef.getOptimizationObjective()).value())
+        print("{0} found solution of path length {1:.4f} with an optimization objective value of {2:.4f}".format(optimizingPlanner.getName(), pdef.getSolutionPath().length(), pdef.getSolutionPath().cost(pdef.getOptimizationObjective()).value()))
 
         # If a filename was specified, output the path as a matrix to
         # that file for visualization
