@@ -39,6 +39,7 @@
 
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/datastructures/GreedyKCenters.h"
+#include "ompl/datastructures/Permutation.h"
 #ifdef GNAT_SAMPLER
 #include "ompl/datastructures/PDF.h"
 #endif
@@ -576,9 +577,9 @@ namespace ompl
                     Node *child;
                     std::vector<double> distToPivot(children_.size());
                     std::vector<int> permutation(children_.size());
-
                     for (unsigned int i=0; i<permutation.size(); ++i)
                         permutation[i] = i;
+                    // for one-time use this is faster than using ompl::Permutation
                     std::random_shuffle(permutation.begin(), permutation.end());
 
                     for (unsigned int i=0; i<children_.size(); ++i)
@@ -632,9 +633,9 @@ namespace ompl
                     Node *child;
                     std::vector<double> distToPivot(children_.size());
                     std::vector<int> permutation(children_.size());
-
                     for (unsigned int i=0; i<permutation.size(); ++i)
                         permutation[i] = i;
+                    // for one-time use this is faster than using ompl::Permutation
                     std::random_shuffle(permutation.begin(), permutation.end());
 
                     for (unsigned int i=0; i<children_.size(); ++i)
