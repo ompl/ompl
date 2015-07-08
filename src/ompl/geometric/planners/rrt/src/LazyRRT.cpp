@@ -62,7 +62,7 @@ void ompl::geometric::LazyRRT::setup()
     sc.configurePlannerRange(maxDistance_);
 
     if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
     nn_->setDistanceFunction(boost::bind(&LazyRRT::distanceFunction, this, _1, _2));
 }
 

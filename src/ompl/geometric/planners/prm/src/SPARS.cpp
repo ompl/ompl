@@ -102,10 +102,10 @@ void ompl::geometric::SPARS::setup()
 {
     Planner::setup();
     if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<DenseVertex>(si_->getStateSpace()));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<DenseVertex>(this));
     nn_->setDistanceFunction(boost::bind(&SPARS::distanceFunction, this, _1, _2));
     if (!snn_)
-        snn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<SparseVertex>(si_->getStateSpace()));
+        snn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<SparseVertex>(this));
     snn_->setDistanceFunction(boost::bind(&SPARS::sparseDistanceFunction, this, _1, _2));
     if (!connectionStrategy_)
         connectionStrategy_ = KStarStrategy<DenseVertex>(boost::bind(&SPARS::milestoneCount, this), nn_, si_->getStateDimension());

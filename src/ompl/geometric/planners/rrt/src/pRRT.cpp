@@ -69,7 +69,7 @@ void ompl::geometric::pRRT::setup()
     sc.configurePlannerRange(maxDistance_);
 
     if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
     nn_->setDistanceFunction(boost::bind(&pRRT::distanceFunction, this, _1, _2));
 }
 
