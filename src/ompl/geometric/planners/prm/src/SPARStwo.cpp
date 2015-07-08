@@ -97,7 +97,7 @@ void ompl::geometric::SPARStwo::setup()
 {
     Planner::setup();
     if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(si_->getStateSpace()));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
     nn_->setDistanceFunction(boost::bind(&SPARStwo::distanceFunction, this, _1, _2));
     double maxExt = si_->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;

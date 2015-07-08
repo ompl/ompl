@@ -130,9 +130,9 @@ void ompl::geometric::BiTRRT::setup()
 
     // Configuring nearest neighbors structures for the planning trees
     if (!tStart_)
-        tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
+        tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
     if (!tGoal_)
-        tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
+        tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
     tStart_->setDistanceFunction(boost::bind(&BiTRRT::distanceFunction, this, _1, _2));
     tGoal_->setDistanceFunction(boost::bind(&BiTRRT::distanceFunction, this, _1, _2));
 

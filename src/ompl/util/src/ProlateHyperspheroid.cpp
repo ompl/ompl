@@ -134,7 +134,8 @@ void ompl::ProlateHyperspheroid::transform(const double sphere[], double phs[]) 
     }
 
     // Calculate the tranformation and offset, using Eigen::Map views of the data
-    Eigen::Map<Eigen::VectorXd>(phs, dataPtr_->dim_) = dataPtr_->transformationWorldFromEllipse_*Eigen::Map<const Eigen::VectorXd>(sphere, dataPtr_->dim_) + dataPtr_->xCentre_;
+    Eigen::Map<Eigen::VectorXd>(phs, dataPtr_->dim_) = dataPtr_->transformationWorldFromEllipse_*Eigen::Map<const Eigen::VectorXd>(sphere, dataPtr_->dim_);
+    Eigen::Map<Eigen::VectorXd>(phs, dataPtr_->dim_) += dataPtr_->xCentre_;
 }
 
 bool ompl::ProlateHyperspheroid::isInPhs(const double point[]) const

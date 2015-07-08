@@ -207,13 +207,13 @@ namespace ompl
             //Only allocate if they are empty (as they can be set to a specific version by a call to setNearestNeighbors)
             if (static_cast<bool>(freeStateNN_) == false)
             {
-                freeStateNN_.reset( ompl::tools::SelfConfig::getDefaultNearestNeighbors<VertexPtr>(Planner::si_->getStateSpace()) );
+                freeStateNN_.reset( ompl::tools::SelfConfig::getDefaultNearestNeighbors<VertexPtr>(this) );
             }
             //No else, already allocated (by a call to setNearestNeighbors())
 
             if (static_cast<bool>(vertexNN_) == false)
             {
-                vertexNN_.reset( ompl::tools::SelfConfig::getDefaultNearestNeighbors<VertexPtr>(Planner::si_->getStateSpace()) );
+                vertexNN_.reset( ompl::tools::SelfConfig::getDefaultNearestNeighbors<VertexPtr>(this) );
             }
             //No else, already allocated (by a call to setNearestNeighbors())
 

@@ -109,7 +109,7 @@ void ompl::geometric::LazyPRM::setup()
 
     if (!nn_)
     {
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(si_->getStateSpace()));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
         nn_->setDistanceFunction(boost::bind(&LazyPRM::distanceFunction, this, _1, _2));
     }
     if (!connectionStrategy_)
@@ -162,7 +162,7 @@ void ompl::geometric::LazyPRM::setMaxNearestNeighbors(unsigned int k)
         throw Exception("Cannot set the maximum nearest neighbors for " + getName());
     if (!nn_)
     {
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(si_->getStateSpace()));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
         nn_->setDistanceFunction(boost::bind(&LazyPRM::distanceFunction, this, _1, _2));
     }
     if (!userSetConnectionStrategy_)

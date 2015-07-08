@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Oren Salzman
+*  Copyright (c) 2015, Tel Aviv University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the Tel Aviv University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Oren Salzman, Sertac Karaman, Ioan Sucan */
+/* Author: Oren Salzman, Sertac Karaman, Ioan Sucan, Mark Moll */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_RRT_LBT_RRT_
 #define OMPL_GEOMETRIC_PLANNERS_RRT_LBT_RRT_
@@ -40,6 +40,7 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/datastructures/DynamicSSSP.h"
 
 #include <fstream>
 
@@ -55,8 +56,12 @@ namespace ompl
            \ref gLBTRRT "LBTRRT" (Lower Bound Tree RRT) is a near asymptotically-optimal
            incremental sampling-based motion planning algorithm. \ref gLBTRRT "LBTRRT"
            algorithm is guaranteed to converge to a solution that is within a constant
-           factor of the optimal solution. The notion of optimality is with respect to
-           the distance function defined on the state space we are operating on.
+           factor of the optimal solution. The notion of optimality is with
+           respect to the distance function defined on the state space
+           we are operating on. See ompl::base::Goal::setMaximumPathLength() for
+           how to set the maximally allowed path length to reach the goal.
+           If a solution path that is shorter than ompl::base::Goal::getMaximumPathLength() is
+           found, the algorithm terminates before the elapsed time.
 
            @par External documentation
            O. Salzman and D. Halperin, Sampling-based
@@ -72,7 +77,7 @@ namespace ompl
             /** \brief Constructor */
             LBTRRT (const base::SpaceInformationPtr &si);
 
-            virtual ~LBTRRT ();
+            virtual ~LBTRRT();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
@@ -126,13 +131,13 @@ namespace ompl
             virtual void setup();
 
             /** \brief Set the apprimation factor */
-            void setApproximationFactor (double epsilon)
+            void setApproximationFactor(double epsilon)
             {
                 epsilon_ = epsilon;
             }
 
             /** \brief Get the apprimation factor */
-            double getApproximationFactor () const
+            double getApproximationFactor() const
             {
                 return epsilon_;
             }
@@ -141,17 +146,14 @@ namespace ompl
             // Planner progress property functions
             std::string getIterationCount() const
             {
-              return boost::lexical_cast<std::string>(iterations_);
+                return boost::lexical_cast<std::string>(iterations_);
             }
             std::string getBestCost() const
             {
-              return boost::lexical_cast<std::string>(bestCost_);
+                return boost::lexical_cast<std::string>(bestCost_);
             }
 
         protected:
-
-            /** \brief kRRG = 2e~5.5 is a valid choice for all problem instances */
-            static const double kRRG; // = 5.5
 
             /** \brief Representation of a motion
 
@@ -161,12 +163,13 @@ namespace ompl
             {
             public:
 
-                Motion() : state(NULL), parentLb_(NULL), parentApx_(NULL), costLb_(0.0), costApx_(0.0)
+                Motion() : state_(NULL), parentApx_(NULL), costApx_(0.0)
                 {
                 }
 
                 /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parentLb_(NULL), parentApx_(NULL), costLb_(0.0), costApx_(0.0)
+                Motion(const base::SpaceInformationPtr &si)
+                    : state_(si->allocState()), parentApx_(NULL), costApx_(0.0)
                 {
                 }
 
@@ -175,58 +178,73 @@ namespace ompl
                 }
 
                 /** \brief The state contained by the motion */
-                base::State       *state;
-
-                /** \brief The parent motion in the exploration tree */
-                Motion            *parentLb_;
-
-                /** \brief The parent motion in the exploration tree */
-                Motion            *parentApx_;
-
-                /** \brief Cost lower bound on path from start to state */
-                base::Cost         costLb_;
-                /** \brief Approximate cost on path from start to state */
-                base::Cost         costApx_;
-                /** \brief The incremental lower bound cost of this motion's parent to this motion (this is stored to save distance computations in the updateChildCosts() method) */
-                base::Cost        incCost_;
-
-                std::vector<Motion*> childrenLb_;
+                base::State          *state_;
+                /** \brief unique id of the motion */
+                std::size_t          id_;
+                /** \brief The lower bound cost of the motion
+                while it is stored in the lowerBoundGraph_ and this may seem redundant,
+                the cost in lowerBoundGraph_ may change causing ordering according to it
+                inconsistencies
+                */
+                double               costLb_;
+                /** \brief The parent motion in the approximation tree */
+                Motion               *parentApx_;
+                /** \brief The approximation cost */
+                double               costApx_;
+                /** \brief The children in the approximation tree */
                 std::vector<Motion*> childrenApx_;
             };
 
-            struct CostCompare
+            /** \brief comparator  - metric is the cost to reach state via a specific state*/
+            struct IsLessThan
             {
-                CostCompare(const base::OptimizationObjective &opt, Motion *motion_): opt_(opt), motion(motion_)
+                IsLessThan (LBTRRT *plannerPtr, Motion *motion)
+                    : plannerPtr_(plannerPtr), motion_(motion)
                 {
                 }
 
                 bool operator() (const Motion *motionA, const Motion *motionB)
                 {
-                    base::Cost costA = opt_.combineCosts(motionA->costLb_, opt_.motionCost(motionA->state, motion->state));
-                    base::Cost costB = opt_.combineCosts(motionB->costLb_, opt_.motionCost(motionB->state, motion->state));
-                    return opt_.isCostBetterThan(costA, costB);
+                    double costA = motionA->costLb_;
+                    double costB = motionB->costLb_;
+
+                    double distA = plannerPtr_->distanceFunction(motionA, motion_);
+                    double distB = plannerPtr_->distanceFunction(motionB, motion_);
+
+                    return costA + distA < costB + distB;
                 }
-                const base::OptimizationObjective &opt_;
-                Motion *motion;
+                LBTRRT *plannerPtr_;
+                Motion *motion_;
             }; //IsLessThan
 
-            /** \brief attempt to rewire the trees */
-            bool attemptNodeUpdate(Motion *potentialParent, Motion *child);
+            /** \brief comparator  - metric is the lower bound cost*/
+            struct IsLessThanLB
+            {
+                IsLessThanLB (LBTRRT *plannerPtr): plannerPtr_(plannerPtr)
+                {
+                }
 
-            /** \brief update the child cost of the lower bound tree */
-            void updateChildCostsLb(Motion *m);
+                bool operator() (const Motion *motionA, const Motion *motionB)
+                {
+                    return motionA->costLb_ < motionB->costLb_;
+                }
+                LBTRRT*  plannerPtr_;
+            }; //IsLessThanLB
+
+            typedef std::set<Motion*, IsLessThanLB> Lb_queue;
+            typedef Lb_queue::iterator              Lb_queue_iter;
+
+            /** \brief consider an edge for addition to the roadmap*/
+            void considerEdge(Motion *parent, Motion *child, double c);
+
+            /** \brief lazily update the parent in the approximation tree without updating costs to cildren*/
+            double lazilyUpdateApxParent(Motion *child, Motion *parent);
 
             /** \brief update the child cost of the approximation tree */
-            void updateChildCostsApx(Motion *m);
-
-            /** \brief remove motion from its parent in the lower bound tree*/
-            void removeFromParentLb(Motion *m);
+            void updateChildCostsApx(Motion *m, double delta);
 
             /** \brief remove motion from its parent in the approximation tree*/
             void removeFromParentApx(Motion *m);
-
-            /** \brief remove motion from a vector*/
-            void removeFromParent(const Motion *m, std::vector<Motion*>& vec);
 
             /** \brief Free the memory allocated by this planner */
             void freeMemory();
@@ -234,18 +252,37 @@ namespace ompl
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion *a, const Motion *b) const
             {
-                return si_->distance(a->state, b->state);
+                return si_->distance(a->state_, b->state_);
             }
-            /* \brief Compute cost to move from state in motion a to state in motion b */
-            base::Cost costFunction(const Motion *a, const Motion *b) const
+
+            /** \brief local planner */
+            bool checkMotion(const Motion *a, const Motion *b)
             {
-                return opt_->motionCost(a->state, b->state);
+                return checkMotion(a->state_, b->state_);
             }
+            /** \brief local planner */
+            bool checkMotion(const base::State *a, const base::State *b)
+            {
+                return si_->checkMotion(a, b);
+            }
+
+            /** \brief get motion from id */
+            Motion* getMotion(std::size_t i)
+            {
+                return idToMotionMap_[i];
+            }
+
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
             boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
+
+            /** \brief A graph of motions Glb*/
+            DynamicSSSP                                    lowerBoundGraph_;
+
+            /** \brief mapping between a motion id and the motion*/
+            std::vector<Motion*>                           idToMotionMap_;
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
             double                                         goalBias_;
@@ -259,22 +296,15 @@ namespace ompl
             /** \brief The random number generator */
             RNG                                            rng_;
 
-            /** \brief Objective we're optimizing */
-            base::OptimizationObjectivePtr                 opt_;
-
             /** \brief The most recent goal motion.  Used for PlannerData computation */
             Motion                                         *lastGoalMotion_;
-
-            /** \brief A list of states in the tree that satisfy the goal condition */
-            std::vector<Motion*>                           goalMotions_;
 
             //////////////////////////////
             // Planner progress properties
             /** \brief Number of iterations the algorithm performed */
             unsigned int                                   iterations_;
             /** \brief Best cost found so far by algorithm */
-            base::Cost                                     bestCost_;
-
+            double                                         bestCost_;
         };
 
     }

@@ -96,7 +96,7 @@ void ompl::geometric::FMT::setup()
     Open_.getComparisonOperator().heuristics_ = heuristics_;
 
     if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
     nn_->setDistanceFunction(boost::bind(&FMT::distanceFunction, this, _1, _2));
 
     if (nearestK_ && !nn_->reportsSortedResults())

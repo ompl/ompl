@@ -39,6 +39,7 @@
 
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/datastructures/GreedyKCenters.h"
+#include "ompl/datastructures/Permutation.h"
 #ifdef GNAT_SAMPLER
 #include "ompl/datastructures/PDF.h"
 #endif
@@ -579,11 +580,8 @@ namespace ompl
                 {
                     double dist;
                     Node *child;
-                    std::vector<int>& permutation = gnat.permutation_;
-
-                    for (unsigned int i=0; i<children_.size(); ++i)
-                        permutation[i] = i;
-                    std::random_shuffle(permutation.begin(), permutation.begin() + children_.size());
+                    Permutation& permutation = gnat.permutation_;
+                    permutation.permute(children_.size());
 
                     for (unsigned int i=0; i<children_.size(); ++i)
                         if (permutation[i] >= 0)
@@ -633,11 +631,8 @@ namespace ompl
                 if (children_.size() > 0)
                 {
                     Node *child;
-                    std::vector<int>& permutation = gnat.permutation_;
-
-                    for (unsigned int i=0; i<children_.size(); ++i)
-                        permutation[i] = i;
-                    std::random_shuffle(permutation.begin(), permutation.begin() + children_.size());
+                    Permutation& permutation = gnat.permutation_;
+                    permutation.permute(children_.size());
 
                     for (unsigned int i=0; i<children_.size(); ++i)
                         if (permutation[i] >= 0)
@@ -818,7 +813,7 @@ namespace ompl
         /// \brief Nodes yet to be processed for possible nearest neighbors
         mutable NodeQueue                           nodeQueue_;
         /// \brief Permutation of indices to process children of a node in random order
-        mutable std::vector<int>                    permutation_;
+        mutable Permutation                         permutation_;
         /// \brief Pivot indices within a vector of elements as selected by GreedyKCenters
         mutable std::vector<unsigned int>           pivots_;
         /// \brief Matrix of distances to pivots

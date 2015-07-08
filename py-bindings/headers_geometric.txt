@@ -19,6 +19,7 @@
 ../src/ompl/geometric/planners/rrt/TRRT.h
 ../src/ompl/geometric/planners/rrt/RRTstar.h
 ../src/ompl/geometric/planners/rrt/LBTRRT.h
+../src/ompl/geometric/planners/rrt/LazyLBTRRT.h
 ../src/ompl/geometric/planners/sbl/SBL.h
 ../src/ompl/geometric/planners/stride/STRIDE.h
 ../src/ompl/geometric/planners/fmt/FMT.h
