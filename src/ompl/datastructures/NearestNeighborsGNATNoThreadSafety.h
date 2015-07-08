@@ -204,7 +204,7 @@ namespace ompl
         {
             if (size_)
             {
-                static std::vector<_T> nbh(1);
+                std::vector<_T> nbh(1);
                 nearestK(data, 1, nbh);
                 if (!nbh.empty()) return nbh[0];
             }
