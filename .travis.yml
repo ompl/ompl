@@ -43,7 +43,7 @@ script:
   - make -j4
 
   # Run unit tests
-  - make test 2>&1 | grep -v Info: | grep -v Debug:
+  - make test | grep -v ^Info | grep -v ^Debug
 
   # Make sure we can install and uninstall with no issues
   - make -j4 install
