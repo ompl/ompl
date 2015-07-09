@@ -37,6 +37,7 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/rrt/LazyLBTRRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/util/PPM.h>
 
@@ -79,6 +80,7 @@ public:
             space->setup();
             ss_->getSpaceInformation()->setStateValidityCheckingResolution(1.0 / space->getMaximumExtent());
             //      ss_->setPlanner(ob::PlannerPtr(new og::RRTConnect(ss_->getSpaceInformation())));
+            ss_->setPlanner(ob::PlannerPtr(new og::LazyLBTRRT(ss_->getSpaceInformation())));
         }
     }
 
