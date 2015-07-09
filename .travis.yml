@@ -43,10 +43,4 @@ script:
   - make -j4
 
   # Run unit tests
-  - make test | grep -v ^Info | grep -v ^Debug
-
-  # Make sure we can install and uninstall with no issues
-  - make -j4 install
-  - ls -R tmp
-  - make -j4 uninstall
-  - find tmp -type f
+  - make test
