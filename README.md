@@ -1,13 +1,15 @@
 The Open Motion Planning Library (OMPL)
 =======================================
 
+[![Build Status](https://travis-ci.org/ompl/ompl.svg?branch=master)](https://travis-ci.org/ompl/ompl)
+
 Visit the [OMPL installation page](http://ompl.kavrakilab.org/core/installation.html) for
 detailed installation instructions.
 
 OMPL has the following required dependencies:
 
-* [Boost](http://www.boost.org) (version 1.44 or higher)
-* [CMake](http://www.cmake.org) (version 2.8.2 or higher)
+* [Boost](http://www.boost.org) (version 1.48 or higher)
+* [CMake](http://www.cmake.org) (version 2.8.7 or higher)
 
 The following dependencies are optional:
 

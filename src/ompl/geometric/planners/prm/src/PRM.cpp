@@ -87,6 +87,7 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
     specs_.optimizingPaths = true;
+    specs_.multithreaded = true;
 
     Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors, std::string("8:1000"));
 
@@ -110,7 +111,9 @@ void ompl::geometric::PRM::setup()
     Planner::setup();
     if (!nn_)
     {
+        specs_.multithreaded = false;  // temporarily set to false since nn_ is used only in single thread
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
+        specs_.multithreaded = true;
         nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
     }
     if (!connectionStrategy_)
@@ -152,7 +155,9 @@ void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
         throw Exception("Cannot set the maximum nearest neighbors for " + getName());
     if (!nn_)
     {
+        specs_.multithreaded = false; // temporarily set to false since nn_ is used only in single thread
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
+        specs_.multithreaded = true;
         nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
     }
     if (!userSetConnectionStrategy_)

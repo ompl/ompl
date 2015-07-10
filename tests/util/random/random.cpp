@@ -74,7 +74,6 @@ BOOST_AUTO_TEST_CASE(DifferentSeeds)
         int v2 = r2.uniformInt(0, 100);
         int v3 = r3.uniformInt(0, 100);
         int v4 = r4.uniformInt(0, 100);
-        printf("%d %d %d %d\n", v1, v2, v3, v4);
 
         if (v1 == v2 && v2 == v3 && v3 == v4)
             eq++;

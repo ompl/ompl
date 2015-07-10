@@ -47,6 +47,8 @@ using namespace ompl;
 
 BOOST_AUTO_TEST_CASE(SimpleIK)
 {
+    msg::setLogLevel(msg::LOG_ERROR);
+
     /* load environment */
     Environment2D env;
     boost::filesystem::path path(TEST_RESOURCES_DIR);
