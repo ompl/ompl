@@ -196,7 +196,6 @@ namespace ompl
             // has been reached, we rebuild the entire GNAT
             if (isPivot || removed_.size()>=removedCacheSize_)
                 rebuildDataStructure();
-            integrityCheck();
             return true;
         }
 
@@ -204,11 +203,13 @@ namespace ompl
         {
             if (size_)
             {
-                std::vector<_T> nbh(1);
+                std::vector<_T> nbh;
                 nearestK(data, 1, nbh);
                 if (!nbh.empty()) return nbh[0];
             }
             throw Exception("No elements found in nearest neighbors data structure");
+            assert(nearQueue_.empty());
+            assert(nodeQueue_.empty());
         }
 
         /// Return the k nearest neighbors in sorted order
@@ -345,6 +346,8 @@ namespace ompl
             double dist;
             Node* node;
 
+            assert(nearQueue_.empty());
+            assert(nodeQueue_.empty());
             isPivot = tree_->insertNeighborK(nearQueue_, k, tree_->pivot_, data,
                 NearestNeighbors<_T>::distFun_(data, tree_->pivot_));
             tree_->nearestK(*this, data, k, isPivot);
