@@ -84,6 +84,8 @@ void ompl::geometric::LazyLBTRRT::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
+    graphLb_.clear();
+    graphApx_.clear();
     lastGoalMotion_ = NULL;
 
     iterations_ = 0;
