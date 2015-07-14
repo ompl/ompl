@@ -1079,29 +1079,37 @@ namespace ompl
             //Clear the nearest-neighbour structure
             stateNN->clear();
 
-            //Iterate through the list and readd any states that have a heuristic less than the bestCost_
+            //Iterate through the list and readd any states that are in the graph or have a heuristic less than the bestCost_
             for (unsigned int i = 0u; i < states.size(); ++i)
             {
-                //Check if this state should be pruned:
-                if (this->samplePruneCondition(states.at(i)) == false)
+                //Is the state in the tree?
+                if (states.at(i)->isInTree() == true)
                 {
-                    //No, readd it
+                    //Yes, readd it
                     stateNN->add(states.at(i));
                 }
                 else
                 {
-                    //Yes, don't readd it. It will be deleted as soon as pruneNN exits.
+                    //No it is a free state, should it be pruned?
+                    if (this->samplePruneCondition(states.at(i)) == false)
+                    {
+                        //No, readd it
+                        stateNN->add(states.at(i));
+                    }
+                    else
+                    {
+                        //Yes, don't readd it. It will be deleted as soon as pruneNN exits.
 
-                    //Make sure it's incoming lookups are removed:
-                    this->removeEdgesTo(states.at(i));
+                        //Make sure it's incoming lookups are removed:
+                        this->removeEdgesTo(states.at(i));
 
-                    //Finally, mark as pruned. This is a lock that can never be undone and prevents accessing anything about the vertex.
-                    states.at(i)->markPruned();
+                        //Finally, mark as pruned. This is a lock that can never be undone and prevents accessing anything about the vertex.
+                        states.at(i)->markPruned();
 
-                    //Update our counters
-                    ++numPruned;
+                        //Update our counters
+                        ++numPruned;
+                    }
                 }
-                //No else, keep.
             }
 
             return numPruned;
