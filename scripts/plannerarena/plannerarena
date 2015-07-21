@@ -1,0 +1,25 @@
+#!/usr/bin/env Rscript
+
+library(methods)
+library(shiny)
+library(DBI)
+
+# use an arbitrary port number
+port <- 8888
+# determine plannerarena directory
+args <- commandArgs(trailingOnly = FALSE)
+file.arg.name <- "--file="
+script.name <- sub(file.arg.name, "", args[grep(file.arg.name, args)])
+# directory name containing this script
+script.dir <- dirname(normalizePath(script.name))
+if (file.exists(paste0(script.dir,"/server.R"))) {
+    # if "server.R" exists in the same dir, then this is the app dir
+    appDir <- script.dir
+} else {
+    # otherwise, assume this script is installed in ${prefix}/bin and
+    # plannerarena is installed in ${prefix}/share/ompl/plannerarena
+    appDir <- normalizePath(paste0(script.dir,"/../share/ompl/plannerarena"))
+}
+# open plannerarena in the browser
+launch.browser <- TRUE
+runApp(appDir, port, launch.browser)
