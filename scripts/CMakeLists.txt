@@ -6,3 +6,6 @@ install(PROGRAMS ompl_benchmark_statistics.py
 install(DIRECTORY plannerarena
     DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}"
     COMPONENT ompl)
+install(PROGRAMS plannerarena/plannerarena
+    DESTINATION bin
+    RENAME plannerarena${OMPL_INSTALL_SUFFIX})
