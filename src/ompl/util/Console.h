@@ -69,6 +69,10 @@
 
 #define OMPL_DEBUG(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_DEBUG, fmt, ##__VA_ARGS__)
 
+#define OMPL_DEVMSG1(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_DEV1, fmt, ##__VA_ARGS__)
+
+#define OMPL_DEVMSG2(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_DEV2, fmt, ##__VA_ARGS__)
+
 namespace ompl
 {
 
@@ -80,6 +84,8 @@ namespace ompl
         /** \brief The set of priorities for message logging */
         enum LogLevel
         {
+            LOG_DEV2 = -2, // message type for developers
+            LOG_DEV1 = -1, // message type for developers
             LOG_DEBUG = 0,
             LOG_INFO,
             LOG_WARN,
