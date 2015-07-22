@@ -175,7 +175,7 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     assert(primaryPath->getStateCount() >= 4);
 
     // Repair chosen path
-    if (!repairPath(*primaryPath, ptc))
+    if (!repairPath(ptc, *primaryPath))
     {
         OMPL_INFORM("repairPath failed or aborted");
         return base::PlannerStatus::CRASH;
@@ -342,7 +342,8 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
     return true;
 }
 
-bool ompl::geometric::LightningRetrieveRepair::repairPath(ompl::geometric::PathGeometric &primaryPath, const base::PlannerTerminationCondition &ptc)
+bool ompl::geometric::LightningRetrieveRepair::repairPath(const base::PlannerTerminationCondition &ptc, 
+                                                          ompl::geometric::PathGeometric &primaryPath)
 {
     // \todo: we should reuse our collision checking from the previous step to make this faster
 
