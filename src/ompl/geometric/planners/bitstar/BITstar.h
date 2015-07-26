@@ -244,7 +244,7 @@ namespace ompl
             virtual bool prune();
 
             /** \brief Resort the queue. Returns true if any pruning was done. */
-            virtual bool resort();
+            virtual void resort();
 
             /** \brief Publish the found solution to the ProblemDefinition*/
             void publishSolution();
@@ -252,14 +252,8 @@ namespace ompl
 
             ///////////////////////////////////////////////////////////////////
             //Helper functions for data manipulation and other low-level functions
-            /** \brief Prune all samples with a solution heuristic that is not less than the bestCost_ */
-            void pruneSamples();
-
             /** \brief Checks an edge for collision. A wrapper to SpaceInformation->checkMotion that tracks number of collision checks. */
             bool checkEdge(const VertexPtrPair& edge);
-
-            /** \brief Actually remove a sample from its NN struct: */
-            void dropSample(VertexPtr oldSample);
 
             /** \brief Add an edge from the edge queue to the tree. Will add the state to the vertex queue if it's new to the tree or otherwise replace the parent. Updates solution information if the solution improves. */
             void addEdge(const VertexPtrPair& newEdge, const ompl::base::Cost& edgeCost, const bool& removeFromFree, const bool& updateDescendants);
@@ -276,11 +270,8 @@ namespace ompl
             /** \brief Add a vertex to the graph */
             void addVertex(const VertexPtr& newVertex, const bool& removeFromFree);
 
-            /** \brief Get the nearest samples from the freeStateNN_ using the appropriate "near" definition (i.e., k or r). */
-            void nearestSamples(const VertexPtr& vertex, std::vector<VertexPtr>* neighbourSamples);
-
-            /** \brief Get the nearest samples from the vertexNN_ using the appropriate "near" definition (i.e., k or r). */
-            void nearestVertices(const VertexPtr& vertex, std::vector<VertexPtr>* neighbourVertices);
+            /** \brief Get the nearest states from the stateNN_ using the appropriate "near" definition (i.e., k or r). */
+            void nearestStates(const VertexPtr& vertex, std::vector<VertexPtr>* neighbourSamples);
             ///////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////
@@ -408,11 +399,11 @@ namespace ompl
             std::string bestLengthProgressProperty() const;
 
             /** \brief Retrieve the current number of free samples
-            as a planner-progress property. (size of freeStateNN_) */
+            as a planner-progress property. (the number of unconnected states in stateNN_) */
             std::string currentFreeProgressProperty() const;
 
             /** \brief Retrieve the current number of vertices in the graph
-            as a planner-progress property. (Size of vertexNN_) */
+            as a planner-progress property. (the number of connected states in stateNN_) */
             std::string currentVertexProgressProperty() const;
 
             /** \brief Retrieve the current number of vertices in the expansion queue
@@ -487,11 +478,8 @@ namespace ompl
             /** \brief The goal of the problem as a vertex*/
             VertexPtr                                                goalVertex_;
 
-            /** \brief The unconnected samples as a nearest-neighbours datastructure. Sorted by nnDistance. Size accessible via currentFreeProgressProperty */
-            VertexPtrNNPtr                                          freeStateNN_;
-
-            /** \brief The vertices as a nearest-neighbours data structure. Sorted by nnDistance. Size accessible via currentVertexProgressProperty */
-            VertexPtrNNPtr                                          vertexNN_;
+            /** \brief All states as a nearest-neighbours datastructure. Sorted by nnDistance. The number of sample/vertex states are counted via numCurrentFreeStates_ and numCurrentConnectedStates_, respectively. */
+            VertexPtrNNPtr                                           stateNN_;
 
             /** \brief The integrated queue of vertices to expand and edges to process ordered on "f-value", i.e., estimated solution cost. Remaining vertex queue "size" and edge queue size are accessible via vertexQueueSizeProgressProperty and edgeQueueSizeProgressProperty, respectively. */
             IntegratedQueuePtr                                       intQueue_;
@@ -554,11 +542,14 @@ namespace ompl
             /** \brief The number of states generated through sampling. Accessible via statesFromSamplingProgressProperty */
             unsigned int                                             numSamples_;
 
-            /** \brief The number of vertices generated through smoothing/shortcutting. Accessible via statesFromSmoothingProgressProperty */
-            unsigned int                                             numSmoothedVertices_;
-
             /** \brief The number of vertices ever added to the graph. Will count vertices twice if they spend any time disconnected. Accessible via verticesConstructedProgressProperty */
             unsigned int                                             numVertices_;
+
+            /** \brief The current number of unconnected states. Accessible via currentFreeProgressProperty */
+            unsigned int                                             numCurrentFreeStates_;
+
+            /** \brief The current number of connected states. Accessible via currentVertexProgressProperty */
+            unsigned int                                             numCurrentConnectedStates_;
 
             /** \brief The number of free states that have been pruned. Accessible via statesPrunedProgressProperty */
             unsigned int                                             numFreeStatesPruned_;

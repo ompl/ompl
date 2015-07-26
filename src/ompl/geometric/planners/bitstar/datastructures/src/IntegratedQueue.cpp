@@ -47,12 +47,11 @@ namespace ompl
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
         //Public functions:
-        BITstar::IntegratedQueue::IntegratedQueue(const VertexPtr& startVertex, const VertexPtr& goalVertex, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget)
+        BITstar::IntegratedQueue::IntegratedQueue(const VertexPtr& startVertex, const VertexPtr& goalVertex, const NeighbourhoodFunc& nearStatesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget)
             :   opt_(startVertex->getOpt()),
                 startVertex_(startVertex),
                 goalVertex_(goalVertex),
-                nearSamplesFunc_(nearSamplesFunc),
-                nearVerticesFunc_(nearVerticesFunc),
+                nearStatesFunc_(nearStatesFunc),
                 lowerBoundHeuristicVertexFunc_(lowerBoundHeuristicVertex),
                 currentHeuristicVertexFunc_(currentHeuristicVertex),
                 lowerBoundHeuristicEdgeFunc_(lowerBoundHeuristicEdge),
@@ -100,16 +99,13 @@ namespace ompl
 
 
 
-        void BITstar::IntegratedQueue::eraseVertex(const VertexPtr& oldVertex, bool disconnectParent)
+        unsigned int BITstar::IntegratedQueue::eraseVertex(const VertexPtr& oldVertex)
         {
-            //If requested, disconnect from parent, cascading cost updates:
-            if (disconnectParent == true)
-            {
-                this->disconnectParent(oldVertex, true);
-            }
+            //Disconnect from parent, cascading cost updates:
+            this->disconnectParent(oldVertex, true);
 
-            //Remove it from vertx queue and lookup, and edge queues (as requested):
-            this->vertexRemoveHelper(oldVertex, VertexPtrNNPtr(), VertexPtrNNPtr(), true);
+            //Remove it:
+            return this->pruneBranch(oldVertex);
         }
 
 
@@ -420,7 +416,7 @@ namespace ompl
 
 
 
-        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::prune(const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN)
+        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::prune(const VertexPtrNNPtr& stateNN)
         {
             if (this->isSorted() == false)
             {
@@ -431,7 +427,7 @@ namespace ompl
             //Therefore, we can start our pruning at the goal vertex and iterate forward through the queue from there.
 
             //Variables:
-            //The number of vertices and samples pruned:
+            //The number of vertices and samples pruned, respectively:
             std::pair<unsigned int, unsigned int> numPruned;
             //The iterator into the lookup helper:
             VertexIdToVertexQueueIterUMap::iterator lookupIter;
@@ -475,7 +471,7 @@ namespace ompl
                     --queueIter;
 
                     //Prune the branch:
-                    numPruned = this->pruneBranch(pruneIter->second, vertexNN, freeStateNN);
+                    numPruned.first = this->pruneBranch(pruneIter->second);
                 }
                 //No else, skip this vertex.
 
@@ -483,22 +479,25 @@ namespace ompl
                 ++queueIter;
             }
 
+            //Now that the vertices have been pruned into free states, prune the NN structure. We do this in one shot to avoid calls to NN::remove()
+            numPruned.second = this->pruneNN(stateNN);
+
             //Return the number of vertices and samples pruned.
             return numPruned;
         }
 
 
 
-        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::resort(const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN)
+        unsigned int BITstar::IntegratedQueue::resort()
         {
             //Variable:
             typedef boost::unordered_map<BITstar::VertexId, VertexPtr> VertexIdToVertexPtrUMap;
             typedef std::map<unsigned int, VertexIdToVertexPtrUMap> DepthToUMapMap;
-            //The number of vertices and samples pruned, respectively:
-            std::pair<unsigned int, unsigned int> numPruned;
+            //The number of vertices disconnected:
+            unsigned int numDisconnected;
 
             //Initialize the counters:
-            numPruned = std::make_pair(0u, 0u);
+            numDisconnected = 0u;
 
             //Iterate through every vertex listed for resorting:
             if (resortVertices_.empty() == false)
@@ -534,7 +533,7 @@ namespace ompl
                                 {
                                     //The vertex should just be pruned and forgotten about.
                                     //Prune the branch:
-                                    numPruned = this->pruneBranch(vIter->second, vertexNN, freeStateNN);
+                                    numDisconnected = this->pruneBranch(vIter->second);
                                 }
                                 else
                                 {
@@ -574,7 +573,7 @@ namespace ompl
             }
 
             //Return the number of vertices pruned.
-            return numPruned;
+            return numDisconnected;
         }
 
 
@@ -945,81 +944,85 @@ namespace ompl
             if (this->vertexPruneCondition(vertex) == false)
             {
                 //Variables:
-                //The vector of nearby samples (either within r or the k-nearest)
-                std::vector<VertexPtr> neighbourSamples;
+                //The vector of nearby states (either within r or the k-nearest)
+                std::vector<VertexPtr> neighbourStates;
 
-                //Get the set of nearby free states:
-                nearSamplesFunc_(vertex, &neighbourSamples);
+                //Get the set of nearby states:
+                nearStatesFunc_(vertex, &neighbourStates);
 
                 //Add edges to unconnected targets who could ever provide a better solution:
                 //Is the vertex new?
                 if (vertex->isNew() == true)
                 {
-                    //The vertex is new, that means none of its outgoing edges to unconnected vertices have been considered before. Add them all
-                    for (unsigned int i = 0u; i < neighbourSamples.size(); ++i)
+                    //The vertex is new, that means we (essenntially) consider all of its outgoing edges.
+                    for (unsigned int i = 0u; i < neighbourStates.size(); ++i)
                     {
-                        //Attempt to queue the edge.
-                        this->queueupEdge(vertex, neighbourSamples.at(i));
-                    }
-                }
-                else
-                {
-                    //The vertex is old, which means that outgoing edges to old unconnected vertices have been considered before. Only add those that lead to new vertices
-                    for (unsigned int i = 0u; i < neighbourSamples.size(); ++i)
-                    {
-                        //Is the target new?
-                        if (neighbourSamples.at(i)->isNew() == true)
+                        //Is the target in the tree? I.e., is this an expansion or rewiring edge?
+                        if (neighbourStates.at(i)->isInTree() == false)
                         {
-                            //It is, attempt to queue the edge.
-                            this->queueupEdge(vertex, neighbourSamples.at(i));
+                            //The target is an unconnected free state, this is an expansion edge.
+                            //Attempt to queue the edge.
+                            this->queueupEdge(vertex, neighbourStates.at(i));
                         }
-                        //No else, we've considered this edge before.
-                    }
-                }
-
-                //If it is a new and either we're not delaying rewiring or we have a solution, we also add rewiring candidates:
-                if (vertex->isNew() == true && (delayRewiring_ == false || hasSolution_ == true))
-                {
-                    //Variables:
-                    //The vector of vertices within r of the vertexf
-                    std::vector<VertexPtr> neighbourVertices;
-
-                    //Get the set of nearby free states:
-                    nearVerticesFunc_(vertex, &neighbourVertices);
-
-                    //Iterate over the vector of connected targets and add only those who could ever provide a better solution:
-                    for (unsigned int i = 0u; i < neighbourVertices.size(); ++i)
-                    {
-                        //Make sure it is not the root or myself.
-                        if (neighbourVertices.at(i)->isRoot() == false && neighbourVertices.at(i) != vertex)
+                        else
                         {
-                            //Make sure I am not already the parent
-                            if (neighbourVertices.at(i)->getParent() != vertex)
+                            //The target is a connected vertex, this is a rewiring edge.
+                            //If we've found a solution, or are not delaying rewiring, we will add it:
+                            if (hasSolution_ == true || delayRewiring_ == false)
                             {
-                                //Make sure the neighbour vertex is not already my parent:
-                                if (vertex->isRoot() == true)
+                                //Make sure it is not the root or myself.
+                                if (neighbourStates.at(i)->isRoot() == false && neighbourStates.at(i) != vertex)
                                 {
-                                    //I am root, I have no parent, so attempt to queue the edge:
-                                    this->queueupEdge(vertex, neighbourVertices.at(i));
+                                    //Make sure I am not already the parent
+                                    if (neighbourStates.at(i)->getParent() != vertex)
+                                    {
+                                        //Make sure the neighbour vertex is not already my parent:
+                                        if (vertex->isRoot() == true)
+                                        {
+                                            //I am root, I have no parent, so attempt to queue the edge:
+                                            this->queueupEdge(vertex, neighbourStates.at(i));
+                                        }
+                                        else if (neighbourStates.at(i) != vertex->getParent())
+                                        {
+                                            //The neighbour is not my parent, attempt to queue the edge:
+                                            this->queueupEdge(vertex, neighbourStates.at(i));
+                                        }
+                                        //No else, this vertex is my parent.
+                                    }
+                                    //No else, I am this vertex's parent
                                 }
-                                else if (neighbourVertices.at(i) != vertex->getParent())
-                                {
-                                    //The neighbour is not my parent, attempt to queue the edge:
-                                    this->queueupEdge(vertex, neighbourVertices.at(i));
-                                }
-                                //No else, this vertex is my parent.
+                                //No else, this is root or myself.
                             }
-                            //No else
+                            //No else, we don't have a solution and are delaying rewiring
                         }
-                        //No else
                     }
 
                     //Mark the vertex as old
                     vertex->markOld();
                 }
-                //No else
+                else
+                {
+                    //The vertex is old, which means we don't consider edges to connected vertices.
+                    //Should we also avoid and old unconnected states have been considered before?
+                    for (unsigned int i = 0u; i < neighbourStates.size(); ++i)
+                    {
+                        //Is the target in the tree? I.e., is this an expansion or rewiring edge?
+                        if (neighbourStates.at(i)->isInTree() == false)
+                        {
+                            //The vertex is an unconnected free states, this is an expansion edge.
+                            //Is the target a new sample?
+                            if (neighbourStates.at(i)->isNew() == true)
+                            {
+                                //It is, attempt to queue the edge.
+                                this->queueupEdge(vertex, neighbourStates.at(i));
+                            }
+                            //No else, we've considered this edge before.
+                        }
+                        //No else, the target is connected, making this a rewiring edge.
+                    }
+                }
             }
-            //No else
+            //No else, this vertex doesn't need to be expanded yet
         }
 
 
@@ -1062,6 +1065,58 @@ namespace ompl
 
 
 
+        unsigned int BITstar::IntegratedQueue::pruneNN(const VertexPtrNNPtr& stateNN)
+        {
+            //Variable:
+            //The list of states:
+            std::vector<VertexPtr> states;
+            //The number pruned
+            unsigned int numPruned = 0u;
+
+            //Get the list of samples
+            stateNN->list(states);
+
+            //Clear the nearest-neighbour structure
+            stateNN->clear();
+
+            //Iterate through the list and readd any states that are in the graph or have a heuristic less than the bestCost_
+            for (unsigned int i = 0u; i < states.size(); ++i)
+            {
+                //Is the state in the tree?
+                if (states.at(i)->isInTree() == true)
+                {
+                    //Yes, readd it
+                    stateNN->add(states.at(i));
+                }
+                else
+                {
+                    //No it is a free state, should it be pruned?
+                    if (this->samplePruneCondition(states.at(i)) == false)
+                    {
+                        //No, readd it
+                        stateNN->add(states.at(i));
+                    }
+                    else
+                    {
+                        //Yes, don't readd it. It will be deleted as soon as pruneNN exits.
+
+                        //Make sure it's incoming lookups are removed:
+                        this->removeEdgesTo(states.at(i));
+
+                        //Finally, mark as pruned. This is a lock that can never be undone and prevents accessing anything about the vertex.
+                        states.at(i)->markPruned();
+
+                        //Update our counters
+                        ++numPruned;
+                    }
+                }
+            }
+
+            return numPruned;
+        }
+
+
+
         void BITstar::IntegratedQueue::reinsertVertex(const VertexPtr& unorderedVertex)
         {
             //Variables:
@@ -1099,7 +1154,7 @@ namespace ompl
             }
 
             //Remove myself, not touching my lookup entries
-            this->vertexRemoveHelper(unorderedVertex, VertexPtrNNPtr(), VertexPtrNNPtr(), false);
+            this->vertexRemoveHelper(unorderedVertex, false, false);
 
             //Reinsert myself, expanding if I cross the token if I am not already expanded
             this->vertexInsertHelper(unorderedVertex, alreadyExpanded == false);
@@ -1141,7 +1196,7 @@ namespace ompl
 
 
 
-        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::pruneBranch(const VertexPtr& branchBase, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN)
+        unsigned int BITstar::IntegratedQueue::pruneBranch(const VertexPtr& branchBase)
         {
             //We must iterate over the children of this vertex and prune each one.
             //Then we must decide if this vertex (a) gets deleted or (b) placed back on the sample set.
@@ -1165,13 +1220,13 @@ namespace ompl
             }
 
             //Variables:
-            //The counter of vertices and samples pruned:
-            std::pair<unsigned int, unsigned int> numPruned;
+            //The counter of vertices pruned:
+            unsigned int numPruned;
             //The vector of my children:
             std::vector<VertexPtr> children;
 
             //Initialize the counter:
-            numPruned = std::make_pair(1u, 0u);
+            numPruned = 1u;
 
             //Disconnect myself from my parent, not cascading costs as I know my children are also being disconnected:
             this->disconnectParent(branchBase, false);
@@ -1179,22 +1234,14 @@ namespace ompl
             //Get the vector of children
             branchBase->getChildren(&children);
 
-            //Remove myself from everything:
-            numPruned.second = this->vertexRemoveHelper(branchBase, vertexNN, freeStateNN, true);
+            //Remove myself and my outgoing lookups. Leave my incoming lookups as I'm still a state:
+            this->vertexRemoveHelper(branchBase, true, false);
 
             //Prune my children:
             for (unsigned int i = 0u; i < children.size(); ++i)
             {
-                //Variable:
-                //The number pruned by my children:
-                std::pair<unsigned int, unsigned int> childNumPruned;
-
                 //Prune my children:
-                childNumPruned = this->pruneBranch(children.at(i), vertexNN, freeStateNN);
-
-                //Update my counter:
-                numPruned.first = numPruned.first + childNumPruned.first;
-                numPruned.second = numPruned.second + childNumPruned.second;
+                numPruned = numPruned + this->pruneBranch(children.at(i));
             }
 
             //Return the number pruned
@@ -1305,20 +1352,13 @@ namespace ompl
 
 
 
-        unsigned int BITstar::IntegratedQueue::vertexRemoveHelper(VertexPtr oldVertex, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, bool removeLookups)
+        void BITstar::IntegratedQueue::vertexRemoveHelper(VertexPtr oldVertex, bool removeOutgoingLookup, bool removeIncomingLookup)
         {
-            //Variable
-            //The number of samples deleted (i.e., if this vertex is NOT moved to a sample, this is a 1)
-            unsigned int deleted;
-
             //Check that the vertex is not connected to a parent:
-            if (oldVertex->hasParent() == true && removeLookups == true)
+            if (oldVertex->hasParent() == true && (removeOutgoingLookup == true || removeIncomingLookup == true))
             {
                 throw ompl::Exception("Cannot delete a vertex connected to a parent unless the vertex is being immediately reinserted, in which case removeLookups should be false.");
             }
-
-            //Start undeleted:
-            deleted = 0u;
 
             //Check if there's anything to delete:
             if (vertexQueue_.empty() == false)
@@ -1349,54 +1389,25 @@ namespace ompl
                 vertexQueue_.erase(lookupIter->second);
 
                 //Remove from lookups map as requested
-                if (removeLookups == true)
+                if (removeOutgoingLookup == true)
                 {
+                    //If we're removing outgoing lookups, then we should remove our lookup into the queue as well
                     vertexIterLookup_.erase(lookupIter);
                     this->removeEdgesFrom(oldVertex);
                 }
+                //No else
 
-                //Check if I have been given permission to change sets:
-                if (static_cast<bool>(vertexNN) == true && static_cast<bool>(freeStateNN) == true)
+                if (removeIncomingLookup == true)
                 {
-                    //Check if I should be discarded completely:
-                    if (this->samplePruneCondition(oldVertex) == true)
-                    {
-                        //Yes, the vertex isn't even useful as a sample
-                        //Update the counter:
-                        deleted = 1u;
-
-                        //Remove from the incoming edge container if requested:
-                        if (removeLookups == true)
-                        {
-                            this->removeEdgesTo(oldVertex);
-                        }
-
-                        //Remove myself from the nearest neighbour structure:
-                        vertexNN->remove(oldVertex);
-
-                        //Finally, mark as pruned. This is a lock that can never be undone and prevents accessing anything about the vertex.
-                        oldVertex->markPruned();
-                    }
-                    else
-                    {
-                        //No, the vertex is still useful as a sample:
-                        //Remove myself from the nearest neighbour structure:
-                        vertexNN->remove(oldVertex);
-
-                        //And add the vertex to the set of samples, keeping the incoming edges:
-                        freeStateNN->add(oldVertex);
-                    }
+                    this->removeEdgesTo(oldVertex);
                 }
-                //Else, if I was given null pointers to the NN structs, that's because this sample is not allowed to change sets.
+                //No else
             }
             else
             {
                 std::cout << std::endl << "vId: " << oldVertex->getId() << std::endl;
                 throw ompl::Exception("Removing a nonexistent vertex. Something went wrong.");
             }
-
-            //Return if the sample was deleted:
-            return deleted;
         }
 
 
