@@ -80,30 +80,38 @@ ompl::geometric::FMT::~FMT()
 
 void ompl::geometric::FMT::setup()
 {
-    Planner::setup();
+	Planner::setup();
 
-    /* Setup the optimization objective. If no optimization objective was
+	if (pdef_)
+	{
+		/* Setup the optimization objective. If no optimization objective was
        specified, then default to optimizing path length as computed by the
        distance() function in the state space */
-    if (pdef_->hasOptimizationObjective())
-        opt_ = pdef_->getOptimizationObjective();
-    else
-    {
-        OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length.", getName().c_str());
-        opt_.reset(new base::PathLengthOptimizationObjective(si_));
-    }
-    Open_.getComparisonOperator().opt_ = opt_.get();
-    Open_.getComparisonOperator().heuristics_ = heuristics_;
+		if (pdef_->hasOptimizationObjective())
+			opt_ = pdef_->getOptimizationObjective();
+		else
+		{
+			OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length.", getName().c_str());
+			opt_.reset(new base::PathLengthOptimizationObjective(si_));
+		}
+		Open_.getComparisonOperator().opt_ = opt_.get();
+		Open_.getComparisonOperator().heuristics_ = heuristics_;
 
-    if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(boost::bind(&FMT::distanceFunction, this, _1, _2));
+		if (!nn_)
+			nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
+		nn_->setDistanceFunction(boost::bind(&FMT::distanceFunction, this, _1, _2));
 
-    if (nearestK_ && !nn_->reportsSortedResults())
-    {
-        OMPL_WARN("%s: NearestNeighbors datastructure does not return sorted solutions. Nearest K strategy disabled.", getName().c_str());
-        nearestK_ = false;
-    }
+		if (nearestK_ && !nn_->reportsSortedResults())
+		{
+			OMPL_WARN("%s: NearestNeighbors datastructure does not return sorted solutions. Nearest K strategy disabled.", getName().c_str());
+			nearestK_ = false;
+		}
+	}
+	else
+	{
+		OMPL_INFORM("%s: problem definition is not set, deferring setup completion...", getName().c_str());
+		setup_ = false;
+	}
 }
 
 void ompl::geometric::FMT::freeMemory()
