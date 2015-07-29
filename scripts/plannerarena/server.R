@@ -3,6 +3,10 @@ library(ggplot2)
 library(RSQLite)
 library(reshape2)
 
+# limit file uploads to 30MB, suppress warnings
+options(shiny.maxRequestSize = 30*1024^2, warn = -1)
+
+
 defaultDatabase <- "www/benchmark.db"
 
 noDatabaseText <- "No database loaded yet. Upload one by clicking on “Change database”."
@@ -45,16 +49,15 @@ numVersions <- function(con) {
     dbGetQuery(con, "SELECT COUNT(DISTINCT version) FROM experiments")
 }
 
-stripOMPLPrefix <- function(str) {
-    sub("OMPL ", "", str)
+stripLibnamePrefix <- function(str) {
+    # assume the version number is the last "word" in the string
+    tail(strsplit(str, " ")[[1]], n=1)
 }
 versionSelectWidget <- function(con, name, checkbox) {
     versions <- dbGetQuery(con, "SELECT DISTINCT version FROM experiments")
     versions <- versions$version
     if (checkbox)
     {
-        # strip "OMPL " prefix, so we can fit more labels on the X-axis
-        versions <- sapply(stripLibnamePrefix, versions)
         widget <- checkboxGroupInput(name, label = h4("Selected versions"),
             choices = versions,
             selected = versions)
@@ -104,31 +107,28 @@ hasProgressData <- function(con) {
     count > 0
 }
 
-# limit file uploads to 30MB, suppress warnings
-options(shiny.maxRequestSize = 30*1024^2, warn = -1)
-
 shinyServer(function(input, output, session) {
     con <- reactive({
-		query <- parseQueryString(session$clientData$url_search)
+        query <- parseQueryString(session$clientData$url_search)
 
-		if (is.null(query$user) || is.null(query$job)) {
-			if (is.null(input$database) || is.null(input$database$datapath))
-				database <- defaultDatabase
-			else
-				database <- input$database$datapath
-		} else {
-			database <- paste(sessionsFolder, query$user, query$job, sep="/")
-		}
+        if (is.null(query$user) || is.null(query$job)) {
+            if (is.null(input$database) || is.null(input$database$datapath))
+                database <- defaultDatabase
+            else
+                database <- input$database$datapath
+        } else {
+            database <- paste(sessionsFolder, query$user, query$job, sep="/")
+        }
 
         #return(normalizePath(database))
 
         if (file.exists(database)) {
             dbConnection <- dbConnect(dbDriver("SQLite"), database)
-			validate(need(dbExistsTable(dbConnection, "experiments"), notReadyText))
+            validate(need(dbExistsTable(dbConnection, "experiments"), notReadyText))
 
-			# TODO: For some reason, have to do this line again, gives error otherwise.
-			dbConnection <- dbConnect(dbDriver("SQLite"), database)
-		}
+            # TODO: For some reason, have to do this line again, gives error otherwise.
+            dbConnection <- dbConnect(dbDriver("SQLite"), database)
+        }
         else
             NULL
     })
@@ -415,6 +415,8 @@ shinyServer(function(input, output, session) {
             paste(sapply(input$regrPlanners, sqlPlannerSelect), collapse=" OR "),
             paste(sapply(input$regrVersions, sqlVersionSelect), collapse=" OR "))
         data <- dbGetQuery(con(), query)
+        # strip "OMPL " prefix, so we can fit more labels on the X-axis
+        data$version <- sapply(data$version, stripLibnamePrefix)
         # order by order listed in data frame (i.e., "0.9.*" before "0.10.*")
         data$version <- factor(data$version, unique(data$version))
         data$name <- factor(data$name, unique(data$name), labels = sapply(unique(data$name), plannerNameMapping))
