@@ -12,10 +12,15 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 
 # Contributors:
 
+- [Jonathan Gammell](http://asrl.utias.utoronto.ca/~jdg), Tim Barfoot's [Autonomous Space Robotics Lab](http://asrl.utias.utoronto.ca), University of Toronto
+- [Prudvhi Boyapalli](http://www.boyapalli.org), Rice University
+- Stephen Butler, Rice University
+- Sonny Tarbouriech, University of Sherbrooke
 - [Javier V Gomez](http://www.javiervgomez.com), Universidad Carlos III de Madrid
-- Ashley Clark, Stanford University
+- [Ashley Clark](http://web.stanford.edu/group/arl/people/ashley-clark), Steve Rock's [Aerospace Robotics Lab](http://web.stanford.edu/group/arl), Stanford University
+- Edward Schmerling, Marco Pavone's [Autonomous Systems Lab](http://asl.stanford.edu), Stanford University
 - Caleb Voss, Rice University
-- [Matt Maly](http://kavrakilab.org/profiles/mmaly), Rice University (now at Google)
+- Matt Maly, Rice University (now at Google)
 - [Oren Salzman](http://acg.cs.tau.ac.il/people/oren-salzman/oren-salzman), Dan Halperin's [Computational Geometry Lab](http://acg.cs.tau.ac.il), Tel Aviv University
 - [Dave Coleman](http://davetcoleman.com/),  Nikolaus Correll's [group](http://correll.cs.colorado.edu/), University of Colorado Boulder
 - [Andrew Dobson](http://www.pracsyslab.org/dobson), Kostas Bekris' [Physics-aware Research for Autonomous Computational SYStems group](http://www.pracsyslab.org), Rutgers University
@@ -30,4 +35,4 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 - [Sachin Chitta](http://www.sachinchitta.org), SRI International
 - Gil Jones, Google
 
-Click [here](thirdparty.html) for a detailed description of the third-party contributions.
+Click [here](thirdparty.html) for a detailed description of some of the third-party contributions.
