@@ -24,9 +24,10 @@ configuration:
   - Release
 
 build_script:
+  - set
   - mkdir build
   - cd build
-  - cmake -DOMPL_REGISTRATION=OFF ..
+  - cmake -DOMPL_REGISTRATION=OFF -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS=ON ..
   - cmake --build .
 
 test_script:
