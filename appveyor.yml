@@ -12,7 +12,9 @@ branches:
     - master
 
 # build platform, i.e. x86, x64, Any CPU. This setting is optional.
-platform: x64
+platform:
+  #- Win32
+  - x64
 
 environment:
   CTEST_OUTPUT_ON_FAILURE: 1
@@ -23,12 +25,19 @@ configuration:
 #  - Debug
   - Release
 
-build_script:
-  - set
-  - mkdir build
-  - cd build
-  - cmake -DOMPL_REGISTRATION=OFF -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS=ON ..
-  - cmake --build .
+before_build:
+  - cmd: set
+  - cmd: mkdir build
+  - cmd: cd build
+  - cmd: if "%platform%"=="Win32" set CMAKE_GENERATOR_NAME=Visual Studio 12
+  - cmd: if "%platform%"=="x64"   set CMAKE_GENERATOR_NAME=Visual Studio 12 Win64
+  - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DCMAKE_BUILD_TYPE=%configuration% -DOMPL_REGISTRATION=OFF -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS=ON ..
+
+build:
+    project: c:\projects\ompl\build\ompl.sln
+    parallel: true
+    # MSBuild verbosity level (quiet|minimal|normal|detailed)
+    verbosity: detailed
 
 test_script:
   - cmd: ctest
