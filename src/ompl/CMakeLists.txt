@@ -16,8 +16,6 @@ if(NOT OMPL_HAVE_EIGEN3)
     list(REMOVE_ITEM OMPL_SOURCE_CODE
         "${CMAKE_CURRENT_SOURCE_DIR}/util/src/ProlateHyperspheroid.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/base/samplers/informed/src/PathLengthDirectInfSampler.cpp")
-    message(${OMPL_SOURCE_CODE})
-    message("${VERSION_DIR}/util/src/ProlateHyperspheroid.cpp")
 endif()
 
 #############################################

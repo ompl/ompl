@@ -14,7 +14,7 @@ branches:
 # build platform, i.e. x86, x64, Any CPU. This setting is optional.
 platform:
   #- Win32
-  - x64
+  - x86
 
 environment:
   CTEST_OUTPUT_ON_FAILURE: 1
