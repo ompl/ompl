@@ -4,7 +4,7 @@
 version: "{build}"
 os: Windows Server 2012 R2
 
-clone_folder: c:\projects\ompl
+clone_folder: C:\projects\ompl
 clone_depth: 1
 
 branches:
@@ -18,8 +18,8 @@ platform:
 
 environment:
   CTEST_OUTPUT_ON_FAILURE: 1
-  BOOST_ROOT: c:\Libraries\boost
-  BOOST_LIBRARYDIR: c:\Libraries\boost\stage\lib
+  BOOST_ROOT: C:\Libraries\boost
+  BOOST_LIBRARYDIR: C:\Libraries\boost\stage\lib
 
 configuration:
 #  - Debug
@@ -34,10 +34,10 @@ before_build:
   - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DCMAKE_BUILD_TYPE=%configuration% -DOMPL_REGISTRATION=OFF -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS=ON ..
 
 build:
-    project: c:\projects\ompl\build\ompl.sln
+    project: C:\projects\ompl\build\ompl.sln
     parallel: true
     # MSBuild verbosity level (quiet|minimal|normal|detailed)
-    verbosity: detailed
+    verbosity: normal
 
 test_script:
-  - cmd: ctest
+  - cmd: ctest -C %configuration%
