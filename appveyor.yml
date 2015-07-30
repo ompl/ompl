@@ -1,7 +1,7 @@
 # AppVeyor file
 # http://www.appveyor.com/docs/appveyor-yml
 
-version: {build}
+version: "{build}"
 os: Unstable
 
 clone_folder: c:\projects\ompl
