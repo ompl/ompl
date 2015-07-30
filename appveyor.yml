@@ -2,7 +2,7 @@
 # http://www.appveyor.com/docs/appveyor-yml
 
 version: "{build}"
-os: Unstable
+os: Windows Server 2012 R2
 
 clone_folder: c:\projects\ompl
 clone_depth: 1
