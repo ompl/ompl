@@ -18,6 +18,7 @@ if(NOT OMPL_HAVE_EIGEN3)
         "${VERSION_DIR}\\util\\src/ProlateHyperspheroid.cpp"
         "${VERSION_DIR}/base/samplers/informed/src/PathLengthDirectInfSampler.cpp"
         "${VERSION_DIR}\\base\\samplers\\informed\\src\\PathLengthDirectInfSampler.cpp")
+    message(${OMPL_SOURCE_CODE})
 endif()
 
 #############################################
