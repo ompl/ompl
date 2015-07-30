@@ -1,0 +1,33 @@
+# AppVeyor file
+# http://www.appveyor.com/docs/appveyor-yml
+
+version: {build}
+os: Unstable
+
+clone_folder: c:\projects\ompl
+clone_depth: 1
+
+branches:
+  only:
+    - master
+
+# build platform, i.e. x86, x64, Any CPU. This setting is optional.
+platform: x64
+
+environment:
+  CTEST_OUTPUT_ON_FAILURE: 1
+  BOOST_ROOT: c:\Libraries\boost
+  BOOST_LIBRARYDIR: c:\Libraries\boost\stage\lib
+
+configuration:
+#  - Debug
+  - Release
+
+build_script:
+  - mkdir build
+  - cd build
+  - cmake -DOMPL_REGISTRATION=OFF ..
+  - cmake --build .
+
+test_script:
+  - cmd: ctest
