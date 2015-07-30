@@ -124,7 +124,12 @@ shinyServer(function(input, output, session) {
 
         if (file.exists(database)) {
             dbConnection <- dbConnect(dbDriver("SQLite"), database)
-            validate(need(dbExistsTable(dbConnection, "experiments"), notReadyText))
+            ready <- dbExistsTable(dbConnection, "experiments")
+            if (!ready) {
+                js$refresh()
+            } else {
+                updateTabsetPanel(session, "navbar", selected = "performance")
+            }
 
             # TODO: For some reason, have to do this line again, gives error otherwise.
             dbConnection <- dbConnect(dbDriver("SQLite"), database)

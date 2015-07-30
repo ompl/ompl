@@ -1,7 +1,10 @@
 library(shiny)
+library(shinyjs)
 
 shinyUI(
     navbarPage("Planner Arena",
+        useShinyjs(),
+        extendShinyjs(script = "www/plannerarena.js"),
         tabPanel("Overall performance",
             uiOutput("performancePage"),
             value="performance",
