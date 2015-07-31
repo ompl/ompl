@@ -32,9 +32,10 @@ build:
 # after_build:
 #   - cmd: cmake --build . --target package --config %configuration%
 
-test_script:
-  #- cmd: cd build
-  - cmd: ctest -C %configuration%
+# no time to run tests
+# test_script:
+#   - cmd: cd build
+#   - cmd: ctest -C %configuration%
 
 # artifacts:
 #   - path: ompl\*.zip
