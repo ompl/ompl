@@ -33,7 +33,7 @@ build:
 #   - cmd: cmake --build . --target package --config %configuration%
 
 test_script:
-  - cmd: cd build
+  #- cmd: cd build
   - cmd: ctest -C %configuration%
 
 # artifacts:
