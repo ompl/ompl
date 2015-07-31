@@ -2,7 +2,7 @@
 # http://www.appveyor.com/docs/appveyor-yml
 
 version: "{build}"
-os: Windows Server 2012 R2
+os: unstable
 
 clone_folder: C:\projects\ompl
 clone_depth: 1
@@ -10,16 +10,12 @@ clone_depth: 1
 branches:
   only:
     - master
-
-# build platform, i.e. x86, x64, Any CPU. This setting is optional.
-platform:
-  #- Win32
-  - x86
+platform: x64
 
 environment:
   CTEST_OUTPUT_ON_FAILURE: 1
   BOOST_ROOT: C:\Libraries\boost
-  BOOST_LIBRARYDIR: C:\Libraries\boost\stage\lib
+  BOOST_LIBRARYDIR: C:\Libraries\boost\lib64-msvc-12.0
 
 configuration:
 #  - Debug
@@ -29,15 +25,17 @@ before_build:
   - cmd: set
   - cmd: mkdir build
   - cmd: cd build
-  - cmd: if "%platform%"=="Win32" set CMAKE_GENERATOR_NAME=Visual Studio 12
-  - cmd: if "%platform%"=="x64"   set CMAKE_GENERATOR_NAME=Visual Studio 12 Win64
-  - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DCMAKE_BUILD_TYPE=%configuration% -DOMPL_REGISTRATION=OFF -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS=ON ..
+  - cmd: cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=%configuration% -DOMPL_REGISTRATION=OFF -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" ..
 
 build:
     project: C:\projects\ompl\build\ompl.sln
     parallel: true
-    # MSBuild verbosity level (quiet|minimal|normal|detailed)
-    verbosity: normal
+
+after_build:
+  - cmd: cmake --build . --target package --config %configuration% 
 
 test_script:
-  - cmd: ctest -C %configuration%
+  - cmd: cmake --build . --target test --config %configuration% 
+
+artifacts:
+  - path: ompl\*.zip

@@ -73,7 +73,7 @@ if(APPLE)
 endif()
 
 if(WIN32)
-    set(CPACK_GENERATOR "ZIP;${CPACK_GENERATOR}")
+    set(CPACK_GENERATOR "ZIP")
 endif()
 
 include(CPack)
