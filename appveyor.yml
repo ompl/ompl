@@ -26,12 +26,15 @@ before_build:
   - cmd: cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=%configuration% -DOMPL_REGISTRATION=OFF -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" ..
 
 build:
-    project: C:\projects\ompl\build\ompl.sln
-    parallel: true
+  project: C:\projects\ompl\build\ompl.sln
+  parallel: true
 
 after_build:
-  - cmd: cmake --build . --target test --config %configuration%
   - cmd: cmake --build . --target package --config %configuration%
+
+test_script:
+  - cmd: cd build
+  - cmd: ctest -C %configuration%
 
 artifacts:
   - path: ompl\*.zip
