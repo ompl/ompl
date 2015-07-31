@@ -17,9 +17,7 @@ environment:
   BOOST_ROOT: C:\Libraries\boost
   BOOST_LIBRARYDIR: C:\Libraries\boost\lib64-msvc-12.0
 
-configuration:
-#  - Debug
-  - Release
+configuration: Release
 
 before_build:
   - cmd: set
@@ -32,10 +30,8 @@ build:
     parallel: true
 
 after_build:
-  - cmd: cmake --build . --target package --config %configuration% 
-
-test_script:
-  - cmd: cmake --build . --target test --config %configuration% 
+  - cmd: cmake --build . --target test --config %configuration%
+  - cmd: cmake --build . --target package --config %configuration%
 
 artifacts:
   - path: ompl\*.zip
