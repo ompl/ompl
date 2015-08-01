@@ -321,14 +321,8 @@ namespace ompl
             /** \brief Calculate the max req'd cost to define a neighbourhood around a state. I.e., For path-length problems, the cost equivalent of +2*r. */
             ompl::base::Cost neighbourhoodCost() const;
 
-            /** \brief Compare whether cost a is better than cost b. Ignores the tolerances used by OptimizationObjective::isCostBetterThan */
-            bool isCostBetterThan(const ompl::base::Cost& a, const ompl::base::Cost& b) const;
-
             /** \brief Compare whether cost a is worse than cost b by checking whether b is better than a. */
             bool isCostWorseThan(const ompl::base::Cost& a, const ompl::base::Cost& b) const;
-
-            /** \brief Compare whether cost a and cost b are equivalent by checking that neither a or b is better than the other. */
-            bool isCostEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const;
 
             /** \brief Compare whether cost a and cost b are not equivalent by checking if either a or b is better than the other. */
             bool isCostNotEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const;
@@ -338,12 +332,6 @@ namespace ompl
 
             /** \brief Compare whether cost a is worse or equivalent to cost b by checking that a is not better than b. */
             bool isCostWorseThanOrEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const;
-
-            /** \brief Returns whether the cost is finite or not. By default calls std::isfinite on Cost::value(). */
-            bool isFinite(const ompl::base::Cost& cost) const;
-
-            /** \brief The better of two costs.*/
-            ompl::base::Cost betterCost(const ompl::base::Cost& a, const ompl::base::Cost& b) const;
 
             /** \brief Combine 3 costs */
             ompl::base::Cost combineCosts(const ompl::base::Cost& a, const ompl::base::Cost& b, const ompl::base::Cost& c) const;

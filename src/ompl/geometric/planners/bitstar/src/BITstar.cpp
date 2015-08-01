@@ -358,7 +358,7 @@ namespace ompl
             stopLoop_ = false;
 
             //Run the outerloop until we're stopped, a suitable cost is found, or until we find the minimum possible cost within tolerance:
-            while (opt_->isSatisfied(bestCost_) == false && ptc == false && this->isCostBetterThan(minCost_, bestCost_) == true && stopLoop_ == false)
+            while (opt_->isSatisfied(bestCost_) == false && ptc == false && opt_->isCostBetterThan(minCost_, bestCost_) == true && stopLoop_ == false)
             {
                 this->iterate();
             }
@@ -632,7 +632,7 @@ namespace ompl
 
                 //In the best case, can this edge improve our solution given the current graph?
                 //g_t(v) + c_hat(v,x) + h_hat(x) < g_t(x_g)
-                if (this->isCostBetterThan( this->combineCosts(bestEdge.first->getCost(), this->edgeCostHeuristic(bestEdge), this->costToGoHeuristic(bestEdge.second)), bestCost_ ) == true)
+                if (opt_->isCostBetterThan( this->combineCosts(bestEdge.first->getCost(), this->edgeCostHeuristic(bestEdge), this->costToGoHeuristic(bestEdge.second)), bestCost_ ) == true)
                 {
                     //Variables:
                     //The true cost of the edge:
@@ -643,14 +643,14 @@ namespace ompl
 
                     //Can this actual edge ever improve our solution?
                     //g_hat(v) + c(v,x) + h_hat(x) < g_t(x_g)
-                    if (this->isCostBetterThan( this->combineCosts(this->costToComeHeuristic(bestEdge.first), trueEdgeCost, this->costToGoHeuristic(bestEdge.second)),  bestCost_ ) == true)
+                    if (opt_->isCostBetterThan( this->combineCosts(this->costToComeHeuristic(bestEdge.first), trueEdgeCost, this->costToGoHeuristic(bestEdge.second)),  bestCost_ ) == true)
                     {
                         //Does this edge have a collision?
                         if (this->checkEdge(bestEdge) == true)
                         {
                             //Does the current edge improve our graph?
                             //g_t(v) + c(v,x) < g_t(x)
-                            if (this->isCostBetterThan( opt_->combineCosts(bestEdge.first->getCost(), trueEdgeCost), bestEdge.second->getCost() ) == true)
+                            if (opt_->isCostBetterThan( opt_->combineCosts(bestEdge.first->getCost(), trueEdgeCost), bestEdge.second->getCost() ) == true)
                             {
                                 //YAAAAH. Add the edge! Allowing for the sample to be removed from free if it is not currently connected and otherwise propagate cost updates to descendants.
                                 //addEdge will update the queue and handle the extra work that occurs if this edge improves the solution.
@@ -726,7 +726,7 @@ namespace ompl
         void BITstar::updateSamples(const VertexPtr& vertex)
         {
             //Check if we need to sample (This is in preparation for JIT sampling:)
-            if (this->isCostBetterThan(costSampled_, bestCost_))
+            if (opt_->isCostBetterThan(costSampled_, bestCost_))
             {
                 //Update the sampler counter:
                 numSamples_ = numSamples_ + samplesPerBatch_;
@@ -938,7 +938,7 @@ namespace ompl
 
             //This should be a debug-level-only assert some day:
             /*
-            if (this->isCostEquivalentTo(this->trueEdgeCost(newEdge), edgeCost) == false)
+            if (opt_->isCostEquivalentTo(this->trueEdgeCost(newEdge), edgeCost) == false)
             {
                 throw ompl::Exception("You have passed the wrong edge cost to addEdge.");
             }
@@ -969,7 +969,7 @@ namespace ompl
             if (goalVertex_->isInTree() == true)
             {
                 //Is the stored info out of date?
-                if (this->isCostEquivalentTo(goalVertex_->getCost(), bestCost_) == false || (goalVertex_->getDepth() + 1u) != bestLength_)
+                if (opt_->isCostEquivalentTo(goalVertex_->getCost(), bestCost_) == false || (goalVertex_->getDepth() + 1u) != bestLength_)
                 {
                     //Update the info about the goal vertex
                     this->updateGoalVertex();
@@ -989,7 +989,7 @@ namespace ompl
             }
 
             //This would be a good debug-level-only assert
-            if (this->isCostBetterThan(newEdge.second->getCost(), opt_->combineCosts(newEdge.first->getCost(), edgeCost)) == true)
+            if (opt_->isCostBetterThan(newEdge.second->getCost(), opt_->combineCosts(newEdge.first->getCost(), edgeCost)) == true)
             {
                 throw ompl::Exception("The new edge will increase the cost-to-come of the vertex!");
             }
@@ -1208,25 +1208,10 @@ namespace ompl
 
 
 
-        bool BITstar::isCostBetterThan(const ompl::base::Cost& a, const ompl::base::Cost& b) const
-        {
-            return a.value() < b.value();
-        }
-
-
-
         bool BITstar::isCostWorseThan(const ompl::base::Cost& a, const ompl::base::Cost& b) const
         {
             //If b is better than a, then a is worse than b
-            return this->isCostBetterThan(b, a);
-        }
-
-
-
-        bool BITstar::isCostEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const
-        {
-            //If a is not better than b, and b is not better than a, then they are equal
-            return !this->isCostBetterThan(a,b) && !this->isCostBetterThan(b,a);
+            return opt_->isCostBetterThan(b, a);
         }
 
 
@@ -1234,7 +1219,7 @@ namespace ompl
         bool BITstar::isCostNotEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const
         {
             //If a is better than b, or b is better than a, then they are not equal
-            return this->isCostBetterThan(a,b) || this->isCostBetterThan(b,a);
+            return opt_->isCostBetterThan(a,b) || opt_->isCostBetterThan(b,a);
         }
 
 
@@ -1242,7 +1227,7 @@ namespace ompl
         bool BITstar::isCostBetterThanOrEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const
         {
             //If b is not better than a, then a is better than, or equal to, b
-            return !this->isCostBetterThan(b, a);
+            return !opt_->isCostBetterThan(b, a);
         }
 
 
@@ -1250,28 +1235,7 @@ namespace ompl
         bool BITstar::isCostWorseThanOrEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const
         {
             //If a is not better than b, than a is worse than, or equal to, b
-            return !this->isCostBetterThan(a,b);
-        }
-
-
-
-        bool BITstar::isFinite(const ompl::base::Cost& cost) const
-        {
-            return this->isCostBetterThan(cost, opt_->infiniteCost());
-        }
-
-
-
-        ompl::base::Cost BITstar::betterCost(const ompl::base::Cost& a, const ompl::base::Cost& b) const
-        {
-            if (this->isCostBetterThan(b,a))
-            {
-                return b;
-            }
-            else
-            {
-                return a;
-            }
+            return !opt_->isCostBetterThan(a,b);
         }
 
 
@@ -1300,7 +1264,7 @@ namespace ompl
         double BITstar::fractionalChange(const ompl::base::Cost& newCost, const ompl::base::Cost& oldCost, const ompl::base::Cost& refCost) const
         {
             //If the old cost is not finite, than we call that infinite percent improvement
-            if (this->isFinite(oldCost) == false)
+            if (opt_->isFinite(oldCost) == false)
             {
                 //Return infinity (but not beyond)
                 return std::numeric_limits<double>::infinity();

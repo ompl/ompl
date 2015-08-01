@@ -80,7 +80,7 @@ namespace ompl
             /** \brief Get the description of this optimization objective */
             const std::string& getDescription() const;
 
-            /** \brief Verify that our objective is satisfied already and we can stop planning */
+            /** \brief Check if the the given cost \e c satisfies the specified cost objective, meaning we may stop planning. */
             virtual bool isSatisfied(Cost c) const;
 
             /** \brief Returns the cost threshold currently being checked for objective satisfaction */
@@ -89,7 +89,7 @@ namespace ompl
             /** \brief Set the cost threshold for objective satisfaction. When a path is found with a cost better than the cost threshold, the objective is considered satisfied. */
             void setCostThreshold(Cost c);
 
-            /** \brief Check whether the the cost \e c1 is considered better than the cost \e c2. By default, this returns true only if c1 is less by at least some threshold amount, for numerical robustness. */
+            /** \brief Check whether the the cost \e c1 is considered better than the cost \e c2. By default, this returns true if if c1 is less than c2. */
             virtual bool isCostBetterThan(Cost c1, Cost c2) const;
 
             /** \brief Compare whether cost \e c1 and cost \e c2 are equivalent. By default defined as !isCostBetterThan(c1, c2) && !isCostBetterThan(c2, c1), as if c1 is not better than c2, and c2 is not better than c1, then they are equal. */

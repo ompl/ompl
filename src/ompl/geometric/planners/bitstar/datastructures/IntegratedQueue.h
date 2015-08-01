@@ -427,15 +427,9 @@ namespace ompl
             ////////////////////////////////
 
             ////////////////////////////////
-            //Overloads since OptimizationObjective::isCostBetterThan() is broken (it compares to within a very small tolerance...)
-            /** \brief Compare whether cost a is better than cost b. Ignores the tolerances used by OptimizationObjective::isCostBetterThan */
-            bool isCostBetterThan(const ompl::base::Cost& a, const ompl::base::Cost& b) const;
-
+            //Cost helpers
             /** \brief Compare whether cost a is worse than cost b by checking whether b is better than a. */
             bool isCostWorseThan(const ompl::base::Cost& a, const ompl::base::Cost& b) const;
-
-            /** \brief Compare whether cost a and cost b are equivalent by checking that neither a or b is better than the other. */
-            bool isCostEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const;
 
             /** \brief Compare whether cost a and cost b are not equivalent by checking if either a or b is better than the other. */
             bool isCostNotEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const;
