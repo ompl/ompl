@@ -532,7 +532,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT', 'LightningRetrieveRepair', 'BITstar']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT', 'BITstar']:
             try:
                 cls = self.ompl_ns.class_(planner)
             except:
@@ -593,10 +593,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # LazyPRM's Vertex type is void* so exclude addMilestone which has return type void*
         self.ompl_ns.class_('LazyPRM').member_function('addMilestone').exclude()
         # avoid difficulties in exporting the return type std::vector<base::PlannerDataPtr>
-        self.ompl_ns.class_('LightningRetrieveRepair').member_function('getLastRecalledNearestPaths').exclude()
-        self.ompl_ns.class_('LightningRetrieveRepair').member_function('getRepairPlannerDatas').exclude()
-
-        # do this for all multithreaded planners
+                # do this for all multithreaded planners
         for planner in ['SPARS', 'SPARStwo']:
             cls = self.ompl_ns.class_(planner)
             cls.constructor(arg_types=["::ompl::base::SpaceInformationPtr const &"]).exclude()
@@ -722,27 +719,6 @@ class ompl_tools_generator_t(code_generator_t):
         self.add_boost_function('void(const ompl::base::PlannerPtr&, ompl::tools::Benchmark::RunProperties&)',
             'PostSetupEvent', 'Post-setup event')
         benchmark_cls.class_('Request').no_init = False
-
-        lightning = self.ompl_ns.class_('Lightning')
-        # print Lightning results
-        self.replace_member_function(lightning.member_function('printResultsInfo'))
-        # print Lightning logs
-        self.replace_member_function(lightning.member_function('printLogs'))
-        # print Experience log
-        self.replace_member_functions(self.ompl_ns.member_functions('saveDataLog'))
-        # avoid problems with exporting a vector of shared pointers to PlannerData objects
-        self.ompl_ns.member_functions('getAllPlannerDatas').exclude()
-        # getAllPlannerDatas is pure virtual in ExperienceSetup, so need to
-        # add default implementation in wrapper
-        self.ompl_ns.class_('ExperienceSetup').add_wrapper_code("""
-        virtual void getAllPlannerDatas(std::vector<ompl::base::PlannerDataPtr> &plannerDatas) const
-        {
-            return;
-        }
-        """)
-        # code generation fails because of same bug in gxxcml that requires us
-        # to patch the generated code with workaround_for_gccxml_bug.cmake
-        lightning.member_function('setPlannerAllocator').exclude()
 
 class ompl_util_generator_t(code_generator_t):
     def __init__(self):

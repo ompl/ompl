@@ -716,7 +716,7 @@ protected:
 BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 
 #ifndef MACHINE_SPEED_FACTOR
-#  define MACHINE_SPEED_FACTOR 3.0
+#  define MACHINE_SPEED_FACTOR 300.0
 #endif
 
 // define boost tests for a planner assuming the naming convention is followed
