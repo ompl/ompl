@@ -34,18 +34,18 @@ if (file.exists(paste0(script.dir,"/app.R"))) {
     # if "app.R" exists in the same dir, then this is the app dir
     appDir <- script.dir
     # config file is in the webapp dir
-    cfg.file <- normalizePath(paste0(script.dir,"/../../../webapp/webapp.cfg"))
+    cfg.file <- normalizePath(paste0(script.dir,"/../../../ompl.conf"))
 } else {
     # otherwise, assume this script is installed in ${prefix}/bin and
     # plannerarena is installed in ${prefix}/share/ompl/plannerarena
     appDir <- normalizePath(paste0(script.dir,"/../share/ompl/plannerarena"))
-    cfg.file <- normalizePath(paste0(script.dir,"/../share/ompl/webapp/webapp.cfg"))
+    cfg.file <- normalizePath(paste0(script.dir,"/../share/ompl/ompl.conf"))
 }
 cfg <- parse.cfg(cfg.file)
-options(shiny.maxRequestSize = strtoi(cfg$preferences$max_upload_size),
-    shiny.port = strtoi(cfg$preferences$plannerarena_port),
+options(shiny.maxRequestSize = strtoi(cfg$plannerarena$max_upload_size),
+    shiny.port = strtoi(cfg$plannerarena$plannerarena_port),
     warn=-1)
 
 # open plannerarena in the browser
-launch.browser <- TRUE
+launch.browser <- strtoi(cfg$plannerarena$launch_browser)
 runApp(appDir, launch.browser=launch.browser)
