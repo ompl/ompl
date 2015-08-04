@@ -120,6 +120,7 @@ void ompl::geometric::RRTstar::clear()
 
     lastGoalMotion_ = NULL;
     goalMotions_.clear();
+    startMotion_ = NULL;
 
     iterations_ = 0;
     bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
@@ -447,11 +448,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         std::vector<const base::State *> spath;
                         Motion *intermediate_solution = solution->parent; // Do not include goal state to simplify code.
 
-                        do
+                        //Push back until we find the start, but not the start itself
+                        while (intermediate_solution->parent != NULL)
                         {
                             spath.push_back(intermediate_solution->state);
                             intermediate_solution = intermediate_solution->parent;
-                        } while (intermediate_solution->parent != 0); // Do not include the start state.
+                        }
 
                         intermediateSolutionCallback(this, spath, bestCost_);
                     }
