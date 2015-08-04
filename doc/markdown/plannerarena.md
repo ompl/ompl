@@ -6,9 +6,9 @@ The OMPL Planner Arena code allows you to easily create plots from a benchmark d
 ## Dependencies
 
 - R 3.0.0 or higher
-- The following R packages: shiny, shinyjs, ggplot2, Hmisc, RSQLite, and markdown. These packages can be installed like so:
+- The following R packages: shiny, shinyjs, V8, ggplot2, Hmisc, RSQLite, and markdown. These packages can be installed like so:
 
-      R -e "install.packages(c('shiny', 'shinyjs', 'ggplot2', 'Hmisc', 'RSQLite', 'markdown'), repos='http://cran.r-project.org')"
+      R -e "install.packages(c('shiny', 'shinyjs', 'V8', 'ggplot2', 'Hmisc', 'RSQLite', 'markdown'), repos='http://cran.r-project.org')"
 
 
 ## Running
