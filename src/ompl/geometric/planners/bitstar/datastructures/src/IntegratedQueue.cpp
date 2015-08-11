@@ -841,7 +841,7 @@ namespace ompl
             {
                 //By virtue of the vertex expansion rules, the token will always sit at the front of a group of equivalent cost vertices (that is to say, all vertices with the same cost get expanded at the same time)
                 //Therefore, the vertex is expanded if it's cost is strictly better than the token.
-                return this->isCostBetterThan(lkupIter->second->first, vertexToExpand_->first);
+                return opt_->isCostBetterThan(lkupIter->second->first, vertexToExpand_->first);
             }
         }
 
@@ -1553,7 +1553,7 @@ namespace ompl
         bool BITstar::IntegratedQueue::vertexQueueComparison(const ompl::base::Cost& lhs, const ompl::base::Cost& rhs) const
         {
             //lhs < rhs?
-            return this->isCostBetterThan(lhs, rhs);
+            return opt_->isCostBetterThan(lhs, rhs);
         }
 
 
@@ -1563,17 +1563,17 @@ namespace ompl
             bool lhsLTrhs;
 
             //Get if LHS is less than RHS.
-            lhsLTrhs = this->isCostBetterThan(lhs.first, rhs.first);
+            lhsLTrhs = opt_->isCostBetterThan(lhs.first, rhs.first);
 
             //If it's not, it could be equal
             if (lhsLTrhs == false)
             {
                 //If RHS is also NOT less than LHS, than they're equal and we need to check the second key
-                if (this->isCostBetterThan(rhs.first, lhs.first) == false)
+                if (opt_->isCostBetterThan(rhs.first, lhs.first) == false)
                 {
                     //lhs == rhs
                     //Compare their second values
-                    lhsLTrhs = this->isCostBetterThan( lhs.second, rhs.second );
+                    lhsLTrhs = opt_->isCostBetterThan( lhs.second, rhs.second );
                 }
                 //No else: lhs > rhs
             }
@@ -1584,25 +1584,10 @@ namespace ompl
 
 
 
-        bool BITstar::IntegratedQueue::isCostBetterThan(const ompl::base::Cost& a, const ompl::base::Cost& b) const
-        {
-            return a.value() < b.value();
-        }
-
-
-
         bool BITstar::IntegratedQueue::isCostWorseThan(const ompl::base::Cost& a, const ompl::base::Cost& b) const
         {
             //If b is better than a, then a is worse than b
-            return this->isCostBetterThan(b, a);
-        }
-
-
-
-        bool BITstar::IntegratedQueue::isCostEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const
-        {
-            //If a is not better than b, and b is not better than a, then they are equal
-            return !this->isCostBetterThan(a,b) && !this->isCostBetterThan(b,a);
+            return opt_->isCostBetterThan(b, a);
         }
 
 
@@ -1610,7 +1595,7 @@ namespace ompl
         bool BITstar::IntegratedQueue::isCostNotEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const
         {
             //If a is better than b, or b is better than a, then they are not equal
-            return this->isCostBetterThan(a,b) || this->isCostBetterThan(b,a);
+            return opt_->isCostBetterThan(a,b) || opt_->isCostBetterThan(b,a);
         }
 
 
@@ -1618,7 +1603,7 @@ namespace ompl
         bool BITstar::IntegratedQueue::isCostBetterThanOrEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const
         {
             //If b is not better than a, then a is better than, or equal to, b
-            return !this->isCostBetterThan(b, a);
+            return !opt_->isCostBetterThan(b, a);
         }
 
 
@@ -1626,7 +1611,7 @@ namespace ompl
         bool BITstar::IntegratedQueue::isCostWorseThanOrEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const
         {
             //If a is not better than b, than a is worse than, or equal to, b
-            return !this->isCostBetterThan(a,b);
+            return !opt_->isCostBetterThan(a,b);
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
 
