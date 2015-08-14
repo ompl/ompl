@@ -12,7 +12,7 @@ noDatabaseText <- "No database loaded yet. Upload one by clicking on “Change d
 
 notReadyText <- "The benchmarking results are not available yet, check back later."
 
-sessionsFolder = "../../../webapp/static/sessions"
+sessionsFolder = "/tmp/omplweb_sessions"
 
 disable <- function(x) {
   if (inherits(x, 'shiny.tag')) {
