@@ -39,9 +39,10 @@ The following parameters are _optional_ under the “<b>[problem]</b>” heading
 
 Parameters relating to benchmarking must be declared under the “<b>[benchmark]</b>”
 heading:
-- __time_limit__: The amount of time (seconds) for each plan computation
-- __mem_limit__: The maximum amount of memory (MB) for each planner
-- __run_count__: The number of times to repeat the experiment for each planner
+- __time_limit__: The amount of time (seconds) for each plan computation.
+- __mem_limit__: The maximum amount of memory (MB) for each planner. Memory measurements are not very accurate, so it is recommended to set this to a very large value.
+- __run_count__: The number of times to repeat the experiment for each planner.
+- __output__: Output directory where the benchmark log file will be saved. This parameter is optional; by default the log file is saved in the same directory as the configuration file.
 - __save_paths__: This _optional_ parameter can be set to \c none, \c all, or \c shortest to save _no_ solution paths (the default value), _all_ solution paths (including approximate solutions), or the _shortest_ exact solution for each planner, respectively. These paths can then be “played back” in the [OMPL.app GUI](gui.html#gui_paths).
 
 The last required element to specify are the planners to benchmark.  These are specified under the “<b>[planner]</b>” heading.  The following planners are valid for geometric benchmarking:

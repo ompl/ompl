@@ -140,6 +140,9 @@ if (FLANN_FOUND)
     include_directories(SYSTEM "${FLANN_INCLUDE_DIRS}")
 endif()
 
+# R is needed for running Planner Arena locally
+find_program(R_EXEC R)
+
 option(OMPL_LOCAL_PYPLUSPLUS_INSTALL "Whether Py++ and dependencies should be installed in the build directory" OFF)
 set(SUDO "sudo")
 set(CMAKE_GCCXML_ARGS "")

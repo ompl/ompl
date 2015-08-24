@@ -74,7 +74,7 @@ namespace ompl
         /// \cond IGNORE
         // internally, we use a priority queue for nearest neighbors, paired
         // with their distance to the query point
-        typedef std::pair<const _T*,double> DataDist;
+        typedef std::pair<const _T*, double> DataDist;
         struct DataDistCompare
         {
             bool operator()(const DataDist& d0, const DataDist& d1)
@@ -86,9 +86,9 @@ namespace ompl
         /// \endcond
 
     public:
-        NearestNeighborsGNATNoThreadSafety(unsigned int degree = 3, unsigned int minDegree = 2,
-            unsigned int maxDegree = 3, unsigned int maxNumPtsPerLeaf = 4,
-            unsigned int removedCacheSize = 50, bool rebalancing = false
+        NearestNeighborsGNATNoThreadSafety(unsigned int degree = 8, unsigned int minDegree = 4,
+            unsigned int maxDegree = 12, unsigned int maxNumPtsPerLeaf = 50,
+            unsigned int removedCacheSize = 500, bool rebalancing = false
 #ifdef GNAT_SAMPLER
             , double estimatedDimension = 6.0
 #endif
@@ -163,10 +163,10 @@ namespace ompl
 #endif
                 for (unsigned int i=1; i<data.size(); ++i)
                     tree_->data_.push_back(data[i]);
+                size_ += data.size();
                 if (tree_->needToSplit(*this))
                     tree_->split(*this);
             }
-            size_ += data.size();
         }
         /// \brief Rebuild the internal data structure.
         void rebuildDataStructure()
@@ -186,7 +186,7 @@ namespace ompl
             if (!size_) return false;
             // find data in tree
             bool isPivot = nearestKInternal(data, 1);
-            const _T* d = nearQueue_.top().first;
+            const _T *d = nearQueue_.top().first;
             nearQueue_.pop();
             if (*d != data)
                 return false;
@@ -194,7 +194,7 @@ namespace ompl
             size_--;
             // if we removed a pivot or if the capacity of removed elements
             // has been reached, we rebuild the entire GNAT
-            if (isPivot || removed_.size()>=removedCacheSize_)
+            if (isPivot || removed_.size() >= removedCacheSize_)
                 rebuildDataStructure();
             return true;
         }
@@ -203,13 +203,15 @@ namespace ompl
         {
             if (size_)
             {
-                std::vector<_T> nbh;
-                nearestK(data, 1, nbh);
-                if (!nbh.empty()) return nbh[0];
+                nearestKInternal(data, 1);
+                if (nearQueue_.size())
+                {
+                    _T result = *nearQueue_.top().first;
+                    nearQueue_.pop();
+                    return result;
+                }
             }
             throw Exception("No elements found in nearest neighbors data structure");
-            assert(nearQueue_.empty());
-            assert(nodeQueue_.empty());
         }
 
         /// Return the k nearest neighbors in sorted order
@@ -222,8 +224,6 @@ namespace ompl
                 nearestKInternal(data, k);
                 postprocessNearest(nbh);
             }
-            assert(nearQueue_.empty());
-            assert(nodeQueue_.empty());
         }
 
         /// Return the nearest neighbors within distance \c radius in sorted order
@@ -264,7 +264,7 @@ namespace ompl
         }
 
         /// \brief Print a GNAT structure (mostly useful for debugging purposes).
-        friend std::ostream& operator<<(std::ostream& out, const NearestNeighborsGNATNoThreadSafety<_T>& gnat)
+        friend std::ostream& operator<<(std::ostream &out, const NearestNeighborsGNATNoThreadSafety<_T> &gnat)
         {
             if (gnat.tree_)
             {
@@ -284,8 +284,6 @@ namespace ompl
         // for debugging purposes
         void integrityCheck()
         {
-            assert(nearQueue_.empty());
-            assert(nodeQueue_.empty());
             std::vector<_T> lst;
             boost::unordered_set<const _T*> tmp;
             // get all elements, including those marked for removal
@@ -319,22 +317,9 @@ namespace ompl
         typedef NearestNeighborsGNATNoThreadSafety<_T> GNAT;
 
         /// Return true iff data has been marked for removal.
-        bool isRemoved(const _T& data) const
+        bool isRemoved(const _T &data) const
         {
             return !removed_.empty() && removed_.find(&data) != removed_.end();
-        }
-
-        /// Make sure there is enough scratch space
-        void reserveScratch(unsigned int numPoints) const
-        {
-            if (numPoints > distances_.size1())
-                distances_.resize(2 * distances_.size1() + 1, maxDegree_, false);
-        }
-        /// Clear the nodeQueue_
-        void clearNodeQueue() const
-        {
-            while (!nodeQueue_.empty())
-                nodeQueue_.pop();
         }
         /// \brief Return in nearQueue_ the k nearest neighbors of data.
         /// For k=1, return true if the nearest neighbor is a pivot.
@@ -346,10 +331,8 @@ namespace ompl
             double dist;
             Node* node;
 
-            assert(nearQueue_.empty());
-            assert(nodeQueue_.empty());
-            isPivot = tree_->insertNeighborK(nearQueue_, k, tree_->pivot_, data,
-                NearestNeighbors<_T>::distFun_(data, tree_->pivot_));
+            tree_->distToPivot_ = NearestNeighbors<_T>::distFun_(data, tree_->pivot_);
+            isPivot = tree_->insertNeighborK(nearQueue_, k, tree_->pivot_, data, tree_->distToPivot_);
             tree_->nearestK(*this, data, k, isPivot);
             while (nodeQueue_.size() > 0)
             {
@@ -359,10 +342,9 @@ namespace ompl
                 if (nearQueue_.size() == k &&
                     (node->distToPivot_ > node->maxRadius_ + dist ||
                      node->distToPivot_ < node->minRadius_ - dist))
-                    break;
+                    continue;
                 node->nearestK(*this, data, k, isPivot);
             }
-            clearNodeQueue();
             return isPivot;
         }
         /// \brief Return in nearQueue_ the elements that are within distance radius of data.
@@ -380,10 +362,9 @@ namespace ompl
                 nodeQueue_.pop();
                 if (node->distToPivot_ > node->maxRadius_ + dist ||
                     node->distToPivot_ < node->minRadius_ - dist)
-                    break;
+                    continue;
                 node->nearestR(*this, data, radius);
             }
-            clearNodeQueue();
         }
         /// \brief Convert the internal data structure used for storing neighbors
         /// to the vector that NearestNeighbor API requires.
@@ -401,7 +382,7 @@ namespace ompl
         public:
             /// \brief Construct a node of given degree with at most
             /// \e capacity data elements and with given pivot.
-            Node(int degree, int capacity, const _T& pivot)
+            Node(int degree, int capacity, const _T &pivot)
                 : degree_(degree), pivot_(pivot),
                 minRadius_(std::numeric_limits<double>::infinity()),
                 maxRadius_(-minRadius_), minRange_(degree, minRadius_),
@@ -450,7 +431,7 @@ namespace ompl
                     maxRange_[i] = dist;
             }
             /// Add an element to the tree rooted at this node.
-            void add(GNAT& gnat, const _T& data)
+            void add(GNAT &gnat, const _T &data)
             {
 #ifdef GNAT_SAMPLER
                 subtreeSize_++;
@@ -490,7 +471,7 @@ namespace ompl
                 }
             }
             /// Return true iff the node needs to be split into child nodes.
-            bool needToSplit(const GNAT& gnat) const
+            bool needToSplit(const GNAT &gnat) const
             {
                 unsigned int sz = data_.size();
                 return sz > gnat.maxNumPtsPerLeaf_ && sz > degree_;
@@ -498,7 +479,7 @@ namespace ompl
             /// \brief The split operation finds pivot elements for the child
             /// nodes and moves each data element of this node to the appropriate
             /// child node.
-            void split(GNAT& gnat)
+            void split(GNAT &gnat)
             {
                 typename GreedyKCenters<_T>::Matrix &dists = gnat.distances_;
                 std::vector<unsigned int>& pivots = gnat.pivots_;
@@ -528,7 +509,7 @@ namespace ompl
                 {
                     // make sure degree lies between minDegree_ and maxDegree_
                     children_[i]->degree_ = std::min(std::max(
-                        degree_ * (unsigned int)(children_[i]->data_.size() / data_.size()),
+                        (unsigned int) ((degree_ * children_[i]->data_.size()) / data_.size()),
                         gnat.minDegree_), gnat.maxDegree_);
                     // singleton
                     if (children_[i]->minRadius_ >= std::numeric_limits<double>::infinity())
@@ -548,7 +529,7 @@ namespace ompl
             }
 
             /// Insert data in nbh if it is a near neighbor. Return true iff data was added to nbh.
-            bool insertNeighborK(NearQueue& nbh, std::size_t k, const _T& data, const _T& key, double dist) const
+            bool insertNeighborK(NearQueue &nbh, std::size_t k, const _T &data, const _T &key, double dist) const
             {
                 if (nbh.size() < k)
                 {
@@ -617,13 +598,13 @@ namespace ompl
                 }
             }
             /// Insert data in nbh if it is a near neighbor.
-            void insertNeighborR(NearQueue& nbh, double r, const _T& data, double dist) const
+            void insertNeighborR(NearQueue &nbh, double r, const _T &data, double dist) const
             {
                 if (dist <= r)
                     nbh.push(std::make_pair(&data, dist));
             }
             /// \brief Return all elements that are within distance r in nbh.
-            void nearestR(const GNAT& gnat, const _T &data, double r) const
+            void nearestR(const GNAT &gnat, const _T &data, double r) const
             {
                 NearQueue& nbh = gnat.nearQueue_;
                 double dist = r; //note difference with nearestK
@@ -662,7 +643,7 @@ namespace ompl
             }
 
 #ifdef GNAT_SAMPLER
-            double getSamplingWeight(const GNAT& gnat) const
+            double getSamplingWeight(const GNAT &gnat) const
             {
                 double minR = std::numeric_limits<double>::max();
                 for(size_t i = 0; i<minRange_.size(); i++)
@@ -671,7 +652,7 @@ namespace ompl
                 minR = std::max(minR, maxRadius_);
                 return std::pow(minR, gnat.estimatedDimension_) / (double) subtreeSize_;
             }
-            const _T& sample(const GNAT& gnat, RNG &rng) const
+            const _T& sample(const GNAT &gnat, RNG &rng) const
             {
                 if (children_.size() != 0)
                 {
@@ -690,7 +671,7 @@ namespace ompl
             }
 #endif
 
-            void list(const GNAT& gnat, std::vector<_T> &data) const
+            void list(const GNAT &gnat, std::vector<_T> &data) const
             {
                 if (!gnat.isRemoved(pivot_))
                     data.push_back(pivot_);
@@ -701,7 +682,7 @@ namespace ompl
                     children_[i]->list(gnat, data);
             }
 
-            friend std::ostream& operator<<(std::ostream& out, const Node &node)
+            friend std::ostream& operator<<(std::ostream &out, const Node &node)
             {
                 out << "\ndegree:\t" << node.degree_;
                 out << "\nminRadius:\t" << node.minRadius_;

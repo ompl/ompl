@@ -1,7 +1,10 @@
+library(DBI)
 library(shiny)
+library(shinyjs, warn.conflicts=FALSE)
 library(ggplot2)
 library(RSQLite)
 library(reshape2)
+
 
 defaultDatabase <- "www/benchmark.db"
 
@@ -9,7 +12,7 @@ noDatabaseText <- "No database loaded yet. Upload one by clicking on “Change d
 
 notReadyText <- "The benchmarking results are not available yet, check back later."
 
-sessionsFolder = "../../../webapp/static/sessions"
+sessionsFolder = "/tmp/omplweb_sessions"
 
 disable <- function(x) {
   if (inherits(x, 'shiny.tag')) {
@@ -45,16 +48,15 @@ numVersions <- function(con) {
     dbGetQuery(con, "SELECT COUNT(DISTINCT version) FROM experiments")
 }
 
-stripOMPLPrefix <- function(str) {
-    sub("OMPL ", "", str)
+stripLibnamePrefix <- function(str) {
+    # assume the version number is the last "word" in the string
+    tail(strsplit(str, " ")[[1]], n=1)
 }
 versionSelectWidget <- function(con, name, checkbox) {
     versions <- dbGetQuery(con, "SELECT DISTINCT version FROM experiments")
     versions <- versions$version
     if (checkbox)
     {
-        # strip "OMPL " prefix, so we can fit more labels on the X-axis
-        versions <- sapply(stripLibnamePrefix, versions)
         widget <- checkboxGroupInput(name, label = h4("Selected versions"),
             choices = versions,
             selected = versions)
@@ -104,31 +106,33 @@ hasProgressData <- function(con) {
     count > 0
 }
 
-# limit file uploads to 30MB, suppress warnings
-options(shiny.maxRequestSize = 30*1024^2, warn = -1)
-
-shinyServer(function(input, output, session) {
+server <- function(input, output, session) {
     con <- reactive({
-		query <- parseQueryString(session$clientData$url_search)
+        query <- parseQueryString(session$clientData$url_search)
 
-		if (is.null(query$user) || is.null(query$job)) {
-			if (is.null(input$database) || is.null(input$database$datapath))
-				database <- defaultDatabase
-			else
-				database <- input$database$datapath
-		} else {
-			database <- paste(sessionsFolder, query$user, query$job, sep="/")
-		}
+        if (is.null(query$user) || is.null(query$job)) {
+            if (is.null(input$database) || is.null(input$database$datapath))
+                database <- defaultDatabase
+            else
+                database <- input$database$datapath
+        } else {
+            database <- paste(sessionsFolder, query$user, query$job, sep="/")
+        }
 
         #return(normalizePath(database))
 
         if (file.exists(database)) {
             dbConnection <- dbConnect(dbDriver("SQLite"), database)
-			validate(need(dbExistsTable(dbConnection, "experiments"), notReadyText))
+            ready <- dbExistsTable(dbConnection, "experiments")
+            if (!ready) {
+                js$refresh()
+            } else {
+                updateTabsetPanel(session, "navbar", selected = "performance")
+            }
 
-			# TODO: For some reason, have to do this line again, gives error otherwise.
-			dbConnection <- dbConnect(dbDriver("SQLite"), database)
-		}
+            # TODO: For some reason, have to do this line again, gives error otherwise.
+            dbConnection <- dbConnect(dbDriver("SQLite"), database)
+        }
         else
             NULL
     })
@@ -415,6 +419,8 @@ shinyServer(function(input, output, session) {
             paste(sapply(input$regrPlanners, sqlPlannerSelect), collapse=" OR "),
             paste(sapply(input$regrVersions, sqlVersionSelect), collapse=" OR "))
         data <- dbGetQuery(con(), query)
+        # strip "OMPL " prefix, so we can fit more labels on the X-axis
+        data$version <- sapply(data$version, stripLibnamePrefix)
         # order by order listed in data frame (i.e., "0.9.*" before "0.10.*")
         data$version <- factor(data$version, unique(data$version))
         data$name <- factor(data$name, unique(data$name), labels = sapply(unique(data$name), plannerNameMapping))
@@ -511,4 +517,83 @@ shinyServer(function(input, output, session) {
             tabPanel("Planner Configurations", tableOutput("plannerConfigs"))
         )
     })
-})
+}
+
+ui <- navbarPage("Planner Arena",
+        useShinyjs(),
+        extendShinyjs(script = "www/plannerarena.js"),
+        tabPanel("Overall performance",
+            uiOutput("performancePage"),
+            value="performance",
+            icon=icon("bar-chart")),
+        tabPanel("Progress",
+            uiOutput("progressPage"),
+            value="progress",
+            icon=icon("area-chart")),
+        tabPanel("Regression",
+            uiOutput("regressionPage"),
+            value="regression",
+            icon=icon("bar-chart")),
+        tabPanel("Database info",
+            uiOutput('dbinfoPage'),
+            value="dbinfo",
+            icon=icon("info-circle")),
+        tabPanel("Change database",
+            div(class="row",
+                div(class="col-sm-10 col-sm-offset-1",
+                    fileInput("database",
+                        label = h2("Upload benchmark database"),
+                        accept = c("application/x-sqlite3", ".db")
+                    ),
+                    h2("Default benchmark database"),
+                    tags$ul(
+                        tags$li(a(href="javascript:history.go(0)", "Reset to default database")),
+                        tags$li(a(href="benchmark.db", "Download default database"))
+                    )
+                )
+            ),
+            value="database",
+            icon=icon("database")),
+        tabPanel("Help",
+            div(class="row",
+                div(class="col-sm-10 col-sm-offset-1",
+                    includeMarkdown("www/help.md")
+                )
+            ),
+            value="help",
+            icon=icon("question-circle")),
+        tabPanel("Settings",
+            div(class="row",
+                div(class="col-sm-10 col-sm-offset-1",
+                    h2("Plot settings"),
+                    h3("Font settings"),
+                    selectInput("fontFamily",
+                            label = "Font family",
+                            choices = c("Courier", "Helvetica", "Palatino", "Times"),
+                            selected ="Helvetica"),
+                    numericInput("fontSize", "Font size", 20, min=1, max=100),
+                    h3("PDF export paper size (in inches)"),
+                    numericInput("paperWidth", "Width", 12, min=1, max=50),
+                    numericInput("paperHeight", "Height", 8, min=1, max=50)
+                )
+            ),
+            value="settings",
+            icon=icon("gear")),
+        id = "navbar",
+        header = tags$link(rel="stylesheet", type="text/css", href="plannerarena.css"),
+        footer = div(class="footer",
+            div(class="container",
+                p(
+                    a(href="http://www.kavrakilab.org", "Physical and Biological Computing Group"),
+                    "•",
+                    a(href="http://www.cs.rice.edu", "Department of Computer Science"),
+                    "•",
+                    a(href="http://www.rice.edu", "Rice University")
+                )
+            ),
+            includeScript('www/ga.js')
+        ),
+        inverse = TRUE
+        )
+
+shinyApp(ui = ui, server = server)

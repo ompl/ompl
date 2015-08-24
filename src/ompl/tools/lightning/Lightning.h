@@ -77,8 +77,8 @@ namespace ompl
         /**
            @anchor Lightning
            @par Short description
-           The Lightning Framework is a experienced-based motion planner that recalls from a databse of
-           previous actions the most similar one to the current planning problem and attempts to repair it,
+           The Lightning Framework is a experienced-based motion planner that recalls from a database of
+           previously generated paths the most similar one to the current planning problem and attempts to repair it,
            while at the same time planning from scratch in a different thread
            @par External documentation
            Berenson, Dmitry, Pieter Abbeel, and Ken Goldberg: A robot path planning framework that learns from experience,

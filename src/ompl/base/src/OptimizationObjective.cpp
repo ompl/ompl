@@ -70,7 +70,7 @@ void ompl::base::OptimizationObjective::setCostThreshold(Cost c)
 
 bool ompl::base::OptimizationObjective::isCostBetterThan(Cost c1, Cost c2) const
 {
-    return (c1.value() + magic::BETTER_PATH_COST_MARGIN) < c2.value();
+    return c1.value() < c2.value();
 }
 
 bool ompl::base::OptimizationObjective::isCostEquivalentTo(Cost c1, Cost c2) const

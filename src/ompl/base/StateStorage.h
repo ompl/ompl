@@ -260,6 +260,8 @@ namespace ompl
 
             virtual void loadMetadata(const Header& /*h*/, boost::archive::binary_iarchive &ia)
             {
+                // clear default metadata that was added by StateStorage::loadStates()
+                metadata_.clear();
                 ia >> metadata_;
             }
 

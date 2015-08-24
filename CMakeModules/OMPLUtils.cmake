@@ -8,7 +8,7 @@ macro(add_ompl_test test_name)
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-  add_test(${test_name} ${EXECUTABLE_OUTPUT_PATH}/${test_name})
+  add_test(NAME ${test_name} COMMAND $<TARGET_FILE:${test_name}>)
 endmacro(add_ompl_test)
 
 macro(add_ompl_python_test test_file)

@@ -48,6 +48,7 @@ import copy
 import ompl.util as ou
 import ompl.base as ob
 import ompl.control as oc
+from ompl.util import setLogLevel, LogLevel
 
 SOLUTION_TIME = 10.0
 MAX_VELOCITY = 3.0
@@ -341,4 +342,5 @@ def suite():
     return unittest.TestSuite(suites)
 
 if __name__ == '__main__':
+    setLogLevel(LogLevel.LOG_ERROR)
     unittest.main()

@@ -1,0 +1,41 @@
+# AppVeyor file
+# http://www.appveyor.com/docs/appveyor-yml
+
+version: "{build}"
+os: unstable
+
+clone_folder: C:\projects\ompl
+clone_depth: 1
+
+branches:
+  only:
+    - master
+platform: x64
+
+environment:
+  CTEST_OUTPUT_ON_FAILURE: 1
+  BOOST_ROOT: C:\Libraries\boost
+  BOOST_LIBRARYDIR: C:\Libraries\boost\lib64-msvc-12.0
+
+configuration: Release
+
+before_build:
+  - cmd: set
+  - cmd: mkdir build
+  - cmd: cd build
+  - cmd: cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=%configuration% -DOMPL_REGISTRATION=OFF -DOMPL_BUILD_DEMOS=OFF -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" ..
+
+build:
+  project: C:\projects\ompl\build\ompl.sln
+  parallel: true
+
+# after_build:
+#   - cmd: cmake --build . --target package --config %configuration%
+
+# no time to run tests
+# test_script:
+#   - cmd: cd build
+#   - cmd: ctest -C %configuration%
+
+# artifacts:
+#   - path: ompl\*.zip

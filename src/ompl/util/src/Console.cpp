@@ -146,7 +146,7 @@ ompl::msg::LogLevel ompl::msg::getLogLevel()
 }
 
 static const char *LogLevelString[6] = {"Dev2:    ", "Dev1:    ", "Debug:   ", "Info:    ", "Warning: ", "Error:   "};
-static const char *LogColorString[6] = {ANSI_COLOR_MAGENTA, ANSI_COLOR_GREEN, ANSI_COLOR_BLUE, ANSI_COLOR_YELLOW, ANSI_COLOR_YELLOW, ANSI_COLOR_RED};
+static const char *LogColorString[6] = {ANSI_COLOR_MAGENTA, ANSI_COLOR_GREEN, ANSI_COLOR_BLUE, ANSI_COLOR_CYAN, ANSI_COLOR_YELLOW, ANSI_COLOR_RED};
 
 void ompl::msg::OutputHandlerSTD::log(const std::string &text, LogLevel level, const char *filename, int line)
 {
