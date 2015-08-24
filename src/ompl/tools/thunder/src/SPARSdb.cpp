@@ -836,7 +836,7 @@ bool ompl::geometric::SPARSdb::addPathToRoadmap(const base::PlannerTerminationCo
     bool benchmarkLogging = true;
     if (benchmarkLogging)
     {
-        OMPL_WARN("ompl::geometric::SPARSdb: Benchmark logging enabled (slower)");
+        OMPL_DEBUG("ompl::geometric::SPARSdb: Benchmark logging enabled (slower)");
 
         // Return the result of inserting into database, if applicable
         return checkStartGoalConnection( solutionPath );
@@ -917,9 +917,9 @@ bool ompl::geometric::SPARSdb::checkStartGoalConnection(ompl::geometric::PathGeo
     // Check distance of new path from old path
     double originalLength = solutionPath.length();
 
-    OMPL_INFORM("Results of attempting to make insertion in SPARSdb ");
-    OMPL_INFORM("-------------------------------------------------------");
-    OMPL_INFORM("Original length: %f", originalLength);
+    OMPL_DEBUG("Results of attempting to make insertion in SPARSdb ");
+    OMPL_DEBUG("-------------------------------------------------------");
+    OMPL_DEBUG("Original length:    %f", originalLength);
 
     if (error)
     {
@@ -932,8 +932,8 @@ bool ompl::geometric::SPARSdb::checkStartGoalConnection(ompl::geometric::PathGeo
     {
         double newLength = candidateSolution.getGeometricPath().length();
         double percentIncrease = 100 - originalLength / newLength * 100;
-        OMPL_INFORM("New length:       %f", newLength);
-        OMPL_INFORM("Percent increase: %f %", percentIncrease);
+        OMPL_DEBUG("New length:        %f", newLength);
+        OMPL_DEBUG("Percent increase:  %f \%", percentIncrease);
     }
 
     return !error; // return true if it inserted correctly

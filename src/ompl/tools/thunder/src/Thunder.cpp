@@ -185,7 +185,6 @@ void ompl::tools::Thunder::clear(void)
     if (pp_)
     {
         pp_->clearHybridizationPaths();
-        pp_->clearPlanners();
     }
 }
 

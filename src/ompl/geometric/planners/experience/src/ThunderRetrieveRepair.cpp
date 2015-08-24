@@ -137,6 +137,9 @@ base::PlannerStatus ThunderRetrieveRepair::solve(const base::PlannerTerminationC
         return base::PlannerStatus::ABORT;
     }
 
+    // Restart the Planner Input States so that the first start and goal state can be fetched
+    pis_.restart();
+
     // Get a single start and goal state TODO: more than one
     const base::State *startState = pis_.nextStart();
     const base::State *goalState = pis_.nextGoal(ptc);
