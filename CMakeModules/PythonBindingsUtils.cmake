@@ -20,6 +20,10 @@ if(APPLE)
     set(PYOMPL_EXTRA_CFLAGS "-m64")
 endif(APPLE)
 
+if(CMAKE_COMPILER_IS_GNUCXX AND BOOST_VERSION VERSION_GREATER "1.54.0")
+    set(PYOMPL_EXTRA_CFLAGS "${PYOMPL_EXTRA_CFLAGS} -DBOOST_INTEL_CXX_VERSION")
+endif()
+
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
     include_directories(${PYTHON_INCLUDE_DIRS})
     # make sure target is defined only once
