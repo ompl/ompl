@@ -49,7 +49,7 @@ space->registerProjection("myProjection", base::ProjectionEvaluatorPtr(new MyPro
 planner->as<geometric::KPIECE1>()->setProjectionEvaluator("myProjection");
 ~~~
 
-The last two lines can be combined into one if you register \c MyProjection as the default projection for your space:
+The last two lines can be combined into one if you register `MyProjection` as the default projection for your space:
 
 ~~~{.cpp}
 space->registerDefaultProjection(base::ProjectionEvaluatorPtr(new MyProjection(space)));

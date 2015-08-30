@@ -97,7 +97,7 @@
 # OMPL 0.11.1 (July 26, 2012)
 
 - Fixed bug in RRT* where nearest neighbor radius shrinks too fast.
-- Added option for versioned installs: multiple versions of OMPL can be installed simultaneously (disabled by default). This is enabled by running <tt>cmake -DOMPL_VERSIONED_INSTALL=ON</tt>.
+- Added option for versioned installs: multiple versions of OMPL can be installed simultaneously (disabled by default). This is enabled by running `cmake -DOMPL_VERSIONED_INSTALL=ON`.
 - Bug and documentation fixes.
 
 

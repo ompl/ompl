@@ -109,7 +109,7 @@ It is easiest to install OMPL through [MacPorts], a package manager for OS X. Ho
 
       sudo port sync \; install ompl
 
-  This is it. You are done. Demo programs can be found in \c /opt/local/share/ompl.
+  This is it. You are done. Demo programs can be found in `/opt/local/share/ompl`.
 - If you downloaded the source distribution of OMPL, then you need to install the dependencies Boost, CMake, and optional dependencies. If you have MacPorts installed, type the following:
 
       sudo port sync

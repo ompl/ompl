@@ -20,35 +20,37 @@ For interactive visualization of benchmark databases, please see [plannerarena.o
 \if OMPLAPP
 # Create a benchmark configuration file {#benchmark_config}
 
-OMPL.app contains a command line program called \c ompl_benchmark, that can read a text based configuration file using an ini style format with key/value pairs. This is the same format that can be read and saved with the OMPL.app GUI. The GUI ignores the settings related to benchmarking. However, it is often convenient to create an initial configuration with the GUI and add the benchmark settings with a text editor. Currently the base functionality of the \c ompl_benchmark program only applies to geometric planning in SE(2) and SE(3), but can be extended by the user to other spaces.
+OMPL.app contains a command line program called `ompl_benchmark`, that can read a text based configuration file using an ini style format with key/value pairs. This is the same format that can be read and saved with the OMPL.app GUI. The GUI ignores the settings related to benchmarking. However, it is often convenient to create an initial configuration with the GUI and add the benchmark settings with a text editor. Currently the base functionality of the `ompl_benchmark` program only applies to geometric planning in SE(2) and SE(3), but can be extended by the user to other spaces.
 
-There are a number of _required_ parameters necessary to define the problem.  These
-exist under the “<b>[problem]</b>” heading:
+There are a number of _required_ parameters necessary to define the problem. These exist under the “**[problem]**” heading:
+
 - __name__: An identifying name for the problem to be solved.
 - __robot__: The path to a mesh file describing the geometry of the robot.
 - __start.[x|y|z|theta], start.axis.[x|y|z]__: Values describing the start state of the robot. In 2D, the orientation is specified with just __start.theta__, while in 3D the axis-angle orientation is used.
 - __goal.[x|y|z|theta], goal.axis.[x|y|z]__: Values describing the goal state of the robot.
 .
-The following parameters are _optional_ under the “<b>[problem]</b>” heading:
+
+The following parameters are _optional_ under the “**[problem]**” heading:
+
 - __world__: The path to a mesh file describing the geometry of the environment. If unspecified, it is assumed that the robot operates in an empty workspace.
-- __objective__: Some planners in OMPL can optimize paths as a function of various optimization objective. The __objective__ parameter can be set to \c length, \c max_min_clearance, or \c mechanical_work, to minimize path length, maximize minimum clearance along the path, or mechanical work of the path, respectively. If unspecified, it is assumed the objective is \c length.
+- __objective__: Some planners in OMPL can optimize paths as a function of various optimization objective. The __objective__ parameter can be set to `length`, `max_min_clearance`, or `mechanical_work`, to minimize path length, maximize minimum clearance along the path, or mechanical work of the path, respectively. If unspecified, it is assumed the objective is `length`.
 - __objective.threshold__: If an objective is specified, you can optionally also specify the __objective.threshold__, which causes optimizing planners to terminate once they find a path with cost better than the specified threshold (a real-valued number). If unspecified, the best possible value is chosen for a threshold (e.g., for path length that would be 0), so that optimizing planners will try to find the shortest possible path.
-- __control__: There a few built-in kinodynamic systems in OMPL.app. The __control__ parameter can be set to \c kinematic_car, \c dynamic_car, \c blimp, and \c quadrotor. If unspecified, rigid-body planning is assumed. Beware that kinodynamic planning is *much* harder than rigid-body planning.
-- __sampler__: This parameter specified the sampler to be used by the planner. The following samplers are available: \c uniform, \c gaussian, \c obstacle_based, \c max_clearance. If unspecified, the uniform sampler is used.
+- __control__: There a few built-in kinodynamic systems in OMPL.app. The __control__ parameter can be set to `kinematic_car`, `dynamic_car`, `blimp`, and `quadrotor`. If unspecified, rigid-body planning is assumed. Beware that kinodynamic planning is *much* harder than rigid-body planning.
+- __sampler__: This parameter specified the sampler to be used by the planner. The following samplers are available: `uniform`, `gaussian`, `obstacle_based`, `max_clearance`. If unspecified, the uniform sampler is used.
 - __volume.[min|max].[x|y|z]__: It is sometimes necessary to specify the bounds of the workspace. Without any specification, OMPL.app assumes a tight bounding box around the environment (if specified) and the start and goal states, but depending on the environment this may not be a good assumption.
 
-Parameters relating to benchmarking must be declared under the “<b>[benchmark]</b>”
-heading:
+Parameters relating to benchmarking must be declared under the “**[benchmark]**” heading:
+
 - __time_limit__: The amount of time (seconds) for each plan computation.
 - __mem_limit__: The maximum amount of memory (MB) for each planner. Memory measurements are not very accurate, so it is recommended to set this to a very large value.
 - __run_count__: The number of times to repeat the experiment for each planner.
 - __output__: Output directory where the benchmark log file will be saved. This parameter is optional; by default the log file is saved in the same directory as the configuration file.
-- __save_paths__: This _optional_ parameter can be set to \c none, \c all, or \c shortest to save _no_ solution paths (the default value), _all_ solution paths (including approximate solutions), or the _shortest_ exact solution for each planner, respectively. These paths can then be “played back” in the [OMPL.app GUI](gui.html#gui_paths).
+- __save_paths__: This _optional_ parameter can be set to `none`, `all`, or `shortest` to save _no_ solution paths (the default value), _all_ solution paths (including approximate solutions), or the _shortest_ exact solution for each planner, respectively. These paths can then be “played back” in the [OMPL.app GUI](gui.html#gui_paths).
 
-The last required element to specify are the planners to benchmark.  These are specified under the “<b>[planner]</b>” heading.  The following planners are valid for geometric benchmarking:
-kpiece, \c bkpiece, \c lbkpiece, \c est, \c sbl, \c prm, \c lazyprm, \c lazyprmstar, \c rrt, \c rrtconnect, \c lazyrrt, \c rrtstar, \c lbtrrt, \c trrt, \c spars, \c spars2, \c stride, \c pdst, \c fmt, and \c aps.
-The following planners are valid for kinodynamic planning (i.e., when the \c control parameter is set):
-\c kpiece, \c rrt, \c est, \c pdst, \c sycloprrt, and \c syclopest.
+The last required element to specify are the planners to benchmark.  These are specified under the “**[planner]**” heading.  The following planners are valid for geometric benchmarking:
+`kpiece`,  `bkpiece`,  `lbkpiece`,  `est`,  `sbl`,  `prm`,  `lazyprm`,  `lazyprmstar`,  `rrt`,  `rrtconnect`,  `lazyrrt`,  `rrtstar`,  `lbtrrt`,  `trrt`,  `spars`,  `spars2`,  `stride`,  `pdst`,  `fmt`, and  `aps`.
+The following planners are valid for kinodynamic planning (i.e., when the  `control` parameter is set):
+ `kpiece`,  `rrt`,  `est`,  `pdst`,  `sycloprrt`, and  `syclopest`.
 
 
 An example of a minimal SE(2) configuration comparing the rrt and est planners is given below:
@@ -77,9 +79,9 @@ Any parameter defined by these planners may also be configured for the benchmark
 - __rrt.range__=50.0
 - __rrt.goal_bias__=0.10
 
-There are many other optional parameters that can be specified or changed. The \c ompl_benchmark executable takes advantage of the ompl::base::ParamSet class, and uses this functionality to set any parameter defined in the file. If a class exposes a parameter, chances are that it is possible to tune it via the config file. OMPL.app provides two example configuration files inside of the benchmark directory, example.cfg and example_complex.cfg showing the configuration of many of these optional parameters.
+There are many other optional parameters that can be specified or changed. The `ompl_benchmark` executable takes advantage of the ompl::base::ParamSet class, and uses this functionality to set any parameter defined in the file. If a class exposes a parameter, chances are that it is possible to tune it via the config file. OMPL.app provides two example configuration files inside of the benchmark directory, example.cfg and example_complex.cfg showing the configuration of many of these optional parameters.
 
-It is possible to create multiple instances of the same planner and configure each differently. This code, for example, creates two instances of \c rrtconnect with different values for its range parameter:
+It is possible to create multiple instances of the same planner and configure each differently. This code, for example, creates two instances of `rrtconnect` with different values for its range parameter:
 
     rrtconnect=
     rrtconnect.range=100
@@ -87,7 +89,7 @@ It is possible to create multiple instances of the same planner and configure ea
     rrtconnect.range=200
 
 Moreover, the problem settings can be changed between different planner instances.
-Below, some of the problem settings are changed for the second instance of \c kpiece.
+Below, some of the problem settings are changed for the second instance of `kpiece`.
 
     kpiece=
     kpiece=
@@ -105,7 +107,7 @@ When using multiple planner instances, a useful parameter is “name”, as it c
     problem.sampler=obstacle_based
     prm.name=obprm
 
-Finally, to execute the benchmark configuration file, simply run the \c ompl_benchmark executable in the OMPL.app bin directory, and supply the path to the config file as the first argument.
+Finally, to execute the benchmark configuration file, simply run the `ompl_benchmark` executable in the OMPL.app bin directory, and supply the path to the config file as the first argument.
 \endif
 
 # Writing benchmarking code {#benchmark_code}
@@ -340,8 +342,9 @@ Here, `EOL` denotes a newline character, `int` denotes an integer, `float` denot
 # The benchmark database schema {#benchmark_database}
 
 The ompl_benchmark_statistics.py script can produce a series of plots from a database of benchmark results, but in many cases you may want to produce your own custom plots. For this it useful to understand the schema used for the database. There are five tables in a benchmark database:
-- \b experiments. This table contains the following information:
-  - *id:* an ID used in the \c runs table to denote that a run was part of a given experiment.
+
+- **experiments**. This table contains the following information:
+  - *id:* an ID used in the `runs` table to denote that a run was part of a given experiment.
   - *name:* name of the experiment.
   - *totaltime:* total duration of the experiment in seconds.
   - *timelimit:* time limit for each individual run in seconds.
@@ -353,21 +356,21 @@ The ompl_benchmark_statistics.py script can produce a series of plots from a dat
   - *date:* the date on which the experiment was performed.
   - *seed:* the random seed used.
   - *setup:* a string containing a “print-out” of all the settings of the SimpleSetup object used during benchmarking.
-- \b plannerConfigs. There are a number of planner types (such as PRM and RRT), but each planner can typically be configured with a number of parameters. A planner configuration refers to a planner type with specific parameter settings. The \c plannerConfigs table contains the following information:
-  - *id:* an ID used in the \c runs table to denote that a given planner configuration was used for a run.
+- **plannerConfigs**. There are a number of planner types (such as PRM and RRT), but each planner can typically be configured with a number of parameters. A planner configuration refers to a planner type with specific parameter settings. The `plannerConfigs` table contains the following information:
+  - *id:* an ID used in the `runs` table to denote that a given planner configuration was used for a run.
   - *name:* the name of the configuration. This can be just the planner name, but when using different parameter settings of the same planner it is essential to use more specific names.
   - *settings:* a string containing a “print-out” of all the settings of the planner.
-- \b enums: This table contains description of enumerate types that are measured during benchmarking. By default there is only one such such type defined: ompl::base::PlannerStatus. The table contains the following information:
+- **enums**: This table contains description of enumerate types that are measured during benchmarking. By default there is only one such such type defined: ompl::base::PlannerStatus. The table contains the following information:
   - *name:* name of the enumerate type (e.g., “status”).
   - *value:* numerical value used in the runs
   - *description:* text description of each value (e.g. “Exact solution,” “Approximate solution,” “Timeout,” etc.)
-- \b runs. The \c runs table contains information for every run in every experiment. Each run is identified by the following fields:
+- **runs**. The `runs` table contains information for every run in every experiment. Each run is identified by the following fields:
   - *id:* ID of the run
   - *experimentid:* ID of the experiment to which this run belonged.
   - *plannerid:* ID of the planner configuration used for this run.
   .
   In addition, there will be many benchmark statistics. None are *required*, but the OMPL planners all report the properties described above such as time, memory, solution length, simplification time, etc. It is possible that not all planners report the same properties. In that case, planners that do not report such properties will have NULL values in the corresponding fields.
-- \b progress. Some planners (such as RRT*) can also periodically report properties *during* a run. This can be useful to analyze the convergence or growth rate. The \c progress table contains the following information:
+- **progress**. Some planners (such as RRT*) can also periodically report properties *during* a run. This can be useful to analyze the convergence or growth rate. The `progress` table contains the following information:
   - *runid:* the ID of the run for which progress data was tracked.
   - *time:* the time (in sec.) at which the property was measured.
   .
@@ -378,7 +381,8 @@ The ompl_benchmark_statistics.py script can produce a series of plots from a dat
 
 Using SQL queries one can easily select a subset of the data or compute <a href="http://en.wikipedia.org/wiki/Join_(SQL)">joins</a> of tables.
 Consider the following snippet of R code:
-\code
+
+~~~{.splus}
 library("ggplot2")
 library("RSQLite")
 con <- dbConnect(dbDriver("SQLite"), "benchmark.db")
@@ -394,7 +398,8 @@ qplot(time, best_cost, data=progress, alpha=I(1/2), colour=name, geom=c("point",
 
 dev.off()
 dbDisconnect(con)
-\endcode
+~~~
+
 For a small database with 1 experiment (the “cubicles” problem from OMPL.app) and 5 planner configurations we then obtain the following two plots:
 \htmlonly
 <div class="row">
