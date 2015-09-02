@@ -231,7 +231,7 @@ bool ompl::base::AtlasMotionValidator::checkMotion (const State *s1, const State
         atlas_.freeState(stateList[i]);
     
     // Check if manifold traversal stopped early and set its final state as lastValid
-    if (!reached &&lastValid.first)
+    if (!reached && lastValid.first)
         atlas_.copyState(lastValid.first, stateList.back());
     atlas_.freeState(stateList.back());
     
@@ -674,8 +674,10 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     Eigen::Ref<Eigen::VectorXd> x_j = currentState->vectorView();
     
     // Collision check unless interpolating
-    if (!interpolate && !svc->isValid(from))
+    if (!interpolate && !svc->isValid(from)) {
+        std::cout << "Warning: 'from' state not valid!\n";
         return false;
+    }
         
     // Save a copy of the from state
     if (stateList)
@@ -741,13 +743,13 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     }
     if (chartsCreated > maxChartsPerExtension_)
         OMPL_DEBUG("Stopping extension early b/c too many charts created.");
-    // Reached goal if final point is within delta and goal is valid.
-    bool reached = ((x_b - x_j).squaredNorm() <= delta_*delta_);
-    if (!interpolate && !svc->isValid(currentState))
-        reached = false;
+    // Reached goal if final point is within delta and both current and goal are valid.
+    const bool currentValid = interpolate || svc->isValid(currentState);
+    const bool goalValid = interpolate || svc->isValid(to);
+    const bool reached = ((x_b - x_j).squaredNorm() <= delta_*delta_) && currentValid && goalValid;
     
     // Append a copy of the target state, since we're within delta, but didn't hit it exactly
-    if (reached && stateList && (interpolate || svc->isValid(to)))
+    if (reached && stateList)
     {
         StateType *toCopy = si_->cloneState(to)->as<StateType>();
         toCopy->setChart(c);
