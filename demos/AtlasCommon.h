@@ -755,8 +755,8 @@ void printProblems (void)
 void printPlanners (void)
 {
     std::cout << "Available planners:\n";
-    std::cout << "    EST RRT AtlasRRT RRTConnect RRTstar LazyRRT TRRT LBTRRT \n";
-    std::cout << "    ConstrainedRRT CBiRRT2 KPIECE1 BKPIECE1 LBKPIECE1 PDST\n";
+    std::cout << "    EST RRT RRTintermediate AtlasRRT RRTConnect RRTstar LazyRRT TRRT\n";
+    std::cout << "    LBTRRT ConstrainedRRT CBiRRT2 KPIECE1 BKPIECE1 LBKPIECE1 PDST\n";
     std::cout << "    PRM PRMstar SBL SPARS SPARStwo STRIDE\n";
 }
 
@@ -796,6 +796,12 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
     else if (std::strcmp(planner, "RRT") == 0)
     {
         ompl::geometric::RRT *rrt = new ompl::geometric::RRT(si);
+        return rrt;
+    }
+    else if (std::strcmp(planner, "RRTintermediate") == 0)
+    {
+        ompl::geometric::RRT *rrt = new ompl::geometric::RRT(si);
+        rrt->setIntermediateStates(true);
         return rrt;
     }
     else if (std::strcmp(planner, "AtlasRRT") == 0)
