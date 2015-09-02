@@ -741,10 +741,13 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     }
     if (chartsCreated > maxChartsPerExtension_)
         OMPL_DEBUG("Stopping extension early b/c too many charts created.");
-    const bool reached = ((x_b - x_j).squaredNorm() <= delta_*delta_);
+    // Reached goal if final point is within delta and goal is valid.
+    bool reached = ((x_b - x_j).squaredNorm() <= delta_*delta_);
+    if (!interpolate && !svc->isValid(currentState))
+        reached = false;
     
     // Append a copy of the target state, since we're within delta, but didn't hit it exactly
-    if (reached && stateList)
+    if (reached && stateList && (interpolate || svc->isValid(to)))
     {
         StateType *toCopy = si_->cloneState(to)->as<StateType>();
         toCopy->setChart(c);
