@@ -96,6 +96,7 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
 
 void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State *near, const double distance)
 {
+    // Find the chart that the starting point is on.
     AtlasStateSpace::StateType *astate = state->as<AtlasStateSpace::StateType>();
     const AtlasStateSpace::StateType *anear = near->as<AtlasStateSpace::StateType>();
     Eigen::Ref<const Eigen::VectorXd> n = anear->constVectorView();
@@ -109,7 +110,8 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         anear->setChart(c);
     }
     
-    // Rejection sampling to find a point on the manifold
+    // Rejection sampling to find a point that can be projected onto the manifold
+    c->psiInverse(n, ru);
     do
     {
         // Sample within distance
@@ -117,7 +119,6 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         for (int i = 0; i < uoffset.size(); i++)
             uoffset[i] = rng_.gaussian01();
         uoffset *=  distance * std::pow(rng_.uniform01(), 1.0/uoffset.size()) / uoffset.norm();
-        c->psiInverse(n, ru);
         c->phi(ru + uoffset, rx);
     }
     while (!atlas_.project(rx));
@@ -302,7 +303,7 @@ void ompl::base::AtlasStateSpace::StateType::setChart (AtlasChart *const c) cons
 /// Public
 ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int ambient, const unsigned int manifold)
 : RealVectorStateSpace(ambient),
-    n_(ambient), k_(manifold), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2), gnatRebuildThreshold(1),
+    n_(ambient), k_(manifold), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
     projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), monteCarloSampleCount_(0), setup_(false), noAtlas_(false)
 {
     setName("Atlas" + RealVectorStateSpace::getName());
@@ -395,8 +396,6 @@ void ompl::base::AtlasStateSpace::clear (void)
         charts_.add(&c, c.getMeasure());
         chartNN_.add(std::make_pair<>(c.getXoriginPtr(), charts_.size()-1));
     }
-    
-    gnatRebuildThreshold = 1;
 }
 
 void ompl::base::AtlasStateSpace::setSpaceInformation (const SpaceInformationPtr &si)
@@ -608,11 +607,6 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::Vect
     
     charts_.add(&addedC, addedC.getMeasure());
     chartNN_.add(std::make_pair<>(addedC.getXoriginPtr(), charts_.size()-1));
-    if (chartNN_.size() > gnatRebuildThreshold)
-    {
-        gnatRebuildThreshold *= k_;
-        chartNN_.rebuildDataStructure();
-    }
     
     return addedC;
 }
@@ -664,19 +658,25 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
                                                   std::vector<StateType *> *stateList) const
 {
     unsigned int chartsCreated = 0;
-    Eigen::Ref<const Eigen::VectorXd> x_r = to->constVectorView();
-    Eigen::VectorXd x_n = from->constVectorView();
+    Eigen::VectorXd x_b = to->constVectorView();
+    Eigen::Ref<const Eigen::VectorXd> x_a = from->constVectorView();
     AtlasChart *c = from->getChart();
     if (!c)
     {
-        c = owningChart(x_n);
+        c = owningChart(x_a);
         if (!c)
-            c = &newChart(x_n);
+            c = &newChart(x_a);
         from->setChart(c);
     }
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
     StateType *currentState = allocState()->as<StateType>();
+    currentState->setRealState(x_a, c);
+    Eigen::Ref<Eigen::VectorXd> x_j = currentState->vectorView();
     
+    // Collision check unless interpolating
+    if (!interpolate && !svc->isValid(from))
+        return false;
+        
     // Save a copy of the from state
     if (stateList)
     {
@@ -684,105 +684,64 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         stateList->push_back(si_->cloneState(from)->as<StateType>());
     }
     
-    Eigen::VectorXd x_0(n_), u_n(k_), u_r(k_), u_j(k_);
-    Eigen::Ref<Eigen::VectorXd> x_j = currentState->vectorView();
+    Eigen::VectorXd u_j(k_), u_b(k_);
     
-    // We will stop if we exit the ball of radius d_0 centered at x_0
-    x_0 = x_j = x_n;
-    double d_0 = (x_n - x_r).norm();
+    // We will stop if we exit the ball of radius d_0 centered at x_a
+    double d_0 = (x_a - x_b).norm();
     double d = 0;
     
     // Project from and to points onto the chart
-    c->psiInverse(x_n, u_n);
-    c->psiInverse(x_r, u_r);
+    c->psiInverse(x_j, u_j);
+    c->psiInverse(x_b, u_b);
+    u_b = u_j + (d_0 - d)*(u_b - u_j).normalized();
+    c->phi(u_b, x_b);
     
     Eigen::VectorXd tempx(n_);
-    while ((u_r - u_n).squaredNorm() > delta_*delta_)
+    while ((u_b - u_j).squaredNorm() > delta_*delta_)
     {
         // Step by delta toward the target and project
-        u_j = u_n + delta_*(u_r - u_n).normalized();    // Note the difference to pseudocode (line 13): a similar mistake to line 8
-        c->psi(u_j, x_j);
-        
-        double d_s = (x_n - x_j).norm();
-        bool changedChart = false;
+        u_j = u_j + delta_*(u_b - u_j).normalized();    // Note the difference to pseudocode (line 13): a similar mistake to line 8
+        c->psi(u_j, tempx);
+        double d_s = (tempx - x_j).norm();
+        x_j = tempx;
+        d += d_s;
         
         // Collision check unless interpolating
         currentState->setChart(c);
         if (!interpolate && !svc->isValid(currentState))
             break;
         
+        // Check stopping criteria regarding how far we've gone
+        if ((x_j - x_a).squaredNorm() > d_0*d_0 || d > lambda_*d_0 || chartsCreated > maxChartsPerExtension_)
+            break;
+
         c->phi(u_j, tempx);
-        if (((x_j - tempx).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_ || u_j.squaredNorm() > rho_*rho_))
+        if (((x_j - tempx).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_
+             || u_j.squaredNorm() > rho_*rho_) || !c->inP(u_j))
         {
-            // Left the validity region of the chart; find or make a new one
+            // Left the validity region or polytope of the chart; find or make a new one
             // The paper says we should always make (never find) one here, but, empirically, that's not always the case
-            AtlasChart *newc = owningChart(tempx);
-            if (!newc)
+            c = owningChart(x_j);
+            if (!c)
             {
-                if ((x_n - c->getXorigin()).norm() < delta_/cos_alpha_)
-                {
-                    // Point we want to center the new chart on is already a chart center
-                    Eigen::VectorXd newCenter(n_);
-                    dichotomicSearch(*c, x_n, x_j, newCenter);  // See paper's discussion of probabilistic completeness; left out of pseudocode
-                    c = &newChart(newCenter);
-                }
-                else
-                {
-                    c = &newChart(x_n);
-                }
+                c = &newChart(x_j);
                 chartsCreated++;
             }
-            else
-            {
-                c = newc;
-            }
-            changedChart = true;
-        }
-        else if (!c->inP(u_j))
-        {
-            // Left the polytope of the chart; find the correct chart
-            // Paper says this is a neighboring chart. That may not always be true, esp. for large delta
-            AtlasChart *newc = owningChart(tempx);
-            
-            // Deviation: If rho is too big, charts have gaps between them; this fixes it on the fly
-            if (!newc)
-            {
-                c->shrinkRadius();
-                updateMeasure(*c);
-                c = &newChart(tempx);
-                chartsCreated++;
-            }
-            else
-            {
-                c = newc;
-            }
-            
-            changedChart = true;
-        }
-        
-        if (changedChart)
-        {
+
             // Re-project onto the different chart
             c->psiInverse(x_j, u_j);
-            c->psiInverse(x_r, u_r);
+            c->psiInverse(x_b, u_b);
+            u_b = u_j + (d_0 - d)*(u_b - u_j).normalized();
+            c->phi(u_b, x_b);
         }
         
         // Keep the state in a list, if requested
         if (stateList)
             stateList->push_back(si_->cloneState(currentState)->as<StateType>());
-        
-        // Update iteration variables
-        u_n = u_j;
-        x_n = x_j;
-        
-        // Check stopping criteria regarding how far we've gone
-        d += d_s;
-        if ((x_0 - x_j).norm() > d_0 || d > lambda_*d_0 || chartsCreated > maxChartsPerExtension_)
-            break;
     }
     if (chartsCreated > maxChartsPerExtension_)
         OMPL_DEBUG("Stopping extension early b/c too many charts created.");
-    const bool reached = ((x_r - x_n).squaredNorm() <= delta_*delta_);
+    const bool reached = ((x_b - x_j).squaredNorm() <= delta_*delta_);
     
     // Append a copy of the target state, since we're within delta, but didn't hit it exactly
     if (reached && stateList)

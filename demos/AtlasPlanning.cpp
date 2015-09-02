@@ -219,7 +219,7 @@ int main (int argc, char **argv)
         std::ofstream graphFile("graph.ply");
         ompl::base::PlannerData pd(si);
         planner->getPlannerData(pd);
-        atlas->dumpGraph(pd.toBoostGraph(), graphFile, cons);
+        atlas->dumpGraph(pd.toBoostGraph(), graphFile, /*cons*/ true);
         graphFile.close();
     }
     

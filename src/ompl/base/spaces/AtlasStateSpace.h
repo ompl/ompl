@@ -434,9 +434,6 @@ namespace ompl
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
             mutable double rho_s_;
             
-            /** \brief Size at which chartNN_ should rebuild itself. Threshold is increased when that happens. */
-            mutable std::size_t gnatRebuildThreshold;
-            
             /** \brief Tolerance for Newton method used in projection onto manifold. */
             double projectionTolerance_;
             

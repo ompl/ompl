@@ -280,6 +280,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (Eigen::Ref
 
 void ompl::base::AtlasChart::approximateMeasure (void)
 {
+    /*
     // Perform Monte Carlo integration to estimate measure
     unsigned int countInside = 0;
     const std::vector<Eigen::VectorXd> &samples = atlas_.getMonteCarloSamples();
@@ -295,11 +296,13 @@ void ompl::base::AtlasChart::approximateMeasure (void)
     if (samples.size() > 0)
         measure_ = countInside * (measure_ / samples.size());
     atlas_.updateMeasure(*this);
+    */
 }
 
 double ompl::base::AtlasChart::getMeasure (void) const
 {
-    return measure_;
+    return 1;
+    //return measure_;
 }
 
 void ompl::base::AtlasChart::shrinkRadius (void) const
