@@ -85,7 +85,8 @@ ompl::geometric::LazyPRM::LazyPRM(const base::SpaceInformationPtr &si, bool star
     specs_.optimizingPaths = true;
 
     Planner::declareParam<double>("range", this, &LazyPRM::setRange, &LazyPRM::getRange, "0.:1.:10000.");
-    Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &LazyPRM::setMaxNearestNeighbors, std::string("8:1000"));
+    if (!starStrategy_)
+        Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &LazyPRM::setMaxNearestNeighbors, std::string("8:1000"));
 
     addPlannerProgressProperty("iterations INTEGER",
                                boost::bind(&LazyPRM::getIterationCount, this));
