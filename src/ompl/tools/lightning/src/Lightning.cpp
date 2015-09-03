@@ -155,7 +155,6 @@ void ompl::tools::Lightning::clear(void)
     if (pp_)
     {
         pp_->clearHybridizationPaths();
-        pp_->clearPlanners();
     }
 }
 

@@ -82,7 +82,7 @@ void ompl::geometric::LightningRetrieveRepair::setLightningDB(const ompl::tools:
 void ompl::geometric::LightningRetrieveRepair::setRepairPlanner(const base::PlannerPtr &planner)
 {
     if (planner && planner->getSpaceInformation().get() != si_.get())
-        throw Exception("Repair planner instance does not match space information");
+        throw Exception("LightningRetrieveRepair: Repair planner instance does not match space information");
     repairPlanner_ = planner;
     setup_ = false;
 }
@@ -97,7 +97,7 @@ void ompl::geometric::LightningRetrieveRepair::setup()
     {
         // Set the repair planner
         repairPlanner_.reset(new ompl::geometric::RRTConnect(si_));
-        OMPL_DEBUG("No repairing planner specified. Using default: %s", repairPlanner_->getName().c_str() );
+        OMPL_DEBUG("LightningRetrieveRepair: No repairing planner specified. Using default: %s", repairPlanner_->getName().c_str() );
     }
 
     // Setup the problem definition for the repair planner
@@ -116,26 +116,23 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     // Check if the database is empty
     if (!experienceDB_->getExperiencesCount())
     {
-        OMPL_INFORM("Experience database is empty so unable to run LightningRetrieveRepair algorithm.");
-        return base::PlannerStatus::CRASH;
+        OMPL_INFORM("LightningRetrieveRepair: Experience database is empty so unable to run LightningRetrieveRepair algorithm.");
+        return base::PlannerStatus::ABORT;
     }
+
+    // Restart the Planner Input States so that the first start and goal state can be fetched
+    pis_.restart();
 
     // Get a single start state TODO: more than one
     const base::State *startState = pis_.nextStart();
+    const base::State *goalState = pis_.nextGoal(ptc);
 
-    /* TODO Remove
-    // Get a single goal state TODO: more than one
-    const base::Goal *goal = pdef_->getGoal().get();
-
-    // Check that we have the correct type of goal
-    if (!goal)
+    // Error check start/goal states
+    if (!startState || !goalState)
     {
-        OMPL_ERROR("Goal cannot be converted into a goal state");
+        OMPL_ERROR("LightningRetrieveRepair: Start or goal states are null");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
-    */
-
-    const base::State *goalState = pis_.nextGoal(ptc);
 
     // Search for previous solution in database
     nearestPaths_ = experienceDB_->findNearestStartGoal(nearestK_, startState, goalState);
@@ -143,7 +140,7 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     // Check if there are any solutions
     if (nearestPaths_.empty())
     {
-        OMPL_INFORM("No similar path founds in nearest neighbor tree, unable to retrieve repair");
+        OMPL_INFORM("LightningRetrieveRepair: No similar path founds in nearest neighbor tree, unable to retrieve repair");
         return base::PlannerStatus::TIMEOUT; // The planner failed to find a solution
     }
 
@@ -153,7 +150,7 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     // TODO Rather than selecting 1 best path, you could also spawn n (n<=k) threads and repair the top n paths.
     if (!findBestPath(startState, goalState, chosenPath))
     {
-        return base::PlannerStatus::CRASH;
+        return base::PlannerStatus::ABORT;
     }
 
     // All saved trajectories should be at least 2 states long
@@ -175,10 +172,10 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     assert(primaryPath->getStateCount() >= 4);
 
     // Repair chosen path
-    if (!repairPath(*primaryPath, ptc))
+    if (!repairPath(ptc, *primaryPath))
     {
-        OMPL_INFORM("repairPath failed or aborted");
-        return base::PlannerStatus::CRASH;
+        OMPL_INFORM("LightningRetrieveRepair: repairPath failed or aborted");
+        return base::PlannerStatus::ABORT;
     }
 
     // Smooth the result
@@ -198,7 +195,7 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
 
 bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *startState, const base::State *goalState, ompl::base::PlannerDataPtr &chosenPath)
 {
-    OMPL_INFORM("Found %d similar paths. Filtering", nearestPaths_.size());
+    OMPL_INFORM("LightningRetrieveRepair: Found %d similar paths. Filtering", nearestPaths_.size());
 
     // Filter down to just 1 chosen path
     ompl::base::PlannerDataPtr bestPath = nearestPaths_.front();
@@ -271,14 +268,14 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
             pathScore += checkMotionScore( goalState, pathStartState );
 
         // Factor in the distance between start/goal and our new start/goal
-        OMPL_INFORM("Path %d | %d verticies | %d invalid | score %d | reversed: %s | distance: %f",
+        OMPL_INFORM("LightningRetrieveRepair: Path %d | %d verticies | %d invalid | score %d | reversed: %s | distance: %f",
             int(pathID), currentPath->numVertices(), invalidStates, pathScore,
             isReversed[pathID] ? "true" : "false", distances[pathID]);
 
         // Check if we have a perfect score (0) and this is the shortest path (the first one)
         if (pathID == 0 && pathScore == 0)
         {
-            OMPL_DEBUG(" --> The shortest path (path 0) has a perfect score (0), ending filtering early.");
+            OMPL_DEBUG("LightningRetrieveRepair:  --> The shortest path (path 0) has a perfect score (0), ending filtering early.");
             bestPathScore = pathScore;
             bestPath = currentPath;
             nearestPathsChosenID_ = pathID;
@@ -288,7 +285,7 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
         // Check if this is the best score we've seen so far
         if (pathScore < bestPathScore)
         {
-            OMPL_DEBUG(" --> This path is the best we've seen so far. Previous best: %d", bestPathScore);
+            OMPL_DEBUG("LightningRetrieveRepair:  --> This path is the best we've seen so far. Previous best: %d", bestPathScore);
             bestPathScore = pathScore;
             bestPath = currentPath;
             nearestPathsChosenID_ = pathID;
@@ -298,32 +295,32 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
         else if (pathScore == bestPathScore && distances[nearestPathsChosenID_] > distances[pathID])
         {
             // This new path is a shorter distance
-            OMPL_DEBUG(" --> This path is as good as the best we've seen so far, but its path is shorter. Previous best score: %d from index %d",
+            OMPL_DEBUG("LightningRetrieveRepair:  --> This path is as good as the best we've seen so far, but its path is shorter. Previous best score: %d from index %d",
                        bestPathScore, nearestPathsChosenID_);
             bestPathScore = pathScore;
             bestPath = currentPath;
             nearestPathsChosenID_ = pathID;
         }
         else
-            OMPL_DEBUG(" --> Not best. Best score: %d from index %d", bestPathScore, nearestPathsChosenID_);
+            OMPL_DEBUG("LightningRetrieveRepair:  --> Not best. Best score: %d from index %d", bestPathScore, nearestPathsChosenID_);
     }
 
     // Check if we have a solution
     if (!bestPath)
     {
-        OMPL_ERROR("No best path found from k filtered paths");
+        OMPL_ERROR("LightningRetrieveRepair: No best path found from k filtered paths");
         return false;
     }
     else if(!bestPath->numVertices() || bestPath->numVertices() == 1)
     {
-        OMPL_ERROR("Only %d verticies found in PlannerData loaded from file. This is a bug.", bestPath->numVertices());
+        OMPL_ERROR("LightningRetrieveRepair: Only %d verticies found in PlannerData loaded from file. This is a bug.", bestPath->numVertices());
         return false;
     }
 
     // Reverse the path if necessary. We allocate memory for this so that we don't alter the database
     if (isReversed[nearestPathsChosenID_])
     {
-        OMPL_DEBUG("Reversing planner data verticies count %d", bestPath->numVertices());
+        OMPL_DEBUG("LightningRetrieveRepair: Reversing planner data verticies count %d", bestPath->numVertices());
         ompl::base::PlannerDataPtr newPath(new ompl::base::PlannerData(si_));
         for (std::size_t i = bestPath->numVertices(); i > 0; --i) // size_t can't go negative so subtract 1 instead
         {
@@ -337,21 +334,22 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
         // Set result
         chosenPath = bestPath;
     }
-    OMPL_DEBUG("Done Filtering\n");
+    OMPL_DEBUG("LightningRetrieveRepair: Done Filtering\n");
 
     return true;
 }
 
-bool ompl::geometric::LightningRetrieveRepair::repairPath(ompl::geometric::PathGeometric &primaryPath, const base::PlannerTerminationCondition &ptc)
+bool ompl::geometric::LightningRetrieveRepair::repairPath(const base::PlannerTerminationCondition &ptc, 
+                                                          ompl::geometric::PathGeometric &primaryPath)
 {
     // \todo: we should reuse our collision checking from the previous step to make this faster
 
-    OMPL_INFORM("Repairing path");
+    OMPL_INFORM("LightningRetrieveRepair: Repairing path");
 
     // Error check
     if (primaryPath.getStateCount() < 2)
     {
-        OMPL_ERROR("Cannot repair a path with less than 2 states");
+        OMPL_ERROR("LightningRetrieveRepair: Cannot repair a path with less than 2 states");
         return false;
     }
 
@@ -366,7 +364,7 @@ bool ompl::geometric::LightningRetrieveRepair::repairPath(ompl::geometric::PathG
         // Check if our planner is out of time
         if (ptc == true)
         {
-            OMPL_DEBUG("Repair path function interrupted because termination condition is true.");
+            OMPL_DEBUG("LightningRetrieveRepair: Repair path function interrupted because termination condition is true.");
             return false;
         }
 
@@ -377,14 +375,14 @@ bool ompl::geometric::LightningRetrieveRepair::repairPath(ompl::geometric::PathG
             // Search until next valid STATE is found in existing path
             std::size_t subsearchID = toID;
             ompl::base::State *new_to;
-            OMPL_DEBUG("Searching for next valid state, because state %d to %d was not valid out  %d total states",
+            OMPL_DEBUG("LightningRetrieveRepair: Searching for next valid state, because state %d to %d was not valid out  %d total states",
                        fromID,toID,primaryPath.getStateCount());
             while (subsearchID < primaryPath.getStateCount())
             {
                 new_to = primaryPath.getState(subsearchID);
                 if (si_->isValid(new_to))
                 {
-                    OMPL_DEBUG("State %d was found to valid, we can now repair between states", subsearchID);
+                    OMPL_DEBUG("LightningRetrieveRepair: State %d was found to valid, we can now repair between states", subsearchID);
                     // This future state is valid, we can stop searching
                     toID = subsearchID;
                     toState = new_to;
@@ -397,7 +395,7 @@ bool ompl::geometric::LightningRetrieveRepair::repairPath(ompl::geometric::PathG
             {
                 // We never found a valid state to plan to, instead we reached the goal state and it too wasn't valid. This is bad.
                 // I think this is a bug.
-                OMPL_ERROR("No state was found valid in the remainder of the path. Invalid goal state. This should not happen.");
+                OMPL_ERROR("LightningRetrieveRepair: No state was found valid in the remainder of the path. Invalid goal state. This should not happen.");
                 return false;
             }
 
@@ -405,11 +403,11 @@ bool ompl::geometric::LightningRetrieveRepair::repairPath(ompl::geometric::PathG
             PathGeometric newPathSegment(si_);
 
             // Not valid motion, replan
-            OMPL_DEBUG("Planning from %d to %d", fromID, toID);
+            OMPL_DEBUG("LightningRetrieveRepair: Planning from %d to %d", fromID, toID);
 
             if (!replan(fromState, toState, newPathSegment, ptc))
             {
-                OMPL_INFORM("Unable to repair path between state %d and %d", fromID, toID);
+                OMPL_INFORM("LightningRetrieveRepair: Unable to repair path between state %d and %d", fromID, toID);
                 return false;
             }
 
@@ -422,34 +420,34 @@ bool ompl::geometric::LightningRetrieveRepair::repairPath(ompl::geometric::PathG
             // Remove all invalid states between (fromID, toID) - not including those states themselves
             while (fromID != toID - 1)
             {
-                OMPL_INFORM("Deleting state %d", fromID + 1);
+                OMPL_INFORM("LightningRetrieveRepair: Deleting state %d", fromID + 1);
                 primaryPathStates.erase(primaryPathStates.begin() + fromID + 1);
                 --toID; // because vector has shrunk
-                OMPL_INFORM("toID is now %d", toID);
+                OMPL_INFORM("LightningRetrieveRepair: toID is now %d", toID);
             }
 
             // Insert new path segment into current path
-            OMPL_DEBUG("Inserting new %d states into old path. Previous length: %d",
+            OMPL_DEBUG("LightningRetrieveRepair: Inserting new %d states into old path. Previous length: %d",
                 newPathSegment.getStateCount()-2, primaryPathStates.size());
 
             // Note: skip first and last states because they should be same as our start and goal state, same as `fromID` and `toID`
             for (std::size_t i = 1; i < newPathSegment.getStateCount() - 1; ++i)
             {
                 std::size_t insertLocation = toID + i - 1;
-                OMPL_DEBUG("Inserting newPathSegment state %d into old path at position %d",
+                OMPL_DEBUG("LightningRetrieveRepair: Inserting newPathSegment state %d into old path at position %d",
                     i, insertLocation);
                 primaryPathStates.insert(primaryPathStates.begin() + insertLocation,
                     si_->cloneState(newPathSegment.getStates()[i]) );
             }
-            OMPL_DEBUG("Inserted new states into old path. New length: %d", primaryPathStates.size());
+            OMPL_DEBUG("LightningRetrieveRepair: Inserted new states into old path. New length: %d", primaryPathStates.size());
 
             // Set the toID to jump over the newly inserted states to the next unchecked state. Subtract 2 because we ignore start and goal
             toID = toID + newPathSegment.getStateCount() - 2;
-            OMPL_DEBUG("Continuing searching at state %d", toID);
+            OMPL_DEBUG("LightningRetrieveRepair: Continuing searching at state %d", toID);
         }
     }
 
-    OMPL_INFORM("Done repairing");
+    OMPL_INFORM("LightningRetrieveRepair: Done repairing");
 
     return true;
 }
@@ -472,7 +470,7 @@ bool ompl::geometric::LightningRetrieveRepair::replan(const ompl::base::State *s
     repairPlanner_->setProblemDefinition(repairProblemDef_);
 
     // Solve
-    OMPL_INFORM("Preparing to repair path");
+    OMPL_INFORM("LightningRetrieveRepair: Preparing to repair path");
     base::PlannerStatus lastStatus = base::PlannerStatus::UNKNOWN;
     time::point startTime = time::now();
 
@@ -482,14 +480,14 @@ bool ompl::geometric::LightningRetrieveRepair::replan(const ompl::base::State *s
     double planTime = time::seconds(time::now() - startTime);
     if (!lastStatus)
     {
-        OMPL_INFORM("Replan Solve: No replan solution between disconnected states found after %f seconds", planTime);
+        OMPL_INFORM("LightningRetrieveRepair: No replan solution between disconnected states found after %f seconds", planTime);
         return false;
     }
 
     // Check if approximate
     if (repairProblemDef_->hasApproximateSolution() || repairProblemDef_->getSolutionDifference() > std::numeric_limits<double>::epsilon())
     {
-        OMPL_INFORM("Replan Solve: Solution is approximate, not using");
+        OMPL_INFORM("LightningRetrieveRepair: Solution is approximate, not using");
         return false;
     }
 
@@ -497,14 +495,14 @@ bool ompl::geometric::LightningRetrieveRepair::replan(const ompl::base::State *s
     base::PathPtr p = repairProblemDef_->getSolutionPath();
     if (!p)
     {
-        OMPL_ERROR("Unable to get solution path from problem definition");
+        OMPL_ERROR("LightningRetrieveRepair: Unable to get solution path from problem definition");
         return false;
     }
 
     newPathSegment = static_cast<ompl::geometric::PathGeometric&>(*p);
 
     // Smooth the result
-    OMPL_INFORM("Repair: Simplifying solution (smoothing)...");
+    OMPL_INFORM("LightningRetrieveRepair: Simplifying solution (smoothing)...");
     time::point simplifyStart = time::now();
     std::size_t numStates = newPathSegment.getStateCount();
     psk_->simplify(newPathSegment, ptc);
@@ -518,7 +516,7 @@ bool ompl::geometric::LightningRetrieveRepair::replan(const ompl::base::State *s
     repairPlannerDatas_.back()->decoupleFromPlanner(); // copy states so that when planner unloads/clears we don't lose them
 
     // Return success
-    OMPL_INFORM("Replan Solve: solution found in %f seconds with %d states",
+    OMPL_INFORM("LightningRetrieveRepair: solution found in %f seconds with %d states",
         planTime, newPathSegment.getStateCount() );
 
     return true;
@@ -526,7 +524,7 @@ bool ompl::geometric::LightningRetrieveRepair::replan(const ompl::base::State *s
 
 void ompl::geometric::LightningRetrieveRepair::getPlannerData(base::PlannerData &data) const
 {
-    OMPL_INFORM("LightningRetrieveRepair getPlannerData: including %d similar paths", nearestPaths_.size());
+    OMPL_INFORM("LightningRetrieveRepair: including %d similar paths", nearestPaths_.size());
 
     // Visualize the n candidate paths that we recalled from the database
     for (std::size_t i = 0 ; i < nearestPaths_.size() ; ++i)
