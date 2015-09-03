@@ -22,7 +22,7 @@ endif(APPLE)
 
 # Trick gccxml to ignore some compiler intrinsics that are used in Boost.Atomic
 # in Boost 1.55.
-if(CMAKE_COMPILER_IS_GNUCXX AND BOOST_VERSION VERSION_GREATER "1.54.0")
+if(CMAKE_COMPILER_IS_GNUCXX AND Boost_VERSION VERSION_GREATER "1.54.0")
     set(PYOMPL_EXTRA_CFLAGS "${PYOMPL_EXTRA_CFLAGS} -DBOOST_INTEL_CXX_VERSION")
 endif()
 
