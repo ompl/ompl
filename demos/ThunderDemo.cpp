@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Rice University
+*  Copyright (c) 2015, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,10 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Mark Moll, Dave Coleman, Ioan Sucan */
 
 #include <ompl/base/spaces/RealVectorStateSpace.h>
-#include <ompl/tools/lightning/Lightning.h>
+#include <ompl/tools/thunder/Thunder.h>
 #include <ompl/util/PPM.h>
 
 #include <ompl/config.h>
@@ -71,36 +71,55 @@ public:
             space->addDimension(0.0, ppm_.getHeight());
             maxWidth_ = ppm_.getWidth() - 1;
             maxHeight_ = ppm_.getHeight() - 1;
-            lightning_.reset(new ot::Lightning(ob::StateSpacePtr(space)));
-            lightning_->setFilePath("lightning.db");
+            thunder_.reset(new ot::Thunder(ob::StateSpacePtr(space)));
+            thunder_->setFilePath("thunder.db");
             // set state validity checking for this space
-            lightning_->setStateValidityChecker(boost::bind(&Plane2DEnvironment::isStateValid, this, _1));
+            thunder_->setStateValidityChecker(boost::bind(&Plane2DEnvironment::isStateValid, this, _1));
             space->setup();
-            lightning_->getSpaceInformation()->setStateValidityCheckingResolution(1.0 / space->getMaximumExtent());
-            vss_ = lightning_->getSpaceInformation()->allocValidStateSampler();
+            thunder_->getSpaceInformation()->setStateValidityCheckingResolution(1.0 / space->getMaximumExtent());
+            vss_ = thunder_->getSpaceInformation()->allocValidStateSampler();
+
+            // DTC
+            //experience_setup_->setPlanner(ob::PlannerPtr(new og::RRTConnect( si_ )));
+            // Set the repair planner
+            // boost::shared_ptr<og::RRTConnect> repair_planner( new og::RRTConnect( si_ ) );
+            // experience_setup_->setRepairPlanner(ob::PlannerPtr( repair_planner ));
         }
     }
 
     ~Plane2DEnvironment()
     {
-        lightning_->save();
+        thunder_->save();
     }
 
     bool plan()
     {
-        if (!lightning_)
+        std::cout << std::endl;
+        std::cout << "-------------------------------------------------------" << std::endl;
+        std::cout << "-------------------------------------------------------" << std::endl;
+
+        if (!thunder_)
+        {
+            OMPL_ERROR("Thunder simple setup not loaded");
             return false;
-        ob::ScopedState<> start(lightning_->getStateSpace());
+        }
+        thunder_->clear();
+
+        ob::ScopedState<> start(thunder_->getStateSpace());
         vss_->sample(start.get());
-        ob::ScopedState<> goal(lightning_->getStateSpace());
+        ob::ScopedState<> goal(thunder_->getStateSpace());
         vss_->sample(goal.get());
-        lightning_->setStartAndGoalStates(start, goal);
-        bool solved = lightning_->solve(10.);
+        thunder_->setStartAndGoalStates(start, goal);
+
+        bool solved = thunder_->solve(10.);
         if (solved)
             OMPL_INFORM("Found solution in %g seconds",
-                lightning_->getLastPlanComputationTime());
+                thunder_->getLastPlanComputationTime());
         else
             OMPL_INFORM("No solution found");
+
+        thunder_->doPostProcessing();
+
         return false;
     }
 
@@ -115,7 +134,7 @@ private:
         return c.red > 127 && c.green > 127 && c.blue > 127;
     }
 
-    ot::LightningPtr lightning_;
+    ot::ThunderPtr thunder_;
     ob::ValidStateSamplerPtr vss_;
     int maxWidth_;
     int maxHeight_;
