@@ -344,7 +344,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
         if (newDist < distanceBetweenTrees_)
         {
             distanceBetweenTrees_ = newDist;
-            OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
+            //OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
         }
 
         // Did not connect to initial tree

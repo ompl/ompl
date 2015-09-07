@@ -245,7 +245,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
             if (newDist < distanceBetweenTrees_)
             {
                 distanceBetweenTrees_ = newDist;
-                OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
+                //OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
             }
 
             Motion *startMotion = startTree ? tgi.xmotion : addedMotion;

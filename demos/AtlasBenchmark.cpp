@@ -90,10 +90,10 @@ int main (int argc, char **argv)
     si->setConstraintInformation(ci);
     
     // Atlas parameters
-    atlas->setExploration(0.9);
-    atlas->setRho(0.2);
+    atlas->setExploration(0.5);
+    atlas->setRho(0.5); // 0.2
     atlas->setAlpha(M_PI/8);
-    atlas->setEpsilon(0.1);
+    atlas->setEpsilon(0.2); // 0.1
     atlas->setDelta(0.02);
     atlas->setMaxChartsPerExtension(200);
     atlas->setMonteCarloSampleCount(0);
@@ -128,8 +128,7 @@ int main (int argc, char **argv)
     const bool save_output = false;
     const bool use_threads = true;
     const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress, save_output, use_threads);
-    const char *planners[] = {"EST", "RRT", "AtlasRRT", "RRTConnect", "TRRT", "LBTRRT", "ConstrainedRRT", "CBiRRT2", "KPIECE1", "BKPIECE1",
-                              "LBKPIECE1", "PDST", "PRM", "SBL", "SPARS", "SPARStwo", "STRIDE"};
+    const char *planners[] = {"EST", "RRT", "RRTintermediate", "RRTConnect", "LBTRRT", "CBiRRT2", "KPIECE1", "PRM", "SPARS", "SPARStwo", "STRIDE"};
     for (std::size_t i = 0; i < sizeof(planners)/sizeof(char *); i++)
         bench.addPlanner(ompl::base::PlannerPtr(parsePlanner(planners[i], si, atlas->getRho_s())));
     bench.setPreRunEvent(&resetStateSpace);

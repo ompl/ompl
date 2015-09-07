@@ -472,7 +472,7 @@ def computeViews(dbname):
     conn = sqlite3.connect(dbname)
     c = conn.cursor()
     c.execute('PRAGMA FOREIGN_KEYS = ON')
-    s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid, solved, time + simplification_time AS total_time
+    s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid, solved, time AS total_time
         FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
         ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
     s1 = """SELECT plannerid, plannerName, experimentid, AVG(solved) AS avg_solved, AVG(total_time) AS avg_total_time

@@ -112,6 +112,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     
     // Rejection sampling to find a point that can be projected onto the manifold
     c->psiInverse(n, ru);
+    Eigen::VectorXd f(atlas_.getAmbientDimension()-atlas_.getManifoldDimension());
     do
     {
         // Sample within distance
@@ -119,9 +120,11 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         for (int i = 0; i < uoffset.size(); i++)
             uoffset[i] = rng_.gaussian01();
         uoffset *=  distance * std::pow(rng_.uniform01(), 1.0/uoffset.size()) / uoffset.norm();
-        c->phi(ru + uoffset, rx);
+        //c->phi(ru + uoffset, rx);
+        c->psi(ru + uoffset, rx);
     }
-    while (!atlas_.project(rx));
+    while (rx.hasNaN() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance()));
+    //while (!atlas_.project(rx));
     
     // Be lazy about determining the new chart if we are not in the old one
     if (c->psiInverse(rx, ru), !c->inP(ru))
@@ -226,14 +229,18 @@ bool ompl::base::AtlasMotionValidator::checkMotion (const State *s1, const State
     const AtlasStateSpace::StateType *const as1 = s1->as<AtlasStateSpace::StateType>();
     const AtlasStateSpace::StateType *const as2 = s2->as<AtlasStateSpace::StateType>();
     bool reached = atlas_.followManifold(as1, as2, false, &stateList);
+
+    // XXX We are supposed to be able to assume that s1 is valid. However, it's not sometimes, and I
+    // don't know why. We shouldn't have to check that stateList is non-empty.
+    if (stateList.size() > 0) {
+        for (std::size_t i = 0; i < stateList.size()-1; i++)
+            atlas_.freeState(stateList[i]);
     
-    for (std::size_t i = 0; i < stateList.size()-1; i++)
-        atlas_.freeState(stateList[i]);
-    
-    // Check if manifold traversal stopped early and set its final state as lastValid
-    if (!reached && lastValid.first)
-        atlas_.copyState(lastValid.first, stateList.back());
-    atlas_.freeState(stateList.back());
+        // Check if manifold traversal stopped early and set its final state as lastValid
+        if (!reached && lastValid.first)
+            atlas_.copyState(lastValid.first, stateList.back());
+        atlas_.freeState(stateList.back());
+    }
     
     // Compute the interpolation parameter of the last valid state
     // (although if you then interpolate, you probably won't get this state back)
@@ -437,8 +444,6 @@ void ompl::base::AtlasStateSpace::setRho (const double rho)
         throw ompl::Exception("Please specify a positive rho.");
     rho_ = rho;
     rho_s_ = rho_ / std::pow(1 - exploration_, 1.0/k_);
-
-    std::cout << "rho: " << rho_ << " rho_s: " << rho_s_ << "\n";
 }
 
 void ompl::base::AtlasStateSpace::setAlpha (const double alpha)
@@ -697,12 +702,16 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     // Project from and to points onto the chart
     c->psiInverse(x_j, u_j);
     c->psiInverse(x_b, u_b);
-    u_b = u_j + (d_0 - d)*(u_b - u_j).normalized();
-    c->phi(u_b, x_b);
-    
+    //u_b = u_j + (d_0 - d)*(u_b - u_j).normalized();
+    //c->phi(u_b, x_b);
+
+    // if (!interpolate)
+    //     std::cout << "starting traversal\n";
     Eigen::VectorXd tempx(n_);
-    while ((u_b - u_j).squaredNorm() > delta_*delta_)
+    while (((u_b - u_j).squaredNorm() > delta_*delta_) /*|| (!interpolate ? (std::cout << "stopped due to reaching goal\n", false) : false)*/)
     {
+        // if (!interpolate)
+        //     std::cout << (u_b - u_j).norm() << " from goal at " << u_b.norm() << " from chart center\n";
         // Step by delta toward the target and project
         u_j = u_j + delta_*(u_b - u_j).normalized();    // Note the difference to pseudocode (line 13): a similar mistake to line 8
         c->psi(u_j, tempx);
@@ -712,12 +721,17 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         
         // Collision check unless interpolating
         currentState->setChart(c);
-        if (!interpolate && !svc->isValid(currentState))
+        if (!interpolate && !svc->isValid(currentState)) {
+            // std::cout << "stopped due to invalid state\n";
             break;
+        }
         
         // Check stopping criteria regarding how far we've gone
-        if ((x_j - x_a).squaredNorm() > d_0*d_0 || d > lambda_*d_0 || chartsCreated > maxChartsPerExtension_)
+        if ((x_j - x_a).squaredNorm() > d_0*d_0 || d > lambda_*d_0 || chartsCreated > maxChartsPerExtension_) {
+            // if (!interpolate)
+            //     std::cout << "stopped due to travelling too far\n";
             break;
+        }
 
         c->phi(u_j, tempx);
         if (((x_j - tempx).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_
@@ -735,14 +749,16 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             // Re-project onto the different chart
             c->psiInverse(x_j, u_j);
             c->psiInverse(x_b, u_b);
-            u_b = u_j + (d_0 - d)*(u_b - u_j).normalized();
-            c->phi(u_b, x_b);
+            //u_b = u_j + (d_0 - d)*(u_b - u_j).normalized();
+            //c->phi(u_b, x_b);
         }
         
         // Keep the state in a list, if requested
         if (stateList)
             stateList->push_back(si_->cloneState(currentState)->as<StateType>());
     }
+    // if (!interpolate)
+    //     std::cout << "stopped at " << u_j.norm() << " from chart center\n";
     if (chartsCreated > maxChartsPerExtension_)
         OMPL_DEBUG("Stopping extension early b/c too many charts created.");
     // Reached goal if final point is within delta and both current and goal are valid.
@@ -759,6 +775,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     }
     
     freeState(currentState);
+
     return reached;
 }
 

@@ -87,10 +87,10 @@ int main (int argc, char **argv)
     si->setConstraintInformation(ci);
     
     // Atlas parameters
-    atlas->setExploration(0.9);
+    atlas->setExploration(0.5);
     atlas->setRho(0.5); // 0.2
-    atlas->setAlpha(M_PI/64);    // M_PI/8
-    atlas->setEpsilon(1.0); // 0.1
+    atlas->setAlpha(M_PI/8);
+    atlas->setEpsilon(0.2); // 0.1
     atlas->setDelta(0.02);
     atlas->setMaxChartsPerExtension(200);
     atlas->setMonteCarloSampleCount(0);
