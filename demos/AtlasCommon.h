@@ -800,8 +800,7 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
     }
     else if (std::strcmp(planner, "RRTintermediate") == 0)
     {
-        ompl::geometric::RRT *rrt = new ompl::geometric::RRT(si);
-        rrt->setIntermediateStates(true);
+        ompl::geometric::RRT *rrt = new ompl::geometric::RRT(si, true);
         return rrt;
     }
     else if (std::strcmp(planner, "AtlasRRT") == 0)

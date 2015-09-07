@@ -39,13 +39,13 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 
-ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si) : base::Planner(si, "RRT")
+ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, bool addIntermediateStates) : base::Planner(si, addIntermediateStates ? "RRTintermediate" : "RRT")
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;
 
     goalBias_ = 0.05;
-    addIntermediateStates_ = false;
+    addIntermediateStates_ = addIntermediateStates;
     maxDistance_ = 0.0;
     lastGoalMotion_ = NULL;
 

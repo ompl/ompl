@@ -67,7 +67,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            RRT(const base::SpaceInformationPtr &si);
+            RRT(const base::SpaceInformationPtr &si, bool addIntermediateStates = false);
 
             virtual ~RRT();
 
