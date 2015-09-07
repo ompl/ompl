@@ -73,10 +73,10 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
         // Rejection sampling to find a point inside a chart's polytope
         do
         {
-            // Pick a chart according to measure
+            // Pick a chart.
             c = &atlas_.sampleChart();
             
-            // Sample a point within rho_s of the center. This is done by sampling uniformly on the surface =
+            // Sample a point within rho_s of the center. This is done by sampling uniformly on the surface
             // and multiplying by a distance whose distribution is biased according to spherical volume
             for (int i = 0; i < ru.size(); i++)
                 ru[i] = rng_.gaussian01();
@@ -91,7 +91,7 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
     // Extend polytope of neighboring chart wherever point is near the border
     c->psiInverse(rx, ru);
     c->borderCheck(ru);
-    state->as<AtlasStateSpace::StateType>()->setChart(c);
+    state->as<AtlasStateSpace::StateType>()->setChart(atlas_.owningChart(rx));
 }
 
 void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State *near, const double distance)
@@ -437,6 +437,8 @@ void ompl::base::AtlasStateSpace::setRho (const double rho)
         throw ompl::Exception("Please specify a positive rho.");
     rho_ = rho;
     rho_s_ = rho_ / std::pow(1 - exploration_, 1.0/k_);
+
+    std::cout << "rho: " << rho_ << " rho_s: " << rho_s_ << "\n";
 }
 
 void ompl::base::AtlasStateSpace::setAlpha (const double alpha)

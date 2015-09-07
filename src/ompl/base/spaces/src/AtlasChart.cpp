@@ -413,7 +413,7 @@ void ompl::base::AtlasChart::init (void)
 {
     // Initialize set of linear inequalities so the polytope is the k-dimensional cube of side
     //  length 2*rho so it completely contains the ball of radius rho
-    Eigen::VectorXd e = Eigen::VectorXd::Zero(k_);
+    /*Eigen::VectorXd e = Eigen::VectorXd::Zero(k_);
     for (unsigned int i = 0; i < k_; i++)
     {
         e[i] = 2 * atlas_.getRho();
@@ -422,7 +422,8 @@ void ompl::base::AtlasChart::init (void)
         bigL_.push_back(new LinearInequality(*this, e));
         e[i] = 0;
     }
-    measure_ = atlas_.getMeasureKBall() * std::pow(radius_, k_);
+    */
+    measure_ = 1;//atlas_.getMeasureKBall() * std::pow(radius_, k_);
 }
 
 bool ompl::base::AtlasChart::angleCompare (Eigen::Ref<const Eigen::VectorXd> x1, Eigen::Ref<const Eigen::VectorXd> x2) const
