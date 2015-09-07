@@ -22,6 +22,9 @@ install:
   - if [ "$TRAVIS_OS_NAME" = "osx"   ]; then brew install boost-python ode eigen; fi
 
 script:
+  # update homebrew
+  - brew update
+
   # Create build directory
   - mkdir build
   - cd build
