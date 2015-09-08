@@ -73,7 +73,7 @@ namespace ompl
            A. Dobson, A. Krontiris, K. Bekris,
            Sparse Roadmap Spanners,
            <em>Workshop on the Algorithmic Foundations of Robotics (WAFR)</em> 2012.
-           <a href="http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf">[PDF]</a>
+           [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf)
          */
 
         /** \brief <b> SPArse Roadmap Spanner technique. </b> */
@@ -150,7 +150,7 @@ namespace ompl
                 boost::property < vertex_color_t, GuardType,
                 boost::property < vertex_list_t, std::set<VertexIndexType>,
                 boost::property < vertex_interface_list_t, InterfaceHashStruct > > > > > >,
-                boost::property < boost::edge_weight_t, double >
+                boost::property < boost::edge_weight_t, base::Cost >
             > SpannerGraph;
 
             /** \brief A vertex in the sparse roadmap that is constructed */
@@ -348,12 +348,6 @@ namespace ompl
                 return boost::num_vertices(s_);
             }
 
-            /** \brief Get the number of iterations the algorithm performed */
-            long unsigned int getIterations() const
-            {
-                return iterations_;
-            }
-
             /** \brief Returns the average valence of the spanner graph */
             double averageValence() const;
 
@@ -362,6 +356,17 @@ namespace ompl
 
             /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_  */
             bool reachedFailureLimit() const;
+
+            ///////////////////////////////////////
+            // Planner progress property functions
+            std::string getIterationCount() const
+            {
+                return boost::lexical_cast<std::string>(iterations_);
+            }
+            std::string getBestCost() const
+            {
+                return boost::lexical_cast<std::string>(bestCost_);
+            }
 
         protected:
 
@@ -531,13 +536,10 @@ namespace ompl
                                                                                 sparseDJSets_;
 
             /** \brief Function that returns the milestones to attempt connections with */
-            boost::function<std::vector<DenseVertex>&(const DenseVertex)>       connectionStrategy_;
+            boost::function<const std::vector<DenseVertex>&(const DenseVertex)> connectionStrategy_;
 
             /** \brief A counter for the number of consecutive failed iterations of the algorithm */
             unsigned int                                                        consecutiveFailures_;
-
-            /** \brief A counter for the number of iterations of the algorithm */
-            long unsigned int                                                   iterations_;
 
             /** \brief The stretch factor in terms of graph spanners for SPARS to check against */
             double                                                              stretchFactor_;
@@ -566,6 +568,18 @@ namespace ompl
             /** \brief Mutex to guard access to the graphs */
             mutable boost::mutex                                                graphMutex_;
 
+            /** \brief Objective cost function for PRM graph edges */
+            base::OptimizationObjectivePtr                                      opt_;
+
+            /** \brief Given two vertices, returns a heuristic on the cost of the path connecting them. This method wraps OptimizationObjective::motionCostHeuristic */
+            base::Cost costHeuristic(SparseVertex u, SparseVertex v) const;
+
+            //////////////////////////////
+            // Planner progress properties
+            /** \brief A counter for the number of iterations of the algorithm */
+            long unsigned int                                                   iterations_;
+            /** \brief Best cost found so far by algorithm */
+            base::Cost                                                          bestCost_;
         };
 
     }

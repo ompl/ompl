@@ -87,7 +87,7 @@ An example of using OMPL to plan for a robotic system simulated with [ODE](http:
 <div class="row">
   <div class="col-md-8 col-sm-10 col-md-offset-2 col-sm-offset-1">
     <div class="embed-responsive embed-responsive-4by3">
-      <iframe src="http://www.youtube.com/embed/bX23YA-pasg"></iframe>
+      <iframe src="http://player.vimeo.com/video/108137623?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
     </div>
   </div>
 </div>
@@ -156,11 +156,11 @@ In Fall 2010 OMPL was used for the first time in Lydia Kavraki's Algorithmic Rob
 \htmlonly
 <div class="row">
 <div class="col-md-6 col-sm-6">
-  <img src="../images/bspline_cubicle_smoother.png" width="100%"><br>
+  <img src="images/bspline_cubicle_smoother.png" width="100%"><br>
 <b>Path smoothing with B-splines.</b> The input path is shown in red, the optimized output path is shown in blue.
 </div>
 <div class="col-md-6 col-sm-6">
-  <img src="../images/hybridization_cubicle_shorter.png" width="100%"><br>
+  <img src="images/hybridization_cubicle_shorter.png" width="100%"><br>
 <b>Path shortening using path hybridization.</b> The colored paths are input, the solid black path is the optimized output path.
 </div>
 </div>

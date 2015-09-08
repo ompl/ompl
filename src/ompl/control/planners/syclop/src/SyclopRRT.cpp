@@ -49,7 +49,7 @@ void ompl::control::SyclopRRT::setup()
     // the default regionalNN check from the discretization
     if (!nn_ && !regionalNN_)
     {
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
         nn_->setDistanceFunction(boost::bind(&SyclopRRT::distanceFunction, this, _1, _2));
     }
 }

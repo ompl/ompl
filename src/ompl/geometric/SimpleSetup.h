@@ -45,6 +45,7 @@
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/Deprecation.h"
 
 namespace ompl
 {
@@ -132,7 +133,7 @@ namespace ompl
             }
 
             /** \brief Get the optimization objective to use */
-            const base::OptimizationObjectivePtr& getOptimizationObjective()
+            const base::OptimizationObjectivePtr& getOptimizationObjective() const
             {
                 return pdef_->getOptimizationObjective();
             }
@@ -175,13 +176,7 @@ namespace ompl
 
             /** \brief Set the start and goal states to use. */
             void setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal,
-                                       const double threshold = std::numeric_limits<double>::epsilon())
-            {
-                pdef_->setStartAndGoalStates(start, goal, threshold);
-
-                // Clear any past solutions since they no longer correspond to our start and goal states
-                pdef_->clearSolutionPaths();
-            }
+                                       const double threshold = std::numeric_limits<double>::epsilon());
 
             /** \brief Add a starting state for planning. This call is not
                 needed if setStartAndGoalStates() has been called. */
@@ -204,17 +199,11 @@ namespace ompl
             }
 
             /** \brief A simple form of setGoal(). The goal will be an instance of ompl::base::GoalState */
-            void setGoalState(const base::ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon())
-            {
-                pdef_->setGoalState(goal, threshold);
-            }
+            void setGoalState(const base::ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon());
 
             /** \brief Set the goal for planning. This call is not
                 needed if setStartAndGoalStates() has been called. */
-            void setGoal(const base::GoalPtr &goal)
-            {
-                pdef_->setGoal(goal);
-            }
+            void setGoal(const base::GoalPtr &goal);
 
             /** \brief Set the planner to use. If the planner is not
                 set, an attempt is made to use the planner
@@ -282,18 +271,6 @@ namespace ompl
                 function automatically. */
             virtual void setup();
 
-            /** \brief Get the  parameters for this planning context */
-            base::ParamSet& params()
-            {
-                return params_;
-            }
-
-            /** \brief Get the  parameters for this planning context */
-            const base::ParamSet& params() const
-            {
-                return params_;
-            }
-
         protected:
 
             /// The created space information
@@ -322,13 +299,11 @@ namespace ompl
 
             /// The status of the last planning request
             base::PlannerStatus           lastStatus_;
-
-            /// The parameters that describe the planning context
-            base::ParamSet                params_;
         };
 
-        /** \brief Given a goal specification, decide on a planner for that goal */
-        base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
+        /** \brief Given a goal specification, decide on a planner for that goal.
+            \deprecated Use tools::SelfConfig::getDefaultPlanner() instead. */
+        OMPL_DEPRECATED base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
     }
 
 }

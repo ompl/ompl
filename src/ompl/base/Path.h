@@ -40,6 +40,7 @@
 #include "ompl/util/ClassForward.h"
 #include "ompl/base/Cost.h"
 #include <iostream>
+#include <boost/concept_check.hpp>
 #include <boost/noncopyable.hpp>
 
 namespace ompl
@@ -84,12 +85,32 @@ namespace ompl
                 return si_;
             }
 
+            /** \brief Cast this instance to a desired type. */
+            template<class T>
+            const T* as() const
+            {
+                /** \brief Make sure the type we are allocating is indeed a Path */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Path*>));
+
+                return static_cast<const T*>(this);
+            }
+
+            /** \brief Cast this instance to a desired type. */
+            template<class T>
+            T* as()
+            {
+                /** \brief Make sure the type we are allocating is indeed a Path */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Path*>));
+
+                return static_cast<T*>(this);
+            }
+
             /** \brief Return the length of a path */
             virtual double length() const = 0;
 
             /** \brief Return the cost of the path with respect to a
                 specified optimization objective. */
-            virtual Cost cost(const OptimizationObjectivePtr& obj) const;
+            virtual Cost cost(const OptimizationObjectivePtr& obj) const = 0;
 
             /** \brief Check if the path is valid */
             virtual bool check() const = 0;

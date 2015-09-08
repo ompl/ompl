@@ -45,19 +45,19 @@
 
     \def OMPL_ERROR(fmt, ...)
     \brief Log a formatted error string.
-    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+    \remarks This macro takes the same arguments as [printf](http://www.cplusplus.com/reference/clibrary/cstdio/printf).
 
     \def OMPL_WARN(fmt, ...)
     \brief Log a formatted warning string.
-    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+    \remarks This macro takes the same arguments as [printf](http://www.cplusplus.com/reference/clibrary/cstdio/printf).
 
     \def OMPL_INFORM(fmt, ...)
     \brief Log a formatted information string.
-    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+    \remarks This macro takes the same arguments as [printf](http://www.cplusplus.com/reference/clibrary/cstdio/printf).
 
     \def OMPL_DEBUG(fmt, ...)
     \brief Log a formatted debugging string.
-    \remarks This macro takes the same arguments as <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
+    \remarks This macro takes the same arguments as [printf](http://www.cplusplus.com/reference/clibrary/cstdio/printf).
 
     \}
 */
@@ -68,6 +68,10 @@
 #define OMPL_INFORM(fmt, ...) ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_INFO,  fmt, ##__VA_ARGS__)
 
 #define OMPL_DEBUG(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_DEBUG, fmt, ##__VA_ARGS__)
+
+#define OMPL_DEVMSG1(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_DEV1, fmt, ##__VA_ARGS__)
+
+#define OMPL_DEVMSG2(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_DEV2, fmt, ##__VA_ARGS__)
 
 namespace ompl
 {
@@ -80,6 +84,8 @@ namespace ompl
         /** \brief The set of priorities for message logging */
         enum LogLevel
         {
+            LOG_DEV2 = -2, // message type for developers
+            LOG_DEV1 = -1, // message type for developers
             LOG_DEBUG = 0,
             LOG_INFO,
             LOG_WARN,

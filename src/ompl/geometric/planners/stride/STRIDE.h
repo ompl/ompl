@@ -73,7 +73,7 @@ namespace ompl
           B. Gipson, M. Moll, and L.E. Kavraki, Resolution independent density
           estimation for motion planning in high-dimensional spaces, in
           <em>IEEE Intl. Conf. on Robotics and Automation</em>, pp. 2429-2435, 2013.
-          <a href="http://dx.doi.org/10.1109/ICRA.2013.6630908">[PDF]</a>
+          [[PDF]](http://dx.doi.org/10.1109/ICRA.2013.6630908)
         */
 
         /** \brief Search Tree with Resolution Independent Density Estimation */

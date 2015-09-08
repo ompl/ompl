@@ -211,6 +211,12 @@ namespace ompl
                 return stateSpace_->getDimension();
             }
 
+            /** \brief Get a measure of the space (this can be thought of as a generalization of volume) */
+            double getSpaceMeasure() const
+            {
+                return stateSpace_->getMeasure();
+            }
+
             /** @name State memory management
                 @{ */
 
@@ -356,6 +362,12 @@ namespace ompl
                 \param alloc flag indicating whether memory is to be allocated automatically
             */
             unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, unsigned int count, bool endpoints, bool alloc) const;
+
+            /** \brief Get the total number of motion segments checked by the MotionValidator so far */
+            unsigned int getCheckedMotionCount() const
+            {
+                return motionValidator_->getCheckedMotionCount();
+            }
 
             /** @}*/
 

@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Luis G. Torres, Ioan Sucan */
+/* Author: Luis G. Torres, Ioan Sucan, Jonathan Gammell */
 
 #ifndef OMPL_BASE_OPTIMIZATION_OBJECTIVE_
 #define OMPL_BASE_OPTIMIZATION_OBJECTIVE_
@@ -40,8 +40,12 @@
 #include "ompl/base/Cost.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"
+#include "ompl/base/ProblemDefinition.h"
+#include "ompl/base/samplers/InformedStateSampler.h"
 #include <boost/noncopyable.hpp>
 #include <boost/concept_check.hpp>
+
+#include <iostream>
 
 namespace ompl
 {
@@ -57,16 +61,12 @@ namespace ompl
         OMPL_CLASS_FORWARD(OptimizationObjective);
         /// @endcond
 
-        /// @cond IGNORE
-        OMPL_CLASS_FORWARD(Path);
-        /// @endcond
-
         /** \class ompl::base::OptimizationObjectivePtr
             \brief A boost shared pointer wrapper for ompl::base::OptimizationObjective */
 
         /** \brief Abstract definition of optimization objectives.
 
-            \note This implementation has greatly benefited from discussions with <a href="http://www.cs.indiana.edu/~hauserk/">Kris Hauser</a> */
+            \note This implementation has greatly benefited from discussions with Kris Hauser */
         class OptimizationObjective : private boost::noncopyable
         {
         public:
@@ -80,7 +80,7 @@ namespace ompl
             /** \brief Get the description of this optimization objective */
             const std::string& getDescription() const;
 
-            /** \brief Verify that our objective is satisfied already and we can stop planning */
+            /** \brief Check if the the given cost \e c satisfies the specified cost objective, meaning we may stop planning. */
             virtual bool isSatisfied(Cost c) const;
 
             /** \brief Returns the cost threshold currently being checked for objective satisfaction */
@@ -89,14 +89,20 @@ namespace ompl
             /** \brief Set the cost threshold for objective satisfaction. When a path is found with a cost better than the cost threshold, the objective is considered satisfied. */
             void setCostThreshold(Cost c);
 
-            /** \brief Get the cost that corresponds to an entire path. This implementation assumes \e Path is of type \e PathGeometric.*/
-            virtual Cost getCost(const Path &path) const;
-
-            /** \brief Check whether the the cost \e c1 is considered better than the cost \e c2. By default, this returns true only if c1 is less by at least some threshold amount, for numerical robustness. */
+            /** \brief Check whether the the cost \e c1 is considered better than the cost \e c2. By default, this returns true if if c1 is less than c2. */
             virtual bool isCostBetterThan(Cost c1, Cost c2) const;
 
-            /** \brief Evaluate a cost map defined on the state space at a state \e s. Default implementation maps all states to 1.0. */
-            virtual Cost stateCost(const State *s) const;
+            /** \brief Compare whether cost \e c1 and cost \e c2 are equivalent. By default defined as !isCostBetterThan(c1, c2) && !isCostBetterThan(c2, c1), as if c1 is not better than c2, and c2 is not better than c1, then they are equal. */
+            virtual bool isCostEquivalentTo(Cost c1, Cost c2) const;
+
+            /** \brief Returns whether the cost is finite or not. */
+            virtual bool isFinite(Cost cost) const;
+
+            /** \brief Return the minimum cost given \e c1 and \e c2. Uses isCostBetterThan. */
+            virtual Cost betterCost(Cost c1, Cost c2) const;
+
+            /** \brief Evaluate a cost map defined on the state space at a state \e s. */
+            virtual Cost stateCost(const State *s) const = 0;
 
             /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
             virtual Cost motionCost(const State *s1, const State *s2) const = 0;
@@ -125,6 +131,9 @@ namespace ompl
             /** \brief Set the cost-to-go heuristic function for this objective. The cost-to-go heuristic is a function which returns an admissible estimate of the optimal path cost from a given state to a goal, where "admissible" means that the estimated cost is always less than the true optimal cost. */
             void setCostToGoHeuristic(const CostToGoHeuristic& costToGo);
 
+            /** \brief Check if this objective has a cost-to-go heuristic function. */
+            bool hasCostToGoHeuristic() const;
+
             /** \brief Uses a cost-to-go heuristic to calculate an admissible estimate of the optimal cost from a given state to a given goal. If no cost-to-go heuristic has been specified with setCostToGoHeuristic(), this function just returns the identity cost, which is sure to be an admissible heuristic if there are no negative costs. */
             Cost costToGo(const State *state, const Goal *goal) const;
 
@@ -133,6 +142,12 @@ namespace ompl
 
             /** \brief Returns this objective's SpaceInformation. Needed for operators in MultiOptimizationObjective */
             const SpaceInformationPtr& getSpaceInformation() const;
+
+            /** \brief Allocate a heuristic-sampling state generator for this cost function, defaults to a basic rejection sampling scheme when the derived class does not provide a better method.*/
+            virtual InformedSamplerPtr allocInformedStateSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls) const;
+
+            /** \brief Print information about this optimization objective */
+            virtual void print(std::ostream &out) const;
 
         protected:
             /** \brief The space information for this objective */

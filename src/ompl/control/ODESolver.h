@@ -37,18 +37,13 @@
 #ifndef OMPL_CONTROL_ODESOLVER_
 #define OMPL_CONTROL_ODESOLVER_
 
-// Boost.OdeInt needs Boost version >= 1.44
-#include <boost/version.hpp>
-#if BOOST_VERSION < 104400
-#warning Boost version >=1.44 is needed for ODESolver classes
-#else
-
 #include "ompl/control/Control.h"
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/control/StatePropagator.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 
+#include <boost/version.hpp>
 #if BOOST_VERSION >= 105300
 #include <boost/numeric/odeint.hpp>
 namespace odeint = boost::numeric::odeint;
@@ -333,7 +328,5 @@ namespace ompl
         };
     }
 }
-
-#endif
 
 #endif

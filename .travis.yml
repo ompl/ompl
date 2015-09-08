@@ -1,0 +1,46 @@
+sudo: false
+cache: apt
+language: cpp
+
+os:
+  - linux
+  - osx
+
+env:
+#  - BUILD_TYPE=Debug
+  - BUILD_TYPE=Release
+
+addons:
+  apt:
+    packages:
+      - libboost-all-dev
+      - python-dev
+      - libode-dev
+      - libeigen3-dev
+
+install:
+  - if [ "$TRAVIS_OS_NAME" = "osx"   ]; then brew install boost-python ode eigen; fi
+
+script:
+  # Create build directory
+  - mkdir build
+  - cd build
+
+  # Configure
+  - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOMPL_LOCAL_PYPLUSPLUS_INSTALL=ON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp ..
+
+  # # Install Py++
+  - make installpyplusplus
+  # We need to make sure cmake finds the locally installed gccxml
+  # and not the one in /usr/bin
+  - rm CMakeCache.txt
+  - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOMPL_LOCAL_PYPLUSPLUS_INSTALL=ON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DGCCXML=pyplusplus/bin/gccxml ..
+
+  # Generate python bindings
+  - make -j2 update_bindings
+
+  # Build
+  - make -j4
+
+  # Run unit tests
+  - make test

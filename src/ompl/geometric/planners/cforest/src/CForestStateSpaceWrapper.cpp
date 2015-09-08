@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2014, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,12 +32,36 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Authors: Mark Moll */
 
-#include "ompl/base/Path.h"
-#include "ompl/base/OptimizationObjective.h"
+#include "ompl/geometric/planners/cforest/CForestStateSpaceWrapper.h"
+#include "ompl/geometric/planners/cforest/CForest.h"
 
-ompl::base::Cost ompl::base::Path::cost(const OptimizationObjectivePtr& obj) const
+ompl::base::StateSamplerPtr ompl::base::CForestStateSpaceWrapper::allocDefaultStateSampler() const
 {
-  return obj->getCost(*this);
+    StateSamplerPtr sampler = StateSamplerPtr(new CForestStateSampler(this, space_->allocDefaultStateSampler()));
+    cforest_->addSampler(sampler);
+    return sampler;
+}
+
+ompl::base::StateSamplerPtr ompl::base::CForestStateSpaceWrapper::allocStateSampler() const
+{
+    StateSamplerPtr sampler = StateSamplerPtr(new CForestStateSampler(this, space_->allocStateSampler()));
+    cforest_->addSampler(sampler);
+    return sampler;
+}
+
+void ompl::base::CForestStateSpaceWrapper::setup()
+{
+    space_->setup();
+    maxExtent_ = space_->getMaximumExtent();
+    longestValidSegmentFraction_ = space_->getLongestValidSegmentFraction();
+    longestValidSegmentCountFactor_ = space_->getValidSegmentCountFactor();
+    longestValidSegment_ = space_->getLongestValidSegmentLength();
+    projections_ = space_->getRegisteredProjections();
+    params_ = space_->params();
+
+    valueLocationsInOrder_ = space_->getValueLocations();
+    valueLocationsByName_ = space_->getValueLocationsByName();
+    substateLocationsByName_ = space_->getSubstateLocationsByName();
 }

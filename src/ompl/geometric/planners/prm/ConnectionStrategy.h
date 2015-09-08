@@ -41,6 +41,7 @@
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <algorithm>
 #include <vector>
 
 namespace ompl
@@ -79,7 +80,7 @@ namespace ompl
             /** \brief Given a milestone \e m, find the number of nearest
                 neighbors connection attempts that should be made from it,
                 according to the connection strategy */
-            std::vector<Milestone>& operator()(const Milestone &m)
+            const std::vector<Milestone>& operator()(const Milestone &m)
             {
                 nn_->nearestK(m, k_, neighbors_);
                 return neighbors_;
@@ -140,11 +141,11 @@ namespace ompl
                           const boost::shared_ptr< NearestNeighbors<Milestone> > &nn,
                           const unsigned int d = 1) :
                 KStrategy<Milestone>(n(), nn), n_(n),
-                kPRMConstant_(boost::math::constants::e<double>() + (boost::math::constants::e<double>()/(double)d))
+                kPRMConstant_(boost::math::constants::e<double>() + (boost::math::constants::e<double>() / (double)d))
             {
             }
 
-            std::vector<Milestone>& operator()(const Milestone &m)
+            const std::vector<Milestone>& operator()(const Milestone &m)
             {
                 KStrategy<Milestone>::k_ = static_cast<unsigned int>(ceil(kPRMConstant_ * log((double)n_())));
                 return static_cast<KStrategy<Milestone>&>(*this)(m);
@@ -158,8 +159,52 @@ namespace ompl
 
         };
 
-    }
 
+        /**
+         * \brief Return at most k neighbors, as long as they are also within a specified bound.
+         */
+        template <class Milestone>
+        class KBoundedStrategy : public KStrategy<Milestone>
+        {
+        public:
+
+            /**
+             * \brief Constructor
+             *
+             * \param k the maximum number of nearest neighbors to return
+             * \param bound the maximum distance for any nearest neighbor to be returned
+             * \param nn the nearest neighbors datastruture to use
+             */
+            KBoundedStrategy(const unsigned int k,
+                             const double bound,
+                             const boost::shared_ptr< NearestNeighbors<Milestone> > &nn) :
+                KStrategy<Milestone>(k, nn), bound_(bound)
+            {
+            }
+
+            const std::vector<Milestone>& operator()(const Milestone &m)
+            {
+                std::vector<Milestone> &result = KStrategy<Milestone>::neighbors_;
+                KStrategy<Milestone>::nn_->nearestK(m, KStrategy<Milestone>::k_, result);
+                if (result.empty()) return result;
+                const typename NearestNeighbors<Milestone>::DistanceFunction &dist =
+                    KStrategy<Milestone>::nn_->getDistanceFunction();
+                if (!KStrategy<Milestone>::nn_->reportsSortedResults())
+                    std::sort(result.begin(), result.end(), dist);
+                std::size_t newCount = result.size();
+                while (newCount > 0 && dist(result[newCount - 1], m) > bound_) --newCount;
+                result.resize(newCount);
+                return result;
+            }
+
+        protected:
+
+            /** \brief The maximum distance at which nearby milestones are reported */
+            const double bound_;
+
+        };
+
+    }
 }
 
 #endif

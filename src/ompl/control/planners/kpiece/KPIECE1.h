@@ -70,7 +70,7 @@ namespace ompl
            @par External documentation
            I.A. Şucan and L.E. Kavraki, Kinodynamic motion planning by interior-exterior cell exploration,
            in <em>Workshop on the Algorithmic Foundations of Robotics</em>, Dec. 2008.<br>
-           <a href="http://ioan.sucan.ro/files/pubs/wafr2008.pdf">[PDF]</a>
+           [[PDF]](http://ioan.sucan.ro/files/pubs/wafr2008.pdf)
         */
 
         /** \brief Kinodynamic Planning by Interior-Exterior Cell Exploration */

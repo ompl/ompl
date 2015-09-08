@@ -51,6 +51,9 @@ namespace ompl
         public:
             MinimaxObjective(const SpaceInformationPtr &si);
 
+            /** \brief Returns a cost with a value of 1. */
+            virtual Cost stateCost(const State *s) const;
+
             /** \brief Interpolates between \e s1 and \e s2 to check for
                 state costs along the motion between the two
                 states. Assumes all costs are worse than identity */

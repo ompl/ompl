@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Ryan Luna */
 
 #ifndef OMPL_GEOMETRIC_PATH_SIMPLIFIER_
 #define OMPL_GEOMETRIC_PATH_SIMPLIFIER_
@@ -40,6 +40,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Console.h"
@@ -67,10 +68,10 @@ namespace ompl
         {
         public:
 
-            /** \brief Create an instance for a specified space information */
-            PathSimplifier(const base::SpaceInformationPtr &si) : si_(si), freeStates_(true)
-            {
-            }
+            /** \brief Create an instance for a specified space information.
+            Optionally, a GoalSampleableRegion may be passed in to attempt
+            improvements at the end of the path as well. */
+            PathSimplifier(const base::SpaceInformationPtr &si, const base::GoalPtr& goal = base::GoalPtr());
 
             virtual ~PathSimplifier()
             {
@@ -208,6 +209,42 @@ namespace ompl
             /** \brief Run simplification algorithms on the path as long as the termination condition does not become true */
             void simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc);
 
+            /** \brief Attempt to improve the solution path by sampling a new
+                goal state and connecting this state to the solution path for
+                at most \e maxTime seconds.
+
+                \param sampingAttempts The maximum number of attempts to
+                connect a candidate goal state to a part of \e path
+
+                \param rangeRatio The fraction of the end of the path to
+                consider for connection to a candidate goal state, in (0,1].
+
+                \param snapToVertex The percentage of the total path length to
+                consider as "close enough" to an existing state in the path for
+                the method to "snap" the connection to that particular state.
+                This prevents states in the path that are very close to each
+                other.
+            */
+            bool findBetterGoal(PathGeometric &path, double maxTime, unsigned int samplingAttempts=10, double rangeRatio=0.33, double snapToVertex=0.005);
+
+            /** \brief Attempt to improve the solution path by sampling a new
+                goal state and connecting this state to the solution path
+                while the termination condition is not met.
+
+                \param sampingAttempts The maximum number of attempts to
+                connect a candidate goal state to a part of \e path
+
+                \param rangeRatio The fraction of the end of the path to
+                consider for connection to a candidate goal state, in (0,1].
+
+                \param snapToVertex The percentage of the total path length to
+                consider as "close enough" to an existing state in the path for
+                the method to "snap" the connection to that particular state.
+                This prevents states in the path that are very close to each
+                other.
+            */
+            bool findBetterGoal(PathGeometric &path, const base::PlannerTerminationCondition &ptc, unsigned int samplingAttempts=10, double rangeRatio=0.33, double snapToVertex=0.005);
+
             /** \brief Set this flag to false to avoid freeing the memory allocated for states that are removed from a path during simplification.
                 Setting this to true makes this free memory. Memory is freed by default (flag is true by default) */
             void freeStates(bool flag);
@@ -219,6 +256,9 @@ namespace ompl
 
             /** \brief The space information this path simplifier uses */
             base::SpaceInformationPtr si_;
+
+            /** \brief The goal object for the path simplifier.  Used for end-of-path improvements */
+            boost::shared_ptr<base::GoalSampleableRegion> gsr_;
 
             /** \brief Flag indicating whether the states removed from a motion should be freed */
             bool                      freeStates_;

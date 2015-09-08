@@ -42,7 +42,7 @@ void ompl::control::LTLPlanner::clear()
 
 ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::PlannerTerminationCondition& ptc)
 {
-    // TODO make solve work when called more than once!
+    // \todo make solve work when called more than once!
     checkValidity();
     const base::State* start = pis_.nextStart();
     prodStart_ = ltlsi_->getProdGraphState(start);
@@ -153,7 +153,7 @@ void ompl::control::LTLPlanner::ProductGraphStateInfo::addMotion(Motion* m)
 double ompl::control::LTLPlanner::updateWeight(ProductGraph::State* as)
 {
     ProductGraphStateInfo& info = abstractInfo_[as];
-    /* TODO weight should include freeVolume, for cases in which decomposition
+    /* \todo weight should include freeVolume, for cases in which decomposition
        does not respect obstacles. */
     info.weight = ((info.motions.size()+1)*info.volume) / (info.autWeight*(info.numSel+1)*(info.numSel+1));
     return info.weight;
@@ -167,7 +167,7 @@ void ompl::control::LTLPlanner::initAbstractInfo(ProductGraph::State* as)
 	info.volume = abstraction_->getRegionVolume(as);
 	unsigned int autDist = std::max(abstraction_->getCosafeAutDistance(as),
 		abstraction_->getSafeAutDistance(as));
-    //TODO try something larger than epsilon
+    //\todo try something larger than epsilon
     if (autDist == 0)
         info.autWeight = std::numeric_limits<double>::epsilon();
     else

@@ -267,10 +267,10 @@ namespace
 {
     // Property map for extracting the edge weight of a graph edge as
     // a double for printGraphML.
-    double edgeWeightAsDouble (ompl::base::PlannerData::Graph::Type &g,
-                               ompl::base::PlannerData::Graph::Edge e)
+    double edgeWeightAsDouble(ompl::base::PlannerData::Graph::Type &g,
+                              ompl::base::PlannerData::Graph::Edge e)
     {
-        return get(boost::edge_weight_t(), g)[e].v;
+        return get(boost::edge_weight_t(), g)[e].value();
     }
 
     // Property map for extracting states as arrays of doubles
@@ -301,7 +301,7 @@ void ompl::base::PlannerData::printGraphML (std::ostream& out) const
     // signature. So, we have to use this horribly verbose
     // instantiation of the property map.
     //
-    // \TODO Can we use make_function_property_map() here and have it
+    // \todo Can we use make_function_property_map() here and have it
     // infer the property template arguments?
     boost::function_property_map<
         boost::function<double (ompl::base::PlannerData::Graph::Edge)>,
@@ -664,7 +664,7 @@ void ompl::base::PlannerData::extractMinimumSpanningTree (unsigned int v,
     // implemented, except it lacks the generality for specifying our
     // own comparison function or zero/inf values.
     //
-    // \TODO Once (https://svn.boost.org/trac/boost/ticket/9368) gets
+    // \todo Once (https://svn.boost.org/trac/boost/ticket/9368) gets
     // into boost we can use the far more direct
     // boost::prim_minimum_spanning_tree().
     boost::dijkstra_shortest_paths

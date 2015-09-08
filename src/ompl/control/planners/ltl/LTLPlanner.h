@@ -49,11 +49,12 @@ namespace ompl
 {
     namespace control
     {
-        /** \brief A planner for generating system trajectories to satisfy
+        /** \anchor cLTLPlanner
+            \brief A planner for generating system trajectories to satisfy
             a logical specification given by an automaton, the propositions
             of which are defined over a decomposition of the system's state space.
 
-            TODO cite papers */
+            \todo cite papers */
         class LTLPlanner : public base::Planner
         {
         public:

@@ -259,6 +259,9 @@ namespace ompl
             /** \brief Get the value used to multiply the return value of validSegmentCount().*/
             unsigned int getValidSegmentCountFactor() const;
 
+            /** \brief Get the longest valid segment at the time setup() was called. */
+            double getLongestValidSegmentLength() const;
+
             /** \brief Compute an array of ints that uniquely identifies the structure of the state space.
                 The first element of the signature is the number of integers that follow */
             void computeSignature(std::vector<int> &signature) const;

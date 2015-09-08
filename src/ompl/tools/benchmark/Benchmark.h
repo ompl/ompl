@@ -156,12 +156,15 @@ namespace ompl
                 /** \brief Constructor that provides default values for all members */
                 Request(double maxTime = 5.0, double maxMem = 4096.0,
                         unsigned int runCount = 100,
-                        double timeBetweenUpdates = 0.001,
+                        double timeBetweenUpdates = 0.05,
                         bool displayProgress = true,
-                        bool saveConsoleOutput = true, bool useThreads = true)
+                        bool saveConsoleOutput = true, bool useThreads = true,
+                        bool simplify = true)
                     : maxTime(maxTime), maxMem(maxMem), runCount(runCount),
+                    timeBetweenUpdates(timeBetweenUpdates),
                     displayProgress(displayProgress), saveConsoleOutput(saveConsoleOutput),
-                    useThreads(useThreads)
+                    useThreads(useThreads),
+                    simplify(simplify)
                 {
                 }
 
@@ -185,6 +188,9 @@ namespace ompl
 
                 /// \brief flag indicating whether planner runs should be run in a separate thread. It is advisable to set this to \c true, so that a crashing planner doesn't result in a crash of the benchmark program. However, in the Python bindings this is set to \c false to avoid multi-threading problems in Python.
                 bool         useThreads;
+
+                /// \brief flag indicating whether simplification should be applied to path; true by default
+                bool         simplify;
             };
 
             /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */

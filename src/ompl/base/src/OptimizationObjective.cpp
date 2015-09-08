@@ -32,13 +32,15 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Luis G. Torres, Ioan Sucan */
+/* Author: Luis G. Torres, Ioan Sucan, Jonathan Gammell */
 
 #include "ompl/base/OptimizationObjective.h"
-#include "ompl/geometric/PathGeometric.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/base/goals/GoalRegion.h"
+#include "ompl/base/samplers/informed/RejectionInfSampler.h"
 #include <limits>
+// For boost::make_shared
+#include <boost/make_shared.hpp>
 
 ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationPtr &si) :
     si_(si),
@@ -53,7 +55,7 @@ const std::string& ompl::base::OptimizationObjective::getDescription() const
 
 bool ompl::base::OptimizationObjective::isSatisfied(Cost c) const
 {
-    return this->isCostBetterThan(c, threshold_);
+    return isCostBetterThan(c, threshold_);
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::getCostThreshold() const
@@ -66,54 +68,30 @@ void ompl::base::OptimizationObjective::setCostThreshold(Cost c)
     threshold_ = c;
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::getCost(const Path &path) const
-{
-    // Cast path down to a PathGeometric
-    const geometric::PathGeometric *pathGeom = dynamic_cast<const geometric::PathGeometric*>(&path);
-
-    // Give up if this isn't a PathGeometric or if the path is empty.
-    if (!pathGeom)
-    {
-        OMPL_ERROR("Error: Cost computation is only implemented for paths of type PathGeometric.");
-        return this->identityCost();
-    }
-    else
-    {
-        std::size_t numStates = pathGeom->getStateCount();
-        if (numStates == 0)
-        {
-            OMPL_ERROR("Cannot compute cost of an empty path.");
-            return this->identityCost();
-        }
-        else
-        {
-            // Compute path cost by accumulating the cost along the path
-            Cost cost(this->identityCost());
-            for (std::size_t i = 1; i < numStates; ++i)
-            {
-                const State *s1 = pathGeom->getState(i-1);
-                const State *s2 = pathGeom->getState(i);
-                cost = this->combineCosts(cost, this->motionCost(s1, s2));
-            }
-
-            return cost;
-        }
-    }
-}
-
 bool ompl::base::OptimizationObjective::isCostBetterThan(Cost c1, Cost c2) const
 {
-    return c1.v + magic::BETTER_PATH_COST_MARGIN < c2.v;
+    return c1.value() < c2.value();
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::stateCost(const State *s) const
+bool ompl::base::OptimizationObjective::isCostEquivalentTo(Cost c1, Cost c2) const
 {
-    return Cost(1.0);
+    // If c1 is not better than c2, and c2 is not better than c1, then they are equal
+    return !isCostBetterThan(c1,c2) && !isCostBetterThan(c2,c1);
+}
+
+bool ompl::base::OptimizationObjective::isFinite(Cost cost) const
+{
+    return isCostBetterThan(cost, infiniteCost());
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::betterCost(Cost c1, Cost c2) const
+{
+    return isCostBetterThan(c1, c2) ? c1 : c2;
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::combineCosts(Cost c1, Cost c2) const
 {
-    return Cost(c1.v + c2.v);
+    return Cost(c1.value() + c2.value());
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::identityCost() const
@@ -145,17 +123,17 @@ ompl::base::Cost ompl::base::OptimizationObjective::averageStateCost(unsigned in
 {
     StateSamplerPtr ss = si_->allocStateSampler();
     State *state = si_->allocState();
-    Cost totalCost(this->identityCost());
+    Cost totalCost(identityCost());
 
     for (unsigned int i = 0 ; i < numStates ; ++i)
     {
         ss->sampleUniform(state);
-        totalCost = this->combineCosts(totalCost, this->stateCost(state));
+        totalCost = combineCosts(totalCost, stateCost(state));
     }
 
     si_->freeState(state);
 
-    return Cost(totalCost.v / (double)numStates);
+    return Cost(totalCost.value() / (double)numStates);
 }
 
 void ompl::base::OptimizationObjective::setCostToGoHeuristic(const CostToGoHeuristic& costToGo)
@@ -163,25 +141,39 @@ void ompl::base::OptimizationObjective::setCostToGoHeuristic(const CostToGoHeuri
     costToGoFn_ = costToGo;
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State *state,
-                                                             const Goal *goal) const
+bool ompl::base::OptimizationObjective::hasCostToGoHeuristic() const
 {
-    if (costToGoFn_)
+    return static_cast<bool>(costToGoFn_);
+}
+
+ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State *state, const Goal *goal) const
+{
+    if (hasCostToGoHeuristic())
         return costToGoFn_(state, goal);
     else
-        return this->identityCost(); // assumes that identity < all costs
+        return identityCost(); // assumes that identity < all costs
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const State *s1,
-                                                                        const State *s2) const
+ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const State *s1, const State *s2) const
 {
-    return this->identityCost(); // assumes that identity < all costs
+    return identityCost(); // assumes that identity < all costs
 }
 
-const ompl::base::SpaceInformationPtr&
-ompl::base::OptimizationObjective::getSpaceInformation() const
+const ompl::base::SpaceInformationPtr& ompl::base::OptimizationObjective::getSpaceInformation() const
 {
     return si_;
+}
+
+ompl::base::InformedSamplerPtr ompl::base::OptimizationObjective::allocInformedStateSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls) const
+{
+    OMPL_INFORM("%s: No direct informed sampling scheme is defined, defaulting to rejection sampling.", description_.c_str());
+    return boost::make_shared<RejectionInfSampler>(probDefn, maxNumberCalls);
+}
+
+void ompl::base::OptimizationObjective::print(std::ostream &out) const
+{
+    out << "Optimization Objective: " << description_ << " @" << this << std::endl;
+    out << "Optimization Threshold: " << threshold_ << std::endl;
 }
 
 ompl::base::Cost ompl::base::goalRegionCostToGo(const State *state, const Goal *goal)
@@ -194,8 +186,7 @@ ompl::base::Cost ompl::base::goalRegionCostToGo(const State *state, const Goal *
                          0.0));
 }
 
-ompl::base::MultiOptimizationObjective::
-MultiOptimizationObjective(const SpaceInformationPtr &si) :
+ompl::base::MultiOptimizationObjective::MultiOptimizationObjective(const SpaceInformationPtr &si) :
     OptimizationObjective(si),
     locked_(false)
 {
@@ -223,8 +214,7 @@ std::size_t ompl::base::MultiOptimizationObjective::getObjectiveCount() const
     return components_.size();
 }
 
-const ompl::base::OptimizationObjectivePtr&
-ompl::base::MultiOptimizationObjective::getObjective(unsigned int idx) const
+const ompl::base::OptimizationObjectivePtr& ompl::base::MultiOptimizationObjective::getObjective(unsigned int idx) const
 {
     if (components_.size() > idx)
         return components_[idx].objective;
@@ -261,12 +251,12 @@ bool ompl::base::MultiOptimizationObjective::isLocked() const
 
 ompl::base::Cost ompl::base::MultiOptimizationObjective::stateCost(const State *s) const
 {
-    Cost c = this->identityCost();
+    Cost c = identityCost();
     for (std::vector<Component>::const_iterator comp = components_.begin();
          comp != components_.end();
          ++comp)
     {
-        c.v += comp->weight*(comp->objective->stateCost(s).v);
+        c = Cost(c.value() + comp->weight * (comp->objective->stateCost(s).value()));
     }
 
     return c;
@@ -275,12 +265,12 @@ ompl::base::Cost ompl::base::MultiOptimizationObjective::stateCost(const State *
 ompl::base::Cost ompl::base::MultiOptimizationObjective::motionCost(const State *s1,
                                                                     const State *s2) const
 {
-    Cost c = this->identityCost();
+    Cost c = identityCost();
      for (std::vector<Component>::const_iterator comp = components_.begin();
          comp != components_.end();
          ++comp)
      {
-         c.v += comp->weight*(comp->objective->motionCost(s1, s2).v);
+         c = Cost(c.value() + comp->weight * (comp->objective->motionCost(s1, s2).value()));
      }
 
      return c;
@@ -312,9 +302,8 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {
-                components.push_back(MultiOptimizationObjective::
-                                     Component(mult->getObjective(i),
-                                               mult->getObjectiveWeight(i)));
+                components.push_back(MultiOptimizationObjective::Component(mult->getObjective(i),
+                                                                           mult->getObjectiveWeight(i)));
             }
         }
         else

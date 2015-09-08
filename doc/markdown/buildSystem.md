@@ -9,15 +9,15 @@ When developing your own code that relies on OMPL, you have several options:
 
    See [Build Options](buildOptions.html) for details on how to enable/disable different OMPL-specific features. Below are the specifics for different build systems:
 
-   - __CMake:__ For ease of use with CMake, we have included a CMake file that finds OMPL: \ref FindOMPL.cmake. This normally gets installed in the CMake module path, so if you use CMake in your own project, you can simply use this command in your CMakeLists.txt: \c find_package(OMPL). This will define the following variables:
+   - __CMake:__ For ease of use with CMake, we have included a CMake file that finds OMPL: \ref FindOMPL.cmake. This normally gets installed in the CMake module path, so if you use CMake in your own project, you can simply use this command in your CMakeLists.txt: `find_package(OMPL)`. This will define the following variables:
 
-      - \c OMPL_FOUND - OMPL was found
-      - \c OMPL_LIBRARIES - The OMPL library
-      - \c OMPLAPP_LIBRARIES - The OMPL.app library
-      - \c OMPL_INCLUDE_DIRS - The OMPL include directory
+      - `OMPL_FOUND` - OMPL was found
+      - `OMPL_LIBRARIES` - The OMPL library
+      - `OMPLAPP_LIBRARIES` - The OMPL.app library
+      - `OMPL_INCLUDE_DIRS` - The OMPL include directory
 
-   - __Makefiles:__ If you use Makefiles, add “\c -I/usr/local/include” (or, e.g., “\c -I${HOME}/ompl/src”) to your compile flags, and “\c -L/usr/local/lib \c -lompl” (or, e.g., “\c -L${HOME}/ompl/build/Release/lib \c -lompl”) to your link flags. The compile and link flags can also be obtained using  “\c pkg-config --cflags ompl” and  “\c pkg-config --libs ompl”, respectively.
-   - __Autotools:__ Use the pkg-config autoconf macro PKG_CHECK_MODULES([OMPL],[ompl >= 0.10]). This is will define \c OMPL_LIBS and \c OMPL_CFLAGS if OMPL was found.
+   - __Makefiles:__ If you use Makefiles, add “`-I/usr/local/include`” (or, e.g., “`-I${HOME}/ompl/src`”) to your compile flags, and “`-L/usr/local/lib -lompl`” (or, e.g., “`-L${HOME}/ompl/build/Release/lib -lompl`”) to your link flags. The compile and link flags can also be obtained using  “`pkg-config --cflags ompl`” and  “`pkg-config --libs ompl`”, respectively.
+   - __Autotools:__ Use the pkg-config autoconf macro PKG_CHECK_MODULES([OMPL],[ompl >= 0.10]). This is will define `OMPL_LIBS` and `OMPL_CFLAGS` if OMPL was found.
    - __Eclipse CDT:__ Below is a brief set of instructions for getting OMPL to work with Eclipse CDT. _These instructions have been verified to work with Eclipse Indigo with CDT_.
 
       1. Click File -> New -> New Project.

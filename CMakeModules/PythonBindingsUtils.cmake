@@ -20,6 +20,12 @@ if(APPLE)
     set(PYOMPL_EXTRA_CFLAGS "-m64")
 endif(APPLE)
 
+# Trick gccxml to ignore some compiler intrinsics that are used in Boost.Atomic
+# in Boost 1.55.
+if(CMAKE_COMPILER_IS_GNUCXX AND Boost_VERSION VERSION_GREATER "1.54.0")
+    set(PYOMPL_EXTRA_CFLAGS "${PYOMPL_EXTRA_CFLAGS} -DBOOST_INTEL_CXX_VERSION")
+endif()
+
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
     include_directories(${PYTHON_INCLUDE_DIRS})
     # make sure target is defined only once
@@ -59,7 +65,7 @@ function(create_module_header_file_target module dir)
     endforeach(header)
     # target for all-in-one header for module
     add_custom_target(${module}.h
-        COMMAND ${CMAKE_COMMAND} -D module=${module}
+        COMMAND ${CMAKE_COMMAND} -D module=${module} -D exclude=${ARGV2}
         -P "${OMPL_CMAKE_UTIL_DIR}/generate_header.cmake"
         DEPENDS ${headers} WORKING_DIRECTORY "${dir}"
         COMMENT "Preparing C++ header file for Python binding generation for module ${module}")
@@ -85,7 +91,7 @@ function(create_module_code_generation_target module dir)
 endfunction(create_module_code_generation_target)
 
 function(create_module_generation_targets module dir)
-    create_module_header_file_target("${module}" "${dir}")
+    create_module_header_file_target("${module}" "${dir}" "${ARGV2}")
     create_module_code_generation_target("${module}" "${dir}")
 endfunction(create_module_generation_targets)
 

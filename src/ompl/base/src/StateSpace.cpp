@@ -37,7 +37,9 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/once.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/bind.hpp>
 #include <numeric>
 #include <limits>
@@ -53,32 +55,43 @@ namespace ompl
 {
     namespace base
     {
-        struct AllocatedSpaces
+        namespace
         {
-            std::list<StateSpace*> list_;
-            boost::mutex           lock_;
-        };
+            struct AllocatedSpaces
+            {
+                AllocatedSpaces() : counter_(0)
+                {
+            }
+                std::list<StateSpace*> list_;
+                boost::mutex           lock_;
+                unsigned int           counter_;
+            };
 
-        static AllocatedSpaces& getAllocatedSpaces()
-        {
-            static AllocatedSpaces as;
-            return as;
-        }
+            static boost::scoped_ptr<AllocatedSpaces> g_allocatedSpaces;
+            static boost::once_flag g_once = BOOST_ONCE_INIT;
+
+            void initAllocatedSpaces()
+            {
+                g_allocatedSpaces.reset(new AllocatedSpaces);
+            }
+
+            AllocatedSpaces& getAllocatedSpaces()
+            {
+                boost::call_once(&initAllocatedSpaces, g_once);
+                return *g_allocatedSpaces;
+            }
+        }  // namespace
     }
 }
 /// @endcond
 
 ompl::base::StateSpace::StateSpace()
 {
+    AllocatedSpaces &as = getAllocatedSpaces();
+    boost::mutex::scoped_lock smLock(as.lock_);
+
     // autocompute a unique name
-    static boost::mutex lock;
-    static unsigned int m = 0;
-
-    lock.lock();
-    m++;
-    lock.unlock();
-
-    name_ = "Space" + boost::lexical_cast<std::string>(m);
+    name_ = "Space" + boost::lexical_cast<std::string>(as.counter_++);
 
     longestValidSegment_ = 0.0;
     longestValidSegmentFraction_ = 0.01; // 1%
@@ -95,8 +108,6 @@ ompl::base::StateSpace::StateSpace()
     params_.declareParam<unsigned int>("valid_segment_count_factor",
                                        boost::bind(&StateSpace::setValidSegmentCountFactor, this, _1),
                                        boost::bind(&StateSpace::getValidSegmentCountFactor, this));
-    AllocatedSpaces &as = getAllocatedSpaces();
-    boost::mutex::scoped_lock smLock(as.lock_);
     as.list_.push_back(this);
 }
 
@@ -813,6 +824,11 @@ unsigned int ompl::base::StateSpace::getValidSegmentCountFactor() const
 double ompl::base::StateSpace::getLongestValidSegmentFraction() const
 {
     return longestValidSegmentFraction_;
+}
+
+double ompl::base::StateSpace::getLongestValidSegmentLength() const
+{
+    return longestValidSegment_;
 }
 
 unsigned int ompl::base::StateSpace::validSegmentCount(const State *state1, const State *state2) const

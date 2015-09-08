@@ -37,12 +37,6 @@
 #ifndef OMPL_CONTROL_PLANNER_DATA_STORAGE_
 #define OMPL_CONTROL_PLANNER_DATA_STORAGE_
 
-// PlannerDataStorage requires Boost version >= 1.44
-#include <boost/version.hpp>
-#if BOOST_VERSION < 104400
-#warning Boost version >= 1.44 is required for PlannerDataStorage classes
-#else
-
 #include "ompl/base/PlannerDataStorage.h"
 #include "ompl/control/PlannerData.h"
 #include "ompl/control/SpaceInformation.h"
@@ -169,7 +163,7 @@ namespace ompl
                             edgeData.endpoints_.second = j;
                             base::Cost weight;
                             pd.getEdgeWeight(i, j, &weight);
-                            edgeData.weight_ = weight.v;
+                            edgeData.weight_ = weight.value();
 
                             space->serialize(&ctrl[0], static_cast<const PlannerDataEdgeControl*>(edgeData.e_)->getControl());
                             edgeData.control_ = ctrl;
@@ -182,7 +176,5 @@ namespace ompl
         };
     }
 }
-
-#endif
 
 #endif

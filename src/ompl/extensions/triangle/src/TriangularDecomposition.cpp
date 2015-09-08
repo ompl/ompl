@@ -66,7 +66,7 @@ ompl::control::TriangularDecomposition::TriangularDecomposition(const base::Real
     triAreaPct_(0.005),
     locator(64, this)
 {
-    // TODO: Ensure that no two holes overlap and no two regions of interest overlap.
+    // \todo: Ensure that no two holes overlap and no two regions of interest overlap.
     // Report an error otherwise.
 }
 

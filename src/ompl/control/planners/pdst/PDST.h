@@ -75,7 +75,7 @@ namespace ompl
             of drift, underactuation and discrete system changes, in
             <em>Robotics: Science and Systems I</em>, pp. 233–241, MIT
             Press, June 2005.
-            <a href="http://www.roboticsproceedings.org/rss01/p31.pdf">[PDF]</a>
+            [[PDF]](http://www.roboticsproceedings.org/rss01/p31.pdf)
          */
 
         /// \brief Path-Directed Subdivision Tree

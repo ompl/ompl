@@ -9,7 +9,7 @@
 
   OMPL is also available through through several package managers:
   - [Debian](https://packages.debian.org/sid/libompl-dev),
-  - [Ubuntu (14.04 and higher)](http://packages.ubuntu.com/trusty/libompl-dev),
+  - [Ubuntu (14.04 and higher)](http://packages.ubuntu.com/search?keywords=libompl-dev),
   - [Fedora](https://apps.fedoraproject.org/packages/ompl),
   - [MacPorts](https://www.macports.org), and
   - [Homebrew](http://brew.sh).

@@ -49,8 +49,6 @@
 #include <cstring>
 #include <limits>
 
-// static const double DIMENSION_UPDATE_FACTOR = 1.2;
-
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
     using namespace boost::numeric::ublas;

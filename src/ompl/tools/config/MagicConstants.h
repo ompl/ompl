@@ -87,11 +87,6 @@ namespace ompl
             of the space */
         static const double STD_DEV_AS_SPACE_EXTENT_FRACTION = 0.1;
 
-        /** \brief When running algorithms such as  RRT*, rewire updates are made when the cost of a path appears better than the cost of another.
-            The minimum margin for a path to be better than another one is specified by this parameter. This is used to avoid
-            numerical issues that can otherise arise. */
-        static const double BETTER_PATH_COST_MARGIN = std::numeric_limits<double>::epsilon() * 1e3;
-
         /** \brief When multiple attempts are needed to generate valid
             samples, this value defines the default number of
             attempts */
@@ -108,6 +103,9 @@ namespace ompl
             samples are generated. */
         static const unsigned int TEST_STATE_COUNT = 1000;
 
+        /** \brief Default number of close solutions to choose from a path experience database
+            (library) for further filtering used in the Lightning Framework */
+        static const unsigned int NEAREST_K_RECALL_SOLUTIONS = 10;
     }
 }
 

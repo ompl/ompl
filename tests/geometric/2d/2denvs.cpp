@@ -59,16 +59,17 @@
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/prm/LazyPRM.h"
+#include "ompl/geometric/planners/prm/LazyPRMstar.h"
 #include "ompl/geometric/planners/prm/SPARS.h"
 #include "ompl/geometric/planners/prm/SPARStwo.h"
-
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
 #include "../../BoostTestTeamCityReporter.h"
 #include "../../base/PlannerTest.h"
 
 using namespace ompl;
 
-static const double SOLUTION_TIME = 1.0;
+static const double SOLUTION_TIME = 2.0;
 static const bool VERBOSE = true;
 
 /** \brief A base class for testing planners */
@@ -77,6 +78,7 @@ class TestPlanner
 public:
     TestPlanner(void)
     {
+        msg::setLogLevel(msg::LOG_ERROR);
     }
 
     virtual ~TestPlanner(void)
@@ -91,6 +93,10 @@ public:
 
         /* instantiate problem definition */
         base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
+        base::OptimizationObjectivePtr opt(new base::PathLengthOptimizationObjective(si));
+        /* make optimizing planners stop when any solution is found */
+        opt->setCostThreshold(opt->infiniteCost());
+        pdef->setOptimizationObjective(opt);
 
         /* instantiate motion planner */
         base::PlannerPtr planner = newPlanner(si);
@@ -158,6 +164,10 @@ public:
 
         /* instantiate problem definition */
         base::ProblemDefinitionPtr pdef = geometric::problemDefinition2DMap(si, env);
+        base::OptimizationObjectivePtr opt(new base::PathLengthOptimizationObjective(si));
+        /* make optimizing planners stop when any solution is found */
+        opt->setCostThreshold(opt->infiniteCost());
+        pdef->setOptimizationObjective(opt);
 
         /* instantiate motion planner */
         base::PlannerPtr planner = newPlanner(si);
@@ -508,6 +518,18 @@ protected:
 
 };
 
+class LazyPRMstarTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::LazyPRMstar *prm = new geometric::LazyPRMstar(si);
+        return base::PlannerPtr(prm);
+    }
+
+};
+
 class SPARSTest : public TestPlanner
 {
 protected:
@@ -538,6 +560,12 @@ public:
     {
         geometric::SimpleSetup2DMap s(env_);
         s.setPlanner(p->newPlanner(s.getSpaceInformation()));
+
+        base::OptimizationObjectivePtr opt(new base::PathLengthOptimizationObjective(s.getSpaceInformation()));
+        /* make optimizing planners stop when any solution is found */
+        opt->setCostThreshold(opt->infiniteCost());
+        s.setOptimizationObjective(opt);
+
         s.setup();
         base::PlannerTest pt(s.getPlanner());
         pt.test();
@@ -707,7 +735,7 @@ OMPL_PLANNER_TEST(RRTConnect, 99.0, 0.01)
 OMPL_PLANNER_TEST(pRRT, 99.0, 0.02)
 
 // LazyRRT is a not so great, so we use more relaxed bounds
-OMPL_PLANNER_TEST(LazyRRT, 80.0, 0.3)
+//OMPL_PLANNER_TEST(LazyRRT, 80.0, 0.3)
 
 OMPL_PLANNER_TEST(TRRT, 99.0, 0.01)
 
@@ -725,7 +753,8 @@ OMPL_PLANNER_TEST(STRIDE, 99.0, 0.02)
 
 OMPL_PLANNER_TEST(PRM, 98.0, 0.04)
 OMPL_PLANNER_TEST(PRMstar, 98.0, 0.04)
-OMPL_PLANNER_TEST(LazyPRM, 98.0, 0.04)
+//OMPL_PLANNER_TEST(LazyPRM, 98.0, 0.04)
+OMPL_PLANNER_TEST(LazyPRMstar, 98.0, 0.04)
 OMPL_PLANNER_TEST(SPARS, 95.0, 0.04)
 OMPL_PLANNER_TEST(SPARStwo, 99.0, 0.04)
 

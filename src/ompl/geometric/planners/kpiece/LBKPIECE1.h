@@ -69,9 +69,9 @@ namespace ompl
            @par External documentation
            - I.A. Şucan and L.E. Kavraki, Kinodynamic motion planning by interior-exterior cell exploration,
            in <em>Workshop on the Algorithmic Foundations of Robotics</em>, Dec. 2008.<br>
-           <a href="http://ioan.sucan.ro/files/pubs/wafr2008.pdf">[PDF]</a>
-           - R. Bohlin and L.E. Kavraki, Path planning using lazy PRM, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 521–528, 2000. DOI: <a href="http://dx.doi.org/10.1109/ROBOT.2000.844107">10.1109/ROBOT.2000.844107</a><br>
-           <a href="http://ieeexplore.ieee.org/ielx5/6794/18235/00844107.pdf?tp=&arnumber=844107&isnumber=18235">[PDF]
+           [[PDF]](http://ioan.sucan.ro/files/pubs/wafr2008.pdf)
+           - R. Bohlin and L.E. Kavraki, Path planning using lazy PRM, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 521–528, 2000. DOI: [10.1109/ROBOT.2000.844107](http://dx.doi.org/10.1109/ROBOT.2000.844107)<br>
+           [[PDF]](http://ieeexplore.ieee.org/ielx5/6794/18235/00844107.pdf?tp=&arnumber=844107&isnumber=18235)
         */
 
         /** \brief Lazy Bi-directional KPIECE with one level of discretization */

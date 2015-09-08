@@ -39,6 +39,7 @@
 
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
+#include <ompl/base/ProblemDefinition.h>
 
 namespace ompl
 {
@@ -71,7 +72,7 @@ namespace ompl
 
             /** \brief Construct a termination condition that is evaluated every \e period seconds. The evaluation of
                 the condition consists of calling \e fn() in a separate thread. Calls to eval() will always return the
-        last value computed by the call to \e fn(). */
+                last value computed by the call to \e fn(). */
             PlannerTerminationCondition(const PlannerTerminationConditionFn &fn, double period);
 
             ~PlannerTerminationCondition()
@@ -120,6 +121,32 @@ namespace ompl
 
         /** \brief Return a termination condition that will become true \e duration seconds in the future (wall-time), but is checked in a separate thread, every \e interval seconds; \e interval must be less than \e duration */
         PlannerTerminationCondition timedPlannerTerminationCondition(double duration, double interval);
+
+        /** \brief Return a termination condition that will become true as soon as the problem definition has an exact solution */
+        PlannerTerminationCondition exactSolnPlannerTerminationCondition(ompl::base::ProblemDefinitionPtr pdef);
+
+        /** \brief A class to run a planner for a specific number of iterations. Casts to a PTC for use with Planner::solve */
+        class IterationTerminationCondition
+        {
+        public:
+            /** \brief Construct a termination condition that can be evaluated numIterations times before returning true. */
+            IterationTerminationCondition(unsigned int numIterations);
+
+            /** \brief Increment the number of times eval has been called and check if the planner should now terminate. */
+            bool eval();
+
+            /** \brief Reset the number of times the IterationTeriminationCondition has been called. */
+            void reset();
+
+            /** \brief Cast to a PlannerTerminationCondition */
+            operator PlannerTerminationCondition();
+
+        private:
+            /** \brief The max number of iterations the condition can be called before returning true. */
+            unsigned int maxCalls_;
+            /** \brief The number of times called so far.*/
+            unsigned int timesCalled_;
+        };
     }
 }
 

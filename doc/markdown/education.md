@@ -19,7 +19,7 @@ We are looking for educational partners to use and further develop the material.
 
 
 \htmlonly
-<img src="../images/comp450-Fall2010.jpg" width="100%">
+<img src="images/comp450-Fall2010.jpg" width="100%">
 <p class="text-center">
 <b>Students from Rice University's COMP450 Algorithmic Robotics class, Fall 2010.</b>
 </p>

@@ -76,15 +76,10 @@ else()
 endif()
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
-if (NOT ${Boost_VERSION} LESS 104400)
-  option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" ON)
-  if(${Boost_VERSION} LESS 105300)
-    # Include bundled version of boost::odeint if it isn't installed natively
-    set(ODEINT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/external")
-    include_directories(SYSTEM "${ODEINT_INCLUDE_DIR}")
-  endif()
-else()
-  option(OMPL_ODESOLVER "Enable OMPL ODE solver classes" OFF)
+if(${Boost_VERSION} LESS 105300)
+  # Include bundled version of boost::odeint if it isn't installed natively
+  set(ODEINT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/external")
+  include_directories(SYSTEM "${ODEINT_INCLUDE_DIR}")
 endif()
 
 # on OS X we need to check whether to use libc++ or libstdc++ with clang++
@@ -110,6 +105,16 @@ find_package(Threads QUIET)
 
 enable_testing()
 
+find_package(Python QUIET)
+find_package(Boost COMPONENTS python QUIET)
+
+# Eigen is needed for the InformedStateSampler
+find_package(Eigen3 QUIET)
+if (EIGEN3_FOUND)
+    set(OMPL_HAVE_EIGEN3 1)
+    include_directories("${EIGEN3_INCLUDE_DIRS}")
+endif()
+
 # MORSE is only needed for Modular OpenRobots Simulation Engine bindings
 find_package(MORSE QUIET)
 set(OMPL_EXTENSION_MORSE ${MORSE_FOUND})
@@ -134,6 +139,9 @@ if (FLANN_FOUND)
     set(OMPL_HAVE_FLANN 1)
     include_directories(SYSTEM "${FLANN_INCLUDE_DIRS}")
 endif()
+
+# R is needed for running Planner Arena locally
+find_program(R_EXEC R)
 
 option(OMPL_LOCAL_PYPLUSPLUS_INSTALL "Whether Py++ and dependencies should be installed in the build directory" OFF)
 set(SUDO "sudo")
@@ -166,15 +174,6 @@ if (NOT MSVC)
     DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
     COMPONENT ompl
     RENAME ompl-config.cmake)
-  if (NOT ${CMAKE_VERSION} VERSION_LESS 2.8.6)
-    include(WriteBasicConfigVersionFile)
-    write_basic_config_version_file(
-      "${CMAKE_CURRENT_BINARY_DIR}/ompl-config-version.cmake"
-      VERSION ${OMPL_VERSION} COMPATIBILITY SameMajorVersion)
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ompl-config-version.cmake"
-      DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
-      COMPONENT ompl)
-  endif()
 endif()
 
 # uninstall target

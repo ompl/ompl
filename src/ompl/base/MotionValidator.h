@@ -107,6 +107,12 @@ namespace ompl
                 return invalid_;
             }
 
+            /** \brief Get the total number of segments tested, regardless of result */
+            unsigned int getCheckedMotionCount() const
+            {
+                return valid_ + invalid_;
+            }
+
             /** \brief Get the fraction of segments that tested as valid */
             double getValidMotionFraction() const
             {

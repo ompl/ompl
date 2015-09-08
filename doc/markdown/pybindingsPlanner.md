@@ -10,24 +10,22 @@ Please note that it is difficult to create Python bindings for multi-threaded pl
 
 # Updating the Python binding generation code {#pybinding}
 
-To create python bindings for your planner, it is easiest if you add the C++ implementation of your planner to \c ompl/src/ompl/geometric/planners (if your planner is a purely geometric planner) or to \c ompl/src/ompl/control/planners (if your planner is a control-based planner).
+To create python bindings for your planner, it is easiest if you add the C++ implementation of your planner to `ompl/src/ompl/geometric/planners` (if your planner is a purely geometric planner) or to `ompl/src/ompl/control/planners` (if your planner is a control-based planner).
 
-The first step in generating bindings is to add the header file name(s) for your planner to the list of files that need to be processed by the python binding generation script. For geometric planning this list is stored in \c ompl/py-bindings/headers_geometric.txt, while for control-based planning this list is stored in \c ompl/py-bindings/headers_control.txt. The order of the file names in this list matters: if your header file includes other files in the list, it should be added below those files.
+The first step in generating bindings is to add the header file name(s) for your planner to the list of files that need to be processed by the python binding generation script. For geometric planning this list is stored in `ompl/py-bindings/headers_geometric.txt`, while for control-based planning this list is stored in `ompl/py-bindings/headers_control.txt`. The order of the file names in this list matters: if your header file includes other files in the list, it should be added below those files.
 
-The second step is to edit \c ompl/py-bindings/generate_bindings.py. For geometric planners, locate this line:
+The second step is to edit `ompl/py-bindings/generate_bindings.py`. For geometric planners, locate this line:
 
     # do this for all planners
 
-in the \c filter_declarations() method of the \c ompl_geometric_generator_t class. In the line below it, add the name of your planner to the end of the list. For control-based planners, do the same thing in the \c ompl_control_generator_t class. Additionally, if you have both a geometric and control-based version of your planner and both have the same name, then you need to add your planner's name to the list below this line:
-
-    # do this for all classes that exist with the same name in another namespace
+in the `filter_declarations()` method of the `ompl_geometric_generator_t` class. In the line below it, add the name of your planner to the end of the list. For control-based planners, do the same thing in the `ompl_control_generator_t` class.
 
 The next step is to regenerate the python bindings. It safest to remove the old ones first. Go to your build directory and type the following commands:
 
     make clean_bindings
     make -j 3 update_bindings
 
-If something went wrong, the errors will be listed in pyplusplus_geometric.log and pyplusplus_control.log. If Py++ produces errors for methods that are not really needed at the Python level, you can explicitly exclude them in \c ompl/py-bindings/generate_bindings.py.
+If something went wrong, the errors will be listed in pyplusplus_geometric.log and pyplusplus_control.log. If Py++ produces errors for methods that are not really needed at the Python level, you can explicitly exclude them in `ompl/py-bindings/generate_bindings.py`.
 
 # Planner parameters {#params}
 

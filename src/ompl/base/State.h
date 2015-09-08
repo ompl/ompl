@@ -124,9 +124,16 @@ namespace ompl
                 return static_cast<T*>(components[index]);
             }
 
+            /** \brief Access const element i<sup>th</sup> component. This
+                does not check whether the index is within bounds. */
+            const State* operator[](unsigned int i) const
+            {
+                return components[i];
+            }
+
             /** \brief Access element i<sup>th</sup> component. This
                 does not check whether the index is within bounds. */
-            State* operator[](unsigned int i) const
+            State* operator[](unsigned int i)
             {
                 return components[i];
             }

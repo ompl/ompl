@@ -30,12 +30,15 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_HypercubeBenchmark HypercubeBenchmark.cpp)
   aux_source_directory(Koules Koules_SRC)
   add_ompl_demo(demo_Koules ${Koules_SRC})
+  add_ompl_demo(demo_PlannerData PlannerData.cpp)
+  add_ompl_demo(demo_ThunderLightning ThunderLightning.cpp)
   add_ompl_demo(demo_AtlasPlanning AtlasPlanning.cpp)
   add_ompl_demo(demo_AtlasBenchmark AtlasBenchmark.cpp)
   add_ompl_demo(demo_AtlasChain AtlasChain.cpp)
 
   add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
   add_ompl_demo(demo_PlannerProgressProperties PlannerProgressProperties.cpp)
+  add_ompl_demo(demo_CForestCircleGridBenchmark CForestCircleGridBenchmark.cpp)
   
   add_ompl_demo(demo_KinematicPlanning KinematicPlanning.cpp)
 
@@ -48,10 +51,6 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_LTLWithTriangulation LTLWithTriangulation)
   endif()
 
-# Only build the PlannerData demo on Boost >= 1.44
-  if(NOT "${Boost_VERSION}" LESS 104400)
-    add_ompl_demo(demo_PlannerData PlannerData.cpp)
-  endif(NOT "${Boost_VERSION}" LESS 104400)
 
 endif(OMPL_BUILD_DEMOS)
 

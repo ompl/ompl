@@ -149,6 +149,21 @@ namespace ompl
 }
 /// @endcond
 
+bool ompl::base::PlannerSolution::operator<(const PlannerSolution &b) const
+{
+    if (!approximate_ && b.approximate_)
+        return true;
+    if (approximate_ && !b.approximate_)
+        return false;
+    if (approximate_ && b.approximate_)
+        return difference_ < b.difference_;
+    if (optimized_ && !b.optimized_)
+        return true;
+    if (!optimized_ && b.optimized_)
+        return false;
+    return opt_ ? opt_->isCostBetterThan(cost_, b.cost_) : length_ < b.length_;
+}
+
 ompl::base::ProblemDefinition::ProblemDefinition(const SpaceInformationPtr &si) : si_(si), solutions_(new PlannerSolutionSet())
 {
 }
@@ -409,9 +424,11 @@ bool ompl::base::ProblemDefinition::getSolution(PlannerSolution& solution) const
 
 void ompl::base::ProblemDefinition::addSolutionPath(const PathPtr &path, bool approximate, double difference, const std::string& plannerName) const
 {
+    PlannerSolution sol(path);
     if (approximate)
-        OMPL_INFORM("ProblemDefinition: Adding approximate solution from planner %s", plannerName.c_str());
-    solutions_->add(PlannerSolution(path, approximate, difference, plannerName));
+        sol.setApproximate(difference);
+    sol.setPlannerName(plannerName);
+    addSolutionPath(sol);
 }
 
 void ompl::base::ProblemDefinition::addSolutionPath(const PlannerSolution &sol) const
@@ -456,7 +473,12 @@ void ompl::base::ProblemDefinition::print(std::ostream &out) const
     else
         out << "Goal = NULL" << std::endl;
     if (optimizationObjective_)
+    {
+        optimizationObjective_->print(out);
         out << "Average state cost: " << optimizationObjective_->averageStateCost(magic::TEST_STATE_COUNT) << std::endl;
+    }
+    else
+        out << "OptimizationObjective = NULL" << std::endl;
     out << "There are " << solutions_->getSolutionCount() << " solutions" << std::endl;
 }
 
