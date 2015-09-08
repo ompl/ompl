@@ -36,6 +36,7 @@
 
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/tools/thunder/Thunder.h>
+#include <ompl/tools/lightning/Lightning.h>
 #include <ompl/util/PPM.h>
 
 #include <ompl/config.h>
@@ -52,7 +53,7 @@ class Plane2DEnvironment
 {
 public:
 
-    Plane2DEnvironment(const char *ppm_file)
+    Plane2DEnvironment(const char *ppm_file, bool useThunder = true)
     {
         bool ok = false;
         try
@@ -71,13 +72,21 @@ public:
             space->addDimension(0.0, ppm_.getHeight());
             maxWidth_ = ppm_.getWidth() - 1;
             maxHeight_ = ppm_.getHeight() - 1;
-            thunder_.reset(new ot::Thunder(ob::StateSpacePtr(space)));
-            thunder_->setFilePath("thunder.db");
+            if (useThunder)
+            {
+                expPlanner_.reset(new ot::Thunder(ob::StateSpacePtr(space)));
+                expPlanner_->setFilePath("thunder.db");
+            }
+            else
+            {
+                expPlanner_.reset(new ot::Lightning(ob::StateSpacePtr(space)));
+                expPlanner_->setFilePath("lightning.db");
+            }
             // set state validity checking for this space
-            thunder_->setStateValidityChecker(boost::bind(&Plane2DEnvironment::isStateValid, this, _1));
+            expPlanner_->setStateValidityChecker(boost::bind(&Plane2DEnvironment::isStateValid, this, _1));
             space->setup();
-            thunder_->getSpaceInformation()->setStateValidityCheckingResolution(1.0 / space->getMaximumExtent());
-            vss_ = thunder_->getSpaceInformation()->allocValidStateSampler();
+            expPlanner_->getSpaceInformation()->setStateValidityCheckingResolution(1.0 / space->getMaximumExtent());
+            vss_ = expPlanner_->getSpaceInformation()->allocValidStateSampler();
 
             // DTC
             //experience_setup_->setPlanner(ob::PlannerPtr(new og::RRTConnect( si_ )));
@@ -89,7 +98,7 @@ public:
 
     ~Plane2DEnvironment()
     {
-        thunder_->save();
+        expPlanner_->save();
     }
 
     bool plan()
@@ -98,27 +107,27 @@ public:
         std::cout << "-------------------------------------------------------" << std::endl;
         std::cout << "-------------------------------------------------------" << std::endl;
 
-        if (!thunder_)
+        if (!expPlanner_)
         {
-            OMPL_ERROR("Thunder simple setup not loaded");
+            OMPL_ERROR("Simple setup not loaded");
             return false;
         }
-        thunder_->clear();
+        expPlanner_->clear();
 
-        ob::ScopedState<> start(thunder_->getStateSpace());
+        ob::ScopedState<> start(expPlanner_->getStateSpace());
         vss_->sample(start.get());
-        ob::ScopedState<> goal(thunder_->getStateSpace());
+        ob::ScopedState<> goal(expPlanner_->getStateSpace());
         vss_->sample(goal.get());
-        thunder_->setStartAndGoalStates(start, goal);
+        expPlanner_->setStartAndGoalStates(start, goal);
 
-        bool solved = thunder_->solve(10.);
+        bool solved = expPlanner_->solve(10.);
         if (solved)
             OMPL_INFORM("Found solution in %g seconds",
-                thunder_->getLastPlanComputationTime());
+                expPlanner_->getLastPlanComputationTime());
         else
             OMPL_INFORM("No solution found");
 
-        thunder_->doPostProcessing();
+        expPlanner_->doPostProcessing();
 
         return false;
     }
@@ -134,21 +143,21 @@ private:
         return c.red > 127 && c.green > 127 && c.blue > 127;
     }
 
-    ot::ThunderPtr thunder_;
+    ot::ExperienceSetupPtr expPlanner_;
     ob::ValidStateSamplerPtr vss_;
     int maxWidth_;
     int maxHeight_;
     ompl::PPM ppm_;
 };
 
-int main(int, char **)
+int main(int argc, char *argv[])
 {
     std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 
     boost::filesystem::path path(TEST_RESOURCES_DIR);
-    Plane2DEnvironment env((path / "ppm/floor.ppm").string().c_str());
+    Plane2DEnvironment env((path / "ppm" / "floor.ppm").string().c_str(), argc==1);
 
-    for (unsigned int i=0; i<100; ++i)
+    for (unsigned int i = 0; i < 100; ++i)
         env.plan();
 
     return 0;
