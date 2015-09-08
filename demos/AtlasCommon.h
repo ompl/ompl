@@ -882,7 +882,8 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
     else if (std::strcmp(planner, "STRIDE") == 0)
     {
         ompl::geometric::STRIDE *stride = new ompl::geometric::STRIDE(si);
-        stride->setRange(range);
+        stride->setRange(range/8);
+        stride->setEstimatedDimension(2);
         return stride;
     }
     else

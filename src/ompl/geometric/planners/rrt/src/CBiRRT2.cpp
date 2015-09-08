@@ -82,9 +82,9 @@ void ompl::geometric::CBiRRT2::setup(void)
     sc.configurePlannerRange(maxDistance_);
 
     if (!tStart_)
-        tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
+        tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
     if (!tGoal_)
-        tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
+        tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
     tStart_->setDistanceFunction(boost::bind(&CBiRRT2::distanceFunction, this, _1, _2));
     tGoal_->setDistanceFunction(boost::bind(&CBiRRT2::distanceFunction, this, _1, _2));
 }

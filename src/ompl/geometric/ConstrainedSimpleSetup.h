@@ -68,7 +68,7 @@ namespace ompl
                 si_ = csi_;
                 pdef_.reset(new base::ProblemDefinition(si_));
                 psk_.reset(new PathSimplifier(si_));
-                params_.include(si_->params());
+                //params_.include(si_->params());
             }
 
             virtual ~ConstrainedSimpleSetup(void)
