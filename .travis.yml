@@ -23,7 +23,7 @@ addons:
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      brew install boost ode eigen;
+      brew install ode eigen;
     fi
 
 script:
@@ -38,7 +38,7 @@ script:
   # On Linux, we need to make sure cmake finds the locally installed gccxml
   # and not the one in /usr/bin
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-      if [ ! -d "pyplusplus" ]; then make installpyplusplus; fi;
+      if [ ! -x "pyplusplus/bin/gccxml" ]; then make installpyplusplus; fi;
       rm CMakeCache.txt;
       cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOMPL_LOCAL_PYPLUSPLUS_INSTALL=ON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DGCCXML=pyplusplus/bin/gccxml ..;
       ls -R pyplusplus;
