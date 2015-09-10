@@ -41,8 +41,6 @@ script:
       if [ ! -x "pyplusplus/bin/gccxml" ]; then make installpyplusplus; fi;
       rm CMakeCache.txt;
       cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOMPL_LOCAL_PYPLUSPLUS_INSTALL=ON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DGCCXML=pyplusplus/bin/gccxml ..;
-      ls -R pyplusplus;
-      cat CMakeCache.txt;
       make -j2 update_bindings;
     fi
 
