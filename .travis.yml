@@ -1,5 +1,8 @@
 sudo: false
-cache: apt
+cache:
+  apt: true
+  directories:
+    - /home/travis/build/ompl/ompl/build/pyplusplus
 language: cpp
 
 os:
@@ -35,7 +38,7 @@ script:
   # On Linux, we need to make sure cmake finds the locally installed gccxml
   # and not the one in /usr/bin
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-      make installpyplusplus;
+      if [ ! -d "pyplusplus" ]; then make installpyplusplus; fi;
       rm CMakeCache.txt;
       cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOMPL_LOCAL_PYPLUSPLUS_INSTALL=ON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DGCCXML=pyplusplus/bin/gccxml ..;
       make -j2 update_bindings;
@@ -48,7 +51,7 @@ script:
   # On OS X, exclude test_machine_specs; fails due to "lazy" memory freeing in Release mode (test passes in Debug builds).
   # On OS X, exclude test_random; fails due to bug in Boost.Random in 1.56.
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      ctest -E test_(machine_specs|random)
+      ctest -E 'test_(machine_specs|random)'
     else
       ctest
     fi
