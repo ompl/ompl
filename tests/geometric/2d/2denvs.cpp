@@ -69,7 +69,7 @@
 
 using namespace ompl;
 
-static const double SOLUTION_TIME = 2.0;
+static const double SOLUTION_TIME = 3.0;
 static const bool VERBOSE = true;
 
 /** \brief A base class for testing planners */
