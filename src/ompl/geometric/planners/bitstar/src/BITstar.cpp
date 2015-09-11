@@ -178,7 +178,7 @@ namespace ompl
 
             //Do some sanity checks
             //Make sure we have a problem definition
-            if(Planner::pdef_ == false)
+            if(Planner::pdef_ == NULL)
             {
                 OMPL_ERROR("%s::setup() was called without a problem definition.", Planner::getName().c_str());
                 Planner::setup_ = false;

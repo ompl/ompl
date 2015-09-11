@@ -220,7 +220,7 @@ private:
     void allocateDimension(unsigned int dim)
     {
         // Only do this if unallocated, so check that:
-        if (dimVector_.at(dim).first == false)
+        if (dimVector_.at(dim).first == NULL)
         {
             // It is not allocated, so....
             // First construct the distribution
