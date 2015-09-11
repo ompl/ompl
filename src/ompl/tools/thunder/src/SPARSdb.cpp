@@ -933,7 +933,7 @@ bool ompl::geometric::SPARSdb::checkStartGoalConnection(ompl::geometric::PathGeo
         double newLength = candidateSolution.getGeometricPath().length();
         double percentIncrease = 100 - originalLength / newLength * 100;
         OMPL_DEBUG("New length:        %f", newLength);
-        OMPL_DEBUG("Percent increase:  %f \%", percentIncrease);
+        OMPL_DEBUG("Percent increase:  %f %%", percentIncrease);
     }
 
     return !error; // return true if it inserted correctly
