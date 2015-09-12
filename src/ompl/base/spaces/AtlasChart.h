@@ -189,7 +189,9 @@ namespace ompl
             
             /** \brief If the manifold dimension is 2, compute the sequence of vertices for the polygon of this
              * chart and return them in \a vertices, in order. */
-            void toPolygon (std::vector<Eigen::VectorXd> &vertices) const;
+            bool toPolygon (std::vector<Eigen::VectorXd> &vertices) const;
+
+            bool estimateIsFrontier () const;
             
             /** \brief Create two complementary linear inequalities dividing the space between charts \a c1 and \a c2,
              * and add them to the charts' polytopes. */
@@ -241,6 +243,8 @@ namespace ompl
             
             /** \brief Maximum valid radius of this chart. */
             double radius_;
+
+            mutable RNG rng_;
             
             /** \brief Perform initializations regarding measure estimate and linear inequalities. */
             void init (void);

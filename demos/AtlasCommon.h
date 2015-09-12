@@ -462,24 +462,24 @@ public:
 /** 3 ring-shaped obstacles on latitudinal lines, with a small gap in each. */
 bool sphereValid_helper (const Eigen::VectorXd &x)
 {
-    if (-0.75 < x[2] && x[2] < -0.65)
+    /*if (-0.75 < x[2] && x[2] < -0.65)
     {
-        if (-0.05 < x[1] && x[1] < 0.05)
+        if (-1 < x[1] && x[1] < 1)
             return x[0] > 0;
         return false;
     }
-    else if (-0.05 < x[2] && x[2] < 0.05)
+    else*/ if (-0.5 < x[2] && x[2] < 0.5)
     {
-        if (-0.05 < x[1] && x[1] < 0.05)
+        if (-1 < x[1] && x[1] < 1)
             return x[0] < 0;
         return false;
     }
-    else if (0.65 < x[2] && x[2] < 0.75)
+    /*else if (0.65 < x[2] && x[2] < 0.75)
     {
-        if (-0.05 < x[0] && x[0] < 0.05)
+        if (-1 < x[0] && x[0] < 1)
             return x[1] > 0;
         return false;
-    }
+        }*/
     return true;
 }
 
@@ -565,13 +565,13 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
     const std::size_t dim = 3;
     
     // Start and goal points
-    x = Eigen::VectorXd(dim); x << -2, 0, -1;
-    y = Eigen::VectorXd(dim); y <<  2, 0,  1;
+    x = Eigen::VectorXd(dim); x << -3, 0, -1;
+    y = Eigen::VectorXd(dim); y <<  3, 0,  1;
     
     // Validity checker
     isValid = boost::bind(&unreachable, sleep, _1, y, 0.1);
     
-    return new TorusManifold(2, 1);
+    return new TorusManifold(3, 1);
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
@@ -882,8 +882,8 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
     else if (std::strcmp(planner, "STRIDE") == 0)
     {
         ompl::geometric::STRIDE *stride = new ompl::geometric::STRIDE(si);
-        stride->setRange(range/8);
-        stride->setEstimatedDimension(2);
+        stride->setRange(range);
+        stride->setEstimatedDimension(6);
         return stride;
     }
     else

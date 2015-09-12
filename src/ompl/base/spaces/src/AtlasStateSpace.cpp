@@ -63,6 +63,7 @@ ompl::base::AtlasStateSampler::AtlasStateSampler (const AtlasStateSpace &atlas)
 void ompl::base::AtlasStateSampler::sampleUniform (State *state)
 {
     Eigen::Ref<Eigen::VectorXd> rx = state->as<AtlasStateSpace::StateType>()->vectorView();
+    Eigen::VectorXd ry(atlas_.getAmbientDimension());
     Eigen::VectorXd ru(atlas_.getManifoldDimension());
     AtlasChart *c;
     
@@ -455,7 +456,7 @@ void ompl::base::AtlasStateSpace::setAlpha (const double alpha)
 
 void ompl::base::AtlasStateSpace::setExploration (const double exploration)
 {
-    if (exploration < 0 || exploration >= 1)
+    if (exploration >= 1)
         throw ompl::Exception("Please specify an exploration value within the range [0,1).");
     exploration_ = exploration;
     
@@ -777,6 +778,14 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     freeState(currentState);
 
     return reached;
+}
+
+int ompl::base::AtlasStateSpace::estimateFrontierPercent () const {
+    int frontier = 0;
+    for (std::size_t i = 0; i < charts_.size(); i++) {
+        frontier += charts_[i]->estimateIsFrontier();
+    }
+    return (100 * frontier) / charts_.size();
 }
 
 void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const

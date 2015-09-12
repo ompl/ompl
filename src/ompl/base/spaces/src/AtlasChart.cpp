@@ -326,7 +326,7 @@ bool ompl::base::AtlasChart::isAnchor (void) const
     return anchor_;
 }
 
-void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) const
+bool ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) const
 {
     if (atlas_.getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::toPolygon() only works on 2D manifold/charts.");
@@ -362,6 +362,7 @@ void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
     }
     
     // Throw in points approximating the circle, if they're inside P
+    bool is_frontier = false;
     Eigen::VectorXd v0(2); v0 << radius_, 0;
     const double step = M_PI/16;
     for (double a = 0; a < 2*M_PI; a += step)
@@ -369,6 +370,7 @@ void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
         const Eigen::VectorXd v = Eigen::Rotation2Dd(a)*v0;
         
         if (inP(v)) {
+            is_frontier = true;
             phi(v, intersection);
             vertices.push_back(intersection);
         }
@@ -376,6 +378,20 @@ void ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
     
     // Put them in order
     std::sort(vertices.begin(), vertices.end(), boost::bind(&AtlasChart::angleCompare, this, _1, _2));
+
+    return is_frontier;
+}
+
+bool ompl::base::AtlasChart::estimateIsFrontier () const {
+    Eigen::VectorXd ru(atlas_.getManifoldDimension());
+    for (int k = 0; k < 1000; k++) {
+        for (int i = 0; i < ru.size(); i++)
+            ru[i] = rng_.gaussian01();
+        ru *= atlas_.getRho() / ru.norm();
+        if (inP(ru))
+            return true;
+    }
+    return false;
 }
 
 /// Public Static

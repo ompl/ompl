@@ -87,10 +87,10 @@ int main (int argc, char **argv)
     si->setConstraintInformation(ci);
     
     // Atlas parameters
-    atlas->setExploration(0.5);
+    atlas->setExploration(0.8);
     atlas->setRho(0.5); // 0.2
     atlas->setAlpha(M_PI/8);
-    atlas->setEpsilon(0.2); // 0.1
+    atlas->setEpsilon(0.5); // 0.1
     atlas->setDelta(0.02);
     atlas->setMaxChartsPerExtension(200);
     atlas->setMonteCarloSampleCount(0);
@@ -222,6 +222,8 @@ int main (int argc, char **argv)
         atlas->dumpGraph(pd.toBoostGraph(), graphFile, /*cons*/ true);
         graphFile.close();
     }
+
+    std::cout << atlas->estimateFrontierPercent() << "% open.\n";
     
     return 0;
 }

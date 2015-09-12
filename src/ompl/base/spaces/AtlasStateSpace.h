@@ -346,6 +346,8 @@ namespace ompl
              * a copy of \a from, as well as the final state. Caller is responsible for freeing states returned in \a stateList. */
             virtual bool followManifold (const StateType *from, const StateType *to, const bool interpolate = false,
                                          std::vector<StateType *> *stateList = NULL) const;
+
+            int estimateFrontierPercent () const;
             
             /** \brief Write a mesh representation of the atlas to a stream. */
             void dumpMesh (std::ostream &out) const;

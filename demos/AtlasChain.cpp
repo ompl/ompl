@@ -46,10 +46,12 @@ public:
     const double LINKLENGTH;
     const double ENDEFFECTORRADIUS;
     const double JOINTWIDTH;
+    const unsigned int EXTRAS;
     
-    ChainManifold2 (unsigned int dim, unsigned int links, double endeffector_radius)
-    : ompl::base::AtlasStateSpace(dim*links, (dim-1)*links - 1), DIM(dim), LINKS(links), LINKLENGTH(1), ENDEFFECTORRADIUS(endeffector_radius), JOINTWIDTH(0.2)
+    ChainManifold2 (unsigned int dim, unsigned int links, double endeffector_radius, unsigned int extras = 0)
+        : ompl::base::AtlasStateSpace(dim*links, (dim-1)*links - extras), DIM(dim), LINKS(links), LINKLENGTH(1), ENDEFFECTORRADIUS(endeffector_radius), JOINTWIDTH(0.2), EXTRAS(extras)
     {
+        std::cout << "Manifold dimension: " << getManifoldDimension() << "\n";
     }
     
     void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
@@ -63,8 +65,26 @@ public:
             joint1 = joint2;
         }
         
-        // End effector must lie on a sphere
-        out[LINKS] = x.tail(DIM).norm() - ENDEFFECTORRADIUS;
+        if (EXTRAS >= 1) {
+            // End effector must lie on a sphere
+            out[LINKS] = x.tail(DIM).norm() - ENDEFFECTORRADIUS;
+            if (EXTRAS >= 2) {
+                // First and second joints must have same z-value.
+                out[LINKS+1] = x[2] - x[DIM + 2];
+                if (EXTRAS >= 3) {
+                    // Second and third joints must have same x-value.
+                    out[LINKS+2] = x[DIM] - x[2*DIM];
+                    if (EXTRAS >= 4) {
+                        // Third and fourth joints must have the same y-value.
+                        out[LINKS+3] = x[2*DIM + 1] - x[3*DIM + 1];
+                        if (EXTRAS >= 5) {
+                            // First and fifth joints have same y-value.
+                            out[LINKS+4] = x[1] - x[4*DIM + 1];
+                        }
+                    }
+                }
+            }
+        }
     }
 
     void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
@@ -76,7 +96,26 @@ public:
         for (unsigned int i = 0; i < LINKS; i++)
             out.row(i).segment(DIM*i, DIM) = diagonal.segment(DIM*i, DIM).normalized();
         out.block(1, 0, LINKS, DIM*(LINKS-1)) -= out.block(1, DIM, LINKS, DIM*(LINKS-1));
-        out.row(LINKS).tail(DIM) = -diagonal.tail(DIM).normalized().transpose();
+
+        if (EXTRAS >= 1) {
+            out.row(LINKS).tail(DIM) = -diagonal.tail(DIM).normalized().transpose();
+            if (EXTRAS >= 2) {
+                out(LINKS+1, 2) = 1;
+                out(LINKS+1, DIM + 2) = -1;
+                if (EXTRAS >= 3) {
+                    out(LINKS+2, DIM) = 1;
+                    out(LINKS+2, 2*DIM) = -1;
+                    if (EXTRAS >= 4) {
+                        out(LINKS+3, 2*DIM + 1) = 1;
+                        out(LINKS+3, 3*DIM + 1) = -1;
+                        if (EXTRAS >= 5) {
+                            out(LINKS+4, 1) = 1;
+                            out(LINKS+4, 4*DIM + 1) = -1;
+                        }
+                    }
+                }
+            }
+        }
     }
     
     /** For the chain example. Joints may not get too close to each other. If \a tough, then the end effector
@@ -95,7 +134,7 @@ public:
                     return false;
             }
         }
-        
+
         if (!tough)
             return true;
         
@@ -123,11 +162,15 @@ int main (int argc, char **argv)
     
     // Detect artifical validity checking delay.
     double sleep = 0;
+    unsigned int extras = 0;
     if (argc == 7)
     {
-        if (strcmp(argv[5], "-s") != 0)
+        if (strcmp(argv[5], "-s") == 0)
+            sleep = std::atof(argv[6]);
+        else if (strcmp(argv[5], "-e") == 0)
+            extras = std::atoi(argv[6]);
+        else
             usage(argv[0]);
-        sleep = std::atof(argv[6]);
     }
 
     // Initialize the atlas for the problem's manifold.
@@ -156,7 +199,7 @@ int main (int argc, char **argv)
         y[dimension * i + 2] = (i >= kink && i <= kink+1);
     }
     std::cout << "Start: " << x.transpose() << "\nGoal: " << y.transpose() << "\n";
-    ompl::base::AtlasStateSpacePtr atlas(new ChainManifold2(dimension, links, links-2));
+    ompl::base::AtlasStateSpacePtr atlas(new ChainManifold2(dimension, links, links-2, extras));
     ompl::base::StateValidityCheckerFn isValid =
         boost::bind(&ChainManifold2::isValid, (ChainManifold2 *) atlas.get(), sleep, _1, false);
 
@@ -181,10 +224,10 @@ int main (int argc, char **argv)
     si->setConstraintInformation(ci);
     
     // Atlas parameters
-    atlas->setExploration(0.9);
-    atlas->setRho(0.2);
-    atlas->setAlpha(M_PI/8);   // TODO does this have any effect?
-    atlas->setEpsilon(0.1);
+    atlas->setExploration(0.5);
+    atlas->setRho(0.5);
+    atlas->setAlpha(M_PI/8);
+    atlas->setEpsilon(0.2);
     atlas->setDelta(0.02);
     atlas->setMaxChartsPerExtension(200);
     atlas->setMonteCarloSampleCount(0);
