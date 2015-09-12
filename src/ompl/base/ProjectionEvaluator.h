@@ -214,7 +214,7 @@ namespace ompl
             void setBounds(const RealVectorBounds &bounds);
 
             /** \brief Get the bounds computed/set for this projection */
-            const RealVectorBounds& getBounds()
+            const RealVectorBounds& getBounds() const
             {
                 return bounds_;
             }
