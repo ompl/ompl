@@ -230,8 +230,9 @@ void ompl::geometric::SimpleSetup::print(std::ostream &out) const
 {
     if (si_)
     {
-        si_->printProperties(out);
-        si_->printSettings(out);
+        // FIXME(cav2): hacking this out for atlas tests
+        //si_->printProperties(out);
+        //si_->printSettings(out);
     }
     if (planner_)
     {

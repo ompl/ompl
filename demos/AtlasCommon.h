@@ -462,24 +462,24 @@ public:
 /** 3 ring-shaped obstacles on latitudinal lines, with a small gap in each. */
 bool sphereValid_helper (const Eigen::VectorXd &x)
 {
-    /*if (-0.75 < x[2] && x[2] < -0.65)
+    if (-0.75 < x[2] && x[2] < -0.60)
     {
-        if (-1 < x[1] && x[1] < 1)
+        if (-0.05 < x[1] && x[1] < 0.05)
             return x[0] > 0;
         return false;
     }
-    else*/ if (-0.5 < x[2] && x[2] < 0.5)
+    else if (-0.1 < x[2] && x[2] < 0.1)
     {
-        if (-1 < x[1] && x[1] < 1)
+        if (-0.05 < x[1] && x[1] < 0.05)
             return x[0] < 0;
         return false;
     }
-    /*else if (0.65 < x[2] && x[2] < 0.75)
+    else if (0.60 < x[2] && x[2] < 0.75)
     {
-        if (-1 < x[0] && x[0] < 1)
+        if (-0.05 < x[0] && x[0] < 0.05)
             return x[1] > 0;
         return false;
-        }*/
+    }
     return true;
 }
 

@@ -90,7 +90,7 @@ int main (int argc, char **argv)
     atlas->setExploration(0.8);
     atlas->setRho(0.5); // 0.2
     atlas->setAlpha(M_PI/8);
-    atlas->setEpsilon(0.5); // 0.1
+    atlas->setEpsilon(0.2); // 0.1
     atlas->setDelta(0.02);
     atlas->setMaxChartsPerExtension(200);
     atlas->setMonteCarloSampleCount(0);
