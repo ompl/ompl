@@ -253,7 +253,7 @@ bool ompl::base::AtlasMotionValidator::checkMotion (const State *s1, const State
         lastValid.second = (x-a).dot(b-a) / (b-a).squaredNorm();
     }
     
-    return !reached;
+    return reached;
 }
 
 /// Private

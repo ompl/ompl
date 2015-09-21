@@ -543,6 +543,18 @@ bool mazeTorusValid (double sleep, png::image<png::index_pixel_1> &maze, const o
  * and the validity checker \a isValid.
  */
 
+ompl::base::AtlasStateSpace *initPlaneProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, double sleep)
+{
+    const std::size_t dim = 3;
+
+    x = Eigen::VectorXd(dim); x << 4, 4, 0;
+    y = Eigen::VectorXd(dim); y << -4, -4, 0;
+
+    isValid = boost::bind(&always, sleep, _1);
+
+    return new PlaneManifold();
+}
+
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
 ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
@@ -553,7 +565,7 @@ ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::Vecto
     y = Eigen::VectorXd(dim); y << 0, 0,  1;
     
     // Validity checker
-    isValid = boost::bind(&sphereValid, sleep, _1);;
+    isValid = boost::bind(&sphereValid, sleep, _1);
     
     // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is faster)
     return new SphereManifold();
@@ -748,7 +760,7 @@ ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atl
 void printProblems (void)
 {
     std::cout << "Available problems:\n";
-    std::cout << "    sphere torus klein chain chain_tough planar_maze torus_maze chain_torus_maze\n";
+    std::cout << "    plane sphere torus klein chain chain_tough planar_maze torus_maze chain_torus_maze\n";
 }
 
 /** Print usage information. */
@@ -764,7 +776,9 @@ void printPlanners (void)
 ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
                                            ompl::base::StateValidityCheckerFn &isValid, double sleep = 0)
 {
-    if (std::strcmp(problem, "sphere") == 0)
+    if (std::strcmp(problem, "plane") == 0)
+        return initPlaneProblem(x, y, isValid, sleep);
+    else if (std::strcmp(problem, "sphere") == 0)
         return initSphereProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "torus") == 0)
         return initTorusProblem(x, y, isValid, sleep);
