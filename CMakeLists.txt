@@ -160,9 +160,10 @@ add_subdirectory(scripts)
 add_subdirectory(doc)
 
 if (NOT MSVC)
+  target_link_flags(ompl)
   set(PKG_NAME "ompl")
   set(PKG_DESC "The Open Motion Planning Library")
-  set(PKG_OMPL_LIBS "-lompl")
+  set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
   set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
   configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
   install(FILES "${pkg_conf_file}"
