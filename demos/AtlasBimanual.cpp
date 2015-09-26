@@ -36,6 +36,8 @@
 
 #include "AtlasCommon.h"
 
+#include "ompl/base/spaces/RealVectorStateProjections.h"
+
 struct real3
 {
     double x;
@@ -201,7 +203,8 @@ public:
         pencil = pencil_tmp;
 
         // Touches two points on a tray: Fixed distance apart.
-        out[0] = (left - right).norm() - 1;
+        if (extras > 0)
+            out[0] = (left - right).norm() - 1;
 
         // Don't let things slip off sideways: 0 distance in y-direction.
         if (extras > 1)
@@ -214,6 +217,7 @@ public:
         // Straight tray: 0 distance in z-direction.
         if (extras > 3)
             out[3] = left[2] - right[2];
+
     }
 
     bool isValid (const ompl::base::State *)
@@ -315,6 +319,14 @@ int main (int argc, char **argv)
     ompl::base::PlannerPtr planner(parsePlanner(argv[1], si, atlas->getRho_s()));
     if (!planner)
         usage(argv[0]);
+    if (std::strcmp(argv[1], "KPIECE1") == 0) {
+        planner->as<ompl::geometric::KPIECE1>()->setProjectionEvaluator(ompl::base::ProjectionEvaluatorPtr(new ompl::base::RealVectorRandomLinearProjectionEvaluator(atlas, atlas->getManifoldDimension())));
+    } else if (std::strcmp(argv[1], "EST") == 0) {
+        planner->as<ompl::geometric::EST>()->setProjectionEvaluator(ompl::base::ProjectionEvaluatorPtr(new ompl::base::RealVectorRandomLinearProjectionEvaluator(atlas, atlas->getManifoldDimension())));
+
+    } else if (std::strcmp(argv[1], "STRIDE") == 0) {
+        planner->as<ompl::geometric::STRIDE>()->setEstimatedDimension(atlas->getManifoldDimension());
+    }
     ss.setPlanner(planner);
     ss.setup();
     
@@ -327,10 +339,9 @@ int main (int argc, char **argv)
     // Regardless of dimension, we write the doubles in the path states to a .txt file.
     std::clock_t tstart = std::clock();
     ompl::base::PlannerStatus stat = planner->solve(runtime_limit);
+    const double time = ((double)(std::clock()-tstart))/CLOCKS_PER_SEC;
     if (stat)
     {
-        const double time = ((double)(std::clock()-tstart))/CLOCKS_PER_SEC;
-        
         ompl::geometric::PathGeometric &path = ss.getSolutionPath();
         if (x.size() == 3)
         {
@@ -393,12 +404,12 @@ int main (int argc, char **argv)
         if (stat == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
             std::cout << "Solution is approximate.\n";
         std::cout << "Length: " << length << "\n";
-        std::cout << "Took " << time << " seconds.\n";
     }
     else
     {
         std::cout << "No solution found.\n";
     }
+    std::cout << "Took " << time << " seconds.\n";
     
     ompl::base::PlannerData data(si);
     planner->getPlannerData(data);

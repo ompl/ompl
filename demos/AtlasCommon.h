@@ -767,7 +767,7 @@ void printProblems (void)
 void printPlanners (void)
 {
     std::cout << "Available planners:\n";
-    std::cout << "    EST RRT RRTintermediate AtlasRRT RRTConnect RRTstar LazyRRT TRRT\n";
+    std::cout << "    EST RRT RRTintermediate RRTConnect RRTConnectIntermediate RRTstar LazyRRT TRRT\n";
     std::cout << "    LBTRRT ConstrainedRRT CBiRRT2 KPIECE1 BKPIECE1 LBKPIECE1 PDST\n";
     std::cout << "    PRM PRMstar SBL SPARS SPARStwo STRIDE\n";
 }
@@ -817,17 +817,15 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
         ompl::geometric::RRT *rrt = new ompl::geometric::RRT(si, true);
         return rrt;
     }
-    else if (std::strcmp(planner, "AtlasRRT") == 0)
-    {
-        ompl::geometric::RRT *atlasrrt = new ompl::geometric::RRT(si);
-        atlasrrt->setName("AtlasRRT");
-        atlasrrt->setIntermediateStates(true);
-        return atlasrrt;
-    }
     else if (std::strcmp(planner, "RRTConnect") == 0)
     {
         ompl::geometric::RRTConnect *rrtconnect = new ompl::geometric::RRTConnect(si);
         return rrtconnect;
+    }
+    else if (std::strcmp(planner, "RRTConnectIntermediate") == 0)
+    {
+        ompl::geometric::RRTConnect *rrtconnectintermediate = new ompl::geometric::RRTConnect(si, true);
+        return rrtconnectintermediate;
     }
     else if (std::strcmp(planner, "RRTstar") == 0)
     {
@@ -897,7 +895,6 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
     {
         ompl::geometric::STRIDE *stride = new ompl::geometric::STRIDE(si);
         stride->setRange(range);
-        stride->setEstimatedDimension(6);
         return stride;
     }
     else
