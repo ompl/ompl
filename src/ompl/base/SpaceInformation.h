@@ -335,7 +335,7 @@ namespace ompl
             }
 
 
-            /** \brief Check if the path between two states (from \e s1 to \e s2) is valid, using subdivision. This function assumes \e s1 is valid. */
+            /** \brief Check if the path between two states (from \e s1 to \e s2) is valid, using the MotionValidator. This function assumes \e s1 is valid. */
             bool checkMotion(const State *s1, const State *s2) const
             {
                 return motionValidator_->checkMotion(s1, s2);
