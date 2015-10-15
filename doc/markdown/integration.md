@@ -7,6 +7,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   <a class="btn btn-default" href="#integration_moveit">MoveIt!</a>
   <a class="btn btn-default" href="#integration_openrave">OpenRAVE</a>
   <a class="btn btn-default" href="#integration_morse">MORSE</a>
+  <a class="btn btn-default" href="#integration_kautham">Kautham</a>
   <a class="btn btn-default" href="#integration_sims">SIMS</a>
   <a class="btn btn-default" href="#integration_omplapp">OMPL.app</a>
 </div>
@@ -53,6 +54,18 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
 </div>
 
 
+# The Kautham Project {#integration_kautham}
+
+<div class="row">
+  <div class="col-lg-7 col-md-6 col-sm-5">
+    [The Kautham Project](https://sir.upc.edu/projects/kautham/) is a software tool used at the Institute of Industrial and Control Engineering (IOC-UPC) for teaching and research in robot motion planning. The tool can plan and simulate systems ranging from simple two degrees of freedom free-flying robots to multi-robot scenarios with mobile manipulators equipped with anthropomorphic hands.
+  </div>
+  <div class="col-lg-5 col-md-6 col-sm-7">
+    <img src="https://sir.upc.edu/projects/kautham/images/justin.JPG" width="100%">
+  </div>
+</div>
+
+
 # SIMS {#integration_sims}
 
 <div class="row">
@@ -60,7 +73,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
     The Kavraki lab has applied motion planning algorithms to the problem of characterizing protein flexibility and conformational changes. A better understanding of protein structure and flexibility is critical to understanding their function. Proteins can be modeled as long kinematic chains. Instead of collisions, state validity is determined by molecular energy. We have developed a conformational sampling framework called [the Structured Intuitive Move Selector (SIMS)](http://www.kavrakilab.org/bioinformatics/tracing_conformational_changes). It uses [Rosetta](http://www.rosettacommons.org) for modeling protein structures and computing their biophysical feasibility. The SIMS software is still very much under development, but will be released at some point in the near future.
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
-    <img src="http://www.kavrakilab.org/sites/default/files/groel_path.png" width="100%">
+    <img src="http://www.kavrakilab.org/biomedicalcomputing/images/groel_path.png" width="100%">
   </div>
 </div>
 
