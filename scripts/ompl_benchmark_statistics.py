@@ -153,10 +153,13 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
             nameAndType = entry[0].split(' ')
             expprops[nameAndType[0]] = (entry[1], nameAndType[1])
 
-        # add columns in sorted order based on key (for consistency)
+        # adding columns to experiments table
+        c.execute('PRAGMA table_info(experiments)')
+        columnNames = [col[1] for col in c.fetchall()]
         for name in sorted(expprops.keys()):
-            c.execute('ALTER TABLE experiments ADD %s %s' % (name, expprops[name][1]))
-
+            # only add column if it doesn't exist
+            if name not in columnNames:
+                c.execute('ALTER TABLE experiments ADD %s %s' % (name, expprops[name][1]))
 
         hostname = readRequiredLogValue("hostname", logfile, -1, {0 : "Running"})
         date = ' '.join(ensurePrefix(logfile.readline(), "Starting").split()[2:])
