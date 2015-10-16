@@ -272,8 +272,8 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
     out << "Experiment " << (exp_.name.empty() ? "NO_NAME" : exp_.name) << std::endl;
 
     out << exp_.parameters.size() << " experiment properties" << std::endl;
-    for(size_t i = 0; i < exp_.parameters.size(); ++i)
-        out << exp_.parameters[i].first << " = " << exp_.parameters[i].second << std::endl;
+    for(std::map<std::string, std::string>::const_iterator it = exp_.parameters.begin(); it != exp_.parameters.end(); ++it)
+        out << it->first << " = " << it->second << std::endl;
 
     out << "Running on " << (exp_.host.empty() ? "UNKNOWN" : exp_.host) << std::endl;
     out << "Starting at " << boost::posix_time::to_iso_extended_string(exp_.startTime) << std::endl;

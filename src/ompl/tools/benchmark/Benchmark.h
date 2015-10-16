@@ -149,8 +149,8 @@ namespace ompl
                 /// Information about the CPU of the machine the benchmark ran on
                 std::string                    cpuInfo;
 
-                /// Additional, experiment specific parameters
-                std::vector<std::pair<std::string, std::string> > parameters;
+                /// Additional, experiment specific parameters.  This is optional.
+                std::map<std::string, std::string> parameters;
             };
 
             /** \brief Representation of a benchmark request */
@@ -212,14 +212,16 @@ namespace ompl
             {
             }
 
-            /** \brief Add an optional parameter's information to the benchmark output.  Useful for aggregating results over a parameter sweep (for example). */
-            void addExperimentParameter(const std::string& name, const std::string& value)
+            /** \brief Add an optional parameter's information to the benchmark output.  Useful for aggregating results
+                 over different benchmark instances, e.g., parameter sweep.  \e type is typically "BOOLEAN", "INTEGER",
+                 or "REAL". */
+            void addExperimentParameter(const std::string& name, const std::string& type, const std::string& value)
             {
-                exp_.parameters.push_back(std::make_pair(name, value));
+                exp_.parameters[name + " " + type] = value;
             }
 
-            /** \brief Get all optional benchmark parameters  */
-            const std::vector<std::pair<std::string, std::string> >& getExperimentParameters() const
+            /** \brief Get all optional benchmark parameters.  The map key is 'name type'  */
+            const std::map<std::string, std::string>& getExperimentParameters() const
             {
                 return exp_.parameters;
             }

@@ -116,10 +116,6 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
         totaltime REAL, timelimit REAL, memorylimit REAL, runcount INTEGER,
         version VARCHAR(128), hostname VARCHAR(1024), cpuinfo TEXT,
         date DATETIME, seed INTEGER, setup TEXT);
-        CREATE TABLE IF NOT EXISTS experimentParameters
-        (id INTEGER PRIMARY KEY AUTOINCREMENT, experimentid INTEGER,
-         name VARCHAR(512), value VARCHAR(512),
-        FOREIGN KEY (experimentid) REFERENCES experiments(id) ON DELETE CASCADE);
         CREATE TABLE IF NOT EXISTS plannerConfigs
         (id INTEGER PRIMARY KEY AUTOINCREMENT,
         name VARCHAR(512) NOT NULL, settings TEXT);
@@ -150,11 +146,17 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
         expname = readRequiredLogValue("experiment name", logfile, -1, {0 : "Experiment"})
 
         # optional experiment properties
-        nrexpprops = int(readOptionalLogValue(logfile, 0, {-2: "experiment", -1: "properties"}))
+        nrexpprops = int(readOptionalLogValue(logfile, 0, {-2: "experiment", -1: "properties"}) or 0)
         expprops = {}
         for i in range(nrexpprops):
             entry = logfile.readline().strip().split('=')
-            expprops[entry[0]] = entry[1]
+            nameAndType = entry[0].split(' ')
+            expprops[nameAndType[0]] = (entry[1], nameAndType[1])
+
+        # add columns in sorted order based on key (for consistency)
+        for name in sorted(expprops.keys()):
+            c.execute('ALTER TABLE experiments ADD %s %s' % (name, expprops[name][1]))
+
 
         hostname = readRequiredLogValue("hostname", logfile, -1, {0 : "Running"})
         date = ' '.join(ensurePrefix(logfile.readline(), "Starting").split()[2:])
@@ -186,14 +188,14 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
                 for j in range(len(enum)-1):
                     c.execute('INSERT INTO enums VALUES (?,?,?)',
                         (enum[0],j,enum[j+1]))
-        c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
-              (None, expname, totaltime, timelimit, memorylimit, nrruns,
-              version, hostname, cpuinfo, date, rseed, expsetup) )
-        experimentId = c.lastrowid
 
-        # inserting all experiment properties into table
-        for k,v in expprops.iteritems():
-            c.execute('INSERT INTO experimentParameters VALUES (?,?,?,?)', (None, experimentId, k, v))
+        # Creating entry in experiments table
+        experimentEntries = [None, expname, totaltime, timelimit, memorylimit, nrruns, version,
+                             hostname, cpuinfo, date, rseed, expsetup]
+        for name in sorted(expprops.keys()): # sort to ensure correct order
+            experimentEntries.append(expprops[name][0])
+        c.execute('INSERT INTO experiments VALUES (' + ','.join('?' for i in experimentEntries) + ')', experimentEntries)
+        experimentId = c.lastrowid
 
         numPlanners = int(readRequiredLogValue("planner count", logfile, 0, {-1 : "planners"}))
         for i in range(numPlanners):
@@ -240,6 +242,7 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
                 values = tuple([experimentId, plannerId] + \
                     [None if len(x) == 0 or x == 'nan' or x == 'inf' else x
                     for x in logfile.readline().split('; ')[:-1]])
+
                 c.execute(insertFmtStr, values)
                 # extract primary key of each run row so we can reference them
                 # in the planner progress data table if needed
@@ -452,14 +455,6 @@ def plotStatistics(dbname, fname):
         plt.figtext(pagex, pagey-0.10, "Time limit per run: %g seconds" % experiment[2])
         plt.figtext(pagex, pagey-0.15, "Memory limit per run: %g MB" % experiment[3])
 
-        # Optional experiment parameters
-        c.execute("""SELECT * FROM experimentParameters WHERE experimentParameters.experimentid = %d""" % experiment[0])
-        count = 0
-        for param in c.fetchall():
-            offset = -0.20 - 0.05 * count
-            plt.figtext(pagex, pagey+offset, "%s: %s" %(param[-2], param[-1]))
-            count += 1
-        pagey -= 0.22
     plt.show()
     pp.savefig(plt.gcf())
     pp.close()
