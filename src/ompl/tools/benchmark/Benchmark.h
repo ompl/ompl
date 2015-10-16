@@ -148,6 +148,9 @@ namespace ompl
 
                 /// Information about the CPU of the machine the benchmark ran on
                 std::string                    cpuInfo;
+
+                /// Additional, experiment specific parameters
+                std::vector<std::pair<std::string, std::string> > parameters;
             };
 
             /** \brief Representation of a benchmark request */
@@ -207,6 +210,24 @@ namespace ompl
 
             virtual ~Benchmark()
             {
+            }
+
+            /** \brief Add an optional parameter's information to the benchmark output.  Useful for aggregating results over a parameter sweep (for example). */
+            void addExperimentParameter(const std::string& name, const std::string& value)
+            {
+                exp_.parameters.push_back(std::make_pair(name, value));
+            }
+
+            /** \brief Get all optional benchmark parameters  */
+            const std::vector<std::pair<std::string, std::string> >& getExperimentParameters() const
+            {
+                return exp_.parameters;
+            }
+
+             /** \brief Return the number of optional benchmark parameters */
+            std::size_t numExperimentParameters() const
+            {
+                return exp_.parameters.size();
             }
 
             /** \brief Set the name of the experiment */

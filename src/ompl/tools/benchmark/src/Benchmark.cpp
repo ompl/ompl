@@ -270,6 +270,11 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
 
     out << "OMPL version " << OMPL_VERSION << std::endl;
     out << "Experiment " << (exp_.name.empty() ? "NO_NAME" : exp_.name) << std::endl;
+
+    out << exp_.parameters.size() << " experiment properties" << std::endl;
+    for(size_t i = 0; i < exp_.parameters.size(); ++i)
+        out << exp_.parameters[i].first << " = " << exp_.parameters[i].second << std::endl;
+
     out << "Running on " << (exp_.host.empty() ? "UNKNOWN" : exp_.host) << std::endl;
     out << "Starting at " << boost::posix_time::to_iso_extended_string(exp_.startTime) << std::endl;
     out << "<<<|" << std::endl << exp_.setupInfo << "|>>>" << std::endl;
@@ -613,7 +618,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                         gsetup_->getStateSpace()->setValidSegmentCountFactor(factor * 4);
                         run["correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
                         gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
-                        
+
                         if (req.simplify)
                         {
                             // simplify solution

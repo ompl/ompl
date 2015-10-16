@@ -116,6 +116,10 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
         totaltime REAL, timelimit REAL, memorylimit REAL, runcount INTEGER,
         version VARCHAR(128), hostname VARCHAR(1024), cpuinfo TEXT,
         date DATETIME, seed INTEGER, setup TEXT);
+        CREATE TABLE IF NOT EXISTS experimentParameters
+        (id INTEGER PRIMARY KEY AUTOINCREMENT, experimentid INTEGER,
+         name VARCHAR(512), value VARCHAR(512),
+        FOREIGN KEY (experimentid) REFERENCES experiments(id) ON DELETE CASCADE);
         CREATE TABLE IF NOT EXISTS plannerConfigs
         (id INTEGER PRIMARY KEY AUTOINCREMENT,
         name VARCHAR(512) NOT NULL, settings TEXT);
@@ -144,6 +148,14 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
             version = "0.0.0"
         version = ' '.join([libname, version])
         expname = readRequiredLogValue("experiment name", logfile, -1, {0 : "Experiment"})
+
+        # optional experiment properties
+        nrexpprops = int(readOptionalLogValue(logfile, 0, {-2: "experiment", -1: "properties"}))
+        expprops = {}
+        for i in range(nrexpprops):
+            entry = logfile.readline().strip().split('=')
+            expprops[entry[0]] = entry[1]
+
         hostname = readRequiredLogValue("hostname", logfile, -1, {0 : "Running"})
         date = ' '.join(ensurePrefix(logfile.readline(), "Starting").split()[2:])
         if moveitformat:
@@ -178,6 +190,11 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
               (None, expname, totaltime, timelimit, memorylimit, nrruns,
               version, hostname, cpuinfo, date, rseed, expsetup) )
         experimentId = c.lastrowid
+
+        # inserting all experiment properties into table
+        for k,v in expprops.iteritems():
+            c.execute('INSERT INTO experimentParameters VALUES (?,?,?,?)', (None, experimentId, k, v))
+
         numPlanners = int(readRequiredLogValue("planner count", logfile, 0, {-1 : "planners"}))
         for i in range(numPlanners):
             plannerName = logfile.readline()[:-1]
@@ -434,6 +451,14 @@ def plotStatistics(dbname, fname):
         plt.figtext(pagex, pagey-0.05, 'Number of averaged runs: %d' % numRuns)
         plt.figtext(pagex, pagey-0.10, "Time limit per run: %g seconds" % experiment[2])
         plt.figtext(pagex, pagey-0.15, "Memory limit per run: %g MB" % experiment[3])
+
+        # Optional experiment parameters
+        c.execute("""SELECT * FROM experimentParameters WHERE experimentParameters.experimentid = %d""" % experiment[0])
+        count = 0
+        for param in c.fetchall():
+            offset = -0.20 - 0.05 * count
+            plt.figtext(pagex, pagey+offset, "%s: %s" %(param[-2], param[-1]))
+            count += 1
         pagey -= 0.22
     plt.show()
     pp.savefig(plt.gcf())
