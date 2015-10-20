@@ -37,7 +37,8 @@
 # Author: Mark Moll, Ioan Sucan, Luis G. Torres
 
 from sys import argv, exit
-from os.path import basename, splitext
+from os.path import basename, splitext, exists
+import os
 import sqlite3
 import datetime
 import matplotlib
@@ -144,6 +145,23 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
             version = "0.0.0"
         version = ' '.join([libname, version])
         expname = readRequiredLogValue("experiment name", logfile, -1, {0 : "Experiment"})
+
+        # optional experiment properties
+        nrexpprops = int(readOptionalLogValue(logfile, 0, {-2: "experiment", -1: "properties"}) or 0)
+        expprops = {}
+        for i in range(nrexpprops):
+            entry = logfile.readline().strip().split('=')
+            nameAndType = entry[0].split(' ')
+            expprops[nameAndType[0]] = (entry[1], nameAndType[1])
+
+        # adding columns to experiments table
+        c.execute('PRAGMA table_info(experiments)')
+        columnNames = [col[1] for col in c.fetchall()]
+        for name in sorted(expprops.keys()):
+            # only add column if it doesn't exist
+            if name not in columnNames:
+                c.execute('ALTER TABLE experiments ADD %s %s' % (name, expprops[name][1]))
+
         hostname = readRequiredLogValue("hostname", logfile, -1, {0 : "Running"})
         date = ' '.join(ensurePrefix(logfile.readline(), "Starting").split()[2:])
         if moveitformat:
@@ -174,10 +192,15 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
                 for j in range(len(enum)-1):
                     c.execute('INSERT INTO enums VALUES (?,?,?)',
                         (enum[0],j,enum[j+1]))
-        c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
-              (None, expname, totaltime, timelimit, memorylimit, nrruns,
-              version, hostname, cpuinfo, date, rseed, expsetup) )
+
+        # Creating entry in experiments table
+        experimentEntries = [None, expname, totaltime, timelimit, memorylimit, nrruns, version,
+                             hostname, cpuinfo, date, rseed, expsetup]
+        for name in sorted(expprops.keys()): # sort to ensure correct order
+            experimentEntries.append(expprops[name][0])
+        c.execute('INSERT INTO experiments VALUES (' + ','.join('?' for i in experimentEntries) + ')', experimentEntries)
         experimentId = c.lastrowid
+
         numPlanners = int(readRequiredLogValue("planner count", logfile, 0, {-1 : "planners"}))
         for i in range(numPlanners):
             plannerName = logfile.readline()[:-1]
@@ -223,6 +246,7 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
                 values = tuple([experimentId, plannerId] + \
                     [None if len(x) == 0 or x == 'nan' or x == 'inf' else x
                     for x in logfile.readline().split('; ')[:-1]])
+
                 c.execute(insertFmtStr, values)
                 # extract primary key of each run row so we can reference them
                 # in the planner progress data table if needed
@@ -434,7 +458,7 @@ def plotStatistics(dbname, fname):
         plt.figtext(pagex, pagey-0.05, 'Number of averaged runs: %d' % numRuns)
         plt.figtext(pagex, pagey-0.10, "Time limit per run: %g seconds" % experiment[2])
         plt.figtext(pagex, pagey-0.15, "Memory limit per run: %g MB" % experiment[3])
-        pagey -= 0.22
+
     plt.show()
     pp.savefig(plt.gcf())
     pp.close()
@@ -535,6 +559,8 @@ if __name__ == "__main__":
     parser = OptionParser(usage)
     parser.add_option("-d", "--database", dest="dbname", default="benchmark.db",
         help="Filename of benchmark database [default: %default]")
+    parser.add_option("-a", "--append", action="store_true", dest="append", default=False,
+        help="Append data to database (as opposed to overwriting an existing database)")
     parser.add_option("-v", "--view", action="store_true", dest="view", default=False,
         help="Compute the views for best planner configurations")
     parser.add_option("-p", "--plot", dest="plot", default=None,
@@ -544,6 +570,9 @@ if __name__ == "__main__":
     parser.add_option("--moveit", action="store_true", dest="moveit", default=False,
         help="Log files are produced by MoveIt!")
     (options, args) = parser.parse_args()
+
+    if not options.append and exists(options.dbname):
+        os.remove(options.dbname)
 
     if len(args)>0:
         readBenchmarkLog(options.dbname, args, options.moveit)
