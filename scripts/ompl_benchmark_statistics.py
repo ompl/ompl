@@ -37,7 +37,8 @@
 # Author: Mark Moll, Ioan Sucan, Luis G. Torres
 
 from sys import argv, exit
-from os.path import basename, splitext
+from os.path import basename, splitext, exists
+import os
 import sqlite3
 import datetime
 import matplotlib
@@ -558,6 +559,8 @@ if __name__ == "__main__":
     parser = OptionParser(usage)
     parser.add_option("-d", "--database", dest="dbname", default="benchmark.db",
         help="Filename of benchmark database [default: %default]")
+    parser.add_option("-a", "--append", action="store_true", dest="append", default=False,
+        help="Append data to database (as opposed to overwriting an existing database)")
     parser.add_option("-v", "--view", action="store_true", dest="view", default=False,
         help="Compute the views for best planner configurations")
     parser.add_option("-p", "--plot", dest="plot", default=None,
@@ -567,6 +570,9 @@ if __name__ == "__main__":
     parser.add_option("--moveit", action="store_true", dest="moveit", default=False,
         help="Log files are produced by MoveIt!")
     (options, args) = parser.parse_args()
+
+    if not options.append and exists(options.dbname):
+        os.remove(options.dbname)
 
     if len(args)>0:
         readBenchmarkLog(options.dbname, args, options.moveit)

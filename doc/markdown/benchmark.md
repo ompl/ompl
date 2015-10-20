@@ -1,6 +1,6 @@
 # How to Benchmark Planners
 
-OMPL contains a ompl::Benchmark class that facilitates solving a motion planning problem repeatedly with different planners, different samplers, or even differently configured versions of the same planning algorithm. Below, we will describe how you can use this class.
+OMPL contains a ompl::Benchmark class that facilitates solving a motion planning problem repeatedly with different parameters, different planners, different samplers, or even differently configured versions of the same planning algorithm. Below, we will describe how you can use this class.
 
 \if OMPLAPP
 - \ref benchmark_config
@@ -20,7 +20,7 @@ For interactive visualization of benchmark databases, please see [plannerarena.o
 \if OMPLAPP
 # Create a benchmark configuration file {#benchmark_config}
 
-OMPL.app contains a command line program called `ompl_benchmark`, that can read a text based configuration file using an ini style format with key/value pairs. This is the same format that can be read and saved with the OMPL.app GUI. The GUI ignores the settings related to benchmarking. However, it is often convenient to create an initial configuration with the GUI and add the benchmark settings with a text editor. Currently the base functionality of the `ompl_benchmark` program only applies to geometric planning in SE(2) and SE(3), but can be extended by the user to other spaces.
+OMPL.app contains a command line program called `ompl_benchmark`, that can read a text based configuration file using an ini style format with key/value pairs. This is the same format that can be read and saved with the OMPL.app GUI. The GUI ignores the settings related to benchmarking. However, it is often convenient to create an initial configuration with the GUI and add the benchmark settings with a text editor. Currently the base functionality of the `ompl_benchmark` program only applies to geometric planning in SE(2) and SE(3) and kinodynamic planning for certain systems, but the program can be extended by the user to other types of planning problems.
 
 There are a number of _required_ parameters necessary to define the problem. These exist under the “**[problem]**” heading:
 
@@ -116,6 +116,7 @@ Benchmarking a set of planners on a specified problem using the Benchmark class 
 
 - Configure the benchmark problem using ompl::geometric::SimpleSetup or ompl::control::SimpleSetup
 - Create a ompl::Benchmark object that takes the problem as input
+- Optionally, specify some parameters for the benchmark object using ompl::Benchmark::addExperimentParameter, which is useful when aggregating benchmark results over parametrized benchmarks.
 - Add one or more planners to the benchmark
 - Optionally add events to be called before and/or after the execution of a planner
 - Run the benchmark problem a specified number of times, subject to specified time and memory limits
@@ -148,6 +149,10 @@ Benchmarking code starts here:
 ~~~{.cpp}
 // First we create a benchmark class:
 ompl::tools::Benchmark b(ss, "my experiment");
+
+// Optionally, specify some benchmark parameters (doesn't change how the benchmark is run)
+b.addExperimentParameter("num_dofs", "INTEGER", "6")
+b.addExperimentParameter("num_obstacles", "INTEGER", "10")
 
 // We add the planners to evaluate.
 b.addPlanner(base::PlannerPtr(new geometric::KPIECE1(ss.getSpaceInformation())));
@@ -214,7 +219,7 @@ Once the C++ code computing the results has been executed, a log file is generat
 
     ompl/scripts/ompl_benchmark_statistics.py logfile.log -d mydatabase.db
 
-This will generate a SQLite database containing the parsed data. If no database name is specified, the named is assumed to be benchmark.db Once this database is generated, we can construct plots:
+This will generate a SQLite database containing the parsed data. If no database name is specified, the named is assumed to be benchmark.db. Once this database is generated, we can visualize the results. The recommended way is to upload the database to [Planner Arena](http://plannerarena.org) and navigate through the different plots. Planner Arena can also be run locally with the `plannerarena` script (requires R to be installed). Alternatively, you can also produce some basic plots with `ompl_benchmark_statistics.py` like so:
 
     ompl/scripts/ompl_benchmark_statistics.py -d mydatabase.db -p boxplot.pdf
 
@@ -341,6 +346,11 @@ Here, `EOL` denotes a newline character, `int` denotes an integer, `float` denot
 
 # The benchmark database schema {#benchmark_database}
 
+<div class="col-sm-4 pull-right">
+  <img src="images/benchmarkdb_schema.png" width="100%">
+  <br/>
+  <b>The benchmark database schema</b>
+</div>
 The ompl_benchmark_statistics.py script can produce a series of plots from a database of benchmark results, but in many cases you may want to produce your own custom plots. For this it useful to understand the schema used for the database. There are five tables in a benchmark database:
 
 - **experiments**. This table contains the following information:
