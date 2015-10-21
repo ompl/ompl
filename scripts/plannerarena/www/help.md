@@ -66,6 +66,8 @@ The overall performance page allows you to select a motion planning problem that
 
 Most of the measures are plotted as [box plots](http://en.wikipedia.org/wiki/Box_plot). Missing data is ignored. This is _very_ important to keep in mind: if a planner failed to solve a problem 99 times out of a 100 runs, then the average solution length is determined by one run! To make missing data more apparent, a table below the plot shows how many data points there were for each planner and how many of those were missing values (i.e., `NULL`, `None`, `NA`, etc.).
 
+If your benchmark database contains results for parametrized benchmarks, then you can select results for different parameter values. By default, results are aggregated over *all* parameter values. You can also choose to show performance for selected planners across all parameter values by selecting “all (separate)” from the corresponding parameter selection widget.
+
 The plots can be downloaded in two formats:
 - **PDF.** This is useful if the plot is more or less “camera-ready” and might just need some touch ups with, e.g., Adobe Illustrator.
 - **RData.** This contains both the plot as well as all the data shown in the plot in a file format that can be loaded into R with the `load` command (or just double-click on the file if you have [RStudio](http://www.rstudio.com) installed). The plot can be completely customized, further analysis can be applied to the data, or the data can be plotted in an entirely different way.
