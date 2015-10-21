@@ -508,6 +508,7 @@ server <- function(input, output, session) {
             p <- p + geom_point(alpha=I(input$progressOpacity / 100))
         if (!is.null(grouping))
             p <- p + facet_grid(grouping ~ .)
+        p
     })
     output$progPlot <- renderPlot({ progPlot() })
     progNumMeasurementsPlot <- reactive({
@@ -524,6 +525,7 @@ server <- function(input, output, session) {
                 coord_cartesian(xlim = c(0, trunc(max(data$time))))
             if (!is.null(grouping))
                 p <- p + facet_grid(grouping ~ .)
+            p
         }
     })
     output$progNumMeasurementsPlot <- renderPlot({ progNumMeasurementsPlot() })
