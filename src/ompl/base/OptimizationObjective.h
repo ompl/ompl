@@ -164,9 +164,9 @@ namespace ompl
         };
 
         /**
-            \brief For use when goal region's distanceGoal() is
-            equivalent to the cost-to-go of a state under the
-            optimization objective. This function assumes that all states
+            \brief For use when the cost-to-go of a state under the
+            optimization objective is equivalent to the
+            goal region's distanceGoal() . This function assumes that all states
             within the goal region's threshold have a cost-to-go of
             exactly zero. Note: \e goal is assumed to be of type
             ompl::base::GoalRegion

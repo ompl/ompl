@@ -614,9 +614,16 @@ namespace ompl
                 this->resort();
             }
 
-            //If the edge queue is empty, that must mean we're either starting from scratch, or just finished a batch. Either way, make a batch of samples and fill the queue for the first time:
+            //Is the edge queue empty?
             if (intQueue_->isEmpty() == true)
             {
+                //If is is AND it is not sorted, then we hit the (rare) condition where we emptied the queue without having to resort it. Sort!
+                if (intQueue_->isSorted() == false)
+                {
+                    this->resort();
+                }
+
+                //If not, then we're either just starting the problem, or just finished a batch. Either way, make a batch of samples and fill the queue for the first time:
                 this->newBatch();
             }
             else
@@ -1674,9 +1681,16 @@ namespace ompl
 
 
 
+        unsigned int BITstar::numIterations() const
+        {
+            return numIterations_;
+        }
+
+
+
         std::string BITstar::iterationProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(numIterations_);
+            return boost::lexical_cast<std::string>(this->numIterations());
         }
 
 
