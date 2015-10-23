@@ -448,21 +448,24 @@ server <- function(input, output, session) {
             need(input$perfPlanners, 'Select some planners')
         )
         attr <- gsub(" ", "_", input$perfAttr)
-        grouping <- problemParamGroupBy(paramValues <- problemParamValues(con(), "perf", input))
+        paramValues <- problemParamValues(con(), "perf", input)
+        grouping <- problemParamGroupBy(paramValues)
+        query <- sprintf("SELECT plannerConfigs.name AS planner")
+        if (!is.null(grouping))
+            query <- sprintf("%s, experiments.%s as \"%s\"", query, grouping, grouping)
+        query <- sprintf("%s, SUM(runs.%s IS NULL) AS missing, COUNT(*) AS total FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND (%s)",
+            query,
+            attr,
+            input$perfProblem,
+            input$perfVersion,
+            paste(sapply(input$perfPlanners, sqlPlannerSelect), collapse=" OR "))
+        if (length(paramValues) > 0)
+            query <- sprintf("%s AND %s", query,
+                paste(mapply(sqlProblemParamSelect, names(paramValues), paramValues), collapse=" AND "))
         if (is.null(grouping))
-            query <- sprintf("SELECT plannerConfigs.name AS planner, SUM(runs.%s IS NULL) AS missing, COUNT(*) AS total FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND (%s) GROUP BY plannerConfigs.name;",
-                attr,
-                input$perfProblem,
-                input$perfVersion,
-                paste(sapply(input$perfPlanners, sqlPlannerSelect), collapse=" OR "))
+            query <- sprintf("%s GROUP BY plannerConfigs.name;", query)
         else
-            query <- sprintf("SELECT plannerConfigs.name AS planner, experiments.%s as \"%s\", SUM(runs.%s IS NULL) AS missing, COUNT(*) AS total FROM plannerConfigs INNER JOIN runs ON plannerConfigs.id = runs.plannerid INNER JOIN experiments ON experiments.id = runs.experimentid WHERE experiments.name=\"%s\" AND experiments.version=\"%s\" AND (%s) GROUP BY plannerConfigs.name, experiments.%s;",
-                grouping, grouping,
-                attr,
-                input$perfProblem,
-                input$perfVersion,
-                paste(sapply(input$perfPlanners, sqlPlannerSelect), collapse=" OR "),
-                grouping)
+            query <- sprintf("%s GROUP BY plannerConfigs.name, experiments.%s;", query, grouping)
         data <- dbGetQuery(con(), query)
         data$planner <- factor(data$planner, unique(data$planner), labels = sapply(unique(data$planner), plannerNameMapping))
         data
