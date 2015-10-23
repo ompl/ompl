@@ -80,7 +80,7 @@ namespace ompl
             /** \brief Get the description of this optimization objective */
             const std::string& getDescription() const;
 
-            /** \brief Check if the the given cost \e c satisfies the specified cost objective, meaning we may stop planning. */
+            /** \brief Check if the the given cost \e c satisfies the specified cost objective, defined as \e better \e than the specified threshold. */
             virtual bool isSatisfied(Cost c) const;
 
             /** \brief Returns the cost threshold currently being checked for objective satisfaction */
