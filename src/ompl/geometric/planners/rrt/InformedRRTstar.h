@@ -48,12 +48,12 @@ namespace ompl
 
         /**
             @anchor gInformedRRTstar
-            @par Short description
-            Run RRTstar with an informed strategy that uses the existence of a solution to define a subproblem that contains all possibly better solutions.
-            The search is limited to this subproblem by pruning the graph, generating samples only in this subproblem (directly if available, e.g., path length)
-            and using the size of this subproblem to calculate the connection terms (if available, e.g., path length)
 
-            @par Associated publications:
+            Run \ref gRRTstar "RRT*" with an informed search strategy that uses heuristics to only consider subproblem that could provide a better solution.
+            The search is limited to this subproblem by pruning the graph, generating samples only in this subproblem (directly if available, e.g., \ref gPathLengthDirectInfSampler "path length")
+            and, when available, using the measure of this subproblem to calculate the connection terms (e.g., path length)
+
+            @par Associated publication:
 
             J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
             Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic." In Proceedings

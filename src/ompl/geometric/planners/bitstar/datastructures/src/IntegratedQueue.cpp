@@ -641,7 +641,7 @@ namespace ompl
         {
             //Threshold should always be g_t(x_g)
             //As the sample is in the graph (and therefore could be part of g_t), prune iff g^(v) + h^(v) > g_t(x_g)
-            //g^(v) + h^(v) <= g_t(x_g)
+            //g^(v) + h^(v) >= g_t(x_g)
             return this->isCostWorseThan(lowerBoundHeuristicVertexFunc_(state), costThreshold_);
         }
 
@@ -1366,7 +1366,7 @@ namespace ompl
                         //Remove myself from the nearest neighbour structure:
                         vertexNN->remove(oldVertex);
 
-                        //Finally, mark as pruned. This is a lock that can never be undone and prevents accessing anything about the vertex.
+                        //Finally, mark as pruned. This is a lock that prevents accessing anything about the vertex.
                         oldVertex->markPruned();
                     }
                     else

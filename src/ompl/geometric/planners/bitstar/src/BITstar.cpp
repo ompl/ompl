@@ -79,12 +79,13 @@ namespace ompl
             opt_(),
             startVertices_(),
             goalVertices_(),
+            prunedStartVertices_(),
+            prunedGoalVertices_(),
             curGoalVertex_(),
             freeStateNN_(),
             vertexNN_(),
             intQueue_(),
             numUniformStates_(0u),
-            sampleDensity_(0.0),
             r_(0.0), //Purposeful Gibberish
             k_rgg_(0.0), //Purposeful Gibberish
             k_(0u), //Purposeful Gibberish
@@ -112,12 +113,13 @@ namespace ompl
             useStrictQueueOrdering_(true),
             rewireFactor_(1.1),
             samplesPerBatch_(100u),
-            useFailureTracking_(false),
             useKNearest_(false),
             usePruning_(true),
             pruneFraction_(0.02),
-            dropSamplesOnPrune_(false),
             delayRewiring_(false),
+            useJustInTimeSampling_(false),
+            dropSamplesOnPrune_(false),
+            useFailureTracking_(false),
             stopOnSolnChange_(false)
         {
             //Specify my planner specs:
@@ -136,12 +138,13 @@ namespace ompl
 
             //More advanced setting callbacks that aren't necessary to be exposed to Python. Uncomment if desired.
             //Planner::declareParam<bool>("use_strict_queue_ordering", this, &BITstar::setStrictQueueOrdering, &BITstar::getStrictQueueOrdering, "0,1");
-            //Planner::declareParam<bool>("use_edge_failure_tracking", this, &BITstar::setUseFailureTracking, &BITstar::getUseFailureTracking, "0,1");
             //Planner::declareParam<bool>("use_k_nearest", this, &BITstar::setKNearest, &BITstar::getKNearest, "0,1");
             //Planner::declareParam<bool>("use_graph_pruning", this, &BITstar::setPruning, &BITstar::getPruning, "0,1");
             Planner::declareParam<double>("prune_threshold_as_fractional_cost_change", this, &BITstar::setPruneThresholdFraction, &BITstar::getPruneThresholdFraction, "0.0:0.01:1.0");
-            Planner::declareParam<bool>("drop_unconnected_samples_on_prune", this, &BITstar::setDropSamplesOnPrune, &BITstar::getDropSamplesOnPrune, "0,1");
             Planner::declareParam<bool>("delay_rewiring_to_first_solution", this, &BITstar::setDelayRewiringUntilInitialSolution, &BITstar::getDelayRewiringUntilInitialSolution, "0,1");
+            Planner::declareParam<bool>("use_just_in_time_sampling", this, &BITstar::setJustInTimeSampling, &BITstar::getJustInTimeSampling, "0,1");
+            Planner::declareParam<bool>("drop_unconnected_samples_on_prune", this, &BITstar::setDropSamplesOnPrune, &BITstar::getDropSamplesOnPrune, "0,1");
+            //Planner::declareParam<bool>("use_edge_failure_tracking", this, &BITstar::setUseFailureTracking, &BITstar::getUseFailureTracking, "0,1");
             //Planner::declareParam<bool>("stop_on_each_solution_improvement", this, &BITstar::setStopOnSolnImprovement, &BITstar::getStopOnSolnImprovement, "0,1");
 
             //Register my progress info:
@@ -263,6 +266,8 @@ namespace ompl
             opt_.reset();
             startVertices_.clear();
             goalVertices_.clear();
+            prunedStartVertices_.clear();
+            prunedGoalVertices_.clear();
             curGoalVertex_.reset();
 
             //The list of samples
@@ -291,17 +296,17 @@ namespace ompl
             //useStrictQueueOrdering_
             //rewireFactor_
             //samplesPerBatch_
-            //useFailureTracking_
             //useKNearest_
             //usePruning_
             //pruneFraction_
-            //dropSamplesOnPrune_
             //delayRewiring_
+            //useJustInTimeSampling_
+            //dropSamplesOnPrune_
+            //useFailureTracking_
             //stopOnSolnChange_
 
             //Reset the various calculations? TODO: Should I recalculate them?
             numUniformStates_ = 0u;
-            sampleDensity_ = 0.0;
             r_ = 0.0;
             k_rgg_ = 0.0; //This is a double for better rounding later
             k_ = 0u;
@@ -328,7 +333,7 @@ namespace ompl
             numPrunings_ = 0u;
 
             //Mark as not setup:
-            setup_ = false;
+            Planner::setup_ = false;
 
             //Call my base clear:
             Planner::clear();
@@ -719,32 +724,78 @@ namespace ompl
             //Set the cost sampled to the minimum
             costSampled_ = minCost_;
 
-            //Calculate the sampling density (currently unused but for eventual JIT sampling)
-            sampleDensity_ = static_cast<double>(samplesPerBatch_)/prunedMeasure_;
+            //Finally, update the nearest-neighbour terms for the number of samples we *will* have.
+            this->updateNearestTerms(true);
         }
 
 
 
         void BITstar::updateSamples(const VertexPtr& vertex)
         {
-            //Check if we need to sample (This is in preparation for JIT sampling:)
-            if (opt_->isCostBetterThan(costSampled_, bestCost_))
-            {
-                //Update the sampler counter:
-                numSamples_ = numSamples_ + samplesPerBatch_;
+            //Variable
+            //The required cost to contain the neighbourhood of this vertex:
+            ompl::base::Cost costReqd = neighbourhoodCost(vertex);
 
-                //Generate samples
-                for (unsigned int i = 0u; i < samplesPerBatch_; ++i)
+            //Check if we need to generate new samples inorder to completely cover the neighbourhood of the vertex
+            if (opt_->isCostBetterThan(costSampled_, costReqd))
+            {
+                //Variable
+                //The total number of samples we wish to have.
+                unsigned int totalReqdSamples;
+
+                //Get the measure of what we're sampling
+                if (useJustInTimeSampling_ == true)
+                {
+                    //Variables
+                    //The sample density for this slice of the problem.
+                    double sampleDensity;
+                    //The resulting number of samples needed for this slice as a *double*
+                    double dblNum;
+
+                    //Calculate the sample density given the number of samples per batch and the measure of this batch
+                    //Is the problem domain finite?
+                    if (std::isfinite(prunedMeasure_) == true)
+                    {
+                        //The problem is finite, assume this batch will fill the same measure as the previous
+                        sampleDensity = static_cast<double>(samplesPerBatch_)/prunedMeasure_;
+                    }
+                    else
+                    {
+                        //It's infinite, assume unit measure
+                        sampleDensity = static_cast<double>(samplesPerBatch_);
+                    }
+
+                    //Convert that into the number of samples needed for this slice.
+                    dblNum = sampleDensity * sampler_->getInformedMeasure(costSampled_, costReqd);
+
+                    //The integer of the double are definitely sampled
+                    totalReqdSamples = numSamples_ + static_cast<unsigned int>(dblNum);
+
+                    //And the fractional part represents the probability of one more sample. I like being pedantic.
+                    if (rng_.uniform01() <= (dblNum - static_cast<double>(totalReqdSamples)))
+                    {
+                        //One more please
+                        ++totalReqdSamples;
+                    }
+                    //No else.
+                }
+                else
+                {
+                    //We're generating all our samples in one batch. Do it to it.
+                    totalReqdSamples = numSamples_ + samplesPerBatch_;
+                }
+
+                //Actually generate the new samples
+                while (numSamples_ < totalReqdSamples)
                 {
                     //Variable
                     //The new state:
                     VertexPtr newState = boost::make_shared<Vertex>(Planner::si_, opt_);
 
-                    //Sample:
-                    sampler_->sampleUniform(newState->state(), bestCost_);
+                    //Sample in the interval [costSampled_, costReqd):
+                    sampler_->sampleUniform(newState->state(), costSampled_, costReqd);
 
                     //If the state is collision free, add it to the list of free states
-                    //We're counting density in the total state space, not free space
                     ++numStateCollisionChecks_;
                     if (Planner::si_->isValid(newState->stateConst()) == true)
                     {
@@ -753,14 +804,15 @@ namespace ompl
 
                         //Update the number of uniformly distributed states
                         ++numUniformStates_;
+
+                        //Update the number of sample
+                        ++numSamples_;
                     }
+                    //No else
                 }
 
                 //Mark that we've sampled all cost spaces (This is in preparation for JIT sampling)
-                costSampled_ = opt_->infiniteCost();
-
-                //Finally, update the nearest-neighbour terms
-                this->updateNearestTerms();
+                costSampled_ = costReqd;
             }
             //No else, the samples are up to date
         }
@@ -916,8 +968,9 @@ namespace ompl
         void BITstar::updateStartAndGoalStates(const base::PlannerTerminationCondition& ptc)
         {
             //Variable
-            //Whether we've added a state:
-            bool addedState = false;
+            //Whether we've added a start or goal:
+            bool addedGoal = false;
+            bool addedStart = false;
             //Whether we have to rebuid the queue, i.e.. whether we've called updateStartAndGoalStates before
             bool rebuildQueue = false;
 
@@ -949,21 +1002,11 @@ namespace ompl
                     this->addSample(goalVertices_.back());
 
                     //Mark that we've added:
-                    addedState = true;
+                    addedGoal = true;
                 }
                 //No else, there was no goal.
             }
             while (Planner::pis_.haveMoreGoalStates() == true);
-
-            //If we are going to rebuild the queue, flag the preexisting states now, so we don't resort the new ones
-            if (rebuildQueue == true)
-            {
-                //Flag the queue as unsorted downstream from every existing start.
-                for (std::list<VertexPtr>::const_iterator sIter = startVertices_.begin(); sIter != startVertices_.end(); ++sIter)
-                {
-                    intQueue_->markVertexUnsorted(*sIter);
-                }
-            }
 
             //And then do the for starts. We do this last as the starts are added to the queue, which uses a cost-to-go heuristic in it's ordering, and for that we want all the goals updated.
             //As there is no way to wait for new *start* states, this loop can be cleaner
@@ -984,11 +1027,94 @@ namespace ompl
                 this->addVertex(startVertices_.back(), false);
 
                 //Mark that we've added:
-                addedState = true;
+                addedStart = true;
+            }
+
+            //Now, if we added a new start and have previously pruned goals, we may want to readd them.
+            if (addedStart == true && prunedGoalVertices_.empty() == false)
+            {
+                //Variable
+                //An iterator to the list of pruned goals
+                std::list<VertexPtr>::iterator pgIter = prunedGoalVertices_.begin();
+
+                //Consider each one
+                while (pgIter != prunedGoalVertices_.end())
+                {
+                    //Mark as unpruned
+                    (*pgIter)->markUnpruned();
+
+                    //Check if it should be readded (i.e., would it be pruned *now*?)
+                    if (intQueue_->vertexPruneCondition(*pgIter)  == true)
+                    {
+                        //It would be pruned, so remark as pruned
+                        (*pgIter)->markPruned();
+
+                        //and move onto the next:
+                        ++pgIter;
+                    }
+                    else
+                    {
+                        //It would not be pruned now, so readd it!
+                        //Add back to the list:
+                        goalVertices_.push_back(*pgIter);
+
+                        //Add as a sample
+                        this->addSample(*pgIter);
+
+                        //Mark what we've added:
+                        addedGoal = true;
+
+                        //Remove the start from the list, this returns the next iterator
+                        pgIter = prunedGoalVertices_.erase(pgIter);
+
+                        //Just like the other new goals, we will need to rebuild the queue if any starts have previously been added. Which was a condition to be here in the first place
+                        rebuildQueue = true;
+                    }
+                }
+            }
+
+            //Now, if we added a goal and have previously pruned starts, we will have to do the same on those
+            if (addedGoal == true && prunedStartVertices_.empty() == false)
+            {
+                //Variable
+                //An iterator to the list of pruned starts
+                std::list<VertexPtr>::iterator psIter = prunedStartVertices_.begin();
+
+                //Consider each one
+                while (psIter != prunedStartVertices_.end())
+                {
+                    //Mark as unpruned
+                    (*psIter)->markUnpruned();
+
+                    //Check if it should be readded (i.e., would it be pruned *now*?)
+                    if (intQueue_->vertexPruneCondition(*psIter)  == true)
+                    {
+                        //It would be pruned, so remark as pruned
+                        (*psIter)->markPruned();
+
+                        //and move onto the next:
+                        ++psIter;
+                    }
+                    else
+                    {
+                        //It would not be pruned, readd it!
+                        //Add it back to the list
+                        startVertices_.push_back(*psIter);
+
+                        //Add to the queue as a vertex. It is not a sample, so skip that step:
+                        this->addVertex(*psIter, false);
+
+                        //Mark what we've added:
+                        addedStart = true;
+
+                        //Remove the start from the list, this returns the next iterator
+                        psIter = prunedStartVertices_.erase(psIter);
+                    }
+                }
             }
 
             //If we've added a state, we have some updating to do.
-            if (addedState == true)
+            if (addedGoal == true || addedStart == true)
             {
                 //Update the minimum cost
                 for (std::list<VertexPtr>::const_iterator sIter = startVertices_.begin(); sIter != startVertices_.end(); ++sIter)
@@ -1011,7 +1137,13 @@ namespace ompl
                     //There was, inform
                     OMPL_INFORM("%s: Updating starts/goals and rebuilding the queue.", Planner::getName().c_str());
 
-                    //Resort the queue. We have already flagged the start vertices that need to be restarted
+                    //Flag the queue as unsorted downstream from every existing start.
+                    for (std::list<VertexPtr>::const_iterator sIter = startVertices_.begin(); sIter != startVertices_.end(); ++sIter)
+                    {
+                        intQueue_->markVertexUnsorted(*sIter);
+                    }
+
+                    //Resort the queue.
                     this->resort();
                 }
                 //No else
@@ -1049,8 +1181,11 @@ namespace ompl
                         ++numVerticesDisconnected_;
                         ++numFreeStatesPruned_;
 
-                        //Remove the start vertex completely, they don't have parents
+                        //Remove the start vertex completely from the queue, they don't have parents
                         intQueue_->eraseVertex(*startIter, false, vertexNN_, freeStateNN_);
+
+                        //Store the start vertex in the pruned list, in case it later needs to be readded:
+                        prunedStartVertices_.push_back(*startIter);
 
                         //Remove from the list, this returns the next iterator
                         startIter = startVertices_.erase(startIter);
@@ -1089,6 +1224,9 @@ namespace ompl
 
                             //And erase it from the queue:
                             intQueue_->eraseVertex(*goalIter, (*goalIter)->hasParent(), vertexNN_, freeStateNN_);
+
+                            //Store the start vertex in the pruned list, in case it later needs to be readded:
+                            prunedGoalVertices_.push_back(*goalIter);
 
                             //Remove from the list, this returns the next iterator
                             goalIter = goalVertices_.erase(goalIter);
@@ -1168,6 +1306,9 @@ namespace ompl
 
             //Remove from the list of samples
             freeStateNN_->remove(oldSample);
+
+            //Mark the sample as pruned
+            oldSample->markPruned();
         }
 
 
@@ -1526,10 +1667,16 @@ namespace ompl
 
 
 
-        ompl::base::Cost BITstar::neighbourhoodCost() const
+        ompl::base::Cost BITstar::neighbourhoodCost(const VertexPtr& vertex) const
         {
-            OMPL_INFORM("%s: TODO: Write neighbourhoodCost() more generally.", Planner::getName().c_str());
-            return ompl::base::Cost( 2.0*r_ );
+            if (useJustInTimeSampling_ == true)
+            {
+                return opt_->betterCost(prunedCost_, opt_->combineCosts(this->lowerBoundHeuristicVertex(vertex), ompl::base::Cost(2.0 * r_)));
+            }
+            else
+            {
+                return prunedCost_;
+            }
         }
 
 
@@ -1609,12 +1756,12 @@ namespace ompl
             //Calculate the k-nearest constant
             k_rgg_ = this->minimumRggK();
 
-            this->updateNearestTerms();
+            this->updateNearestTerms(false);
         }
 
 
 
-        void BITstar::updateNearestTerms()
+        void BITstar::updateNearestTerms(bool plusFutureSamples)
         {
             //Variables:
             //The number of uniformly distributed states:
@@ -1630,6 +1777,11 @@ namespace ompl
             {
                 //We are not, so the all vertices and samples are uniform, less the starts and goals.
                 N = vertexNN_->size() + freeStateNN_->size() - startVertices_.size() - goalVertices_.size();
+            }
+
+            if (plusFutureSamples == true)
+            {
+                N = N + samplesPerBatch_;
             }
 
             if (useKNearest_ == true)
@@ -1671,11 +1823,24 @@ namespace ompl
             //Variables
             //The dimension cast as a double for readibility;
             double dimDbl = static_cast<double>(Planner::si_->getStateDimension());
+            //The measure, either of the pruned region of the planning problem, or a unit measure
+            double measure;
+
+            if (std::isfinite(prunedMeasure_) == true)
+            {
+                //We have a finite planning problem.
+                measure = prunedMeasure_;
+            }
+            else
+            {
+                //We are solving the infinite planning problem, assume unit measure
+                measure = 1.0;
+            }
 
             //Calculate the term and return
-            return rewireFactor_*2.0*std::pow( (1.0 + 1.0/dimDbl)*( prunedMeasure_/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRG radius (biggest for unit-volume problem)
-            //return rewireFactor_*std::pow( 2.0*(1.0 + 1.0/dimDbl)*( prunedMeasure_/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRT* radius (smaller for unit-volume problem)
-            //return rewireFactor_*2.0*std::pow( (1.0/dimDbl)*( prunedMeasure_/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //FMT* radius (smallest for R2, equiv to RRT* for R3 and then middle for higher d. All unit-volume)
+            return rewireFactor_*2.0*std::pow( (1.0 + 1.0/dimDbl)*( measure/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRG radius (biggest for unit-volume problem)
+            //return rewireFactor_*std::pow( 2.0*(1.0 + 1.0/dimDbl)*( measure/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRT* radius (smaller for unit-volume problem)
+            //return rewireFactor_*2.0*std::pow( (1.0/dimDbl)*( measure/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //FMT* radius (smallest for R2, equiv to RRT* for R3 and then middle for higher d. All unit-volume)
         }
 
 
@@ -1832,7 +1997,7 @@ namespace ompl
                 if (useKNearest_ == true)
                 {
                     //Warn that this isn't exactly implemented
-                    OMPL_WARN("%s: The implementation of the k-Nearest version of BIT* is not 100%% correct.", Planner::getName().c_str()); //This is because we have a separate nearestNeighbours structure for samples and vertices and you don't know what fraction of K to ask for from each...
+                    OMPL_WARN("%s: The implementation of the k-Nearest version of BIT* is not 100%% correct and actually considers the k-nearest samples and the k-nearest vertices, instead of the k-nearest combined.", Planner::getName().c_str()); //This is because we have a separate nearestNeighbours structure for samples and vertices and you don't know what fraction of K to ask for from each...
                 }
 
                 //Check if there's things to update
@@ -1850,27 +2015,6 @@ namespace ompl
         bool BITstar::getKNearest() const
         {
             return useKNearest_;
-        }
-
-
-
-        void BITstar::setUseFailureTracking(bool trackFailures)
-        {
-            //Store
-            useFailureTracking_ = trackFailures;
-
-            //Configure queue if constructed:
-            if (intQueue_)
-            {
-                intQueue_->setUseFailureTracking(useFailureTracking_);
-            }
-        }
-
-
-
-        bool BITstar::getUseFailureTracking() const
-        {
-            return useFailureTracking_;
         }
 
 
@@ -1926,6 +2070,52 @@ namespace ompl
 
 
 
+        void BITstar::setDelayRewiringUntilInitialSolution(bool delayRewiring)
+        {
+            delayRewiring_ = delayRewiring;
+
+            //Configure queue if constructed:
+            if (intQueue_)
+            {
+                intQueue_->setDelayedRewiring(delayRewiring_);
+            }
+        }
+
+
+
+        bool BITstar::getDelayRewiringUntilInitialSolution() const
+        {
+            return delayRewiring_;
+        }
+
+
+
+        void BITstar::setJustInTimeSampling(bool useJit)
+        {
+            //Assert that this the r-disc connection scheme
+            if (useKNearest_ == true)
+            {
+                throw ompl::Exception("JIT sampling does not work with the k-nearest variant of BIT*.");
+            }
+
+            if (useJit == true)
+            {
+                OMPL_WARN("%s: Just-in-time sampling is experimental and currently only implemented for problems seeking to minimize path-length.", Planner::getName().c_str());
+            }
+
+            //Store
+            useJustInTimeSampling_ = useJit;
+        }
+
+
+
+        bool BITstar::getJustInTimeSampling() const
+        {
+            return useJustInTimeSampling_;
+        }
+
+
+
         void BITstar::setDropSamplesOnPrune(bool dropSamples)
         {
             //If we're turning the function on, make sure the number of uniform states is up to date.
@@ -1963,23 +2153,23 @@ namespace ompl
 
 
 
-
-        void BITstar::setDelayRewiringUntilInitialSolution(bool delayRewiring)
+        void BITstar::setUseFailureTracking(bool trackFailures)
         {
-            delayRewiring_ = delayRewiring;
+            //Store
+            useFailureTracking_ = trackFailures;
 
             //Configure queue if constructed:
             if (intQueue_)
             {
-                intQueue_->setDelayedRewiring(delayRewiring_);
+                intQueue_->setUseFailureTracking(useFailureTracking_);
             }
         }
 
 
 
-        bool BITstar::getDelayRewiringUntilInitialSolution() const
+        bool BITstar::getUseFailureTracking() const
         {
-            return delayRewiring_;
+            return useFailureTracking_;
         }
 
 

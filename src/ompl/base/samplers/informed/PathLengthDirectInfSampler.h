@@ -52,29 +52,31 @@ namespace ompl
 {
     namespace base
     {
-        /** \brief An informed sampler for problems seeking to minimize path length.
+        /**
+            @anchor gPathLengthDirectInfSampler
 
-        @par Short description
-        It focuses the search to the subset of a problem that can improve a current solution, which is a prolate hyperspheroid (PHS)
-        (a special type of an hyperellipsoid) and can be sampled directly.
-        Doing so considers all homotopy classes that can provide a better solution while guaranteeing a non-zero probability
-        of improving a solution regardless of the size of the planning domain, the number of state dimensions, and how close
-        the current solution is to the theoretical minimum.
-        Currently only implemented for problems with a single goal in R^n (i.e., RealVectorStateSpace), SE(2) (i.e., SE2StateSpace), and SE(3) (i.e., SE3StateSpace).
-        Until an initial solution is found, this sampler simply passes-through to a uniform distribution over the entire state space.
+            PathLengthDirectInfSampler is a method to generate uniform samples in the subset of a problem that could provide a shorter path from start to goal.
+            This subset is a prolate hyperspheroid (PHS), a special type of an hyperellipsoid) and can be sampled directly.
 
-        @par Associated publications:
+            Informed sampling is a method to focus search which continuing to consider all homotopy classes that can provide a better solution.
+            Directly sampling the informed subset guarantees a non-zero probability of improving a solution regardless of the size of the planning domain,
+            the number of state dimensions, and how close the current solution is to the theoretical minimum.
 
-        J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
-        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic." In Proceedings
-        of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Chicago, IL, USA,
-        14-18 Sept. 2014.
-        DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
-        <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
-        <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>.
+            Currently only implemented for problems in R^n (i.e., RealVectorStateSpace), SE(2) (i.e., SE2StateSpace), and SE(3) (i.e., SE3StateSpace).
+            Until an initial solution is found, this sampler simply passes-through to a uniform distribution over the entire state space.
 
-        \todo
-        - Handle other types of goals? */
+            @par Associated publication:
+
+            J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
+            Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic." In Proceedings
+            of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Chicago, IL, USA,
+            14-18 Sept. 2014.
+            DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
+            <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
+            <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>.
+        */
+
+        /** \brief An informed sampler for problems seeking to minimize path length.*/
         class PathLengthDirectInfSampler : public InformedSampler
         {
         public:

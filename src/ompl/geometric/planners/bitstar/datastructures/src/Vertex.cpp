@@ -426,6 +426,13 @@ namespace ompl
 
 
 
+        void BITstar::Vertex::markUnpruned()
+        {
+            isPruned_ = false;
+        }
+
+
+
         void BITstar::Vertex::markAsFailedChild(const VertexConstPtr& failedChild)
         {
             this->assertNotPruned();
