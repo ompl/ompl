@@ -472,14 +472,6 @@ server <- function(input, output, session) {
     }, include.rownames=FALSE)
 
     # progress plot
-    progParamValues <- reactive({
-        validate(
-            need(input$progVersion, 'Select a version'),
-            need(input$progProblem, 'Select a problem'),
-            need(input$progress, 'Select a benchmark attribute')
-        )
-        paramValues <- problemParamValues(con(), "prog", input)
-    })
     progPlotData <- reactive({
         validate(
             need(input$progVersion, 'Select a version'),
@@ -487,7 +479,7 @@ server <- function(input, output, session) {
             need(input$progress, 'Select a benchmark attribute'),
             need(input$progPlanners, 'Select some planners')
         )
-        paramValues <- progParamValues()
+        paramValues <- problemParamValues(con(), "prog", input)
         grouping <- problemParamGroupBy(paramValues)
         attr <- gsub(" ", "_", input$progress)
         # build up query
@@ -502,17 +494,18 @@ server <- function(input, output, session) {
             paste(sapply(input$progPlanners, sqlPlannerSelect), collapse=" OR "))
         if (length(paramValues) > 0)
             query <- sprintf("%s AND %s", query,
-                paste(sapply(paramValues, sqlProblemParamSelect), collapse=" AND "))
+                paste(mapply(sqlProblemParamSelect, names(paramValues), paramValues), collapse=" AND "))
         data <- dbGetQuery(con(), query)
         data$planner <- factor(data$planner, unique(data$planner), labels = sapply(unique(data$planner), plannerNameMapping))
         if (!is.null(grouping))
             data$grouping <- factor(data$grouping)
-        data
+        list(data = data, grouping = grouping)
     })
     progPlot <- reactive({
         attr <- gsub(" ", "_", input$progress)
-        grouping <- problemParamGroupBy(progParamValues())
-        data <- progPlotData()
+        progdata <- progPlotData()
+        data <- progdata$data
+        grouping <- progdata$grouping
         validate(need(nrow(data) > 0, 'No progress data available; select a different benchmark, progress attribute, or planners.'))
         p <- ggplot(data, aes(x = time, y = attr, group = planner, color = planner, fill = planner)) +
             # labels
@@ -531,8 +524,9 @@ server <- function(input, output, session) {
     })
     output$progPlot <- renderPlot({ progPlot() })
     progNumMeasurementsPlot <- reactive({
-        grouping <- problemParamGroupBy(progParamValues())
-        data <- progPlotData()
+        progdata <- progPlotData()
+        data <- progdata$data
+        grouping <- progdata$grouping
         if (nrow(data) > 0)
         {
             p <- ggplot(data, aes(x = time, group = planner, color = planner)) +
@@ -580,7 +574,7 @@ server <- function(input, output, session) {
             paste(sapply(input$regrVersions, sqlVersionSelect), collapse=" OR "))
         if (length(paramValues) > 0)
             query <- sprintf("%s AND %s", query,
-                paste(sapply(paramValues, sqlProblemParamSelect), collapse=" AND "))
+                paste(mapply(sqlProblemParamSelect, names(paramValues), paramValues), collapse=" AND "))
         data <- dbGetQuery(con(), query)
         # strip "OMPL " prefix, so we can fit more labels on the X-axis
         data$version <- sapply(data$version, stripLibnamePrefix)

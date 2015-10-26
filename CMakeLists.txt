@@ -175,6 +175,10 @@ if (NOT MSVC)
     DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
     COMPONENT ompl
     RENAME ompl-config.cmake)
+
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ompl.conf"
+    DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
+    COMPONENT ompl)
 endif()
 
 # uninstall target
