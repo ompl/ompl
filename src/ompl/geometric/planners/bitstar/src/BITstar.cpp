@@ -130,8 +130,6 @@ namespace ompl
             Planner::specs_.directed = true;
             Planner::specs_.provingSolutionNonExistence = false;
 
-            OMPL_INFORM("%s: TODO: Implement approximate solution support.", Planner::getName().c_str());
-
             //Register my setting callbacks
             Planner::declareParam<double>("rewire_factor", this, &BITstar::setRewireFactor, &BITstar::getRewireFactor, "1.0:0.01:3.0");
             Planner::declareParam<unsigned int>("samples_per_batch", this, &BITstar::setSamplesPerBatch, &BITstar::getSamplesPerBatch, "1:1:1000000");
@@ -246,6 +244,48 @@ namespace ompl
 
             //Add any start and goals vertices that exist to the queue, but do NOT wait for any more goals:
             this->updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition());
+
+            //Does the problem have finite boundaries?
+            if (std::isfinite(prunedMeasure_) == false)
+            {
+                //It does not, so let's estimate a measure of the planning problem.
+                //A not horrible place to start would be hypercube proportional to the distance between the start and goal. It's not *great*, but at least it sort of captures the order-of-magnitude of the problem.
+
+                //First, some asserts.
+                //Check that JIT sampling is on, which is required for infinite problems
+                if (useJustInTimeSampling_ == false)
+                {
+                    throw ompl::Exception("For unbounded planning problems, just-in-time sampling must be enabled before calling setup.");
+                }
+                //No else
+
+                //Check that we have a start and goal
+                if (startVertices_.empty() == true || goalVertices_.empty() == true)
+                {
+                    throw ompl::Exception("For unbounded planning problems, at least one start and one goal must exist before calling setup.");
+                }
+                //No else
+
+                //Variables
+                //The maximum distance between start and goal:
+                double maxDist = 0.0;
+                //The scale on the maximum distance, i.e. the width of the hypercube is equal to this value times the distance between start and goal.
+                //This number is completely made up.
+                double distScale = 2.0;
+
+                //Find the max distance
+                for (std::list<VertexPtr>::const_iterator sIter = startVertices_.begin(); sIter != startVertices_.end(); ++sIter)
+                {
+                    for (std::list<VertexPtr>::const_iterator gIter = goalVertices_.begin(); gIter != goalVertices_.end(); ++gIter)
+                    {
+                        maxDist = std::max(maxDist, Planner::si_->distance((*sIter)->stateConst(), (*gIter)->stateConst()));
+                    }
+                }
+
+                //Calculate an estimate of the problem measure by (hyper)cubing the max distance
+                prunedMeasure_ = std::pow(distScale*maxDist, Planner::si_->getStateDimension());
+            }
+            //No else, finite problem dimension
 
             //Finally initialize the nearestNeighbour terms:
             this->initializeNearestTerms();
@@ -752,18 +792,8 @@ namespace ompl
                     //The resulting number of samples needed for this slice as a *double*
                     double dblNum;
 
-                    //Calculate the sample density given the number of samples per batch and the measure of this batch
-                    //Is the problem domain finite?
-                    if (std::isfinite(prunedMeasure_) == true)
-                    {
-                        //The problem is finite, assume this batch will fill the same measure as the previous
-                        sampleDensity = static_cast<double>(samplesPerBatch_)/prunedMeasure_;
-                    }
-                    else
-                    {
-                        //It's infinite, assume unit measure
-                        sampleDensity = static_cast<double>(samplesPerBatch_);
-                    }
+                    //Calculate the sample density given the number of samples per batch and the measure of this batch by assuming that this batch will fill the same measure as the previous
+                    sampleDensity = static_cast<double>(samplesPerBatch_)/prunedMeasure_;
 
                     //Convert that into the number of samples needed for this slice.
                     dblNum = sampleDensity * sampler_->getInformedMeasure(costSampled_, costReqd);
@@ -1823,24 +1853,11 @@ namespace ompl
             //Variables
             //The dimension cast as a double for readibility;
             double dimDbl = static_cast<double>(Planner::si_->getStateDimension());
-            //The measure, either of the pruned region of the planning problem, or a unit measure
-            double measure;
-
-            if (std::isfinite(prunedMeasure_) == true)
-            {
-                //We have a finite planning problem.
-                measure = prunedMeasure_;
-            }
-            else
-            {
-                //We are solving the infinite planning problem, assume unit measure
-                measure = 1.0;
-            }
 
             //Calculate the term and return
-            return rewireFactor_*2.0*std::pow( (1.0 + 1.0/dimDbl)*( measure/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRG radius (biggest for unit-volume problem)
-            //return rewireFactor_*std::pow( 2.0*(1.0 + 1.0/dimDbl)*( measure/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRT* radius (smaller for unit-volume problem)
-            //return rewireFactor_*2.0*std::pow( (1.0/dimDbl)*( measure/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //FMT* radius (smallest for R2, equiv to RRT* for R3 and then middle for higher d. All unit-volume)
+            return rewireFactor_*2.0*std::pow( (1.0 + 1.0/dimDbl)*( prunedMeasure_/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRG radius (biggest for unit-volume problem)
+            //return rewireFactor_*std::pow( 2.0*(1.0 + 1.0/dimDbl)*( prunedMeasure_/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //RRT* radius (smaller for unit-volume problem)
+            //return rewireFactor_*2.0*std::pow( (1.0/dimDbl)*( prunedMeasure_/unitNBallMeasure(Planner::si_->getStateDimension()) ), 1.0/dimDbl ); //FMT* radius (smallest for R2, equiv to RRT* for R3 and then middle for higher d. All unit-volume)
         }
 
 

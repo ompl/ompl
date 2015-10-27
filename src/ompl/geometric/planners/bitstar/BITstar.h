@@ -96,6 +96,7 @@ namespace ompl
             <a href="http://www.youtube.com/watch?v=MRzSfLpNBmA">Illustration video</a>.
 
             \todo
+            - Implement approximate solution support.
             - Make the k-nearest variant correct. Right now the search considers the k-nearest samples \e and the k-nearest vertices. It should find the combined k-nearest "samples & vertices".
         */
         /** \brief Batch Informed Trees (BIT*)*/
