@@ -20,6 +20,9 @@
 ../src/ompl/geometric/planners/rrt/RRTstar.h
 ../src/ompl/geometric/planners/rrt/LBTRRT.h
 ../src/ompl/geometric/planners/rrt/LazyLBTRRT.h
+../src/ompl/geometric/planners/rrt/InformedRRTstar.h
+../src/ompl/geometric/planners/bitstar/BITstar.h
+../src/ompl/geometric/planners/bitstar/datastructures/Vertex.h
 ../src/ompl/geometric/planners/sbl/SBL.h
 ../src/ompl/geometric/planners/stride/STRIDE.h
 ../src/ompl/geometric/planners/fmt/FMT.h

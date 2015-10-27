@@ -66,6 +66,8 @@ Planners in this category only accounts for the geometric and kinematic constrai
   - [PRM*](\ref gPRMstar)<br> An asymptotically optimal version of PRM; _uses the general cost framework._
   - [LazyPRM*](\ref gLazyPRMstar)<br> Lazy version of PRM*; _uses the general cost framework._
   - [RRT*](\ref gRRTstar)<br> An asymptotically optimal version of RRT; _uses the general cost framework._
+  - [Informed RRT*](\ref gInformedRRTstar)<br> A variant of RRT* that uses heuristics to bound the search for optimal solutions. _It uses the general cost framework._
+  - [BIT*](\ref gBITstar)<br> An anytime asymptotically optimal algorithm that uses heuristics to bound the search for optimal solutions. _It uses the general cost framework._
   - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT) \[__experimental__\]<br> An asymptotically near-optimal version of RRT.
   - [Transition-based RRT (T-RRT)](\ref gTRRT)<br> T-RRT does not give any hard optimality guarantees, but tries to find short, low-cost paths. _It uses the general cost framework._
   - [SPARS](\ref gSPARS)<br> An asymptotically near-optimal roadmap-based planner.
