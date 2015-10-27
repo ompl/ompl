@@ -33,5 +33,5 @@ if(DOXYGEN)
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/doc")
 endif(DOXYGEN)
 
-install(FILES man/ompl_benchmark_statistics.1
+install(FILES man/ompl_benchmark_statistics.1 man/plannerarena.1
     DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 COMPONENT ompl)
