@@ -49,6 +49,8 @@
 #include <boost/bind.hpp>
 //For boost math constants
 #include <boost/math/constants/constants.hpp>
+//For boost::math::isfinite
+#include <boost/math/special_functions/fpclassify.hpp>
 
 //For OMPL_INFORM et al.
 #include "ompl/util/Console.h"
@@ -246,7 +248,7 @@ namespace ompl
             this->updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition());
 
             //Does the problem have finite boundaries?
-            if (std::isfinite(prunedMeasure_) == false)
+            if (boost::math::isfinite(prunedMeasure_) == false)
             {
                 //It does not, so let's estimate a measure of the planning problem.
                 //A not horrible place to start would be hypercube proportional to the distance between the start and goal. It's not *great*, but at least it sort of captures the order-of-magnitude of the problem.
