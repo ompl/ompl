@@ -45,33 +45,38 @@
 // We inherit from InformedStateSampler
 #include "ompl/base/samplers/InformedStateSampler.h"
 
+// For std::list
+#include <list>
+
 namespace ompl
 {
     namespace base
     {
-        /** \brief An informed sampler for problems seeking to minimize path length.
+        /**
+            @anchor gPathLengthDirectInfSampler
 
-        @par Short description
-        It focuses the search to the subset of a problem that can improve a current solution, which is a prolate hyperspheroid (PHS)
-        (a special type of an hyperellipsoid) and can be sampled directly.
-        Doing so considers all homotopy classes that can provide a better solution while guaranteeing a non-zero probability
-        of improving a solution regardless of the size of the planning domain, the number of state dimensions, and how close
-        the current solution is to the theoretical minimum.
-        Currently only implemented for problems with a single goal in R^n (i.e., RealVectorStateSpace), SE(2) (i.e., SE2StateSpace), and SE(3) (i.e., SE3StateSpace).
-        Until an initial solution is found, this sampler simply passes-through to a uniform distribution over the entire state space.
+            PathLengthDirectInfSampler is a method to generate uniform samples in the subset of a problem that could provide a shorter path from start to goal.
+            This subset is a prolate hyperspheroid (PHS), a special type of an hyperellipsoid) and can be sampled directly.
 
-        @par Associated publications:
+            Informed sampling is a method to focus search which continuing to consider all homotopy classes that can provide a better solution.
+            Directly sampling the informed subset guarantees a non-zero probability of improving a solution regardless of the size of the planning domain,
+            the number of state dimensions, and how close the current solution is to the theoretical minimum.
 
-        J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
-        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic." In Proceedings
-        of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Chicago, IL, USA,
-        14-18 Sept. 2014.
-        DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
-        <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
-        <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>.
+            Currently only implemented for problems in R^n (i.e., RealVectorStateSpace), SE(2) (i.e., SE2StateSpace), and SE(3) (i.e., SE3StateSpace).
+            Until an initial solution is found, this sampler simply passes-through to a uniform distribution over the entire state space.
 
-        \todo
-        - Handle other types of goals? */
+            @par Associated publication:
+
+            J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
+            Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic." In Proceedings
+            of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Chicago, IL, USA,
+            14-18 Sept. 2014.
+            DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
+            <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
+            <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>.
+        */
+
+        /** \brief An informed sampler for problems seeking to minimize path length.*/
         class PathLengthDirectInfSampler : public InformedSampler
         {
         public:
@@ -80,35 +85,71 @@ namespace ompl
             PathLengthDirectInfSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls);
             virtual ~PathLengthDirectInfSampler();
 
-            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost. */
-            bool sampleUniform(State *statePtr, const Cost &maxCost);
+            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost, i.e. in the interval [0, maxCost). Returns false if such a state was not found in the specified number of iterations. */
+            virtual bool sampleUniform(State *statePtr, const Cost &maxCost);
 
-            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are between the provided costs. */
-            bool sampleUniform(State *statePtr, const Cost &minCost, const Cost &maxCost);
+            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are between the provided costs, [minCost, maxCost). Returns false if such a state was not found in the specified number of iterations. */
+            virtual bool sampleUniform(State *statePtr, const Cost &minCost, const Cost &maxCost);
 
             /** \brief Whether the sampler can provide a measure of the informed subset */
-            bool hasInformedMeasure() const;
+            virtual bool hasInformedMeasure() const;
 
-            /** \brief The measure of the subset of the state space defined by the current solution cost that is being searched. Does not consider problem boundaries but returns the measure of the entire space if no solution has been found. */
+            /** \brief The measure of the subset of the state space defined by the current solution cost that is being searched. Does not consider problem boundaries but returns the measure of the entire space if no solution has been found. In the case of multiple goals, this measure assume each individual subset is independent, therefore the resulting measure will be an overestimate if any of the subsets overlap. */
             virtual double getInformedMeasure(const Cost &currentCost) const;
 
             /** \brief A helper function to calculate the heuristic estimate of the solution cost for the informed subset of a given state. */
             virtual Cost heuristicSolnCost(const State *statePtr) const;
 
         private:
+            /** \brief A constant pointer to ProlateHyperspheroid */
+            typedef boost::shared_ptr<const ompl::ProlateHyperspheroid> ProlateHyperspheroidCPtr;
+
             // Helper functions:
+            // High level
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost using a persistent iteration counter */
-            bool sampleUniform(State *statePtr, const Cost &maxCost, unsigned int *iterPtr);
+            bool sampleUniform(State *statePtr, const Cost &maxCost, unsigned int *iters);
 
-            /** \brief Sample uniformly in the subset of the \e infinite state space whose heuristic solution estimates are less than the provided cost, i.e., ignores the bounds of the state space. */
-            void sampleUniformIgnoreBounds(State *statePtr, const Cost &maxCost);
+            /** \brief Sample from the bounds of the problem and keep the sample if it passes the given test. Meant to be used with isInAnyPhs and phsPtr->isInPhs() */
+            bool sampleBoundsRejectPhs(State* statePtr, unsigned int *iters);
 
-            /** \brief Sample uniformly in the subset of the \e infinite state space whose heuristic solution estimates are between the provided costs, i.e., ignores the bounds of the state space. */
-            void sampleUniformIgnoreBounds(State *statePtr, const Cost &minCost, const Cost &maxCost);
+            /** \brief Sample from the given PHS and return true if the sample is within the boundaries of the problem (i.e., it \e may be kept). */
+            bool samplePhsRejectBounds(State *statePtr, unsigned int *iters);
+
+            // Low level
+            /** \brief Extract the informed subspace from a state pointer */
+            std::vector<double> getInformedSubstate(const State *statePtr) const;
+
+            /** \brief Create a full vector with any uninformed subspaces filled with a uniform random state. Expects the state* to be allocated */
+            void createFullState(State * statePtr, const std::vector<double> &informedVector);
+
+            /** \brief Iterate through the list of PHSs and update each one to the new max cost as well as the sum of their measures. Will remove any PHSs that cannot improve a better solution and in that case update the number of goals. */
+            void updatePhsDefinitions(const Cost &maxCost);
+
+            /** \brief Select a random PHS from the list of PHSs. The probability of sampling chosing a PHS is it's measure relative to the total measure of all PHSs. Bypasses if only one PHS exists. */
+            ompl::ProlateHyperspheroidPtr randomPhsPtr();
+
+            /** \brief Probabilistically decide whether to keep a given sample drawn directly from a PHS. If a sample is in K PHSs, it returns true with probability 1/K. */
+            bool keepSample(const std::vector<double>& informedVector);
+
+            /** \brief Iterate through the list of PHSs and return true if the sample is in any of them */
+            bool isInAnyPhs(const std::vector<double>& informedVector) const;
+
+            /** \brief Return true if the sample is in the specified PHS. Really just a wrapper to aid with boost::bind */
+            bool isInPhs(const ProlateHyperspheroidCPtr &phsCPtr, const std::vector<double> &informedVector) const;
+
+            /** \brief Iterate through the list of PHSs and return the number of PHSs that the sample is in */
+            unsigned int numberOfPhsInclusions(const std::vector<double>& informedVector) const;
+
+
+
+
 
             // Variables
-            /** \brief The prolate hyperspheroid description of the sub problem */
-            ompl::ProlateHyperspheroidPtr phsPtr_;
+            /** \brief The prolate hyperspheroid description of the sub problems. One per goal state. */
+            std::list<ompl::ProlateHyperspheroidPtr> listPhsPtrs_;
+
+            /** \brief The summed measure of all the start-goal pairs */
+            double summedMeasure_;
 
             /** \brief The index of the subspace of a compound StateSpace for which we can do informed sampling. Unused if the StateSpace is not compound. */
             unsigned int informedIdx_;

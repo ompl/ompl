@@ -75,8 +75,11 @@ namespace ompl
         /** \brief Transform a point from a sphere to PHS. The return variable \e phs is expected to already exist.  */
         void transform(const double sphere[], double phs[]) const;
 
-        /** \brief Check if the given point lies within the PHS */
+        /** \brief Check if the given point lies \e in the PHS. */
         bool isInPhs(const double point[]) const;
+
+        /** \brief Check if the given point lies \e on the PHS. */
+        bool isOnPhs(const double point[]) const;
 
         /** \brief The dimension of the PHS */
         unsigned int getPhsDimension(void) const;

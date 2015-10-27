@@ -160,6 +160,9 @@ namespace ompl
             /** \brief Mark the vertex as pruned. */
             void markPruned();
 
+            /** \brief Mark the vertex as unpruned. */
+            void markUnpruned();
+
             /** \brief Mark the given vertex as a \e failed connection from this vertex */
             void markAsFailedChild(const VertexConstPtr& failedChild);
 

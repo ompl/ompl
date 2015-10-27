@@ -88,6 +88,7 @@ void ompl::base::GoalStates::sampleGoal(base::State *st) const
     samplePosition_ = samplePosition_ % states_.size();
     // Get the next state.
     si_->copyState(st, states_[samplePosition_]);
+    // Increment the counter. Do NOT roll over incase a new state is added before sampleGoal is called again.
     samplePosition_++;
 }
 

@@ -426,6 +426,13 @@ namespace ompl
 
 
 
+        void BITstar::Vertex::markUnpruned()
+        {
+            isPruned_ = false;
+        }
+
+
+
         void BITstar::Vertex::markAsFailedChild(const VertexConstPtr& failedChild)
         {
             this->assertNotPruned();
@@ -510,6 +517,7 @@ namespace ompl
         {
             if (isPruned_ == true)
             {
+                std::cout << std::endl << "vId: " << vId_  << std::endl;
                 throw ompl::Exception("Attempting to access a pruned vertex.");
             }
         }

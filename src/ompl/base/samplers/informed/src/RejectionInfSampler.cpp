@@ -75,14 +75,20 @@ namespace ompl
             // Spend numIters_ iterations trying to find an informed sample:
             for (unsigned int i = 0u; i < InformedSampler::numIters_ && foundSample == false; ++i)
             {
-                // Call the helper function for the larger PHS. It will move our iteration counter:
+                // Call the helper function for the larger cost. It will move our iteration counter:
                 foundSample = sampleUniform(statePtr, maxCost, &i);
 
                 // Did we find a sample?
                 if (foundSample == true)
                 {
-                    // We did, but that was only inside the bigger PHS, we need to assure it's outside the smaller one which occurs if the minCost is *better* than that of the sample:
-                    foundSample = InformedSampler::opt_->isCostBetterThan(minCost, heuristicSolnCost(statePtr));
+                    // We did, but it only satisfied the upper bound. Check that it meets the lower bound.
+
+                    // Variables
+                    // The cost of the sample we found:
+                    Cost sampledCost = InformedSampler::heuristicSolnCost(statePtr);
+
+                    // Check if the sample's cost is greater than or equal to the lower bound
+                    foundSample = InformedSampler::opt_->isCostEquivalentTo(minCost, sampledCost) || InformedSampler::opt_->isCostBetterThan(minCost, sampledCost);
                 }
                 // No else, no sample was found.
             }
@@ -94,11 +100,6 @@ namespace ompl
         bool RejectionInfSampler::hasInformedMeasure() const
         {
             return false;
-        }
-
-        double RejectionInfSampler::getInformedMeasure() const
-        {
-            return InformedSampler::space_->getMeasure();
         }
 
         double RejectionInfSampler::getInformedMeasure(const Cost &/*currentCost*/) const
