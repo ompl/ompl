@@ -94,7 +94,7 @@ namespace ompl
             bestCost_( std::numeric_limits<double>::infinity() ), //Gets set in setup to the proper calls from OptimizationObjective
             bestLength_(0u),
             prunedCost_( std::numeric_limits<double>::infinity() ), //Gets set in setup to the proper calls from OptimizationObjective
-            prunedMeasure_(Planner::si_->getSpaceMeasure()),
+            prunedMeasure_(0.0), //Gets set in setup with the proper call to Planner::si_->getSpaceMeasure()
             minCost_( std::numeric_limits<double>::infinity() ), //Gets set in setup to the proper calls from OptimizationObjective
             costSampled_( std::numeric_limits<double>::infinity() ), //Gets set in setup to the proper calls from OptimizationObjective
             hasSolution_(false),
@@ -112,10 +112,11 @@ namespace ompl
             numStateCollisionChecks_(0u),
             numEdgeCollisionChecks_(0u),
             numNearestNeighbours_(0u),
+            numEdgesProcessed_(0u),
             useStrictQueueOrdering_(true),
-            rewireFactor_(1.1),
+            rewireFactor_(2.0),
             samplesPerBatch_(100u),
-            useKNearest_(false),
+            useKNearest_(true),
             usePruning_(true),
             pruneFraction_(0.02),
             delayRewiring_(false),
@@ -135,17 +136,17 @@ namespace ompl
             //Register my setting callbacks
             Planner::declareParam<double>("rewire_factor", this, &BITstar::setRewireFactor, &BITstar::getRewireFactor, "1.0:0.01:3.0");
             Planner::declareParam<unsigned int>("samples_per_batch", this, &BITstar::setSamplesPerBatch, &BITstar::getSamplesPerBatch, "1:1:1000000");
-
-            //More advanced setting callbacks that aren't necessary to be exposed to Python. Uncomment if desired.
-            //Planner::declareParam<bool>("use_strict_queue_ordering", this, &BITstar::setStrictQueueOrdering, &BITstar::getStrictQueueOrdering, "0,1");
-            //Planner::declareParam<bool>("use_k_nearest", this, &BITstar::setKNearest, &BITstar::getKNearest, "0,1");
-            //Planner::declareParam<bool>("use_graph_pruning", this, &BITstar::setPruning, &BITstar::getPruning, "0,1");
+            Planner::declareParam<bool>("use_k_nearest", this, &BITstar::setKNearest, &BITstar::getKNearest, "0,1");
+            Planner::declareParam<bool>("use_graph_pruning", this, &BITstar::setPruning, &BITstar::getPruning, "0,1");
             Planner::declareParam<double>("prune_threshold_as_fractional_cost_change", this, &BITstar::setPruneThresholdFraction, &BITstar::getPruneThresholdFraction, "0.0:0.01:1.0");
             Planner::declareParam<bool>("delay_rewiring_to_first_solution", this, &BITstar::setDelayRewiringUntilInitialSolution, &BITstar::getDelayRewiringUntilInitialSolution, "0,1");
             Planner::declareParam<bool>("use_just_in_time_sampling", this, &BITstar::setJustInTimeSampling, &BITstar::getJustInTimeSampling, "0,1");
             Planner::declareParam<bool>("drop_unconnected_samples_on_prune", this, &BITstar::setDropSamplesOnPrune, &BITstar::getDropSamplesOnPrune, "0,1");
+            Planner::declareParam<bool>("stop_on_each_solution_improvement", this, &BITstar::setStopOnSolnImprovement, &BITstar::getStopOnSolnImprovement, "0,1");
+
+            //More advanced setting callbacks that aren't necessary to be exposed to Python. Uncomment if desired.
+            //Planner::declareParam<bool>("use_strict_queue_ordering", this, &BITstar::setStrictQueueOrdering, &BITstar::getStrictQueueOrdering, "0,1");
             //Planner::declareParam<bool>("use_edge_failure_tracking", this, &BITstar::setUseFailureTracking, &BITstar::getUseFailureTracking, "0,1");
-            //Planner::declareParam<bool>("stop_on_each_solution_improvement", this, &BITstar::setStopOnSolnImprovement, &BITstar::getStopOnSolnImprovement, "0,1");
 
             //Register my progress info:
             addPlannerProgressProperty("best cost DOUBLE", boost::bind(&BITstar::bestCostProgressProperty, this));
@@ -246,6 +247,9 @@ namespace ompl
 
             //Add any start and goals vertices that exist to the queue, but do NOT wait for any more goals:
             this->updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition());
+
+            //Get the measure of the problem
+            prunedMeasure_ =  Planner::si_->getSpaceMeasure();
 
             //Does the problem have finite boundaries?
             if (boost::math::isfinite(prunedMeasure_) == false)
@@ -370,6 +374,7 @@ namespace ompl
             numStateCollisionChecks_ = 0u;
             numEdgeCollisionChecks_ = 0u;
             numNearestNeighbours_ = 0u;
+            numEdgesProcessed_ = 0u;
             numRewirings_ = 0u;
             numBatches_ = 0u;
             numPrunings_ = 0u;
@@ -678,6 +683,7 @@ namespace ompl
                 VertexPtrPair bestEdge;
 
                 //Pop the minimum edge
+                ++numEdgesProcessed_;
                 intQueue_->popFrontEdge(&bestEdge);
 
                 //In the best case, can this edge improve our solution given the current graph?
@@ -767,7 +773,7 @@ namespace ompl
             costSampled_ = minCost_;
 
             //Finally, update the nearest-neighbour terms for the number of samples we *will* have.
-            this->updateNearestTerms(true);
+            this->updateNearestTerms();
         }
 
 
@@ -1788,12 +1794,13 @@ namespace ompl
             //Calculate the k-nearest constant
             k_rgg_ = this->minimumRggK();
 
-            this->updateNearestTerms(false);
+            //Update the actual terms
+            this->updateNearestTerms();
         }
 
 
 
-        void BITstar::updateNearestTerms(bool plusFutureSamples)
+        void BITstar::updateNearestTerms()
         {
             //Variables:
             //The number of uniformly distributed states:
@@ -1811,18 +1818,30 @@ namespace ompl
                 N = vertexNN_->size() + freeStateNN_->size() - startVertices_.size() - goalVertices_.size();
             }
 
-            if (plusFutureSamples == true)
+            //In general, we calculate the terms considering the future samples. This is only not the case when it's the initial call (i.e., the 0 batch):
+            if (numBatches_ != 0u)
             {
                 N = N + samplesPerBatch_;
             }
+            //No else
 
-            if (useKNearest_ == true)
+
+            //If we only have starts and goals, be lazy
+            if (N == 0u)
             {
-                k_ = this->calculateK(N);
+                k_ = startVertices_.size() + goalVertices_.size();
+                r_ = std::numeric_limits<double>::infinity();
             }
             else
             {
-                r_ = this->calculateR(N);
+                if (useKNearest_ == true)
+                {
+                    k_ = this->calculateK(N);
+                }
+                else
+                {
+                    r_ = this->calculateR(N);
+                }
             }
         }
 
@@ -1878,21 +1897,21 @@ namespace ompl
 
         void BITstar::goalMessage() const
         {
-            OMPL_INFORM("%s: Found a solution consisting of %u vertices with a total cost of %.4f in %u iterations (%u vertices, %u rewirings). Graph currently has %u vertices.", Planner::getName().c_str(), bestLength_, bestCost_.value(), numIterations_, numVertices_, numRewirings_, vertexNN_->size());
+            OMPL_INFORM("%s (%u iters): Found a solution of cost %.4f (%u vertices) from %u samples by processing %u edges (%u collision checked) to create %u vertices and perform %u rewirings. The graph currently has %u vertices.", Planner::getName().c_str(), numIterations_, bestCost_.value(), bestLength_, numSamples_, numEdgesProcessed_, numEdgeCollisionChecks_, numVertices_, numRewirings_, vertexNN_->size());
         }
 
 
 
         void BITstar::endSuccessMessage() const
         {
-            OMPL_INFORM("%s: Found a final solution of cost %.4f from %u samples by using %u vertices and %u rewirings. Final graph has %u vertices.", Planner::getName().c_str(), bestCost_.value(), numSamples_, numVertices_, numRewirings_, vertexNN_->size());
+            OMPL_INFORM("%s: Finished with a solution of cost %.4f (%u vertices) found from %u samples by processing %u edges (%u collision checked) to create %u vertices and perform %u rewirings. The final graph has %u vertices.", Planner::getName().c_str(), bestCost_.value(), bestLength_, numSamples_, numEdgesProcessed_, numEdgeCollisionChecks_, numVertices_, numRewirings_, vertexNN_->size());
         }
 
 
 
         void BITstar::endFailureMessage() const
         {
-            OMPL_INFORM("%s: Did not find a solution from %u samples after %u iterations, %u vertices and %u rewirings.", Planner::getName().c_str(), numSamples_, numIterations_, numVertices_, numRewirings_);
+            OMPL_INFORM("%s (%u iters): Did not find a solution from %u samples after processing %u edges (%u collision checked) to create %u vertices and perform %u rewirings. The final graph has %u vertices.", Planner::getName().c_str(), numIterations_, numSamples_, numEdgesProcessed_, numEdgeCollisionChecks_, numVertices_, numRewirings_, vertexNN_->size());
         }
 
 
@@ -1922,6 +1941,8 @@ namespace ompl
                 outputStream << ", f: " << std::setw(5) << std::setfill(' ') << freeStateNN_->size();
                 //The number edges in the queue:
                 outputStream << ", q: " << std::setw(5) << std::setfill(' ') << intQueue_->numEdges();
+                //The total number of edges taken out of the queue:
+                outputStream << ", t: " << std::setw(5) << std::setfill(' ') << numEdgesProcessed_;
                 //The number of samples generated
                 outputStream << ", s: " << std::setw(5) << std::setfill(' ') << numSamples_;
                 //The number of vertices ever added to the graph:
@@ -2016,7 +2037,7 @@ namespace ompl
                 if (useKNearest_ == true)
                 {
                     //Warn that this isn't exactly implemented
-                    OMPL_WARN("%s: The implementation of the k-Nearest version of BIT* is not 100%% correct and actually considers the k-nearest samples and the k-nearest vertices, instead of the k-nearest combined.", Planner::getName().c_str()); //This is because we have a separate nearestNeighbours structure for samples and vertices and you don't know what fraction of K to ask for from each...
+                    OMPL_WARN("%s: The implementation of k-nearest is overly conservative, as it considers the k-nearest samples and the k-nearest vertices, instead of just the combined k-nearest.", Planner::getName().c_str()); //This is because we have a separate nearestNeighbours structure for samples and vertices and you don't know what fraction of K to ask for from each...
                 }
 
                 //Check if there's things to update
@@ -2343,6 +2364,13 @@ namespace ompl
         std::string BITstar::nearestNeighbourProgressProperty() const
         {
             return boost::lexical_cast<std::string>(numNearestNeighbours_);
+        }
+
+
+
+        std::string BITstar::edgesProcessedProgressProperty() const
+        {
+            return boost::lexical_cast<std::string>(numEdgesProcessed_);
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
     }//geometric

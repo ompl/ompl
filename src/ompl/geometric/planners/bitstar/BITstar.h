@@ -401,8 +401,8 @@ namespace ompl
             /** \brief Initialize the nearest-neighbour terms */
             void initializeNearestTerms();
 
-            /** \brief Update the appropriate nearest-neighbour terms, r_ and k_. Can optionally perform this calculation with or without considering the "future" samples to be added in this batch. */
-            virtual void updateNearestTerms(bool plusFutureSamples);
+            /** \brief Update the appropriate nearest-neighbour terms, r_ and k_. Performs this calculation considering the "future" samples to be added in this batch, except on the first batch. */
+            virtual void updateNearestTerms();
 
             /** \brief Calculate the r for r-disc nearest neighbours, a function of the current graph */
             double calculateR(unsigned int N) const;
@@ -505,6 +505,9 @@ namespace ompl
             /** \brief Retrieve the number of nearest neighbour calls (i.e., NearestNeighbors<T>::nearestK(...) or NearestNeighbors<T>::nearestR(...))
             as a planner-progress property. (numNearestNeighbours_) */
             std::string nearestNeighbourProgressProperty() const;
+
+            /** \brief Retrieve the total number of edges processed from the queue as a planner-progress property. (numEdgesProcessed_) */
+            std::string edgesProcessedProgressProperty() const;
             ///////////////////////////////////////
 
 
@@ -621,6 +624,9 @@ namespace ompl
 
             /** \brief The number of nearest neighbour calls. Accessible via nearestNeighbourProgressProperty */
             unsigned int                                             numNearestNeighbours_;
+
+            /** \brief The number of edges processed, in one way or other, from the queue. Accessible via edgesProcessedProgressProperty */
+            unsigned int                                             numEdgesProcessed_;
             ///////////////////////////////////////
 
             ///////////////////////////////////////
