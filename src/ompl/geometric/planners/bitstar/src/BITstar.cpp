@@ -2038,6 +2038,12 @@ namespace ompl
                 {
                     //Warn that this isn't exactly implemented
                     OMPL_WARN("%s: The implementation of k-nearest is overly conservative, as it considers the k-nearest samples and the k-nearest vertices, instead of just the combined k-nearest.", Planner::getName().c_str()); //This is because we have a separate nearestNeighbours structure for samples and vertices and you don't know what fraction of K to ask for from each...
+
+                    //Check that we're not doing JIT
+                    if (useJustInTimeSampling_ == true)
+                    {
+                        throw ompl::Exception("JIT sampling does not work with the k-nearest variant of BIT*.");
+                    }
                 }
 
                 //Check if there's things to update
@@ -2132,15 +2138,15 @@ namespace ompl
 
         void BITstar::setJustInTimeSampling(bool useJit)
         {
-            //Assert that this the r-disc connection scheme
-            if (useKNearest_ == true)
-            {
-                throw ompl::Exception("JIT sampling does not work with the k-nearest variant of BIT*.");
-            }
-
             if (useJit == true)
             {
                 OMPL_WARN("%s: Just-in-time sampling is experimental and currently only implemented for problems seeking to minimize path-length.", Planner::getName().c_str());
+
+                //Assert that this the r-disc connection scheme
+                if (useKNearest_ == true)
+                {
+                    throw ompl::Exception("JIT sampling does not work with the k-nearest variant of BIT*.");
+                }
             }
 
             //Store
