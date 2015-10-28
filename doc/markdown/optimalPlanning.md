@@ -10,12 +10,17 @@ In order to perform optimal planning, you need two things:
 You can specify a path quality metric using the `ompl::base::OptimizationObjective` class. As for the optimizing planner, OMPL currently provides two optimizing planners that guarantee _asymptotic optimality_ of returned solutions:
 
 - `ompl::geometric::PRMstar`
+- `ompl::geometric::LazyPRMstar`
 - `ompl::geometric::RRTstar`
+- `ompl::geometric::InformedRRTstar`
+- `ompl::geometric::BITstar`
+- `ompl::geometric::FMT`
 
 You can find out more about asymptotic optimality in motion planning by checking out [this paper](http://sertac.scripts.mit.edu/web/wp-content/papercite-data/pdf/karaman.frazzoli-ijrr11.pdf) by Karaman and Frazzoli. The following planners also support `ompl::base::OptimizationObjective`, but do not provide theoretical guarantees on solution optimality:
 
 - `ompl::geometric::PRM`
 - `ompl::geometric::TRRT`
+- `ompl::geometric::AnytimePathShortening`
 
 Lastly, the following planners provide a theoretical guarantee of _asymptotic near optimality_, but currently do not support user-specified objectives:
 
