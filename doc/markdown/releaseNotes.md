@@ -1,7 +1,7 @@
 # Release Notes
 
 
-# OMPL.app 1.1.0 (October 28, 2015)
+# OMPL 1.1.0 (October 28, 2015)
 
 - Added several new and updated planners:
   - [Lightning](\ref Lightning): the Lightning Framework is a experienced-based motion planner that recalls from a database of previously generated paths the most similar one to the current planning problem and attempts to repair it, while at the same time planning from scratch in a different thread.
