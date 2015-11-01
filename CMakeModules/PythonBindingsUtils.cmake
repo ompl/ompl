@@ -80,7 +80,7 @@ function(create_module_code_generation_target module dir)
         PYTHONPATH="${PROJECT_BINARY_DIR}/pyplusplus/lib/python${PYTHON_VERSION}/site-packages:$ENV{PYTHONPATH}"
         ${PYTHON_EXEC}
         "${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
-        "1>${CMAKE_BINARY_DIR}/pyplusplus_${module}.log" "2>&1"
+        "|tee" "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log" "2>&1"
         COMMAND ${CMAKE_COMMAND} -D "PATH=${dir}/bindings/${module}"
         -P "${OMPL_CMAKE_UTIL_DIR}/workaround_for_gccxml_bug.cmake"
         COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}
