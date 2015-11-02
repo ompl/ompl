@@ -41,13 +41,18 @@ from os.path import basename, splitext, exists
 import os
 import sqlite3
 import datetime
-import matplotlib
-matplotlib.use('pdf')
-from matplotlib import __version__ as matplotlibversion
-from matplotlib.backends.backend_pdf import PdfPages
-import matplotlib.pyplot as plt
-import numpy as np
-from math import floor
+plottingEnabled=True
+try:
+    import matplotlib
+    matplotlib.use('pdf')
+    from matplotlib import __version__ as matplotlibversion
+    from matplotlib.backends.backend_pdf import PdfPages
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from math import floor
+except:
+    print('Matplotlib or Numpy was not found; disabling plotting capabilities...')
+    plottingEnabled=False
 from optparse import OptionParser, OptionGroup
 
 # Given a text line, split it into tokens (by space) and return the token
@@ -563,8 +568,9 @@ if __name__ == "__main__":
         help="Append data to database (as opposed to overwriting an existing database)")
     parser.add_option("-v", "--view", action="store_true", dest="view", default=False,
         help="Compute the views for best planner configurations")
-    parser.add_option("-p", "--plot", dest="plot", default=None,
-        help="Create a PDF of plots")
+    if plottingEnabled:
+        parser.add_option("-p", "--plot", dest="plot", default=None,
+            help="Create a PDF of plots")
     parser.add_option("-m", "--mysql", dest="mysqldb", default=None,
         help="Save SQLite3 database as a MySQL dump file")
     parser.add_option("--moveit", action="store_true", dest="moveit", default=False,
