@@ -41,8 +41,14 @@ sqlProblemParamSelect <- function(param, val) {
         # select all
         "1"
     else
-        # select specific parameter value
-        sprintf('experiments.%s = "%s"', param, val)
+        # select specific parameter value.
+        # Use fuzzy matching when comparing numbers because precision is lost
+        # when real-valued parameter values are converted to strings for
+        # parameter selection widget.
+        if (regexpr('[-+]?\\d*\\.\\d+|\\d+', val)[1] == -1)
+            sprintf('experiments.%s = "%s"', param, val)
+        else
+            sprintf('ABS(experiments.%s - %s) < 1e-10', param, val)
 }
 sqlPlannerSelect <- function(name) sprintf('plannerConfigs.name = "%s"', name)
 sqlVersionSelect <- function(version) sprintf('experiments.version = "%s"', version)
