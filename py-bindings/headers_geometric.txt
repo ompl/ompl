@@ -26,9 +26,8 @@
 ../src/ompl/geometric/planners/sbl/SBL.h
 ../src/ompl/geometric/planners/stride/STRIDE.h
 ../src/ompl/geometric/planners/fmt/FMT.h
-../src/ompl/geometric/planners/rlrt/RLRT.h
-../src/ompl/geometric/planners/rlrt/BiRLRT.h
 ../src/ompl/geometric/planners/est/RealEST.h
+../src/ompl/geometric/planners/est/BiRealEST.h
 ../src/ompl/datastructures/NearestNeighbors.h
 ../src/ompl/datastructures/NearestNeighborsLinear.h
 ../src/ompl/geometric/planners/bitstar/BITstar.h
