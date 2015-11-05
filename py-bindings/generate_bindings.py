@@ -535,7 +535,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT', 'BITstar']:
+        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT', 'BITstar', 'RLRT', 'BiRLRT', 'RealEST']:
             try:
                 cls = self.ompl_ns.class_(planner)
             except:
