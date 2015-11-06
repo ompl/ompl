@@ -39,6 +39,7 @@
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/datastructures/PDF.h"
 #include <vector>
 
 namespace ompl
@@ -106,12 +107,12 @@ namespace ompl
             {
             public:
 
-                Motion() : state(NULL), parent(NULL), id(-1), root(NULL)
+                Motion() : state(NULL), parent(NULL), element(NULL), root(NULL)
                 {
                 }
 
                 /// \brief Constructor that allocates memory for the state
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), id(-1), root(NULL)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), element(NULL), root(NULL)
                 {
                 }
 
@@ -120,16 +121,16 @@ namespace ompl
                 }
 
                 /// \brief The state contained by the motion
-                base::State       *state;
+                base::State           *state;
 
                 /// \brief The parent motion in the exploration tree
-                Motion            *parent;
+                Motion                *parent;
 
-                /// \brief A unique id for the motion.  Index into motions_ member.
-                int                id;
+                /// \brief A pointer to the corresponding element in the probability distribution function
+                PDF<Motion*>::Element *element;
 
                 /// \brief The root node of the tree this motion is in
-                const base::State *root;
+                const base::State     *root;
             };
 
             /// \brief Compute distance between motions (actually distance between contained states)
@@ -146,20 +147,17 @@ namespace ompl
             std::vector<Motion*> startMotions_;
             std::vector<Motion*> goalMotions_;
 
-            /// \brief The size of the neighborhood (# configurations) for each state in the tree
-            std::vector<int> startNeighborhoodSize_;
-            std::vector<int> goalNeighborhoodSize_;
+            /// \brief The probability distribution function over states in each tree
+            PDF<Motion*> startPdf_;
+            PDF<Motion*> goalPdf_;
 
             ///\brief Free the memory allocated by this planner
             void freeMemory();
 
             /// \brief Add a motion to the exploration tree
             void addMotion(Motion* motion, std::vector<Motion*>& motions,
-                           std::vector<int>& neighborhoodSize, boost::shared_ptr< NearestNeighbors<Motion*> > nn,
+                           PDF<Motion*>& pdf, boost::shared_ptr< NearestNeighbors<Motion*> > nn,
                            const std::vector<Motion*>& neighbors);
-
-            /// \brief Select a motion to continue the expansion of the tree from
-            Motion* selectMotion(std::vector<Motion*>& motions, std::vector<int>& neighborhoodSize);
 
             /// \brief Valid state sampler
             base::ValidStateSamplerPtr   sampler_;

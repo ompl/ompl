@@ -39,6 +39,7 @@
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/datastructures/PDF.h"
 #include <vector>
 
 namespace ompl
@@ -120,12 +121,12 @@ namespace ompl
             {
             public:
 
-                Motion() : state(NULL), parent(NULL), id(-1)
+                Motion() : state(NULL), parent(NULL), element(NULL)
                 {
                 }
 
                 /// \brief Constructor that allocates memory for the state
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), id(-1)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), element(NULL)
                 {
                 }
 
@@ -134,13 +135,13 @@ namespace ompl
                 }
 
                 /// \brief The state contained by the motion
-                base::State       *state;
+                base::State           *state;
 
                 /// \brief The parent motion in the exploration tree
-                Motion            *parent;
+                Motion                *parent;
 
-                /// \brief A unique id for the motion.  Index into motions_ member.
-                int                id;
+                /// \brief A pointer to the corresponding element in the probability distribution function
+                PDF<Motion*>::Element *element;
             };
 
             /// \brief Compute distance between motions (actually distance between contained states)
@@ -155,17 +156,14 @@ namespace ompl
             /// \brief The set of all states in the tree
             std::vector<Motion*> motions_;
 
-            /// \brief The size of the neighborhood (# configurations) for each state in the tree
-            std::vector<int> neighborhoodSize_;
+            /// \brief The probability distribution function over states in the tree
+            PDF<Motion*> pdf_;
 
             ///\brief Free the memory allocated by this planner
             void freeMemory();
 
             /// \brief Add a motion to the exploration tree
             void addMotion(Motion *motion, const std::vector<Motion*>& neighbors);
-
-            /// \brief Select a motion to continue the expansion of the tree from
-            Motion* selectMotion();
 
             /// \brief Valid state sampler
             base::ValidStateSamplerPtr   sampler_;

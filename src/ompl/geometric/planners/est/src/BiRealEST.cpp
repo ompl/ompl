@@ -88,10 +88,10 @@ void ompl::geometric::BiRealEST::clear()
         nnGoal_->clear();
 
     startMotions_.clear();
-    startNeighborhoodSize_.clear();
+    startPdf_.clear();
 
     goalMotions_.clear();
-    goalNeighborhoodSize_.clear();
+    goalPdf_.clear();
 
     connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
@@ -133,7 +133,7 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
         motion->root = motion->state;
 
         nnStart_->nearestR(motion, nbrhoodRadius_, neighbors);
-        addMotion(motion, startMotions_, startNeighborhoodSize_, nnStart_, neighbors);
+        addMotion(motion, startMotions_, startPdf_, nnStart_, neighbors);
     }
 
     if (startMotions_.size() == 0)
@@ -172,7 +172,7 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
                 motion->root = motion->state;
 
                 nnGoal_->nearestR(motion, nbrhoodRadius_, neighbors);
-                addMotion(motion, goalMotions_, goalNeighborhoodSize_, nnGoal_, neighbors);
+                addMotion(motion, goalMotions_, goalPdf_, nnGoal_, neighbors);
             }
 
             if (goalMotions_.size() == 0)
@@ -183,12 +183,12 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
         }
 
         // Pointers to the tree structure we are expanding
-        std::vector<Motion*>& motions                       = startTree ? startMotions_             : goalMotions_;
-        std::vector<int>& neighborhoodSize                  = startTree ? startNeighborhoodSize_    : goalNeighborhoodSize_;
-        boost::shared_ptr< NearestNeighbors<Motion*> > nn   = startTree ? nnStart_                  : nnGoal_;
+        std::vector<Motion*>& motions                       = startTree ? startMotions_ : goalMotions_;
+        PDF<Motion*>& pdf                                   = startTree ? startPdf_     : goalPdf_;
+        boost::shared_ptr< NearestNeighbors<Motion*> > nn   = startTree ? nnStart_      : nnGoal_;
 
         // Select a state to expand from
-        Motion *existing = selectMotion(motions, neighborhoodSize);
+        Motion *existing = pdf.sample(rng_.uniform01());
         assert(existing);
 
         // Sample a state in the neighborhood
@@ -217,7 +217,7 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
             motion->root = existing->root;
 
             // add it to everything
-            addMotion(motion, motions, neighborhoodSize, nn, neighbors);
+            addMotion(motion, motions, pdf, nn, neighbors);
 
             // try to connect this state to the other tree
             // Get all states in the other tree within a maxDistance_ ball (bigger than "neighborhood" ball)
@@ -272,33 +272,19 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
     return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
-ompl::geometric::BiRealEST::Motion* ompl::geometric::BiRealEST::selectMotion(std::vector<Motion*>& motions, std::vector<int>& neighborhoodSize)
-{
-    // Rejection sampling until we find a state we're happy with
-    Motion* motion = NULL;
-    while (motion == NULL)
-    {
-        // Select a motion with probability inversely proportional to neighborhood density
-        int random = rng_.uniformInt(0, motions.size() - 1);
-        double p = 1.0 / neighborhoodSize[random];
-
-        if (rng_.uniform01() < p) // we'll take it!
-            motion = motions[random];
-    }
-
-    return motion;
-}
-
 void ompl::geometric::BiRealEST::addMotion(Motion* motion, std::vector<Motion*>& motions,
-                                           std::vector<int>& neighborhoodSize, boost::shared_ptr< NearestNeighbors<Motion*> > nn,
+                                           PDF<Motion*>& pdf, boost::shared_ptr< NearestNeighbors<Motion*> > nn,
                                            const std::vector<Motion*>& neighbors)
 {
     // Updating neighborhood size counts
     for(size_t i = 0; i < neighbors.size(); ++i)
-        neighborhoodSize[neighbors[i]->id]++;
+    {
+        PDF<Motion*>::Element *elem = neighbors[i]->element;
+        double w = pdf.getWeight(elem);
+        pdf.update(elem, w / (w + 1.));
+    }
 
-    motion->id = motions.size();
-    neighborhoodSize.push_back(neighbors.size() + 1); // +1 for self
+    motion->element = pdf.add(motion, 1. / (neighbors.size() + 1.));  // +1 for self
     motions.push_back(motion);
     nn->add(motion);
 }

@@ -80,7 +80,7 @@ void ompl::geometric::RealEST::clear()
         nn_->clear();
 
     motions_.clear();
-    neighborhoodSize_.clear();
+    pdf_.clear();
     lastGoalMotion_ = NULL;
 }
 
@@ -105,7 +105,6 @@ ompl::base::PlannerStatus ompl::geometric::RealEST::solve(const base::PlannerTer
     while (const base::State *st = pis_.nextStart())
     {
         Motion *motion = new Motion(si_);
-        motion->id = motions_.size();
         si_->copyState(motion->state, st);
 
         nn_->nearestR(motion, nbrhoodRadius_, neighbors);
@@ -132,7 +131,7 @@ ompl::base::PlannerStatus ompl::geometric::RealEST::solve(const base::PlannerTer
     while (ptc == false)
     {
         // Select a state to expand from
-        Motion *existing = selectMotion();
+        Motion *existing = pdf_.sample(rng_.uniform01());
         assert(existing);
 
         // Sample random state in the neighborhood (with goal biasing)
@@ -170,7 +169,6 @@ ompl::base::PlannerStatus ompl::geometric::RealEST::solve(const base::PlannerTer
             Motion *motion = new Motion(si_);
             si_->copyState(motion->state, xstate);
             motion->parent = existing;
-            motion->id = motions_.size();
 
             // add it to everything
             addMotion(motion, neighbors);
@@ -228,31 +226,18 @@ ompl::base::PlannerStatus ompl::geometric::RealEST::solve(const base::PlannerTer
     return base::PlannerStatus(solved, approximate);
 }
 
-ompl::geometric::RealEST::Motion* ompl::geometric::RealEST::selectMotion()
-{
-    // Rejection sampling until we find a state we're happy with
-    Motion* motion = NULL;
-    while (motion == NULL)
-    {
-        // Select a motion with probability inversely proportional to neighborhood density
-        int random = rng_.uniformInt(0, motions_.size() - 1);
-        double p = 1.0 / neighborhoodSize_[random];
-
-        if (rng_.uniform01() < p) // we'll take it!
-            motion = motions_[random];
-    }
-
-    return motion;
-}
-
 void ompl::geometric::RealEST::addMotion(Motion *motion, const std::vector<Motion*>& neighbors)
 {
     // Updating neighborhood size counts
     for(size_t i = 0; i < neighbors.size(); ++i)
-        neighborhoodSize_[neighbors[i]->id]++;
+    {
+        PDF<Motion*>::Element *elem = neighbors[i]->element;
+        double w = pdf_.getWeight(elem);
+        pdf_.update(elem, w / (w + 1.));
+    }
 
     // now add new motion to the data structures
-    neighborhoodSize_.push_back(neighbors.size() + 1);  // +1 for self
+    motion->element = pdf_.add(motion, 1. / (neighbors.size() + 1.));  // +1 for self
     motions_.push_back(motion);
     nn_->add(motion);
 }
