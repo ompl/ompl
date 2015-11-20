@@ -1,5 +1,5 @@
 h1, h2 { font-weight: 200; color: #034170; }
-
+h5, h6 { margin-bottom: 0px; margin-top: 0px; }
 .navbar-inverse {
     background-color: #022845;
     background-image: -moz-linear-gradient(top, #034170, #000);
@@ -39,7 +39,11 @@ div.checkbox {
 }
 .table-condensed th { padding: 4px 10px; }
 
+.well { padding: 10px; }
 .well-light { background-color: #fafafa; }
+
+.form-group { margin-bottom: 5px; }
+.radio, .checkbox { margin-bottom: 0px; margin-top: 0px; }
 
 .shiny-output-error {
     margin: 30px;

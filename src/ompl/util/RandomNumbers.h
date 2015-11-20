@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Jonathan Gammell */
 
 #ifndef OMPL_UTIL_RANDOM_NUMBERS_
 #define OMPL_UTIL_RANDOM_NUMBERS_
@@ -155,20 +155,24 @@ namespace ompl
         /** \brief Uniform random sampling of the surface of a prolate hyperspheroid, a special symmetric type of
         n-dimensional ellipse. The return variable \e value is expected to already exist.
         @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
-        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic."
-        IROS 2014. DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
+        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic." In Proceedings
+        of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Chicago, IL, USA,
+        14-18 Sept. 2014.
+        DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
         <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
-        void uniformProlateHyperspheroidSurface(const ProlateHyperspheroidPtr &phsPtr, double value[]);
+        void uniformProlateHyperspheroidSurface(const boost::shared_ptr<const ProlateHyperspheroid> &phsPtr, double value[]);
 
         /** \brief Uniform random sampling of a prolate hyperspheroid, a special symmetric type of
         n-dimensional ellipse. The return variable \e value is expected to already exist.
         @par J D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
-        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic."
-        IROS 2014. DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
+        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic." In Proceedings
+        of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Chicago, IL, USA,
+        14-18 Sept. 2014.
+        DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
         <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
-        void uniformProlateHyperspheroid(const ProlateHyperspheroidPtr &phsPtr, double value[]);
+        void uniformProlateHyperspheroid(const boost::shared_ptr<const ProlateHyperspheroid>  &phsPtr, double value[]);
 #endif
 
     private:

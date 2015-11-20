@@ -71,10 +71,10 @@ namespace ompl
             {
             }
 
-            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost. Returns false if such a state was not found. */
+            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost, i.e. in the interval [0, maxCost). Returns false if such a state was not found in the specified number of iterations. */
             virtual bool sampleUniform(State *statePtr, const Cost &maxCost) = 0;
 
-            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are between the provided costs. Returns false if such a state was not found.  */
+            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are between the provided costs, [minCost, maxCost). Returns false if such a state was not found in the specified number of iterations. */
             virtual bool sampleUniform(State *statePtr, const Cost &minCost, const Cost &maxCost) = 0;
 
             /** \brief Whether the sampler can provide a measure of the informed subset */
@@ -87,6 +87,7 @@ namespace ompl
             virtual double getInformedMeasure(const Cost &minCost, const Cost &maxCost) const;
 
             /** \brief A helper function to calculate the heuristic estimate of the solution cost for a given state using the optimization objective stored in the problem definition. */
+            /** \todo With the future invention of a heuristic class, this should move.  */
             virtual Cost heuristicSolnCost(const State *statePtr) const;
 
         protected:

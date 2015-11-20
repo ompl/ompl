@@ -80,7 +80,7 @@ namespace ompl
             /** \brief Get the description of this optimization objective */
             const std::string& getDescription() const;
 
-            /** \brief Check if the the given cost \e c satisfies the specified cost objective, meaning we may stop planning. */
+            /** \brief Check if the the given cost \e c satisfies the specified cost objective, defined as \e better \e than the specified threshold. */
             virtual bool isSatisfied(Cost c) const;
 
             /** \brief Returns the cost threshold currently being checked for objective satisfaction */
@@ -164,9 +164,9 @@ namespace ompl
         };
 
         /**
-            \brief For use when goal region's distanceGoal() is
-            equivalent to the cost-to-go of a state under the
-            optimization objective. This function assumes that all states
+            \brief For use when the cost-to-go of a state under the
+            optimization objective is equivalent to the
+            goal region's distanceGoal() . This function assumes that all states
             within the goal region's threshold have a cost-to-go of
             exactly zero. Note: \e goal is assumed to be of type
             ompl::base::GoalRegion

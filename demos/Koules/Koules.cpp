@@ -130,7 +130,9 @@ void benchmark(KoulesSetup& ks, ot::Benchmark::Request request,
     const std::string& plannerName, const std::string& outputFile)
 {
     // Create a benchmark class
-    ompl::tools::Benchmark b(ks, "Koules experiment");
+    ompl::tools::Benchmark b(ks, "Koules");
+    b.addExperimentParameter("num_koules", "INTEGER", boost::lexical_cast<std::string>(
+        (ks.getStateSpace()->getDimension() - 5) / 4));
     // Add the planner to evaluate
     b.addPlanner(ks.getConfiguredPlannerInstance(plannerName));
     // Start benchmark

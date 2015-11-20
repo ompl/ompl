@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2014, University of Toronto
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the University of Toronto nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,40 +32,28 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Mark Moll */
+/* Authors: Jonathan Gammell */
 
-#ifndef PY_BINDINGS_OMPL_PY_GEOMETRIC_
-#define PY_BINDINGS_OMPL_PY_GEOMETRIC_
+#include "ompl/geometric/planners/rrt/InformedRRTstar.h"
 
-#include "ompl/datastructures/NearestNeighborsLinear.h"
-#include "ompl/geometric/planners/prm/ConnectionStrategy.h"
-#include "ompl/geometric/planners/prm/PRM.h"
-#include "ompl/geometric/planners/bitstar/BITstar.h"
-#include <deque>
-#include <map>
-#include <boost/graph/adjacency_list.hpp>
-#include "py_boost_function.hpp"
-
-
-namespace ompl
+ompl::geometric::InformedRRTstar::InformedRRTstar(const base::SpaceInformationPtr &si)
+    : RRTstar(si)
 {
-    namespace geometric
-    {
-        inline int dummyFn() { return 1; }
-        inline int dummyConnectionStrategy()
-        {
-            NearestNeighborsLinear<PRM::Vertex> nn;
-            boost::shared_ptr<NearestNeighbors<PRM::Vertex> > nnPtr(&nn);
-            return sizeof(KStrategy<PRM::Vertex>(1, nnPtr)) + sizeof(KStarStrategy<PRM::Vertex>(dummyFn, nnPtr, 1)) + sizeof(nn);
-        }
-        inline int dummySTLContainerSize()
-        {
-            return sizeof(std::deque<ompl::base::State*>) +
-                sizeof(std::map<boost::adjacency_list<>::vertex_descriptor, ompl::base::State*>) +
-                sizeof(std::vector<const ompl::base::State*>) +
-                sizeof(std::vector< boost::shared_ptr<ompl::geometric::BITstar::Vertex> >);
-        }
-    }
-}
+    //Set my name:
+    setName("InformedRRTstar");
 
-#endif
+    //Configure RRTstar to be InformedRRT*:
+    setInformedSampling(true);
+    setTreePruning(true);
+    setPrunedMeasure(true);
+
+    //Remove those parameters:
+    params_.remove("informed_sampling");
+    params_.remove("pruned_measure");
+    params_.remove("tree_pruning");
+
+    //Remove conflicting parameters:
+    params_.remove("sample_rejection");
+    params_.remove("new_state_rejection");
+    params_.remove("focus_search");
+}

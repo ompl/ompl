@@ -106,6 +106,7 @@ int main(int argc, char **argv)
     int run_count = 20;
     ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count);
     ompl::tools::Benchmark b(ss, "HyperCube");
+    b.addExperimentParameter("num_dims", "INTEGER", boost::lexical_cast<std::string>(ndim));
 
     addPlanner(b, ompl::base::PlannerPtr(new ompl::geometric::STRIDE(ss.getSpaceInformation())), range);
     addPlanner(b, ompl::base::PlannerPtr(new ompl::geometric::EST(ss.getSpaceInformation())), range);

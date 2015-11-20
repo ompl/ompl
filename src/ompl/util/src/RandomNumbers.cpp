@@ -220,7 +220,7 @@ private:
     void allocateDimension(unsigned int dim)
     {
         // Only do this if unallocated, so check that:
-        if (dimVector_.at(dim).first == false)
+        if (dimVector_.at(dim).first == NULL)
         {
             // It is not allocated, so....
             // First construct the distribution
@@ -348,7 +348,7 @@ void ompl::RNG::uniformInBall(double r, unsigned int n, double value[])
 }
 
 #if OMPL_HAVE_EIGEN3
-void ompl::RNG::uniformProlateHyperspheroidSurface(const ProlateHyperspheroidPtr &phsPtr, double value[])
+void ompl::RNG::uniformProlateHyperspheroidSurface(const boost::shared_ptr<const ProlateHyperspheroid>  &phsPtr, double value[])
 {
     // Variables
     // The spherical point as a std::vector
@@ -361,7 +361,7 @@ void ompl::RNG::uniformProlateHyperspheroidSurface(const ProlateHyperspheroidPtr
     phsPtr->transform(&sphere[0], value);
 }
 
-void ompl::RNG::uniformProlateHyperspheroid(const ProlateHyperspheroidPtr &phsPtr, double value[])
+void ompl::RNG::uniformProlateHyperspheroid(const boost::shared_ptr<const ProlateHyperspheroid>  &phsPtr, double value[])
 {
     // Variables
     // The spherical point as a std::vector

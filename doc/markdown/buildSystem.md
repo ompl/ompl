@@ -26,7 +26,7 @@ When developing your own code that relies on OMPL, you have several options:
       4. Click Advanced Settings to open the Properties window for your project.
       5. Go to C/C++ Build -> Settings in the left pane.
       6. Under the Tool Settings tab, choose Cross G++ Compiler -> Includes. To the "Include paths" section, add the location of the OMPL source tree. For example, on a Linux system with default installation path, you should use "/usr/local/include". Click Apply.
-      7. Again under the Tool Settings tab, choose Cross G++ Linker -> Libraries. To the "Libraries" section, add "ompl". To the "Library search path" section, add the location of the OMPL library files. For example, on a Linux system with default installation path, you should use "/usr/local/lib". Click Apply.
+      7. Again under the Tool Settings tab, choose Cross G++ Linker -> Libraries. To the "Libraries" section, add "ompl" (and, if needed, "ompl_app_base" and "ompl_app") . To the "Library search path" section, add the location of the OMPL library files. For example, on a Linux system with default installation path, you should use "/usr/local/lib". Click Apply.
       8. Click OK to leave the Properties window. Click Finish.
 
    - __IDE's such as MS Visual Studio and Xcode:__ consult your IDE's manual.

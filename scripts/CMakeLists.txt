@@ -3,6 +3,7 @@ install(PROGRAMS ompl_benchmark_statistics.py
     COMPONENT ompl
     RENAME ompl_benchmark_statistics${OMPL_INSTALL_SUFFIX}.py)
 
+find_program(R_EXEC R)
 if (R_EXEC)
     install(DIRECTORY plannerarena
         DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}"

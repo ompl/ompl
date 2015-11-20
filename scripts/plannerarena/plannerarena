@@ -40,8 +40,8 @@ script.dir <- dirname(normalizePath(script.name))
 if (file.exists(paste0(script.dir,"/app.R"))) {
     # if "app.R" exists in the same dir, then this is the app dir
     appDir <- script.dir
-    # config file is in the webapp dir
-    cfg.file <- normalizePath(paste0(script.dir,"/../../../ompl.conf"))
+    # config file is in the ompl top-level dir
+    cfg.file <- normalizePath(paste0(script.dir,"/../../ompl.conf"))
 } else {
     # otherwise, assume this script is installed in ${prefix}/bin and
     # plannerarena is installed in ${prefix}/share/ompl/plannerarena

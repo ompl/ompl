@@ -22,7 +22,7 @@ endif(APPLE)
 
 # Trick gccxml to ignore some compiler intrinsics that are used in Boost.Atomic
 # in Boost 1.55.
-if(CMAKE_COMPILER_IS_GNUCXX AND Boost_VERSION VERSION_GREATER "1.54.0")
+if(CMAKE_COMPILER_IS_GNUCXX AND Boost_VERSION VERSION_GREATER "105400")
     set(PYOMPL_EXTRA_CFLAGS "${PYOMPL_EXTRA_CFLAGS} -DBOOST_INTEL_CXX_VERSION")
 endif()
 
@@ -80,7 +80,7 @@ function(create_module_code_generation_target module dir)
         PYTHONPATH="${PROJECT_BINARY_DIR}/pyplusplus/lib/python${PYTHON_VERSION}/site-packages:$ENV{PYTHONPATH}"
         ${PYTHON_EXEC}
         "${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
-        "1>${CMAKE_BINARY_DIR}/pyplusplus_${module}.log" "2>&1"
+        "|tee" "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log" "2>&1"
         COMMAND ${CMAKE_COMMAND} -D "PATH=${dir}/bindings/${module}"
         -P "${OMPL_CMAKE_UTIL_DIR}/workaround_for_gccxml_bug.cmake"
         COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}

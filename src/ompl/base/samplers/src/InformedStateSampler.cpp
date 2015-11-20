@@ -64,10 +64,6 @@ namespace ompl
             {
                 throw Exception ("InformedSampler: At least one start state must be specified at construction.");
             }
-            else if (probDefn_->getStartStateCount() > 1u)
-            {
-                OMPL_WARN("InformedSampler: More than 1 start state present. Informed samplers will only use the first.");
-            }
             // No else
 
             // Store the optimization objective for later ease.
@@ -82,8 +78,32 @@ namespace ompl
 
         Cost InformedSampler::heuristicSolnCost(const State *statePtr) const
         {
-            // Combine heuristic estimates of the cost-to-come and cost-to-go from the state.
-            return opt_->combineCosts(opt_->motionCostHeuristic(probDefn_->getStartState(0u), statePtr), opt_->costToGo(statePtr, probDefn_->getGoal().get()));
+            // Return the best heuristic estimate of the cost-to-come and cost-to-go from the state considering all starts.
+
+            // If there's only one start, be simple:
+            if (probDefn_->getStartStateCount() == 1u)
+            {
+                // Calculate and from the one and only start
+                return opt_->combineCosts(opt_->motionCostHeuristic(probDefn_->getStartState(0u), statePtr), opt_->costToGo(statePtr, probDefn_->getGoal().get()));
+            }
+            else
+            {
+                // Calculate and return the best
+
+                // Variable
+                // The best cost so far
+                Cost bestCost = opt_->infiniteCost();
+
+                // Iterate over each start and store the best
+                for (unsigned int i = 0u; i < probDefn_->getStartStateCount(); ++i)
+                {
+                    // Store the best
+                    bestCost = opt_->betterCost(bestCost, opt_->combineCosts(opt_->motionCostHeuristic(probDefn_->getStartState(i), statePtr), opt_->costToGo(statePtr, probDefn_->getGoal().get())));
+                }
+
+                // Return the best
+                return bestCost;
+            }
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
 
