@@ -1,4 +1,5 @@
 option(OMPL_BUILD_DEMOS "Build OMPL demos" ON)
+find_package(PNG)
 
 if (OMPL_BUILD_DEMOS)
 
@@ -11,7 +12,7 @@ if (OMPL_BUILD_DEMOS)
       ${Boost_THREAD_LIBRARY}
       ${Boost_DATE_TIME_LIBRARY}
       ${Boost_PROGRAM_OPTIONS_LIBRARY}
-      png)
+      ${PNG_LIBRARIES})
   endmacro(add_ompl_demo)
 
   add_ompl_demo(demo_RigidBodyPlanning RigidBodyPlanning.cpp)
@@ -40,7 +41,7 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
   add_ompl_demo(demo_PlannerProgressProperties PlannerProgressProperties.cpp)
   add_ompl_demo(demo_CForestCircleGridBenchmark CForestCircleGridBenchmark.cpp)
-  
+
   add_ompl_demo(demo_KinematicPlanning KinematicPlanning.cpp)
 
   if (OMPL_EXTENSION_OPENDE)
