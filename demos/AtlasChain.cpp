@@ -38,7 +38,11 @@
 
 #include <ompl/base/spaces/RealVectorStateProjections.h>
 #include <ompl/tools/benchmark/Benchmark.h>
+#include <boost/program_options.hpp>
 #include <boost/format.hpp>
+#include <boost/tokenizer.hpp>
+
+namespace po = boost::program_options;
 
 const double RANGE = 0.5;
 
@@ -298,25 +302,60 @@ void saveSolutionPath(const ompl::geometric::ConstrainedSimpleSetupPtr &ss, bool
 
 int main (int argc, char **argv)
 {
-    for (unsigned int dim=3; dim<=5; ++dim)
-        for (unsigned extras=1; extras<=5; ++extras)
-        {
-            ompl::geometric::ConstrainedSimpleSetupPtr ss = createChainSetup(dim, 5, 0., extras);
-            const ompl::base::SpaceInformationPtr &si = ss->getSpaceInformation();
-            ompl::tools::Benchmark bench(*ss, "Atlas");
-            ompl::tools::Benchmark::Request request;
-            request.maxTime = 60.;
-            request.maxMem = 1e10;
-            request.simplify = false;
-            const char *planners[] = {"CBiRRT2", "EST", "PRM", "RRT", "RRTintermediate", "RRTConnectIntermediate", "RRTConnect", "KPIECE1", "STRIDE"};
-            for (std::size_t i = 0; i < sizeof(planners)/sizeof(char *); i++)
-                bench.addPlanner(ompl::base::PlannerPtr(parsePlanner(planners[i], si, RANGE)));
-            bench.setPreRunEvent(&resetStateSpace);
-            bench.addExperimentParameter("numdimensions", "INTEGER", boost::lexical_cast<std::string>(dim));
-            bench.addExperimentParameter("numconstraints", "INTEGER", boost::lexical_cast<std::string>(extras + 6));
-            // Execute
-            bench.benchmark(request);
-            bench.saveResultsToFile((boost::format("atlaschain_%1%_%2%.log") % dim % extras).str().c_str());
-        }
-}
+    unsigned int numDimensions, numConstraints, runCount;
+    double maxTime;
+    std::string plannerList;
+    bool savePath;
+    po::options_description desc("Options");
+    desc.add_options()
+        ("help", "show help message")
+        ("numdim,d", po::value<unsigned int>(&numDimensions)->default_value(3),
+            "number of dimensions")
+        ("numconstraints,c", po::value<unsigned int>(&numConstraints)->default_value(6),
+            "number of constraints (should be between 6 and 10)")
+        ("runcount,n", po::value<unsigned int>(&runCount)->default_value(100),
+            "number of runs per planner")
+        ("maxtime,t", po::value<double>(&maxTime)->default_value(60.),
+            "maximum time for each run")
+        ("plannerlist,p", po::value<std::string>(&plannerList)->default_value("CBiRRT2,EST,PRM,RRT,RRTintermediate,RRTConnectIntermediate,RRTConnect,KPIECE1,STRIDE,RealEST,BiRealEST"),
+            "comma-separated list of planners")
+        ("savepath,s", po::bool_switch(&savePath)->default_value(false), "save path of last run")
+    ;
 
+    po::variables_map vm;
+    // po::store(po::parse_command_line(argc, argv, desc,
+    //     po::command_line_style::unix_style ^ po::command_line_style::allow_short), vm);
+    po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
+    po::notify(vm);
+
+    if (vm.count("help"))
+    {
+        std::cout << desc << "\n";
+        printPlanners();
+        std::cout << "\n";
+        return 1;
+    }
+
+    ompl::geometric::ConstrainedSimpleSetupPtr ss = createChainSetup(numDimensions, 5, 0., numConstraints - 5);
+    const ompl::base::SpaceInformationPtr &si = ss->getSpaceInformation();
+    ompl::tools::Benchmark bench(*ss, "AtlasChain");
+    ompl::tools::Benchmark::Request request;
+    request.maxTime = maxTime;
+    request.runCount = runCount;
+    request.maxMem = 1e10;
+    request.simplify = false;
+
+    boost::tokenizer<> tok(plannerList);
+    for(boost::tokenizer<>::iterator planner=tok.begin(); planner!=tok.end(); ++planner)
+        bench.addPlanner(ompl::base::PlannerPtr(parsePlanner(planner->c_str(), si, RANGE)));
+
+    bench.setPreRunEvent(&resetStateSpace);
+    bench.addExperimentParameter("numdimensions", "INTEGER", boost::lexical_cast<std::string>(numDimensions));
+    bench.addExperimentParameter("numconstraints", "INTEGER", boost::lexical_cast<std::string>(numConstraints));
+    bench.benchmark(request);
+    bench.saveResultsToFile((boost::format("atlaschain_%1%_%2%.log") % numDimensions % numConstraints).str().c_str());
+
+    std::string plannerName = ss->getPlanner()->getName();
+    if (ss->haveSolutionPath() && savePath)
+        saveSolutionPath(ss, plannerName == "CBiRRT2" || plannerName == "ConstrainedRRT");
+}

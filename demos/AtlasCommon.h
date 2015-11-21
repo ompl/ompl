@@ -43,6 +43,8 @@
 #include <ompl/geometric/ConstrainedSimpleSetup.h>
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/planners/est/EST.h>
+#include <ompl/geometric/planners/est/RealEST.h>
+#include <ompl/geometric/planners/est/BiRealEST.h>
 #include <ompl/geometric/planners/kpiece/BKPIECE1.h>
 #include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
@@ -64,7 +66,9 @@
 
 #include <eigen3/Eigen/Dense>
 
+#if OMPL_HAVE_PNGXX
 #include <png++/png.hpp>
+#endif
 
 /** Simple manifold example: the unit sphere. */
 class SphereManifold : public ompl::base::AtlasStateSpace
@@ -246,6 +250,7 @@ public:
 
 };
 
+#if OMPL_HAVE_PNGXX
 /** Kinematic chain solving the torus maze. */
 class ChainTorusManifold : public ompl::base::AtlasStateSpace
 {
@@ -453,7 +458,7 @@ public:
         return !maze.get_pixel(vec[0], vec[1]).operator png::byte ();
     }
 };
-
+#endif
 
 /**
  * State validity checking functions implicitly define the free space where they return true.
@@ -505,6 +510,7 @@ bool unreachable (double sleep, const ompl::base::State *state, const Eigen::Vec
     return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView() - goal).norm() - radius) > radius-0.01;
 }
 
+#if OMPL_HAVE_PNGXX
 /** Maze-like obstacle in the xy plane. */
 bool mazePlaneValid (double sleep, png::image<png::index_pixel_1> &maze, const ompl::base::State *state)
 {
@@ -537,6 +543,7 @@ bool mazeTorusValid (double sleep, png::image<png::index_pixel_1> &maze, const o
         return false;
     return !maze.get_pixel(vec[0], vec[1]).operator png::byte ();
 }
+#endif
 
 /**
  * Problem initialization functions set the dimension, the manifold, start and goal points \a x and \a y,
@@ -615,6 +622,7 @@ ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::Vector
     return atlas;
 }
 
+#if OMPL_HAVE_PNGXX
 /** Initialize the atlas for the planar maze problem. */
 ompl::base::AtlasStateSpace *initPlanarMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const char *filename, double sleep)
 {
@@ -674,6 +682,7 @@ ompl::base::AtlasStateSpace *initTorusMazeProblem (Eigen::VectorXd &x, Eigen::Ve
     ompl::base::AtlasStateSpace *atlas = new TorusManifold(r1, r2);
     return atlas;
 }
+#endif
 
 /** Maps maze coordinates from [0,1]x[0,1] to 3D space on the torus. */
 void mazeToTorusCoords (double a, double b, Eigen::Ref<Eigen::VectorXd> x, double r1, double r2)
@@ -717,6 +726,7 @@ void threeLinkSolve (Eigen::Ref<Eigen::VectorXd> x1, Eigen::Ref<Eigen::VectorXd>
     x2 += s*v.normalized();
 }
 
+#if OMPL_HAVE_PNGXX
 /** Initialize the atlas for the chain torus maze problem. */
 ompl::base::AtlasStateSpace *initChainTorusMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
                                                         ompl::base::StateValidityCheckerFn &isValid, double sleep)
@@ -749,6 +759,7 @@ ompl::base::AtlasStateSpace *initChainTorusMazeProblem (Eigen::VectorXd &x, Eige
 
     return atlas;
 }
+#endif
 
 /** Allocator function for a sampler for the atlas that only returns valid points. */
 ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atlas, const ompl::base::SpaceInformation *si)
@@ -767,9 +778,10 @@ void printProblems (void)
 void printPlanners (void)
 {
     std::cout << "Available planners:\n";
-    std::cout << "    EST RRT RRTintermediate RRTConnect RRTConnectIntermediate RRTstar LazyRRT TRRT\n";
+    std::cout << "    EST RealEST BiRealEST SBL STRIDE\n";
+    std::cout << "    RRT RRTintermediate RRTConnect RRTConnectIntermediate RRTstar LazyRRT TRRT\n";
     std::cout << "    LBTRRT ConstrainedRRT CBiRRT2 KPIECE1 BKPIECE1 LBKPIECE1 PDST\n";
-    std::cout << "    PRM PRMstar SBL SPARS SPARStwo STRIDE\n";
+    std::cout << "    PRM PRMstar SPARS SPARStwo\n";
 }
 
 /** Initialize the problem specified in the string. */
@@ -788,12 +800,14 @@ ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::Vec
         return initChainProblem(x, y, isValid, false, sleep);
     else if (std::strcmp(problem, "chain_tough") == 0)
         return initChainProblem(x, y, isValid, true, sleep);
+#if OMPL_HAVE_PNGXX
     else if (std::strcmp(problem, "planar_maze") == 0)
         return initPlanarMazeProblem(x, y, isValid, "../../demos/atlas/maze.png", sleep);
     else if (std::strcmp(problem, "torus_maze") == 0)
         return initTorusMazeProblem(x, y, isValid, "../../demos/atlas/maze.png", sleep);
     else if (std::strcmp(problem, "chain_torus_maze") == 0)
         return initChainTorusMazeProblem(x, y, isValid, sleep);
+#endif
     else
         return NULL;
 }
@@ -804,6 +818,18 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
     if (std::strcmp(planner, "EST") == 0)
     {
         ompl::geometric::EST *est = new ompl::geometric::EST(si);
+        est->setRange(range);
+        return est;
+    }
+    else if (std::strcmp(planner, "RealEST") == 0)
+    {
+        ompl::geometric::RealEST *est = new ompl::geometric::RealEST(si);
+        est->setRange(range);
+        return est;
+    }
+    else if (std::strcmp(planner, "BiRealEST") == 0)
+    {
+        ompl::geometric::BiRealEST *est = new ompl::geometric::BiRealEST(si);
         est->setRange(range);
         return est;
     }

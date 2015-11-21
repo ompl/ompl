@@ -1,5 +1,12 @@
 option(OMPL_BUILD_DEMOS "Build OMPL demos" ON)
 find_package(PNG)
+find_path(PNGXX png.hpp PATH_SUFFIXES "png++")
+message(${PNGXX})
+if (PNGXX AND PNG_LIBRARIES)
+    set(OMPL_HAVE_PNGXX 1)
+    message(${PNG_LIBRARIES})
+    include_directories(PNGXX)
+endif()
 
 if (OMPL_BUILD_DEMOS)
 
