@@ -308,10 +308,12 @@ int main (int argc, char **argv)
             request.maxTime = 60.;
             request.maxMem = 1e10;
             request.simplify = false;
-            const char *planners[] = {"CBiRRT2", "EST", "PRM", "RRT", "RRTintermediate", "RRTConnect", "KPIECE1"};
+            const char *planners[] = {"CBiRRT2", "EST", "PRM", "RRT", "RRTintermediate", "RRTConnectIntermediate", "RRTConnect", "KPIECE1", "STRIDE"};
             for (std::size_t i = 0; i < sizeof(planners)/sizeof(char *); i++)
                 bench.addPlanner(ompl::base::PlannerPtr(parsePlanner(planners[i], si, RANGE)));
             bench.setPreRunEvent(&resetStateSpace);
+            bench.addExperimentParameter("numdimensions", "INTEGER", boost::lexical_cast<std::string>(dim));
+            bench.addExperimentParameter("numconstraints", "INTEGER", boost::lexical_cast<std::string>(extras + 6));
             // Execute
             bench.benchmark(request);
             bench.saveResultsToFile((boost::format("atlaschain_%1%_%2%.log") % dim % extras).str().c_str());
