@@ -121,12 +121,18 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         for (int i = 0; i < uoffset.size(); i++)
             uoffset[i] = rng_.gaussian01();
         uoffset *=  distance * std::pow(rng_.uniform01(), 1.0/uoffset.size()) / uoffset.norm();
-        //c->phi(ru + uoffset, rx);
+
+#define ORTHOPROJECT 0
+#if ORTHOPROJECT // Option 1: project orthogonally using chart c
         c->psi(ru + uoffset, rx);
     }
     while (rx.hasNaN() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance()));
-    //while (!atlas_.project(rx));
-    
+#else // Option 2: ordinary gradient descent
+        c->phi(ru + uoffset, rx);
+    }
+    while (!atlas_.project(rx));
+#endif
+
     // Be lazy about determining the new chart if we are not in the old one
     if (c->psiInverse(rx, ru), !c->inP(ru))
         c = NULL;

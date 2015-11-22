@@ -251,8 +251,8 @@ int main (int argc, char **argv)
     biman->setBounds(-M_PI, M_PI);
     Eigen::VectorXd x(14); x << 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0;
-    Eigen::VectorXd y(14); y << 0, -.3, 0, .3, 0, 0, 0,
-                                0, -.3, 0, .3, 0, 0, 0;
+    Eigen::VectorXd y(14); y << 0, -1.2, 0, 2.2, 0, -1, 0,
+                                0, -1.2, 0, 2.2, 0, -1, 0;
     Eigen::VectorXd sl(3), sr(3), gl(3), gr(3);
     biman->project(x);
     biman->project(y);
