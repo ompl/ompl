@@ -92,26 +92,23 @@ namespace ompl
         public:
             ////////////////////////////////
             //Data typedefs:
-            /** \brief A typedef for a pair of vertices, i.e., an edge */
-            typedef std::pair<VertexPtr, VertexPtr> VertexPtrPair;
-
             /** \brief A typedef for a pair of costs, i.e., the edge sorting key */
             typedef std::pair<ompl::base::Cost, ompl::base::Cost> CostPair;
-
-            /** \brief A typedef for the nearest-neighbour struct */
-            typedef boost::shared_ptr< NearestNeighbors<VertexPtr> > VertexPtrNNPtr;
             ////////////////////////////////
 
             ////////////////////////////////
             //Function typedefs:
             /** \brief A boost::function definition of a heuristic function for a vertex. */
-            typedef boost::function<ompl::base::Cost (const VertexPtr&)> VertexHeuristicFunc;
+            typedef boost::function<ompl::base::Cost (const VertexConstPtr&)> VertexHeuristicFunc;
 
             /** \brief A boost::function definition of a heuristic function for an edge. */
-            typedef boost::function<ompl::base::Cost (const VertexPtrPair&)> EdgeHeuristicFunc;
+            typedef boost::function<ompl::base::Cost (const VertexConstPtrPair&)> EdgeHeuristicFunc;
+
+            /** \brief A boost::function definition for the distance between two vertices. */
+            typedef boost::function<double (const VertexConstPtr&, const VertexConstPtr&)> DistanceFunc;
 
             /** \brief A boost::function definition for the neighbourhood of a vertex . */
-            typedef boost::function<void (const VertexPtr&, std::vector<VertexPtr>*)> NeighbourhoodFunc;
+            typedef boost::function<unsigned int (const VertexPtr&, std::vector<VertexPtr>*)> NeighbourhoodFunc;
             ////////////////////////////////
 
 
@@ -120,7 +117,7 @@ namespace ompl
             //Public functions:
             /** \brief Construct an integrated queue. */
             //boost::make_shared can only take 9 arguments, so be careful:
-            IntegratedQueue(const ompl::base::OptimizationObjectivePtr& opt, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget);
+            IntegratedQueue(const ompl::base::OptimizationObjectivePtr& opt, const DistanceFunc& distanceFunc, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget);
 
             virtual ~IntegratedQueue();
 
@@ -284,73 +281,6 @@ namespace ompl
             typedef boost::unordered_map<BITstar::VertexId, EdgeQueueIterList> VertexIdToEdgeQueueIterListUMap;
             ////////////////////////////////
 
-            ////////////////////////////////
-            //Member variables:
-
-            /** \brief My optimization objective. */
-            ompl::base::OptimizationObjectivePtr                     opt_;
-
-            /** \brief The function to find nearby samples. */
-            NeighbourhoodFunc                                        nearSamplesFunc_;
-
-            /** \brief The function to find nearby samples. */
-            NeighbourhoodFunc                                        nearVerticesFunc_;
-
-            /** \brief The lower-bounding heuristic for a vertex. */
-            VertexHeuristicFunc                                      lowerBoundHeuristicVertexFunc_;
-
-            /** \brief The current heuristic for a vertex. */
-            VertexHeuristicFunc                                      currentHeuristicVertexFunc_;
-
-            /** \brief The lower-bounding heuristic for an edge. */
-            EdgeHeuristicFunc                                        lowerBoundHeuristicEdgeFunc_;
-
-            /** \brief The current heuristic for an edge. */
-            EdgeHeuristicFunc                                        currentHeuristicEdgeFunc_;
-
-            /** \brief The current heuristic to the end of an edge. */
-            EdgeHeuristicFunc                                        currentHeuristicEdgeTargetFunc_;
-
-            /** \brief Whether to use failure tracking or not */
-            bool                                                     useFailureTracking_;
-
-            /** \brief Whether to delay rewiring until an initial solution is found or not */
-            bool                                                     delayRewiring_;
-
-            /** \brief Whether to use parent lookup tables or not */
-            bool                                                     outgoingLookupTables_;
-
-            /** \brief Whether to use child lookup tables or not */
-            bool                                                     incomingLookupTables_;
-
-            /** \brief The underlying queue of vertices. Sorted by vertexQueueComparison. */
-            CostToVertexMMap                                         vertexQueue_;
-
-            /** \brief The next vertex in the expansion queue to expand*/
-            VertexQueueIter                                          vertexToExpand_;
-
-            /** \brief The underlying queue of edges. Sorted by edgeQueueComparison. */
-            CostToVertexPtrPairMMap                                  edgeQueue_;
-
-            /** \brief A lookup from vertex to iterator in the vertex queue */
-            VertexIdToVertexQueueIterUMap                            vertexIterLookup_;
-
-            /** \brief A unordered map from a vertex to all the edges in the queue emanating from the vertex: */
-            VertexIdToEdgeQueueIterListUMap                          outgoingEdges_;
-
-            /** \brief A unordered map from a vertex to all the edges in the queue leading into the vertex: */
-            VertexIdToEdgeQueueIterListUMap                          incomingEdges_;
-
-            /** \brief A list of vertices that we will need to process when resorting the queue: */
-            std::list<VertexPtr>                                     resortVertices_;
-
-            /** \brief The maximum heuristic value allowed for vertices/edges in the queue.*/
-            ompl::base::Cost                                         costThreshold_;
-
-            /** \brief Whether the problem has a solution */
-            bool                                                     hasSolution_;
-            ////////////////////////////////
-
 
             ////////////////////////////////
             //High level primitives:
@@ -365,6 +295,9 @@ namespace ompl
 
             /** \brief Attempt to add an edge to the queue. Checks that the edge meets the queueing condition and that it is not in the failed set (if appropriate). */
             void queueupEdge(const VertexPtr& parent, const VertexPtr& child);
+
+            /** \brief Given two subsets containing (up to) the k-nearest members of each, finds the k-nearest of the union */
+            void processKNearest(unsigned int k, const VertexConstPtr& vertex, std::vector<VertexPtr>* kNearSamples, std::vector<VertexPtr>* kNearVertices);
             ////////////////////////////////
 
 
@@ -436,6 +369,77 @@ namespace ompl
 
             /** \brief Compare whether cost a is worse or equivalent to cost b by checking that a is not better than b. */
             bool isCostWorseThanOrEquivalentTo(const ompl::base::Cost& a, const ompl::base::Cost& b) const;
+            ////////////////////////////////
+
+
+
+            ////////////////////////////////
+            //Member variables:
+            /** \brief My optimization objective. */
+            ompl::base::OptimizationObjectivePtr                     opt_;
+
+            /** \brief The distance function */
+            DistanceFunc                                             distanceFunc_;
+
+            /** \brief The function to find nearby samples. */
+            NeighbourhoodFunc                                        nearSamplesFunc_;
+
+            /** \brief The function to find nearby samples. */
+            NeighbourhoodFunc                                        nearVerticesFunc_;
+
+            /** \brief The lower-bounding heuristic for a vertex. */
+            VertexHeuristicFunc                                      lowerBoundHeuristicVertexFunc_;
+
+            /** \brief The current heuristic for a vertex. */
+            VertexHeuristicFunc                                      currentHeuristicVertexFunc_;
+
+            /** \brief The lower-bounding heuristic for an edge. */
+            EdgeHeuristicFunc                                        lowerBoundHeuristicEdgeFunc_;
+
+            /** \brief The current heuristic for an edge. */
+            EdgeHeuristicFunc                                        currentHeuristicEdgeFunc_;
+
+            /** \brief The current heuristic to the end of an edge. */
+            EdgeHeuristicFunc                                        currentHeuristicEdgeTargetFunc_;
+
+            /** \brief Whether to use failure tracking or not */
+            bool                                                     useFailureTracking_;
+
+            /** \brief Whether to delay rewiring until an initial solution is found or not */
+            bool                                                     delayRewiring_;
+
+            /** \brief Whether to use parent lookup tables or not */
+            bool                                                     outgoingLookupTables_;
+
+            /** \brief Whether to use child lookup tables or not */
+            bool                                                     incomingLookupTables_;
+
+            /** \brief The underlying queue of vertices. Sorted by vertexQueueComparison. */
+            CostToVertexMMap                                         vertexQueue_;
+
+            /** \brief The next vertex in the expansion queue to expand*/
+            VertexQueueIter                                          vertexToExpand_;
+
+            /** \brief The underlying queue of edges. Sorted by edgeQueueComparison. */
+            CostToVertexPtrPairMMap                                  edgeQueue_;
+
+            /** \brief A lookup from vertex to iterator in the vertex queue */
+            VertexIdToVertexQueueIterUMap                            vertexIterLookup_;
+
+            /** \brief A unordered map from a vertex to all the edges in the queue emanating from the vertex: */
+            VertexIdToEdgeQueueIterListUMap                          outgoingEdges_;
+
+            /** \brief A unordered map from a vertex to all the edges in the queue leading into the vertex: */
+            VertexIdToEdgeQueueIterListUMap                          incomingEdges_;
+
+            /** \brief A list of vertices that we will need to process when resorting the queue: */
+            std::list<VertexPtr>                                     resortVertices_;
+
+            /** \brief The maximum heuristic value allowed for vertices/edges in the queue.*/
+            ompl::base::Cost                                         costThreshold_;
+
+            /** \brief Whether the problem has a solution */
+            bool                                                     hasSolution_;
             ////////////////////////////////
         }; //class: IntegratedQueue
     } //geometric

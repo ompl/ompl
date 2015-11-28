@@ -74,6 +74,13 @@ namespace ompl
             goes onto consider \e complex solutions when that proves incorrect. It accomplishes this by using
             heuristics to search in order of decreasing potential solution quality.
 
+            Both a k-nearest and r-disc version are available, with the k-nearest selected by default. In general,
+            the r-disc variant considers more connections than the k-nearest. For a small number of specific planning
+            problems, this results in it finding solutions slower than k-nearest (hence the default choice).
+            It is recommended that you try both variants, with the r-disc version being recommended *if* it finds an
+            initial solution in a suitable amount of time (which it probably will). The difference in this number of
+            connections considered is a RGG theory question, and certainly merits further review.
+
             This implementation of BIT* can handle multiple starts, multiple goals, a variety of optimization objectives
             (e.g., path length), and with \ref gBITstarSetJustInTimeSampling "just-in-time sampling", infinite problem domains.
             Note that for some of optimization  objectives, the user must specify a suitable heuristic and that when
@@ -263,6 +270,9 @@ namespace ompl
             /** \brief A pair of vertices, i.e., an edge. */
             typedef std::pair<VertexPtr, VertexPtr> VertexPtrPair;
 
+            /** \brief A pair of const vertices, i.e., an edge. */
+            typedef std::pair<VertexConstPtr, VertexConstPtr> VertexConstPtrPair;
+
             /** \brief The OMPL::NearestNeighbors structure. */
             typedef boost::shared_ptr< NearestNeighbors<VertexPtr> > VertexPtrNNPtr;
 
@@ -279,7 +289,7 @@ namespace ompl
             void newBatch();
 
             /** \brief Update the list of free samples */
-            void updateSamples(const VertexPtr& vertex);
+            void updateSamples(const VertexConstPtr& vertex);
 
             /** \brief Prune the problem. Returns true if pruning was done. */
             virtual bool prune();
@@ -306,7 +316,7 @@ namespace ompl
             void pruneSamples();
 
             /** \brief Checks an edge for collision. A wrapper to SpaceInformation->checkMotion that tracks number of collision checks. */
-            bool checkEdge(const VertexPtrPair& edge);
+            bool checkEdge(const VertexConstPtrPair& edge);
 
             /** \brief Actually remove a sample from its NN struct.*/
             void dropSample(VertexPtr oldSample);
@@ -326,50 +336,50 @@ namespace ompl
             /** \brief Add a vertex to the graph */
             void addVertex(const VertexPtr& newVertex, const bool& removeFromFree);
 
-            /** \brief Get the nearest samples from the freeStateNN_ using the appropriate "near" definition (i.e., k or r). */
-            void nearestSamples(const VertexPtr& vertex, std::vector<VertexPtr>* neighbourSamples);
+            /** \brief Get the nearest samples from the freeStateNN_ using the appropriate "near" definition (i.e., k or r). If using k-nearest, returns the target k, otherwise returns 0u. */
+            unsigned int nearestSamples(const VertexPtr& vertex, std::vector<VertexPtr>* neighbourSamples);
 
-            /** \brief Get the nearest samples from the vertexNN_ using the appropriate "near" definition (i.e., k or r). */
-            void nearestVertices(const VertexPtr& vertex, std::vector<VertexPtr>* neighbourVertices);
+            /** \brief Get the nearest samples from the vertexNN_ using the appropriate "near" definition (i.e., k or r). If using k-nearest, returns the target k, otherwise returns 0u. */
+            unsigned int nearestVertices(const VertexPtr& vertex, std::vector<VertexPtr>* neighbourVertices);
             ///////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////
             //Helper functions for sorting queues/nearest-neighbour structures and the related calculations.
             /** \brief The distance function used for nearest neighbours. Calculates the distance directionally from the given state to all the other states (can be used on states either in our out of the graph).*/
-            double nnDistance(const VertexPtr& a, const VertexPtr& b) const;
+            double nnDistance(const VertexConstPtr& a, const VertexConstPtr& b) const;
             ///////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////
             //Helper functions for various heuristics.
             /** \brief Calculates a heuristic estimate of the cost of a solution constrained to pass through a vertex, independent of the current cost-to-come. I.e., combines the heuristic estimates of the cost-to-come and cost-to-go. */
-            ompl::base::Cost lowerBoundHeuristicVertex(const VertexPtr& edgePair) const;
+            ompl::base::Cost lowerBoundHeuristicVertex(const VertexConstPtr& vertex) const;
 
             /** \brief Calculates a heuristic estimate of the cost of a solution constrained to pass through a vertex, dependent on the current cost-to-come. I.e., combines the current cost-to-come with a heuristic estimate of the cost-to-go. */
-            ompl::base::Cost currentHeuristicVertex(const VertexPtr& edgePair) const;
+            ompl::base::Cost currentHeuristicVertex(const VertexConstPtr& vertex) const;
 
             /** \brief Calculates a heuristic estimate of the cost of a solution constrained to go through an edge, independent of the cost-to-come of the parent state. I.e., combines the heuristic estimates of the cost-to-come, edge cost, and cost-to-go. */
-            ompl::base::Cost lowerBoundHeuristicEdge(const VertexPtrPair& edgePair) const;
+            ompl::base::Cost lowerBoundHeuristicEdge(const VertexConstPtrPair& edgePair) const;
 
             /** \brief Calculates a heuristic estimate of the cost of a solution constrained to go through an edge, dependent on the cost-to-come of the parent state. I.e., combines the current cost-to-come with heuristic estimates of the edge cost, and cost-to-go. */
-            ompl::base::Cost currentHeuristicEdge(const VertexPtrPair& edgePair) const;
+            ompl::base::Cost currentHeuristicEdge(const VertexConstPtrPair& edgePair) const;
 
             /** \brief Calculates a heuristic estimate of the cost of a path to the \e target of an edge, dependent on the cost-to-come of the parent state. I.e., combines the current cost-to-come with heuristic estimates of the edge cost. */
-            ompl::base::Cost currentHeuristicEdgeTarget(const VertexPtrPair& edgePair) const;
+            ompl::base::Cost currentHeuristicEdgeTarget(const VertexConstPtrPair& edgePair) const;
 
             /** \brief Calculate a heuristic estimate of the cost-to-come for a Vertex */
-            ompl::base::Cost costToComeHeuristic(const VertexPtr& vertex) const;
+            ompl::base::Cost costToComeHeuristic(const VertexConstPtr& vertex) const;
 
             /** \brief Calculate a heuristic estimate of the cost an edge between two Vertices */
-            ompl::base::Cost edgeCostHeuristic(const VertexPtrPair& edgePair) const;
+            ompl::base::Cost edgeCostHeuristic(const VertexConstPtrPair& edgePair) const;
 
             /** \brief Calculate a heuristic estimate of the cost-to-go for a Vertex */
-            ompl::base::Cost costToGoHeuristic(const VertexPtr& vertex) const;
+            ompl::base::Cost costToGoHeuristic(const VertexConstPtr& vertex) const;
 
             /** \brief The true cost of an edge, including collisions.*/
-            ompl::base::Cost trueEdgeCost(const VertexPtrPair& edgePair) const;
+            ompl::base::Cost trueEdgeCost(const VertexConstPtrPair& edgePair) const;
 
             /** \brief Calculate the max req'd cost to define a neighbourhood around a state. Currently only implemented for path-length problems, for which the neighbourhood cost is the f-value of the vertex plus 2r. */
-            ompl::base::Cost neighbourhoodCost(const VertexPtr& vertex) const;
+            ompl::base::Cost neighbourhoodCost(const VertexConstPtr& vertex) const;
 
             /** \brief Compare whether cost a is worse than cost b by checking whether b is better than a. */
             bool isCostWorseThan(const ompl::base::Cost& a, const ompl::base::Cost& b) const;

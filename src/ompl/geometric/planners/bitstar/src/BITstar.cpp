@@ -235,7 +235,7 @@ namespace ompl
 
             //Configure the queue
             //boost::make_shared can only take 9 arguments, so be careful:
-            intQueue_ = boost::make_shared<IntegratedQueue> (opt_, boost::bind(&BITstar::nearestSamples, this, _1, _2), boost::bind(&BITstar::nearestVertices, this, _1, _2), boost::bind(&BITstar::lowerBoundHeuristicVertex, this, _1), boost::bind(&BITstar::currentHeuristicVertex, this, _1), boost::bind(&BITstar::lowerBoundHeuristicEdge, this, _1), boost::bind(&BITstar::currentHeuristicEdge, this, _1), boost::bind(&BITstar::currentHeuristicEdgeTarget, this, _1));
+            intQueue_ = boost::make_shared<IntegratedQueue> (opt_, boost::bind(&BITstar::nnDistance, this, _1, _2), boost::bind(&BITstar::nearestSamples, this, _1, _2), boost::bind(&BITstar::nearestVertices, this, _1, _2), boost::bind(&BITstar::lowerBoundHeuristicVertex, this, _1), boost::bind(&BITstar::currentHeuristicVertex, this, _1), boost::bind(&BITstar::lowerBoundHeuristicEdge, this, _1), boost::bind(&BITstar::currentHeuristicEdge, this, _1), boost::bind(&BITstar::currentHeuristicEdgeTarget, this, _1));
             intQueue_->setUseFailureTracking(useFailureTracking_);
             intQueue_->setDelayedRewiring(delayRewiring_);
 
@@ -778,7 +778,7 @@ namespace ompl
 
 
 
-        void BITstar::updateSamples(const VertexPtr& vertex)
+        void BITstar::updateSamples(const VertexConstPtr& vertex)
         {
             //Variable
             //The required cost to contain the neighbourhood of this vertex:
@@ -1329,10 +1329,10 @@ namespace ompl
 
 
 
-        bool BITstar::checkEdge(const VertexPtrPair& edge)
+        bool BITstar::checkEdge(const VertexConstPtrPair& edge)
         {
             ++numEdgeCollisionChecks_;
-            return Planner::si_->checkMotion(edge.first->state(), edge.second->state());
+            return Planner::si_->checkMotion(edge.first->stateConst(), edge.second->stateConst());
         }
 
 
@@ -1566,7 +1566,7 @@ namespace ompl
 
 
 
-        void BITstar::nearestSamples(const VertexPtr& vertex, std::vector<VertexPtr>* neighbourSamples)
+        unsigned int BITstar::nearestSamples(const VertexPtr& vertex, std::vector<VertexPtr>* neighbourSamples)
         {
             //Make sure sampling has happened first:
             this->updateSamples(vertex);
@@ -1577,16 +1577,18 @@ namespace ompl
             if (useKNearest_ == true)
             {
                 freeStateNN_->nearestK(vertex, k_, *neighbourSamples);
+                return k_;
             }
             else
             {
                 freeStateNN_->nearestR(vertex, r_, *neighbourSamples);
+                return 0u;
             }
         }
 
 
 
-        void BITstar::nearestVertices(const VertexPtr& vertex, std::vector<VertexPtr>* neighbourVertices)
+        unsigned int BITstar::nearestVertices(const VertexPtr& vertex, std::vector<VertexPtr>* neighbourVertices)
         {
             //Increment our counter:
             ++numNearestNeighbours_;
@@ -1594,67 +1596,69 @@ namespace ompl
             if (useKNearest_ == true)
             {
                 vertexNN_->nearestK(vertex, k_, *neighbourVertices);
+                return k_;
             }
             else
             {
                 vertexNN_->nearestR(vertex, r_, *neighbourVertices);
+                return 0u;
             }
         }
 
 
 
-        double BITstar::nnDistance(const VertexPtr& a, const VertexPtr& b) const
+        double BITstar::nnDistance(const VertexConstPtr& a, const VertexConstPtr& b) const
         {
             //Using RRTstar as an example, this order gives us the distance FROM the queried state TO the other neighbours in the structure.
             //The distance function between two states
-            if (!a->state())
+            if (!a->stateConst())
             {
                 throw ompl::Exception("a->state is unallocated");
             }
-            if (!b->state())
+            if (!b->stateConst())
             {
                 throw ompl::Exception("b->state is unallocated");
             }
-            return Planner::si_->distance(b->state(), a->state());
+            return Planner::si_->distance(b->stateConst(), a->stateConst());
         }
 
 
 
-        ompl::base::Cost BITstar::lowerBoundHeuristicVertex(const VertexPtr& vertex) const
+        ompl::base::Cost BITstar::lowerBoundHeuristicVertex(const VertexConstPtr& vertex) const
         {
             return opt_->combineCosts( this->costToComeHeuristic(vertex), this->costToGoHeuristic(vertex) );
         }
 
 
 
-        ompl::base::Cost BITstar::currentHeuristicVertex(const VertexPtr& vertex) const
+        ompl::base::Cost BITstar::currentHeuristicVertex(const VertexConstPtr& vertex) const
         {
             return opt_->combineCosts( vertex->getCost(), this->costToGoHeuristic(vertex) );
         }
 
 
-        ompl::base::Cost BITstar::lowerBoundHeuristicEdge(const VertexPtrPair& edgePair) const
+        ompl::base::Cost BITstar::lowerBoundHeuristicEdge(const VertexConstPtrPair& edgePair) const
         {
             return this->combineCosts(this->costToComeHeuristic(edgePair.first), this->edgeCostHeuristic(edgePair), this->costToGoHeuristic(edgePair.second));
         }
 
 
 
-        ompl::base::Cost BITstar::currentHeuristicEdge(const VertexPtrPair& edgePair) const
+        ompl::base::Cost BITstar::currentHeuristicEdge(const VertexConstPtrPair& edgePair) const
         {
             return opt_->combineCosts(this->currentHeuristicEdgeTarget(edgePair), this->costToGoHeuristic(edgePair.second));
         }
 
 
 
-        ompl::base::Cost BITstar::currentHeuristicEdgeTarget(const VertexPtrPair& edgePair) const
+        ompl::base::Cost BITstar::currentHeuristicEdgeTarget(const VertexConstPtrPair& edgePair) const
         {
             return opt_->combineCosts(edgePair.first->getCost(), this->edgeCostHeuristic(edgePair));
         }
 
 
 
-        ompl::base::Cost BITstar::costToComeHeuristic(const VertexPtr& vertex) const
+        ompl::base::Cost BITstar::costToComeHeuristic(const VertexConstPtr& vertex) const
         {
             //Variable
             //The current best cost to the state, initialize to infinity
@@ -1664,7 +1668,7 @@ namespace ompl
             for (std::list<VertexPtr>::const_iterator startIter = startVertices_.begin(); startIter != startVertices_.end(); ++startIter)
             {
                 //Update the cost-to-come as the better of the best so far and the new one
-                curBest = opt_->betterCost(curBest, opt_->motionCostHeuristic((*startIter)->state(), vertex->state()));
+                curBest = opt_->betterCost(curBest, opt_->motionCostHeuristic((*startIter)->stateConst(), vertex->stateConst()));
             }
 
             //Return
@@ -1673,14 +1677,14 @@ namespace ompl
 
 
 
-        ompl::base::Cost BITstar::edgeCostHeuristic(const VertexPtrPair& edgePair) const
+        ompl::base::Cost BITstar::edgeCostHeuristic(const VertexConstPtrPair& edgePair) const
         {
-            return opt_->motionCostHeuristic(edgePair.first->state(), edgePair.second->state());
+            return opt_->motionCostHeuristic(edgePair.first->stateConst(), edgePair.second->stateConst());
         }
 
 
 
-        ompl::base::Cost BITstar::costToGoHeuristic(const VertexPtr& vertex) const
+        ompl::base::Cost BITstar::costToGoHeuristic(const VertexConstPtr& vertex) const
         {
             //Variable
             //The current best cost to a goal from the state, initialize to infinity
@@ -1690,7 +1694,7 @@ namespace ompl
             for (std::list<VertexPtr>::const_iterator goalIter = goalVertices_.begin(); goalIter != goalVertices_.end(); ++goalIter)
             {
                 //Update the cost-to-go as the better of the best so far and the new one
-                curBest = opt_->betterCost(curBest, opt_->motionCostHeuristic(vertex->state(), (*goalIter)->state()));
+                curBest = opt_->betterCost(curBest, opt_->motionCostHeuristic(vertex->stateConst(), (*goalIter)->stateConst()));
             }
 
             //Return
@@ -1698,14 +1702,14 @@ namespace ompl
         }
 
 
-        ompl::base::Cost BITstar::trueEdgeCost(const VertexPtrPair& edgePair) const
+        ompl::base::Cost BITstar::trueEdgeCost(const VertexConstPtrPair& edgePair) const
         {
-            return opt_->motionCost(edgePair.first->state(), edgePair.second->state());
+            return opt_->motionCost(edgePair.first->stateConst(), edgePair.second->stateConst());
         }
 
 
 
-        ompl::base::Cost BITstar::neighbourhoodCost(const VertexPtr& vertex) const
+        ompl::base::Cost BITstar::neighbourhoodCost(const VertexConstPtr& vertex) const
         {
             if (useJustInTimeSampling_ == true)
             {
@@ -2036,9 +2040,6 @@ namespace ompl
 
                 if (useKNearest_ == true)
                 {
-                    //Warn that this isn't exactly implemented
-                    OMPL_WARN("%s: The implementation of k-nearest is overly conservative, as it considers the k-nearest samples and the k-nearest vertices, instead of just the combined k-nearest.", Planner::getName().c_str()); //This is because we have a separate nearestNeighbours structure for samples and vertices and you don't know what fraction of K to ask for from each...
-
                     //Check that we're not doing JIT
                     if (useJustInTimeSampling_ == true)
                     {
@@ -2082,7 +2083,7 @@ namespace ompl
         {
             if (prune == false)
             {
-                OMPL_WARN("%s: Turning pruning off does not turn a fake pruning on, as it should.", Planner::getName().c_str());
+                OMPL_WARN("%s: Turning pruning off has never really been tested.", Planner::getName().c_str());
             }
 
             usePruning_ = prune;

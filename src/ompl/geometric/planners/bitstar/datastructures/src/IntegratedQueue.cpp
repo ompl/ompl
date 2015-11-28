@@ -47,8 +47,9 @@ namespace ompl
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
         //Public functions:
-        BITstar::IntegratedQueue::IntegratedQueue(const ompl::base::OptimizationObjectivePtr& opt, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget)
+        BITstar::IntegratedQueue::IntegratedQueue(const ompl::base::OptimizationObjectivePtr& opt, const DistanceFunc& distanceFunc, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget)
             :   opt_(opt),
+                distanceFunc_(distanceFunc),
                 nearSamplesFunc_(nearSamplesFunc),
                 nearVerticesFunc_(nearVerticesFunc),
                 lowerBoundHeuristicVertexFunc_(lowerBoundHeuristicVertex),
@@ -128,7 +129,7 @@ namespace ompl
 
 
 
-        BITstar::IntegratedQueue::VertexPtrPair BITstar::IntegratedQueue::frontEdge()
+        BITstar::VertexPtrPair BITstar::IntegratedQueue::frontEdge()
         {
             if (this->isEmpty() == true)
             {
@@ -195,7 +196,7 @@ namespace ompl
 
 
 
-        BITstar::IntegratedQueue::VertexPtrPair BITstar::IntegratedQueue::popFrontEdge()
+        BITstar::VertexPtrPair BITstar::IntegratedQueue::popFrontEdge()
         {
             VertexPtrPair rval;
 
@@ -949,9 +950,29 @@ namespace ompl
                 //Variables:
                 //The vector of nearby samples (either within r or the k-nearest)
                 std::vector<VertexPtr> neighbourSamples;
+                //The vector of nearby vertices
+                std::vector<VertexPtr> neighbourVertices;
+                //Are we using k-nearest?
+                bool usingKNearest;
+                //If we're using k-nearest, what number that is
+                unsigned int k;
 
-                //Get the set of nearby free states:
-                nearSamplesFunc_(vertex, &neighbourSamples);
+                //Get the set of nearby free states, returns the number k if it's k nearest, 0u otherwise
+                k = nearSamplesFunc_(vertex, &neighbourSamples);
+
+                //Decode if we're using k-nearest for readability
+                usingKNearest = (k > 0u);
+
+                //If we're usjng k-nearest, we always have to also get the neighbourVertices and the do some post-processing
+                if (usingKNearest == true)
+                {
+                    //Get the set of nearby vertices
+                    nearVerticesFunc_(vertex, &neighbourVertices);
+
+                    //Post process them:
+                    this->processKNearest(k, vertex, &neighbourSamples, &neighbourVertices);
+                }
+                //No else
 
                 //Add edges to unconnected targets who could ever provide a better solution:
                 //Is the vertex new?
@@ -982,12 +1003,13 @@ namespace ompl
                 //If it is a new and either we're not delaying rewiring or we have a solution, we also add rewiring candidates:
                 if (vertex->isNew() == true && (delayRewiring_ == false || hasSolution_ == true))
                 {
-                    //Variables:
-                    //The vector of vertices within r of the vertexf
-                    std::vector<VertexPtr> neighbourVertices;
-
-                    //Get the set of nearby free states:
-                    nearVerticesFunc_(vertex, &neighbourVertices);
+                    //If we're not using k-nearest, we will not have gotten the neighbour vertices yet, get them now
+                    if (usingKNearest == false)
+                    {
+                        //Get the set of nearby vertices
+                        nearVerticesFunc_(vertex, &neighbourVertices);
+                    }
+                    //No else
 
                     //Iterate over the vector of connected targets and add only those who could ever provide a better solution:
                     for (unsigned int i = 0u; i < neighbourVertices.size(); ++i)
@@ -1060,6 +1082,53 @@ namespace ompl
                 //No else, we assume that it's better to calculate this condition multiple times than have the list of failed sets become too large...?
             }
             //No else
+        }
+
+
+
+        void BITstar::IntegratedQueue::processKNearest(unsigned int k, const VertexConstPtr& vertex, std::vector<VertexPtr>* kNearSamples, std::vector<VertexPtr>* kNearVertices)
+        {
+            //Variables
+            //The position in the sample vector
+            unsigned int samplePos;
+            //The position in the vertex vector
+            unsigned int vertexPos;
+
+            //Iterate through the first k in the combined vectors
+            samplePos = 0u;
+            vertexPos = 0u;
+            while (samplePos + vertexPos < k && (samplePos < kNearSamples->size() || vertexPos < kNearVertices->size()))
+            {
+                //Where along are we in the relative vectors?
+                if (samplePos < kNearSamples->size() && vertexPos >= kNearVertices->size())
+                {
+                    //There are just samples left. Easy, move the sample token:
+                    ++samplePos;
+                }
+                else if (samplePos >= kNearSamples->size() && vertexPos < kNearVertices->size())
+                {
+                    //There are just vertices left. Easy, move the vertex token:
+                    ++vertexPos;
+                }
+                else
+                {
+                    //Both are left, which is closest?
+                    if ( distanceFunc_(kNearVertices->at(vertexPos), vertex) < distanceFunc_(kNearSamples->at(samplePos), vertex) )
+                    {
+                        //The vertex is closer than the sample, move that token:
+                        ++vertexPos;
+                    }
+                    else
+                    {
+                        //The vertex is not closer than the sample, move the sample token:
+                        ++samplePos;
+                    }
+                }
+            }
+
+            //Now erase the extra. Resize will truncate the extras
+            kNearSamples->resize(samplePos);
+            kNearVertices->resize(vertexPos);
         }
 
 
