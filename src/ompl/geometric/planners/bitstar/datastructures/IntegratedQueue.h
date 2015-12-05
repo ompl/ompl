@@ -121,12 +121,6 @@ namespace ompl
 
             virtual ~IntegratedQueue();
 
-            /** \brief Enable tracking of failed edges. This currently is too expensive to be useful.*/
-            void setUseFailureTracking(bool trackFailures);
-
-            /** \brief Get whether a failed edge list is in use.*/
-            bool getUseFailureTracking() const;
-
             /** \brief Delay considering rewiring edges until an initial solution is found. This improves
             the time required to find an initial solution when doing so requires multiple batches and has
             no effects on theoretical asymptotic optimality (as the rewiring edges are eventually considered). */
@@ -144,7 +138,7 @@ namespace ompl
             void insertEdge(const VertexPtrPair& newEdge);
 
             /** \brief Erase a vertex from the vertex expansion queue. Will disconnect the vertex from its parent and remove the associated incoming and outgoing edges from the edge queue as requested.*/
-            void eraseVertex(const VertexPtr& oldVertex, bool disconnectParent, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN);
+            void eraseVertex(const VertexPtr& oldVertex, bool disconnectParent, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices);
             //////////////////
 
             //////////////////
@@ -195,10 +189,10 @@ namespace ompl
             void markVertexUnsorted(const VertexPtr& vertex);
 
             /** \brief Prune the vertex queue of vertices whose their lower-bound heuristic is greater then the threshold. Descendents of pruned vertices that are not pruned themselves are returned to the set of free states. Returns the number of vertices pruned (either removed completely or moved to the set of free states). */
-            std::pair<unsigned int, unsigned int> prune(const VertexPtr& pruneStartPtr, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN);
+            std::pair<unsigned int, unsigned int> prune(const VertexPtr& pruneStartPtr, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices);
 
             /** \brief Resort the queue, only reinserting edges/vertices if their lower-bound heuristic is less then the threshold. Descendents of pruned vertices that are not pruned themselves are returned to the set of free states. Requires first marking the queue as unsorted. Returns the number of vertices pruned (either removed completely or moved to the set of free states). */
-            std::pair<unsigned int, unsigned int> resort(const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN);
+            std::pair<unsigned int, unsigned int> resort(const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices);
 
             /** \brief Finish the queue, clearing all the edge containers and moving the vertex expansion token to the end. After a call to finish, isEmpty() will return true. Keeps threshold, list of unsorted vertices, etc.*/
             void finish();
@@ -307,7 +301,7 @@ namespace ompl
             void reinsertVertex(const VertexPtr& unorderedVertex);
 
             /** \brief Prune a branch of the graph. Returns the number of vertices removed, and the number of said vertices that are completely thrown away (i.e., are not even useful as a sample) */
-            std::pair<unsigned int, unsigned int> pruneBranch(const VertexPtr& branchBase, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN);
+            std::pair<unsigned int, unsigned int> pruneBranch(const VertexPtr& branchBase, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices);
 
             /** \brief Disconnect a vertex from its parent by removing the edges stored in itself, and its parents. Cascades cost updates if requested.*/
             void disconnectParent(const VertexPtr& oldVertex, bool cascadeCostUpdates);
@@ -317,7 +311,7 @@ namespace ompl
 
             /** \brief Remove a vertex from the queue and optionally its entries in the various lookups. Returns the number of vertices that are completely deleted. */
             //This is *NOT* by const-reference so that the oldVertex pointer doesn't go out of scope on me... which was happening if it was being called with an iter->second where the iter gets deleted in this function...
-            unsigned int vertexRemoveHelper(VertexPtr oldVertex, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, bool removeLookups);
+            unsigned int vertexRemoveHelper(VertexPtr oldVertex, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices, bool removeLookups);
             ////////////////////////////////
 
             ////////////////////////////////
@@ -401,9 +395,6 @@ namespace ompl
 
             /** \brief The current heuristic to the end of an edge. */
             EdgeHeuristicFunc                                        currentHeuristicEdgeTargetFunc_;
-
-            /** \brief Whether to use failure tracking or not */
-            bool                                                     useFailureTracking_;
 
             /** \brief Whether to delay rewiring until an initial solution is found or not */
             bool                                                     delayRewiring_;

@@ -249,12 +249,6 @@ namespace ompl
             /** \brief Get whether unconnected samples are dropped on pruning. */
             bool getDropSamplesOnPrune() const;
 
-            /** \brief Enable tracking of failed edges. This currently is too expensive to be useful.*/
-            void setUseFailureTracking(bool trackFailures);
-
-            /** \brief Get whether a failed edge list is in use.*/
-            bool getUseFailureTracking() const;
-
             /** \brief Stop the planner each time a solution improvement is found. Useful
             for examining the intermediate solutions found by BIT*. */
             void setStopOnSolnImprovement(bool stopOnChange);
@@ -556,6 +550,12 @@ namespace ompl
             /** \brief The integrated queue of vertices to expand and edges to process ordered on "f-value", i.e., estimated solution cost. Remaining vertex queue "size" and edge queue size are accessible via vertexQueueSizeProgressProperty and edgeQueueSizeProgressProperty, respectively. */
             IntegratedQueuePtr                                       intQueue_;
 
+            /** \brief A copy of the new samples from this batch */
+            std::vector<VertexPtr>                                   newSamples_;
+
+            /** \brief A copy of the vertices recycled into samples during this batch */
+            std::vector<VertexPtr>                                   recycledSamples_;
+
             /** \brief The number of states (vertices or samples) that were generated from a uniform distribution. Only valid when refreshSamplesOnPrune_ is true, in which case it's used to calculate the RGG term of the uniform subgraph.*/
             unsigned int                                             numUniformStates_;
 
@@ -667,9 +667,6 @@ namespace ompl
 
             /** \brief Whether to refresh (i.e., forget) unconnected samples on pruning (param) */
             bool                                                     dropSamplesOnPrune_;
-
-            /** \brief Track edges that have been checked and failed so they never reenter the queue. (param) */
-            bool                                                     useFailureTracking_;
 
             /** \brief Whether to stop the planner as soon as the path changes (param) */
             bool                                                     stopOnSolnChange_;
