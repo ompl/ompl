@@ -115,17 +115,30 @@ namespace ompl
             numEdgeCollisionChecks_(0u),
             numNearestNeighbours_(0u),
             numEdgesProcessed_(0u),
-            useStrictQueueOrdering_(true),
+            useStrictQueueOrdering_(false),
             rewireFactor_(2.0),
             samplesPerBatch_(100u),
             useKNearest_(true),
             usePruning_(true),
-            pruneFraction_(0.02),
+            pruneFraction_(0.01),
             delayRewiring_(true),
             useJustInTimeSampling_(false),
             dropSamplesOnPrune_(false),
             stopOnSolnChange_(false)
         {
+            //Make sure the default name reflects the default k-nearest setting, if not overridden to something else
+            if (useKNearest_ == true && Planner::getName() == "BITstar")
+            {
+                //It's the current default r-disc BIT* name, but we're using k-nearest, so change
+                Planner::setName("kBITstar");
+            }
+            else if (useKNearest_ == false && Planner::getName() == "kBITstar")
+            {
+                //It's the current default k-nearest BIT* name, but we're using r-disc, so change
+                Planner::setName("BITstar");
+            }
+            //It's not default named, don't change it
+
             //Specify my planner specs:
             Planner::specs_.recognizedGoal = ompl::base::GOAL_SAMPLEABLE_REGION;
             Planner::specs_.multithreaded = false;
@@ -1734,13 +1747,14 @@ namespace ompl
 
         ompl::base::Cost BITstar::neighbourhoodCost(const VertexConstPtr& vertex) const
         {
+            //Even though the problem domain is defined by prunedCost_ (the cost the last time we pruned), there is no point generating samples outside bestCost_ (which may be less).
             if (useJustInTimeSampling_ == true)
             {
-                return opt_->betterCost(prunedCost_, opt_->combineCosts(this->lowerBoundHeuristicVertex(vertex), ompl::base::Cost(2.0 * r_)));
+                return opt_->betterCost(bestCost_, opt_->combineCosts(this->lowerBoundHeuristicVertex(vertex), ompl::base::Cost(2.0 * r_)));
             }
             else
             {
-                return prunedCost_;
+                return bestCost_;
             }
         }
 
@@ -2058,6 +2072,19 @@ namespace ompl
             //Check if the flag has changed
             if (useKNearest != useKNearest_)
             {
+                //If the planner is default named, we change it:
+                if (useKNearest_ == true && Planner::getName() == "kBITstar")
+                {
+                    //It's current the default k-nearest BIT* name, and we're toggling, so set to the default r-disc
+                    Planner::setName("BITstar");
+                }
+                else if (useKNearest_ == false && Planner::getName() == "BITstar")
+                {
+                    //It's current the default r-disc BIT* name, and we're toggling, so set to the default k-nearest
+                    Planner::setName("kBITstar");
+                }
+                //It's not default named, don't change it
+
                 //Set the k-nearest flag
                 useKNearest_ = useKNearest;
 

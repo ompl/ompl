@@ -69,17 +69,18 @@ namespace ompl
         /**
             @anchor gBITstar
 
-            \ref gBITstar "BIT*" (Batch Informed Trees) is an \e anytime asymptotically optimal sampling-based
+            \ref gBITstar "BIT*" (Batch Informed Trees) is an \e anytime almost surely asymptotically optimal sampling-based
             planning algorithm. It approaches problems by assuming that a \e simple solution exists and only
             goes onto consider \e complex solutions when that proves incorrect. It accomplishes this by using
             heuristics to search in order of decreasing potential solution quality.
 
-            Both a k-nearest and r-disc version are available, with the k-nearest selected by default. In general,
-            the r-disc variant considers more connections than the k-nearest. For a small number of specific planning
-            problems, this results in it finding solutions slower than k-nearest (hence the default choice).
+            Both a k-nearest and r-disc version are available, with the k-nearest selected by default.
             It is recommended that you try both variants, with the r-disc version being recommended *if* it finds an
-            initial solution in a suitable amount of time (which it probably will). The difference in this number of
-            connections considered is a RGG theory question, and certainly merits further review.
+            initial solution in a suitable amount of time (which it probably will). In general, both variants work,
+            but for a small number of problems the calculation of the radius in the r-disc version appears to be too
+            small and does not create an implicit graph that is sufficiently dense (hence the default choice).
+            This is a question of the random geometric graph theory underpinning this type of almost surely asymptotically
+            optimal planner and certainly merits further review.
 
             This implementation of BIT* can handle multiple starts, multiple goals, a variety of optimization objectives
             (e.g., path length), and with \ref gBITstarSetJustInTimeSampling "just-in-time sampling", infinite problem domains.
