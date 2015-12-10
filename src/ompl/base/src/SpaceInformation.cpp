@@ -310,6 +310,8 @@ bool ompl::base::SpaceInformation::checkMotion(const std::vector<State*> &states
                         pos.push(std::make_pair(x.first, mid));
                     if (x.second > mid + 1)
                         pos.push(std::make_pair(mid, x.second));
+                        
+                    pos.pop()
                 }
             }
         }
