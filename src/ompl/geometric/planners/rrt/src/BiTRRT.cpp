@@ -488,5 +488,6 @@ void ompl::geometric::BiTRRT::getPlannerData(base::PlannerData &data) const
     }
 
     // Add the edge connecting the two trees
-    data.addEdge(data.vertexIndex(connectionPoint_.first->state), data.vertexIndex(connectionPoint_.second->state));
+    if (connectionPoint_.first && connectionPoint_.second)
+        data.addEdge(data.vertexIndex(connectionPoint_.first->state), data.vertexIndex(connectionPoint_.second->state));
 }
