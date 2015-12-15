@@ -36,21 +36,26 @@ function(target_link_flags)
         foreach(_lib ${_link_libs})
             get_filename_component(_basename ${_lib} NAME_WE)
             get_filename_component(_ext ${_lib} EXT)
-            # add link flags for dynamic libraries
-            if(_ext STREQUAL ${CMAKE_SHARED_LIBRARY_SUFFIX})
-                string(REPLACE ${CMAKE_SHARED_LIBRARY_PREFIX} "" _libname ${_basename})
-                list(APPEND _link_flags "-l${_libname}")
+            # add -lfoo to link flags
+            if (_lib MATCHES "-l.+")
+                list(APPEND _link_flags "${_lib}")
             else()
-                # OS X frameworks, which are also dynamic libraries
-                if (_ext STREQUAL ".framework")
-                    list(APPEND _link_flags "-framework ${_basename}")
+                # add link flags for dynamic libraries
+                if(_ext STREQUAL ${CMAKE_SHARED_LIBRARY_SUFFIX})
+                    string(REPLACE ${CMAKE_SHARED_LIBRARY_PREFIX} "" _libname ${_basename})
+                    list(APPEND _link_flags "-l${_libname}")
                 else()
-                    # libraries found by pkg-config are just returned as "foo",
-                    # not "libfoo.so".
-                    if(NOT _ext)
-                        list(FIND ARGV ${_basename} _index)
-                        if (_index EQUAL -1)
-                            list(APPEND _pkg_deps "${_basename}")
+                    # OS X frameworks, which are also dynamic libraries
+                    if (_ext STREQUAL ".framework")
+                        list(APPEND _link_flags "-framework ${_basename}")
+                    else()
+                        # libraries found by pkg-config are just returned as "foo",
+                        # not "libfoo.so".
+                        if(NOT _ext)
+                            list(FIND ARGV ${_basename} _index)
+                            if (_index EQUAL -1)
+                                list(APPEND _pkg_deps "${_basename}")
+                          endif()
                         endif()
                     endif()
                 endif()
