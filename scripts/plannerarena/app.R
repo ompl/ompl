@@ -665,7 +665,7 @@ server <- function(input, output, session) {
                 conditionalPanel(condition = 'input.perfShowSQLquery',
                     div(
                         h4("SQL query"),
-                        pre(textOutput("perfSQLquery"))
+                        verbatimTextOutput("perfSQLquery")
                     )
                 )
             )
@@ -690,7 +690,7 @@ server <- function(input, output, session) {
                 conditionalPanel(condition = 'input.progShowSQLquery',
                     div(
                         h4("SQL query"),
-                        pre(textOutput("progSQLquery"))
+                        verbatimTextOutput("progSQLquery")
                     )
                 )
             )
@@ -715,7 +715,7 @@ server <- function(input, output, session) {
                 conditionalPanel(condition = 'input.regrShowSQLquery',
                     div(
                         h4("SQL query"),
-                        pre(textOutput("regrSQLquery"))
+                        verbatimTextOutput("regrSQLquery")
                     )
                 )
             )
