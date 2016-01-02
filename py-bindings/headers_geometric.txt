@@ -32,4 +32,5 @@
 ../src/ompl/geometric/planners/bitstar/datastructures/IdGenerator.h
 ../src/ompl/geometric/planners/bitstar/datastructures/Vertex.h
 ../src/ompl/geometric/planners/bitstar/datastructures/IntegratedQueue.h
+../src/ompl/geometric/planners/sst/SST.h
 ompl_py_geometric.h
