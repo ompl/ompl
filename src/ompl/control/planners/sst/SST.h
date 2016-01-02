@@ -48,13 +48,13 @@ namespace ompl
            @anchor cSST
            @par Short description
            \ref cSST "SST" (Stable Sparse RRT) is a asymptotically near-optimal incremental
-           sampling-based motion planning algorithm for systems with dynamics. It makes use 
+           sampling-based motion planning algorithm for systems with dynamics. It makes use
            of random control inputs to perform a search for the best control inputs to explore
            the state space.
            @par External documentation
            Yanbo Li, Zakary Littlefield, Kostas E. Bekris, Sampling-based
            Asymptotically Optimal Sampling-based Kinodynamic Planning.
-           <a href="http://arxiv.org/abs/1407.2896"</a>
+           [[PDF]](http://arxiv.org/abs/1407.2896)
         */
         class SST : public base::Planner
         {
@@ -119,11 +119,11 @@ namespace ompl
                 \brief Set the radius for pruning nodes.
 
                 This is the radius used to surround nodes in the witness set.
-                Within this radius around a state in the witness set, only one 
+                Within this radius around a state in the witness set, only one
                 active tree node can exist. This limits the size of the tree and
-                forces computation to focus on low path costs nodes. If this value 
+                forces computation to focus on low path costs nodes. If this value
                 is too large, narrow passages will be impossible to traverse. In addition,
-                children nodes may be removed if they are not at least this distance away 
+                children nodes may be removed if they are not at least this distance away
                 from their parent nodes.*/
             void setPruningRadius(double pruningRadius)
             {
@@ -168,11 +168,11 @@ namespace ompl
                 {
                 }
 
-                virtual base::State* getState()
+                virtual base::State* getState() const
                 {
                     return state_;
                 }
-                virtual Motion* getParent()
+                virtual Motion* getParent() const
                 {
                     return parent_;
                 }
@@ -204,23 +204,23 @@ namespace ompl
             {
             public:
 
-                Witness() : Motion(),rep_(NULL)
+                Witness() : Motion(), rep_(NULL)
                 {
                 }
 
                 Witness(const SpaceInformation *si) : Motion(si), rep_(NULL)
                 {
                 }
-                virtual base::State* getState()
+                virtual base::State* getState() const
                 {
                     return rep_->state_;
                 }
-                virtual Motion* getParent()
+                virtual Motion* getParent() const
                 {
                     return rep_->parent_;
                 }
 
-                void linkRep(Motion* lRep)
+                void linkRep(Motion *lRep)
                 {
                     rep_ = lRep;
                 }
@@ -230,10 +230,10 @@ namespace ompl
             };
 
             /** \brief Finds the best node in the tree withing the selection radius around a random sample.*/
-            Motion* selectNode(Motion* sample);
+            Motion* selectNode(Motion *sample);
 
             /** \brief Find the closest witness node to a newly generated potential node.*/
-            Witness* findClosestWitness(Motion* node);
+            Witness* findClosestWitness(Motion *node);
 
             /** \brief Free the memory allocated by this planner */
             void freeMemory();
@@ -248,7 +248,7 @@ namespace ompl
             base::StateSamplerPtr                          sampler_;
 
             /** \brief Control sampler */
-            ControlSamplerPtr                      controlSampler_;
+            ControlSamplerPtr                              controlSampler_;
 
             /** \brief The base::SpaceInformation cast as control::SpaceInformation, for convenience */
             const SpaceInformation                        *siC_;
@@ -257,7 +257,7 @@ namespace ompl
             boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
 
 
-            /** \brief A nearest-neighbors datastructure containing the tree of motions */
+            /** \brief A nearest-neighbors datastructure containing the tree of witness motions */
             boost::shared_ptr< NearestNeighbors<Motion*> > witnesses_;
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
@@ -281,7 +281,7 @@ namespace ompl
             base::Cost                                     prevSolutionCost_;
 
             /** \brief The optimization objective. */
-            base::OptimizationObjectivePtr                                      opt_;
+            base::OptimizationObjectivePtr                 opt_;
 
         };
     }

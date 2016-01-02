@@ -84,7 +84,8 @@ void ompl::control::SST::setup()
                 OMPL_WARN("%s: Asymptotic near-optimality has only been proven with Lipschitz continuous cost functions w.r.t. state and control. This optimization objective will result in undefined behavior", getName().c_str());
         }
         else
-        {OMPL_WARN("%s: No optimization object set. Using path length", getName().c_str());
+        {
+            OMPL_WARN("%s: No optimization object set. Using path length", getName().c_str());
             opt_.reset(new base::PathLengthOptimizationObjective(si_));
             pdef_->setOptimizationObjective(opt_);
         }
@@ -145,45 +146,42 @@ void ompl::control::SST::freeMemory()
     prevSolutionControls_.clear();
     prevSolutionSteps_.clear();
 }
-ompl::control::SST::Motion* ompl::control::SST::selectNode(ompl::control::SST::Motion* sample)
+
+ompl::control::SST::Motion* ompl::control::SST::selectNode(ompl::control::SST::Motion *sample)
 {
     std::vector<Motion*> ret;
-    Motion* selected=NULL;
+    Motion *selected = NULL;
     base::Cost bestCost = opt_->infiniteCost();
-    nn_->nearestR(sample,selectionRadius_,ret);
-    for(unsigned int i=0;i<ret.size();i++)
+    nn_->nearestR(sample, selectionRadius_, ret);
+    for (unsigned int i = 0; i < ret.size(); i++)
     {
-        if(!ret[i]->inactive_ && opt_->isCostBetterThan( ret[i]->accCost_, bestCost) )
+        if (!ret[i]->inactive_ && opt_->isCostBetterThan(ret[i]->accCost_, bestCost))
         {
             bestCost = ret[i]->accCost_;
             selected = ret[i];
         }
     }
-    if(selected==NULL)
+    if (selected == NULL)
     {
         int k = 1;
-        while(selected==NULL)
+        while (selected == NULL)
         {
-            nn_->nearestK(sample,k,ret);
-            for(unsigned int i=0;i<ret.size() && selected==NULL;i++)
-            {
-                if(!ret[i]->inactive_)
-                {
+            nn_->nearestK(sample, k, ret);
+            for (unsigned int i=0; i < ret.size() && selected == NULL; i++)
+                if (!ret[i]->inactive_)
                     selected = ret[i];
-                }
-            }
-            k+=5;
+            k += 5;
         }
     }
     return selected;
 }
 
-ompl::control::SST::Witness* ompl::control::SST::findClosestWitness(ompl::control::SST::Motion* node)
+ompl::control::SST::Witness* ompl::control::SST::findClosestWitness(ompl::control::SST::Motion *node)
 {
-    if(witnesses_->size()>0)
+    if(witnesses_->size() > 0)
     {
-        Witness* closest = (Witness*)witnesses_->nearest(node);
-        if(distanceFunction(closest,node) > pruningRadius_)
+        Witness* closest = static_cast<Witness*>(witnesses_->nearest(node));
+        if (distanceFunction(closest,node) > pruningRadius_)
         {
             closest = new Witness(siC_);
             closest->linkRep(node);
@@ -245,7 +243,7 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
 
     while (ptc == false)
     {
-        
+
         /* sample random state (with goal biasing) */
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
@@ -255,22 +253,22 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
         /* find closest state in the tree */
         Motion *nmotion = selectNode(rmotion);
 
-        
+
 
         /* sample a random control that attempts to go towards the random state, and also sample a control duration */
         controlSampler_->sample(rctrl);
         unsigned int cd = rng_.uniformInt(siC_->getMinControlDuration(),siC_->getMaxControlDuration());
         unsigned int propCd = siC_->propagateWhileValid(nmotion->state_,rctrl,cd,rstate);
 
-        
+
         if (propCd == cd)
         {
             base::Cost incCost = opt_->motionCost(nmotion->state_, rstate);
             base::Cost cost = opt_->combineCosts(nmotion->accCost_, incCost);
             Witness* closestWitness = findClosestWitness(rmotion);
 
-            
-            if(closestWitness->rep_ == rmotion || opt_->isCostBetterThan(cost,closestWitness->rep_->accCost_))
+
+            if (closestWitness->rep_ == rmotion || opt_->isCostBetterThan(cost,closestWitness->rep_->accCost_))
             {
                 Motion* oldRep = closestWitness->rep_;
                 /* create a motion */
@@ -283,28 +281,21 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
                 nmotion->numChildren_++;
                 closestWitness->linkRep(motion);
 
-                
                 nn_->add(motion);
                 double dist = 0.0;
                 bool solv = goal->isSatisfied(motion->state_, &dist);
                 if (solv && opt_->isCostBetterThan(motion->accCost_,prevSolutionCost_))
                 {
-
-                    
                     approxdif = dist;
                     solution = motion;
 
                     for (unsigned int i = 0 ; i < prevSolution_.size() ; ++i)
-                    {
                         if (prevSolution_[i])
                             si_->freeState(prevSolution_[i]);
-                    }
                     prevSolution_.clear();
                     for (unsigned int i = 0 ; i < prevSolutionControls_.size() ; ++i)
-                    {
                         if (prevSolutionControls_[i])
                             siC_->freeControl(prevSolutionControls_[i]);
-                    }
                     prevSolutionControls_.clear();
                     prevSolutionSteps_.clear();
 
@@ -321,14 +312,12 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
                     prevSolutionCost_ = solution->accCost_;
 
 
-                    
+
 
                     OMPL_INFORM("Found solution with cost %.2f",solution->accCost_.value());
                     sufficientlyShort = opt_->isSatisfied(solution->accCost_);
                     if (sufficientlyShort)
-                    {
                         break;
-                    }
                 }
                 if (solution==NULL && dist < approxdif)
                 {
@@ -336,23 +325,19 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
                     approxsol = motion;
 
 
-                    
+
                     for (unsigned int i = 0 ; i < prevSolution_.size() ; ++i)
-                    {
                         if (prevSolution_[i])
                             si_->freeState(prevSolution_[i]);
-                    }
                     prevSolution_.clear();
                     for (unsigned int i = 0 ; i < prevSolutionControls_.size() ; ++i)
-                    {
                         if (prevSolutionControls_[i])
                             siC_->freeControl(prevSolutionControls_[i]);
-                    }
                     prevSolutionControls_.clear();
                     prevSolutionSteps_.clear();
 
-                    Motion* solTrav = approxsol;
-                    while(solTrav->parent_!=NULL)
+                    Motion *solTrav = approxsol;
+                    while (solTrav->parent_!=NULL)
                     {
                         prevSolution_.push_back(si_->cloneState(solTrav->state_) );
                         prevSolutionControls_.push_back(siC_->cloneControl(solTrav->control_) );
@@ -360,15 +345,13 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
                         solTrav = solTrav->parent_;
                     }
                     prevSolution_.push_back(si_->cloneState(solTrav->state_) );
-
-                    
                 }
 
-                if(oldRep!=rmotion)
+                if (oldRep != rmotion)
                 {
                     oldRep->inactive_ = true;
                     nn_->remove(oldRep);
-                    while(oldRep->inactive_ && oldRep->numChildren_==0)
+                    while (oldRep->inactive_ && oldRep->numChildren_==0)
                     {
                         if (oldRep->state_)
                             si_->freeState(oldRep->state_);
@@ -399,15 +382,6 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
 
     if (solution != NULL)
     {
-
-        // /* construct the solution path */
-        // std::vector<Motion*> mpath;
-        // while (solution != NULL)
-        // {
-        //     mpath.push_back(solution);
-        //     solution = solution->parent;
-        // }
-
         /* set the solution path */
         PathControl *path = new PathControl(si_);
         for (int i = prevSolution_.size() - 1 ; i >= 1 ; --i)

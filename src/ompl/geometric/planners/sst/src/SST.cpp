@@ -84,6 +84,7 @@ void ompl::geometric::SST::setup()
         }
         else
         {
+            OMPL_WARN("%s: No optimization object set. Using path length", getName().c_str());
             opt_.reset(new base::PathLengthOptimizationObjective(si_));
             pdef_->setOptimizationObjective(opt_);
         }
@@ -137,15 +138,16 @@ void ompl::geometric::SST::freeMemory()
     }
     prevSolution_.clear();
 }
-ompl::geometric::SST::Motion* ompl::geometric::SST::selectNode(ompl::geometric::SST::Motion* sample)
+
+ompl::geometric::SST::Motion* ompl::geometric::SST::selectNode(ompl::geometric::SST::Motion *sample)
 {
     std::vector<Motion*> ret;
-    Motion* selected=NULL;
+    Motion* selected = NULL;
     base::Cost bestCost = opt_->infiniteCost();
-    nn_->nearestR(sample,selectionRadius_,ret);
-    for(unsigned int i=0;i<ret.size();i++)
+    nn_->nearestR(sample, selectionRadius_, ret);
+    for (unsigned int i = 0; i < ret.size(); i++)
     {
-        if(!ret[i]->inactive_ && opt_->isCostBetterThan( ret[i]->accCost_, bestCost) )
+        if (!ret[i]->inactive_ && opt_->isCostBetterThan(ret[i]->accCost_, bestCost))
         {
             bestCost = ret[i]->accCost_;
             selected = ret[i];
@@ -154,28 +156,24 @@ ompl::geometric::SST::Motion* ompl::geometric::SST::selectNode(ompl::geometric::
     if(selected==NULL)
     {
         int k = 1;
-        while(selected==NULL)
+        while (selected == NULL)
         {
             nn_->nearestK(sample,k,ret);
-            for(unsigned int i=0;i<ret.size() && selected==NULL;i++)
-            {
+            for (unsigned int i = 0; i < ret.size() && selected == NULL; i++)
                 if(!ret[i]->inactive_)
-                {
                     selected = ret[i];
-                }
-            }
-            k+=5;
+            k += 5;
         }
     }
     return selected;
 }
 
-ompl::geometric::SST::Witness* ompl::geometric::SST::findClosestWitness(ompl::geometric::SST::Motion* node)
+ompl::geometric::SST::Witness* ompl::geometric::SST::findClosestWitness(ompl::geometric::SST::Motion *node)
 {
-    if(witnesses_->size()>0)
+    if(witnesses_->size() > 0)
     {
-        Witness* closest = (Witness*)witnesses_->nearest(node);
-        if(distanceFunction(closest,node) > pruningRadius_)
+        Witness *closest = static_cast<Witness*>(witnesses_->nearest(node));
+        if(distanceFunction(closest, node) > pruningRadius_)
         {
             closest = new Witness(si_);
             closest->linkRep(node);
@@ -186,7 +184,7 @@ ompl::geometric::SST::Witness* ompl::geometric::SST::findClosestWitness(ompl::ge
     }
     else
     {
-        Witness* closest = new Witness(si_);
+        Witness *closest = new Witness(si_);
         closest->linkRep(node);
         si_->copyState(closest->state_, node->state_);
         witnesses_->add(closest);
@@ -251,7 +249,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
     {
         /* sample random state (with goal biasing) */
         bool attemptToReachGoal = (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample());
-        if(attemptToReachGoal)
+        if (attemptToReachGoal)
             goal_s->sampleGoal(rstate);
         else
             sampler_->sampleUniform(rstate);
@@ -259,14 +257,13 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
         /* find closest state in the tree */
         Motion *nmotion = selectNode(rmotion);
 
-
-        base::State* dstate = rstate;
+        base::State *dstate = rstate;
         double d = si_->distance(nmotion->state_, rstate);
 
         attemptToReachGoal = rng_.uniform01() < .5;
         if (attemptToReachGoal)
         {
-            if (d > maxDistance_) 
+            if (d > maxDistance_)
             {
                 si_->getStateSpace()->interpolate(nmotion->state_, rstate, maxDistance_ / d, xstate);
                 dstate = xstate;
@@ -286,7 +283,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
             base::Cost cost = opt_->combineCosts(nmotion->accCost_, incCost);
             Witness* closestWitness = findClosestWitness(rmotion);
 
-            if(closestWitness->rep_ == rmotion || opt_->isCostBetterThan(cost,closestWitness->rep_->accCost_))
+            if (closestWitness->rep_ == rmotion || opt_->isCostBetterThan(cost, closestWitness->rep_->accCost_))
             {
                 Motion* oldRep = closestWitness->rep_;
                 /* create a motion */
@@ -294,10 +291,8 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
                 motion->accCost_ = cost;
                 si_->copyState(motion->state_, rstate);
 
-				if (!attemptToReachGoal)
-				{
-    				si_->freeState(dstate);
-				}
+                if (!attemptToReachGoal)
+                    si_->freeState(dstate);
                 motion->parent_ = nmotion;
                 nmotion->numChildren_++;
                 closestWitness->linkRep(motion);
@@ -311,13 +306,11 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
                     solution = motion;
 
                     for (unsigned int i = 0 ; i < prevSolution_.size() ; ++i)
-                    {
                         if (prevSolution_[i])
                             si_->freeState(prevSolution_[i]);
-                    }
                     prevSolution_.clear();
                     Motion* solTrav = solution;
-                    while(solTrav!=NULL)
+                    while (solTrav!=NULL)
                     {
                         prevSolution_.push_back(si_->cloneState(solTrav->state_) );
                         solTrav = solTrav->parent_;
@@ -342,19 +335,19 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
                             si_->freeState(prevSolution_[i]);
                     }
                     prevSolution_.clear();
-                    Motion* solTrav = approxsol;
-                    while(solTrav!=NULL)
+                    Motion *solTrav = approxsol;
+                    while (solTrav!=NULL)
                     {
                         prevSolution_.push_back(si_->cloneState(solTrav->state_) );
                         solTrav = solTrav->parent_;
                     }
                 }
 
-                if(oldRep!=rmotion)
+                if(oldRep != rmotion)
                 {
                     oldRep->inactive_ = true;
                     nn_->remove(oldRep);
-                    while(oldRep->inactive_ && oldRep->numChildren_==0 )
+                    while (oldRep->inactive_ && oldRep->numChildren_==0)
                     {
                         if (oldRep->state_)
                             si_->freeState(oldRep->state_);
@@ -380,17 +373,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
     }
 
     if (solution != NULL)
-    {        
-        // /* construct the solution path */
-        // std::vector<Motion*> mpath;
-        // while (solution != NULL)
-        // {
-        // 	printf("%p\n",solution);
-        //     mpath.push_back(solution);
-        //     solution = solution->parent_;
-        // }
-        // printf("%p\n\n\n",solution);
-
+    {
         /* set the solution path */
         PathGeometric *path = new PathGeometric(si_);
         for (int i = prevSolution_.size() - 1 ; i >= 0 ; --i)
@@ -419,20 +402,12 @@ void ompl::geometric::SST::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
-    for(unsigned i=0;i<motions.size();i++)
-    {
-        if(motions[i]->numChildren_==0)
-        {
+    for (unsigned i=0; i<motions.size(); i++)
+        if(motions[i]->numChildren_ == 0)
             allMotions.push_back(motions[i]);
-        }
-    }
-    for(unsigned i=0;i<allMotions.size();i++)
-    {
-        if(allMotions[i]->getParent()!=NULL)
-        {
+    for(unsigned i=0;i <allMotions.size(); i++)
+        if(allMotions[i]->getParent() != NULL)
             allMotions.push_back(allMotions[i]->getParent());
-        }
-    }
 
     if (prevSolution_.size()!=0)
         data.addGoalVertex(base::PlannerDataVertex(prevSolution_[0]));

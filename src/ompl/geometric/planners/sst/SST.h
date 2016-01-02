@@ -49,12 +49,12 @@ namespace ompl
            @par Short description
            \ref gSST "SST" (Stable Sparse RRT) is an asymptotically near-optimal incremental
            sampling-based motion planning algorithm. It is recommended for geometric problems
-           to use an alternative method that makes use of a steering function. Using SST for 
-           geometric problems does not take advantage of this function. 
+           to use an alternative method that makes use of a steering function. Using SST for
+           geometric problems does not take advantage of this function.
            @par External documentation
            Yanbo Li, Zakary Littlefield, Kostas E. Bekris, Sampling-based
            Asymptotically Optimal Sampling-based Kinodynamic Planning.
-           <a href="http://arxiv.org/abs/1407.2896"</a>
+           [[PDF]](http://arxiv.org/abs/1407.2896)
         */
         class SST : public base::Planner
         {
@@ -136,11 +136,11 @@ namespace ompl
                 \brief Set the radius for pruning nodes.
 
                 This is the radius used to surround nodes in the witness set.
-                Within this radius around a state in the witness set, only one 
+                Within this radius around a state in the witness set, only one
                 active tree node can exist. This limits the size of the tree and
-                forces computation to focus on low path costs nodes. If this value 
+                forces computation to focus on low path costs nodes. If this value
                 is too large, narrow passages will be impossible to traverse. In addition,
-                children nodes may be removed if they are not at least this distance away 
+                children nodes may be removed if they are not at least this distance away
                 from their parent nodes.*/
             void setPruningRadius(double pruningRadius)
             {
@@ -188,7 +188,7 @@ namespace ompl
 
                 virtual base::State* getState() const
                 {
-                	return state_;
+                    return state_;
                 }
                 virtual Motion* getParent() const
                 {
@@ -215,7 +215,7 @@ namespace ompl
             {
             public:
 
-                Witness() : Motion(),rep_(NULL)
+                Witness() : Motion(), rep_(NULL)
                 {
                 }
 
@@ -231,7 +231,7 @@ namespace ompl
                     return rep_->parent_;
                 }
 
-                void linkRep(Motion* lRep)
+                void linkRep(Motion *lRep)
                 {
                     rep_ = lRep;
                 }
@@ -242,10 +242,10 @@ namespace ompl
 
 
             /** \brief Finds the best node in the tree withing the selection radius around a random sample.*/
-            Motion* selectNode(Motion* sample);
+            Motion* selectNode(Motion *sample);
 
             /** \brief Find the closest witness node to a newly generated potential node.*/
-            Witness* findClosestWitness(Motion* node);
+            Witness* findClosestWitness(Motion *node);
 
             /** \brief Randomly propagate a new edge.*/
             base::State* monteCarloProp(Motion *m);
@@ -265,7 +265,7 @@ namespace ompl
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
             boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
 
-            /** \brief A nearest-neighbors datastructure containing the tree of motions */
+            /** \brief A nearest-neighbors datastructure containing the tree of witness motions */
             boost::shared_ptr< NearestNeighbors<Motion*> > witnesses_;
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
@@ -290,7 +290,7 @@ namespace ompl
             base::Cost                                     prevSolutionCost_;
 
             /** \brief The optimization objective. */
-            base::OptimizationObjectivePtr                  opt_;
+            base::OptimizationObjectivePtr                 opt_;
 
         };
     }
