@@ -69,11 +69,13 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
     
     // Rejection sampling to find a point on the manifold
     Eigen::VectorXd f(atlas_.getAmbientDimension()-atlas_.getManifoldDimension());
+    int tries = 0;
     do
     {
         // Rejection sampling to find a point inside a chart's polytope
         do
         {
+            tries++;
             // Pick a chart.
             c = &atlas_.sampleChart();
             
@@ -88,7 +90,7 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
         c->psi(ru, rx);
     }
     while (rx.hasNaN() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance()));
-    
+
     // Extend polytope of neighboring chart wherever point is near the border
     c->psiInverse(rx, ru);
     c->borderCheck(ru);
@@ -107,15 +109,30 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     {
         c = atlas_.owningChart(n);
         if (!c)
-            c = &atlas_.newChart(n);
+        {
+            // Chart creation can fail.
+            try
+            {
+                c = &atlas_.newChart(n);
+            }
+            catch (ompl::Exception &e)
+            {
+                // This is really bad, because we need a chart. Default to a uniform sample.
+                OMPL_WARN("AtlasStateSpace::sampleUniformNear(): Failed to sample because chart creation at state failed!");
+                sampleUniform(state);
+                return;
+            }
+        }
         anear->setChart(c);
     }
     
     // Rejection sampling to find a point that can be projected onto the manifold
     c->psiInverse(n, ru);
+    int tries = 100;
     Eigen::VectorXd f(atlas_.getAmbientDimension()-atlas_.getManifoldDimension());
     do
     {
+        tries--;
         // Sample within distance
         Eigen::VectorXd uoffset(atlas_.getManifoldDimension());
         for (int i = 0; i < uoffset.size(); i++)
@@ -126,12 +143,18 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
 #if ORTHOPROJECT // Option 1: project orthogonally using chart c
         c->psi(ru + uoffset, rx);
     }
-    while (rx.hasNaN() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance()));
+    while (tries > 0 && (rx.hasNaN() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance())));
 #else // Option 2: ordinary gradient descent
         c->phi(ru + uoffset, rx);
     }
-    while (!atlas_.project(rx));
+    while (tries > 0 && !atlas_.project(rx));
 #endif
+
+    if (tries == 0)
+    {
+        OMPL_WARN("AtlasStateSpace::sampleUniformNear() got stuck. Returning initial point.");
+        rx = n;
+    }
 
     // Be lazy about determining the new chart if we are not in the old one
     if (c->psiInverse(rx, ru), !c->inP(ru))
@@ -153,7 +176,20 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     {
         c = atlas_.owningChart(m);
         if (!c)
-            c = &atlas_.newChart(m);
+        {
+            // Chart creation can fail.
+            try
+            {
+                c = &atlas_.newChart(m);
+            }
+            catch (ompl::Exception &e)
+            {
+                // This is really bad, because we need a chart. Default to a uniform sample.
+                OMPL_WARN("AtlasStateSpace::sampleGaussian(): Failed to sample because chart creation at state failed!");
+                sampleUniform(state);
+                return;
+            }
+        }
         amean->setChart(c);
     }
     c->psiInverse(m, ru);
@@ -577,6 +613,7 @@ unsigned int ompl::base::AtlasStateSpace::getManifoldDimension (void) const
 
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::anchorChart (const Eigen::VectorXd &xorigin) const
 {
+    // This could fail with an exception. We cannot recover if that happens.
     return newChart(xorigin, true);
 }
 
@@ -585,7 +622,7 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::sampleChart (void) const
     double r = rng_.uniform01();
     
     if (charts_.size() < 1)
-        throw ompl::Exception("Atlas sampled before any charts were made. Use AtlasStateSpace::newChart() first.");
+        throw ompl::Exception("Atlas sampled before any charts were made. Use AtlasStateSpace::anchorChart() first.");
     return *charts_.sample(r);
 }
 
@@ -608,6 +645,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
     return NULL;
 }
 
+// This function can throw an ompl::Exception if the manifold misbehaves at xorigin!
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::VectorXd &xorigin, const bool anchor) const
 {
     AtlasChart &addedC = *new AtlasChart(*this, xorigin, anchor);
@@ -679,7 +717,17 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     {
         c = owningChart(x_a);
         if (!c)
-            c = &newChart(x_a);
+        {
+            // Chart creation can fail.
+            try
+            {
+                c = &newChart(x_a);
+            }
+            catch (ompl::Exception &e)
+            {
+                return false;
+            }
+        }
         from->setChart(c);
     }
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
@@ -712,13 +760,9 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     //u_b = u_j + (d_0 - d)*(u_b - u_j).normalized();
     //c->phi(u_b, x_b);
 
-    // if (!interpolate)
-    //     std::cout << "starting traversal\n";
     Eigen::VectorXd tempx(n_);
-    while (((u_b - u_j).squaredNorm() > delta_*delta_) /*|| (!interpolate ? (std::cout << "stopped due to reaching goal\n", false) : false)*/)
+    while (((u_b - u_j).squaredNorm() > delta_*delta_))
     {
-        // if (!interpolate)
-        //     std::cout << (u_b - u_j).norm() << " from goal at " << u_b.norm() << " from chart center\n";
         // Step by delta toward the target and project
         u_j = u_j + delta_*(u_b - u_j).normalized();    // Note the difference to pseudocode (line 13): a similar mistake to line 8
         c->psi(u_j, tempx);
@@ -728,17 +772,12 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         
         // Collision check unless interpolating
         currentState->setChart(c);
-        if (!interpolate && !svc->isValid(currentState)) {
-            // std::cout << "stopped due to invalid state\n";
+        if (!interpolate && !svc->isValid(currentState))
             break;
-        }
         
         // Check stopping criteria regarding how far we've gone
-        if ((x_j - x_a).squaredNorm() > d_0*d_0 || d > lambda_*d_0 || chartsCreated > maxChartsPerExtension_) {
-            // if (!interpolate)
-            //     std::cout << "stopped due to travelling too far\n";
+        if ((x_j - x_a).squaredNorm() > d_0*d_0 || d > lambda_*d_0 || chartsCreated > maxChartsPerExtension_)
             break;
-        }
 
         c->phi(u_j, tempx);
         if (((x_j - tempx).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_
@@ -749,7 +788,17 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             c = owningChart(x_j);
             if (!c)
             {
-                c = &newChart(x_j);
+                // Chart creation can fail.
+                try
+                {
+                    c = &newChart(x_j);
+                }
+                catch (ompl::Exception &e)
+                {
+                    // Quit.
+                    freeState(currentState);
+                    return false;
+                }
                 chartsCreated++;
             }
 
@@ -764,8 +813,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         if (stateList)
             stateList->push_back(si_->cloneState(currentState)->as<StateType>());
     }
-    // if (!interpolate)
-    //     std::cout << "stopped at " << u_j.norm() << " from chart center\n";
+
     if (chartsCreated > maxChartsPerExtension_)
         OMPL_DEBUG("Stopping extension early b/c too many charts created.");
     // Reached goal if final point is within delta and both current and goal are valid.
@@ -782,7 +830,6 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     }
     
     freeState(currentState);
-
     return reached;
 }
 
@@ -986,7 +1033,12 @@ void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *t
     if (!c)
     {
         project(astate->vectorView());
-        c = &newChart(astate->constVectorView());
+        // Chart creation can fail.
+        try
+        {
+            c = &newChart(astate->constVectorView());
+        }
+        catch (ompl::Exception &e) {}
     }
     astate->setChart(c);
     
@@ -1039,7 +1091,14 @@ void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *
     {
         AtlasChart *c = owningChart(x);
         if (!c)
-            c = &newChart(x);
+        {
+            // Chart creation can fail.
+            try
+            {
+                c = &newChart(x);
+            }
+            catch (ompl::Exception &e) {}
+        }
         astate->setChart(c);
     }
 }

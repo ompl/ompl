@@ -66,6 +66,7 @@
 
 #include <eigen3/Eigen/Dense>
 
+#define OMPL_HAVE_PNGXX 1
 #if OMPL_HAVE_PNGXX
 #include <png++/png.hpp>
 #endif
@@ -588,7 +589,7 @@ ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::Vector
     y = Eigen::VectorXd(dim); y <<  3, 0,  1;
     
     // Validity checker
-    isValid = boost::bind(&unreachable, sleep, _1, y, 0.1);
+    isValid = boost::bind(&always, sleep, _1);
     
     return new TorusManifold(3, 1);
 }
@@ -603,7 +604,7 @@ ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::
     y = Eigen::VectorXd(dim); y <<  2.5, -1.5,  1.0221854181962458;
     
     // Validity checker
-    isValid = boost::bind(&unreachable, sleep, _1, y, 0.2);
+    isValid = boost::bind(&always, sleep, _1);
     
     return new KleinManifold();
 }

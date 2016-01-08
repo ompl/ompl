@@ -163,6 +163,10 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, Eigen::Ref<con
     Eigen::MatrixXd j(n_-k_,n_);
     atlas_.bigJ(xorigin_, j);
     Eigen::FullPivLU<Eigen::MatrixXd> decomp = j.fullPivLu();
+    if (!decomp.isSurjective()) {
+        OMPL_WARN("AtlasChart::AtlasChart(): Jacobian not surjective! Possible singularity?");
+        throw ompl::Exception("Computing tangent basis here would cause floating-point exception.");
+    }
     Eigen::HouseholderQR<Eigen::MatrixXd> nullDecomp = decomp.kernel().householderQr();
     bigPhi_ = nullDecomp.householderQ() * Eigen::MatrixXd::Identity(n_, k_);
     bigPhi_t_ = bigPhi_.transpose();
