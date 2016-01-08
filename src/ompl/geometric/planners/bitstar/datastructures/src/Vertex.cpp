@@ -52,13 +52,14 @@ namespace ompl
             state_( si_->allocState() ),
             isRoot_(root),
             isNew_(true),
+            hasBeenExpandedToSamples_(false),
+            hasBeenExpandedToVertices_(false),
             isPruned_(false),
             depth_(0u),
             parentSPtr_( VertexPtr() ),
             edgeCost_( opt_->infiniteCost() ),
             cost_( opt_->infiniteCost() ),
-            childWPtrs_(),
-            failedVIds_()
+            childWPtrs_()
         {
             if (this->isRoot() == true)
             {
@@ -410,6 +411,60 @@ namespace ompl
 
 
 
+        bool BITstar::Vertex::hasBeenExpandedToSamples() const
+        {
+            this->assertNotPruned();
+
+            return hasBeenExpandedToSamples_;
+        }
+
+
+
+        void BITstar::Vertex::markExpandedToSamples()
+        {
+            this->assertNotPruned();
+
+            hasBeenExpandedToSamples_ = true;
+        }
+
+
+
+        void BITstar::Vertex::markUnexpandedToSamples()
+        {
+            this->assertNotPruned();
+
+            hasBeenExpandedToSamples_ = false;
+        }
+
+
+
+        bool BITstar::Vertex::hasBeenExpandedToVertices() const
+        {
+            this->assertNotPruned();
+
+            return hasBeenExpandedToVertices_;
+        }
+
+
+
+        void BITstar::Vertex::markExpandedToVertices()
+        {
+            this->assertNotPruned();
+
+            hasBeenExpandedToVertices_ = true;
+        }
+
+
+
+        void BITstar::Vertex::markUnexpandedToVertices()
+        {
+            this->assertNotPruned();
+
+            hasBeenExpandedToVertices_ = false;
+        }
+
+
+
         bool BITstar::Vertex::isPruned() const
         {
             return isPruned_;
@@ -429,25 +484,6 @@ namespace ompl
         void BITstar::Vertex::markUnpruned()
         {
             isPruned_ = false;
-        }
-
-
-
-        void BITstar::Vertex::markAsFailedChild(const VertexConstPtr& failedChild)
-        {
-            this->assertNotPruned();
-
-            failedVIds_.insert( failedChild->getId() );
-        }
-
-
-
-        bool BITstar::Vertex::hasAlreadyFailed(const VertexConstPtr& potentialChild) const
-        {
-            this->assertNotPruned();
-
-            //Return true if there is more than 0 of this pointer.
-            return failedVIds_.count( potentialChild->getId() ) > 0u;
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
 
