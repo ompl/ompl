@@ -8,6 +8,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   <a class="btn btn-default" href="#integration_openrave">OpenRAVE</a>
   <a class="btn btn-default" href="#integration_morse">MORSE</a>
   <a class="btn btn-default" href="#integration_kautham">Kautham</a>
+  <a class="btn btn-default" href="#integration_rl">Robotics Library</a>
   <a class="btn btn-default" href="#integration_sims">SIMS</a>
   <a class="btn btn-default" href="#integration_omplapp">OMPL.app</a>
 </div>
@@ -62,6 +63,20 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <img src="https://sir.upc.edu/projects/kautham/images/justin.JPG" width="100%">
+  </div>
+</div>
+
+
+# Robotics Library {#integration_rl}
+
+<div class="row">
+  <div class="col-lg-7 col-md-6 col-sm-5">
+    [The Robotics Library](http://www.roboticslibrary.org) is a self-contained C++ library for robot kinematics, motion planning and control. It covers mathematics, kinematics and dynamics, hardware abstraction, motion planning, collision detection, and visualization. OMPL is not included by default, but we have created [a pull request on GitHub](https://github.com/roboticslibrary/rl/pull/2) to add OMPL support. Let us know if this works for you!
+  </div>
+  <div class="col-lg-5 col-md-6 col-sm-7">
+    <div class="embed-responsive embed-responsive-16by9">
+      \htmlonly<iframe src="https://www.youtube.com/embed/9JG3uY5M04A"></iframe>\endhtmlonly
+    </div>
   </div>
 </div>
 
