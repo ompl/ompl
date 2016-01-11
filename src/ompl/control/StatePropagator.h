@@ -37,6 +37,7 @@
 #ifndef OMPL_CONTROL_STATE_PROPAGATOR_
 #define OMPL_CONTROL_STATE_PROPAGATOR_
 
+#include "ompl/base/State.h"
 #include "ompl/control/Control.h"
 #include "ompl/util/ClassForward.h"
 
