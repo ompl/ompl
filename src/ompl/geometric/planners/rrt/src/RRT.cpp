@@ -88,7 +88,16 @@ void ompl::geometric::RRT::freeMemory()
         if (nn_->size() != motions.size())
         {
             OMPL_DEBUG("RRT::freeMemory(): nn_->list() is exhibiting a bug.");
-            motions.resize(nn_->size());
+            std::set<Motion*> deleted;
+            for (unsigned int i = 0; i < motions.size(); ++i)
+            {
+                if (deleted.count(motions[i]) == 1)
+                    continue;
+                deleted.insert(motions[i]);
+                if (motions[i]->state)
+                    si_->freeState(motions[i]->state);
+                delete motions[i];
+            }
         }
         for (unsigned int i = 0 ; i < motions.size() ; ++i)
         {

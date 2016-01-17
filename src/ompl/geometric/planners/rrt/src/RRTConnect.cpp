@@ -82,13 +82,25 @@ void ompl::geometric::RRTConnect::freeMemory()
         if (tStart_->size() != motions.size())
         {
             OMPL_DEBUG("RRTConnect::freeMemory(): tStart_->list() is exhibiting a bug.");
-            motions.resize(tStart_->size());
+            std::set<Motion*> deleted;
+            for (unsigned int i = 0; i < motions.size(); ++i)
+            {
+                if (deleted.count(motions[i]) == 1)
+                    continue;
+                deleted.insert(motions[i]);
+                if (motions[i]->state)
+                    si_->freeState(motions[i]->state);
+                delete motions[i];
+            }
         }
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        else
         {
-            if (motions[i]->state)
-                si_->freeState(motions[i]->state);
-            delete motions[i];
+            for (unsigned int i = 0 ; i < motions.size() ; ++i)
+            {
+                if (motions[i]->state)
+                    si_->freeState(motions[i]->state);
+                delete motions[i];
+            }
         }
     }
 
@@ -98,7 +110,16 @@ void ompl::geometric::RRTConnect::freeMemory()
         if (tGoal_->size() != motions.size())
         {
             OMPL_DEBUG("RRTConnect::freeMemory(): tGoal_->list() is exhibiting a bug.");
-            motions.resize(tGoal_->size());
+            std::set<Motion*> deleted;
+            for (unsigned int i = 0; i < motions.size(); ++i)
+            {
+                if (deleted.count(motions[i]) == 1)
+                    continue;
+                deleted.insert(motions[i]);
+                if (motions[i]->state)
+                    si_->freeState(motions[i]->state);
+                delete motions[i];
+            }
         }
         for (unsigned int i = 0 ; i < motions.size() ; ++i)
         {
