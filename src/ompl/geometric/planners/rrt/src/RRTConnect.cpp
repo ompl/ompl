@@ -38,6 +38,8 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
+#include "ompl/base/spaces/AtlasStateSpace.h"
+
 ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, bool addIntermediateStates) : base::Planner(si, addIntermediateStates ? "RRTConnectIntermediate" : "RRTConnect")
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
@@ -77,6 +79,11 @@ void ompl::geometric::RRTConnect::freeMemory()
     if (tStart_)
     {
         tStart_->list(motions);
+        if (tStart_->size() != motions.size())
+        {
+            OMPL_DEBUG("RRTConnect::freeMemory(): tStart_->list() is exhibiting a bug.");
+            motions.resize(tStart_->size());
+        }
         for (unsigned int i = 0 ; i < motions.size() ; ++i)
         {
             if (motions[i]->state)
@@ -88,6 +95,11 @@ void ompl::geometric::RRTConnect::freeMemory()
     if (tGoal_)
     {
         tGoal_->list(motions);
+        if (tGoal_->size() != motions.size())
+        {
+            OMPL_DEBUG("RRTConnect::freeMemory(): tGoal_->list() is exhibiting a bug.");
+            motions.resize(tGoal_->size());
+        }
         for (unsigned int i = 0 ; i < motions.size() ; ++i)
         {
             if (motions[i]->state)
@@ -225,6 +237,14 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
+
+    //static bool first = true;
+    //if (first)
+    //    dynamic_cast<ompl::base::AtlasStateSampler*>(sampler_.get())->rng_.setLocalSeed(877369881);
+    //else
+    //    dynamic_cast<ompl::base::AtlasStateSampler*>(sampler_.get())->rng_.setLocalSeed(469264270);
+    //first = false;
+    //OMPL_INFORM("Seeds: %i,%i", dynamic_cast<ompl::base::AtlasStateSampler*>(sampler_.get())->rng_.getLocalSeed(), dynamic_cast<ompl::base::AtlasStateSpace*>(si_->getStateSpace().get())->rng_.getLocalSeed());
 
     OMPL_INFORM("%s: Starting planning with %d states already in datastructure", getName().c_str(), (int)(tStart_->size() + tGoal_->size()));
 

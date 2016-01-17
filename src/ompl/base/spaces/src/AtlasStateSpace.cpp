@@ -69,13 +69,13 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
     
     // Rejection sampling to find a point on the manifold
     Eigen::VectorXd f(atlas_.getAmbientDimension()-atlas_.getManifoldDimension());
-    int tries = 0;
+    int tries = 100;
     do
     {
         // Rejection sampling to find a point inside a chart's polytope
         do
         {
-            tries++;
+            tries--;
             // Pick a chart.
             c = &atlas_.sampleChart();
             
@@ -85,11 +85,17 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
                 ru[i] = rng_.gaussian01();
             ru *= atlas_.getRho_s() * std::pow(rng_.uniform01(), 1.0/ru.size()) / ru.norm();
         }
-        while (!c->inP(ru));
+        while (tries > 0 && !c->inP(ru));
         
         c->psi(ru, rx);
     }
-    while (rx.hasNaN() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance()));
+    while (tries > 0 && (rx.hasNaN() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance())));
+
+    if (tries == 0)
+    {
+	OMPL_WARN("AtlasStateSpace::sampleUniform() got stuck. Falling back to random chart origin.");
+        rx = c->getXorigin();
+    }
 
     // Extend polytope of neighboring chart wherever point is near the border
     c->psiInverse(rx, ru);
@@ -117,8 +123,8 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
             }
             catch (ompl::Exception &e)
             {
-                // This is really bad, because we need a chart. Default to a uniform sample.
-                OMPL_WARN("AtlasStateSpace::sampleUniformNear(): Failed to sample because chart creation at state failed!");
+                // This is really bad, because we need a chart. Fall back to a uniform sample.
+                OMPL_WARN("AtlasStateSpace::sampleUniformNear(): Failed to sample because chart creation at state failed! Falling back to uniform sample.");
                 sampleUniform(state);
                 return;
             }
@@ -184,8 +190,8 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
             }
             catch (ompl::Exception &e)
             {
-                // This is really bad, because we need a chart. Default to a uniform sample.
-                OMPL_WARN("AtlasStateSpace::sampleGaussian(): Failed to sample because chart creation at state failed!");
+                // This is really bad, because we need a chart. Fall back to a uniform sample.
+                OMPL_WARN("AtlasStateSpace::sampleGaussian(): Failed to sample because chart creation at state failed! Falling back to uniform sample.");
                 sampleUniform(state);
                 return;
             }
@@ -195,16 +201,24 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     c->psiInverse(m, ru);
     
     // Rejection sampling to find a point on the manifold
+    int tries = 100;
     do
     {
+	tries--;
         Eigen::VectorXd rand(k);
         const double s = stdDev / std::sqrt(k);
         for (std::size_t i = 0; i < k; i++)
             rand[i] = rng_.gaussian(0, s);
         c->phi(ru + rand, rx);
     }
-    while (!atlas_.project(rx));
+    while (tries > 0 && !atlas_.project(rx));
     
+    if (tries == 0)
+    {
+        OMPL_WARN("AtlasStateSpace::sampleUniforGaussian() got stuck. Returning initial point.");
+        rx = m;
+    }
+
     // Be lazy about determining the new chart if we are not in the old one
     if (c->psiInverse(rx, ru), !c->inP(ru))
         c = NULL;
@@ -267,7 +281,7 @@ bool ompl::base::AtlasMotionValidator::checkMotion (const State *s1, const State
 
 bool ompl::base::AtlasMotionValidator::checkMotion (const State *s1, const State *s2, std::pair<State *, double> &lastValid) const
 {
-    // Invoke the of the manifold-traversing algorithm to save intermediate states
+    // Invoke the manifold-traversing algorithm to save intermediate states
     std::vector<AtlasStateSpace::StateType *> stateList;
     const AtlasStateSpace::StateType *const as1 = s1->as<AtlasStateSpace::StateType>();
     const AtlasStateSpace::StateType *const as2 = s2->as<AtlasStateSpace::StateType>();
@@ -309,7 +323,7 @@ void ompl::base::AtlasMotionValidator::checkSpace (void)
 
 /// Public
 ompl::base::AtlasStateSpace::StateType::StateType (const unsigned int dimension)
-: RealVectorStateSpace::StateType(), chart_(NULL), dimension_(dimension)
+  : RealVectorStateSpace::StateType(), dimension_(dimension), chart_(NULL)
 {
     // Mimic what RealVectorStateSpace::allocState() would have done
     values = new double[dimension_];
@@ -321,11 +335,19 @@ ompl::base::AtlasStateSpace::StateType::~StateType(void)
     delete [] values;
 }
 
+void ompl::base::AtlasStateSpace::StateType::copyFrom (const StateType *source)
+{
+    assert(dimension_ == source->dimension_);
+    for (unsigned int i = 0; i < dimension_; ++i)
+        (*this)[i] = (*source)[i];
+    chart_ = source->chart_;
+}
+
 void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd &x, AtlasChart *const c)
 {
-    setChart(c);
     for (std::size_t i = 0; i < dimension_; i++)
         (*this)[i]  = x[i];
+    chart_ = c;
 }
 
 Eigen::Map<Eigen::VectorXd> ompl::base::AtlasStateSpace::StateType::vectorView (void) const
@@ -356,6 +378,8 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int ambient, const 
     n_(ambient), k_(manifold), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
     projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), monteCarloSampleCount_(0), setup_(false), noAtlas_(false)
 {
+    //rng_.setLocalSeed(414344382);
+
     setName("Atlas" + RealVectorStateSpace::getName());
         
     setRho(0.1);
@@ -725,6 +749,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             }
             catch (ompl::Exception &e)
             {
+                OMPL_DEBUG("Could not get valid chart for 'from' state!");
                 return false;
             }
         }
@@ -737,7 +762,8 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     
     // Collision check unless interpolating
     if (!interpolate && !svc->isValid(from)) {
-        std::cout << "Warning: 'from' state not valid!\n";
+        OMPL_DEBUG("'from' state not valid!");
+        freeState(currentState);
         return false;
     }
         
@@ -781,7 +807,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
 
         c->phi(u_j, tempx);
         if (((x_j - tempx).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_
-             || u_j.squaredNorm() > rho_*rho_) || !c->inP(u_j))
+            || u_j.squaredNorm() > rho_*rho_) || !c->inP(u_j))
         {
             // Left the validity region or polytope of the chart; find or make a new one
             // The paper says we should always make (never find) one here, but, empirically, that's not always the case
@@ -796,6 +822,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
                 catch (ompl::Exception &e)
                 {
                     // Quit.
+                    OMPL_DEBUG("AtlasStateSpace::followManifold(): Treating singularity as an obstacle.");
                     freeState(currentState);
                     return false;
                 }
@@ -1038,7 +1065,10 @@ void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *t
         {
             c = &newChart(astate->constVectorView());
         }
-        catch (ompl::Exception &e) {}
+        catch (ompl::Exception &e)
+	{
+	    OMPL_DEBUG("AtlasStateSpace::interpolate(): Could not get a chart.");
+	}
     }
     astate->setChart(c);
     
@@ -1097,7 +1127,10 @@ void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *
             {
                 c = &newChart(x);
             }
-            catch (ompl::Exception &e) {}
+            catch (ompl::Exception &e)
+	    {
+		OMPL_DEBUG("AtlasStateSpace::interpolate(): Could not get a chart.");
+	    }
         }
         astate->setChart(c);
     }
@@ -1110,8 +1143,9 @@ bool ompl::base::AtlasStateSpace::hasSymmetricInterpolate (void) const
 
 void ompl::base::AtlasStateSpace::copyState (State *destination, const State *source) const
 {
-    RealVectorStateSpace::copyState(destination, source);
-    destination->as<StateType>()->setChart(source->as<StateType>()->getChart());
+    StateType *adest = destination->as<StateType>();
+    const StateType *asrc = source->as<StateType>();
+    adest->copyFrom(asrc);
 }
 
 ompl::base::StateSamplerPtr ompl::base::AtlasStateSpace::allocDefaultStateSampler (void) const

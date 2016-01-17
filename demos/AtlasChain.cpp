@@ -80,22 +80,22 @@ public:
             out[LINKS] = x.tail(DIM).norm() - ENDEFFECTORRADIUS;
             if (EXTRAS >= 2) {
                 // First and second joints must have same z-value.
-	        //out[LINKS+1] = x[2] - x[DIM + 2];
-	        // First and third joints sqrt(2) apart.
-	        out[LINKS+1] = (x.segment(0, DIM) - x.segment(2*DIM, DIM)).norm() - M_SQRT2*LINKLENGTH;
+                out[LINKS+1] = x[2] - x[DIM + 2];
+                // First and third joints sqrt(2) apart.
+                //out[LINKS+1] = (x.segment(0, DIM) - x.segment(2*DIM, DIM)).norm() - M_SQRT2*LINKLENGTH;
                 if (EXTRAS >= 3) {
-                  // Second and third joints must have same x-value.
-		  //out[LINKS+2] = x[DIM] - x[2*DIM];
-		  // Third and fifth joints sqrt(2) apart.
-		  out[LINKS+2] = (x.segment(2*DIM, DIM) - x.segment(4*DIM, DIM)).norm() - M_SQRT2*LINKLENGTH;
+		    // Second and third joints must have same x-value.
+		    out[LINKS+2] = x[DIM] - x[2*DIM];
+		    // Third and fifth joints sqrt(2) apart.
+		    //out[LINKS+2] = (x.segment(2*DIM, DIM) - x.segment(4*DIM, DIM)).norm() - M_SQRT2*LINKLENGTH;
                     if (EXTRAS >= 4) {
                         // Third and fourth joints must have the same y-value.
                         out[LINKS+3] = x[2*DIM + 1] - x[3*DIM + 1];
                         if (EXTRAS >= 5) {
-			  // First and fifth joints have same y-value.
-			  //out[LINKS+4] = x[1] - x[4*DIM + 1];
-			  // Second and fifth joints have same z-value.
-			  out[LINKS+4] = x[DIM + 2] - x[4*DIM + 2];
+			    // First and fifth joints have same y-value.
+			    out[LINKS+4] = x[1] - x[4*DIM + 1];
+			    // Second and fifth joints have same z-value.
+			    //out[LINKS+4] = x[DIM + 2] - x[4*DIM + 2];
                         }
                     }
                 }
@@ -116,23 +116,23 @@ public:
         if (EXTRAS >= 1) {
             out.row(LINKS).tail(DIM) = -diagonal.tail(DIM).normalized().transpose();
             if (EXTRAS >= 2) {
-	      //out(LINKS+1, 2) = 1;
-	      //out(LINKS+1, DIM + 2) = -1;
-	      out.row(LINKS+1).segment(0, DIM) = (x.segment(0, DIM) - x.segment(2*DIM, DIM)).normalized();
-	      out.row(LINKS+1).segment(2*DIM, DIM) = -out.row(LINKS+1).segment(0, DIM);
+		out(LINKS+1, 2) = 1;
+		out(LINKS+1, DIM + 2) = -1;
+		//out.row(LINKS+1).segment(0, DIM) = (x.segment(0, DIM) - x.segment(2*DIM, DIM)).normalized();
+		//out.row(LINKS+1).segment(2*DIM, DIM) = -out.row(LINKS+1).segment(0, DIM);
                 if (EXTRAS >= 3) {
-		  //out(LINKS+2, DIM) = 1;
-		  //out(LINKS+2, 2*DIM) = -1;
-		  out.row(LINKS+2).segment(2*DIM, DIM) = (x.segment(2*DIM, DIM) - x.segment(4*DIM, DIM)).normalized();
-		  out.row(LINKS+2).segment(4*DIM, DIM) = -out.row(LINKS+2).segment(2*DIM, DIM);
+		    out(LINKS+2, DIM) = 1;
+		    out(LINKS+2, 2*DIM) = -1;
+		    //out.row(LINKS+2).segment(2*DIM, DIM) = (x.segment(2*DIM, DIM) - x.segment(4*DIM, DIM)).normalized();
+		    //out.row(LINKS+2).segment(4*DIM, DIM) = -out.row(LINKS+2).segment(2*DIM, DIM);
                     if (EXTRAS >= 4) {
                         out(LINKS+3, 2*DIM + 1) = 1;
                         out(LINKS+3, 3*DIM + 1) = -1;
                         if (EXTRAS >= 5) {
-			  //out(LINKS+4, 1) = 1;
-			  //out(LINKS+4, 4*DIM + 1) = -1;
-			  out(LINKS+4, 2) = 1;
-			  out(LINKS+4, 4*DIM + 2) = -1;
+			    out(LINKS+4, 1) = 1;
+			    out(LINKS+4, 4*DIM + 1) = -1;
+			    //out(LINKS+4, 2) = 1;
+			    //out(LINKS+4, 4*DIM + 2) = -1;
                         }
                     }
                 }

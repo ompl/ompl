@@ -85,6 +85,11 @@ void ompl::geometric::RRT::freeMemory()
     {
         std::vector<Motion*> motions;
         nn_->list(motions);
+        if (nn_->size() != motions.size())
+        {
+            OMPL_DEBUG("RRT::freeMemory(): nn_->list() is exhibiting a bug.");
+            motions.resize(nn_->size());
+        }
         for (unsigned int i = 0 ; i < motions.size() ; ++i)
         {
             if (motions[i]->state)
@@ -165,17 +170,17 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
             }
             
             double dist = 0.0;
-            bool sat = goal->isSatisfied(motion->state, &dist);
+            bool sat = goal->isSatisfied(nmotion->state, &dist);
             if (sat)
             {
                 approxdif = dist;
-                solution = motion;
+                solution = nmotion;
                 break;
             }
             if (dist < approxdif)
             {
                 approxdif = dist;
-                approxsol = motion;
+                approxsol = nmotion;
             }
         }
         else

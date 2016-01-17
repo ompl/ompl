@@ -81,13 +81,13 @@ namespace ompl
             /** \brief Not implemented. */
             virtual void sampleGaussian (State *state, const State *mean, const double stdDev);
             
+            /** \brief Random number generator. */
+            mutable RNG rng_;
+            
         private:
             
             /** \brief Atlas on which to sample. */
             const AtlasStateSpace &atlas_;
-            
-            /** \brief Random number generator. */
-            mutable RNG rng_;
             
             /** \brief Locks to keep some operations thread-safe. */
             mutable struct
@@ -161,6 +161,8 @@ namespace ompl
                 
                 /** \brief Destructor. */
                 virtual ~StateType(void);
+
+		void copyFrom (const StateType *source);
                 
                 /** \brief Set the real vector to the values in \a x and the chart to \a c.
                  * Assumes \a x is of the same dimensionality as the state. */
@@ -177,14 +179,14 @@ namespace ompl
                 
                 /** \brief Set the chart \a c for the state. */
                 void setChart (AtlasChart *const c) const;
-                
+
             private:
                 
+      		/** \brief Dimension of the real vector. */
+                const unsigned int dimension_;
+
                 /** \brief Chart owning the real vector. */
                 mutable AtlasChart *chart_;
-                
-                /** \brief Dimension of the real vector. */
-                const unsigned int dimension_;
             };
             
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
@@ -393,13 +395,13 @@ namespace ompl
             
             /** @} */
             
+            /** \brief Random number generator. */
+            mutable RNG rng_;
+            
         protected:
             
             /** \brief SpaceInformation associated with this space. */
             SpaceInformation *si_;
-            
-            /** \brief Random number generator. */
-            mutable RNG rng_;
             
             /** \brief Set of charts, sampleable by weight. */
             mutable PDF<AtlasChart *> charts_;
