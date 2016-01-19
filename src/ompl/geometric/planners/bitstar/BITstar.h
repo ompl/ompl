@@ -129,6 +129,13 @@ namespace ompl
             typedef boost::shared_ptr<IntegratedQueue> IntegratedQueuePtr;
             /** \brief The vertex id type */
             typedef unsigned int VertexId;
+            /** \brief A pair of vertices, i.e., an edge. */
+            typedef std::pair<VertexPtr, VertexPtr> VertexPtrPair;
+            /** \brief A pair of const vertices, i.e., an edge. */
+            typedef std::pair<VertexConstPtr, VertexConstPtr> VertexConstPtrPair;
+            /** \brief The OMPL::NearestNeighbors structure. */
+            typedef boost::shared_ptr< NearestNeighbors<VertexPtr> > VertexPtrNNPtr;
+
 
             /** \brief Construct! */
             BITstar(const base::SpaceInformationPtr& si, const std::string& name = "BITstar");
@@ -260,16 +267,6 @@ namespace ompl
 
         protected:
             //Everything is only protected so we can create modifications without duplicating code by deriving from the class:
-
-            //Typedefs:
-            /** \brief A pair of vertices, i.e., an edge. */
-            typedef std::pair<VertexPtr, VertexPtr> VertexPtrPair;
-
-            /** \brief A pair of const vertices, i.e., an edge. */
-            typedef std::pair<VertexConstPtr, VertexConstPtr> VertexConstPtrPair;
-
-            /** \brief The OMPL::NearestNeighbors structure. */
-            typedef boost::shared_ptr< NearestNeighbors<VertexPtr> > VertexPtrNNPtr;
 
             //Functions:
             /** \brief A debug function: Estimate the measure of the free/obstace space via sampling. */

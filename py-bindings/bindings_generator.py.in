@@ -43,7 +43,8 @@ from os.path import exists, join, isdir
 from os import getenv
 import subprocess
 from sys import platform
-from pygccxml import declarations
+from pygccxml import declarations, parser
+from pygccxml.utils import xml_generator
 from pyplusplus import module_builder, messages
 from pyplusplus.module_builder import call_policies
 from pyplusplus.decl_wrappers import print_declarations
@@ -111,40 +112,12 @@ class code_generator_t(object):
         @name name of the python module
         @dep name of another module this module depends on"""
         module_builder.set_logger_level( logging.INFO )
-        candidate_include_paths = [ "@OMPL_INCLUDE_DIR@", "@OMPLAPP_INCLUDE_DIR@",
-            "@PYTHON_INCLUDE_DIRS@", "@Boost_INCLUDE_DIR@", "@ASSIMP_INCLUDE_DIRS@", "@ODEINT_INCLUDE_DIR@", "@EIGEN3_INCLUDE_DIR@"]
-
-        # Adding standard windows headers
-        if platform == 'win32':
-            compiler = getenv('GCCXML_COMPILER')
-            # MinGW
-            if compiler != None and (compiler.lower().endswith('g++') or compiler.lower().endswith('c++')):
-                version = subprocess.Popen([compiler, '-dumpversion'],
-                    stdout=subprocess.PIPE).communicate()[0].strip()
-                # Find whole path to MinGW
-                compiler_path = ""
-                for path in getenv('PATH').split(';'):
-                    if exists(join(path, compiler + '.exe')):
-                        compiler_path = path
-                        break
-
-                if compiler_path is not "":
-                    # Adding in necessary include paths
-                    candidate_include_paths.append (join(compiler_path, "..", "include"))
-                    candidate_include_paths.append (join(compiler_path, "..", "lib", "gcc", "mingw32", version, "include"))
-                    candidate_include_paths.append (join(compiler_path, "..", "lib", "gcc", "mingw32", version, "include", "c++"))
-                    candidate_include_paths.append (join(compiler_path, "..", "lib", "gcc", "mingw32", version, "include", "c++", "mingw32"))
-
-        include_paths = []
-        for path in candidate_include_paths:
-            if len(path)>0 and exists(path):
-                include_paths.append(path)
+        xml_generator_config = parser.load_xml_generator_configuration("@XMLCONFIGPATH@")
+        self.using_castxml = (xml_generator_config.xml_generator == "castxml")
         self.mb = module_builder.module_builder_t(
             files = [ 'bindings/' + name + '.h' ],
             cache = '@CMAKE_BINARY_DIR@/pyplusplus_'+name+'.cache',
-            gccxml_path = "@GCCXML@",
-            include_paths = include_paths,
-            cflags="@PYOMPL_EXTRA_CFLAGS@",
+            xml_generator_config = xml_generator_config,
             indexing_suite_version = indexing_suite_version )
         self.replacement = {} if replacement_dict==None else replacement_dict
         self.mb.classes().always_expose_using_scope = True

@@ -38,17 +38,9 @@ script:
   - cd build
 
   # Configure
-  - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOMPL_LOCAL_PYPLUSPLUS_INSTALL=ON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp ..
+  - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp ..
 
-  # Skip Python bindings on OS X, since brew doesn't have a compiler that can compile gccxml.
-  # On Linux, we need to make sure cmake finds the locally installed gccxml
-  # and not the one in /usr/bin
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-      if [ ! -x "pyplusplus/bin/gccxml" ]; then make installpyplusplus; fi;
-      rm CMakeCache.txt;
-      cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOMPL_LOCAL_PYPLUSPLUS_INSTALL=ON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DGCCXML=pyplusplus/bin/gccxml ..;
-      make -j2 update_bindings;
-    fi
+  # TODO: fix python bindings
 
   # Build
   - make -j4
