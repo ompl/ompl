@@ -89,11 +89,11 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
         
         c->psi(ru, rx);
     }
-    while (tries > 0 && (rx.hasNaN() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance())));
+    while (tries > 0 && (!rx.allFinite() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance())));
 
     if (tries == 0)
     {
-	OMPL_WARN("AtlasStateSpace::sampleUniform() got stuck. Falling back to random chart origin.");
+        OMPL_WARN("AtlasStateSpace::sampleUniform() got stuck. Falling back to random chart origin.");
         rx = c->getXorigin();
     }
 
@@ -149,7 +149,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
 #if ORTHOPROJECT // Option 1: project orthogonally using chart c
         c->psi(ru + uoffset, rx);
     }
-    while (tries > 0 && (rx.hasNaN() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance())));
+    while (tries > 0 && (!rx.allFinite() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance())));
 #else // Option 2: ordinary gradient descent
         c->phi(ru + uoffset, rx);
     }
@@ -204,7 +204,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     int tries = 100;
     do
     {
-	tries--;
+        tries--;
         Eigen::VectorXd rand(k);
         const double s = stdDev / std::sqrt(k);
         for (std::size_t i = 0; i < k; i++)
@@ -761,7 +761,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     Eigen::Ref<Eigen::VectorXd> x_j = currentState->vectorView();
     
     // Collision check unless interpolating
-    if (!interpolate && !svc->isValid(from)) {
+    if (!interpolate && (!x_a.allFinite() || !svc->isValid(from))) {
         OMPL_DEBUG("'from' state not valid!");
         freeState(currentState);
         return false;
@@ -798,7 +798,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
         
         // Collision check unless interpolating
         currentState->setChart(c);
-        if (!interpolate && !svc->isValid(currentState))
+        if (!interpolate && (!x_j.allFinite() || !svc->isValid(currentState)))
             break;
         
         // Check stopping criteria regarding how far we've gone
@@ -844,7 +844,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     if (chartsCreated > maxChartsPerExtension_)
         OMPL_DEBUG("Stopping extension early b/c too many charts created.");
     // Reached goal if final point is within delta and both current and goal are valid.
-    const bool currentValid = interpolate || svc->isValid(currentState);
+    const bool currentValid = interpolate || (x_j.allFinite() && svc->isValid(currentState));
     const bool goalValid = interpolate || svc->isValid(to);
     const bool reached = ((x_b - x_j).squaredNorm() <= delta_*delta_) && currentValid && goalValid;
     
@@ -1066,15 +1066,23 @@ void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *t
             c = &newChart(astate->constVectorView());
         }
         catch (ompl::Exception &e)
-	{
-	    OMPL_DEBUG("AtlasStateSpace::interpolate(): Could not get a chart.");
-	}
+        {
+            OMPL_DEBUG("AtlasStateSpace::interpolate(): Could not get a chart.");
+        }
     }
     astate->setChart(c);
     
     // Project using this chart
     Eigen::VectorXd x = astate->constVectorView();
     c->psiFromGuess(x, astate->vectorView()); 
+    if (!astate->constVectorView().allFinite())
+    {
+        OMPL_DEBUG("AtlasStateSpace::interpolate(): Got non-finite state. Returning an endpoint.");
+        if (t < 0.5)
+            copyState(state, from);
+        else
+            copyState(state, to);
+    }
 }
 
 void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *> &stateList, const double t, State *state) const

@@ -99,11 +99,14 @@ void ompl::geometric::RRT::freeMemory()
                 delete motions[i];
             }
         }
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        else
         {
-            if (motions[i]->state)
-                si_->freeState(motions[i]->state);
-            delete motions[i];
+            for (unsigned int i = 0 ; i < motions.size() ; ++i)
+            {
+                if (motions[i]->state)
+                    si_->freeState(motions[i]->state);
+                delete motions[i];
+            }
         }
     }
 }

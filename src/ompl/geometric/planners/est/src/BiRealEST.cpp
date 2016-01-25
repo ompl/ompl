@@ -222,6 +222,8 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
             // try to connect this state to the other tree
             // Get all states in the other tree within a maxDistance_ ball (bigger than "neighborhood" ball)
             startTree ? nnGoal_->nearestR(motion, maxDistance_, neighbors) : nnStart_->nearestR(motion, maxDistance_, neighbors);
+            if (neighbors.size() == 0)
+                neighbors.push_back((startTree ? nnGoal_ : nnStart_)->nearest(motion));
             for(size_t i = 0; i < neighbors.size() && !solved; ++i)
             {
                 if (goal->isStartGoalPairValid(motion->root, neighbors[i]->root) &&

@@ -186,7 +186,8 @@ public:
         out[1] = obj.y;
         out[2] = obj.z;
     }
-    
+
+    // We will let bigJ be computed numerically instead of writing it out.
     void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         // Compute left and right object positions.
@@ -213,10 +214,6 @@ public:
         // Level tray: wrist-to-tray has 0 distance in y-direction.
         if (extras > 2)
             out[2] = left[1] - wrist_left[1];
-
-        // Straight tray: 0 distance in z-direction.
-        if (extras > 3)
-            out[3] = left[2] - right[2];
 
     }
 
