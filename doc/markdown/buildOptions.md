@@ -8,7 +8,5 @@ OMPLAPP_PQP                   | ON            | Enable support for the [PQP](htt
 OMPL_BUILD_DEMOS              | ON            | Compile the OMPL demo programs. (The binaries are never installed.)
 OMPL_BUILD_PYBINDINGS         | ON            | Whether to compile the Python bindings (requires Py++).
 OMPL_BUILD_PYTESTS            | ON            | Whether the Python tests should be added to the `test` target.
-OMPL_LOCAL_PYPLUSPLUS_INSTALL | OFF           | Whether `make installpyplusplus` installs Py++ in your build directory instead of `/usr/local`.
 OMPL_REGISTRATION             | ON            | Whether the registration page is shown. (Disabling it might be useful for build bots.)
-OMPL_TESTS_TEAMCITY           | OFF           | Whether the output from the unit tests should be reformatted for the TeamCity Continuous Integration system.
 OMPL_VERSIONED_INSTALL        | OFF           | Whether directories and executables created by `make install` have a version suffix. Useful if you want to install multiple versions of OMPL in the same directory.

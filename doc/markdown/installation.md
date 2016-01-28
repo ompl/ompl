@@ -31,7 +31,7 @@ Starting with Ubuntu 14.04, you can install OMPL like so
 
     apt-get install libompl-dev ompl-demos
 
-Debian packages for the latest version of OMPL are also found in ROS distributions. All you need to do is add the ROS repository to your list of sources (you probably have added this already if you are using ROS):
+Debian packages for the latest version of OMPL are also found in ROS distributions (they might be newer than the standard Ubuntu ompl packages). All you need to do is add the ROS repository to your list of sources (you probably have added this already if you are using ROS):
 
     sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
     wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
@@ -48,6 +48,7 @@ and install OMPL:
 
       sudo apt-get install libboost-all-dev cmake doxygen graphviz python-dev libeigen3-dev libode-dev
 
+- If you want Python bindings or a GUI, [install Py++ and its dependencies](installPyPlusPlus.html).
 - Create a build directory and run cmake:
 
       cd ompl
@@ -55,11 +56,7 @@ and install OMPL:
       cd build/Release
       cmake ../..
 
-- If you want Python bindings, type the following two commands:
-
-      make installpyplusplus && cmake . # download & install Py++
-      make -j 4 update_bindings
-
+- Optionally, generate the Python bindings with `make -j 4 update_bindings`.
 - Compile OMPL by typing `make -j 4`.
 - Optionally, run the test programs by typing `make test`.
 - Optionally, generate documentation by typing `make doc`.
@@ -159,7 +156,7 @@ For best performance, the [MinGW] compiler is recommended. Visual Studio can als
 
 - A __32-bit__ version of [Python] 2.7.  Ensure that this is installed __before building Boost__ so that Boost.Python is properly compiled.
 - Ensure that Python is added to the system `PATH`.
-- Py++: To generate the Python bindings, Py++ and its dependencies must be installed. A batch file has been included to automate this process (analogous to the Linux/Mac installation) that can be executed via cmake. Instructions can be found [here](installPyPlusPlus.html).  Note that this process assumes the MinGW compiler, and installs gccxml to `C:\\gccxml`.  You will need to be in a shell with administrator privileges to execute this batch file.  Once installed, it is recommended that you open a new shell to realize the new environment settings.
+- Py++: To generate the Python bindings, Py++ and its dependencies must be installed. Instructions can be found [here](installPyPlusPlus.html).
 
 
 ## Build

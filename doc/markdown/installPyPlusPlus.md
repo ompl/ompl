@@ -1,12 +1,17 @@
 # Installation of Py++
 
-We have included a script to download and install [Py++](https://bitbucket.org/ompl/pyplusplus) and its dependencies ([pygccxml](https://bitbucket.org/ompl/pygccxml) and [GCC-XML](https://github.com/gccxml/gccxml)). The script is located at ompl/src/external/installPyPlusPlus.{sh,bat}. You can run this script (after running cmake) like so:
+[Py++](https://bitbucket.org/ompl/pyplusplus) depends on [pygccxml](https://github.com/gccxml/pygccxml), which in turn depends on [CastXML](https://github.com/CastXML/CastXML). You can install these packages from source yourself, but you can also use package managers.
 
-    make installpyplusplus
+## Ubuntu
 
-The script may ask for your password so that it can install these programs. If the script completes successfully, run cmake again and you should be able to generate the Python bindings by typing “make update_bindings”.
+For Ubuntu 15.10 and newer you can install castxml with `sudo apt-get install castxml`. The pygccxml and Py++ packages can be installed with `pip` (a package manager specifically for Python packages):
 
-If you are using OS X and MacPorts, it is recommended you install Py++ like so:
+    sudo apt-get install pip
+    sudo pip install pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.1.tar.gz
 
-    sudo port sync
-    sudo port install py27-pyplusplus-devel
+## OS X
+
+If you use MacPorts on OS X, then Py++ and its dependencies can be installed like so:
+
+    sudo port install py27-pyplusplus # if you use python2.7
+    sudo port install py35-pyplusplus # if you use python3.5
