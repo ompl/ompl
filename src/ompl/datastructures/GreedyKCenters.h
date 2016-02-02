@@ -38,6 +38,7 @@
 #define OMPL_DATASTRUCTURES_GREEDY_K_CENTERS_
 
 #include "ompl/util/RandomNumbers.h"
+#include <boost/function.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 
 namespace ompl
