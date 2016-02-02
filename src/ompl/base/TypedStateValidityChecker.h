@@ -57,7 +57,7 @@ namespace ompl
             {
             }
 
-            TypedStateValidityChecker(const typename SpaceInformationType::Ptr si) : StateValidityChecker(si)
+            TypedStateValidityChecker(const typename SpaceInformationType::Ptr &si) : StateValidityChecker(si)
             {
             }
 
