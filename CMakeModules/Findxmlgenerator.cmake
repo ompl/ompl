@@ -5,6 +5,7 @@ if(NOT XMLGENERATORPATH)
     if(XMLGENERATORPATH)
         set(XMLGENERATOR "castxml" CACHE STRING "Type of XML generator used by pygccxml")
     else()
+        # gccxml is still supported for now, but has to be dropped once we switch to C++11
         find_program(XMLGENERATORPATH NAMES gccxml
             PATHS "${PROJECT_BINARY_DIR}/pyplusplus/bin"
             [HKEY_CURRENT_USER\\Software\\Kitware\\GCC_XML;loc]
@@ -80,4 +81,3 @@ if (XMLGENERATORPATH)
 endif()
 
 find_package_handle_standard_args(xmlgenerator DEFAULT_MSG XMLGENERATORPATH)
-
