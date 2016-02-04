@@ -51,7 +51,7 @@
 
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
-    using namespace boost::numeric::ublas;
+    namespace nu = boost::numeric::ublas;
 
     RNG rng;
     Matrix projection(to, from);
@@ -59,7 +59,7 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
     for (unsigned int j = 0 ; j < from ; ++j)
     {
         if (scale.size() == from && fabs(scale[j]) < std::numeric_limits<double>::epsilon())
-            boost::numeric::ublas::column(projection, j) = boost::numeric::ublas::zero_vector<double>(to);
+            nu::column(projection, j) = nu::zero_vector<double>(to);
         else
             for (unsigned int i = 0 ; i < to ; ++i)
                 projection(i, j) = rng.gaussian01();
@@ -67,10 +67,10 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
 
     for (unsigned int i = 0 ; i < to ; ++i)
     {
-        matrix_row<Matrix> row(projection, i);
+        nu::matrix_row<Matrix> row(projection, i);
         for (unsigned int j = 0 ; j < i ; ++j)
         {
-            matrix_row<Matrix> prevRow(projection, j);
+            nu::matrix_row<Matrix> prevRow(projection, j);
             // subtract projection
             row -= inner_prod(row, prevRow) * prevRow;
         }
@@ -87,7 +87,7 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
             if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
                 z++;
             else
-                boost::numeric::ublas::column(projection, i) /= scale[i];
+                nu::column(projection, i) /= scale[i];
         }
         if (z == from)
             OMPL_WARN("Computed projection matrix is all 0s");
@@ -112,10 +112,10 @@ void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const 
 
 void ompl::base::ProjectionMatrix::project(const double *from, EuclideanProjection& to) const
 {
-    using namespace boost::numeric::ublas;
+    namespace nu = boost::numeric::ublas;
     // create a temporary uBLAS vector from a C-style array without copying data
-    shallow_array_adaptor<const double> tmp1(mat.size2(), from);
-    vector<double, shallow_array_adaptor<const double> > tmp2(mat.size2(), tmp1);
+    nu::shallow_array_adaptor<const double> tmp1(mat.size2(), from);
+    nu::vector<double, nu::shallow_array_adaptor<const double> > tmp2(mat.size2(), tmp1);
     to = prod(mat, tmp2);
 }
 
