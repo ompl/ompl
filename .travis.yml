@@ -1,7 +1,7 @@
 cache:
   apt: true
   directories:
-    - /home/travis/castxml
+    - ${HOME}/castxml
 language: cpp
 
 matrix:
@@ -29,12 +29,12 @@ install:
       brew update;
       brew outdated boost || brew upgrade boost;
       brew install boost-python ode eigen python cmake;
-      if [ ! -e /home/travis/castxml ]; then
-        curl https://midas3.kitware.com/midas/download/item/318762/castxml-macosx.tar.gz | tar zxf -;
+      if [ ! -e ${HOME}/castxml ]; then
+        curl https://midas3.kitware.com/midas/download/item/318762/castxml-macosx.tar.gz | tar -C ${HOME} zxvf -;
       fi;
     else
-      if [ ! -e /home/travis/castxml ]; then
-        wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf -;
+      if [ ! -e ${HOME}/castxml ]; then
+        wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar -C ${HOME} zxvf -;
       fi;
     fi
   - sudo -H pip -v install pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.1.tar.gz
@@ -46,7 +46,7 @@ script:
   - cd build
 
   # Configure
-  - cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DXMLGENERATORPATH:FILEPATH=/home/travis/castxml/bin/castxml -DXMLGENERATOR:STRING=castxml ..
+  - cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DXMLGENERATORPATH:FILEPATH=${HOME}/castxml/bin/castxml -DXMLGENERATOR:STRING=castxml ..
   # debug
   - grep -E '(PY_P|XML)' CMakeCache.txt
 
