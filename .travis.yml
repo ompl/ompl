@@ -1,9 +1,7 @@
-sudo: false
 cache:
   apt: true
-  directories:
-    - /home/travis/build/ompl/ompl/build/pyplusplus
 language: cpp
+
 
 os:
   - linux
@@ -14,6 +12,12 @@ env:
   - BUILD_TYPE=Release
 
 matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+    - os: osx
+      osx_image: xcode7.2
   allow_failures:
     - os: osx
 
@@ -24,13 +28,16 @@ addons:
       - python-dev
       - libode-dev
       - libeigen3-dev
+      - python-pip
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       brew update;
       brew outdated boost || brew upgrade boost;
-      brew install ode eigen;
+      brew install ode eigen python;
     fi
+  - sudo pip install pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.1.tar.gz
+
 
 script:
   # Create build directory
