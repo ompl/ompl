@@ -36,7 +36,7 @@ install:
         wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf -;
       fi;
     fi
-  - sudo -H pip install pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.1.tar.gz
+  - sudo -H pip -v install pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.1.tar.gz
 
 
 script:
@@ -46,6 +46,8 @@ script:
 
   # Configure
   - cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DXMLGENERATORPATH=/home/travis/castxml/bin/castxml -DXMLGENERATOR=castxml ..
+  # debug
+  - grep -E '(PY_P|XML)' CMakeCache.txt
 
   # generate python bindings
   - make -j4 update_bindings
