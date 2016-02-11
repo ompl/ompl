@@ -29,12 +29,12 @@ install:
       brew outdated boost || brew upgrade boost;
       brew install ode eigen python;
       if [ ! -e /home/travis/castxml ]; then
-        curl -O https://midas3.kitware.com/midas/download/item/318762/castxml-macosx.tar.gz | tar zxf -;
-      end;
+        curl https://midas3.kitware.com/midas/download/item/318762/castxml-macosx.tar.gz | tar zxf -;
+      fi;
     else
       if [ ! -e /home/travis/castxml ]; then
-        curl -O https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf -;
-      end;
+        wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf -;
+      fi;
     fi
   - sudo pip install pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.1.tar.gz
 
