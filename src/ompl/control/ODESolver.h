@@ -44,13 +44,8 @@
 #include "ompl/util/ClassForward.h"
 
 #include <boost/version.hpp>
-#if BOOST_VERSION >= 105300
 #include <boost/numeric/odeint.hpp>
 namespace odeint = boost::numeric::odeint;
-#else
-#include <omplext_odeint/boost/numeric/odeint.hpp>
-namespace odeint = boost::numeric::omplext_odeint;
-#endif
 #include <boost/function.hpp>
 #include <cassert>
 #include <vector>

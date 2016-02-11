@@ -45,13 +45,10 @@ namespace ompl
 {
     namespace control
     {
-// Boost.OdeInt needs Boost version >= 1.44
-#if BOOST_VERSION >= 104400
         inline int dummyODESolverSize()
         {
             return sizeof(ODEBasicSolver<>) + sizeof(ODEErrorSolver<>) + sizeof(ODEAdaptiveSolver<>);
         }
-#endif
     }
 }
 

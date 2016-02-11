@@ -1,1 +1,0 @@
-This is OdeInt version 2.2.0, as included with Boost 1.53.0.

@@ -89,13 +89,7 @@ namespace ompl
                 boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates)));
 
                 // allow 25% more time than originally specified, in order to detect planner termination
-#if BOOST_VERSION < 105000
-                // For older versions of boost, we have to use this
-                // deprecated form of the timed join
-                if (!t.timed_join(time::seconds(maxTime * 1.25)))
-#else
                 if (!t.try_join_for(boost::chrono::duration<double>(maxTime * 1.25)))
-#endif
                 {
                     status_ = base::PlannerStatus::CRASH;
 

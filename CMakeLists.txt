@@ -61,35 +61,8 @@ else(IS_ICPC)
     add_definitions(-DBOOST_TEST_DYN_LINK)
 endif(IS_ICPC)
 
-# Do one quiet find_package on Boost to see if it is recent enough to
-# have the try_join_for call
-find_package(Boost QUIET 1.50)
-
-# If Boost is not found at all, the check for version 1.50 below will die in
-# the most ungraceful manner because Boost_VERSION is not defined.  Define the
-# variable here for a more useful error.
-if (NOT ${Boost_FOUND})
-    set(Boost_VERSION 0)
-endif()
-
-# try_join_for requires the chrono library, so if we will use
-# try_join_for, we need to include the chrono component
-# Must recheck the Boost version, since update_bindings will re-run CMake
-# and this will pass for versions of Boost < 1.50
-if (${Boost_FOUND} AND ${Boost_VERSION} GREATER 104900) # Boost version is at least 1.50
-  # we're using chrono
-  find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework chrono REQUIRED)
-else()
-  # don't use chrono
-  find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework REQUIRED)
-endif()
+find_package(Boost 1.54 COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework chrono REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
-
-if(${Boost_VERSION} LESS 105300)
-  # Include bundled version of boost::odeint if it isn't installed natively
-  set(ODEINT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/external")
-  include_directories(SYSTEM "${ODEINT_INCLUDE_DIR}")
-endif()
 
 # on OS X we need to check whether to use libc++ or libstdc++ with clang++
 if(APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

@@ -3,7 +3,7 @@
 If you use Linux or OS X, then all dependencies can be installed either through a package manager or by OMPL's build system. In other words, you probably don't have to compile dependencies from source.
 
 To compile OMPL the following two packages are required:
-- [Boost], version 1.48 or higher, and
+- [Boost], version 1.54 or higher, and
 - [CMake], version 2.8.7 or higher.
 
 The build system includes a [number of options](buildOptions.html) that you can enable or disable. To be able to generate python bindings you need to install the [Python] library and header files.
@@ -147,7 +147,7 @@ For best performance, the [MinGW] compiler is recommended. Visual Studio can als
 
 - [CMake], version 2.8.7 or higher,
 - [MinGW][] (recommended) or Visual Studio compiler, and
-- [Boost], version 1.48 or greater.
+- [Boost], version 1.54 or greater.
 
   It is recommended to make a complete Boost compilation from source.  If using Visual Studio, this process can be automated using the [BoostPro](http://www.boostpro.com/download) installer. Once complete, set the environment variables `BOOST_ROOT` and `BOOST_LIBRARYDIR` to the locations where Boost and its libraries are installed.  The default locations are `C:\\Boost` and `C:\\Boost\\lib`.  Ensure that `BOOST_LIBRARYDIR` is also in the system PATH so that any necessary Boost dlls are loaded properly at runtime.
 

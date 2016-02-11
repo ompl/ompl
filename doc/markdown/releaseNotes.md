@@ -1,6 +1,11 @@
 # Release Notes
 
 
+# OMPL 1.2.0 (???)
+
+- Minimum Boost version is now 1.54
+
+
 # OMPL 1.1.0 (October 28, 2015)
 
 - Added several new and updated planners:

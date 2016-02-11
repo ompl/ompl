@@ -7,10 +7,3 @@ install(DIRECTORY ompl/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ompl${OMPL_INST
     REGEX "/src$" EXCLUDE
     REGEX "/doc$" EXCLUDE
     REGEX "/tests$" EXCLUDE)
-
-if(${Boost_VERSION} LESS 105300)
-    install(DIRECTORY external/omplext_odeint/
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/omplext_odeint${OMPL_INSTALL_SUFFIX}"
-        COMPONENT ompl)
-endif()
-

@@ -12,9 +12,6 @@ if [ ! -d .symlinks ]; then
     mkdir -p .symlinks/@CMAKE_INSTALL_INCLUDEDIR@
     cd .symlinks/include
     ln -s ompl@OMPL_INSTALL_SUFFIX@ ompl
-    if [[ @Boost_VERSION@ < 105300 ]]; then
-        ln -s omplext_odeint@OMPL_INSTALL_SUFFIX@ omplext_odeint
-    fi
     if [ $1 ]; then
         ln -s omplapp@OMPL_INSTALL_SUFFIX@ omplapp
     fi
