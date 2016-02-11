@@ -26,8 +26,6 @@ addons:
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      brew update;
-      brew outdated boost || brew upgrade boost;
       brew install boost-python ode eigen python cmake;
       if [ ! -e ${HOME}/castxml ]; then
         curl https://midas3.kitware.com/midas/download/item/318762/castxml-macosx.tar.gz | tar zxf - -C ${HOME};
@@ -37,7 +35,7 @@ install:
         wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf - -C ${HOME};
       fi;
     fi
-  - sudo -H pip -v install pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.1.tar.gz
+  - sudo -H pip -v install https://github.com/gccxml/pygccxml/archive/hotfix/v1.7.2.tar.gz https://bitbucket.org/ompl/pyplusplus/get/1.1.tar.gz
 
 
 script:

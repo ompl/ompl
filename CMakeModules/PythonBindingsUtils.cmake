@@ -3,7 +3,6 @@ find_package(Boost COMPONENTS python)
 # You can optionally specify the desired version like so:
 #   find_package(Python 2.6)
 find_package(Python QUIET)
-set(ENV{PYTHONPATH} "${PROJECT_BINARY_DIR}/pyplusplus/lib/python${PYTHON_VERSION}/site-packages:$ENV{PYTHONPATH}")
 find_python_module(pyplusplus QUIET)
 find_python_module(pygccxml QUIET)
 find_package(xmlgenerator QUIET)
@@ -59,22 +58,17 @@ function(create_module_code_generation_target module dir)
     # sources for the py_ompl_${module} target (see below) is updated.
     if(XMLGENERATOR STREQUAL "castxml")
         add_custom_target(update_${module}_bindings
-            COMMAND env
-            PYTHONPATH="${PROJECT_BINARY_DIR}/pyplusplus/lib/python${PYTHON_VERSION}/site-packages:$ENV{PYTHONPATH}"
-            ${PYTHON_EXEC}
+            COMMAND ${PYTHON_EXEC}
             "${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
-            "2>&1" ">" "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log"
+            ">" "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log" "2>&1"
             COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}
             WORKING_DIRECTORY ${dir}
             COMMENT "Creating C++ code for Python module ${module} (see pyplusplus_${module}.log)")
     else()
-        message("************* GCCXML *******")
         add_custom_target(update_${module}_bindings
-            COMMAND env
-            PYTHONPATH="${PROJECT_BINARY_DIR}/pyplusplus/lib/python${PYTHON_VERSION}/site-packages:$ENV{PYTHONPATH}"
-            ${PYTHON_EXEC}
+            COMMAND ${PYTHON_EXEC}
             "${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
-            "2>&1" ">" "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log"
+            ">" "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log" "2>&1"
             COMMAND ${CMAKE_COMMAND} -D "PATH=${dir}/bindings/${module}"
             -P "${OMPL_CMAKE_UTIL_DIR}/workaround_for_gccxml_bug.cmake"
             COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}

@@ -22,6 +22,10 @@ if (XMLGENERATORPATH)
     if(XMLGENERATOR STREQUAL "gccxml" AND APPLE)
         set(XMLCFLAGS "-m64")
     endif()
+    # Without this you might get compilation errors
+    if(XMLCOMPILER STREQUAL "castxml" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        set(XMLCFLAGS "-D__STRICT_ANSI__")
+    endif()
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set(XMLCOMPILER "g++")
