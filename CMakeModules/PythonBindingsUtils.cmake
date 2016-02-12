@@ -60,7 +60,7 @@ function(create_module_code_generation_target module dir)
         add_custom_target(update_${module}_bindings
             COMMAND ${PYTHON_EXEC}
             "${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
-            ">" "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log" "2>&1"
+            "2>&1" | tee "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log"
             COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}
             WORKING_DIRECTORY ${dir}
             COMMENT "Creating C++ code for Python module ${module} (see pyplusplus_${module}.log)")
@@ -68,7 +68,7 @@ function(create_module_code_generation_target module dir)
         add_custom_target(update_${module}_bindings
             COMMAND ${PYTHON_EXEC}
             "${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
-            ">" "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log" "2>&1"
+            "2>&1" | tee "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log"
             COMMAND ${CMAKE_COMMAND} -D "PATH=${dir}/bindings/${module}"
             -P "${OMPL_CMAKE_UTIL_DIR}/workaround_for_gccxml_bug.cmake"
             COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0014 NEW)
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.0.0)
-    cmake_policy(SET CMP0042 OLD)
+    cmake_policy(SET CMP0042 NEW)
 endif()
 project(ompl CXX C)
 
