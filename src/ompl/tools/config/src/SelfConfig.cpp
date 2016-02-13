@@ -254,21 +254,23 @@ ompl::base::PlannerPtr ompl::tools::SelfConfig::getDefaultPlanner(const base::Go
         throw Exception("Unable to allocate default planner for unspecified goal definition");
 
     base::SpaceInformationPtr si(goal->getSpaceInformation());
+    const base::StateSpacePtr &space(si->getStateSpace());
     control::SpaceInformationPtr siC(boost::dynamic_pointer_cast<control::SpaceInformation, base::SpaceInformation>(si));
     if (siC) // kinodynamic planning
     {
         // if we have a default projection
-        if (siC->getStateSpace()->hasDefaultProjection())
+        if (space->hasDefaultProjection())
             planner = base::PlannerPtr(new control::KPIECE1(siC));
         // otherwise use a single-tree planner
         else
             planner = base::PlannerPtr(new control::RRT(siC));
     }
-    // if we can sample the goal region, use a bi-directional planner
-    else if (goal->hasType(base::GOAL_SAMPLEABLE_REGION))
+    // if we can sample the goal region and interpolation between states is symmetric,
+    // use a bi-directional planner
+    else if (goal->hasType(base::GOAL_SAMPLEABLE_REGION) && space->hasSymmetricInterpolate())
     {
         // if we have a default projection
-        if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection())
+        if (space->hasDefaultProjection())
             planner = base::PlannerPtr(new geometric::LBKPIECE1(goal->getSpaceInformation()));
         else
             planner = base::PlannerPtr(new geometric::RRTConnect(goal->getSpaceInformation()));
@@ -277,7 +279,7 @@ ompl::base::PlannerPtr ompl::tools::SelfConfig::getDefaultPlanner(const base::Go
     else
     {
         // if we have a default projection
-        if (goal->getSpaceInformation()->getStateSpace()->hasDefaultProjection())
+        if (space->hasDefaultProjection())
             planner = base::PlannerPtr(new geometric::KPIECE1(goal->getSpaceInformation()));
         else
             planner = base::PlannerPtr(new geometric::RRT(goal->getSpaceInformation()));
