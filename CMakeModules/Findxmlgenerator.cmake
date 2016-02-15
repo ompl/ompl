@@ -25,7 +25,9 @@ if (XMLGENERATORPATH)
     # Without this you might get compilation errors
     if(XMLCOMPILER STREQUAL "castxml" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set(XMLCFLAGS "-D__STRICT_ANSI__")
+        message("    **** castxml and g++ ****")
     endif()
+    set(XMLCFLAGS "-D__STRICT_ANSI__")
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set(XMLCOMPILER "g++")
