@@ -76,65 +76,34 @@ If you'd like to use your own build of OMPL with ROS, follow the following steps
 
 ## Fedora Linux
 
-Thanks to Rich Mattes, OMPL core is available as a package for Fedora:
+Simply type:
 
     sudo yum install ompl
 
-This package may not be the latest version, though. The source installation instructions for Fedora Linux are mostly the same as for Ubuntu Linux, although the packages have slightly different names. On Fedora, you can install the dependencies like so:
-
-    sudo yum install boost-devel cmake python-devel eigen3 ode-devel doxygen graphviz
-
-The build steps are the same as for Ubuntu Linux.
-
-
 ## Debian Linux
 
-Thanks to Leopold Palomo-Avellaneda, OMPL core is available as a collection of packages for Debian:
+Simply type:
 
-      apt-get install libompl-dev ompl-demos
+    sudo apt-get install libompl-dev ompl-demos
 
 
 # Installation on Mac OS X {#install_osx}
 
-It is easiest to install OMPL through [MacPorts], a package manager for OS X. However, if you feel adventurous, it is possible to install OMPL's dependencies with [HomeBrew](#install_homebrew) and compile OMPL yourself.
-
+It is easiest to install OMPL through either [MacPorts] or [HomeBrew], two package managers for OS X. Note that the HomeBrew package does not include the Python bindings for OMPL.
 
 ## MacPorts {#install_macports}
 
-- Install [MacPorts].
-- If you do not need to modify or see the source code of OMPL, then the easiest way to install OMPL is with the MacPorts `port` command:
+Install [MacPorts] and type:
 
-      sudo port sync \; install ompl
+    sudo port sync \; install ompl
 
-  This is it. You are done. Demo programs can be found in `/opt/local/share/ompl`.
-- If you downloaded the source distribution of OMPL, then you need to install the dependencies Boost, CMake, and optional dependencies. If you have MacPorts installed, type the following:
-
-      sudo port sync
-      sudo port install boost cmake ode py27-pyplusplus eigen3 graphviz doxygen
-
-- It is __very__ important that you use the same installed version of Python for all dependencies and OMPL. If you are using MacPorts, then you __must__ use the MacPorts version of python 2.7 (most likely installed in `/opt/local/bin`). To make this version the default python version, make sure `/opt/local/bin` appears before `/usr/bin` in your PATH. You can add a line like this to your `${HOME}/.bash_profile`:
-
-      export PATH=/opt/local/bin:/opt/local/sbin:$PATH
-
-  Next, execute the following command:
-
-      sudo port select python python27
-
-- The build steps are the same as for Ubuntu Linux.
-
+Demo programs can be found in `/opt/local/share/ompl`.
 
 ## Homebrew {#install_homebrew}
 
-_Thanks to [Andrew Dobson](https://plus.google.com/104214233559576935970/about) for these instructions!_ __These instructions are somewhat experimental, however, and we haven't tested them ourselves.__ Email us if you have suggestions to improve these instructions.
+Install [Homebrew] and type:
 
-- Install [Homebrew].
-- Run `brew doctor` to make sure that everything is ready to go.  If not, follow its instructions until it is ready.
-- Type the following commands:
-
-      brew install boost cmake assimp ode eigen doxygen graphviz
-
-- The build steps are the same as for Ubuntu Linux.
-
+    brew install ompl
 
 # Installation on Windows {#install_windows}
 
