@@ -172,3 +172,6 @@ div.plannerlist > dl.attention > dd::first-line {
     top: -42px;
     visibility: hidden;
 }
+
+.btn-group a:visited { color: #333; }
+.modal-body pre { font-size: 12px; }
