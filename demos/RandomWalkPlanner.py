@@ -45,11 +45,10 @@ except:
     # subdirectory of the parent directory called "py-bindings."
     from os.path import abspath, dirname, join
     import sys
-    sys.path.insert(0, join(dirname(dirname(abspath(__file__))),'py-bindings'))
+    sys.path.insert(0, join(dirname(dirname(abspath(__file__))), "py-bindings"))
     from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
-from random import choice
 
 ## @cond IGNORE
 
