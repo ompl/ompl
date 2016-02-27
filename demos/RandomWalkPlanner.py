@@ -49,7 +49,6 @@ except:
     from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
-from random import choice
 
 ## @cond IGNORE
 
