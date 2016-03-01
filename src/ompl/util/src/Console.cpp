@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/util/Console.h"
-#include <thread>
+#include <mutex>
 #include <iostream>
 #include <cstdio>
 #include <cstdarg>

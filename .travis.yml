@@ -2,6 +2,7 @@ cache:
   apt: true
   directories:
     - ${HOME}/castxml
+    - /usr/local
 language: cpp
 
 matrix:
