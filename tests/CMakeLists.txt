@@ -55,18 +55,18 @@ if (OMPL_BUILD_TESTS)
         add_ompl_python_test(geometric/test_geometric_compoundstate.py)
         add_ompl_python_test(control/test_control.py)
 
-        # test the python function to boost::function conversion utility functions
+        # test the python function to std::function conversion utility functions
         include_directories(${PYTHON_INCLUDE_DIRS})
-        add_library(py_boost_function MODULE util/test_py_boost_function.cpp)
-        target_link_libraries(py_boost_function ompl ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
+        add_library(py_std_function MODULE util/test_py_std_function.cpp)
+        target_link_libraries(py_std_function ompl ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
         if(WIN32)
-            set_target_properties(py_boost_function PROPERTIES OUTPUT_NAME py_boost_function SUFFIX .pyd)
+            set_target_properties(py_std_function PROPERTIES OUTPUT_NAME py_std_function SUFFIX .pyd)
         endif(WIN32)
-        add_custom_command(TARGET py_boost_function POST_BUILD
-            COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:py_boost_function>"
+        add_custom_command(TARGET py_std_function POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:py_std_function>"
             "${CMAKE_CURRENT_SOURCE_DIR}/util"
             WORKING_DIRECTORY "${LIBRARY_OUTPUT_PATH}")
-        add_ompl_python_test(util/test_py_boost_function.py)
+        add_ompl_python_test(util/test_py_std_function.py)
     endif()
 
     add_subdirectory(regression_tests)

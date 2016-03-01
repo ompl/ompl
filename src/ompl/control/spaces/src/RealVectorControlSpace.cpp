@@ -36,7 +36,6 @@
 
 #include "ompl/control/spaces/RealVectorControlSpace.h"
 #include "ompl/util/Exception.h"
-#include <boost/lexical_cast.hpp>
 #include <cstring>
 #include <limits>
 
@@ -61,8 +60,8 @@ void ompl::control::RealVectorControlSpace::setBounds(const base::RealVectorBoun
     bounds.check();
     if (bounds.low.size() != dimension_)
         throw Exception("Bounds do not match dimension of control space: expected dimension " +
-                        boost::lexical_cast<std::string>(dimension_) + " but got dimension " +
-                        boost::lexical_cast<std::string>(bounds.low.size()));
+                        std::to_string(dimension_) + " but got dimension " +
+                        std::to_string(bounds.low.size()));
     bounds_ = bounds;
 }
 

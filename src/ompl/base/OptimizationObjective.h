@@ -54,7 +54,7 @@ namespace ompl
         class Goal;
 
         /** \brief The definition of a function which returns an admissible estimate of the optimal path cost from a given state to a goal. */
-        typedef boost::function<Cost (const State*, const Goal*)> CostToGoHeuristic;
+        typedef std::function<Cost (const State*, const Goal*)> CostToGoHeuristic;
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::OptimizationObjective */

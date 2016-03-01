@@ -40,7 +40,7 @@
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/base/GenericParam.h"
-#include <boost/function.hpp>
+#include <functional>
 #include <boost/noncopyable.hpp>
 #include <string>
 
@@ -132,7 +132,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a valid state sampler */
-        typedef boost::function<ValidStateSamplerPtr(const SpaceInformation*)> ValidStateSamplerAllocator;
+        typedef std::function<ValidStateSamplerPtr(const SpaceInformation*)> ValidStateSamplerAllocator;
     }
 }
 

@@ -36,7 +36,7 @@
 
 #include "ompl/extensions/opende/OpenDESimpleSetup.h"
 #include "ompl/util/Exception.h"
-#include <boost/thread.hpp>
+#include <thread>
 
 ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const ControlSpacePtr &space) : SimpleSetup(space)
 {
@@ -123,7 +123,7 @@ void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, doubl
         getStateSpace()->as<OpenDEStateSpace>()->writeState(pg.getState(0));
         for (unsigned int i = 1 ; i < pg.getStateCount() ; ++i)
         {
-            boost::this_thread::sleep(d);
+            std::this_thread::sleep_for(d);
             getStateSpace()->as<OpenDEStateSpace>()->writeState(pg.getState(i));
         }
     }

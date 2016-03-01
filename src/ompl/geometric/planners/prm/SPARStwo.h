@@ -43,12 +43,12 @@
 #include "ompl/util/Time.h"
 
 #include <boost/range/adaptor/map.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/pending/disjoint_sets.hpp>
-#include <boost/function.hpp>
-#include <boost/thread.hpp>
+#include <functional>
+#include <thread>
 #include <iostream>
 #include <fstream>
 #include <utility>
@@ -179,7 +179,7 @@ namespace ompl
             };
 
             /** \brief the hash which maps pairs of neighbor points to pairs of states */
-            typedef boost::unordered_map< VertexPair, InterfaceData, boost::hash< VertexPair > > InterfaceHash;
+            typedef std::unordered_map< VertexPair, InterfaceData, boost::hash< VertexPair > > InterfaceHash;
 
             // The InterfaceHash structure is wrapped inside of this struct due to a compilation error on
             // GCC 4.6 with Boost 1.48.  An implicit assignment operator overload does not compile with these
@@ -456,7 +456,7 @@ namespace ompl
             base::StateSamplerPtr                                               simpleSampler_;
 
             /** \brief Nearest neighbors data structure */
-            boost::shared_ptr< NearestNeighbors<Vertex> >                       nn_;
+            std::shared_ptr< NearestNeighbors<Vertex> >                         nn_;
 
             /** \brief Connectivity graph */
             Graph                                                               g_;
@@ -521,7 +521,7 @@ namespace ompl
             double                                                              denseDelta_;
 
             /** \brief Mutex to guard access to the Graph member (g_) */
-            mutable boost::mutex                                                graphMutex_;
+            mutable std::mutex                                                  graphMutex_;
 
             /** \brief Objective cost function for PRM graph edges */
             base::OptimizationObjectivePtr                                      opt_;

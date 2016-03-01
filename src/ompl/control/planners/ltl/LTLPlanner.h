@@ -41,7 +41,7 @@
 #include "ompl/control/planners/ltl/ProductGraph.h"
 #include "ompl/control/planners/ltl/LTLSpaceInformation.h"
 #include "ompl/datastructures/PDF.h"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <map>
 #include <vector>
 
@@ -140,7 +140,7 @@ namespace ompl
 
                 double weight;
                 PDF<Motion*> motions;
-                boost::unordered_map< Motion*, PDF<Motion*>::Element* > motionElems;
+                std::unordered_map< Motion*, PDF<Motion*>::Element* > motionElems;
                 double volume;
                 double autWeight;
                 unsigned int numSel;
@@ -197,7 +197,7 @@ namespace ompl
             double exploreTime_;
 
             /** \brief Map of abstraction states to their details. */
-            boost::unordered_map< ProductGraph::State*, ProductGraphStateInfo > abstractInfo_;
+            std::unordered_map< ProductGraph::State*, ProductGraphStateInfo > abstractInfo_;
 
         private:
             /** \brief Clears this planner's underlying tree of system states. */

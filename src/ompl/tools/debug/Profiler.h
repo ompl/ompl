@@ -56,7 +56,7 @@
 #include <map>
 #include <string>
 #include <iostream>
-#include <boost/thread.hpp>
+#include <thread>
 #include <boost/noncopyable.hpp>
 
 #include "ompl/util/Time.h"
@@ -244,7 +244,7 @@ namespace ompl
             /** \brief Information about time spent in a section of the code */
             struct TimeInfo
             {
-                TimeInfo() : total(0, 0, 0, 0), shortest(boost::posix_time::pos_infin), longest(boost::posix_time::neg_infin), parts(0)
+                TimeInfo() : total(time::seconds(0.)), shortest(time::duration::max()), longest(time::duration::min()), parts(0)
                 {
                 }
 
@@ -310,8 +310,8 @@ namespace ompl
 
             void printThreadInfo(std::ostream &out, const PerThread &data);
 
-            boost::mutex                           lock_;
-            std::map<boost::thread::id, PerThread> data_;
+            std::mutex                             lock_;
+            std::map<std::thread::id, PerThread>   data_;
             TimeInfo                               tinfo_;
             bool                                   running_;
             bool                                   printOnDestroy_;

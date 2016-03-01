@@ -38,8 +38,8 @@
 #define OMPL_BASE_GOALS_GOAL_LAZY_SAMPLES_
 
 #include "ompl/base/goals/GoalStates.h"
-#include <boost/thread/thread.hpp>
-#include <boost/function.hpp>
+#include <thread>
+#include <functional>
 #include <limits>
 
 namespace ompl
@@ -53,7 +53,7 @@ namespace ompl
         /** \brief Goal sampling function. Returns false when no further calls should be made to it.
             Fills its second argument (the state) with the sampled goal state. This function need not
             be thread safe. */
-        typedef boost::function<bool(const GoalLazySamples*, State*)> GoalSamplingFn;
+        typedef std::function<bool(const GoalLazySamples*, State*)> GoalSamplingFn;
 
         /** \brief Definition of a goal region that can be sampled,
          but the sampling process can be slow.  This class allows
@@ -76,7 +76,7 @@ namespace ompl
             /** \brief When new samples are generated and added to the
                 list of possible samples, a callback can be
                 called. This type specifies the signature of that callback */
-            typedef boost::function<void(const base::State*)> NewStateCallbackFn;
+            typedef std::function<void(const base::State*)> NewStateCallbackFn;
 
             /** \brief Create a goal region that can be sampled in a
                 lazy fashion. A function (\e samplerFunc) that
@@ -163,7 +163,7 @@ namespace ompl
             void goalSamplingThread();
 
             /** \brief Lock for updating the set of states */
-            mutable boost::mutex           lock_;
+            mutable std::mutex             lock_;
 
             /** \brief Function that produces samples */
             GoalSamplingFn                 samplerFunc_;
@@ -172,7 +172,7 @@ namespace ompl
             bool                           terminateSamplingThread_;
 
             /** \brief Additional thread for sampling goal states */
-            boost::thread                 *samplingThread_;
+            std::thread                   *samplingThread_;
 
             /** \brief The number of times the sampling function was called and it returned true */
             unsigned int                   samplingAttempts_;

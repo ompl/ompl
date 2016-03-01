@@ -47,10 +47,9 @@
 #include "ompl/util/Time.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/Deprecation.h"
-#include <boost/function.hpp>
+#include <functional>
 #include <boost/concept_check.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/lexical_cast.hpp>
 #include <string>
 #include <map>
 
@@ -350,7 +349,7 @@ namespace ompl
             }
 
             /** \brief Definition of a function which returns a property about the planner's progress that can be queried by a benchmarking routine */
-            typedef boost::function<std::string ()> PlannerProgressProperty;
+            typedef std::function<std::string ()> PlannerProgressProperty;
 
             /** \brief A dictionary which maps the name of a progress property to the function to be used for querying that property */
             typedef std::map<std::string, PlannerProgressProperty> PlannerProgressProperties;
@@ -373,7 +372,7 @@ namespace ompl
             template<typename T, typename PlannerType, typename SetterType, typename GetterType>
             void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const GetterType& getter, const std::string &rangeSuggestion = "")
             {
-                params_.declareParam<T>(name, boost::bind(setter, planner, _1), boost::bind(getter, planner));
+                params_.declareParam<T>(name, std::bind(setter, planner, std::placeholders::_1), std::bind(getter, planner));
                 if (!rangeSuggestion.empty())
                     params_[name].setRangeSuggestion(rangeSuggestion);
             }
@@ -382,7 +381,7 @@ namespace ompl
             template<typename T, typename PlannerType, typename SetterType>
             void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const std::string &rangeSuggestion = "")
             {
-                params_.declareParam<T>(name, boost::bind(setter, planner, _1));
+                params_.declareParam<T>(name, std::bind(setter, planner, std::placeholders::_1));
                 if (!rangeSuggestion.empty())
                     params_[name].setRangeSuggestion(rangeSuggestion);
             }
@@ -419,7 +418,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a planner */
-        typedef boost::function<PlannerPtr(const SpaceInformationPtr&)> PlannerAllocator;
+        typedef std::function<PlannerPtr(const SpaceInformationPtr&)> PlannerAllocator;
     }
 }
 

@@ -49,9 +49,11 @@ void ompl::control::Syclop::setup()
 {
     base::Planner::setup();
     if (!leadComputeFn)
-        setLeadComputeFn(boost::bind(&ompl::control::Syclop::defaultComputeLead, this, _1, _2, _3));
+        setLeadComputeFn(std::bind(&ompl::control::Syclop::defaultComputeLead, this,
+            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     buildGraph();
-    addEdgeCostFactor(boost::bind(&ompl::control::Syclop::defaultEdgeCost, this, _1, _2));
+    addEdgeCostFactor(std::bind(&ompl::control::Syclop::defaultEdgeCost, this,
+        std::placeholders::_1, std::placeholders::_2));
 }
 
 void ompl::control::Syclop::clear()

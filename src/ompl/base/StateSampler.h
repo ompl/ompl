@@ -42,7 +42,7 @@
 #include "ompl/util/ClassForward.h"
 #include <vector>
 #include <string>
-#include <boost/function.hpp>
+#include <functional>
 #include <boost/noncopyable.hpp>
 
 namespace ompl
@@ -181,7 +181,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a state sampler */
-        typedef boost::function<StateSamplerPtr(const StateSpace*)> StateSamplerAllocator;
+        typedef std::function<StateSamplerPtr(const StateSpace*)> StateSamplerAllocator;
     }
 }
 

@@ -40,8 +40,8 @@
 #include <cassert>
 
 ompl::geometric::BKPIECE1::BKPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "BKPIECE1"),
-                                                                           dStart_(boost::bind(&BKPIECE1::freeMotion, this, _1)),
-                                                                           dGoal_(boost::bind(&BKPIECE1::freeMotion, this, _1))
+                                                                           dStart_(std::bind(&BKPIECE1::freeMotion, this, std::placeholders::_1)),
+                                                                           dGoal_(std::bind(&BKPIECE1::freeMotion, this, std::placeholders::_1))
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 

@@ -80,8 +80,8 @@ void plan(ob::StateSpacePtr space, bool easy)
 
     // set state validity checking for this space
     ob::SpaceInformationPtr si(ss.getSpaceInformation());
-    ss.setStateValidityChecker(boost::bind(
-        easy ? &isStateValidEasy : &isStateValidHard, si.get(), _1));
+    ss.setStateValidityChecker(std::bind(
+        easy ? &isStateValidEasy : &isStateValidHard, si.get(), std::placeholders::_1));
 
     // set the start and goal states
     if (easy)

@@ -88,7 +88,7 @@ namespace ompl
     {
     public:
 
-        NearestNeighborsFLANN(const boost::shared_ptr<flann::IndexParams> &params)
+        NearestNeighborsFLANN(const std::shared_ptr<flann::IndexParams> &params)
             : index_(0), params_(params), searchParams_(32, 0., true), dimension_(1)
         {
         }
@@ -237,14 +237,14 @@ namespace ompl
         ///
         /// The parameters determine the type of nearest neighbor
         /// data structure to be constructed.
-        virtual void setIndexParams(const boost::shared_ptr<flann::IndexParams> &params)
+        virtual void setIndexParams(const std::shared_ptr<flann::IndexParams> &params)
         {
             params_ = params;
             rebuildIndex();
         }
 
         /// \brief Get the FLANN parameters used to build the current index.
-        virtual const boost::shared_ptr<flann::IndexParams>& getIndexParams() const
+        virtual const std::shared_ptr<flann::IndexParams>& getIndexParams() const
         {
             return params_;
         }
@@ -309,7 +309,7 @@ namespace ompl
 
         /// \brief The FLANN index parameters. This contains both the type of
         /// index and the parameters for that type.
-        boost::shared_ptr<flann::IndexParams> params_;
+        std::shared_ptr<flann::IndexParams> params_;
 
         /// \brief The parameters used to seach for nearest neighbors.
         mutable flann::SearchParams           searchParams_;
@@ -334,7 +334,7 @@ namespace ompl
     public:
         NearestNeighborsFLANNLinear()
             : NearestNeighborsFLANN<_T, _Dist>(
-                boost::shared_ptr<flann::LinearIndexParams>(
+                std::shared_ptr<flann::LinearIndexParams>(
                     new flann::LinearIndexParams()))
         {
         }
@@ -346,7 +346,7 @@ namespace ompl
     public:
         NearestNeighborsFLANNHierarchicalClustering()
             : NearestNeighborsFLANN<_T, _Dist>(
-                boost::shared_ptr<flann::HierarchicalClusteringIndexParams>(
+                std::shared_ptr<flann::HierarchicalClusteringIndexParams>(
                     new flann::HierarchicalClusteringIndexParams()))
         {
         }

@@ -46,7 +46,7 @@
 #include <boost/version.hpp>
 #include <boost/numeric/odeint.hpp>
 namespace odeint = boost::numeric::odeint;
-#include <boost/function.hpp>
+#include <functional>
 #include <cassert>
 #include <vector>
 
@@ -75,11 +75,11 @@ namespace ompl
 
             /// \brief Callback function that defines the ODE.  Accepts
             /// the current state, input control, and output state.
-            typedef boost::function<void(const StateType &, const Control*, StateType &)> ODE;
+            typedef std::function<void(const StateType &, const Control*, StateType &)> ODE;
 
             /// \brief Callback function to perform an event at the end of numerical
             /// integration.  This functionality is optional.
-            typedef boost::function<void(const base::State *state, const Control *control, const double duration, base::State *result)> PostPropagationEvent;
+            typedef std::function<void(const base::State *state, const Control *control, const double duration, base::State *result)> PostPropagationEvent;
 
             /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
             /// an ODE to solve, and the integration step size.

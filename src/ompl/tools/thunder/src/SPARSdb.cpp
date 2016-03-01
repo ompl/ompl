@@ -40,7 +40,6 @@
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/util/Console.h>
-#include <boost/lambda/bind.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
 #include <boost/property_map/vector_property_map.hpp>
@@ -145,7 +144,7 @@ void ompl::geometric::SPARSdb::setup()
     Planner::setup();
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
-    nn_->setDistanceFunction(boost::bind(&SPARSdb::distanceFunction, this, _1, _2));
+    nn_->setDistanceFunction(std::bind(&SPARSdb::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
     double maxExt = si_->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
     denseDelta_ = denseDeltaFraction_ * maxExt;
@@ -434,7 +433,7 @@ bool ompl::geometric::SPARSdb::constructSolution(const Vertex start, const Verte
     {
         boost::astar_search(g_, // graph
                             start, // start state
-                            boost::bind(&SPARSdb::distanceFunction, this, _1, goal), // the heuristic
+                            std::bind(&SPARSdb::distanceFunction, this, std::placeholders::_1, goal), // the heuristic
                             // ability to disable edges (set cost to inifinity):
                             boost::weight_map(edgeWeightMap(g_, edgeCollisionStateProperty_)).
                             predecessor_map(vertexPredecessors).

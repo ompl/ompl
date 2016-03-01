@@ -40,7 +40,7 @@
 #include "ompl/base/State.h"
 #include "ompl/control/Control.h"
 #include "ompl/util/ClassForward.h"
-#include <boost/function.hpp>
+#include <functional>
 #include <boost/noncopyable.hpp>
 
 namespace ompl
@@ -101,7 +101,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a directed control sampler */
-        typedef boost::function<DirectedControlSamplerPtr(const SpaceInformation*)> DirectedControlSamplerAllocator;
+        typedef std::function<DirectedControlSamplerPtr(const SpaceInformation*)> DirectedControlSamplerAllocator;
     }
 }
 

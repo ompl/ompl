@@ -37,6 +37,6 @@
 #ifndef PY_BINDINGS_OMPL_PY_TOOLS_
 #define PY_BINDINGS_OMPL_PY_TOOLS_
 
-#include "py_boost_function.hpp"
+#include "py_std_function.hpp"
 
 #endif

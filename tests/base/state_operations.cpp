@@ -36,7 +36,7 @@
 
 #define BOOST_TEST_MODULE "State"
 #include <boost/test/unit_test.hpp>
-#include <boost/thread.hpp>
+#include <thread>
 #include <iostream>
 
 #include "ompl/base/ScopedState.h"
@@ -274,9 +274,9 @@ BOOST_AUTO_TEST_CASE(AllocationWithThreads)
     si.setup();
     const int NT = 10;
     ompl::time::point start = ompl::time::now();
-    std::vector<boost::thread*> threads;
+    std::vector<std::thread*> threads;
     for (int i = 0 ; i < NT ; ++i)
-        threads.push_back(new boost::thread(boost::bind(&randomizedAllocator, &si)));
+        threads.push_back(new std::thread(std::bind(&randomizedAllocator, &si)));
     for (int i = 0 ; i < NT ; ++i)
     {
         threads[i]->join();

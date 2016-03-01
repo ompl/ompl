@@ -438,7 +438,7 @@ namespace ompl
             double radiusMultiplier_;
 
             /** \brief A nearest-neighbor datastructure containing the set of all motions */
-            boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
 
             /** \brief State sampler */
             base::StateSamplerPtr sampler_;

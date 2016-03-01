@@ -46,7 +46,7 @@ ompl::geometric::PathSimplifier::PathSimplifier(const base::SpaceInformationPtr 
 {
     if (goal)
     {
-        gsr_ = boost::dynamic_pointer_cast<base::GoalSampleableRegion>(goal);
+        gsr_ = std::dynamic_pointer_cast<base::GoalSampleableRegion>(goal);
         if (!gsr_)
             OMPL_WARN("%s: Goal could not be cast to GoalSampleableRegion.  Goal simplification will not be performed.", __FUNCTION__);
     }

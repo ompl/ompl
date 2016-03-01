@@ -41,7 +41,6 @@
 #include <ompl/geometric/SimpleSetup.h>
 
 #include <ompl/config.h>
-#include <boost/thread.hpp>
 #include <iostream>
 
 namespace ob = ompl::base;
@@ -112,7 +111,7 @@ bool isStateValid(const ob::State *state)
     // Let's pretend that the validity check is computationally relatively
     // expensive to emphasize the benefit of explicitly generating valid
     // samples
-    boost::this_thread::sleep(ompl::time::seconds(.0005));
+    std::this_thread::sleep_for(ompl::time::seconds(.0005));
     // Valid states satisfy the following constraints:
     // -1<= x,y,z <=1
     // if .25 <= z <= .5, then |x|>.8 and |y|>.8
@@ -149,7 +148,7 @@ void plan(int samplerIndex)
     og::SimpleSetup ss(space);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(boost::bind(&isStateValid, _1));
+    ss.setStateValidityChecker(std::bind(&isStateValid, std::placeholders::_1));
 
     // create a start state
     ob::ScopedState<> start(space);

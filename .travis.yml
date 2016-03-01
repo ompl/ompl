@@ -50,8 +50,9 @@ script:
   # debug
   - grep -E '(PY_P|XML)' CMakeCache.txt
 
+  # TIMES OUT BECAUSE IT DOES NOT PRODUCE OUTPUT FOR MORE THAN 10 MINUTES
   # generate python bindings
-  - make -j4 update_bindings
+  #- make -j4 update_bindings
 
   # Build
   - make -j4

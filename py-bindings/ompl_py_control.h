@@ -38,7 +38,7 @@
 #define PY_BINDINGS_OMPL_PY_CONTROL_
 
 #include "ompl/control/ODESolver.h"
-#include "py_boost_function.hpp"
+#include "py_std_function.hpp"
 
 
 namespace ompl

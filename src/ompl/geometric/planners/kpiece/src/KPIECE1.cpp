@@ -41,7 +41,7 @@
 #include <cassert>
 
 ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "KPIECE1"),
-                                                                         disc_(boost::bind(&KPIECE1::freeMotion, this, _1))
+                                                                         disc_(std::bind(&KPIECE1::freeMotion, this, std::placeholders::_1))
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;

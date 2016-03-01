@@ -43,7 +43,7 @@
 #include "ompl/datastructures/PDF.h"
 #endif
 #include "ompl/util/Exception.h"
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 #include <queue>
 #include <algorithm>
 
@@ -280,7 +280,7 @@ namespace ompl
                 if (!gnat.removed_.empty())
                 {
                     out << "Elements marked for removal:\n";
-                    for (typename boost::unordered_set<const _T*>::const_iterator it = gnat.removed_.begin();
+                    for (typename std::unordered_set<const _T*>::const_iterator it = gnat.removed_.begin();
                         it != gnat.removed_.end(); it++)
                         out << **it << '\t';
                     out << std::endl;
@@ -293,12 +293,12 @@ namespace ompl
         void integrityCheck()
         {
             std::vector<_T> lst;
-            boost::unordered_set<const _T*> tmp;
+            std::unordered_set<const _T*> tmp;
             // get all elements, including those marked for removal
             removed_.swap(tmp);
             list(lst);
             // check if every element marked for removal is also in the tree
-            for (typename boost::unordered_set<const _T*>::iterator it=tmp.begin(); it!=tmp.end(); it++)
+            for (typename std::unordered_set<const _T*>::iterator it=tmp.begin(); it!=tmp.end(); it++)
             {
                 unsigned int i;
                 for (i=0; i<lst.size(); ++i)
@@ -792,7 +792,7 @@ namespace ompl
         /// \brief The data structure used to split data into subtrees.
         GreedyKCenters<_T>              pivotSelector_;
         /// \brief Cache of removed elements.
-        boost::unordered_set<const _T*> removed_;
+        std::unordered_set<const _T*> removed_;
 #ifdef GNAT_SAMPLER
         /// \brief Estimated dimension of the local free space.
         double                          estimatedDimension_;

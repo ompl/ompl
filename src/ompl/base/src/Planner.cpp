@@ -38,7 +38,7 @@
 #include "ompl/util/Exception.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include <sstream>
-#include <boost/thread.hpp>
+#include <thread>
 
 ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &name) :
     si_(si), pis_(this), name_(name), setup_(false)
@@ -333,7 +333,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                     OMPL_DEBUG("%s: Waiting for goal region samples ...",
                                planner_ ? planner_->getName().c_str() : "PlannerInputStates");
                 }
-                boost::this_thread::sleep(time::seconds(0.01));
+                std::this_thread::sleep_for(time::seconds(0.01));
                 attempt = !ptc;
             }
         }

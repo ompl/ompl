@@ -44,7 +44,6 @@
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/graphml.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
-#include <boost/version.hpp>
 #include <boost/property_map/function_property_map.hpp>
 
 // This is a convenient macro to cast the void* graph pointer as the
@@ -297,16 +296,16 @@ void ompl::base::PlannerData::printGraphML (std::ostream& out) const
     // \todo Can we use make_function_property_map() here and have it
     // infer the property template arguments?
     boost::function_property_map<
-        boost::function<double (ompl::base::PlannerData::Graph::Edge)>,
+        std::function<double (ompl::base::PlannerData::Graph::Edge)>,
         ompl::base::PlannerData::Graph::Edge,
         double>
-        weightmap(boost::bind(&edgeWeightAsDouble, *graph_, _1));
+        weightmap(std::bind(&edgeWeightAsDouble, *graph_, std::placeholders::_1));
     ompl::base::ScopedState<> s(si_);
     boost::function_property_map<
-        boost::function<std::string (ompl::base::PlannerData::Graph::Vertex)>,
+        std::function<std::string (ompl::base::PlannerData::Graph::Vertex)>,
         ompl::base::PlannerData::Graph::Vertex,
         std::string >
-        coordsmap(boost::bind(&vertexCoords, *graph_, s, _1));
+        coordsmap(std::bind(&vertexCoords, *graph_, s, std::placeholders::_1));
 
 
     // Not writing vertex or edge structures.
@@ -662,8 +661,9 @@ void ompl::base::PlannerData::extractMinimumSpanningTree (unsigned int v,
     boost::dijkstra_shortest_paths
         (*graph_, v,
          boost::predecessor_map(&pred[0]).
-         distance_compare(boost::bind(&base::OptimizationObjective::
-                                      isCostBetterThan, &opt, _1, _2)).
+         distance_compare(std::bind(&base::OptimizationObjective::
+                                      isCostBetterThan, &opt,
+                                      std::placeholders::_1, std::placeholders::_2)).
          distance_combine(&project2nd).
          distance_inf(opt.infiniteCost()).
          distance_zero(opt.identityCost()));

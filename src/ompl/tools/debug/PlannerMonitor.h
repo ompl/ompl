@@ -39,7 +39,7 @@
 
 #include <iostream>
 #include <boost/scoped_ptr.hpp>
-#include <boost/thread.hpp>
+#include <thread>
 #include <boost/noncopyable.hpp>
 
 #include "ompl/base/Planner.h"
@@ -84,7 +84,7 @@ namespace ompl
             std::ostream                     &out_;
             double                            period_;
             bool                              shouldMonitor_;
-            boost::scoped_ptr<boost::thread>  monitorThread_;
+            boost::scoped_ptr<std::thread>    monitorThread_;
         };
     }
 }

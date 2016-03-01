@@ -41,7 +41,7 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/datastructures/PDF.h"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <boost/scoped_ptr.hpp>
 #include <vector>
 

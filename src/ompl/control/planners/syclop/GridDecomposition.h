@@ -38,8 +38,8 @@
 #define OMPL_CONTROL_PLANNERS_SYCLOP_GRIDDECOMPOSITION_
 
 #include <cstdlib>
-#include <boost/shared_ptr.hpp>
-#include <boost/unordered_map.hpp>
+#include <memory>
+#include <unordered_map>
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/State.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
@@ -100,7 +100,7 @@ namespace ompl
 
             int length_;
             double cellVolume_;
-            mutable boost::unordered_map<int, boost::shared_ptr<base::RealVectorBounds> > regToBounds_;
+            mutable std::unordered_map<int, std::shared_ptr<base::RealVectorBounds> > regToBounds_;
 
         private:
             const int numGridCells_;

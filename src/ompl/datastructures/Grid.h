@@ -40,7 +40,7 @@
 #include <vector>
 #include <iostream>
 #include <cstdlib>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <algorithm>
 
 namespace ompl
@@ -168,7 +168,7 @@ namespace ompl
         /// Get the connected components formed by the cells in this grid (based on neighboring relation)
         std::vector< std::vector<Cell*> > components() const
         {
-            typedef boost::unordered_map<Coord*, int, HashFunCoordPtr, EqualCoordPtr> ComponentHash;
+            typedef std::unordered_map<Coord*, int, HashFunCoordPtr, EqualCoordPtr> ComponentHash;
             typedef typename ComponentHash::iterator CHit;
 
             int components = 0;
@@ -356,7 +356,7 @@ namespace ompl
         };
 
         /// Define the datatype for the used hash structure
-        typedef boost::unordered_map<Coord*, Cell*, HashFunCoordPtr, EqualCoordPtr> CoordHash;
+        typedef std::unordered_map<Coord*, Cell*, HashFunCoordPtr, EqualCoordPtr> CoordHash;
 
         /// Helper to sort components by size
         struct SortComponents

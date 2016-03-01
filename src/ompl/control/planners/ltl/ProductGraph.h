@@ -41,9 +41,9 @@
 #include "ompl/control/planners/ltl/Automaton.h"
 #include "ompl/control/planners/ltl/PropositionalDecomposition.h"
 #include "ompl/util/ClassForward.h"
-#include <boost/function.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/unordered_map.hpp>
+#include <functional>
+#include <unordered_map>
 #include <map>
 #include <ostream>
 #include <vector>
@@ -67,6 +67,16 @@ namespace ompl
         class ProductGraph
         {
         public:
+            class State;
+
+            /// @cond IGNORE
+            /** \brief Hash function for State to be used in std::unordered_map */
+            struct HashState
+            {
+                std::size_t operator()(const State &s) const;
+            };
+            /// @endcond
+
             /** \brief A State of a ProductGraph represents a vertex in the graph-based
                 Cartesian product represented by the ProductGraph.
                 A State is simply a tuple consisting of a PropositionalDecomposition region,
@@ -91,17 +101,15 @@ namespace ompl
                 /** \brief Returns whether this State is equivalent to a given State,
                     by comparing their PropositionalDecomposition regions and
                     Automaton states. */
-				bool operator==(const State& s) const;
+                bool operator==(const State& s) const;
 
                 /** \brief Returns whether this State is valid.
                     A State is valid if and only if none of its Automaton states
                     are dead states (a dead state has value -1). */
                 bool isValid(void) const;
 
-                /// @cond IGNORE
-                /** \brief Hash function for State to be used in boost::unordered_map */
-                friend std::size_t hash_value(const ProductGraph::State& s);
-                /// @endcond
+
+                friend struct HashState;
 
                 /** \brief Helper function to print this State to a given output stream. */
                 friend std::ostream& operator<<(std::ostream& out, const State& s);
@@ -159,7 +167,7 @@ namespace ompl
                 PropositionalDecomposition.
                 Dijkstra's shortest-path algorithm is used to compute the path with
                 the given edge-weight function. */
-            std::vector<State*> computeLead(State* start, const boost::function<double(State*, State*)>& edgeWeight);
+            std::vector<State*> computeLead(State* start, const std::function<double(State*, State*)>& edgeWeight);
 
             /** \brief Clears all memory belonging to this ProductGraph. */
             void clear();
@@ -169,7 +177,7 @@ namespace ompl
                 which will be called exactly once on each State (including the given initial State)
                 that is added to the ProductGraph.
                 The default argument for the initialization method is a no-op method. */
-            void buildGraph(State* start, const boost::function<void(State*)>& initialize = ProductGraph::noInit);
+            void buildGraph(State* start, const std::function<void(State*)>& initialize = ProductGraph::noInit);
 
             /** \brief Returns whether the given State is an accepting State
                 in this ProductGraph.
@@ -197,7 +205,7 @@ namespace ompl
             /** \brief Returns a ProductGraph State with initial co-safety and safety
                 Automaton states, and the PropositionalDecomposition region that contains
                 a given base::State. */
-			State* getState(const base::State* cs) const;
+            State* getState(const base::State* cs) const;
 
             /** \brief Returns a ProductGraph State with given co-safety and safety
                 Automaton states, and the PropositionalDecomposition region that contains
@@ -248,18 +256,18 @@ namespace ompl
             AutomatonPtr safety_;
             GraphType graph_;
             State* startState_;
-			std::vector<State*> solutionStates_;
+            std::vector<State*> solutionStates_;
 
             /* Only one State pointer will be allocated for each possible State
                in the ProductGraph. There will exist situations in which
                all we have are the component values (region, automaton states)
                of a State and we want the actual State pointer.
                We use this map to access it. */
-			mutable boost::unordered_map<State, State*> stateToPtr_;
+            mutable std::unordered_map<State, State*, HashState> stateToPtr_;
 
             /* Map from State pointer to the index of the corresponding vertex
                in the graph. */
-            boost::unordered_map<State*, int> stateToIndex_;
+            std::unordered_map<State*, int> stateToIndex_;
         };
     }
 }

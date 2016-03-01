@@ -400,7 +400,7 @@ namespace ompl
             base::InformedSamplerPtr                       infSampler_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
-            boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
             double                                         goalBias_;
@@ -477,11 +477,11 @@ namespace ompl
             // Planner progress property functions
             std::string numIterationsProperty() const
             {
-                return boost::lexical_cast<std::string>(numIterations());
+                return std::to_string(numIterations());
             }
             std::string bestCostProperty() const
             {
-                return boost::lexical_cast<std::string>(bestCost());
+                return std::to_string(bestCost().value());
             }
         };
     }

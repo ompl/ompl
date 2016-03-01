@@ -40,7 +40,7 @@
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/tools/config/MagicConstants.h"
-#include <boost/bind.hpp>
+#include <functional>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
 #include <boost/property_map/vector_property_map.hpp>
@@ -88,9 +88,9 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
     Planner::declareParam<unsigned int>("max_failures", this, &SPARS::setMaxFailures, &SPARS::getMaxFailures, "100:10:3000");
 
     addPlannerProgressProperty("iterations INTEGER",
-                               boost::bind(&SPARS::getIterationCount, this));
+                               std::bind(&SPARS::getIterationCount, this));
     addPlannerProgressProperty("best cost REAL",
-                               boost::bind(&SPARS::getBestCost, this));
+                               std::bind(&SPARS::getBestCost, this));
 }
 
 ompl::geometric::SPARS::~SPARS()
@@ -103,12 +103,12 @@ void ompl::geometric::SPARS::setup()
     Planner::setup();
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<DenseVertex>(this));
-    nn_->setDistanceFunction(boost::bind(&SPARS::distanceFunction, this, _1, _2));
+    nn_->setDistanceFunction(std::bind(&SPARS::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
     if (!snn_)
         snn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<SparseVertex>(this));
-    snn_->setDistanceFunction(boost::bind(&SPARS::sparseDistanceFunction, this, _1, _2));
+    snn_->setDistanceFunction(std::bind(&SPARS::sparseDistanceFunction, this, std::placeholders::_1, std::placeholders::_2));
     if (!connectionStrategy_)
-        connectionStrategy_ = KStarStrategy<DenseVertex>(boost::bind(&SPARS::milestoneCount, this), nn_, si_->getStateDimension());
+        connectionStrategy_ = KStarStrategy<DenseVertex>(std::bind(&SPARS::milestoneCount, this), nn_, si_->getStateDimension());
     double maxExt = si_->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
     denseDelta_ = denseDeltaFraction_ * maxExt;
@@ -233,7 +233,7 @@ void ompl::geometric::SPARS::checkForSolution(const base::PlannerTerminationCond
         addedSolution_ = haveSolution(startM_, goalM_, solution);
         // Sleep for 1ms
         if (!addedSolution_)
-            boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
 
@@ -289,7 +289,7 @@ bool ompl::geometric::SPARS::reachedFailureLimit() const
 
 void ompl::geometric::SPARS::checkQueryStateInitialization()
 {
-    boost::mutex::scoped_lock _(graphMutex_);
+    std::lock_guard<std::mutex> _(graphMutex_);
     if (boost::num_vertices(g_) < 1)
     {
         sparseQueryVertex_ = boost::add_vertex(s_);
@@ -356,12 +356,12 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     resetFailures();
     base::PathPtr sol;
     base::PlannerTerminationCondition ptcOrFail =
-        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
-    boost::thread slnThread(boost::bind(&SPARS::checkForSolution, this, ptcOrFail, boost::ref(sol)));
+        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(std::bind(&SPARS::reachedFailureLimit, this)));
+    std::thread slnThread(std::bind(&SPARS::checkForSolution, this, ptcOrFail, boost::ref(sol)));
 
     // Construct planner termination condition which also takes maxFailures_ and addedSolution_ into account
     base::PlannerTerminationCondition ptcOrStop =
-        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedTerminationCriterion, this)));
+        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(std::bind(&SPARS::reachedTerminationCriterion, this)));
     constructRoadmap(ptcOrStop);
 
     // Ensure slnThread is ceased before exiting solve
@@ -384,7 +384,7 @@ void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCond
     {
         resetFailures();
         base::PlannerTerminationCondition ptcOrFail =
-            base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&SPARS::reachedFailureLimit, this)));
+            base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(std::bind(&SPARS::reachedFailureLimit, this)));
         constructRoadmap(ptcOrFail);
     }
     else
@@ -454,7 +454,7 @@ void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCond
 
 ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addMilestone(base::State *state)
 {
-    boost::mutex::scoped_lock _(graphMutex_);
+    std::lock_guard<std::mutex> _(graphMutex_);
 
     DenseVertex m = boost::add_vertex(g_);
     stateProperty_[m] = state;
@@ -494,7 +494,7 @@ ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addMilestone(base::S
 
 ompl::geometric::SPARS::SparseVertex ompl::geometric::SPARS::addGuard(base::State *state, GuardType type)
 {
-    boost::mutex::scoped_lock _(graphMutex_);
+    std::lock_guard<std::mutex> _(graphMutex_);
 
     SparseVertex v = boost::add_vertex(s_);
     sparseStateProperty_[v] = state;
@@ -513,7 +513,7 @@ void ompl::geometric::SPARS::connectSparsePoints(SparseVertex v, SparseVertex vp
 {
     const base::Cost weight(costHeuristic(v, vp));
     const SpannerGraph::edge_property_type properties(weight);
-    boost::mutex::scoped_lock _(graphMutex_);
+    std::lock_guard<std::mutex> _(graphMutex_);
     boost::add_edge(v, vp, properties, s_);
     sparseDJSets_.union_set(v, vp);
 }
@@ -522,7 +522,7 @@ void ompl::geometric::SPARS::connectDensePoints( DenseVertex v, DenseVertex vp )
 {
     const double weight = distanceFunction(v, vp);
     const DenseGraph::edge_property_type properties(weight);
-    boost::mutex::scoped_lock _(graphMutex_);
+    std::lock_guard<std::mutex> _(graphMutex_);
     boost::add_edge(v, vp, properties, g_);
 }
 
@@ -953,7 +953,7 @@ void ompl::geometric::SPARS::getInterfaceNeighborhood(DenseVertex q, std::vector
 
 ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const SparseVertex start, const SparseVertex goal) const
 {
-    boost::mutex::scoped_lock _(graphMutex_);
+    std::lock_guard<std::mutex> _(graphMutex_);
 
     boost::vector_property_map<SparseVertex> prev(boost::num_vertices(s_));
 
@@ -961,12 +961,12 @@ ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const SparseVertex
     {
         // Consider using a persistent distance_map if it's slow
         boost::astar_search(s_, start,
-                            boost::bind(&SPARS::costHeuristic, this, _1, goal),
+                            std::bind(&SPARS::costHeuristic, this, std::placeholders::_1, goal),
                             boost::predecessor_map(prev).
-                            distance_compare(boost::bind(&base::OptimizationObjective::
-                                                         isCostBetterThan, opt_.get(), _1, _2)).
-                            distance_combine(boost::bind(&base::OptimizationObjective::
-                                                         combineCosts, opt_.get(), _1, _2)).
+                            distance_compare(std::bind(&base::OptimizationObjective::
+                                                         isCostBetterThan, opt_.get(), std::placeholders::_1, std::placeholders::_2)).
+                            distance_combine(std::bind(&base::OptimizationObjective::
+                                                         combineCosts, opt_.get(), std::placeholders::_1, std::placeholders::_2)).
                             distance_inf(opt_->infiniteCost()).
                             distance_zero(opt_->identityCost()).
                             visitor(AStarGoalVisitor<SparseVertex>(goal)));
@@ -999,7 +999,7 @@ void ompl::geometric::SPARS::computeDensePath(const DenseVertex start, const Den
     try
     {
         boost::astar_search(g_, start,
-                            boost::bind(&SPARS::distanceFunction, this, _1, goal),
+                            std::bind(&SPARS::distanceFunction, this, std::placeholders::_1, goal),
                             boost::predecessor_map(prev).
                             visitor(AStarGoalVisitor<DenseVertex>(goal)));
     }

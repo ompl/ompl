@@ -40,12 +40,7 @@
 #include <cmath>
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/math/constants/constants.hpp>
-#include <boost/version.hpp>
 #include <boost/assert.hpp>
-
-#ifndef BOOST_ASSERT_MSG
-#define BOOST_ASSERT_MSG(expr, msg) assert(expr)
-#endif
 
 static const double MAX_QUATERNION_NORM_ERROR = 1e-9;
 

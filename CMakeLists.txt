@@ -62,7 +62,7 @@ else(IS_ICPC)
     add_definitions(-DBOOST_TEST_DYN_LINK)
 endif(IS_ICPC)
 
-find_package(Boost 1.54 COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework chrono REQUIRED)
+find_package(Boost 1.54 COMPONENTS serialization filesystem system program_options unit_test_framework REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 # on OS X we need to check whether to use libc++ or libstdc++ with clang++
@@ -125,15 +125,6 @@ endif()
 
 # R is needed for running Planner Arena locally
 find_program(R_EXEC R)
-
-option(OMPL_LOCAL_PYPLUSPLUS_INSTALL "Whether Py++ and dependencies should be installed in the build directory" OFF)
-set(SUDO "sudo")
-set(CMAKE_GCCXML_ARGS "")
-if(OMPL_LOCAL_PYPLUSPLUS_INSTALL)
-    set(SUDO "")
-    set(CMAKE_GCCXML_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/pyplusplus")
-    set(DISTUTILS_ARGS "--prefix=${PROJECT_BINARY_DIR}/pyplusplus")
-endif()
 
 add_subdirectory(py-bindings)
 add_subdirectory(src)

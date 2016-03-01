@@ -55,8 +55,8 @@
 #include <boost/program_options.hpp>
 // For string comparison (boost::iequals)
 #include <boost/algorithm/string.hpp>
-// For boost::make_shared
-#include <boost/make_shared.hpp>
+// For std::make_shared
+#include <memory>
 
 #include <fstream>
 
@@ -142,32 +142,32 @@ ob::PlannerPtr allocatePlanner(ob::SpaceInformationPtr si, optimalPlanner planne
     {
         case PLANNER_BITSTAR:
         {
-            return boost::make_shared<og::BITstar>(si);
+            return std::make_shared<og::BITstar>(si);
             break;
         }
         case PLANNER_CFOREST:
         {
-            return boost::make_shared<og::CForest>(si);
+            return std::make_shared<og::CForest>(si);
             break;
         }
         case PLANNER_FMTSTAR:
         {
-            return boost::make_shared<og::FMT>(si);
+            return std::make_shared<og::FMT>(si);
             break;
         }
         case PLANNER_INF_RRTSTAR:
         {
-            return boost::make_shared<og::InformedRRTstar>(si);
+            return std::make_shared<og::InformedRRTstar>(si);
             break;
         }
         case PLANNER_PRMSTAR:
         {
-            return boost::make_shared<og::PRMstar>(si);
+            return std::make_shared<og::PRMstar>(si);
             break;
         }
         case PLANNER_RRTSTAR:
         {
-            return boost::make_shared<og::RRTstar>(si);
+            return std::make_shared<og::RRTstar>(si);
             break;
         }
         default:
@@ -267,7 +267,7 @@ void plan(double runTime, optimalPlanner plannerType, planningObjective objectiv
         if (!outputFile.empty())
         {
             std::ofstream outFile(outputFile.c_str());
-            boost::static_pointer_cast<og::PathGeometric>(pdef->getSolutionPath())->
+            std::static_pointer_cast<og::PathGeometric>(pdef->getSolutionPath())->
                 printAsMatrix(outFile);
             outFile.close();
         }

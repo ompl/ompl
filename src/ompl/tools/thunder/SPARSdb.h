@@ -43,7 +43,7 @@
 #include <ompl/util/Time.h>
 
 #include <boost/range/adaptor/map.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/filtered_graph.hpp>
@@ -52,8 +52,8 @@
 #include <boost/graph/connected_components.hpp>
 #include <boost/property_map/property_map.hpp>
 #include <boost/pending/disjoint_sets.hpp>
-#include <boost/function.hpp>
-#include <boost/thread.hpp>
+#include <functional>
+#include <thread>
 #include <iostream>
 #include <fstream>
 #include <utility>
@@ -192,7 +192,7 @@ namespace ompl
             };
 
             /** \brief the hash which maps pairs of neighbor points to pairs of states */
-            typedef boost::unordered_map< VertexPair, InterfaceData, boost::hash< VertexPair > > InterfaceHash;
+            typedef std::unordered_map< VertexPair, InterfaceData, boost::hash< VertexPair > > InterfaceHash;
 
             ////////////////////////////////////////////////////////////////////////////////////////
             // The InterfaceHash structure is wrapped inside of this struct due to a compilation error on
@@ -714,7 +714,7 @@ namespace ompl
             base::ValidStateSamplerPtr                                          sampler_;
 
             /** \brief Nearest neighbors data structure */
-            boost::shared_ptr< NearestNeighbors<Vertex> >                       nn_;
+            std::shared_ptr< NearestNeighbors<Vertex> >                       nn_;
 
             /** \brief Connectivity graph */
             Graph                                                               g_;

@@ -46,7 +46,6 @@
 #include <algorithm>
 #include <limits>
 #include <boost/math/constants/constants.hpp>
-#include <boost/make_shared.hpp>
 #include <vector>
 
 ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
@@ -92,9 +91,9 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     Planner::declareParam<bool>("number_sampling_attempts", this, &RRTstar::setNumSamplingAttempts, &RRTstar::getNumSamplingAttempts, "10:10:100000");
 
     addPlannerProgressProperty("iterations INTEGER",
-                               boost::bind(&RRTstar::numIterationsProperty, this));
+                               std::bind(&RRTstar::numIterationsProperty, this));
     addPlannerProgressProperty("best cost REAL",
-                               boost::bind(&RRTstar::bestCostProperty, this));
+                               std::bind(&RRTstar::bestCostProperty, this));
 }
 
 ompl::geometric::RRTstar::~RRTstar()
@@ -114,7 +113,7 @@ void ompl::geometric::RRTstar::setup()
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
+    nn_->setDistanceFunction(std::bind(&RRTstar::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 
     // Setup optimization objective
     //
@@ -1027,7 +1026,7 @@ void ompl::geometric::RRTstar::allocSampler()
     {
         // We are explicitly using rejection sampling.
         OMPL_INFORM("%s: Using rejection sampling.", getName().c_str());
-        infSampler_ = boost::make_shared<base::RejectionInfSampler>(pdef_, numSampleAttempts_);
+        infSampler_ = std::make_shared<base::RejectionInfSampler>(pdef_, numSampleAttempts_);
     }
     else
     {

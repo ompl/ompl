@@ -37,7 +37,7 @@
 #include "ompl/geometric/planners/sbl/pSBL.h"
 #include "ompl/base/goals/GoalState.h"
 #include "ompl/tools/config/SelfConfig.h"
-#include <boost/thread.hpp>
+#include <thread>
 #include <limits>
 #include <cassert>
 
@@ -244,9 +244,9 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
     sol.found = false;
     loopCounter_ = 0;
 
-    std::vector<boost::thread*> th(threadCount_);
+    std::vector<std::thread*> th(threadCount_);
     for (unsigned int i = 0 ; i < threadCount_ ; ++i)
-        th[i] = new boost::thread(boost::bind(&pSBL::threadSolve, this, i, ptc, &sol));
+        th[i] = new std::thread(std::bind(&pSBL::threadSolve, this, i, ptc, &sol));
     for (unsigned int i = 0 ; i < threadCount_ ; ++i)
     {
         th[i]->join();

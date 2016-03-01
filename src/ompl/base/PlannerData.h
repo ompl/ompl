@@ -46,7 +46,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/noncopyable.hpp>
-#include <boost/function.hpp>
+#include <functional>
 #include <boost/serialization/access.hpp>
 
 namespace ompl

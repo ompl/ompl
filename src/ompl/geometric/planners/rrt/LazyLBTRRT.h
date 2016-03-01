@@ -44,9 +44,9 @@
 
 #include <fstream>
 #include <vector>
+#include <tuple>
 #include <cassert>
 
-#include <boost/tuple/tuple.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
@@ -127,11 +127,11 @@ namespace ompl
             // Planner progress property functions
             std::string getIterationCount() const
             {
-                return boost::lexical_cast<std::string>(iterations_);
+                return std::to_string(iterations_);
             }
             std::string getBestCost() const
             {
-                return boost::lexical_cast<std::string>(bestCost_);
+                return std::to_string(bestCost_);
             }
 
         protected:
@@ -279,7 +279,7 @@ namespace ompl
                 LPAstarLb_->removeEdge(b->id_, a->id_);
                 return;
             }
-            boost::tuple<Motion*, base::State*, double> rrtExtend(
+            std::tuple<Motion*, base::State*, double> rrtExtend(
                 const base::GoalSampleableRegion *goal_s, base::State *xstate,
                 Motion *rmotion, double &approxdif);
             void rrt(const base::PlannerTerminationCondition &ptc,
@@ -300,7 +300,7 @@ namespace ompl
             base::StateSamplerPtr               sampler_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
-            boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
             double                              goalBias_;

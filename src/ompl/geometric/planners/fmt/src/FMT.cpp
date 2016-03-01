@@ -97,7 +97,8 @@ void ompl::geometric::FMT::setup()
 
         if (!nn_)
             nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-        nn_->setDistanceFunction(boost::bind(&FMT::distanceFunction, this, _1, _2));
+        nn_->setDistanceFunction(std::bind(&FMT::distanceFunction, this,
+            std::placeholders::_1, std::placeholders::_2));
 
         if (nearestK_ && !nn_->reportsSortedResults())
         {

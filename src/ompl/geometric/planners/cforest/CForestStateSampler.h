@@ -39,7 +39,7 @@
 
 #include "ompl/base/StateSpace.h"
 
-#include <boost/thread/mutex.hpp>
+#include <thread>
 
 namespace ompl
 {
@@ -98,7 +98,7 @@ namespace ompl
             StateSamplerPtr sampler_;
 
             /** \brief Lock to control the access to the statesToSample_ vector. */
-            boost::mutex statesLock_;
+            std::mutex statesLock_;
         };
 
     }

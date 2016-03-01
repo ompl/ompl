@@ -40,7 +40,7 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/StateSamplerArray.h"
 #include "ompl/datastructures/NearestNeighbors.h"
-#include <boost/thread/mutex.hpp>
+#include <thread>
 
 namespace ompl
 {
@@ -159,7 +159,7 @@ namespace ompl
                 Motion      *solution;
                 Motion      *approxsol;
                 double       approxdif;
-                boost::mutex lock;
+                std::mutex   lock;
             };
 
             void threadSolve(unsigned int tid, const base::PlannerTerminationCondition &ptc, SolutionInfo *sol);
@@ -171,8 +171,8 @@ namespace ompl
             }
 
             base::StateSamplerArray<base::StateSampler>         samplerArray_;
-            boost::shared_ptr< NearestNeighbors<Motion*> >      nn_;
-            boost::mutex                                        nnLock_;
+            std::shared_ptr< NearestNeighbors<Motion*> >        nn_;
+            std::mutex                                          nnLock_;
 
             unsigned int                                        threadCount_;
 

@@ -36,9 +36,8 @@
 
 #include "ompl/base/PlannerTerminationCondition.h"
 #include "ompl/util/Time.h"
-#include <boost/bind.hpp>
-#include <boost/thread.hpp>
-#include <boost/lambda/bind.hpp>
+#include <functional>
+#include <thread>
 #include <utility>
 
 namespace ompl
@@ -91,7 +90,7 @@ namespace ompl
                 {
                     signalThreadStop_ = false;
                     evalValue_ = false;
-                    thread_ = new boost::thread(boost::bind(&PlannerTerminationConditionImpl::periodicEval, this));
+                    thread_ = new std::thread(std::bind(&PlannerTerminationConditionImpl::periodicEval, this));
                 }
             }
 
@@ -128,7 +127,7 @@ namespace ompl
                     {
                         if (terminate_ || signalThreadStop_)
                             break;
-                        boost::this_thread::sleep(s);
+                        std::this_thread::sleep_for(s);
                     }
                 }
             }
@@ -143,7 +142,7 @@ namespace ompl
             mutable bool                  terminate_;
 
             /** \brief Thread for periodicEval() */
-            boost::thread                *thread_;
+            std::thread                  *thread_;
 
             /** \brief Cached value returned by fn_() */
             bool                          evalValue_;
@@ -178,12 +177,12 @@ bool ompl::base::PlannerTerminationCondition::eval() const
 
 ompl::base::PlannerTerminationCondition ompl::base::plannerNonTerminatingCondition()
 {
-    return PlannerTerminationCondition(boost::lambda::constant(false));
+    return PlannerTerminationCondition([] { return false; });
 }
 
 ompl::base::PlannerTerminationCondition ompl::base::plannerAlwaysTerminatingCondition()
 {
-    return PlannerTerminationCondition(boost::lambda::constant(true));
+    return PlannerTerminationCondition([] { return true; });
 }
 
 /// @cond IGNORE
@@ -212,12 +211,12 @@ namespace ompl
 
 ompl::base::PlannerTerminationCondition ompl::base::plannerOrTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2)
 {
-    return PlannerTerminationCondition(boost::bind(&plannerOrTerminationConditionAux, c1, c2));
+    return PlannerTerminationCondition(std::bind(&plannerOrTerminationConditionAux, c1, c2));
 }
 
 ompl::base::PlannerTerminationCondition ompl::base::plannerAndTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2)
 {
-    return PlannerTerminationCondition(boost::bind(&plannerAndTerminationConditionAux, c1, c2));
+    return PlannerTerminationCondition(std::bind(&plannerAndTerminationConditionAux, c1, c2));
 }
 
 ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondition(double duration)
@@ -227,19 +226,19 @@ ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondi
 
 ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondition(time::duration duration)
 {
-    return PlannerTerminationCondition(boost::bind(&timePassed, time::now() + duration));
+    return PlannerTerminationCondition(std::bind(&timePassed, time::now() + duration));
 }
 
 ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondition(double duration, double interval)
 {
     if (interval > duration)
         interval = duration;
-    return PlannerTerminationCondition(boost::bind(&timePassed, time::now() + time::seconds(duration)), interval);
+    return PlannerTerminationCondition(std::bind(&timePassed, time::now() + time::seconds(duration)), interval);
 }
 
 ompl::base::PlannerTerminationCondition ompl::base::exactSolnPlannerTerminationCondition(ompl::base::ProblemDefinitionPtr pdef)
 {
-    return PlannerTerminationCondition(boost::bind(&ProblemDefinition::hasExactSolution, pdef));
+    return PlannerTerminationCondition(std::bind(&ProblemDefinition::hasExactSolution, pdef));
 }
 
 namespace ompl
@@ -266,7 +265,7 @@ namespace ompl
 
         IterationTerminationCondition::operator PlannerTerminationCondition()
         {
-            return PlannerTerminationCondition( boost::bind(&IterationTerminationCondition::eval, this) );
+            return PlannerTerminationCondition( std::bind(&IterationTerminationCondition::eval, this) );
         }
     }
 }

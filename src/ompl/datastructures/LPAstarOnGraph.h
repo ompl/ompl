@@ -46,12 +46,17 @@ Lifelong Planning A. Artif. Intell. 155(1-2): 93-146 (2004)
 #include <set>
 #include <map>
 #include <list>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 #include <iterator>
-#include <boost/foreach.hpp>
 #include <iostream>
 #include <cassert>
+
+// workaround for bug in Boost 1.60; see https://svn.boost.org/trac/boost/ticket/11880
+#include <boost/version.hpp>
+#if BOOST_VERSION > 105900
+#include <boost/type_traits/ice.hpp>
+#endif
 
 #include <boost/graph/adjacency_matrix.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -297,7 +302,7 @@ namespace ompl
         }; // Hash
 
         typedef std::multiset<Node*, LessThanNodeK>             Queue;
-        typedef boost::unordered_map<std::size_t, Node*, Hash>  IdNodeMap;
+        typedef std::unordered_map<std::size_t, Node*, Hash>  IdNodeMap;
         typedef typename IdNodeMap::iterator                    IdNodeMapIter;
         typedef typename boost::property_map<Graph, boost::edge_weight_t>::type WeightMap;
 

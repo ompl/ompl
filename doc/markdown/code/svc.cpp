@@ -22,6 +22,6 @@ base::SpaceInformationPtr si(space);
 // either this call:
 si->setStateValidityChecker(base::StateValidityCheckerPtr(new myStateValidityCheckerClass(si)));
 // or this call:
-si->setStateValidityChecker(boost::bind(&myStateValidityCheckerFunction, _1));
+si->setStateValidityChecker(std::bind(&myStateValidityCheckerFunction, std::placeholders::_1));
 si->setStateValidityCheckingResolution(0.03); // 3%
 si->setup();

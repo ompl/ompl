@@ -133,8 +133,8 @@ void ompl::geometric::BiTRRT::setup()
         tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
     if (!tGoal_)
         tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    tStart_->setDistanceFunction(boost::bind(&BiTRRT::distanceFunction, this, _1, _2));
-    tGoal_->setDistanceFunction(boost::bind(&BiTRRT::distanceFunction, this, _1, _2));
+    tStart_->setDistanceFunction(std::bind(&BiTRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    tGoal_->setDistanceFunction(std::bind(&BiTRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 
     // Setup the optimization objective, if it isn't specified
     if (!pdef_ || !pdef_->hasOptimizationObjective())

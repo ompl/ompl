@@ -35,8 +35,8 @@
 /* Author: Mark Moll */
 
 #include <boost/python.hpp>
-#include <boost/shared_ptr.hpp>
-#include "../../py-bindings/py_boost_function.hpp"
+#include <memory>
+#include "../../py-bindings/py_std_function.hpp"
 
 namespace bp = boost::python;
 
@@ -58,14 +58,14 @@ IntClass intClassFun2(const IntClass& i, int j) { IntClass i2(i); i2.value = j; 
 IntClass intClassFun3(IntClass& i, int& j) { i.value = j; return i; }
 void intClassFun4(IntClass* i, int j) { i->value = j; }
 
-boost::function<IntClass(IntClass,int)>            intClassFun0_obj(intClassFun0);
-boost::function<IntClass(IntClass&,int)>           intClassFun1_obj(intClassFun1);
-boost::function<IntClass(const IntClass&,int)>     intClassFun2_obj(intClassFun2);
-boost::function<IntClass(IntClass&,int&)>          intClassFun3_obj(intClassFun3);
-boost::function<void(IntClass*,int)>          intClassFun4_obj(intClassFun4);
+std::function<IntClass(IntClass,int)>            intClassFun0_obj(intClassFun0);
+std::function<IntClass(IntClass&,int)>           intClassFun1_obj(intClassFun1);
+std::function<IntClass(const IntClass&,int)>     intClassFun2_obj(intClassFun2);
+std::function<IntClass(IntClass&,int&)>          intClassFun3_obj(intClassFun3);
+std::function<void(IntClass*,int)>               intClassFun4_obj(intClassFun4);
 
 
-BOOST_PYTHON_MODULE(py_boost_function)
+BOOST_PYTHON_MODULE(py_std_function)
 {
     bp::class_<IntClass>("IntClass", bp::init<int>())
         .def_readwrite("value", &IntClass::value);

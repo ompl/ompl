@@ -78,8 +78,8 @@ planner->as<ompl::geometric::CForest>()->setNumThreads(6);
 
 When implementing CForest, the focus was to modify the underlying planner as little as possible. Although the main idea of CForest remains, the actual implementation differs from the one proposed in the paper:
 
-- No message passing is used. Instead, shared memory and boost::threads are employed.
-- The paper creates two different versions: sequential (many trees expanding in the same CPU) and parallel (1 tree per CPU). Since boost::threads are used, the trees/CPU division is done by the scheduler.
+- No message passing is used. Instead, shared memory and std::threads are employed.
+- The paper creates two different versions: sequential (many trees expanding in the same CPU) and parallel (1 tree per CPU). Since std::threads are used, the trees/CPU division is done by the scheduler.
 - In the paper, shared states are treated in a slightly different way than randomly sampled states. Due to the CForestStateSampler encapsulation, all states are treated the same way. Under some circumstances shared states are not included in other trees. However, tests showed that this does not have a high impact on performance.
 - Sampling bounds are not explicitly set. When samples are created, we check whether they can lead to a better solution.
 - Start and goal states are not included in the shared paths in order to keep code simpler.
@@ -223,7 +223,7 @@ ompl::geoemtric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
         ...
         // Searching for improved solutions.
         ...
-		if (updatedSolution)
+        if (updatedSolution)
         {
             ...
             if (intermediateSolutionCallback)
@@ -324,7 +324,7 @@ ompl::geometric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
         }
         // Searching for improved solutions.
         ...
-		if (updatedSolution)
+        if (updatedSolution)
         {
              ...
              if (prune_) // Modification 3 - tree pruning.

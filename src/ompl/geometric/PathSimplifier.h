@@ -258,7 +258,7 @@ namespace ompl
             base::SpaceInformationPtr si_;
 
             /** \brief The goal object for the path simplifier.  Used for end-of-path improvements */
-            boost::shared_ptr<base::GoalSampleableRegion> gsr_;
+            std::shared_ptr<base::GoalSampleableRegion> gsr_;
 
             /** \brief Flag indicating whether the states removed from a motion should be freed */
             bool                      freeStates_;

@@ -38,7 +38,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <algorithm>
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 
 #include "ompl/config.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
@@ -125,8 +125,8 @@ void stateSpaceTest(base::StateSpace& space, NearestNeighbors<base::State*>& pro
     NearestNeighborsLinear<base::State*> proximityLinear;
     base::State* s;
 
-    proximity.setDistanceFunction(boost::bind(&base::StateSpace::distance, &space, _1, _2));
-    proximityLinear.setDistanceFunction(boost::bind(&base::StateSpace::distance, &space, _1, _2));
+    proximity.setDistanceFunction(std::bind(&base::StateSpace::distance, &space, std::placeholders::_1, std::placeholders::_2));
+    proximityLinear.setDistanceFunction(std::bind(&base::StateSpace::distance, &space, std::placeholders::_1, std::placeholders::_2));
 
     for(i=0; i<n; ++i)
     {
@@ -210,13 +210,13 @@ void randomAccessPatternTest(base::StateSpace& space, NearestNeighbors<base::Sta
     base::StateSamplerPtr sampler(space.allocStateSampler());
     std::vector<base::State*> nghbr, nghbrGroundTruth;
     NearestNeighborsLinear<base::State*> proximityLinear;
-    boost::unordered_set<base::State*> states;
-    boost::unordered_set<base::State*>::iterator it;
+    std::unordered_set<base::State*> states;
+    std::unordered_set<base::State*>::iterator it;
     base::State* s;
     double r;
 
-    proximity.setDistanceFunction(boost::bind(&base::StateSpace::distance, &space, _1, _2));
-    proximityLinear.setDistanceFunction(boost::bind(&base::StateSpace::distance, &space, _1, _2));
+    proximity.setDistanceFunction(std::bind(&base::StateSpace::distance, &space, std::placeholders::_1, std::placeholders::_2));
+    proximityLinear.setDistanceFunction(std::bind(&base::StateSpace::distance, &space, std::placeholders::_1, std::placeholders::_2));
 
     for (i=0; i<m; ++i)
     {

@@ -134,8 +134,8 @@ bool isStateValid(
         return false;
     const ob::SE2StateSpace::StateType* se2 = state->as<ob::SE2StateSpace::StateType>();
 
-	double x = se2->getX();
-	double y = se2->getY();
+    double x = se2->getX();
+    double y = se2->getY();
     const std::vector<Polygon>& obstacles = decomp->getHoles();
     typedef std::vector<Polygon>::const_iterator ObstacleIter;
     for (ObstacleIter o = obstacles.begin(); o != obstacles.end(); ++o)
@@ -143,7 +143,7 @@ bool isStateValid(
         if (polyContains(*o, x, y))
             return false;
     }
-	return true;
+    return true;
 }
 
 void propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result)
@@ -194,8 +194,9 @@ void plan(void)
     cspace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
 
     oc::SpaceInformationPtr si(new oc::SpaceInformation(space, cspace));
-    si->setStateValidityChecker(boost::bind(&isStateValid, si.get(), ptd, _1));
-    si->setStatePropagator(boost::bind(&propagate, _1, _2, _3, _4));
+    si->setStateValidityChecker(std::bind(&isStateValid, si.get(), ptd, std::placeholders::_1));
+    si->setStatePropagator(std::bind(&propagate, std::placeholders::_1,
+        std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
     si->setPropagationStepSize(0.025);
 
     //LTL co-safety sequencing formula: visit p2,p0 in that order

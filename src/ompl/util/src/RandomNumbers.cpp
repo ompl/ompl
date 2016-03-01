@@ -40,15 +40,12 @@
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
-#include <boost/random/lagged_fibonacci.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/once.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <thread>
+#include <memory>
 #include <boost/math/constants/constants.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/random/uniform_on_sphere.hpp>
+#include <boost/random/variate_generator.hpp>
 // For boost::numeric::ublas::shallow_array_adaptor:
 #include <boost/numeric/ublas/vector.hpp>
 
@@ -63,23 +60,23 @@ namespace
     public:
         RNGSeedGenerator() :
             someSeedsGenerated_(false),
-            firstSeed_((boost::uint32_t)(boost::posix_time::microsec_clock::universal_time() -
-                boost::posix_time::ptime(boost::date_time::min_date_time)).total_microseconds()),
+            firstSeed_(std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::system_clock::now() -
+                std::chrono::system_clock::time_point::min()).count()),
             sGen_(firstSeed_),
-            sDist_(1, 1000000000),
-            s_(sGen_, sDist_)
+            sDist_(1, 1000000000)
         {
         }
 
-        boost::uint32_t firstSeed()
+        std::uint_fast32_t firstSeed()
         {
-            boost::mutex::scoped_lock slock(rngMutex_);
+            std::lock_guard<std::mutex> slock(rngMutex_);
             return firstSeed_;
         }
 
-        void setSeed(boost::uint32_t seed)
+        void setSeed(std::uint_fast32_t seed)
         {
-            boost::mutex::scoped_lock slock(rngMutex_);
+            std::lock_guard<std::mutex> slock(rngMutex_);
             if (seed > 0)
             {
                 if (someSeedsGenerated_)
@@ -108,23 +105,22 @@ namespace
             sGen_.seed(seed);
         }
 
-        boost::uint32_t nextSeed()
+        std::uint_fast32_t nextSeed()
         {
-            boost::mutex::scoped_lock slock(rngMutex_);
+            std::lock_guard<std::mutex> slock(rngMutex_);
             someSeedsGenerated_ = true;
-            return s_();
+            return sDist_(sGen_);
         }
 
     private:
-        bool                       someSeedsGenerated_;
-        boost::uint32_t            firstSeed_;
-        boost::mutex               rngMutex_;
-        boost::lagged_fibonacci607 sGen_;
-        boost::uniform_int<>       sDist_;
-        boost::variate_generator<boost::lagged_fibonacci607&, boost::uniform_int<> > s_;
+        bool                            someSeedsGenerated_;
+        std::uint_fast32_t              firstSeed_;
+        std::mutex                      rngMutex_;
+        std::ranlux24_base              sGen_;
+        std::uniform_int_distribution<> sDist_;
     };
 
-    static boost::once_flag g_once = BOOST_ONCE_INIT;
+    static std::once_flag g_once;
     static boost::scoped_ptr<RNGSeedGenerator> g_RNGSeedGenerator;
 
     void initRNGSeedGenerator()
@@ -134,7 +130,7 @@ namespace
 
     RNGSeedGenerator& getRNGSeedGenerator()
     {
-        boost::call_once(&initRNGSeedGenerator, g_once);
+        std::call_once(g_once, &initRNGSeedGenerator);
         return *g_RNGSeedGenerator;
     }
 }  // namespace
@@ -152,17 +148,11 @@ public:
     /** \brief The uniform_on_sphere distribution type. */
     typedef boost::uniform_on_sphere<double, container_type_t> spherical_dist_t;
 
-    /** \brief A shared pointer to the distribution */
-    typedef boost::shared_ptr<spherical_dist_t> spherical_dist_ptr_t;
-
     /** \brief The resulting variate generator type. */
-    typedef boost::variate_generator<boost::mt19937*, spherical_dist_t > variate_generator_t;
-
-    /** \brief A shared pointer to the variate generator */
-    typedef boost::shared_ptr<variate_generator_t> variate_generator_ptr_t;
+    typedef boost::variate_generator<std::mt19937*, spherical_dist_t > variate_generator_t;
 
     /** \brief Constructor */
-    SphericalData(boost::mt19937* generatorPtr) : generatorPtr_(generatorPtr)
+    SphericalData(std::mt19937* generatorPtr) : generatorPtr_(generatorPtr)
     {
     };
 
@@ -197,13 +187,14 @@ public:
 
 private:
     /** \brief The pair of distribution and variate generator. */
-    typedef std::pair<spherical_dist_ptr_t, variate_generator_ptr_t>      dist_gen_pair_t;
+    typedef std::pair<std::shared_ptr<spherical_dist_t>,
+        std::shared_ptr<variate_generator_t> > dist_gen_pair_t;
 
     /** \brief A vector distribution and variate generators (as pointers) indexed on dimension. */
-    std::vector<dist_gen_pair_t>                                          dimVector_;
+    std::vector<dist_gen_pair_t>               dimVector_;
 
     /** \brief A pointer to the generator owned by the outer class. Needed for creating new variate_generators */
-    boost::mt19937*                                                        generatorPtr_;
+    std::mt19937*                              generatorPtr_;
 
     /** \brief Grow the vector until it contains an (empty) entry for the specified dimension. */
     void growVector(unsigned int dim)
@@ -224,21 +215,21 @@ private:
         {
             // It is not allocated, so....
             // First construct the distribution
-            dimVector_.at(dim).first = boost::make_shared<spherical_dist_t> (dim);
+            dimVector_.at(dim).first = std::make_shared<spherical_dist_t> (dim);
             // Then the variate generator
-            dimVector_.at(dim).second = boost::make_shared<variate_generator_t> (generatorPtr_, *dimVector_.at(dim).first);
+            dimVector_.at(dim).second = std::make_shared<variate_generator_t> (generatorPtr_, *dimVector_.at(dim).first);
         }
         //No else, the pointer is already allocated.
     };
 };
 /// @endcond
 
-boost::uint32_t ompl::RNG::getSeed()
+std::uint_fast32_t ompl::RNG::getSeed()
 {
     return getRNGSeedGenerator().firstSeed();
 }
 
-void ompl::RNG::setSeed(boost::uint32_t seed)
+void ompl::RNG::setSeed(std::uint_fast32_t seed)
 {
     getRNGSeedGenerator().setSeed(seed);
 }
@@ -248,24 +239,20 @@ ompl::RNG::RNG() :
     generator_(localSeed_),
     uniDist_(0, 1),
     normalDist_(0, 1),
-    uni_(generator_, uniDist_),
-    normal_(generator_, normalDist_),
-    sphericalDataPtr_(boost::make_shared<SphericalData> (&generator_))
+    sphericalDataPtr_(std ::make_shared<SphericalData> (&generator_))
 {
 }
 
-ompl::RNG::RNG(boost::uint32_t localSeed) :
+ompl::RNG::RNG(std::uint_fast32_t localSeed) :
     localSeed_(localSeed),
     generator_(localSeed_),
     uniDist_(0, 1),
     normalDist_(0, 1),
-    uni_(generator_, uniDist_),
-    normal_(generator_, normalDist_),
-    sphericalDataPtr_(boost::make_shared<SphericalData> (&generator_))
+    sphericalDataPtr_(std::make_shared<SphericalData> (&generator_))
 {
 }
 
-void ompl::RNG::setLocalSeed(boost::uint32_t localSeed)
+void ompl::RNG::setLocalSeed(std::uint_fast32_t localSeed)
 {
     // Store the seed
     localSeed_ = localSeed;
@@ -274,8 +261,8 @@ void ompl::RNG::setLocalSeed(boost::uint32_t localSeed)
     generator_.seed(localSeed_);
 
     // Reset the distributions used by the variate generators, as they can cache values
-    uni_.distribution().reset();
-    normal_.distribution().reset();
+    uniDist_.reset();
+    normalDist_.reset();
     sphericalDataPtr_->reset();
 
 }
@@ -302,9 +289,9 @@ int ompl::RNG::halfNormalInt(int r_min, int r_max, double focus)
 //       pg. 124-132
 void ompl::RNG::quaternion(double value[4])
 {
-    double x0 = uni_();
+    double x0 = uniDist_(generator_);
     double r1 = sqrt(1.0 - x0), r2 = sqrt(x0);
-    double t1 = 2.0 * boost::math::constants::pi<double>() * uni_(), t2 = 2.0 * boost::math::constants::pi<double>() * uni_();
+    double t1 = 2.0 * boost::math::constants::pi<double>() * uniDist_(generator_), t2 = 2.0 * boost::math::constants::pi<double>() * uniDist_(generator_);
     double c1 = cos(t1), s1 = sin(t1);
     double c2 = cos(t2), s2 = sin(t2);
     value[0] = s1 * r1;
@@ -316,9 +303,9 @@ void ompl::RNG::quaternion(double value[4])
 // From Effective Sampling and Distance Metrics for 3D Rigid Body Path Planning, by James Kuffner, ICRA 2004
 void ompl::RNG::eulerRPY(double value[3])
 {
-    value[0] = boost::math::constants::pi<double>() * (-2.0 * uni_() + 1.0);
-    value[1] = acos(1.0 - 2.0 * uni_()) - boost::math::constants::pi<double>() / 2.0;
-    value[2] = boost::math::constants::pi<double>() * (-2.0 * uni_() + 1.0);
+    value[0] = boost::math::constants::pi<double>() * (-2.0 * uniDist_(generator_) + 1.0);
+    value[1] = acos(1.0 - 2.0 * uniDist_(generator_)) - boost::math::constants::pi<double>() / 2.0;
+    value[2] = boost::math::constants::pi<double>() * (-2.0 * uniDist_(generator_) + 1.0);
 }
 
 
@@ -348,7 +335,7 @@ void ompl::RNG::uniformInBall(double r, unsigned int n, double value[])
 }
 
 #if OMPL_HAVE_EIGEN3
-void ompl::RNG::uniformProlateHyperspheroidSurface(const boost::shared_ptr<const ProlateHyperspheroid>  &phsPtr, double value[])
+void ompl::RNG::uniformProlateHyperspheroidSurface(const std::shared_ptr<const ProlateHyperspheroid>  &phsPtr, double value[])
 {
     // Variables
     // The spherical point as a std::vector
@@ -361,7 +348,7 @@ void ompl::RNG::uniformProlateHyperspheroidSurface(const boost::shared_ptr<const
     phsPtr->transform(&sphere[0], value);
 }
 
-void ompl::RNG::uniformProlateHyperspheroid(const boost::shared_ptr<const ProlateHyperspheroid>  &phsPtr, double value[])
+void ompl::RNG::uniformProlateHyperspheroid(const std::shared_ptr<const ProlateHyperspheroid>  &phsPtr, double value[])
 {
     // Variables
     // The spherical point as a std::vector

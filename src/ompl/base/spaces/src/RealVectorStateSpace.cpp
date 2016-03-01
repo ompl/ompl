@@ -37,7 +37,6 @@
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/base/spaces/RealVectorStateProjections.h"
 #include "ompl/util/Exception.h"
-#include <boost/lexical_cast.hpp>
 #include <algorithm>
 #include <cstring>
 #include <limits>
@@ -126,8 +125,8 @@ void ompl::base::RealVectorStateSpace::setBounds(const RealVectorBounds &bounds)
     bounds.check();
     if (bounds.low.size() != dimension_)
         throw Exception("Bounds do not match dimension of state space: expected dimension " +
-                        boost::lexical_cast<std::string>(dimension_) + " but got dimension " +
-                        boost::lexical_cast<std::string>(bounds.low.size()));
+                        std::to_string(dimension_) + " but got dimension " +
+                        std::to_string(bounds.low.size()));
     bounds_ = bounds;
 }
 

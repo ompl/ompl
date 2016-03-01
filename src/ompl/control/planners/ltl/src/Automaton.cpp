@@ -1,9 +1,44 @@
+/*********************************************************************
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2012, Rice University
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Rice University nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
+
+/* Author: Matt Maly */
+
 #include "ompl/control/planners/ltl/Automaton.h"
 #include "ompl/control/planners/ltl/World.h"
 #include <boost/range/irange.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/unordered_map.hpp>
-#include <boost/unordered_set.hpp>
+#include <unordered_map>
+#include <unordered_set>
 #include <boost/dynamic_bitset.hpp>
 #include <ostream>
 #include <limits>
@@ -12,7 +47,7 @@
 
 int ompl::control::Automaton::TransitionMap::eval(const World& w) const
 {
-    typedef boost::unordered_map<World, unsigned int>::const_iterator DestIter;
+    typedef std::unordered_map<World, unsigned int>::const_iterator DestIter;
     DestIter d = entries.find(w);
     if (d != entries.end())
         return d->second;
@@ -69,7 +104,7 @@ int ompl::control::Automaton::getStartState(void) const
 }
 
 void ompl::control::Automaton::addTransition(
-    unsigned int src, 
+    unsigned int src,
     const World& w,
     unsigned int dest)
 {
@@ -130,7 +165,7 @@ void ompl::control::Automaton::print(std::ostream& out) const
         out << (accepting_[i] ? "doublecircle" : "circle") << "]" << std::endl;
 
         const TransitionMap& map = transitions_[i];
-        boost::unordered_map<World, unsigned int>::const_iterator e;
+        std::unordered_map<World, unsigned int>::const_iterator e;
         for (e = map.entries.begin(); e != map.entries.end(); ++e)
         {
             const World& w = e->first;
@@ -149,8 +184,8 @@ unsigned int ompl::control::Automaton::distFromAccepting(unsigned int s, unsigne
     if (accepting_[s])
         return 0;
     std::queue<unsigned int> q;
-    boost::unordered_set<unsigned int> processed;
-    boost::unordered_map<unsigned int, unsigned int> distance;
+    std::unordered_set<unsigned int> processed;
+    std::unordered_map<unsigned int, unsigned int> distance;
 
     q.push(s);
     distance[s] = 0;
@@ -166,7 +201,7 @@ unsigned int ompl::control::Automaton::distFromAccepting(unsigned int s, unsigne
             return distance[current];
         }
         const TransitionMap& map = transitions_[current];
-        boost::unordered_map<World, unsigned int>::const_iterator e;
+        std::unordered_map<World, unsigned int>::const_iterator e;
         for (e = map.entries.begin(); e != map.entries.end(); ++e)
         {
             unsigned int neighbor = e->second;

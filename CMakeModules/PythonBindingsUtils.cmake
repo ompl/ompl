@@ -5,7 +5,7 @@ find_package(Boost COMPONENTS python)
 find_package(Python QUIET)
 find_python_module(pyplusplus QUIET)
 find_python_module(pygccxml QUIET)
-find_package(xmlgenerator QUIET)
+find_package(castxml QUIET)
 
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
     include_directories(${PYTHON_INCLUDE_DIRS})
@@ -22,7 +22,7 @@ if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
 endif()
 
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PY_PYPLUSPLUS
-    AND PY_PYGCCXML AND XMLGENERATOR)
+    AND PY_PYGCCXML AND CASTXML)
     # make sure targets are defined only once
     if(NOT TARGET generate_headers)
         # top-level target for updating all-in-one header file for each module
@@ -56,25 +56,13 @@ endfunction(create_module_header_file_target)
 function(create_module_code_generation_target module dir)
     # target for regenerating code. Cmake is run so that the list of
     # sources for the py_ompl_${module} target (see below) is updated.
-    if(XMLGENERATOR STREQUAL "castxml")
-        add_custom_target(update_${module}_bindings
-            COMMAND ${PYTHON_EXEC}
-            "${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
-            "2>&1" | tee "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log"
-            COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}
-            WORKING_DIRECTORY ${dir}
-            COMMENT "Creating C++ code for Python module ${module} (see pyplusplus_${module}.log)")
-    else()
-        add_custom_target(update_${module}_bindings
-            COMMAND ${PYTHON_EXEC}
-            "${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
-            "2>&1" | tee "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log"
-            COMMAND ${CMAKE_COMMAND} -D "PATH=${dir}/bindings/${module}"
-            -P "${OMPL_CMAKE_UTIL_DIR}/workaround_for_gccxml_bug.cmake"
-            COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}
-            WORKING_DIRECTORY ${dir}
-            COMMENT "Creating C++ code for Python module ${module} (see pyplusplus_${module}.log)")
-    endif()
+    add_custom_target(update_${module}_bindings
+        COMMAND time ${PYTHON_EXEC}
+        "${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
+        "2>&1" | tee "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log"
+        COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}
+        WORKING_DIRECTORY ${dir}
+        COMMENT "Creating C++ code for Python module ${module} (see pyplusplus_${module}.log)")
     add_dependencies(update_${module}_bindings ${module}.h)
     add_dependencies(update_bindings update_${module}_bindings)
 endfunction(create_module_code_generation_target)

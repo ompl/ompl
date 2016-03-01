@@ -70,10 +70,12 @@ void ompl::control::SST::setup()
     base::Planner::setup();
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(boost::bind(&SST::distanceFunction, this, _1, _2));
+    nn_->setDistanceFunction(std::bind(&SST::distanceFunction, this,
+        std::placeholders::_1, std::placeholders::_2));
     if (!witnesses_)
         witnesses_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    witnesses_->setDistanceFunction(boost::bind(&SST::distanceFunction, this, _1, _2));
+    witnesses_->setDistanceFunction(std::bind(&SST::distanceFunction, this,
+        std::placeholders::_1, std::placeholders::_2));
 
     if (pdef_)
     {

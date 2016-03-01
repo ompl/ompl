@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     og::SimpleSetup ss(space);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(boost::bind(&isStateValid, obstacleRadius*obstacleRadius, _1));
+    ss.setStateValidityChecker(std::bind(&isStateValid, obstacleRadius*obstacleRadius, std::placeholders::_1));
 
     // define start & goal states
     ob::ScopedState<ob::SE2StateSpace> start(space), goal(space);

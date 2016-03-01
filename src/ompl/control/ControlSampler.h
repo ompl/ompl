@@ -42,7 +42,7 @@
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/ClassForward.h"
 #include <vector>
-#include <boost/function.hpp>
+#include <functional>
 #include <boost/noncopyable.hpp>
 
 namespace ompl
@@ -164,7 +164,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a control sampler */
-        typedef boost::function<ControlSamplerPtr(const ControlSpace*)> ControlSamplerAllocator;
+        typedef std::function<ControlSamplerPtr(const ControlSpace*)> ControlSamplerAllocator;
     }
 }
 

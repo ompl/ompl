@@ -46,8 +46,7 @@
 #include <set>
 #include <string>
 #include <boost/functional/hash.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <cstdlib>
 
 extern "C"
@@ -56,6 +55,20 @@ extern "C"
     #define VOID void
     #define ANSI_DECLARATORS
     #include <triangle.h>
+}
+
+namespace std
+{
+    template<>
+    struct hash<ompl::control::TriangularDecomposition::Vertex>
+    {
+        size_t operator()(const ompl::control::TriangularDecomposition::Vertex &v) const
+        {
+            std::size_t hash = std::hash<double>()(v.x);
+            boost::hash_combine(hash, v.y);
+            return hash;
+        }
+    };
 }
 
 ompl::control::TriangularDecomposition::TriangularDecomposition(const base::RealVectorBounds &bounds,
@@ -219,7 +232,7 @@ int ompl::control::TriangularDecomposition::createTriangles()
        the total area of the decomposition space */
     const base::RealVectorBounds& bounds = getBounds();
     const double maxTriangleArea = bounds.getVolume() * triAreaPct_;
-    std::string triswitches = "pDznQA -a" + boost::lexical_cast<std::string>(maxTriangleArea);
+    std::string triswitches = "pDznQA -a" + std::to_string(maxTriangleArea);
     struct triangulateio in;
 
     /* Some vertices may be duplicates, such as when an obstacle has a vertex equivalent
@@ -228,7 +241,7 @@ int ompl::control::TriangularDecomposition::createTriangles()
        so, to prevent duplicate vertices, we use a hashmap from Vertex to the index for
        that Vertex in the pointlist. We'll fill the map with Vertex objects,
        and then we'll actually add them to the pointlist. */
-    boost::unordered_map<Vertex, int> pointIndex;
+    std::unordered_map<Vertex, int> pointIndex;
 
     // First, add the points from the bounding box
     pointIndex[Vertex(bounds.low[0], bounds.low[1])] = 0;
@@ -274,7 +287,7 @@ int ompl::control::TriangularDecomposition::createTriangles()
     in.pointlist = (REAL*) malloc(2*in.numberofpoints*sizeof(REAL));
 
     //add unique vertices from our map, using their assigned indices
-    typedef boost::unordered_map<Vertex, int>::const_iterator IndexIter;
+    typedef std::unordered_map<Vertex, int>::const_iterator IndexIter;
     for (IndexIter i = pointIndex.begin(); i != pointIndex.end(); ++i)
     {
         const Vertex& v = i->first;

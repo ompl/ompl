@@ -41,7 +41,6 @@ from pygccxml import declarations
 from pyplusplus.module_builder import call_policies
 from ompl.bindings_generator import code_generator_t, default_replacement
 
-
 class ompl_base_generator_t(code_generator_t):
     """Class for generating the ompl.base python module."""
 
@@ -145,20 +144,17 @@ class ompl_base_generator_t(code_generator_t):
         self.ompl_ns.class_('Path').include()
         code_generator_t.filter_declarations(self)
         # rename STL vectors of certain types
-        self.std_ns.class_('map< std::string, boost::shared_ptr< ompl::base::ProjectionEvaluator > >').rename('mapStringToProjectionEvaluator')
-        if self.using_castxml:
-            self.std_ns.class_('vector< ompl::base::State * >').rename('vectorState')
-        else:
-            self.std_ns.class_('vector< ompl::base::State* >').rename('vectorState')
+        self.std_ns.class_('map< std::string, std::shared_ptr< ompl::base::ProjectionEvaluator > >').rename('mapStringToProjectionEvaluator')
+        self.std_ns.class_('vector< ompl::base::State * >').rename('vectorState')
         try:
             self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
         except: pass
-        self.std_ns.class_('vector< boost::shared_ptr<ompl::base::StateSpace> >').rename('vectorStateSpacePtr')
+        self.std_ns.class_('vector< std::shared_ptr<ompl::base::StateSpace> >').rename('vectorStateSpacePtr')
         #self.std_ns.class_('vector< <ompl::base::PlannerSolution> >').rename('vectorPlannerSolution')
-        self.std_ns.class_('map< std::string, boost::shared_ptr<ompl::base::GenericParam> >').rename('mapStringToGenericParam')
+        self.std_ns.class_('map< std::string, std::shared_ptr<ompl::base::GenericParam> >').rename('mapStringToGenericParam')
         self.std_ns.class_('map< std::string, ompl::base::StateSpace::SubstateLocation >').rename('mapStringToSubstateLocation')
         self.std_ns.class_('vector<ompl::base::PlannerSolution>').rename('vectorPlannerSolution')
-        if self.using_castxml: self.ompl_ns.member_functions('maybeWrapBool').exclude()
+        self.ompl_ns.member_functions('maybeWrapBool').exclude()
         # rename some templated types
         self.ompl_ns.class_('SpecificParam< bool >').rename('SpecificParamBool')
         self.ompl_ns.class_('SpecificParam< char >').rename('SpecificParamChar')
@@ -166,10 +162,7 @@ class ompl_base_generator_t(code_generator_t):
         self.ompl_ns.class_('SpecificParam< unsigned int >').rename('SpecificParamUint')
         self.ompl_ns.class_('SpecificParam< float >').rename('SpecificParamFloat')
         self.ompl_ns.class_('SpecificParam< double >').rename('SpecificParamDouble')
-        if self.using_castxml:
-            self.ompl_ns.class_('SpecificParam< std::basic_string<char> >').rename('SpecificParamString')
-        else:
-            self.ompl_ns.class_('SpecificParam< std::string >').rename('SpecificParamString')
+        self.ompl_ns.class_('SpecificParam< std::basic_string<char> >').rename('SpecificParamString')
         for cls in self.ompl_ns.classes(lambda decl: decl.name.startswith('SpecificParam')):
             cls.constructors().exclude()
         # don't export variables that need a wrapper
@@ -212,6 +205,7 @@ class ompl_base_generator_t(code_generator_t):
                 'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateSpace> const &>(( bp::arg("other") )))' % stype)
             # add array access to double components of state
             self.add_array_access(state,'double')
+
         # I don't know how to export a C-style array of an enum type
         for stype in ['Dubins', 'ReedsShepp']:
             self.ompl_ns.enumeration(stype + 'PathSegmentType').exclude()
@@ -251,10 +245,7 @@ class ompl_base_generator_t(code_generator_t):
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
         #self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()
         #self.std_ns.class_('map< unsigned int, ompl::base::PlannerDataEdge const*>').include()
-        if self.using_castxml:
-            mapUintToPlannerDataEdge_cls = self.std_ns.class_('map< unsigned int, const ompl::base::PlannerDataEdge *>')
-        else:
-            mapUintToPlannerDataEdge_cls = self.std_ns.class_('map< unsigned int, ompl::base::PlannerDataEdge const*>')
+        mapUintToPlannerDataEdge_cls = self.std_ns.class_('map< unsigned int, const ompl::base::PlannerDataEdge *>')
         mapUintToPlannerDataEdge_cls.rename('mapUintToPlannerDataEdge')
         mapUintToPlannerDataEdge_cls.indexing_suite.call_policies = \
             call_policies.return_value_policy(call_policies.reference_existing_object)
@@ -264,9 +255,8 @@ class ompl_base_generator_t(code_generator_t):
         self.replace_member_function(self.ompl_ns.class_('PlannerData').member_function('printGraphviz'))
         self.replace_member_function(self.ompl_ns.class_('PlannerData').member_function('printGraphML'))
         # serialize passes archive by reference which causes problems
-        if self.using_castxml:
-            self.ompl_ns.class_('PlannerDataVertex').member_functions('serialize').exclude()
-            self.ompl_ns.class_('PlannerDataEdge').member_functions('serialize').exclude()
+        self.ompl_ns.class_('PlannerDataVertex').member_functions('serialize').exclude()
+        self.ompl_ns.class_('PlannerDataEdge').member_functions('serialize').exclude()
 
         # add array indexing to the RealVectorState
         self.add_array_access(self.ompl_ns.class_('RealVectorStateSpace').class_('StateType'))
@@ -297,7 +287,7 @@ class ompl_base_generator_t(code_generator_t):
         self.replace_member_function(self.ompl_ns.class_('StateSpace').member_function('Diagram'))
         # make state space list printable
         self.replace_member_function(self.ompl_ns.class_('StateSpace').member_function('List'))
-        # add wrappers for boost::function types
+        # add wrappers for std::function types
         self.add_boost_function('bool(const ompl::base::GoalLazySamples*, ompl::base::State*)',
             'GoalSamplingFn', 'Goal sampling function')
         self.add_boost_function('void(const ompl::base::State*)',
@@ -370,10 +360,7 @@ class ompl_control_generator_t(code_generator_t):
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
         # rename STL vectors of certain types
-        if self.using_castxml:
-            self.std_ns.class_('vector< ompl::control::Control * >').rename('vectorControlPtr')
-        else:
-            self.std_ns.class_('vector< ompl::control::Control* >').rename('vectorControlPtr')
+        self.std_ns.class_('vector< ompl::control::Control * >').rename('vectorControlPtr')
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # force ControlSpace::allocControl to be exported.
@@ -433,7 +420,7 @@ class ompl_control_generator_t(code_generator_t):
         # code doesn't compile (don't know why)
         syclop.class_('Defaults').exclude()
 
-        # add wrappers for boost::function types
+        # add wrappers for std::function types
         self.add_boost_function('ompl::control::ControlSamplerPtr(const ompl::control::ControlSpace*)',
             'ControlSamplerAllocator', 'Control sampler allocator')
         self.add_boost_function('ompl::control::DirectedControlSamplerPtr(const ompl::control::SpaceInformation*)',
@@ -524,7 +511,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # LLVM's clang++ compiler doesn't like exporting this method because
         # the argument type (Grid::Cell) is protected
         self.ompl_ns.member_functions('computeImportance').exclude()
-        # add wrappers for boost::function types
+        # add wrappers for std::function types
         self.add_boost_function('unsigned int()',
             'NumNeighborsFn', 'Number of neighbors function')
         # self.add_boost_function('std::vector<ompl::geometric::PRM::Vertex>&(const ompl::geometric::PRM::Vertex)',
@@ -540,11 +527,8 @@ class ompl_geometric_generator_t(code_generator_t):
         self.ompl_ns.namespace('geometric').class_('SimpleSetup').add_registration_code(
             'def("getPlannerAllocator", &ompl::geometric::SimpleSetup::getPlannerAllocator, bp::return_value_policy< bp::copy_const_reference >())')
         # rename to something simpler
-        self.std_ns.class_('vector< boost::shared_ptr<ompl::geometric::BITstar::Vertex> >').rename('vectorBITstarVertexPtr')
-        if self.using_castxml:
-            self.std_ns.class_('vector<const ompl::base::State *>').exclude()
-        else:
-            self.std_ns.class_('vector<ompl::base::State const*>').exclude()
+        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >').rename('vectorBITstarVertexPtr')
+        self.std_ns.class_('vector<const ompl::base::State *>').exclude()
 
         # Py++ seems to get confused by some methods declared in one module
         # that are *not* overridden in a derived class in another module. The
@@ -581,9 +565,9 @@ class ompl_geometric_generator_t(code_generator_t):
         PRM_cls.add_wrapper_code("""
             virtual ::ompl::base::PlannerStatus solve( ::ompl::base::PlannerTerminationCondition const & ptc ) {
                 if( bp::override func_solve = this->get_override( "solve" ) )
-                    return func_solve( boost::ref(ptc) );
+                    return func_solve( std::ref(ptc) );
                 else{
-                    return default_solve( boost::ref(ptc) );
+                    return default_solve( std::ref(ptc) );
                 }
             }
 
@@ -630,10 +614,7 @@ class ompl_geometric_generator_t(code_generator_t):
             """.format(planner))
 
         # used in SPARS
-        if self.using_castxml:
-            self.std_ns.class_('deque<ompl::base::State *>').rename('dequeState')
-        else:
-            self.std_ns.class_('deque<ompl::base::State*>').rename('dequeState')
+        self.std_ns.class_('deque<ompl::base::State *>').rename('dequeState')
 
         # needed to able to set connection strategy for PRM
         # the PRM::Vertex type is typedef-ed to boost::graph_traits<Graph>::vertex_descriptor. This can
@@ -645,10 +626,7 @@ class ompl_geometric_generator_t(code_generator_t):
             self.ompl_ns.class_('KStrategy<unsigned long>').rename('KStrategy')
             self.ompl_ns.class_('KStarStrategy<unsigned long>').rename('KStarStrategy')
             # used in SPARStwo
-            if self.using_castxml:
-                self.std_ns.class_('map<unsigned long, ompl::base::State *>').rename('mapVertexToState')
-            else:
-                self.std_ns.class_('map<unsigned long, ompl::base::State*>').rename('mapVertexToState')
+            self.std_ns.class_('map<unsigned long, ompl::base::State *>').rename('mapVertexToState')
         except:
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').include()
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').rename('NearestNeighbors')
@@ -656,10 +634,7 @@ class ompl_geometric_generator_t(code_generator_t):
             self.ompl_ns.class_('KStrategy<unsigned int>').rename('KStrategy')
             self.ompl_ns.class_('KStarStrategy<unsigned int>').rename('KStarStrategy')
             # used in SPARStwo
-            if self.using_castxml:
-                self.std_ns.class_('map<unsigned int, ompl::base::State *>').rename('mapVertexToState')
-            else:
-                self.std_ns.class_('map<unsigned int, ompl::base::State*>').rename('mapVertexToState')
+            self.std_ns.class_('map<unsigned int, ompl::base::State *>').rename('mapVertexToState')
 
         try:
             # Exclude some functions from BIT* that cause some Py++ compilation problems:
@@ -722,18 +697,16 @@ class ompl_tools_generator_t(code_generator_t):
             'def(bp::init< ompl::geometric::SimpleSetup &, bp::optional< std::string const & > >(( bp::arg("setup"), bp::arg("name")=std::basic_string<char, std::char_traits<char>, std::allocator<char> >() )) )')
         benchmark_cls.add_wrapper_code(
             """Benchmark_wrapper(::ompl::geometric::SimpleSetup & setup, const ::std::string & name=std::string() )
-        : ompl::tools::Benchmark( boost::ref(setup), name )
+        : ompl::tools::Benchmark( std::ref(setup), name )
           , bp::wrapper< ompl::tools::Benchmark >(){}""")
         benchmark_cls.add_registration_code(
             'def(bp::init< ompl::control::SimpleSetup &, bp::optional< std::string const & > >(( bp::arg("setup"), bp::arg("name")=std::basic_string<char, std::char_traits<char>, std::allocator<char> >() )) )')
         benchmark_cls.add_wrapper_code(
             """Benchmark_wrapper(::ompl::control::SimpleSetup & setup, const ::std::string & name=std::string() )
-          : ompl::tools::Benchmark( boost::ref(setup), name )
+          : ompl::tools::Benchmark( std::ref(setup), name )
             , bp::wrapper< ompl::tools::Benchmark >(){}""")
         # don't want to export iostream
         benchmark_cls.member_function('saveResultsToStream').exclude()
-        # code generation fails because of same bug in gxxcml that requires us
-        # to patch the generated code with workaround_for_gccxml_bug.cmake
         self.ompl_ns.member_functions('addPlannerAllocator').exclude()
         benchmark_cls.member_functions(lambda method: method.name.startswith('set') and method.name.endswith('Event')).exclude()
         benchmark_cls.add_registration_code(

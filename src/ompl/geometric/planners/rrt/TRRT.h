@@ -266,7 +266,7 @@ namespace ompl
             base::StateSamplerPtr                          sampler_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
-            boost::shared_ptr< NearestNeighbors<Motion*> > nearestNeighbors_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nearestNeighbors_;
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
             double                                         goalBias_;

@@ -122,7 +122,7 @@ void ompl::geometric::TRRT::setup()
         nearestNeighbors_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
 
     // Set the distance function
-    nearestNeighbors_->setDistanceFunction(boost::bind(&TRRT::distanceFunction, this, _1, _2));
+    nearestNeighbors_->setDistanceFunction(std::bind(&TRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 
     // Setup TRRT specific variables ---------------------------------------------------------
     temp_ = initTemperature_;

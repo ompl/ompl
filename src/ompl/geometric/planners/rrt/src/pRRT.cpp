@@ -37,7 +37,7 @@
 #include "ompl/geometric/planners/rrt/pRRT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
-#include <boost/thread/thread.hpp>
+#include <thread>
 #include <limits>
 
 ompl::geometric::pRRT::pRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "pRRT"),
@@ -70,7 +70,7 @@ void ompl::geometric::pRRT::setup()
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(boost::bind(&pRRT::distanceFunction, this, _1, _2));
+    nn_->setDistanceFunction(std::bind(&pRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void ompl::geometric::pRRT::clear()
@@ -204,9 +204,9 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
     sol.approxsol = NULL;
     sol.approxdif = std::numeric_limits<double>::infinity();
 
-    std::vector<boost::thread*> th(threadCount_);
+    std::vector<std::thread*> th(threadCount_);
     for (unsigned int i = 0 ; i < threadCount_ ; ++i)
-        th[i] = new boost::thread(boost::bind(&pRRT::threadSolve, this, i, ptc, &sol));
+        th[i] = new std::thread(std::bind(&pRRT::threadSolve, this, i, ptc, &sol));
     for (unsigned int i = 0 ; i < threadCount_ ; ++i)
     {
         th[i]->join();

@@ -129,7 +129,7 @@ void KoulesSetup::initialize(unsigned int numKoules, const std::string& plannerN
     si_->setMinMaxControlDuration(propagationMinSteps, propagationMaxSteps);
     // set directed control sampler; when using the PDST planner, propagate as long as possible
     si_->setDirectedControlSamplerAllocator(
-        boost::bind(&KoulesDirectedControlSamplerAllocator, _1, getGoal(), plannerName == "pdst"));
+        std::bind(&KoulesDirectedControlSamplerAllocator, std::placeholders::_1, getGoal(), plannerName == "pdst"));
     // set planner
     setPlanner(getConfiguredPlannerInstance(plannerName));
     // set validity checker

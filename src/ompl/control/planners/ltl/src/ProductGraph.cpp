@@ -1,3 +1,39 @@
+/*********************************************************************
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2012, Rice University
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Rice University nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
+
+/* Author: Matt Maly */
+
 #include "ompl/control/planners/ltl/ProductGraph.h"
 #include "ompl/base/State.h"
 #include "ompl/control/planners/ltl/Automaton.h"
@@ -6,12 +42,12 @@
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/Console.h"
 #include <algorithm>
-#include <boost/function.hpp>
+#include <functional>
 #include <boost/functional/hash.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
-#include <boost/unordered_map.hpp>
-#include <boost/unordered_set.hpp>
+#include <unordered_map>
+#include <unordered_set>
 #include <map>
 #include <ostream>
 #include <queue>
@@ -30,19 +66,19 @@ bool ompl::control::ProductGraph::State::isValid(void) const
     return cosafeState != -1 && safeState != -1;
 }
 
+std::size_t ompl::control::ProductGraph::HashState::operator()(const ompl::control::ProductGraph::State &s) const
+{
+    std::size_t hash = 0;
+    boost::hash_combine(hash, s.decompRegion);
+    boost::hash_combine(hash, s.cosafeState);
+    boost::hash_combine(hash, s.safeState);
+    return hash;
+}
+
 namespace ompl
 {
     namespace control
     {
-        std::size_t hash_value(const ProductGraph::State& s)
-        {
-            std::size_t hash = 0;
-            boost::hash_combine(hash, s.decompRegion);
-            boost::hash_combine(hash, s.cosafeState);
-            boost::hash_combine(hash, s.safeState);
-            return hash;
-        }
-
         std::ostream& operator<<(std::ostream& out, const ProductGraph::State& s)
         {
             out << "(" << s.decompRegion << "," << s.cosafeState << ",";
@@ -106,10 +142,10 @@ const ompl::control::AutomatonPtr& ompl::control::ProductGraph::getSafetyAutom()
 std::vector<ompl::control::ProductGraph::State*>
 ompl::control::ProductGraph::computeLead(
     ProductGraph::State* start,
-    const boost::function<double(ProductGraph::State*, ProductGraph::State*)>& edgeWeight)
+    const std::function<double(ProductGraph::State*, ProductGraph::State*)>& edgeWeight)
 {
-	std::vector<GraphType::vertex_descriptor> parents(boost::num_vertices(graph_));
-	std::vector<double> distances(boost::num_vertices(graph_));
+    std::vector<GraphType::vertex_descriptor> parents(boost::num_vertices(graph_));
+    std::vector<double> distances(boost::num_vertices(graph_));
     EdgeIter ei, eend;
     //first build up the edge weights
     for (boost::tie(ei,eend) = boost::edges(graph_); ei != eend; ++ei)
@@ -119,45 +155,45 @@ ompl::control::ProductGraph::computeLead(
         graph_[*ei].cost = edgeWeight(graph_[src], graph_[target]);
     }
     int startIndex = stateToIndex_[start];
-	boost::dijkstra_shortest_paths(graph_, boost::vertex(startIndex,graph_),
-		boost::weight_map(get(&Edge::cost, graph_)).distance_map(
-			boost::make_iterator_property_map(distances.begin(), get(boost::vertex_index, graph_)
-		)).predecessor_map(
-			boost::make_iterator_property_map(parents.begin(), get(boost::vertex_index, graph_))
-		)
-	);
-	//pick state from solutionStates_ such that distance[state] is minimized
-	State* bestSoln = *solutionStates_.begin();
-	double cost = distances[boost::vertex(stateToIndex_[bestSoln], graph_)];
-	for (std::vector<State*>::const_iterator s = solutionStates_.begin()+1; s != solutionStates_.end(); ++s)
-	{
-		if (distances[boost::vertex(stateToIndex_[*s], graph_)] < cost)
-		{
-			cost = distances[boost::vertex(stateToIndex_[*s], graph_)];
-			bestSoln = *s;
-		}
-	}
-	//build lead from bestSoln parents
-	std::stack<State*> leadStack;
-	while (!(bestSoln == start))
-	{
-		leadStack.push(bestSoln);
-		bestSoln = graph_[parents[boost::vertex(stateToIndex_[bestSoln], graph_)]];
-	}
-	leadStack.push(bestSoln);
+    boost::dijkstra_shortest_paths(graph_, boost::vertex(startIndex,graph_),
+        boost::weight_map(get(&Edge::cost, graph_)).distance_map(
+            boost::make_iterator_property_map(distances.begin(), get(boost::vertex_index, graph_)
+        )).predecessor_map(
+            boost::make_iterator_property_map(parents.begin(), get(boost::vertex_index, graph_))
+        )
+    );
+    //pick state from solutionStates_ such that distance[state] is minimized
+    State* bestSoln = *solutionStates_.begin();
+    double cost = distances[boost::vertex(stateToIndex_[bestSoln], graph_)];
+    for (std::vector<State*>::const_iterator s = solutionStates_.begin()+1; s != solutionStates_.end(); ++s)
+    {
+        if (distances[boost::vertex(stateToIndex_[*s], graph_)] < cost)
+        {
+            cost = distances[boost::vertex(stateToIndex_[*s], graph_)];
+            bestSoln = *s;
+        }
+    }
+    //build lead from bestSoln parents
+    std::stack<State*> leadStack;
+    while (!(bestSoln == start))
+    {
+        leadStack.push(bestSoln);
+        bestSoln = graph_[parents[boost::vertex(stateToIndex_[bestSoln], graph_)]];
+    }
+    leadStack.push(bestSoln);
 
-	std::vector<State*> lead;
-	while (!leadStack.empty())
-	{
-		lead.push_back(leadStack.top());
-		leadStack.pop();
+    std::vector<State*> lead;
+    while (!leadStack.empty())
+    {
+        lead.push_back(leadStack.top());
+        leadStack.pop();
         // Truncate the lead as early when it hits the desired automaton states
         // \todo: more elegant way to do this?
         if (lead.back()->cosafeState == solutionStates_.front()->cosafeState
             && lead.back()->safeState == solutionStates_.front()->safeState)
             break;
-	}
-	return lead;
+    }
+    return lead;
 }
 
 void ompl::control::ProductGraph::clear()
@@ -166,18 +202,18 @@ void ompl::control::ProductGraph::clear()
     stateToIndex_.clear();
     startState_ = NULL;
     graph_.clear();
-    boost::unordered_map<State,State*>::iterator i;
+    std::unordered_map<State,State*,HashState>::iterator i;
     for (i = stateToPtr_.begin(); i != stateToPtr_.end(); ++i)
         delete i->second;
     stateToPtr_.clear();
 }
 
-void ompl::control::ProductGraph::buildGraph(State* start, const boost::function<void(State*)>& initialize)
+void ompl::control::ProductGraph::buildGraph(State* start, const std::function<void(State*)>& initialize)
 {
     graph_.clear();
     solutionStates_.clear();
     std::queue<State*> q;
-    boost::unordered_set<State*> processed;
+    std::unordered_set<State*> processed;
     std::vector<int> regNeighbors;
     VertexIndexMap index = get(boost::vertex_index, graph_);
 
@@ -189,8 +225,8 @@ void ompl::control::ProductGraph::buildGraph(State* start, const boost::function
     processed.insert(startState_);
 
     OMPL_INFORM("Building graph from start state (%u,%u,%u) with index %d",
-		startState_->decompRegion, startState_->cosafeState,
-		startState_->safeState, stateToIndex_[startState_]);
+        startState_->decompRegion, startState_->cosafeState,
+        startState_->safeState, stateToIndex_[startState_]);
 
     while (!q.empty())
     {
@@ -213,18 +249,18 @@ void ompl::control::ProductGraph::buildGraph(State* start, const boost::function
             State* nextState = getState(current, *r);
             if (!nextState->isValid())
                 continue;
-			//if this state is newly discovered,
-			//then we can dynamically allocate a copy of it
+            //if this state is newly discovered,
+            //then we can dynamically allocate a copy of it
             //and add the new pointer to the graph.
             //either way, we need the pointer
-			if (processed.find(nextState) == processed.end())
-			{
-				const GraphType::vertex_descriptor next = boost::add_vertex(graph_);
+            if (processed.find(nextState) == processed.end())
+            {
+                const GraphType::vertex_descriptor next = boost::add_vertex(graph_);
                 stateToIndex_[nextState] = index[next];
-				graph_[boost::vertex(next,graph_)] = nextState;
-				q.push(nextState);
+                graph_[boost::vertex(next,graph_)] = nextState;
+                q.push(nextState);
                 processed.insert(nextState);
-			}
+            }
 
             //whether or not the neighbor is newly discovered,
             //we still need to add the edge to the graph
@@ -234,7 +270,7 @@ void ompl::control::ProductGraph::buildGraph(State* start, const boost::function
             //graph_[edge].src = index[v];
             //graph_[edge].dest = stateToIndex_[nextState];
         }
-		regNeighbors.clear();
+        regNeighbors.clear();
     }
     if (solutionStates_.empty())
     {
@@ -284,9 +320,9 @@ ompl::control::ProductGraph::State* ompl::control::ProductGraph::getState(const 
     s.decompRegion = decomp_->locateRegion(cs);
     s.cosafeState = cosafe;
     s.safeState = safe;
-	State*& ret = stateToPtr_[s];
-	if (ret == NULL)
-		ret = new State(s);
+    State*& ret = stateToPtr_[s];
+    if (ret == NULL)
+        ret = new State(s);
     return ret;
 }
 
@@ -297,9 +333,9 @@ ompl::control::ProductGraph::State* ompl::control::ProductGraph::getState(const 
     const World nextWorld = decomp_->worldAtRegion(nextRegion);
     s.cosafeState = cosafety_->step(parent->cosafeState, nextWorld);
     s.safeState = safety_->step(parent->safeState, nextWorld);
-	State*& ret = stateToPtr_[s];
-	if (ret == NULL)
-		ret = new State(s);
+    State*& ret = stateToPtr_[s];
+    if (ret == NULL)
+        ret = new State(s);
     return ret;
 }
 
