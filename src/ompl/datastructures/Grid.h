@@ -115,14 +115,14 @@ namespace ompl
         /// Check if a cell exists at the specified coordinate
         bool has(const Coord &coord) const
         {
-            return getCell(coord) != NULL;
+            return getCell(coord) != nullptr;
         }
 
         /// Get the cell at a specified coordinate
         Cell* getCell(const Coord &coord) const
         {
             iterator pos = hash_.find(const_cast<Coord*>(&coord));
-            Cell *c = (pos != hash_.end()) ? pos->second : NULL;
+            Cell *c = (pos != hash_.end()) ? pos->second : nullptr;
             return c;
         }
 
@@ -150,14 +150,14 @@ namespace ompl
                 coord[i]--;
 
                 iterator pos = hash_.find(&coord);
-                Cell *cell = (pos != hash_.end()) ? pos->second : NULL;
+                Cell *cell = (pos != hash_.end()) ? pos->second : nullptr;
 
                 if (cell)
                     list.push_back(cell);
                 coord[i] += 2;
 
                 pos = hash_.find(&coord);
-                cell = (pos != hash_.end()) ? pos->second : NULL;
+                cell = (pos != hash_.end()) ? pos->second : nullptr;
 
                 if (cell)
                     list.push_back(cell);
@@ -223,7 +223,7 @@ namespace ompl
         /// Return the list of future neighbors.
         /// Note: this call only creates the cell, but does not add it to the grid.
         /// It however updates the neighbor count for neighboring cells
-        virtual Cell* createCell(const Coord& coord, CellArray *nbh = NULL)
+        virtual Cell* createCell(const Coord& coord, CellArray *nbh = nullptr)
         {
             Cell *cell = new Cell();
             cell->coord = coord;

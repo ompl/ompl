@@ -41,6 +41,7 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include <functional>
+#include <thread>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
 #include <boost/property_map/vector_property_map.hpp>
@@ -177,16 +178,16 @@ void ompl::geometric::SPARS::clear()
 void ompl::geometric::SPARS::freeMemory()
 {
     foreach (DenseVertex v, boost::vertices(g_))
-        if( stateProperty_[v] != NULL )
+        if( stateProperty_[v] != nullptr )
         {
             si_->freeState(stateProperty_[v]);
-            stateProperty_[v] = NULL;
+            stateProperty_[v] = nullptr;
         }
     foreach (SparseVertex n, boost::vertices(s_))
-        if( sparseStateProperty_[n] != NULL )
+        if( sparseStateProperty_[n] != nullptr )
         {
             si_->freeState(sparseStateProperty_[n]);
-            sparseStateProperty_[n] = NULL;
+            sparseStateProperty_[n] = nullptr;
         }
     s_.clear();
     g_.clear();
@@ -294,8 +295,8 @@ void ompl::geometric::SPARS::checkQueryStateInitialization()
     {
         sparseQueryVertex_ = boost::add_vertex(s_);
         queryVertex_ = boost::add_vertex(g_);
-        sparseStateProperty_[sparseQueryVertex_] = NULL;
-        stateProperty_[queryVertex_] = NULL;
+        sparseStateProperty_[sparseQueryVertex_] = nullptr;
+        stateProperty_[queryVertex_] = nullptr;
     }
 }
 
@@ -743,7 +744,7 @@ void ompl::geometric::SPARS::getSparseNeighbors(base::State *inState, std::vecto
     graphNeighborhood.clear();
     snn_->nearestR(sparseQueryVertex_, sparseDelta_, graphNeighborhood);
 
-    sparseStateProperty_[sparseQueryVertex_] = NULL;
+    sparseStateProperty_[sparseQueryVertex_] = nullptr;
 }
 
 void ompl::geometric::SPARS::filterVisibleNeighbors(base::State *inState, const std::vector<SparseVertex> &graphNeighborhood,
@@ -815,7 +816,7 @@ void ompl::geometric::SPARS::updateRepresentatives(SparseVertex v)
 
     nn_->nearestR( queryVertex_, sparseDelta_ + denseDelta_, dense_points );
 
-    stateProperty_[ queryVertex_ ] = NULL;
+    stateProperty_[ queryVertex_ ] = nullptr;
 
     //For each of those points
     for (std::size_t i = 0 ; i < dense_points.size() ; ++i)

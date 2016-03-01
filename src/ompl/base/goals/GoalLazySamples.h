@@ -39,6 +39,7 @@
 
 #include "ompl/base/goals/GoalStates.h"
 #include <thread>
+#include <mutex>
 #include <functional>
 #include <limits>
 

@@ -197,13 +197,13 @@ namespace ompl
             };
 
             /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */
-            Benchmark(geometric::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(&setup), csetup_(NULL)
+            Benchmark(geometric::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(&setup), csetup_(nullptr)
             {
                 exp_.name = name;
             }
 
             /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */
-            Benchmark(control::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(NULL), csetup_(&setup)
+            Benchmark(control::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(nullptr), csetup_(&setup)
             {
                 exp_.name = name;
             }

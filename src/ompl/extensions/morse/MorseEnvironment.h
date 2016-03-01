@@ -45,7 +45,7 @@
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
 
-#include "thread"
+#include <mutex>
 
 #include <limits>
 #include <vector>

@@ -36,7 +36,7 @@
 #include "ompl/util/Exception.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
-#include <thread>
+#include <mutex>
 #include <boost/scoped_ptr.hpp>
 #include <functional>
 #include <numeric>
@@ -142,7 +142,7 @@ namespace ompl
             loc.stateLocation.space = s;
             substateMap[s->getName()] = loc.stateLocation;
             State *test = s->allocState();
-            if (s->getValueAddressAtIndex(test, 0) != NULL)
+            if (s->getValueAddressAtIndex(test, 0) != nullptr)
             {
                 loc.index = 0;
                 locationsMap[s->getName()] = loc;
@@ -156,7 +156,7 @@ namespace ompl
                             locationsMap[name] = loc;
                     }
                     locationsArray.push_back(loc);
-                    while (s->getValueAddressAtIndex(test, ++loc.index) != NULL)
+                    while (s->getValueAddressAtIndex(test, ++loc.index) != nullptr)
                     {
                         if (s->getType() == base::STATE_SPACE_REAL_VECTOR)
                         {
@@ -295,7 +295,7 @@ const ompl::base::State* ompl::base::StateSpace::getSubstateAtLocation(const Sta
 
 double* ompl::base::StateSpace::getValueAddressAtIndex(State* /*state*/, const unsigned int /*index*/) const
 {
-    return NULL;
+    return nullptr;
 }
 
 const double* ompl::base::StateSpace::getValueAddressAtIndex(const State *state, const unsigned int index) const
@@ -347,13 +347,13 @@ const double* ompl::base::StateSpace::getValueAddressAtLocation(const State *sta
 double* ompl::base::StateSpace::getValueAddressAtName(State *state, const std::string &name) const
 {
     std::map<std::string, ValueLocation>::const_iterator it = valueLocationsByName_.find(name);
-    return (it != valueLocationsByName_.end()) ? getValueAddressAtLocation(state, it->second) : NULL;
+    return (it != valueLocationsByName_.end()) ? getValueAddressAtLocation(state, it->second) : nullptr;
 }
 
 const double* ompl::base::StateSpace::getValueAddressAtName(const State *state, const std::string &name) const
 {
     std::map<std::string, ValueLocation>::const_iterator it = valueLocationsByName_.find(name);
-    return (it != valueLocationsByName_.end()) ? getValueAddressAtLocation(state, it->second) : NULL;
+    return (it != valueLocationsByName_.end()) ? getValueAddressAtLocation(state, it->second) : nullptr;
 }
 
 unsigned int ompl::base::StateSpace::getSerializationLength() const
@@ -600,7 +600,7 @@ void ompl::base::StateSpace::sanityChecks(double zero, double eps, unsigned int 
         State *s1 = allocState();
         State *s2 = allocState();
         StateSamplerPtr ss = allocStateSampler();
-        char *serialization = NULL;
+        char *serialization = nullptr;
         if ((flags & STATESPACE_SERIALIZATION) && getSerializationLength() > 0)
             serialization = new char[getSerializationLength()];
         for (unsigned int i = 0 ; i < magic::TEST_STATE_COUNT ; ++i)
@@ -1170,7 +1170,7 @@ double* ompl::base::CompoundStateSpace::getValueAddressAtIndex(State *state, con
             else
                 break;
         }
-    return NULL;
+    return nullptr;
 }
 
 void ompl::base::CompoundStateSpace::printState(const State *state, std::ostream &out) const

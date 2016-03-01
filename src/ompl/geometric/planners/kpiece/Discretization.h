@@ -119,10 +119,10 @@ namespace ompl
             /** \brief The signature of a function that frees the memory for a motion */
             typedef typename std::function<void(Motion*)> FreeMotionFn;
 
-            Discretization(const FreeMotionFn &freeMotion) : grid_(0), size_(0), iteration_(1), recentCell_(NULL),
+            Discretization(const FreeMotionFn &freeMotion) : grid_(0), size_(0), iteration_(1), recentCell_(nullptr),
                                                              freeMotion_(freeMotion)
             {
-                grid_.onCellUpdate(computeImportance, NULL);
+                grid_.onCellUpdate(computeImportance, nullptr);
                 selectBorderFraction_ = 0.9;
             }
 
@@ -163,7 +163,7 @@ namespace ompl
                 freeMemory();
                 size_ = 0;
                 iteration_ = 1;
-                recentCell_ = NULL;
+                recentCell_ = nullptr;
             }
 
             void countIteration()
@@ -297,7 +297,7 @@ namespace ompl
                 for (unsigned int i = 0 ; i < cdata.size() ; ++i)
                     for (unsigned int j = 0 ; j < cdata[i]->motions.size() ; ++j)
                     {
-                        if (cdata[i]->motions[j]->parent == NULL)
+                        if (cdata[i]->motions[j]->parent == nullptr)
                         {
                             if (start)
                                 data.addStartVertex(base::PlannerDataVertex(cdata[i]->motions[j]->state, tag));

@@ -57,6 +57,7 @@
 #include <string>
 #include <iostream>
 #include <thread>
+#include <mutex>
 #include <boost/noncopyable.hpp>
 
 #include "ompl/util/Time.h"

@@ -327,7 +327,7 @@ namespace ompl
                 0 and s2 being at t = 1. This function assumes s1 is valid.
                 \param s1 start state of the motion to be checked (assumed to be valid)
                 \param s2 final state of the motion to be checked
-                \param lastValid first: storage for the last valid state (may be NULL); this need not be different from \e s1 or \e s2. second: the time (between 0 and 1) of  the last valid state, on the motion from \e s1 to \e s2 */
+                \param lastValid first: storage for the last valid state (may be nullptr); this need not be different from \e s1 or \e s2. second: the time (between 0 and 1) of  the last valid state, on the motion from \e s1 to \e s2 */
             bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const
             {
                 return motionValidator_->checkMotion(s1, s2, lastValid);

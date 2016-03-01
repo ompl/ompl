@@ -99,7 +99,7 @@ ompl::base::PlannerStatus ompl::geometric::AnytimePathShortening::solve(const om
     base::Goal *goal = pdef_->getGoal().get();
     std::vector<std::thread*> threads(planners_.size());
     geometric::PathHybridization phybrid(si_);
-    base::Path *bestSln = NULL;
+    base::Path *bestSln = nullptr;
 
     base::OptimizationObjectivePtr opt = pdef_->getOptimizationObjective();
     if (!opt)

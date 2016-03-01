@@ -42,7 +42,7 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/tools/config/SelfConfig.h"
 
-#include <thread>
+#include <mutex>
 
 #include <vector>
 

@@ -179,10 +179,10 @@ namespace ompl
             public:
 
                 /// \brief Default constructor
-                Motion() : state(NULL), parent(NULL), root(NULL) {}
+                Motion() : state(nullptr), parent(nullptr), root(nullptr) {}
 
                 /// \brief Constructor that allocates memory for the state
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), root(NULL) {}
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), root(nullptr) {}
 
                 ~Motion() {}
 
@@ -211,7 +211,7 @@ namespace ompl
 
             /// \brief Add a state to the given tree.  The motion created
             /// is returned.
-            Motion* addMotion(const base::State* state, TreeData& tree, Motion* parent = NULL);
+            Motion* addMotion(const base::State* state, TreeData& tree, Motion* parent = nullptr);
 
             /// \brief Transition test that filters transitions based on the
             /// motion cost.  If the motion cost is near or below zero, the motion

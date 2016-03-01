@@ -49,7 +49,7 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
 
     goalBias_ = 0.05;
     maxDistance_ = 0.0; // set in setup()
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     Planner::declareParam<double>("range", this, &TRRT::setRange, &TRRT::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &TRRT::setGoalBias, &TRRT::getGoalBias, "0.:.05:1.");
@@ -80,7 +80,7 @@ void ompl::geometric::TRRT::clear()
     freeMemory();
     if (nearestNeighbors_)
         nearestNeighbors_->clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     // Clear TRRT specific variables ---------------------------------------------------------
     temp_ = initTemperature_;
@@ -196,9 +196,9 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
     // Solver variables ------------------------------------------------------------------------------------
 
     // the final solution
-    Motion *solution  = NULL;
+    Motion *solution  = nullptr;
     // the approximate solution, returned if no final solution found
-    Motion *approxSolution = NULL;
+    Motion *approxSolution = nullptr;
     // track the distance from goal to closest solution yet found
     double  approxDifference = std::numeric_limits<double>::infinity();
 
@@ -323,20 +323,20 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
     bool approximate = false;
 
     // Substitute an empty solution with the best approximation
-    if (solution == NULL)
+    if (solution == nullptr)
     {
         solution = approxSolution;
         approximate = true;
     }
 
     // Generate solution path for real/approx solution
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         lastGoalMotion_ = solution;
 
         // construct the solution path
         std::vector<Motion*> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;
@@ -376,7 +376,7 @@ void ompl::geometric::TRRT::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        if (motions[i]->parent == NULL)
+        if (motions[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
         else
             data.addEdge(base::PlannerDataVertex(motions[i]->parent->state),

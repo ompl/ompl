@@ -37,6 +37,7 @@
 #include "ompl/geometric/planners/cforest/CForest.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include <thread>
 
 ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::Planner(si, "CForest")
 {

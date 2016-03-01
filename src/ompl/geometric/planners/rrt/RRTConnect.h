@@ -106,13 +106,13 @@ namespace ompl
             {
             public:
 
-                Motion() : root(NULL), state(NULL), parent(NULL)
+                Motion() : root(nullptr), state(nullptr), parent(nullptr)
                 {
-                    parent = NULL;
-                    state  = NULL;
+                    parent = nullptr;
+                    state  = nullptr;
                 }
 
-                Motion(const base::SpaceInformationPtr &si) : root(NULL), state(si->allocState()), parent(NULL)
+                Motion(const base::SpaceInformationPtr &si) : root(nullptr), state(si->allocState()), parent(nullptr)
                 {
                 }
 

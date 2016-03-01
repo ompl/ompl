@@ -40,12 +40,12 @@
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/functional/hash.hpp>
 #include <unordered_map>
 #include "ompl/control/planners/PlannerIncludes.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 #include "ompl/datastructures/PDF.h"
+#include "ompl/util/Hash.h"
 #include <map>
 #include <vector>
 
@@ -252,11 +252,11 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state(NULL), control(NULL), parent(NULL), steps(0)
+                Motion() : state(nullptr), control(nullptr), parent(nullptr), steps(0)
                 {
                 }
                 /** \brief Constructor that allocates memory for the state and the control */
-                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), parent(NULL), steps(0)
+                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), parent(nullptr), steps(0)
                 {
                 }
                 virtual ~Motion()
@@ -297,7 +297,7 @@ namespace ompl
                 {
                     motions.clear();
                     covGridCells.clear();
-                    pdfElem = NULL;
+                    pdfElem = nullptr;
                 }
 
                 /** \brief The cells of the underlying coverage grid that contain tree motions from this region */
@@ -407,7 +407,7 @@ namespace ompl
                 size_t operator()(const std::pair<int,int> &p) const
                 {
                     std::size_t hash = std::hash<int>()(p.first);
-                    boost::hash_combine(hash, p.second);
+                    hash_combine(hash, p.second);
                     return hash;
                 }
             };

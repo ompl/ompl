@@ -346,7 +346,7 @@ namespace ompl
             /** \brief Many states contain a number of double values. This function provides a means to get the
                 memory address of a double value from state \e state located at position \e index. The first double value
                 is returned for \e index = 0. If \e index is too large (does not point to any double values in the state),
-                the return value is NULL.
+                the return value is nullptr.
 
                 \note This function does @b not map a state to an
                 array of doubles. There may be components of a state

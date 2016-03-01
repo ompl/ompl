@@ -52,10 +52,10 @@ ompl::geometric::LazyLBTRRT::LazyLBTRRT(const base::SpaceInformationPtr &si) :
     goalBias_(0.05),
     maxDistance_(0.0),
     epsilon_(0.4),
-    lastGoalMotion_(NULL),
-    goalMotion_(NULL),
-    LPAstarApx_(NULL),
-    LPAstarLb_(NULL),
+    lastGoalMotion_(nullptr),
+    goalMotion_(nullptr),
+    LPAstarApx_(nullptr),
+    LPAstarLb_(nullptr),
     iterations_(0)
 {
     specs_.approximateSolutions = true;
@@ -86,7 +86,7 @@ void ompl::geometric::LazyLBTRRT::clear(void)
         nn_->clear();
     graphLb_.clear();
     graphApx_.clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     iterations_ = 0;
     bestCost_ = std::numeric_limits<double>::infinity();
@@ -205,7 +205,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
         double d = std::get<2>(res);
 
         iterations_++;
-        if (dstate != NULL)
+        if (dstate != nullptr)
         {
             /* create a motion */
             Motion* motion = createMotion(goal_s, dstate);
@@ -280,7 +280,7 @@ ompl::geometric::LazyLBTRRT::rrtExtend(const base::GoalSampleableRegion* goal_s,
     }
 
     if (checkMotion(nmotion->state_, dstate) == false)
-        return std::make_tuple((Motion*)NULL, (base::State*)NULL, 0.0);
+        return std::make_tuple((Motion*)nullptr, (base::State*)nullptr, 0.0);
 
     // motion is valid
     double dist = 0.0;
@@ -308,7 +308,7 @@ void ompl::geometric::LazyLBTRRT::rrt(const base::PlannerTerminationCondition &p
         double d = std::get<2>(res);
 
         iterations_++;
-        if (dstate != NULL)
+        if (dstate != nullptr)
         {
             /* create a motion */
             Motion* motion = createMotion(goal_s, dstate);

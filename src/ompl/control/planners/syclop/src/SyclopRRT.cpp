@@ -43,7 +43,7 @@ void ompl::control::SyclopRRT::setup()
     Syclop::setup();
     sampler_ = si_->allocStateSampler();
     controlSampler_ = siC_->allocDirectedControlSampler();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     // Create a default GNAT nearest neighbors structure if the user doesn't want
     // the default regionalNN check from the discretization
@@ -61,7 +61,7 @@ void ompl::control::SyclopRRT::clear()
     freeMemory();
     if (nn_)
         nn_->clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 }
 
 void ompl::control::SyclopRRT::getPlannerData(base::PlannerData &data) const

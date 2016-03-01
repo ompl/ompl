@@ -147,7 +147,7 @@ namespace ompl
             /** \brief Many controls contain a number of double values. This function provides a means to get the
                 memory address of a double value from a control \e control located at position \e index. The first double value
                 is returned for \e index = 0. If \e index is too large (does not point to any double values in the control),
-                the return value is NULL. */
+                the return value is nullptr. */
             virtual double* getValueAddressAtIndex(Control *control, const unsigned int index) const;
 
             /** \brief Print a control to a stream */

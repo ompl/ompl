@@ -52,9 +52,9 @@ ompl::geometric::PathHybridization::PathHybridization(const base::SpaceInformati
     name_("PathHybridization")
 {
     root_ = boost::add_vertex(g_);
-    stateProperty_[root_] = NULL;
+    stateProperty_[root_] = nullptr;
     goal_ = boost::add_vertex(g_);
-    stateProperty_[goal_] = NULL;
+    stateProperty_[goal_] = nullptr;
 }
 
 ompl::geometric::PathHybridization::~PathHybridization()
@@ -68,9 +68,9 @@ void ompl::geometric::PathHybridization::clear()
 
     g_.clear();
     root_ = boost::add_vertex(g_);
-    stateProperty_[root_] = NULL;
+    stateProperty_[root_] = nullptr;
     goal_ = boost::add_vertex(g_);
-    stateProperty_[goal_] = NULL;
+    stateProperty_[goal_] = nullptr;
 }
 
 void ompl::geometric::PathHybridization::print(std::ostream &out) const

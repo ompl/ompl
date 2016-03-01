@@ -58,7 +58,7 @@ namespace ompl
             {
             }
 
-            /** \brief Equivalent to calling isSatisfied(const State *, double *) with a NULL second argument. */
+            /** \brief Equivalent to calling isSatisfied(const State *, double *) with a nullptr second argument. */
             virtual bool isSatisfied(const State *st) const;
 
             /** \brief Decide whether a given state is part of the

@@ -163,13 +163,13 @@ namespace ompl
             {
             public:
 
-                Motion() : state_(NULL), parentApx_(NULL), costApx_(0.0)
+                Motion() : state_(nullptr), parentApx_(nullptr), costApx_(0.0)
                 {
                 }
 
                 /** \brief Constructor that allocates memory for the state */
                 Motion(const base::SpaceInformationPtr &si)
-                    : state_(si->allocState()), parentApx_(NULL), costApx_(0.0)
+                    : state_(si->allocState()), parentApx_(nullptr), costApx_(0.0)
                 {
                 }
 

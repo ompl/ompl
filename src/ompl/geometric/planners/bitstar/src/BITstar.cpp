@@ -532,7 +532,7 @@ namespace ompl
             else
             {
                 //An empty edge:
-                nextEdge = std::make_pair<ompl::base::State*, ompl::base::State*>(NULL, NULL);
+                nextEdge = std::make_pair<ompl::base::State*, ompl::base::State*>(nullptr, nullptr);
             }
 
             return nextEdge;
@@ -961,7 +961,7 @@ namespace ompl
             else
             {
                 //We are not, give it empty NN structs
-                numPruned = intQueue_->resort(VertexPtrNNPtr(), VertexPtrNNPtr(), NULL);
+                numPruned = intQueue_->resort(VertexPtrNNPtr(), VertexPtrNNPtr(), nullptr);
             }
 
             //The number of vertices and samples pruned are incrementally updated.
@@ -1057,7 +1057,7 @@ namespace ompl
             do
             {
                 //Variable
-                //A new goal pointer, if there are none, it will be NULL.
+                //A new goal pointer, if there are none, it will be nullptr.
                 //We will wait for the duration of PTC for a new goal to appear.
                 const ompl::base::State* newGoal = Planner::pis_.nextGoal(ptc);
 

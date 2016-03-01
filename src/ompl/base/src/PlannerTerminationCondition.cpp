@@ -53,7 +53,7 @@ namespace ompl
             fn_(fn),
             period_(period),
             terminate_(false),
-            thread_(NULL),
+            thread_(nullptr),
             evalValue_(false),
             signalThreadStop_(false)
             {
@@ -102,7 +102,7 @@ namespace ompl
                 {
                     thread_->join();
                     delete thread_;
-                    thread_ = NULL;
+                    thread_ = nullptr;
                 }
             }
 

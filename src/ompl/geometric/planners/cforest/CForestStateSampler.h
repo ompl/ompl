@@ -39,7 +39,7 @@
 
 #include "ompl/base/StateSpace.h"
 
-#include <thread>
+#include <mutex>
 
 namespace ompl
 {

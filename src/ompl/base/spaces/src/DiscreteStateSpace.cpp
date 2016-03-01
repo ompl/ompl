@@ -193,7 +193,7 @@ void ompl::base::DiscreteStateSpace::printState(const State *state, std::ostream
     if (state)
         out << state->as<StateType>()->value;
     else
-        out << "NULL";
+        out << "nullptr";
     out << ']' << std::endl;
 }
 

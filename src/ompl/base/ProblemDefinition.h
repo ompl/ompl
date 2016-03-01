@@ -181,7 +181,7 @@ namespace ompl
             /** \brief Check whether a specified starting state is
                 already included in the problem definition and
                 optionally return the index of that starting state */
-            bool hasStartState(const State *state, unsigned int *startIndex = NULL);
+            bool hasStartState(const State *state, unsigned int *startIndex = nullptr);
 
             /** \brief Clear all start states (memory is freed) */
             void clearStartStates()
@@ -292,7 +292,7 @@ namespace ompl
                 will be set to the index of the starting state that
                 satisfies the goal. The distance to the goal can
                 optionally be returned as well. */
-            bool isTrivial(unsigned int *startIndex = NULL, double *distance = NULL) const;
+            bool isTrivial(unsigned int *startIndex = nullptr, double *distance = nullptr) const;
 
             /** \brief Check if a straight line path is valid. If it
                 is, return an instance of a path that represents the

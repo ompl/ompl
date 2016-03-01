@@ -88,7 +88,7 @@ namespace ompl
             /** \brief Helper debug method to return the sequence of high-level product
                 graph states corresponding to a sequence of low-level continous system states,
                 beginning from an optional initial high-level state. */
-            std::vector<ProductGraph::State*> getHighLevelPath(const std::vector<base::State*>& path, ProductGraph::State* start = NULL) const;
+            std::vector<ProductGraph::State*> getHighLevelPath(const std::vector<base::State*>& path, ProductGraph::State* start = nullptr) const;
 
         protected:
             /** \brief Representation of a motion

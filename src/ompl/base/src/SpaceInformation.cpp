@@ -368,7 +368,7 @@ double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attem
     State *s2 = allocState();
 
     std::pair<State*, double> lastValid;
-    lastValid.first = NULL;
+    lastValid.first = nullptr;
 
     double d = 0.0;
     unsigned int count = 0;

@@ -96,7 +96,7 @@ namespace ompl
         {
         public:
 
-            CompoundState() : State(), components(NULL)
+            CompoundState() : State(), components(nullptr)
             {
             }
 

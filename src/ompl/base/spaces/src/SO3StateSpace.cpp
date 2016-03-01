@@ -369,7 +369,7 @@ void ompl::base::SO3StateSpace::registerProjections()
 
 double* ompl::base::SO3StateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
-    return index < 4 ? &(state->as<StateType>()->x) + index : NULL;
+    return index < 4 ? &(state->as<StateType>()->x) + index : nullptr;
 }
 
 void ompl::base::SO3StateSpace::printState(const State *state, std::ostream &out) const
@@ -381,7 +381,7 @@ void ompl::base::SO3StateSpace::printState(const State *state, std::ostream &out
         out << qstate->x << " " << qstate->y << " " << qstate->z << " " << qstate->w;
     }
     else
-        out << "NULL";
+        out << "nullptr";
     out << ']' << std::endl;
 }
 

@@ -232,7 +232,7 @@ namespace ompl
                 s.cosafeState = cosafe;
                 s.safeState = safe;
                 State*& ret = stateToPtr_[s];
-                if (ret == NULL) ret = new State(s);
+                if (ret == nullptr) ret = new State(s);
                 return ret;
             }
 

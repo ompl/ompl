@@ -55,7 +55,7 @@ namespace ompl
             const MorseEnvironmentPtr env_;
             
             MorseTerminationCondition(const MorseEnvironmentPtr env) :
-                PlannerTerminationCondition(NULL), env_(env)
+                PlannerTerminationCondition(nullptr), env_(env)
             {
             }
             

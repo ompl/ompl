@@ -155,12 +155,12 @@ namespace ompl
             {
             public:
 
-                Motion() : accCost_(0), state_(NULL), control_(NULL), steps_(0), parent_(NULL), numChildren_(0), inactive_(false)
+                Motion() : accCost_(0), state_(nullptr), control_(nullptr), steps_(0), parent_(nullptr), numChildren_(0), inactive_(false)
                 {
                 }
 
                 /** \brief Constructor that allocates memory for the state and the control */
-                Motion(const SpaceInformation *si) : accCost_(0), state_(si->allocState()), control_(si->allocControl()), steps_(0), parent_(NULL), numChildren_(0), inactive_(false)
+                Motion(const SpaceInformation *si) : accCost_(0), state_(si->allocState()), control_(si->allocControl()), steps_(0), parent_(nullptr), numChildren_(0), inactive_(false)
                 {
                 }
 
@@ -204,11 +204,11 @@ namespace ompl
             {
             public:
 
-                Witness() : Motion(), rep_(NULL)
+                Witness() : Motion(), rep_(nullptr)
                 {
                 }
 
-                Witness(const SpaceInformation *si) : Motion(si), rep_(NULL)
+                Witness(const SpaceInformation *si) : Motion(si), rep_(nullptr)
                 {
                 }
                 virtual base::State* getState() const

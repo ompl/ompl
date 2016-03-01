@@ -140,7 +140,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : state_(NULL)
+                Motion(void) : state_(nullptr)
                 {
                 }
 

@@ -93,7 +93,7 @@ namespace ompl
             , double estimatedDimension = 6.0
 #endif
             )
-            : NearestNeighbors<_T>(), tree_(NULL), degree_(degree),
+            : NearestNeighbors<_T>(), tree_(nullptr), degree_(degree),
             minDegree_(std::min(degree,minDegree)), maxDegree_(std::max(maxDegree,degree)),
             maxNumPtsPerLeaf_(maxNumPtsPerLeaf), size_(0),
             rebuildSize_(rebalancing ? maxNumPtsPerLeaf*degree : std::numeric_limits<std::size_t>::max()),
@@ -124,7 +124,7 @@ namespace ompl
             if (tree_)
             {
                 delete tree_;
-                tree_ = NULL;
+                tree_ = nullptr;
             }
             size_ = 0;
             removed_.clear();

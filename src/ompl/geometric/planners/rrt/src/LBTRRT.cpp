@@ -46,7 +46,7 @@ ompl::geometric::LBTRRT::LBTRRT(const base::SpaceInformationPtr &si) :
     goalBias_(0.05),
     maxDistance_(0.0),
     epsilon_(0.4),
-    lastGoalMotion_(NULL),
+    lastGoalMotion_(nullptr),
     iterations_(0)
 {
     specs_.approximateSolutions = true;
@@ -74,7 +74,7 @@ void ompl::geometric::LBTRRT::clear()
     freeMemory();
     if (nn_)
         nn_->clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     iterations_ = 0;
     bestCost_ = std::numeric_limits<double>::infinity();
@@ -146,7 +146,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
     Motion *solution  = lastGoalMotion_;
-    Motion *approxSol = NULL;
+    Motion *approxSol = nullptr;
     double  approxdif = std::numeric_limits<double>::infinity();
     // e*(1+1/d)  K-nearest constant, as used in RRT*
     double k_rrg      = boost::math::constants::e<double>() +
@@ -249,7 +249,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
                 approxSol = motion;
             }
 
-            if (solution != NULL && bestCost_ != solution->costApx_)
+            if (solution != nullptr && bestCost_ != solution->costApx_)
             {
                 OMPL_INFORM("%s: approximation cost = %g", getName().c_str(),
                     solution->costApx_);
@@ -261,19 +261,19 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     bool solved = false;
     bool approximate = false;
 
-    if (solution == NULL)
+    if (solution == nullptr)
     {
         solution = approxSol;
         approximate = true;
     }
 
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         lastGoalMotion_ = solution;
 
         /* construct the solution path */
         std::vector<Motion*> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parentApx_;
@@ -395,7 +395,7 @@ void ompl::geometric::LBTRRT::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        if (motions[i]->parentApx_ == NULL)
+        if (motions[i]->parentApx_ == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state_));
         else
             data.addEdge(base::PlannerDataVertex(motions[i]->parentApx_->state_),

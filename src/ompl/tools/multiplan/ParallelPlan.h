@@ -39,7 +39,7 @@
 
 #include "ompl/base/Planner.h"
 #include "ompl/geometric/PathGeometric.h"
-#include <thread>
+#include <mutex>
 
 namespace ompl
 {

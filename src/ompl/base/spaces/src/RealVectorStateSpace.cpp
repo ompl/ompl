@@ -289,7 +289,7 @@ void ompl::base::RealVectorStateSpace::freeState(State *state) const
 
 double* ompl::base::RealVectorStateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
-    return index < dimension_ ? static_cast<StateType*>(state)->values + index : NULL;
+    return index < dimension_ ? static_cast<StateType*>(state)->values + index : nullptr;
 }
 
 void ompl::base::RealVectorStateSpace::printState(const State *state, std::ostream &out) const
@@ -306,7 +306,7 @@ void ompl::base::RealVectorStateSpace::printState(const State *state, std::ostre
         }
     }
     else
-        out << "NULL" << std::endl;
+        out << "nullptr" << std::endl;
     out << ']' << std::endl;
 }
 

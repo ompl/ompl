@@ -57,7 +57,7 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     k_rrg_(0u),
     r_rrg_(0.0),
     delayCC_(true),
-    lastGoalMotion_(NULL),
+    lastGoalMotion_(nullptr),
     useTreePruning_(false),
     pruneThreshold_(0.05),
     usePrunedMeasure_(false),
@@ -160,7 +160,7 @@ void ompl::geometric::RRTstar::clear()
     if (nn_)
         nn_->clear();
 
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
     goalMotions_.clear();
     startMotions_.clear();
 
@@ -219,7 +219,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     Motion *solution       = lastGoalMotion_;
 
-    Motion *approximation  = NULL;
+    Motion *approximation  = nullptr;
     double approximatedist = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
 
@@ -503,7 +503,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         Motion *intermediate_solution = solution->parent; // Do not include goal state to simplify code.
 
                         //Push back until we find the start, but not the start itself
-                        while (intermediate_solution->parent != NULL)
+                        while (intermediate_solution->parent != nullptr)
                         {
                             spath.push_back(intermediate_solution->state);
                             intermediate_solution = intermediate_solution->parent;
@@ -527,19 +527,19 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             break;
     }
 
-    bool approximate = (solution == NULL);
+    bool approximate = (solution == nullptr);
     bool addedSolution = false;
     if (approximate)
         solution = approximation;
     else
         lastGoalMotion_ = solution;
 
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         ptc.terminate();
         // construct the solution path
         std::vector<Motion*> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;
@@ -639,7 +639,7 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
 
     for (std::size_t i = 0 ; i < motions.size() ; ++i)
     {
-        if (motions[i]->parent == NULL)
+        if (motions[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
         else
             data.addEdge(base::PlannerDataVertex(motions[i]->parent->state),

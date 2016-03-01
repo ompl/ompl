@@ -47,7 +47,7 @@ struct to_python_indirect
     template <class U>
     inline PyObject* execute(U* ptr, mpl::true_) const
     {
-        // No special NULL treatment for references
+        // No special nullptr treatment for references
         if (ptr == 0)
             return python::detail::none();
         else

@@ -186,9 +186,9 @@ void ompl::geometric::SPARSdb::freeMemory()
     {
         foreach (InterfaceData &d, interfaceDataProperty_[v].interfaceHash | boost::adaptors::map_values)
             d.clear(si_);
-        if( stateProperty_[v] != NULL )
+        if( stateProperty_[v] != nullptr )
             si_->freeState(stateProperty_[v]);
-        stateProperty_[v] = NULL;
+        stateProperty_[v] = nullptr;
     }
     g_.clear();
 
@@ -236,7 +236,7 @@ bool ompl::geometric::SPARSdb::getSimilarPaths(int nearestK, const base::State* 
     }
     if (!candidateSolution.path_)
     {
-        OMPL_ERROR("getSimilarPaths(): SPARSdb returned solution is NULL");
+        OMPL_ERROR("getSimilarPaths(): SPARSdb returned solution is nullptr");
         return false;
     }
 
@@ -1052,7 +1052,7 @@ void ompl::geometric::SPARSdb::checkQueryStateInitialization()
     if (boost::num_vertices(g_) < 1)
     {
         queryVertex_ = boost::add_vertex( g_ );
-        stateProperty_[queryVertex_] = NULL;
+        stateProperty_[queryVertex_] = nullptr;
     }
 }
 
@@ -1281,7 +1281,7 @@ void ompl::geometric::SPARSdb::findGraphNeighbors(base::State *st, std::vector<V
     nn_->nearestR( queryVertex_, sparseDelta_, graphNeighborhood);
     if (verbose_ && false)
         OMPL_INFORM("Finding nearest nodes in NN tree within radius %f", sparseDelta_);
-    stateProperty_[ queryVertex_ ] = NULL;
+    stateProperty_[ queryVertex_ ] = nullptr;
 
     //Now that we got the neighbors from the NN, we must remove any we can't see
     for (std::size_t i = 0; i < graphNeighborhood.size() ; ++i )
@@ -1317,7 +1317,7 @@ bool ompl::geometric::SPARSdb::findGraphNeighbors(const base::State *state, std:
         if (graphNeighborhood.size() > 0)
             break;
     }
-    stateProperty_[ queryVertex_ ] = NULL;
+    stateProperty_[ queryVertex_ ] = nullptr;
 
     // Check if no neighbors found
     if (!graphNeighborhood.size())
@@ -1346,7 +1346,7 @@ ompl::geometric::SPARSdb::Vertex ompl::geometric::SPARSdb::findGraphRepresentati
     std::vector<Vertex> nbh;
     stateProperty_[ queryVertex_ ] = st;
     nn_->nearestR( queryVertex_, sparseDelta_, nbh);
-    stateProperty_[queryVertex_] = NULL;
+    stateProperty_[queryVertex_] = nullptr;
 
     if (verbose_)
         OMPL_INFORM(" ------- findGraphRepresentative found %d nearest neighbors of distance %f",
@@ -1539,12 +1539,12 @@ void ompl::geometric::SPARSdb::distanceCheck(Vertex rep, const base::State *q, V
 
     if (r < rp) // FIRST points represent r (the guy discovered through sampling)
     {
-        if (d.pointA_ == NULL) // If the point we're considering replacing (P_v(r,.)) isn't there
+        if (d.pointA_ == nullptr) // If the point we're considering replacing (P_v(r,.)) isn't there
             //Then we know we're doing better, so add it
             d.setFirst(q, s, si_);
         else //Otherwise, he is there,
         {
-            if (d.pointB_ == NULL) //But if the other guy doesn't exist, we can't compare.
+            if (d.pointB_ == nullptr) //But if the other guy doesn't exist, we can't compare.
             {
                 //Should probably keep the one that is further away from rep?  Not known what to do in this case.
                 // TODO: is this not part of the algorithm?
@@ -1557,12 +1557,12 @@ void ompl::geometric::SPARSdb::distanceCheck(Vertex rep, const base::State *q, V
     }
     else // SECOND points represent r (the guy discovered through sampling)
     {
-        if (d.pointB_ == NULL) //If the point we're considering replacing (P_V(.,r)) isn't there...
+        if (d.pointB_ == nullptr) //If the point we're considering replacing (P_V(.,r)) isn't there...
             //Then we must be doing better, so add it
             d.setSecond(q, s, si_);
         else //Otherwise, he is there
         {
-            if (d.pointA_ == NULL) //But if the other guy doesn't exist, we can't compare.
+            if (d.pointA_ == nullptr) //But if the other guy doesn't exist, we can't compare.
             {
                 //Should we be doing something cool here?
             }
@@ -1584,7 +1584,7 @@ void ompl::geometric::SPARSdb::abandonLists(base::State *st)
     std::vector< Vertex > hold;
     nn_->nearestR( queryVertex_, sparseDelta_, hold );
 
-    stateProperty_[queryVertex_] = NULL;
+    stateProperty_[queryVertex_] = nullptr;
 
     //For each of the vertices
     foreach (Vertex v, hold)

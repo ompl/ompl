@@ -36,7 +36,7 @@
 
 #include "ompl/control/planners/ltl/World.h"
 #include "ompl/util/Console.h"
-#include <boost/functional/hash.hpp>
+#include "ompl/util/Hash.h"
 #include <unordered_map>
 #include <string>
 
@@ -106,6 +106,6 @@ size_t std::hash<ompl::control::World>::operator()(const ompl::control::World &w
     std::size_t hash = 0;
     std::unordered_map<unsigned int, bool>::const_iterator p;
     for (p = w.props_.begin(); p != w.props_.end(); ++p)
-        boost::hash_combine(hash, *p);
+        ompl::hash_combine(hash, *p);
     return hash;
 }

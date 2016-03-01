@@ -43,7 +43,7 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <sstream>
 #include <algorithm>
-#include <thread>
+#include <mutex>
 
 /// @cond IGNORE
 namespace ompl
@@ -282,7 +282,7 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() con
     if (control::SpaceInformationPtr sic = std::dynamic_pointer_cast<control::SpaceInformation, SpaceInformation>(si_))
     {
         unsigned int startIndex;
-        if (isTrivial(&startIndex, NULL))
+        if (isTrivial(&startIndex, nullptr))
         {
             control::PathControl *pc = new control::PathControl(sic);
             pc->append(startStates_[startIndex]);
@@ -470,14 +470,14 @@ void ompl::base::ProblemDefinition::print(std::ostream &out) const
     if (goal_)
         goal_->print(out);
     else
-        out << "Goal = NULL" << std::endl;
+        out << "Goal = nullptr" << std::endl;
     if (optimizationObjective_)
     {
         optimizationObjective_->print(out);
         out << "Average state cost: " << optimizationObjective_->averageStateCost(magic::TEST_STATE_COUNT) << std::endl;
     }
     else
-        out << "OptimizationObjective = NULL" << std::endl;
+        out << "OptimizationObjective = nullptr" << std::endl;
     out << "There are " << solutions_->getSolutionCount() << " solutions" << std::endl;
 }
 

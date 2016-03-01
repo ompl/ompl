@@ -50,7 +50,7 @@ ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::P
     failedExpansionScoreFactor_ = 0.5;
     minValidPathFraction_ = 0.2;
     maxDistance_ = 0.0;
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     Planner::declareParam<double>("range", this, &KPIECE1::setRange, &KPIECE1::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias, "0.:.05:1.");
@@ -83,7 +83,7 @@ void ompl::geometric::KPIECE1::clear()
     Planner::clear();
     sampler_.reset();
     disc_.clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 }
 
 void ompl::geometric::KPIECE1::freeMotion(Motion *motion)
@@ -120,8 +120,8 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), disc_.getMotionCount());
 
-    Motion *solution    = NULL;
-    Motion *approxsol   = NULL;
+    Motion *solution    = nullptr;
+    Motion *approxsol   = nullptr;
     double  approxdif   = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
 
@@ -130,8 +130,8 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
         disc_.countIteration();
 
         /* Decide on a state to expand from */
-        Motion                       *existing = NULL;
-        Discretization<Motion>::Cell *ecell    = NULL;
+        Motion                       *existing = nullptr;
+        Discretization<Motion>::Cell *ecell    = nullptr;
         disc_.selectMotion(existing, ecell);
         assert(existing);
 
@@ -177,19 +177,19 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
 
     bool solved = false;
     bool approximate = false;
-    if (solution == NULL)
+    if (solution == nullptr)
     {
         solution = approxsol;
         approximate = true;
     }
 
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         lastGoalMotion_ = solution;
 
         /* construct the solution path */
         std::vector<Motion*> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;

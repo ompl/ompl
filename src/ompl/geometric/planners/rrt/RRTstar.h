@@ -310,7 +310,7 @@ namespace ompl
                 /** \brief Constructor that allocates memory for the state. This constructor automatically allocates memory for \e state, \e cost, and \e incCost */
                 Motion(const base::SpaceInformationPtr &si) :
                     state(si->allocState()),
-                    parent(NULL)
+                    parent(nullptr)
                 {
                 }
 

@@ -43,6 +43,7 @@
 #include "ompl/datastructures/Grid.h"
 #include "ompl/datastructures/PDF.h"
 #include <thread>
+#include <mutex>
 #include <vector>
 
 namespace ompl
@@ -160,11 +161,11 @@ namespace ompl
             {
             public:
 
-                Motion() : root(NULL), state(NULL), parent(NULL), valid(false)
+                Motion() : root(nullptr), state(nullptr), parent(nullptr), valid(false)
                 {
                 }
 
-                Motion(const base::SpaceInformationPtr &si) : root(NULL), state(si->allocState()), parent(NULL), valid(false)
+                Motion(const base::SpaceInformationPtr &si) : root(nullptr), state(si->allocState()), parent(nullptr), valid(false)
                 {
                 }
 

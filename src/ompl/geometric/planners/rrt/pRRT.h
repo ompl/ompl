@@ -41,6 +41,7 @@
 #include "ompl/base/StateSamplerArray.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 #include <thread>
+#include <mutex>
 
 namespace ompl
 {
@@ -137,11 +138,11 @@ namespace ompl
             {
             public:
 
-                Motion() : state(NULL), parent(NULL)
+                Motion() : state(nullptr), parent(nullptr)
                 {
                 }
 
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr)
                 {
                 }
 

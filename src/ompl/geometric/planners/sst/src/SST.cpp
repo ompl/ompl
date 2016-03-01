@@ -142,7 +142,7 @@ void ompl::geometric::SST::freeMemory()
 ompl::geometric::SST::Motion* ompl::geometric::SST::selectNode(ompl::geometric::SST::Motion *sample)
 {
     std::vector<Motion*> ret;
-    Motion* selected = NULL;
+    Motion* selected = nullptr;
     base::Cost bestCost = opt_->infiniteCost();
     nn_->nearestR(sample, selectionRadius_, ret);
     for (unsigned int i = 0; i < ret.size(); i++)
@@ -153,13 +153,13 @@ ompl::geometric::SST::Motion* ompl::geometric::SST::selectNode(ompl::geometric::
             selected = ret[i];
         }
     }
-    if(selected==NULL)
+    if(selected==nullptr)
     {
         int k = 1;
-        while (selected == NULL)
+        while (selected == nullptr)
         {
             nn_->nearestK(sample,k,ret);
-            for (unsigned int i = 0; i < ret.size() && selected == NULL; i++)
+            for (unsigned int i = 0; i < ret.size() && selected == nullptr; i++)
                 if(!ret[i]->inactive_)
                     selected = ret[i];
             k += 5;
@@ -235,8 +235,8 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
-    Motion *solution  = NULL;
-    Motion *approxsol = NULL;
+    Motion *solution  = nullptr;
+    Motion *approxsol = nullptr;
     double  approxdif = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
     Motion      *rmotion = new Motion(si_);
@@ -310,7 +310,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
                             si_->freeState(prevSolution_[i]);
                     prevSolution_.clear();
                     Motion* solTrav = solution;
-                    while (solTrav!=NULL)
+                    while (solTrav!=nullptr)
                     {
                         prevSolution_.push_back(si_->cloneState(solTrav->state_) );
                         solTrav = solTrav->parent_;
@@ -324,7 +324,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
                         break;
                     }
                 }
-                if (solution==NULL && dist < approxdif)
+                if (solution==nullptr && dist < approxdif)
                 {
                     approxdif = dist;
                     approxsol = motion;
@@ -336,7 +336,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
                     }
                     prevSolution_.clear();
                     Motion *solTrav = approxsol;
-                    while (solTrav!=NULL)
+                    while (solTrav!=nullptr)
                     {
                         prevSolution_.push_back(si_->cloneState(solTrav->state_) );
                         solTrav = solTrav->parent_;
@@ -351,7 +351,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
                     {
                         if (oldRep->state_)
                             si_->freeState(oldRep->state_);
-                        oldRep->state_=NULL;
+                        oldRep->state_=nullptr;
                         oldRep->parent_->numChildren_--;
                         Motion* oldRepParent = oldRep->parent_;
                         delete oldRep;
@@ -366,13 +366,13 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
 
     bool solved = false;
     bool approximate = false;
-    if (solution == NULL)
+    if (solution == nullptr)
     {
         solution = approxsol;
         approximate = true;
     }
 
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         /* set the solution path */
         PathGeometric *path = new PathGeometric(si_);
@@ -385,7 +385,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
     si_->freeState(xstate);
     if (rmotion->state_)
         si_->freeState(rmotion->state_);
-    rmotion->state_=NULL;
+    rmotion->state_=nullptr;
     delete rmotion;
 
     OMPL_INFORM("%s: Created %u states in %u iterations", getName().c_str(), nn_->size(),iterations);
@@ -406,7 +406,7 @@ void ompl::geometric::SST::getPlannerData(base::PlannerData &data) const
         if(motions[i]->numChildren_ == 0)
             allMotions.push_back(motions[i]);
     for(unsigned i=0;i <allMotions.size(); i++)
-        if(allMotions[i]->getParent() != NULL)
+        if(allMotions[i]->getParent() != nullptr)
             allMotions.push_back(allMotions[i]->getParent());
 
     if (prevSolution_.size()!=0)
@@ -414,7 +414,7 @@ void ompl::geometric::SST::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < allMotions.size() ; ++i)
     {
-        if (allMotions[i]->getParent() == NULL)
+        if (allMotions[i]->getParent() == nullptr)
             data.addStartVertex(base::PlannerDataVertex(allMotions[i]->getState()));
         else
             data.addEdge(base::PlannerDataVertex(allMotions[i]->getParent()->getState()),

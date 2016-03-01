@@ -43,7 +43,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/pending/disjoint_sets.hpp>
 #include <functional>
-#include <thread>
+#include <mutex>
 #include <utility>
 #include <vector>
 #include <map>

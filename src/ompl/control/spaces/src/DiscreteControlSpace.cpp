@@ -85,7 +85,7 @@ void ompl::control::DiscreteControlSpace::printControl(const Control *control, s
     if (control)
         out << control->as<ControlType>()->value;
     else
-        out << "NULL";
+        out << "nullptr";
     out << ']' << std::endl;
 }
 

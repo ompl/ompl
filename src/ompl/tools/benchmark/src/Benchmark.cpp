@@ -41,6 +41,8 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/progress.hpp>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 #include <fstream>
 #include <sstream>
 

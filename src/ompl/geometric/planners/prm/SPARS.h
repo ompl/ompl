@@ -48,7 +48,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/pending/disjoint_sets.hpp>
 #include <functional>
-#include <thread>
+#include <mutex>
 #include <iostream>
 #include <fstream>
 #include <utility>
@@ -115,7 +115,7 @@ namespace ompl
             typedef unsigned long int VertexIndexType;
 
             /** \brief Hash for storing interface information. */
-            typedef std::unordered_map<VertexIndexType, std::set<VertexIndexType>, boost::hash<VertexIndexType> > InterfaceHash;
+            typedef std::unordered_map<VertexIndexType, std::set<VertexIndexType> > InterfaceHash;
 
             /** \brief Internal representation of a dense path */
             typedef std::deque<base::State*> DensePath;

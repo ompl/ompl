@@ -40,7 +40,7 @@
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
-#include <thread>
+#include <mutex>
 #include <memory>
 #include <boost/math/constants/constants.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -211,7 +211,7 @@ private:
     void allocateDimension(unsigned int dim)
     {
         // Only do this if unallocated, so check that:
-        if (dimVector_.at(dim).first == NULL)
+        if (dimVector_.at(dim).first == nullptr)
         {
             // It is not allocated, so....
             // First construct the distribution

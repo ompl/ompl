@@ -96,7 +96,7 @@ void ompl::msg::noOutputHandler()
 {
     USE_DOH;
     doh->previous_output_handler_ = doh->output_handler_;
-    doh->output_handler_ = NULL;
+    doh->output_handler_ = nullptr;
 }
 
 void ompl::msg::restorePreviousOutputHandler()

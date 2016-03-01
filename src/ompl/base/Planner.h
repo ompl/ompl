@@ -86,23 +86,23 @@ namespace ompl
             /** \brief Default constructor. No work is performed. */
             PlannerInputStates(const PlannerPtr &planner) : planner_(planner.get())
             {
-                tempState_ = NULL;
+                tempState_ = nullptr;
                 update();
             }
 
             /** \brief Default constructor. No work is performed. */
             PlannerInputStates(const Planner *planner) : planner_(planner)
             {
-                tempState_ = NULL;
+                tempState_ = nullptr;
                 update();
             }
 
             /** \brief Default constructor. No work is performed. A
                 call to use() needs to be made, before making any
                 calls to nextStart() or nextGoal(). */
-            PlannerInputStates() : planner_(NULL)
+            PlannerInputStates() : planner_(nullptr)
             {
-                tempState_ = NULL;
+                tempState_ = nullptr;
                 clear();
             }
 
@@ -145,11 +145,11 @@ namespace ompl
                 state are available and goal was set */
             void checkValidity() const;
 
-            /** \brief Return the next valid start state or NULL if no
+            /** \brief Return the next valid start state or nullptr if no
                 more valid start states are available. */
             const State* nextStart();
 
-            /** \brief Return the next valid goal state or NULL if no
+            /** \brief Return the next valid goal state or nullptr if no
                 more valid goal states are available.  Because
                 sampling of goal states may also produce invalid
                 goals, this function takes an argument that specifies

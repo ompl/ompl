@@ -41,11 +41,11 @@
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 #include "ompl/util/RandomNumbers.h"
+#include "ompl/util/Hash.h"
 #include <ostream>
 #include <vector>
 #include <set>
 #include <string>
-#include <boost/functional/hash.hpp>
 #include <unordered_map>
 #include <cstdlib>
 
@@ -65,7 +65,7 @@ namespace std
         size_t operator()(const ompl::control::TriangularDecomposition::Vertex &v) const
         {
             std::size_t hash = std::hash<double>()(v.x);
-            boost::hash_combine(hash, v.y);
+            hash_combine(hash, v.y);
             return hash;
         }
     };
@@ -211,20 +211,6 @@ bool ompl::control::TriangularDecomposition::Vertex::operator==(const Vertex &v)
     return x == v.x && y == v.y;
 }
 
-namespace ompl
-{
-    namespace control
-    {
-        std::size_t hash_value(const TriangularDecomposition::Vertex &v)
-        {
-            std::size_t hash = 0;
-            boost::hash_combine(hash, v.x);
-            boost::hash_combine(hash, v.y);
-            return hash;
-        }
-    }
-}
-
 int ompl::control::TriangularDecomposition::createTriangles()
 {
     /* create a conforming Delaunay triangulation
@@ -339,7 +325,7 @@ int ompl::control::TriangularDecomposition::createTriangles()
        For now, we'll assume that each obstacle is convex, and we'll
        generate the interior points ourselves using getPointInPoly. */
     in.numberofholes = holes_.size();
-    in.holelist = NULL;
+    in.holelist = nullptr;
     if (in.numberofholes > 0)
     {
         /* holelist is a sequence (x1 y1 x2 y2 ...) of ordered pairs of interior points.
@@ -357,7 +343,7 @@ int ompl::control::TriangularDecomposition::createTriangles()
        region-of-interest in intRegs_. We follow the same assumption as before
        that each region-of-interest is convex. */
     in.numberofregions = intRegs_.size();
-    in.regionlist = NULL;
+    in.regionlist = nullptr;
     if (in.numberofregions > 0)
     {
         /* regionlist is a sequence (x1 y1 L1 -1 x2 y2 L2 -1 ...) of ordered triples,
@@ -378,30 +364,30 @@ int ompl::control::TriangularDecomposition::createTriangles()
     }
 
     //mark remaining input fields as unused
-    in.segmentmarkerlist = (int*) NULL;
+    in.segmentmarkerlist = (int*) nullptr;
     in.numberofpointattributes = 0;
-    in.pointattributelist = NULL;
-    in.pointmarkerlist = NULL;
+    in.pointattributelist = nullptr;
+    in.pointmarkerlist = nullptr;
 
     //initialize output libtriangle structure, which will hold the results of the triangulation
     struct triangulateio out;
-    out.pointlist = (REAL*) NULL;
-    out.pointattributelist = (REAL*) NULL;
-    out.pointmarkerlist = (int*) NULL;
-    out.trianglelist = (int*) NULL;
-    out.triangleattributelist = (REAL*) NULL;
-    out.neighborlist = (int*) NULL;
-    out.segmentlist = (int*) NULL;
-    out.segmentmarkerlist = (int*) NULL;
-    out.edgelist = (int*) NULL;
-    out.edgemarkerlist = (int*) NULL;
-    out.pointlist = (REAL*) NULL;
-    out.pointattributelist = (REAL*) NULL;
-    out.trianglelist = (int*) NULL;
-    out.triangleattributelist = (REAL*) NULL;
+    out.pointlist = (REAL*) nullptr;
+    out.pointattributelist = (REAL*) nullptr;
+    out.pointmarkerlist = (int*) nullptr;
+    out.trianglelist = (int*) nullptr;
+    out.triangleattributelist = (REAL*) nullptr;
+    out.neighborlist = (int*) nullptr;
+    out.segmentlist = (int*) nullptr;
+    out.segmentmarkerlist = (int*) nullptr;
+    out.edgelist = (int*) nullptr;
+    out.edgemarkerlist = (int*) nullptr;
+    out.pointlist = (REAL*) nullptr;
+    out.pointattributelist = (REAL*) nullptr;
+    out.trianglelist = (int*) nullptr;
+    out.triangleattributelist = (REAL*) nullptr;
 
     //call the triangulation routine
-    triangulate(const_cast<char*>(triswitches.c_str()), &in, &out, NULL);
+    triangulate(const_cast<char*>(triswitches.c_str()), &in, &out, nullptr);
 
     triangles_.resize(out.numberoftriangles);
     intRegInfo_.resize(out.numberoftriangles);

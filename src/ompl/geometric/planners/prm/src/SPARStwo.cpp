@@ -43,6 +43,7 @@
 #include <boost/graph/incremental_components.hpp>
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/foreach.hpp>
+#include <thread>
 
 #include "GoalVisitor.hpp"
 
@@ -160,9 +161,9 @@ void ompl::geometric::SPARStwo::freeMemory()
     {
         foreach (InterfaceData &d, interfaceDataProperty_[v].interfaceHash | boost::adaptors::map_values)
             d.clear(si_);
-        if( stateProperty_[v] != NULL )
+        if( stateProperty_[v] != nullptr )
             si_->freeState(stateProperty_[v]);
-        stateProperty_[v] = NULL;
+        stateProperty_[v] = nullptr;
     }
     g_.clear();
 
@@ -298,7 +299,7 @@ void ompl::geometric::SPARStwo::checkQueryStateInitialization()
     if (boost::num_vertices(g_) < 1)
     {
         queryVertex_ = boost::add_vertex( g_ );
-        stateProperty_[queryVertex_] = NULL;
+        stateProperty_[queryVertex_] = nullptr;
     }
 }
 
@@ -561,7 +562,7 @@ void ompl::geometric::SPARStwo::findGraphNeighbors(base::State *st, std::vector<
     visibleNeighborhood.clear();
     stateProperty_[ queryVertex_ ] = st;
     nn_->nearestR( queryVertex_, sparseDelta_, graphNeighborhood);
-    stateProperty_[ queryVertex_ ] = NULL;
+    stateProperty_[ queryVertex_ ] = nullptr;
 
     //Now that we got the neighbors from the NN, we must remove any we can't see
     for (std::size_t i = 0; i < graphNeighborhood.size() ; ++i )
@@ -588,7 +589,7 @@ ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::findGraphRepresenta
     std::vector<Vertex> nbh;
     stateProperty_[ queryVertex_ ] = st;
     nn_->nearestR( queryVertex_, sparseDelta_, nbh);
-    stateProperty_[queryVertex_] = NULL;
+    stateProperty_[queryVertex_] = nullptr;
 
     Vertex result = boost::graph_traits<Graph>::null_vertex();
 
@@ -705,12 +706,12 @@ void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, 
 
     if (r < rp) // FIRST points represent r (the guy discovered through sampling)
     {
-        if (d.pointA_ == NULL) // If the point we're considering replacing (P_v(r,.)) isn't there
+        if (d.pointA_ == nullptr) // If the point we're considering replacing (P_v(r,.)) isn't there
             //Then we know we're doing better, so add it
             d.setFirst(q, s, si_);
         else //Otherwise, he is there,
         {
-            if (d.pointB_ == NULL) //But if the other guy doesn't exist, we can't compare.
+            if (d.pointB_ == nullptr) //But if the other guy doesn't exist, we can't compare.
             {
                 //Should probably keep the one that is further away from rep?  Not known what to do in this case.
                 // \todo: is this not part of the algorithm?
@@ -723,12 +724,12 @@ void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, 
     }
     else // SECOND points represent r (the guy discovered through sampling)
     {
-        if (d.pointB_ == NULL) //If the point we're considering replacing (P_V(.,r)) isn't there...
+        if (d.pointB_ == nullptr) //If the point we're considering replacing (P_V(.,r)) isn't there...
             //Then we must be doing better, so add it
             d.setSecond(q, s, si_);
         else //Otherwise, he is there
         {
-            if (d.pointA_ == NULL) //But if the other guy doesn't exist, we can't compare.
+            if (d.pointA_ == nullptr) //But if the other guy doesn't exist, we can't compare.
             {
                 //Should we be doing something cool here?
             }
@@ -750,7 +751,7 @@ void ompl::geometric::SPARStwo::abandonLists(base::State *st)
     std::vector< Vertex > hold;
     nn_->nearestR( queryVertex_, sparseDelta_, hold );
 
-    stateProperty_[queryVertex_] = NULL;
+    stateProperty_[queryVertex_] = nullptr;
 
     //For each of the vertices
     foreach (Vertex v, hold)

@@ -43,7 +43,7 @@
 #include "ompl/control/planners/rrt/RRT.h"
 #include "ompl/control/planners/kpiece/KPIECE1.h"
 #include "ompl/util/Console.h"
-#include <thread>
+#include <mutex>
 #include <memory>
 #include <algorithm>
 #include <limits>

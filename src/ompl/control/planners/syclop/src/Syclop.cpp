@@ -107,7 +107,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), numMotions_);
 
     std::vector<Motion*> newMotions;
-    const Motion *solution = NULL;
+    const Motion *solution = nullptr;
     base::Goal *goal = pdef_->getGoal().get();
     double goalDist = std::numeric_limits<double>::infinity();
     bool solved = false;
@@ -174,7 +174,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
                     }
 
                     /* If this region already exists in availDist, update its weight. */
-                    if (newRegionObj.pdfElem != NULL)
+                    if (newRegionObj.pdfElem != nullptr)
                         availDist_.update(newRegionObj.pdfElem, newRegionObj.weight);
                     /* Otherwise, only add this region to availDist
                        if it already exists in the lead. */
@@ -190,10 +190,10 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
         }
     }
     bool addedSolution = false;
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         std::vector<const Motion*> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;
@@ -231,7 +231,7 @@ void ompl::control::Syclop::initRegion(Region &r)
     r.volume = 1.0;
     r.percentValidCells = 1.0;
     r.freeVolume = 1.0;
-    r.pdfElem = NULL;
+    r.pdfElem = nullptr;
 }
 
 void ompl::control::Syclop::setupRegionEstimates()
@@ -380,7 +380,7 @@ int ompl::control::Syclop::selectRegion()
 void ompl::control::Syclop::computeAvailableRegions()
 {
     for (unsigned int i = 0; i < availDist_.size(); ++i)
-        graph_[boost::vertex(availDist_[i],graph_)].pdfElem = NULL;
+        graph_[boost::vertex(availDist_[i],graph_)].pdfElem = nullptr;
     availDist_.clear();
     for (int i = lead_.size()-1; i >= 0; --i)
     {

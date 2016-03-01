@@ -48,7 +48,7 @@
 #include <vector>
 #include <string>
 #include <map>
-#include <thread>
+#include <mutex>
 
 namespace ompl
 {
@@ -104,7 +104,7 @@ namespace ompl
             /** \brief Lock to use when performing simulations in the world. (OpenDE simulations are NOT thread safe) */
             mutable std::mutex    mutex_;
 
-            OpenDEEnvironment() : world_(NULL), verboseContacts_(false), maxContacts_(3), stepSize_(0.05), maxControlSteps_(100), minControlSteps_(5)
+            OpenDEEnvironment() : world_(nullptr), verboseContacts_(false), maxContacts_(3), stepSize_(0.05), maxControlSteps_(100), minControlSteps_(5)
             {
                 contactGroup_ = dJointGroupCreate(0);
             }

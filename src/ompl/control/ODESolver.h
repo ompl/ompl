@@ -122,7 +122,7 @@ namespace ompl
             /// numerical integration is finished for further operations on the resulting
             /// state.
             static StatePropagatorPtr getStatePropagator (ODESolverPtr solver,
-                const PostPropagationEvent &postEvent = NULL)
+                const PostPropagationEvent &postEvent = nullptr)
             {
                 class ODESolverStatePropagator : public StatePropagator
                 {

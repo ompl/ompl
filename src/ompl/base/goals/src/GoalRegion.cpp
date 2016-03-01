@@ -45,7 +45,7 @@ ompl::base::GoalRegion::GoalRegion(const SpaceInformationPtr &si) : Goal(si), th
 
 bool ompl::base::GoalRegion::isSatisfied(const State *st) const
 {
-    return isSatisfied(st, NULL);
+    return isSatisfied(st, nullptr);
 }
 
 bool ompl::base::GoalRegion::isSatisfied(const State *st, double *distance) const

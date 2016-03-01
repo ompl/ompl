@@ -41,9 +41,9 @@
 #include "ompl/control/planners/ltl/World.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/Console.h"
+#include "ompl/util/Hash.h"
 #include <algorithm>
 #include <functional>
-#include <boost/functional/hash.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <unordered_map>
@@ -68,10 +68,9 @@ bool ompl::control::ProductGraph::State::isValid(void) const
 
 std::size_t ompl::control::ProductGraph::HashState::operator()(const ompl::control::ProductGraph::State &s) const
 {
-    std::size_t hash = 0;
-    boost::hash_combine(hash, s.decompRegion);
-    boost::hash_combine(hash, s.cosafeState);
-    boost::hash_combine(hash, s.safeState);
+    std::size_t hash = std::hash<int>()(s.decompRegion);
+    hash_combine(hash, s.cosafeState);
+    hash_combine(hash, s.safeState);
     return hash;
 }
 
@@ -200,7 +199,7 @@ void ompl::control::ProductGraph::clear()
 {
     solutionStates_.clear();
     stateToIndex_.clear();
-    startState_ = NULL;
+    startState_ = nullptr;
     graph_.clear();
     std::unordered_map<State,State*,HashState>::iterator i;
     for (i = stateToPtr_.begin(); i != stateToPtr_.end(); ++i)
@@ -321,7 +320,7 @@ ompl::control::ProductGraph::State* ompl::control::ProductGraph::getState(const 
     s.cosafeState = cosafe;
     s.safeState = safe;
     State*& ret = stateToPtr_[s];
-    if (ret == NULL)
+    if (ret == nullptr)
         ret = new State(s);
     return ret;
 }
@@ -334,7 +333,7 @@ ompl::control::ProductGraph::State* ompl::control::ProductGraph::getState(const 
     s.cosafeState = cosafety_->step(parent->cosafeState, nextWorld);
     s.safeState = safety_->step(parent->safeState, nextWorld);
     State*& ret = stateToPtr_[s];
-    if (ret == NULL)
+    if (ret == nullptr)
         ret = new State(s);
     return ret;
 }

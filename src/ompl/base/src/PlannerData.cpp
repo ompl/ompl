@@ -66,7 +66,7 @@ ompl::base::PlannerData::~PlannerData ()
     if (graph_)
     {
         delete graph_;
-        graphRaw_ = NULL;
+        graphRaw_ = nullptr;
     }
 }
 
@@ -395,7 +395,7 @@ ompl::base::PlannerDataVertex& ompl::base::PlannerData::getGoalVertex (unsigned 
 unsigned int ompl::base::PlannerData::addVertex (const PlannerDataVertex &st)
 {
     // Do not add vertices with null states
-    if (st.getState() == NULL)
+    if (st.getState() == nullptr)
         return INVALID_INDEX;
 
     unsigned int index = vertexIndex(st);
@@ -525,7 +525,7 @@ bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
     {
         decoupledStates_.erase(vtxState);
         si_->freeState(vtxState);
-        vtxState = NULL;
+        vtxState = nullptr;
     }
 
     // Slay the vertex

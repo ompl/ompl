@@ -62,7 +62,7 @@ ompl::geometric::FMT::FMT(const base::SpaceInformationPtr &si)
 {
     // An upper bound on the free space volume is the total space volume; the free fraction is estimated in sampleFree
     freeSpaceVolume_ = si_->getStateSpace()->getMeasure();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     specs_.approximateSolutions = false;
     specs_.directed = false;
@@ -131,7 +131,7 @@ void ompl::geometric::FMT::freeMemory()
 void ompl::geometric::FMT::clear()
 {
     Planner::clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
     sampler_.reset();
     freeMemory();
     if (nn_)
@@ -154,7 +154,7 @@ void ompl::geometric::FMT::getPlannerData(base::PlannerData &data) const
     unsigned int size = motions.size();
     for (unsigned int i = 0; i < size; ++i)
     {
-        if (motions[i]->getParent() == NULL)
+        if (motions[i]->getParent() == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->getState()));
         else
             data.addEdge(base::PlannerDataVertex(motions[i]->getParent()->getState()),
@@ -284,7 +284,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
 
     checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
-    Motion *initMotion = NULL;
+    Motion *initMotion = nullptr;
 
     if (!goal)
     {
@@ -367,7 +367,7 @@ void ompl::geometric::FMT::traceSolutionPathThroughTree(Motion *goalMotion)
     Motion *solution = goalMotion;
 
     // Construct the solution path
-    while (solution != NULL)
+    while (solution != nullptr)
     {
         mpath.push_back(solution);
         solution = solution->getParent();
@@ -433,7 +433,7 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion **z)
         }
 
         // Find the lowest cost-to-come connection from Open to x
-        Motion *yMin = NULL;
+        Motion *yMin = nullptr;
         base::Cost cMin(std::numeric_limits<double>::infinity());
         const unsigned int yNearSize = yNear.size();
         for (unsigned int j = 0; j < yNearSize; ++j)
@@ -451,7 +451,7 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion **z)
         yNear.clear();
 
         // If an optimal connection from Open to x was found
-        if (yMin != NULL)
+        if (yMin != nullptr)
         {
             bool collision_free = false;
             if (cacheCC_)

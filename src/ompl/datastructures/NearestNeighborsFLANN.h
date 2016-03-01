@@ -104,7 +104,7 @@ namespace ompl
             if (index_)
             {
                 delete index_;
-                index_ = NULL;
+                index_ = nullptr;
             }
             data_.clear();
         }

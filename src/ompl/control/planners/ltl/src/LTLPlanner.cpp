@@ -52,7 +52,7 @@ ompl::control::LTLPlanner::LTLPlanner(const LTLSpaceInformationPtr& ltlsi, const
     ompl::base::Planner(ltlsi, "LTLPlanner"),
     ltlsi_(ltlsi.get()),
     abstraction_(a),
-    prodStart_(NULL),
+    prodStart_(nullptr),
     exploreTime_(exploreTime)
 {
     specs_.approximateSolutions = true;
@@ -119,7 +119,7 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
     {
         //build solution path
         std::vector<Motion*> path;
-        while (soln != NULL)
+        while (soln != nullptr)
         {
             path.push_back(soln);
             soln = soln->parent;
@@ -127,7 +127,7 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
         PathControl* pc = new PathControl(si_);
         for (int i = path.size()-1; i >= 0; --i)
         {
-            if (path[i]->parent != NULL) {
+            if (path[i]->parent != nullptr) {
                 pc->append(path[i]->state, path[i]->control, path[i]->steps * ltlsi_->getPropagationStepSize());
             }
             else {
@@ -151,7 +151,7 @@ void ompl::control::LTLPlanner::getTree(std::vector<base::State*>& tree) const
 std::vector<ompl::control::ProductGraph::State*> ompl::control::LTLPlanner::getHighLevelPath(const std::vector<base::State*>& path, ProductGraph::State* start) const
 {
     std::vector<ProductGraph::State*> hlPath(path.size());
-    hlPath[0] = (start != NULL ? start : ltlsi_->getProdGraphState(path[0]));
+    hlPath[0] = (start != nullptr ? start : ltlsi_->getProdGraphState(path[0]));
     for (unsigned int i = 1; i < path.size(); ++i)
     {
         hlPath[i] = ltlsi_->getProdGraphState(path[i]);
@@ -161,14 +161,14 @@ std::vector<ompl::control::ProductGraph::State*> ompl::control::LTLPlanner::getH
     return hlPath;
 }
 
-ompl::control::LTLPlanner::Motion::Motion(void) : state(NULL), control(NULL), parent(NULL), steps(0)
+ompl::control::LTLPlanner::Motion::Motion(void) : state(nullptr), control(nullptr), parent(nullptr), steps(0)
 {
 }
 
 ompl::control::LTLPlanner::Motion::Motion(const SpaceInformation* si) :
     state(si->allocState()),
     control(si->allocControl()),
-    parent(NULL),
+    parent(nullptr),
     steps(0)
 {
 }
@@ -179,7 +179,7 @@ ompl::control::LTLPlanner::Motion::~Motion(void)
 
 ompl::control::LTLPlanner::ProductGraphStateInfo::ProductGraphStateInfo(void) :
     numSel(0),
-    pdfElem(NULL)
+    pdfElem(nullptr)
 {
 }
 
@@ -201,7 +201,7 @@ void ompl::control::LTLPlanner::initAbstractInfo(ProductGraph::State* as)
 {
     ProductGraphStateInfo& info = abstractInfo_[as];
     info.numSel = 0;
-    info.pdfElem = NULL;
+    info.pdfElem = nullptr;
     info.volume = abstraction_->getRegionVolume(as);
     unsigned int autDist = std::max(abstraction_->getCosafeAutDistance(as),
         abstraction_->getSafeAutDistance(as));
@@ -216,7 +216,7 @@ void ompl::control::LTLPlanner::initAbstractInfo(ProductGraph::State* as)
 void ompl::control::LTLPlanner::buildAvail(const std::vector<ProductGraph::State*>& lead)
 {
     for (unsigned int i = 0; i < availDist_.size(); ++i)
-        abstractInfo_[availDist_[i]].pdfElem = NULL;
+        abstractInfo_[availDist_[i]].pdfElem = nullptr;
     availDist_.clear();
     unsigned int numTreePts = 1;
     for (int i = lead.size()-1; i >= 0; --i)
@@ -275,7 +275,7 @@ bool ompl::control::LTLPlanner::explore(const std::vector<ProductGraph::State*>&
         abstractInfo_[m->abstractState].addMotion(m);
         updateWeight(m->abstractState);
         // update weight if hl state already exists in avail
-        if (abstractInfo_[m->abstractState].pdfElem != NULL)
+        if (abstractInfo_[m->abstractState].pdfElem != nullptr)
             availDist_.update(abstractInfo_[m->abstractState].pdfElem, abstractInfo_[m->abstractState].weight);
         else
         {
@@ -310,9 +310,9 @@ void ompl::control::LTLPlanner::clearMotions(void)
     for (std::vector<Motion*>::iterator i = motions_.begin(); i != motions_.end(); ++i)
     {
         Motion* m = *i;
-        if (m->state != NULL)
+        if (m->state != nullptr)
             si_->freeState(m->state);
-        if (m->control != NULL)
+        if (m->control != nullptr)
             ltlsi_->freeControl(m->control);
         delete m;
     }
