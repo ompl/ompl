@@ -46,7 +46,7 @@ script:
   - cd build
 
   # Configure
-  - cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DXMLGENERATORPATH:FILEPATH=${HOME}/castxml/bin/castxml ..
+  - cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DCASTXML:FILEPATH=${HOME}/castxml/bin/castxml ..
 
   # TIMES OUT BECAUSE IT DOES NOT PRODUCE OUTPUT FOR MORE THAN 10 MINUTES
   # generate python bindings
