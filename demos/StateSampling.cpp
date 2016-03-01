@@ -42,6 +42,7 @@
 
 #include <ompl/config.h>
 #include <iostream>
+#include <thread>
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
