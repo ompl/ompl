@@ -37,7 +37,7 @@ install:
         wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf - -C ${HOME};
       fi;
     fi
-  - sudo -H pip -v install https://github.com/gccxml/pygccxml/archive/hotfix/v1.7.2.tar.gz https://bitbucket.org/ompl/pyplusplus/get/1.1.tar.gz
+  - sudo -H pip -v install https://github.com/gccxml/pygccxml/archive/v1.7.2.tar.gz https://bitbucket.org/ompl/pyplusplus/get/1.1.tar.gz
 
 
 script:
@@ -46,9 +46,7 @@ script:
   - cd build
 
   # Configure
-  - cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DXMLGENERATORPATH:FILEPATH=${HOME}/castxml/bin/castxml -DXMLGENERATOR:STRING=castxml ..
-  # debug
-  - grep -E '(PY_P|XML)' CMakeCache.txt
+  - cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DXMLGENERATORPATH:FILEPATH=${HOME}/castxml/bin/castxml ..
 
   # TIMES OUT BECAUSE IT DOES NOT PRODUCE OUTPUT FOR MORE THAN 10 MINUTES
   # generate python bindings
