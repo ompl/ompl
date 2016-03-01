@@ -148,7 +148,7 @@ void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mea
         SO3StateSpace::StateType q,
             *qs = static_cast<SO3StateSpace::StateType*>(state);
         const SO3StateSpace::StateType *qmu = static_cast<const SO3StateSpace::StateType*>(mean);
-	double half_theta = theta / 2.0;
+        double half_theta = theta / 2.0;
         double s = sin(half_theta) / theta;
         q.w = cos(half_theta);
         q.x = s * x;

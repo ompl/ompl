@@ -44,7 +44,7 @@ namespace ompl
 {
     namespace base
     {
-        
+
         /** \brief State space representing MORSE states */
         class MorseStateSpace : public CompoundStateSpace
         {

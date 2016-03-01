@@ -45,7 +45,7 @@ namespace ompl
 
     namespace control
     {
-        
+
         /** \brief Representation of controls applied in MORSE
             environments. This is an array of double values. */
         class MorseControlSpace : public RealVectorControlSpace
