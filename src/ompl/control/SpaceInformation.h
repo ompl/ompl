@@ -59,7 +59,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::SpaceInformationPtr
-            \brief A boost shared pointer wrapper for ompl::control::SpaceInformation */
+            \brief A shared pointer wrapper for ompl::control::SpaceInformation */
 
 
         /** \brief A function that achieves state propagation.*/

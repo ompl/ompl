@@ -55,7 +55,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::PropositionalDecompositionPtr
-            \brief A boost shared pointer wrapper for ompl::control::PropositionalDecomposition */
+            \brief A shared pointer wrapper for ompl::control::PropositionalDecomposition */
 
         /** \brief A propositional decomposition wraps a given Decomposition
             with a region-to-proposition assignment operator.

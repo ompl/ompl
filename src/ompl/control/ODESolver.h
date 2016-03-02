@@ -61,7 +61,7 @@ namespace ompl
         /// @endcond
 
         /// \class ompl::control::ODESolverPtr
-        /// \brief A boost shared pointer wrapper for ompl::control::ODESolver
+        /// \brief A shared pointer wrapper for ompl::control::ODESolver
 
         /// \brief Abstract base class for an object that can solve ordinary differential
         /// equations (ODE) of the type q' = f(q,u) using numerical integration.  Classes

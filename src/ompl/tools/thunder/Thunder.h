@@ -79,7 +79,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::geometric::ThunderPtr
-            \brief A boost shared pointer wrapper for ompl::tools::Thunder */
+            \brief A shared pointer wrapper for ompl::tools::Thunder */
 
         /** \brief Built off of SimpleSetup but provides support for planning from experience */
         class Thunder : public ompl::tools::ExperienceSetup

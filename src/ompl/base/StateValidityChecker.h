@@ -56,7 +56,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::StateValidityCheckerPtr
-            \brief A boost shared pointer wrapper for ompl::base::StateValidityChecker */
+            \brief A shared pointer wrapper for ompl::base::StateValidityChecker */
 
         /** \brief Properties that a state validity checker may have */
         struct StateValidityCheckerSpecs

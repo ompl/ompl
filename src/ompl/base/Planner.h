@@ -49,7 +49,6 @@
 #include "ompl/util/Deprecation.h"
 #include <functional>
 #include <boost/concept_check.hpp>
-#include <boost/noncopyable.hpp>
 #include <string>
 #include <map>
 
@@ -65,7 +64,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::PlannerPtr
-            \brief A boost shared pointer wrapper for ompl::base::Planner */
+            \brief A shared pointer wrapper for ompl::base::Planner */
 
 
         /** \brief Helper class to extract valid start & goal
@@ -228,10 +227,13 @@ namespace ompl
         };
 
         /** \brief Base class for a planner */
-        class Planner : private boost::noncopyable
+        class Planner
         {
 
         public:
+            // non-copyable
+            Planner(const Planner&) = delete;
+            Planner& operator=(const Planner&) = delete;
 
             /** \brief Constructor */
             Planner(const SpaceInformationPtr &si, const std::string &name);

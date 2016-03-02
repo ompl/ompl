@@ -45,7 +45,6 @@
 #include "ompl/base/Cost.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"
-#include <boost/noncopyable.hpp>
 #include <functional>
 #include <boost/serialization/access.hpp>
 
@@ -153,7 +152,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::PlannerDataPtr
-            \brief A boost shared pointer wrapper for ompl::base::PlannerData */
+            \brief A shared pointer wrapper for ompl::base::PlannerData */
 
 
         /// \brief Object containing planner generated vertex and edge data.  It
@@ -161,7 +160,7 @@ namespace ompl
         /// edge connects two vertices.
         /// \note The storage for states this class maintains belongs to the planner
         /// instance that filled the data (by default; see PlannerData::decoupleFromPlanner())
-        class PlannerData : boost::noncopyable
+        class PlannerData
         {
         public:
             class Graph;
@@ -172,6 +171,10 @@ namespace ompl
             static const PlannerDataVertex NO_VERTEX;
             /// \brief Representation of an invalid vertex index
             static const unsigned int      INVALID_INDEX;
+
+            // non-copyable
+            PlannerData(const PlannerData&) = delete;
+            PlannerData& operator=(const PlannerData&) = delete;
 
             /// \brief Constructor.  Accepts a SpaceInformationPtr for the space planned in.
             PlannerData(const SpaceInformationPtr &si);

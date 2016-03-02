@@ -46,7 +46,6 @@
 #include <vector>
 #include <valarray>
 #include <iostream>
-#include <boost/noncopyable.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 
 namespace ompl
@@ -127,7 +126,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::ProjectionEvaluatorPtr
-            \brief A boost shared pointer wrapper for ompl::base::ProjectionEvaluator */
+            \brief A shared pointer wrapper for ompl::base::ProjectionEvaluator */
 
         /** \brief Abstract definition for a class computing
             projections to R<sup>n</sup>. Implicit integer grids are
@@ -135,9 +134,12 @@ namespace ompl
             sizes. Before use, the user must supply cell sizes
             for the integer grid (setCellSizes()). The
             implementation of this class is thread safe. */
-        class ProjectionEvaluator : private boost::noncopyable
+        class ProjectionEvaluator
         {
         public:
+            // non-copyable
+            ProjectionEvaluator(const ProjectionEvaluator&) = delete;
+            ProjectionEvaluator& operator=(const ProjectionEvaluator&) = delete;
 
             /** \brief Construct a projection evaluator for a specific state space */
             ProjectionEvaluator(const StateSpace *space);

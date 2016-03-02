@@ -54,7 +54,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::AutomatonPtr
-            \brief A boost shared pointer wrapper for ompl::control::Automaton */
+            \brief A shared pointer wrapper for ompl::control::Automaton */
 
         /** \brief A class to represent a deterministic finite automaton,
             each edge of which corresponds to a World.

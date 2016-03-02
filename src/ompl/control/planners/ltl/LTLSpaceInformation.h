@@ -51,7 +51,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::LTLSpaceInformationPtr
-            \brief A boost shared pointer wrapper for ompl::control::LTLSpaceInformation */
+            \brief A shared pointer wrapper for ompl::control::LTLSpaceInformation */
         class LTLSpaceInformation : public SpaceInformation
         {
         public:

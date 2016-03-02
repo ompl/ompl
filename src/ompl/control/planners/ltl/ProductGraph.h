@@ -58,7 +58,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::ProductGraphPtr
-            \brief A boost shared pointer wrapper for ompl::control::ProductGraph */
+            \brief A shared pointer wrapper for ompl::control::ProductGraph */
 
         /** \brief A ProductGraph represents the weighted, directed, graph-based
             Cartesian product of a PropositionalDecomposition object,

@@ -61,7 +61,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::MorseEnvironmentPtr
-            \brief A boost shared pointer wrapper for ompl::base::MorseEnvironment */
+            \brief A shared pointer wrapper for ompl::base::MorseEnvironment */
 
         /** \brief This class contains the MORSE constructs OMPL needs to know about when planning. */
         class MorseEnvironment

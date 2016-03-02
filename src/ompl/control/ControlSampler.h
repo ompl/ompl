@@ -43,7 +43,6 @@
 #include "ompl/util/ClassForward.h"
 #include <vector>
 #include <functional>
-#include <boost/noncopyable.hpp>
 
 namespace ompl
 {
@@ -60,16 +59,19 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::ControlSamplerPtr
-            \brief A boost shared pointer wrapper for ompl::control::ControlSampler */
+            \brief A shared pointer wrapper for ompl::control::ControlSampler */
 
         /** \brief Abstract definition of a control sampler. Motion
             planners that need to sample controls will call functions
             from this class. Planners should call the versions of
             sample() and sampleNext() with most arguments, whenever
             this information is available. */
-        class ControlSampler : private boost::noncopyable
+        class ControlSampler
         {
         public:
+            // non-copyable
+            ControlSampler(const ControlSampler&) = delete;
+            ControlSampler& operator=(const ControlSampler&) = delete;
 
             /** \brief Constructor takes the state space to construct samples for as argument */
             ControlSampler(const ControlSpace *space) : space_(space)

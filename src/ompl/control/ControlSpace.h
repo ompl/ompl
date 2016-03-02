@@ -44,7 +44,6 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/concept_check.hpp>
-#include <boost/noncopyable.hpp>
 #include <iostream>
 #include <vector>
 
@@ -60,12 +59,15 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::ControlSpacePtr
-            \brief A boost shared pointer wrapper for ompl::control::ControlSpace */
+            \brief A shared pointer wrapper for ompl::control::ControlSpace */
 
         /** \brief A control space representing the space of applicable controls */
-        class ControlSpace : private boost::noncopyable
+        class ControlSpace
         {
         public:
+            // non-copyable
+            ControlSpace(const ControlSpace&) = delete;
+            ControlSpace& operator=(const ControlSpace&) = delete;
 
             /** \brief Construct a control space, given the state space */
             ControlSpace(const base::StateSpacePtr &stateSpace);

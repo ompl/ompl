@@ -52,8 +52,6 @@
 #include <iostream>
 #include <limits>
 
-#include <boost/noncopyable.hpp>
-
 namespace ompl
 {
     namespace base
@@ -66,7 +64,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::ProblemDefinitionPtr
-            \brief A boost shared pointer wrapper for ompl::base::ProblemDefinition */
+            \brief A shared pointer wrapper for ompl::base::ProblemDefinition */
 
         /** \brief Representation of a solution to a planning problem */
         struct PlannerSolution
@@ -148,9 +146,12 @@ namespace ompl
         /** \brief Definition of a problem to be solved. This includes
             the start state(s) for the system and a goal specification.
             Will contain solutions, if found.  */
-        class ProblemDefinition : private boost::noncopyable
+        class ProblemDefinition
         {
         public:
+            // non-copyable
+            ProblemDefinition(const ProblemDefinition&) = delete;
+            ProblemDefinition& operator=(const ProblemDefinition&) = delete;
 
             /** \brief Create a problem definition given the SpaceInformation it is part of */
             ProblemDefinition(const SpaceInformationPtr &si);

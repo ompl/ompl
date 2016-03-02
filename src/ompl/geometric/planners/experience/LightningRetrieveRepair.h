@@ -58,7 +58,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::LightningRetrieveRepairPtr
-            \brief A boost shared pointer wrapper for ompl::base::LightningRetrieveRepair */
+            \brief A shared pointer wrapper for ompl::base::LightningRetrieveRepair */
 
         /**
            @anchor LightningRetrieveRepair - Lightning Retrieve and Repair

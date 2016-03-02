@@ -67,7 +67,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::geometric::LightningDBPtr
-            \brief A boost shared pointer wrapper for ompl::tools::LightningDB */
+            \brief A shared pointer wrapper for ompl::tools::LightningDB */
 
         /** \brief Save and load entire paths from file */
         class LightningDB

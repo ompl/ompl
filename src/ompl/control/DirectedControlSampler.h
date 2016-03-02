@@ -41,7 +41,6 @@
 #include "ompl/control/Control.h"
 #include "ompl/util/ClassForward.h"
 #include <functional>
-#include <boost/noncopyable.hpp>
 
 namespace ompl
 {
@@ -54,15 +53,18 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::DirectedControlSamplerPtr
-            \brief A boost shared pointer wrapper for ompl::control::DirectedControlSampler */
+            \brief A shared pointer wrapper for ompl::control::DirectedControlSampler */
 
         /** \brief Abstract definition of a directed control sampler. Motion
             planners that need to sample controls that take the system to a desired direction will call functions
             from this class. Planners should call the versions of sampleTo() with most arguments, whenever this information is available.
             If no direction information is available, the use of a ControlSampler is perhaps more appropriate. */
-        class DirectedControlSampler : private boost::noncopyable
+        class DirectedControlSampler
         {
         public:
+            // non-copyable
+            DirectedControlSampler(const DirectedControlSampler&) = delete;
+            DirectedControlSampler& operator=(const DirectedControlSampler&) = delete;
 
             /** \brief Constructor takes the state space to construct samples for as argument */
             DirectedControlSampler(const SpaceInformation *si) : si_(si)

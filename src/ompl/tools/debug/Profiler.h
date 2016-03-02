@@ -58,7 +58,6 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
-#include <boost/noncopyable.hpp>
 
 #include "ompl/util/Time.h"
 
@@ -73,9 +72,12 @@ namespace ompl
             external profiling tools in that it allows the user to count
             time spent in various bits of code (sub-function granularity)
             or count how many times certain pieces of code are executed.*/
-        class Profiler : private boost::noncopyable
+        class Profiler
         {
         public:
+            // non-copyable
+            Profiler(const Profiler&) = delete;
+            Profiler& operator=(const Profiler&) = delete;
 
             /** \brief This instance will call Profiler::begin() when constructed and Profiler::end() when it goes out of scope. */
             class ScopedBlock

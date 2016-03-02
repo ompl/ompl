@@ -61,7 +61,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::OpenDEEnvironmentPtr
-            \brief A boost shared pointer wrapper for ompl::control::OpenDEEnvironment */
+            \brief A shared pointer wrapper for ompl::control::OpenDEEnvironment */
 
         /** \brief This class contains the OpenDE constructs OMPL needs to know about when planning. */
         class OpenDEEnvironment

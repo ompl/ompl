@@ -58,7 +58,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::geometric::PathSimplifierPtr
-            \brief A boost shared pointer wrapper for ompl::geometric::PathSimplifier */
+            \brief A shared pointer wrapper for ompl::geometric::PathSimplifier */
 
         /** \brief This class contains routines that attempt to simplify geometric paths.
 

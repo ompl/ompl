@@ -56,7 +56,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::MotionValidatorPtr
-            \brief A boost shared pointer wrapper for ompl::base::MotionValidator */
+            \brief A shared pointer wrapper for ompl::base::MotionValidator */
 
         /** \brief Abstract definition for a class checking the
             validity of motions -- path segments between states. This

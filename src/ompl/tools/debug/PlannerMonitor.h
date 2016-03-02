@@ -40,8 +40,7 @@
 #include <iostream>
 #include <boost/scoped_ptr.hpp>
 #include <thread>
-#include <boost/noncopyable.hpp>
-
+\
 #include "ompl/base/Planner.h"
 
 namespace ompl
@@ -50,9 +49,12 @@ namespace ompl
     {
         /** \brief Monitor the properties a planner exposes, as the planner is running.
             Dump the planner properties to a stream, periodically. */
-        class PlannerMonitor : private boost::noncopyable
+        class PlannerMonitor
         {
         public:
+            // non-copyright
+            PlannerMonitor(const PlannerMonitor&) = delete;
+            PlannerMonitor& operator=(const PlannerMonitor&) = delete;
 
             /** \brief Monitor a planner instance, and dump its properties to a specified stream, periodically.
 

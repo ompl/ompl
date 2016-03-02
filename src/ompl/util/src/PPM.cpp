@@ -37,7 +37,6 @@
 #include "ompl/util/PPM.h"
 #include "ompl/util/Exception.h"
 #include <cstdio>
-#include <boost/lexical_cast.hpp>
 
 ompl::PPM::PPM() : width_(0), height_(0)
 {

@@ -65,7 +65,7 @@ namespace std
         size_t operator()(const ompl::control::TriangularDecomposition::Vertex &v) const
         {
             std::size_t hash = std::hash<double>()(v.x);
-            hash_combine(hash, v.y);
+            ompl::hash_combine(hash, v.y);
             return hash;
         }
     };

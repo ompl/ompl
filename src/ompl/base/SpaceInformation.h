@@ -47,9 +47,7 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
 
-#include <boost/noncopyable.hpp>
 #include <functional>
-
 #include <utility>
 #include <cstdlib>
 #include <vector>
@@ -71,10 +69,10 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::SpaceInformationPtr
-            \brief A boost shared pointer wrapper for ompl::base::SpaceInformation */
+            \brief A shared pointer wrapper for ompl::base::SpaceInformation */
 
         /** \brief If no state validity checking class is specified
-            (StateValidityChecker), a boost function can be specified
+            (StateValidityChecker), a std::function can be specified
             instead */
         typedef std::function<bool(const State*)> StateValidityCheckerFn;
 
@@ -82,9 +80,12 @@ namespace ompl
         /** \brief The base class for space information. This contains
             all the information about the space planning is done in.
             setup() needs to be called as well, before use */
-        class SpaceInformation : private boost::noncopyable
+        class SpaceInformation
         {
         public:
+            // non-copyable
+            SpaceInformation(const SpaceInformation&) = delete;
+            SpaceInformation& operator=(const SpaceInformation&) = delete;
 
             /** \brief Constructor. Sets the instance of the state space to plan with. */
             SpaceInformation(const StateSpacePtr &space);
@@ -153,7 +154,7 @@ namespace ompl
             }
 
             /** \brief If no state validity checking class is
-                specified (StateValidityChecker), a boost function can
+                specified (StateValidityChecker), a function can
                 be specified instead. This version however incurs a
                 small additional overhead when calling the function,
                 since there is one more level of indirection */

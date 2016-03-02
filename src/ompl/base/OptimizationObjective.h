@@ -42,8 +42,6 @@
 #include "ompl/util/ClassForward.h"
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/samplers/InformedStateSampler.h"
-#include <boost/noncopyable.hpp>
-#include <boost/concept_check.hpp>
 
 #include <iostream>
 
@@ -62,14 +60,18 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::OptimizationObjectivePtr
-            \brief A boost shared pointer wrapper for ompl::base::OptimizationObjective */
+            \brief A shared pointer wrapper for ompl::base::OptimizationObjective */
 
         /** \brief Abstract definition of optimization objectives.
 
             \note This implementation has greatly benefited from discussions with Kris Hauser */
-        class OptimizationObjective : private boost::noncopyable
+        class OptimizationObjective
         {
         public:
+            // non-copyable
+            OptimizationObjective(const OptimizationObjective&) = delete;
+            OptimizationObjective& operator=(const OptimizationObjective&) = delete;
+
             /** \brief Constructor. The objective must always know the space information it is part of. The cost threshold for objective satisfaction defaults to 0.0. */
             OptimizationObjective(const SpaceInformationPtr &si);
 
