@@ -172,6 +172,7 @@ namespace ompl
     }
 }
 
+boost::mutex ompl::tools::SelfConfig::staticConstructorLock_;
 /// @endcond
 
 ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const std::string &context) :
@@ -179,10 +180,9 @@ ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const s
 {
     typedef std::map<base::SpaceInformation*, boost::shared_ptr<SelfConfigImpl> > ConfigMap;
 
-    static ConfigMap    SMAP;
-    static boost::mutex LOCK;
+    boost::mutex::scoped_lock smLock(staticConstructorLock_);
 
-    boost::mutex::scoped_lock smLock(LOCK);
+    static ConfigMap    SMAP;
 
     // clean expired entries from the map
     ConfigMap::iterator dit = SMAP.begin();
