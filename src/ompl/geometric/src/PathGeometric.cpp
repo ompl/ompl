@@ -154,6 +154,10 @@ double ompl::geometric::PathGeometric::smoothness() const
 
 bool ompl::geometric::PathGeometric::check() const
 {
+    // make sure state validity checker is set
+    if (!si_->isSetup())
+        si_->setup();
+
     bool result = true;
     if (states_.size() > 0)
     {
