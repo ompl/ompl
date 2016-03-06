@@ -139,6 +139,6 @@ def planTheHardWay():
 
 
 if __name__ == "__main__":
-    #planWithSimpleSetup()
+    planWithSimpleSetup()
     print("")
     planTheHardWay()

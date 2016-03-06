@@ -242,6 +242,11 @@ class ompl_base_generator_t(code_generator_t):
         cls.add_registration_code(
             'def("__bool__", &ompl::base::PlannerStatus::operator bool)')
 
+        # Using nullptr as a default value in method arguments causes
+        # problems with Boost.Python.
+        # See https://github.com/boostorg/python/issues/60
+        self.ompl_ns.class_('ProblemDefinition').add_declaration_code('#define nullptr NULL\n')
+
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
         #self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()
         #self.std_ns.class_('map< unsigned int, ompl::base::PlannerDataEdge const*>').include()
@@ -386,19 +391,14 @@ class ompl_control_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('printControl'))
         # print paths as matrices
         self.replace_member_functions(self.ompl_ns.member_functions('printAsMatrix'))
-        try:
-            # export ODESolver-derived classes that use Boost.OdeInt
-            for odesolver in ['ODEBasicSolver', 'ODEErrorSolver', 'ODEAdaptiveSolver']:
-                self.ompl_ns.class_(lambda cls: cls.name.startswith(odesolver)).rename(odesolver)
-            # Somehow, Py++ changes the type of the ODE's first argument. Weird...
-            self.add_boost_function('void(ompl::control::ODESolver::StateType, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
-                'ODE','Ordinary differential equation')
-            # workaround for default argument for PostPropagationEvent
-            self.replace_member_function(self.ompl_ns.class_('ODESolver').member_function(
-                'getStatePropagator'))
-        except declarations.matcher.declaration_not_found_t:
-            # not available for boost < 1.44, so ignore this
-            pass
+        # export ODESolver-derived classes that use Boost.OdeInt
+        for odesolver in ['ODEBasicSolver', 'ODEErrorSolver', 'ODEAdaptiveSolver']:
+            self.ompl_ns.class_(lambda cls: cls.name.startswith(odesolver)).rename(odesolver)
+        self.add_boost_function('void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
+            'ODE','Ordinary differential equation')
+        # workaround for default argument for PostPropagationEvent
+        self.replace_member_function(self.ompl_ns.class_('ODESolver').member_function(
+            'getStatePropagator'))
         # LLVM's clang++ compiler doesn't like exporting this method because
         # the argument type (Grid::Cell) is protected
         self.ompl_ns.member_functions('computeImportance').exclude()
@@ -458,7 +458,7 @@ class ompl_control_generator_t(code_generator_t):
 
         # do this for all planners
         for planner in ['KPIECE1', 'PDST', 'RRT', 'EST', 'Syclop', 'SyclopEST', 'SyclopRRT','SST']:
-            # many planners  exist with the same name in another namespace
+            # many planners exist with the same name in another namespace
             self.ompl_ns.namespace('control').class_(planner).wrapper_alias = 'Control%s_wrapper' % planner
             self.ompl_ns.class_(planner).add_registration_code("""
             def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )""")
@@ -565,9 +565,9 @@ class ompl_geometric_generator_t(code_generator_t):
         PRM_cls.add_wrapper_code("""
             virtual ::ompl::base::PlannerStatus solve( ::ompl::base::PlannerTerminationCondition const & ptc ) {
                 if( bp::override func_solve = this->get_override( "solve" ) )
-                    return func_solve( std::ref(ptc) );
+                    return func_solve( boost::ref(ptc) );
                 else{
-                    return default_solve( std::ref(ptc) );
+                    return default_solve( boost::ref(ptc) );
                 }
             }
 
@@ -697,13 +697,13 @@ class ompl_tools_generator_t(code_generator_t):
             'def(bp::init< ompl::geometric::SimpleSetup &, bp::optional< std::string const & > >(( bp::arg("setup"), bp::arg("name")=std::basic_string<char, std::char_traits<char>, std::allocator<char> >() )) )')
         benchmark_cls.add_wrapper_code(
             """Benchmark_wrapper(::ompl::geometric::SimpleSetup & setup, const ::std::string & name=std::string() )
-        : ompl::tools::Benchmark( std::ref(setup), name )
+        : ompl::tools::Benchmark( boost::ref(setup), name )
           , bp::wrapper< ompl::tools::Benchmark >(){}""")
         benchmark_cls.add_registration_code(
             'def(bp::init< ompl::control::SimpleSetup &, bp::optional< std::string const & > >(( bp::arg("setup"), bp::arg("name")=std::basic_string<char, std::char_traits<char>, std::allocator<char> >() )) )')
         benchmark_cls.add_wrapper_code(
             """Benchmark_wrapper(::ompl::control::SimpleSetup & setup, const ::std::string & name=std::string() )
-          : ompl::tools::Benchmark( std::ref(setup), name )
+          : ompl::tools::Benchmark( boost::ref(setup), name )
             , bp::wrapper< ompl::tools::Benchmark >(){}""")
         # don't want to export iostream
         benchmark_cls.member_function('saveResultsToStream').exclude()

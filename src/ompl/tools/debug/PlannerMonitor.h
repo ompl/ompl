@@ -40,7 +40,7 @@
 #include <iostream>
 #include <boost/scoped_ptr.hpp>
 #include <thread>
-\
+
 #include "ompl/base/Planner.h"
 
 namespace ompl

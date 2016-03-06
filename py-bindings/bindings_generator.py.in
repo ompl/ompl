@@ -197,6 +197,12 @@ class code_generator_t(object):
     # but support for std::shared_ptr is still missing (see
     # https://github.com/boostorg/python/issues/29). This function attempts
     # to (partially) fix this for specific classes.
+
+    # We currently use a different workaround: copy the special bits of Boost
+    # code that handle boost::shared_ptr's and modify them to use
+    # std::shared_ptr's instead. Might not be portable across a wide range of
+    # Boost.Python versions....
+
     # def add_implicit_conversions(self, cls):
     #     cls.held_type = 'std::shared_ptr< %s >' % cls.wrapper_alias
     #     cls.add_registration_code(impl_conv_code % {'from': cls.wrapper_alias, 'to': cls.decl_string}, False)
