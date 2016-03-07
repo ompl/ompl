@@ -108,7 +108,7 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 - [Frequently Asked Questions.](FAQ.html)
 - Familiarize yourself with the [Boost structures](boost.html) used throughout OMPL.
 - Learn how to integrate your own code with [OMPL's build system](buildSystem.html).
-- [Learn more about how OMPL is integrated within other systems](integration.html) (such as [MoveIt!](http://moveit.ros.org), [OpenRAVE](http://openrave.org), and [MORSE](https://www.openrobots.org/wiki/morse)).
+- [Learn more about how OMPL is integrated within other systems](integration.html) (such as [MoveIt!](http://moveit.ros.org), [OpenRAVE](http://openrave.org), [V-REP](http://coppeliarobotics.com), and [MORSE](https://www.openrobots.org/wiki/morse)).
 - If interested in using Python, make sure to read [the documentation for the Python bindings](python.html).
 
 \htmlonly</div><div class="col-md-4 col-sm-6">\endhtmlonly
