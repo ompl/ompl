@@ -264,7 +264,7 @@ namespace ompl
             {
             }
 
-            bool operator()(std::size_t id1, std::size_t id2)
+            bool operator()(std::size_t id1, std::size_t id2) const
             {
                 return (cost_[id1] < cost_[id2]);
             }

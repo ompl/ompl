@@ -224,7 +224,7 @@ namespace ompl
                 {
                 }
 
-                bool operator() (const Motion *motionA, const Motion *motionB)
+                bool operator() (const Motion *motionA, const Motion *motionB) const
                 {
                     return motionA->costLb_ < motionB->costLb_;
                 }
