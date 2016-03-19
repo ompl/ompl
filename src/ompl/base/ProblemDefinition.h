@@ -181,7 +181,7 @@ namespace ompl
             /** \brief Check whether a specified starting state is
                 already included in the problem definition and
                 optionally return the index of that starting state */
-            bool hasStartState(const State *state, unsigned int *startIndex = NULL);
+            bool hasStartState(const State *state, unsigned int *startIndex = NULL) const;
 
             /** \brief Clear all start states (memory is freed) */
             void clearStartStates()

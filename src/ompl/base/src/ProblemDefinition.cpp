@@ -184,7 +184,7 @@ void ompl::base::ProblemDefinition::setGoalState(const State *goal, const double
     setGoal(GoalPtr(gs));
 }
 
-bool ompl::base::ProblemDefinition::hasStartState(const State *state, unsigned int *startIndex)
+bool ompl::base::ProblemDefinition::hasStartState(const State *state, unsigned int *startIndex) const
 {
     for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
         if (si_->equalStates(state, startStates_[i]))
