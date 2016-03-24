@@ -1,5 +1,7 @@
-# force C++11 mode
-add_definitions(-std=c++11)
+# force C++11 mode (MS Visual Studio doesn't know about this flag)
+if(NOT MSVC)
+    add_definitions(-std=c++11)
+endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-W -Wall -Wextra #-Wconversion
