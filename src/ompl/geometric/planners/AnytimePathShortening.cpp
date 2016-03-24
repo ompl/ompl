@@ -40,14 +40,14 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
-#include <boost/thread.hpp>
+#include <thread>
 
 ompl::geometric::AnytimePathShortening::AnytimePathShortening (const ompl::base::SpaceInformationPtr &si) :
     ompl::base::Planner(si, "APS"),
     shortcut_(true),
     hybridize_(true),
     maxHybridPaths_(24),
-    defaultNumPlanners_(std::max(1u, boost::thread::hardware_concurrency()))
+    defaultNumPlanners_(std::max(1u, std::thread::hardware_concurrency()))
 {
     specs_.approximateSolutions = true;
     specs_.multithreaded = true;
@@ -59,7 +59,7 @@ ompl::geometric::AnytimePathShortening::AnytimePathShortening (const ompl::base:
     Planner::declareParam<unsigned int>("num_planners", this, &AnytimePathShortening::setDefaultNumPlanners, &AnytimePathShortening::getDefaultNumPlanners, "0:64");
 
     addPlannerProgressProperty("best cost REAL",
-                               boost::bind(&AnytimePathShortening::getBestCost, this));
+                               std::bind(&AnytimePathShortening::getBestCost, this));
 }
 
 ompl::geometric::AnytimePathShortening::~AnytimePathShortening()
@@ -97,9 +97,9 @@ void ompl::geometric::AnytimePathShortening::setProblemDefinition(const ompl::ba
 ompl::base::PlannerStatus ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
     base::Goal *goal = pdef_->getGoal().get();
-    std::vector<boost::thread*> threads(planners_.size());
+    std::vector<std::thread*> threads(planners_.size());
     geometric::PathHybridization phybrid(si_);
-    base::Path *bestSln = NULL;
+    base::Path *bestSln = nullptr;
 
     base::OptimizationObjectivePtr opt = pdef_->getOptimizationObjective();
     if (!opt)
@@ -128,7 +128,7 @@ ompl::base::PlannerStatus ompl::geometric::AnytimePathShortening::solve(const om
 
         // Spawn a thread for each planner.  This will shortcut the best path after solving.
         for (size_t i = 0; i < threads.size(); ++i)
-            threads[i] = new boost::thread(boost::bind(&AnytimePathShortening::threadSolve, this, planners_[i].get(), ptc));
+            threads[i] = new std::thread(std::bind(&AnytimePathShortening::threadSolve, this, planners_[i].get(), ptc));
 
         // Join each thread, and then delete it
         for (std::size_t i = 0 ; i < threads.size() ; ++i)
@@ -296,5 +296,5 @@ std::string ompl::geometric::AnytimePathShortening::getBestCost() const
     base::Cost bestCost(std::numeric_limits<double>::quiet_NaN());
     if (pdef_ && pdef_->getSolutionCount() > 0)
         bestCost = base::Cost(pdef_->getSolutionPath()->length());
-    return boost::lexical_cast<std::string>(bestCost);
+    return std::to_string(bestCost.value());
 }

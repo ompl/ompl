@@ -163,7 +163,7 @@ b.addPlanner(base::PlannerPtr(new geometric::LBKPIECE1(ss.getSpaceInformation())
 
 // For planners that we want to configure in specific ways,
 // the ompl::base::PlannerAllocator should be used:
-b.addPlannerAllocator(boost::bind(&myConfiguredPlanner, _1));
+b.addPlannerAllocator(std::bind(&myConfiguredPlanner, std::placeholders::_1));
 // etc.
 
 // Now we can benchmark: 5 second time limit for each plan computation,
@@ -208,8 +208,8 @@ void optionalPostRunEvent(const base::PlannerPtr &planner, tools::Benchmark::Run
 }
 
 // After the Benchmark class is defined, the events can be optionally registered:
-b.setPreRunEvent(boost::bind(&optionalPreRunEvent, _1));
-b.setPostRunEvent(boost::bind(&optionalPostRunEvent, _1, _2));
+b.setPreRunEvent(std::bind(&optionalPreRunEvent, std::placeholders::_1));
+b.setPostRunEvent(std::bind(&optionalPostRunEvent, std::placeholders::_1, std::placeholders::_2));
 ~~~
 
 
@@ -269,7 +269,7 @@ Collected benchmark data for each planner execution:
 
 Planning algorithms can also register callback functions that the Benchmark class will use to measure progress properties at regular intervals during a run of the planning algorithm. Currently only RRT* uses this functionality. The RRT* constructor registers, among others, a function that returns the cost of the best path found so far:
 
-    addPlannerProgressProperty("best cost REAL", boost::bind(&RRTstar::getBestCost, this));
+    addPlannerProgressProperty("best cost REAL", std::bind(&RRTstar::getBestCost, this));
 
 With the Benchmark class one can thus measure how the cost is decreasing over time. The ompl_benchmark_statistics.py script will automatically generate plots of progress properties as a function of time.
 

@@ -60,9 +60,11 @@ namespace ompl
                 delayRewiring_(true),
                 outgoingLookupTables_(true),
                 incomingLookupTables_(true),
-                vertexQueue_( boost::bind(&BITstar::IntegratedQueue::vertexQueueComparison, this, _1, _2) ), //This tells the vertexQueue_ to use the vertexQueueComparison for sorting
+                vertexQueue_( std::bind(&BITstar::IntegratedQueue::vertexQueueComparison, this,
+                    std::placeholders::_1, std::placeholders::_2) ), //This tells the vertexQueue_ to use the vertexQueueComparison for sorting
                 vertexToExpand_( vertexQueue_.begin() ),
-                edgeQueue_( boost::bind(&BITstar::IntegratedQueue::edgeQueueComparison, this, _1, _2) ), //This tells the edgeQueue_ to use the edgeQueueComparison for sorting
+                edgeQueue_( std::bind(&BITstar::IntegratedQueue::edgeQueueComparison, this,
+                    std::placeholders::_1, std::placeholders::_2) ), //This tells the edgeQueue_ to use the edgeQueueComparison for sorting
                 vertexIterLookup_(),
                 outgoingEdges_(),
                 incomingEdges_(),
@@ -494,7 +496,7 @@ namespace ompl
         std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::resort(const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices)
         {
             //Variable:
-            typedef boost::unordered_map<BITstar::VertexId, VertexPtr> VertexIdToVertexPtrUMap;
+            typedef std::unordered_map<BITstar::VertexId, VertexPtr> VertexIdToVertexPtrUMap;
             typedef std::map<unsigned int, VertexIdToVertexPtrUMap> DepthToUMapMap;
             //The number of vertices and samples pruned, respectively:
             std::pair<unsigned int, unsigned int> numPruned;
@@ -1153,7 +1155,7 @@ namespace ompl
             }
 
             //Remove myself, not touching my lookup entries
-            this->vertexRemoveHelper(unorderedVertex, VertexPtrNNPtr(), VertexPtrNNPtr(), NULL, false);
+            this->vertexRemoveHelper(unorderedVertex, VertexPtrNNPtr(), VertexPtrNNPtr(), nullptr, false);
 
             //Reinsert myself, expanding if I cross the token if I am not already expanded
             this->vertexInsertHelper(unorderedVertex, alreadyExpanded == false);

@@ -106,13 +106,13 @@ namespace ompl
             {
             public:
 
-                Motion() : root(NULL), state(NULL), parent(NULL)
+                Motion() : root(nullptr), state(nullptr), parent(nullptr)
                 {
-                    parent = NULL;
-                    state  = NULL;
+                    parent = nullptr;
+                    state  = nullptr;
                 }
 
-                Motion(const base::SpaceInformationPtr &si) : root(NULL), state(si->allocState()), parent(NULL)
+                Motion(const base::SpaceInformationPtr &si) : root(nullptr), state(si->allocState()), parent(nullptr)
                 {
                 }
 
@@ -127,7 +127,7 @@ namespace ompl
             };
 
             /** \brief A nearest-neighbor datastructure representing a tree of motions */
-            typedef boost::shared_ptr< NearestNeighbors<Motion*> > TreeData;
+            typedef std::shared_ptr< NearestNeighbors<Motion*> > TreeData;
 
             /** \brief Information attached to growing a tree of motions (used internally) */
             struct TreeGrowingInfo

@@ -73,7 +73,7 @@ namespace ompl
             /** \brief Try to improve a state (reduce distance to goal). The updates are performed by sampling near the
                 state, within the specified distance. If improvements were found, the function returns true and the better
                 goal distance is optionally returned */
-            bool tryToImprove(const base::GoalRegion &goal, base::State *state, double nearDistance, double *betterGoalDistance = NULL) const;
+            bool tryToImprove(const base::GoalRegion &goal, base::State *state, double nearDistance, double *betterGoalDistance = nullptr) const;
 
             /** \brief Set the number of steps to perform */
             void setMaxImproveSteps(unsigned int steps)

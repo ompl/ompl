@@ -46,7 +46,6 @@
 #include <algorithm>
 #include <limits>
 #include <boost/math/constants/constants.hpp>
-#include <boost/make_shared.hpp>
 #include <vector>
 
 ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
@@ -58,7 +57,7 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     k_rrg_(0u),
     r_rrg_(0.0),
     delayCC_(true),
-    lastGoalMotion_(NULL),
+    lastGoalMotion_(nullptr),
     useTreePruning_(false),
     pruneThreshold_(0.05),
     usePrunedMeasure_(false),
@@ -92,9 +91,9 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     Planner::declareParam<bool>("number_sampling_attempts", this, &RRTstar::setNumSamplingAttempts, &RRTstar::getNumSamplingAttempts, "10:10:100000");
 
     addPlannerProgressProperty("iterations INTEGER",
-                               boost::bind(&RRTstar::numIterationsProperty, this));
+                               std::bind(&RRTstar::numIterationsProperty, this));
     addPlannerProgressProperty("best cost REAL",
-                               boost::bind(&RRTstar::bestCostProperty, this));
+                               std::bind(&RRTstar::bestCostProperty, this));
 }
 
 ompl::geometric::RRTstar::~RRTstar()
@@ -114,7 +113,7 @@ void ompl::geometric::RRTstar::setup()
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(boost::bind(&RRTstar::distanceFunction, this, _1, _2));
+    nn_->setDistanceFunction(std::bind(&RRTstar::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 
     // Setup optimization objective
     //
@@ -161,7 +160,7 @@ void ompl::geometric::RRTstar::clear()
     if (nn_)
         nn_->clear();
 
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
     goalMotions_.clear();
     startMotions_.clear();
 
@@ -220,7 +219,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     Motion *solution       = lastGoalMotion_;
 
-    Motion *approximation  = NULL;
+    Motion *approximation  = nullptr;
     double approximatedist = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
 
@@ -504,7 +503,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         Motion *intermediate_solution = solution->parent; // Do not include goal state to simplify code.
 
                         //Push back until we find the start, but not the start itself
-                        while (intermediate_solution->parent != NULL)
+                        while (intermediate_solution->parent != nullptr)
                         {
                             spath.push_back(intermediate_solution->state);
                             intermediate_solution = intermediate_solution->parent;
@@ -528,19 +527,19 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             break;
     }
 
-    bool approximate = (solution == NULL);
+    bool approximate = (solution == nullptr);
     bool addedSolution = false;
     if (approximate)
         solution = approximation;
     else
         lastGoalMotion_ = solution;
 
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         ptc.terminate();
         // construct the solution path
         std::vector<Motion*> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;
@@ -640,7 +639,7 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
 
     for (std::size_t i = 0 ; i < motions.size() ; ++i)
     {
-        if (motions[i]->parent == NULL)
+        if (motions[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
         else
             data.addEdge(base::PlannerDataVertex(motions[i]->parent->state),
@@ -1027,7 +1026,7 @@ void ompl::geometric::RRTstar::allocSampler()
     {
         // We are explicitly using rejection sampling.
         OMPL_INFORM("%s: Using rejection sampling.", getName().c_str());
-        infSampler_ = boost::make_shared<base::RejectionInfSampler>(pdef_, numSampleAttempts_);
+        infSampler_ = std::make_shared<base::RejectionInfSampler>(pdef_, numSampleAttempts_);
     }
     else
     {

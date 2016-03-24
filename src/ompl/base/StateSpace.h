@@ -45,7 +45,6 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/concept_check.hpp>
-#include <boost/noncopyable.hpp>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -62,7 +61,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::StateSpacePtr
-            \brief A boost shared pointer wrapper for ompl::base::StateSpace */
+            \brief A shared pointer wrapper for ompl::base::StateSpace */
 
 
         /** \brief Representation of a space in which planning can be
@@ -70,9 +69,12 @@ namespace ompl
             are defined.
 
             See \ref implementingStateSpaces. */
-        class StateSpace : private boost::noncopyable
+        class StateSpace
         {
         public:
+            // non-copyable
+            StateSpace(const StateSpace&) = delete;
+            StateSpace& operator=(const StateSpace&) = delete;
 
             /** \brief Define the type of state allocated by this space */
             typedef State StateType;
@@ -346,7 +348,7 @@ namespace ompl
             /** \brief Many states contain a number of double values. This function provides a means to get the
                 memory address of a double value from state \e state located at position \e index. The first double value
                 is returned for \e index = 0. If \e index is too large (does not point to any double values in the state),
-                the return value is NULL.
+                the return value is nullptr.
 
                 \note This function does @b not map a state to an
                 array of doubles. There may be components of a state

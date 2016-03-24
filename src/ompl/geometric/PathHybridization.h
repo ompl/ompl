@@ -55,7 +55,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::geometric::PathHybridizationPtr
-            \brief A boost shared pointer wrapper for ompl::geometric::PathHybridization */
+            \brief A shared pointer wrapper for ompl::geometric::PathHybridization */
 
         /** \brief Given multiple geometric paths, attempt to combine them in order to obtain a shorter solution.
 

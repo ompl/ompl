@@ -99,6 +99,10 @@ void __setitem(%s* obj, unsigned int i, %s val)
 }
 """)
 
+# impl_conv_code = """
+# boost::python::implicitly_convertible< std::shared_ptr< %(from)s >, std::shared_ptr< %(to)s > >();
+# """
+
 def returns_reference(decl):
     """Return True iff the declaration returns a pointer or reference."""
     c = decl.return_type.decl_string[-1]
@@ -112,8 +116,7 @@ class code_generator_t(object):
         @name name of the python module
         @dep name of another module this module depends on"""
         module_builder.set_logger_level( logging.INFO )
-        xml_generator_config = parser.load_xml_generator_configuration("@XMLCONFIGPATH@")
-        self.using_castxml = (xml_generator_config.xml_generator == "castxml")
+        xml_generator_config = parser.load_xml_generator_configuration("@CASTXMLCONFIGPATH@")
         self.mb = module_builder.module_builder_t(
             files = [ 'bindings/' + name + '.h' ],
             cache = '@CMAKE_BINARY_DIR@/pyplusplus_'+name+'.cache',
@@ -189,3 +192,23 @@ class code_generator_t(object):
     def add_boost_function(self, FT, func_name, func_doc):
         self.mb.add_declaration_code('PYDECLARE_FUNCTION(%s,%s)' % (FT, func_name))
         self.mb.add_registration_code('PYREGISTER_FUNCTION(%s,%s,"%s")' % (FT, func_name, func_doc))
+
+    # Boost.Python has special code to handle boost::shared_ptr conversions,
+    # but support for std::shared_ptr is still missing (see
+    # https://github.com/boostorg/python/issues/29). This function attempts
+    # to (partially) fix this for specific classes.
+
+    # We currently use a different workaround: copy the special bits of Boost
+    # code that handle boost::shared_ptr's and modify them to use
+    # std::shared_ptr's instead. Might not be portable across a wide range of
+    # Boost.Python versions....
+
+    # def add_implicit_conversions(self, cls):
+    #     cls.held_type = 'std::shared_ptr< %s >' % cls.wrapper_alias
+    #     cls.add_registration_code(impl_conv_code % {'from': cls.wrapper_alias, 'to': cls.decl_string}, False)
+    #     for base in cls.recursive_bases:
+    #         if base.access_type == 'public':
+    #             # from class to its base
+    #             cls.add_registration_code(impl_conv_code % {'from': cls.decl_string, 'to': base.related_class.decl_string}, False)
+    #             # from wrapper to clas base class
+    #             cls.add_registration_code(impl_conv_code % {'from': cls.wrapper_alias, 'to': base.related_class.decl_string}, False)

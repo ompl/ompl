@@ -102,7 +102,7 @@ namespace ompl
 
         private:
             /** \brief A constant pointer to ProlateHyperspheroid */
-            typedef boost::shared_ptr<const ompl::ProlateHyperspheroid> ProlateHyperspheroidCPtr;
+            typedef std::shared_ptr<const ompl::ProlateHyperspheroid> ProlateHyperspheroidCPtr;
 
             // Helper functions:
             // High level
@@ -134,7 +134,7 @@ namespace ompl
             /** \brief Iterate through the list of PHSs and return true if the sample is in any of them */
             bool isInAnyPhs(const std::vector<double>& informedVector) const;
 
-            /** \brief Return true if the sample is in the specified PHS. Really just a wrapper to aid with boost::bind */
+            /** \brief Return true if the sample is in the specified PHS. Really just a wrapper to aid with std::bind */
             bool isInPhs(const ProlateHyperspheroidCPtr &phsCPtr, const std::vector<double> &informedVector) const;
 
             /** \brief Iterate through the list of PHSs and return the number of PHSs that the sample is in */

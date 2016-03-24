@@ -38,7 +38,7 @@
 #include "ompl/util/Exception.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include <sstream>
-#include <boost/thread.hpp>
+#include <thread>
 
 ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &name) :
     si_(si), pis_(this), name_(name), setup_(false)
@@ -159,12 +159,12 @@ void ompl::base::PlannerInputStates::clear()
     if (tempState_)
     {
         si_->freeState(tempState_);
-        tempState_ = NULL;
+        tempState_ = nullptr;
     }
     addedStartStates_ = 0;
     sampledGoalsCount_ = 0;
-    pdef_ = NULL;
-    si_ = NULL;
+    pdef_ = nullptr;
+    si_ = nullptr;
 }
 
 void ompl::base::PlannerInputStates::restart()
@@ -229,7 +229,7 @@ bool ompl::base::PlannerInputStates::use(const ProblemDefinition *pdef)
 
 const ompl::base::State* ompl::base::PlannerInputStates::nextStart()
 {
-    if (pdef_ == NULL || si_ == NULL)
+    if (pdef_ == nullptr || si_ == nullptr)
     {
         std::string error = "Missing space information or problem definition";
         if (planner_)
@@ -258,7 +258,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart()
                        ss.str().c_str());
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 const ompl::base::State* ompl::base::PlannerInputStates::nextGoal()
@@ -270,7 +270,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal()
 
 const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerTerminationCondition &ptc)
 {
-    if (pdef_ == NULL || si_ == NULL)
+    if (pdef_ == nullptr || si_ == nullptr)
     {
         std::string error = "Missing space information or problem definition";
         if (planner_)
@@ -279,7 +279,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
             throw Exception(error);
     }
 
-    const GoalSampleableRegion *goal = pdef_->getGoal()->hasType(GOAL_SAMPLEABLE_REGION) ? pdef_->getGoal()->as<GoalSampleableRegion>() : NULL;
+    const GoalSampleableRegion *goal = pdef_->getGoal()->hasType(GOAL_SAMPLEABLE_REGION) ? pdef_->getGoal()->as<GoalSampleableRegion>() : nullptr;
 
     if (goal)
     {
@@ -292,7 +292,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
 
             if (sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample())
             {
-                if (tempState_ == NULL)
+                if (tempState_ == nullptr)
                     tempState_ = si_->allocState();
                 do
                 {
@@ -333,13 +333,13 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                     OMPL_DEBUG("%s: Waiting for goal region samples ...",
                                planner_ ? planner_->getName().c_str() : "PlannerInputStates");
                 }
-                boost::this_thread::sleep(time::seconds(0.01));
+                std::this_thread::sleep_for(time::seconds(0.01));
                 attempt = !ptc;
             }
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 bool ompl::base::PlannerInputStates::haveMoreStartStates() const

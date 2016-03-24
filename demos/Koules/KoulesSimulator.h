@@ -39,8 +39,7 @@
 
 #include "KoulesConfig.h"
 #include <ompl/control/StatePropagator.h>
-#include <boost/tuple/tuple.hpp>
-#include <boost/tuple/tuple_comparison.hpp>
+#include <tuple>
 #include <queue>
 
 // State propagator for KoulesSetup.
@@ -55,7 +54,7 @@ public:
 
 protected:
     // A tuple containing the time and id's of two objects colliding
-    typedef boost::tuple<double, unsigned int, unsigned int> CollisionEvent;
+    typedef std::tuple<double, unsigned int, unsigned int> CollisionEvent;
     // A priority queue of events, s.t. the top element is the collision
     // that will happen first.
     typedef std::priority_queue<CollisionEvent, std::vector<CollisionEvent>,

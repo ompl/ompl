@@ -91,7 +91,7 @@ namespace ompl
             friend class PlannerDataStorage;
             friend class PlannerData;
 
-            PlannerDataEdgeControl() : PlannerDataEdge(), c_(NULL) {};
+            PlannerDataEdgeControl() : PlannerDataEdge(), c_(nullptr) {};
 
             template <class Archive>
             void serialize(Archive &ar, const unsigned int /*version*/)

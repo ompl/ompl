@@ -37,7 +37,7 @@
 # Author: Mark Moll
 
 import unittest
-from py_boost_function import *
+from py_std_function import *
 
 def myIntFun0(i, j):
     i.value = j
@@ -51,7 +51,7 @@ def myIntFun1(i, j):
 def myIntFun2(i, j):
     i.value = j
 
-class TestPyBoostFunction(unittest.TestCase):
+class TestPyStdFunction(unittest.TestCase):
     def testIntClassFunObj(self):
         i = IntClass(0)
         j = intClassFun0_obj(i, 1)
@@ -96,7 +96,7 @@ class TestPyBoostFunction(unittest.TestCase):
 
 
 def suite():
-    suites = (unittest.makeSuite(TestPyBoostFunction,'test'))
+    suites = (unittest.makeSuite(TestPyStdFunction,'test'))
     return unittest.TestSuite(suites)
 
 if __name__ == '__main__':

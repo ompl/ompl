@@ -39,7 +39,6 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/tools/config/SelfConfig.h"
-#include <boost/lambda/bind.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
 #include <boost/graph/lookup_edge.hpp>
@@ -89,13 +88,13 @@ ompl::geometric::LazyPRM::LazyPRM(const base::SpaceInformationPtr &si, bool star
         Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &LazyPRM::setMaxNearestNeighbors, std::string("8:1000"));
 
     addPlannerProgressProperty("iterations INTEGER",
-                               boost::bind(&LazyPRM::getIterationCount, this));
+                               std::bind(&LazyPRM::getIterationCount, this));
     addPlannerProgressProperty("best cost REAL",
-                               boost::bind(&LazyPRM::getBestCost, this));
+                               std::bind(&LazyPRM::getBestCost, this));
     addPlannerProgressProperty("milestone count INTEGER",
-                               boost::bind(&LazyPRM::getMilestoneCountString, this));
+                               std::bind(&LazyPRM::getMilestoneCountString, this));
     addPlannerProgressProperty("edge count INTEGER",
-                               boost::bind(&LazyPRM::getEdgeCountString, this));
+                               std::bind(&LazyPRM::getEdgeCountString, this));
 }
 
 ompl::geometric::LazyPRM::~LazyPRM()
@@ -111,17 +110,18 @@ void ompl::geometric::LazyPRM::setup()
     if (!nn_)
     {
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
-        nn_->setDistanceFunction(boost::bind(&LazyPRM::distanceFunction, this, _1, _2));
+        nn_->setDistanceFunction(std::bind(&LazyPRM::distanceFunction, this,
+            std::placeholders::_1, std::placeholders::_2));
     }
     if (!connectionStrategy_)
     {
         if (starStrategy_)
-            connectionStrategy_ = KStarStrategy<Vertex>(boost::bind(&LazyPRM::milestoneCount, this), nn_, si_->getStateDimension());
+            connectionStrategy_ = KStarStrategy<Vertex>(std::bind(&LazyPRM::milestoneCount, this), nn_, si_->getStateDimension());
         else
             connectionStrategy_ = KBoundedStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS_LAZY, maxDistance_, nn_);
     }
     if (!connectionFilter_)
-        connectionFilter_ = boost::lambda::constant(true);
+        connectionFilter_ = [] (const Vertex&, const Vertex&) { return true; };
 
     // Setup optimization objective
     //
@@ -152,7 +152,7 @@ void ompl::geometric::LazyPRM::setRange(double distance)
 {
     maxDistance_ = distance;
     if (!userSetConnectionStrategy_)
-        connectionStrategy_.clear();
+        connectionStrategy_ = ConnectionStrategy();
     if (isSetup())
         setup();
 }
@@ -164,10 +164,11 @@ void ompl::geometric::LazyPRM::setMaxNearestNeighbors(unsigned int k)
     if (!nn_)
     {
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
-        nn_->setDistanceFunction(boost::bind(&LazyPRM::distanceFunction, this, _1, _2));
+        nn_->setDistanceFunction(std::bind(&LazyPRM::distanceFunction, this,
+            std::placeholders::_1, std::placeholders::_2));
     }
     if (!userSetConnectionStrategy_)
-        connectionStrategy_.clear();
+        connectionStrategy_ = ConnectionStrategy();
     if (isSetup())
         setup();
 }
@@ -419,12 +420,12 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &st
     {
         // Consider using a persistent distance_map if it's slow
         boost::astar_search(g_, start,
-                            boost::bind(&LazyPRM::costHeuristic, this, _1, goal),
+                            std::bind(&LazyPRM::costHeuristic, this, std::placeholders::_1, goal),
                             boost::predecessor_map(prev).
-                            distance_compare(boost::bind(&base::OptimizationObjective::
-                                                         isCostBetterThan, opt_.get(), _1, _2)).
-                            distance_combine(boost::bind(&base::OptimizationObjective::
-                                                         combineCosts, opt_.get(), _1, _2)).
+                            distance_compare(std::bind(&base::OptimizationObjective::
+                                                         isCostBetterThan, opt_.get(), std::placeholders::_1, std::placeholders::_2)).
+                            distance_combine(std::bind(&base::OptimizationObjective::
+                                                         combineCosts, opt_.get(), std::placeholders::_1, std::placeholders::_2)).
                             distance_inf(opt_->infiniteCost()).
                             distance_zero(opt_->identityCost()).
                             visitor(AStarGoalVisitor<Vertex>(goal)));

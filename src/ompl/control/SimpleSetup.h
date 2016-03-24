@@ -57,7 +57,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::SimpleSetupPtr
-            \brief A boost shared pointer wrapper for ompl::control::SimpleSetup */
+            \brief A shared pointer wrapper for ompl::control::SimpleSetup */
 
         /** \brief Create the set of classes typically needed to solve a
             control problem */

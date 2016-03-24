@@ -41,7 +41,7 @@
 #include "ompl/control/planners/PlannerIncludes.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/datastructures/PDF.h"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <vector>
 
 namespace ompl
@@ -152,12 +152,12 @@ namespace ompl
             {
             public:
 
-                Motion() : state(NULL), control(NULL), steps(0), parent(NULL)
+                Motion() : state(nullptr), control(nullptr), steps(0), parent(nullptr)
                 {
                 }
 
                 /** \brief Constructor that allocates memory for the state and the control */
-                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), steps(0), parent(NULL)
+                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), steps(0), parent(nullptr)
                 {
                 }
 

@@ -62,10 +62,10 @@ namespace ompl
             typedef ScopedState<SpaceType> ScopedStateType;
 
             /** Shared Pointer to the actual type of the space. */
-            typedef boost::shared_ptr<SpaceType> SpacePtr;
+            typedef std::shared_ptr<SpaceType> SpacePtr;
 
             /** Shared pointer to the typed space. */
-            typedef boost::shared_ptr< TypedSpaceInformation<SpaceType> > Ptr;
+            typedef std::shared_ptr< TypedSpaceInformation<SpaceType> > Ptr;
 
 
             /*--- Constructor ---*/

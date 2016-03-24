@@ -51,7 +51,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::geometric::ExperienceSetupPtr
-            \brief A boost shared pointer wrapper for ompl::geometric::ExperienceSetup */
+            \brief A shared pointer wrapper for ompl::geometric::ExperienceSetup */
 
         /** \brief Create the set of classes typically needed to solve a
             geometric problem */

@@ -39,8 +39,8 @@
 #include "ompl/base/goals/GoalRegion.h"
 #include "ompl/base/samplers/informed/RejectionInfSampler.h"
 #include <limits>
-// For boost::make_shared
-#include <boost/make_shared.hpp>
+// For std::make_shared
+#include <memory>
 
 ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationPtr &si) :
     si_(si),
@@ -167,7 +167,7 @@ const ompl::base::SpaceInformationPtr& ompl::base::OptimizationObjective::getSpa
 ompl::base::InformedSamplerPtr ompl::base::OptimizationObjective::allocInformedStateSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls) const
 {
     OMPL_INFORM("%s: No direct informed sampling scheme is defined, defaulting to rejection sampling.", description_.c_str());
-    return boost::make_shared<RejectionInfSampler>(probDefn, maxNumberCalls);
+    return std::make_shared<RejectionInfSampler>(probDefn, maxNumberCalls);
 }
 
 void ompl::base::OptimizationObjective::print(std::ostream &out) const

@@ -43,8 +43,8 @@
 // For geometric equations like prolateHyperspheroidMeasure
 #include "ompl/util/GeometricEquations.h"
 
-// For boost::make_shared
-#include <boost/make_shared.hpp>
+// For std::make_shared
+#include <memory>
 
 // Eigen core:
 #include <Eigen/Core>
@@ -82,7 +82,7 @@ struct ompl::ProlateHyperspheroid::PhsData
 
 
 ompl::ProlateHyperspheroid::ProlateHyperspheroid(unsigned int n, const double focus1[], const double focus2[])
-  : dataPtr_ (boost::make_shared<PhsData>())
+  : dataPtr_ (std::make_shared<PhsData>())
 {
     //Initialize the data:
     dataPtr_->dim_ = n;

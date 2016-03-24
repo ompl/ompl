@@ -40,12 +40,10 @@
 //vector
 #include <vector>
 
-//Boost
 //shared and weak pointers
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
+#include <memory>
 //For unordered sets of failed children:
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 
 //OMPL:
 //The space information
@@ -232,7 +230,7 @@ namespace ompl
             ompl::base::Cost                                         cost_;
 
             /** \brief The child states as weak pointers, such that the ownership loop is broken and a state can be deleted once it's children are.*/
-            std::vector<VertexWeakPtr>                           childWPtrs_;
+            std::vector<VertexWeakPtr>                               childWPtrs_;
 
 
             /** \brief A helper function to check that the vertex is not pruned and throw if so */

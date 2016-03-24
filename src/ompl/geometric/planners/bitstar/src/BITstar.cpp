@@ -43,14 +43,10 @@
 #include <sstream>
 //For stream manipulations
 #include <iomanip>
-//For boost make_shared
-#include <boost/make_shared.hpp>
-//For boost::bind
-#include <boost/bind.hpp>
+//For std::bind
+#include <functional>
 //For boost math constants
 #include <boost/math/constants/constants.hpp>
-//For boost::math::isfinite
-#include <boost/math/special_functions/fpclassify.hpp>
 
 //For OMPL_INFORM et al.
 #include "ompl/util/Console.h"
@@ -163,25 +159,25 @@ namespace ompl
             //Planner::declareParam<bool>("use_edge_failure_tracking", this, &BITstar::setUseFailureTracking, &BITstar::getUseFailureTracking, "0,1");
 
             //Register my progress info:
-            addPlannerProgressProperty("best cost DOUBLE", boost::bind(&BITstar::bestCostProgressProperty, this));
-            addPlannerProgressProperty("number of segments in solution path INTEGER", boost::bind(&BITstar::bestLengthProgressProperty, this));
-            addPlannerProgressProperty("current free states INTEGER", boost::bind(&BITstar::currentFreeProgressProperty, this));
-            addPlannerProgressProperty("current graph vertices INTEGER", boost::bind(&BITstar::currentVertexProgressProperty, this));
-            addPlannerProgressProperty("state collision checks INTEGER", boost::bind(&BITstar::stateCollisionCheckProgressProperty, this));
-            addPlannerProgressProperty("edge collision checks INTEGER", boost::bind(&BITstar::edgeCollisionCheckProgressProperty, this));
-            addPlannerProgressProperty("nearest neighbour calls INTEGER", boost::bind(&BITstar::nearestNeighbourProgressProperty, this));
+            addPlannerProgressProperty("best cost DOUBLE", std::bind(&BITstar::bestCostProgressProperty, this));
+            addPlannerProgressProperty("number of segments in solution path INTEGER", std::bind(&BITstar::bestLengthProgressProperty, this));
+            addPlannerProgressProperty("current free states INTEGER", std::bind(&BITstar::currentFreeProgressProperty, this));
+            addPlannerProgressProperty("current graph vertices INTEGER", std::bind(&BITstar::currentVertexProgressProperty, this));
+            addPlannerProgressProperty("state collision checks INTEGER", std::bind(&BITstar::stateCollisionCheckProgressProperty, this));
+            addPlannerProgressProperty("edge collision checks INTEGER", std::bind(&BITstar::edgeCollisionCheckProgressProperty, this));
+            addPlannerProgressProperty("nearest neighbour calls INTEGER", std::bind(&BITstar::nearestNeighbourProgressProperty, this));
 
             //Extra progress info that aren't necessary for every day use. Uncomment if desired.
-            //addPlannerProgressProperty("vertex queue size INTEGER", boost::bind(&BITstar::vertexQueueSizeProgressProperty, this));
-            //addPlannerProgressProperty("edge queue size INTEGER", boost::bind(&BITstar::edgeQueueSizeProgressProperty, this));
-            //addPlannerProgressProperty("iterations INTEGER", boost::bind(&BITstar::iterationProgressProperty, this));
-            //addPlannerProgressProperty("batches INTEGER", boost::bind(&BITstar::batchesProgressProperty, this));
-            //addPlannerProgressProperty("graph prunings INTEGER", boost::bind(&BITstar::pruningProgressProperty, this));
-            //addPlannerProgressProperty("total states generated INTEGER", boost::bind(&BITstar::totalStatesCreatedProgressProperty, this));
-            //addPlannerProgressProperty("vertices constructed INTEGER", boost::bind(&BITstar::verticesConstructedProgressProperty, this));
-            //addPlannerProgressProperty("states pruned INTEGER", boost::bind(&BITstar::statesPrunedProgressProperty, this));
-            //addPlannerProgressProperty("graph vertices disconnected INTEGER", boost::bind(&BITstar::verticesDisconnectedProgressProperty, this));
-            //addPlannerProgressProperty("rewiring edges INTEGER", boost::bind(&BITstar::rewiringProgressProperty, this));
+            //addPlannerProgressProperty("vertex queue size INTEGER", std::bind(&BITstar::vertexQueueSizeProgressProperty, this));
+            //addPlannerProgressProperty("edge queue size INTEGER", std::bind(&BITstar::edgeQueueSizeProgressProperty, this));
+            //addPlannerProgressProperty("iterations INTEGER", std::bind(&BITstar::iterationProgressProperty, this));
+            //addPlannerProgressProperty("batches INTEGER", std::bind(&BITstar::batchesProgressProperty, this));
+            //addPlannerProgressProperty("graph prunings INTEGER", std::bind(&BITstar::pruningProgressProperty, this));
+            //addPlannerProgressProperty("total states generated INTEGER", std::bind(&BITstar::totalStatesCreatedProgressProperty, this));
+            //addPlannerProgressProperty("vertices constructed INTEGER", std::bind(&BITstar::verticesConstructedProgressProperty, this));
+            //addPlannerProgressProperty("states pruned INTEGER", std::bind(&BITstar::statesPrunedProgressProperty, this));
+            //addPlannerProgressProperty("graph vertices disconnected INTEGER", std::bind(&BITstar::verticesDisconnectedProgressProperty, this));
+            //addPlannerProgressProperty("rewiring edges INTEGER", std::bind(&BITstar::rewiringProgressProperty, this));
         }
 
 
@@ -210,7 +206,7 @@ namespace ompl
             if (Planner::pdef_->hasOptimizationObjective() == false)
             {
                 OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length.", Planner::getName().c_str());
-                Planner::pdef_->setOptimizationObjective( boost::make_shared<base::PathLengthOptimizationObjective> (Planner::si_) );
+                Planner::pdef_->setOptimizationObjective( std::make_shared<base::PathLengthOptimizationObjective> (Planner::si_) );
             }
 
             //If the problem definition *has* a goal, make sure it is of appropriate type
@@ -244,12 +240,22 @@ namespace ompl
             //No else, already allocated (by a call to setNearestNeighbors())
 
             //Configure:
-            freeStateNN_->setDistanceFunction(boost::bind(&BITstar::nnDistance, this, _1, _2));
-            vertexNN_->setDistanceFunction(boost::bind(&BITstar::nnDistance, this, _1, _2));
+            freeStateNN_->setDistanceFunction(std::bind(&BITstar::nnDistance, this,
+                std::placeholders::_1, std::placeholders::_2));
+            vertexNN_->setDistanceFunction(std::bind(&BITstar::nnDistance, this,
+                std::placeholders::_1, std::placeholders::_2));
 
             //Configure the queue
-            //boost::make_shared can only take 9 arguments, so be careful:
-            intQueue_ = boost::make_shared<IntegratedQueue> (opt_, boost::bind(&BITstar::nnDistance, this, _1, _2), boost::bind(&BITstar::nearestSamples, this, _1, _2), boost::bind(&BITstar::nearestVertices, this, _1, _2), boost::bind(&BITstar::lowerBoundHeuristicVertex, this, _1), boost::bind(&BITstar::currentHeuristicVertex, this, _1), boost::bind(&BITstar::lowerBoundHeuristicEdge, this, _1), boost::bind(&BITstar::currentHeuristicEdge, this, _1), boost::bind(&BITstar::currentHeuristicEdgeTarget, this, _1));
+            //std::make_shared can only take 9 arguments, so be careful:
+            intQueue_ = std::make_shared<IntegratedQueue> (opt_,
+                std::bind(&BITstar::nnDistance, this, std::placeholders::_1, std::placeholders::_2),
+                std::bind(&BITstar::nearestSamples, this, std::placeholders::_1, std::placeholders::_2),
+                std::bind(&BITstar::nearestVertices, this, std::placeholders::_1, std::placeholders::_2),
+                std::bind(&BITstar::lowerBoundHeuristicVertex, this, std::placeholders::_1),
+                std::bind(&BITstar::currentHeuristicVertex, this, std::placeholders::_1),
+                std::bind(&BITstar::lowerBoundHeuristicEdge, this, std::placeholders::_1),
+                std::bind(&BITstar::currentHeuristicEdge, this, std::placeholders::_1),
+                std::bind(&BITstar::currentHeuristicEdgeTarget, this, std::placeholders::_1));
             intQueue_->setDelayedRewiring(delayRewiring_);
 
             //Set the best-cost, pruned-cost, sampled-cost and min-cost to the proper opt_-based values:
@@ -265,7 +271,7 @@ namespace ompl
             prunedMeasure_ =  Planner::si_->getSpaceMeasure();
 
             //Does the problem have finite boundaries?
-            if (boost::math::isfinite(prunedMeasure_) == false)
+            if (std::isfinite(prunedMeasure_) == false)
             {
                 //It does not, so let's estimate a measure of the planning problem.
                 //A not horrible place to start would be hypercube proportional to the distance between the start and goal. It's not *great*, but at least it sort of captures the order-of-magnitude of the problem.
@@ -526,7 +532,7 @@ namespace ompl
             else
             {
                 //An empty edge:
-                nextEdge = std::make_pair<ompl::base::State*, ompl::base::State*>(NULL, NULL);
+                nextEdge = std::make_pair<ompl::base::State*, ompl::base::State*>(nullptr, nullptr);
             }
 
             return nextEdge;
@@ -588,8 +594,8 @@ namespace ompl
             else
             {
                 //The problem isn't setup yet, create NN structs of the specified type:
-                freeStateNN_ = boost::make_shared< NN<VertexPtr> >();
-                vertexNN_ = boost::make_shared< NN<VertexPtr> >();
+                freeStateNN_ = std::make_shared< NN<VertexPtr> >();
+                vertexNN_ = std::make_shared< NN<VertexPtr> >();
             }
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
@@ -852,7 +858,7 @@ namespace ompl
                 {
                     //Variable
                     //The new state:
-                    VertexPtr newState = boost::make_shared<Vertex>(Planner::si_, opt_);
+                    VertexPtr newState = std::make_shared<Vertex>(Planner::si_, opt_);
 
                     //Sample in the interval [costSampled_, costReqd):
                     sampler_->sampleUniform(newState->state(), costSampled_, costReqd);
@@ -955,7 +961,7 @@ namespace ompl
             else
             {
                 //We are not, give it empty NN structs
-                numPruned = intQueue_->resort(VertexPtrNNPtr(), VertexPtrNNPtr(), NULL);
+                numPruned = intQueue_->resort(VertexPtrNNPtr(), VertexPtrNNPtr(), nullptr);
             }
 
             //The number of vertices and samples pruned are incrementally updated.
@@ -971,12 +977,12 @@ namespace ompl
         {
             //Variable
             //The path geometric
-            boost::shared_ptr<ompl::geometric::PathGeometric> pathGeoPtr;
+            std::shared_ptr<ompl::geometric::PathGeometric> pathGeoPtr;
             //The reverse path of state pointers
             std::vector<const ompl::base::State*> reversePath;
 
             //Allocate the pathGeoPtr
-            pathGeoPtr = boost::make_shared<ompl::geometric::PathGeometric>(Planner::si_);
+            pathGeoPtr = std::make_shared<ompl::geometric::PathGeometric>(Planner::si_);
 
             //Get the reversed path
             reversePath = this->bestPathFromGoalToStart();
@@ -1051,7 +1057,7 @@ namespace ompl
             do
             {
                 //Variable
-                //A new goal pointer, if there are none, it will be NULL.
+                //A new goal pointer, if there are none, it will be nullptr.
                 //We will wait for the duration of PTC for a new goal to appear.
                 const ompl::base::State* newGoal = Planner::pis_.nextGoal(ptc);
 
@@ -1062,7 +1068,7 @@ namespace ompl
                     rebuildQueue = (startVertices_.size() > 0u);
 
                     //Allocate the vertex pointer
-                    goalVertices_.push_back(boost::make_shared<Vertex>(Planner::si_, opt_));
+                    goalVertices_.push_back(std::make_shared<Vertex>(Planner::si_, opt_));
 
                     //Copy the value into the state
                     Planner::si_->copyState(goalVertices_.back()->state(), newGoal);
@@ -1087,7 +1093,7 @@ namespace ompl
                 const ompl::base::State* newStart = Planner::pis_.nextStart();
 
                 //Allocate the vertex pointer:
-                startVertices_.push_back(boost::make_shared<Vertex>(Planner::si_, opt_, true));
+                startVertices_.push_back(std::make_shared<Vertex>(Planner::si_, opt_, true));
 
                 //Copy the value into the state:
                 Planner::si_->copyState(startVertices_.back()->state(), newStart);
@@ -2273,42 +2279,42 @@ namespace ompl
 
         std::string BITstar::bestCostProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(this->bestCost().value());
+            return std::to_string(this->bestCost().value());
         }
 
 
 
         std::string BITstar::bestLengthProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(bestLength_);
+            return std::to_string(bestLength_);
         }
 
 
 
         std::string BITstar::currentFreeProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(freeStateNN_->size());
+            return std::to_string(freeStateNN_->size());
         }
 
 
 
         std::string BITstar::currentVertexProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(vertexNN_->size());
+            return std::to_string(vertexNN_->size());
         }
 
 
 
         std::string BITstar::vertexQueueSizeProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(intQueue_->numVertices());
+            return std::to_string(intQueue_->numVertices());
         }
 
 
 
         std::string BITstar::edgeQueueSizeProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(intQueue_->numEdges());
+            return std::to_string(intQueue_->numEdges());
         }
 
 
@@ -2322,7 +2328,7 @@ namespace ompl
 
         std::string BITstar::iterationProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(this->numIterations());
+            return std::to_string(this->numIterations());
         }
 
 
@@ -2336,77 +2342,77 @@ namespace ompl
 
         std::string BITstar::batchesProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(this->numBatches());
+            return std::to_string(this->numBatches());
         }
 
 
 
         std::string BITstar::pruningProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(numPrunings_);
+            return std::to_string(numPrunings_);
         }
 
 
 
         std::string BITstar::totalStatesCreatedProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(numSamples_);
+            return std::to_string(numSamples_);
         }
 
 
 
         std::string BITstar::verticesConstructedProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(numVertices_);
+            return std::to_string(numVertices_);
         }
 
 
 
         std::string BITstar::statesPrunedProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(numFreeStatesPruned_);
+            return std::to_string(numFreeStatesPruned_);
         }
 
 
 
         std::string BITstar::verticesDisconnectedProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(numVerticesDisconnected_);
+            return std::to_string(numVerticesDisconnected_);
         }
 
 
 
         std::string BITstar::rewiringProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(numRewirings_);
+            return std::to_string(numRewirings_);
         }
 
 
 
         std::string BITstar::stateCollisionCheckProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(numStateCollisionChecks_);
+            return std::to_string(numStateCollisionChecks_);
         }
 
 
 
         std::string BITstar::edgeCollisionCheckProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(numEdgeCollisionChecks_);
+            return std::to_string(numEdgeCollisionChecks_);
         }
 
 
 
         std::string BITstar::nearestNeighbourProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(numNearestNeighbours_);
+            return std::to_string(numNearestNeighbours_);
         }
 
 
 
         std::string BITstar::edgesProcessedProgressProperty() const
         {
-            return boost::lexical_cast<std::string>(numEdgesProcessed_);
+            return std::to_string(numEdgesProcessed_);
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
     }//geometric

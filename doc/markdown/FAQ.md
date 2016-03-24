@@ -35,7 +35,7 @@
   ...
   ompl::base::StateSpacePtr space(...);
   ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
-  si->setValidStateSamplerAllocator(boost::bind(&allocValidStateSampler, _1));
+  si->setValidStateSamplerAllocator(std::bind(&allocValidStateSampler, std::placeholders::_1));
   // for simplified calls, you can also use:
   // si->setValidStateSamplerAllocator(&allocValidStateSampler);
   ~~~

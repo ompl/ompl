@@ -37,42 +37,36 @@
 #ifndef OMPL_DATASTRUCTURES_PERMUTATION_
 #define OMPL_DATASTRUCTURES_PERMUTATION_
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/variate_generator.hpp>
+#include <random>
 
 namespace ompl
 {
 
     /// \brief A permutation of indices into an array
     ///
-    /// This class tends to be faster than std::shuffle when permute is called
-    /// several times, since the random number generator doesn't need to be
-    /// allocated each time.
+    /// This class tends to be faster than the two-argument version of
+    /// std::random_shuffle when permute is called several times, since
+    /// the random number generator doesn't need to be allocated each time.
     class Permutation : public std::vector<int>
     {
     public:
-        /// \brief Create a permutation of the number 1, ... , n
-        Permutation(std::size_t n) : std::vector<int>(n), rng_(generator_, dist_)
+        /// \brief Create a permutation of the numbers 0, ... , n - 1
+        Permutation(std::size_t n) : std::vector<int>(n)
         {
             permute(n);
         }
-        /// \brief Create a permutation of the number 1,...,n
+        /// \brief Create a permutation of the numbers 0, ..., n - 1
         void permute(unsigned int n)
         {
             if (size() < n)
                 resize(n);
             for (unsigned int i = 0; i < n; ++i)
                 operator[](i) = i;
-            std::random_shuffle(begin(), begin() + n, rng_);
+            std::shuffle(begin(), begin() + n, generator_);
         }
     private:
         /// Mersenne twister random number generator
-        boost::mt19937 generator_;
-        /// Uniform distribution over integers
-        boost::uniform_int<> dist_;
-        /// Variate generator
-        boost::variate_generator<boost::mt19937&, boost::uniform_int<> > rng_;
+        std::mt19937 generator_;
     };
 }
 

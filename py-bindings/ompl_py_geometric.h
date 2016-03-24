@@ -44,7 +44,7 @@
 #include <deque>
 #include <map>
 #include <boost/graph/adjacency_list.hpp>
-#include "py_boost_function.hpp"
+#include "py_std_function.hpp"
 
 
 namespace ompl
@@ -55,7 +55,7 @@ namespace ompl
         inline int dummyConnectionStrategy()
         {
             NearestNeighborsLinear<PRM::Vertex> nn;
-            boost::shared_ptr<NearestNeighbors<PRM::Vertex> > nnPtr(&nn);
+            std::shared_ptr<NearestNeighbors<PRM::Vertex> > nnPtr(&nn);
             return sizeof(KStrategy<PRM::Vertex>(1, nnPtr)) + sizeof(KStarStrategy<PRM::Vertex>(dummyFn, nnPtr, 1)) + sizeof(nn);
         }
         inline int dummySTLContainerSize()
@@ -63,7 +63,7 @@ namespace ompl
             return sizeof(std::deque<ompl::base::State*>) +
                 sizeof(std::map<boost::adjacency_list<>::vertex_descriptor, ompl::base::State*>) +
                 sizeof(std::vector<const ompl::base::State*>) +
-                sizeof(std::vector< boost::shared_ptr<ompl::geometric::BITstar::Vertex> >);
+                sizeof(std::vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >);
         }
     }
 }

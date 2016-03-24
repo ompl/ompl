@@ -40,11 +40,12 @@
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include "ompl/control/planners/PlannerIncludes.h"
 #include "ompl/control/planners/syclop/Decomposition.h"
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 #include "ompl/datastructures/PDF.h"
+#include "ompl/util/Hash.h"
 #include <map>
 #include <vector>
 
@@ -85,10 +86,10 @@ namespace ompl
                 of \f$t\f$.
                 Additional edge cost factors can be added
                 with the addEdgeCostFactor() function, and Syclop's list of edge cost factors can be cleared using clearEdgeCostFactors() . */
-            typedef boost::function<double(int, int)> EdgeCostFactorFn;
+            typedef std::function<double(int, int)> EdgeCostFactorFn;
 
             /** \brief Leads should consist of a path of adjacent regions in the decomposition that start with the start region and end at the end region.  Default is \f$A^\ast\f$ search. */
-            typedef boost::function<void(int, int, std::vector<int>&)> LeadComputeFn;
+            typedef std::function<void(int, int, std::vector<int>&)> LeadComputeFn;
 
             /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
             Syclop(const SpaceInformationPtr& si, const DecompositionPtr &d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
@@ -251,11 +252,11 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state(NULL), control(NULL), parent(NULL), steps(0)
+                Motion() : state(nullptr), control(nullptr), parent(nullptr), steps(0)
                 {
                 }
                 /** \brief Constructor that allocates memory for the state and the control */
-                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), parent(NULL), steps(0)
+                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), parent(nullptr), steps(0)
                 {
                 }
                 virtual ~Motion()
@@ -296,7 +297,7 @@ namespace ompl
                 {
                     motions.clear();
                     covGridCells.clear();
-                    pdfElem = NULL;
+                    pdfElem = nullptr;
                 }
 
                 /** \brief The cells of the underlying coverage grid that contain tree motions from this region */
@@ -399,6 +400,20 @@ namespace ompl
             RNG rng_;
 
         private:
+            /// @cond IGNORE
+            /** \brief Hash function for std::pair<int,int> to be used in std::unordered_map */
+            struct HashRegionPair
+            {
+                size_t operator()(const std::pair<int,int> &p) const
+                {
+                    std::size_t hash = std::hash<int>()(p.first);
+                    hash_combine(hash, p.second);
+                    return hash;
+                }
+            };
+            /// @endcond
+
+
             /** \brief Syclop uses a CoverageGrid to estimate coverage in its assigned Decomposition.
                 The CoverageGrid should have finer resolution than the Decomposition. */
             class CoverageGrid : public GridDecomposition
@@ -508,7 +523,7 @@ namespace ompl
             private:
                 RNG rng;
                 PDF<int> regions;
-                boost::unordered_map<const int, PDF<int>::Element*> regToElem;
+                std::unordered_map<int, PDF<int>::Element*> regToElem;
             };
             /// @endcond
 
@@ -557,7 +572,7 @@ namespace ompl
             /** \brief Default edge cost factor, which is used by Syclop for edge weights between adjacent Regions. */
             double defaultEdgeCost(int r, int s);
 
-            /** \brief Lead computaton boost::function object */
+            /** \brief Lead computaton std::function object */
             LeadComputeFn leadComputeFn;
             /** \brief The current computed lead */
             std::vector<int> lead_;
@@ -572,7 +587,7 @@ namespace ompl
             /** \brief This value stores whether the graph structure has been built */
             bool graphReady_;
             /** \brief Maps pairs of regions to adjacency objects */
-            boost::unordered_map<std::pair<int,int>, Adjacency*> regionsToEdge_;
+            std::unordered_map<std::pair<int,int>, Adjacency*, HashRegionPair> regionsToEdge_;
             /** \brief The total number of motions in the low-level tree */
             unsigned int numMotions_;
             /** \brief The set of all regions that contain start states */

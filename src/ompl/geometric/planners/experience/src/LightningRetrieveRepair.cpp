@@ -42,7 +42,7 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/tools/lightning/LightningDB.h"
 
-#include <boost/thread.hpp>
+#include <thread>
 
 #include <limits>
 
@@ -339,7 +339,7 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
     return true;
 }
 
-bool ompl::geometric::LightningRetrieveRepair::repairPath(const base::PlannerTerminationCondition &ptc, 
+bool ompl::geometric::LightningRetrieveRepair::repairPath(const base::PlannerTerminationCondition &ptc,
                                                           ompl::geometric::PathGeometric &primaryPath)
 {
     // \todo: we should reuse our collision checking from the previous step to make this faster

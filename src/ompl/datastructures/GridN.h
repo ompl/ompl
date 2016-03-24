@@ -163,7 +163,7 @@ namespace ompl
         /// this call only creates the cell, but does not add it to
         /// the grid.  It however updates the neighbor count for
         /// neighboring cells
-        virtual BaseCell* createCell(const Coord& coord, BaseCellArray *nbh = NULL)
+        virtual BaseCell* createCell(const Coord& coord, BaseCellArray *nbh = nullptr)
         {
             Cell *cell = new Cell();
             cell->coord = coord;

@@ -79,8 +79,8 @@ namespace ompl
 
         BinaryHeap()
         {
-            eventAfterInsert_  = NULL;
-            eventBeforeRemove_ = NULL;
+            eventAfterInsert_  = nullptr;
+            eventBeforeRemove_ = nullptr;
         }
 
         ~BinaryHeap()
@@ -111,10 +111,10 @@ namespace ompl
             vector_.clear();
         }
 
-        /** \brief Return the top element. NULL for an empty heap. */
+        /** \brief Return the top element. nullptr for an empty heap. */
         Element* top() const
         {
-            return vector_.empty() ? NULL : vector_.at(0);
+            return vector_.empty() ? nullptr : vector_.at(0);
         }
 
         /** \brief Remove the top element */

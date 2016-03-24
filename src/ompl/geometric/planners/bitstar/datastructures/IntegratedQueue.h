@@ -46,10 +46,10 @@
 #include <list>
 //std::multimap
 #include <map>
-//boost::unordered_map (pre-C++11 std::unordered_map)
-#include <boost/unordered_map.hpp>
-//For boost::function
-#include <boost/function.hpp>
+//std::unordered_map
+#include <unordered_map>
+//For std::function
+#include <functional>
 
 //OMPL:
 //The cost class:
@@ -98,17 +98,17 @@ namespace ompl
 
             ////////////////////////////////
             //Function typedefs:
-            /** \brief A boost::function definition of a heuristic function for a vertex. */
-            typedef boost::function<ompl::base::Cost (const VertexConstPtr&)> VertexHeuristicFunc;
+            /** \brief A std::function definition of a heuristic function for a vertex. */
+            typedef std::function<ompl::base::Cost (const VertexConstPtr&)> VertexHeuristicFunc;
 
-            /** \brief A boost::function definition of a heuristic function for an edge. */
-            typedef boost::function<ompl::base::Cost (const VertexConstPtrPair&)> EdgeHeuristicFunc;
+            /** \brief A std::function definition of a heuristic function for an edge. */
+            typedef std::function<ompl::base::Cost (const VertexConstPtrPair&)> EdgeHeuristicFunc;
 
-            /** \brief A boost::function definition for the distance between two vertices. */
-            typedef boost::function<double (const VertexConstPtr&, const VertexConstPtr&)> DistanceFunc;
+            /** \brief A std::function definition for the distance between two vertices. */
+            typedef std::function<double (const VertexConstPtr&, const VertexConstPtr&)> DistanceFunc;
 
-            /** \brief A boost::function definition for the neighbourhood of a vertex . */
-            typedef boost::function<unsigned int (const VertexPtr&, std::vector<VertexPtr>*)> NeighbourhoodFunc;
+            /** \brief A std::function definition for the neighbourhood of a vertex . */
+            typedef std::function<unsigned int (const VertexPtr&, std::vector<VertexPtr>*)> NeighbourhoodFunc;
             ////////////////////////////////
 
 
@@ -116,7 +116,7 @@ namespace ompl
             ////////////////////////////////
             //Public functions:
             /** \brief Construct an integrated queue. */
-            //boost::make_shared can only take 9 arguments, so be careful:
+            //std::make_shared can only take 9 arguments, so be careful:
             IntegratedQueue(const ompl::base::OptimizationObjectivePtr& opt, const DistanceFunc& distanceFunc, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget);
 
             virtual ~IntegratedQueue();
@@ -254,16 +254,16 @@ namespace ompl
             ////////////////////////////////
             //Helpful typedefs:
             /** \brief A typedef to the underlying vertex queue as a multiset.  The advantage to a multimap over a multiset is that a copy of the key is stored with the value, which guarantees that the ordering remains sane. Even if the inherent key for a value has changed, it will still be sorted under the old key until manually updated and the map will be sorted */
-            typedef std::multimap<ompl::base::Cost, VertexPtr, boost::function<bool (const ompl::base::Cost&, const ompl::base::Cost&)> > CostToVertexMMap;
+            typedef std::multimap<ompl::base::Cost, VertexPtr, std::function<bool (const ompl::base::Cost&, const ompl::base::Cost&)> > CostToVertexMMap;
 
             /** \brief A typedef to the underlying edge queue as a multimap. Multimapped for the same reason as CostToVertexMMap */
-            typedef std::multimap<CostPair, VertexPtrPair, boost::function<bool (const CostPair&, const CostPair&)> > CostToVertexPtrPairMMap;
+            typedef std::multimap<CostPair, VertexPtrPair, std::function<bool (const CostPair&, const CostPair&)> > CostToVertexPtrPairMMap;
 
             /** \brief A typedef for an iterator into the vertex queue multimap */
             typedef CostToVertexMMap::iterator VertexQueueIter;
 
             /** \brief A typedef for an unordered_map of vertex queue iterators indexed on vertex*/
-            typedef boost::unordered_map<BITstar::VertexId, VertexQueueIter> VertexIdToVertexQueueIterUMap;
+            typedef std::unordered_map<BITstar::VertexId, VertexQueueIter> VertexIdToVertexQueueIterUMap;
 
             /** \brief A typedef for an iterator into the edge queue multimap */
             typedef CostToVertexPtrPairMMap::iterator EdgeQueueIter;
@@ -272,7 +272,7 @@ namespace ompl
             typedef std::list<EdgeQueueIter> EdgeQueueIterList;
 
             /** \brief A typedef for an unordered_map of edge queue iterators indexed by vertex*/
-            typedef boost::unordered_map<BITstar::VertexId, EdgeQueueIterList> VertexIdToEdgeQueueIterListUMap;
+            typedef std::unordered_map<BITstar::VertexId, EdgeQueueIterList> VertexIdToEdgeQueueIterListUMap;
             ////////////////////////////////
 
 

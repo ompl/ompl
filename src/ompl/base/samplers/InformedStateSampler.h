@@ -44,10 +44,8 @@
 // We use a pointer to the problem definition to access problem and solution data.
 #include "ompl/base/ProblemDefinition.h"
 
-//For boost::function
-#include <boost/function.hpp>
-//For boost::noncopyable
-#include <boost/noncopyable.hpp>
+//For std::function
+#include <functional>
 
 namespace ompl
 {
@@ -60,9 +58,13 @@ namespace ompl
         /** \brief An abstract class for the concept of using information about the state space
         and the current solution cost to limit future search to a planning
         subproblem that contains all possibly better solutions. */
-        class InformedSampler : private boost::noncopyable
+        class InformedSampler
         {
         public:
+            // non-copyable
+            InformedSampler(const InformedSampler&) = delete;
+            InformedSampler& operator=(const InformedSampler&) = delete;
+
             /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution. Requires a function pointer to a method to query the cost of the current solution.
             If iteration is required, only maxNumberCalls are attempted, to assure that the function returns. */
             InformedSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls);
@@ -110,7 +112,7 @@ namespace ompl
         public:
 
             /** \brief The definition of a function pointer for querying the current solution cost. */
-            typedef boost::function<Cost ()> GetCurrentCostFunc;
+            typedef std::function<Cost ()> GetCurrentCostFunc;
 
             /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution using the default informed sampler for the current optimization objective. Requires a function pointer to a method to query the cost of the current solution. */
             InformedStateSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls, const GetCurrentCostFunc &costFunc);

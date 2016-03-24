@@ -46,7 +46,7 @@ KoulesStateSpace::KoulesStateSpace(unsigned int numKoules)
 {
     mass_[0] = shipMass;
     radius_[0] = shipRadius;
-    setName("Koules" + boost::lexical_cast<std::string>(numKoules) + getName());
+    setName("Koules" + std::to_string(numKoules) + getName());
     // layout: (x_s y_s vx_s vy_s theta_s ... x_i y_i vx_i vy_i ... ),
     // where (x_i, y_i) is the position of koule i (i=1,..,numKoules),
     // (vx_i, vy_i) its velocity, (x_s, y_s) the position of the ship,

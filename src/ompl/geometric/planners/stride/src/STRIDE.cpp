@@ -87,9 +87,9 @@ void ompl::geometric::STRIDE::setupTree()
 {
     tree_.reset(new NearestNeighborsGNAT<Motion*>(degree_, minDegree_, maxDegree_, maxNumPtsPerLeaf_, estimatedDimension_));
     if (useProjectedDistance_)
-        tree_->setDistanceFunction(boost::bind(&STRIDE::projectedDistanceFunction, this, _1, _2));
+        tree_->setDistanceFunction(std::bind(&STRIDE::projectedDistanceFunction, this, std::placeholders::_1, std::placeholders::_2));
     else
-        tree_->setDistanceFunction(boost::bind(&STRIDE::distanceFunction, this, _1, _2));
+        tree_->setDistanceFunction(std::bind(&STRIDE::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void ompl::geometric::STRIDE::clear()
@@ -140,8 +140,8 @@ ompl::base::PlannerStatus ompl::geometric::STRIDE::solve(const base::PlannerTerm
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), tree_->size());
 
-    Motion *solution  = NULL;
-    Motion *approxsol = NULL;
+    Motion *solution  = nullptr;
+    Motion *approxsol = nullptr;
     double  approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
 
@@ -187,17 +187,17 @@ ompl::base::PlannerStatus ompl::geometric::STRIDE::solve(const base::PlannerTerm
 
     bool solved = false;
     bool approximate = false;
-    if (solution == NULL)
+    if (solution == nullptr)
     {
         solution = approxsol;
         approximate = true;
     }
 
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         /* construct the solution path */
         std::vector<Motion*> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;
@@ -236,7 +236,7 @@ void ompl::geometric::STRIDE::getPlannerData(base::PlannerData &data) const
     tree_->list(motions);
     for (std::vector<Motion*>::iterator it=motions.begin(); it!=motions.end(); it++)
     {
-        if((*it)->parent == NULL)
+        if((*it)->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex((*it)->state,1));
         else
             data.addEdge(base::PlannerDataVertex((*it)->parent->state,1),base::PlannerDataVertex((*it)->state,1));

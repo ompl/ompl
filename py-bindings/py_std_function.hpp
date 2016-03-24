@@ -36,7 +36,7 @@
 
 
 /******************************************************************************
- * How to wrap boost.function objects with boost.python and use them both from
+ * How to wrap C++11 std::function objects with boost.python and use them both from
  * C++ and Python.
  *
  * This is a significantly enhanced version of the original version by
@@ -49,9 +49,9 @@
  *     For the boost.python C++ module:
  *
  *     ...
- *     #include <boost/python.hpp>
+ *     #include <functional>
  *     ...
- *     #include "py_boost_function.hpp"
+ *     #include "py_std_function.hpp"
  *     ...
  *
  *     void module_greeter_f(std::string const& origin)
@@ -92,16 +92,15 @@
 
 
 
-#ifndef PY_BINDINGS_PY_BOOST_FUNCTION_
-#define PY_BINDINGS_PY_BOOST_FUNCTION_
+#ifndef PY_BINDINGS_PY_STD_FUNCTION_
+#define PY_BINDINGS_PY_STD_FUNCTION_
 
 #include <boost/python.hpp>
 
-#include <boost/function.hpp>
-#include <boost/function_types/function_type.hpp>
-#include <boost/function_types/result_type.hpp>
-#include <boost/function_types/is_function.hpp>
+#include <functional>
 
+#include <boost/function_types/parameter_types.hpp>
+#include <boost/function_types/is_function.hpp>
 #include <boost/type_traits/function_traits.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 #include <boost/type_traits/is_fundamental.hpp>
@@ -234,7 +233,7 @@ void def_function(const char* func_name, const char* func_doc)
 {
     BOOST_STATIC_ASSERT( boost::function_types::is_function< FT >::value ) ;
     namespace bp = boost::python;
-    typedef boost::function<FT> function_t;
+    typedef std::function<FT> function_t;
     bp::class_< function_t >
     (func_name, func_doc, bp::no_init)
         .def("__call__", &function_t::operator() )
@@ -244,7 +243,7 @@ void def_function(const char* func_name, const char* func_doc)
 #define PYDECLARE_FUNCTION(FT, func_name)                                                      \
 namespace detail                                                                               \
 {                                                                                              \
-    boost::function<FT> func_name(boost::python::object o)                                     \
+    std::function<FT> func_name(boost::python::object o)                                       \
     {                                                                                          \
         return detail::pyobject_invoker<FT, boost::function_traits<FT>::result_type,           \
             boost::function_traits< FT >::arity>(o);                                           \

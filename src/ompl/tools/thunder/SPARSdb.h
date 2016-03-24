@@ -37,13 +37,14 @@
 #ifndef OMPL_TOOLS_THUNDER_SPARS_DB_
 #define OMPL_TOOLS_THUNDER_SPARS_DB_
 
-#include <ompl/geometric/planners/PlannerIncludes.h>
-#include <ompl/datastructures/NearestNeighbors.h>
-#include <ompl/geometric/PathSimplifier.h>
-#include <ompl/util/Time.h>
+#include "ompl/geometric/planners/PlannerIncludes.h"
+#include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/geometric/PathSimplifier.h"
+#include "ompl/util/Time.h"
+#include "ompl/util/Hash.h"
 
 #include <boost/range/adaptor/map.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/filtered_graph.hpp>
@@ -52,8 +53,8 @@
 #include <boost/graph/connected_components.hpp>
 #include <boost/property_map/property_map.hpp>
 #include <boost/pending/disjoint_sets.hpp>
-#include <boost/function.hpp>
-#include <boost/thread.hpp>
+#include <functional>
+#include <thread>
 #include <iostream>
 #include <fstream>
 #include <utility>
@@ -126,10 +127,10 @@ namespace ompl
 
                 /** \brief Constructor */
                 InterfaceData() :
-                    pointA_(NULL),
-                    pointB_(NULL),
-                    sigmaA_(NULL),
-                    sigmaB_(NULL),
+                    pointA_(nullptr),
+                    pointB_(nullptr),
+                    sigmaA_(nullptr),
+                    sigmaB_(nullptr),
                     d_(std::numeric_limits<double>::infinity())
                 {
                 }
@@ -140,22 +141,22 @@ namespace ompl
                     if (pointA_)
                     {
                         si->freeState(pointA_);
-                        pointA_ = NULL;
+                        pointA_ = nullptr;
                     }
                     if (pointB_)
                     {
                         si->freeState(pointB_);
-                        pointB_ = NULL;
+                        pointB_ = nullptr;
                     }
                     if (sigmaA_)
                     {
                         si->freeState(sigmaA_);
-                        sigmaA_ = NULL;
+                        sigmaA_ = nullptr;
                     }
                     if (sigmaB_)
                     {
                         si->freeState(sigmaB_);
-                        sigmaB_ = NULL;
+                        sigmaB_ = nullptr;
                     }
                     d_ = std::numeric_limits<double>::infinity();
                 }
@@ -192,7 +193,7 @@ namespace ompl
             };
 
             /** \brief the hash which maps pairs of neighbor points to pairs of states */
-            typedef boost::unordered_map< VertexPair, InterfaceData, boost::hash< VertexPair > > InterfaceHash;
+            typedef std::unordered_map<VertexPair, InterfaceData> InterfaceHash;
 
             ////////////////////////////////////////////////////////////////////////////////////////
             // The InterfaceHash structure is wrapped inside of this struct due to a compilation error on
@@ -714,7 +715,7 @@ namespace ompl
             base::ValidStateSamplerPtr                                          sampler_;
 
             /** \brief Nearest neighbors data structure */
-            boost::shared_ptr< NearestNeighbors<Vertex> >                       nn_;
+            std::shared_ptr< NearestNeighbors<Vertex> >                       nn_;
 
             /** \brief Connectivity graph */
             Graph                                                               g_;

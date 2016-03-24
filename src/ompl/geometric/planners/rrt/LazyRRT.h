@@ -142,12 +142,12 @@ namespace ompl
             {
             public:
 
-                Motion() : state(NULL), parent(NULL), valid(false)
+                Motion() : state(nullptr), parent(nullptr), valid(false)
                 {
                 }
 
                 /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), valid(false)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), valid(false)
                 {
                 }
 
@@ -184,7 +184,7 @@ namespace ompl
             base::StateSamplerPtr                          sampler_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
-            boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
             double                                         goalBias_;

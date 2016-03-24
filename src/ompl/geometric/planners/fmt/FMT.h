@@ -205,13 +205,13 @@ namespace ompl
                     enum SetType { SET_CLOSED, SET_OPEN, SET_UNVISITED };
 
                     Motion()
-                        : state_(NULL), parent_(NULL), cost_(0.0), currentSet_(SET_UNVISITED)
+                        : state_(nullptr), parent_(nullptr), cost_(0.0), currentSet_(SET_UNVISITED)
                     {
                     }
 
                     /** \brief Constructor that allocates memory for the state */
                     Motion(const base::SpaceInformationPtr &si)
-                        : state_(si->allocState()), parent_(NULL), cost_(0.0), currentSet_(SET_UNVISITED)
+                        : state_(si->allocState()), parent_(nullptr), cost_(0.0), currentSet_(SET_UNVISITED)
                     {
                     }
 
@@ -318,7 +318,7 @@ namespace ompl
             /** \brief Comparator used to order motions in a binary heap */
             struct MotionCompare
             {
-                MotionCompare() : opt_(NULL), heuristics_(false)
+                MotionCompare() : opt_(nullptr), heuristics_(false)
                 {
                 }
 
@@ -438,7 +438,7 @@ namespace ompl
             double radiusMultiplier_;
 
             /** \brief A nearest-neighbor datastructure containing the set of all motions */
-            boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
 
             /** \brief State sampler */
             base::StateSamplerPtr sampler_;

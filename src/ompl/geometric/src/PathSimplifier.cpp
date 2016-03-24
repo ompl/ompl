@@ -46,7 +46,7 @@ ompl::geometric::PathSimplifier::PathSimplifier(const base::SpaceInformationPtr 
 {
     if (goal)
     {
-        gsr_ = boost::dynamic_pointer_cast<base::GoalSampleableRegion>(goal);
+        gsr_ = std::dynamic_pointer_cast<base::GoalSampleableRegion>(goal);
         if (!gsr_)
             OMPL_WARN("%s: Goal could not be cast to GoalSampleableRegion.  Goal simplification will not be performed.", __FUNCTION__);
     }
@@ -203,7 +203,7 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
     for (unsigned int i = 0 ; i < maxSteps && nochange < maxEmptySteps ; ++i, ++nochange)
     {
         // Sample a random point anywhere along the path
-        base::State *s0 = NULL;
+        base::State *s0 = nullptr;
         int index0 = -1;
         double t0 = 0.0;
         double p0 = rng_.uniformReal(0.0, dists.back());                                        // sample a random point (p0) along the path
@@ -221,7 +221,7 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
         }
 
         // Sample a random point within rd distance of the previously sampled point
-        base::State *s1 = NULL;
+        base::State *s1 = nullptr;
         int index1 = -1;
         double t1 = 0.0;
         double p1 = rng_.uniformReal(std::max(0.0, p0 - rd), std::min(p0 + rd, dists.back()));  // sample a random point (p1) near p0

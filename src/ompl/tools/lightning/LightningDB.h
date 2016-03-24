@@ -67,7 +67,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::geometric::LightningDBPtr
-            \brief A boost shared pointer wrapper for ompl::tools::LightningDB */
+            \brief A shared pointer wrapper for ompl::tools::LightningDB */
 
         /** \brief Save and load entire paths from file */
         class LightningDB
@@ -163,7 +163,7 @@ namespace ompl
             ompl::base::PlannerDataStorage plannerDataStorage_;
 
             // A nearest-neighbors datastructure containing the tree of start/goal states combined
-            boost::shared_ptr< NearestNeighbors<ompl::base::PlannerDataPtr> > nn_;
+            std::shared_ptr< NearestNeighbors<ompl::base::PlannerDataPtr> > nn_;
 
             // Reusable plannerData instance for filling in start and goal and performing searches on the tree
             ompl::base::PlannerDataPtr nnSearchKey_;

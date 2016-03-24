@@ -37,21 +37,24 @@
 // This file's header
 #include "ompl/util/GeometricEquations.h"
 
-// For pre C++ 11 gamma function
-#include <boost/math/special_functions/gamma.hpp>
+// For gamma function
+#include <cmath>
+
+// For pi definition
+#include <boost/math/constants/constants.hpp>
 
 // OMPL exceptions
 #include "ompl/util/Exception.h"
 
 double ompl::nBallMeasure(unsigned int N, double r)
 {
-    return std::pow(std::sqrt(boost::math::constants::pi<double>()) * r, static_cast<double>(N)) / boost::math::tgamma(static_cast<double>(N)/2.0 + 1.0);
+    return std::pow(std::sqrt(boost::math::constants::pi<double>()) * r, static_cast<double>(N)) / std::tgamma(static_cast<double>(N)/2.0 + 1.0);
 }
 
 double ompl::unitNBallMeasure(unsigned int N)
 {
     // This is the radius version with r removed (as it is 1) for efficiency
-    return std::pow(std::sqrt(boost::math::constants::pi<double>()), static_cast<double>(N)) / boost::math::tgamma(static_cast<double>(N)/2.0 + 1.0);
+    return std::pow(std::sqrt(boost::math::constants::pi<double>()), static_cast<double>(N)) / std::tgamma(static_cast<double>(N)/2.0 + 1.0);
 }
 
 double ompl::prolateHyperspheroidMeasure(unsigned int N, double dFoci, double dTransverse)

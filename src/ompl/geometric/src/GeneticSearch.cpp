@@ -279,7 +279,7 @@ void ompl::geometric::GeneticSearch::tryToImprove(const base::GoalRegion &goal, 
     hc_.tryToImprove(goal, state, dist, &distance);
     hc_.tryToImprove(goal, state, dist / 3.0, &distance);
     hc_.tryToImprove(goal, state, dist / 10.0, &distance);
-    OMPL_DEBUG("Improvement took  %u ms", (time::now() - start).total_milliseconds());
+    OMPL_DEBUG("Improvement took  %u ms", std::chrono::duration_cast<std::chrono::milliseconds>(time::now() - start).count());
     OMPL_DEBUG("Distance to goal after improvement: %g", distance);
 }
 

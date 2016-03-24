@@ -43,7 +43,7 @@
 #include <ompl/tools/thunder/ThunderDB.h>
 #include "ompl/tools/config/MagicConstants.h"
 
-#include <boost/thread.hpp>
+#include <thread>
 
 #include <limits>
 
@@ -105,7 +105,7 @@ void ThunderRetrieveRepair::setup(void)
     if (!repairPlanner_)
     {
         // Set the repair planner
-        boost::shared_ptr<RRTConnect> repair_planner( new RRTConnect( si_ ) );
+        std::shared_ptr<RRTConnect> repair_planner( new RRTConnect( si_ ) );
 
         OMPL_DEBUG("No repairing planner specified. Using default: %s", repair_planner->getName().c_str() );
         repairPlanner_ = repair_planner; //Planner( repair_planer );
@@ -171,7 +171,7 @@ base::PlannerStatus ThunderRetrieveRepair::solve(const base::PlannerTerminationC
       //ompl::geometric::PathGeometric pg = candidateSolution.getGeometricPath(); // TODO do not copy to new type
       path_simplifier_->simplify(candidateSolution.getGeometricPath(), ptc);
       double simplifyTime = time::seconds(time::now() - simplifyStart);
-      OMPL_INFORM("ThunderRetrieveRepair: Path simplification took %f seconds and removed %d states", 
+      OMPL_INFORM("ThunderRetrieveRepair: Path simplification took %f seconds and removed %d states",
                   simplifyTime, numStates - candidateSolution.getGeometricPath().getStateCount());
     }
 

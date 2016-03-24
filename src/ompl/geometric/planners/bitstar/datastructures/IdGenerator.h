@@ -40,14 +40,10 @@
 //I am member class of the BITstar class, so I need to include it's definition to be aware of the class BITstar. It has a forward declaration to me.
 #include "ompl/geometric/planners/bitstar/BITstar.h"
 
-//For locking the ID generator:
-#include <boost/thread/mutex.hpp>
+#include <thread>
+#include <mutex>
 //For boost::scoped_ptr
 #include <boost/scoped_ptr.hpp>
-//For the boost::once_flag and other tools for making sure an init function is only called once.
-#include <boost/thread/once.hpp>
-//For boost::lock_guard
-#include <boost/thread/locks.hpp>
 
 namespace ompl
 {
@@ -71,7 +67,7 @@ namespace ompl
             BITstar::VertexId getNewId()
             {
                 //Create a scoped mutex copy of idMutex that unlocks when it goes out of scope:
-                boost::lock_guard<boost::mutex> lockGuard(idMutex_);
+                std::lock_guard<std::mutex> lockGuard(idMutex_);
 
                 //Return the next id, purposefully post-decrementing:
                 return nextId_++;
@@ -82,7 +78,7 @@ namespace ompl
             //The next ID to be returned:
             BITstar::VertexId nextId_;
             //The mutex
-            boost::mutex idMutex_;
+            std::mutex idMutex_;
         };
     } //geometric
 } //ompl
@@ -93,7 +89,7 @@ namespace
 {
     //Global variables:
     //The initialization flag stating that the ID generator has been created:
-    static boost::once_flag g_IdInited = BOOST_ONCE_INIT;
+    static std::once_flag g_IdInited;
     //A pointer to the actual ID generator
     static boost::scoped_ptr<ompl::geometric::BITstar::IdGenerator> g_IdGenerator;
 
@@ -106,7 +102,7 @@ namespace
     //A function to get the current ID generator:
     ompl::geometric::BITstar::IdGenerator& getIdGenerator()
     {
-        boost::call_once(&initIdGenerator, g_IdInited);
+        std::call_once(g_IdInited, &initIdGenerator);
         return *g_IdGenerator;
     }
 }

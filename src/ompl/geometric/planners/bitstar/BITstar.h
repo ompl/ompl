@@ -120,13 +120,13 @@ namespace ompl
             class IntegratedQueue;
             //Helpful typedefs:
             /** \brief A vertex shared pointer. */
-            typedef boost::shared_ptr<Vertex> VertexPtr;
+            typedef std::shared_ptr<Vertex> VertexPtr;
             /** \brief A \e constant vertex shared pointer. */
-            typedef boost::shared_ptr<const Vertex> VertexConstPtr;
+            typedef std::shared_ptr<const Vertex> VertexConstPtr;
             /** \brief A vertex weak pointer. */
-            typedef boost::weak_ptr<Vertex> VertexWeakPtr;
+            typedef std::weak_ptr<Vertex> VertexWeakPtr;
             /** \brief An integrated queue shared pointer. */
-            typedef boost::shared_ptr<IntegratedQueue> IntegratedQueuePtr;
+            typedef std::shared_ptr<IntegratedQueue> IntegratedQueuePtr;
             /** \brief The vertex id type */
             typedef unsigned int VertexId;
             /** \brief A pair of vertices, i.e., an edge. */
@@ -134,7 +134,7 @@ namespace ompl
             /** \brief A pair of const vertices, i.e., an edge. */
             typedef std::pair<VertexConstPtr, VertexConstPtr> VertexConstPtrPair;
             /** \brief The OMPL::NearestNeighbors structure. */
-            typedef boost::shared_ptr< NearestNeighbors<VertexPtr> > VertexPtrNNPtr;
+            typedef std::shared_ptr< NearestNeighbors<VertexPtr> > VertexPtrNNPtr;
 
 
             /** \brief Construct! */

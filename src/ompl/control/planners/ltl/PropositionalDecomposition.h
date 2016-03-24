@@ -55,7 +55,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::PropositionalDecompositionPtr
-            \brief A boost shared pointer wrapper for ompl::control::PropositionalDecomposition */
+            \brief A shared pointer wrapper for ompl::control::PropositionalDecomposition */
 
         /** \brief A propositional decomposition wraps a given Decomposition
             with a region-to-proposition assignment operator.
@@ -68,7 +68,7 @@ namespace ompl
             PropositionalDecomposition(const DecompositionPtr& decomp);
 
             /** \brief Clears all memory belonging to this propositional decomposition. */
-            virtual ~PropositionalDecomposition(void);            
+            virtual ~PropositionalDecomposition(void);
 
             /** \brief Returns the World corresponding to a given region. */
             virtual World worldAtRegion(int rid) = 0;

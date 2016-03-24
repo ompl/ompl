@@ -43,8 +43,8 @@ ompl::base::GaussianValidStateSampler::GaussianValidStateSampler(const SpaceInfo
 {
     name_ = "gaussian";
     params_.declareParam<double>("standard_deviation",
-                                 boost::bind(&GaussianValidStateSampler::setStdDev, this, _1),
-                                 boost::bind(&GaussianValidStateSampler::getStdDev, this));
+                                 std::bind(&GaussianValidStateSampler::setStdDev, this, std::placeholders::_1),
+                                 std::bind(&GaussianValidStateSampler::getStdDev, this));
 }
 
 bool ompl::base::GaussianValidStateSampler::sample(State *state)

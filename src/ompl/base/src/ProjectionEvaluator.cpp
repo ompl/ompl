@@ -43,8 +43,7 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/bind.hpp>
+#include <functional>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -129,7 +128,7 @@ ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpace *space) :
     bounds_(0), estimatedBounds_(0),
     defaultCellSizes_(true), cellSizesWereInferred_(false)
 {
-    params_.declareParam<double>("cellsize_factor", boost::bind(&ProjectionEvaluator::mulCellSizes, this, _1));
+    params_.declareParam<double>("cellsize_factor", std::bind(&ProjectionEvaluator::mulCellSizes, this, std::placeholders::_1));
 }
 
 ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpacePtr &space) :
@@ -137,7 +136,7 @@ ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpacePtr &space)
     bounds_(0), estimatedBounds_(0),
     defaultCellSizes_(true), cellSizesWereInferred_(false)
 {
-    params_.declareParam<double>("cellsize_factor", boost::bind(&ProjectionEvaluator::mulCellSizes, this, _1));
+    params_.declareParam<double>("cellsize_factor", std::bind(&ProjectionEvaluator::mulCellSizes, this, std::placeholders::_1));
 }
 
 ompl::base::ProjectionEvaluator::~ProjectionEvaluator()
@@ -295,6 +294,9 @@ void ompl::base::ProjectionEvaluator::inferCellSizes()
 
 void ompl::base::ProjectionEvaluator::setup()
 {
+    typedef void(ProjectionEvaluator::*setCellSizesFunctionType)(unsigned int, double);
+    typedef double(ProjectionEvaluator::*getCellSizesFunctionType)(unsigned int) const;
+
     if (defaultCellSizes_)
         defaultCellSizes();
 
@@ -306,9 +308,9 @@ void ompl::base::ProjectionEvaluator::setup()
 
     unsigned int dim = getDimension();
     for (unsigned int i = 0 ; i < dim ; ++i)
-        params_.declareParam<double>("cellsize." + boost::lexical_cast<std::string>(i),
-                                     boost::bind(&ProjectionEvaluator::setCellSizes, this, i, _1),
-                                     boost::bind(&ProjectionEvaluator::getCellSizes, this, i));
+        params_.declareParam<double>("cellsize." + std::to_string(i),
+                                     std::bind((setCellSizesFunctionType)&ProjectionEvaluator::setCellSizes, this, i, std::placeholders::_1),
+                                     std::bind((getCellSizesFunctionType)&ProjectionEvaluator::getCellSizes, this, i));
 }
 
 void ompl::base::ProjectionEvaluator::computeCoordinates(const EuclideanProjection &projection, ProjectionCoordinates &coord) const
@@ -350,7 +352,7 @@ ompl::base::SubspaceProjectionEvaluator::SubspaceProjectionEvaluator(const State
     if (!space_->isCompound())
         throw Exception("Cannot construct a subspace projection evaluator for a space that is not compound");
     if (space_->as<CompoundStateSpace>()->getSubspaceCount() <= index_)
-        throw Exception("State space " + space_->getName() + " does not have a subspace at index " + boost::lexical_cast<std::string>(index_));
+        throw Exception("State space " + space_->getName() + " does not have a subspace at index " + std::to_string(index_));
 }
 
 void ompl::base::SubspaceProjectionEvaluator::setup()
@@ -360,7 +362,7 @@ void ompl::base::SubspaceProjectionEvaluator::setup()
     else
         proj_ = space_->as<CompoundStateSpace>()->getSubspace(index_)->getDefaultProjection();
     if (!proj_)
-        throw Exception("No projection specified for subspace at index " + boost::lexical_cast<std::string>(index_));
+        throw Exception("No projection specified for subspace at index " + std::to_string(index_));
 
     cellSizes_ = proj_->getCellSizes();
     ProjectionEvaluator::setup();

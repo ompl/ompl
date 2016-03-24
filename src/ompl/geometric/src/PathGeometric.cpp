@@ -210,8 +210,8 @@ std::pair<bool, bool> ompl::geometric::PathGeometric::checkAndRepair(unsigned in
     if (!si_->isValid(states_[0]) || !si_->isValid(states_[n1 - 1]))
         return std::make_pair(false, false);
 
-    base::State *temp = NULL;
-    base::UniformValidStateSampler *uvss = NULL;
+    base::State *temp = nullptr;
+    base::UniformValidStateSampler *uvss = nullptr;
     bool result = true;
 
     for (int i = 1 ; i < n1 ; ++i)
@@ -271,7 +271,7 @@ std::pair<bool, bool> ompl::geometric::PathGeometric::checkAndRepair(unsigned in
     // free potentially allocated memory
     if (temp)
         si_->freeState(temp);
-    bool originalValid = uvss == NULL;
+    bool originalValid = uvss == nullptr;
     if (uvss)
         delete uvss;
 

@@ -44,7 +44,7 @@ ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si) : base::Planner(s
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     maxDistance_ = 0.0;
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
 
     Planner::declareParam<double>("range", this, &SBL::setRange, &SBL::getRange, "0.:1.:10000.");
 }
@@ -211,14 +211,14 @@ bool ompl::geometric::SBL::checkSolution(bool start, TreeData &tree, TreeData &o
                 /* extract the motions and put them in solution vector */
 
                 std::vector<Motion*> mpath1;
-                while (motion != NULL)
+                while (motion != nullptr)
                 {
                     mpath1.push_back(motion);
                     motion = motion->parent;
                 }
 
                 std::vector<Motion*> mpath2;
-                while (connectOther != NULL)
+                while (connectOther != nullptr)
                 {
                     mpath2.push_back(connectOther);
                     connectOther = connectOther->parent;
@@ -243,7 +243,7 @@ bool ompl::geometric::SBL::isPathValid(TreeData &tree, Motion *motion)
     std::vector<Motion*> mpath;
 
     /* construct the solution path */
-    while (motion != NULL)
+    while (motion != nullptr)
     {
         mpath.push_back(motion);
         motion = motion->parent;
@@ -267,7 +267,7 @@ bool ompl::geometric::SBL::isPathValid(TreeData &tree, Motion *motion)
 ompl::geometric::SBL::Motion* ompl::geometric::SBL::selectMotion(TreeData &tree)
 {
     GridCell* cell = tree.pdf.sample(rng_.uniform01());
-    return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : NULL;
+    return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : nullptr;
 }
 
 void ompl::geometric::SBL::removeMotion(TreeData &tree, Motion *motion)
@@ -317,7 +317,7 @@ void ompl::geometric::SBL::removeMotion(TreeData &tree, Motion *motion)
     /* remove children */
     for (unsigned int i = 0 ; i < motion->children.size() ; ++i)
     {
-        motion->children[i]->parent = NULL;
+        motion->children[i]->parent = nullptr;
         removeMotion(tree, motion->children[i]);
     }
 
@@ -361,7 +361,7 @@ void ompl::geometric::SBL::clear()
     tGoal_.grid.clear();
     tGoal_.size = 0;
     tGoal_.pdf.clear();
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
 }
 
 void ompl::geometric::SBL::getPlannerData(base::PlannerData &data) const
@@ -373,7 +373,7 @@ void ompl::geometric::SBL::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-            if (motions[i][j]->parent == NULL)
+            if (motions[i][j]->parent == nullptr)
                 data.addStartVertex(base::PlannerDataVertex(motions[i][j]->state, 1));
             else
                 data.addEdge(base::PlannerDataVertex(motions[i][j]->parent->state, 1),
@@ -383,7 +383,7 @@ void ompl::geometric::SBL::getPlannerData(base::PlannerData &data) const
     tGoal_.grid.getContent(motions);
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-            if (motions[i][j]->parent == NULL)
+            if (motions[i][j]->parent == nullptr)
                 data.addGoalVertex(base::PlannerDataVertex(motions[i][j]->state, 2));
             else
                 // The edges in the goal tree are reversed so that they are in the same direction as start tree

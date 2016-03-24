@@ -46,7 +46,7 @@ ompl::control::EST::EST(const SpaceInformationPtr &si) : base::Planner(si, "EST"
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
     siC_ = si.get();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias, "0.:.05:1.");
@@ -76,7 +76,7 @@ void ompl::control::EST::clear()
     tree_.grid.clear();
     tree_.size = 0;
     pdf_.clear ();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 }
 
 void ompl::control::EST::freeMemory()
@@ -123,8 +123,8 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), tree_.size);
 
-    Motion  *solution = NULL;
-    Motion *approxsol = NULL;
+    Motion  *solution = nullptr;
+    Motion *approxsol = nullptr;
     double  approxdif = std::numeric_limits<double>::infinity();
     Motion   *rmotion = new Motion(siC_);
     bool       solved = false;
@@ -179,19 +179,19 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
     }
 
     bool approximate = false;
-    if (solution == NULL)
+    if (solution == nullptr)
     {
         solution = approxsol;
         approximate = true;
     }
 
     // Constructing the solution path
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         lastGoalMotion_ = solution;
 
         std::vector<Motion*> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;
@@ -222,7 +222,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
 ompl::control::EST::Motion* ompl::control::EST::selectMotion()
 {
     GridCell* cell = pdf_.sample(rng_.uniform01());
-    return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : NULL;
+    return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : nullptr;
 }
 
 void ompl::control::EST::addMotion(Motion *motion)

@@ -46,12 +46,17 @@ Lifelong Planning A. Artif. Intell. 155(1-2): 93-146 (2004)
 #include <set>
 #include <map>
 #include <list>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 #include <iterator>
-#include <boost/foreach.hpp>
 #include <iostream>
 #include <cassert>
+
+// workaround for bug in Boost 1.60; see https://svn.boost.org/trac/boost/ticket/11880
+#include <boost/version.hpp>
+#if BOOST_VERSION > 105900
+#include <boost/type_traits/ice.hpp>
+#endif
 
 #include <boost/graph/adjacency_matrix.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -169,8 +174,8 @@ namespace ompl
             }
 
             // now get path
-            Node* res = (target_->costToCome() == std::numeric_limits<double>::infinity() ? NULL : target_);
-            while (res != NULL)
+            Node* res = (target_->costToCome() == std::numeric_limits<double>::infinity() ? nullptr : target_);
+            while (res != nullptr)
             {
                 path.push_front(res->getId());
                 res = res->getParent();
@@ -205,7 +210,7 @@ namespace ompl
         {
         public:
             Node (double costToCome, double costToGo, double rhs,
-            std::size_t& dataId, Node* parentNode = NULL)
+            std::size_t& dataId, Node* parentNode = nullptr)
                 : g(costToCome), h(costToGo), r(rhs), isInQ(false), parent(parentNode), id(dataId)
             {
                 calculateKey();
@@ -293,11 +298,11 @@ namespace ompl
             {
                 return h(id);
             }
-            boost::hash<std::size_t> h;
+            std::hash<std::size_t> h;
         }; // Hash
 
         typedef std::multiset<Node*, LessThanNodeK>             Queue;
-        typedef boost::unordered_map<std::size_t, Node*, Hash>  IdNodeMap;
+        typedef std::unordered_map<std::size_t, Node*, Hash>  IdNodeMap;
         typedef typename IdNodeMap::iterator                    IdNodeMapIter;
         typedef typename boost::property_map<Graph, boost::edge_weight_t>::type WeightMap;
 
@@ -359,7 +364,7 @@ namespace ompl
         {
             // iterate over all incoming neighbors of the node n_v and get the best parent
             double min = std::numeric_limits<double>::infinity();
-            Node* best = NULL;
+            Node* best = nullptr;
 
             typename boost::graph_traits<Graph>::in_edge_iterator ei, ei_end;
             for (boost::tie(ei, ei_end) = boost::in_edges(n_v->getId(), graph_); ei != ei_end; ++ei)

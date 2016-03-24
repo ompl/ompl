@@ -74,7 +74,7 @@ void addPlanner(ompl::tools::Benchmark& benchmark, ompl::base::PlannerPtr planne
 {
     ompl::base::ParamSet& params = planner->params();
     if (params.hasParam(std::string("range")))
-        params.setParam(std::string("range"), boost::lexical_cast<std::string>(range));
+        params.setParam(std::string("range"), std::to_string(range));
     benchmark.addPlanner(planner);
 }
 
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
     int run_count = 20;
     ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count);
     ompl::tools::Benchmark b(ss, "HyperCube");
-    b.addExperimentParameter("num_dims", "INTEGER", boost::lexical_cast<std::string>(ndim));
+    b.addExperimentParameter("num_dims", "INTEGER", std::to_string(ndim));
 
     addPlanner(b, ompl::base::PlannerPtr(new ompl::geometric::STRIDE(ss.getSpaceInformation())), range);
     addPlanner(b, ompl::base::PlannerPtr(new ompl::geometric::EST(ss.getSpaceInformation())), range);

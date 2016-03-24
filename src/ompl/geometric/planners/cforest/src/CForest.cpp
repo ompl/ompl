@@ -37,6 +37,7 @@
 #include "ompl/geometric/planners/cforest/CForest.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include <thread>
 
 ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::Planner(si, "CForest")
 {
@@ -47,16 +48,16 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
     numStatesShared_ = 0;
     focusSearch_ = true;
 
-    numThreads_ = std::max(boost::thread::hardware_concurrency(), 2u);
+    numThreads_ = std::max(std::thread::hardware_concurrency(), 2u);
     Planner::declareParam<bool>("focus_search", this, &CForest::setFocusSearch, &CForest::getFocusSearch, "0,1");
     Planner::declareParam<unsigned int>("num_threads", this, &CForest::setNumThreads, &CForest::getNumThreads, "0:64");
 
     addPlannerProgressProperty("best cost REAL",
-                               boost::bind(&CForest::getBestCost, this));
+                               std::bind(&CForest::getBestCost, this));
     addPlannerProgressProperty("shared paths INTEGER",
-                               boost::bind(&CForest::getNumPathsShared, this));
+                               std::bind(&CForest::getNumPathsShared, this));
     addPlannerProgressProperty("shared states INTEGER",
-                               boost::bind(&CForest::getNumStatesShared, this));
+                               std::bind(&CForest::getNumStatesShared, this));
 }
 
 ompl::geometric::CForest::~CForest()
@@ -65,7 +66,7 @@ ompl::geometric::CForest::~CForest()
 
 void ompl::geometric::CForest::setNumThreads(unsigned int numThreads)
 {
-    numThreads_ = numThreads ? numThreads : std::max(boost::thread::hardware_concurrency(), 2u);
+    numThreads_ = numThreads ? numThreads : std::max(std::thread::hardware_concurrency(), 2u);
 }
 
 void ompl::geometric::CForest::addPlannerInstanceInternal(const base::PlannerPtr &planner)
@@ -166,21 +167,24 @@ void ompl::geometric::CForest::setup()
 
 ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTerminationCondition &ptc)
 {
+    typedef void(CForest::*solveFunctionType)(base::Planner*, const base::PlannerTerminationCondition&);
+
     checkValidity();
 
     time::point start = time::now();
-    std::vector<boost::thread*> threads(planners_.size());
+    std::vector<std::thread*> threads(planners_.size());
     const base::ReportIntermediateSolutionFn prevSolutionCallback = getProblemDefinition()->getIntermediateSolutionCallback();
 
     if (prevSolutionCallback)
         OMPL_WARN("Cannot use previously set intermediate solution callback with %s", getName().c_str());
 
-    pdef_->setIntermediateSolutionCallback(boost::bind(&CForest::newSolutionFound, this, _1, _2, _3));
+    pdef_->setIntermediateSolutionCallback(std::bind(&CForest::newSolutionFound, this,
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     bestCost_ = opt_->infiniteCost();
 
     // run each planner in its own thread, with the same ptc.
     for (std::size_t i = 0 ; i < threads.size() ; ++i)
-        threads[i] = new boost::thread(boost::bind(&CForest::solve, this, planners_[i].get(), ptc));
+        threads[i] = new std::thread(std::bind((solveFunctionType)&CForest::solve, this, planners_[i].get(), ptc));
 
     for (std::size_t i = 0 ; i < threads.size() ; ++i)
     {
@@ -196,17 +200,17 @@ ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTer
 
 std::string ompl::geometric::CForest::getBestCost() const
 {
-    return boost::lexical_cast<std::string>(bestCost_);
+    return std::to_string(bestCost_.value());
 }
 
 std::string ompl::geometric::CForest::getNumPathsShared() const
 {
-    return boost::lexical_cast<std::string>(numPathsShared_);
+    return std::to_string(numPathsShared_);
 }
 
 std::string ompl::geometric::CForest::getNumStatesShared() const
 {
-    return boost::lexical_cast<std::string>(numStatesShared_);
+    return std::to_string(numStatesShared_);
 }
 
 void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, const std::vector<const base::State *> &states, const base::Cost cost)
