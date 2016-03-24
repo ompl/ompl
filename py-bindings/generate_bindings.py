@@ -36,6 +36,7 @@
 
 # Author: Mark Moll
 
+from os.path import join, dirname
 from sys import argv, setrecursionlimit
 from pygccxml import declarations
 from pyplusplus.module_builder import call_policies
@@ -492,6 +493,7 @@ class ompl_geometric_generator_t(code_generator_t):
 
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
+        #self.ompl_ns.namespace('util').exclude()
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # make objects printable that have a print function
@@ -573,7 +575,8 @@ class ompl_geometric_generator_t(code_generator_t):
 
             ::ompl::base::PlannerStatus default_solve( ::ompl::base::PlannerTerminationCondition const & ptc );
             """)
-        PRM_cls.add_declaration_code(open('PRM.SingleThreadSolve.cpp','r').read())
+        PRM_cls.add_declaration_code(open(join(dirname(__file__),
+            'PRM.SingleThreadSolve.cpp'),'r').read())
         # This needs to be the last registration code added to the PRM_cls to the ugly hack below.
         PRM_cls.add_registration_code("""def("solve",
             (::ompl::base::PlannerStatus(::ompl::geometric::PRM::*)( ::ompl::base::PlannerTerminationCondition const &))(&PRM_wrapper::solve),

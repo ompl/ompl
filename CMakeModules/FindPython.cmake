@@ -142,7 +142,9 @@ function(find_python_module module)
                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
             list(GET _verloc 1 _location)
             list(GET _verloc 0 _version)
-            message("${_status} ${_verloc} ${_version}")
+            # get rid of version prefixes and suffixes so that
+            # "v1.0rc2" becomes "1.0"
+            string(REGEX MATCH "[0-9.]+" _version "${_version}")
             if(NOT _status)
                 if (NOT ${_version} VERSION_LESS ${_minversion})
                     set(PY_${module_upper} ${_location} CACHE STRING

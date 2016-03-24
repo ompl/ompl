@@ -28,7 +28,8 @@ if (CASTXML)
         "${Boost_INCLUDE_DIR}"
         "${ASSIMP_INCLUDE_DIRS}"
         "${ODEINT_INCLUDE_DIR}"
-        "${EIGEN3_INCLUDE_DIR}")
+        "${EIGEN3_INCLUDE_DIR}"
+        "${OMPL_INCLUDE_DIR}/../py-bindings")
     if(MINGW)
         execute_process(COMMAND "${CMAKE_CXX_COMPILER}" "-dumpversion"
             OUTPUT_VARIABLE _version OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -56,4 +57,4 @@ if (CASTXML)
     set(CASTXMLCONFIGPATH "${CASTXMLCONFIGPATH}" PARENT_SCOPE)
 endif()
 
-find_package_handle_standard_args(xmlgenerator DEFAULT_MSG CASTXML)
+find_package_handle_standard_args(castxml DEFAULT_MSG CASTXML)

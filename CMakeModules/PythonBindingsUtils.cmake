@@ -3,9 +3,9 @@ find_package(Boost COMPONENTS python)
 # You can optionally specify the desired version like so:
 #   find_package(Python 2.6)
 find_package(Python QUIET)
-find_python_module(pyplusplus QUIET)
-find_python_module(pygccxml QUIET)
-find_package(castxml QUIET)
+find_python_module(pyplusplus 1.6.0)
+find_python_module(pygccxml 1.7.2)
+find_package(castxml)
 
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
     include_directories(${PYTHON_INCLUDE_DIRS})
