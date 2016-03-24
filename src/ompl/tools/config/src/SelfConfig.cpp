@@ -43,7 +43,6 @@
 #include "ompl/control/planners/rrt/RRT.h"
 #include "ompl/control/planners/kpiece/KPIECE1.h"
 #include "ompl/util/Console.h"
-#include <mutex>
 #include <memory>
 #include <algorithm>
 #include <limits>
@@ -171,7 +170,7 @@ namespace ompl
     }
 }
 
-boost::mutex ompl::tools::SelfConfig::staticConstructorLock_;
+std::mutex ompl::tools::SelfConfig::staticConstructorLock_;
 /// @endcond
 
 ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const std::string &context) :
@@ -179,12 +178,9 @@ ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const s
 {
     typedef std::map<base::SpaceInformation*, std::shared_ptr<SelfConfigImpl> > ConfigMap;
 
-    boost::mutex::scoped_lock smLock(staticConstructorLock_);
+    std::unique_lock<std::mutex> smLock(staticConstructorLock_);
 
     static ConfigMap    SMAP;
-    static std::mutex   LOCK;
-
-    std::lock_guard<std::mutex> smLock(LOCK);
 
     // clean expired entries from the map
     ConfigMap::iterator dit = SMAP.begin();

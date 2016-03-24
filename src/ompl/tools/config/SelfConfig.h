@@ -44,7 +44,7 @@
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/datastructures/NearestNeighborsGNATNoThreadSafety.h"
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <iostream>
 #include <string>
 
@@ -117,7 +117,7 @@ namespace ompl
 
             SelfConfigImpl *impl_;
             std::string     context_;
-            static boost::mutex staticConstructorLock_;
+            static std::mutex staticConstructorLock_;
             /// @endcond
         };
     }
