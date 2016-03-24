@@ -140,12 +140,17 @@ function(find_python_module module)
                 RESULT_VARIABLE _status
                 OUTPUT_VARIABLE _verloc
                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-            list(GET _verloc 1 _location)
-            list(GET _verloc 0 _version)
-            # get rid of version prefixes and suffixes so that
-            # "v1.0rc2" becomes "1.0"
-            string(REGEX MATCH "[0-9.]+" _version "${_version}")
             if(NOT _status)
+                list(LENGTH _verloc _verloclength)
+                if(_verloclength GREATER 1)
+                    list(GET _verloc 1 _location)
+                    list(GET _verloc 0 _version)
+                else()
+                    set(_version "0")
+                endif()
+                # get rid of version prefixes and suffixes so that
+                # "v1.0rc2" becomes "1.0"
+                string(REGEX MATCH "[0-9.]+" _version "${_version}")
                 if (NOT ${_version} VERSION_LESS ${_minversion})
                     set(PY_${module_upper} ${_location} CACHE STRING
                         "Location of Python module ${module}")
