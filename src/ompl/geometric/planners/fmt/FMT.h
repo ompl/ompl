@@ -83,7 +83,7 @@ namespace ompl
 
            J. A. Starek, J. V. Gomez, E. Schmerling, L. Janson, L. Moreno, and M. Pavone,
            An Asymptotically-Optimal Sampling-Based Algorithm for Bi-directional Motion Planning,
-           inIEEE/RSJ International Conference on Intelligent Robots Systems, 2015.
+           in IEEE/RSJ International Conference on Intelligent Robots Systems, 2015.
            [[PDF]](http://arxiv.org/pdf/1507.07602.pdf)
         */
         /** @brief Asymptotically Optimal Fast Marching Tree algorithm developed
