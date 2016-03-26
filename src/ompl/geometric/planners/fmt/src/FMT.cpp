@@ -532,6 +532,7 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion **z)
 
     // For each node near z and in set Unvisited, attempt to connect it to set Open
     std::vector<Motion*> yNear;
+    std::vector<Motion*> Open_new;
     const unsigned int xNearSize = xNear.size();
     for (unsigned int i = 0 ; i < xNearSize; ++i)
     {
@@ -584,7 +585,7 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion **z)
                 yMin->getChildren().push_back(x);
 
                 // Add x to Open
-                Open_.insert(x);
+                Open_new.push_back(x);
                 // Remove x from Unvisited and add to Open
                 x->setSetType(Motion::SET_OPEN);
             }
@@ -594,6 +595,15 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion **z)
     // Update Open
     Open_.pop();
     (*z)->setSetType(Motion::SET_CLOSED);
+
+    // Add the nodes in Open_new to Open
+    unsigned int openNewSize = Open_new.size();
+    for (unsigned int i = 0; i < openNewSize; ++i)
+    {
+        Open_.insert(Open_new[i]);
+        Open_new[i]->setSetType(Motion::SET_OPEN);
+    }
+    Open_new.clear();
 
     if (Open_.empty())
     {
