@@ -586,8 +586,8 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion **z)
 
                 // Add x to Open
                 Open_new.push_back(x);
-                // Remove x from Unvisited and add to Open
-                x->setSetType(Motion::SET_OPEN);
+                // Remove x from Unvisited
+                x->setSetType(Motion::SET_CLOSED);
             }
         } // An optimal connection from Open to x was found
     } // For each node near z and in set Unvisited, try to connect it to set Open
