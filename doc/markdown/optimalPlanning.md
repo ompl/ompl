@@ -15,6 +15,8 @@ You can specify a path quality metric using the `ompl::base::OptimizationObjecti
 - `ompl::geometric::InformedRRTstar`
 - `ompl::geometric::BITstar`
 - `ompl::geometric::FMT`
+- `ompl::geometric::BFMT`
+
 
 You can find out more about asymptotic optimality in motion planning by checking out [this paper](http://sertac.scripts.mit.edu/web/wp-content/papercite-data/pdf/karaman.frazzoli-ijrr11.pdf) by Karaman and Frazzoli. The following planners also support `ompl::base::OptimizationObjective`, but do not provide theoretical guarantees on solution optimality:
 

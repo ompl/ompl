@@ -26,7 +26,14 @@ DOI: [10.1109/TRO.2013.2240176](http://dx.doi.org/10.1109/TRO.2013.2240176)<br>
 ### Authors: Ashley Clark and Wolfgang Pointner (Stanford University)
 
 [FMT∗](\ref gFMT) is a new asymptotically optimal algorithm contributed by Marco Pavone's Autonomous Systems Laboratory. The FMT∗ algorithm performs a “lazy” dynamic programming recursion on a set of probabilistically-drawn samples to grow a tree of paths, which moves outward in cost-to-come space. The algorithm is described in:
-- L. Janson, A. Clark, and M. Pavone, Fast Marching Trees: a Fast Marching Sampling-Based Method for Optimal Motion Planning in Many Dimensions, International Journal on Robotics Research, 2014. Submitted. http://arxiv.org/pdf/1306.3532v3.pdf
+-  L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based method for optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921, 2015. DOI: [10.1177/0278364915577958](http://dx.doi.org/10.1177/0278364915577958) http://arxiv.org/pdf/1306.3532.pdf
+
+# Bidirectional Fast Marching Tree algorithm (BFMT∗)
+
+### Authors: Joseph Starek (Stanford University) and Javier V Gomez (Universidad Carlos III de Madrid)
+
+[BFMT∗](\ref gBFMT) is a new asymptotically optimal algorithm contributed by Marco Pavone's Autonomous Systems Laboratory. The BFMT∗ algorithm expands two Fast Marching Trees, one from the initial state and the other from the goal, resulting in faster convergence rates are less space is explored by the trees. The algorithm is described in:
+- J. A. Starek, J. V. Gomez, E. Schmerling, L. Janson, L. Moreno, and M. Pavone, An Asymptotically-Optimal Sampling-Based Algorithm for Bi-directional Motion Planning, in IEEE/RSJ International Conference on Intelligent Robots Systems, 2015. http://arxiv.org/pdf/1507.07602.pdf
 
 # Generalized Optimal Path Planning Framework
 
