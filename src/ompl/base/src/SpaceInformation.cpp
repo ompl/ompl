@@ -306,6 +306,8 @@ bool ompl::base::SpaceInformation::checkMotion(const std::vector<State*> &states
                     if (!isValid(states[mid]))
                         return false;
 
+                    pos.pop();
+
                     if (x.first < mid - 1)
                         pos.push(std::make_pair(x.first, mid));
                     if (x.second > mid + 1)
@@ -366,7 +368,7 @@ double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attem
     State *s2 = allocState();
 
     std::pair<State*, double> lastValid;
-    lastValid.first = NULL;
+    lastValid.first = nullptr;
 
     double d = 0.0;
     unsigned int count = 0;

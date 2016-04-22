@@ -1,3 +1,39 @@
+/*********************************************************************
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2012, Rice University
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Rice University nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
+
+/* Author: Matt Maly */
+
 #include "ompl/control/planners/ltl/LTLPlanner.h"
 #include "ompl/control/planners/PlannerIncludes.h"
 #include "ompl/control/planners/ltl/ProductGraph.h"
@@ -5,7 +41,7 @@
 #include "ompl/datastructures/PDF.h"
 #include "ompl/util/Console.h"
 #include <algorithm>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <limits>
 #include <map>
 #include <vector>
@@ -16,7 +52,7 @@ ompl::control::LTLPlanner::LTLPlanner(const LTLSpaceInformationPtr& ltlsi, const
     ompl::base::Planner(ltlsi, "LTLPlanner"),
     ltlsi_(ltlsi.get()),
     abstraction_(a),
-    prodStart_(NULL),
+    prodStart_(nullptr),
     exploreTime_(exploreTime)
 {
     specs_.approximateSolutions = true;
@@ -42,7 +78,7 @@ void ompl::control::LTLPlanner::clear()
 
 ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::PlannerTerminationCondition& ptc)
 {
-    // TODO make solve work when called more than once!
+    // \todo make solve work when called more than once!
     checkValidity();
     const base::State* start = pis_.nextStart();
     prodStart_ = ltlsi_->getProdGraphState(start);
@@ -60,7 +96,8 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
     updateWeight(prodStart_);
     availDist_.add(prodStart_, abstractInfo_[prodStart_].weight);
 
-    abstraction_->buildGraph(prodStart_, boost::bind(&LTLPlanner::initAbstractInfo, this, _1));
+    abstraction_->buildGraph(prodStart_,
+        std::bind(&LTLPlanner::initAbstractInfo, this, std::placeholders::_1));
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
@@ -72,7 +109,8 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
 
     while (ptc()==false && !solved)
     {
-        const std::vector<ProductGraph::State*> lead = abstraction_->computeLead(prodStart_, boost::bind(&LTLPlanner::abstractEdgeWeight, this, _1, _2));
+        const std::vector<ProductGraph::State*> lead = abstraction_->computeLead(prodStart_,
+            std::bind(&LTLPlanner::abstractEdgeWeight, this, std::placeholders::_1, std::placeholders::_2));
         buildAvail(lead);
         solved = explore(lead, soln, exploreTime_);
     }
@@ -81,7 +119,7 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
     {
         //build solution path
         std::vector<Motion*> path;
-        while (soln != NULL)
+        while (soln != nullptr)
         {
             path.push_back(soln);
             soln = soln->parent;
@@ -89,7 +127,7 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
         PathControl* pc = new PathControl(si_);
         for (int i = path.size()-1; i >= 0; --i)
         {
-            if (path[i]->parent != NULL) {
+            if (path[i]->parent != nullptr) {
                 pc->append(path[i]->state, path[i]->control, path[i]->steps * ltlsi_->getPropagationStepSize());
             }
             else {
@@ -113,7 +151,7 @@ void ompl::control::LTLPlanner::getTree(std::vector<base::State*>& tree) const
 std::vector<ompl::control::ProductGraph::State*> ompl::control::LTLPlanner::getHighLevelPath(const std::vector<base::State*>& path, ProductGraph::State* start) const
 {
     std::vector<ProductGraph::State*> hlPath(path.size());
-    hlPath[0] = (start != NULL ? start : ltlsi_->getProdGraphState(path[0]));
+    hlPath[0] = (start != nullptr ? start : ltlsi_->getProdGraphState(path[0]));
     for (unsigned int i = 1; i < path.size(); ++i)
     {
         hlPath[i] = ltlsi_->getProdGraphState(path[i]);
@@ -123,14 +161,14 @@ std::vector<ompl::control::ProductGraph::State*> ompl::control::LTLPlanner::getH
     return hlPath;
 }
 
-ompl::control::LTLPlanner::Motion::Motion(void) : state(NULL), control(NULL), parent(NULL), steps(0)
+ompl::control::LTLPlanner::Motion::Motion(void) : state(nullptr), control(nullptr), parent(nullptr), steps(0)
 {
 }
 
 ompl::control::LTLPlanner::Motion::Motion(const SpaceInformation* si) :
     state(si->allocState()),
     control(si->allocControl()),
-    parent(NULL),
+    parent(nullptr),
     steps(0)
 {
 }
@@ -141,7 +179,7 @@ ompl::control::LTLPlanner::Motion::~Motion(void)
 
 ompl::control::LTLPlanner::ProductGraphStateInfo::ProductGraphStateInfo(void) :
     numSel(0),
-    pdfElem(NULL)
+    pdfElem(nullptr)
 {
 }
 
@@ -153,7 +191,7 @@ void ompl::control::LTLPlanner::ProductGraphStateInfo::addMotion(Motion* m)
 double ompl::control::LTLPlanner::updateWeight(ProductGraph::State* as)
 {
     ProductGraphStateInfo& info = abstractInfo_[as];
-    /* TODO weight should include freeVolume, for cases in which decomposition
+    /* \todo weight should include freeVolume, for cases in which decomposition
        does not respect obstacles. */
     info.weight = ((info.motions.size()+1)*info.volume) / (info.autWeight*(info.numSel+1)*(info.numSel+1));
     return info.weight;
@@ -163,11 +201,11 @@ void ompl::control::LTLPlanner::initAbstractInfo(ProductGraph::State* as)
 {
     ProductGraphStateInfo& info = abstractInfo_[as];
     info.numSel = 0;
-    info.pdfElem = NULL;
-	info.volume = abstraction_->getRegionVolume(as);
-	unsigned int autDist = std::max(abstraction_->getCosafeAutDistance(as),
-		abstraction_->getSafeAutDistance(as));
-    //TODO try something larger than epsilon
+    info.pdfElem = nullptr;
+    info.volume = abstraction_->getRegionVolume(as);
+    unsigned int autDist = std::max(abstraction_->getCosafeAutDistance(as),
+        abstraction_->getSafeAutDistance(as));
+    //\todo try something larger than epsilon
     if (autDist == 0)
         info.autWeight = std::numeric_limits<double>::epsilon();
     else
@@ -178,7 +216,7 @@ void ompl::control::LTLPlanner::initAbstractInfo(ProductGraph::State* as)
 void ompl::control::LTLPlanner::buildAvail(const std::vector<ProductGraph::State*>& lead)
 {
     for (unsigned int i = 0; i < availDist_.size(); ++i)
-        abstractInfo_[availDist_[i]].pdfElem = NULL;
+        abstractInfo_[availDist_[i]].pdfElem = nullptr;
     availDist_.clear();
     unsigned int numTreePts = 1;
     for (int i = lead.size()-1; i >= 0; --i)
@@ -223,7 +261,7 @@ bool ompl::control::LTLPlanner::explore(const std::vector<ProductGraph::State*>&
         {
             si_->freeState(newState);
             ltlsi_->freeControl(rctrl);
-			continue;
+            continue;
         }
         Motion* m = new Motion();
         m->state = newState;
@@ -237,12 +275,12 @@ bool ompl::control::LTLPlanner::explore(const std::vector<ProductGraph::State*>&
         abstractInfo_[m->abstractState].addMotion(m);
         updateWeight(m->abstractState);
         // update weight if hl state already exists in avail
-        if (abstractInfo_[m->abstractState].pdfElem != NULL)
+        if (abstractInfo_[m->abstractState].pdfElem != nullptr)
             availDist_.update(abstractInfo_[m->abstractState].pdfElem, abstractInfo_[m->abstractState].weight);
         else
         {
             // otherwise, only add hl state to avail if it already exists in lead
-			if (std::find(lead.begin(), lead.end(), m->abstractState) != lead.end())
+            if (std::find(lead.begin(), lead.end(), m->abstractState) != lead.end())
             {
                 PDF<ProductGraph::State*>::Element* elem = availDist_.add(m->abstractState, abstractInfo_[m->abstractState].weight);
                 abstractInfo_[m->abstractState].pdfElem = elem;
@@ -272,9 +310,9 @@ void ompl::control::LTLPlanner::clearMotions(void)
     for (std::vector<Motion*>::iterator i = motions_.begin(); i != motions_.end(); ++i)
     {
         Motion* m = *i;
-        if (m->state != NULL)
+        if (m->state != nullptr)
             si_->freeState(m->state);
-        if (m->control != NULL)
+        if (m->control != nullptr)
             ltlsi_->freeControl(m->control);
         delete m;
     }

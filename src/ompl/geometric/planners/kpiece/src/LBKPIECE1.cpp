@@ -40,14 +40,14 @@
 #include <cassert>
 
 ompl::geometric::LBKPIECE1::LBKPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "LBKPIECE1"),
-                                                                             dStart_(boost::bind(&LBKPIECE1::freeMotion, this, _1)),
-                                                                             dGoal_(boost::bind(&LBKPIECE1::freeMotion, this, _1))
+                                                                             dStart_(std::bind(&LBKPIECE1::freeMotion, this, std::placeholders::_1)),
+                                                                             dGoal_(std::bind(&LBKPIECE1::freeMotion, this, std::placeholders::_1))
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 
     minValidPathFraction_ = 0.5;
     maxDistance_ = 0.0;
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
 
     Planner::declareParam<double>("range", this, &LBKPIECE1::setRange, &LBKPIECE1::getRange, "0.:1.:10000");
     Planner::declareParam<double>("border_fraction", this, &LBKPIECE1::setBorderFraction, &LBKPIECE1::getBorderFraction, "0.:.05:1.");
@@ -143,8 +143,8 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
             }
         }
 
-        Discretization<Motion>::Cell *ecell    = NULL;
-        Motion                       *existing = NULL;
+        Discretization<Motion>::Cell *ecell    = nullptr;
+        Motion                       *existing = nullptr;
         disc.selectMotion(existing, ecell);
         assert(existing);
         sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
@@ -184,14 +184,14 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
                     /* extract the motions and put them in solution vector */
 
                     std::vector<Motion*> mpath1;
-                    while (motion != NULL)
+                    while (motion != nullptr)
                     {
                         mpath1.push_back(motion);
                         motion = motion->parent;
                     }
 
                     std::vector<Motion*> mpath2;
-                    while (connectOther != NULL)
+                    while (connectOther != nullptr)
                     {
                         mpath2.push_back(connectOther);
                         connectOther = connectOther->parent;
@@ -231,7 +231,7 @@ bool ompl::geometric::LBKPIECE1::isPathValid(Discretization<Motion> &disc, Motio
     std::vector<Motion*> mpath;
 
     /* construct the solution path */
-    while (motion != NULL)
+    while (motion != nullptr)
     {
         mpath.push_back(motion);
         motion = motion->parent;
@@ -294,7 +294,7 @@ void ompl::geometric::LBKPIECE1::removeMotion(Discretization<Motion> &disc, Moti
     /* remove children */
     for (unsigned int i = 0 ; i < motion->children.size() ; ++i)
     {
-        motion->children[i]->parent = NULL;
+        motion->children[i]->parent = nullptr;
         removeMotion(disc, motion->children[i]);
     }
 
@@ -316,14 +316,14 @@ void ompl::geometric::LBKPIECE1::clear()
     sampler_.reset();
     dStart_.clear();
     dGoal_.clear();
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
 }
 
 void ompl::geometric::LBKPIECE1::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
-    dStart_.getPlannerData(data, 1, true, NULL);
-    dGoal_.getPlannerData(data, 2, false, NULL);
+    dStart_.getPlannerData(data, 1, true, nullptr);
+    dGoal_.getPlannerData(data, 2, false, nullptr);
 
     // Insert the edge connecting the two trees
     data.addEdge (data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));

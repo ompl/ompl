@@ -43,15 +43,14 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/bind.hpp>
+#include <functional>
 #include <cmath>
 #include <cstring>
 #include <limits>
 
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
-    using namespace boost::numeric::ublas;
+    namespace nu = boost::numeric::ublas;
 
     RNG rng;
     Matrix projection(to, from);
@@ -59,7 +58,7 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
     for (unsigned int j = 0 ; j < from ; ++j)
     {
         if (scale.size() == from && fabs(scale[j]) < std::numeric_limits<double>::epsilon())
-            boost::numeric::ublas::column(projection, j) = boost::numeric::ublas::zero_vector<double>(to);
+            nu::column(projection, j) = nu::zero_vector<double>(to);
         else
             for (unsigned int i = 0 ; i < to ; ++i)
                 projection(i, j) = rng.gaussian01();
@@ -67,10 +66,10 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
 
     for (unsigned int i = 0 ; i < to ; ++i)
     {
-        matrix_row<Matrix> row(projection, i);
+        nu::matrix_row<Matrix> row(projection, i);
         for (unsigned int j = 0 ; j < i ; ++j)
         {
-            matrix_row<Matrix> prevRow(projection, j);
+            nu::matrix_row<Matrix> prevRow(projection, j);
             // subtract projection
             row -= inner_prod(row, prevRow) * prevRow;
         }
@@ -87,7 +86,7 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
             if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
                 z++;
             else
-                boost::numeric::ublas::column(projection, i) /= scale[i];
+                nu::column(projection, i) /= scale[i];
         }
         if (z == from)
             OMPL_WARN("Computed projection matrix is all 0s");
@@ -112,10 +111,10 @@ void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const 
 
 void ompl::base::ProjectionMatrix::project(const double *from, EuclideanProjection& to) const
 {
-    using namespace boost::numeric::ublas;
+    namespace nu = boost::numeric::ublas;
     // create a temporary uBLAS vector from a C-style array without copying data
-    shallow_array_adaptor<const double> tmp1(mat.size2(), from);
-    vector<double, shallow_array_adaptor<const double> > tmp2(mat.size2(), tmp1);
+    nu::shallow_array_adaptor<const double> tmp1(mat.size2(), from);
+    nu::vector<double, nu::shallow_array_adaptor<const double> > tmp2(mat.size2(), tmp1);
     to = prod(mat, tmp2);
 }
 
@@ -129,7 +128,7 @@ ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpace *space) :
     bounds_(0), estimatedBounds_(0),
     defaultCellSizes_(true), cellSizesWereInferred_(false)
 {
-    params_.declareParam<double>("cellsize_factor", boost::bind(&ProjectionEvaluator::mulCellSizes, this, _1));
+    params_.declareParam<double>("cellsize_factor", std::bind(&ProjectionEvaluator::mulCellSizes, this, std::placeholders::_1));
 }
 
 ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpacePtr &space) :
@@ -137,7 +136,7 @@ ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpacePtr &space)
     bounds_(0), estimatedBounds_(0),
     defaultCellSizes_(true), cellSizesWereInferred_(false)
 {
-    params_.declareParam<double>("cellsize_factor", boost::bind(&ProjectionEvaluator::mulCellSizes, this, _1));
+    params_.declareParam<double>("cellsize_factor", std::bind(&ProjectionEvaluator::mulCellSizes, this, std::placeholders::_1));
 }
 
 ompl::base::ProjectionEvaluator::~ProjectionEvaluator()
@@ -295,6 +294,9 @@ void ompl::base::ProjectionEvaluator::inferCellSizes()
 
 void ompl::base::ProjectionEvaluator::setup()
 {
+    typedef void(ProjectionEvaluator::*setCellSizesFunctionType)(unsigned int, double);
+    typedef double(ProjectionEvaluator::*getCellSizesFunctionType)(unsigned int) const;
+
     if (defaultCellSizes_)
         defaultCellSizes();
 
@@ -306,9 +308,9 @@ void ompl::base::ProjectionEvaluator::setup()
 
     unsigned int dim = getDimension();
     for (unsigned int i = 0 ; i < dim ; ++i)
-        params_.declareParam<double>("cellsize." + boost::lexical_cast<std::string>(i),
-                                     boost::bind(&ProjectionEvaluator::setCellSizes, this, i, _1),
-                                     boost::bind(&ProjectionEvaluator::getCellSizes, this, i));
+        params_.declareParam<double>("cellsize." + std::to_string(i),
+                                     std::bind((setCellSizesFunctionType)&ProjectionEvaluator::setCellSizes, this, i, std::placeholders::_1),
+                                     std::bind((getCellSizesFunctionType)&ProjectionEvaluator::getCellSizes, this, i));
 }
 
 void ompl::base::ProjectionEvaluator::computeCoordinates(const EuclideanProjection &projection, ProjectionCoordinates &coord) const
@@ -350,7 +352,7 @@ ompl::base::SubspaceProjectionEvaluator::SubspaceProjectionEvaluator(const State
     if (!space_->isCompound())
         throw Exception("Cannot construct a subspace projection evaluator for a space that is not compound");
     if (space_->as<CompoundStateSpace>()->getSubspaceCount() <= index_)
-        throw Exception("State space " + space_->getName() + " does not have a subspace at index " + boost::lexical_cast<std::string>(index_));
+        throw Exception("State space " + space_->getName() + " does not have a subspace at index " + std::to_string(index_));
 }
 
 void ompl::base::SubspaceProjectionEvaluator::setup()
@@ -360,7 +362,7 @@ void ompl::base::SubspaceProjectionEvaluator::setup()
     else
         proj_ = space_->as<CompoundStateSpace>()->getSubspace(index_)->getDefaultProjection();
     if (!proj_)
-        throw Exception("No projection specified for subspace at index " + boost::lexical_cast<std::string>(index_));
+        throw Exception("No projection specified for subspace at index " + std::to_string(index_));
 
     cellSizes_ = proj_->getCellSizes();
     ProjectionEvaluator::setup();

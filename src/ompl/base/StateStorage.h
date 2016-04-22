@@ -41,7 +41,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
-#include <boost/function.hpp>
+#include <functional>
 #include <iostream>
 
 namespace ompl
@@ -128,7 +128,7 @@ namespace ompl
 
             /** \brief Sort the states according to the less-equal operator \e op. Metadata is NOT sorted;
                 if metadata was added, the index values of the metadata will not match after the sort. */
-            void sort(const boost::function<bool(const State*, const State*)> &op);
+            void sort(const std::function<bool(const State*, const State*)> &op);
 
             /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all sampled
                 states are actually from this storage structure. */
@@ -260,6 +260,8 @@ namespace ompl
 
             virtual void loadMetadata(const Header& /*h*/, boost::archive::binary_iarchive &ia)
             {
+                // clear default metadata that was added by StateStorage::loadStates()
+                metadata_.clear();
                 ia >> metadata_;
             }
 
@@ -275,7 +277,7 @@ namespace ompl
 
         /** \brief Storage of states where the metadata is a vector of indices. This is is typically used to store a graph */
         typedef StateStorageWithMetadata<std::vector<std::size_t> > GraphStateStorage;
-        typedef boost::shared_ptr<GraphStateStorage> GraphStateStoragePtr;
+        typedef std::shared_ptr<GraphStateStorage> GraphStateStoragePtr;
     }
 }
 #endif

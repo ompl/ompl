@@ -220,6 +220,7 @@ class TestPlanner
 public:
     TestPlanner(void)
     {
+        msg::setLogLevel(msg::LOG_ERROR);
     }
 
     virtual ~TestPlanner(void)

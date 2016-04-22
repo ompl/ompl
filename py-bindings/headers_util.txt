@@ -1,5 +1,7 @@
-../src/ompl/util/Exception.h
-../src/ompl/util/RandomNumbers.h
-../src/ompl/util/Console.h
-../src/ompl/util/PPM.h
-ompl_py_util.h
+src/ompl/util/Exception.h
+src/ompl/util/RandomNumbers.h
+src/ompl/util/Console.h
+src/ompl/util/PPM.h
+src/ompl/util/GeometricEquations.h
+src/ompl/util/ProlateHyperspheroid.h
+py-bindings/ompl_py_util.h

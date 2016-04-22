@@ -46,7 +46,7 @@ ompl::geometric::EST::EST(const base::SpaceInformationPtr &si) : base::Planner(s
     specs_.directed = true;
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias, "0.:.05:1.");
@@ -75,7 +75,7 @@ void ompl::geometric::EST::clear()
     tree_.grid.clear();
     tree_.size = 0;
     pdf_.clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 }
 
 void ompl::geometric::EST::freeMemory()
@@ -115,8 +115,8 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), tree_.size);
 
-    Motion *solution  = NULL;
-    Motion *approxsol = NULL;
+    Motion *solution  = nullptr;
+    Motion *approxsol = nullptr;
     double  approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
 
@@ -159,19 +159,19 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     bool solved = false;
     bool approximate = false;
-    if (solution == NULL)
+    if (solution == nullptr)
     {
         solution = approxsol;
         approximate = true;
     }
 
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         lastGoalMotion_ = solution;
 
         /* construct the solution path */
         std::vector<Motion*> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;
@@ -195,7 +195,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 ompl::geometric::EST::Motion* ompl::geometric::EST::selectMotion()
 {
     GridCell* cell = pdf_.sample(rng_.uniform01());
-    return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : NULL;
+    return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : nullptr;
 }
 
 void ompl::geometric::EST::addMotion(Motion *motion)
@@ -231,7 +231,7 @@ void ompl::geometric::EST::getPlannerData(base::PlannerData &data) const
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
         for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
         {
-            if (motions[i][j]->parent == NULL)
+            if (motions[i][j]->parent == nullptr)
                 data.addStartVertex(base::PlannerDataVertex(motions[i][j]->state));
             else
                 data.addEdge(base::PlannerDataVertex(motions[i][j]->parent->state),

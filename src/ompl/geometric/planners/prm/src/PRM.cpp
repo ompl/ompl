@@ -41,12 +41,11 @@
 #include "ompl/datastructures/PDF.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/tools/config/MagicConstants.h"
-#include <boost/lambda/bind.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/foreach.hpp>
-#include <boost/thread.hpp>
+#include <thread>
 
 #include "GoalVisitor.hpp"
 
@@ -87,17 +86,19 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
     specs_.optimizingPaths = true;
+    specs_.multithreaded = true;
 
-    Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors, std::string("8:1000"));
+    if (!starStrategy_)
+        Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors, std::string("8:1000"));
 
     addPlannerProgressProperty("iterations INTEGER",
-                               boost::bind(&PRM::getIterationCount, this));
+                               std::bind(&PRM::getIterationCount, this));
     addPlannerProgressProperty("best cost REAL",
-                               boost::bind(&PRM::getBestCost, this));
+                               std::bind(&PRM::getBestCost, this));
     addPlannerProgressProperty("milestone count INTEGER",
-                               boost::bind(&PRM::getMilestoneCountString, this));
+                               std::bind(&PRM::getMilestoneCountString, this));
     addPlannerProgressProperty("edge count INTEGER",
-                               boost::bind(&PRM::getEdgeCountString, this));
+                               std::bind(&PRM::getEdgeCountString, this));
 }
 
 ompl::geometric::PRM::~PRM()
@@ -110,18 +111,20 @@ void ompl::geometric::PRM::setup()
     Planner::setup();
     if (!nn_)
     {
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(si_->getStateSpace()));
-        nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
+        specs_.multithreaded = false;  // temporarily set to false since nn_ is used only in single thread
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
+        specs_.multithreaded = true;
+        nn_->setDistanceFunction(std::bind(&PRM::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
     }
     if (!connectionStrategy_)
     {
         if (starStrategy_)
-            connectionStrategy_ = KStarStrategy<Vertex>(boost::bind(&PRM::milestoneCount, this), nn_, si_->getStateDimension());
+            connectionStrategy_ = KStarStrategy<Vertex>(std::bind(&PRM::milestoneCount, this), nn_, si_->getStateDimension());
         else
             connectionStrategy_ = KStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS, nn_);
     }
     if (!connectionFilter_)
-        connectionFilter_ = boost::lambda::constant(true);
+        connectionFilter_ = [] (const Vertex&, const Vertex&) { return true; };
 
     // Setup optimization objective
     //
@@ -152,11 +155,13 @@ void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
         throw Exception("Cannot set the maximum nearest neighbors for " + getName());
     if (!nn_)
     {
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(si_->getStateSpace()));
-        nn_->setDistanceFunction(boost::bind(&PRM::distanceFunction, this, _1, _2));
+        specs_.multithreaded = false; // temporarily set to false since nn_ is used only in single thread
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
+        specs_.multithreaded = true;
+        nn_->setDistanceFunction(std::bind(&PRM::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
     }
     if (!userSetConnectionStrategy_)
-        connectionStrategy_.clear();
+        connectionStrategy_ = ConnectionStrategy();
     if (isSetup())
         setup();
 }
@@ -334,7 +339,7 @@ void ompl::geometric::PRM::checkForSolution(const base::PlannerTerminationCondit
         addedNewSolution_ = maybeConstructSolution(startM_, goalM_, solution);
         // Sleep for 1ms
         if (!addedNewSolution_)
-            boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
 
@@ -430,11 +435,11 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     // Reset addedNewSolution_ member and create solution checking thread
     addedNewSolution_ = false;
     base::PathPtr sol;
-    boost::thread slnThread(boost::bind(&PRM::checkForSolution, this, ptc, boost::ref(sol)));
+    std::thread slnThread(std::bind(&PRM::checkForSolution, this, ptc, boost::ref(sol)));
 
     // construct new planner termination condition that fires when the given ptc is true, or a solution is found
     base::PlannerTerminationCondition ptcOrSolutionFound =
-        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(boost::bind(&PRM::addedNewSolution, this)));
+        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(std::bind(&PRM::addedNewSolution, this)));
 
     constructRoadmap(ptcOrSolutionFound);
 
@@ -485,7 +490,7 @@ void ompl::geometric::PRM::constructRoadmap(const base::PlannerTerminationCondit
 
 ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *state)
 {
-    boost::mutex::scoped_lock _(graphMutex_);
+    std::lock_guard<std::mutex> _(graphMutex_);
 
     Vertex m = boost::add_vertex(g_);
     stateProperty_[m] = state;
@@ -531,19 +536,19 @@ bool ompl::geometric::PRM::sameComponent(Vertex m1, Vertex m2)
 
 ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start, const Vertex &goal)
 {
-    boost::mutex::scoped_lock _(graphMutex_);
+    std::lock_guard<std::mutex> _(graphMutex_);
     boost::vector_property_map<Vertex> prev(boost::num_vertices(g_));
 
     try
     {
         // Consider using a persistent distance_map if it's slow
         boost::astar_search(g_, start,
-                            boost::bind(&PRM::costHeuristic, this, _1, goal),
+                            std::bind(&PRM::costHeuristic, this, std::placeholders::_1, goal),
                             boost::predecessor_map(prev).
-                            distance_compare(boost::bind(&base::OptimizationObjective::
-                                                         isCostBetterThan, opt_.get(), _1, _2)).
-                            distance_combine(boost::bind(&base::OptimizationObjective::
-                                                         combineCosts, opt_.get(), _1, _2)).
+                            distance_compare(std::bind(&base::OptimizationObjective::
+                                                         isCostBetterThan, opt_.get(), std::placeholders::_1, std::placeholders::_2)).
+                            distance_combine(std::bind(&base::OptimizationObjective::
+                                                         combineCosts, opt_.get(), std::placeholders::_1, std::placeholders::_2)).
                             distance_inf(opt_->infiniteCost()).
                             distance_zero(opt_->identityCost()).
                             visitor(AStarGoalVisitor<Vertex>(goal)));

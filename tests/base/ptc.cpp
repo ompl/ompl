@@ -36,8 +36,8 @@
 
 #define BOOST_TEST_MODULE "PlannerTerminationCondition"
 #include <boost/test/unit_test.hpp>
-#include <boost/thread.hpp>
 #include <iostream>
+#include <thread>
 
 #include "ompl/base/PlannerTerminationCondition.h"
 #include "ompl/util/Time.h"
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(TestSimpleTermination)
   const base::PlannerTerminationCondition &ptc = base::timedPlannerTerminationCondition(dt);
   BOOST_CHECK(ptc == false);
   BOOST_CHECK(ptc() == false);
-  boost::this_thread::sleep(ompl::time::seconds(dt + 0.01));
+  std::this_thread::sleep_for(ompl::time::seconds(dt + 0.01));
   BOOST_CHECK(ptc == true);
   BOOST_CHECK(ptc() == true);
 
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(TestThreadedTermination)
   const base::PlannerTerminationCondition &ptc = base::timedPlannerTerminationCondition(dt, interval);
   BOOST_CHECK(ptc == false);
   BOOST_CHECK(ptc() == false);
-  boost::this_thread::sleep(ompl::time::seconds(dt + interval * 3.0));
+  std::this_thread::sleep_for(ompl::time::seconds(dt + interval * 3.0));
   BOOST_CHECK(ptc == true);
   BOOST_CHECK(ptc() == true);
 

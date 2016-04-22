@@ -37,7 +37,6 @@
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/base/spaces/RealVectorStateProjections.h"
 #include "ompl/util/Exception.h"
-#include <boost/lexical_cast.hpp>
 #include <algorithm>
 #include <cstring>
 #include <limits>
@@ -126,8 +125,8 @@ void ompl::base::RealVectorStateSpace::setBounds(const RealVectorBounds &bounds)
     bounds.check();
     if (bounds.low.size() != dimension_)
         throw Exception("Bounds do not match dimension of state space: expected dimension " +
-                        boost::lexical_cast<std::string>(dimension_) + " but got dimension " +
-                        boost::lexical_cast<std::string>(bounds.low.size()));
+                        std::to_string(dimension_) + " but got dimension " +
+                        std::to_string(bounds.low.size()));
     bounds_ = bounds;
 }
 
@@ -290,7 +289,7 @@ void ompl::base::RealVectorStateSpace::freeState(State *state) const
 
 double* ompl::base::RealVectorStateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
-    return index < dimension_ ? static_cast<StateType*>(state)->values + index : NULL;
+    return index < dimension_ ? static_cast<StateType*>(state)->values + index : nullptr;
 }
 
 void ompl::base::RealVectorStateSpace::printState(const State *state, std::ostream &out) const
@@ -307,7 +306,7 @@ void ompl::base::RealVectorStateSpace::printState(const State *state, std::ostre
         }
     }
     else
-        out << "NULL" << std::endl;
+        out << "nullptr" << std::endl;
     out << ']' << std::endl;
 }
 

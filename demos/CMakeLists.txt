@@ -27,6 +27,7 @@ if (OMPL_BUILD_DEMOS)
   aux_source_directory(Koules Koules_SRC)
   add_ompl_demo(demo_Koules ${Koules_SRC})
   add_ompl_demo(demo_PlannerData PlannerData.cpp)
+  add_ompl_demo(demo_ThunderLightning ThunderLightning.cpp)
   add_ompl_demo(demo_VectorFieldConservative VectorFieldConservative.cpp)
   add_ompl_demo(demo_VectorFieldNonconservative VectorFieldNonconservative.cpp)
 

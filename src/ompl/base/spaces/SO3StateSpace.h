@@ -95,7 +95,7 @@ namespace ompl
             {
             public:
 
-                /** \brief Set the quaternion from axis-angle representation */
+                /** \brief Set the quaternion from axis-angle representation.  The angle is given in radians. */
                 void setAxisAngle(double ax, double ay, double az, double angle);
 
                 /** \brief Set the state to identity -- no rotation */

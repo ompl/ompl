@@ -39,9 +39,10 @@
 #include "ompl/util/Time.h"
 #include "ompl/config.h"
 #include <boost/scoped_ptr.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/progress.hpp>
-#include <boost/thread.hpp>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 #include <fstream>
 #include <sstream>
 
@@ -53,13 +54,13 @@ namespace ompl
         /** \brief Propose a name for a file in which results should be saved, based on the date and hostname of the experiment */
         static std::string getResultsFilename(const Benchmark::CompleteExperiment &exp)
         {
-            return "ompl_" + exp.host + "_" + boost::posix_time::to_iso_extended_string(exp.startTime) + ".log";
+            return "ompl_" + exp.host + "_" + time::as_string(exp.startTime) + ".log";
         }
 
         /** \brief Propose a name for a file in which console output should be saved, based on the date and hostname of the experiment */
         static std::string getConsoleFilename(const Benchmark::CompleteExperiment &exp)
         {
-            return "ompl_" + exp.host + "_" + boost::posix_time::to_iso_extended_string(exp.startTime) + ".console";
+            return "ompl_" + exp.host + "_" + time::as_string(exp.startTime) + ".console";
         }
 
         static bool terminationCondition(const machine::MemUsage_t maxMem, const time::point &endTime)
@@ -80,43 +81,37 @@ namespace ompl
 
             void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime, const double timeBetweenUpdates)
             {
-                if (!useThreads_)
-                {
+                // if (!useThreads_)
+                // {
                     runThread(planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates));
-                    return;
-                }
+                //     return;
+                // }
 
-                boost::thread t(boost::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates)));
+                // std::thread t(std::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates)));
 
                 // allow 25% more time than originally specified, in order to detect planner termination
-#if BOOST_VERSION < 105000
-                // For older versions of boost, we have to use this
-                // deprecated form of the timed join
-                if (!t.timed_join(time::seconds(maxTime * 1.25)))
-#else
-                if (!t.try_join_for(boost::chrono::duration<double>(maxTime * 1.25)))
-#endif
-                {
-                    status_ = base::PlannerStatus::CRASH;
+                // if (!t.try_join_for(time::seconds(maxTime * 1.25)))
+                // {
+                //     status_ = base::PlannerStatus::CRASH;
+                //
+                //     std::stringstream es;
+                //     es << "Planner " << benchmark_->getStatus().activePlanner << " did not complete run " << benchmark_->getStatus().activeRun
+                //        << " within the specified amount of time (possible crash). Attempting to force termination of planning thread ..." << std::endl;
+                //     std::cerr << es.str();
+                //     OMPL_ERROR(es.str().c_str());
+                //
+                //     t.interrupt();
+                //     t.join();
+                //
+                //     std::string m = "Planning thread cancelled";
+                //     std::cerr << m << std::endl;
+                //     OMPL_ERROR(m.c_str());
+                // }
 
-                    std::stringstream es;
-                    es << "Planner " << benchmark_->getStatus().activePlanner << " did not complete run " << benchmark_->getStatus().activeRun
-                       << " within the specified amount of time (possible crash). Attempting to force termination of planning thread ..." << std::endl;
-                    std::cerr << es.str();
-                    OMPL_ERROR(es.str().c_str());
-
-                    t.interrupt();
-                    t.join();
-
-                    std::string m = "Planning thread cancelled";
-                    std::cerr << m << std::endl;
-                    OMPL_ERROR(m.c_str());
-                }
-
-                if (memStart < memUsed_)
-                    memUsed_ -= memStart;
-                else
-                    memUsed_ = 0;
+                // if (memStart < memUsed_)
+                //     memUsed_ -= memStart;
+                // else
+                //     memUsed_ = 0;
             }
 
             double getTimeUsed() const
@@ -147,18 +142,18 @@ namespace ompl
 
                 try
                 {
-                    base::PlannerTerminationConditionFn ptc = boost::bind(&terminationCondition, maxMem, time::now() + maxDuration);
+                    base::PlannerTerminationConditionFn ptc = std::bind(&terminationCondition, maxMem, time::now() + maxDuration);
                     solved_ = false;
                     // Only launch the planner progress property
                     // collector if there is any data for it to report
                     //
-                    // \TODO issue here is that at least one sample
+                    // \todo issue here is that at least one sample
                     // always gets taken before planner even starts;
                     // might be worth adding a short wait time before
                     // collector begins sampling
-                    boost::scoped_ptr<boost::thread> t;
+                    boost::scoped_ptr<std::thread> t;
                     if (planner->getPlannerProgressProperties().size() > 0)
-                        t.reset(new boost::thread(boost::bind(&RunPlanner::collectProgressProperties,                                                               this,
+                        t.reset(new std::thread(std::bind(&RunPlanner::collectProgressProperties,                                                               this,
                                                               planner->getPlannerProgressProperties(),
                                                               timeBetweenUpdates)));
                     status_ = planner->solve(ptc, 0.1);
@@ -187,16 +182,15 @@ namespace ompl
             {
                 time::point timeStart = time::now();
 
-                boost::unique_lock<boost::mutex> ulock(solvedFlag_);
+                std::unique_lock<std::mutex> ulock(solvedFlag_);
                 while (!solved_)
                 {
-                    if (solvedCondition_.timed_wait(ulock, time::now() + timePerUpdate))
+                    if (solvedCondition_.wait_for(ulock, timePerUpdate) == std::cv_status::no_timeout)
                         return;
                     else
                     {
                         double timeInSeconds = time::seconds(time::now() - timeStart);
-                        std::string timeStamp =
-                            boost::lexical_cast<std::string>(timeInSeconds);
+                        std::string timeStamp = std::to_string(timeInSeconds);
                         std::map<std::string, std::string> data;
                         data["time REAL"] = timeStamp;
                         for (base::Planner::PlannerProgressProperties::const_iterator item = properties.begin();
@@ -219,8 +213,8 @@ namespace ompl
 
             // variables needed for progress property collection
             bool solved_;
-            boost::mutex solvedFlag_;
-            boost::condition_variable solvedCondition_;
+            std::mutex solvedFlag_;
+            std::condition_variable solvedCondition_;
         };
 
     }
@@ -270,8 +264,13 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
 
     out << "OMPL version " << OMPL_VERSION << std::endl;
     out << "Experiment " << (exp_.name.empty() ? "NO_NAME" : exp_.name) << std::endl;
+
+    out << exp_.parameters.size() << " experiment properties" << std::endl;
+    for(std::map<std::string, std::string>::const_iterator it = exp_.parameters.begin(); it != exp_.parameters.end(); ++it)
+        out << it->first << " = " << it->second << std::endl;
+
     out << "Running on " << (exp_.host.empty() ? "UNKNOWN" : exp_.host) << std::endl;
-    out << "Starting at " << boost::posix_time::to_iso_extended_string(exp_.startTime) << std::endl;
+    out << "Starting at " << time::as_string(exp_.startTime) << std::endl;
     out << "<<<|" << std::endl << exp_.setupInfo << "|>>>" << std::endl;
     out << "<<<|" << std::endl << exp_.cpuInfo << "|>>>" << std::endl;
 
@@ -583,66 +582,69 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             {
                 RunProperties run;
 
-                run["time REAL"] = boost::lexical_cast<std::string>(rp.getTimeUsed());
-                run["memory REAL"] = boost::lexical_cast<std::string>((double)rp.getMemUsed() / (1024.0 * 1024.0));
-                run["status ENUM"] = boost::lexical_cast<std::string>((int)static_cast<base::PlannerStatus::StatusType>(rp.getStatus()));
+                run["time REAL"] = std::to_string(rp.getTimeUsed());
+                run["memory REAL"] = std::to_string((double)rp.getMemUsed() / (1024.0 * 1024.0));
+                run["status ENUM"] = std::to_string((int)static_cast<base::PlannerStatus::StatusType>(rp.getStatus()));
                 if (gsetup_)
                 {
-                    run["solved BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->haveExactSolutionPath());
-                    run["valid segment fraction REAL"] = boost::lexical_cast<std::string>(gsetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
+                    run["solved BOOLEAN"] = std::to_string(gsetup_->haveExactSolutionPath());
+                    run["valid segment fraction REAL"] = std::to_string(gsetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
                 }
                 else
                 {
-                    run["solved BOOLEAN"] = boost::lexical_cast<std::string>(csetup_->haveExactSolutionPath());
-                    run["valid segment fraction REAL"] = boost::lexical_cast<std::string>(csetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
+                    run["solved BOOLEAN"] = std::to_string(csetup_->haveExactSolutionPath());
+                    run["valid segment fraction REAL"] = std::to_string(csetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
                 }
 
                 if (solved)
                 {
                     if (gsetup_)
                     {
-                        run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getProblemDefinition()->hasApproximateSolution());
-                        run["solution difference REAL"] = boost::lexical_cast<std::string>(gsetup_->getProblemDefinition()->getSolutionDifference());
-                        run["solution length REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().length());
-                        run["solution smoothness REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().smoothness());
-                        run["solution clearance REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().clearance());
-                        run["solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().getStateCount() - 1);
-                        run["correct solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
+                        run["approximate solution BOOLEAN"] = std::to_string(gsetup_->getProblemDefinition()->hasApproximateSolution());
+                        run["solution difference REAL"] = std::to_string(gsetup_->getProblemDefinition()->getSolutionDifference());
+                        run["solution length REAL"] = std::to_string(gsetup_->getSolutionPath().length());
+                        run["solution smoothness REAL"] = std::to_string(gsetup_->getSolutionPath().smoothness());
+                        run["solution clearance REAL"] = std::to_string(gsetup_->getSolutionPath().clearance());
+                        run["solution segments INTEGER"] = std::to_string(gsetup_->getSolutionPath().getStateCount() - 1);
+                        run["correct solution BOOLEAN"] = std::to_string(gsetup_->getSolutionPath().check());
 
                         unsigned int factor = gsetup_->getStateSpace()->getValidSegmentCountFactor();
                         gsetup_->getStateSpace()->setValidSegmentCountFactor(factor * 4);
-                        run["correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
+                        run["correct solution strict BOOLEAN"] = std::to_string(gsetup_->getSolutionPath().check());
                         gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
 
-                        // simplify solution
-                        time::point timeStart = time::now();
-                        gsetup_->simplifySolution();
-                        double timeUsed = time::seconds(time::now() - timeStart);
-                        run["simplification time REAL"] = boost::lexical_cast<std::string>(timeUsed);
-                        run["simplified solution length REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().length());
-                        run["simplified solution smoothness REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().smoothness());
-                        run["simplified solution clearance REAL"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().clearance());
-                        run["simplified solution segments INTEGER"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().getStateCount() - 1);
-                        run["simplified correct solution BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
-                        gsetup_->getStateSpace()->setValidSegmentCountFactor(factor * 4);
-                        run["simplified correct solution strict BOOLEAN"] = boost::lexical_cast<std::string>(gsetup_->getSolutionPath().check());
-                        gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
+                        if (req.simplify)
+                        {
+                            // simplify solution
+                            time::point timeStart = time::now();
+                            gsetup_->simplifySolution();
+                            double timeUsed = time::seconds(time::now() - timeStart);
+                            run["simplification time REAL"] = std::to_string(timeUsed);
+                            run["simplified solution length REAL"] = std::to_string(gsetup_->getSolutionPath().length());
+                            run["simplified solution smoothness REAL"] = std::to_string(gsetup_->getSolutionPath().smoothness());
+                            run["simplified solution clearance REAL"] = std::to_string(gsetup_->getSolutionPath().clearance());
+                            run["simplified solution segments INTEGER"] = std::to_string(gsetup_->getSolutionPath().getStateCount() - 1);
+                            run["simplified correct solution BOOLEAN"] = std::to_string(gsetup_->getSolutionPath().check());
+                            gsetup_->getStateSpace()->setValidSegmentCountFactor(factor * 4);
+                            run["simplified correct solution strict BOOLEAN"] = std::to_string(gsetup_->getSolutionPath().check());
+                            gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
+                        }
                     }
                     else
                     {
-                        run["approximate solution BOOLEAN"] = boost::lexical_cast<std::string>(csetup_->getProblemDefinition()->hasApproximateSolution());
-                        run["solution difference REAL"] = boost::lexical_cast<std::string>(csetup_->getProblemDefinition()->getSolutionDifference());
-                        run["solution length REAL"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().length());
-                        run["solution clearance REAL"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().asGeometric().clearance());
-                        run["solution segments INTEGER"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().getControlCount());
-                        run["correct solution BOOLEAN"] = boost::lexical_cast<std::string>(csetup_->getSolutionPath().check());
+                        run["approximate solution BOOLEAN"] = std::to_string(csetup_->getProblemDefinition()->hasApproximateSolution());
+                        run["solution difference REAL"] = std::to_string(csetup_->getProblemDefinition()->getSolutionDifference());
+                        run["solution length REAL"] = std::to_string(csetup_->getSolutionPath().length());
+                        run["solution clearance REAL"] = std::to_string(csetup_->getSolutionPath().asGeometric().clearance());
+                        run["solution segments INTEGER"] = std::to_string(csetup_->getSolutionPath().getControlCount());
+                        run["correct solution BOOLEAN"] = std::to_string(csetup_->getSolutionPath().check());
                     }
                 }
 
                 base::PlannerData pd (gsetup_ ? gsetup_->getSpaceInformation() : csetup_->getSpaceInformation());
                 planners_[i]->getPlannerData(pd);
-                run["graph states INTEGER"] = boost::lexical_cast<std::string>(pd.numVertices());
-                run["graph motions INTEGER"] = boost::lexical_cast<std::string>(pd.numEdges());
+                run["graph states INTEGER"] = std::to_string(pd.numVertices());
+                run["graph motions INTEGER"] = std::to_string(pd.numEdges());
 
                 for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
                     run[it->first] = it->second;

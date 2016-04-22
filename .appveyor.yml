@@ -1,0 +1,40 @@
+# AppVeyor file
+# http://www.appveyor.com/docs/appveyor-yml
+
+version: "{build}"
+os: Visual Studio 2015
+
+clone_folder: C:\projects\ompl
+clone_depth: 1
+
+branches:
+  only:
+    - master
+platform: x64
+
+environment:
+  CTEST_OUTPUT_ON_FAILURE: 1
+  BOOST_ROOT: C:\Libraries\boost_1_59_0
+  BOOST_LIBRARYDIR: C:\Libraries\boost_1_59_0\lib64-msvc-14.0
+
+configuration: Release
+
+before_build:
+  - cmd: set
+  - cmd: mkdir build
+  - cmd: cd build
+  - cmd: cmake -G "Visual Studio 14 2015 Win64" -DCMAKE_BUILD_TYPE=%configuration% -DOMPL_REGISTRATION=OFF -DOMPL_BUILD_DEMOS=OFF -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" ..
+
+build:
+  project: C:\projects\ompl\build\ompl.sln
+  parallel: true
+
+after_build:
+  - cmd: cmake --build . --target package --config %configuration%
+
+# tests seem to hang
+#test_script:
+#  - cmd: ctest -C %configuration%
+
+artifacts:
+  - path: 'build\omplapp*.zip'

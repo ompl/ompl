@@ -49,7 +49,7 @@ ompl::control::MorseStatePropagator::MorseStatePropagator(const SpaceInformation
 
 void ompl::control::MorseStatePropagator::propagate(const base::State *state, const Control *control, const double duration, base::State *result) const
 {
-    boost::mutex::scoped_lock lock(env_->mutex_);
+    std::lock_guard<std::mutex> lock(env_->mutex_);
 
     // place the MORSE world at the start state
     si_->getStateSpace()->as<base::MorseStateSpace>()->writeState(state);

@@ -56,7 +56,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::MotionValidatorPtr
-            \brief A boost shared pointer wrapper for ompl::base::MotionValidator */
+            \brief A shared pointer wrapper for ompl::base::MotionValidator */
 
         /** \brief Abstract definition for a class checking the
             validity of motions -- path segments between states. This
@@ -90,7 +90,7 @@ namespace ompl
                 0 and \e s2 being at t = 1. This function assumes \e s1 is valid.
                 \param s1 start state of the motion to be checked (assumed to be valid)
                 \param s2 final state of the motion to be checked
-                \param lastValid first: storage for the last valid state (may be NULL, if the user does not care about the exact state); this need not be different from \e s1 or \e s2. second: the time (between 0 and 1) of the last valid state, on the motion from \e s1 to \e s2. If the function returns false, \e lastValid.first must be set to a valid state, even if that implies copying \e s1 to \e lastValid.first (in case \e lastValid.second = 0). If the function returns true, \e lastValid.first and \e lastValid.second should \b not be modified.
+                \param lastValid first: storage for the last valid state (may be nullptr, if the user does not care about the exact state); this need not be different from \e s1 or \e s2. second: the time (between 0 and 1) of the last valid state, on the motion from \e s1 to \e s2. If the function returns false, \e lastValid.first must be set to a valid state, even if that implies copying \e s1 to \e lastValid.first (in case \e lastValid.second = 0). If the function returns true, \e lastValid.first and \e lastValid.second should \b not be modified.
 
                 \note This function updates the number of valid and invalid segments. */
             virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const = 0;
@@ -105,6 +105,12 @@ namespace ompl
             unsigned int getInvalidMotionCount() const
             {
                 return invalid_;
+            }
+
+            /** \brief Get the total number of segments tested, regardless of result */
+            unsigned int getCheckedMotionCount() const
+            {
+                return valid_ + invalid_;
             }
 
             /** \brief Get the fraction of segments that tested as valid */

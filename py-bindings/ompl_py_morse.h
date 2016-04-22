@@ -3,7 +3,7 @@
 
 #include "ompl/base/ScopedState.h"
 #include "ompl/extensions/morse/MorseStateSpace.h"
-#include "py_boost_function.hpp"
+#include "py_std_function.hpp"
 
 #define DeclareStateType(T) \
     inline int __dummy##T() \

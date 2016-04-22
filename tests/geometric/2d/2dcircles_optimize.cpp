@@ -61,6 +61,7 @@ class TestPlanner
 public:
     TestPlanner(void)
     {
+        msg::setLogLevel(msg::LOG_ERROR);
     }
 
     virtual ~TestPlanner(void)
@@ -88,7 +89,7 @@ protected:
 
         // define an objective that is met the moment the solution is found
         base::PathLengthOptimizationObjective *opt = new base::PathLengthOptimizationObjective(si);
-        opt->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
+        opt->setCostThreshold(opt->infiniteCost());
         pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
 
         /* instantiate motion planner */
@@ -96,7 +97,7 @@ protected:
         planner->setProblemDefinition(pdef);
         planner->setup();
 
-        std::size_t nt = std::min<std::size_t>(5, circles.getQueryCount());
+        std::size_t nt = std::min<std::size_t>(6, circles.getQueryCount());
 
         // run a simple test first
         if (nt > 0)
@@ -115,11 +116,13 @@ protected:
             const Circles2D::Query &q = circles.getQuery(i);
             setupProblem(q, si, pdef);
 
+            base::Cost min_cost(std::sqrt(std::pow(q.goalX_ - q.startX_, 2.0) + std::pow(q.goalY_ - q.startY_, 2.0))); //The straight-line cost
+
             planner->clear();
             pdef->clearSolutionPaths();
 
             // we change the optimization objective so the planner runs until the first solution
-            opt->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
+            opt->setCostThreshold(opt->infiniteCost());
 
             time::point start = time::now();
             bool solved = planner->solve(solutionTime);
@@ -151,13 +154,20 @@ protected:
                 }
                 time_spent = time::seconds(time::now() - start);
               }
-              BOOST_CHECK(opt->isCostBetterThan(prev_cost, ini_cost));
+              BOOST_CHECK(!opt->isCostBetterThan(ini_cost, prev_cost));
 
               pdef->clearSolutionPaths();
               // we change the optimization objective so the planner can achieve the objective
               opt->setCostThreshold(ini_cost);
               if (planner->solve(DT_SOLUTION_TIME))
-                  BOOST_CHECK(pdef->hasOptimizedSolution());
+              {
+                  path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
+                  prev_cost  = path->cost(pdef->getOptimizationObjective());
+                  BOOST_CHECK(pdef->hasOptimizedSolution() || opt->isCostEquivalentTo(ini_cost, prev_cost));
+              }
+
+              // make sure not better than the minimum
+              BOOST_CHECK(!opt->isCostBetterThan(prev_cost, min_cost));
             }
         }
     }

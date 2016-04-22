@@ -82,10 +82,10 @@ namespace ompl
             typedef std::vector<std::map<std::string, std::string> > RunProgressData;
 
             /** \brief Signature of function that can be called before a planner execution is started */
-            typedef boost::function<void(const base::PlannerPtr&)> PreSetupEvent;
+            typedef std::function<void(const base::PlannerPtr&)> PreSetupEvent;
 
             /** \brief Signature of function that can be called after a planner execution is completed */
-            typedef boost::function<void(const base::PlannerPtr&, RunProperties&)> PostSetupEvent;
+            typedef std::function<void(const base::PlannerPtr&, RunProperties&)> PostSetupEvent;
 
             /** \brief The data collected after running a planner multiple times */
             struct PlannerExperiment
@@ -148,6 +148,9 @@ namespace ompl
 
                 /// Information about the CPU of the machine the benchmark ran on
                 std::string                    cpuInfo;
+
+                /// Additional, experiment specific parameters.  This is optional.
+                std::map<std::string, std::string> parameters;
             };
 
             /** \brief Representation of a benchmark request */
@@ -158,11 +161,13 @@ namespace ompl
                         unsigned int runCount = 100,
                         double timeBetweenUpdates = 0.05,
                         bool displayProgress = true,
-                        bool saveConsoleOutput = true, bool useThreads = true)
+                        bool saveConsoleOutput = true, bool useThreads = true,
+                        bool simplify = true)
                     : maxTime(maxTime), maxMem(maxMem), runCount(runCount),
                     timeBetweenUpdates(timeBetweenUpdates),
                     displayProgress(displayProgress), saveConsoleOutput(saveConsoleOutput),
-                    useThreads(useThreads)
+                    useThreads(useThreads),
+                    simplify(simplify)
                 {
                 }
 
@@ -186,22 +191,45 @@ namespace ompl
 
                 /// \brief flag indicating whether planner runs should be run in a separate thread. It is advisable to set this to \c true, so that a crashing planner doesn't result in a crash of the benchmark program. However, in the Python bindings this is set to \c false to avoid multi-threading problems in Python.
                 bool         useThreads;
+
+                /// \brief flag indicating whether simplification should be applied to path; true by default
+                bool         simplify;
             };
 
             /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */
-            Benchmark(geometric::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(&setup), csetup_(NULL)
+            Benchmark(geometric::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(&setup), csetup_(nullptr)
             {
                 exp_.name = name;
             }
 
             /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */
-            Benchmark(control::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(NULL), csetup_(&setup)
+            Benchmark(control::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(nullptr), csetup_(&setup)
             {
                 exp_.name = name;
             }
 
             virtual ~Benchmark()
             {
+            }
+
+            /** \brief Add an optional parameter's information to the benchmark output.  Useful for aggregating results
+                 over different benchmark instances, e.g., parameter sweep.  \e type is typically "BOOLEAN", "INTEGER",
+                 or "REAL". */
+            void addExperimentParameter(const std::string& name, const std::string& type, const std::string& value)
+            {
+                exp_.parameters[name + " " + type] = value;
+            }
+
+            /** \brief Get all optional benchmark parameters.  The map key is 'name type'  */
+            const std::map<std::string, std::string>& getExperimentParameters() const
+            {
+                return exp_.parameters;
+            }
+
+             /** \brief Return the number of optional benchmark parameters */
+            std::size_t numExperimentParameters() const
+            {
+                return exp_.parameters.size();
             }
 
             /** \brief Set the name of the experiment */

@@ -102,7 +102,7 @@ void ompl::control::ControlSpace::clearControlSamplerAllocator()
 
 double* ompl::control::ControlSpace::getValueAddressAtIndex(Control* /*control*/, const unsigned int /*index*/) const
 {
-    return NULL;
+    return nullptr;
 }
 
 void ompl::control::ControlSpace::printControl(const Control *control, std::ostream &out) const
@@ -253,7 +253,7 @@ double* ompl::control::CompoundControlSpace::getValueAddressAtIndex(Control *con
             else
                 break;
         }
-    return NULL;
+    return nullptr;
 }
 
 void ompl::control::CompoundControlSpace::printControl(const Control *control, std::ostream &out) const

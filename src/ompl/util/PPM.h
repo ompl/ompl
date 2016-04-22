@@ -42,7 +42,8 @@
 namespace ompl
 {
 
-    /** \brief Load and save .ppm files. */
+    /** \brief Load and save .ppm files - "portable pixmap format" an image file formats designed
+        to be easily exchanged between platforms. */
     class PPM
     {
     public:

@@ -44,7 +44,6 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/concept_check.hpp>
-#include <boost/noncopyable.hpp>
 #include <iostream>
 #include <vector>
 
@@ -60,12 +59,15 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::ControlSpacePtr
-            \brief A boost shared pointer wrapper for ompl::control::ControlSpace */
+            \brief A shared pointer wrapper for ompl::control::ControlSpace */
 
         /** \brief A control space representing the space of applicable controls */
-        class ControlSpace : private boost::noncopyable
+        class ControlSpace
         {
         public:
+            // non-copyable
+            ControlSpace(const ControlSpace&) = delete;
+            ControlSpace& operator=(const ControlSpace&) = delete;
 
             /** \brief Construct a control space, given the state space */
             ControlSpace(const base::StateSpacePtr &stateSpace);
@@ -147,7 +149,7 @@ namespace ompl
             /** \brief Many controls contain a number of double values. This function provides a means to get the
                 memory address of a double value from a control \e control located at position \e index. The first double value
                 is returned for \e index = 0. If \e index is too large (does not point to any double values in the control),
-                the return value is NULL. */
+                the return value is nullptr. */
             virtual double* getValueAddressAtIndex(Control *control, const unsigned int index) const;
 
             /** \brief Print a control to a stream */

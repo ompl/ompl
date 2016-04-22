@@ -40,11 +40,11 @@ bool ompl::base::MorseGoal::isSatisfied(const State *state) const
 {
     return isSatisfied_Py(state);
 }
-            
+
 bool ompl::base::MorseGoal::isSatisfied(const State *state, double *distance) const
 {
     bool sat = isSatisfied_Py(state);
-    if (distance != NULL)
+    if (distance != nullptr)
     {
         // the Python object will set distance_ during isSatisfied_py() call
         *distance = distance_;

@@ -143,10 +143,12 @@ int main(int, char**)
 
     oc::SimpleSetup setup(cmanifold);
     setup.setStartAndGoalStates(start, goal, 5.);
-    setup.setStateValidityChecker(boost::bind(
-        &isStateValid, setup.getSpaceInformation().get(), _1));
-    setup.setStatePropagator(boost::bind(
-        &propagate, setup.getSpaceInformation().get(), _1, _2, _3, _4));
+    setup.setStateValidityChecker(std::bind(
+        &isStateValid, setup.getSpaceInformation().get(), std::placeholders::_1));
+    setup.setStatePropagator(std::bind(
+        &propagate, setup.getSpaceInformation().get(),
+        std::placeholders::_1, std::placeholders::_2,
+        std::placeholders::_3, std::placeholders::_4));
     setup.getSpaceInformation()->setPropagationStepSize(.1);
     setup.getSpaceInformation()->setMinMaxControlDuration(2, 3);
 

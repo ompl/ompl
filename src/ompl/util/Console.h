@@ -69,6 +69,10 @@
 
 #define OMPL_DEBUG(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_DEBUG, fmt, ##__VA_ARGS__)
 
+#define OMPL_DEVMSG1(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_DEV1, fmt, ##__VA_ARGS__)
+
+#define OMPL_DEVMSG2(fmt, ...)  ompl::msg::log(__FILE__, __LINE__, ompl::msg::LOG_DEV2, fmt, ##__VA_ARGS__)
+
 namespace ompl
 {
 
@@ -80,6 +84,8 @@ namespace ompl
         /** \brief The set of priorities for message logging */
         enum LogLevel
         {
+            LOG_DEV2 = -2, // message type for developers
+            LOG_DEV1 = -1, // message type for developers
             LOG_DEBUG = 0,
             LOG_INFO,
             LOG_WARN,
@@ -144,7 +150,7 @@ namespace ompl
 
         };
 
-        /** \brief This function instructs ompl that no messages should be outputted. Equivalent to useOutputHandler(NULL) */
+        /** \brief This function instructs ompl that no messages should be outputted. Equivalent to useOutputHandler(nullptr) */
         void noOutputHandler();
 
         /** \brief Restore the output handler that was previously in use (if any) */
@@ -153,7 +159,7 @@ namespace ompl
         /** \brief Specify the instance of the OutputHandler to use. By default, this is OutputHandlerSTD */
         void useOutputHandler(OutputHandler *oh);
 
-        /** \brief Get the instance of the OutputHandler currently used. This is NULL in case there is no output handler. */
+        /** \brief Get the instance of the OutputHandler currently used. This is nullptr in case there is no output handler. */
         OutputHandler* getOutputHandler();
 
         /** \brief Set the minimum level of logging data to output.  Messages

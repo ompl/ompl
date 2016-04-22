@@ -44,12 +44,7 @@
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/graphml.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
-#include <boost/version.hpp>
-#if BOOST_VERSION < 105100
-#warning Boost version >=1.51 is needed for ompl::base::PlannerData::printGraphML
-#else
 #include <boost/property_map/function_property_map.hpp>
-#endif
 
 // This is a convenient macro to cast the void* graph pointer as the
 // Boost.Graph structure from PlannerDataGraph.h
@@ -71,7 +66,7 @@ ompl::base::PlannerData::~PlannerData ()
     if (graph_)
     {
         delete graph_;
-        graphRaw_ = NULL;
+        graphRaw_ = nullptr;
     }
 }
 
@@ -293,27 +288,24 @@ namespace
 
 void ompl::base::PlannerData::printGraphML (std::ostream& out) const
 {
-#if BOOST_VERSION < 105100
-    OMPL_WARN("Boost version >=1.51 is needed for ompl::base::PlannerData::printGraphML");
-#else
     // For some reason, make_function_property_map can't infer its
     // template arguments corresponding to edgeWeightAsDouble's type
     // signature. So, we have to use this horribly verbose
     // instantiation of the property map.
     //
-    // \TODO Can we use make_function_property_map() here and have it
+    // \todo Can we use make_function_property_map() here and have it
     // infer the property template arguments?
     boost::function_property_map<
-        boost::function<double (ompl::base::PlannerData::Graph::Edge)>,
+        std::function<double (ompl::base::PlannerData::Graph::Edge)>,
         ompl::base::PlannerData::Graph::Edge,
         double>
-        weightmap(boost::bind(&edgeWeightAsDouble, *graph_, _1));
+        weightmap(std::bind(&edgeWeightAsDouble, *graph_, std::placeholders::_1));
     ompl::base::ScopedState<> s(si_);
     boost::function_property_map<
-        boost::function<std::string (ompl::base::PlannerData::Graph::Vertex)>,
+        std::function<std::string (ompl::base::PlannerData::Graph::Vertex)>,
         ompl::base::PlannerData::Graph::Vertex,
         std::string >
-        coordsmap(boost::bind(&vertexCoords, *graph_, s, _1));
+        coordsmap(std::bind(&vertexCoords, *graph_, s, std::placeholders::_1));
 
 
     // Not writing vertex or edge structures.
@@ -322,7 +314,6 @@ void ompl::base::PlannerData::printGraphML (std::ostream& out) const
     dp.property("coords", coordsmap);
 
     boost::write_graphml(out, *graph_, dp);
-#endif
 }
 
 unsigned int ompl::base::PlannerData::vertexIndex (const PlannerDataVertex &v) const
@@ -404,7 +395,7 @@ ompl::base::PlannerDataVertex& ompl::base::PlannerData::getGoalVertex (unsigned 
 unsigned int ompl::base::PlannerData::addVertex (const PlannerDataVertex &st)
 {
     // Do not add vertices with null states
-    if (st.getState() == NULL)
+    if (st.getState() == nullptr)
         return INVALID_INDEX;
 
     unsigned int index = vertexIndex(st);
@@ -534,7 +525,7 @@ bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
     {
         decoupledStates_.erase(vtxState);
         si_->freeState(vtxState);
-        vtxState = NULL;
+        vtxState = nullptr;
     }
 
     // Slay the vertex
@@ -664,14 +655,15 @@ void ompl::base::PlannerData::extractMinimumSpanningTree (unsigned int v,
     // implemented, except it lacks the generality for specifying our
     // own comparison function or zero/inf values.
     //
-    // \TODO Once (https://svn.boost.org/trac/boost/ticket/9368) gets
+    // \todo Once (https://svn.boost.org/trac/boost/ticket/9368) gets
     // into boost we can use the far more direct
     // boost::prim_minimum_spanning_tree().
     boost::dijkstra_shortest_paths
         (*graph_, v,
          boost::predecessor_map(&pred[0]).
-         distance_compare(boost::bind(&base::OptimizationObjective::
-                                      isCostBetterThan, &opt, _1, _2)).
+         distance_compare(std::bind(&base::OptimizationObjective::
+                                      isCostBetterThan, &opt,
+                                      std::placeholders::_1, std::placeholders::_2)).
          distance_combine(&project2nd).
          distance_inf(opt.infiniteCost()).
          distance_zero(opt.identityCost()));

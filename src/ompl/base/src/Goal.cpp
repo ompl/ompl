@@ -44,7 +44,7 @@ ompl::base::Goal::Goal(const SpaceInformationPtr &si) :
 
 bool ompl::base::Goal::isSatisfied(const State *st, double *distance) const
 {
-    if (distance != NULL)
+    if (distance != nullptr)
         *distance = std::numeric_limits<double>::max();
     return isSatisfied(st);
 }

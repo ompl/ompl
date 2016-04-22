@@ -46,7 +46,7 @@
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/base/Goal.h"
 #include "ompl/base/PlannerData.h"
-#include "py_boost_function.hpp"
+#include "py_std_function.hpp"
 
 #define DeclareStateType(T) \
     inline int __dummy##T() \

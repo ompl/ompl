@@ -38,11 +38,12 @@
 #include <boost/test/unit_test.hpp>
 
 #include <algorithm>
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 
 #include "ompl/config.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
+#include "ompl/datastructures/NearestNeighborsGNATNoThreadSafety.h"
 #if OMPL_HAVE_FLANN
 #include "ompl/datastructures/NearestNeighborsFLANN.h"
 #endif
@@ -95,6 +96,14 @@ public:
     {
     }
 };
+template<typename _T>
+class NearestNeighborsGNATNoThreadSafetys : public NearestNeighborsGNATNoThreadSafety<_T>
+{
+public:
+    NearestNeighborsGNATNoThreadSafetys() : NearestNeighborsGNATNoThreadSafety<_T>(4,2,6,5,5)
+    {
+    }
+};
 
 
 NearestNeighborConfig nnConfig;
@@ -116,8 +125,8 @@ void stateSpaceTest(base::StateSpace& space, NearestNeighbors<base::State*>& pro
     NearestNeighborsLinear<base::State*> proximityLinear;
     base::State* s;
 
-    proximity.setDistanceFunction(boost::bind(&base::StateSpace::distance, &space, _1, _2));
-    proximityLinear.setDistanceFunction(boost::bind(&base::StateSpace::distance, &space, _1, _2));
+    proximity.setDistanceFunction(std::bind(&base::StateSpace::distance, &space, std::placeholders::_1, std::placeholders::_2));
+    proximityLinear.setDistanceFunction(std::bind(&base::StateSpace::distance, &space, std::placeholders::_1, std::placeholders::_2));
 
     for(i=0; i<n; ++i)
     {
@@ -201,13 +210,13 @@ void randomAccessPatternTest(base::StateSpace& space, NearestNeighbors<base::Sta
     base::StateSamplerPtr sampler(space.allocStateSampler());
     std::vector<base::State*> nghbr, nghbrGroundTruth;
     NearestNeighborsLinear<base::State*> proximityLinear;
-    boost::unordered_set<base::State*> states;
-    boost::unordered_set<base::State*>::iterator it;
+    std::unordered_set<base::State*> states;
+    std::unordered_set<base::State*>::iterator it;
     base::State* s;
     double r;
 
-    proximity.setDistanceFunction(boost::bind(&base::StateSpace::distance, &space, _1, _2));
-    proximityLinear.setDistanceFunction(boost::bind(&base::StateSpace::distance, &space, _1, _2));
+    proximity.setDistanceFunction(std::bind(&base::StateSpace::distance, &space, std::placeholders::_1, std::placeholders::_2));
+    proximityLinear.setDistanceFunction(std::bind(&base::StateSpace::distance, &space, std::placeholders::_1, std::placeholders::_2));
 
     for (i=0; i<m; ++i)
     {
@@ -293,6 +302,7 @@ BOOST_AUTO_TEST_CASE(RandomAccessPatternSE3##T)          \
 NN_TEST_CASES(Linear, false)
 NN_TEST_CASES(SqrtApprox, true)
 NN_TEST_CASES(GNATs, false)
+NN_TEST_CASES(GNATNoThreadSafetys, false)
 #if OMPL_HAVE_FLANN
 NN_TEST_CASES(FLANNLinear, false)
 NN_TEST_CASES(FLANNHierarchicalClustering, true)

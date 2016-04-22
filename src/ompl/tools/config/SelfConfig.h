@@ -43,6 +43,8 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/datastructures/NearestNeighborsSqrtApprox.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
+#include "ompl/datastructures/NearestNeighborsGNATNoThreadSafety.h"
+#include <mutex>
 #include <iostream>
 #include <string>
 
@@ -90,10 +92,17 @@ namespace ompl
 
             /** \brief Select a default nearest neighbor datastructure for the given space */
             template<typename _T>
-            static NearestNeighbors<_T>* getDefaultNearestNeighbors(const base::StateSpacePtr &space)
+            static NearestNeighbors<_T>* getDefaultNearestNeighbors(const base::Planner *planner)
             {
+                const base::StateSpacePtr &space = planner->getSpaceInformation()->getStateSpace();
+                const base::PlannerSpecs &specs = planner->getSpecs();
                 if (space->isMetricSpace())
-                    return new NearestNeighborsGNAT<_T>();
+                {
+                    if (specs.multithreaded)
+                        return new NearestNeighborsGNAT<_T>();
+                    else
+                        return new NearestNeighborsGNATNoThreadSafety<_T>();
+                }
                 else
                     return new NearestNeighborsSqrtApprox<_T>();
             }
@@ -108,6 +117,7 @@ namespace ompl
 
             SelfConfigImpl *impl_;
             std::string     context_;
+            static std::mutex staticConstructorLock_;
             /// @endcond
         };
     }

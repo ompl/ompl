@@ -75,7 +75,7 @@ public:
             ss_.reset(new og::SimpleSetup(ob::StateSpacePtr(space)));
 
             // set state validity checking for this space
-            ss_->setStateValidityChecker(boost::bind(&Plane2DEnvironment::isStateValid, this, _1));
+            ss_->setStateValidityChecker(std::bind(&Plane2DEnvironment::isStateValid, this, std::placeholders::_1));
             space->setup();
             ss_->getSpaceInformation()->setStateValidityCheckingResolution(1.0 / space->getMaximumExtent());
             //      ss_->setPlanner(ob::PlannerPtr(new og::RRTConnect(ss_->getSpaceInformation())));

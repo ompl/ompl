@@ -42,7 +42,7 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/tools/config/SelfConfig.h"
 
-#include <boost/thread.hpp>
+#include <mutex>
 
 #include <vector>
 
@@ -101,7 +101,9 @@ namespace ompl
                 addPlannerInstanceInternal(planner);
             }
 
-            /** \brief Add an specific planner instance. */
+            /** \brief Add specific planner instances.
+            CFOREST sets the planner's parameter named \e focus_search (if present) to the
+            current value of CFOREST's \e focus_search parameter. */
             template <class T>
             void addPlannerInstances(std::size_t num = 2)
             {
@@ -134,16 +136,16 @@ namespace ompl
                 addSamplerMutex_.unlock();
             }
 
-            /** \brief Option to control whether the tree is pruned during the search. */
-            void setPrune(const bool prune)
+            /** \brief Option to control whether the search is focused during the search. */
+            void setFocusSearch(const bool focus)
             {
-                prune_ = prune;
+                focusSearch_ = focus;
             }
 
-            /** \brief Get the state of the pruning option. */
-            bool getPrune() const
+            /** \brief Get the state of the search focusing option. */
+            bool getFocusSearch() const
             {
-                return prune_;
+                return focusSearch_;
             }
 
             /** \brief Set default number of threads to use when no planner instances are specified by the user. */
@@ -187,7 +189,7 @@ namespace ompl
             std::vector<base::StateSamplerPtr>           samplers_;
 
             /** \brief Stores the states already shared to check if a specific state has been shared. */
-            boost::unordered_set<const base::State *>    statesShared_;
+            std::unordered_set<const base::State *>      statesShared_;
 
             /** \brief Cost of the best path found so far among planners. */
             base::Cost                                   bestCost_;
@@ -199,13 +201,13 @@ namespace ompl
             unsigned int                                 numStatesShared_;
 
             /** \brief Mutex to control the access to the newSolutionFound() method. */
-            boost::mutex                                 newSolutionFoundMutex_;
+            std::mutex                                   newSolutionFoundMutex_;
 
             /** \brief Mutex to control the access to samplers_ */
-            boost::mutex                                 addSamplerMutex_;
+            std::mutex                                   addSamplerMutex_;
 
-            /** \brief Flag to control the tree pruning. */
-            bool                                         prune_;
+            /** \brief Flag to control whether the search is focused. */
+            bool                                         focusSearch_;
 
             /** \brief Default number of threads to use when no planner instances are specified by the user */
             unsigned int                                 numThreads_;

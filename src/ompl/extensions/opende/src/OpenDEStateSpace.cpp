@@ -36,7 +36,6 @@
 
 #include "ompl/extensions/opende/OpenDEStateSpace.h"
 #include "ompl/util/Console.h"
-#include <boost/lexical_cast.hpp>
 #include <limits>
 #include <queue>
 
@@ -48,7 +47,7 @@ ompl::control::OpenDEStateSpace::OpenDEStateSpace(const OpenDEEnvironmentPtr &en
     type_ = base::STATE_SPACE_TYPE_COUNT + 1;
     for (unsigned int i = 0 ; i < env_->stateBodies_.size() ; ++i)
     {
-        std::string body = ":B" + boost::lexical_cast<std::string>(i);
+        std::string body = ":B" + std::to_string(i);
 
         addSubspace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), positionWeight); // position
         components_.back()->setName(components_.back()->getName() + body + ":position");

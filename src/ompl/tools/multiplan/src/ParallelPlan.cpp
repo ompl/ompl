@@ -36,6 +36,7 @@
 
 #include "ompl/tools/multiplan/ParallelPlan.h"
 #include "ompl/geometric/PathHybridization.h"
+#include <thread>
 
 ompl::tools::ParallelPlan::ParallelPlan(const base::ProblemDefinitionPtr &pdef) :
     pdef_(pdef), phybrid_(new geometric::PathHybridization(pdef->getSpaceInformation()))
@@ -96,15 +97,15 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTe
     foundSolCount_ = 0;
 
     time::point start = time::now();
-    std::vector<boost::thread*> threads(planners_.size());
+    std::vector<std::thread*> threads(planners_.size());
 
     // Decide if we are combining solutions or just taking the first one
     if (hybridize)
         for (std::size_t i = 0 ; i < threads.size() ; ++i)
-            threads[i] = new boost::thread(boost::bind(&ParallelPlan::solveMore, this, planners_[i].get(), minSolCount, maxSolCount, &ptc));
+            threads[i] = new std::thread(std::bind(&ParallelPlan::solveMore, this, planners_[i].get(), minSolCount, maxSolCount, &ptc));
     else
         for (std::size_t i = 0 ; i < threads.size() ; ++i)
-            threads[i] = new boost::thread(boost::bind(&ParallelPlan::solveOne, this, planners_[i].get(), minSolCount, &ptc));
+            threads[i] = new std::thread(std::bind(&ParallelPlan::solveOne, this, planners_[i].get(), minSolCount, &ptc));
 
     for (std::size_t i = 0 ; i < threads.size() ; ++i)
     {
@@ -169,7 +170,7 @@ void ompl::tools::ParallelPlan::solveMore(base::Planner *planner, std::size_t mi
 
         const std::vector<base::PlannerSolution> &paths = pdef_->getSolutions();
 
-        boost::mutex::scoped_lock slock(phlock_);
+        std::lock_guard<std::mutex> slock(phlock_);
         start = time::now();
         unsigned int attempts = 0;
         for (std::size_t i = 0 ; i < paths.size() ; ++i)

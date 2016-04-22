@@ -43,14 +43,15 @@ void ompl::control::SyclopRRT::setup()
     Syclop::setup();
     sampler_ = si_->allocStateSampler();
     controlSampler_ = siC_->allocDirectedControlSampler();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     // Create a default GNAT nearest neighbors structure if the user doesn't want
     // the default regionalNN check from the discretization
     if (!nn_ && !regionalNN_)
     {
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
-        nn_->setDistanceFunction(boost::bind(&SyclopRRT::distanceFunction, this, _1, _2));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
+        nn_->setDistanceFunction(std::bind(&SyclopRRT::distanceFunction, this,
+            std::placeholders::_1, std::placeholders::_2));
     }
 }
 
@@ -60,7 +61,7 @@ void ompl::control::SyclopRRT::clear()
     freeMemory();
     if (nn_)
         nn_->clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 }
 
 void ompl::control::SyclopRRT::getPlannerData(base::PlannerData &data) const

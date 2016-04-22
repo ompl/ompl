@@ -48,6 +48,7 @@ import copy
 import ompl.util as ou
 import ompl.base as ob
 import ompl.geometric as og
+from ompl.util import setLogLevel, LogLevel
 
 SOLUTION_TIME = 10.0
 
@@ -387,4 +388,5 @@ def suite():
     return unittest.TestSuite(suites)
 
 if __name__ == '__main__':
+    setLogLevel(LogLevel.LOG_ERROR)
     unittest.main()

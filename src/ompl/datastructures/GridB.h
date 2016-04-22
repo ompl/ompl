@@ -168,7 +168,7 @@ namespace ompl
         }
 
         /// Create a cell but do not add it to the grid; update neighboring cells however
-        virtual Cell* createCell(const Coord& coord, CellArray *nbh = NULL)
+        virtual Cell* createCell(const Coord& coord, CellArray *nbh = nullptr)
         {
             CellX* cell = new CellX();
             cell->coord = coord;
@@ -303,9 +303,9 @@ namespace ompl
         void setupHeaps()
         {
             eventCellUpdate_     = &noCellUpdate;
-            eventCellUpdateData_ = NULL;
-            internal_.onAfterInsert(&setHeapElementI, NULL);
-            external_.onAfterInsert(&setHeapElementE, NULL);
+            eventCellUpdateData_ = nullptr;
+            internal_.onAfterInsert(&setHeapElementI, nullptr);
+            external_.onAfterInsert(&setHeapElementE, nullptr);
         }
 
         /// Clear the data from both heaps

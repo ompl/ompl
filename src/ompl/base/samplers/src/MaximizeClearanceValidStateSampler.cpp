@@ -42,8 +42,8 @@ ompl::base::MaximizeClearanceValidStateSampler::MaximizeClearanceValidStateSampl
 {
     name_ = "max_clearance";
     params_.declareParam<unsigned int>("nr_improve_attempts",
-                                       boost::bind(&MaximizeClearanceValidStateSampler::setNrImproveAttempts, this, _1),
-                                       boost::bind(&MaximizeClearanceValidStateSampler::getNrImproveAttempts, this));
+                                       std::bind(&MaximizeClearanceValidStateSampler::setNrImproveAttempts, this, std::placeholders::_1),
+                                       std::bind(&MaximizeClearanceValidStateSampler::getNrImproveAttempts, this));
 }
 
 ompl::base::MaximizeClearanceValidStateSampler::~MaximizeClearanceValidStateSampler()

@@ -1,0 +1,58 @@
+#!/usr/bin/env Rscript
+
+packages <- c('shiny', 'shinyjs', 'V8', 'ggplot2', 'Hmisc', 'RSQLite', 'markdown')
+missing.packages <- setdiff(packages, rownames(installed.packages()))
+if (length(missing.packages) > 0) {
+    cat(c('The following packages will be installed:\n\t', missing.packages, '\n'))
+  install.packages(missing.packages, repos="http://cran.r-project.org")
+}
+
+library(methods)
+library(shiny)
+
+# http://r.789695.n4.nabble.com/Read-Windows-like-INI-files-into-R-data-structure-td827353.html
+# Earl F. Glynn & Gabor Grothendieck, 13 June 2007
+parse.cfg <- function(cfg.filename)
+{
+    connection <- file(cfg.filename)
+    Lines  <- readLines(connection)
+    close(connection)
+    Lines <- chartr("[]", "==", Lines)  # change section headers
+    connection <- textConnection(Lines)
+    d <- read.table(connection, as.is = TRUE, sep = "=", fill = TRUE)
+    close(connection)
+    L <- d$V1 == ""                    # location of section breaks
+    d <- subset(transform(d, V3 = V2[which(L)[cumsum(L)]])[1:3],
+    V1 != "")
+    ToParse  <- paste("cfg.list$", d$V3, "$",  d$V1, " <- '",
+    d$V2, "'", sep="")
+    cfg.list <- list()
+    eval(parse(text=ToParse))
+    return(cfg.list)
+}
+
+# determine plannerarena directory
+args <- commandArgs(trailingOnly = FALSE)
+file.arg.name <- "--file="
+script.name <- sub(file.arg.name, "", args[grep(file.arg.name, args)])
+# directory name containing this script
+script.dir <- dirname(normalizePath(script.name))
+if (file.exists(paste0(script.dir,"/app.R"))) {
+    # if "app.R" exists in the same dir, then this is the app dir
+    appDir <- script.dir
+    # config file is in the ompl top-level dir
+    cfg.file <- normalizePath(paste0(script.dir,"/../../ompl.conf"))
+} else {
+    # otherwise, assume this script is installed in ${prefix}/bin and
+    # plannerarena is installed in ${prefix}/share/ompl/plannerarena
+    appDir <- normalizePath(paste0(script.dir,"/../share/ompl/plannerarena"))
+    cfg.file <- normalizePath(paste0(script.dir,"/../share/ompl/ompl.conf"))
+}
+cfg <- parse.cfg(cfg.file)
+options(shiny.maxRequestSize = strtoi(cfg$plannerarena$max_upload_size),
+    shiny.port = strtoi(cfg$plannerarena$plannerarena_port),
+    warn=-1)
+
+# open plannerarena in the browser
+launch.browser <- strtoi(cfg$plannerarena$launch_browser)
+runApp(appDir, launch.browser=launch.browser)

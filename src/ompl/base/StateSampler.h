@@ -42,8 +42,7 @@
 #include "ompl/util/ClassForward.h"
 #include <vector>
 #include <string>
-#include <boost/function.hpp>
-#include <boost/noncopyable.hpp>
+#include <functional>
 
 namespace ompl
 {
@@ -60,12 +59,15 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::StateSamplerPtr
-            \brief A boost shared pointer wrapper for ompl::base::StateSampler */
+            \brief A shared pointer wrapper for ompl::base::StateSampler */
 
         /** \brief Abstract definition of a state space sampler. */
-        class StateSampler : private boost::noncopyable
+        class StateSampler
         {
         public:
+            // non-copyable
+            StateSampler(const StateSampler&) = delete;
+            StateSampler& operator=(const StateSampler&) = delete;
 
             /** \brief Constructor */
             StateSampler(const StateSpace *space) : space_(space)
@@ -181,7 +183,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a state sampler */
-        typedef boost::function<StateSamplerPtr(const StateSpace*)> StateSamplerAllocator;
+        typedef std::function<StateSamplerPtr(const StateSpace*)> StateSamplerAllocator;
     }
 }
 

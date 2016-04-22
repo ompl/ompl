@@ -39,9 +39,8 @@
 
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
-#include <boost/function.hpp>
+#include <functional>
 #include <boost/lexical_cast.hpp>
-#include <boost/type_traits.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -161,10 +160,10 @@ namespace ompl
         public:
 
             /** \brief The type for the 'setter' function for this parameter */
-            typedef boost::function<void(T)> SetterFn;
+            typedef std::function<void(T)> SetterFn;
 
             /** \brief The type for the 'getter' function for this parameter */
-            typedef boost::function<T()>     GetterFn;
+            typedef std::function<T()>     GetterFn;
 
             /** \brief An explicit instantiation of a parameter \e name requires the \e setter function and optionally the \e
                 getter function. */

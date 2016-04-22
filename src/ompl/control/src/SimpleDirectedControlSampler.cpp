@@ -48,7 +48,7 @@ ompl::control::SimpleDirectedControlSampler::~SimpleDirectedControlSampler()
 
 unsigned int ompl::control::SimpleDirectedControlSampler::sampleTo(Control *control, const base::State *source, base::State *dest)
 {
-    return getBestControl(control, source, dest, NULL);
+    return getBestControl(control, source, dest, nullptr);
 }
 
 unsigned int ompl::control::SimpleDirectedControlSampler::sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest)

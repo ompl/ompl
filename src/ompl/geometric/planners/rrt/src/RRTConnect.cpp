@@ -46,7 +46,7 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si) : b
     maxDistance_ = 0.0;
 
     Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange, "0.:1.:10000.");
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
 }
 
 ompl::geometric::RRTConnect::~RRTConnect()
@@ -61,11 +61,11 @@ void ompl::geometric::RRTConnect::setup()
     sc.configurePlannerRange(maxDistance_);
 
     if (!tStart_)
-        tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
+        tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
     if (!tGoal_)
-        tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(si_->getStateSpace()));
-    tStart_->setDistanceFunction(boost::bind(&RRTConnect::distanceFunction, this, _1, _2));
-    tGoal_->setDistanceFunction(boost::bind(&RRTConnect::distanceFunction, this, _1, _2));
+        tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
+    tStart_->setDistanceFunction(std::bind(&RRTConnect::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    tGoal_->setDistanceFunction(std::bind(&RRTConnect::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void ompl::geometric::RRTConnect::freeMemory()
@@ -104,7 +104,7 @@ void ompl::geometric::RRTConnect::clear()
         tStart_->clear();
     if (tGoal_)
         tGoal_->clear();
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
 }
 
 ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion)
@@ -245,7 +245,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
             if (gsc == REACHED && goal->isStartGoalPairValid(startMotion->root, goalMotion->root))
             {
                 // it must be the case that either the start tree or the goal tree has made some progress
-                // so one of the parents is not NULL. We go one step 'back' to avoid having a duplicate state
+                // so one of the parents is not nullptr. We go one step 'back' to avoid having a duplicate state
                 // on the solution path
                 if (startMotion->parent)
                     startMotion = startMotion->parent;
@@ -257,7 +257,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
                 /* construct the solution path */
                 Motion *solution = startMotion;
                 std::vector<Motion*> mpath1;
-                while (solution != NULL)
+                while (solution != nullptr)
                 {
                     mpath1.push_back(solution);
                     solution = solution->parent;
@@ -265,7 +265,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
                 solution = goalMotion;
                 std::vector<Motion*> mpath2;
-                while (solution != NULL)
+                while (solution != nullptr)
                 {
                     mpath2.push_back(solution);
                     solution = solution->parent;
@@ -304,7 +304,7 @@ void ompl::geometric::RRTConnect::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        if (motions[i]->parent == NULL)
+        if (motions[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state, 1));
         else
         {
@@ -319,7 +319,7 @@ void ompl::geometric::RRTConnect::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        if (motions[i]->parent == NULL)
+        if (motions[i]->parent == nullptr)
             data.addGoalVertex(base::PlannerDataVertex(motions[i]->state, 2));
         else
         {

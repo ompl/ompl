@@ -40,6 +40,8 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_PRM_A_STAR_GOAL_VISITOR_
 #define OMPL_GEOMETRIC_PLANNERS_PRM_A_STAR_GOAL_VISITOR_
 
+#include <boost/graph/astar_search.hpp>
+
 namespace
 {
     struct AStarFoundGoal {}; // exception for termination

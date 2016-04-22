@@ -37,8 +37,10 @@
 #ifndef OMPL_BASE_PLANNER_TERMINATION_CONDITION_
 #define OMPL_BASE_PLANNER_TERMINATION_CONDITION_
 
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
+#include <functional>
+#include <memory>
+#include <ompl/base/ProblemDefinition.h>
+#include <ompl/util/Time.h>
 
 namespace ompl
 {
@@ -53,7 +55,7 @@ namespace ompl
             signaled to terminate its computation. Otherwise,
             computation continues while this function returns false,
             until a solution is found. */
-        typedef boost::function<bool()> PlannerTerminationConditionFn;
+        typedef std::function<bool()> PlannerTerminationConditionFn;
 
         /** \brief Encapsulate a termination condition for a motion
             planner. Planners will call operator() to decide whether
@@ -100,7 +102,7 @@ namespace ompl
         private:
 
             class PlannerTerminationConditionImpl;
-            boost::shared_ptr<PlannerTerminationConditionImpl> impl_;
+            std::shared_ptr<PlannerTerminationConditionImpl> impl_;
         };
 
         /** \brief Simple termination condition that always returns false. The termination condition will never be met */
@@ -118,8 +120,37 @@ namespace ompl
         /** \brief Return a termination condition that will become true \e duration seconds in the future (wall-time) */
         PlannerTerminationCondition timedPlannerTerminationCondition(double duration);
 
+        /** \brief Return a termination condition that will become true \e duration in the future (wall-time) */
+        PlannerTerminationCondition timedPlannerTerminationCondition(time::duration duration);
+
         /** \brief Return a termination condition that will become true \e duration seconds in the future (wall-time), but is checked in a separate thread, every \e interval seconds; \e interval must be less than \e duration */
         PlannerTerminationCondition timedPlannerTerminationCondition(double duration, double interval);
+
+        /** \brief Return a termination condition that will become true as soon as the problem definition has an exact solution */
+        PlannerTerminationCondition exactSolnPlannerTerminationCondition(ompl::base::ProblemDefinitionPtr pdef);
+
+        /** \brief A class to run a planner for a specific number of iterations. Casts to a PTC for use with Planner::solve */
+        class IterationTerminationCondition
+        {
+        public:
+            /** \brief Construct a termination condition that can be evaluated numIterations times before returning true. */
+            IterationTerminationCondition(unsigned int numIterations);
+
+            /** \brief Increment the number of times eval has been called and check if the planner should now terminate. */
+            bool eval();
+
+            /** \brief Reset the number of times the IterationTeriminationCondition has been called. */
+            void reset();
+
+            /** \brief Cast to a PlannerTerminationCondition */
+            operator PlannerTerminationCondition();
+
+        private:
+            /** \brief The max number of iterations the condition can be called before returning true. */
+            unsigned int maxCalls_;
+            /** \brief The number of times called so far.*/
+            unsigned int timesCalled_;
+        };
     }
 }
 

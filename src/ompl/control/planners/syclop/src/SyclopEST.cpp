@@ -42,7 +42,7 @@ void ompl::control::SyclopEST::setup()
     Syclop::setup();
     sampler_ = si_->allocStateSampler();
     controlSampler_ = siC_->allocControlSampler();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 }
 
 void ompl::control::SyclopEST::clear()
@@ -50,7 +50,7 @@ void ompl::control::SyclopEST::clear()
     Syclop::clear();
     freeMemory();
     motions_.clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 }
 
 void ompl::control::SyclopEST::getPlannerData(base::PlannerData &data) const

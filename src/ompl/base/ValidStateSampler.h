@@ -40,8 +40,7 @@
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/base/GenericParam.h"
-#include <boost/function.hpp>
-#include <boost/noncopyable.hpp>
+#include <functional>
 #include <string>
 
 namespace ompl
@@ -59,12 +58,15 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::ValidStateSamplerPtr
-            \brief A boost shared pointer wrapper for ompl::base::ValidStateSampler */
+            \brief A shared pointer wrapper for ompl::base::ValidStateSampler */
 
         /** \brief Abstract definition of a state sampler. */
-        class ValidStateSampler : private boost::noncopyable
+        class ValidStateSampler
         {
         public:
+            // non-copyable
+            ValidStateSampler(const ValidStateSampler&) = delete;
+            ValidStateSampler& operator=(const ValidStateSampler&) = delete;
 
             /** \brief Constructor */
             ValidStateSampler(const SpaceInformation *si);
@@ -132,7 +134,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a valid state sampler */
-        typedef boost::function<ValidStateSamplerPtr(const SpaceInformation*)> ValidStateSamplerAllocator;
+        typedef std::function<ValidStateSamplerPtr(const SpaceInformation*)> ValidStateSamplerAllocator;
     }
 }
 

@@ -36,7 +36,7 @@
 
 #include "ompl/control/PlannerData.h"
 
-ompl::control::PlannerData::PlannerData(const SpaceInformationPtr &siC) : base::PlannerData(boost::static_pointer_cast<base::SpaceInformation>(siC)), siC_(siC)
+ompl::control::PlannerData::PlannerData(const SpaceInformationPtr &siC) : base::PlannerData(std::static_pointer_cast<base::SpaceInformation>(siC)), siC_(siC)
 {
 }
 

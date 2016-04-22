@@ -52,8 +52,6 @@
 #include <iostream>
 #include <limits>
 
-#include <boost/noncopyable.hpp>
-
 namespace ompl
 {
     namespace base
@@ -66,7 +64,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::ProblemDefinitionPtr
-            \brief A boost shared pointer wrapper for ompl::base::ProblemDefinition */
+            \brief A shared pointer wrapper for ompl::base::ProblemDefinition */
 
         /** \brief Representation of a solution to a planning problem */
         struct PlannerSolution
@@ -141,16 +139,19 @@ namespace ompl
 
         /** \brief When a planner has an intermediate solution (e.g., optimizing planners), a function with this signature can be called
             to report the states of that solution. */
-        typedef boost::function<void(const Planner*, const std::vector<const base::State*> &, const Cost)> ReportIntermediateSolutionFn;
+        typedef std::function<void(const Planner*, const std::vector<const base::State*> &, const Cost)> ReportIntermediateSolutionFn;
 
         OMPL_CLASS_FORWARD(OptimizationObjective);
 
         /** \brief Definition of a problem to be solved. This includes
             the start state(s) for the system and a goal specification.
             Will contain solutions, if found.  */
-        class ProblemDefinition : private boost::noncopyable
+        class ProblemDefinition
         {
         public:
+            // non-copyable
+            ProblemDefinition(const ProblemDefinition&) = delete;
+            ProblemDefinition& operator=(const ProblemDefinition&) = delete;
 
             /** \brief Create a problem definition given the SpaceInformation it is part of */
             ProblemDefinition(const SpaceInformationPtr &si);
@@ -181,7 +182,7 @@ namespace ompl
             /** \brief Check whether a specified starting state is
                 already included in the problem definition and
                 optionally return the index of that starting state */
-            bool hasStartState(const State *state, unsigned int *startIndex = NULL);
+            bool hasStartState(const State *state, unsigned int *startIndex = nullptr) const;
 
             /** \brief Clear all start states (memory is freed) */
             void clearStartStates()
@@ -292,7 +293,7 @@ namespace ompl
                 will be set to the index of the starting state that
                 satisfies the goal. The distance to the goal can
                 optionally be returned as well. */
-            bool isTrivial(unsigned int *startIndex = NULL, double *distance = NULL) const;
+            bool isTrivial(unsigned int *startIndex = nullptr, double *distance = nullptr) const;
 
             /** \brief Check if a straight line path is valid. If it
                 is, return an instance of a path that represents the
@@ -316,6 +317,12 @@ namespace ompl
 
             /** \brief Returns true if a solution path has been found (could be approximate) */
             bool hasSolution() const;
+
+            /** \brief Returns true if an exact solution path has been found. Specifically returns hasSolution && !hasApproximateSolution() */
+            bool hasExactSolution() const
+            {
+                return this->hasSolution() && !this->hasApproximateSolution();
+            }
 
             /** \brief Return true if the top found solution is
                 approximate (does not actually reach the desired goal,

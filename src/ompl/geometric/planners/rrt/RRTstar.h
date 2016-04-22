@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Luis G. Torres, Ioan Sucan, Javier V Gomez */
+/* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Luis G. Torres, Ioan Sucan, Javier V Gomez, Jonathan Gammell */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_RRT_RRTSTAR_
 #define OMPL_GEOMETRIC_PLANNERS_RRT_RRTSTAR_
@@ -43,7 +43,10 @@
 
 #include <limits>
 #include <vector>
+#include <queue>
+#include <deque>
 #include <utility>
+#include <list>
 
 
 namespace ompl
@@ -87,6 +90,8 @@ namespace ompl
 
             virtual void clear();
 
+            virtual void setup();
+
             /** \brief Set the goal bias
 
                 In the process of randomly selecting states in
@@ -123,6 +128,19 @@ namespace ompl
                 return maxDistance_;
             }
 
+            /** \brief Set the rewiring scale factor, s, such that r_rrg = s \times r_rrg* (or k_rrg = s \times k_rrg*) */
+            void setRewireFactor(double rewireFactor)
+            {
+                rewireFactor_ = rewireFactor;
+                calculateRewiringLowerBounds();
+            }
+
+            /** \brief Set the rewiring scale factor, s, such that r_rrg = s \times r_rrg* > r_rrg* (or k_rrg = s \times k_rrg* > k_rrg*) */
+            double getRewireFactor() const
+            {
+                return rewireFactor_;
+            }
+
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
             void setNearestNeighbors()
@@ -135,7 +153,7 @@ namespace ompl
                 planner then goes through this list, starting with the lowest
                 cost, checking for collisions in order to find a parent. The planner
                 stops iterating through the list when a collision free parent is found.
-                This prevents the planner from collsion checking each neighbor, reducing
+                This prevents the planner from collision checking each neighbor, reducing
                 computation time in scenarios where collision checking procedures are expensive.*/
             void setDelayCC(bool delayCC)
             {
@@ -148,42 +166,139 @@ namespace ompl
                 return delayCC_;
             }
 
-            /** \brief Controls whether the tree is pruned during the search. */
-            void setPrune(const bool prune)
-            {
-                prune_ = prune;
-            }
+            /** \brief Controls whether the tree is pruned during the search. This pruning removes
+                a vertex if and only if it \e and all its descendents passes the pruning condition.
+                The pruning condition is whether the lower-bounding estimate of a solution
+                constrained to pass the the \e vertex is greater than the current solution.
+                Considering the descendents of a vertex prevents removing a descendent
+                that may actually be capable of later providing a better solution once
+                its incoming path passes through a different vertex (e.g., a change in homotopy class). */
+            void setTreePruning(const bool prune);
 
             /** \brief Get the state of the pruning option. */
-            bool getPrune() const
+            bool getTreePruning() const
             {
-                return prune_;
+                return useTreePruning_;
             }
 
-            /** \brief Set the percentage threshold (between 0 and 1) for pruning the tree. If the new tree has removed
-                at least this percentage of states, the tree will be finally pruned. */
-            void setPruneStatesImprovementThreshold(const double pp)
+            /** \brief Set the fractional change in solution cost necessary for pruning to occur, i.e.,
+                prune if the new solution is at least X% better than the old solution.
+                (e.g., 0.0 will prune after every new solution, while 1.0 will never prune.) */
+            void setPruneThreshold(const double pp)
             {
-                pruneStatesThreshold_ = pp;
+                pruneThreshold_ = pp;
             }
 
             /** \brief Get the current prune states percentage threshold parameter. */
-            double getPruneStatesImprovementThreshold () const
+            double getPruneThreshold() const
             {
-                return pruneStatesThreshold_;
+                return pruneThreshold_;
             }
 
-            virtual void setup();
+            /** \brief Use the measure of the pruned subproblem instead of the measure of the entire problem domain (if such an expression exists and a solution is present).
+            Currently the only method to calculate this measure in closed-form is through a informed sampler, so this option also requires that. */
+            void setPrunedMeasure(bool informedMeasure);
 
-            ///////////////////////////////////////
-            // Planner progress property functions
-            std::string getIterationCount() const
+            /** \brief Get the state of using the pruned measure */
+            bool getPrunedMeasure() const
             {
-                return boost::lexical_cast<std::string>(iterations_);
+                return usePrunedMeasure_;
             }
-            std::string getBestCost() const
+
+            /** \brief Use direct sampling of the heuristic for the generation of random samples (e.g., x_rand).
+           If a direct sampling method is not defined for the objective, rejection sampling will be used by default. */
+            void setInformedSampling(bool informedSampling);
+
+            /** \brief Get the state direct heuristic sampling */
+            bool getInformedSampling() const
             {
-                return boost::lexical_cast<std::string>(bestCost_);
+                return useInformedSampling_;
+            }
+
+            /** \brief Controls whether heuristic rejection is used on samples (e.g., x_rand) */
+            void setSampleRejection(const bool reject);
+
+            /** \brief Get the state of the sample rejection option */
+            bool getSampleRejection() const
+            {
+                return useRejectionSampling_;
+            }
+
+            /** \brief Controls whether heuristic rejection is used on new states before connection (e.g., x_new = steer(x_nearest, x_rand)) */
+            void setNewStateRejection(const bool reject)
+            {
+                useNewStateRejection_ = reject;
+            }
+
+            /** \brief Get the state of the new-state rejection option */
+            bool getNewStateRejection() const
+            {
+                return useNewStateRejection_;
+            }
+
+            /** \brief Controls whether pruning and new-state rejection uses an admissible cost-to-come estimate or not */
+            void setAdmissibleCostToCome(const bool admissible)
+            {
+                useAdmissibleCostToCome_ = admissible;
+            }
+
+            /** \brief Get the admissibility of the pruning and new-state rejection heuristic */
+            bool getAdmissibleCostToCome() const
+            {
+                return useAdmissibleCostToCome_;
+            }
+
+            /** \brief A \e meta parameter to focusing the search to improving the current solution. This is the parameter set by CFOREST.
+            For RRT*, search focusing consists of pruning the existing search and limiting future search.
+            Specifically, this is accomplished by turning on informed sampling, tree pruning and new-state rejection.
+            This flag individually sets the options described above.
+            */
+            void setFocusSearch(const bool focus)
+            {
+                setInformedSampling(focus);
+                setTreePruning(focus);
+                setPrunedMeasure(focus);
+                setNewStateRejection(focus);
+            }
+
+            /** \brief Get the state of search focusing */
+            bool getFocusSearch() const
+            {
+                return getInformedSampling() && getPrunedMeasure() && getTreePruning() && getNewStateRejection();
+            }
+
+            /** \brief Use a k-nearest search for rewiring instead of a r-disc search. */
+            void setKNearest(bool useKNearest)
+            {
+                useKNearest_ = useKNearest;
+            }
+
+            /** \brief Get the state of using a k-nearest search for rewiring. */
+            bool getKNearest() const
+            {
+                return useKNearest_;
+            }
+
+            /** \brief Set the number of attempts to make while performing rejection or informed sampling */
+            void setNumSamplingAttempts(unsigned int numAttempts)
+            {
+                numSampleAttempts_ = numAttempts;
+            }
+
+            /** \brief Get the number of attempts to make while performing rejection or informed sampling */
+            unsigned int getNumSamplingAttempts() const
+            {
+                return numSampleAttempts_ ;
+            }
+
+            unsigned int numIterations() const
+            {
+                return iterations_;
+            }
+
+            ompl::base::Cost bestCost() const
+            {
+                return bestCost_;
             }
 
         protected:
@@ -195,7 +310,7 @@ namespace ompl
                 /** \brief Constructor that allocates memory for the state. This constructor automatically allocates memory for \e state, \e cost, and \e incCost */
                 Motion(const base::SpaceInformationPtr &si) :
                     state(si->allocState()),
-                    parent(NULL)
+                    parent(nullptr)
                 {
                 }
 
@@ -218,6 +333,12 @@ namespace ompl
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion*> children;
             };
+
+            /** \brief Create the samplers */
+            void allocSampler();
+
+            /** \brief Generate a sample */
+            bool sampleUniform(base::State *statePtr);
 
             /** \brief Free the memory allocated by this planner */
             void freeMemory();
@@ -243,29 +364,43 @@ namespace ompl
                 return si_->distance(a->state, b->state);
             }
 
+            /** \brief Gets the neighbours of a given motion, using either k-nearest of radius as appropriate. */
+            void getNeighbors(Motion *motion, std::vector<Motion*> &nbh) const;
+
             /** \brief Removes the given motion from the parent's child list */
-            void removeFromParent(Motion *m); 
+            void removeFromParent(Motion *m);
 
             /** \brief Updates the cost of the children of this node if the cost up to this node has changed */
             void updateChildCosts(Motion *m);
 
             /** \brief Prunes all those states which estimated total cost is higher than pruneTreeCost.
                 Returns the number of motions pruned. Depends on the parameter set by setPruneStatesImprovementThreshold() */
-            int pruneTree(const base::Cost pruneTreeCost);
+            int pruneTree(const base::Cost& pruneTreeCost);
 
-            /** \brief Deletes (frees memory) the motion and its children motions. */
-            void deleteBranch(Motion *motion);
+            /** \brief Computes the solution cost heuristically as the cost to come from start to the motion plus
+                 the cost to go from the motion to the goal. If the parameter \e use_admissible_heuristic
+                 (\e setAdmissibleCostToCome()) is true, a heuristic estimate of the cost to come is used;
+                 otherwise, the current cost to come to the motion is used (which may overestimate the cost
+                 through the motion). */
+            base::Cost solutionHeuristic(const Motion *motion) const;
 
-            /** \brief Computes the Cost To Go heuristically as the cost to come from start to motion plus
-                 the cost to go from motion to goal. If \e shortest is true, the estimated cost to come
-                 start-motion is given. Otherwise, this cost to come is the current motion cost. */
-            base::Cost costToGo(const Motion *motion, const bool shortest = true) const;
+            /** \brief Add the children of a vertex to the given list. */
+            void addChildrenToList(std::queue<Motion*, std::deque<Motion*> > *motionList, Motion* motion);
+
+            /** \brief Check whether the given motion passes the specified cost threshold, meaning it will be \e kept during pruning */
+            bool keepCondition(const Motion* motion, const base::Cost& threshold) const;
+
+            /** \brief Calculate the k_RRG* and r_RRG* terms */
+            void calculateRewiringLowerBounds();
 
             /** \brief State sampler */
             base::StateSamplerPtr                          sampler_;
 
+            /** \brief An informed sampler */
+            base::InformedSamplerPtr                       infSampler_;
+
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
-            boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
             double                                         goalBias_;
@@ -275,6 +410,17 @@ namespace ompl
 
             /** \brief The random number generator */
             RNG                                            rng_;
+
+            /** \brief Option to use k-nearest search for rewiring */
+            bool                                           useKNearest_;
+
+            /** \brief The rewiring factor, s, so that r_rrg = s \times r_rrg* > r_rrg* (or k_rrg = s \times k_rrg* > k_rrg*) */
+            double                                         rewireFactor_;
+
+            /** \brief A constant for k-nearest rewiring calculations */
+            double                                         k_rrg_;
+            /** \brief A constant for r-disc rewiring calculations */
+            double                                         r_rrg_;
 
             /** \brief Option to delay and reduce collision checking within iterations */
             bool                                           delayCC_;
@@ -288,23 +434,55 @@ namespace ompl
             /** \brief A list of states in the tree that satisfy the goal condition */
             std::vector<Motion*>                           goalMotions_;
 
-            /** \brief If this value is set to true, tree pruning will be enabled. */
-            bool                                           prune_;
+            /** \brief The status of the tree pruning option. */
+            bool                                           useTreePruning_;
 
-            /** \brief The tree is only pruned is the percentage of states to prune is above this threshold (between 0 and 1). */
-            double                                         pruneStatesThreshold_;
+            /** \brief The tree is pruned when the change in solution cost is greater than this fraction. */
+            double                                         pruneThreshold_;
 
-            struct PruneScratchSpace { std::vector<Motion*> newTree, toBePruned, candidates; } pruneScratchSpace_;
+            /** \brief Option to use the informed measure */
+            bool                                           usePrunedMeasure_;
 
-            /** \brief Stores the Motion containing the last added initial start state. */
-            Motion *                                       startMotion_;
+            /** \brief Option to use informed sampling */
+            bool                                           useInformedSampling_;
 
-            //////////////////////////////
-            // Planner progress properties
-            /** \brief Number of iterations the algorithm performed */
-            unsigned int                                   iterations_;
+            /** \brief The status of the sample rejection parameter. */
+            bool                                           useRejectionSampling_;
+
+            /** \brief The status of the new-state rejection parameter. */
+            bool                                           useNewStateRejection_;
+
+            /** \brief The admissibility of the new-state rejection heuristic. */
+            bool                                           useAdmissibleCostToCome_;
+
+            /** \brief The number of attempts to make at informed sampling */
+            unsigned int                                   numSampleAttempts_;
+
+            /** \brief Stores the start states as Motions. */
+            std::vector<Motion*>                           startMotions_;
+
             /** \brief Best cost found so far by algorithm */
             base::Cost                                     bestCost_;
+
+            /** \brief The cost at which the graph was last pruned */
+            base::Cost                                     prunedCost_;
+
+            /** \brief The measure of the problem when we pruned it (if this isn't in use, it will be set to si_->getSpaceMeasure())*/
+            double                                         prunedMeasure_;
+
+            /** \brief Number of iterations the algorithm performed */
+            unsigned int                                   iterations_;
+
+            ///////////////////////////////////////
+            // Planner progress property functions
+            std::string numIterationsProperty() const
+            {
+                return std::to_string(numIterations());
+            }
+            std::string bestCostProperty() const
+            {
+                return std::to_string(bestCost().value());
+            }
         };
     }
 }

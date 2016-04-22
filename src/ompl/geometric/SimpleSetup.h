@@ -58,7 +58,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::geometric::SimpleSetupPtr
-            \brief A boost shared pointer wrapper for ompl::geometric::SimpleSetup */
+            \brief A shared pointer wrapper for ompl::geometric::SimpleSetup */
 
         /** \brief Create the set of classes typically needed to solve a
             geometric problem */
@@ -176,13 +176,7 @@ namespace ompl
 
             /** \brief Set the start and goal states to use. */
             void setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal,
-                                       const double threshold = std::numeric_limits<double>::epsilon())
-            {
-                pdef_->setStartAndGoalStates(start, goal, threshold);
-
-                // Clear any past solutions since they no longer correspond to our start and goal states
-                pdef_->clearSolutionPaths();
-            }
+                                       const double threshold = std::numeric_limits<double>::epsilon());
 
             /** \brief Add a starting state for planning. This call is not
                 needed if setStartAndGoalStates() has been called. */
@@ -205,17 +199,11 @@ namespace ompl
             }
 
             /** \brief A simple form of setGoal(). The goal will be an instance of ompl::base::GoalState */
-            void setGoalState(const base::ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon())
-            {
-                pdef_->setGoalState(goal, threshold);
-            }
+            void setGoalState(const base::ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon());
 
             /** \brief Set the goal for planning. This call is not
                 needed if setStartAndGoalStates() has been called. */
-            void setGoal(const base::GoalPtr &goal)
-            {
-                pdef_->setGoal(goal);
-            }
+            void setGoal(const base::GoalPtr &goal);
 
             /** \brief Set the planner to use. If the planner is not
                 set, an attempt is made to use the planner
