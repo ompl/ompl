@@ -46,7 +46,7 @@ and install OMPL:
 
 - Install Boost, CMake, and optional dependencies
 
-      sudo apt-get install libboost-all-dev cmake doxygen graphviz python-dev libeigen3-dev libode-dev
+      sudo apt-get install build-essential libboost-all-dev cmake doxygen graphviz python-dev libeigen3-dev libode-dev
 
 - If you want Python bindings or a GUI, [install Py++ and its dependencies](installPyPlusPlus.html).
 - Create a build directory and run cmake:
