@@ -32,8 +32,8 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_CForestCircleGridBenchmark CForestCircleGridBenchmark.cpp)
 
   if(OMPL_HAVE_EIGEN3)
-    add_ompl_demo(demo_VectorFieldConservative VectorFieldConservative.cpp)
-    add_ompl_demo(demo_VectorFieldNonconservative VectorFieldNonconservative.cpp)
+    add_ompl_demo(demo_VectorFieldConservative VFRRT/VectorFieldConservative.cpp)
+    add_ompl_demo(demo_VectorFieldNonconservative VFRRT/VectorFieldNonconservative.cpp)
   endif()
 
   if (OMPL_EXTENSION_OPENDE)
@@ -54,5 +54,8 @@ install(FILES ${OMPL_DEMO_CXX_FILES} ${OMPL_DEMO_PY_FILES}
     DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
     COMPONENT ompl)
 install(DIRECTORY Koules
+    DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
+    COMPONENT ompl)
+install(DIRECTORY VFRRT
     DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
     COMPONENT ompl)
