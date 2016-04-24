@@ -34,8 +34,8 @@
 
 /* Authors: Caleb Voss, Wilson Beebe */
 
-#ifndef V_F_MECHANICAL_WORK_OPTIMIZATION_OBJECTIVE_
-#define V_F_MECHANICAL_WORK_OPTIMIZATION_OBJECTIVE_
+#ifndef OMPL_BASE_OBJECTIVES_VF_MECHANICAL_WORK_OPTIMIZATION_OBJECTIVE_
+#define OMPL_BASE_OBJECTIVES_VF_MECHANICAL_WORK_OPTIMIZATION_OBJECTIVE_
 
 #include "ompl/base/objectives/MechanicalWorkOptimizationObjective.h"
 #include "ompl/geometric/planners/rrt/VFRRT.h"
@@ -46,57 +46,52 @@ namespace ompl
     {
 
         /**
-         * Optimization objective that computes mechanical work between two states.
+         * Optimization objective that computes mechanical work between two states by following a vector field.
          */
         class VFMechanicalWorkOptimizationObjective : public ompl::base::MechanicalWorkOptimizationObjective
         {
-    
+
         public:
-    
+
             /** Constructor. */
-            VFMechanicalWorkOptimizationObjective(const ompl::base::SpaceInformationPtr &si, const geometric::VFRRT::VectorField *vf)
-                : ompl::base::MechanicalWorkOptimizationObjective(si), vf(*vf), sstate1(si_), sstate2(si_), d(sstate1.reals().size()), qprime(d)
+            VFMechanicalWorkOptimizationObjective(const ompl::base::SpaceInformationPtr &si,
+                const geometric::VFRRT::VectorField& vf)
+                : ompl::base::MechanicalWorkOptimizationObjective(si), vf_(vf)
             {
             }
-    
+
             /** Assume we can always do better. */
             bool isSatisfied(ompl::base::Cost c) const
             {
                 return false;
             }
-    
+
             /** Compute mechanical work between two states. */
             ompl::base::Cost motionCost(const ompl::base::State *s1, const ompl::base::State *s2) const
             {
+                const base::StateSpacePtr &space = si_->getStateSpace();
                 // Per equation 7 in the paper
-                Eigen::VectorXd f = vf(s2);
-                sstate1 = s1;
-                sstate2 = s2;
-                for (int i = 0; i < d; i++)
-                {
-                    qprime[i] = sstate2[i] - sstate1[i];
-                }
+                Eigen::VectorXd f = vf_(s2);
+                unsigned int vfdim = f.size();
+                Eigen::VectorXd qprime(vfdim);
+
+                for (unsigned int i = 0; i < vfdim; i++)
+                    qprime[i] = *space->getValueAddressAtIndex(s2, i)
+                        - *space->getValueAddressAtIndex(s1, i);
+
                 // Don't included negative work
-                double positiveCostAccrued = std::max((-f).dot(qprime), 0.0);
-                return ompl::base::Cost(positiveCostAccrued + pathLengthWeight_*si_->distance(s1,s2));
+                double positiveCostAccrued = std::max(-(f.dot(qprime)), 0.);
+                return ompl::base::Cost(positiveCostAccrued + pathLengthWeight_ * si_->distance(s1, s2));
             }
 
             bool isSymmetric(void) const
             {
                 return false;
             }
-    
-        private:
-    
+
+        protected:
             /** VectorField associated with the space. */
-            const geometric::VFRRT::VectorField &vf;
-    
-            /** Variables used in computation that we keep around to save on allocations. */
-            mutable ompl::base::ScopedState<> sstate1;
-            mutable ompl::base::ScopedState<> sstate2;
-            const int d;
-            mutable Eigen::VectorXd qprime;
-    
+            geometric::VFRRT::VectorField vf_;
         };
     }
 }

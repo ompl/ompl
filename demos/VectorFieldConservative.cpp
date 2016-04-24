@@ -1,15 +1,44 @@
-/**
- * VectorFieldConservative.cpp
- * COMP 450 Project 5
- * 25 November 2014 
- * Caleb Voss (cav2) & Wilson Beebe (wsb1)
- */
+/*********************************************************************
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2015, Caleb Voss and Wilson Beebe
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Willow Garage nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
+
+/* Authors: Caleb Voss, Wilson Beebe */
 
 #include <fstream>
 
 #include <ompl/base/StateSpace.h>
-#include <ompl/base/objectives/VFMechanicalWorkOptimizationObjective.hpp>
-#include <ompl/base/objectives/VFUpstreamCriterionOptimizationObjective.hpp>
+#include <ompl/base/objectives/VFMechanicalWorkOptimizationObjective.h>
+#include <ompl/base/objectives/VFUpstreamCriterionOptimizationObjective.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/rrt/TRRT.h>
@@ -19,48 +48,20 @@
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-/** No obstacles. */
-bool isStateValid (const ob::State *state)
-{
-    return true;
-}
+enum PlannerType { VFRRT = 0, TRRT, RRTSTAR };
 
-/** Potential function over the space. */
-double getPotential (const Eigen::VectorXd &x)
+/** Gradient of the potential function 1 + sin(x[0]) * sin(x[1]). */
+Eigen::VectorXd field(const ob::State *state)
 {
-    return 1 + std::sin(x[0]) * std::sin(x[1]);
+    const ob::RealVectorStateSpace::StateType &x = *state->as<ob::RealVectorStateSpace::StateType>();
+    Eigen::VectorXd v(2);
+    v[0] = - std::cos(x[0]) * std::sin(x[1]);
+    v[1] = - std::sin(x[0]) * std::cos(x[1]);
+    return -v;
 }
-
-/** Gradient of the potential function. */
-Eigen::VectorXd getGradient (const Eigen::VectorXd &x)
-{
-    Eigen::VectorXd g(2);
-    g[0] = std::cos(x[0]) * std::sin(x[1]);
-    g[1] = std::sin(x[0]) * std::cos(x[1]);
-    return g;
-}
-
-/** Get the vector of the field associated to a particular state. */
-Eigen::VectorXd getVector (ob::SpaceInformationPtr &si, const ob::State *state)
-{
-    ob::ScopedState<> sstate(si);
-    sstate = state;
-    int d = sstate.reals().size();
-    Eigen::VectorXd v(d);
-    for (int i = 0; i < d; i++)
-    {
-        v[i] = sstate[i];
-    }
-    
-    return -getGradient(v);
-}
-
-#define _VF_RRT 0
-#define _TRRT 1
-#define _RRTstar 2
 
 /** Make a problem using a conservative vector field. */
-og::SimpleSetupPtr setupProblem(int probNum)
+og::SimpleSetupPtr setupProblem(PlannerType plannerType)
 {
     // construct the state space we are planning in
     ob::StateSpacePtr space(new ob::RealVectorStateSpace(2));
@@ -76,7 +77,8 @@ og::SimpleSetupPtr setupProblem(int probNum)
     og::SimpleSetupPtr ss(new og::SimpleSetup(space));
 
     // set state validity checking for this space
-    ss->setStateValidityChecker(&isStateValid);
+    ss->setStateValidityChecker(ob::StateValidityCheckerPtr(
+        new ob::AllValidStateValidityChecker(si)));
 
     // create a start state
     ob::ScopedState<> start(space);
@@ -90,64 +92,61 @@ og::SimpleSetupPtr setupProblem(int probNum)
 
     // set the start and goal states
     ss->setStartAndGoalStates(start, goal, 0.1);
-    
-    // make the vector field
-    og::VFRRT::VectorField *field = new og::VFRRT::VectorField(ss->getStateSpace(), boost::bind(&getVector, ss->getSpaceInformation(), _1));
-    
+
     // make the optimization objectives for TRRT and RRT*, and set the planner
-    if (probNum == _TRRT)
+    if (plannerType == TRRT)
     {
-        ob::OptimizationObjectivePtr opt(new ob::VFMechanicalWorkOptimizationObjective(si, field));
-        ss->getProblemDefinition()->setOptimizationObjective(opt);
+        ss->setOptimizationObjective(ob::OptimizationObjectivePtr(
+            new ob::VFMechanicalWorkOptimizationObjective(si, field)));
         ss->setPlanner(ob::PlannerPtr(new og::TRRT(ss->getSpaceInformation())));
     }
-    else if (probNum == _RRTstar)
+    else if (plannerType == RRTSTAR)
     {
-        ob::OptimizationObjectivePtr opt(new ob::VFUpstreamCriterionOptimizationObjective(si, field));
-        ss->getProblemDefinition()->setOptimizationObjective(opt);
+        ss->setOptimizationObjective(ob::OptimizationObjectivePtr(
+            new ob::VFUpstreamCriterionOptimizationObjective(si, field)));
         ss->setPlanner(ob::PlannerPtr(new og::RRTstar(ss->getSpaceInformation())));
     }
-    else if (probNum == _VF_RRT)
+    else if (plannerType == VFRRT)
     {
         double explorationSetting = 0.7;
         double lambda = 1;
         unsigned int update_freq = 100;
-        ss->setPlanner(ob::PlannerPtr(new og::VFRRT(ss->getSpaceInformation(), *field, explorationSetting, lambda, update_freq)));
+        ss->setPlanner(ob::PlannerPtr(new og::VFRRT(ss->getSpaceInformation(), field, explorationSetting, lambda, update_freq)));
     }
     else
     {
         std::cout << "Bad problem number.\n";
-        exit(0);
+        exit(-1);
     }
-    
+
     ss->setup();
-    
+
     return ss;
 }
 
 /** Get the filename to write the path to. */
-std::string problemName(int probNum)
+std::string problemName(PlannerType plannerType)
 {
-    if (probNum == _VF_RRT)
+    if (plannerType == VFRRT)
         return std::string("vfrrt-conservative.path");
-    else if (probNum == _TRRT)
+    else if (plannerType == TRRT)
         return std::string("trrt-conservative.path");
-    else if (probNum == _RRTstar)
+    else if (plannerType == RRTSTAR)
         return std::string("rrtstar-conservative.path");
     else
     {
         std::cout << "Bad problem number.\n";
-        exit(0);
+        exit(-1);
     }
 }
 
 int main(int argc, char **argv)
 {
     // Run all three problems
-    for (int n = _VF_RRT; n <= _RRTstar; n++)
+    for (unsigned int n = 0; n < 3; n++)
     {
         // initialize the planner
-        og::SimpleSetupPtr ss = setupProblem(n);
+        og::SimpleSetupPtr ss = setupProblem(PlannerType(n));
 
         // attempt to solve the problem
         ob::PlannerStatus solved = ss->solve(10.0);
@@ -158,26 +157,15 @@ int main(int argc, char **argv)
                 std::cout << "Found solution.\n";
             else
                 std::cout << "Found approximate solution.\n";
-            
+
             // Set up to write the path
-            std::ofstream f(problemName(n).c_str());
-            
+            std::ofstream f(problemName(PlannerType(n)).c_str());
             ompl::geometric::PathGeometric p = ss->getSolutionPath();
             p.interpolate();
-            ob::ScopedState<> state(ss->getStateSpace());
-            double cost = 0;
-            og::VFRRT::VectorField field(ss->getStateSpace(), boost::bind(&getVector, ss->getSpaceInformation(), _1));
-            ob::OptimizationObjectivePtr upstream(new ob::VFUpstreamCriterionOptimizationObjective(ss->getSpaceInformation(), &field));
-            for (std::size_t i = 0; i < p.getStateCount(); i++)
-            {
-                // Write to file
-                state = p.getState(i);
-                f << state[0] << " " << state[1] << "\n";
-                
-                if (i > 0)
-                    cost += upstream->motionCost(p.getState(i-1), p.getState(i)).value();
-            }
-            std::cout << "Total cost: " << cost << "\n";
+            ob::OptimizationObjectivePtr upstream(new ob::VFUpstreamCriterionOptimizationObjective(
+                ss->getSpaceInformation(), field));
+            p.printAsMatrix(f);
+            std::cout << "Total upstream cost: " << p.cost(upstream) << "\n";
         }
         else
             std::cout << "No solution found.\n";

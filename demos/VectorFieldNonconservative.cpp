@@ -1,14 +1,43 @@
-/**
- * VectorFieldNonconservative.cpp
- * COMP 450 Project 5
- * 25 November 2014 
- * Caleb Voss (cav2) & Wilson Beebe (wsb1)
- */
+/*********************************************************************
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2015, Caleb Voss and Wilson Beebe
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Willow Garage nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
+
+/* Authors: Caleb Voss, Wilson Beebe */
 
 #include <fstream>
 
 #include <ompl/base/StateSpace.h>
-#include <ompl/base/objectives/VFUpstreamCriterionOptimizationObjective.hpp>
+#include <ompl/base/objectives/VFUpstreamCriterionOptimizationObjective.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/rrt/VFRRT.h>
@@ -17,20 +46,14 @@
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-/** No obstacles. */
-bool isStateValid (const ob::State *state)
-{
-    return true;
-}
 
 /** Basic unit-norm rotation field. */
-Eigen::VectorXd getVector (ob::SpaceInformationPtr &si, const ob::State *state)
+Eigen::VectorXd field(const ob::State *state)
 {
-    ob::ScopedState<> sstate(si);
-    sstate = state;
+    const ob::RealVectorStateSpace::StateType &x = *state->as<ob::RealVectorStateSpace::StateType>();
     Eigen::VectorXd v(2);
-    v[0] = sstate[1];
-    v[1] = -sstate[0];
+    v[0] = x[1];
+    v[1] = -x[0];
     v.normalize();
     return v;
 }
@@ -51,7 +74,8 @@ int main(int argc, char **argv)
     og::SimpleSetup ss(space);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(&isStateValid);
+    ss.setStateValidityChecker(ob::StateValidityCheckerPtr(
+        new ob::AllValidStateValidityChecker(si)));
 
     // create a start state
     ob::ScopedState<> start(space);
@@ -65,13 +89,7 @@ int main(int argc, char **argv)
 
     // set the start and goal states
     ss.setStartAndGoalStates(start, goal, 0.1);
-    
-    // make the vector field
-    og::VFRRT::VectorField field(ss.getStateSpace(), boost::bind(&getVector, ss.getSpaceInformation(), _1));
-    
-    ob::OptimizationObjectivePtr opt(new ob::VFUpstreamCriterionOptimizationObjective(ss.getSpaceInformation(), &field));
-    ss.getProblemDefinition()->setOptimizationObjective(opt);
-    
+
     // initialize the planner
     double explorationSetting = 0.7;
     double lambda = 1;
@@ -88,24 +106,15 @@ int main(int argc, char **argv)
             std::cout << "Found solution.\n";
         else
             std::cout << "Found approximate solution.\n";
-        
+
         // Set up to write the path
         std::ofstream f("vfrrt-nonconservative.path");
-        
         ompl::geometric::PathGeometric p = ss.getSolutionPath();
-        ob::ScopedState<> state(ss.getStateSpace());
-        double cost = 0;
-        ob::OptimizationObjectivePtr opt(new ob::VFUpstreamCriterionOptimizationObjective(ss.getSpaceInformation(), &field));
-        for (std::size_t i = 0; i < p.getStateCount(); i++)
-        {
-            // Write to file
-            state = p.getState(i);
-            f << state[0] << " " << state[1] << "\n";
-            
-            if (i > 0)
-                cost += opt->motionCost(p.getState(i-1), p.getState(i)).value();
-        }
-        std::cout << "Total cost: " << cost << "\n";
+        p.interpolate();
+        ob::OptimizationObjectivePtr upstream(new ob::VFUpstreamCriterionOptimizationObjective(
+            ss.getSpaceInformation(), field));
+        p.printAsMatrix(f);
+        std::cout << "Total upstream cost: " << p.cost(upstream) << "\n";
     }
     else
         std::cout << "No solution found.\n";
