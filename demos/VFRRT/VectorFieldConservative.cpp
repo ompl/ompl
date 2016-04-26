@@ -55,8 +55,8 @@ Eigen::VectorXd field(const ob::State *state)
 {
     const ob::RealVectorStateSpace::StateType &x = *state->as<ob::RealVectorStateSpace::StateType>();
     Eigen::VectorXd v(2);
-    v[0] = - std::cos(x[0]) * std::sin(x[1]);
-    v[1] = - std::sin(x[0]) * std::cos(x[1]);
+    v[0] = std::cos(x[0]) * std::sin(x[1]);
+    v[1] = std::sin(x[0]) * std::cos(x[1]);
     return -v;
 }
 
