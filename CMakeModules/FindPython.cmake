@@ -157,7 +157,7 @@ function(find_python_module module)
                     set(PY_${module_upper}_VERSION ${_version} CACHE STRING
                         "Version of Python module ${module}")
                 else()
-                    message(SEND_ERROR "Module '${module}' version ${_version} found, but minimum version ${_minversion} required.")
+                    message(WARNING "Module '${module}' version ${_version} found, but minimum version ${_minversion} required.")
                 endif()
             endif(NOT _status)
         endif (_minversion STREQUAL "")
