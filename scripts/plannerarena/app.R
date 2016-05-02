@@ -361,7 +361,7 @@ server <- function(input, output, session) {
             attrAsFactor <- factor(data[,match("attr", colnames(data))],
                 levels=enum$value)
             levels(attrAsFactor) <- enum$description
-            p <- qplot(planner, data=data, geom="histogram", fill=attrAsFactor) +
+            p <- qplot(planner, data=data, geom="bar", fill=attrAsFactor) +
                 # labels
                 theme(legend.title = element_blank(), text = fontSelection())
             if (!is.null(grouping))
