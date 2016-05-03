@@ -144,7 +144,7 @@ public:
     * may not occupy states similar to the sphereValid() obstacles (but rotated and scaled). */
     bool isValid (double sleep, const ompl::base::State *state, const bool tough)
     {
-        boost::this_thread::sleep(ompl::time::seconds(sleep));
+        std::this_thread::sleep_for(ompl::time::seconds(sleep));
         Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
         for (unsigned int i = 0; i < LINKS-1; i++)
         {
@@ -196,7 +196,7 @@ ompl::geometric::ConstrainedSimpleSetupPtr createChainSetup(std::size_t dimensio
     }
     ompl::base::AtlasStateSpacePtr atlas(new ChainManifold2(dimension, links, links-2, extras));
     ompl::base::StateValidityCheckerFn isValid =
-        boost::bind(&ChainManifold2::isValid, (ChainManifold2 *) atlas.get(), sleep, _1, false);
+        std::bind(&ChainManifold2::isValid, (ChainManifold2 *) atlas.get(), sleep, std::placeholders::_1, false);
 
     // All the 'Constrained' classes are loose wrappers for the normal classes. No effect except on
     // the two special planners.
@@ -204,7 +204,7 @@ ompl::geometric::ConstrainedSimpleSetupPtr createChainSetup(std::size_t dimensio
     ompl::base::ConstrainedSpaceInformationPtr si = ss->getConstrainedSpaceInformation();
     atlas->setSpaceInformation(si);
     ss->setStateValidityChecker(isValid);
-    si->setValidStateSamplerAllocator(boost::bind(vssa, atlas, _1));
+    si->setValidStateSamplerAllocator(std::bind(vssa, atlas, std::placeholders::_1));
     ompl::base::ConstraintInformationPtr ci(new ompl::base::ConstraintInformation);
     ompl::base::ConstraintPtr c(new ompl::base::AtlasConstraint(atlas));
     ci->addConstraint(c);

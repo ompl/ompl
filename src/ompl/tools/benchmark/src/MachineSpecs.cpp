@@ -60,7 +60,7 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux()
 
     ompl::machine::MemUsage_t result = 0;
 
-    if (NULL != hProcess)
+    if (nullptr != hProcess)
     {
         if ( GetProcessMemoryInfo( hProcess, &pmc, sizeof(pmc)) )
             result = pmc.WorkingSetSize;
@@ -76,7 +76,7 @@ std::string getCPUInfoAux()
     char buffer[BUF_SIZE];
     std::stringstream result;
     FILE *cmdPipe = _popen("wmic cpu list full", "rt");
-    if (cmdPipe != NULL)
+    if (cmdPipe != nullptr)
     {
         while (fgets(buffer, BUF_SIZE, cmdPipe))
             result << buffer;
@@ -121,7 +121,7 @@ std::string getCPUInfoAux()
     char buffer[BUF_SIZE];
     std::stringstream result;
     FILE *cmdPipe = popen("sysctl hw", "r");
-    if (cmdPipe != NULL)
+    if (cmdPipe != nullptr)
     {
         while (fgets(buffer, BUF_SIZE, cmdPipe))
             result << buffer;
@@ -182,7 +182,7 @@ std::string getCPUInfoAux()
     char buffer[BUF_SIZE];
     std::stringstream result;
     FILE *cmdPipe = popen("lscpu", "r");
-    if (cmdPipe != NULL)
+    if (cmdPipe != nullptr)
     {
         while (fgets(buffer, BUF_SIZE, cmdPipe))
             result << buffer;

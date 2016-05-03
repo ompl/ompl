@@ -39,7 +39,7 @@
 
 #include "ompl/base/Planner.h"
 #include "ompl/geometric/PathGeometric.h"
-#include <boost/thread.hpp>
+#include <mutex>
 
 namespace ompl
 {
@@ -130,7 +130,7 @@ namespace ompl
             geometric::PathHybridizationPtr phybrid_;
 
             /** \brief Lock for phybrid_ */
-            boost::mutex                    phlock_;
+            std::mutex                      phlock_;
 
         private:
 
@@ -138,7 +138,7 @@ namespace ompl
             unsigned int                    foundSolCount_;
 
             /** \brief Lock for phybrid_ */
-            boost::mutex                    foundSolCountLock_;
+            std::mutex                      foundSolCountLock_;
         };
 
     }

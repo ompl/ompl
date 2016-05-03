@@ -82,9 +82,9 @@ namespace ompl
 
             /** \brief Assignment operator */
             PathGeometric& operator=(const PathGeometric &other);
-            
+
             /** \brief The sum of the costs for the sequence of segments that make up the path, computed using
-                OptimizationObjective::motionCost(). OptimizationObjective::initialCost() and OptimizationObjective::terminalCost() 
+                OptimizationObjective::motionCost(). OptimizationObjective::initialCost() and OptimizationObjective::terminalCost()
                 are also used in the computation for the first and last states, respectively. Empty paths have identity cost. */
             virtual base::Cost cost(const base::OptimizationObjectivePtr &obj) const;
 
@@ -155,7 +155,7 @@ namespace ompl
             /** \brief Check if the path is valid. If it is not,
                 attempts are made to fix the path by sampling around
                 invalid states. Not more than \e attempts samples are
-                drawn. 
+                drawn.
                 \return A pair of boolean values is returned. The first
                 value represents the validity of the path before any
                 change was made. The second value represents the

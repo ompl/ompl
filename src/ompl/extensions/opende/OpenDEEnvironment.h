@@ -48,7 +48,7 @@
 #include <vector>
 #include <string>
 #include <map>
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
 namespace ompl
 {
@@ -61,7 +61,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::OpenDEEnvironmentPtr
-            \brief A boost shared pointer wrapper for ompl::control::OpenDEEnvironment */
+            \brief A shared pointer wrapper for ompl::control::OpenDEEnvironment */
 
         /** \brief This class contains the OpenDE constructs OMPL needs to know about when planning. */
         class OpenDEEnvironment
@@ -102,9 +102,9 @@ namespace ompl
             unsigned int          minControlSteps_;
 
             /** \brief Lock to use when performing simulations in the world. (OpenDE simulations are NOT thread safe) */
-            mutable boost::mutex  mutex_;
+            mutable std::mutex    mutex_;
 
-            OpenDEEnvironment() : world_(NULL), verboseContacts_(false), maxContacts_(3), stepSize_(0.05), maxControlSteps_(100), minControlSteps_(5)
+            OpenDEEnvironment() : world_(nullptr), verboseContacts_(false), maxContacts_(3), stepSize_(0.05), maxControlSteps_(100), minControlSteps_(5)
             {
                 contactGroup_ = dJointGroupCreate(0);
             }

@@ -43,7 +43,8 @@ from os.path import exists, join, isdir
 from os import getenv
 import subprocess
 from sys import platform
-from pygccxml import declarations
+from pygccxml import declarations, parser
+from pygccxml.utils import xml_generator
 from pyplusplus import module_builder, messages
 from pyplusplus.module_builder import call_policies
 from pyplusplus.decl_wrappers import print_declarations
@@ -98,6 +99,10 @@ void __setitem(%s* obj, unsigned int i, %s val)
 }
 """)
 
+# impl_conv_code = """
+# boost::python::implicitly_convertible< std::shared_ptr< %(from)s >, std::shared_ptr< %(to)s > >();
+# """
+
 def returns_reference(decl):
     """Return True iff the declaration returns a pointer or reference."""
     c = decl.return_type.decl_string[-1]
@@ -111,40 +116,11 @@ class code_generator_t(object):
         @name name of the python module
         @dep name of another module this module depends on"""
         module_builder.set_logger_level( logging.INFO )
-        candidate_include_paths = [ "@OMPL_INCLUDE_DIR@", "@OMPLAPP_INCLUDE_DIR@",
-            "@PYTHON_INCLUDE_DIRS@", "@Boost_INCLUDE_DIR@", "@ASSIMP_INCLUDE_DIRS@", "@ODEINT_INCLUDE_DIR@", "@EIGEN3_INCLUDE_DIR@"]
-
-        # Adding standard windows headers
-        if platform == 'win32':
-            compiler = getenv('GCCXML_COMPILER')
-            # MinGW
-            if compiler != None and (compiler.lower().endswith('g++') or compiler.lower().endswith('c++')):
-                version = subprocess.Popen([compiler, '-dumpversion'],
-                    stdout=subprocess.PIPE).communicate()[0].strip()
-                # Find whole path to MinGW
-                compiler_path = ""
-                for path in getenv('PATH').split(';'):
-                    if exists(join(path, compiler + '.exe')):
-                        compiler_path = path
-                        break
-
-                if compiler_path is not "":
-                    # Adding in necessary include paths
-                    candidate_include_paths.append (join(compiler_path, "..", "include"))
-                    candidate_include_paths.append (join(compiler_path, "..", "lib", "gcc", "mingw32", version, "include"))
-                    candidate_include_paths.append (join(compiler_path, "..", "lib", "gcc", "mingw32", version, "include", "c++"))
-                    candidate_include_paths.append (join(compiler_path, "..", "lib", "gcc", "mingw32", version, "include", "c++", "mingw32"))
-
-        include_paths = []
-        for path in candidate_include_paths:
-            if len(path)>0 and exists(path):
-                include_paths.append(path)
+        xml_generator_config = parser.load_xml_generator_configuration("@CASTXMLCONFIGPATH@")
         self.mb = module_builder.module_builder_t(
             files = [ 'bindings/' + name + '.h' ],
             cache = '@CMAKE_BINARY_DIR@/pyplusplus_'+name+'.cache',
-            gccxml_path = "@GCCXML@",
-            include_paths = include_paths,
-            cflags="@PYOMPL_EXTRA_CFLAGS@",
+            xml_generator_config = xml_generator_config,
             indexing_suite_version = indexing_suite_version )
         self.replacement = {} if replacement_dict==None else replacement_dict
         self.mb.classes().always_expose_using_scope = True
@@ -216,3 +192,23 @@ class code_generator_t(object):
     def add_boost_function(self, FT, func_name, func_doc):
         self.mb.add_declaration_code('PYDECLARE_FUNCTION(%s,%s)' % (FT, func_name))
         self.mb.add_registration_code('PYREGISTER_FUNCTION(%s,%s,"%s")' % (FT, func_name, func_doc))
+
+    # Boost.Python has special code to handle boost::shared_ptr conversions,
+    # but support for std::shared_ptr is still missing (see
+    # https://github.com/boostorg/python/issues/29). This function attempts
+    # to (partially) fix this for specific classes.
+
+    # We currently use a different workaround: copy the special bits of Boost
+    # code that handle boost::shared_ptr's and modify them to use
+    # std::shared_ptr's instead. Might not be portable across a wide range of
+    # Boost.Python versions....
+
+    # def add_implicit_conversions(self, cls):
+    #     cls.held_type = 'std::shared_ptr< %s >' % cls.wrapper_alias
+    #     cls.add_registration_code(impl_conv_code % {'from': cls.wrapper_alias, 'to': cls.decl_string}, False)
+    #     for base in cls.recursive_bases:
+    #         if base.access_type == 'public':
+    #             # from class to its base
+    #             cls.add_registration_code(impl_conv_code % {'from': cls.decl_string, 'to': base.related_class.decl_string}, False)
+    #             # from wrapper to clas base class
+    #             cls.add_registration_code(impl_conv_code % {'from': cls.wrapper_alias, 'to': base.related_class.decl_string}, False)

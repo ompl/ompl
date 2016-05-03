@@ -62,7 +62,6 @@ namespace ompl
                 Vertex(void) {}
                 Vertex(double vx, double vy);
                 bool operator==(const Vertex& v) const;
-                friend std::size_t hash_value(const Vertex& v);
                 double x, y;
             };
 

@@ -58,7 +58,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::ThunderRetrieveRepairPtr
-            \brief A boost shared pointer wrapper for ompl::base::ThunderRetrieveRepair */
+            \brief A shared pointer wrapper for ompl::base::ThunderRetrieveRepair */
 
         /**
            @anchor ThunderRetrieveRepair

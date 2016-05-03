@@ -43,8 +43,6 @@
 #include <cmath>
 #include <vector>
 #include <cstdio>
-// For boost::make_shared
-#include <boost/make_shared.hpp>
 
 using namespace ompl;
 
@@ -330,7 +328,7 @@ BOOST_AUTO_TEST_CASE(SamplePhsSurface)
         }
 
         // Create the PHS object
-        phsPtr = boost::make_shared<ompl::ProlateHyperspheroid>(dim, &v1[0], &v2[0]);
+        phsPtr = std::make_shared<ompl::ProlateHyperspheroid>(dim, &v1[0], &v2[0]);
 
         // Pick a random transverse diameter
         tDiameter = rng.uniformReal(1.01*phsPtr->getMinTransverseDiameter(), 2.5*phsPtr->getMinTransverseDiameter());
@@ -385,7 +383,7 @@ BOOST_AUTO_TEST_CASE(SampleInPhs)
         }
 
         // Create the PHS object
-        phsPtr = boost::make_shared<ompl::ProlateHyperspheroid>(dim, &v1[0], &v2[0]);
+        phsPtr = std::make_shared<ompl::ProlateHyperspheroid>(dim, &v1[0], &v2[0]);
 
         // Pick a random transverse diameter
         tDiameter = rng.uniformReal(1.1*phsPtr->getMinTransverseDiameter(), 2.5*phsPtr->getMinTransverseDiameter());
@@ -404,7 +402,8 @@ BOOST_AUTO_TEST_CASE(SampleInPhs)
             rng.uniformProlateHyperspheroid(phsPtr, &xRand[0]);
 
             // Check that the point lies within the shape
-            BOOST_CHECK_GE(phsPtr->getPathLength(&xRand[0]), phsPtr->getMinTransverseDiameter());
+            BOOST_CHECK_GE(phsPtr->getPathLength(&xRand[0]) + std::numeric_limits<float>::epsilon(),
+                phsPtr->getMinTransverseDiameter());
             BOOST_CHECK_LT(phsPtr->getPathLength(&xRand[0]), tDiameter);
         }
     }

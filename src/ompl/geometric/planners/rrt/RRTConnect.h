@@ -49,7 +49,7 @@ namespace ompl
         /**
            @anchor gRRTC
            @par Short description
-           The basic idea is to grow to RRTs, one from the start and
+           The basic idea is to grow two RRTs, one from the start and
            one from the goal, and attempt to connect them.
            @par External documentation
            J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI: [10.1109/ROBOT.2000.844730](http://dx.doi.org/10.1109/ROBOT.2000.844730)<br>
@@ -118,13 +118,13 @@ namespace ompl
             {
             public:
 
-                Motion() : root(NULL), state(NULL), parent(NULL)
+                Motion() : root(nullptr), state(nullptr), parent(nullptr)
                 {
-                    parent = NULL;
-                    state  = NULL;
+                    parent = nullptr;
+                    state  = nullptr;
                 }
 
-                Motion(const base::SpaceInformationPtr &si) : root(NULL), state(si->allocState()), parent(NULL)
+                Motion(const base::SpaceInformationPtr &si) : root(nullptr), state(si->allocState()), parent(nullptr)
                 {
                 }
 
@@ -139,7 +139,7 @@ namespace ompl
             };
 
             /** \brief A nearest-neighbor datastructure representing a tree of motions */
-            typedef boost::shared_ptr< NearestNeighbors<Motion*> > TreeData;
+            typedef std::shared_ptr< NearestNeighbors<Motion*> > TreeData;
 
             /** \brief Information attached to growing a tree of motions (used internally) */
             struct TreeGrowingInfo

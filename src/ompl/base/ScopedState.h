@@ -554,7 +554,7 @@ namespace ompl
         }
 
         /** \brief Shared pointer to a ScopedState<> */
-        typedef boost::shared_ptr< ScopedState<> > ScopedStatePtr;
+        typedef std::shared_ptr< ScopedState<> > ScopedStatePtr;
     }
 }
 

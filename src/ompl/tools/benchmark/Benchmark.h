@@ -82,10 +82,10 @@ namespace ompl
             typedef std::vector<std::map<std::string, std::string> > RunProgressData;
 
             /** \brief Signature of function that can be called before a planner execution is started */
-            typedef boost::function<void(const base::PlannerPtr&)> PreSetupEvent;
+            typedef std::function<void(const base::PlannerPtr&)> PreSetupEvent;
 
             /** \brief Signature of function that can be called after a planner execution is completed */
-            typedef boost::function<void(const base::PlannerPtr&, RunProperties&)> PostSetupEvent;
+            typedef std::function<void(const base::PlannerPtr&, RunProperties&)> PostSetupEvent;
 
             /** \brief The data collected after running a planner multiple times */
             struct PlannerExperiment
@@ -197,13 +197,13 @@ namespace ompl
             };
 
             /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */
-            Benchmark(geometric::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(&setup), csetup_(NULL)
+            Benchmark(geometric::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(&setup), csetup_(nullptr)
             {
                 exp_.name = name;
             }
 
             /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name (\e name) can be specified */
-            Benchmark(control::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(NULL), csetup_(&setup)
+            Benchmark(control::SimpleSetup &setup, const std::string &name = std::string()) : gsetup_(nullptr), csetup_(&setup)
             {
                 exp_.name = name;
             }

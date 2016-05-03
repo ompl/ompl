@@ -46,7 +46,7 @@
 
 /// Public
 ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c, const AtlasChart &neighbor)
-: owner_(c), complement_(NULL)
+: owner_(c), complement_(nullptr)
 {
     // u should be neighbor's center projected onto our chart
     Eigen::VectorXd u(owner_.k_);
@@ -55,7 +55,7 @@ ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c,
 }
 
 ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c, Eigen::Ref<const Eigen::VectorXd> u)
-: owner_(c), complement_(NULL)
+: owner_(c), complement_(nullptr)
 {
     setU(u);
 }
@@ -279,7 +279,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (Eigen::Ref
             return &c;
     }
     
-    return NULL;
+    return nullptr;
 }
 
 void ompl::base::AtlasChart::approximateMeasure (void)
@@ -291,7 +291,7 @@ void ompl::base::AtlasChart::approximateMeasure (void)
     for (std::size_t i = 0; i < samples.size(); i++)
     {
         // Take a sample and check if it's inside P \intersect k-Ball
-        if (inP(samples[i]*radius_, NULL))
+        if (inP(samples[i]*radius_, nullptr))
             countInside++;
     }
     

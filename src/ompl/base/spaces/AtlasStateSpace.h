@@ -312,7 +312,7 @@ namespace ompl
             /** \brief Pick a chart at random with probability proportional the chart measure / atlas measure. */
             virtual AtlasChart &sampleChart (void) const;
             
-            /** \brief Find the chart to which \a x belongs. Returns NULL if no chart found. 
+            /** \brief Find the chart to which \a x belongs. Returns nullptr if no chart found. 
              * Assumes \a x is already on the manifold. */
             virtual AtlasChart *owningChart (const Eigen::VectorXd &x) const;
             
@@ -344,10 +344,10 @@ namespace ompl
             
             /** \brief Traverse the manifold from \a from toward \a to. Returns true if we reached \a to, and false if
              * we stopped early for any reason, such as a collision or traveling too far. No collision checking is performed
-             * if \a interpolate is true. If \a stateList is not NULL, the sequence of intermediates is saved to it, including
+             * if \a interpolate is true. If \a stateList is not nullptr, the sequence of intermediates is saved to it, including
              * a copy of \a from, as well as the final state. Caller is responsible for freeing states returned in \a stateList. */
             virtual bool followManifold (const StateType *from, const StateType *to, const bool interpolate = false,
-                                         std::vector<StateType *> *stateList = NULL) const;
+                                         std::vector<StateType *> *stateList = nullptr) const;
 
             int estimateFrontierPercent () const;
             

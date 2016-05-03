@@ -40,18 +40,7 @@
 #include <cmath>
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/math/constants/constants.hpp>
-#include <boost/version.hpp>
 #include <boost/assert.hpp>
-
-#ifndef BOOST_ASSERT_MSG
-#define BOOST_ASSERT_MSG(expr, msg) assert(expr)
-#endif
-
-#if BOOST_VERSION < 105000
-namespace boost{ namespace math{ namespace constants{
-BOOST_DEFINE_MATH_CONSTANT(root_three, 1.732050807568877293527446341505872366, 1.73205080756887729352744634150587236694280525381038062805580697945193301690880003708114618675724857567562614142, 0)
-}}}
-#endif
 
 static const double MAX_QUATERNION_NORM_ERROR = 1e-9;
 
@@ -159,7 +148,7 @@ void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State * mea
         SO3StateSpace::StateType q,
             *qs = static_cast<SO3StateSpace::StateType*>(state);
         const SO3StateSpace::StateType *qmu = static_cast<const SO3StateSpace::StateType*>(mean);
-	double half_theta = theta / 2.0;
+        double half_theta = theta / 2.0;
         double s = sin(half_theta) / theta;
         q.w = cos(half_theta);
         q.x = s * x;
@@ -380,7 +369,7 @@ void ompl::base::SO3StateSpace::registerProjections()
 
 double* ompl::base::SO3StateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
-    return index < 4 ? &(state->as<StateType>()->x) + index : NULL;
+    return index < 4 ? &(state->as<StateType>()->x) + index : nullptr;
 }
 
 void ompl::base::SO3StateSpace::printState(const State *state, std::ostream &out) const
@@ -392,7 +381,7 @@ void ompl::base::SO3StateSpace::printState(const State *state, std::ostream &out
         out << qstate->x << " " << qstate->y << " " << qstate->z << " " << qstate->w;
     }
     else
-        out << "NULL";
+        out << "nullptr";
     out << ']' << std::endl;
 }
 

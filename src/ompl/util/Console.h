@@ -150,7 +150,7 @@ namespace ompl
 
         };
 
-        /** \brief This function instructs ompl that no messages should be outputted. Equivalent to useOutputHandler(NULL) */
+        /** \brief This function instructs ompl that no messages should be outputted. Equivalent to useOutputHandler(nullptr) */
         void noOutputHandler();
 
         /** \brief Restore the output handler that was previously in use (if any) */
@@ -159,7 +159,7 @@ namespace ompl
         /** \brief Specify the instance of the OutputHandler to use. By default, this is OutputHandlerSTD */
         void useOutputHandler(OutputHandler *oh);
 
-        /** \brief Get the instance of the OutputHandler currently used. This is NULL in case there is no output handler. */
+        /** \brief Get the instance of the OutputHandler currently used. This is nullptr in case there is no output handler. */
         OutputHandler* getOutputHandler();
 
         /** \brief Set the minimum level of logging data to output.  Messages

@@ -13,7 +13,7 @@ dir(base), dir(control), dir(geometric), dir(tools), dir(util)
 - \ref cpp_py_diffs
 - \ref py_api_diffs
 - \ref py_example
-- \ref pyfunction_to_boostfunction
+- \ref pyfunction_to_stdfunction
 - \ref updating_python_bindings
 
 
@@ -29,7 +29,7 @@ Although almost all C++ functionality is exposed to Python, there are some cavea
 #  Important differences between C++ and Python {#cpp_py_diffs}
 
 - There are no templates in Python, so templated C++ classes and functions need to be fully instantiated to allow them to be exposed to python.
-- There are no C-style pointers in python, and no “new” or “delete” operators. This could be a problem, but can be dealt with mostly by using Boost [shared_ptr](http://www.boost.org/doc/libs/release/libs/smart_ptr/shared_ptr.htm)'s. If a C++ function takes pointer input/output parameters, _usually_ a reference to the object is passed in the python bindings. In other words, you should be able to get and set the current value of an object through its methods. In some cases odd side effects may occur if you pass temporary objects (e.g., `function_call(Constructor_call())`), so it's advisable to create variables with the appropriate scope.
+- There are no C-style pointers in python, and no “new” or “delete” operators. This could be a problem, but can be dealt with mostly by using [shared_ptr](http://en.cppreference.com/w/cpp/memory/shared_ptr)'s. If a C++ function takes pointer input/output parameters, _usually_ a reference to the object is passed in the python bindings. In other words, you should be able to get and set the current value of an object through its methods. In some cases odd side effects may occur if you pass temporary objects (e.g., `function_call(Constructor_call())`), so it's advisable to create variables with the appropriate scope.
 
 
 # Differences between the C++ and Python API's {#py_api_diffs}
@@ -113,9 +113,9 @@ if __name__ == "__main__":
 ~~~
 
 
-# Creating boost::function objects from Python functions {#pyfunction_to_boostfunction}
+# Creating boost::function objects from Python functions {#pyfunction_to_stdfunction}
 
-OMPL relies heavily on boost::function objects for callback functions. To specify a Python function as a callback function, that function needs to be cast to the right function type. The simple example above already showed how to do this for a state validity checker function:
+OMPL relies heavily on std::function objects for callback functions. To specify a Python function as a callback function, that function needs to be cast to the right function type. The simple example above already showed how to do this for a state validity checker function:
 
 ~~~{.py}
 ss.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))

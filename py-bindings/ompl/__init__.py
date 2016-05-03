@@ -41,7 +41,7 @@ class PlanningAlgorithms(object):
                 plannerObject = eval("""%s(ompl.control.SpaceInformation(
                     ompl.base.RealVectorStateSpace(1),
                     ompl.control.RealVectorControlSpace(
-                        ompl.base.RealVectorStateSpace(1),1)))"""  % planner)
+                        ompl.base.RealVectorStateSpace(1),1)))""" % planner)
                 params = plannerObject.params()
             except:
                 try:
@@ -65,27 +65,27 @@ class PlanningAlgorithms(object):
                 if rangeSuggestion == '': continue
                 rangeSuggestion = rangeSuggestion.split(':')
                 defaultValue = p.getValue()
-                if len(rangeSuggestion)==1:
+                if len(rangeSuggestion) == 1:
                     rangeSuggestion = rangeSuggestion[0].split(',')
-                    if len(rangeSuggestion)==1:
+                    if len(rangeSuggestion) == 1:
                         raise Exception('Cannot parse range suggestion')
-                    elif len(rangeSuggestion)==2:
+                    elif len(rangeSuggestion) == 2:
                         rangeType = self.BOOL
-                        defaultValue = 0 if defaultValue==rangeSuggestion[0] else 1
+                        defaultValue = 0 if defaultValue == rangeSuggestion[0] else 1
                         rangeSuggestion = ''
                     else:
                         rangeType = self.ENUM
-                        defaultValue = 0 if defaultValue=='' else rangeSuggestion.index(defaultValue)
+                        defaultValue = 0 if defaultValue == '' else rangeSuggestion.index(defaultValue)
                 else:
                     if ('.' in rangeSuggestion[0] or '.' in rangeSuggestion[-1]):
                         rangeType = self.DOUBLE
                         rangeSuggestion = [float(r) for r in rangeSuggestion]
-                        defaultValue = 0. if defaultValue=='' else float(defaultValue)
+                        defaultValue = 0. if defaultValue == '' else float(defaultValue)
                     else:
                         rangeType = self.INT
                         rangeSuggestion = [int(r) for r in rangeSuggestion]
-                        defaultValue = 0 if defaultValue=='' else int(defaultValue)
-                    if len(rangeSuggestion)==2:
+                        defaultValue = 0 if defaultValue == '' else int(defaultValue)
+                    if len(rangeSuggestion) == 2:
                         rangeSuggestion = [rangeSuggestion[0], 1, rangeSuggestion[1]]
                 name = p.getName()
                 displayName = name.replace('_', ' ').capitalize()

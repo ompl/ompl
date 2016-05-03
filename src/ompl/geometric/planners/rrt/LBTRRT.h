@@ -146,11 +146,11 @@ namespace ompl
             // Planner progress property functions
             std::string getIterationCount() const
             {
-                return boost::lexical_cast<std::string>(iterations_);
+                return std::to_string(iterations_);
             }
             std::string getBestCost() const
             {
-                return boost::lexical_cast<std::string>(bestCost_);
+                return std::to_string(bestCost_);
             }
 
         protected:
@@ -163,13 +163,13 @@ namespace ompl
             {
             public:
 
-                Motion() : state_(NULL), parentApx_(NULL), costApx_(0.0)
+                Motion() : state_(nullptr), parentApx_(nullptr), costApx_(0.0)
                 {
                 }
 
                 /** \brief Constructor that allocates memory for the state */
                 Motion(const base::SpaceInformationPtr &si)
-                    : state_(si->allocState()), parentApx_(NULL), costApx_(0.0)
+                    : state_(si->allocState()), parentApx_(nullptr), costApx_(0.0)
                 {
                 }
 
@@ -224,7 +224,7 @@ namespace ompl
                 {
                 }
 
-                bool operator() (const Motion *motionA, const Motion *motionB)
+                bool operator() (const Motion *motionA, const Motion *motionB) const
                 {
                     return motionA->costLb_ < motionB->costLb_;
                 }
@@ -276,7 +276,7 @@ namespace ompl
             base::StateSamplerPtr                          sampler_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
-            boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
 
             /** \brief A graph of motions Glb*/
             DynamicSSSP                                    lowerBoundGraph_;

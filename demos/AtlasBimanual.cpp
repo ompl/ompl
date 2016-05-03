@@ -244,7 +244,7 @@ int main (int argc, char **argv)
     }
     ompl::base::AtlasStateSpacePtr atlas(new BimanualManifold(std::atoi(argv[3])));
     BimanualManifold *biman = (BimanualManifold *) atlas.get();
-    ompl::base::StateValidityCheckerFn isValid = boost::bind(&BimanualManifold::isValid, biman, _1);
+    ompl::base::StateValidityCheckerFn isValid = std::bind(&BimanualManifold::isValid, biman, std::placeholders::_1);
     biman->setBounds(-M_PI, M_PI);
     Eigen::VectorXd x(14); x << 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0;
@@ -281,7 +281,7 @@ int main (int argc, char **argv)
     ompl::base::ConstrainedSpaceInformationPtr si = ss.getConstrainedSpaceInformation();
     atlas->setSpaceInformation(si);
     ss.setStateValidityChecker(isValid);
-    si->setValidStateSamplerAllocator(boost::bind(vssa, atlas, _1));
+    si->setValidStateSamplerAllocator(std::bind(vssa, atlas, std::placeholders::_1));
     ompl::base::ConstraintInformationPtr ci(new ompl::base::ConstraintInformation);
     ompl::base::ConstraintPtr c(new ompl::base::AtlasConstraint(atlas));
     ci->addConstraint(c);

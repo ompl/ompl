@@ -37,7 +37,6 @@
 #include "ompl/util/PPM.h"
 #include "ompl/util/Exception.h"
 #include <cstdio>
-#include <boost/lexical_cast.hpp>
 
 ompl::PPM::PPM() : width_(0), height_(0)
 {
@@ -82,9 +81,9 @@ void ompl::PPM::loadFile(const char *filename)
 void ompl::PPM::saveFile(const char *filename)
 {
     if (pixels_.size() != width_ * height_)
-        throw Exception("Number of pixels is " + boost::lexical_cast<std::string>(pixels_.size()) +
+        throw Exception("Number of pixels is " + std::to_string(pixels_.size()) +
             " but the set width and height require " +
-                boost::lexical_cast<std::string>(width_ * height_) + " pixels.");
+                std::to_string(width_ * height_) + " pixels.");
     FILE *fp;
     fp = fopen(filename, "wb");
     if (!fp)

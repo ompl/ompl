@@ -42,8 +42,8 @@
 #include "ompl/base/StateSpace.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 
-// For boost::make_shared
-#include <boost/make_shared.hpp>
+// For std::make_shared
+#include <memory>
 // For std::vector
 #include <vector>
 
@@ -207,7 +207,7 @@ namespace ompl
                     std::vector<double> goalFocusVector = getInformedSubstate(goalStates.at(j));
 
                     // Create the definition of the PHS
-                    listPhsPtrs_.push_back(boost::make_shared<ProlateHyperspheroid>(informedSubSpace_->getDimension(), &startFocusVector[0], &goalFocusVector[0]));
+                    listPhsPtrs_.push_back(std::make_shared<ProlateHyperspheroid>(informedSubSpace_->getDimension(), &startFocusVector[0], &goalFocusVector[0]));
                 }
             }
 

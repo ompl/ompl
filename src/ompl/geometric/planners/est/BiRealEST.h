@@ -107,12 +107,12 @@ namespace ompl
             {
             public:
 
-                Motion() : state(NULL), parent(NULL), element(NULL), root(NULL)
+                Motion() : state(nullptr), parent(nullptr), element(nullptr), root(nullptr)
                 {
                 }
 
                 /// \brief Constructor that allocates memory for the state
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), element(NULL), root(NULL)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), element(nullptr), root(nullptr)
                 {
                 }
 
@@ -140,8 +140,8 @@ namespace ompl
             }
 
             /// \brief A nearest-neighbors datastructure containing the tree of motions
-            boost::shared_ptr< NearestNeighbors<Motion*> > nnStart_;
-            boost::shared_ptr< NearestNeighbors<Motion*> > nnGoal_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nnStart_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nnGoal_;
 
             /// \brief The set of all states in the start tree
             std::vector<Motion*> startMotions_;
@@ -156,7 +156,7 @@ namespace ompl
 
             /// \brief Add a motion to the exploration tree
             void addMotion(Motion* motion, std::vector<Motion*>& motions,
-                           PDF<Motion*>& pdf, boost::shared_ptr< NearestNeighbors<Motion*> > nn,
+                           PDF<Motion*>& pdf, std::shared_ptr< NearestNeighbors<Motion*> > nn,
                            const std::vector<Motion*>& neighbors);
 
             /// \brief Valid state sampler

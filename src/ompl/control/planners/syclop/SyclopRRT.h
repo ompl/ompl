@@ -100,7 +100,7 @@ namespace ompl
 
             base::StateSamplerPtr sampler_;
             DirectedControlSamplerPtr controlSampler_;
-            boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
             bool regionalNN_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */

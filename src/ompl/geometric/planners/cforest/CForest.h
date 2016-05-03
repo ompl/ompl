@@ -42,7 +42,7 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/tools/config/SelfConfig.h"
 
-#include <boost/thread.hpp>
+#include <mutex>
 
 #include <vector>
 
@@ -189,7 +189,7 @@ namespace ompl
             std::vector<base::StateSamplerPtr>           samplers_;
 
             /** \brief Stores the states already shared to check if a specific state has been shared. */
-            boost::unordered_set<const base::State *>    statesShared_;
+            std::unordered_set<const base::State *>      statesShared_;
 
             /** \brief Cost of the best path found so far among planners. */
             base::Cost                                   bestCost_;
@@ -201,10 +201,10 @@ namespace ompl
             unsigned int                                 numStatesShared_;
 
             /** \brief Mutex to control the access to the newSolutionFound() method. */
-            boost::mutex                                 newSolutionFoundMutex_;
+            std::mutex                                   newSolutionFoundMutex_;
 
             /** \brief Mutex to control the access to samplers_ */
-            boost::mutex                                 addSamplerMutex_;
+            std::mutex                                   addSamplerMutex_;
 
             /** \brief Flag to control whether the search is focused. */
             bool                                         focusSearch_;

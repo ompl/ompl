@@ -37,6 +37,7 @@
 #ifndef OMPL_CONTROL_STATE_PROPAGATOR_
 #define OMPL_CONTROL_STATE_PROPAGATOR_
 
+#include "ompl/base/State.h"
 #include "ompl/control/Control.h"
 #include "ompl/util/ClassForward.h"
 
@@ -56,7 +57,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::StatePropagatorPtr
-            \brief A boost shared pointer wrapper for ompl::control::StatePropagator */
+            \brief A shared pointer wrapper for ompl::control::StatePropagator */
 
         /** \brief Model the effect of controls on system states */
         class StatePropagator

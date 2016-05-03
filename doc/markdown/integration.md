@@ -6,8 +6,11 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
 <div class="btn-group">
   <a class="btn btn-default" href="#integration_moveit">MoveIt!</a>
   <a class="btn btn-default" href="#integration_openrave">OpenRAVE</a>
+  <a class="btn btn-default" href="#integration_vrep">V-REP</a>
   <a class="btn btn-default" href="#integration_morse">MORSE</a>
   <a class="btn btn-default" href="#integration_kautham">Kautham</a>
+  <a class="btn btn-default" href="#integration_verosim">VEROSIM</a>
+  <a class="btn btn-default" href="#integration_rl">Robotics Library</a>
   <a class="btn btn-default" href="#integration_sims">SIMS</a>
   <a class="btn btn-default" href="#integration_omplapp">OMPL.app</a>
 </div>
@@ -40,6 +43,20 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
 </div>
 
 
+# V-REP {#integration_vrep}
+
+<div class="row">
+  <div class="col-lg-7 col-md-6 col-sm-5">
+    [The V-REP platform](http://coppeliarobotics.com) is a modular, generic and general purpose robot simulation framework that offers various tools related to robotics (4 physics engines, collision detection, minimum distance calculation, proximity sensor simulation, vision sensor simulation, full FK/IK kinematic solver, etc.), with various kinds of interfaces (ROS, remote API, plug-ins, add-ons) and language support: C/C++, Python, Java, Matlab, Octave, Lua. It is built on a distributed control architecture, allowing virtually any number of scripts running in parallel and controlling various aspects of a simulation. The OMPL interface for V-REP was implemented via a plug-in wrapping the OMPL functionality, and offering that functionality via scripting functions. This allows to quickly test various scenarios, without the need to recompile/load test code over and over again. In combination with V-REP's kinematic functionality, complex movement sequences can easily be computed: e.g. V-REP can also quickly compute several valid robot configurations for a desired end-effector pose.
+  </div>
+  <div class="col-lg-5 col-md-6 col-sm-7">
+    <div class="embed-responsive embed-responsive-16by9">
+      \htmlonly<iframe src="http://www.youtube.com/embed/JAs2yciPjvM"></iframe>\endhtmlonly
+    </div>
+  </div>
+</div>
+
+
 # MORSE {#integration_morse}
 
 <div class="row">
@@ -62,6 +79,34 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <img src="https://sir.upc.edu/projects/kautham/images/justin.JPG" width="100%">
+  </div>
+</div>
+
+
+# VEROSIM {#integration_verosim}
+
+<div class="row">
+  <div class="col-lg-7 col-md-6 col-sm-5">
+    VEROSIM is a 3D simulation system which aims at implementing the core idea of “eRobotics,” i.e., to design, program, control and optimize complex automated systems in detailed 3D simulations of their prospective working environments (space, open landscapes, forests, cities, buildings, factories etc), before commissioning the real system. At VEROSIM co-developer MMI / RWTH Aachen University, Christian Schlette uses OMPL for conventional robot motion planning as well as examining the transferability of sampling-based planners to new (robotic) applications. The adjacent video shows a user interface for the simulation-based programming of micro-optical assembly processes, where VEROSIM and OMPL support non-roboticists with automated motion planning in cluttered workcells.
+  </div>
+  <div class="col-lg-5 col-md-6 col-sm-7">
+    <div class="embed-responsive embed-responsive-16by9">
+      \htmlonly<iframe src="https://www.youtube.com/embed/CENLGo2WDAw"></iframe>\endhtmlonly
+    </div>
+  </div>
+</div>
+
+
+# Robotics Library {#integration_rl}
+
+<div class="row">
+  <div class="col-lg-7 col-md-6 col-sm-5">
+    [The Robotics Library](http://www.roboticslibrary.org) is a self-contained C++ library for robot kinematics, motion planning and control. It covers mathematics, kinematics and dynamics, hardware abstraction, motion planning, collision detection, and visualization. OMPL is not included by default, but we have created [a pull request on GitHub](https://github.com/roboticslibrary/rl/pull/2) to add OMPL support. Let us know if this works for you!
+  </div>
+  <div class="col-lg-5 col-md-6 col-sm-7">
+    <div class="embed-responsive embed-responsive-16by9">
+      \htmlonly<iframe src="https://www.youtube.com/embed/9JG3uY5M04A"></iframe>\endhtmlonly
+    </div>
   </div>
 </div>
 

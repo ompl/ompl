@@ -50,7 +50,7 @@ namespace ompl
         /// @endcond
 
         /// \class ompl::base::SolutionNonExistenceProofPtr
-        /// \brief A boost shared pointer wrapper for ompl::base::SolutionNonExistenceProof
+        /// \brief A shared pointer wrapper for ompl::base::SolutionNonExistenceProof
 
         /// \brief Abstract definition of a proof for the non-existence of a solution to a problem
         class SolutionNonExistenceProof

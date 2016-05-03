@@ -225,7 +225,7 @@ BOOST_AUTO_TEST_CASE(SO3_Simple)
     s2.random();
 
     base::SpaceInformation si(m);
-    si.setStateValidityChecker(boost::bind(&isValid, _1));
+    si.setStateValidityChecker(std::bind(&isValid, std::placeholders::_1));
     si.setup();
 
     std::vector<base::State*> states;

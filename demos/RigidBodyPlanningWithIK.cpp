@@ -125,7 +125,9 @@ void planWithIK(void)
 
     // bind a sampling function that fills its argument with a sampled state and returns true while it can produce new samples
     // we don't need to check if new samples are different from ones previously computed as this is pefromed automatically by GoalLazySamples
-    ob::GoalSamplingFn samplingFunction = boost::bind(&regionSamplingWithGS, ss.getSpaceInformation(), ss.getProblemDefinition(), &region, _1, _2);
+    ob::GoalSamplingFn samplingFunction = std::bind(&regionSamplingWithGS,
+        ss.getSpaceInformation(), ss.getProblemDefinition(), &region,
+        std::placeholders::_1, std::placeholders::_2);
 
     // create an instance of GoalLazySamples:
     ob::GoalPtr goal(new ob::GoalLazySamples(ss.getSpaceInformation(), samplingFunction));

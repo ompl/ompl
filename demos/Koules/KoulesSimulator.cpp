@@ -247,7 +247,7 @@ void KoulesSimulator::computeCollisionEvent(unsigned int i, unsigned int j)
     }
     t += time_;
     if (t >= time_ && t <= endTime_)
-        collisionEvents_.push(boost::make_tuple(t, i, j));
+        collisionEvents_.push(std::make_tuple(t, i, j));
 }
 
 void KoulesSimulator::elasticCollision(unsigned int i, unsigned int j)
@@ -329,8 +329,8 @@ void KoulesSimulator::step(const ob::State *start, const oc::Control* control,
     while (!collisionEvents_.empty())
     {
         CollisionEvent event = collisionEvents_.top();
-        double ct = event.get<0>();
-        unsigned int i = event.get<1>(), j = event.get<2>();
+        double ct = std::get<0>(event);
+        unsigned int i = std::get<1>(event), j = std::get<2>(event);
 
         collisionEvents_.pop();
         advance(ct);

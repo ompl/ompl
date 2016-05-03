@@ -56,7 +56,7 @@ OMPL_CLASS_FORWARD(DynamicTimeWarp);
 /// @endcond
 
 /** \class ompl::geometric::DynamicTimeWarpPtr
-    \brief A boost shared pointer wrapper for ompl::tools::DynamicTimeWarp */
+    \brief A shared pointer wrapper for ompl::tools::DynamicTimeWarp */
 
 class DynamicTimeWarp
 {

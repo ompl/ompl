@@ -37,12 +37,10 @@
 #ifndef OMPL_UTIL_RANDOM_NUMBERS_
 #define OMPL_UTIL_RANDOM_NUMBERS_
 
-#include <boost/shared_ptr.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_real.hpp>
-#include <boost/random/normal_distribution.hpp>
-#include <boost/random/variate_generator.hpp>
+#include <memory>
+#include <random>
 #include <cassert>
+#include <cstdint>
 
 #include "ompl/config.h"
 #if OMPL_HAVE_EIGEN3
@@ -65,19 +63,19 @@ namespace ompl
         RNG();
 
         /** \brief Constructor. Set to the specified instance seed. */
-        RNG(boost::uint32_t localSeed);
+        RNG(std::uint_fast32_t localSeed);
 
         /** \brief Generate a random real between 0 and 1 */
         double uniform01()
         {
-            return uni_();
+            return uniDist_(generator_);
         }
 
         /** \brief Generate a random real within given bounds: [\e lower_bound, \e upper_bound) */
         double uniformReal(double lower_bound, double upper_bound)
         {
             assert(lower_bound <= upper_bound);
-            return (upper_bound - lower_bound) * uni_() + lower_bound;
+            return (upper_bound - lower_bound) * uniDist_(generator_) + lower_bound;
         }
 
         /** \brief Generate a random integer within given bounds: [\e lower_bound, \e upper_bound] */
@@ -90,19 +88,19 @@ namespace ompl
         /** \brief Generate a random boolean */
         bool uniformBool()
         {
-            return uni_() <= 0.5;
+            return uniDist_(generator_) <= 0.5;
         }
 
         /** \brief Generate a random real using a normal distribution with mean 0 and variance 1 */
         double gaussian01()
         {
-            return normal_();
+            return normalDist_(generator_);
         }
 
         /** \brief Generate a random real using a normal distribution with given mean and variance */
         double gaussian(double mean, double stddev)
         {
-            return normal_() * stddev + mean;
+            return normalDist_(generator_) * stddev + mean;
         }
 
         /** \brief Generate a random real using a half-normal distribution. The value is within specified bounds [\e
@@ -125,22 +123,22 @@ namespace ompl
 
         /** \brief Set the seed used to generate the seeds of each RNG instance. Use this
             function to ensure the same sequence of random numbers is generated across multiple instances of RNG. */
-        static void setSeed(boost::uint32_t seed);
+        static void setSeed(std::uint_fast32_t seed);
 
         /** \brief Get the seed used to generate the seeds of each RNG instance.
             Passing the returned value to setSeed() at a subsequent execution of the code will ensure deterministic
             (repeatable) behaviour across multiple instances of RNG. Useful for debugging. */
-        static boost::uint32_t getSeed();
+        static std::uint_fast32_t getSeed();
 
         /** \brief Set the seed used for the instance of a RNG. Use this function to ensure that an instance of
             an RNG generates the same deterministic sequence of numbers. This function resets the member generators*/
-        void setLocalSeed(boost::uint32_t localSeed);
+        void setLocalSeed(std::uint_fast32_t localSeed);
 
         /** \brief Get the seed used for the instance of a RNG. Passing the returned value to the setInstanceSeed()
             of another RNG will assure that the two objects generate the same sequence of numbers.
             Useful for comparing different settings of a planner while maintaining the same stochastic behaviour,
             assuming that every "random" decision made by the planner is made from the same RNG. */
-        boost::uint32_t getLocalSeed() const
+        std::uint_fast32_t getLocalSeed() const
         {
             return localSeed_;
         }
@@ -161,7 +159,7 @@ namespace ompl
         DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
         <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
-        void uniformProlateHyperspheroidSurface(const boost::shared_ptr<const ProlateHyperspheroid> &phsPtr, double value[]);
+        void uniformProlateHyperspheroidSurface(const std::shared_ptr<const ProlateHyperspheroid> &phsPtr, double value[]);
 
         /** \brief Uniform random sampling of a prolate hyperspheroid, a special symmetric type of
         n-dimensional ellipse. The return variable \e value is expected to already exist.
@@ -172,7 +170,7 @@ namespace ompl
         DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
         <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
-        void uniformProlateHyperspheroid(const boost::shared_ptr<const ProlateHyperspheroid>  &phsPtr, double value[]);
+        void uniformProlateHyperspheroid(const std::shared_ptr<const ProlateHyperspheroid> &phsPtr, double value[]);
 #endif
 
     private:
@@ -180,15 +178,12 @@ namespace ompl
         class SphericalData;
 
         /** \brief The seed used for the instance of a RNG */
-        boost::uint32_t                                                          localSeed_;
-        boost::mt19937                                                           generator_;
-        boost::uniform_real<>                                                    uniDist_;
-        boost::normal_distribution<>                                             normalDist_;
-        // Variate generators must be reset when the seed changes
-        boost::variate_generator<boost::mt19937&, boost::uniform_real<> >        uni_;
-        boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > normal_;
+        std::uint_fast32_t               localSeed_;
+        std::mt19937                     generator_;
+        std::uniform_real_distribution<> uniDist_;
+        std::normal_distribution<>       normalDist_;
         //A structure holding boost::uniform_on_sphere distributions and the associated boost::variate_generators for various dimension
-        boost::shared_ptr<SphericalData>                                        sphericalDataPtr_;
+        std::shared_ptr<SphericalData>   sphericalDataPtr_;
 
     };
 }

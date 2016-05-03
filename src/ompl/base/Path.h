@@ -41,7 +41,6 @@
 #include "ompl/base/Cost.h"
 #include <iostream>
 #include <boost/concept_check.hpp>
-#include <boost/noncopyable.hpp>
 
 namespace ompl
 {
@@ -62,12 +61,15 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::base::PathPtr
-            \brief A boost shared pointer wrapper for ompl::base::Path */
+            \brief A shared pointer wrapper for ompl::base::Path */
 
         /** \brief Abstract definition of a path */
-        class Path : private boost::noncopyable
+        class Path
         {
         public:
+            // non-copyable
+            Path(const Path&) = delete;
+            Path& operator=(const Path&) = delete;
 
             /** \brief Constructor. A path must always know the space information it is part of */
             Path(const SpaceInformationPtr &si) : si_(si)

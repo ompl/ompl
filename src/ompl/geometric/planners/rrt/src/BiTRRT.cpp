@@ -48,7 +48,7 @@ ompl::geometric::BiTRRT::BiTRRT(const base::SpaceInformationPtr &si) : base::Pla
     specs_.directed = true;
 
     maxDistance_ = 0.0; // set in setup()
-    connectionPoint_ = std::make_pair<Motion*, Motion*>(NULL, NULL);
+    connectionPoint_ = std::make_pair<Motion*, Motion*>(nullptr, nullptr);
 
     Planner::declareParam<double>("range", this, &BiTRRT::setRange, &BiTRRT::getRange, "0.:1.:10000.");
 
@@ -106,7 +106,7 @@ void ompl::geometric::BiTRRT::clear()
         tStart_->clear();
     if (tGoal_)
         tGoal_->clear();
-    connectionPoint_ = std::make_pair<Motion*, Motion*>(NULL, NULL);
+    connectionPoint_ = std::make_pair<Motion*, Motion*>(nullptr, nullptr);
 
     // TRRT specific variables
     temp_ = initTemperature_;
@@ -133,8 +133,8 @@ void ompl::geometric::BiTRRT::setup()
         tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
     if (!tGoal_)
         tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    tStart_->setDistanceFunction(boost::bind(&BiTRRT::distanceFunction, this, _1, _2));
-    tGoal_->setDistanceFunction(boost::bind(&BiTRRT::distanceFunction, this, _1, _2));
+    tStart_->setDistanceFunction(std::bind(&BiTRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    tGoal_->setDistanceFunction(std::bind(&BiTRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 
     // Setup the optimization objective, if it isn't specified
     if (!pdef_ || !pdef_->hasOptimizationObjective())
@@ -166,7 +166,7 @@ ompl::geometric::BiTRRT::Motion* ompl::geometric::BiTRRT::addMotion(const base::
     si_->copyState(motion->state, state);
     motion->cost = opt_->stateCost(motion->state);
     motion->parent = parent;
-    motion->root = parent ? parent->root : NULL;
+    motion->root = parent ? parent->root : nullptr;
 
     if (opt_->isCostBetterThan(motion->cost, bestCost_)) // motion->cost is better than the existing best
         bestCost_ = motion->cost;
@@ -280,7 +280,7 @@ bool ompl::geometric::BiTRRT::connectTrees(Motion* nmotion, TreeData& tree, Moti
     // extension into segments, just in case one piece fails
     // the transition test
     GrowResult result;
-    Motion* next = NULL;
+    Motion* next = nullptr;
     do
     {
         // Extend tree from nearest toward xmotion
@@ -415,7 +415,7 @@ ompl::base::PlannerStatus ompl::geometric::BiTRRT::solve(const base::PlannerTerm
                 // The trees have been connected.  Construct the solution path
                 Motion *solution = connectionPoint_.first;
                 std::vector<Motion*> mpath1;
-                while (solution != NULL)
+                while (solution != nullptr)
                 {
                     mpath1.push_back(solution);
                     solution = solution->parent;
@@ -423,7 +423,7 @@ ompl::base::PlannerStatus ompl::geometric::BiTRRT::solve(const base::PlannerTerm
 
                 solution = connectionPoint_.second;
                 std::vector<Motion*> mpath2;
-                while (solution != NULL)
+                while (solution != nullptr)
                 {
                     mpath2.push_back(solution);
                     solution = solution->parent;
@@ -463,7 +463,7 @@ void ompl::geometric::BiTRRT::getPlannerData(base::PlannerData &data) const
         tStart_->list(motions);
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        if (motions[i]->parent == NULL)
+        if (motions[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state, 1));
         else
         {
@@ -477,7 +477,7 @@ void ompl::geometric::BiTRRT::getPlannerData(base::PlannerData &data) const
         tGoal_->list(motions);
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        if (motions[i]->parent == NULL)
+        if (motions[i]->parent == nullptr)
             data.addGoalVertex(base::PlannerDataVertex(motions[i]->state, 2));
         else
         {
@@ -488,5 +488,6 @@ void ompl::geometric::BiTRRT::getPlannerData(base::PlannerData &data) const
     }
 
     // Add the edge connecting the two trees
-    data.addEdge(data.vertexIndex(connectionPoint_.first->state), data.vertexIndex(connectionPoint_.second->state));
+    if (connectionPoint_.first && connectionPoint_.second)
+        data.addEdge(data.vertexIndex(connectionPoint_.first->state), data.vertexIndex(connectionPoint_.second->state));
 }

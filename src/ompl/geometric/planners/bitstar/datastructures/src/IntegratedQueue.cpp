@@ -47,8 +47,9 @@ namespace ompl
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
         //Public functions:
-        BITstar::IntegratedQueue::IntegratedQueue(const ompl::base::OptimizationObjectivePtr& opt, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget)
+        BITstar::IntegratedQueue::IntegratedQueue(const ompl::base::OptimizationObjectivePtr& opt, const DistanceFunc& distanceFunc, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget)
             :   opt_(opt),
+                distanceFunc_(distanceFunc),
                 nearSamplesFunc_(nearSamplesFunc),
                 nearVerticesFunc_(nearVerticesFunc),
                 lowerBoundHeuristicVertexFunc_(lowerBoundHeuristicVertex),
@@ -56,13 +57,14 @@ namespace ompl
                 lowerBoundHeuristicEdgeFunc_(lowerBoundHeuristicEdge),
                 currentHeuristicEdgeFunc_(currentHeuristicEdge),
                 currentHeuristicEdgeTargetFunc_(currentHeuristicEdgeTarget),
-                useFailureTracking_(false),
                 delayRewiring_(true),
                 outgoingLookupTables_(true),
                 incomingLookupTables_(true),
-                vertexQueue_( boost::bind(&BITstar::IntegratedQueue::vertexQueueComparison, this, _1, _2) ), //This tells the vertexQueue_ to use the vertexQueueComparison for sorting
+                vertexQueue_( std::bind(&BITstar::IntegratedQueue::vertexQueueComparison, this,
+                    std::placeholders::_1, std::placeholders::_2) ), //This tells the vertexQueue_ to use the vertexQueueComparison for sorting
                 vertexToExpand_( vertexQueue_.begin() ),
-                edgeQueue_( boost::bind(&BITstar::IntegratedQueue::edgeQueueComparison, this, _1, _2) ), //This tells the edgeQueue_ to use the edgeQueueComparison for sorting
+                edgeQueue_( std::bind(&BITstar::IntegratedQueue::edgeQueueComparison, this,
+                    std::placeholders::_1, std::placeholders::_2) ), //This tells the edgeQueue_ to use the edgeQueueComparison for sorting
                 vertexIterLookup_(),
                 outgoingEdges_(),
                 incomingEdges_(),
@@ -98,7 +100,7 @@ namespace ompl
 
 
 
-        void BITstar::IntegratedQueue::eraseVertex(const VertexPtr& oldVertex, bool disconnectParent, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN)
+        void BITstar::IntegratedQueue::eraseVertex(const VertexPtr& oldVertex, bool disconnectParent, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices)
         {
             //If requested, disconnect from parent, cascading cost updates:
             if (disconnectParent == true)
@@ -107,7 +109,7 @@ namespace ompl
             }
 
             //Remove it from vertex queue and lookup, and edge queues (as requested):
-            this->vertexRemoveHelper(oldVertex, vertexNN, freeStateNN, true);
+            this->vertexRemoveHelper(oldVertex, vertexNN, freeStateNN, recycledVertices, true);
         }
 
 
@@ -128,7 +130,7 @@ namespace ompl
 
 
 
-        BITstar::IntegratedQueue::VertexPtrPair BITstar::IntegratedQueue::frontEdge()
+        BITstar::VertexPtrPair BITstar::IntegratedQueue::frontEdge()
         {
             if (this->isEmpty() == true)
             {
@@ -195,7 +197,7 @@ namespace ompl
 
 
 
-        BITstar::IntegratedQueue::VertexPtrPair BITstar::IntegratedQueue::popFrontEdge()
+        BITstar::VertexPtrPair BITstar::IntegratedQueue::popFrontEdge()
         {
             VertexPtrPair rval;
 
@@ -425,7 +427,7 @@ namespace ompl
 
 
 
-        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::prune(const VertexPtr& pruneStartPtr, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN)
+        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::prune(const VertexPtr& pruneStartPtr, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices)
         {
             if (this->isSorted() == false)
             {
@@ -477,7 +479,7 @@ namespace ompl
                     --queueIter;
 
                     //Prune the branch:
-                    numPruned = this->pruneBranch(pruneIter->second, vertexNN, freeStateNN);
+                    numPruned = this->pruneBranch(pruneIter->second, vertexNN, freeStateNN, recycledVertices);
                 }
                 //No else, skip this vertex.
 
@@ -491,10 +493,10 @@ namespace ompl
 
 
 
-        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::resort(const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN)
+        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::resort(const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices)
         {
             //Variable:
-            typedef boost::unordered_map<BITstar::VertexId, VertexPtr> VertexIdToVertexPtrUMap;
+            typedef std::unordered_map<BITstar::VertexId, VertexPtr> VertexIdToVertexPtrUMap;
             typedef std::map<unsigned int, VertexIdToVertexPtrUMap> DepthToUMapMap;
             //The number of vertices and samples pruned, respectively:
             std::pair<unsigned int, unsigned int> numPruned;
@@ -531,12 +533,12 @@ namespace ompl
                             //Make sure it has not already been returned to the set of samples:
                             if (vIter->second->isInTree() == true)
                             {
-                                //Are we pruning the vertex from the queue?
-                                if (this->vertexPruneCondition(vIter->second) == true)
+                                //Are we pruning the vertex from the queue (and do we have "permission" to do so)?
+                                if (this->vertexPruneCondition(vIter->second) == true && static_cast<bool>(vertexNN) == true && static_cast<bool>(freeStateNN) == true)
                                 {
                                     //The vertex should just be pruned and forgotten about.
                                     //Prune the branch:
-                                    numPruned = this->pruneBranch(vIter->second, vertexNN, freeStateNN);
+                                    numPruned = this->pruneBranch(vIter->second, vertexNN, freeStateNN, recycledVertices);
                                 }
                                 else
                                 {
@@ -949,24 +951,47 @@ namespace ompl
                 //Variables:
                 //The vector of nearby samples (either within r or the k-nearest)
                 std::vector<VertexPtr> neighbourSamples;
+                //The vector of nearby vertices
+                std::vector<VertexPtr> neighbourVertices;
+                //Are we using k-nearest?
+                bool usingKNearest;
+                //If we're using k-nearest, what number that is
+                unsigned int k;
 
-                //Get the set of nearby free states:
-                nearSamplesFunc_(vertex, &neighbourSamples);
+                //Get the set of nearby free states, returns the number k if it's k nearest, 0u otherwise
+                k = nearSamplesFunc_(vertex, &neighbourSamples);
+
+                //Decode if we're using k-nearest for readability
+                usingKNearest = (k > 0u);
+
+                //If we're usjng k-nearest, we always have to also get the neighbourVertices and the do some post-processing
+                if (usingKNearest == true)
+                {
+                    //Get the set of nearby vertices
+                    nearVerticesFunc_(vertex, &neighbourVertices);
+
+                    //Post process them:
+                    this->processKNearest(k, vertex, &neighbourSamples, &neighbourVertices);
+                }
+                //No else
 
                 //Add edges to unconnected targets who could ever provide a better solution:
-                //Is the vertex new?
-                if (vertex->isNew() == true)
+                //Has the vertex been expanded into edges towards unconnected samples before?
+                if (vertex->hasBeenExpandedToSamples() == false)
                 {
-                    //The vertex is new, that means none of its outgoing edges to unconnected vertices have been considered before. Add them all
+                    //It has not, that means none of its outgoing edges have been considered. Add them all
                     for (unsigned int i = 0u; i < neighbourSamples.size(); ++i)
                     {
                         //Attempt to queue the edge.
                         this->queueupEdge(vertex, neighbourSamples.at(i));
                     }
+
+                    //Mark it as expanded
+                    vertex->markExpandedToSamples();
                 }
                 else
                 {
-                    //The vertex is old, which means that outgoing edges to old unconnected vertices have been considered before. Only add those that lead to new vertices
+                    //It has, which means that outgoing edges to old unconnected vertices have already been considered. Only add those that lead to new vertices
                     for (unsigned int i = 0u; i < neighbourSamples.size(); ++i)
                     {
                         //Is the target new?
@@ -979,15 +1004,16 @@ namespace ompl
                     }
                 }
 
-                //If it is a new and either we're not delaying rewiring or we have a solution, we also add rewiring candidates:
-                if (vertex->isNew() == true && (delayRewiring_ == false || hasSolution_ == true))
+                //If the vertex has never been expanded into possible rewiring edges *and* either we're not delaying rewiring or we have a solution, we add those rewiring candidates:
+                if (vertex->hasBeenExpandedToVertices() == false && (delayRewiring_ == false || hasSolution_ == true))
                 {
-                    //Variables:
-                    //The vector of vertices within r of the vertexf
-                    std::vector<VertexPtr> neighbourVertices;
-
-                    //Get the set of nearby free states:
-                    nearVerticesFunc_(vertex, &neighbourVertices);
+                    //If we're not using k-nearest, we will not have gotten the neighbour vertices yet, get them now
+                    if (usingKNearest == false)
+                    {
+                        //Get the set of nearby vertices
+                        nearVerticesFunc_(vertex, &neighbourVertices);
+                    }
+                    //No else
 
                     //Iterate over the vector of connected targets and add only those who could ever provide a better solution:
                     for (unsigned int i = 0u; i < neighbourVertices.size(); ++i)
@@ -1016,8 +1042,8 @@ namespace ompl
                         //No else
                     }
 
-                    //Mark the vertex as old
-                    vertex->markOld();
+                    //Mark the vertex as expanded into rewirings
+                    vertex->markExpandedToVertices();
                 }
                 //No else
             }
@@ -1028,38 +1054,66 @@ namespace ompl
 
         void BITstar::IntegratedQueue::queueupEdge(const VertexPtr& parent, const VertexPtr& child)
         {
-            //Variables:
-            //A bool to store the conditional failed edge check
-            bool previouslyFailed;
+            //Variable:
+            //The edge:
+            VertexPtrPair newEdge;
 
-            //See if we're checking for previous failure:
-            if (useFailureTracking_ == true)
+            //Make the edge
+            newEdge = std::make_pair(parent, child);
+
+            //Should this edge be in the queue? I.e., is it *not* due to be pruned:
+            if (this->edgePruneCondition(newEdge) == false)
             {
-                previouslyFailed = parent->hasAlreadyFailed(child);
+                this->edgeInsertHelper(newEdge, edgeQueue_.end());
             }
-            else
+            //No else, it can never provide a better solution
+        }
+
+
+
+        void BITstar::IntegratedQueue::processKNearest(unsigned int k, const VertexConstPtr& vertex, std::vector<VertexPtr>* kNearSamples, std::vector<VertexPtr>* kNearVertices)
+        {
+            //Variables
+            //The position in the sample vector
+            unsigned int samplePos;
+            //The position in the vertex vector
+            unsigned int vertexPos;
+
+            //Iterate through the first k in the combined vectors
+            samplePos = 0u;
+            vertexPos = 0u;
+            while (samplePos + vertexPos < k && (samplePos < kNearSamples->size() || vertexPos < kNearVertices->size()))
             {
-                previouslyFailed = false;
-            }
-
-            //Make sure the edge has not already failed
-            if (previouslyFailed == false)
-            {
-                //Variable:
-                //The edge:
-                VertexPtrPair newEdge;
-
-                //Make the edge
-                newEdge = std::make_pair(parent, child);
-
-                //Should this edge be in the queue? I.e., is it *not* due to be pruned:
-                if (this->edgePruneCondition(newEdge) == false)
+                //Where along are we in the relative vectors?
+                if (samplePos < kNearSamples->size() && vertexPos >= kNearVertices->size())
                 {
-                    this->edgeInsertHelper(newEdge, edgeQueue_.end());
+                    //There are just samples left. Easy, move the sample token:
+                    ++samplePos;
                 }
-                //No else, we assume that it's better to calculate this condition multiple times than have the list of failed sets become too large...?
+                else if (samplePos >= kNearSamples->size() && vertexPos < kNearVertices->size())
+                {
+                    //There are just vertices left. Easy, move the vertex token:
+                    ++vertexPos;
+                }
+                else
+                {
+                    //Both are left, which is closest?
+                    if ( distanceFunc_(kNearVertices->at(vertexPos), vertex) < distanceFunc_(kNearSamples->at(samplePos), vertex) )
+                    {
+                        //The vertex is closer than the sample, move that token:
+                        ++vertexPos;
+                    }
+                    else
+                    {
+                        //The vertex is not closer than the sample, move the sample token:
+                        ++samplePos;
+                    }
+                }
             }
-            //No else
+
+            //Now erase the extra. Resize will truncate the extras
+            kNearSamples->resize(samplePos);
+            kNearVertices->resize(vertexPos);
         }
 
 
@@ -1101,7 +1155,7 @@ namespace ompl
             }
 
             //Remove myself, not touching my lookup entries
-            this->vertexRemoveHelper(unorderedVertex, VertexPtrNNPtr(), VertexPtrNNPtr(), false);
+            this->vertexRemoveHelper(unorderedVertex, VertexPtrNNPtr(), VertexPtrNNPtr(), nullptr, false);
 
             //Reinsert myself, expanding if I cross the token if I am not already expanded
             this->vertexInsertHelper(unorderedVertex, alreadyExpanded == false);
@@ -1143,7 +1197,7 @@ namespace ompl
 
 
 
-        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::pruneBranch(const VertexPtr& branchBase, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN)
+        std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::pruneBranch(const VertexPtr& branchBase, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices)
         {
             //We must iterate over the children of this vertex and prune each one.
             //Then we must decide if this vertex (a) gets deleted or (b) placed back on the sample set.
@@ -1172,7 +1226,7 @@ namespace ompl
             branchBase->getChildren(&children);
 
             //Remove myself from everything:
-            numPruned.second = this->vertexRemoveHelper(branchBase, vertexNN, freeStateNN, true);
+            numPruned.second = this->vertexRemoveHelper(branchBase, vertexNN, freeStateNN, recycledVertices, true);
 
             //Prune my children:
             for (unsigned int i = 0u; i < children.size(); ++i)
@@ -1182,7 +1236,7 @@ namespace ompl
                 std::pair<unsigned int, unsigned int> childNumPruned;
 
                 //Prune my children:
-                childNumPruned = this->pruneBranch(children.at(i), vertexNN, freeStateNN);
+                childNumPruned = this->pruneBranch(children.at(i), vertexNN, freeStateNN, recycledVertices);
 
                 //Update my counter:
                 numPruned.first = numPruned.first + childNumPruned.first;
@@ -1297,7 +1351,7 @@ namespace ompl
 
 
 
-        unsigned int BITstar::IntegratedQueue::vertexRemoveHelper(VertexPtr oldVertex, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, bool removeLookups)
+        unsigned int BITstar::IntegratedQueue::vertexRemoveHelper(VertexPtr oldVertex, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices, bool removeLookups)
         {
             //Variable
             //The number of samples deleted (i.e., if this vertex is NOT moved to a sample, this is a 1)
@@ -1348,7 +1402,7 @@ namespace ompl
                 }
 
                 //Check if I have been given permission to change sets:
-                if (static_cast<bool>(vertexNN) == true && static_cast<bool>(freeStateNN) == true)
+                if (static_cast<bool>(vertexNN) == true && static_cast<bool>(freeStateNN) == true && static_cast<bool>(recycledVertices) == true)
                 {
                     //Check if I should be discarded completely:
                     if (this->samplePruneCondition(oldVertex) == true)
@@ -1375,11 +1429,17 @@ namespace ompl
                         //Remove myself from the nearest neighbour structure:
                         vertexNN->remove(oldVertex);
 
+                        //Mark myself as a "new" sample. This assures that all possible incoming edges will be considered
+                        oldVertex->markNew();
+
+                        //Add myself to the list of recycled vertices:
+                        recycledVertices->push_back(oldVertex);
+
                         //And add the vertex to the set of samples, keeping the incoming edges:
                         freeStateNN->add(oldVertex);
                     }
                 }
-                //Else, if I was given null pointers to the NN structs, that's because this sample is not allowed to change sets.
+                //Else, if I was given null pointers, that's because this sample is not allowed to change sets.
             }
             else
             {
@@ -1611,20 +1671,6 @@ namespace ompl
 
         /////////////////////////////////////////////////////////////////////////////////////////////
         //Boring sets/gets (Public):
-        void BITstar::IntegratedQueue::setUseFailureTracking(bool trackFailures)
-        {
-            useFailureTracking_ = trackFailures;
-        }
-
-
-
-        bool BITstar::IntegratedQueue::getUseFailureTracking() const
-        {
-            return useFailureTracking_;
-        }
-
-
-
         void BITstar::IntegratedQueue::setDelayedRewiring(bool delayRewiring)
         {
             delayRewiring_ = delayRewiring;

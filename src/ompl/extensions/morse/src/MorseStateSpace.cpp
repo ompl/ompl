@@ -39,8 +39,6 @@
 #include "ompl/base/spaces/SO3StateSpace.h"
 #include "ompl/base/spaces/DiscreteStateSpace.h"
 
-#include <boost/lexical_cast.hpp>
-
 ompl::base::MorseStateSpace::MorseStateSpace(const MorseEnvironmentPtr &env, double positionWeight, double linVelWeight,
                                              double angVelWeight, double orientationWeight) :
     CompoundStateSpace(), env_(env)
@@ -49,7 +47,7 @@ ompl::base::MorseStateSpace::MorseStateSpace(const MorseEnvironmentPtr &env, dou
     type_ = STATE_SPACE_TYPE_COUNT + 1;
     for (unsigned int i = 0 ; i < env_->rigidBodies_; ++i)
     {
-        std::string body = ":B" + boost::lexical_cast<std::string>(i);
+        std::string body = ":B" + std::to_string(i);
 
         addSubspace(StateSpacePtr(new RealVectorStateSpace(3)), positionWeight); // position
         components_.back()->setName(components_.back()->getName() + body + ":position");
@@ -66,7 +64,7 @@ ompl::base::MorseStateSpace::MorseStateSpace(const MorseEnvironmentPtr &env, dou
     // Add the goal region satisfaction flag as a subspace.
     addSubspace(StateSpacePtr(new DiscreteStateSpace(0, 1)), 0.01);
     components_.back()->setName(components_.back()->getName() + ":goalRegionSat");
-    
+
     lock();
     setBounds();
 }

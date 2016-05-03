@@ -197,7 +197,7 @@ void ompl::base::TimeStateSpace::registerProjections()
 
 double* ompl::base::TimeStateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
-    return index == 0 ? &(state->as<StateType>()->position) : NULL;
+    return index == 0 ? &(state->as<StateType>()->position) : nullptr;
 }
 
 void ompl::base::TimeStateSpace::printState(const State *state, std::ostream &out) const
@@ -206,7 +206,7 @@ void ompl::base::TimeStateSpace::printState(const State *state, std::ostream &ou
     if (state)
         out << state->as<StateType>()->position;
     else
-        out << "NULL";
+        out << "nullptr";
     out << ']' << std::endl;
 }
 

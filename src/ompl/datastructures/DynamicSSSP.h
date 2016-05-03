@@ -49,7 +49,7 @@ dynamic graph problems, Theor. Comput. Sci., vol. 158, no. 1&2, pp.
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 
 namespace ompl
 {
@@ -264,7 +264,7 @@ namespace ompl
             {
             }
 
-            bool operator()(std::size_t id1, std::size_t id2)
+            bool operator()(std::size_t id1, std::size_t id2) const
             {
                 return (cost_[id1] < cost_[id2]);
             }
@@ -274,7 +274,7 @@ namespace ompl
 
         typedef std::set<std::size_t, IsLessThan>   Queue;
         typedef Queue::iterator                     QueueIter;
-        typedef boost::unordered_set<std::size_t>   IntSet;
+        typedef std::unordered_set<std::size_t>     IntSet;
         typedef IntSet::iterator                    IntSetIter;
 
         Graph*                                      graph_;

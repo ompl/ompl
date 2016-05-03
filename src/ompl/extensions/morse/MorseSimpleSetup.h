@@ -55,7 +55,7 @@ namespace ompl
 
             /** \brief Pointer to the environment representing the MORSE simulation */
             const base::MorseEnvironmentPtr env_;
-            
+
             /** \brief The control space is assumed to be
                 MorseControlSpace. The state space is assumed to
                 be MorseStateSpace. Constructor only needs the MORSE
@@ -85,10 +85,10 @@ namespace ompl
                 for planning. The solve() method will call this
                 function automatically. */
             void setup();
-            
+
             /** \brief Run the planner until solution is found or user shuts down MORSE */
             base::PlannerStatus solve();
-            
+
             /** \brief Set the MORSE world to the states that are
                 contained in a given path, sequentially. */
             void playPath(const base::PathPtr &path) const;

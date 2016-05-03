@@ -69,7 +69,7 @@ namespace ompl
                  * because it would lie on a different chart). */
                 void setComplement (LinearInequality *const complement);
                 
-                /** \brief Get the complementary inequality. Returns NULL if none. */
+                /** \brief Get the complementary inequality. Returns nullptr if none. */
                 LinearInequality *getComplement (void) const;
                 
                 /** \brief Get the chart to which this inequality belongs. */
@@ -157,14 +157,14 @@ namespace ompl
             
             /** \brief Check if a point \a u on the chart lies within its polytope P. LinearInequalities
              * \a ignore1 and \a ignore2, if specified, are ignored during the check. */
-            virtual bool inP (Eigen::Ref<const Eigen::VectorXd> u, const LinearInequality *const ignore1 = NULL, const LinearInequality *const ignore2 = NULL) const;
+            virtual bool inP (Eigen::Ref<const Eigen::VectorXd> u, const LinearInequality *const ignore1 = nullptr, const LinearInequality *const ignore2 = nullptr) const;
             
             /** \brief Check if chart point \a v lies too close to any linear inequality. When it does,
              * expand the neighboring chart's polytope. */
             virtual void borderCheck (Eigen::Ref<const Eigen::VectorXd> v) const;
             
             /** \brief Check each of our neighboring charts to see if ambient point \a x lies within its
-             * polytope when projected onto it. Returns NULL if none. */
+             * polytope when projected onto it. Returns nullptr if none. */
             virtual const AtlasChart *owningNeighbor (Eigen::Ref<const Eigen::VectorXd> x) const;
             
             /** \brief Perform calculations to approximate the measure of this chart. */

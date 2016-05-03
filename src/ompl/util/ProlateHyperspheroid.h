@@ -42,7 +42,7 @@
 #error The ProlateHyperspheroid class uses Eigen3, which was not detected at build time.
 #endif
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 //For ease-of-use shared_ptr definition
 #include <ompl/util/ClassForward.h>
@@ -106,7 +106,7 @@ namespace ompl
         struct PhsData;
 
         /** \brief A shared pointer to the actual data of a ProlateHyperspheroid. Used to hide Eigen from the header. */
-        boost::shared_ptr<PhsData> dataPtr_;
+        std::shared_ptr<PhsData> dataPtr_;
 
         // Functions
         /** \brief Calculate the rotation from the PHS frame to the world frame via singular-value decomposition using the transverse symmetry of the PHS. */

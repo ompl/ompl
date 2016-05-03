@@ -577,7 +577,7 @@ if __name__ == "__main__":
         help="Log files are produced by MoveIt!")
     (options, args) = parser.parse_args()
 
-    if not options.append and exists(options.dbname):
+    if not options.append and exists(options.dbname) and len(args>0):
         os.remove(options.dbname)
 
     if len(args)>0:

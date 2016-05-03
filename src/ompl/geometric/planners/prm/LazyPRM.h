@@ -41,7 +41,7 @@
 #include "ompl/datastructures/NearestNeighbors.h"
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/function.hpp>
+#include <functional>
 #include <utility>
 #include <vector>
 #include <map>
@@ -127,18 +127,18 @@ namespace ompl
             typedef boost::graph_traits<Graph>::edge_descriptor   Edge;
 
             /** @brief A nearest neighbors data structure for roadmap vertices. */
-            typedef boost::shared_ptr< NearestNeighbors<Vertex> > RoadmapNeighbors;
+            typedef std::shared_ptr< NearestNeighbors<Vertex> > RoadmapNeighbors;
 
             /** @brief A function returning the milestones that should be
              * attempted to connect to. */
-            typedef boost::function<const std::vector<Vertex>&(const Vertex)> ConnectionStrategy;
+            typedef std::function<const std::vector<Vertex>&(const Vertex)> ConnectionStrategy;
 
             /** @brief A function that can reject connections.
 
              This is called after previous connections from the neighbor list
              have been added to the roadmap.
              */
-            typedef boost::function<bool(const Vertex&, const Vertex&)> ConnectionFilter;
+            typedef std::function<bool(const Vertex&, const Vertex&)> ConnectionFilter;
 
             /** \brief Constructor */
             LazyPRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
@@ -160,7 +160,7 @@ namespace ompl
             {
                 nn_.reset(new NN<Vertex>());
                 if (!userSetConnectionStrategy_)
-                    connectionStrategy_.clear();
+                    connectionStrategy_ = ConnectionStrategy();
                 if (isSetup())
                     setup();
             }

@@ -45,9 +45,9 @@ ompl::geometric::CBiRRT2::CBiRRT2(const base::SpaceInformationPtr &si) : base::P
     specs_.directed = true;
 
     maxDistance_ = 0.0;
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
 
-    const base::ConstrainedSpaceInformationPtr& csi = boost::dynamic_pointer_cast<base::ConstrainedSpaceInformation>(si);
+    const base::ConstrainedSpaceInformationPtr& csi = std::dynamic_pointer_cast<base::ConstrainedSpaceInformation>(si);
     if (!csi)
         OMPL_ERROR("%s: Failed to cast SpaceInformation to ConstrainedSpaceInformation", getName().c_str());
     else
@@ -71,7 +71,7 @@ void ompl::geometric::CBiRRT2::clear(void)
         tStart_->clear();
     if (tGoal_)
         tGoal_->clear();
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
 }
 
@@ -85,8 +85,12 @@ void ompl::geometric::CBiRRT2::setup(void)
         tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
     if (!tGoal_)
         tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    tStart_->setDistanceFunction(boost::bind(&CBiRRT2::distanceFunction, this, _1, _2));
-    tGoal_->setDistanceFunction(boost::bind(&CBiRRT2::distanceFunction, this, _1, _2));
+    tStart_->setDistanceFunction(std::bind(
+                                     &CBiRRT2::distanceFunction, this,
+                                     std::placeholders::_1, std::placeholders::_2));
+    tGoal_->setDistanceFunction(std::bind(
+                                    &CBiRRT2::distanceFunction, this,
+                                    std::placeholders::_1, std::placeholders::_2));
 }
 
 void ompl::geometric::CBiRRT2::freeMemory(void)
@@ -382,7 +386,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
             // Get the portion of the path in the start tree
             const Motion *solution = startMotion;
             std::vector<const Motion*> mpath1;
-            while (solution != NULL)
+            while (solution != nullptr)
             {
                 mpath1.push_back(solution);
                 solution = solution->parent;
@@ -391,7 +395,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
             // Get the portion of the path in the goal tree
             solution = goalMotion;
             std::vector<const Motion*> mpath2;
-            while (solution != NULL)
+            while (solution != nullptr)
             {
                 mpath2.push_back(solution);
                 solution = solution->parent;
@@ -492,7 +496,7 @@ void ompl::geometric::CBiRRT2::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        if (motions[i]->parent == NULL)
+        if (motions[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state, 1));
         else
         {
@@ -507,7 +511,7 @@ void ompl::geometric::CBiRRT2::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        if (motions[i]->parent == NULL)
+        if (motions[i]->parent == nullptr)
             data.addGoalVertex(base::PlannerDataVertex(motions[i]->state, 2));
         else
         {

@@ -82,7 +82,7 @@ void planWithSimpleSetup(void)
     og::SimpleSetup ss(space);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(boost::bind(&isStateValid, _1));
+    ss.setStateValidityChecker(std::bind(&isStateValid, std::placeholders::_1));
 
     // create a random start state
     ob::ScopedState<> start(space);
@@ -171,12 +171,12 @@ void readPlannerData(void)
         goal.setState(data.getGoalVertex(0).getState());
         ob::PlannerData::Graph::Vertex start = boost::vertex(data.getStartIndex(0), graph);
         boost::astar_search(graph, start,
-                            boost::bind(&distanceHeuristic, _1, &goal, &opt, vertices),
+                            std::bind(&distanceHeuristic, std::placeholders::_1, &goal, &opt, vertices),
                             boost::predecessor_map(prev).
-                            distance_compare(boost::bind(&ob::OptimizationObjective::
-                                                         isCostBetterThan, &opt, _1, _2)).
-                            distance_combine(boost::bind(&ob::OptimizationObjective::
-                                                         combineCosts, &opt, _1, _2)).
+                            distance_compare(std::bind(&ob::OptimizationObjective::
+                                                         isCostBetterThan, &opt, std::placeholders::_1, std::placeholders::_2)).
+                            distance_combine(std::bind(&ob::OptimizationObjective::
+                                                         combineCosts, &opt, std::placeholders::_1, std::placeholders::_2)).
                             distance_inf(opt.infiniteCost()).
                             distance_zero(opt.identityCost()));
 

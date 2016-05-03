@@ -37,7 +37,23 @@
 #ifndef OMPL_UTIL_TIME_
 #define OMPL_UTIL_TIME_
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+
+// std::put_time is not implemented in GCC 4.x
+#if defined (__GNUC__) && (__GNUC__ < 5)
+namespace std
+{
+    inline std::string put_time(const std::tm* tmb, const char* fmt)
+    {
+        char mbstr[100];
+        std::strftime(mbstr, sizeof(mbstr), fmt, tmb);
+        return string(mbstr);
+    }
+}
+#endif
 
 namespace ompl
 {
@@ -47,15 +63,15 @@ namespace ompl
     {
 
         /** \brief Representation of a point in time */
-        typedef boost::posix_time::ptime         point;
+        typedef std::chrono::system_clock::time_point point;
 
         /** \brief Representation of a time duration */
-        typedef boost::posix_time::time_duration duration;
+        typedef std::chrono::system_clock::duration   duration;
 
         /** \brief Get the current time point */
         inline point now()
         {
-            return boost::posix_time::microsec_clock::universal_time();
+            return std::chrono::system_clock::now();
         }
 
         /** \brief Return the time duration representing a given number of seconds */
@@ -63,13 +79,22 @@ namespace ompl
         {
             long s  = (long)sec;
             long us = (long)((sec - (double)s) * 1000000);
-            return boost::posix_time::seconds(s) + boost::posix_time::microseconds(us);
+            return std::chrono::seconds(s) + std::chrono::microseconds(us);
         }
 
         /** \brief Return the number of seconds that a time duration represents */
         inline double seconds(const duration &d)
         {
-            return (double)d.total_microseconds() / 1000000.0;
+            return std::chrono::duration<double>(d).count();
+        }
+
+        /** \brief Return string representation of point in time */
+        inline std::string as_string(const point& p)
+        {
+            std::time_t pt = std::chrono::system_clock::to_time_t(p);
+            std::stringstream ss;
+            ss << std::put_time(std::localtime(&pt), "%F %T");
+            return ss.str();
         }
 
     }

@@ -39,7 +39,7 @@
 
 #include "ompl/control/planners/ltl/World.h"
 #include "ompl/util/ClassForward.h"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <limits>
 #include <ostream>
 #include <vector>
@@ -54,7 +54,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::control::AutomatonPtr
-            \brief A boost shared pointer wrapper for ompl::control::Automaton */
+            \brief A shared pointer wrapper for ompl::control::Automaton */
 
         /** \brief A class to represent a deterministic finite automaton,
             each edge of which corresponds to a World.
@@ -86,7 +86,7 @@ namespace ompl
                     return *this;
                 }
 
-                mutable boost::unordered_map<World, unsigned int> entries;
+                mutable std::unordered_map<World, unsigned int> entries;
             };
 
             /** \brief Creates an automaton with a given number of propositions and states. */

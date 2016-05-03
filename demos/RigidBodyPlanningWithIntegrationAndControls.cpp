@@ -219,7 +219,7 @@ void planWithSimpleSetup(void)
     oc::SimpleSetup ss(cspace);
 
     /// set state validity checking for this space
-    ss.setStateValidityChecker(boost::bind(&isStateValid, ss.getSpaceInformation().get(), _1));
+    ss.setStateValidityChecker(std::bind(&isStateValid, ss.getSpaceInformation().get(), std::placeholders::_1));
 
     /// set the propagation routine for this space
     ss.setStatePropagator(oc::StatePropagatorPtr(new DemoStatePropagator(ss.getSpaceInformation())));

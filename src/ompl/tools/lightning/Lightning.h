@@ -92,7 +92,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::geometric::LightningPtr
-            \brief A boost shared pointer wrapper for ompl::tools::Lightning */
+            \brief A shared pointer wrapper for ompl::tools::Lightning */
 
         /** \brief Built off of SimpleSetup but provides support for planning from experience */
         class Lightning : public ompl::tools::ExperienceSetup

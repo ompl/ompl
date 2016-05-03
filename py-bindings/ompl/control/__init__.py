@@ -6,5 +6,5 @@ from ompl.control._control import *
 # parameter info
 planners = None
 
-# type alias for boost::function<void(const State*, const Control*, const double, State*)>
+# type alias for std::function<void(const State*, const Control*, const double, State*)>
 PostPropagationEvent = StatePropagatorFn

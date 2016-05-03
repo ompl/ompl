@@ -58,7 +58,7 @@ namespace ompl
         /// @endcond
 
         /** \class ompl::geometric::SimpleSetupPtr
-            \brief A boost shared pointer wrapper for ompl::geometric::SimpleSetup */
+            \brief A shared pointer wrapper for ompl::geometric::SimpleSetup */
 
         /** \brief Create the set of classes typically needed to solve a
             geometric problem */

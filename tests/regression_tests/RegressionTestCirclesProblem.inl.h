@@ -5,7 +5,7 @@ template<>
 std::string problemName<CIRCLES_ID>() { return "circles"; }
 
 // Setup for the Circles problem, part of the OMPL test suite.
-static boost::shared_ptr<geometric::SimpleSetup> setupCirclesProblem(unsigned int query_index) {
+static std::shared_ptr<geometric::SimpleSetup> setupCirclesProblem(unsigned int query_index) {
     boost::filesystem::path path(TEST_RESOURCES_DIR);
 
     Circles2D circles;
@@ -23,12 +23,12 @@ static boost::shared_ptr<geometric::SimpleSetup> setupCirclesProblem(unsigned in
     geometric::SimpleSetup *raw_ss = new geometric::SimpleSetup(si);
 #endif
 
-    boost::shared_ptr<geometric::SimpleSetup> ss(raw_ss);
+    std::shared_ptr<geometric::SimpleSetup> ss(raw_ss);
 
     base::ScopedState<> start(ss->getSpaceInformation());
     base::ScopedState<> goal(ss->getSpaceInformation());
     if (query_index >= circles.getQueryCount())
-        return boost::shared_ptr<geometric::SimpleSetup>();
+        return std::shared_ptr<geometric::SimpleSetup>();
     const Circles2D::Query &q = circles.getQuery(query_index);
     start[0] = q.startX_;
     start[1] = q.startY_;

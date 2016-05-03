@@ -56,7 +56,7 @@ namespace ompl
         {
         public:
             CForestStateSpaceWrapper(geometric::CForest *cforest, base::StateSpace *space)
-                : cforest_(cforest), space_(space), planner_(NULL)
+                : cforest_(cforest), space_(space), planner_(nullptr)
             {
                 setName(space->getName() + "CForestWrapper");
             }

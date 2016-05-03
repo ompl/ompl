@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0017 NEW)
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.0.0)
-    cmake_policy(SET CMP0042 OLD)
+    cmake_policy(SET CMP0042 NEW)
 endif()
 project(ompl CXX C)
 
@@ -61,35 +62,8 @@ else(IS_ICPC)
     add_definitions(-DBOOST_TEST_DYN_LINK)
 endif(IS_ICPC)
 
-# Do one quiet find_package on Boost to see if it is recent enough to
-# have the try_join_for call
-find_package(Boost QUIET 1.50)
-
-# If Boost is not found at all, the check for version 1.50 below will die in
-# the most ungraceful manner because Boost_VERSION is not defined.  Define the
-# variable here for a more useful error.
-if (NOT ${Boost_FOUND})
-    set(Boost_VERSION 0)
-endif()
-
-# try_join_for requires the chrono library, so if we will use
-# try_join_for, we need to include the chrono component
-# Must recheck the Boost version, since update_bindings will re-run CMake
-# and this will pass for versions of Boost < 1.50
-if (${Boost_FOUND} AND ${Boost_VERSION} GREATER 104900) # Boost version is at least 1.50
-  # we're using chrono
-  find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework chrono REQUIRED)
-else()
-  # don't use chrono
-  find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework REQUIRED)
-endif()
+find_package(Boost 1.54 COMPONENTS serialization filesystem system program_options unit_test_framework REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
-
-if(${Boost_VERSION} LESS 105300)
-  # Include bundled version of boost::odeint if it isn't installed natively
-  set(ODEINT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/external")
-  include_directories(SYSTEM "${ODEINT_INCLUDE_DIR}")
-endif()
 
 # on OS X we need to check whether to use libc++ or libstdc++ with clang++
 if(APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -152,15 +126,6 @@ endif()
 # R is needed for running Planner Arena locally
 find_program(R_EXEC R)
 
-option(OMPL_LOCAL_PYPLUSPLUS_INSTALL "Whether Py++ and dependencies should be installed in the build directory" OFF)
-set(SUDO "sudo")
-set(CMAKE_GCCXML_ARGS "")
-if(OMPL_LOCAL_PYPLUSPLUS_INSTALL)
-    set(SUDO "")
-    set(CMAKE_GCCXML_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/pyplusplus")
-    set(DISTUTILS_ARGS "--prefix=${PROJECT_BINARY_DIR}/pyplusplus")
-endif()
-
 add_subdirectory(py-bindings)
 add_subdirectory(src)
 add_subdirectory(tests)
@@ -168,27 +133,26 @@ add_subdirectory(demos)
 add_subdirectory(scripts)
 add_subdirectory(doc)
 
-if (NOT MSVC)
-  target_link_flags(ompl)
-  set(PKG_NAME "ompl")
-  set(PKG_DESC "The Open Motion Planning Library")
-  set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
-  set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
-  configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
-  install(FILES "${pkg_conf_file}"
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
-    COMPONENT ompl
-    RENAME "ompl${OMPL_INSTALL_SUFFIX}.pc")
+target_link_flags(ompl)
+set(PKG_NAME "ompl")
+set(PKG_DESC "The Open Motion Planning Library")
+set(PKG_EXTERNAL_DEPS "${ompl_PKG_DEPS}")
+set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
+set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
+configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
+install(FILES "${pkg_conf_file}"
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
+  COMPONENT ompl
+  RENAME "ompl${OMPL_INSTALL_SUFFIX}.pc")
 
-  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/markdown/FindOMPL.cmake"
-    DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
-    COMPONENT ompl
-    RENAME ompl-config.cmake)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/markdown/FindOMPL.cmake"
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
+  COMPONENT ompl
+  RENAME ompl-config.cmake)
 
-  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ompl.conf"
-    DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
-    COMPONENT ompl)
-endif()
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ompl.conf"
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
+  COMPONENT ompl)
 
 # uninstall target
 configure_file(

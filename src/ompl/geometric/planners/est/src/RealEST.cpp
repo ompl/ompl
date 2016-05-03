@@ -46,7 +46,7 @@ ompl::geometric::RealEST::RealEST(const base::SpaceInformationPtr &si) : base::P
     specs_.directed = true;
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     Planner::declareParam<double>("range", this, &RealEST::setRange, &RealEST::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RealEST::setGoalBias, &RealEST::getGoalBias, "0.:.05:1.");
@@ -68,7 +68,9 @@ void ompl::geometric::RealEST::setup()
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(boost::bind(&RealEST::distanceFunction, this, _1, _2));
+    nn_->setDistanceFunction(std::bind(
+                                 &RealEST::distanceFunction, this,
+                                 std::placeholders::_1, std::placeholders::_2));
 }
 
 void ompl::geometric::RealEST::clear()
@@ -81,7 +83,7 @@ void ompl::geometric::RealEST::clear()
 
     motions_.clear();
     pdf_.clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 }
 
 void ompl::geometric::RealEST::freeMemory()
@@ -122,8 +124,8 @@ ompl::base::PlannerStatus ompl::geometric::RealEST::solve(const base::PlannerTer
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), motions_.size());
 
-    Motion *solution  = NULL;
-    Motion *approxsol = NULL;
+    Motion *solution  = nullptr;
+    Motion *approxsol = nullptr;
     double  approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
     Motion* xmotion = new Motion();
@@ -192,19 +194,19 @@ ompl::base::PlannerStatus ompl::geometric::RealEST::solve(const base::PlannerTer
 
     bool solved = false;
     bool approximate = false;
-    if (solution == NULL)
+    if (solution == nullptr)
     {
         solution = approxsol;
         approximate = true;
     }
 
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         lastGoalMotion_ = solution;
 
         // construct the solution path
         std::vector<Motion*> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;
@@ -251,7 +253,7 @@ void ompl::geometric::RealEST::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions_.size() ; ++i)
     {
-        if (motions_[i]->parent == NULL)
+        if (motions_[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions_[i]->state));
         else
             data.addEdge(base::PlannerDataVertex(motions_[i]->parent->state),

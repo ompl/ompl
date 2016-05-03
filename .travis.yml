@@ -1,19 +1,20 @@
-sudo: false
 cache:
   apt: true
   directories:
-    - /home/travis/build/ompl/ompl/build/pyplusplus
+    - ${HOME}/castxml
+    - /usr/local
 language: cpp
 
-os:
-  - linux
-  - osx
-
-env:
-#  - BUILD_TYPE=Debug
-  - BUILD_TYPE=Release
-
 matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+      compiler: gcc
+      env: PYTHONPATH=/usr/local/lib/python2.7/dist-packages
+    - os: osx
+      osx_image: xcode7.2
+      compiler: clang
   allow_failures:
     - os: osx
 
@@ -24,13 +25,21 @@ addons:
       - python-dev
       - libode-dev
       - libeigen3-dev
+      - python-pip
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      brew update;
-      brew outdated boost || brew upgrade boost;
-      brew install ode eigen;
+      brew install boost-python ode eigen python cmake;
+      if [ ! -e ${HOME}/castxml ]; then
+        curl https://midas3.kitware.com/midas/download/item/318762/castxml-macosx.tar.gz | tar zxf - -C ${HOME};
+      fi;
+    else
+      if [ ! -e ${HOME}/castxml ]; then
+        wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf - -C ${HOME};
+      fi;
     fi
+  - sudo -H pip -v install https://github.com/gccxml/pygccxml/archive/v1.7.2.tar.gz https://bitbucket.org/ompl/pyplusplus/get/1.6.tar.gz
+
 
 script:
   # Create build directory
@@ -38,17 +47,11 @@ script:
   - cd build
 
   # Configure
-  - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOMPL_LOCAL_PYPLUSPLUS_INSTALL=ON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp ..
+  - cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DCASTXML:FILEPATH=${HOME}/castxml/bin/castxml ..
 
-  # Skip Python bindings on OS X, since brew doesn't have a compiler that can compile gccxml.
-  # On Linux, we need to make sure cmake finds the locally installed gccxml
-  # and not the one in /usr/bin
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-      if [ ! -x "pyplusplus/bin/gccxml" ]; then make installpyplusplus; fi;
-      rm CMakeCache.txt;
-      cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOMPL_LOCAL_PYPLUSPLUS_INSTALL=ON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DGCCXML=pyplusplus/bin/gccxml ..;
-      make -j2 update_bindings;
-    fi
+  # TIMES OUT BECAUSE IT DOES NOT PRODUCE OUTPUT FOR MORE THAN 10 MINUTES
+  # generate python bindings
+  #- make -j4 update_bindings
 
   # Build
   - make -j4

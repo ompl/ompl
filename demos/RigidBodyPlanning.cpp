@@ -79,7 +79,7 @@ void plan(void)
     ob::SpaceInformationPtr si(new ob::SpaceInformation(space));
 
     // set state validity checking for this space
-    si->setStateValidityChecker(boost::bind(&isStateValid, _1));
+    si->setStateValidityChecker(std::bind(&isStateValid, std::placeholders::_1));
 
     // create a random start state
     ob::ScopedState<> start(space);
@@ -144,7 +144,7 @@ void planWithSimpleSetup(void)
     og::SimpleSetup ss(space);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(boost::bind(&isStateValid, _1));
+    ss.setStateValidityChecker(std::bind(&isStateValid, std::placeholders::_1));
 
     // create a random start state
     ob::ScopedState<> start(space);

@@ -121,12 +121,12 @@ namespace ompl
             {
             public:
 
-                Motion() : state(NULL), parent(NULL), element(NULL)
+                Motion() : state(nullptr), parent(nullptr), element(nullptr)
                 {
                 }
 
                 /// \brief Constructor that allocates memory for the state
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), element(NULL)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), element(nullptr)
                 {
                 }
 
@@ -151,7 +151,7 @@ namespace ompl
             }
 
             /// \brief A nearest-neighbors datastructure containing the tree of motions
-            boost::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
 
             /// \brief The set of all states in the tree
             std::vector<Motion*> motions_;

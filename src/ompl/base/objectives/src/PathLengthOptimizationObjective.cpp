@@ -35,7 +35,7 @@
 /* Author: Luis G. Torres, Jonathan Gammell */
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
-#include <boost/make_shared.hpp>
+#include <memory>
 #if OMPL_HAVE_EIGEN3
 #include "ompl/base/samplers/informed/PathLengthDirectInfSampler.h"
 #else
@@ -49,7 +49,8 @@ PathLengthOptimizationObjective(const SpaceInformationPtr &si) :
     description_ = "Path Length";
 
     //Setup a default cost-to-go heuristics:
-    setCostToGoHeuristic(boost::bind(&base::goalRegionCostToGo, _1, _2));
+    setCostToGoHeuristic(std::bind(&base::goalRegionCostToGo,
+        std::placeholders::_1, std::placeholders::_2));
 }
 
 ompl::base::Cost ompl::base::PathLengthOptimizationObjective::stateCost(const State *s) const
@@ -71,7 +72,7 @@ ompl::base::InformedSamplerPtr ompl::base::PathLengthOptimizationObjective::allo
 {
     // Make the direct path-length informed sampler and return. If OMPL was compiled with Eigen, a direct version is available, if not a rejection-based technique can be used
 #if OMPL_HAVE_EIGEN3
-    return boost::make_shared<PathLengthDirectInfSampler>(probDefn, maxNumberCalls);
+    return std::make_shared<PathLengthDirectInfSampler>(probDefn, maxNumberCalls);
 #else
     throw Exception("Direct sampling of the path-length objective requires Eigen, but this version of OMPL was compiled without Eigen support. If possible, please install Eigen and recompile OMPL. If this is not possible, you can manually create an instantiation of RejectionInfSampler to approximate the behaviour of direct informed sampling.");
     // Return a null pointer to avoid compiler warnings

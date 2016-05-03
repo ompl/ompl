@@ -3,7 +3,7 @@
 If you use Linux or OS X, then all dependencies can be installed either through a package manager or by OMPL's build system. In other words, you probably don't have to compile dependencies from source.
 
 To compile OMPL the following two packages are required:
-- [Boost], version 1.48 or higher, and
+- [Boost], version 1.54 or higher, and
 - [CMake], version 2.8.7 or higher.
 
 The build system includes a [number of options](buildOptions.html) that you can enable or disable. To be able to generate python bindings you need to install the [Python] library and header files.
@@ -31,7 +31,7 @@ Starting with Ubuntu 14.04, you can install OMPL like so
 
     apt-get install libompl-dev ompl-demos
 
-Debian packages for the latest version of OMPL are also found in ROS distributions. All you need to do is add the ROS repository to your list of sources (you probably have added this already if you are using ROS):
+Debian packages for the latest version of OMPL are also found in ROS distributions (they might be newer than the standard Ubuntu ompl packages). All you need to do is add the ROS repository to your list of sources (you probably have added this already if you are using ROS):
 
     sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
     wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
@@ -46,8 +46,9 @@ and install OMPL:
 
 - Install Boost, CMake, and optional dependencies
 
-      sudo apt-get install libboost-all-dev cmake doxygen graphviz python-dev libeigen3-dev libode-dev
+      sudo apt-get install build-essential libboost-all-dev cmake doxygen graphviz python-dev libeigen3-dev libode-dev
 
+- If you want Python bindings or a GUI, [install Py++ and its dependencies](installPyPlusPlus.html).
 - Create a build directory and run cmake:
 
       cd ompl
@@ -55,11 +56,7 @@ and install OMPL:
       cd build/Release
       cmake ../..
 
-- If you want Python bindings, type the following two commands:
-
-      make installpyplusplus && cmake . # download & install Py++
-      make -j 4 update_bindings
-
+- Optionally, generate the Python bindings with `make -j 4 update_bindings`.
 - Compile OMPL by typing `make -j 4`.
 - Optionally, run the test programs by typing `make test`.
 - Optionally, generate documentation by typing `make doc`.
@@ -79,65 +76,34 @@ If you'd like to use your own build of OMPL with ROS, follow the following steps
 
 ## Fedora Linux
 
-Thanks to Rich Mattes, OMPL core is available as a package for Fedora:
+Simply type:
 
     sudo yum install ompl
 
-This package may not be the latest version, though. The source installation instructions for Fedora Linux are mostly the same as for Ubuntu Linux, although the packages have slightly different names. On Fedora, you can install the dependencies like so:
-
-    sudo yum install boost-devel cmake python-devel eigen3 ode-devel doxygen graphviz
-
-The build steps are the same as for Ubuntu Linux.
-
-
 ## Debian Linux
 
-Thanks to Leopold Palomo-Avellaneda, OMPL core is available as a collection of packages for Debian:
+Simply type:
 
-      apt-get install libompl-dev ompl-demos
+    sudo apt-get install libompl-dev ompl-demos
 
 
 # Installation on Mac OS X {#install_osx}
 
-It is easiest to install OMPL through [MacPorts], a package manager for OS X. However, if you feel adventurous, it is possible to install OMPL's dependencies with [HomeBrew](#install_homebrew) and compile OMPL yourself.
-
+It is easiest to install OMPL through either [MacPorts] or [HomeBrew], two package managers for OS X. Note that the HomeBrew package does not include the Python bindings for OMPL.
 
 ## MacPorts {#install_macports}
 
-- Install [MacPorts].
-- If you do not need to modify or see the source code of OMPL, then the easiest way to install OMPL is with the MacPorts `port` command:
+Install [MacPorts] and type:
 
-      sudo port sync \; install ompl
+    sudo port sync \; install ompl
 
-  This is it. You are done. Demo programs can be found in `/opt/local/share/ompl`.
-- If you downloaded the source distribution of OMPL, then you need to install the dependencies Boost, CMake, and optional dependencies. If you have MacPorts installed, type the following:
-
-      sudo port sync
-      sudo port install boost cmake ode py27-pyplusplus eigen3 graphviz doxygen
-
-- It is __very__ important that you use the same installed version of Python for all dependencies and OMPL. If you are using MacPorts, then you __must__ use the MacPorts version of python 2.7 (most likely installed in `/opt/local/bin`). To make this version the default python version, make sure `/opt/local/bin` appears before `/usr/bin` in your PATH. You can add a line like this to your `${HOME}/.bash_profile`:
-
-      export PATH=/opt/local/bin:/opt/local/sbin:$PATH
-
-  Next, execute the following command:
-
-      sudo port select python python27
-
-- The build steps are the same as for Ubuntu Linux.
-
+Demo programs can be found in `/opt/local/share/ompl`.
 
 ## Homebrew {#install_homebrew}
 
-_Thanks to [Andrew Dobson](https://plus.google.com/104214233559576935970/about) for these instructions!_ __These instructions are somewhat experimental, however, and we haven't tested them ourselves.__ Email us if you have suggestions to improve these instructions.
+Install [Homebrew] and type:
 
-- Install [Homebrew].
-- Run `brew doctor` to make sure that everything is ready to go.  If not, follow its instructions until it is ready.
-- Type the following commands:
-
-      brew install boost cmake assimp ode eigen doxygen graphviz
-
-- The build steps are the same as for Ubuntu Linux.
-
+    brew install ompl
 
 # Installation on Windows {#install_windows}
 
@@ -150,7 +116,7 @@ For best performance, the [MinGW] compiler is recommended. Visual Studio can als
 
 - [CMake], version 2.8.7 or higher,
 - [MinGW][] (recommended) or Visual Studio compiler, and
-- [Boost], version 1.48 or greater.
+- [Boost], version 1.54 or greater.
 
   It is recommended to make a complete Boost compilation from source.  If using Visual Studio, this process can be automated using the [BoostPro](http://www.boostpro.com/download) installer. Once complete, set the environment variables `BOOST_ROOT` and `BOOST_LIBRARYDIR` to the locations where Boost and its libraries are installed.  The default locations are `C:\\Boost` and `C:\\Boost\\lib`.  Ensure that `BOOST_LIBRARYDIR` is also in the system PATH so that any necessary Boost dlls are loaded properly at runtime.
 
@@ -159,7 +125,7 @@ For best performance, the [MinGW] compiler is recommended. Visual Studio can als
 
 - A __32-bit__ version of [Python] 2.7.  Ensure that this is installed __before building Boost__ so that Boost.Python is properly compiled.
 - Ensure that Python is added to the system `PATH`.
-- Py++: To generate the Python bindings, Py++ and its dependencies must be installed. A batch file has been included to automate this process (analogous to the Linux/Mac installation) that can be executed via cmake. Instructions can be found [here](installPyPlusPlus.html).  Note that this process assumes the MinGW compiler, and installs gccxml to `C:\\gccxml`.  You will need to be in a shell with administrator privileges to execute this batch file.  Once installed, it is recommended that you open a new shell to realize the new environment settings.
+- Py++: To generate the Python bindings, Py++ and its dependencies must be installed. Instructions can be found [here](installPyPlusPlus.html).
 
 
 ## Build

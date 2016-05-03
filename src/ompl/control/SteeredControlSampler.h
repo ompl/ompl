@@ -39,6 +39,7 @@
 
 #include "ompl/control/DirectedControlSampler.h"
 #include "ompl/control/StatePropagator.h"
+#include "ompl/control/SpaceInformation.h"
 #include <cmath>
 
 namespace ompl

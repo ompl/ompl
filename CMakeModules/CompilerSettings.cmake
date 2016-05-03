@@ -1,3 +1,8 @@
+# force C++11 mode (MS Visual Studio doesn't know about this flag)
+if(NOT MSVC)
+    add_definitions(-std=c++11)
+endif()
+
 if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-W -Wall -Wextra #-Wconversion
                     -Wcast-qual -Wwrite-strings -Wunreachable-code -Wpointer-arith
@@ -7,13 +12,13 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers -Wno-unused -Wno-unused-parameter -Wno-delete-non-virtual-dtor -Wno-overloaded-virtual -Wno-unknown-pragmas -Qunused-arguments -Wno-c++11-extensions)
+    add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers -Wno-unused -Wno-unused-parameter -Wno-delete-non-virtual-dtor -Wno-overloaded-virtual -Wno-unknown-pragmas -Qunused-arguments -Wno-deprecated-register -Wno-mismatched-tags)
     # prepend optimizion flag (in case the default setting doesn't include one)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
 endif()
 
 if(MSVC OR MSVC90 OR MSVC10)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /W1 /D_ITERATOR_DEBUG_LEVEL=0")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /W1 -DNOMINMAX")
 endif(MSVC OR MSVC90 OR MSVC10)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")

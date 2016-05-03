@@ -23,18 +23,18 @@ if (OMPL_BUILD_PYBINDINGS)
         configure_file("${CMAKE_CURRENT_SOURCE_DIR}/bindings_generator.py.in"
             "${CMAKE_CURRENT_SOURCE_DIR}/ompl/bindings_generator.py" @ONLY)
 
-        create_module_generation_targets(util "${CMAKE_CURRENT_SOURCE_DIR}")
+        create_module_generation_targets(util)
         if(OMPL_HAVE_EIGEN3)
-            create_module_generation_targets(base "${CMAKE_CURRENT_SOURCE_DIR}")
-            create_module_generation_targets(geometric "${CMAKE_CURRENT_SOURCE_DIR}")
+            create_module_generation_targets(base)
+            create_module_generation_targets(geometric)
         else()
-            create_module_generation_targets(base "${CMAKE_CURRENT_SOURCE_DIR}" PathLengthDirectInfSampler)
-            create_module_generation_targets(geometric "${CMAKE_CURRENT_SOURCE_DIR}" bitstar)
+            create_module_generation_targets(base PathLengthDirectInfSampler)
+            create_module_generation_targets(geometric bitstar)
         endif()
-        create_module_generation_targets(control "${CMAKE_CURRENT_SOURCE_DIR}")
-        create_module_generation_targets(tools "${CMAKE_CURRENT_SOURCE_DIR}")
+        create_module_generation_targets(control)
+        create_module_generation_targets(tools)
         if(OMPL_EXTENSION_MORSE)
-            create_module_generation_targets(morse "${CMAKE_CURRENT_SOURCE_DIR}")
+            create_module_generation_targets(morse)
         endif()
 
         add_dependencies(update_base_bindings update_util_bindings)
@@ -48,9 +48,9 @@ if (OMPL_BUILD_PYBINDINGS)
         endif()
     endif(PY_OMPL_GENERATE)
 
-    if(PY_OMPL_COMPILE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/bindings")
+    if(PY_OMPL_COMPILE AND EXISTS "${CMAKE_CURRENT_BINARY_DIR}/bindings")
         foreach(module ${OMPL_MODULES})
-            create_module_target(${module} "${CMAKE_CURRENT_SOURCE_DIR}")
+            create_module_target(${module})
         endforeach(module)
 
         install(DIRECTORY ompl DESTINATION "${OMPL_PYTHON_INSTALL_DIR}"
@@ -89,6 +89,6 @@ if (OMPL_BUILD_PYBINDINGS)
 endif(OMPL_BUILD_PYBINDINGS)
 
 add_custom_target(clean_bindings
-    "${CMAKE_COMMAND}" -E remove_directory "${CMAKE_CURRENT_SOURCE_DIR}/bindings"
+    "${CMAKE_COMMAND}" -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/bindings"
     COMMAND "${CMAKE_COMMAND}" -E remove -f pyplusplus_{base,control,geometric,tools,util}.{cache,log}
     WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")

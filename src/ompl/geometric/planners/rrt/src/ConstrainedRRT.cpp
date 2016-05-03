@@ -46,9 +46,9 @@ ompl::geometric::ConstrainedRRT::ConstrainedRRT(const base::SpaceInformationPtr 
 
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
-    const base::ConstrainedSpaceInformationPtr& csi = boost::dynamic_pointer_cast<base::ConstrainedSpaceInformation>(si);
+    const base::ConstrainedSpaceInformationPtr& csi = std::dynamic_pointer_cast<base::ConstrainedSpaceInformation>(si);
     if (!csi)
         OMPL_ERROR("%s: Failed to cast SpaceInformation to ConstrainedSpaceInformation", getName().c_str());
     else
@@ -70,7 +70,7 @@ void ompl::geometric::ConstrainedRRT::clear(void)
     freeMemory();
     if (nn_)
         nn_->clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 }
 
 void ompl::geometric::ConstrainedRRT::setup(void)
@@ -81,7 +81,9 @@ void ompl::geometric::ConstrainedRRT::setup(void)
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(boost::bind(&ConstrainedRRT::distanceFunction, this, _1, _2));
+    nn_->setDistanceFunction(std::bind(
+                                 &ConstrainedRRT::distanceFunction, this,
+                                 std::placeholders::_1, std::placeholders::_2));
 }
 
 void ompl::geometric::ConstrainedRRT::freeMemory(void)
@@ -177,7 +179,7 @@ ompl::base::PlannerStatus ompl::geometric::ConstrainedRRT::solve(const base::Pla
 
     OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nn_->size());
 
-    Motion *solution  = NULL;
+    Motion *solution  = nullptr;
     Motion *rmotion   = new Motion(si_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
@@ -262,7 +264,7 @@ ompl::base::PlannerStatus ompl::geometric::ConstrainedRRT::solve(const base::Pla
 
         // Construct the solution path by working backward from solution
         std::vector<Motion*> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;
@@ -280,19 +282,19 @@ ompl::base::PlannerStatus ompl::geometric::ConstrainedRRT::solve(const base::Pla
 
     /*bool solved = false;
     bool approximate = false;
-    if (solution == NULL)
+    if (solution == nullptr)
     {
         solution = approxsol;
         approximate = true;
     }
 
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         lastGoalMotion_ = solution;
 
         // construct the solution path
         std::vector<Motion*> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;
@@ -329,7 +331,7 @@ void ompl::geometric::ConstrainedRRT::getPlannerData(base::PlannerData &data) co
 
     for (unsigned int i = 0 ; i < motions.size() ; ++i)
     {
-        if (motions[i]->parent == NULL)
+        if (motions[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
         else
             data.addEdge(base::PlannerDataVertex(motions[i]->parent->state),

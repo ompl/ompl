@@ -164,7 +164,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
 
     // Be lazy about determining the new chart if we are not in the old one
     if (c->psiInverse(rx, ru), !c->inP(ru))
-        c = NULL;
+        c = nullptr;
     else
         c->borderCheck(ru);
     astate->setRealState(rx, c);
@@ -221,7 +221,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
 
     // Be lazy about determining the new chart if we are not in the old one
     if (c->psiInverse(rx, ru), !c->inP(ru))
-        c = NULL;
+        c = nullptr;
     else
         c->borderCheck(ru);
     astate->setRealState(rx, c);
@@ -323,7 +323,7 @@ void ompl::base::AtlasMotionValidator::checkSpace (void)
 
 /// Public
 ompl::base::AtlasStateSpace::StateType::StateType (const unsigned int dimension)
-  : RealVectorStateSpace::StateType(), dimension_(dimension), chart_(NULL)
+  : RealVectorStateSpace::StateType(), dimension_(dimension), chart_(nullptr)
 {
     // Mimic what RealVectorStateSpace::allocState() would have done
     values = new double[dimension_];
@@ -388,7 +388,9 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int ambient, const 
     
     ballMeasure_ = std::pow(std::sqrt(M_PI), k_) / boost::math::tgamma(k_/2.0 + 1);
     
-    chartNN_.setDistanceFunction(boost::bind(&chartNNDistanceFunction, _1, _2));
+    chartNN_.setDistanceFunction(std::bind(
+                                     &chartNNDistanceFunction,
+                                     std::placeholders::_1, std::placeholders::_2));
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
@@ -476,7 +478,7 @@ void ompl::base::AtlasStateSpace::setSpaceInformation (const SpaceInformationPtr
 {
     // Check that the object is valid
     if (!si)
-        throw ompl::Exception("SpaceInformationPtr associated to the AtlasStateSpace was NULL.");
+        throw ompl::Exception("SpaceInformationPtr associated to the AtlasStateSpace was nullptr.");
     if (si->getStateSpace().get() != this)
         throw ompl::Exception("SpaceInformation for AtlasStateSpace must be constructed from the same space object.");
     
@@ -666,7 +668,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
             return c;
     }
     
-    return NULL;
+    return nullptr;
 }
 
 // This function can throw an ompl::Exception if the manifold misbehaves at xorigin!
@@ -728,7 +730,7 @@ std::size_t ompl::base::AtlasStateSpace::getChartCount (void) const
 
 /** \brief Traverse the manifold from \a from toward \a to. Returns true if we reached \a to, and false if
     * we stopped early for any reason, such as a collision or traveling too far. No collision checking is performed
-    * if \a interpolate is true. If \a stateList is not NULL, the sequence of intermediates is saved to it, including
+    * if \a interpolate is true. If \a stateList is not nullptr, the sequence of intermediates is saved to it, including
     * a copy of \a from, as well as the final state. */
 bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const StateType *to, const bool interpolate,
                                                   std::vector<StateType *> *stateList) const

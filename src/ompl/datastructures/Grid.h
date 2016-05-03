@@ -40,7 +40,7 @@
 #include <vector>
 #include <iostream>
 #include <cstdlib>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <algorithm>
 
 namespace ompl
@@ -115,14 +115,14 @@ namespace ompl
         /// Check if a cell exists at the specified coordinate
         bool has(const Coord &coord) const
         {
-            return getCell(coord) != NULL;
+            return getCell(coord) != nullptr;
         }
 
         /// Get the cell at a specified coordinate
         Cell* getCell(const Coord &coord) const
         {
             iterator pos = hash_.find(const_cast<Coord*>(&coord));
-            Cell *c = (pos != hash_.end()) ? pos->second : NULL;
+            Cell *c = (pos != hash_.end()) ? pos->second : nullptr;
             return c;
         }
 
@@ -150,14 +150,14 @@ namespace ompl
                 coord[i]--;
 
                 iterator pos = hash_.find(&coord);
-                Cell *cell = (pos != hash_.end()) ? pos->second : NULL;
+                Cell *cell = (pos != hash_.end()) ? pos->second : nullptr;
 
                 if (cell)
                     list.push_back(cell);
                 coord[i] += 2;
 
                 pos = hash_.find(&coord);
-                cell = (pos != hash_.end()) ? pos->second : NULL;
+                cell = (pos != hash_.end()) ? pos->second : nullptr;
 
                 if (cell)
                     list.push_back(cell);
@@ -168,7 +168,7 @@ namespace ompl
         /// Get the connected components formed by the cells in this grid (based on neighboring relation)
         std::vector< std::vector<Cell*> > components() const
         {
-            typedef boost::unordered_map<Coord*, int, HashFunCoordPtr, EqualCoordPtr> ComponentHash;
+            typedef std::unordered_map<Coord*, int, HashFunCoordPtr, EqualCoordPtr> ComponentHash;
             typedef typename ComponentHash::iterator CHit;
 
             int components = 0;
@@ -223,7 +223,7 @@ namespace ompl
         /// Return the list of future neighbors.
         /// Note: this call only creates the cell, but does not add it to the grid.
         /// It however updates the neighbor count for neighboring cells
-        virtual Cell* createCell(const Coord& coord, CellArray *nbh = NULL)
+        virtual Cell* createCell(const Coord& coord, CellArray *nbh = nullptr)
         {
             Cell *cell = new Cell();
             cell->coord = coord;
@@ -356,7 +356,7 @@ namespace ompl
         };
 
         /// Define the datatype for the used hash structure
-        typedef boost::unordered_map<Coord*, Cell*, HashFunCoordPtr, EqualCoordPtr> CoordHash;
+        typedef std::unordered_map<Coord*, Cell*, HashFunCoordPtr, EqualCoordPtr> CoordHash;
 
         /// Helper to sort components by size
         struct SortComponents

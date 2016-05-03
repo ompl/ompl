@@ -52,10 +52,10 @@ ompl::geometric::LazyLBTRRT::LazyLBTRRT(const base::SpaceInformationPtr &si) :
     goalBias_(0.05),
     maxDistance_(0.0),
     epsilon_(0.4),
-    lastGoalMotion_(NULL),
-    goalMotion_(NULL),
-    LPAstarApx_(NULL),
-    LPAstarLb_(NULL),
+    lastGoalMotion_(nullptr),
+    goalMotion_(nullptr),
+    LPAstarApx_(nullptr),
+    LPAstarLb_(nullptr),
     iterations_(0)
 {
     specs_.approximateSolutions = true;
@@ -66,9 +66,9 @@ ompl::geometric::LazyLBTRRT::LazyLBTRRT(const base::SpaceInformationPtr &si) :
     Planner::declareParam<double>("epsilon", this, &LazyLBTRRT::setApproximationFactor, &LazyLBTRRT::getApproximationFactor, "0.:.1:10.");
 
     addPlannerProgressProperty("iterations INTEGER",
-                               boost::bind(&LazyLBTRRT::getIterationCount, this));
+                               std::bind(&LazyLBTRRT::getIterationCount, this));
     addPlannerProgressProperty("best cost REAL",
-                               boost::bind(&LazyLBTRRT::getBestCost, this));
+                               std::bind(&LazyLBTRRT::getBestCost, this));
 
 }
 
@@ -86,7 +86,7 @@ void ompl::geometric::LazyLBTRRT::clear(void)
         nn_->clear();
     graphLb_.clear();
     graphApx_.clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     iterations_ = 0;
     bestCost_ = std::numeric_limits<double>::infinity();
@@ -100,9 +100,9 @@ void ompl::geometric::LazyLBTRRT::setup(void)
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(boost::bind(
+    nn_->setDistanceFunction(std::bind(
         (double(LazyLBTRRT::*)(const Motion*, const Motion*) const)
-            &LazyLBTRRT::distanceFunction, this, _1, _2));
+            &LazyLBTRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void ompl::geometric::LazyLBTRRT::freeMemory(void)
@@ -199,13 +199,13 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
     ////////////////////////////////////////////
     while (ptc() == false)
     {
-        boost::tuple<Motion*, base::State*, double> res = rrtExtend(goal_s, xstate, rmotion, approxdif);
-        Motion * nmotion= boost::get<0>(res);
-        base::State *dstate = boost::get<1>(res);
-        double d = boost::get<2>(res);
+        std::tuple<Motion*, base::State*, double> res = rrtExtend(goal_s, xstate, rmotion, approxdif);
+        Motion * nmotion= std::get<0>(res);
+        base::State *dstate = std::get<1>(res);
+        double d = std::get<2>(res);
 
         iterations_++;
-        if (dstate != NULL)
+        if (dstate != nullptr)
         {
             /* create a motion */
             Motion* motion = createMotion(goal_s, dstate);
@@ -260,7 +260,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
     return base::PlannerStatus(solved, !solved);
 }
 
-boost::tuple<ompl::geometric::LazyLBTRRT::Motion*, ompl::base::State*, double>
+std::tuple<ompl::geometric::LazyLBTRRT::Motion*, ompl::base::State*, double>
 ompl::geometric::LazyLBTRRT::rrtExtend(const base::GoalSampleableRegion* goal_s,
     base::State *xstate, Motion *rmotion, double &approxdif)
 {
@@ -280,7 +280,7 @@ ompl::geometric::LazyLBTRRT::rrtExtend(const base::GoalSampleableRegion* goal_s,
     }
 
     if (checkMotion(nmotion->state_, dstate) == false)
-        return boost::make_tuple((Motion*)NULL, (base::State*)NULL, 0.0);
+        return std::make_tuple((Motion*)nullptr, (base::State*)nullptr, 0.0);
 
     // motion is valid
     double dist = 0.0;
@@ -294,7 +294,7 @@ ompl::geometric::LazyLBTRRT::rrtExtend(const base::GoalSampleableRegion* goal_s,
         approxdif = dist;
     }
 
-    return boost::make_tuple(nmotion, dstate, d);
+    return std::make_tuple(nmotion, dstate, d);
 }
 
 void ompl::geometric::LazyLBTRRT::rrt(const base::PlannerTerminationCondition &ptc,
@@ -302,13 +302,13 @@ void ompl::geometric::LazyLBTRRT::rrt(const base::PlannerTerminationCondition &p
 {
     while (ptc() == false)
     {
-        boost::tuple<Motion*, base::State*, double> res = rrtExtend(goal_s, xstate, rmotion, approxdif);
-        Motion* nmotion = boost::get<0>(res);
-        base::State *dstate = boost::get<1>(res);
-        double d = boost::get<2>(res);
+        std::tuple<Motion*, base::State*, double> res = rrtExtend(goal_s, xstate, rmotion, approxdif);
+        Motion* nmotion = std::get<0>(res);
+        base::State *dstate = std::get<1>(res);
+        double d = std::get<2>(res);
 
         iterations_++;
-        if (dstate != NULL)
+        if (dstate != nullptr)
         {
             /* create a motion */
             Motion* motion = createMotion(goal_s, dstate);

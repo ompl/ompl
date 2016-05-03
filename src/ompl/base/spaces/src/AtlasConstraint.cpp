@@ -39,7 +39,7 @@
 #include <eigen3/Eigen/Dense>
 
 ompl::base::AtlasConstraint::AtlasConstraint (AtlasStateSpacePtr &atlas)
-: Constraint(boost::dynamic_pointer_cast<StateSpace>(atlas)), atlas_(*atlas), sampler_(&atlas_)
+: Constraint(std::dynamic_pointer_cast<StateSpace>(atlas)), atlas_(*atlas), sampler_(&atlas_)
 {
 }
 
