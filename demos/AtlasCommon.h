@@ -66,7 +66,6 @@
 
 #include <eigen3/Eigen/Dense>
 
-#define OMPL_HAVE_PNGXX 1
 #if OMPL_HAVE_PNGXX
 #include <png++/png.hpp>
 #endif

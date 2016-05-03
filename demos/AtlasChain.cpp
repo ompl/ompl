@@ -366,8 +366,4 @@ int main (int argc, char **argv)
     bench.addExperimentParameter("numconstraints", "INTEGER", boost::lexical_cast<std::string>(numConstraints));
     bench.benchmark(request);
     bench.saveResultsToFile((boost::format("atlaschain_%1%_%2%.log") % numDimensions % numConstraints).str().c_str());
-
-    std::string plannerName = ss->getPlanner()->getName();
-    if (ss->haveSolutionPath() && savePath)
-        saveSolutionPath(ss, plannerName == "CBiRRT2" || plannerName == "ConstrainedRRT");
 }
