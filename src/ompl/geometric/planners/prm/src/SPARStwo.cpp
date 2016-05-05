@@ -159,7 +159,7 @@ void ompl::geometric::SPARStwo::freeMemory()
 
     foreach (Vertex v, boost::vertices(g_))
     {
-        foreach (InterfaceData &d, interfaceDataProperty_[v].interfaceHash | boost::adaptors::map_values)
+        foreach (InterfaceData &d, interfaceDataProperty_[v] | boost::adaptors::map_values)
             d.clear(si_);
         if( stateProperty_[v] != nullptr )
             si_->freeState(stateProperty_[v]);
@@ -696,7 +696,7 @@ ompl::geometric::SPARStwo::VertexPair ompl::geometric::SPARStwo::index( Vertex v
 
 ompl::geometric::SPARStwo::InterfaceData& ompl::geometric::SPARStwo::getData( Vertex v, Vertex vp, Vertex vpp )
 {
-    return interfaceDataProperty_[v].interfaceHash[index( vp, vpp )];
+    return interfaceDataProperty_[v][index( vp, vpp )];
 }
 
 void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, Vertex r, const base::State *s, Vertex rp)
@@ -741,7 +741,7 @@ void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, 
     }
 
     // Lastly, save what we have discovered
-    interfaceDataProperty_[rep].interfaceHash[index(r, rp)] = d;
+    interfaceDataProperty_[rep][index(r, rp)] = d;
 }
 
 void ompl::geometric::SPARStwo::abandonLists(base::State *st)
@@ -756,8 +756,8 @@ void ompl::geometric::SPARStwo::abandonLists(base::State *st)
     //For each of the vertices
     foreach (Vertex v, hold)
     {
-        foreach (VertexPair r, interfaceDataProperty_[v].interfaceHash | boost::adaptors::map_keys)
-            interfaceDataProperty_[v].interfaceHash[r].clear(si_);
+        foreach (VertexPair r, interfaceDataProperty_[v] | boost::adaptors::map_keys)
+            interfaceDataProperty_[v][r].clear(si_);
     }
 }
 
@@ -882,4 +882,3 @@ ompl::base::Cost ompl::geometric::SPARStwo::costHeuristic(Vertex u, Vertex v) co
 {
     return opt_->motionCostHeuristic(stateProperty_[u], stateProperty_[v]);
 }
-
