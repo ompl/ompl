@@ -44,18 +44,17 @@ namespace ompl
 {
     namespace base
     {
-
         /// @cond IGNORE
         class PlannerTerminationCondition::PlannerTerminationConditionImpl
         {
         public:
-            PlannerTerminationConditionImpl(const PlannerTerminationConditionFn &fn, double period) :
-            fn_(fn),
-            period_(period),
-            terminate_(false),
-            thread_(nullptr),
-            evalValue_(false),
-            signalThreadStop_(false)
+            PlannerTerminationConditionImpl(const PlannerTerminationConditionFn &fn, double period)
+              : fn_(fn)
+              , period_(period)
+              , terminate_(false)
+              , thread_(nullptr)
+              , evalValue_(false)
+              , signalThreadStop_(false)
             {
                 if (period_ > 0.0)
                     startEvalThread();
@@ -82,7 +81,6 @@ namespace ompl
             }
 
         private:
-
             /** \brief Start the thread evaluating termination conditions if not already started */
             void startEvalThread()
             {
@@ -117,13 +115,13 @@ namespace ompl
                 if (period_ > 0.001)
                 {
                     count = 0.5 + period_ / 0.001;
-                    s = time::seconds(period_ / (double) count);
+                    s = time::seconds(period_ / (double)count);
                 }
 
                 while (!terminate_ && !signalThreadStop_)
                 {
                     evalValue_ = fn_();
-                    for (unsigned int i = 0 ; i < count ; ++i)
+                    for (unsigned int i = 0; i < count; ++i)
                     {
                         if (terminate_ || signalThreadStop_)
                             break;
@@ -132,36 +130,39 @@ namespace ompl
                 }
             }
 
-            /** \brief Function pointer to the piece of code that decides whether a termination condition has been met */
+            /** \brief Function pointer to the piece of code that decides whether a termination condition has been met
+             */
             PlannerTerminationConditionFn fn_;
 
             /** \brief Interval of time (seconds) to wait between calls to computeEval() */
-            double                        period_;
+            double period_;
 
-            /** \brief Flag indicating whether the user has externally requested that the condition for termination should become true */
-            mutable bool                  terminate_;
+            /** \brief Flag indicating whether the user has externally requested that the condition for termination
+             * should become true */
+            mutable bool terminate_;
 
             /** \brief Thread for periodicEval() */
-            std::thread                  *thread_;
+            std::thread *thread_;
 
             /** \brief Cached value returned by fn_() */
-            bool                          evalValue_;
+            bool evalValue_;
 
             /** \brief Flag used to signal the condition evaluation thread to stop. */
-            bool                          signalThreadStop_;
+            bool signalThreadStop_;
         };
 
         /// @endcond
     }
 }
 
-ompl::base::PlannerTerminationCondition::PlannerTerminationCondition(const PlannerTerminationConditionFn &fn) :
-impl_(new PlannerTerminationConditionImpl(fn, -1.0))
+ompl::base::PlannerTerminationCondition::PlannerTerminationCondition(const PlannerTerminationConditionFn &fn)
+  : impl_(new PlannerTerminationConditionImpl(fn, -1.0))
 {
 }
 
-ompl::base::PlannerTerminationCondition::PlannerTerminationCondition(const PlannerTerminationConditionFn &fn, double period) :
-impl_(new PlannerTerminationConditionImpl(fn, period))
+ompl::base::PlannerTerminationCondition::PlannerTerminationCondition(const PlannerTerminationConditionFn &fn,
+                                                                     double period)
+  : impl_(new PlannerTerminationConditionImpl(fn, period))
 {
 }
 
@@ -177,12 +178,18 @@ bool ompl::base::PlannerTerminationCondition::eval() const
 
 ompl::base::PlannerTerminationCondition ompl::base::plannerNonTerminatingCondition()
 {
-    return PlannerTerminationCondition([] { return false; });
+    return PlannerTerminationCondition([]
+                                       {
+                                           return false;
+                                       });
 }
 
 ompl::base::PlannerTerminationCondition ompl::base::plannerAlwaysTerminatingCondition()
 {
-    return PlannerTerminationCondition([] { return true; });
+    return PlannerTerminationCondition([]
+                                       {
+                                           return true;
+                                       });
 }
 
 /// @cond IGNORE
@@ -190,12 +197,14 @@ namespace ompl
 {
     namespace base
     {
-        static bool plannerOrTerminationConditionAux(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2)
+        static bool plannerOrTerminationConditionAux(const PlannerTerminationCondition &c1,
+                                                     const PlannerTerminationCondition &c2)
         {
             return c1() || c2();
         }
 
-        static bool plannerAndTerminationConditionAux(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2)
+        static bool plannerAndTerminationConditionAux(const PlannerTerminationCondition &c1,
+                                                      const PlannerTerminationCondition &c2)
         {
             return c1() && c2();
         }
@@ -209,12 +218,14 @@ namespace ompl
 }
 /// @endcond
 
-ompl::base::PlannerTerminationCondition ompl::base::plannerOrTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2)
+ompl::base::PlannerTerminationCondition ompl::base::plannerOrTerminationCondition(const PlannerTerminationCondition &c1,
+                                                                                  const PlannerTerminationCondition &c2)
 {
     return PlannerTerminationCondition(std::bind(&plannerOrTerminationConditionAux, c1, c2));
 }
 
-ompl::base::PlannerTerminationCondition ompl::base::plannerAndTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2)
+ompl::base::PlannerTerminationCondition
+ompl::base::plannerAndTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2)
 {
     return PlannerTerminationCondition(std::bind(&plannerAndTerminationConditionAux, c1, c2));
 }
@@ -236,7 +247,8 @@ ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondi
     return PlannerTerminationCondition(std::bind(&timePassed, time::now() + time::seconds(duration)), interval);
 }
 
-ompl::base::PlannerTerminationCondition ompl::base::exactSolnPlannerTerminationCondition(ompl::base::ProblemDefinitionPtr pdef)
+ompl::base::PlannerTerminationCondition
+ompl::base::exactSolnPlannerTerminationCondition(ompl::base::ProblemDefinitionPtr pdef)
 {
     return PlannerTerminationCondition(std::bind(&ProblemDefinition::hasExactSolution, pdef));
 }
@@ -246,8 +258,7 @@ namespace ompl
     namespace base
     {
         IterationTerminationCondition::IterationTerminationCondition(unsigned int numIterations)
-          : maxCalls_(numIterations),
-            timesCalled_(0u)
+          : maxCalls_(numIterations), timesCalled_(0u)
         {
         }
 
@@ -265,7 +276,7 @@ namespace ompl
 
         IterationTerminationCondition::operator PlannerTerminationCondition()
         {
-            return PlannerTerminationCondition( std::bind(&IterationTerminationCondition::eval, this) );
+            return PlannerTerminationCondition(std::bind(&IterationTerminationCondition::eval, this));
         }
     }
 }

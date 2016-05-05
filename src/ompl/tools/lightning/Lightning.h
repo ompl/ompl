@@ -67,10 +67,9 @@
 
 namespace ompl
 {
-
     namespace tools
     {
-        //class LightningDB; // forward declaration
+        // class LightningDB; // forward declaration
         OMPL_CLASS_FORWARD(LightningDB);
         OMPL_CLASS_FORWARD(ParallelPlan);
 
@@ -81,7 +80,8 @@ namespace ompl
            previously generated paths the most similar one to the current planning problem and attempts to repair it,
            while at the same time planning from scratch in a different thread
            @par External documentation
-           Berenson, Dmitry, Pieter Abbeel, and Ken Goldberg: A robot path planning framework that learns from experience,
+           Berenson, Dmitry, Pieter Abbeel, and Ken Goldberg: A robot path planning framework that learns from
+           experience,
            in <em>Robotics and Automation (ICRA), 2012 IEEE International Conference on. IEEE</em>, 2012.
            DOI: <a href="http://dx.doi.org/10.1109/ICRA.2012.6224742">10.1109/ICRA.2012.6224742</a><br>
            <a href="http://users.wpi.edu/~dberenson/lightning.pdf">[PDF]</a>
@@ -98,26 +98,21 @@ namespace ompl
         class Lightning : public ompl::tools::ExperienceSetup
         {
         public:
-
             /** \brief Constructor needs the state space used for planning. */
-            explicit
-            Lightning(const base::SpaceInformationPtr &si);
+            explicit Lightning(const base::SpaceInformationPtr &si);
 
             /** \brief Constructor needs the state space used for planning.
              *  \param space - the state space to plan in
              */
-            explicit
-            Lightning(const base::StateSpacePtr &space);
+            explicit Lightning(const base::StateSpacePtr &space);
 
         private:
-
             /**
              * \brief Shared constructor functions
              */
             void initialize();
 
         public:
-
             /** \brief Display debug data about potential available solutions */
             void printResultsInfo(std::ostream &out = std::cout) const;
 
@@ -127,9 +122,9 @@ namespace ompl
             /**
              * \brief Get a pointer to the retrieve repair planner
              */
-            ompl::geometric::LightningRetrieveRepair& getLightningRetrieveRepairPlanner() const
+            ompl::geometric::LightningRetrieveRepair &getLightningRetrieveRepairPlanner() const
             {
-                return static_cast<ompl::geometric::LightningRetrieveRepair&>(*rrPlanner_);
+                return static_cast<ompl::geometric::LightningRetrieveRepair &>(*rrPlanner_);
             }
 
             /** \brief Set the planner to use for repairing experience paths
@@ -137,7 +132,7 @@ namespace ompl
                 set, a default planner is set. */
             void setRepairPlanner(const base::PlannerPtr &planner)
             {
-                static_cast<og::LightningRetrieveRepair&>(*rrPlanner_).setRepairPlanner(planner);
+                static_cast<og::LightningRetrieveRepair &>(*rrPlanner_).setRepairPlanner(planner);
             }
 
             /** \brief Set the planner allocator to use. This is only
@@ -190,13 +185,12 @@ namespace ompl
             void convertPlannerData(const ompl::base::PlannerDataPtr plannerData, ompl::geometric::PathGeometric &path);
 
             /** \brief Tool for comparing two paths and scoring them */
-            const ompl::tools::DynamicTimeWarpPtr& getDynamicTimeWarp() const
+            const ompl::tools::DynamicTimeWarpPtr &getDynamicTimeWarp() const
             {
                 return dtw_;
             }
 
         protected:
-
             /**
              * \brief If path1 and path2 have a better start/goal match when reverse, then reverse path2
              * \param path to test against
@@ -206,20 +200,20 @@ namespace ompl
             bool reversePathIfNecessary(ompl::geometric::PathGeometric &path1, ompl::geometric::PathGeometric &path2);
 
             /// The maintained experience planner instance
-            base::PlannerPtr                  rrPlanner_;
+            base::PlannerPtr rrPlanner_;
 
             /** \brief Instance of parallel planning to use for computing solutions in parallel */
-            ompl::tools::ParallelPlanPtr      pp_;
+            ompl::tools::ParallelPlanPtr pp_;
 
             /** \brief A shared object between all the planners for saving and loading previous experience */
-            ompl::tools::LightningDBPtr      experienceDB_;
+            ompl::tools::LightningDBPtr experienceDB_;
 
             /** \brief Tool for comparing two paths and scoring them */
-            ompl::tools::DynamicTimeWarpPtr   dtw_;
+            ompl::tools::DynamicTimeWarpPtr dtw_;
 
-        }; // end of class Lightning
+        };  // end of class Lightning
 
-    } // end of namespace
+    }  // end of namespace
 
-} // end of namespace
+}  // end of namespace
 #endif

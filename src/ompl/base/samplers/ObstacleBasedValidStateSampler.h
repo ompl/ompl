@@ -44,20 +44,19 @@ namespace ompl
 {
     namespace base
     {
-
-
         /** \brief Generate valid samples using obstacle based sampling.  First
             sample an invalid state, then sample a valid state.  Then, interpolate from
             the invalid state to the valid state, returning the first valid state
             encountered.
 
             @par External documentation
-            N. M. Amato, O. B. Bayazit, L. K. Dale, C. Jones, and D. Vallejo, OBPRM: an obstacle-based PRM for 3D workspaces, in <em> Third Workshop on the Algorithmic Foundations of Robotics</em>, pp. 155-168, 1998. [[URL]](https://parasol.tamu.edu/groups/amatogroup/research/OBPRM/)
+            N. M. Amato, O. B. Bayazit, L. K. Dale, C. Jones, and D. Vallejo, OBPRM: an obstacle-based PRM for 3D
+           workspaces, in <em> Third Workshop on the Algorithmic Foundations of Robotics</em>, pp. 155-168, 1998.
+           [[URL]](https://parasol.tamu.edu/groups/amatogroup/research/OBPRM/)
         */
         class ObstacleBasedValidStateSampler : public ValidStateSampler
         {
         public:
-
             /** \brief Constructor */
             ObstacleBasedValidStateSampler(const SpaceInformation *si);
 
@@ -69,14 +68,10 @@ namespace ompl
             virtual bool sampleNear(State *state, const State *near, const double distance);
 
         protected:
-
             /** \brief The sampler to build upon */
             StateSamplerPtr sampler_;
-
         };
-
     }
 }
-
 
 #endif

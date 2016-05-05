@@ -56,7 +56,9 @@ namespace ompl
             user-defined vector field.
 
             \par External documentation
-            I. Ko, B. Kim, and F. C. Park, Randomized path planning on vector fields, <em>Intl. J. of Robotics Research,</em> 33(13), pp. 1664–1682, 2014. DOI: [10.1177/0278364914545812](http://dx.doi.org/10.1177/0278364914545812)<br>
+            I. Ko, B. Kim, and F. C. Park, Randomized path planning on vector fields, <em>Intl. J. of Robotics
+           Research,</em> 33(13), pp. 1664–1682, 2014. DOI:
+           [10.1177/0278364914545812](http://dx.doi.org/10.1177/0278364914545812)<br>
 
             [[PDF]](http://robotics.snu.ac.kr/fcp/files/_pdf_files_publications/201411_Randomized%20path%20planning.pdf)
 
@@ -67,8 +69,8 @@ namespace ompl
             typedef std::function<Eigen::VectorXd(const base::State *state)> VectorField;
 
             /** Constructor. */
-            VFRRT(const base::SpaceInformationPtr &si, const VectorField &vf, double exploration,
-                  double initial_lambda, unsigned int update_freq);
+            VFRRT(const base::SpaceInformationPtr &si, const VectorField &vf, double exploration, double initial_lambda,
+                  unsigned int update_freq);
 
             /** Destructor. */
             virtual ~VFRRT();
@@ -83,8 +85,7 @@ namespace ompl
             Eigen::VectorXd getNewDirection(const base::State *qnear, const base::State *qrand);
 
             /** Calculates the weight omega which can be used to compute alpha and beta. */
-            double biasedSampling (const Eigen::VectorXd &vrand, const Eigen::VectorXd &vfield,
-                                   double lambdaScale);
+            double biasedSampling(const Eigen::VectorXd &vrand, const Eigen::VectorXd &vfield, double lambdaScale);
 
             /**
              * Every nth time this function is called (where the nth step is the update
@@ -92,21 +93,20 @@ namespace ompl
              * the counts of efficient and inefficient samples added to the tree are
              * reset to 0. The measure for exploration inefficiency is also reset to 0.
              */
-            void updateGain ();
+            void updateGain();
 
             /**
              * Computes alpha and beta, using these values to produce the vector returned by
              * getNewDirection. This produced vector can be used to determine the direction an
              * added state should be to maximize the upstream criterion of the produced path.
              */
-            Eigen::VectorXd computeAlphaBeta (double omega, const Eigen::VectorXd &vrand,
-                                              const Eigen::VectorXd &vfield);
+            Eigen::VectorXd computeAlphaBeta(double omega, const Eigen::VectorXd &vrand, const Eigen::VectorXd &vfield);
 
             /**
              * This attempts to extend the tree from the motion m to a new motion
              * in the direction specified by the vector v.
              */
-            Motion *extendTree (Motion *m, base::State* rstate, const Eigen::VectorXd &v);
+            Motion *extendTree(Motion *m, base::State *rstate, const Eigen::VectorXd &v);
             /**
              * Updates measures for exploration efficiency if a given motion m is added to the
              * nearest NearestNeighbors structure.
@@ -114,12 +114,11 @@ namespace ompl
             void updateExplorationEfficiency(Motion *m);
 
             /** Solve the planning problem. */
-            virtual base::PlannerStatus solve (const base::PlannerTerminationCondition &ptc);
+            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
             virtual void setup();
 
         private:
-
             /** Vector field for the environemnt. */
             const VectorField vf_;
 

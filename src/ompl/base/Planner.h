@@ -54,10 +54,8 @@
 
 namespace ompl
 {
-
     namespace base
     {
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::Planner */
         OMPL_CLASS_FORWARD(Planner);
@@ -65,7 +63,6 @@ namespace ompl
 
         /** \class ompl::base::PlannerPtr
             \brief A shared pointer wrapper for ompl::base::Planner */
-
 
         /** \brief Helper class to extract valid start & goal
             states. Usually used internally by planners.
@@ -81,7 +78,6 @@ namespace ompl
         class PlannerInputStates
         {
         public:
-
             /** \brief Default constructor. No work is performed. */
             PlannerInputStates(const PlannerPtr &planner) : planner_(planner.get())
             {
@@ -146,7 +142,7 @@ namespace ompl
 
             /** \brief Return the next valid start state or nullptr if no
                 more valid start states are available. */
-            const State* nextStart();
+            const State *nextStart();
 
             /** \brief Return the next valid goal state or nullptr if no
                 more valid goal states are available.  Because
@@ -156,10 +152,10 @@ namespace ompl
                 the termination condition evaluates to true the
                 function terminates even if no valid goal has been
                 found. */
-            const State* nextGoal(const PlannerTerminationCondition &ptc);
+            const State *nextGoal(const PlannerTerminationCondition &ptc);
 
             /** \brief Same as above but only one attempt is made to find a valid goal. */
-            const State* nextGoal();
+            const State *nextGoal();
 
             /** \brief Check if there are more potential start states */
             bool haveMoreStartStates() const;
@@ -182,23 +178,27 @@ namespace ompl
             }
 
         private:
+            const Planner *planner_;
 
-            const Planner              *planner_;
+            unsigned int addedStartStates_;
+            unsigned int sampledGoalsCount_;
+            State *tempState_;
 
-            unsigned int                addedStartStates_;
-            unsigned int                sampledGoalsCount_;
-            State                      *tempState_;
-
-            const ProblemDefinition    *pdef_;
-            const SpaceInformation     *si_;
+            const ProblemDefinition *pdef_;
+            const SpaceInformation *si_;
         };
 
         /** \brief Properties that planners may have */
         struct PlannerSpecs
         {
-            PlannerSpecs() : recognizedGoal(GOAL_ANY), multithreaded(false), approximateSolutions(false),
-                             optimizingPaths(false), directed(false), provingSolutionNonExistence(false),
-                             canReportIntermediateSolutions(false)
+            PlannerSpecs()
+              : recognizedGoal(GOAL_ANY)
+              , multithreaded(false)
+              , approximateSolutions(false)
+              , optimizingPaths(false)
+              , directed(false)
+              , provingSolutionNonExistence(false)
+              , canReportIntermediateSolutions(false)
             {
             }
 
@@ -206,34 +206,35 @@ namespace ompl
             GoalType recognizedGoal;
 
             /** \brief Flag indicating whether multiple threads are used in the computation of the planner */
-            bool     multithreaded;
+            bool multithreaded;
 
             /** \brief Flag indicating whether the planner is able to compute approximate solutions */
-            bool     approximateSolutions;
+            bool approximateSolutions;
 
             /** \brief Flag indicating whether the planner attempts to optimize the path and reduce its length until the
                 maximum path length specified by the goal representation is satisfied */
-            bool     optimizingPaths;
+            bool optimizingPaths;
 
-            /** \brief Flag indicating whether the planner is able to account for the fact that the validity of a motion from A to B may not be the same as the validity of a motion from B to A.
-                If this flag is true, the planner will return solutions that do not make this assumption. Usually roadmap-based planners make this assumption and tree-based planners do not. */
-            bool     directed;
+            /** \brief Flag indicating whether the planner is able to account for the fact that the validity of a motion
+               from A to B may not be the same as the validity of a motion from B to A.
+                If this flag is true, the planner will return solutions that do not make this assumption. Usually
+               roadmap-based planners make this assumption and tree-based planners do not. */
+            bool directed;
 
             /** \brief Flag indicating whether the planner is able to prove that no solution path exists. */
-            bool     provingSolutionNonExistence;
+            bool provingSolutionNonExistence;
 
             /** \brief Flag indicating whether the planner is able to report the computation of intermediate paths. */
-            bool     canReportIntermediateSolutions;
+            bool canReportIntermediateSolutions;
         };
 
         /** \brief Base class for a planner */
         class Planner
         {
-
         public:
             // non-copyable
-            Planner(const Planner&) = delete;
-            Planner& operator=(const Planner&) = delete;
+            Planner(const Planner &) = delete;
+            Planner &operator=(const Planner &) = delete;
 
             /** \brief Constructor */
             Planner(const SpaceInformationPtr &si, const std::string &name);
@@ -244,33 +245,33 @@ namespace ompl
             }
 
             /** \brief Cast this instance to a desired type. */
-            template<class T>
-            T* as()
+            template <class T>
+            T *as()
             {
                 /** \brief Make sure the type we are casting to is indeed a planner */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Planner*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, Planner *>));
 
-                return static_cast<T*>(this);
+                return static_cast<T *>(this);
             }
 
             /** \brief Cast this instance to a desired type. */
-            template<class T>
-            const T* as() const
+            template <class T>
+            const T *as() const
             {
                 /** \brief Make sure the type we are casting to is indeed a Planner */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Planner*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, Planner *>));
 
-                return static_cast<const T*>(this);
+                return static_cast<const T *>(this);
             }
 
             /** \brief Get the space information this planner is using */
-            const SpaceInformationPtr& getSpaceInformation() const;
+            const SpaceInformationPtr &getSpaceInformation() const;
 
             /** \brief Get the problem definition the planner is trying to solve */
-            const ProblemDefinitionPtr& getProblemDefinition() const;
+            const ProblemDefinitionPtr &getProblemDefinition() const;
 
             /** \brief Get the planner input states */
-            const PlannerInputStates& getPlannerInputStates() const;
+            const PlannerInputStates &getPlannerInputStates() const;
 
             /** \brief Set the problem definition for the planner. The
                 problem needs to be set before calling solve(). Note:
@@ -315,13 +316,13 @@ namespace ompl
             virtual void getPlannerData(PlannerData &data) const;
 
             /** \brief Get the name of the planner */
-            const std::string& getName() const;
+            const std::string &getName() const;
 
             /** \brief Set the name of the planner */
             void setName(const std::string &name);
 
             /** \brief Return the specifications (capabilities of this planner) */
-            const PlannerSpecs& getSpecs() const;
+            const PlannerSpecs &getSpecs() const;
 
             /** \brief Perform extra configuration steps, if
                 needed. This call will also issue a call to
@@ -339,25 +340,27 @@ namespace ompl
             bool isSetup() const;
 
             /** \brief Get the  parameters for this planner */
-            ParamSet& params()
+            ParamSet &params()
             {
                 return params_;
             }
 
             /** \brief Get the  parameters for this planner */
-            const ParamSet& params() const
+            const ParamSet &params() const
             {
                 return params_;
             }
 
-            /** \brief Definition of a function which returns a property about the planner's progress that can be queried by a benchmarking routine */
-            typedef std::function<std::string ()> PlannerProgressProperty;
+            /** \brief Definition of a function which returns a property about the planner's progress that can be
+             * queried by a benchmarking routine */
+            typedef std::function<std::string()> PlannerProgressProperty;
 
-            /** \brief A dictionary which maps the name of a progress property to the function to be used for querying that property */
+            /** \brief A dictionary which maps the name of a progress property to the function to be used for querying
+             * that property */
             typedef std::map<std::string, PlannerProgressProperty> PlannerProgressProperties;
 
             /** \brief Retrieve a planner's planner progress property map */
-            const PlannerProgressProperties& getPlannerProgressProperties() const
+            const PlannerProgressProperties &getPlannerProgressProperties() const
             {
                 return plannerProgressProperties_;
             }
@@ -369,58 +372,66 @@ namespace ompl
             virtual void printSettings(std::ostream &out) const;
 
         protected:
-
-            /** \brief This function declares a parameter for this planner instance, and specifies the setter and getter functions. */
-            template<typename T, typename PlannerType, typename SetterType, typename GetterType>
-            void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const GetterType& getter, const std::string &rangeSuggestion = "")
+            /** \brief This function declares a parameter for this planner instance, and specifies the setter and getter
+             * functions. */
+            template <typename T, typename PlannerType, typename SetterType, typename GetterType>
+            void declareParam(const std::string &name, const PlannerType &planner, const SetterType &setter,
+                              const GetterType &getter, const std::string &rangeSuggestion = "")
             {
-                params_.declareParam<T>(name, std::bind(setter, planner, std::placeholders::_1), std::bind(getter, planner));
+                params_.declareParam<T>(name, std::bind(setter, planner, std::placeholders::_1),
+                                        std::bind(getter, planner));
                 if (!rangeSuggestion.empty())
                     params_[name].setRangeSuggestion(rangeSuggestion);
             }
 
-            /** \brief This function declares a parameter for this planner instance, and specifies the setter function. */
-            template<typename T, typename PlannerType, typename SetterType>
-            void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const std::string &rangeSuggestion = "")
+            /** \brief This function declares a parameter for this planner instance, and specifies the setter function.
+             */
+            template <typename T, typename PlannerType, typename SetterType>
+            void declareParam(const std::string &name, const PlannerType &planner, const SetterType &setter,
+                              const std::string &rangeSuggestion = "")
             {
                 params_.declareParam<T>(name, std::bind(setter, planner, std::placeholders::_1));
                 if (!rangeSuggestion.empty())
                     params_[name].setRangeSuggestion(rangeSuggestion);
             }
 
-            /** \brief Add a planner progress property called \e progressPropertyName with a property querying function \e prop to this planner's progress property map */
-            void addPlannerProgressProperty(const std::string& progressPropertyName, const PlannerProgressProperty& prop)
+            /** \brief Add a planner progress property called \e progressPropertyName with a property querying function
+             * \e prop to this planner's progress property map */
+            void addPlannerProgressProperty(const std::string &progressPropertyName,
+                                            const PlannerProgressProperty &prop)
             {
                 plannerProgressProperties_[progressPropertyName] = prop;
             }
 
             /** \brief The space information for which planning is done */
-            SpaceInformationPtr       si_;
+            SpaceInformationPtr si_;
 
             /** \brief The user set problem definition */
-            ProblemDefinitionPtr      pdef_;
+            ProblemDefinitionPtr pdef_;
 
             /** \brief Utility class to extract valid input states  */
-            PlannerInputStates        pis_;
+            PlannerInputStates pis_;
 
             /** \brief The name of this planner */
-            std::string               name_;
+            std::string name_;
 
             /** \brief The specifications of the planner (its capabilities) */
-            PlannerSpecs              specs_;
+            PlannerSpecs specs_;
 
-            /** \brief A map from parameter names to parameter instances for this planner. This field is populated by the declareParam() function */
-            ParamSet                  params_;
+            /** \brief A map from parameter names to parameter instances for this planner. This field is populated by
+             * the declareParam() function */
+            ParamSet params_;
 
-            /** \brief A mapping between this planner's progress property names and the functions used for querying those progress properties */
+            /** \brief A mapping between this planner's progress property names and the functions used for querying
+             * those progress properties */
             PlannerProgressProperties plannerProgressProperties_;
 
             /** \brief Flag indicating whether setup() has been called */
-            bool                      setup_;
+            bool setup_;
         };
 
         /** \brief Definition of a function that can allocate a planner */
-        typedef std::function<PlannerPtr(const SpaceInformationPtr&)> PlannerAllocator;
+        typedef std::function<PlannerPtr(const SpaceInformationPtr &)> PlannerAllocator;
     }
 }
 

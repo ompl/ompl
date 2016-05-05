@@ -38,7 +38,8 @@
 #include "ompl/base/SpaceInformation.h"
 #include <limits>
 
-ompl::base::GoalRegion::GoalRegion(const SpaceInformationPtr &si) : Goal(si), threshold_(std::numeric_limits<double>::epsilon())
+ompl::base::GoalRegion::GoalRegion(const SpaceInformationPtr &si)
+  : Goal(si), threshold_(std::numeric_limits<double>::epsilon())
 {
     type_ = GOAL_REGION;
 }

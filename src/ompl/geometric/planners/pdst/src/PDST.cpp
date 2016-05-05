@@ -38,8 +38,12 @@
 #include "ompl/geometric/planners/pdst/PDST.h"
 
 ompl::geometric::PDST::PDST(const base::SpaceInformationPtr &si)
-    : base::Planner(si, "PDST"), bsp_(nullptr), goalBias_(0.05),
-    goalSampler_(nullptr), iteration_(1), lastGoalMotion_(nullptr)
+  : base::Planner(si, "PDST")
+  , bsp_(nullptr)
+  , goalBias_(0.05)
+  , goalSampler_(nullptr)
+  , iteration_(1)
+  , lastGoalMotion_(nullptr)
 {
     Planner::declareParam<double>("goal_bias", this, &PDST::setGoalBias, &PDST::getGoalBias, "0.:.05:1.");
 }
@@ -64,7 +68,7 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
     bsp_->bounds_ = projectionEvaluator_->getBounds();
 
     base::Goal *goal = pdef_->getGoal().get();
-    goalSampler_ = dynamic_cast<ompl::base::GoalSampleableRegion*>(goal);
+    goalSampler_ = dynamic_cast<ompl::base::GoalSampleableRegion *>(goal);
 
     // Ensure that we have a state sampler
     if (!sampler_)
@@ -96,7 +100,8 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
         return base::PlannerStatus::INVALID_START;
     }
 
-    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), priorityQueue_.size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(),
+                priorityQueue_.size());
 
     base::State *tmpState1 = si_->allocState(), *tmpState2 = si_->allocState();
     base::EuclideanProjection tmpProj(ndim);
@@ -129,10 +134,10 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
         // cell in subcells and split motions so that they contained within
         // one subcell
         Cell *cellSelected = motionSelected->cell_;
-        std::vector<Motion*> motions;
+        std::vector<Motion *> motions;
         cellSelected->subdivide(ndim);
         motions.swap(cellSelected->motions_);
-        for (std::vector<Motion*>::iterator m = motions.begin() ; m != motions.end() ; ++m)
+        for (std::vector<Motion *>::iterator m = motions.begin(); m != motions.end(); ++m)
             addMotion(*m, cellSelected, tmpState1, tmpProj);
     }
 
@@ -145,7 +150,7 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
         PathGeometric *path = new PathGeometric(si_);
 
         // Compute the path by going up the tree of motions.
-        std::vector<base::State*> spath(1,  lastGoalMotion_->endState_);
+        std::vector<base::State *> spath(1, lastGoalMotion_->endState_);
         Motion *m = lastGoalMotion_;
         while (m)
         {
@@ -155,7 +160,7 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
         }
 
         // Add the solution path in order from the start state to the goal.
-        for (std::vector<base::State*>::reverse_iterator rIt = spath.rbegin(); rIt != spath.rend(); ++rIt)
+        for (std::vector<base::State *>::reverse_iterator rIt = spath.rbegin(); rIt != spath.rend(); ++rIt)
             path->append((*rIt));
         pdef_->addSolutionPath(base::PathPtr(path), isApproximate, closestDistanceToGoal, getName());
     }
@@ -168,8 +173,8 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
     return base::PlannerStatus(hasSolution, isApproximate);
 }
 
-ompl::geometric::PDST::Motion *ompl::geometric::PDST::propagateFrom(
-    Motion *motion, base::State *start, base::State *rnd)
+ompl::geometric::PDST::Motion *ompl::geometric::PDST::propagateFrom(Motion *motion, base::State *start,
+                                                                    base::State *rnd)
 {
     // sample a point along the trajectory given by motion
     si_->getStateSpace()->interpolate(motion->startState_, motion->endState_, rng_.uniform01(), start);
@@ -179,12 +184,12 @@ ompl::geometric::PDST::Motion *ompl::geometric::PDST::propagateFrom(
     else
         sampler_->sampleUniform(rnd);
     // compute longest valid segment from start towards rnd
-    std::pair<base::State*, double> lastValid = std::make_pair(rnd, 0.);
+    std::pair<base::State *, double> lastValid = std::make_pair(rnd, 0.);
     si_->checkMotion(start, rnd, lastValid);
     return new Motion(si_->cloneState(start), si_->cloneState(rnd), ++iteration_, motion);
 }
 
-void ompl::geometric::PDST::addMotion(Motion *motion, Cell *bsp, base::State *state, base::EuclideanProjection& proj)
+void ompl::geometric::PDST::addMotion(Motion *motion, Cell *bsp, base::State *state, base::EuclideanProjection &proj)
 {
     projectionEvaluator_->project(motion->endState_, proj);
     bsp->stab(proj)->addMotion(motion);
@@ -211,8 +216,8 @@ void ompl::geometric::PDST::addMotion(Motion *motion, Cell *bsp, base::State *st
         while (j - i > 1)
         {
             k = (i + j) / 2;
-            si_->getStateSpace()->interpolate(motion->startState_, motion->endState_,
-                (double)k / (double)numSegments, state);
+            si_->getStateSpace()->interpolate(motion->startState_, motion->endState_, (double)k / (double)numSegments,
+                                              state);
             projectionEvaluator_->project(state, proj);
             cell = bsp->stab(proj);
             if (cell == startCell)
@@ -248,10 +253,10 @@ void ompl::geometric::PDST::clear()
 void ompl::geometric::PDST::freeMemory()
 {
     // Iterate over the elements in the priority queue and clear it
-    std::vector<Motion*> motions;
+    std::vector<Motion *> motions;
     motions.reserve(priorityQueue_.size());
     priorityQueue_.getContent(motions);
-    for (std::vector<Motion*>::iterator it = motions.begin(); it < motions.end(); ++it)
+    for (std::vector<Motion *>::iterator it = motions.begin(); it < motions.end(); ++it)
     {
         if ((*it)->startState_ != (*it)->endState_)
             si_->freeState((*it)->startState_);
@@ -259,7 +264,7 @@ void ompl::geometric::PDST::freeMemory()
             si_->freeState((*it)->endState_);
         delete *it;
     }
-    priorityQueue_.clear(); // clears the Element objects in the priority queue
+    priorityQueue_.clear();  // clears the Element objects in the priority queue
     delete bsp_;
     bsp_ = nullptr;
 }
@@ -283,14 +288,14 @@ void ompl::geometric::PDST::getPlannerData(ompl::base::PlannerData &data) const
 {
     base::Planner::getPlannerData(data);
 
-    std::vector<Motion*> motions;
+    std::vector<Motion *> motions;
     priorityQueue_.getContent(motions);
 
     // Add goal vertex
     if (lastGoalMotion_ != nullptr)
         data.addGoalVertex(lastGoalMotion_->endState_);
 
-    for (std::vector<Motion*>::iterator it = motions.begin(); it < motions.end(); ++it)
+    for (std::vector<Motion *>::iterator it = motions.begin(); it < motions.end(); ++it)
         if (!(*it)->isSplit_)
         {
             Motion *cur = *it, *ancestor = cur->ancestor();
@@ -298,12 +303,11 @@ void ompl::geometric::PDST::getPlannerData(ompl::base::PlannerData &data) const
                 data.addStartVertex(base::PlannerDataVertex(cur->endState_));
             else
             {
-                data.addEdge(base::PlannerDataVertex(ancestor->startState_),
-                    base::PlannerDataVertex(cur->endState_));
+                data.addEdge(base::PlannerDataVertex(ancestor->startState_), base::PlannerDataVertex(cur->endState_));
                 // add edge connecting start state of ancestor's parent to start state of ancestor
                 if (ancestor->parent_)
                     data.addEdge(base::PlannerDataVertex(ancestor->parent_->ancestor()->startState_),
-                        base::PlannerDataVertex(ancestor->startState_));
+                                 base::PlannerDataVertex(ancestor->startState_));
             }
         }
 }

@@ -52,7 +52,7 @@ namespace ompl
         {
         public:
             /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
-            SyclopEST(const SpaceInformationPtr& si, const DecompositionPtr &d) : Syclop(si,d,"SyclopEST")
+            SyclopEST(const SpaceInformationPtr &si, const DecompositionPtr &d) : Syclop(si, d, "SyclopEST")
             {
             }
 
@@ -66,15 +66,15 @@ namespace ompl
             virtual void getPlannerData(base::PlannerData &data) const;
 
         protected:
-            virtual Syclop::Motion* addRoot(const base::State *s);
-            virtual void selectAndExtend(Region &region, std::vector<Motion*> &newMotions);
+            virtual Syclop::Motion *addRoot(const base::State *s);
+            virtual void selectAndExtend(Region &region, std::vector<Motion *> &newMotions);
 
             /** \brief Free the memory allocated by this planner. */
             void freeMemory();
 
             base::StateSamplerPtr sampler_;
             ControlSamplerPtr controlSampler_;
-            std::vector<Motion*> motions_;
+            std::vector<Motion *> motions_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
             Motion *lastGoalMotion_;

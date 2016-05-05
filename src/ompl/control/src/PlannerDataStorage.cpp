@@ -38,7 +38,7 @@
 #include <boost/archive/archive_exception.hpp>
 
 /// \cond IGNORE
-static const boost::uint32_t OMPL_PLANNER_DATA_CONTROL_ARCHIVE_MARKER = 0x5044434D; // this spells PDCM
+static const boost::uint32_t OMPL_PLANNER_DATA_CONTROL_ARCHIVE_MARKER = 0x5044434D;  // this spells PDCM
 /// \endcond
 
 ompl::control::PlannerDataStorage::PlannerDataStorage() : base::PlannerDataStorage()
@@ -63,7 +63,7 @@ void ompl::control::PlannerDataStorage::load(std::istream &in, base::PlannerData
         return;
     }
 
-    control::PlannerData *pdc = static_cast<control::PlannerData*>(&pd);
+    control::PlannerData *pdc = static_cast<control::PlannerData *>(&pd);
     pdc->clear();
 
     const SpaceInformationPtr &si = pdc->getSpaceInformation();
@@ -128,7 +128,7 @@ void ompl::control::PlannerDataStorage::store(const base::PlannerData &pd, const
 
 void ompl::control::PlannerDataStorage::store(const base::PlannerData &pd, std::ostream &out)
 {
-    const control::PlannerData *pdc = static_cast<const control::PlannerData*>(&pd);
+    const control::PlannerData *pdc = static_cast<const control::PlannerData *>(&pd);
     if (!pdc)
     {
         OMPL_WARN("Failed to cast PlannerData to control::PlannerData.  Invoking base::PlannerDataStorage::store");

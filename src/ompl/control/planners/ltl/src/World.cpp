@@ -52,7 +52,7 @@ bool ompl::control::World::operator[](unsigned int i) const
     return p->second;
 }
 
-bool& ompl::control::World::operator[](unsigned int i)
+bool &ompl::control::World::operator[](unsigned int i)
 {
     return props_[i];
 }
@@ -62,7 +62,7 @@ unsigned int ompl::control::World::numProps() const
     return numProps_;
 }
 
-bool ompl::control::World::satisfies(const World& w) const
+bool ompl::control::World::satisfies(const World &w) const
 {
     std::unordered_map<unsigned int, bool>::const_iterator p, q;
     for (p = w.props_.begin(); p != w.props_.end(); ++p)
@@ -86,12 +86,12 @@ std::string ompl::control::World::formula(void) const
     return f;
 }
 
-const std::unordered_map<unsigned int, bool>& ompl::control::World::props(void) const
+const std::unordered_map<unsigned int, bool> &ompl::control::World::props(void) const
 {
     return props_;
 }
 
-bool ompl::control::World::operator==(const World& w) const
+bool ompl::control::World::operator==(const World &w) const
 {
     return numProps_ == w.numProps_ && props_ == w.props_;
 }

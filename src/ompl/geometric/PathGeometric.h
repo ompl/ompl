@@ -60,7 +60,6 @@ namespace ompl
         class PathGeometric : public base::Path
         {
         public:
-
             /** \brief Construct a path instance for a given space information */
             PathGeometric(const base::SpaceInformationPtr &si) : base::Path(si)
             {
@@ -81,11 +80,13 @@ namespace ompl
             }
 
             /** \brief Assignment operator */
-            PathGeometric& operator=(const PathGeometric &other);
+            PathGeometric &operator=(const PathGeometric &other);
 
             /** \brief The sum of the costs for the sequence of segments that make up the path, computed using
-                OptimizationObjective::motionCost(). OptimizationObjective::initialCost() and OptimizationObjective::terminalCost()
-                are also used in the computation for the first and last states, respectively. Empty paths have identity cost. */
+                OptimizationObjective::motionCost(). OptimizationObjective::initialCost() and
+               OptimizationObjective::terminalCost()
+                are also used in the computation for the first and last states, respectively. Empty paths have identity
+               cost. */
             virtual base::Cost cost(const base::OptimizationObjectivePtr &obj) const;
 
             /** \brief Compute the length of a geometric path (sum of lengths of segments that make up the path) */
@@ -98,14 +99,19 @@ namespace ompl
                 path. The closer the value is to 0, the smoother the
                 path. Detailed formula follows.
 
-                The idea is to look at the triangles formed by consecutive path segments and compute the angle between those segments using
-                Pythagora's theorem. Then, the outside angle for the computed angle is normalized by the path segments and contributes to the path smoothness.
+                The idea is to look at the triangles formed by consecutive path segments and compute the angle between
+               those segments using
+                Pythagora's theorem. Then, the outside angle for the computed angle is normalized by the path segments
+               and contributes to the path smoothness.
                 For a straight line path, the smoothness will be 0.
                 \f[
-                    \mbox{smoothness} = \sum\limits_{i=2}^{n-1}\left(\frac{2\left(\pi - \arccos\left(\frac{a_i^2+b_i^2-c_i^2}{2 a_i b_i}\right)\right)}{a_i + b_i}\right)^2
+                    \mbox{smoothness} = \sum\limits_{i=2}^{n-1}\left(\frac{2\left(\pi -
+               \arccos\left(\frac{a_i^2+b_i^2-c_i^2}{2 a_i b_i}\right)\right)}{a_i + b_i}\right)^2
                 \f]
-                where \f$a_i = \mbox{dist}(s_{i-2}, s_{i-1}), b_i = \mbox{dist}(s_{i-1}, s_{i}), c_i = \mbox{dist}(s_{i-2}, s_i)\f$, \f$s_i\f$ is the i<sup>th</sup>
-                state along the path (see getState()) and \f$\mbox{dist}(s_i, s_j)\f$ gives the distance between two states (see ompl::base::StateSpace::distance()).
+                where \f$a_i = \mbox{dist}(s_{i-2}, s_{i-1}), b_i = \mbox{dist}(s_{i-1}, s_{i}), c_i =
+               \mbox{dist}(s_{i-2}, s_i)\f$, \f$s_i\f$ is the i<sup>th</sup>
+                state along the path (see getState()) and \f$\mbox{dist}(s_i, s_j)\f$ gives the distance between two
+               states (see ompl::base::StateSpace::distance()).
             */
             double smoothness() const;
 
@@ -118,7 +124,8 @@ namespace ompl
                 \f]
                 \f$n\f$ is the number of states along the path (see getStateCount())
                 \f$s_i\f$ is the i<sup>th</sup> state along the path (see getState())
-                \f$cl()\f$ gives the distance to the nearest invalid state for a particular state (see ompl::base::StateValidityChecker::clearance())
+                \f$cl()\f$ gives the distance to the nearest invalid state for a particular state (see
+               ompl::base::StateValidityChecker::clearance())
             */
             double clearance() const;
 
@@ -196,39 +203,44 @@ namespace ompl
             /** \brief Prepend \e state to the start of this path. The memory for \e state is copied. */
             void prepend(const base::State *state);
 
-            /** \brief Keep the part of the path that is after \e state (getClosestIndex() is used to find out which way-point is closest to \e state) */
+            /** \brief Keep the part of the path that is after \e state (getClosestIndex() is used to find out which
+             * way-point is closest to \e state) */
             void keepAfter(const base::State *state);
 
-            /** \brief Keep the part of the path that is before \e state (getClosestIndex() is used to find out which way-point is closest to \e state) */
+            /** \brief Keep the part of the path that is before \e state (getClosestIndex() is used to find out which
+             * way-point is closest to \e state) */
             void keepBefore(const base::State *state);
 
             /** \brief Set this path to a random segment */
             void random();
 
-            /** \brief Set this path to a random valid segment. Sample \e attempts times for valid segments. Returns true on success.*/
+            /** \brief Set this path to a random valid segment. Sample \e attempts times for valid segments. Returns
+             * true on success.*/
             bool randomValid(unsigned int attempts);
             /** @} */
 
             /** @name Functionality for accessing states
                 @{ */
 
-            /** \brief Get the index of the way-point along the path that is closest to \e state. Returns -1 for an empty path. */
+            /** \brief Get the index of the way-point along the path that is closest to \e state. Returns -1 for an
+             * empty path. */
             int getClosestIndex(const base::State *state) const;
 
-            /** \brief Get the states that make up the path (as a reference, so it can be modified, hence the function is not const) */
-            std::vector<base::State*>& getStates()
+            /** \brief Get the states that make up the path (as a reference, so it can be modified, hence the function
+             * is not const) */
+            std::vector<base::State *> &getStates()
             {
                 return states_;
             }
 
             /** \brief Get the state located at \e index along the path */
-            base::State* getState(unsigned int index)
+            base::State *getState(unsigned int index)
             {
                 return states_[index];
             }
 
             /** \brief Get the state located at \e index along the path */
-            const base::State* getState(unsigned int index) const
+            const base::State *getState(unsigned int index) const
             {
                 return states_[index];
             }
@@ -242,7 +254,6 @@ namespace ompl
             /** @} */
 
         protected:
-
             /** \brief Free the memory corresponding to the states on this path */
             void freeMemory();
 
@@ -250,9 +261,8 @@ namespace ompl
             void copyFrom(const PathGeometric &other);
 
             /** \brief The list of states that make up the path */
-            std::vector<base::State*> states_;
+            std::vector<base::State *> states_;
         };
-
     }
 }
 

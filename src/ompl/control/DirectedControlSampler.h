@@ -46,7 +46,6 @@ namespace ompl
 {
     namespace control
     {
-
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(SpaceInformation);
         OMPL_CLASS_FORWARD(DirectedControlSampler);
@@ -57,14 +56,15 @@ namespace ompl
 
         /** \brief Abstract definition of a directed control sampler. Motion
             planners that need to sample controls that take the system to a desired direction will call functions
-            from this class. Planners should call the versions of sampleTo() with most arguments, whenever this information is available.
+            from this class. Planners should call the versions of sampleTo() with most arguments, whenever this
+           information is available.
             If no direction information is available, the use of a ControlSampler is perhaps more appropriate. */
         class DirectedControlSampler
         {
         public:
             // non-copyable
-            DirectedControlSampler(const DirectedControlSampler&) = delete;
-            DirectedControlSampler& operator=(const DirectedControlSampler&) = delete;
+            DirectedControlSampler(const DirectedControlSampler &) = delete;
+            DirectedControlSampler &operator=(const DirectedControlSampler &) = delete;
 
             /** \brief Constructor takes the state space to construct samples for as argument */
             DirectedControlSampler(const SpaceInformation *si) : si_(si)
@@ -93,19 +93,17 @@ namespace ompl
                 be applied. The state \e dest is modified to match the state
                 reached with the computed control and duration. The motion is
                 checked for validity. */
-            virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest) = 0;
+            virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source,
+                                          base::State *dest) = 0;
 
         protected:
-
             /** \brief The space information this sampler operates on */
             const SpaceInformation *si_;
-
         };
 
         /** \brief Definition of a function that can allocate a directed control sampler */
-        typedef std::function<DirectedControlSamplerPtr(const SpaceInformation*)> DirectedControlSamplerAllocator;
+        typedef std::function<DirectedControlSamplerPtr(const SpaceInformation *)> DirectedControlSamplerAllocator;
     }
 }
-
 
 #endif

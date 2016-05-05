@@ -34,7 +34,6 @@
 
 /* Author: Dave Coleman */
 
-
 #include "ompl/tools/lightning/Lightning.h"
 #include "ompl/tools/lightning/LightningDB.h"
 
@@ -42,14 +41,12 @@ namespace og = ompl::geometric;
 namespace ob = ompl::base;
 namespace ot = ompl::tools;
 
-ompl::tools::Lightning::Lightning(const base::SpaceInformationPtr &si) :
-    ompl::tools::ExperienceSetup(si)
+ompl::tools::Lightning::Lightning(const base::SpaceInformationPtr &si) : ompl::tools::ExperienceSetup(si)
 {
     initialize();
 }
 
-ompl::tools::Lightning::Lightning(const base::StateSpacePtr &space) :
-    ompl::tools::ExperienceSetup(space)
+ompl::tools::Lightning::Lightning(const base::StateSpacePtr &space) : ompl::tools::ExperienceSetup(space)
 {
     initialize();
 }
@@ -73,17 +70,17 @@ void ompl::tools::Lightning::initialize()
 
 void ompl::tools::Lightning::setup()
 {
-    if (!configured_ || !si_->isSetup() || !planner_->isSetup() || !rrPlanner_->isSetup() )
+    if (!configured_ || !si_->isSetup() || !planner_->isSetup() || !rrPlanner_->isSetup())
     {
         OMPL_INFORM("Setting up the Lightning Framework");
 
         if (!configured_)
             OMPL_INFORM("  Setting up because not configured");
-        else if(!si_->isSetup())
+        else if (!si_->isSetup())
             OMPL_INFORM("  Setting up because not si->isSetup");
-        else if(!planner_->isSetup())
+        else if (!planner_->isSetup())
             OMPL_INFORM("  Setting up because not planner->isSetup");
-        else if(!rrPlanner_->isSetup())
+        else if (!rrPlanner_->isSetup())
             OMPL_INFORM("  Setting up because not rrPlanner->isSetup");
 
         // Setup Space Information if we haven't already done so
@@ -97,9 +94,10 @@ void ompl::tools::Lightning::setup()
                 planner_ = pa_(si_);
             if (!planner_)
             {
-                planner_ = tools::SelfConfig::getDefaultPlanner(pdef_->getGoal()); // we could use the repairProblemDef_ here but that isn't setup yet
+                planner_ = tools::SelfConfig::getDefaultPlanner(
+                    pdef_->getGoal());  // we could use the repairProblemDef_ here but that isn't setup yet
 
-                OMPL_INFORM("No planner specified. Using default: %s", planner_->getName().c_str() );
+                OMPL_INFORM("No planner specified. Using default: %s", planner_->getName().c_str());
             }
         }
         planner_->setProblemDefinition(pdef_);
@@ -113,16 +111,15 @@ void ompl::tools::Lightning::setup()
             rrPlanner_->setup();
 
         // Create the parallel component for splitting into two threads
-        pp_ = ot::ParallelPlanPtr(new ot::ParallelPlan(pdef_) );
+        pp_ = ot::ParallelPlanPtr(new ot::ParallelPlan(pdef_));
         if (!scratchEnabled_ && !recallEnabled_)
         {
             throw Exception("Both planning from scratch and experience have been disabled, unable to plan");
         }
         if (scratchEnabled_)
-            pp_->addPlanner(planner_);   // Add the planning from scratch planner if desired
+            pp_->addPlanner(planner_);  // Add the planning from scratch planner if desired
         if (recallEnabled_)
             pp_->addPlanner(rrPlanner_);  // Add the planning from experience planner if desired
-
 
         // Check if experience database is already loaded
         if (experienceDB_->isEmpty())
@@ -133,7 +130,7 @@ void ompl::tools::Lightning::setup()
             }
             else
             {
-                experienceDB_->load(filePath_); // load from file
+                experienceDB_->load(filePath_);  // load from file
             }
         }
         else
@@ -158,7 +155,8 @@ void ompl::tools::Lightning::clear(void)
     }
 }
 
-// we provide a duplicate implementation here to allow the planner to choose how the time is turned into a planner termination condition
+// we provide a duplicate implementation here to allow the planner to choose how the time is turned into a planner
+// termination condition
 ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTerminationCondition &ptc)
 {
     OMPL_INFORM("Lightning Framework: Starting solve()");
@@ -178,8 +176,8 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
 
     // Planning time
     planTime_ = time::seconds(time::now() - start);
-    stats_.totalPlanningTime_ += planTime_; // used for averaging
-    stats_.numProblems_++; // used for averaging
+    stats_.totalPlanningTime_ += planTime_;  // used for averaging
+    stats_.numProblems_++;                   // used for averaging
 
     // Create log
     ExperienceLog log;
@@ -214,8 +212,9 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
         // Smooth the result
         simplifySolution(ptc);
 
-        og::PathGeometric solutionPath = getSolutionPath(); // copied so that it is non-const
-        OMPL_INFORM("Solution path has %d states and was generated from planner %s", solutionPath.getStateCount(), getSolutionPlannerName().c_str());
+        og::PathGeometric solutionPath = getSolutionPath();  // copied so that it is non-const
+        OMPL_INFORM("Solution path has %d states and was generated from planner %s", solutionPath.getStateCount(),
+                    getSolutionPlannerName().c_str());
 
         // Logging
         log.planner = getSolutionPlannerName();
@@ -266,12 +265,14 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
                 // Reverse path2 if necessary so that it matches path1 better
                 reversePathIfNecessary(solutionPath, chosenRecallPath);
 
-                double score = dtw_->getPathsScore( solutionPath, chosenRecallPath );
+                double score = dtw_->getPathsScore(solutionPath, chosenRecallPath);
                 log.score = score;
 
                 if (score < 4)
                 {
-                    OMPL_INFORM("NOT saving to database because best solution was from database and is too similar (score %f)", score);
+                    OMPL_INFORM("NOT saving to database because best solution was from database and is too similar "
+                                "(score %f)",
+                                score);
 
                     // Logging
                     log.insertion_failed = true;
@@ -279,7 +280,9 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
                 }
                 else
                 {
-                    OMPL_INFORM("Adding path to database because repaired path is different enough from original recalled path (score %f)", score);
+                    OMPL_INFORM("Adding path to database because repaired path is different enough from original "
+                                "recalled path (score %f)",
+                                score);
 
                     // Logging
                     log.insertion_failed = false;
@@ -289,7 +292,7 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
                     stats_.numSolutionsFromRecallSaved_++;
 
                     // Save to database
-                    double dummyInsertionTime; // unused because does not include scoring function
+                    double dummyInsertionTime;  // unused because does not include scoring function
                     experienceDB_->addPath(solutionPath, dummyInsertionTime);
                 }
                 insertionTime += time::seconds(time::now() - startTime);
@@ -329,7 +332,7 @@ ompl::base::PlannerStatus ompl::tools::Lightning::solve(const base::PlannerTermi
         }
     }
 
-    stats_.totalInsertionTime_ += insertionTime; // used for averaging
+    stats_.totalInsertionTime_ += insertionTime;  // used for averaging
 
     // Final log data
     log.insertion_time = insertionTime;
@@ -373,11 +376,9 @@ void ompl::tools::Lightning::printResultsInfo(std::ostream &out) const
 {
     for (std::size_t i = 0; i < pdef_->getSolutionCount(); ++i)
     {
-        out << "Solution " << i
-            << " | Length: " << pdef_->getSolutions()[i].length_
+        out << "Solution " << i << " | Length: " << pdef_->getSolutions()[i].length_
             << " | Approximate: " << (pdef_->getSolutions()[i].approximate_ ? "true" : "false")
-            << " | Planner: " << pdef_->getSolutions()[i].plannerName_
-            << std::endl;
+            << " | Planner: " << pdef_->getSolutions()[i].plannerName_ << std::endl;
     }
 }
 
@@ -406,10 +407,13 @@ void ompl::tools::Lightning::printLogs(std::ostream &out) const
 {
     out << "Lightning Framework Logging Results" << std::endl;
     out << "  Solutions Attempted:           " << stats_.numProblems_ << std::endl;
-    out << "     Solved from scratch:        " << stats_.numSolutionsFromScratch_ << " (" << stats_.numSolutionsFromScratch_/stats_.numProblems_*100.0 << "%)" << std::endl;
-    out << "     Solved from recall:         " << stats_.numSolutionsFromRecall_  << " (" << stats_.numSolutionsFromRecall_/stats_.numProblems_*100.0 << "%)" << std::endl;
+    out << "     Solved from scratch:        " << stats_.numSolutionsFromScratch_ << " ("
+        << stats_.numSolutionsFromScratch_ / stats_.numProblems_ * 100.0 << "%)" << std::endl;
+    out << "     Solved from recall:         " << stats_.numSolutionsFromRecall_ << " ("
+        << stats_.numSolutionsFromRecall_ / stats_.numProblems_ * 100.0 << "%)" << std::endl;
     out << "        That were saved:         " << stats_.numSolutionsFromRecallSaved_ << std::endl;
-    out << "        That were discarded:     " << stats_.numSolutionsFromRecall_ - stats_.numSolutionsFromRecallSaved_ << std::endl;
+    out << "        That were discarded:     " << stats_.numSolutionsFromRecall_ - stats_.numSolutionsFromRecallSaved_
+        << std::endl;
     out << "        Less than 2 states:      " << stats_.numSolutionsTooShort_ << std::endl;
     out << "     Failed:                     " << stats_.numSolutionsFailed_ << std::endl;
     out << "     Timedout:                   " << stats_.numSolutionsTimedout_ << std::endl;
@@ -442,16 +446,16 @@ void ompl::tools::Lightning::convertPlannerData(const ob::PlannerDataPtr planner
 bool ompl::tools::Lightning::reversePathIfNecessary(og::PathGeometric &path1, og::PathGeometric &path2)
 {
     // Reverse path2 if it matches better
-    const ob::State* s1 = path1.getState(0);
-    const ob::State* s2 = path2.getState(0);
-    const ob::State* g1 = path1.getState(path1.getStateCount()-1);
-    const ob::State* g2 = path2.getState(path2.getStateCount()-1);
+    const ob::State *s1 = path1.getState(0);
+    const ob::State *s2 = path2.getState(0);
+    const ob::State *g1 = path1.getState(path1.getStateCount() - 1);
+    const ob::State *g2 = path2.getState(path2.getStateCount() - 1);
 
-    double regularDistance  = si_->distance(s1, s2) + si_->distance(g1, g2);
+    double regularDistance = si_->distance(s1, s2) + si_->distance(g1, g2);
     double reversedDistance = si_->distance(s1, g2) + si_->distance(s2, g1);
 
     // Check if path is reversed from normal [start->goal] direction
-    if ( regularDistance > reversedDistance )
+    if (regularDistance > reversedDistance)
     {
         // needs to be reversed
         path2.reverse();

@@ -45,9 +45,7 @@
 // Boost
 #include <boost/filesystem.hpp>
 
-ompl::tools::ThunderDB::ThunderDB(const base::StateSpacePtr &space)
-    : numPathsInserted_(0)
-    , saving_enabled_(true)
+ompl::tools::ThunderDB::ThunderDB(const base::StateSpacePtr &space) : numPathsInserted_(0), saving_enabled_(true)
 {
     // Set space information
     si_.reset(new base::SpaceInformation(space));
@@ -59,7 +57,7 @@ ompl::tools::ThunderDB::~ThunderDB(void)
         OMPL_WARN("The database is being unloaded with unsaved experiences");
 }
 
-bool ompl::tools::ThunderDB::load(const std::string& fileName)
+bool ompl::tools::ThunderDB::load(const std::string &fileName)
 {
     // Error checking
     if (fileName.empty())
@@ -67,7 +65,7 @@ bool ompl::tools::ThunderDB::load(const std::string& fileName)
         OMPL_ERROR("Empty filename passed to save function");
         return false;
     }
-    if ( !boost::filesystem::exists( fileName ) )
+    if (!boost::filesystem::exists(fileName))
     {
         OMPL_INFORM("Database file does not exist: %s.", fileName.c_str());
         return false;
@@ -110,7 +108,8 @@ bool ompl::tools::ThunderDB::load(const std::string& fileName)
     plannerDataStorage_.load(iStream, *plannerData.get());
 
     OMPL_INFORM("ThunderDB: Loaded planner data with \n  %d vertices\n  %d edges\n  %d start states\n  %d goal states",
-                plannerData->numVertices(), plannerData->numEdges(), plannerData->numStartVertices(), plannerData->numGoalVertices());
+                plannerData->numVertices(), plannerData->numEdges(), plannerData->numStartVertices(),
+                plannerData->numGoalVertices());
 
     // Add to SPARSdb
     OMPL_INFORM("Adding plannerData to SPARSdb:");
@@ -127,7 +126,7 @@ bool ompl::tools::ThunderDB::load(const std::string& fileName)
     return true;
 }
 
-bool ompl::tools::ThunderDB::addPath(ompl::geometric::PathGeometric& solutionPath, double &insertionTime)
+bool ompl::tools::ThunderDB::addPath(ompl::geometric::PathGeometric &solutionPath, double &insertionTime)
 {
     // Error check
     if (!spars_)
@@ -140,13 +139,13 @@ bool ompl::tools::ThunderDB::addPath(ompl::geometric::PathGeometric& solutionPat
     // Prevent inserting into database
     if (!saving_enabled_)
     {
-      OMPL_WARN("ThunderDB: Saving is disabled so not adding path");
-      return false;
+        OMPL_WARN("ThunderDB: Saving is disabled so not adding path");
+        return false;
     }
 
     bool result;
-    double seconds = 120; //10; // a large number, should never need to use this
-    ompl::base::PlannerTerminationCondition ptc = ompl::base::timedPlannerTerminationCondition( seconds, 0.1 );
+    double seconds = 120;  // 10; // a large number, should never need to use this
+    ompl::base::PlannerTerminationCondition ptc = ompl::base::timedPlannerTerminationCondition(seconds, 0.1);
 
     // Benchmark runtime
     time::point startTime = time::now();
@@ -163,7 +162,7 @@ bool ompl::tools::ThunderDB::addPath(ompl::geometric::PathGeometric& solutionPat
     return result;
 }
 
-bool ompl::tools::ThunderDB::saveIfChanged(const std::string& fileName)
+bool ompl::tools::ThunderDB::saveIfChanged(const std::string &fileName)
 {
     if (numPathsInserted_)
         return save(fileName);
@@ -172,7 +171,7 @@ bool ompl::tools::ThunderDB::saveIfChanged(const std::string& fileName)
     return true;
 }
 
-bool ompl::tools::ThunderDB::save(const std::string& fileName)
+bool ompl::tools::ThunderDB::save(const std::string &fileName)
 {
     // Disabled
     if (!saving_enabled_)
@@ -223,7 +222,7 @@ bool ompl::tools::ThunderDB::save(const std::string& fileName)
 
         OMPL_INFORM("Saving experience %d with %d verticies and %d edges", i, pd.numVertices(), pd.numEdges());
 
-        if (false) // debug code
+        if (false)  // debug code
         {
             for (std::size_t i = 0; i < pd.numVertices(); ++i)
             {
@@ -256,7 +255,7 @@ void ompl::tools::ThunderDB::setSPARSdb(ompl::tools::SPARSdbPtr &prm)
     spars_ = prm;
 }
 
-ompl::tools::SPARSdbPtr& ompl::tools::ThunderDB::getSPARSdb()
+ompl::tools::SPARSdbPtr &ompl::tools::ThunderDB::getSPARSdb()
 {
     return spars_;
 }
@@ -273,12 +272,12 @@ void ompl::tools::ThunderDB::getAllPlannerDatas(std::vector<ompl::base::PlannerD
     spars_->getPlannerData(*data);
     plannerDatas.push_back(data);
 
-    //OMPL_DEBUG("ThunderDB::getAllPlannerDatas: Number of planner databases found: %d", plannerDatas.size());
+    // OMPL_DEBUG("ThunderDB::getAllPlannerDatas: Number of planner databases found: %d", plannerDatas.size());
 }
 
-bool ompl::tools::ThunderDB::findNearestStartGoal(int nearestK, const base::State* start, const base::State* goal,
-                                                      ompl::geometric::SPARSdb::CandidateSolution &candidateSolution,
-                                                      const base::PlannerTerminationCondition& ptc)
+bool ompl::tools::ThunderDB::findNearestStartGoal(int nearestK, const base::State *start, const base::State *goal,
+                                                  ompl::geometric::SPARSdb::CandidateSolution &candidateSolution,
+                                                  const base::PlannerTerminationCondition &ptc)
 {
     bool result = spars_->getSimilarPaths(nearestK, start, goal, candidateSolution, ptc);
 
@@ -294,13 +293,12 @@ bool ompl::tools::ThunderDB::findNearestStartGoal(int nearestK, const base::Stat
     return true;
 }
 
-void ompl::tools::ThunderDB::debugVertex(const ompl::base::PlannerDataVertex& vertex)
+void ompl::tools::ThunderDB::debugVertex(const ompl::base::PlannerDataVertex &vertex)
 {
     debugState(vertex.getState());
 }
 
-void ompl::tools::ThunderDB::debugState(const ompl::base::State* state)
+void ompl::tools::ThunderDB::debugState(const ompl::base::State *state)
 {
     si_->printState(state, std::cout);
 }
-

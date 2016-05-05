@@ -50,25 +50,24 @@
 #define foreach BOOST_FOREACH
 #define foreach_reverse BOOST_REVERSE_FOREACH
 
-ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si) :
-    base::Planner(si, "SPARStwo"),
-    stretchFactor_(3.),
-    sparseDeltaFraction_(.25),
-    denseDeltaFraction_(.001),
-    maxFailures_(5000),
-    nearSamplePoints_((2*si_->getStateDimension())),
-    stateProperty_(boost::get(vertex_state_t(), g_)),
-    weightProperty_(boost::get(boost::edge_weight, g_)),
-    colorProperty_(boost::get(vertex_color_t(), g_)),
-    interfaceDataProperty_(boost::get(vertex_interface_data_t(), g_)),
-    disjointSets_(boost::get(boost::vertex_rank, g_),
-                  boost::get(boost::vertex_predecessor, g_)),
-    addedSolution_(false),
-    consecutiveFailures_(0),
-    sparseDelta_(0.),
-    denseDelta_(0.),
-    iterations_(0),
-    bestCost_(std::numeric_limits<double>::quiet_NaN())
+ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si)
+  : base::Planner(si, "SPARStwo")
+  , stretchFactor_(3.)
+  , sparseDeltaFraction_(.25)
+  , denseDeltaFraction_(.001)
+  , maxFailures_(5000)
+  , nearSamplePoints_((2 * si_->getStateDimension()))
+  , stateProperty_(boost::get(vertex_state_t(), g_))
+  , weightProperty_(boost::get(boost::edge_weight, g_))
+  , colorProperty_(boost::get(vertex_color_t(), g_))
+  , interfaceDataProperty_(boost::get(vertex_interface_data_t(), g_))
+  , disjointSets_(boost::get(boost::vertex_rank, g_), boost::get(boost::vertex_predecessor, g_))
+  , addedSolution_(false)
+  , consecutiveFailures_(0)
+  , sparseDelta_(0.)
+  , denseDelta_(0.)
+  , iterations_(0)
+  , bestCost_(std::numeric_limits<double>::quiet_NaN())
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
@@ -77,15 +76,17 @@ ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si) :
 
     psimp_.reset(new PathSimplifier(si_));
 
-    Planner::declareParam<double>("stretch_factor", this, &SPARStwo::setStretchFactor, &SPARStwo::getStretchFactor, "1.1:0.1:3.0");
-    Planner::declareParam<double>("sparse_delta_fraction", this, &SPARStwo::setSparseDeltaFraction, &SPARStwo::getSparseDeltaFraction, "0.0:0.01:1.0");
-    Planner::declareParam<double>("dense_delta_fraction", this, &SPARStwo::setDenseDeltaFraction, &SPARStwo::getDenseDeltaFraction, "0.0:0.0001:0.1");
-    Planner::declareParam<unsigned int>("max_failures", this, &SPARStwo::setMaxFailures, &SPARStwo::getMaxFailures, "100:10:3000");
+    Planner::declareParam<double>("stretch_factor", this, &SPARStwo::setStretchFactor, &SPARStwo::getStretchFactor,
+                                  "1.1:0.1:3.0");
+    Planner::declareParam<double>("sparse_delta_fraction", this, &SPARStwo::setSparseDeltaFraction,
+                                  &SPARStwo::getSparseDeltaFraction, "0.0:0.01:1.0");
+    Planner::declareParam<double>("dense_delta_fraction", this, &SPARStwo::setDenseDeltaFraction,
+                                  &SPARStwo::getDenseDeltaFraction, "0.0:0.0001:0.1");
+    Planner::declareParam<unsigned int>("max_failures", this, &SPARStwo::setMaxFailures, &SPARStwo::getMaxFailures,
+                                        "100:10:3000");
 
-    addPlannerProgressProperty("iterations INTEGER",
-                               std::bind(&SPARStwo::getIterationCount, this));
-    addPlannerProgressProperty("best cost REAL",
-                               std::bind(&SPARStwo::getBestCost, this));
+    addPlannerProgressProperty("iterations INTEGER", std::bind(&SPARStwo::getIterationCount, this));
+    addPlannerProgressProperty("best cost REAL", std::bind(&SPARStwo::getBestCost, this));
 }
 
 ompl::geometric::SPARStwo::~SPARStwo()
@@ -98,7 +99,8 @@ void ompl::geometric::SPARStwo::setup()
     Planner::setup();
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
-    nn_->setDistanceFunction(std::bind(&SPARStwo::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    nn_->setDistanceFunction(
+        std::bind(&SPARStwo::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
     double maxExt = si_->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
     denseDelta_ = denseDeltaFraction_ * maxExt;
@@ -113,8 +115,10 @@ void ompl::geometric::SPARStwo::setup()
         if (pdef_->hasOptimizationObjective())
         {
             opt_ = pdef_->getOptimizationObjective();
-            if (!dynamic_cast<base::PathLengthOptimizationObjective*>(opt_.get()))
-                OMPL_WARN("%s: Asymptotic optimality has only been proven with path length optimizaton; convergence for other optimizaton objectives is not guaranteed.", getName().c_str());
+            if (!dynamic_cast<base::PathLengthOptimizationObjective *>(opt_.get()))
+                OMPL_WARN("%s: Asymptotic optimality has only been proven with path length optimizaton; convergence "
+                          "for other optimizaton objectives is not guaranteed.",
+                          getName().c_str());
         }
         else
             opt_.reset(new base::PathLengthOptimizationObjective(si_));
@@ -161,7 +165,7 @@ void ompl::geometric::SPARStwo::freeMemory()
     {
         foreach (InterfaceData &d, interfaceDataProperty_[v].interfaceHash | boost::adaptors::map_values)
             d.clear(si_);
-        if( stateProperty_[v] != nullptr )
+        if (stateProperty_[v] != nullptr)
             si_->freeState(stateProperty_[v]);
         stateProperty_[v] = nullptr;
     }
@@ -171,7 +175,8 @@ void ompl::geometric::SPARStwo::freeMemory()
         nn_->clear();
 }
 
-bool ompl::geometric::SPARStwo::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
+bool ompl::geometric::SPARStwo::haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals,
+                                             base::PathPtr &solution)
 {
     base::Goal *g = pdef_->getGoal().get();
     base::Cost sol_cost(opt_->infiniteCost());
@@ -228,8 +233,8 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
     if (stopOnMaxFail)
     {
         resetFailures();
-        base::PlannerTerminationCondition ptcOrFail =
-            base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(std::bind(&SPARStwo::reachedFailureLimit, this)));
+        base::PlannerTerminationCondition ptcOrFail = base::plannerOrTerminationCondition(
+            ptc, base::PlannerTerminationCondition(std::bind(&SPARStwo::reachedFailureLimit, this)));
         constructRoadmap(ptcOrFail);
     }
     else
@@ -261,7 +266,7 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
         ++iterations_;
         ++consecutiveFailures_;
 
-        //Generate a single sample, and attempt to connect it to nearest neighbors.
+        // Generate a single sample, and attempt to connect it to nearest neighbors.
         if (!sampler_->sample(qNew))
             continue;
 
@@ -273,15 +278,17 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
                 {
                     if (visibleNeighborhood.size() > 0)
                     {
-                        std::map<Vertex, base::State*> closeRepresentatives;
+                        std::map<Vertex, base::State *> closeRepresentatives;
                         findCloseRepresentatives(workState, qNew, visibleNeighborhood[0], closeRepresentatives, ptc);
-                        for (std::map<Vertex, base::State*>::iterator it = closeRepresentatives.begin(); it != closeRepresentatives.end(); ++it)
+                        for (std::map<Vertex, base::State *>::iterator it = closeRepresentatives.begin();
+                             it != closeRepresentatives.end(); ++it)
                         {
                             updatePairPoints(visibleNeighborhood[0], qNew, it->first, it->second);
                             updatePairPoints(it->first, it->second, visibleNeighborhood[0], qNew);
                         }
                         checkAddPath(visibleNeighborhood[0]);
-                        for (std::map<Vertex, base::State*>::iterator it = closeRepresentatives.begin(); it != closeRepresentatives.end(); ++it)
+                        for (std::map<Vertex, base::State *>::iterator it = closeRepresentatives.begin();
+                             it != closeRepresentatives.end(); ++it)
                         {
                             checkAddPath(it->first);
                             si_->freeState(it->second);
@@ -298,7 +305,7 @@ void ompl::geometric::SPARStwo::checkQueryStateInitialization()
     std::lock_guard<std::mutex> _(graphMutex_);
     if (boost::num_vertices(g_) < 1)
     {
-        queryVertex_ = boost::add_vertex( g_ );
+        queryVertex_ = boost::add_vertex(g_);
         stateProperty_[queryVertex_] = nullptr;
     }
 }
@@ -308,7 +315,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
     checkValidity();
     checkQueryStateInitialization();
 
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
+    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
     if (!goal)
     {
@@ -347,13 +354,13 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
     addedSolution_ = false;
     resetFailures();
     base::PathPtr sol;
-    base::PlannerTerminationCondition ptcOrFail =
-        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(std::bind(&SPARStwo::reachedFailureLimit, this)));
+    base::PlannerTerminationCondition ptcOrFail = base::plannerOrTerminationCondition(
+        ptc, base::PlannerTerminationCondition(std::bind(&SPARStwo::reachedFailureLimit, this)));
     std::thread slnThread(std::bind(&SPARStwo::checkForSolution, this, ptcOrFail, boost::ref(sol)));
 
-    //Construct planner termination condition which also takes M into account
-    base::PlannerTerminationCondition ptcOrStop =
-        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(std::bind(&SPARStwo::reachedTerminationCriterion, this)));
+    // Construct planner termination condition which also takes M into account
+    base::PlannerTerminationCondition ptcOrStop = base::plannerOrTerminationCondition(
+        ptc, base::PlannerTerminationCondition(std::bind(&SPARStwo::reachedTerminationCriterion, this)));
     constructRoadmap(ptcOrStop);
 
     // Ensure slnThread is ceased before exiting solve
@@ -370,7 +377,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
 
 void ompl::geometric::SPARStwo::checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution)
 {
-    base::GoalSampleableRegion *goal = static_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
+    base::GoalSampleableRegion *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
     while (!ptc && !addedSolution_)
     {
         // Check for any new goal states
@@ -393,7 +400,7 @@ bool ompl::geometric::SPARStwo::checkAddCoverage(const base::State *qNew, std::v
 {
     if (visibleNeighborhood.size() > 0)
         return false;
-    //No free paths means we add for coverage
+    // No free paths means we add for coverage
     addGuard(si_->cloneState(qNew), COVERAGE);
     return true;
 }
@@ -403,11 +410,11 @@ bool ompl::geometric::SPARStwo::checkAddConnectivity(const base::State *qNew, st
     std::vector<Vertex> links;
     if (visibleNeighborhood.size() > 1)
     {
-        //For each neighbor
+        // For each neighbor
         for (std::size_t i = 0; i < visibleNeighborhood.size(); ++i)
-            //For each other neighbor
+            // For each other neighbor
             for (std::size_t j = i + 1; j < visibleNeighborhood.size(); ++j)
-                //If they are in different components
+                // If they are in different components
                 if (!sameComponent(visibleNeighborhood[i], visibleNeighborhood[j]))
                 {
                     links.push_back(visibleNeighborhood[i]);
@@ -416,13 +423,13 @@ bool ompl::geometric::SPARStwo::checkAddConnectivity(const base::State *qNew, st
 
         if (links.size() > 0)
         {
-            //Add the node
+            // Add the node
             Vertex g = addGuard(si_->cloneState(qNew), CONNECTIVITY);
 
-            for (std::size_t i = 0; i < links.size() ; ++i)
-                //If there's no edge
+            for (std::size_t i = 0; i < links.size(); ++i)
+                // If there's no edge
                 if (!boost::edge(g, links[i], g_).second)
-                    //And the components haven't been united by previous links
+                    // And the components haven't been united by previous links
                     if (!sameComponent(links[i], g))
                         connectGuards(g, links[i]);
             return true;
@@ -431,43 +438,44 @@ bool ompl::geometric::SPARStwo::checkAddConnectivity(const base::State *qNew, st
     return false;
 }
 
-bool ompl::geometric::SPARStwo::checkAddInterface(const base::State *qNew, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood)
+bool ompl::geometric::SPARStwo::checkAddInterface(const base::State *qNew, std::vector<Vertex> &graphNeighborhood,
+                                                  std::vector<Vertex> &visibleNeighborhood)
 {
-    //If we have more than 1 or 0 neighbors
+    // If we have more than 1 or 0 neighbors
     if (visibleNeighborhood.size() > 1)
         if (graphNeighborhood[0] == visibleNeighborhood[0] && graphNeighborhood[1] == visibleNeighborhood[1])
-            //If our two closest neighbors don't share an edge
+            // If our two closest neighbors don't share an edge
             if (!boost::edge(visibleNeighborhood[0], visibleNeighborhood[1], g_).second)
             {
-                //If they can be directly connected
+                // If they can be directly connected
                 if (si_->checkMotion(stateProperty_[visibleNeighborhood[0]], stateProperty_[visibleNeighborhood[1]]))
                 {
-                    //Connect them
+                    // Connect them
                     connectGuards(visibleNeighborhood[0], visibleNeighborhood[1]);
-                    //And report that we added to the roadmap
+                    // And report that we added to the roadmap
                     resetFailures();
-                    //Report success
+                    // Report success
                     return true;
                 }
                 else
                 {
-                    //Add the new node to the graph, to bridge the interface
+                    // Add the new node to the graph, to bridge the interface
                     Vertex v = addGuard(si_->cloneState(qNew), INTERFACE);
                     connectGuards(v, visibleNeighborhood[0]);
                     connectGuards(v, visibleNeighborhood[1]);
-                    //Report success
+                    // Report success
                     return true;
                 }
             }
     return false;
 }
 
-bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
+bool ompl::geometric::SPARStwo::checkAddPath(Vertex v)
 {
     bool ret = false;
 
-    std::vector< Vertex > rs;
-    foreach( Vertex r, boost::adjacent_vertices( v, g_ ) )
+    std::vector<Vertex> rs;
+    foreach (Vertex r, boost::adjacent_vertices(v, g_))
         rs.push_back(r);
 
     /* Candidate x vertices as described in the method, filled by function computeX(). */
@@ -482,28 +490,29 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
         computeVPP(v, r, VPPs);
         foreach (Vertex rp, VPPs)
         {
-            //First, compute the longest path through the graph
+            // First, compute the longest path through the graph
             computeX(v, r, rp, Xs);
             double rm_dist = 0.0;
-            foreach( Vertex rpp, Xs)
+            foreach (Vertex rpp, Xs)
             {
-                double tmp_dist = (si_->distance( stateProperty_[r], stateProperty_[v] )
-                    + si_->distance( stateProperty_[v], stateProperty_[rpp] ) )/2.0;
-                if( tmp_dist > rm_dist )
+                double tmp_dist = (si_->distance(stateProperty_[r], stateProperty_[v]) +
+                                   si_->distance(stateProperty_[v], stateProperty_[rpp])) /
+                                  2.0;
+                if (tmp_dist > rm_dist)
                     rm_dist = tmp_dist;
             }
 
-            InterfaceData& d = getData( v, r, rp );
+            InterfaceData &d = getData(v, r, rp);
 
-            //Then, if the spanner property is violated
+            // Then, if the spanner property is violated
             if (rm_dist > stretchFactor_ * d.d_)
             {
-                ret = true; //Report that we added for the path
+                ret = true;  // Report that we added for the path
                 if (si_->checkMotion(stateProperty_[r], stateProperty_[rp]))
                     connectGuards(r, rp);
                 else
                 {
-                    PathGeometric *p = new PathGeometric( si_ );
+                    PathGeometric *p = new PathGeometric(si_);
                     if (r < rp)
                     {
                         p->append(d.sigmaA_);
@@ -528,12 +537,12 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
                     {
                         Vertex prior = r;
                         Vertex vnew;
-                        std::vector<base::State*>& states = p->getStates();
+                        std::vector<base::State *> &states = p->getStates();
 
                         foreach (base::State *st, states)
                         {
                             // no need to clone st, since we will destroy p; we just copy the pointer
-                            vnew = addGuard(st , QUALITY);
+                            vnew = addGuard(st, QUALITY);
 
                             connectGuards(prior, vnew);
                             prior = vnew;
@@ -557,28 +566,29 @@ void ompl::geometric::SPARStwo::resetFailures()
     consecutiveFailures_ = 0;
 }
 
-void ompl::geometric::SPARStwo::findGraphNeighbors(base::State *st, std::vector<Vertex> &graphNeighborhood, std::vector<Vertex> &visibleNeighborhood)
+void ompl::geometric::SPARStwo::findGraphNeighbors(base::State *st, std::vector<Vertex> &graphNeighborhood,
+                                                   std::vector<Vertex> &visibleNeighborhood)
 {
     visibleNeighborhood.clear();
-    stateProperty_[ queryVertex_ ] = st;
-    nn_->nearestR( queryVertex_, sparseDelta_, graphNeighborhood);
-    stateProperty_[ queryVertex_ ] = nullptr;
+    stateProperty_[queryVertex_] = st;
+    nn_->nearestR(queryVertex_, sparseDelta_, graphNeighborhood);
+    stateProperty_[queryVertex_] = nullptr;
 
-    //Now that we got the neighbors from the NN, we must remove any we can't see
-    for (std::size_t i = 0; i < graphNeighborhood.size() ; ++i )
+    // Now that we got the neighbors from the NN, we must remove any we can't see
+    for (std::size_t i = 0; i < graphNeighborhood.size(); ++i)
         if (si_->checkMotion(st, stateProperty_[graphNeighborhood[i]]))
             visibleNeighborhood.push_back(graphNeighborhood[i]);
 }
 
-void ompl::geometric::SPARStwo::approachGraph( Vertex v )
+void ompl::geometric::SPARStwo::approachGraph(Vertex v)
 {
-    std::vector< Vertex > hold;
-    nn_->nearestR( v, sparseDelta_, hold );
+    std::vector<Vertex> hold;
+    nn_->nearestR(v, sparseDelta_, hold);
 
-    std::vector< Vertex > neigh;
+    std::vector<Vertex> neigh;
     for (std::size_t i = 0; i < hold.size(); ++i)
-        if (si_->checkMotion( stateProperty_[v], stateProperty_[hold[i]]))
-            neigh.push_back( hold[i] );
+        if (si_->checkMotion(stateProperty_[v], stateProperty_[hold[i]]))
+            neigh.push_back(hold[i]);
 
     foreach (Vertex vp, neigh)
         connectGuards(v, vp);
@@ -587,13 +597,13 @@ void ompl::geometric::SPARStwo::approachGraph( Vertex v )
 ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::findGraphRepresentative(base::State *st)
 {
     std::vector<Vertex> nbh;
-    stateProperty_[ queryVertex_ ] = st;
-    nn_->nearestR( queryVertex_, sparseDelta_, nbh);
+    stateProperty_[queryVertex_] = st;
+    nn_->nearestR(queryVertex_, sparseDelta_, nbh);
     stateProperty_[queryVertex_] = nullptr;
 
     Vertex result = boost::graph_traits<Graph>::null_vertex();
 
-    for (std::size_t i = 0 ; i< nbh.size() ; ++i)
+    for (std::size_t i = 0; i < nbh.size(); ++i)
         if (si_->checkMotion(st, stateProperty_[nbh[i]]))
         {
             result = nbh[i];
@@ -602,21 +612,25 @@ ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::findGraphRepresenta
     return result;
 }
 
-void ompl::geometric::SPARStwo::findCloseRepresentatives(base::State *workArea, const base::State *qNew, const Vertex qRep,
-                                                         std::map<Vertex, base::State*> &closeRepresentatives,
+void ompl::geometric::SPARStwo::findCloseRepresentatives(base::State *workArea, const base::State *qNew,
+                                                         const Vertex qRep,
+                                                         std::map<Vertex, base::State *> &closeRepresentatives,
                                                          const base::PlannerTerminationCondition &ptc)
 {
-    for (std::map<Vertex, base::State*>::iterator it = closeRepresentatives.begin(); it != closeRepresentatives.end(); ++it)
+    for (std::map<Vertex, base::State *>::iterator it = closeRepresentatives.begin(); it != closeRepresentatives.end();
+         ++it)
         si_->freeState(it->second);
     closeRepresentatives.clear();
 
     // Then, begin searching the space around him
-    for (unsigned int i = 0 ; i < nearSamplePoints_ ; ++i)
+    for (unsigned int i = 0; i < nearSamplePoints_; ++i)
     {
         do
         {
             sampler_->sampleNear(workArea, qNew, denseDelta_);
-        } while ((!si_->isValid(workArea) || si_->distance(qNew, workArea) > denseDelta_ || !si_->checkMotion(qNew, workArea)) && ptc == false);
+        } while ((!si_->isValid(workArea) || si_->distance(qNew, workArea) > denseDelta_ ||
+                  !si_->checkMotion(qNew, workArea)) &&
+                 ptc == false);
 
         // if we were not successful at sampling a desirable state, we are out of time
         if (ptc == true)
@@ -628,20 +642,21 @@ void ompl::geometric::SPARStwo::findCloseRepresentatives(base::State *workArea, 
         // Assuming this sample is actually seen by somebody (which he should be in all likelihood)
         if (representative != boost::graph_traits<Graph>::null_vertex())
         {
-            //If his representative is different than qNew
+            // If his representative is different than qNew
             if (qRep != representative)
-                //And we haven't already tracked this representative
+                // And we haven't already tracked this representative
                 if (closeRepresentatives.find(representative) == closeRepresentatives.end())
-                    //Track the representative
+                    // Track the representative
                     closeRepresentatives[representative] = si_->cloneState(workArea);
         }
         else
         {
-            //This guy can't be seen by anybody, so we should take this opportunity to add him
+            // This guy can't be seen by anybody, so we should take this opportunity to add him
             addGuard(si_->cloneState(workArea), COVERAGE);
 
-            //We should also stop our efforts to add a dense path
-            for (std::map<Vertex, base::State*>::iterator it = closeRepresentatives.begin(); it != closeRepresentatives.end(); ++it)
+            // We should also stop our efforts to add a dense path
+            for (std::map<Vertex, base::State *>::iterator it = closeRepresentatives.begin();
+                 it != closeRepresentatives.end(); ++it)
                 si_->freeState(it->second);
             closeRepresentatives.clear();
             break;
@@ -651,23 +666,23 @@ void ompl::geometric::SPARStwo::findCloseRepresentatives(base::State *workArea, 
 
 void ompl::geometric::SPARStwo::updatePairPoints(Vertex rep, const base::State *q, Vertex r, const base::State *s)
 {
-    //First of all, we need to compute all candidate r'
+    // First of all, we need to compute all candidate r'
     std::vector<Vertex> VPPs;
     computeVPP(rep, r, VPPs);
 
-    //Then, for each pair Pv(r,r')
+    // Then, for each pair Pv(r,r')
     foreach (Vertex rp, VPPs)
-        //Try updating the pair info
+        // Try updating the pair info
         distanceCheck(rep, q, r, s, rp);
 }
 
 void ompl::geometric::SPARStwo::computeVPP(Vertex v, Vertex vp, std::vector<Vertex> &VPPs)
 {
     VPPs.clear();
-    foreach( Vertex cvpp, boost::adjacent_vertices( v, g_ ) )
-        if( cvpp != vp )
-            if( !boost::edge( cvpp, vp, g_ ).second )
-                VPPs.push_back( cvpp );
+    foreach (Vertex cvpp, boost::adjacent_vertices(v, g_))
+        if (cvpp != vp)
+            if (!boost::edge(cvpp, vp, g_).second)
+                VPPs.push_back(cvpp);
 }
 
 void ompl::geometric::SPARStwo::computeX(Vertex v, Vertex vp, Vertex vpp, std::vector<Vertex> &Xs)
@@ -677,66 +692,66 @@ void ompl::geometric::SPARStwo::computeX(Vertex v, Vertex vp, Vertex vpp, std::v
     foreach (Vertex cx, boost::adjacent_vertices(vpp, g_))
         if (boost::edge(cx, v, g_).second && !boost::edge(cx, vp, g_).second)
         {
-            InterfaceData& d = getData( v, vpp, cx );
+            InterfaceData &d = getData(v, vpp, cx);
             if ((vpp < cx && d.pointA_) || (cx < vpp && d.pointB_))
-                Xs.push_back( cx );
+                Xs.push_back(cx);
         }
     Xs.push_back(vpp);
 }
 
-ompl::geometric::SPARStwo::VertexPair ompl::geometric::SPARStwo::index( Vertex vp, Vertex vpp )
+ompl::geometric::SPARStwo::VertexPair ompl::geometric::SPARStwo::index(Vertex vp, Vertex vpp)
 {
-    if( vp < vpp )
-        return VertexPair( vp, vpp );
-    else if( vpp < vp )
-        return VertexPair( vpp, vp );
+    if (vp < vpp)
+        return VertexPair(vp, vpp);
+    else if (vpp < vp)
+        return VertexPair(vpp, vp);
     else
-        throw Exception( name_, "Trying to get an index where the pairs are the same point!");
+        throw Exception(name_, "Trying to get an index where the pairs are the same point!");
 }
 
-ompl::geometric::SPARStwo::InterfaceData& ompl::geometric::SPARStwo::getData( Vertex v, Vertex vp, Vertex vpp )
+ompl::geometric::SPARStwo::InterfaceData &ompl::geometric::SPARStwo::getData(Vertex v, Vertex vp, Vertex vpp)
 {
-    return interfaceDataProperty_[v].interfaceHash[index( vp, vpp )];
+    return interfaceDataProperty_[v].interfaceHash[index(vp, vpp)];
 }
 
-void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, Vertex r, const base::State *s, Vertex rp)
+void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, Vertex r, const base::State *s,
+                                              Vertex rp)
 {
-    //Get the info for the current representative-neighbors pair
-    InterfaceData& d = getData( rep, r, rp );
+    // Get the info for the current representative-neighbors pair
+    InterfaceData &d = getData(rep, r, rp);
 
-    if (r < rp) // FIRST points represent r (the guy discovered through sampling)
+    if (r < rp)  // FIRST points represent r (the guy discovered through sampling)
     {
-        if (d.pointA_ == nullptr) // If the point we're considering replacing (P_v(r,.)) isn't there
-            //Then we know we're doing better, so add it
+        if (d.pointA_ == nullptr)  // If the point we're considering replacing (P_v(r,.)) isn't there
+            // Then we know we're doing better, so add it
             d.setFirst(q, s, si_);
-        else //Otherwise, he is there,
+        else  // Otherwise, he is there,
         {
-            if (d.pointB_ == nullptr) //But if the other guy doesn't exist, we can't compare.
+            if (d.pointB_ == nullptr)  // But if the other guy doesn't exist, we can't compare.
             {
-                //Should probably keep the one that is further away from rep?  Not known what to do in this case.
+                // Should probably keep the one that is further away from rep?  Not known what to do in this case.
                 // \todo: is this not part of the algorithm?
             }
-            else //We know both of these points exist, so we can check some distances
+            else  // We know both of these points exist, so we can check some distances
                 if (si_->distance(q, d.pointB_) < si_->distance(d.pointA_, d.pointB_))
-                    //Distance with the new point is good, so set it.
-                    d.setFirst( q, s, si_ );
+                // Distance with the new point is good, so set it.
+                d.setFirst(q, s, si_);
         }
     }
-    else // SECOND points represent r (the guy discovered through sampling)
+    else  // SECOND points represent r (the guy discovered through sampling)
     {
-        if (d.pointB_ == nullptr) //If the point we're considering replacing (P_V(.,r)) isn't there...
-            //Then we must be doing better, so add it
+        if (d.pointB_ == nullptr)  // If the point we're considering replacing (P_V(.,r)) isn't there...
+            // Then we must be doing better, so add it
             d.setSecond(q, s, si_);
-        else //Otherwise, he is there
+        else  // Otherwise, he is there
         {
-            if (d.pointA_ == nullptr) //But if the other guy doesn't exist, we can't compare.
+            if (d.pointA_ == nullptr)  // But if the other guy doesn't exist, we can't compare.
             {
-                //Should we be doing something cool here?
+                // Should we be doing something cool here?
             }
-            else
-                if (si_->distance(q, d.pointA_) < si_->distance(d.pointB_, d.pointA_))
-                    //Distance with the new point is good, so set it
-                    d.setSecond(q, s, si_);
+            else if (si_->distance(q, d.pointA_) < si_->distance(d.pointB_, d.pointA_))
+                // Distance with the new point is good, so set it
+                d.setSecond(q, s, si_);
         }
     }
 
@@ -746,14 +761,14 @@ void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, 
 
 void ompl::geometric::SPARStwo::abandonLists(base::State *st)
 {
-    stateProperty_[ queryVertex_ ] = st;
+    stateProperty_[queryVertex_] = st;
 
-    std::vector< Vertex > hold;
-    nn_->nearestR( queryVertex_, sparseDelta_, hold );
+    std::vector<Vertex> hold;
+    nn_->nearestR(queryVertex_, sparseDelta_, hold);
 
     stateProperty_[queryVertex_] = nullptr;
 
-    //For each of the vertices
+    // For each of the vertices
     foreach (Vertex v, hold)
     {
         foreach (VertexPair r, interfaceDataProperty_[v].interfaceHash | boost::adaptors::map_keys)
@@ -799,18 +814,17 @@ ompl::base::PathPtr ompl::geometric::SPARStwo::constructSolution(const Vertex st
 
     try
     {
-        boost::astar_search(g_, start,
-                            std::bind(&SPARStwo::costHeuristic, this, std::placeholders::_1, goal),
-                            boost::predecessor_map(prev).
-                            distance_compare(std::bind(&base::OptimizationObjective::
-                                                         isCostBetterThan, opt_.get(), std::placeholders::_1, std::placeholders::_2)).
-                            distance_combine(std::bind(&base::OptimizationObjective::
-                                                         combineCosts, opt_.get(), std::placeholders::_1, std::placeholders::_2)).
-                            distance_inf(opt_->infiniteCost()).
-                            distance_zero(opt_->identityCost()).
-                            visitor(AStarGoalVisitor<Vertex>(goal)));
+        boost::astar_search(g_, start, std::bind(&SPARStwo::costHeuristic, this, std::placeholders::_1, goal),
+                            boost::predecessor_map(prev)
+                                .distance_compare(std::bind(&base::OptimizationObjective::isCostBetterThan, opt_.get(),
+                                                            std::placeholders::_1, std::placeholders::_2))
+                                .distance_combine(std::bind(&base::OptimizationObjective::combineCosts, opt_.get(),
+                                                            std::placeholders::_1, std::placeholders::_2))
+                                .distance_inf(opt_->infiniteCost())
+                                .distance_zero(opt_->identityCost())
+                                .visitor(AStarGoalVisitor<Vertex>(goal)));
     }
-    catch (AStarFoundGoal&)
+    catch (AStarFoundGoal &)
     {
     }
 
@@ -854,7 +868,7 @@ void ompl::geometric::SPARStwo::getPlannerData(base::PlannerData &data) const
         data.addGoalVertex(base::PlannerDataVertex(stateProperty_[goalM_[i]], (int)GOAL));
 
     // If there are even edges here
-    if (boost::num_edges( g_ ) > 0)
+    if (boost::num_edges(g_) > 0)
     {
         // Adding edges and all other vertices simultaneously
         foreach (const Edge e, boost::edges(g_))
@@ -882,4 +896,3 @@ ompl::base::Cost ompl::geometric::SPARStwo::costHeuristic(Vertex u, Vertex v) co
 {
     return opt_->motionCostHeuristic(stateProperty_[u], stateProperty_[v]);
 }
-

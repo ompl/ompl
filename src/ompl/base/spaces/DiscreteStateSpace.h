@@ -43,12 +43,10 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief State space sampler for discrete states */
         class DiscreteStateSampler : public StateSampler
         {
         public:
-
             /** \brief Constructor */
             DiscreteStateSampler(const StateSpace *space) : StateSampler(space)
             {
@@ -69,18 +67,18 @@ namespace ompl
         class DiscreteStateSpace : public StateSpace
         {
         public:
-
             /** \brief The definition of a discrete state */
             class StateType : public State
             {
             public:
-
                 /** \brief The current state - an int in range [lowerBound, upperBound] */
                 int value;
             };
 
-            /** \brief Construct a discrete space in wich states can take values in the set [\e lowerBound, \e upperBound] */
-            DiscreteStateSpace(int lowerBound, int upperBound) : StateSpace(), lowerBound_(lowerBound), upperBound_(upperBound)
+            /** \brief Construct a discrete space in wich states can take values in the set [\e lowerBound, \e
+             * upperBound] */
+            DiscreteStateSpace(int lowerBound, int upperBound)
+              : StateSpace(), lowerBound_(lowerBound), upperBound_(upperBound)
             {
                 setName("Discrete" + getName());
                 type_ = STATE_SPACE_DISCRETE;
@@ -118,7 +116,7 @@ namespace ompl
 
             virtual StateSamplerPtr allocDefaultStateSampler() const;
 
-            virtual State* allocState() const;
+            virtual State *allocState() const;
 
             virtual void freeState(State *state) const;
 
@@ -146,7 +144,8 @@ namespace ompl
                 return upperBound_;
             }
 
-            /** \brief Set the bounds for the states in this space (the states will be in the set [\e lowerBound, \e upperBound] */
+            /** \brief Set the bounds for the states in this space (the states will be in the set [\e lowerBound, \e
+             * upperBound] */
             void setBounds(int lowerBound, int upperBound)
             {
                 lowerBound_ = lowerBound;
@@ -156,7 +155,6 @@ namespace ompl
             virtual void setup();
 
         protected:
-
             /** \brief The lowest integer state */
             int lowerBound_;
 

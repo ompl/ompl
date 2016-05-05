@@ -37,13 +37,14 @@
 #include "ompl/base/samplers/MaximizeClearanceValidStateSampler.h"
 #include "ompl/base/SpaceInformation.h"
 
-ompl::base::MaximizeClearanceValidStateSampler::MaximizeClearanceValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocStateSampler()), improveAttempts_(3), work_(si->allocState())
+ompl::base::MaximizeClearanceValidStateSampler::MaximizeClearanceValidStateSampler(const SpaceInformation *si)
+  : ValidStateSampler(si), sampler_(si->allocStateSampler()), improveAttempts_(3), work_(si->allocState())
 {
     name_ = "max_clearance";
-    params_.declareParam<unsigned int>("nr_improve_attempts",
-                                       std::bind(&MaximizeClearanceValidStateSampler::setNrImproveAttempts, this, std::placeholders::_1),
-                                       std::bind(&MaximizeClearanceValidStateSampler::getNrImproveAttempts, this));
+    params_.declareParam<unsigned int>(
+        "nr_improve_attempts",
+        std::bind(&MaximizeClearanceValidStateSampler::setNrImproveAttempts, this, std::placeholders::_1),
+        std::bind(&MaximizeClearanceValidStateSampler::getNrImproveAttempts, this));
 }
 
 ompl::base::MaximizeClearanceValidStateSampler::~MaximizeClearanceValidStateSampler()

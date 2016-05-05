@@ -45,7 +45,6 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief An SE(2) state space where distance is measured by the
             length of Reeds-Shepp curves.
 
@@ -64,44 +63,50 @@ namespace ompl
         class ReedsSheppStateSpace : public SE2StateSpace
         {
         public:
-
             /** \brief The Reeds-Shepp path segment types */
-            enum ReedsSheppPathSegmentType { RS_NOP=0, RS_LEFT=1, RS_STRAIGHT=2, RS_RIGHT=3 };
+            enum ReedsSheppPathSegmentType
+            {
+                RS_NOP = 0,
+                RS_LEFT = 1,
+                RS_STRAIGHT = 2,
+                RS_RIGHT = 3
+            };
             /** \brief Reeds-Shepp path types */
             static const ReedsSheppPathSegmentType reedsSheppPathType[18][5];
             /** \brief Complete description of a ReedsShepp path */
             class ReedsSheppPath
             {
             public:
-                ReedsSheppPath(const ReedsSheppPathSegmentType* type=reedsSheppPathType[0],
-                    double t=std::numeric_limits<double>::max(), double u=0., double v=0.,
-                    double w=0., double x=0.);
-                double length() const { return totalLength_; }
+                ReedsSheppPath(const ReedsSheppPathSegmentType *type = reedsSheppPathType[0],
+                               double t = std::numeric_limits<double>::max(), double u = 0., double v = 0.,
+                               double w = 0., double x = 0.);
+                double length() const
+                {
+                    return totalLength_;
+                }
 
                 /** Path segment types */
-                const ReedsSheppPathSegmentType* type_;
+                const ReedsSheppPathSegmentType *type_;
                 /** Path segment lengths */
                 double length_[5];
                 /** Total length */
                 double totalLength_;
             };
 
-            ReedsSheppStateSpace(double turningRadius = 1.0)
-                : SE2StateSpace(), rho_(turningRadius)
+            ReedsSheppStateSpace(double turningRadius = 1.0) : SE2StateSpace(), rho_(turningRadius)
             {
             }
 
             virtual double distance(const State *state1, const State *state2) const;
 
-            virtual void interpolate(const State *from, const State *to, const double t,
-                State *state) const;
-            virtual void interpolate(const State *from, const State *to, const double t,
-                bool &firstTime, ReedsSheppPath &path, State *state) const;
+            virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
+            virtual void interpolate(const State *from, const State *to, const double t, bool &firstTime,
+                                     ReedsSheppPath &path, State *state) const;
 
             virtual void sanityChecks() const
             {
                 double zero = std::numeric_limits<double>::epsilon();
-                double eps = .1; // rarely such a large error will occur
+                double eps = .1;  // rarely such a large error will occur
                 StateSpace::sanityChecks(zero, eps, ~STATESPACE_INTERPOLATION);
             }
 
@@ -109,8 +114,7 @@ namespace ompl
             ReedsSheppPath reedsShepp(const State *state1, const State *state2) const;
 
         protected:
-            virtual void interpolate(const State *from, const ReedsSheppPath &path, const double t,
-                State *state) const;
+            virtual void interpolate(const State *from, const ReedsSheppPath &path, const double t, State *state) const;
 
             /** \brief Turning radius */
             double rho_;
@@ -137,12 +141,12 @@ namespace ompl
             {
             }
             virtual bool checkMotion(const State *s1, const State *s2) const;
-            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
+            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const;
+
         private:
             ReedsSheppStateSpace *stateSpace_;
             void defaultSettings();
         };
-
     }
 }
 

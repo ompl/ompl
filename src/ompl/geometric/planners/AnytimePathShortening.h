@@ -60,7 +60,9 @@ namespace ompl
         /// algorithms.
         ///
         /// @par External documentation
-        /// R. Luna, I.A. Şucan, M. Moll, and L.E. Kavraki, Anytime Solution Optimization for Sampling-Based Motion Planning, in <em>Proc. 2013 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 5053-5059, May. 2013. DOI: [ICRA.2013.6631301](http://dx.doi.org/10.1109/ICRA.2013.6631301)<br>
+        /// R. Luna, I.A. Şucan, M. Moll, and L.E. Kavraki, Anytime Solution Optimization for Sampling-Based Motion
+        /// Planning, in <em>Proc. 2013 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 5053-5059, May. 2013. DOI:
+        /// [ICRA.2013.6631301](http://dx.doi.org/10.1109/ICRA.2013.6631301)<br>
         /// [[PDF]](http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=6631301)
         class AnytimePathShortening : public base::Planner
         {

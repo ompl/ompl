@@ -42,16 +42,13 @@
 
 namespace ompl
 {
-
     namespace control
     {
-
         /** \brief Representation of controls applied in MORSE
             environments. This is an array of double values. */
         class MorseControlSpace : public RealVectorControlSpace
         {
         public:
-
             /** \brief Construct a representation of controls passed
                 to MORSE. If \e stateSpace does not cast to an
                 MorseStateSpace, an exception is thrown. */
@@ -62,11 +59,10 @@ namespace ompl
             }
 
             /** \brief Get the MORSE environment this state space corresponds to */
-            const base::MorseEnvironmentPtr& getEnvironment() const
+            const base::MorseEnvironmentPtr &getEnvironment() const
             {
                 return stateSpace_->as<base::MorseStateSpace>()->getEnvironment();
             }
-
         };
     }
 }

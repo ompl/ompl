@@ -55,17 +55,17 @@ namespace ompl
         /// \brief Abstract definition of a proof for the non-existence of a solution to a problem
         class SolutionNonExistenceProof
         {
-            public:
-                SolutionNonExistenceProof(const SpaceInformationPtr &si) : si_(si)
-                {
-                }
+        public:
+            SolutionNonExistenceProof(const SpaceInformationPtr &si) : si_(si)
+            {
+            }
 
-                virtual ~SolutionNonExistenceProof()
-                {
-                }
+            virtual ~SolutionNonExistenceProof()
+            {
+            }
 
-            protected:
-                SpaceInformationPtr si_;
+        protected:
+            SpaceInformationPtr si_;
         };
     }
 }

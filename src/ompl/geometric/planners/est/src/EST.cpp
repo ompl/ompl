@@ -80,9 +80,9 @@ void ompl::geometric::EST::clear()
 
 void ompl::geometric::EST::freeMemory()
 {
-    for (Grid<MotionInfo>::iterator it = tree_.grid.begin(); it != tree_.grid.end() ; ++it)
+    for (Grid<MotionInfo>::iterator it = tree_.grid.begin(); it != tree_.grid.end(); ++it)
     {
-        for (unsigned int i = 0 ; i < it->second->data.size() ; ++i)
+        for (unsigned int i = 0; i < it->second->data.size(); ++i)
         {
             if (it->second->data[i]->state)
                 si_->freeState(it->second->data[i]->state);
@@ -94,8 +94,8 @@ void ompl::geometric::EST::freeMemory()
 ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                   *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -115,9 +115,9 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), tree_.size);
 
-    Motion *solution  = nullptr;
+    Motion *solution = nullptr;
     Motion *approxsol = nullptr;
-    double  approxdif = std::numeric_limits<double>::infinity();
+    double approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
 
     while (ptc == false)
@@ -129,9 +129,8 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
         /* sample random state (with goal biasing) */
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(xstate);
-        else
-            if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
-                continue;
+        else if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
+            continue;
 
         if (si_->checkMotion(existing->state, xstate))
         {
@@ -170,7 +169,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
         lastGoalMotion_ = solution;
 
         /* construct the solution path */
-        std::vector<Motion*> mpath;
+        std::vector<Motion *> mpath;
         while (solution != nullptr)
         {
             mpath.push_back(solution);
@@ -179,7 +178,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
         /* set the solution path */
         PathGeometric *path = new PathGeometric(si_);
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1; i >= 0; --i)
             path->append(mpath[i]->state);
         pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
         solved = true;
@@ -192,9 +191,9 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
     return base::PlannerStatus(solved, approximate);
 }
 
-ompl::geometric::EST::Motion* ompl::geometric::EST::selectMotion()
+ompl::geometric::EST::Motion *ompl::geometric::EST::selectMotion()
 {
-    GridCell* cell = pdf_.sample(rng_.uniform01());
+    GridCell *cell = pdf_.sample(rng_.uniform01());
     return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : nullptr;
 }
 
@@ -202,11 +201,11 @@ void ompl::geometric::EST::addMotion(Motion *motion)
 {
     Grid<MotionInfo>::Coord coord;
     projectionEvaluator_->computeCoordinates(motion->state, coord);
-    GridCell* cell = tree_.grid.getCell(coord);
+    GridCell *cell = tree_.grid.getCell(coord);
     if (cell)
     {
         cell->data.push_back(motion);
-        pdf_.update(cell->data.elem_, 1.0/cell->data.size());
+        pdf_.update(cell->data.elem_, 1.0 / cell->data.size());
     }
     else
     {
@@ -228,8 +227,8 @@ void ompl::geometric::EST::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
+    for (unsigned int i = 0; i < motions.size(); ++i)
+        for (unsigned int j = 0; j < motions[i].size(); ++j)
         {
             if (motions[i][j]->parent == nullptr)
                 data.addStartVertex(base::PlannerDataVertex(motions[i][j]->state));

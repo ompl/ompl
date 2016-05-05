@@ -42,15 +42,12 @@
 
 namespace ompl
 {
-
     namespace base
     {
-
         /** \brief Definition of a goal state */
         class GoalState : public GoalSampleableRegion
         {
         public:
-
             /** \brief Create a goal representation that is in fact a state  */
             GoalState(const SpaceInformationPtr &si) : GoalSampleableRegion(si), state_(nullptr)
             {
@@ -79,17 +76,15 @@ namespace ompl
             void setState(const ScopedState<> &st);
 
             /** \brief Get the goal state */
-            const State* getState() const;
+            const State *getState() const;
 
             /** \brief Get the goal state */
-            State* getState();
+            State *getState();
 
         protected:
-
             /** \brief The goal state */
             State *state_;
         };
-
     }
 }
 

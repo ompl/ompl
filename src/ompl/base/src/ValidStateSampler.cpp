@@ -38,8 +38,8 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <functional>
 
-ompl::base::ValidStateSampler::ValidStateSampler(const SpaceInformation *si) :
-    si_(si), attempts_(magic::MAX_VALID_SAMPLE_ATTEMPTS), name_("not set")
+ompl::base::ValidStateSampler::ValidStateSampler(const SpaceInformation *si)
+  : si_(si), attempts_(magic::MAX_VALID_SAMPLE_ATTEMPTS), name_("not set")
 {
     params_.declareParam<unsigned int>("nr_attempts",
                                        std::bind(&ValidStateSampler::setNrAttempts, this, std::placeholders::_1),

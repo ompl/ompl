@@ -38,9 +38,8 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <limits>
 
-ompl::base::MaximizeMinClearanceObjective::
-MaximizeMinClearanceObjective(const SpaceInformationPtr &si) :
-    MinimaxObjective(si)
+ompl::base::MaximizeMinClearanceObjective::MaximizeMinClearanceObjective(const SpaceInformationPtr &si)
+  : MinimaxObjective(si)
 {
     this->setCostThreshold(Cost(std::numeric_limits<double>::infinity()));
 }

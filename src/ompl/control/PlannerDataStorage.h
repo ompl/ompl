@@ -74,31 +74,31 @@ namespace ompl
             virtual void store(const base::PlannerData &pd, std::ostream &out);
 
         protected:
-
             /// @cond IGNORE
             // Information stored at the beginning of the PlannerData archive
             struct Header : base::PlannerDataStorage::Header
             {
-                /// \brief Signature of control space that allocated the saved states in the vertices (see ompl::base::StateSpace::computeSignature()) */
+                /// \brief Signature of control space that allocated the saved states in the vertices (see
+                /// ompl::base::StateSpace::computeSignature()) */
                 std::vector<int> control_signature;
 
                 /// \brief boost::serialization routine
-                template<typename Archive>
-                void serialize(Archive & ar, const unsigned int /*version*/)
+                template <typename Archive>
+                void serialize(Archive &ar, const unsigned int /*version*/)
                 {
-                    ar & boost::serialization::base_object<base::PlannerDataStorage::Header>(*this);
-                    ar & control_signature;
+                    ar &boost::serialization::base_object<base::PlannerDataStorage::Header>(*this);
+                    ar &control_signature;
                 }
             };
 
             // The object containing all control edge data that will be stored
             struct PlannerDataEdgeControlData : base::PlannerDataStorage::PlannerDataEdgeData
             {
-                template<typename Archive>
-                void serialize(Archive & ar, const unsigned int /*version*/)
+                template <typename Archive>
+                void serialize(Archive &ar, const unsigned int /*version*/)
                 {
-                    ar & boost::serialization::base_object<base::PlannerDataStorage::PlannerDataEdgeData>(*this);
-                    ar & control_;
+                    ar &boost::serialization::base_object<base::PlannerDataStorage::PlannerDataEdgeData>(*this);
+                    ar &control_;
                 }
 
                 std::vector<unsigned char> control_;
@@ -111,21 +111,24 @@ namespace ompl
             {
                 OMPL_DEBUG("Loading %d PlannerDataEdgeControl objects", numEdges);
 
-                const ControlSpacePtr& space = static_cast<control::PlannerData&>(pd).getSpaceInformation()->getControlSpace();
-                std::vector<Control*> controls;
+                const ControlSpacePtr &space =
+                    static_cast<control::PlannerData &>(pd).getSpaceInformation()->getControlSpace();
+                std::vector<Control *> controls;
 
                 for (unsigned int i = 0; i < numEdges; ++i)
                 {
                     PlannerDataEdgeControlData edgeData;
                     ia >> edgeData;
 
-                    std::vector<unsigned char> ctrlBuf (space->getSerializationLength());
+                    std::vector<unsigned char> ctrlBuf(space->getSerializationLength());
                     Control *ctrl = space->allocControl();
                     controls.push_back(ctrl);
                     space->deserialize(ctrl, &edgeData.control_[0]);
-                    const_cast<PlannerDataEdgeControl*>(static_cast<const PlannerDataEdgeControl*>(edgeData.e_))->c_ = ctrl;
+                    const_cast<PlannerDataEdgeControl *>(static_cast<const PlannerDataEdgeControl *>(edgeData.e_))->c_ =
+                        ctrl;
 
-                    pd.addEdge(edgeData.endpoints_.first, edgeData.endpoints_.second, *edgeData.e_, base::Cost(edgeData.weight_));
+                    pd.addEdge(edgeData.endpoints_.first, edgeData.endpoints_.second, *edgeData.e_,
+                               base::Cost(edgeData.weight_));
 
                     // We deserialized the edge object pointer, and we own it.
                     // Since addEdge copies the object, it is safe to free here.
@@ -149,13 +152,14 @@ namespace ompl
             {
                 OMPL_DEBUG("Storing %d PlannerDataEdgeControl objects", pd.numEdges());
 
-                const ControlSpacePtr& space = static_cast<const control::PlannerData&>(pd).getSpaceInformation()->getControlSpace();
-                std::vector<unsigned char> ctrl (space->getSerializationLength());
+                const ControlSpacePtr &space =
+                    static_cast<const control::PlannerData &>(pd).getSpaceInformation()->getControlSpace();
+                std::vector<unsigned char> ctrl(space->getSerializationLength());
 
                 for (unsigned int i = 0; i < pd.numVertices(); ++i)
                     for (unsigned int j = 0; j < pd.numVertices(); ++j)
                     {
-                        if(pd.edgeExists(i, j))
+                        if (pd.edgeExists(i, j))
                         {
                             PlannerDataEdgeControlData edgeData;
                             edgeData.e_ = &pd.getEdge(i, j);
@@ -165,14 +169,14 @@ namespace ompl
                             pd.getEdgeWeight(i, j, &weight);
                             edgeData.weight_ = weight.value();
 
-                            space->serialize(&ctrl[0], static_cast<const PlannerDataEdgeControl*>(edgeData.e_)->getControl());
+                            space->serialize(&ctrl[0],
+                                             static_cast<const PlannerDataEdgeControl *>(edgeData.e_)->getControl());
                             edgeData.control_ = ctrl;
 
                             oa << edgeData;
                         }
                     }
             }
-
         };
     }
 }

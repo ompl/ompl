@@ -53,7 +53,7 @@ namespace ompl
         \li Adding an element to the datastructure is O(1).
         \li Removing an element from the datastructure O(n).
     */
-    template<typename _T>
+    template <typename _T>
     class NearestNeighborsSqrtApprox : public NearestNeighborsLinear<_T>
     {
     public:
@@ -100,7 +100,7 @@ namespace ompl
             if (checks_ > 0 && n > 0)
             {
                 double dmin = 0.0;
-                for (std::size_t j = 0 ; j < checks_ ; ++j)
+                for (std::size_t j = 0; j < checks_; ++j)
                 {
                     std::size_t i = (j * checks_ + offset_) % n;
 
@@ -120,7 +120,6 @@ namespace ompl
         }
 
     protected:
-
         /** \brief The maximum number of checks to perform when searching for a nearest neighbor */
         inline void updateCheckCount()
         {
@@ -128,13 +127,11 @@ namespace ompl
         }
 
         /** \brief The number of checks to be performed when looking for a nearest neighbor */
-        std::size_t         checks_;
+        std::size_t checks_;
 
         /** \brief The offset to start checking at (between 0 and \e checks_) */
         mutable std::size_t offset_;
-
     };
-
 }
 
 #endif

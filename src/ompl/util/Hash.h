@@ -45,21 +45,21 @@ namespace ompl
 {
     // copied from <boost/functional/hash.hpp>
     template <class T>
-    inline void hash_combine(std::size_t& seed, const T& v)
+    inline void hash_combine(std::size_t &seed, const T &v)
     {
         std::hash<T> hasher;
-        seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+        seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
 }
 
 namespace std
 {
     template <class U, class V>
-    struct hash<std::pair<U,V> >
+    struct hash<std::pair<U, V>>
     {
-        typedef std::pair<U,V> argument_type;
+        typedef std::pair<U, V> argument_type;
         typedef std::size_t result_type;
-        result_type operator()(argument_type const& p) const
+        result_type operator()(argument_type const &p) const
         {
             result_type h = std::hash<typename std::remove_cv<U>::type>()(p.first);
             ompl::hash_combine(h, p.second);

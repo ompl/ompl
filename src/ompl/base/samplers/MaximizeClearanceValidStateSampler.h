@@ -44,13 +44,10 @@ namespace ompl
 {
     namespace base
     {
-
-
         /** \brief Generate valid samples randomly, but with a bias towards higher clearance. */
         class MaximizeClearanceValidStateSampler : public ValidStateSampler
         {
         public:
-
             /** \brief Constructor */
             MaximizeClearanceValidStateSampler(const SpaceInformation *si);
 
@@ -73,20 +70,17 @@ namespace ompl
             }
 
         protected:
-
             /** \brief The sampler to build upon */
             StateSamplerPtr sampler_;
 
             /** \brief Number of attempts to improve a valid sample */
-            unsigned int    improveAttempts_;
+            unsigned int improveAttempts_;
 
         private:
             /** \brief Temporary work area */
-            State          *work_;
+            State *work_;
         };
-
     }
 }
-
 
 #endif

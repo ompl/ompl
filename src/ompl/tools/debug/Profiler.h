@@ -32,7 +32,6 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-
 /* Author Ioan Sucan */
 
 #ifndef OMPL_TOOLS_DEBUG_PROFILER_
@@ -43,11 +42,11 @@
 /** The ENABLE_PROFILING macro can be set externally. If it is not,
     profiling is enabled by default, unless NDEBUG is defined. */
 
-#  ifdef NDEBUG
-#    define ENABLE_PROFILING 0
-#  else
-#    define ENABLE_PROFILING 1
-#  endif
+#ifdef NDEBUG
+#define ENABLE_PROFILING 0
+#else
+#define ENABLE_PROFILING 1
+#endif
 
 #endif
 
@@ -63,10 +62,8 @@
 
 namespace ompl
 {
-
     namespace tools
     {
-
         /** \brief This is a simple thread-safe tool for counting time
             spent in various chunks of code. This is different from
             external profiling tools in that it allows the user to count
@@ -76,10 +73,11 @@ namespace ompl
         {
         public:
             // non-copyable
-            Profiler(const Profiler&) = delete;
-            Profiler& operator=(const Profiler&) = delete;
+            Profiler(const Profiler &) = delete;
+            Profiler &operator=(const Profiler &) = delete;
 
-            /** \brief This instance will call Profiler::begin() when constructed and Profiler::end() when it goes out of scope. */
+            /** \brief This instance will call Profiler::begin() when constructed and Profiler::end() when it goes out
+             * of scope. */
             class ScopedBlock
             {
             public:
@@ -95,17 +93,16 @@ namespace ompl
                 }
 
             private:
-
-                std::string  name_;
-                Profiler    &prof_;
+                std::string name_;
+                Profiler &prof_;
             };
 
-            /** \brief This instance will call Profiler::start() when constructed and Profiler::stop() when it goes out of scope.
+            /** \brief This instance will call Profiler::start() when constructed and Profiler::stop() when it goes out
+               of scope.
                 If the profiler was already started, this block's constructor and destructor take no action */
             class ScopedStart
             {
             public:
-
                 /** \brief Take as argument the profiler instance to operate on (\e prof) */
                 ScopedStart(Profiler &prof = Profiler::Instance()) : prof_(prof), wasRunning_(prof_.running())
                 {
@@ -120,17 +117,17 @@ namespace ompl
                 }
 
             private:
-
                 Profiler &prof_;
-                bool      wasRunning_;
+                bool wasRunning_;
             };
 
             /** \brief Return an instance of the class */
-            static Profiler& Instance();
+            static Profiler &Instance();
 
             /** \brief Constructor. It is allowed to separately instantiate this
                 class (not only as a singleton) */
-            Profiler(bool printOnDestroy = false, bool autoStart = false) : running_(false), printOnDestroy_(printOnDestroy)
+            Profiler(bool printOnDestroy = false, bool autoStart = false)
+              : running_(false), printOnDestroy_(printOnDestroy)
             {
                 if (autoStart)
                     start();
@@ -171,7 +168,7 @@ namespace ompl
             void clear();
 
             /** \brief Count a specific event for a number of times */
-            static void Event(const std::string& name, const unsigned int times = 1)
+            static void Event(const std::string &name, const unsigned int times = 1)
             {
                 Instance().event(name, times);
             }
@@ -180,7 +177,7 @@ namespace ompl
             void event(const std::string &name, const unsigned int times = 1);
 
             /** \brief Maintain the average of a specific value */
-            static void Average(const std::string& name, const double value)
+            static void Average(const std::string &name, const double value)
             {
                 Instance().average(name, value);
             }
@@ -243,28 +240,28 @@ namespace ompl
             }
 
         private:
-
             /** \brief Information about time spent in a section of the code */
             struct TimeInfo
             {
-                TimeInfo() : total(time::seconds(0.)), shortest(time::duration::max()), longest(time::duration::min()), parts(0)
+                TimeInfo()
+                  : total(time::seconds(0.)), shortest(time::duration::max()), longest(time::duration::min()), parts(0)
                 {
                 }
 
                 /** \brief Total time counted. */
-                time::duration    total;
+                time::duration total;
 
                 /** \brief The shortest counted time interval */
-                time::duration    shortest;
+                time::duration shortest;
 
                 /** \brief The longest counted time interval */
-                time::duration    longest;
+                time::duration longest;
 
                 /** \brief Number of times a chunk of time was added to this structure */
                 unsigned long int parts;
 
                 /** \brief The point in time when counting time started */
-                time::point       start;
+                time::point start;
 
                 /** \brief Begin counting time */
                 void set()
@@ -289,10 +286,10 @@ namespace ompl
             struct AvgInfo
             {
                 /** \brief The sum of the values to average */
-                double            total;
+                double total;
 
                 /** \brief The sub of squares of the values to average */
-                double            totalSqr;
+                double totalSqr;
 
                 /** \brief Number of times a value was added to this structure */
                 unsigned long int parts;
@@ -305,20 +302,19 @@ namespace ompl
                 std::map<std::string, unsigned long int> events;
 
                 /** \brief The stored averages */
-                std::map<std::string, AvgInfo>           avg;
+                std::map<std::string, AvgInfo> avg;
 
                 /** \brief The amount of time spent in various places */
-                std::map<std::string, TimeInfo>          time;
+                std::map<std::string, TimeInfo> time;
             };
 
             void printThreadInfo(std::ostream &out, const PerThread &data);
 
-            std::mutex                             lock_;
-            std::map<std::thread::id, PerThread>   data_;
-            TimeInfo                               tinfo_;
-            bool                                   running_;
-            bool                                   printOnDestroy_;
-
+            std::mutex lock_;
+            std::map<std::thread::id, PerThread> data_;
+            TimeInfo tinfo_;
+            bool running_;
+            bool printOnDestroy_;
         };
     }
 }
@@ -332,18 +328,14 @@ namespace ompl
    public functions */
 namespace ompl
 {
-
     namespace tools
     {
-
         class Profiler
         {
         public:
-
             class ScopedBlock
             {
             public:
-
                 ScopedBlock(const std::string &, Profiler & = Profiler::Instance())
                 {
                 }
@@ -356,7 +348,6 @@ namespace ompl
             class ScopedStart
             {
             public:
-
                 ScopedStart(Profiler & = Profiler::Instance())
                 {
                 }
@@ -366,7 +357,7 @@ namespace ompl
                 }
             };
 
-            static Profiler& Instance();
+            static Profiler &Instance();
 
             Profiler(bool = true, bool = true)
             {
@@ -400,7 +391,7 @@ namespace ompl
             {
             }
 
-            static void Event(const std::string&, const unsigned int = 1)
+            static void Event(const std::string &, const unsigned int = 1)
             {
             }
 
@@ -408,7 +399,7 @@ namespace ompl
             {
             }
 
-            static void Average(const std::string&, const double)
+            static void Average(const std::string &, const double)
             {
             }
 

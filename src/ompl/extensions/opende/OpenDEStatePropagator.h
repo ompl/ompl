@@ -42,10 +42,8 @@
 
 namespace ompl
 {
-
     namespace control
     {
-
         /** \brief State propagation with OpenDE. Only forward
             propagation is possible.
 
@@ -62,7 +60,6 @@ namespace ompl
         class OpenDEStatePropagator : public StatePropagator
         {
         public:
-
             /** \brief Construct a representation of OpenDE state propagator.
                 If \e si->getStateSpace() does not cast to an
                 OpenDEStateSpace, an exception is thrown. */
@@ -73,23 +70,21 @@ namespace ompl
             }
 
             /** \brief Get the OpenDE environment this state propagator operates on */
-            const OpenDEEnvironmentPtr& getEnvironment() const
+            const OpenDEEnvironmentPtr &getEnvironment() const
             {
                 return env_;
             }
 
             virtual bool canPropagateBackward() const;
 
-            virtual void propagate(const base::State *state, const Control *control, const double duration, base::State *result) const;
+            virtual void propagate(const base::State *state, const Control *control, const double duration,
+                                   base::State *result) const;
 
         protected:
-
             /** \brief The OpenDE environment this state propagator operates on */
             OpenDEEnvironmentPtr env_;
-
         };
     }
-
 }
 
 #endif

@@ -38,8 +38,14 @@
 #include "ompl/base/ScopedState.h"
 #include "ompl/util/Time.h"
 
-ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc, bool autoStart, double minDist) :
-    GoalStates(si), samplerFunc_(samplerFunc), terminateSamplingThread_(false), samplingThread_(nullptr), samplingAttempts_(0), minDist_(minDist)
+ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc,
+                                             bool autoStart, double minDist)
+  : GoalStates(si)
+  , samplerFunc_(samplerFunc)
+  , terminateSamplingThread_(false)
+  , samplingThread_(nullptr)
+  , samplingAttempts_(0)
+  , minDist_(minDist)
 {
     type_ = GOAL_LAZY_SAMPLES;
     if (autoStart)
@@ -71,13 +77,12 @@ void ompl::base::GoalLazySamples::stopSampling()
         delete samplingThread_;
         samplingThread_ = nullptr;
     }
-    else
-        if (samplingThread_)
-        { // join a finished thread
-            samplingThread_->join();
-            delete samplingThread_;
-            samplingThread_ = nullptr;
-        }
+    else if (samplingThread_)
+    {  // join a finished thread
+        samplingThread_->join();
+        delete samplingThread_;
+        samplingThread_ = nullptr;
+    }
 }
 
 void ompl::base::GoalLazySamples::goalSamplingThread()
@@ -103,7 +108,8 @@ void ompl::base::GoalLazySamples::goalSamplingThread()
     }
     else
         OMPL_WARN("Goal sampling thread never did any work.%s",
-                  samplerFunc_ ? (si_->isSetup() ? "" : " Space information not set up.") : " No sampling function set.");
+                  samplerFunc_ ? (si_->isSetup() ? "" : " Space information not set up.") : " No sampling function "
+                                                                                            "set.");
     terminateSamplingThread_ = true;
     OMPL_DEBUG("Stopped goal sampling thread after %u sampling attempts", samplingAttempts_ - prevsa);
 }
@@ -147,7 +153,7 @@ void ompl::base::GoalLazySamples::addState(const State *st)
     GoalStates::addState(st);
 }
 
-const ompl::base::State* ompl::base::GoalLazySamples::getState(unsigned int index) const
+const ompl::base::State *ompl::base::GoalLazySamples::getState(unsigned int index) const
 {
     std::lock_guard<std::mutex> slock(lock_);
     return GoalStates::getState(index);

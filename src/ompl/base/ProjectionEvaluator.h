@@ -50,16 +50,13 @@
 
 namespace ompl
 {
-
     namespace base
     {
-
         /** \brief Grid cells corresponding to a projection value are described in terms of their coordinates. */
         typedef std::vector<int> ProjectionCoordinates;
 
         /** \brief The datatype for state projections. This class contains a real vector. */
         typedef boost::numeric::ublas::vector<double> EuclideanProjection;
-
 
         /** \brief A projection matrix -- it allows multiplication of
             real vectors by a specified matrix. The matrix can also be
@@ -67,7 +64,6 @@ namespace ompl
         class ProjectionMatrix
         {
         public:
-
             /** \brief Datatype for projection matrices */
             typedef boost::numeric::ublas::matrix<double> Matrix;
 
@@ -87,7 +83,8 @@ namespace ompl
                 Each element is sampled with a Gaussian distribution
                 with mean 0 and variance 1 and the matrix rows are
                 made orthonormal. */
-            static Matrix ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale);
+            static Matrix ComputeRandom(const unsigned int from, const unsigned int to,
+                                        const std::vector<double> &scale);
 
             /** \brief Compute a random projection matrix with \e from
                 columns and \e to rows. A vector with \e from elements
@@ -107,7 +104,7 @@ namespace ompl
             void computeRandom(const unsigned int from, const unsigned int to);
 
             /** \brief Multiply the vector \e from by the contained projection matrix to obtain the vector \e to. */
-            void project(const double *from, EuclideanProjection& to) const;
+            void project(const double *from, EuclideanProjection &to) const;
 
             /** \brief Print the contained projection matrix to a stram */
             void print(std::ostream &out = std::cout) const;
@@ -138,8 +135,8 @@ namespace ompl
         {
         public:
             // non-copyable
-            ProjectionEvaluator(const ProjectionEvaluator&) = delete;
-            ProjectionEvaluator& operator=(const ProjectionEvaluator&) = delete;
+            ProjectionEvaluator(const ProjectionEvaluator &) = delete;
+            ProjectionEvaluator &operator=(const ProjectionEvaluator &) = delete;
 
             /** \brief Construct a projection evaluator for a specific state space */
             ProjectionEvaluator(const StateSpace *space);
@@ -164,20 +161,26 @@ namespace ompl
                 more. */
             virtual void setCellSizes(const std::vector<double> &cellSizes);
 
-            /** \brief Set the cell sizes to \e cellSize for a particular dimension \e dim. This function simply calls getCellSizes(),
-                modifies the desired dimension and then calls setCellSizes(). This is done intentionally to enforce a call to setCellSizes(). */
+            /** \brief Set the cell sizes to \e cellSize for a particular dimension \e dim. This function simply calls
+               getCellSizes(),
+                modifies the desired dimension and then calls setCellSizes(). This is done intentionally to enforce a
+               call to setCellSizes(). */
             void setCellSizes(unsigned int dim, double cellSize);
 
-            /** \brief Multiply the cell sizes in each dimension by a specified factor \e factor. This function does nothing
-                if cell sizes have not been set. If cell sizes have been set (irrespective of source; e.g., user, default or inferred),
-                this function will then call setCellSizes(), so the source of the cell sizes will be considered to be the user. */
+            /** \brief Multiply the cell sizes in each dimension by a specified factor \e factor. This function does
+               nothing
+                if cell sizes have not been set. If cell sizes have been set (irrespective of source; e.g., user,
+               default or inferred),
+                this function will then call setCellSizes(), so the source of the cell sizes will be considered to be
+               the user. */
             void mulCellSizes(double factor);
 
-            /** \brief Return true if any user configuration has been done to this projection evaluator (setCellSizes() was called) */
+            /** \brief Return true if any user configuration has been done to this projection evaluator (setCellSizes()
+             * was called) */
             bool userConfigured() const;
 
             /** \brief Get the size (each dimension) of a grid cell  */
-            const std::vector<double>& getCellSizes() const
+            const std::vector<double> &getCellSizes() const
             {
                 return cellSizes_;
             }
@@ -216,12 +219,13 @@ namespace ompl
             void setBounds(const RealVectorBounds &bounds);
 
             /** \brief Get the bounds computed/set for this projection */
-            const RealVectorBounds& getBounds() const
+            const RealVectorBounds &getBounds() const
             {
                 return bounds_;
             }
 
-            /** \brief Compute an approximation of the bounds for this projection space. getBounds() will then report the computed bounds. */
+            /** \brief Compute an approximation of the bounds for this projection space. getBounds() will then report
+             * the computed bounds. */
             void inferBounds();
 
             /** \brief Perform configuration steps, if needed */
@@ -239,13 +243,13 @@ namespace ompl
             }
 
             /** \brief Get the parameters for this projection */
-            ParamSet& params()
+            ParamSet &params()
             {
                 return params_;
             }
 
             /** \brief Get the parameters for this projection */
-            const ParamSet& params() const
+            const ParamSet &params() const
             {
                 return params_;
             }
@@ -257,38 +261,37 @@ namespace ompl
             virtual void printProjection(const EuclideanProjection &projection, std::ostream &out = std::cout) const;
 
         protected:
-
             /** \brief Fill estimatedBounds_ with an approximate bounding box for the projection space (via sampling) */
             void estimateBounds();
 
             /** \brief The state space this projection operates on */
-            const StateSpace    *space_;
+            const StateSpace *space_;
 
             /** \brief The size of a cell, in every dimension of the
                 projected space, in the implicitly defined integer
                 grid. */
-            std::vector<double>  cellSizes_;
+            std::vector<double> cellSizes_;
 
             /** \brief A bounding box for projected state values */
-            RealVectorBounds     bounds_;
+            RealVectorBounds bounds_;
 
             /** \brief An approximate bounding box for projected state values;
                 This is the cached result of estimateBounds() which may later be copied
                 to bounds_ if bounds are needed but were not specified. */
-            RealVectorBounds     estimatedBounds_;
+            RealVectorBounds estimatedBounds_;
 
             /** \brief Flag indicating whether cell sizes have
                 been set by the user, or whether they were inferred
                 automatically. This flag becomes false if
                 setCellSizes() is called. */
-            bool                 defaultCellSizes_;
+            bool defaultCellSizes_;
 
             /** \brief Flag indicating whether projection cell sizes
                 were automatically inferred. */
-            bool                 cellSizesWereInferred_;
+            bool cellSizesWereInferred_;
 
             /** \brief The set of parameters for this projection */
-            ParamSet             params_;
+            ParamSet params_;
         };
 
         /** \brief If the projection for a CompoundStateSpace is
@@ -298,14 +301,14 @@ namespace ompl
         class SubspaceProjectionEvaluator : public ProjectionEvaluator
         {
         public:
-
             /** \brief The constructor states that for space \e space,
                 the projection to use is the same as the component at
                 position \e index of space \e space. The actual
                 projection to use can be specified by \e projToUse. If
                 the projection is not specified, the default one for
                 the subspace at position \e index is used. */
-            SubspaceProjectionEvaluator(const StateSpace *space, unsigned int index, const ProjectionEvaluatorPtr &projToUse = ProjectionEvaluatorPtr());
+            SubspaceProjectionEvaluator(const StateSpace *space, unsigned int index,
+                                        const ProjectionEvaluatorPtr &projToUse = ProjectionEvaluatorPtr());
 
             virtual void setup();
 
@@ -314,9 +317,8 @@ namespace ompl
             virtual void project(const State *state, EuclideanProjection &projection) const;
 
         protected:
-
             /** \brief The index of the subspace from which to project */
-            unsigned int           index_;
+            unsigned int index_;
 
             /** \brief The projection to use. This is either the same
                 as \e specifiedProj_ or, if specifiedProj_ is not
@@ -324,12 +326,11 @@ namespace ompl
                 subspace at index \e index_ */
             ProjectionEvaluatorPtr proj_;
 
-            /** \brief The projection that is optionally specified by the user in the constructor argument (\e projToUse) */
+            /** \brief The projection that is optionally specified by the user in the constructor argument (\e
+             * projToUse) */
             ProjectionEvaluatorPtr specifiedProj_;
         };
-
     }
-
 }
 
 #endif
