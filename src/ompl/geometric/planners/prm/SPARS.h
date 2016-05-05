@@ -120,16 +120,6 @@ namespace ompl
             /** \brief Internal representation of a dense path */
             typedef std::deque<base::State*> DensePath;
 
-            // The InterfaceHash structure is wrapped inside of this struct due to a compilation error on
-            // GCC 4.6 with Boost 1.48.  An implicit assignment operator overload does not compile with these
-            // components, so an explicit overload is given here.
-            // Remove this struct when the minimum Boost requirement is > v1.48.
-            struct InterfaceHashStruct
-            {
-                InterfaceHashStruct& operator=(const InterfaceHashStruct &rhs) { interfaceHash = rhs.interfaceHash; return *this; }
-                InterfaceHash interfaceHash;
-            };
-
             /**
              @brief The constructed roadmap spanner.
 
@@ -149,7 +139,7 @@ namespace ompl
                 boost::property < boost::vertex_rank_t, VertexIndexType,
                 boost::property < vertex_color_t, GuardType,
                 boost::property < vertex_list_t, std::set<VertexIndexType>,
-                boost::property < vertex_interface_list_t, InterfaceHashStruct > > > > > >,
+                boost::property < vertex_interface_list_t, InterfaceHash > > > > > >,
                 boost::property < boost::edge_weight_t, base::Cost >
             > SpannerGraph;
 
