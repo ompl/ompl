@@ -48,10 +48,8 @@
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::geometric::PathSimplifier */
         OMPL_CLASS_FORWARD(PathSimplifier);
@@ -67,16 +65,14 @@ namespace ompl
         class PathSimplifier
         {
         public:
-
             /** \brief Create an instance for a specified space information.
             Optionally, a GoalSampleableRegion may be passed in to attempt
             improvements at the end of the path as well. */
-            PathSimplifier(const base::SpaceInformationPtr &si, const base::GoalPtr& goal = ompl::base::GoalPtr());
+            PathSimplifier(const base::SpaceInformationPtr &si, const base::GoalPtr &goal = ompl::base::GoalPtr());
 
             virtual ~PathSimplifier()
             {
             }
-
 
             /** \brief Given a path, attempt to remove vertices from
                 it while keeping the path valid. This is an iterative
@@ -108,7 +104,8 @@ namespace ompl
                 the total number of states (between 0 and 1).
 
             */
-            bool reduceVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double rangeRatio = 0.33);
+            bool reduceVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0,
+                                double rangeRatio = 0.33);
 
             /** \brief Given a path, attempt to shorten it while
                 maintaining its validity. This is an iterative process
@@ -153,7 +150,8 @@ namespace ompl
 
                 \note This function assumes the triangle inequality holds and should not be run on non-metric spaces.
             */
-            bool shortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double rangeRatio = 0.33, double snapToVertex = 0.005);
+            bool shortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0,
+                              double rangeRatio = 0.33, double snapToVertex = 0.005);
 
             /** \brief Given a path, attempt to remove vertices from
                 it while keeping the path valid. This is an iterative
@@ -195,10 +193,13 @@ namespace ompl
                 \note This function may significantly increase the number of states along the solution path.
                 \note This function assumes the triangle inequality holds and should not be run on non-metric spaces.
                 */
-            void smoothBSpline(PathGeometric &path, unsigned int maxSteps = 5, double minChange = std::numeric_limits<double>::epsilon());
+            void smoothBSpline(PathGeometric &path, unsigned int maxSteps = 5,
+                               double minChange = std::numeric_limits<double>::epsilon());
 
-            /** \brief Given a path, attempt to remove vertices from it while keeping the path valid.  Then, try to smooth
-                the path. This function applies the same set of default operations to the path, except in non-metric spaces,
+            /** \brief Given a path, attempt to remove vertices from it while keeping the path valid.  Then, try to
+               smooth
+                the path. This function applies the same set of default operations to the path, except in non-metric
+               spaces,
                 with the intention of simplifying it. In non-metric spaces, some operations are skipped because they do
                 not work correctly when the triangle inequality may not hold. */
             void simplifyMax(PathGeometric &path);
@@ -206,7 +207,8 @@ namespace ompl
             /** \brief Run simplification algorithms on the path for at most \e maxTime seconds */
             void simplify(PathGeometric &path, double maxTime);
 
-            /** \brief Run simplification algorithms on the path as long as the termination condition does not become true */
+            /** \brief Run simplification algorithms on the path as long as the termination condition does not become
+             * true */
             void simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc);
 
             /** \brief Attempt to improve the solution path by sampling a new
@@ -225,7 +227,8 @@ namespace ompl
                 This prevents states in the path that are very close to each
                 other.
             */
-            bool findBetterGoal(PathGeometric &path, double maxTime, unsigned int samplingAttempts=10, double rangeRatio=0.33, double snapToVertex=0.005);
+            bool findBetterGoal(PathGeometric &path, double maxTime, unsigned int samplingAttempts = 10,
+                                double rangeRatio = 0.33, double snapToVertex = 0.005);
 
             /** \brief Attempt to improve the solution path by sampling a new
                 goal state and connecting this state to the solution path
@@ -243,17 +246,20 @@ namespace ompl
                 This prevents states in the path that are very close to each
                 other.
             */
-            bool findBetterGoal(PathGeometric &path, const base::PlannerTerminationCondition &ptc, unsigned int samplingAttempts=10, double rangeRatio=0.33, double snapToVertex=0.005);
+            bool findBetterGoal(PathGeometric &path, const base::PlannerTerminationCondition &ptc,
+                                unsigned int samplingAttempts = 10, double rangeRatio = 0.33,
+                                double snapToVertex = 0.005);
 
-            /** \brief Set this flag to false to avoid freeing the memory allocated for states that are removed from a path during simplification.
+            /** \brief Set this flag to false to avoid freeing the memory allocated for states that are removed from a
+               path during simplification.
                 Setting this to true makes this free memory. Memory is freed by default (flag is true by default) */
             void freeStates(bool flag);
 
-            /** \brief Return true if the memory of states is freed when they are removed from a path during simplification */
+            /** \brief Return true if the memory of states is freed when they are removed from a path during
+             * simplification */
             bool freeStates() const;
 
         protected:
-
             /** \brief The space information this path simplifier uses */
             base::SpaceInformationPtr si_;
 
@@ -261,11 +267,10 @@ namespace ompl
             std::shared_ptr<base::GoalSampleableRegion> gsr_;
 
             /** \brief Flag indicating whether the states removed from a motion should be freed */
-            bool                      freeStates_;
+            bool freeStates_;
 
             /** \brief Instance of random number generator */
-            RNG                       rng_;
-
+            RNG rng_;
         };
     }
 }

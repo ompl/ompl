@@ -45,32 +45,29 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief Definition of a scoped state.
 
             This class allocates a state of a desired type using the
             allocation mechanism of the corresponding state space.
             The state is then freed when the instance goes out of
             scope using the corresponding free mechanism. */
-        template<class T = StateSpace>
+        template <class T = StateSpace>
         class ScopedState
         {
             /** \brief Make sure the type we are allocating is indeed from a state space */
-            BOOST_CONCEPT_ASSERT((boost::Convertible<T*, StateSpace*>));
+            BOOST_CONCEPT_ASSERT((boost::Convertible<T *, StateSpace *>));
 
             /** \brief Make sure the type we are allocating is indeed a state */
-            BOOST_CONCEPT_ASSERT((boost::Convertible<typename T::StateType*, State*>));
+            BOOST_CONCEPT_ASSERT((boost::Convertible<typename T::StateType *, State *>));
 
         public:
-
             /** \brief The type of the contained state */
             typedef typename T::StateType StateType;
 
             /** \brief Given the space that we are working with,
                 allocate a state from the corresponding
                 state space.  */
-            explicit
-            ScopedState(const SpaceInformationPtr &si) : space_(si->getStateSpace())
+            explicit ScopedState(const SpaceInformationPtr &si) : space_(si->getStateSpace())
             {
                 State *s = space_->allocState();
 
@@ -78,13 +75,12 @@ namespace ompl
                 // should throw an exception in case of
                 // failure. However, RTTI may not be available across
                 // shared library boundaries, so we do not use it
-                state_ = static_cast<StateType*>(s);
+                state_ = static_cast<StateType *>(s);
             }
 
             /** \brief Given the state space that we are working with,
                 allocate a state. */
-            explicit
-            ScopedState(const StateSpacePtr &space) : space_(space)
+            explicit ScopedState(const StateSpacePtr &space) : space_(space)
             {
                 State *s = space_->allocState();
 
@@ -92,23 +88,24 @@ namespace ompl
                 // should throw an exception in case of
                 // failure. However, RTTI may not be available across
                 // shared library boundaries, so we do not use it
-                state_ = static_cast<StateType*>(s);
+                state_ = static_cast<StateType *>(s);
             }
 
             /** \brief Copy constructor */
             ScopedState(const ScopedState<T> &other) : space_(other.getSpace())
             {
                 State *s = space_->allocState();
-                state_ = static_cast<StateType*>(s);
-                space_->copyState(s, static_cast<const State*>(other.get()));
+                state_ = static_cast<StateType *>(s);
+                space_->copyState(s, static_cast<const State *>(other.get()));
             }
 
             /** \brief Copy constructor that allows instantiation from states of other type */
-            template<class O>
-            ScopedState(const ScopedState<O> &other) : space_(other.getSpace())
+            template <class O>
+            ScopedState(const ScopedState<O> &other)
+              : space_(other.getSpace())
             {
-                BOOST_CONCEPT_ASSERT((boost::Convertible<O*, StateSpace*>));
-                BOOST_CONCEPT_ASSERT((boost::Convertible<typename O::StateType*, State*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<O *, StateSpace *>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<typename O::StateType *, State *>));
 
                 // ideally, we should use a dynamic_cast and throw an
                 // exception in case other.get() does not cast to
@@ -117,8 +114,8 @@ namespace ompl
                 // do not use it
 
                 State *s = space_->allocState();
-                state_ = static_cast<StateType*>(s);
-                space_->copyState(s, static_cast<const State*>(other.get()));
+                state_ = static_cast<StateType *>(s);
+                space_->copyState(s, static_cast<const State *>(other.get()));
             }
 
             /** \brief Given the state space that we are working with,
@@ -132,7 +129,7 @@ namespace ompl
                 // should throw an exception in case of
                 // failure. However, RTTI may not be available across
                 // shared library boundaries, so we do not use it
-                state_ = static_cast<StateType*>(s);
+                state_ = static_cast<StateType *>(s);
             }
 
             /** \brief Free the memory of the internally allocated state */
@@ -142,13 +139,13 @@ namespace ompl
             }
 
             /** \brief Get the state space that the state corresponds to */
-            const StateSpacePtr& getSpace() const
+            const StateSpacePtr &getSpace() const
             {
                 return space_;
             }
 
             /** \brief Assignment operator */
-            ScopedState<T>& operator=(const ScopedState<T> &other)
+            ScopedState<T> &operator=(const ScopedState<T> &other)
             {
                 if (&other != this)
                 {
@@ -156,16 +153,16 @@ namespace ompl
                     space_ = other.getSpace();
 
                     State *s = space_->allocState();
-                    state_ = static_cast<StateType*>(s);
-                    space_->copyState(s, static_cast<const State*>(other.get()));
+                    state_ = static_cast<StateType *>(s);
+                    space_->copyState(s, static_cast<const State *>(other.get()));
                 }
                 return *this;
             }
 
             /** \brief Assignment operator */
-            ScopedState<T>& operator=(const State *other)
+            ScopedState<T> &operator=(const State *other)
             {
-                if (other != static_cast<State*>(state_))
+                if (other != static_cast<State *>(state_))
                 {
                     // ideally, we should use a dynamic_cast and throw an
                     // exception in case other does not cast to
@@ -173,15 +170,15 @@ namespace ompl
                     // available across shared library boundaries, so we
                     // do not use it
 
-                    space_->copyState(static_cast<State*>(state_), other);
+                    space_->copyState(static_cast<State *>(state_), other);
                 }
                 return *this;
             }
 
             /** \brief Assignment operator */
-            ScopedState<T>& operator=(const State &other)
+            ScopedState<T> &operator=(const State &other)
             {
-                if (&other != static_cast<State*>(state_))
+                if (&other != static_cast<State *>(state_))
                 {
                     // ideally, we should use a dynamic_cast and throw an
                     // exception in case &other does not cast to
@@ -189,17 +186,17 @@ namespace ompl
                     // available across shared library boundaries, so we
                     // do not use it
 
-                    space_->copyState(static_cast<State*>(state_), &other);
+                    space_->copyState(static_cast<State *>(state_), &other);
                 }
                 return *this;
             }
 
             /** \brief Assignment operator that allows conversion of states */
-            template<class O>
-            ScopedState<T>& operator=(const ScopedState<O> &other)
+            template <class O>
+            ScopedState<T> &operator=(const ScopedState<O> &other)
             {
-                BOOST_CONCEPT_ASSERT((boost::Convertible<O*, StateSpace*>));
-                BOOST_CONCEPT_ASSERT((boost::Convertible<typename O::StateType*, State*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<O *, StateSpace *>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<typename O::StateType *, State *>));
 
                 // ideally, we should use a dynamic_cast and throw an
                 // exception in case other.get() does not cast to
@@ -207,22 +204,22 @@ namespace ompl
                 // available across shared library boundaries, so we
                 // do not use it
 
-                if (reinterpret_cast<const void*>(&other) != reinterpret_cast<const void*>(this))
+                if (reinterpret_cast<const void *>(&other) != reinterpret_cast<const void *>(this))
                 {
                     space_->freeState(state_);
                     space_ = other.getSpace();
 
                     State *s = space_->allocState();
-                    state_ = static_cast<StateType*>(s);
-                    space_->copyState(s, static_cast<const State*>(other.get()));
+                    state_ = static_cast<StateType *>(s);
+                    space_->copyState(s, static_cast<const State *>(other.get()));
                 }
                 return *this;
             }
 
             /** \brief Partial assignment operator. Only sets the double values of the state to specified real values */
-            ScopedState<T>& operator=(const std::vector<double> &reals)
+            ScopedState<T> &operator=(const std::vector<double> &reals)
             {
-                for (unsigned int i = 0 ; i < reals.size() ; ++i)
+                for (unsigned int i = 0; i < reals.size(); ++i)
                     if (double *va = space_->getValueAddressAtIndex(state_, i))
                         *va = reals[i];
                     else
@@ -231,7 +228,7 @@ namespace ompl
             }
 
             /** \brief Partial assignment operator. Only sets the double values of the state to a fixed value */
-            ScopedState<T>& operator=(const double value)
+            ScopedState<T> &operator=(const double value)
             {
                 unsigned int index = 0;
                 while (double *va = space_->getValueAddressAtIndex(state_, index++))
@@ -240,11 +237,11 @@ namespace ompl
             }
 
             /** \brief Checks equality of two states */
-            template<class O>
+            template <class O>
             bool operator==(const ScopedState<O> &other) const
             {
-                BOOST_CONCEPT_ASSERT((boost::Convertible<O*, StateSpace*>));
-                BOOST_CONCEPT_ASSERT((boost::Convertible<typename O::StateType*, State*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<O *, StateSpace *>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<typename O::StateType *, State *>));
 
                 // ideally, we should use a dynamic_cast and throw an
                 // exception in case other.get() does not cast to
@@ -252,11 +249,11 @@ namespace ompl
                 // available across shared library boundaries, so we
                 // do not use it
 
-                return space_->equalStates(static_cast<const State*>(state_), static_cast<const State*>(other.get()));
+                return space_->equalStates(static_cast<const State *>(state_), static_cast<const State *>(other.get()));
             }
 
             /** \brief Checks equality of two states */
-            template<class O>
+            template <class O>
             bool operator!=(const ScopedState<O> &other) const
             {
                 return !(*this == other);
@@ -270,7 +267,7 @@ namespace ompl
             const ScopedState<> operator[](const StateSpacePtr &s) const;
 
             /** \brief Access the \e index<sup>th</sup> double value this state contains. */
-            double& operator[](const unsigned int index)
+            double &operator[](const unsigned int index)
             {
                 double *val = space_->getValueAddressAtIndex(state_, index);
                 if (!val)
@@ -288,7 +285,7 @@ namespace ompl
             }
 
             /** \brief Access a double value from this state contains using its name. */
-            double& operator[](const std::string &name)
+            double &operator[](const std::string &name)
             {
                 const std::map<std::string, StateSpace::ValueLocation> &vm = space_->getValueLocationsByName();
                 std::map<std::string, StateSpace::ValueLocation>::const_iterator it = vm.find(name);
@@ -316,18 +313,18 @@ namespace ompl
             }
 
             /** \brief Compute the distance to another state. */
-            template<class O>
+            template <class O>
             double distance(const ScopedState<O> &other) const
             {
-                BOOST_CONCEPT_ASSERT((boost::Convertible<O*, StateSpace*>));
-                BOOST_CONCEPT_ASSERT((boost::Convertible<typename O::StateType*, State*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<O *, StateSpace *>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<typename O::StateType *, State *>));
                 return distance(other.get());
             }
 
             /** \brief Compute the distance to another state. */
             double distance(const State *state) const
             {
-                return space_->distance(static_cast<const State*>(state_), state);
+                return space_->distance(static_cast<const State *>(state_), state);
             }
 
             /** \brief Set this state to a random value (uniform) */
@@ -369,52 +366,51 @@ namespace ompl
             }
 
             /** \brief De-references to the contained state */
-            StateType& operator*()
+            StateType &operator*()
             {
                 return *state_;
             }
 
             /** \brief De-references to the contained state */
-            const StateType& operator*() const
+            const StateType &operator*() const
             {
                 return *state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            StateType* operator->()
+            StateType *operator->()
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            const StateType* operator->() const
+            const StateType *operator->() const
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            StateType* get()
+            StateType *get()
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state */
-            const StateType* get() const
+            const StateType *get() const
             {
                 return state_;
             }
 
             /** \brief Returns a pointer to the contained state (used for Python bindings) */
-            StateType* operator()() const
+            StateType *operator()() const
             {
                 return state_;
             }
 
         private:
-
-            StateSpacePtr                   space_;
-            StateSamplerPtr                 sampler_;
-            StateType                      *state_;
+            StateSpacePtr space_;
+            StateSamplerPtr sampler_;
+            StateType *state_;
         };
 
         /** \addtogroup stateAndSpaceOperators Operators for States and State Spaces
@@ -492,9 +488,8 @@ namespace ompl
          */
 
         /** \brief Overload stream output operator. Calls ompl::base::StateSpace::printState() */
-        template<class T>
-        inline
-        std::ostream& operator<<(std::ostream &out, const ScopedState<T> &state)
+        template <class T>
+        inline std::ostream &operator<<(std::ostream &out, const ScopedState<T> &state)
         {
             state.print(out);
             return out;
@@ -508,9 +503,8 @@ namespace ompl
             name. If the state space for \e to contains any subspace
             whose name matches any subspace of the state space for \e
             from, the corresponding state components are copied. */
-        template<class T, class Y>
-        inline
-        ScopedState<T>& operator<<(ScopedState<T> &to, const ScopedState<Y> &from)
+        template <class T, class Y>
+        inline ScopedState<T> &operator<<(ScopedState<T> &to, const ScopedState<Y> &from)
         {
             copyStateData(to.getSpace(), to.get(), from.getSpace(), from.get());
             return to;
@@ -524,9 +518,8 @@ namespace ompl
             name. If the state space for \e to contains any subspace
             whose name matches any subspace of the state space for \e
             from, the corresponding state components are copied. */
-        template<class T, class Y>
-        inline
-        const ScopedState<T>& operator>>(const ScopedState<T> &from, ScopedState<Y> &to)
+        template <class T, class Y>
+        inline const ScopedState<T> &operator>>(const ScopedState<T> &from, ScopedState<Y> &to)
         {
             copyStateData(to.getSpace(), to.get(), from.getSpace(), from.get());
             return from;
@@ -536,9 +529,8 @@ namespace ompl
             from state space B, construct a state from state space A
             + B. The resulting state contains all the information from
             the input states (the states are concatenated). */
-        template<class T, class Y>
-        inline
-        const ScopedState<> operator^(const ScopedState<T> &a, const ScopedState<Y> &b)
+        template <class T, class Y>
+        inline const ScopedState<> operator^(const ScopedState<T> &a, const ScopedState<Y> &b)
         {
             ScopedState<> r(a.getSpace() + b.getSpace());
             return r << a << b;
@@ -546,7 +538,7 @@ namespace ompl
 
         /** @} */
 
-        template<class T>
+        template <class T>
         const ScopedState<> ScopedState<T>::operator[](const StateSpacePtr &s) const
         {
             ScopedState<> r(s);
@@ -554,7 +546,7 @@ namespace ompl
         }
 
         /** \brief Shared pointer to a ScopedState<> */
-        typedef std::shared_ptr< ScopedState<> > ScopedStatePtr;
+        typedef std::shared_ptr<ScopedState<>> ScopedStatePtr;
     }
 }
 

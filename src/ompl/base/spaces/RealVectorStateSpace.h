@@ -47,12 +47,10 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief State sampler for the R<sup>n</sup> state space */
         class RealVectorStateSampler : public StateSampler
         {
         public:
-
             /** \brief Constructor */
             RealVectorStateSampler(const StateSpace *space) : StateSampler(space)
             {
@@ -75,7 +73,6 @@ namespace ompl
         class RealVectorStateSpace : public StateSpace
         {
         public:
-
             /** \brief The definition of a state in R<sup>n</sup> */
             class StateType : public State
             {
@@ -93,7 +90,7 @@ namespace ompl
 
                 /** \brief Access element i of values.  This does not
                     check whether the index is within bounds */
-                double& operator[](unsigned int i)
+                double &operator[](unsigned int i)
                 {
                     return values[i];
                 }
@@ -104,7 +101,8 @@ namespace ompl
 
             /** \brief Constructor. The dimension of of the space needs to be specified. A space representing
                 R<sup>dim</sup> will be instantiated */
-            RealVectorStateSpace(unsigned int dim = 0) : StateSpace(), dimension_(dim), bounds_(dim),  stateBytes_(dim * sizeof(double))
+            RealVectorStateSpace(unsigned int dim = 0)
+              : StateSpace(), dimension_(dim), bounds_(dim), stateBytes_(dim * sizeof(double))
             {
                 type_ = STATE_SPACE_REAL_VECTOR;
                 setName("RealVector" + getName());
@@ -115,10 +113,13 @@ namespace ompl
             {
             }
 
-            /** \brief Increase the dimensionality of the state space by 1. Optionally, bounds can be specified for this added dimension. setup() will need to be called after adding dimensions. */
+            /** \brief Increase the dimensionality of the state space by 1. Optionally, bounds can be specified for this
+             * added dimension. setup() will need to be called after adding dimensions. */
             void addDimension(double minBound = 0.0, double maxBound = 0.0);
 
-            /** \brief Increase the dimensionality of the state space by 1 and specify the name of this dimension. Optionally, bounds can be specified for this added dimension. setup() will need to be called after adding dimensions. This function is a wrapper for the previous definition of addDimension(). */
+            /** \brief Increase the dimensionality of the state space by 1 and specify the name of this dimension.
+             * Optionally, bounds can be specified for this added dimension. setup() will need to be called after adding
+             * dimensions. This function is a wrapper for the previous definition of addDimension(). */
             void addDimension(const std::string &name, double minBound = 0.0, double maxBound = 0.0);
 
             /** \brief Set the bounds of this state space. This defines
@@ -130,16 +131,17 @@ namespace ompl
             void setBounds(double low, double high);
 
             /** \brief Get the bounds for this state space */
-            const RealVectorBounds& getBounds() const
+            const RealVectorBounds &getBounds() const
             {
                 return bounds_;
             }
 
             virtual unsigned int getDimension() const;
 
-            /** \brief Each dimension can optionally have a name associated to it. If it does, this function returns that name.
+            /** \brief Each dimension can optionally have a name associated to it. If it does, this function returns
+               that name.
                 Return empty string otherwise */
-            const std::string& getDimensionName(unsigned int index) const;
+            const std::string &getDimensionName(unsigned int index) const;
 
             /** \brief Get the index of a specific dimension, by name. Return -1 if name is not found */
             int getDimensionIndex(const std::string &name) const;
@@ -171,11 +173,11 @@ namespace ompl
 
             virtual StateSamplerPtr allocDefaultStateSampler() const;
 
-            virtual State* allocState() const;
+            virtual State *allocState() const;
 
             virtual void freeState(State *state) const;
 
-            virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
+            virtual double *getValueAddressAtIndex(State *state, const unsigned int index) const;
 
             virtual void printState(const State *state, std::ostream &out) const;
 
@@ -186,24 +188,21 @@ namespace ompl
             virtual void setup();
 
         protected:
-
             /** \brief The dimension of the space */
-            unsigned int                        dimension_;
+            unsigned int dimension_;
 
             /** \brief The bounds of the space (used for sampling) */
-            RealVectorBounds                    bounds_;
+            RealVectorBounds bounds_;
 
             /** \brief Optional names for individual dimensions */
-            std::vector<std::string>            dimensionNames_;
+            std::vector<std::string> dimensionNames_;
 
             /** \brief Map from names to index values for dimensions */
             std::map<std::string, unsigned int> dimensionIndex_;
 
         private:
-
             /** \brief The size of a state, in bytes */
-            std::size_t                         stateBytes_;
-
+            std::size_t stateBytes_;
         };
     }
 }

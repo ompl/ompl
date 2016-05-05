@@ -42,10 +42,8 @@
 
 namespace ompl
 {
-
     namespace tools
     {
-
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(ExperienceSetup);
         /// @endcond
@@ -64,16 +62,16 @@ namespace ompl
             struct ExperienceStats
             {
                 ExperienceStats()
-                    : numSolutionsFromRecall_(0)
-                    , numSolutionsFromRecallSaved_(0)
-                    , numSolutionsFromScratch_(0)
-                    , numSolutionsFailed_(0)
-                    , numSolutionsTimedout_(0)
-                    , numSolutionsApproximate_(0)
-                    , numSolutionsTooShort_(0)
-                    , numProblems_(0)
-                    , totalPlanningTime_(0.0)
-                    , totalInsertionTime_(0.0)
+                  : numSolutionsFromRecall_(0)
+                  , numSolutionsFromRecallSaved_(0)
+                  , numSolutionsFromScratch_(0)
+                  , numSolutionsFailed_(0)
+                  , numSolutionsTimedout_(0)
+                  , numSolutionsApproximate_(0)
+                  , numSolutionsTooShort_(0)
+                  , numProblems_(0)
+                  , totalPlanningTime_(0.0)
+                  , totalInsertionTime_(0.0)
                 {
                 }
 
@@ -104,10 +102,10 @@ namespace ompl
                 double numSolutionsFailed_;
                 double numSolutionsTimedout_;
                 double numSolutionsApproximate_;
-                double numSolutionsTooShort_; // less than 3 states
-                double numProblems_; // input requests
-                double totalPlanningTime_; // of all input requests, used for averaging
-                double totalInsertionTime_; // of all input requests, used for averaging
+                double numSolutionsTooShort_;  // less than 3 states
+                double numProblems_;           // input requests
+                double totalPlanningTime_;     // of all input requests, used for averaging
+                double totalInsertionTime_;    // of all input requests, used for averaging
             };
 
             /**
@@ -129,7 +127,8 @@ namespace ompl
                       num_vertices(0.0),
                       num_edges(0.0),
                       num_connected_components(0.0)
-                {}
+                {
+                }
                 // Times
                 double planning_time;
                 double insertion_time;
@@ -150,12 +149,10 @@ namespace ompl
             };
 
             /** \brief Constructor needs the state space used for planning. */
-            explicit
-            ExperienceSetup(const base::SpaceInformationPtr &si);
+            explicit ExperienceSetup(const base::SpaceInformationPtr &si);
 
             /** \brief Constructor needs the state space used for planning. */
-            explicit
-            ExperienceSetup(const base::StateSpacePtr &space);
+            explicit ExperienceSetup(const base::StateSpacePtr &space);
 
             /** \brief Load the header (first row) of the csv file */
             void logInitialize();
@@ -197,8 +194,9 @@ namespace ompl
             /** \brief Get the total number of paths stored in the database */
             virtual std::size_t getExperiencesCount() const = 0;
 
-            /** \brief After setFile() is called, access the generated file path for loading and saving the experience database */
-            virtual const std::string& getFilePath() const;
+            /** \brief After setFile() is called, access the generated file path for loading and saving the experience
+             * database */
+            virtual const std::string &getFilePath() const;
 
             /** \brief Set the database file to load. Actual loading occurs when setup() is called
              *  \param filePath - full absolute path to a experience database to load
@@ -208,7 +206,7 @@ namespace ompl
             /**
              * \brief Getter for logging data
              */
-            const ExperienceStats& getStats() const
+            const ExperienceStats &getStats() const
             {
                 return stats_;
             }
@@ -222,23 +220,21 @@ namespace ompl
             }
 
         protected:
-
             /// Flag indicating whether recalled plans should be used to find solutions. Enabled by default.
-            bool                              recallEnabled_;
+            bool recallEnabled_;
 
             /// Flag indicating whether planning from scratch should be used to find solutions. Enabled by default.
-            bool                              scratchEnabled_;
+            bool scratchEnabled_;
 
             /** \brief File location of database */
-            std::string                       filePath_;
+            std::string filePath_;
 
             // output data to file to analyze performance externally
-            std::stringstream                 csvDataLogStream_;
+            std::stringstream csvDataLogStream_;
 
             /** \brief States data for display to console  */
-            ExperienceStats                   stats_;
+            ExperienceStats stats_;
         };
     }
-
 }
 #endif

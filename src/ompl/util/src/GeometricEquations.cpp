@@ -48,13 +48,15 @@
 
 double ompl::nBallMeasure(unsigned int N, double r)
 {
-    return std::pow(std::sqrt(boost::math::constants::pi<double>()) * r, static_cast<double>(N)) / std::tgamma(static_cast<double>(N)/2.0 + 1.0);
+    return std::pow(std::sqrt(boost::math::constants::pi<double>()) * r, static_cast<double>(N)) /
+           std::tgamma(static_cast<double>(N) / 2.0 + 1.0);
 }
 
 double ompl::unitNBallMeasure(unsigned int N)
 {
     // This is the radius version with r removed (as it is 1) for efficiency
-    return std::pow(std::sqrt(boost::math::constants::pi<double>()), static_cast<double>(N)) / std::tgamma(static_cast<double>(N)/2.0 + 1.0);
+    return std::pow(std::sqrt(boost::math::constants::pi<double>()), static_cast<double>(N)) /
+           std::tgamma(static_cast<double>(N) / 2.0 + 1.0);
 }
 
 double ompl::prolateHyperspheroidMeasure(unsigned int N, double dFoci, double dTransverse)
@@ -75,11 +77,12 @@ double ompl::prolateHyperspheroidMeasure(unsigned int N, double dFoci, double dT
     conjugateDiameter = std::sqrt(dTransverse * dTransverse - dFoci * dFoci);
 
     // Calculate the volume
-    // First multiply together the radii, noting that the first radius is the transverse diameter/2.0, and the other N-1 are the conjugate diameter/2.0
-    lmeas = dTransverse/2.0;
+    // First multiply together the radii, noting that the first radius is the transverse diameter/2.0, and the other N-1
+    // are the conjugate diameter/2.0
+    lmeas = dTransverse / 2.0;
     for (unsigned int i = 1u; i < N; ++i)
     {
-        lmeas = lmeas * conjugateDiameter/2.0;
+        lmeas = lmeas * conjugateDiameter / 2.0;
     }
 
     // Then multiply by the volume of the unit n-ball.

@@ -46,7 +46,6 @@ namespace ompl
 {
     namespace geometric
     {
-
         /// @anchor gBiTRRT
         /// @par Short description
         /// This planner grows two T-RRTs, one from the start and one from the
@@ -56,10 +55,14 @@ namespace ompl
         /// costmap. It uses transition tests from stochastic optimization methods to accept or reject new
         /// potential states.
         /// @par External documentation
-        /// L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in <em>IEEE TRANSACTIONS ON ROBOTICS, VOL. 26, NO. 4, AUGUST 2010</em>. DOI: [10.1109/TRO.2010.2049527](http://dx.doi.org/10.1109/TRO.2010.2049527)<br />
+        /// L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in <em>IEEE
+        /// TRANSACTIONS ON ROBOTICS, VOL. 26, NO. 4, AUGUST 2010</em>. DOI:
+        /// [10.1109/TRO.2010.2049527](http://dx.doi.org/10.1109/TRO.2010.2049527)<br />
         /// [[PDF]](http://homepages.laas.fr/nic/Papers/10TRO.pdf)
         ///
-        /// D. Devaurs, T. Siméon, J. Cortés, Enhancing the Transition-based RRT to Deal with Complex Cost Spaces, in <em>IEEE International Conference on Robotics and Automation (ICRA), 2013, pp. 4120-4125. DOI: [10.1109/ICRA.2013.6631158](http://dx.doi.org/10.1109/ICRA.2013.6631158)<br/>
+        /// D. Devaurs, T. Siméon, J. Cortés, Enhancing the Transition-based RRT to Deal with Complex Cost Spaces, in
+        /// <em>IEEE International Conference on Robotics and Automation (ICRA), 2013, pp. 4120-4125. DOI:
+        /// [10.1109/ICRA.2013.6631158](http://dx.doi.org/10.1109/ICRA.2013.6631158)<br/>
         ///[[PDF]](https://hal.archives-ouvertes.fr/hal-00872224/document)
 
         /// \brief Bi-directional Transition-based Rapidly-exploring Random Trees
@@ -67,7 +70,7 @@ namespace ompl
         {
         public:
             /// Constructor
-            BiTRRT(const base::SpaceInformationPtr& si);
+            BiTRRT(const base::SpaceInformationPtr &si);
             virtual ~BiTRRT();
             virtual void clear();
             virtual void setup();
@@ -164,42 +167,44 @@ namespace ompl
             }
 
             /// \brief Set a different nearest neighbors datastructure
-            template<template<typename T> class NN>
+            template <template <typename T> class NN>
             void setNearestNeighbors()
             {
-                tStart_.reset(new NN<Motion*>());
-                tGoal_.reset(new NN<Motion*>());
+                tStart_.reset(new NN<Motion *>());
+                tGoal_.reset(new NN<Motion *>());
             }
 
         protected:
-
             /// \brief Representation of a motion in the search tree
             class Motion
             {
             public:
-
                 /// \brief Default constructor
-                Motion() : state(nullptr), parent(nullptr), root(nullptr) {}
+                Motion() : state(nullptr), parent(nullptr), root(nullptr)
+                {
+                }
 
                 /// \brief Constructor that allocates memory for the state
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), root(nullptr) {}
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), root(nullptr)
+                {
+                }
 
-                ~Motion() {}
-
+                ~Motion()
+                {
+                }
 
                 /// \brief The state contained by the motion
-                base::State       *state;
+                base::State *state;
 
                 /// \brief The parent motion in the exploration tree
-                Motion            *parent;
+                Motion *parent;
 
                 /// \brief Cost of the state
-                base::Cost         cost;
+                base::Cost cost;
 
                 /// \brief Pointer to the root of the tree this motion is
                 /// contained in.
                 const base::State *root;
-
             };
 
             /// \brief Free all memory allocated during planning
@@ -207,17 +212,17 @@ namespace ompl
 
             /// \brief The nearest-neighbors data structure that contains the
             /// entire the tree of motions generated during planning.
-            typedef std::shared_ptr< NearestNeighbors<Motion*> > TreeData;
+            typedef std::shared_ptr<NearestNeighbors<Motion *>> TreeData;
 
             /// \brief Add a state to the given tree.  The motion created
             /// is returned.
-            Motion* addMotion(const base::State* state, TreeData& tree, Motion* parent = nullptr);
+            Motion *addMotion(const base::State *state, TreeData &tree, Motion *parent = nullptr);
 
             /// \brief Transition test that filters transitions based on the
             /// motion cost.  If the motion cost is near or below zero, the motion
             /// is always accepted, otherwise a probabilistic criterion based on
             /// the temperature and motionCost is used.
-            bool transitionTest(const base::Cost& motionCost);
+            bool transitionTest(const base::Cost &motionCost);
 
             /// \brief Use frontier node ratio to filter nodes that do not add
             /// new information to the search tree.
@@ -236,15 +241,15 @@ namespace ompl
 
             /// \brief Extend \e tree toward the state in \e rmotion.
             /// Store the result of the extension, if any, in result
-            GrowResult extendTree(Motion* rmotion, TreeData& tree, Motion*& xmotion);
+            GrowResult extendTree(Motion *rmotion, TreeData &tree, Motion *&xmotion);
 
             /// \brief Extend \e tree from \e nearest toward \e toMotion.
             /// Store the result of the extension, if any, in result
-            GrowResult extendTree(Motion* nearest, TreeData& tree, Motion* toMotion, Motion*& result);
+            GrowResult extendTree(Motion *nearest, TreeData &tree, Motion *toMotion, Motion *&result);
 
             /// \brief Attempt to connect \e tree to \e nmotion, which is in
             /// the other tree.  \e xmotion is scratch space and will be overwritten
-            bool connectTrees(Motion* nmotion, TreeData& tree, Motion* xmotion);
+            bool connectTrees(Motion *nmotion, TreeData &tree, Motion *xmotion);
 
             /// \brief Compute distance between motions (actually distance between contained states)
             double distanceFunction(const Motion *a, const Motion *b) const
@@ -253,47 +258,47 @@ namespace ompl
             }
 
             /// \brief The maximum length of a motion to be added to a tree
-            double  maxDistance_;
+            double maxDistance_;
 
             /// \brief The factor by which the temperature is increased after
             /// a failed transition test.
-            double  tempChangeFactor_;
+            double tempChangeFactor_;
 
             /// \brief The most desirable (e.g., minimum) cost value in the search tree
-            base::Cost                                      bestCost_;
+            base::Cost bestCost_;
 
             /// \brief The least desirable (e.g., maximum) cost value in the search tree
-            base::Cost                                      worstCost_;
+            base::Cost worstCost_;
 
             /// \brief All motion costs must be better than this cost (default is infinity)
-            base::Cost                                      costThreshold_;
+            base::Cost costThreshold_;
 
             /// \brief The temperature that planning begins at.
-            double  initTemperature_;
+            double initTemperature_;
 
             /// \brief The distance between an existing state and a new state
             /// that qualifies it as a frontier state.
-            double  frontierThreshold_;
+            double frontierThreshold_;
 
             /// \brief The target ratio of non-frontier nodes to frontier nodes.
-            double  frontierNodeRatio_;
+            double frontierNodeRatio_;
 
             /// \brief The current temperature
-            double  temp_;
+            double temp_;
 
             /// \brief A count of the number of non-frontier nodes in the trees
-            double  nonfrontierCount_;
+            double nonfrontierCount_;
 
             /// \brief A count of the number of frontier nodes in the trees
-            double  frontierCount_;
+            double frontierCount_;
 
             /// \brief The range at which the algorithm will attempt to connect
             /// the two trees.
-            double  connectionRange_;
+            double connectionRange_;
 
             /// \brief The most recent connection point for the two trees.
             /// Used for PlannerData computation.
-            std::pair<Motion*, Motion*> connectionPoint_;
+            std::pair<Motion *, Motion *> connectionPoint_;
 
             /// \brief The start tree
             TreeData tStart_;

@@ -39,7 +39,7 @@
 
 #include "ompl/config.h"
 #if OMPL_EXTENSION_OPENDE == 0
-#  error OpenDE extension not built
+#error OpenDE extension not built
 #endif
 
 #include "ompl/util/ClassForward.h"
@@ -54,7 +54,6 @@ namespace ompl
 {
     namespace control
     {
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::OpenDEEnvironment */
         OMPL_CLASS_FORWARD(OpenDEEnvironment);
@@ -67,9 +66,8 @@ namespace ompl
         class OpenDEEnvironment
         {
         public:
-
             /** \brief The OpenDE world where the simulation is performed */
-            dWorldID              world_;
+            dWorldID world_;
 
             /** \brief The set of spaces where contacts need to be evaluated before simulation takes place */
             std::vector<dSpaceID> collisionSpaces_;
@@ -77,34 +75,40 @@ namespace ompl
             /** \brief The set of bodies that need to be considered
                 part of the state when planning. This is not
                 necessarily all the bodies in the environment.*/
-            std::vector<dBodyID>  stateBodies_;
+            std::vector<dBodyID> stateBodies_;
 
             /** \brief Optional map of names given to geoms. This is useful when collision checking is verbose */
-            std::map<dGeomID, std::string>
-                                  geomNames_;
+            std::map<dGeomID, std::string> geomNames_;
 
-            /** \brief Issue debug messages when contacts are found. Default is false. This should only be used for debugging */
-            bool                  verboseContacts_;
+            /** \brief Issue debug messages when contacts are found. Default is false. This should only be used for
+             * debugging */
+            bool verboseContacts_;
 
             /** \brief The group of joints where contacts are created */
-            dJointGroupID         contactGroup_;
+            dJointGroupID contactGroup_;
 
             /** \brief The maximum number of contacts to create between two bodies when a collision occurs */
-            unsigned int          maxContacts_;
+            unsigned int maxContacts_;
 
             /** \brief The simulation step size */
-            double                stepSize_;
+            double stepSize_;
 
             /** \brief The maximum number of times a control is applies in sequence */
-            unsigned int          maxControlSteps_;
+            unsigned int maxControlSteps_;
 
             /** \brief The minimum number of times a control is applies in sequence */
-            unsigned int          minControlSteps_;
+            unsigned int minControlSteps_;
 
             /** \brief Lock to use when performing simulations in the world. (OpenDE simulations are NOT thread safe) */
-            mutable std::mutex    mutex_;
+            mutable std::mutex mutex_;
 
-            OpenDEEnvironment() : world_(nullptr), verboseContacts_(false), maxContacts_(3), stepSize_(0.05), maxControlSteps_(100), minControlSteps_(5)
+            OpenDEEnvironment()
+              : world_(nullptr)
+              , verboseContacts_(false)
+              , maxContacts_(3)
+              , stepSize_(0.05)
+              , maxControlSteps_(100)
+              , minControlSteps_(5)
             {
                 contactGroup_ = dJointGroupCreate(0);
             }
@@ -130,7 +134,7 @@ namespace ompl
                 not. In some cases, collisions between some bodies can
                 be allowed. By default, this function always returns
                 false, making all collisions invalid */
-            virtual bool isValidCollision(dGeomID geom1, dGeomID geom2, const dContact& contact) const;
+            virtual bool isValidCollision(dGeomID geom1, dGeomID geom2, const dContact &contact) const;
 
             /** \brief Get the maximum number of contacts to set up
                 between two colliding geoms. By default, this just
@@ -145,7 +149,6 @@ namespace ompl
 
             /** \brief Set the name of a body */
             void setGeomName(dGeomID geom, const std::string &name);
-
         };
     }
 }

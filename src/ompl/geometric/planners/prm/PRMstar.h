@@ -41,10 +41,8 @@
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /**
            @anchor gPRMstar
            Run PRM with the "star strategy". Instead of setting the
@@ -67,7 +65,6 @@ namespace ompl
         class PRMstar : public PRM
         {
         public:
-
             /** \brief Constructor */
             PRMstar(const base::SpaceInformationPtr &si);
         };

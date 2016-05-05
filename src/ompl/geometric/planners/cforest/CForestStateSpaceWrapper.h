@@ -56,7 +56,7 @@ namespace ompl
         {
         public:
             CForestStateSpaceWrapper(geometric::CForest *cforest, base::StateSpace *space)
-                : cforest_(cforest), space_(space), planner_(nullptr)
+              : cforest_(cforest), space_(space), planner_(nullptr)
             {
                 setName(space->getName() + "CForestWrapper");
             }
@@ -70,12 +70,12 @@ namespace ompl
                 planner_ = planner;
             }
 
-            const base::Planner* getPlanner() const
+            const base::Planner *getPlanner() const
             {
                 return planner_;
             }
 
-            geometric::CForest* getCForestInstance() const
+            geometric::CForest *getCForestInstance() const
             {
                 return cforest_;
             }
@@ -170,7 +170,7 @@ namespace ompl
             {
                 space_->interpolate(from, to, t, state);
             }
-            virtual State* allocState() const
+            virtual State *allocState() const
             {
                 return space_->allocState();
             }
@@ -178,7 +178,7 @@ namespace ompl
             {
                 space_->freeState(state);
             }
-            virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const
+            virtual double *getValueAddressAtIndex(State *state, const unsigned int index) const
             {
                 return space_->getValueAddressAtIndex(state, index);
             }
@@ -216,9 +216,9 @@ namespace ompl
             }
 
         protected:
-            geometric::CForest    *cforest_;
-            StateSpace            *space_;
-            Planner               *planner_;
+            geometric::CForest *cforest_;
+            StateSpace *space_;
+            Planner *planner_;
         };
     }
 }

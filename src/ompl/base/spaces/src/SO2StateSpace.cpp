@@ -54,8 +54,8 @@ void ompl::base::SO2StateSampler::sampleUniform(State *state)
 
 void ompl::base::SO2StateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
-    state->as<SO2StateSpace::StateType>()->value = rng_.uniformReal(near->as<SO2StateSpace::StateType>()->value - distance,
-                                                                       near->as<SO2StateSpace::StateType>()->value + distance);
+    state->as<SO2StateSpace::StateType>()->value = rng_.uniformReal(
+        near->as<SO2StateSpace::StateType>()->value - distance, near->as<SO2StateSpace::StateType>()->value + distance);
     space_->enforceBounds(state);
 }
 
@@ -85,9 +85,8 @@ void ompl::base::SO2StateSpace::enforceBounds(State *state) const
     double v = fmod(state->as<StateType>()->value, 2.0 * boost::math::constants::pi<double>());
     if (v < -boost::math::constants::pi<double>())
         v += 2.0 * boost::math::constants::pi<double>();
-    else
-        if (v >= boost::math::constants::pi<double>())
-            v -= 2.0 * boost::math::constants::pi<double>();
+    else if (v >= boost::math::constants::pi<double>())
+        v -= 2.0 * boost::math::constants::pi<double>();
     state->as<StateType>()->value = v;
 }
 
@@ -122,15 +121,16 @@ double ompl::base::SO2StateSpace::distance(const State *state1, const State *sta
     // assuming the states 1 & 2 are within bounds
     double d = fabs(state1->as<StateType>()->value - state2->as<StateType>()->value);
     BOOST_ASSERT_MSG(satisfiesBounds(state1) && satisfiesBounds(state2),
-        "The states passed to SO2StateSpace::distance are not within bounds. Call "
-        "SO2StateSpace::enforceBounds() in, e.g., ompl::control::ODESolver::PostPropagationEvent, "
-        "ompl::control::StatePropagator, or ompl::base::StateValidityChecker");
+                     "The states passed to SO2StateSpace::distance are not within bounds. Call "
+                     "SO2StateSpace::enforceBounds() in, e.g., ompl::control::ODESolver::PostPropagationEvent, "
+                     "ompl::control::StatePropagator, or ompl::base::StateValidityChecker");
     return (d > boost::math::constants::pi<double>()) ? 2.0 * boost::math::constants::pi<double>() - d : d;
 }
 
 bool ompl::base::SO2StateSpace::equalStates(const State *state1, const State *state2) const
 {
-    return fabs(state1->as<StateType>()->value - state2->as<StateType>()->value) < std::numeric_limits<double>::epsilon() * 2.0;
+    return fabs(state1->as<StateType>()->value - state2->as<StateType>()->value) <
+           std::numeric_limits<double>::epsilon() * 2.0;
 }
 
 void ompl::base::SO2StateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
@@ -149,9 +149,8 @@ void ompl::base::SO2StateSpace::interpolate(const State *from, const State *to, 
         // input states are within bounds, so the following check is sufficient
         if (v > boost::math::constants::pi<double>())
             v -= 2.0 * boost::math::constants::pi<double>();
-        else
-            if (v < -boost::math::constants::pi<double>())
-                v += 2.0 * boost::math::constants::pi<double>();
+        else if (v < -boost::math::constants::pi<double>())
+            v += 2.0 * boost::math::constants::pi<double>();
     }
 }
 
@@ -160,14 +159,14 @@ ompl::base::StateSamplerPtr ompl::base::SO2StateSpace::allocDefaultStateSampler(
     return StateSamplerPtr(new SO2StateSampler(this));
 }
 
-ompl::base::State* ompl::base::SO2StateSpace::allocState() const
+ompl::base::State *ompl::base::SO2StateSpace::allocState() const
 {
     return new StateType();
 }
 
 void ompl::base::SO2StateSpace::freeState(State *state) const
 {
-    delete static_cast<StateType*>(state);
+    delete static_cast<StateType *>(state);
 }
 
 void ompl::base::SO2StateSpace::registerProjections()
@@ -175,7 +174,6 @@ void ompl::base::SO2StateSpace::registerProjections()
     class SO2DefaultProjection : public ProjectionEvaluator
     {
     public:
-
         SO2DefaultProjection(const StateSpace *space) : ProjectionEvaluator(space)
         {
         }
@@ -200,10 +198,11 @@ void ompl::base::SO2StateSpace::registerProjections()
         }
     };
 
-    registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SO2DefaultProjection(this))));
+    registerDefaultProjection(
+        ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator *>(new SO2DefaultProjection(this))));
 }
 
-double* ompl::base::SO2StateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
+double *ompl::base::SO2StateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
     return index == 0 ? &(state->as<StateType>()->value) : nullptr;
 }

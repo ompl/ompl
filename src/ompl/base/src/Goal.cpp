@@ -37,8 +37,7 @@
 #include "ompl/base/Goal.h"
 #include <limits>
 
-ompl::base::Goal::Goal(const SpaceInformationPtr &si) :
-    type_(GOAL_ANY), si_(si)
+ompl::base::Goal::Goal(const SpaceInformationPtr &si) : type_(GOAL_ANY), si_(si)
 {
 }
 

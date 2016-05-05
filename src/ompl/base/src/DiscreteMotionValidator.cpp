@@ -45,7 +45,8 @@ void ompl::base::DiscreteMotionValidator::defaultSettings()
         throw Exception("No state space for motion validator");
 }
 
-bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const
+bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const State *s2,
+                                                      std::pair<State *, double> &lastValid) const
 {
     /* assume motion starts in a valid configuration so s1 is valid */
 
@@ -57,7 +58,7 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
         /* temporary storage for the checked state */
         State *test = si_->allocState();
 
-        for (int j = 1 ; j < nd ; ++j)
+        for (int j = 1; j < nd; ++j)
         {
             stateSpace_->interpolate(s1, s2, (double)j / (double)nd, test);
             if (!si_->isValid(test))
@@ -102,7 +103,7 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
     int nd = stateSpace_->validSegmentCount(s1, s2);
 
     /* initialize the queue of test positions */
-    std::queue< std::pair<int, int> > pos;
+    std::queue<std::pair<int, int>> pos;
     if (nd >= 2)
     {
         pos.push(std::make_pair(1, nd - 1));

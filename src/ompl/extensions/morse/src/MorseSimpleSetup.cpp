@@ -42,9 +42,8 @@
 #include "ompl/extensions/morse/MorseTerminationCondition.h"
 #include "ompl/util/Console.h"
 
-ompl::control::MorseSimpleSetup::MorseSimpleSetup(const base::MorseEnvironmentPtr &env) :
-    SimpleSetup(ControlSpacePtr(new MorseControlSpace(base::StateSpacePtr(new base::MorseStateSpace(env))))),
-    env_(env)
+ompl::control::MorseSimpleSetup::MorseSimpleSetup(const base::MorseEnvironmentPtr &env)
+  : SimpleSetup(ControlSpacePtr(new MorseControlSpace(base::StateSpacePtr(new base::MorseStateSpace(env))))), env_(env)
 {
     si_->setPropagationStepSize(env_->stepSize_);
     si_->setMinMaxControlDuration(env_->minControlSteps_, env_->maxControlSteps_);
@@ -104,7 +103,7 @@ void ompl::control::MorseSimpleSetup::playSolutionPath() const
 
 void ompl::control::MorseSimpleSetup::playPath(const base::PathPtr &path) const
 {
-    PathControl *pc = dynamic_cast<PathControl*>(path.get());
+    PathControl *pc = dynamic_cast<PathControl *>(path.get());
     if (pc)
     {
         unsigned int i;
@@ -117,14 +116,14 @@ void ompl::control::MorseSimpleSetup::playPath(const base::PathPtr &path) const
     }
     else
     {
-        geometric::PathGeometric *pg = dynamic_cast<geometric::PathGeometric*>(path.get());
+        geometric::PathGeometric *pg = dynamic_cast<geometric::PathGeometric *>(path.get());
         if (!pg)
             throw Exception("Unknown type of path");
         if (pg->getStateCount() > 0)
         {
             double d = si_->getPropagationStepSize();
             getStateSpace()->as<base::MorseStateSpace>()->writeState(pg->getState(0));
-            for (unsigned int i = 1 ; i < pg->getStateCount() ; ++i)
+            for (unsigned int i = 1; i < pg->getStateCount(); ++i)
             {
                 getEnvironment()->worldStep(d);
                 getStateSpace()->as<base::MorseStateSpace>()->writeState(pg->getState(i));
@@ -136,7 +135,8 @@ void ompl::control::MorseSimpleSetup::playPath(const base::PathPtr &path) const
 ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const double *control, unsigned int steps) const
 {
     Control *c = si_->allocControl();
-    memcpy(c->as<MorseControlSpace::ControlType>()->values, control, sizeof(double) * getControlSpace()->getDimension());
+    memcpy(c->as<MorseControlSpace::ControlType>()->values, control,
+           sizeof(double) * getControlSpace()->getDimension());
     base::PathPtr path = simulateControl(c, steps);
     si_->freeControl(c);
     return path;

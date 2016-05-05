@@ -47,7 +47,6 @@ namespace ompl
 {
     namespace base
     {
-
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(SpaceInformation);
         /// @endcond
@@ -65,8 +64,8 @@ namespace ompl
         {
         public:
             // non-copyable
-            ValidStateSampler(const ValidStateSampler&) = delete;
-            ValidStateSampler& operator=(const ValidStateSampler&) = delete;
+            ValidStateSampler(const ValidStateSampler &) = delete;
+            ValidStateSampler &operator=(const ValidStateSampler &) = delete;
 
             /** \brief Constructor */
             ValidStateSampler(const SpaceInformation *si);
@@ -74,7 +73,7 @@ namespace ompl
             virtual ~ValidStateSampler();
 
             /** \brief Get the name of the sampler */
-            const std::string& getName() const
+            const std::string &getName() const
             {
                 return name_;
             }
@@ -107,36 +106,34 @@ namespace ompl
             }
 
             /** \brief Get the parameters for the valid state sampler */
-            ParamSet& params()
+            ParamSet &params()
             {
                 return params_;
             }
 
             /** \brief Get the parameters for the valid state sampler */
-            const ParamSet& params() const
+            const ParamSet &params() const
             {
                 return params_;
             }
 
         protected:
-
             /** \brief The state space this sampler samples */
             const SpaceInformation *si_;
 
             /** \brief Number of attempts to find a valid sample */
-            unsigned int            attempts_;
+            unsigned int attempts_;
 
             /** \brief The name of the sampler */
-            std::string             name_;
+            std::string name_;
 
             /** \brief The parameters for this instance of the valid state sampler */
-            ParamSet                params_;
+            ParamSet params_;
         };
 
         /** \brief Definition of a function that can allocate a valid state sampler */
-        typedef std::function<ValidStateSamplerPtr(const SpaceInformation*)> ValidStateSamplerAllocator;
+        typedef std::function<ValidStateSamplerPtr(const SpaceInformation *)> ValidStateSamplerAllocator;
     }
 }
-
 
 #endif

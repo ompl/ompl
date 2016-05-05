@@ -66,7 +66,6 @@ namespace ompl
         class ParallelPlan
         {
         public:
-
             /** \brief Create an instance for a specified space information */
             ParallelPlan(const base::ProblemDefinitionPtr &pdef);
 
@@ -85,62 +84,78 @@ namespace ompl
             void clearPlanners();
 
             /** \brief Get the problem definition used */
-            const base::ProblemDefinitionPtr& getProblemDefinition() const
+            const base::ProblemDefinitionPtr &getProblemDefinition() const
             {
                 return pdef_;
             }
 
-            /** \brief Call Planner::solve() for all planners, in parallel, each planner running for at most \e solveTime seconds.
-                If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
-                If \e hybridize is true, all planners are executed until termination and the obtained solution paths are hybridized. */
+            /** \brief Call Planner::solve() for all planners, in parallel, each planner running for at most \e
+               solveTime seconds.
+                If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as
+               well.
+                If \e hybridize is true, all planners are executed until termination and the obtained solution paths are
+               hybridized. */
             base::PlannerStatus solve(double solveTime, bool hybridize = true);
 
-            /** \brief Call Planner::solve() for all planners, in parallel, until the termination condition \e ptc becomes true.
-                If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
-                If \e hybridize is true, all planners are executed until termination and the obtained solution paths are hybridized. */
+            /** \brief Call Planner::solve() for all planners, in parallel, until the termination condition \e ptc
+               becomes true.
+                If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as
+               well.
+                If \e hybridize is true, all planners are executed until termination and the obtained solution paths are
+               hybridized. */
             base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, bool hybridize = true);
 
-            /** \brief Call Planner::solve() for all planners, in parallel, each planner running for at most \e solveTime seconds.
-                If \e hybridize is false, when \e minSolCount new solutions are found (added to the set of solutions maintained by ompl::base::Goal), the rest of the planners are stopped as well.
-                If \e hybridize is true, all planners are executed until termination or until \e maxSolCount new solutions were obtained.
-                While \e hybridize is true, if \e minSolCount or more solution paths are available, they are hybridized. */
-            base::PlannerStatus solve(double solveTime, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize = true);
+            /** \brief Call Planner::solve() for all planners, in parallel, each planner running for at most \e
+               solveTime seconds.
+                If \e hybridize is false, when \e minSolCount new solutions are found (added to the set of solutions
+               maintained by ompl::base::Goal), the rest of the planners are stopped as well.
+                If \e hybridize is true, all planners are executed until termination or until \e maxSolCount new
+               solutions were obtained.
+                While \e hybridize is true, if \e minSolCount or more solution paths are available, they are hybridized.
+               */
+            base::PlannerStatus solve(double solveTime, std::size_t minSolCount, std::size_t maxSolCount,
+                                      bool hybridize = true);
 
-            /** \brief Call Planner::solve() for all planners, in parallel, until the termination condition \e ptc becomes true.
-                If \e hybridize is false, when \e minSolCount new solutions are found (added to the set of solutions maintained by ompl::base::Goal), the rest of the planners are stopped as well.
-                If \e hybridize is true, all planners are executed until termination or until \e maxSolCount new solutions were obtained.
-                While \e hybridize is true, if \e minSolCount or more solution paths are available, they are hybridized. */
-            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize = true);
+            /** \brief Call Planner::solve() for all planners, in parallel, until the termination condition \e ptc
+               becomes true.
+                If \e hybridize is false, when \e minSolCount new solutions are found (added to the set of solutions
+               maintained by ompl::base::Goal), the rest of the planners are stopped as well.
+                If \e hybridize is true, all planners are executed until termination or until \e maxSolCount new
+               solutions were obtained.
+                While \e hybridize is true, if \e minSolCount or more solution paths are available, they are hybridized.
+               */
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, std::size_t minSolCount,
+                                      std::size_t maxSolCount, bool hybridize = true);
 
         protected:
-
-            /** \brief Run the planner and call ompl::base::PlannerTerminationCondition::terminate() for the other planners once a first solution is found */
-            void solveOne(base::Planner *planner, std::size_t minSolCount, const base::PlannerTerminationCondition *ptc);
+            /** \brief Run the planner and call ompl::base::PlannerTerminationCondition::terminate() for the other
+             * planners once a first solution is found */
+            void solveOne(base::Planner *planner, std::size_t minSolCount,
+                          const base::PlannerTerminationCondition *ptc);
 
             /** \brief Run the planner and collect the solutions. This function is only called if hybridize_ is true. */
-            void solveMore(base::Planner *planner, std::size_t minSolCount, std::size_t maxSolCount, const base::PlannerTerminationCondition *ptc);
+            void solveMore(base::Planner *planner, std::size_t minSolCount, std::size_t maxSolCount,
+                           const base::PlannerTerminationCondition *ptc);
 
             /** \brief The problem definition used */
-            base::ProblemDefinitionPtr      pdef_;
+            base::ProblemDefinitionPtr pdef_;
 
             /** \brief The set of planners to be used */
-            std::vector<base::PlannerPtr>   planners_;
+            std::vector<base::PlannerPtr> planners_;
 
             /** \brief The instance of the class that performs path hybridization */
             geometric::PathHybridizationPtr phybrid_;
 
             /** \brief Lock for phybrid_ */
-            std::mutex                      phlock_;
+            std::mutex phlock_;
 
         private:
-
             /** \brief Number of solutions found during a particular run */
-            unsigned int                    foundSolCount_;
+            unsigned int foundSolCount_;
 
             /** \brief Lock for phybrid_ */
-            std::mutex                      foundSolCountLock_;
+            std::mutex foundSolCountLock_;
         };
-
     }
 }
 

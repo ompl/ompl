@@ -45,8 +45,14 @@
 
 /// @cond IGNORE
 // Installing custom vertex and edge properties
-enum edge_type_t { edge_type };
-enum vertex_type_t { vertex_type };
+enum edge_type_t
+{
+    edge_type
+};
+enum vertex_type_t
+{
+    vertex_type
+};
 namespace boost
 {
     BOOST_INSTALL_PROPERTY(edge, type);
@@ -54,10 +60,11 @@ namespace boost
 }
 
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
-                               boost::property<vertex_type_t, ompl::base::PlannerDataVertex*,
-                               boost::property<boost::vertex_index_t, unsigned int> >,
-                               boost::property<edge_type_t, ompl::base::PlannerDataEdge*,
-                               boost::property<boost::edge_weight_t, ompl::base::Cost> > > PlannerDataGraph;
+                              boost::property<vertex_type_t, ompl::base::PlannerDataVertex *,
+                                              boost::property<boost::vertex_index_t, unsigned int>>,
+                              boost::property<edge_type_t, ompl::base::PlannerDataEdge *,
+                                              boost::property<boost::edge_weight_t, ompl::base::Cost>>>
+    PlannerDataGraph;
 /// @endcond
 
 /// \brief Wrapper class for the Boost.Graph representation of the PlannerData.
@@ -69,17 +76,17 @@ public:
     typedef PlannerDataGraph Type;
 
     /// \brief Boost.Graph vertex descriptor
-    typedef boost::graph_traits<Type>::vertex_descriptor  Vertex;
+    typedef boost::graph_traits<Type>::vertex_descriptor Vertex;
     /// \brief Boost.Graph edge descriptor
-    typedef boost::graph_traits<Type>::edge_descriptor    Edge;
+    typedef boost::graph_traits<Type>::edge_descriptor Edge;
     /// \brief Boost.Graph vertex iterator
-    typedef boost::graph_traits<Type>::vertex_iterator    VIterator;
+    typedef boost::graph_traits<Type>::vertex_iterator VIterator;
     /// \brief Boost.Graph edge iterator
-    typedef boost::graph_traits<Type>::edge_iterator      EIterator;
+    typedef boost::graph_traits<Type>::edge_iterator EIterator;
     /// \brief Boost.Graph input edge iterator
-    typedef boost::graph_traits<Type>::in_edge_iterator   IEIterator;
+    typedef boost::graph_traits<Type>::in_edge_iterator IEIterator;
     /// \brief Boost.Graph output edge iterator
-    typedef boost::graph_traits<Type>::out_edge_iterator  OEIterator;
+    typedef boost::graph_traits<Type>::out_edge_iterator OEIterator;
     /// \brief Boost.Graph adjacency iterator
     typedef boost::graph_traits<Type>::adjacency_iterator AdjIterator;
 };

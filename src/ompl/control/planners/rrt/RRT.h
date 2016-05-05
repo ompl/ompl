@@ -42,10 +42,8 @@
 
 namespace ompl
 {
-
     namespace control
     {
-
         /**
            @anchor cRRT
            @par Short description
@@ -57,7 +55,8 @@ namespace ompl
            the exploration tree.
            This implementation is intended for systems with differential constraints.
            @par External documentation
-           S.M. LaValle and J.J. Kuffner, Randomized kinodynamic planning, <em>Intl. J. of Robotics Research</em>, vol. 20, pp. 378–400, May 2001. DOI: [10.1177/02783640122067453](http://dx.doi.org/10.1177/02783640122067453)<br>
+           S.M. LaValle and J.J. Kuffner, Randomized kinodynamic planning, <em>Intl. J. of Robotics Research</em>, vol.
+           20, pp. 378–400, May 2001. DOI: [10.1177/02783640122067453](http://dx.doi.org/10.1177/02783640122067453)<br>
            [[PDF]](http://ijr.sagepub.com/content/20/5/378.full.pdf)
            [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
         */
@@ -66,7 +65,6 @@ namespace ompl
         class RRT : public base::Planner
         {
         public:
-
             /** \brief Constructor */
             RRT(const SpaceInformationPtr &si);
 
@@ -98,13 +96,15 @@ namespace ompl
                 return goalBias_;
             }
 
-            /** \brief Return true if the intermediate states generated along motions are to be added to the tree itself */
+            /** \brief Return true if the intermediate states generated along motions are to be added to the tree itself
+             */
             bool getIntermediateStates() const
             {
                 return addIntermediateStates_;
             }
 
-            /** \brief Specify whether the intermediate states generated along motions are to be added to the tree itself */
+            /** \brief Specify whether the intermediate states generated along motions are to be added to the tree
+             * itself */
             void setIntermediateStates(bool addIntermediateStates)
             {
                 addIntermediateStates_ = addIntermediateStates;
@@ -113,17 +113,15 @@ namespace ompl
             virtual void getPlannerData(base::PlannerData &data) const;
 
             /** \brief Set a different nearest neighbors datastructure */
-            template<template<typename T> class NN>
+            template <template <typename T> class NN>
             void setNearestNeighbors()
             {
-                nn_.reset(new NN<Motion*>());
+                nn_.reset(new NN<Motion *>());
             }
 
             virtual void setup();
 
         protected:
-
-
             /** \brief Representation of a motion
 
                 This only contains pointers to parent motions as we
@@ -131,13 +129,13 @@ namespace ompl
             class Motion
             {
             public:
-
                 Motion() : state(nullptr), control(nullptr), steps(0), parent(nullptr)
                 {
                 }
 
                 /** \brief Constructor that allocates memory for the state and the control */
-                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), steps(0), parent(nullptr)
+                Motion(const SpaceInformation *si)
+                  : state(si->allocState()), control(si->allocControl()), steps(0), parent(nullptr)
                 {
                 }
 
@@ -146,16 +144,16 @@ namespace ompl
                 }
 
                 /** \brief The state contained by the motion */
-                base::State       *state;
+                base::State *state;
 
                 /** \brief The control contained by the motion */
-                Control           *control;
+                Control *control;
 
                 /** \brief The number of steps the control is applied for */
-                unsigned int       steps;
+                unsigned int steps;
 
                 /** \brief The parent motion in the exploration tree */
-                Motion            *parent;
+                Motion *parent;
             };
 
             /** \brief Free the memory allocated by this planner */
@@ -168,30 +166,30 @@ namespace ompl
             }
 
             /** \brief State sampler */
-            base::StateSamplerPtr                          sampler_;
+            base::StateSamplerPtr sampler_;
 
             /** \brief Control sampler */
-            DirectedControlSamplerPtr                      controlSampler_;
+            DirectedControlSamplerPtr controlSampler_;
 
             /** \brief The base::SpaceInformation cast as control::SpaceInformation, for convenience */
-            const SpaceInformation                        *siC_;
+            const SpaceInformation *siC_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
-            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr<NearestNeighbors<Motion *>> nn_;
 
-            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
-            double                                         goalBias_;
+            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
+             * available) */
+            double goalBias_;
 
             /** \brief Flag indicating whether intermediate states are added to the built tree of motions */
-            bool                                           addIntermediateStates_;
+            bool addIntermediateStates_;
 
             /** \brief The random number generator */
-            RNG                                            rng_;
+            RNG rng_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion                                         *lastGoalMotion_;
+            Motion *lastGoalMotion_;
         };
-
     }
 }
 

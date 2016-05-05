@@ -39,18 +39,14 @@
 
 #include "ompl/base/Goal.h"
 
-
 namespace ompl
 {
-
     namespace base
     {
-
         /** \brief Definition of a goal region */
         class GoalRegion : public Goal
         {
         public:
-
             /** \brief Create a goal region */
             GoalRegion(const SpaceInformationPtr &si);
 
@@ -91,7 +87,6 @@ namespace ompl
             }
 
         protected:
-
             /** \brief The maximum distance that is allowed to the
                 goal. By default, this is initialized to the minimum
                 epsilon value a double can represent */

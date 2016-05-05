@@ -49,10 +49,8 @@
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(SimpleSetup);
         /// @endcond
@@ -65,83 +63,82 @@ namespace ompl
         class SimpleSetup
         {
         public:
+            /** \brief Constructor needs the state space used for planning. */
+            explicit SimpleSetup(const base::SpaceInformationPtr &si);
 
             /** \brief Constructor needs the state space used for planning. */
-            explicit
-            SimpleSetup(const base::SpaceInformationPtr &si);
-
-            /** \brief Constructor needs the state space used for planning. */
-            explicit
-            SimpleSetup(const base::StateSpacePtr &space);
+            explicit SimpleSetup(const base::StateSpacePtr &space);
 
             virtual ~SimpleSetup()
             {
             }
 
             /** \brief Get the current instance of the space information */
-            const base::SpaceInformationPtr& getSpaceInformation() const
+            const base::SpaceInformationPtr &getSpaceInformation() const
             {
                 return si_;
             }
 
             /** \brief Get the current instance of the problem definition */
-            const base::ProblemDefinitionPtr& getProblemDefinition() const
+            const base::ProblemDefinitionPtr &getProblemDefinition() const
             {
                 return pdef_;
             }
 
             /** \brief Get the current instance of the state space */
-            const base::StateSpacePtr& getStateSpace() const
+            const base::StateSpacePtr &getStateSpace() const
             {
                 return si_->getStateSpace();
             }
 
             /** \brief Get the current instance of the state validity checker */
-            const base::StateValidityCheckerPtr& getStateValidityChecker() const
+            const base::StateValidityCheckerPtr &getStateValidityChecker() const
             {
                 return si_->getStateValidityChecker();
             }
 
             /** \brief Get the current goal definition */
-            const base::GoalPtr& getGoal() const
+            const base::GoalPtr &getGoal() const
             {
                 return pdef_->getGoal();
             }
 
             /** \brief Get the current planner */
-            const base::PlannerPtr& getPlanner() const
+            const base::PlannerPtr &getPlanner() const
             {
                 return planner_;
             }
 
             /** \brief Get the planner allocator */
-            const base::PlannerAllocator& getPlannerAllocator() const
+            const base::PlannerAllocator &getPlannerAllocator() const
             {
                 return pa_;
             }
 
             /** \brief Get the path simplifier */
-            const PathSimplifierPtr& getPathSimplifier() const
+            const PathSimplifierPtr &getPathSimplifier() const
             {
                 return psk_;
             }
 
             /** \brief Get the path simplifier */
-            PathSimplifierPtr& getPathSimplifier()
+            PathSimplifierPtr &getPathSimplifier()
             {
                 return psk_;
             }
 
             /** \brief Get the optimization objective to use */
-            const base::OptimizationObjectivePtr& getOptimizationObjective() const
+            const base::OptimizationObjectivePtr &getOptimizationObjective() const
             {
                 return pdef_->getOptimizationObjective();
             }
 
-            /** \brief Return true if a solution path is available (previous call to solve() was successful) and the solution is exact (not approximate) */
+            /** \brief Return true if a solution path is available (previous call to solve() was successful) and the
+             * solution is exact (not approximate) */
             bool haveExactSolutionPath() const;
 
-            /** \brief Return true if a solution path is available (previous call to solve() was successful). The solution may be approximate. */
+            /** \brief Return true if a solution path is available (previous call to solve() was successful). The
+             * solution may be approximate. */
             bool haveSolutionPath() const
             {
                 return pdef_->getSolutionPath().get();
@@ -151,7 +148,7 @@ namespace ompl
             const std::string getSolutionPlannerName(void) const;
 
             /** \brief Get the solution path. Throw an exception if no solution is available */
-            PathGeometric& getSolutionPath() const;
+            PathGeometric &getSolutionPath() const;
 
             /** \brief Get information about the exploration data structure the motion planner used. */
             void getPlannerData(base::PlannerData &pd) const;
@@ -199,7 +196,8 @@ namespace ompl
             }
 
             /** \brief A simple form of setGoal(). The goal will be an instance of ompl::base::GoalState */
-            void setGoalState(const base::ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon());
+            void setGoalState(const base::ScopedState<> &goal,
+                              const double threshold = std::numeric_limits<double>::epsilon());
 
             /** \brief Set the goal for planning. This call is not
                 needed if setStartAndGoalStates() has been called. */
@@ -251,11 +249,13 @@ namespace ompl
                 return simplifyTime_;
             }
 
-            /** \brief Attempt to simplify the current solution path. Spent at most \e duration seconds in the simplification process.
+            /** \brief Attempt to simplify the current solution path. Spent at most \e duration seconds in the
+               simplification process.
                 If \e duration is 0 (the default), a default simplification procedure is executed. */
             void simplifySolution(double duration = 0.0);
 
-            /** \brief Attempt to simplify the current solution path. Stop computation when \e ptc becomes true at the latest. */
+            /** \brief Attempt to simplify the current solution path. Stop computation when \e ptc becomes true at the
+             * latest. */
             void simplifySolution(const base::PlannerTerminationCondition &ptc);
 
             /** \brief Clear all planning data. This only includes
@@ -272,39 +272,37 @@ namespace ompl
             virtual void setup();
 
         protected:
-
             /// The created space information
-            base::SpaceInformationPtr     si_;
+            base::SpaceInformationPtr si_;
 
             /// The created problem definition
-            base::ProblemDefinitionPtr    pdef_;
+            base::ProblemDefinitionPtr pdef_;
 
             /// The maintained planner instance
-            base::PlannerPtr              planner_;
+            base::PlannerPtr planner_;
 
             /// The optional planner allocator
-            base::PlannerAllocator        pa_;
+            base::PlannerAllocator pa_;
 
             /// The instance of the path simplifier
-            PathSimplifierPtr             psk_;
+            PathSimplifierPtr psk_;
 
             /// Flag indicating whether the classes needed for planning are set up
-            bool                          configured_;
+            bool configured_;
 
             /// The amount of time the last planning step took
-            double                        planTime_;
+            double planTime_;
 
             /// The amount of time the last path simplification step took
-            double                        simplifyTime_;
+            double simplifyTime_;
 
             /// The status of the last planning request
-            base::PlannerStatus           lastStatus_;
+            base::PlannerStatus lastStatus_;
         };
 
         /** \brief Given a goal specification, decide on a planner for that goal.
             \deprecated Use tools::SelfConfig::getDefaultPlanner() instead. */
         OMPL_DEPRECATED base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
     }
-
 }
 #endif

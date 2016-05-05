@@ -42,15 +42,13 @@
 #include "ompl/base/samplers/informed/RejectionInfSampler.h"
 #endif
 
-ompl::base::PathLengthOptimizationObjective::
-PathLengthOptimizationObjective(const SpaceInformationPtr &si) :
-    ompl::base::OptimizationObjective(si)
+ompl::base::PathLengthOptimizationObjective::PathLengthOptimizationObjective(const SpaceInformationPtr &si)
+  : ompl::base::OptimizationObjective(si)
 {
     description_ = "Path Length";
 
-    //Setup a default cost-to-go heuristics:
-    setCostToGoHeuristic(std::bind(&base::goalRegionCostToGo,
-        std::placeholders::_1, std::placeholders::_2));
+    // Setup a default cost-to-go heuristics:
+    setCostToGoHeuristic(std::bind(&base::goalRegionCostToGo, std::placeholders::_1, std::placeholders::_2));
 }
 
 ompl::base::Cost ompl::base::PathLengthOptimizationObjective::stateCost(const State *s) const
@@ -63,18 +61,24 @@ ompl::base::Cost ompl::base::PathLengthOptimizationObjective::motionCost(const S
     return Cost(si_->distance(s1, s2));
 }
 
-ompl::base::Cost ompl::base::PathLengthOptimizationObjective::motionCostHeuristic(const State *s1, const State *s2) const
+ompl::base::Cost ompl::base::PathLengthOptimizationObjective::motionCostHeuristic(const State *s1,
+                                                                                  const State *s2) const
 {
     return motionCost(s1, s2);
 }
 
-ompl::base::InformedSamplerPtr ompl::base::PathLengthOptimizationObjective::allocInformedStateSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls) const
+ompl::base::InformedSamplerPtr ompl::base::PathLengthOptimizationObjective::allocInformedStateSampler(
+    const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls) const
 {
-    // Make the direct path-length informed sampler and return. If OMPL was compiled with Eigen, a direct version is available, if not a rejection-based technique can be used
+// Make the direct path-length informed sampler and return. If OMPL was compiled with Eigen, a direct version is
+// available, if not a rejection-based technique can be used
 #if OMPL_HAVE_EIGEN3
     return std::make_shared<PathLengthDirectInfSampler>(probDefn, maxNumberCalls);
 #else
-    throw Exception("Direct sampling of the path-length objective requires Eigen, but this version of OMPL was compiled without Eigen support. If possible, please install Eigen and recompile OMPL. If this is not possible, you can manually create an instantiation of RejectionInfSampler to approximate the behaviour of direct informed sampling.");
+    throw Exception("Direct sampling of the path-length objective requires Eigen, but this version of OMPL was "
+                    "compiled without Eigen support. If possible, please install Eigen and recompile OMPL. If this is "
+                    "not possible, you can manually create an instantiation of RejectionInfSampler to approximate the "
+                    "behaviour of direct informed sampling.");
     // Return a null pointer to avoid compiler warnings
     return ompl::base::InformedSamplerPtr();
 #endif

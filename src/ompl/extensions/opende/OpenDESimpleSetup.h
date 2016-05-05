@@ -44,37 +44,31 @@
 
 namespace ompl
 {
-
     namespace control
     {
-
         /** \brief Create the set of classes typically needed to solve a
             control problem when forward propagation is computed with OpenDE. */
         class OpenDESimpleSetup : public SimpleSetup
         {
         public:
-
             /** \brief Constructor needs the control space needed for planning. */
-            explicit
-            OpenDESimpleSetup(const ControlSpacePtr &space);
+            explicit OpenDESimpleSetup(const ControlSpacePtr &space);
 
             /** \brief The control space is assumed to be OpenDEControlSpace. Constructor only needs the state space. */
-            explicit
-            OpenDESimpleSetup(const base::StateSpacePtr &space);
+            explicit OpenDESimpleSetup(const base::StateSpacePtr &space);
 
             /** \brief The control space is assumed to be
                 OpenDEControlSpace. The state space is assumed to
                 be OpenDEStateSpace. Constructor only needs the OpenDE
                 environment. */
-            explicit
-            OpenDESimpleSetup(const OpenDEEnvironmentPtr &env);
+            explicit OpenDESimpleSetup(const OpenDEEnvironmentPtr &env);
 
             virtual ~OpenDESimpleSetup()
             {
             }
 
             /** \brief Get the OpenDE environment associated to the state and control spaces */
-            const OpenDEEnvironmentPtr& getEnvironment() const
+            const OpenDEEnvironmentPtr &getEnvironment() const
             {
                 return getStateSpace()->as<OpenDEStateSpace>()->getEnvironment();
             }
@@ -115,11 +109,13 @@ namespace ompl
             /** \brief Call playPath() on the solution path, if one is available */
             void playSolutionPath(double timeFactor = 1.0) const;
 
-            /** \brief Simulate the OpenDE environment forward for \e steps simulation steps, using the control \e control.
+            /** \brief Simulate the OpenDE environment forward for \e steps simulation steps, using the control \e
+               control.
                 Construct a path representing this action. */
             base::PathPtr simulateControl(const double *control, unsigned int steps) const;
 
-            /** \brief Simulate the OpenDE environment forward for \e steps simulation steps, using the control \e control.
+            /** \brief Simulate the OpenDE environment forward for \e steps simulation steps, using the control \e
+               control.
                 Construct a path representing this action. */
             base::PathPtr simulateControl(const Control *control, unsigned int steps) const;
 
@@ -132,11 +128,8 @@ namespace ompl
             virtual void setup();
 
         private:
-
             void useEnvParams();
-
         };
     }
-
 }
 #endif

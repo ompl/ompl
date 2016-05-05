@@ -39,7 +39,7 @@
 
 #include "ompl/config.h"
 #if OMPL_EXTENSION_MORSE == 0
-#  error MORSE extension not built
+#error MORSE extension not built
 #endif
 
 #include "ompl/base/State.h"
@@ -54,7 +54,6 @@ namespace ompl
 {
     namespace base
     {
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::MorseEnvironment */
         OMPL_CLASS_FORWARD(MorseEnvironment);
@@ -67,7 +66,6 @@ namespace ompl
         class MorseEnvironment
         {
         public:
-
             /** \brief The dimension of the control space for this simulation */
             const unsigned int controlDim_;
 
@@ -102,35 +100,42 @@ namespace ompl
             mutable std::mutex mutex_;
 
             MorseEnvironment(const unsigned int controlDim, const std::vector<double> &controlBounds,
-                const unsigned int rigidBodies, const std::vector<double> &positionBounds,
-                const std::vector<double> &linvelBounds, const std::vector<double> &angvelBounds,
-                const double stepSize, const unsigned int minControlSteps, const unsigned int maxControlSteps)
-                 : controlDim_(controlDim), controlBounds_(controlBounds), rigidBodies_(rigidBodies),
-                   positionBounds_(positionBounds), linvelBounds_(linvelBounds), angvelBounds_(angvelBounds),
-                   stepSize_(stepSize), minControlSteps_(minControlSteps), maxControlSteps_(maxControlSteps),
-                   simRunning_(true)
+                             const unsigned int rigidBodies, const std::vector<double> &positionBounds,
+                             const std::vector<double> &linvelBounds, const std::vector<double> &angvelBounds,
+                             const double stepSize, const unsigned int minControlSteps,
+                             const unsigned int maxControlSteps)
+              : controlDim_(controlDim)
+              , controlBounds_(controlBounds)
+              , rigidBodies_(rigidBodies)
+              , positionBounds_(positionBounds)
+              , linvelBounds_(linvelBounds)
+              , angvelBounds_(angvelBounds)
+              , stepSize_(stepSize)
+              , minControlSteps_(minControlSteps)
+              , maxControlSteps_(maxControlSteps)
+              , simRunning_(true)
             {
                 // Replace infinite bounds with very large bounds, so, e.g., sampling can still work
                 for (unsigned int i = 0; i < positionBounds_.size(); i++)
                 {
-                    if (positionBounds_[i]==std::numeric_limits<double>::infinity())
-                        positionBounds_[i] = std::numeric_limits<double>::max()/2;
-                    else if (positionBounds_[i]==-std::numeric_limits<double>::infinity())
-                        positionBounds_[i] = -std::numeric_limits<double>::max()/2;
+                    if (positionBounds_[i] == std::numeric_limits<double>::infinity())
+                        positionBounds_[i] = std::numeric_limits<double>::max() / 2;
+                    else if (positionBounds_[i] == -std::numeric_limits<double>::infinity())
+                        positionBounds_[i] = -std::numeric_limits<double>::max() / 2;
                 }
                 for (unsigned int i = 0; i < linvelBounds_.size(); i++)
                 {
-                    if (linvelBounds_[i]==std::numeric_limits<double>::infinity())
-                        linvelBounds_[i] = std::numeric_limits<double>::max()/2;
-                    else if (linvelBounds_[i]==-std::numeric_limits<double>::infinity())
-                        linvelBounds_[i] = -std::numeric_limits<double>::max()/2;
+                    if (linvelBounds_[i] == std::numeric_limits<double>::infinity())
+                        linvelBounds_[i] = std::numeric_limits<double>::max() / 2;
+                    else if (linvelBounds_[i] == -std::numeric_limits<double>::infinity())
+                        linvelBounds_[i] = -std::numeric_limits<double>::max() / 2;
                 }
                 for (unsigned int i = 0; i < angvelBounds_.size(); i++)
                 {
-                    if (angvelBounds_[i]==std::numeric_limits<double>::infinity())
-                        angvelBounds_[i] = std::numeric_limits<double>::max()/2;
-                    else if (angvelBounds_[i]==-std::numeric_limits<double>::infinity())
-                        angvelBounds_[i] = -std::numeric_limits<double>::max()/2;
+                    if (angvelBounds_[i] == std::numeric_limits<double>::infinity())
+                        angvelBounds_[i] = std::numeric_limits<double>::max() / 2;
+                    else if (angvelBounds_[i] == -std::numeric_limits<double>::infinity())
+                        angvelBounds_[i] = -std::numeric_limits<double>::max() / 2;
                 }
             }
 
@@ -140,7 +145,6 @@ namespace ompl
 
             /** \brief Get the control bounds -- the bounding box in which to sample controls */
             void getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const;
-
 
             // These functions require interprocess communication and are left to be implemented in Python
 

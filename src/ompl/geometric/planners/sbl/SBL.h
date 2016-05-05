@@ -45,10 +45,8 @@
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /**
            @anchor gSBL
            @par Short description
@@ -75,7 +73,8 @@ namespace ompl
            associated to the state space. An exception is thrown if
            no default projection is available either.
            @par External documentation
-           G. Sánchez and J.-C. Latombe, A single-query bi-directional probabilistic roadmap planner with lazy collision checking, in <em>The Tenth International Symposium on Robotics Research</em>, pp. 403–417, 2001.
+           G. Sánchez and J.-C. Latombe, A single-query bi-directional probabilistic roadmap planner with lazy collision
+           checking, in <em>The Tenth International Symposium on Robotics Research</em>, pp. 403–417, 2001.
            DOI: [10.1007/3-540-36460-9_27](http://dx.doi.org/10.1007/3-540-36460-9_27)<br>
            [[PDF]](http://www.springerlink.com/content/9843341054386hh6/fulltext.pdf)
         */
@@ -85,7 +84,6 @@ namespace ompl
         class SBL : public base::Planner
         {
         public:
-
             /** \brief The constructor needs the instance of the space information */
             SBL(const base::SpaceInformationPtr &si);
 
@@ -106,7 +104,7 @@ namespace ompl
             }
 
             /** \brief Get the projection evaluator. */
-            const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
+            const base::ProjectionEvaluatorPtr &getProjectionEvaluator() const
             {
                 return projectionEvaluator_;
             }
@@ -136,58 +134,57 @@ namespace ompl
             virtual void getPlannerData(base::PlannerData &data) const;
 
         protected:
-
             struct MotionInfo;
 
             /** \brief A grid cell */
             typedef Grid<MotionInfo>::Cell GridCell;
 
             /** \brief A PDF of grid cells */
-            typedef PDF<GridCell*>         CellPDF;
+            typedef PDF<GridCell *> CellPDF;
 
             /** \brief Representation of a motion */
             class Motion
             {
             public:
-
                 /** \brief Default constructor. Allocates no memory */
                 Motion() : root(nullptr), state(nullptr), parent(nullptr), valid(false)
                 {
                 }
 
                 /** \brief Constructor that allocates storage for a state */
-                Motion(const base::SpaceInformationPtr &si) : root(nullptr), state(si->allocState()), parent(nullptr), valid(false)
+                Motion(const base::SpaceInformationPtr &si)
+                  : root(nullptr), state(si->allocState()), parent(nullptr), valid(false)
                 {
                 }
 
                 /** \brief The root of the tree this motion would get to, if we were to follow parent pointers */
-                const base::State   *root;
+                const base::State *root;
 
                 /** \brief The state this motion leads to */
-                base::State         *state;
+                base::State *state;
 
                 /** \brief The parent motion -- it contains the state this motion originates at */
-                Motion              *parent;
+                Motion *parent;
 
                 /** \brief Flag indicating whether this motion has been checked for validity. */
-                bool                 valid;
+                bool valid;
 
                 /** \brief The set of motions descending from the current motion */
-                std::vector<Motion*> children;
+                std::vector<Motion *> children;
             };
 
             /** \brief A struct containing an array of motions and a corresponding PDF element */
             struct MotionInfo
             {
-                Motion* operator[](unsigned int i)
+                Motion *operator[](unsigned int i)
                 {
                     return motions_[i];
                 }
-                std::vector<Motion*>::iterator begin()
+                std::vector<Motion *>::iterator begin()
                 {
                     return motions_.begin();
                 }
-                void erase(std::vector<Motion*>::iterator iter)
+                void erase(std::vector<Motion *>::iterator iter)
                 {
                     motions_.erase(iter);
                 }
@@ -204,8 +201,8 @@ namespace ompl
                     return motions_.empty();
                 }
 
-                std::vector<Motion*> motions_;
-                CellPDF::Element    *elem_;
+                std::vector<Motion *> motions_;
+                CellPDF::Element *elem_;
             };
 
             /** \brief Representation of a search tree. Two instances will be used. One for start and one for goal */
@@ -219,10 +216,10 @@ namespace ompl
                 Grid<MotionInfo> grid;
 
                 /** \brief The number of motions (in total) from the tree */
-                unsigned int     size;
+                unsigned int size;
 
                 /** \brief The PDF used for selecting a cell from which to sample a motion */
-                CellPDF          pdf;
+                CellPDF pdf;
             };
 
             /** \brief Free the memory allocated by the planner */
@@ -239,7 +236,7 @@ namespace ompl
             void addMotion(TreeData &tree, Motion *motion);
 
             /** \brief Select a motion from a tree */
-            Motion* selectMotion(TreeData &tree);
+            Motion *selectMotion(TreeData &tree);
 
             /** \brief Remove a motion from a tree */
             void removeMotion(TreeData &tree, Motion *motion);
@@ -252,30 +249,30 @@ namespace ompl
             bool isPathValid(TreeData &tree, Motion *motion);
 
             /** \brief Check if a solution can be obtained by connecting two trees using a specified motion */
-            bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion *motion, std::vector<Motion*> &solution);
+            bool checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion *motion,
+                               std::vector<Motion *> &solution);
 
             /** \brief The employed state sampler */
-            base::ValidStateSamplerPtr                 sampler_;
+            base::ValidStateSamplerPtr sampler_;
 
             /** \brief The employed projection evaluator */
-            base::ProjectionEvaluatorPtr               projectionEvaluator_;
+            base::ProjectionEvaluatorPtr projectionEvaluator_;
 
             /** \brief The start tree */
-            TreeData                                   tStart_;
+            TreeData tStart_;
 
             /** \brief The goal tree */
-            TreeData                                   tGoal_;
+            TreeData tGoal_;
 
             /** \brief The maximum length of a motion to be added in the tree */
-            double                                     maxDistance_;
+            double maxDistance_;
 
             /** \brief The random number generator to be used */
-            RNG                                        rng_;
+            RNG rng_;
 
             /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
-            std::pair<base::State*, base::State*>      connectionPoint_;
+            std::pair<base::State *, base::State *> connectionPoint_;
         };
-
     }
 }
 

@@ -44,7 +44,6 @@ namespace ompl
 {
     namespace control
     {
-
         /** \brief Implementation of a simple directed control
             sampler. This is a basic implementation that does not
             actually take direction into account and builds upon ControlSampler.
@@ -54,13 +53,13 @@ namespace ompl
            @par External documentation
            K-control sampling is first believed to be proposed in:
 
-           S.M. LaValle and J.J. Kuffner, Randomized kinodynamic planning, <em>Intl. J. of Robotics Research</em>, vol. 20, pp. 378–400, May 2001. DOI: [10.1177/02783640122067453](http://dx.doi.org/10.1177/02783640122067453)<br>
+           S.M. LaValle and J.J. Kuffner, Randomized kinodynamic planning, <em>Intl. J. of Robotics Research</em>, vol.
+           20, pp. 378–400, May 2001. DOI: [10.1177/02783640122067453](http://dx.doi.org/10.1177/02783640122067453)<br>
            [[PDF]](http://ijr.sagepub.com/content/20/5/378.full.pdf)
            [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html) */
         class SimpleDirectedControlSampler : public DirectedControlSampler
         {
         public:
-
             /** \brief Constructor takes the state space to construct samples for as argument
                 Optionally, a \e k value can be given to indicate the number of controls to
                 try when directing a system toward a specific state.  Default value is 1. */
@@ -69,13 +68,13 @@ namespace ompl
             virtual ~SimpleDirectedControlSampler();
 
             /** \brief Retrieve the number of controls to generate when finding the best control. */
-            unsigned int getNumControlSamples () const
+            unsigned int getNumControlSamples() const
             {
                 return numControlSamples_;
             }
 
             /** \brief Set the number of controls to generate when finding the best control. */
-            void setNumControlSamples (unsigned int numSamples)
+            void setNumControlSamples(unsigned int numSamples)
             {
                 numControlSamples_ = numSamples;
             }
@@ -100,24 +99,22 @@ namespace ompl
                 this control should be applied. The state \e dest is
                 modified to match the state reached with the computed
                 control and duration. The motion is checked for validity. */
-            virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest);
+            virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source,
+                                          base::State *dest);
 
         protected:
-
             /** \brief Samples \e numControlSamples_ controls, and returns the
                 control that brings the system the closest to \e target */
-            virtual unsigned int getBestControl (Control *control, const base::State *source, base::State *dest, const Control *previous);
+            virtual unsigned int getBestControl(Control *control, const base::State *source, base::State *dest,
+                                                const Control *previous);
 
             /** \brief An instance of the control sampler*/
-            ControlSamplerPtr       cs_;
+            ControlSamplerPtr cs_;
 
             /** \brief The number of controls to sample when finding the best control*/
-            unsigned int            numControlSamples_;
-
+            unsigned int numControlSamples_;
         };
-
     }
 }
-
 
 #endif

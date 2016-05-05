@@ -65,7 +65,7 @@ namespace ompl
         public:
             /** \brief Creates a propositional decomposition wrapped around a given decomposition
                 with a given number of propositions. */
-            PropositionalDecomposition(const DecompositionPtr& decomp);
+            PropositionalDecomposition(const DecompositionPtr &decomp);
 
             /** \brief Clears all memory belonging to this propositional decomposition. */
             virtual ~PropositionalDecomposition(void);
@@ -88,18 +88,16 @@ namespace ompl
 
             /** \brief Returns the region of the underlying decomposition that contains
                 a given State. */
-            virtual int locateRegion(const base::State* s) const;
+            virtual int locateRegion(const base::State *s) const;
 
-            virtual void project(const base::State* s, std::vector<double>& coord) const;
+            virtual void project(const base::State *s, std::vector<double> &coord) const;
 
-            virtual void getNeighbors(int rid, std::vector<int>& neighbors) const;
+            virtual void getNeighbors(int rid, std::vector<int> &neighbors) const;
 
-            virtual void sampleFromRegion(int rid, RNG& rng, std::vector<double>& coord) const;
+            virtual void sampleFromRegion(int rid, RNG &rng, std::vector<double> &coord) const;
 
-            virtual void sampleFullState(
-                const base::StateSamplerPtr& sampler,
-                const std::vector<double>& coord,
-                base::State* s) const;
+            virtual void sampleFullState(const base::StateSamplerPtr &sampler, const std::vector<double> &coord,
+                                         base::State *s) const;
 
         protected:
             DecompositionPtr decomp_;

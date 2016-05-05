@@ -38,8 +38,8 @@
 #include "ompl/geometric/PathHybridization.h"
 #include <thread>
 
-ompl::tools::ParallelPlan::ParallelPlan(const base::ProblemDefinitionPtr &pdef) :
-    pdef_(pdef), phybrid_(new geometric::PathHybridization(pdef->getSpaceInformation()))
+ompl::tools::ParallelPlan::ParallelPlan(const base::ProblemDefinitionPtr &pdef)
+  : pdef_(pdef), phybrid_(new geometric::PathHybridization(pdef->getSpaceInformation()))
 {
 }
 
@@ -78,36 +78,40 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(double solveTime, boo
     return solve(solveTime, 1, planners_.size(), hybridize);
 }
 
-ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(double solveTime, std::size_t minSolCount, std::size_t maxSolCount, bool hybridize)
+ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(double solveTime, std::size_t minSolCount,
+                                                           std::size_t maxSolCount, bool hybridize)
 {
-    return solve(base::timedPlannerTerminationCondition(solveTime, std::min(solveTime / 100.0, 0.1)), minSolCount, maxSolCount, hybridize);
+    return solve(base::timedPlannerTerminationCondition(solveTime, std::min(solveTime / 100.0, 0.1)), minSolCount,
+                 maxSolCount, hybridize);
 }
-
 
 ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTerminationCondition &ptc, bool hybridize)
 {
     return solve(ptc, 1, planners_.size(), hybridize);
 }
 
-ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTerminationCondition &ptc, std::size_t minSolCount,
-  std::size_t maxSolCount, bool hybridize)
+ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTerminationCondition &ptc,
+                                                           std::size_t minSolCount, std::size_t maxSolCount,
+                                                           bool hybridize)
 {
     if (!pdef_->getSpaceInformation()->isSetup())
         pdef_->getSpaceInformation()->setup();
     foundSolCount_ = 0;
 
     time::point start = time::now();
-    std::vector<std::thread*> threads(planners_.size());
+    std::vector<std::thread *> threads(planners_.size());
 
     // Decide if we are combining solutions or just taking the first one
     if (hybridize)
-        for (std::size_t i = 0 ; i < threads.size() ; ++i)
-            threads[i] = new std::thread(std::bind(&ParallelPlan::solveMore, this, planners_[i].get(), minSolCount, maxSolCount, &ptc));
+        for (std::size_t i = 0; i < threads.size(); ++i)
+            threads[i] = new std::thread(
+                std::bind(&ParallelPlan::solveMore, this, planners_[i].get(), minSolCount, maxSolCount, &ptc));
     else
-        for (std::size_t i = 0 ; i < threads.size() ; ++i)
-            threads[i] = new std::thread(std::bind(&ParallelPlan::solveOne, this, planners_[i].get(), minSolCount, &ptc));
+        for (std::size_t i = 0; i < threads.size(); ++i)
+            threads[i] =
+                new std::thread(std::bind(&ParallelPlan::solveOne, this, planners_[i].get(), minSolCount, &ptc));
 
-    for (std::size_t i = 0 ; i < threads.size() ; ++i)
+    for (std::size_t i = 0; i < threads.size(); ++i)
     {
         threads[i]->join();
         delete threads[i];
@@ -118,22 +122,26 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTe
         if (phybrid_->pathCount() > 1)
             if (const base::PathPtr &hsol = phybrid_->getHybridPath())
             {
-                geometric::PathGeometric *pg = static_cast<geometric::PathGeometric*>(hsol.get());
+                geometric::PathGeometric *pg = static_cast<geometric::PathGeometric *>(hsol.get());
                 double difference = 0.0;
                 bool approximate = !pdef_->getGoal()->isSatisfied(pg->getStates().back(), &difference);
-                pdef_->addSolutionPath(hsol, approximate, difference, phybrid_->getName()); // name this solution after the hybridization algorithm
+                pdef_->addSolutionPath(hsol, approximate, difference,
+                                       phybrid_->getName());  // name this solution after the hybridization algorithm
             }
     }
 
     if (pdef_->hasSolution())
-        OMPL_INFORM("ParallelPlan::solve(): Solution found by one or more threads in %f seconds", time::seconds(time::now() - start));
+        OMPL_INFORM("ParallelPlan::solve(): Solution found by one or more threads in %f seconds",
+                    time::seconds(time::now() - start));
     else
-        OMPL_WARN("ParallelPlan::solve(): Unable to find solution by any of the threads in %f seconds", time::seconds(time::now() - start));
+        OMPL_WARN("ParallelPlan::solve(): Unable to find solution by any of the threads in %f seconds",
+                  time::seconds(time::now() - start));
 
     return base::PlannerStatus(pdef_->hasSolution(), pdef_->hasApproximateSolution());
 }
 
-void ompl::tools::ParallelPlan::solveOne(base::Planner *planner, std::size_t minSolCount, const base::PlannerTerminationCondition *ptc)
+void ompl::tools::ParallelPlan::solveOne(base::Planner *planner, std::size_t minSolCount,
+                                         const base::PlannerTerminationCondition *ptc)
 {
     OMPL_DEBUG("ParallelPlan.solveOne starting planner %s", planner->getName().c_str());
 
@@ -151,7 +159,7 @@ void ompl::tools::ParallelPlan::solveOne(base::Planner *planner, std::size_t min
 }
 
 void ompl::tools::ParallelPlan::solveMore(base::Planner *planner, std::size_t minSolCount, std::size_t maxSolCount,
-  const base::PlannerTerminationCondition *ptc)
+                                          const base::PlannerTerminationCondition *ptc)
 {
     OMPL_DEBUG("ParallelPlan.solveMore: starting planner %s", planner->getName().c_str());
 
@@ -173,14 +181,15 @@ void ompl::tools::ParallelPlan::solveMore(base::Planner *planner, std::size_t mi
         std::lock_guard<std::mutex> slock(phlock_);
         start = time::now();
         unsigned int attempts = 0;
-        for (std::size_t i = 0 ; i < paths.size() ; ++i)
+        for (std::size_t i = 0; i < paths.size(); ++i)
             attempts += phybrid_->recordPath(paths[i].path_, false);
 
         if (phybrid_->pathCount() >= minSolCount)
             phybrid_->computeHybridPath();
 
         duration = time::seconds(time::now() - start);
-        OMPL_DEBUG("ParallelPlan.solveMore: Spent %f seconds hybridizing %u solution paths (attempted %u connections between paths)", duration,
-          (unsigned int)phybrid_->pathCount(), attempts);
+        OMPL_DEBUG("ParallelPlan.solveMore: Spent %f seconds hybridizing %u solution paths (attempted %u connections "
+                   "between paths)",
+                   duration, (unsigned int)phybrid_->pathCount(), attempts);
     }
 }

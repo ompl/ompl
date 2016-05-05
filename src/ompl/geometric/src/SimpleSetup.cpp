@@ -42,15 +42,15 @@ ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &g
     return tools::SelfConfig::getDefaultPlanner(goal);
 }
 
-ompl::geometric::SimpleSetup::SimpleSetup(const base::SpaceInformationPtr &si) :
-    configured_(false), planTime_(0.0), simplifyTime_(0.0), lastStatus_(base::PlannerStatus::UNKNOWN)
+ompl::geometric::SimpleSetup::SimpleSetup(const base::SpaceInformationPtr &si)
+  : configured_(false), planTime_(0.0), simplifyTime_(0.0), lastStatus_(base::PlannerStatus::UNKNOWN)
 {
     si_ = si;
     pdef_.reset(new base::ProblemDefinition(si_));
 }
 
-ompl::geometric::SimpleSetup::SimpleSetup(const base::StateSpacePtr &space) :
-    configured_(false), planTime_(0.0), simplifyTime_(0.0), lastStatus_(base::PlannerStatus::UNKNOWN)
+ompl::geometric::SimpleSetup::SimpleSetup(const base::StateSpacePtr &space)
+  : configured_(false), planTime_(0.0), simplifyTime_(0.0), lastStatus_(base::PlannerStatus::UNKNOWN)
 {
     si_.reset(new base::SpaceInformation(space));
     pdef_.reset(new base::ProblemDefinition(si_));
@@ -87,8 +87,8 @@ void ompl::geometric::SimpleSetup::clear()
         pdef_->clearSolutionPaths();
 }
 
-void ompl::geometric::SimpleSetup::setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal,
-                                                         const double threshold)
+void ompl::geometric::SimpleSetup::setStartAndGoalStates(const base::ScopedState<> &start,
+                                                         const base::ScopedState<> &goal, const double threshold)
 {
     pdef_->setStartAndGoalStates(start, goal, threshold);
 
@@ -116,8 +116,8 @@ void ompl::geometric::SimpleSetup::setGoal(const base::GoalPtr &goal)
         psk_.reset(new PathSimplifier(si_));
 }
 
-
-// we provide a duplicate implementation here to allow the planner to choose how the time is turned into a planner termination condition
+// we provide a duplicate implementation here to allow the planner to choose how the time is turned into a planner
+// termination condition
 ompl::base::PlannerStatus ompl::geometric::SimpleSetup::solve(double time)
 {
     setup();
@@ -154,7 +154,7 @@ void ompl::geometric::SimpleSetup::simplifySolution(const base::PlannerTerminati
         if (p)
         {
             time::point start = time::now();
-            PathGeometric &path = static_cast<PathGeometric&>(*p);
+            PathGeometric &path = static_cast<PathGeometric &>(*p);
             std::size_t numStates = path.getStateCount();
             psk_->simplify(path, ptc);
             simplifyTime_ = time::seconds(time::now() - start);
@@ -174,12 +174,12 @@ void ompl::geometric::SimpleSetup::simplifySolution(double duration)
         if (p)
         {
             time::point start = time::now();
-            PathGeometric &path = static_cast<PathGeometric&>(*p);
+            PathGeometric &path = static_cast<PathGeometric &>(*p);
             std::size_t numStates = path.getStateCount();
             if (duration < std::numeric_limits<double>::epsilon())
-                psk_->simplifyMax(static_cast<PathGeometric&>(*p));
+                psk_->simplifyMax(static_cast<PathGeometric &>(*p));
             else
-                psk_->simplify(static_cast<PathGeometric&>(*p), duration);
+                psk_->simplify(static_cast<PathGeometric &>(*p), duration);
             simplifyTime_ = time::seconds(time::now() - start);
             OMPL_INFORM("SimpleSetup: Path simplification took %f seconds and changed from %d to %d states",
                         simplifyTime_, numStates, path.getStateCount());
@@ -193,8 +193,8 @@ const std::string ompl::geometric::SimpleSetup::getSolutionPlannerName(void) con
 {
     if (pdef_)
     {
-        const ompl::base::PathPtr path; // convert to a generic path ptr
-        ompl::base::PlannerSolution solution(path); // a dummy solution
+        const ompl::base::PathPtr path;              // convert to a generic path ptr
+        ompl::base::PlannerSolution solution(path);  // a dummy solution
 
         // Get our desired solution
         pdef_->getSolution(solution);
@@ -203,20 +203,21 @@ const std::string ompl::geometric::SimpleSetup::getSolutionPlannerName(void) con
     throw Exception("No problem definition found");
 }
 
-ompl::geometric::PathGeometric& ompl::geometric::SimpleSetup::getSolutionPath() const
+ompl::geometric::PathGeometric &ompl::geometric::SimpleSetup::getSolutionPath() const
 {
     if (pdef_)
     {
         const base::PathPtr &p = pdef_->getSolutionPath();
         if (p)
-            return static_cast<PathGeometric&>(*p);
+            return static_cast<PathGeometric &>(*p);
     }
     throw Exception("No solution path");
 }
 
 bool ompl::geometric::SimpleSetup::haveExactSolutionPath() const
 {
-    return haveSolutionPath() && (!pdef_->hasApproximateSolution() || pdef_->getSolutionDifference() < std::numeric_limits<double>::epsilon());
+    return haveSolutionPath() && (!pdef_->hasApproximateSolution() ||
+                                  pdef_->getSolutionDifference() < std::numeric_limits<double>::epsilon());
 }
 
 void ompl::geometric::SimpleSetup::getPlannerData(base::PlannerData &pd) const

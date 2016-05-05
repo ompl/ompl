@@ -40,19 +40,19 @@
 
 ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const ControlSpacePtr &space) : SimpleSetup(space)
 {
-    if (!dynamic_cast<OpenDEControlSpace*>(space.get()))
+    if (!dynamic_cast<OpenDEControlSpace *>(space.get()))
         throw Exception("OpenDE Control Space needed for OpenDE Simple Setup");
     useEnvParams();
 }
 
-ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const base::StateSpacePtr &space) :
-    SimpleSetup(ControlSpacePtr(new OpenDEControlSpace(space)))
+ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const base::StateSpacePtr &space)
+  : SimpleSetup(ControlSpacePtr(new OpenDEControlSpace(space)))
 {
     useEnvParams();
 }
 
-ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const OpenDEEnvironmentPtr &env) :
-    SimpleSetup(ControlSpacePtr(new OpenDEControlSpace(base::StateSpacePtr(new OpenDEStateSpace(env)))))
+ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const OpenDEEnvironmentPtr &env)
+  : SimpleSetup(ControlSpacePtr(new OpenDEControlSpace(base::StateSpacePtr(new OpenDEStateSpace(env)))))
 {
     useEnvParams();
 }
@@ -106,14 +106,13 @@ void ompl::control::OpenDESimpleSetup::playSolutionPath(double timeFactor) const
 void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, double timeFactor) const
 {
     bool ctl = false;
-    if (dynamic_cast<PathControl*>(path.get()))
+    if (dynamic_cast<PathControl *>(path.get()))
         ctl = true;
-    else
-        if (!dynamic_cast<geometric::PathGeometric*>(path.get()))
-            throw Exception("Unknown type of path");
+    else if (!dynamic_cast<geometric::PathGeometric *>(path.get()))
+        throw Exception("Unknown type of path");
 
-    const geometric::PathGeometric &pg = ctl ?
-        static_cast<PathControl*>(path.get())->asGeometric() : *static_cast<geometric::PathGeometric*>(path.get());
+    const geometric::PathGeometric &pg = ctl ? static_cast<PathControl *>(path.get())->asGeometric() :
+                                               *static_cast<geometric::PathGeometric *>(path.get());
 
     if (pg.getStateCount() > 0)
     {
@@ -121,7 +120,7 @@ void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, doubl
                    timeFactor * si_->getPropagationStepSize() * (double)(pg.getStateCount() - 1));
         time::duration d = time::seconds(timeFactor * si_->getPropagationStepSize());
         getStateSpace()->as<OpenDEStateSpace>()->writeState(pg.getState(0));
-        for (unsigned int i = 1 ; i < pg.getStateCount() ; ++i)
+        for (unsigned int i = 1; i < pg.getStateCount(); ++i)
         {
             std::this_thread::sleep_for(d);
             getStateSpace()->as<OpenDEStateSpace>()->writeState(pg.getState(i));
@@ -132,7 +131,8 @@ void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, doubl
 ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const double *control, unsigned int steps) const
 {
     Control *c = si_->allocControl();
-    memcpy(c->as<OpenDEControlSpace::ControlType>()->values, control, sizeof(double) * getControlSpace()->getDimension());
+    memcpy(c->as<OpenDEControlSpace::ControlType>()->values, control,
+           sizeof(double) * getControlSpace()->getDimension());
     base::PathPtr path = simulateControl(c, steps);
     si_->freeControl(c);
     return path;

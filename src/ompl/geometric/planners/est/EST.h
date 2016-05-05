@@ -45,10 +45,8 @@
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /**
            @anchor gEST
            @par Short description
@@ -65,7 +63,8 @@ namespace ompl
            @par External documentation
            D. Hsu, J.-C. Latombe, and R. Motwani, Path planning in expansive configuration spaces,
            <em>Intl. J. Computational Geometry and Applications</em>,
-           vol. 9, no. 4-5, pp. 495–512, 1999. DOI: [10.1142/S0218195999000285](http://dx.doi.org/10.1142/S0218195999000285)<br>
+           vol. 9, no. 4-5, pp. 495–512, 1999. DOI:
+           [10.1142/S0218195999000285](http://dx.doi.org/10.1142/S0218195999000285)<br>
            [[PDF]](http://bigbird.comp.nus.edu.sg/pmwiki/farm/motion/uploads/Site/ijcga96.pdf)
         */
 
@@ -73,7 +72,6 @@ namespace ompl
         class EST : public base::Planner
         {
         public:
-
             /** \brief Constructor */
             EST(const base::SpaceInformationPtr &si);
 
@@ -132,7 +130,7 @@ namespace ompl
             }
 
             /** \brief Get the projection evaluator */
-            const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
+            const base::ProjectionEvaluatorPtr &getProjectionEvaluator() const
             {
                 return projectionEvaluator_;
             }
@@ -142,12 +140,10 @@ namespace ompl
             virtual void getPlannerData(base::PlannerData &data) const;
 
         protected:
-
             /** \brief The definition of a motion */
             class Motion
             {
             public:
-
                 Motion() : state(nullptr), parent(nullptr)
                 {
                 }
@@ -162,10 +158,10 @@ namespace ompl
                 }
 
                 /** \brief The state contained by the motion */
-                base::State       *state;
+                base::State *state;
 
                 /** \brief The parent motion in the exploration tree */
-                Motion            *parent;
+                Motion *parent;
             };
 
             struct MotionInfo;
@@ -174,16 +170,16 @@ namespace ompl
             typedef Grid<MotionInfo>::Cell GridCell;
 
             /** \brief A PDF of grid cells */
-            typedef PDF<GridCell*>        CellPDF;
+            typedef PDF<GridCell *> CellPDF;
 
             /** \brief A struct containing an array of motions and a corresponding PDF element */
             struct MotionInfo
             {
-                Motion* operator[](unsigned int i)
+                Motion *operator[](unsigned int i)
                 {
                     return motions_[i];
                 }
-                const Motion* operator[](unsigned int i) const
+                const Motion *operator[](unsigned int i) const
                 {
                     return motions_[i];
                 }
@@ -199,10 +195,9 @@ namespace ompl
                 {
                     return motions_.empty();
                 }
-                std::vector<Motion*> motions_;
-                CellPDF::Element    *elem_;
+                std::vector<Motion *> motions_;
+                CellPDF::Element *elem_;
             };
-
 
             /** \brief The data contained by a tree of exploration */
             struct TreeData
@@ -215,7 +210,7 @@ namespace ompl
                 Grid<MotionInfo> grid;
 
                 /** \brief The total number of motions in the grid */
-                unsigned int    size;
+                unsigned int size;
             };
 
             /** \brief Free the memory allocated by this planner */
@@ -225,33 +220,34 @@ namespace ompl
             void addMotion(Motion *motion);
 
             /** \brief Select a motion to continue the expansion of the tree from */
-            Motion* selectMotion();
+            Motion *selectMotion();
 
             /** \brief Valid state sampler */
-            base::ValidStateSamplerPtr   sampler_;
+            base::ValidStateSamplerPtr sampler_;
 
             /** \brief The exploration tree constructed by this algorithm */
-            TreeData                     tree_;
+            TreeData tree_;
 
-            /** \brief This algorithm uses a discretization (a grid) to guide the exploration. The exploration is imposed on a projection of the state space. */
+            /** \brief This algorithm uses a discretization (a grid) to guide the exploration. The exploration is
+             * imposed on a projection of the state space. */
             base::ProjectionEvaluatorPtr projectionEvaluator_;
 
-            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
-            double                       goalBias_;
+            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
+             * available) */
+            double goalBias_;
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double                       maxDistance_;
+            double maxDistance_;
 
             /** \brief The random number generator */
-            RNG                          rng_;
+            RNG rng_;
 
             /** \brief The PDF used for selecting a cell from which to sample a motion */
-            CellPDF                      pdf_;
+            CellPDF pdf_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion                       *lastGoalMotion_;
+            Motion *lastGoalMotion_;
         };
-
     }
 }
 

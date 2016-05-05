@@ -40,36 +40,35 @@
 #include <boost/foreach.hpp>
 #include <boost/math/constants/constants.hpp>
 
-namespace {
+namespace
+{
     int getK(unsigned int n, double k_rrg)
     {
         return std::ceil(k_rrg * log((double)(n + 1)));
     }
 }
 
-ompl::geometric::LazyLBTRRT::LazyLBTRRT(const base::SpaceInformationPtr &si) :
-    base::Planner(si, "LazyLBTRRT"),
-    goalBias_(0.05),
-    maxDistance_(0.0),
-    epsilon_(0.4),
-    lastGoalMotion_(nullptr),
-    goalMotion_(nullptr),
-    LPAstarApx_(nullptr),
-    LPAstarLb_(nullptr),
-    iterations_(0)
+ompl::geometric::LazyLBTRRT::LazyLBTRRT(const base::SpaceInformationPtr &si)
+  : base::Planner(si, "LazyLBTRRT")
+  , goalBias_(0.05)
+  , maxDistance_(0.0)
+  , epsilon_(0.4)
+  , lastGoalMotion_(nullptr)
+  , goalMotion_(nullptr)
+  , LPAstarApx_(nullptr)
+  , LPAstarLb_(nullptr)
+  , iterations_(0)
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;
 
     Planner::declareParam<double>("range", this, &LazyLBTRRT::setRange, &LazyLBTRRT::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &LazyLBTRRT::setGoalBias, &LazyLBTRRT::getGoalBias, "0.:.05:1.");
-    Planner::declareParam<double>("epsilon", this, &LazyLBTRRT::setApproximationFactor, &LazyLBTRRT::getApproximationFactor, "0.:.1:10.");
+    Planner::declareParam<double>("epsilon", this, &LazyLBTRRT::setApproximationFactor,
+                                  &LazyLBTRRT::getApproximationFactor, "0.:.1:10.");
 
-    addPlannerProgressProperty("iterations INTEGER",
-                               std::bind(&LazyLBTRRT::getIterationCount, this));
-    addPlannerProgressProperty("best cost REAL",
-                               std::bind(&LazyLBTRRT::getBestCost, this));
-
+    addPlannerProgressProperty("iterations INTEGER", std::bind(&LazyLBTRRT::getIterationCount, this));
+    addPlannerProgressProperty("best cost REAL", std::bind(&LazyLBTRRT::getBestCost, this));
 }
 
 ompl::geometric::LazyLBTRRT::~LazyLBTRRT(void)
@@ -99,17 +98,17 @@ void ompl::geometric::LazyLBTRRT::setup(void)
     sc.configurePlannerRange(maxDistance_);
 
     if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(std::bind(
-        (double(LazyLBTRRT::*)(const Motion*, const Motion*) const)
-            &LazyLBTRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
+    nn_->setDistanceFunction(
+        std::bind((double (LazyLBTRRT::*)(const Motion *, const Motion *) const) & LazyLBTRRT::distanceFunction, this,
+                  std::placeholders::_1, std::placeholders::_2));
 }
 
 void ompl::geometric::LazyLBTRRT::freeMemory(void)
 {
     if (idToMotionMap_.size() > 0)
     {
-        for (unsigned int i = 0 ; i < idToMotionMap_.size() ; ++i)
+        for (unsigned int i = 0; i < idToMotionMap_.size(); ++i)
         {
             if (idToMotionMap_[i]->state_)
                 si_->freeState(idToMotionMap_[i]->state_);
@@ -125,8 +124,8 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
 {
     checkValidity();
     // update goal and check validity
-    base::Goal                 *goal   = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     if (!goal)
     {
@@ -153,22 +152,22 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
 
     bool solved = false;
 
-    Motion *rmotion   = new Motion(si_);
+    Motion *rmotion = new Motion(si_);
     base::State *xstate = si_->allocState();
 
     goalMotion_ = createGoalMotion(goal_s);
 
     CostEstimatorLb costEstimatorLb(goal, idToMotionMap_);
-    LPAstarLb_ = new LPAstarLb(startMotion_->id_, goalMotion_->id_, graphLb_, costEstimatorLb);   //rooted at source
+    LPAstarLb_ = new LPAstarLb(startMotion_->id_, goalMotion_->id_, graphLb_, costEstimatorLb);  // rooted at source
     CostEstimatorApx costEstimatorApx(this);
-    LPAstarApx_ = new LPAstarApx(goalMotion_->id_, startMotion_->id_, graphApx_, costEstimatorApx);   //rooted at target
-    double  approxdif = std::numeric_limits<double>::infinity();
+    LPAstarApx_ = new LPAstarApx(goalMotion_->id_, startMotion_->id_, graphApx_, costEstimatorApx);  // rooted at target
+    double approxdif = std::numeric_limits<double>::infinity();
     // e+e/d.  K-nearest RRT*
     double k_rrg = boost::math::constants::e<double>() +
                    boost::math::constants::e<double>() / (double)si_->getStateSpace()->getDimension();
 
     ////////////////////////////////////////////
-    //step (1) - RRT
+    // step (1) - RRT
     ////////////////////////////////////////////
     bestCost_ = std::numeric_limits<double>::infinity();
     rrt(ptc, goal_s, xstate, rmotion, approxdif);
@@ -177,16 +176,16 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
         solved = true;
 
         ////////////////////////////////////////////
-        //step (2) - Lazy construction of G_lb
+        // step (2) - Lazy construction of G_lb
         ////////////////////////////////////////////
         idToMotionMap_.push_back(goalMotion_);
-        int k  = getK(idToMotionMap_.size(), k_rrg);
-        std::vector<Motion*> nnVec;
+        int k = getK(idToMotionMap_.size(), k_rrg);
+        std::vector<Motion *> nnVec;
         nnVec.reserve(k);
-        BOOST_FOREACH(Motion* motion, idToMotionMap_)
+        BOOST_FOREACH (Motion *motion, idToMotionMap_)
         {
             nn_->nearestK(motion, k, nnVec);
-            BOOST_FOREACH(Motion* neighbor, nnVec)
+            BOOST_FOREACH (Motion *neighbor, nnVec)
                 if (neighbor->id_ != motion->id_ && !edgeExistsLb(motion, neighbor))
                     addEdgeLb(motion, neighbor, distanceFunction(motion, neighbor));
         }
@@ -195,12 +194,12 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
     }
 
     ////////////////////////////////////////////
-    //step (3) - anytime planning
+    // step (3) - anytime planning
     ////////////////////////////////////////////
     while (ptc() == false)
     {
-        std::tuple<Motion*, base::State*, double> res = rrtExtend(goal_s, xstate, rmotion, approxdif);
-        Motion * nmotion= std::get<0>(res);
+        std::tuple<Motion *, base::State *, double> res = rrtExtend(goal_s, xstate, rmotion, approxdif);
+        Motion *nmotion = std::get<0>(res);
         base::State *dstate = std::get<1>(res);
         double d = std::get<2>(res);
 
@@ -208,29 +207,27 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
         if (dstate != nullptr)
         {
             /* create a motion */
-            Motion* motion = createMotion(goal_s, dstate);
+            Motion *motion = createMotion(goal_s, dstate);
             addEdgeApx(nmotion, motion, d);
             addEdgeLb(nmotion, motion, d);
 
-            int k  = getK(nn_->size(), k_rrg);
-            std::vector<Motion*> nnVec;
+            int k = getK(nn_->size(), k_rrg);
+            std::vector<Motion *> nnVec;
             nnVec.reserve(k);
             nn_->nearestK(motion, k, nnVec);
 
-            BOOST_FOREACH(Motion* neighbor, nnVec)
+            BOOST_FOREACH (Motion *neighbor, nnVec)
                 if (neighbor->id_ != motion->id_ && !edgeExistsLb(motion, neighbor))
                     addEdgeLb(motion, neighbor, distanceFunction(motion, neighbor));
 
             closeBounds(ptc);
         }
 
-
         std::list<std::size_t> pathApx;
         double costApx = LPAstarApx_->computeShortestPath(pathApx);
         if (bestCost_ > costApx)
         {
-            OMPL_INFORM("%s: approximation cost = %g", getName().c_str(),
-                costApx);
+            OMPL_INFORM("%s: approximation cost = %g", getName().c_str(), costApx);
             bestCost_ = costApx;
         }
     }
@@ -243,8 +240,8 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
         /* set the solution path */
         PathGeometric *path = new PathGeometric(si_);
 
-        //the path is in reverse order
-        for (std::list<std::size_t>::reverse_iterator rit = pathApx.rbegin(); rit!=pathApx.rend(); ++rit)
+        // the path is in reverse order
+        for (std::list<std::size_t>::reverse_iterator rit = pathApx.rbegin(); rit != pathApx.rend(); ++rit)
             path->append(idToMotionMap_[*rit]->state_);
 
         pdef_->addSolutionPath(base::PathPtr(path), !solved, 0);
@@ -260,9 +257,8 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
     return base::PlannerStatus(solved, !solved);
 }
 
-std::tuple<ompl::geometric::LazyLBTRRT::Motion*, ompl::base::State*, double>
-ompl::geometric::LazyLBTRRT::rrtExtend(const base::GoalSampleableRegion* goal_s,
-    base::State *xstate, Motion *rmotion, double &approxdif)
+std::tuple<ompl::geometric::LazyLBTRRT::Motion *, ompl::base::State *, double> ompl::geometric::LazyLBTRRT::rrtExtend(
+    const base::GoalSampleableRegion *goal_s, base::State *xstate, Motion *rmotion, double &approxdif)
 {
     base::State *rstate = rmotion->state_;
     sampleBiased(goal_s, rstate);
@@ -280,7 +276,7 @@ ompl::geometric::LazyLBTRRT::rrtExtend(const base::GoalSampleableRegion* goal_s,
     }
 
     if (checkMotion(nmotion->state_, dstate) == false)
-        return std::make_tuple((Motion*)nullptr, (base::State*)nullptr, 0.0);
+        return std::make_tuple((Motion *)nullptr, (base::State *)nullptr, 0.0);
 
     // motion is valid
     double dist = 0.0;
@@ -297,13 +293,13 @@ ompl::geometric::LazyLBTRRT::rrtExtend(const base::GoalSampleableRegion* goal_s,
     return std::make_tuple(nmotion, dstate, d);
 }
 
-void ompl::geometric::LazyLBTRRT::rrt(const base::PlannerTerminationCondition &ptc,
-    base::GoalSampleableRegion *goal_s, base::State *xstate, Motion *rmotion, double &approxdif)
+void ompl::geometric::LazyLBTRRT::rrt(const base::PlannerTerminationCondition &ptc, base::GoalSampleableRegion *goal_s,
+                                      base::State *xstate, Motion *rmotion, double &approxdif)
 {
     while (ptc() == false)
     {
-        std::tuple<Motion*, base::State*, double> res = rrtExtend(goal_s, xstate, rmotion, approxdif);
-        Motion* nmotion = std::get<0>(res);
+        std::tuple<Motion *, base::State *, double> res = rrtExtend(goal_s, xstate, rmotion, approxdif);
+        Motion *nmotion = std::get<0>(res);
         base::State *dstate = std::get<1>(res);
         double d = std::get<2>(res);
 
@@ -311,7 +307,7 @@ void ompl::geometric::LazyLBTRRT::rrt(const base::PlannerTerminationCondition &p
         if (dstate != nullptr)
         {
             /* create a motion */
-            Motion* motion = createMotion(goal_s, dstate);
+            Motion *motion = createMotion(goal_s, dstate);
             addEdgeApx(nmotion, motion, d);
 
             if (motion == goalMotion_)
@@ -327,7 +323,7 @@ void ompl::geometric::LazyLBTRRT::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state_));
 
-    for (unsigned int i = 0 ; i < idToMotionMap_.size() ; ++i)
+    for (unsigned int i = 0; i < idToMotionMap_.size(); ++i)
     {
         const base::State *parent = idToMotionMap_[i]->state_;
         if (boost::in_degree(i, graphApx_) == 0)
@@ -340,15 +336,13 @@ void ompl::geometric::LazyLBTRRT::getPlannerData(base::PlannerData &data) const
             for (boost::tie(ei, ei_end) = boost::out_edges(i, graphApx_); ei != ei_end; ++ei)
             {
                 std::size_t v = boost::target(*ei, graphApx_);
-                data.addEdge(base::PlannerDataVertex(idToMotionMap_[v]->state_),
-                             base::PlannerDataVertex(parent));
+                data.addEdge(base::PlannerDataVertex(idToMotionMap_[v]->state_), base::PlannerDataVertex(parent));
             }
         }
     }
 }
 
-void ompl::geometric::LazyLBTRRT::sampleBiased(const base::GoalSampleableRegion *goal_s,
-    base::State *rstate)
+void ompl::geometric::LazyLBTRRT::sampleBiased(const base::GoalSampleableRegion *goal_s, base::State *rstate)
 {
     /* sample random state (with goal biasing) */
     if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
@@ -358,9 +352,8 @@ void ompl::geometric::LazyLBTRRT::sampleBiased(const base::GoalSampleableRegion 
     return;
 };
 
-
-ompl::geometric::LazyLBTRRT::Motion* ompl::geometric::LazyLBTRRT::createMotion(
-    const base::GoalSampleableRegion *goal_s, const base::State *st)
+ompl::geometric::LazyLBTRRT::Motion *ompl::geometric::LazyLBTRRT::createMotion(const base::GoalSampleableRegion *goal_s,
+                                                                               const base::State *st)
 {
     if (goal_s->isSatisfied(st))
         return goalMotion_;
@@ -375,7 +368,8 @@ ompl::geometric::LazyLBTRRT::Motion* ompl::geometric::LazyLBTRRT::createMotion(
     return motion;
 }
 
-ompl::geometric::LazyLBTRRT::Motion* ompl::geometric::LazyLBTRRT::createGoalMotion(const base::GoalSampleableRegion *goal_s)
+ompl::geometric::LazyLBTRRT::Motion *
+ompl::geometric::LazyLBTRRT::createGoalMotion(const base::GoalSampleableRegion *goal_s)
 {
     ompl::base::State *gstate = si_->allocState();
     goal_s->sampleGoal(gstate);
@@ -414,16 +408,17 @@ void ompl::geometric::LazyLBTRRT::closeBounds(const base::PlannerTerminationCond
             u = *pathLbIter;
         }
 
-        Motion* motionU = idToMotionMap_[u];
-        Motion* motionV = idToMotionMap_[v];
+        Motion *motionU = idToMotionMap_[u];
+        Motion *motionV = idToMotionMap_[v];
         if (checkMotion(motionU, motionV))
         {
             // note that we change the direction between u and v due to the diff in definition between Apx and LB
-            addEdgeApx(motionV, motionU, distanceFunction(motionU, motionV)); // the distance here can be obtained from the LB graph
+            addEdgeApx(motionV, motionU,
+                       distanceFunction(motionU, motionV));  // the distance here can be obtained from the LB graph
             pathApx.clear();
             costApx = LPAstarApx_->computeShortestPath(pathApx);
         }
-        else // the edge (u,v) was not collision free
+        else  // the edge (u,v) was not collision free
         {
             removeEdgeLb(motionU, motionV);
             pathLb.clear();

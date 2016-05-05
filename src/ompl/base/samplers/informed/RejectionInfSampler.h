@@ -45,44 +45,54 @@ namespace ompl
     namespace base
     {
         /** \brief A default rejection sampling scheme that samples uniformly from the entire planning domain.
-        Samples are rejected until one is found that has a heuristic solution estimate that is less than the current solution.
+        Samples are rejected until one is found that has a heuristic solution estimate that is less than the current
+        solution.
         In general, direct sampling of the informed subset is much better, but this is a general default.
 
         */
         class RejectionInfSampler : public InformedSampler
         {
         public:
-            /** \brief Construct a rejection sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution. */
+            /** \brief Construct a rejection sampler that only generates states with a heuristic solution estimate that
+             * is less than the cost of the current solution. */
             RejectionInfSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls);
             virtual ~RejectionInfSampler()
             {
             }
 
-            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost, i.e. in the interval [0, maxCost). Returns false if such a state was not found in the specified number of iterations. */
+            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less
+             * than the provided cost, i.e. in the interval [0, maxCost). Returns false if such a state was not found in
+             * the specified number of iterations. */
             virtual bool sampleUniform(State *statePtr, const Cost &maxCost);
 
-            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are between the provided costs, [minCost, maxCost). Returns false if such a state was not found in the specified number of iterations. */
+            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are between
+             * the provided costs, [minCost, maxCost). Returns false if such a state was not found in the specified
+             * number of iterations. */
             virtual bool sampleUniform(State *statePtr, const Cost &minCost, const Cost &maxCost);
 
             /** \brief Whether the sampler can provide a measure of the informed subset */
             virtual bool hasInformedMeasure() const;
 
-            /** \brief The measure of the subset of the state space defined by the current solution cost that is being searched. As rejection sampling has no closed-form knowledge of the informed subset, the measure of the informed space is always the measure of the entire space. */
-            virtual double getInformedMeasure(const Cost &/*currentCost*/) const;
+            /** \brief The measure of the subset of the state space defined by the current solution cost that is being
+             * searched. As rejection sampling has no closed-form knowledge of the informed subset, the measure of the
+             * informed space is always the measure of the entire space. */
+            virtual double getInformedMeasure(const Cost & /*currentCost*/) const;
 
-            /** \brief The measure of the subset of the state space defined by the current solution cost that is being searched. As rejection sampling has no closed-form knowledge of the informed subset, the measure of the informed space is always the measure of the entire space. */
-            virtual double getInformedMeasure(const Cost &/*minCost*/, const Cost &/*maxCost*/) const;
+            /** \brief The measure of the subset of the state space defined by the current solution cost that is being
+             * searched. As rejection sampling has no closed-form knowledge of the informed subset, the measure of the
+             * informed space is always the measure of the entire space. */
+            virtual double getInformedMeasure(const Cost & /*minCost*/, const Cost & /*maxCost*/) const;
 
         private:
             // Variables
             /** \brief The basic raw sampler used to generate samples to keep/reject. */
             StateSamplerPtr baseSampler_;
 
-            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost using a persistent iteration counter */
+            /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less
+             * than the provided cost using a persistent iteration counter */
             bool sampleUniform(State *statePtr, const Cost &maxCost, unsigned int *iterPtr);
         };
     }
 }
 
-
-#endif // OMPL_BASE_SAMPLERS_INFORMED_REJECTION_INFORMED_SAMPLER_
+#endif  // OMPL_BASE_SAMPLERS_INFORMED_REJECTION_INFORMED_SAMPLER_

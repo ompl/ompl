@@ -43,7 +43,6 @@
 
 namespace ompl
 {
-
     /** \brief A nearest neighbors datastructure that uses linear
         search.
 
@@ -53,7 +52,7 @@ namespace ompl
         \li Adding an element to the datastructure is O(1).
         \li Removing an element from the datastructure O(n).
     */
-    template<typename _T>
+    template <typename _T>
     class NearestNeighborsLinear : public NearestNeighbors<_T>
     {
     public:
@@ -89,7 +88,7 @@ namespace ompl
         virtual bool remove(const _T &data)
         {
             if (!data_.empty())
-                for (int i = data_.size() - 1 ; i >= 0 ; --i)
+                for (int i = data_.size() - 1; i >= 0; --i)
                     if (data_[i] == data)
                     {
                         data_.erase(data_.begin() + i);
@@ -103,7 +102,7 @@ namespace ompl
             const std::size_t sz = data_.size();
             std::size_t pos = sz;
             double dmin = 0.0;
-            for (std::size_t i = 0 ; i < sz ; ++i)
+            for (std::size_t i = 0; i < sz; ++i)
             {
                 double distance = NearestNeighbors<_T>::distFun_(data_[i], data);
                 if (pos == sz || dmin > distance)
@@ -138,7 +137,7 @@ namespace ompl
         virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const
         {
             nbh.clear();
-            for (std::size_t i = 0 ; i < data_.size() ; ++i)
+            for (std::size_t i = 0; i < data_.size(); ++i)
                 if (NearestNeighbors<_T>::distFun_(data_[i], data) <= radius)
                     nbh.push_back(data_[i]);
             std::sort(nbh.begin(), nbh.end(), ElemSort(data, NearestNeighbors<_T>::distFun_));
@@ -155,12 +154,10 @@ namespace ompl
         }
 
     protected:
-
         /** \brief The data elements stored in this structure */
-        std::vector<_T>   data_;
+        std::vector<_T> data_;
 
     private:
-
         struct ElemSort
         {
             ElemSort(const _T &e, const typename NearestNeighbors<_T>::DistanceFunction &df) : e_(e), df_(df)
@@ -172,13 +169,10 @@ namespace ompl
                 return df_(a, e_) < df_(b, e_);
             }
 
-            const _T                                              &e_;
+            const _T &e_;
             const typename NearestNeighbors<_T>::DistanceFunction &df_;
         };
-
     };
-
-
 }
 
 #endif

@@ -38,7 +38,7 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <cstring>
 
-ompl::base::State* ompl::base::SE2StateSpace::allocState() const
+ompl::base::State *ompl::base::SE2StateSpace::allocState() const
 {
     StateType *state = new StateType();
     allocStateComponents(state);
@@ -55,7 +55,6 @@ void ompl::base::SE2StateSpace::registerProjections()
     class SE2DefaultProjection : public ProjectionEvaluator
     {
     public:
-
         SE2DefaultProjection(const StateSpace *space) : ProjectionEvaluator(space)
         {
         }
@@ -75,9 +74,12 @@ void ompl::base::SE2StateSpace::registerProjections()
 
         virtual void project(const State *state, EuclideanProjection &projection) const
         {
-            memcpy(&projection(0), state->as<SE2StateSpace::StateType>()->as<RealVectorStateSpace::StateType>(0)->values, 2 * sizeof(double));
+            memcpy(&projection(0),
+                   state->as<SE2StateSpace::StateType>()->as<RealVectorStateSpace::StateType>(0)->values,
+                   2 * sizeof(double));
         }
     };
 
-    registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SE2DefaultProjection(this))));
+    registerDefaultProjection(
+        ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator *>(new SE2DefaultProjection(this))));
 }

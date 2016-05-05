@@ -77,9 +77,10 @@ namespace ompl
             {
             }
 
-            /// Convenience constructor that sets status_ based on whether some solution was found (\e hasSolution) and whether that solution was approximate or not (\e isApproximate)
+            /// Convenience constructor that sets status_ based on whether some solution was found (\e hasSolution) and
+            /// whether that solution was approximate or not (\e isApproximate)
             PlannerStatus(bool hasSolution, bool isApproximate)
-                : status_ (hasSolution ? (isApproximate ? APPROXIMATE_SOLUTION : EXACT_SOLUTION) : TIMEOUT)
+              : status_(hasSolution ? (isApproximate ? APPROXIMATE_SOLUTION : EXACT_SOLUTION) : TIMEOUT)
             {
             }
 
@@ -102,7 +103,7 @@ namespace ompl
         };
 
         /// Print a PlannerStatus object
-        inline std::ostream& operator<<(std::ostream& out, const PlannerStatus& status)
+        inline std::ostream &operator<<(std::ostream &out, const PlannerStatus &status)
         {
             return out << status.asString();
         }

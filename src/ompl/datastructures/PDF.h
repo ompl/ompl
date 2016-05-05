@@ -48,16 +48,17 @@ namespace ompl
     class PDF
     {
     public:
-
         /** \brief A class that will hold data contained in the PDF. */
         class Element
         {
             friend class PDF;
+
         public:
             /** \brief The data contained in this Element. */
             _T data_;
+
         private:
-            Element(const _T& d, const std::size_t i) : data_(d), index_(i)
+            Element(const _T &d, const std::size_t i) : data_(d), index_(i)
             {
             }
             std::size_t index_;
@@ -69,13 +70,13 @@ namespace ompl
         }
 
         /** \brief Constructs a PDF containing a given vector of data with given weights. */
-        PDF(const std::vector<_T>& d, const std::vector<double>& weights)
+        PDF(const std::vector<_T> &d, const std::vector<double> &weights)
         {
             if (d.size() != weights.size())
                 throw Exception("Data vector and weight vector must be of equal length");
-            //by default, reserve space for 512 elements
+            // by default, reserve space for 512 elements
             data_.reserve(512u);
-            //n elements require at most log2(n)+2 rows of the tree
+            // n elements require at most log2(n)+2 rows of the tree
             tree_.reserve(11u);
             for (std::size_t i = 0; i < d.size(); ++i)
                 add(d[i], weights[i]);
@@ -88,13 +89,14 @@ namespace ompl
         }
 
         /** \brief Get the current set of stored elements */
-        const std::vector<Element*>& getElements()
+        const std::vector<Element *> &getElements()
         {
             return data_;
         }
 
-        /** \brief Adds a piece of data with a given weight to the PDF. Returns a corresponding Element, which can be used to subsequently update or remove the data from the PDF. */
-        Element* add(const _T& d, const double w)
+        /** \brief Adds a piece of data with a given weight to the PDF. Returns a corresponding Element, which can be
+         * used to subsequently update or remove the data from the PDF. */
+        Element *add(const _T &d, const double w)
         {
             if (w < 0)
                 throw Exception("Weight argument must be a nonnegative value");
@@ -109,7 +111,7 @@ namespace ompl
             tree_.front().push_back(w);
             for (std::size_t i = 1; i < tree_.size(); ++i)
             {
-                if (tree_[i-1].size() % 2 == 1)
+                if (tree_[i - 1].size() % 2 == 1)
                     tree_[i].push_back(w);
                 else
                 {
@@ -121,7 +123,7 @@ namespace ompl
                     return elem;
                 }
             }
-            //If we've made it here, then we need to add a new head to the tree.
+            // If we've made it here, then we need to add a new head to the tree.
             std::vector<double> head(1, tree_.back()[0] + tree_.back()[1]);
             tree_.push_back(head);
             return elem;
@@ -129,7 +131,7 @@ namespace ompl
 
         /** \brief Returns a piece of data from the PDF according to the input sampling value,
 which must be between 0 and 1. */
-        _T& sample(double r) const
+        _T &sample(double r) const
         {
             if (data_.empty())
                 throw Exception("Cannot sample from an empty PDF");
@@ -173,7 +175,8 @@ which must be between 0 and 1. */
             return tree_.front()[elem->index_];
         }
 
-        /** \brief Removes the data in the given Element from the PDF. After calling this function, the Element object should no longer be used. */
+        /** \brief Removes the data in the given Element from the PDF. After calling this function, the Element object
+         * should no longer be used. */
         void remove(Element *elem)
         {
             if (data_.size() == 1)
@@ -188,7 +191,7 @@ which must be between 0 and 1. */
             delete data_[index];
 
             double weight;
-            if (index+1 == data_.size())
+            if (index + 1 == data_.size())
                 weight = tree_.front().back();
             else
             {
@@ -200,7 +203,7 @@ which must be between 0 and 1. */
                  * we don't need to make an extra pass over the tree.
                  * The amount by which we change the values at the edge
                  * of the tree is different in this case. */
-                if (index+2 == data_.size() && index%2 == 0)
+                if (index + 2 == data_.size() && index % 2 == 0)
                     weight = tree_.front().back();
                 else
                 {
@@ -219,9 +222,9 @@ which must be between 0 and 1. */
              * pop it off and update the corresponding weights. */
             data_.pop_back();
             tree_.front().pop_back();
-            for (std::size_t i = 1; i < tree_.size() && tree_[i-1].size() > 1; ++i)
+            for (std::size_t i = 1; i < tree_.size() && tree_[i - 1].size() > 1; ++i)
             {
-                if (tree_[i-1].size() % 2 == 0)
+                if (tree_[i - 1].size() % 2 == 0)
                     tree_[i].pop_back();
                 else
                 {
@@ -233,14 +236,14 @@ which must be between 0 and 1. */
                     return;
                 }
             }
-            //If we've made it here, then we need to remove a redundant head from the tree.
+            // If we've made it here, then we need to remove a redundant head from the tree.
             tree_.pop_back();
         }
 
         /** \brief Clears the PDF. */
         void clear()
         {
-            for (typename std::vector<Element*>::iterator e = data_.begin(); e != data_.end(); ++e)
+            for (typename std::vector<Element *>::iterator e = data_.begin(); e != data_.end(); ++e)
                 delete *e;
             data_.clear();
             tree_.clear();
@@ -253,7 +256,7 @@ which must be between 0 and 1. */
         }
 
         /** \brief Returns indexed data from the PDF, according to order of insertion. */
-        const _T& operator[](unsigned int i) const
+        const _T &operator[](unsigned int i) const
         {
             return data_[i]->data_;
         }
@@ -265,7 +268,7 @@ which must be between 0 and 1. */
         }
 
         /** \brief Prints the PDF tree to a given output stream. Used for debugging purposes. */
-        void printTree(std::ostream& out = std::cout) const
+        void printTree(std::ostream &out = std::cout) const
         {
             if (tree_.empty())
                 return;
@@ -282,9 +285,8 @@ which must be between 0 and 1. */
         }
 
     private:
-
-        std::vector<Element*>              data_;
-        std::vector<std::vector<double > > tree_;
+        std::vector<Element *> data_;
+        std::vector<std::vector<double>> tree_;
     };
 }
 
