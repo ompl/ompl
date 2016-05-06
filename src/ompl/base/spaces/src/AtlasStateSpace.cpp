@@ -306,29 +306,39 @@ bool ompl::base::AtlasMotionValidator::checkMotion (
     // XXX We are supposed to be able to assume that s1 is valid. However, it's
     // not sometimes, and I don't know why. We shouldn't have to check that
     // stateList is non-empty.
+    double distanceTraveled = 0;
+    double approxDistanceRemaining = 0;
     if (stateList.size() > 0) {
         for (std::size_t i = 0; i < stateList.size()-1; i++)
+        {
+            if (!reached)
+                distanceTraveled += atlas_.distance(stateList[i], stateList[i+1]);
             atlas_.freeState(stateList[i]);
+        }
     
         // Check if manifold traversal stopped early and set its final state as
         // lastValid.
         if (!reached && lastValid.first)
             atlas_.copyState(lastValid.first, stateList.back());
         atlas_.freeState(stateList.back());
+
+        // Compute the interpolation parameter of the last valid
+        // state. (Although if you then interpolate, you probably won't get this
+        // exact state back.)
+        if (!reached)
+        {
+            approxDistanceRemaining = atlas_.distance(lastValid.first, as2);
+            lastValid.second = distanceTraveled / (distanceTraveled + approxDistanceRemaining);
+        }
+        return reached;
     }
-    
-    // Compute the interpolation parameter of the last valid state. (Although if
-    // you then interpolate, you probably won't get this exact state back.)
-    if (!reached)
+    else
     {
-        Eigen::Ref<const Eigen::VectorXd> x =
-            lastValid.first->as<AtlasStateSpace::StateType>()->constVectorView();
-        Eigen::Ref<const Eigen::VectorXd> a = as1->constVectorView();
-        Eigen::Ref<const Eigen::VectorXd> b = as2->constVectorView();
-        lastValid.second = (x-a).dot(b-a) / (b-a).squaredNorm();
+        if (lastValid.first)
+            atlas_.copyState(lastValid.first, as1);
+        lastValid.second = 0;
+        return false;
     }
-    
-    return reached;
 }
 
 /// AtlasStateSpace::StateType

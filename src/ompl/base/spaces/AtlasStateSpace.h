@@ -134,15 +134,19 @@ namespace ompl
             /** \brief Constructor. */
             AtlasMotionValidator (const SpaceInformationPtr &si);
             
-            /** \brief Return whether we can step from \a s1 to \a s2 without collision. */
+            /** \brief Return whether we can step from \a s1 to \a s2 along the
+             * manifold without collision. */
             bool checkMotion (const State *s1, const State *s2) const;
             
-            /** \brief Return whether we can step from \a s1 to \a s2 without collision.
-             * If not, return the last valid state and its interpolation parameter in \a lastValid. 
-             * If traversing the manifold terminates because it exits the ball of radius d(s1,s2), or
-             * accumulates a distance traveled longer than lambda*d(d1,s2), the interpolation parameter is
-             * computed as though \a s2 were the final state visited before this termination. */
-            bool checkMotion (const State *s1, const State *s2, std::pair<State *, double> &lastValid) const;
+            /** \brief Return whether we can step from \a s1 to \a s2 along the
+             * manifold without collision. If not, return the last valid state
+             * and its interpolation parameter in \a lastValid.
+             * \note The interpolation parameter will not likely reproduce the
+             * last valid state if used in interpolation since the distance
+             * between the last valid state and \a s2 is estimated using the
+             * ambient metric. */
+            bool checkMotion (const State *s1, const State *s2,
+                              std::pair<State *, double> &lastValid) const;
             
         private:
             
