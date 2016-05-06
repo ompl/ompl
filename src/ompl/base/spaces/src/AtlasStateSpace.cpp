@@ -41,13 +41,7 @@
 #include "ompl/base/spaces/AtlasChart.h"
 #include "ompl/util/Exception.h"
 
-#include <signal.h>
-
-#include <boost/foreach.hpp>
-#include <boost/math/special_functions/gamma.hpp>
-#include <boost/lambda/bind.hpp>
-#include <boost/lambda/lambda.hpp>
-#include <boost/thread/lock_guard.hpp>
+#include <boost/graph/iteration_macros.hpp>
 
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
@@ -895,8 +889,8 @@ void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, st
     std::stringstream v, f;
     std::size_t vcount = 0;
     std::size_t fcount = 0;
-    
-    BOOST_FOREACH (PlannerData::Graph::Edge edge, boost::edges(graph))
+
+    BGL_FORALL_EDGES(edge, graph, PlannerData::Graph)
     {
         std::vector<StateType *> stateList;
         const State *const source = boost::get(vertex_type, graph, boost::source(edge, graph))->getState();
