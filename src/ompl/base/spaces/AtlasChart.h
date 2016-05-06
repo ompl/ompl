@@ -263,13 +263,6 @@ namespace ompl
             
             /** \brief Basis for the chart space. */
             Eigen::MatrixXd bigPhi_;
-
-            /// @cond IGNORE
-            /** \brief Compare the angles that \a x1 and \a x2 make around the
-             * origin after projection to the chart plane. Requires k_ == 2. */
-            bool angleCompare (Eigen::Ref<const Eigen::VectorXd> x1,
-                               Eigen::Ref<const Eigen::VectorXd> x2) const;
-            /// @endcond
         };
     }
 }

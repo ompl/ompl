@@ -191,8 +191,8 @@ ompl::base::AtlasChart::~AtlasChart (void)
 
 void ompl::base::AtlasChart::clear (void)
 {
-    for (std::size_t i = 0; i < bigL_.size(); i++)
-        delete bigL_[i];
+    for (Halfspace *h : bigL_)
+        delete h;
     bigL_.clear();
 }
 
@@ -259,37 +259,36 @@ void ompl::base::AtlasChart::psiInverse (Eigen::Ref<const Eigen::VectorXd> x, Ei
 bool ompl::base::AtlasChart::inP (Eigen::Ref<const Eigen::VectorXd> u, const Halfspace *const ignore1,
                                   const Halfspace *const ignore2) const
 {
-    for (std::size_t i = 0; i < bigL_.size(); i++)
+    for (Halfspace *h : bigL_)
     {
-        // Skip these.
-        if (bigL_[i] == ignore1 || bigL_[i] == ignore2)
+        if (h == ignore1 || h == ignore2)
             continue;
-        
-        if (!bigL_[i]->contains(u))
+        if (!h->contains(u))
             return false;
     }
-    
     return true;
 }
 
 void ompl::base::AtlasChart::borderCheck (Eigen::Ref<const Eigen::VectorXd> v) const
 {
-    for (std::size_t i = 0; i < bigL_.size(); i++)
-        bigL_[i]->checkNear(v);
+    for (Halfspace *h : bigL_)
+        h->checkNear(v);
 }
 
 const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (
     Eigen::Ref<const Eigen::VectorXd> x) const
 {
-    Eigen::VectorXd tempx(n_), tempu(k_);
-    for (std::size_t i = 0; i < bigL_.size(); i++)
+    Eigen::VectorXd projx(n_), proju(k_);
+    for (Halfspace *h : bigL_)
     {
-        // Project onto the neighboring chart, then onto the manifold.
-        const AtlasChart &c = bigL_[i]->getComplement()->getOwner();
-        c.psiInverse(x, tempu);
-        c.phi(tempu, tempx);
+        // Project onto the neighboring chart.
+        const AtlasChart &c = h->getComplement()->getOwner();
+        c.psiInverse(x, proju);
+        c.phi(proju, projx);
         // Check if it's within the validity region and polytope boundary.
-        if ((tempx - x).norm() < atlas_.getEpsilon() && tempu.norm() < atlas_.getRho() && c.inP(tempu))
+        if ((projx - x).norm() < atlas_.getEpsilon() &&
+            proju.norm() < atlas_.getRho() &&
+            c.inP(proju))
             return &c;
     }
     
@@ -362,7 +361,16 @@ bool ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
     }
     
     // Put them in order
-    std::sort(vertices.begin(), vertices.end(), boost::bind(&AtlasChart::angleCompare, this, _1, _2));
+    std::sort(vertices.begin(), vertices.end(),
+              [&] (Eigen::Ref<const Eigen::VectorXd> x1,
+                   Eigen::Ref<const Eigen::VectorXd> x2) -> bool
+              {
+                  // Check the angles to see who should come first.
+                  Eigen::VectorXd v1(2), v2(2);
+                  psiInverse(x1, v1);
+                  psiInverse(x2, v2);
+                  return std::atan2(v1[1], v1[0]) < std::atan2(v2[1], v2[0]);
+              });
 
     return is_frontier;
 }
@@ -402,15 +410,4 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
 void ompl::base::AtlasChart::addBoundary (Halfspace *halfspace)
 {
     bigL_.push_back(halfspace);
-}
-
-/// Private
-
-bool ompl::base::AtlasChart::angleCompare (Eigen::Ref<const Eigen::VectorXd> x1,
-                                           Eigen::Ref<const Eigen::VectorXd> x2) const
-{
-    Eigen::VectorXd v1(2), v2(2);
-    psiInverse(x1, v1);
-    psiInverse(x2, v2);
-    return std::atan2(v1[1], v1[0]) < std::atan2(v2[1], v2[0]);
 }
