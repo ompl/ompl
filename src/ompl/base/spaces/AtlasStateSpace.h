@@ -154,47 +154,51 @@ namespace ompl
             const AtlasStateSpace &atlas_;
         };
         
-        /** \brief State space encapsulating the atlas algorithm to assist planning on a constraint manifold. */
+        /** \brief State space encapsulating a planner-agnostic atlas algorithm
+         * for planning on a constraint manifold. */
         class AtlasStateSpace : public RealVectorStateSpace
         {
         public:
             
-            /** \brief A state in an atlas represented as a real vector in ambient space and a chart pointer. */
+            /** \brief A state in an atlas represented as a real vector in
+             * ambient space and a chart that it belongs to. */
             class StateType : public RealVectorStateSpace::StateType
             {
             public:
                 
-                /** \brief Constructor. Real vector will be of size \a dimension. */
-                StateType (const unsigned int dimension);
+                /** \brief Construct state of size \a dimension. */
+                StateType (const unsigned int &dimension);
                 
                 /** \brief Destructor. */
                 virtual ~StateType(void);
 
+                /** \brief Set this state to be identical to \a source.
+                 * \note Assumes source has the same size as this state. */
                 void copyFrom (const StateType *source);
                 
-                /** \brief Set the real vector to the values in \a x and the chart to \a c.
-                 * Assumes \a x is of the same dimensionality as the state. */
-                void setRealState (const Eigen::VectorXd &x, AtlasChart *const c);
+                /** \brief Set this state to \a x and make it belong to \a c.
+                 * \note Assumes \a x has the same size as the state. */
+                void setRealState (const Eigen::VectorXd &x, AtlasChart *c);
                 
-                /** \brief View this state as an Eigen::VectorXd. */
+                /** \brief View this state as a vector. */
                 Eigen::Map<Eigen::VectorXd> vectorView (void) const;
                 
-                /** \brief View this state as a const Eigen::VectorXd. */
+                /** \brief View this state as a const vector. */
                 Eigen::Map<const Eigen::VectorXd> constVectorView (void) const;
                 
                 /** \brief Get the chart this state is on. */
                 AtlasChart *getChart (void) const;
                 
                 /** \brief Set the chart \a c for the state. */
-                void setChart (AtlasChart *const c) const;
+                void setChart (AtlasChart *c) const;
 
             private:
                 
-      		/** \brief Dimension of the real vector. */
-                const unsigned int dimension_;
+                /** \brief Dimension of the real vector. */
+                const unsigned int &dimension_;
 
                 /** \brief Chart owning the real vector. */
-                mutable AtlasChart *chart_;
+                mutable AtlasChart *chart_ = nullptr;
             };
             
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;

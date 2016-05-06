@@ -344,28 +344,28 @@ bool ompl::base::AtlasMotionValidator::checkMotion (
 /// AtlasStateSpace::StateType
 
 /// Public
-ompl::base::AtlasStateSpace::StateType::StateType (const unsigned int dimension)
-  : RealVectorStateSpace::StateType(), dimension_(dimension), chart_(nullptr)
+ompl::base::AtlasStateSpace::StateType::StateType (const unsigned int &dimension)
+  : RealVectorStateSpace::StateType(), dimension_(dimension)
 {
-    // Mimic what RealVectorStateSpace::allocState() would have done
+    // Do what RealVectorStateSpace::allocState() would have done.
     values = new double[dimension_];
 }
 
 ompl::base::AtlasStateSpace::StateType::~StateType(void)
 {
-    // Mimic what RealVectorStateSpace::freeState() would have done
+    // Do what RealVectorStateSpace::freeState() would have done.
     delete [] values;
 }
 
 void ompl::base::AtlasStateSpace::StateType::copyFrom (const StateType *source)
 {
-    assert(dimension_ == source->dimension_);
     for (unsigned int i = 0; i < dimension_; ++i)
         (*this)[i] = (*source)[i];
     chart_ = source->chart_;
 }
 
-void ompl::base::AtlasStateSpace::StateType::setRealState (const Eigen::VectorXd &x, AtlasChart *const c)
+void ompl::base::AtlasStateSpace::StateType::setRealState (
+    const Eigen::VectorXd &x, AtlasChart *c)
 {
     for (std::size_t i = 0; i < dimension_; i++)
         (*this)[i]  = x[i];
@@ -387,7 +387,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart (void) 
     return chart_;
 }
 
-void ompl::base::AtlasStateSpace::StateType::setChart (AtlasChart *const c) const
+void ompl::base::AtlasStateSpace::StateType::setChart (AtlasChart *c) const
 {
     chart_ = c;
 }
