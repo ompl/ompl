@@ -52,39 +52,46 @@ namespace ompl
     namespace base
     {
         /// @cond IGNORE
-        /** \brief Forward declaration of ompl::base::AtlasChart and ompl::base::AtlasStateSpace. */
+        /** \brief Forward declaration of ompl::base::AtlasChart and
+         * ompl::base::AtlasStateSpace. */
         class AtlasChart;
         OMPL_CLASS_FORWARD(AtlasStateSpace);
         /// @endcond
         
         /** \class ompl::base::AtlasStateSpacePtr
-            \brief A boost shared pointer wrapper for ompl::base::AtlasStateSpace. */
+         * \brief A boost shared pointer wrapper for
+         * ompl::base::AtlasStateSpace. */
         
         /** \brief StateSampler for use on an atlas. */
         class AtlasStateSampler : public StateSampler
         {
         public:
             
-            /** \brief Constructor. */
+            /** \brief Create a sampler for the specified \a atlas. */
             AtlasStateSampler (const AtlasStateSpace &atlas);
             
-            /** \brief Sample a state uniformly from the known charted regions of the manifold. Return in \a state. */
+            /** \brief Sample a state uniformly from the charted regions of the
+             * manifold. Return sample in \a state. */
             virtual void sampleUniform (State *state);
             
-            /** \brief Sample a state uniformly from the ball with center \a near and radius \a distance. Return in \a state.
-             * Note: This can take a long time if \a distance >> rho_s. */
-            virtual void sampleUniformNear (State *state, const State *near, const double distance);
+            /** \brief Sample a state uniformly from the ball with center \a
+             * near and radius \a distance. Return sample in \a state.
+             * \note rho_s_ is a good choice for \a distance. */
+            virtual void sampleUniformNear (State *state, const State *near,
+                                            const double distance);
             
-            /** \brief Not implemented. */
-            virtual void sampleGaussian (State *state, const State *mean, const double stdDev);
-            
-            /** \brief Random number generator. */
-            mutable RNG rng_;
+            /** \brief Sample a state uniformly from a normal distribution with
+                given \a mean and \a stdDev. Return sample in \a state. */
+            virtual void sampleGaussian (State *state, const State *mean,
+                                         const double stdDev);
             
         private:
             
             /** \brief Atlas on which to sample. */
             const AtlasStateSpace &atlas_;
+
+            /** \brief Random number generator. */
+            mutable RNG rng_;
         };
         
         /** \brief ValidStateSampler for use on an atlas. */

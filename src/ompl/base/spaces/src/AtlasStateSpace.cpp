@@ -67,7 +67,7 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
     Eigen::VectorXd ru(atlas_.getManifoldDimension());
     AtlasChart *c;
     
-    // Rejection sampling to find a point on the manifold
+    // Sampling a point on the manifold
     Eigen::VectorXd f(atlas_.getAmbientDimension()-atlas_.getManifoldDimension());
     int tries = 100;
     do
@@ -75,35 +75,43 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
         // Rejection sampling to find a point inside a chart's polytope
         do
         {
-            tries--;
             // Pick a chart.
             c = &atlas_.sampleChart();
             
-            // Sample a point within rho_s of the center. This is done by sampling uniformly on the surface
-            // and multiplying by a distance whose distribution is biased according to spherical volume
+            // Sample a point within rho_s of the center. This is done by
+            // sampling uniformly on the surface and multiplying by a distance
+            // whose distribution is biased according to spherical volume.
             for (int i = 0; i < ru.size(); i++)
                 ru[i] = rng_.gaussian01();
             ru *= atlas_.getRho_s() * std::pow(rng_.uniform01(), 1.0/ru.size()) / ru.norm();
+            tries--;
         }
         while (tries > 0 && !c->inPolytope(ru));
-        
+
+        // Project. Will need to try again if this fails.
         c->psi(ru, rx);
+        atlas_.bigF(rx, f);
     }
-    while (tries > 0 && (!rx.allFinite() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance())));
+    while (tries > 0 &&
+           (!rx.allFinite() || f.norm() > atlas_.getProjectionTolerance()));
 
     if (tries == 0)
     {
-        OMPL_WARN("AtlasStateSpace::sampleUniform() got stuck. Falling back to random chart origin.");
+        // Consider decreasing rho and/or the exploration paramter if this
+        // becomes a problem.
+        OMPL_WARN("AtlasStateSpace::sampleUniform() took too long. Returning center of a random chart.");
         rx = c->getXorigin();
     }
 
-    // Extend polytope of neighboring chart wherever point is near the border
+    // Extend polytope of neighboring chart wherever point is near the border.
     c->psiInverse(rx, ru);
     c->borderCheck(ru);
     state->as<AtlasStateSpace::StateType>()->setChart(atlas_.owningChart(rx));
 }
 
-void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State *near, const double distance)
+void ompl::base::AtlasStateSampler::sampleUniformNear (State *state,
+                                                       const State *near,
+                                                       const double distance)
 {
     // Find the chart that the starting point is on.
     AtlasStateSpace::StateType *astate = state->as<AtlasStateSpace::StateType>();
@@ -111,6 +119,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     Eigen::Ref<const Eigen::VectorXd> n = anear->constVectorView();
     Eigen::VectorXd rx(atlas_.getAmbientDimension()), ru(atlas_.getManifoldDimension());
     AtlasChart *c = anear->getChart();
+    // TODO: is this ever going to be the case (as long as we're not lazy below)?
     if (!c)
     {
         c = atlas_.owningChart(n);
@@ -132,7 +141,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         anear->setChart(c);
     }
     
-    // Rejection sampling to find a point that can be projected onto the manifold
+    // Sample a point from the starting chart.
     c->psiInverse(n, ru);
     int tries = 100;
     Eigen::VectorXd f(atlas_.getAmbientDimension()-atlas_.getManifoldDimension());
@@ -144,20 +153,14 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
         for (int i = 0; i < uoffset.size(); i++)
             uoffset[i] = rng_.gaussian01();
         uoffset *=  distance * std::pow(rng_.uniform01(), 1.0/uoffset.size()) / uoffset.norm();
-
-#define ORTHOPROJECT 0
-#if ORTHOPROJECT // Option 1: project orthogonally using chart c
-        c->psi(ru + uoffset, rx);
-    }
-    while (tries > 0 && (!rx.allFinite() || (atlas_.bigF(rx, f), f.norm() > atlas_.getProjectionTolerance())));
-#else // Option 2: ordinary gradient descent
         c->phi(ru + uoffset, rx);
     }
-    while (tries > 0 && !atlas_.project(rx));
-#endif
+    while (tries > 0 && !atlas_.project(rx)); // Try again if we can't project.
 
     if (tries == 0)
     {
+        // Consider decreasing the distance argument if this becomes a
+        // problem. Check planner code to see how it gets chosen.
         OMPL_WARN("AtlasStateSpace::sampleUniformNear() got stuck. Returning initial point.");
         rx = n;
     }
@@ -178,6 +181,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     const std::size_t k = atlas_.getManifoldDimension();
     Eigen::VectorXd rx(atlas_.getAmbientDimension()), ru(k);
     AtlasChart *c = amean->getChart();
+    // TODO (cav2): ditto
     if (!c)
     {
         c = atlas_.owningChart(m);
@@ -200,7 +204,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     }
     c->psiInverse(m, ru);
     
-    // Rejection sampling to find a point on the manifold
+    // Sample a point in a normal distribution on the starting chart.
     int tries = 100;
     do
     {
@@ -211,7 +215,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
             rand[i] = rng_.gaussian(0, s);
         c->phi(ru + rand, rx);
     }
-    while (tries > 0 && !atlas_.project(rx));
+    while (tries > 0 && !atlas_.project(rx)); // Try again if we can't project.
     
     if (tries == 0)
     {
