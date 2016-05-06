@@ -52,70 +52,85 @@ namespace ompl
         class AtlasChart : private boost::noncopyable
         {
             /** \brief Halfspace equation on a chart.
-             * \note Since each halfspace is associated to exactly one chart, we
-             * let the chart be responsible for deleting it. */
+             * \note Use AtlasChart::generateHalfspace to create new halfspace
+             * objects. Since each halfspace is associated to exactly one chart,
+             * we let the chart be responsible for deleting it. */
             class Halfspace
             {
             public:
                 
-                /** \brief Create a halfspace equitably separating charts \a c
-                 * and \a neighbor. This halfspace will coincide with chart \a
-                 * c. */
-                Halfspace (const AtlasChart &c, const AtlasChart &neighbor);
+                /** \brief Create a halfspace equitably separating charts \a
+                 * owner and \a neighbor. This halfspace will coincide with
+                 * chart \a owner. */
+                Halfspace (const AtlasChart &owner, const AtlasChart &neighbor);
                 
                 /** \brief Inform this halfspace about the "complementary"
                  * halfspace which coincides with the neighboring chart. */
-                void setComplement (Halfspace *const complement);
+                void setComplement (Halfspace *complement);
                 
-                /** \brief Get the complementary inequality. Returns nullptr if none. */
+                /** \brief Get the complementary halfspace. */
                 Halfspace *getComplement (void) const;
                 
-                /** \brief Get the chart to which this inequality belongs. */
+                /** \brief Get the chart to which this halfspace belongs. */
                 const AtlasChart &getOwner (void) const;
                 
-                /** \brief Return whether point \a v on the owning chart satisfies the inequality. */
-                bool accepts (Eigen::Ref<const Eigen::VectorXd> v) const;
+                /** \brief Return whether point \a v on the owning chart
+                 * lies within the halfspace. */
+                bool contains (Eigen::Ref<const Eigen::VectorXd> v) const;
                 
-                /** \brief If point \a v on the owning chart is too close to this inequality, ask
-                 * the complementary inequality to relax in order to accept \a v when projected onto
-                 * the neighboring chart. */
+                /** \brief If point \a v on the owning chart is very close to
+                 * the halfspace boundary, the "complementary" halfspace will
+                 * extend its boundary so that it also contains \a v when \a v
+                 * is projected onto the neighboring chart. */
                 void checkNear (Eigen::Ref<const Eigen::VectorXd> v) const;
+
+                /// @cond IGNORE
                 
-                /** \brief Compute up to two vertices of intersection with a circle of radius \a r.
-                 * If one vertex is found, it is stored to both \a v1 and \a v2; if two are found, they are
-                 * stored to \a v1 and \a v2. If no vertex is found, returns false; otherwise returns true. */
-                bool circleIntersect (const double r, Eigen::Ref<Eigen::VectorXd> v1, Eigen::Ref<Eigen::VectorXd> v2) const;
+                /** \brief Compute up to two vertices of intersection with a
+                 * circle of radius \a r.  If one vertex is found, it is stored
+                 * to both \a v1 and \a v2; if two are found, they are stored to
+                 * \a v1 and \a v2. If no vertex is found, returns false;
+                 * otherwise returns true. */
+                bool circleIntersect (const double r,
+                                      Eigen::Ref<Eigen::VectorXd> v1,
+                                      Eigen::Ref<Eigen::VectorXd> v2) const;
                 
-                /** \brief Compute the vertex of intersection of two 1-dimensional inequalities \a l1 and \a l2.
-                 * Result stored in \a out, which should be allocated to a size of 2. */
-                static void intersect (const Halfspace &l1, const Halfspace &l2, Eigen::Ref<Eigen::VectorXd> out);
+                /** \brief Compute the vertex of intersection of two
+                 * 1-dimensional inequalities \a l1 and \a l2.  Result stored in
+                 * \a out, which should be allocated to a size of 2. */
+                static void intersect (const Halfspace &l1, const Halfspace &l2,
+                                       Eigen::Ref<Eigen::VectorXd> out);
+
+                /// @endcond
                 
             private:
                 
-                /** \brief Chart to which this inequality belongs. */
+                /** \brief Chart to which this halfspace belongs. */
                 const AtlasChart &owner_;
                 
-                /** \brief Inequality accepting the halfspace complementary to this one, but on
-                 * the neighboring chart. */
+                /** \brief Halfspace complementary to this one, but on the
+                 * neighboring chart. */
                 Halfspace *complement_;
                 
-                /** \brief Center of the neighboring chart which owns the complement, projected
-                 * onto our chart. */
+                /** \brief Center of the neighboring chart projected onto our
+                 * chart. */
                 Eigen::VectorXd u_;
                 
                 /** \brief Precomputed right-hand side of the inequality. */
                 double rhs_;
                 
-                /** \brief Set the point on our chart that generates the inequality. We will divide the
-                 * space in half between \a u and the origin. */
+                /** \brief Generate the linear inequality. We will divide the
+                 * space in half between \a u and 0, and 0 will lie inside. */
                 void setU (const Eigen::VectorXd &u);
                 
-                /** \brief Compute the distance between a point \a v on our chart and the nearest point
-                 * on this linear inequality as a scalar factor of u_. */
+                /** \brief Compute the distance between a point \a v on our
+                 * chart and the halfspace boundary as a scalar factor of
+                 * \a u_. That is, \a result * \a u_ lies on the halfspace
+                 * boundary, and \a v, \a u_, \a result * \a u_ are colinear. */
                 double distanceToPoint (Eigen::Ref<const Eigen::VectorXd> v) const;
                 
-                /** \brief Adjust the inequality to include ambient point \a x when it is projected
-                 * onto our chart. */
+                /** \brief Expand the halfspace to include ambient point \a x
+                 * when it is projected onto our chart. */
                 void expandToInclude (Eigen::Ref<const Eigen::VectorXd> x);
             };
             

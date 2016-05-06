@@ -45,17 +45,19 @@
 /// AtlasChart::Halfspace
 
 /// Public
-ompl::base::AtlasChart::Halfspace::Halfspace (const AtlasChart &c,
+ompl::base::AtlasChart::Halfspace::Halfspace (const AtlasChart &owner,
                                               const AtlasChart &neighbor)
-    : owner_(c), complement_(nullptr)
+    : owner_(owner), complement_(nullptr)
 {
-    // u should be neighbor's center projected onto our chart
+    // Project neighbor's chart center onto our chart.
     Eigen::VectorXd u(owner_.k_);
     owner_.psiInverse(neighbor.getXorigin(), u);
-    setU(1.05*u); // Add a little bit extra, to patch up the cracks
+    // Compute the halfspace equation, which is the perpendicular bisector
+    // between 0 and u (plus 5% to reduce cracks, see Jaillet et al.).
+    setU(1.05*u);
 }
 
-void ompl::base::AtlasChart::Halfspace::setComplement (Halfspace *const complement)
+void ompl::base::AtlasChart::Halfspace::setComplement (Halfspace *complement)
 {
     complement_ = complement;
 }
@@ -70,15 +72,15 @@ const ompl::base::AtlasChart &ompl::base::AtlasChart::Halfspace::getOwner (void)
     return owner_;
 }
 
-bool ompl::base::AtlasChart::Halfspace::accepts (Eigen::Ref<const Eigen::VectorXd> v) const
+bool ompl::base::AtlasChart::Halfspace::contains (Eigen::Ref<const Eigen::VectorXd> v) const
 {
     return v.dot(u_) <= rhs_;
 }
 
 void ompl::base::AtlasChart::Halfspace::checkNear (Eigen::Ref<const Eigen::VectorXd> v) const
 {
-    // Threshold is 10% of the distance from the origin to the inequality
-    if (complement_ && distanceToPoint(v) < 1.0/20)
+    // Threshold is 10% of the distance from the boundary to the origin.
+    if (distanceToPoint(v) < 1.0/20)
     {
         Eigen::VectorXd x(owner_.n_);
         owner_.psi(v,x);
@@ -86,16 +88,19 @@ void ompl::base::AtlasChart::Halfspace::checkNear (Eigen::Ref<const Eigen::Vecto
     }
 }
 
-bool ompl::base::AtlasChart::Halfspace::circleIntersect (const double r, Eigen::Ref<Eigen::VectorXd> v1, Eigen::Ref<Eigen::VectorXd> v2) const
+bool ompl::base::AtlasChart::Halfspace::circleIntersect (
+    const double r, Eigen::Ref<Eigen::VectorXd> v1, Eigen::Ref<Eigen::VectorXd> v2) const
 {
     if (owner_.atlas_.getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::Halfspace::circleIntersect() only works on 2D manifolds.");
-    
+
+    // Check if there will be no solutions.
     double discr = 4*r*r - u_.squaredNorm();
     if (discr < 0)
         return false;
     discr = std::sqrt(discr);
-    
+
+    // Compute the 2 solutions (possibly 1 repeated solution).
     v1[0] = -u_[1] * discr;
     v1[1] = u_[0] * discr;
     v2 = -v1;
@@ -108,13 +113,15 @@ bool ompl::base::AtlasChart::Halfspace::circleIntersect (const double r, Eigen::
 }
 
 /// Public static
-void ompl::base::AtlasChart::Halfspace::intersect (const Halfspace &l1, const Halfspace &l2, Eigen::Ref<Eigen::VectorXd> out)
+void ompl::base::AtlasChart::Halfspace::intersect (
+    const Halfspace &l1, const Halfspace &l2, Eigen::Ref<Eigen::VectorXd> out)
 {
     if (&l1.owner_ != &l2.owner_)
         throw ompl::Exception("Cannot intersect linear inequalities on different charts.");
     if (l1.owner_.atlas_.getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::Halfspace::intersect() only works on 2D manifolds.");
-    
+
+    // Computer the intersection point of these lines.
     Eigen::MatrixXd A(2,2);
     A.row(0) = l1.u_.transpose(); A.row(1) = l2.u_.transpose();
     out[0] = l1.u_.squaredNorm(); out[1] = l2.u_.squaredNorm();
@@ -125,22 +132,24 @@ void ompl::base::AtlasChart::Halfspace::intersect (const Halfspace &l1, const Ha
 void ompl::base::AtlasChart::Halfspace::setU (const Eigen::VectorXd &u)
 {
     u_ = u;
+    // Precompute the right-hand side of the linear inequality.
     rhs_ = u_.squaredNorm()/2;
 }
 
 double ompl::base::AtlasChart::Halfspace::distanceToPoint (Eigen::Ref<const Eigen::VectorXd> v) const
 {
+    // Result is a scalar factor of u_.
     return (0.5 - v.dot(u_) / u_.squaredNorm());
 }
 
 void ompl::base::AtlasChart::Halfspace::expandToInclude (Eigen::Ref<const Eigen::VectorXd> x)
 {
-    // Compute how far v = psiInverse(x) lies outside the inequality, if at all
-    Eigen::VectorXd u(owner_.k_);
-    owner_.psiInverse(x, u);
-    const double t = -distanceToPoint(u);
+    // Compute how far v = psiInverse(x) lies past the boundary, if at all.
+    Eigen::VectorXd v(owner_.k_);
+    owner_.psiInverse(x, v);
+    const double t = -distanceToPoint(v);
     
-    // Move u_ away by twice that much
+    // Move u_ further out by twice that much.
     if (t > 0)
         setU((1 + 2*t) * u_);
 }
@@ -244,7 +253,7 @@ bool ompl::base::AtlasChart::inP (Eigen::Ref<const Eigen::VectorXd> u, const Hal
         if (bigL_[i] == ignore1 || bigL_[i] == ignore2)
             continue;
         
-        if (!bigL_[i]->accepts(u))
+        if (!bigL_[i]->contains(u))
             return false;
     }
     
@@ -262,9 +271,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (Eigen::Ref
     Eigen::VectorXd tempx(n_), tempu(k_);
     for (std::size_t i = 0; i < bigL_.size(); i++)
     {
-        const Halfspace *const comp = bigL_[i]->getComplement();
-        if (!comp)
-            continue;
+        const Halfspace *comp = bigL_[i]->getComplement();
         
         // Project onto the chart and check if it's in the validity region and polytope
         const AtlasChart &c = comp->getOwner();
