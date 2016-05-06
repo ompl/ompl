@@ -204,7 +204,7 @@ ompl::geometric::ConstrainedSimpleSetupPtr createChainSetup(std::size_t dimensio
     ompl::base::ConstrainedSpaceInformationPtr si = ss->getConstrainedSpaceInformation();
     atlas->setSpaceInformation(si);
     ss->setStateValidityChecker(isValid);
-    si->setValidStateSamplerAllocator(std::bind(vssa, atlas, std::placeholders::_1));
+    si->setValidStateSamplerAllocator(vssa);
     ompl::base::ConstraintInformationPtr ci(new ompl::base::ConstraintInformation);
     ompl::base::ConstraintPtr c(new ompl::base::AtlasConstraint(atlas));
     ci->addConstraint(c);

@@ -44,7 +44,7 @@
 
 ompl::base::AtlasChart::Halfspace::Halfspace (const AtlasChart &owner,
                                               const AtlasChart &neighbor)
-    : owner_(owner), complement_(nullptr)
+    : owner_(owner)
 {
     // Project neighbor's chart center onto our chart.
     Eigen::VectorXd u(owner_.k_);
@@ -163,8 +163,6 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas,
 : atlas_(atlas), n_(atlas_.getAmbientDimension()), k_(atlas_.getManifoldDimension()),
   xorigin_(xorigin), radius_(atlas_.getRho()), isAnchor_(isAnchor)
 {
-    id_ = 0;    // No id initially.
-    
     // Decompose the Jacobian at xorigin.
     Eigen::MatrixXd j(n_-k_,n_);
     atlas_.bigJ(xorigin_, j);

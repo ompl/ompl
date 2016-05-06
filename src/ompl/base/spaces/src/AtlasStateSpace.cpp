@@ -55,8 +55,14 @@
 /// AtlasStateSampler
 
 /// Public
+ompl::base::AtlasStateSampler::AtlasStateSampler (const SpaceInformation *si)
+    : StateSampler(si->getStateSpace().get()), atlas_(*si->getStateSpace()->as<AtlasStateSpace>())
+{
+    AtlasStateSpace::checkSpace(si);
+}
+
 ompl::base::AtlasStateSampler::AtlasStateSampler (const AtlasStateSpace &atlas)
-: StateSampler(&atlas), atlas_(atlas)
+    : StateSampler(&atlas), atlas_(atlas)
 {
 }
 
@@ -235,29 +241,32 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
 
 /// Public
 
-ompl::base::AtlasValidStateSampler::AtlasValidStateSampler (const AtlasStateSpacePtr &atlas, const SpaceInformation *si)
-: ValidStateSampler(si), sampler_(*atlas)
+ompl::base::AtlasValidStateSampler::AtlasValidStateSampler (const SpaceInformation *si)
+    : ValidStateSampler(si), sampler_(si)
 {
+    AtlasStateSpace::checkSpace(si);
 }
 
 bool ompl::base::AtlasValidStateSampler::sample (State *state)
 {
-    unsigned int fails = 0;
+    // Rejection sample for at most attempts_ tries.
+    unsigned int tries = 0;
     bool valid;
     do
         sampler_.sampleUniform(state);
-    while (!(valid = si_->isValid(state)) && ++fails < attempts_);
+    while (!(valid = si_->isValid(state)) && ++tries < attempts_);
     
     return valid;
 }
 
 bool ompl::base::AtlasValidStateSampler::sampleNear (State *state, const State *near, const double distance)
 {
-    unsigned int fails = 0;
+    // Rejection sample for at most attempts_ tries.
+    unsigned int tries = 0;
     bool valid;
     do
         sampler_.sampleUniformNear(state, near, distance);
-    while (!(valid = si_->isValid(state)) && ++fails < attempts_);
+    while (!(valid = si_->isValid(state)) && ++tries < attempts_);
     
     return valid;
 }
@@ -268,22 +277,25 @@ bool ompl::base::AtlasValidStateSampler::sampleNear (State *state, const State *
 ompl::base::AtlasMotionValidator::AtlasMotionValidator (SpaceInformation *si)
 : MotionValidator(si), atlas_(*si->getStateSpace()->as<AtlasStateSpace>())
 {
-    checkSpace();
+    AtlasStateSpace::checkSpace(si);
 }
 
 ompl::base::AtlasMotionValidator::AtlasMotionValidator (const SpaceInformationPtr &si)
 : MotionValidator(si), atlas_(*si->getStateSpace()->as<AtlasStateSpace>())
 {
-    checkSpace();
+    AtlasStateSpace::checkSpace(si.get());
 }
 
-bool ompl::base::AtlasMotionValidator::checkMotion (const State *s1, const State *s2) const
+bool ompl::base::AtlasMotionValidator::checkMotion (
+    const State *s1, const State *s2) const
 {
     // Simply invoke the manifold-traversing algorithm of the atlas
-    return atlas_.followManifold(s1->as<AtlasStateSpace::StateType>(), s2->as<AtlasStateSpace::StateType>());
+    return atlas_.followManifold(s1->as<AtlasStateSpace::StateType>(),
+                                 s2->as<AtlasStateSpace::StateType>());
 }
 
-bool ompl::base::AtlasMotionValidator::checkMotion (const State *s1, const State *s2, std::pair<State *, double> &lastValid) const
+bool ompl::base::AtlasMotionValidator::checkMotion (
+    const State *s1, const State *s2, std::pair<State *, double> &lastValid) const
 {
     // Invoke the manifold-traversing algorithm to save intermediate states
     std::vector<AtlasStateSpace::StateType *> stateList;
@@ -291,36 +303,32 @@ bool ompl::base::AtlasMotionValidator::checkMotion (const State *s1, const State
     const AtlasStateSpace::StateType *const as2 = s2->as<AtlasStateSpace::StateType>();
     bool reached = atlas_.followManifold(as1, as2, false, &stateList);
 
-    // XXX We are supposed to be able to assume that s1 is valid. However, it's not sometimes, and I
-    // don't know why. We shouldn't have to check that stateList is non-empty.
+    // XXX We are supposed to be able to assume that s1 is valid. However, it's
+    // not sometimes, and I don't know why. We shouldn't have to check that
+    // stateList is non-empty.
     if (stateList.size() > 0) {
         for (std::size_t i = 0; i < stateList.size()-1; i++)
             atlas_.freeState(stateList[i]);
     
-        // Check if manifold traversal stopped early and set its final state as lastValid
+        // Check if manifold traversal stopped early and set its final state as
+        // lastValid.
         if (!reached && lastValid.first)
             atlas_.copyState(lastValid.first, stateList.back());
         atlas_.freeState(stateList.back());
     }
     
-    // Compute the interpolation parameter of the last valid state
-    // (although if you then interpolate, you probably won't get this state back)
+    // Compute the interpolation parameter of the last valid state. (Although if
+    // you then interpolate, you probably won't get this exact state back.)
     if (!reached)
     {
-        Eigen::Ref<const Eigen::VectorXd> x = lastValid.first->as<AtlasStateSpace::StateType>()->constVectorView();
+        Eigen::Ref<const Eigen::VectorXd> x =
+            lastValid.first->as<AtlasStateSpace::StateType>()->constVectorView();
         Eigen::Ref<const Eigen::VectorXd> a = as1->constVectorView();
         Eigen::Ref<const Eigen::VectorXd> b = as2->constVectorView();
         lastValid.second = (x-a).dot(b-a) / (b-a).squaredNorm();
     }
     
     return reached;
-}
-
-/// Private
-void ompl::base::AtlasMotionValidator::checkSpace (void)
-{
-    if (!dynamic_cast<AtlasStateSpace *>(si_->getStateSpace().get()))
-        throw ompl::Exception("AtlasMotionValidator's SpaceInformation needs to use an AtlasStateSpace!");
 }
 
 /// AtlasStateSpace::StateType
@@ -1137,3 +1145,12 @@ void ompl::base::AtlasStateSpace::freeState (State *state) const
     StateType *const astate = state->as<StateType>();
     delete astate;
 }
+
+/// Public Static
+
+void ompl::base::AtlasStateSpace::checkSpace (const SpaceInformation *si)
+{
+    if (!dynamic_cast<AtlasStateSpace *>(si->getStateSpace().get()))
+        throw ompl::Exception("ompl::base::AtlasMotionValidator's SpaceInformation needs to use an AtlasStateSpace!");
+}
+

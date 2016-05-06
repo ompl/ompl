@@ -67,9 +67,13 @@ namespace ompl
         {
         public:
             
-            /** \brief Create a sampler for the specified \a atlas. */
-            AtlasStateSampler (const AtlasStateSpace &atlas);
+            /** \brief Create a sampler for the specified space information.
+             * \note The underlying state space must be an AtlasStateSpace. */
+            AtlasStateSampler (const SpaceInformation *si);
             
+            /** \brief Create a sampler for the specified \a atlas space. */
+            AtlasStateSampler (const AtlasStateSpace &atlas);
+
             /** \brief Sample a state uniformly from the charted regions of the
              * manifold. Return sample in \a state. */
             virtual void sampleUniform (State *state);
@@ -99,18 +103,23 @@ namespace ompl
         {
         public:
             
-            /** \brief Constructor. */
-            AtlasValidStateSampler (const AtlasStateSpacePtr &atlas, const SpaceInformation *si);
+            /** \brief Create a valid state sampler for the specifed space
+             * information \a si. */
+            AtlasValidStateSampler (const SpaceInformation *si);
             
-            /** \brief Sample a state uniformly from the known charted regions of the manifold. Return in \a state. */
+            /** \brief Sample a valid state uniformly from the charted regions
+             * of the manifold. Return sample in \a state. */
             virtual bool sample (State *state);
             
-            /** \brief Sample a state uniformly from the ball with center \a near and radius \a distance. Return in \a state. */
-            virtual bool sampleNear (State *state, const State *near, const double distance);
+            /** \brief Sample a valid state uniformly from the ball with center
+             * \a near and radius \a distance. Return sample in \a state.
+             * \note rho_s_ is a good choice for \a distance. */
+            virtual bool sampleNear (State *state, const State *near,
+                                     const double distance);
             
         private:
             
-            /** \brief Underlying vanilla state sampler. */
+            /** \brief Underlying ordinary atlas state sampler. */
             AtlasStateSampler sampler_;
         };
         
@@ -139,9 +148,6 @@ namespace ompl
             
             /** \brief Atlas on which we check motion. */
             const AtlasStateSpace &atlas_;
-            
-            /** \brief Check that the space is, in fact, an AtlasStateSpace. */
-            void checkSpace (void);
         };
         
         /** \brief State space encapsulating the atlas algorithm to assist planning on a constraint manifold. */
@@ -160,7 +166,7 @@ namespace ompl
                 /** \brief Destructor. */
                 virtual ~StateType(void);
 
-		void copyFrom (const StateType *source);
+                void copyFrom (const StateType *source);
                 
                 /** \brief Set the real vector to the values in \a x and the chart to \a c.
                  * Assumes \a x is of the same dimensionality as the state. */
@@ -379,7 +385,11 @@ namespace ompl
             
             /** \brief Random number generator. */
             mutable RNG rng_;
-            
+                        
+            /** \brief Check that the space referred to by the space information
+             * \a si is, in fact, an AtlasStateSpace. */
+            static void checkSpace (const SpaceInformation *si);
+
         protected:
             
             /** \brief SpaceInformation associated with this space. */

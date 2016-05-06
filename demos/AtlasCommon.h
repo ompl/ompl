@@ -763,9 +763,9 @@ ompl::base::AtlasStateSpace *initChainTorusMazeProblem (Eigen::VectorXd &x, Eige
 #endif
 
 /** Allocator function for a sampler for the atlas that only returns valid points. */
-ompl::base::ValidStateSamplerPtr vssa (const ompl::base::AtlasStateSpacePtr &atlas, const ompl::base::SpaceInformation *si)
+ompl::base::ValidStateSamplerPtr vssa (const ompl::base::SpaceInformation *si)
 {
-    return ompl::base::ValidStateSamplerPtr(new ompl::base::AtlasValidStateSampler(atlas, si));
+    return ompl::base::ValidStateSamplerPtr(new ompl::base::AtlasValidStateSampler(si));
 }
 
 /** Print usage information. */

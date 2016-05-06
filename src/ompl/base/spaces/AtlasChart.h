@@ -110,7 +110,7 @@ namespace ompl
                 
                 /** \brief Halfspace complementary to this one, but on the
                  * neighboring chart. */
-                Halfspace *complement_;
+                Halfspace *complement_ = nullptr;
                 
                 /** \brief Center of the neighboring chart projected onto our
                  * chart. */
@@ -260,7 +260,7 @@ namespace ompl
             const bool isAnchor_;
             
             /** \brief Unique ID in the atlas. Must be manually set. */
-            unsigned int id_;
+            unsigned int id_ = 0;
             
             /** \brief Basis for the chart space. */
             Eigen::MatrixXd bigPhi_;
