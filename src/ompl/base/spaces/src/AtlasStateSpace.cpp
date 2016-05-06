@@ -1034,7 +1034,7 @@ void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *t
     
     // Project using this chart
     Eigen::VectorXd x = astate->constVectorView();
-    c->psiFromGuess(x, astate->vectorView()); 
+    c->psiFromAmbient(x, astate->vectorView()); 
     if (!astate->constVectorView().allFinite())
     {
         OMPL_DEBUG("AtlasStateSpace::interpolate(): Got non-finite state. Returning an endpoint.");

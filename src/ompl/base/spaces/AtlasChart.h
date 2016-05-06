@@ -48,7 +48,7 @@ namespace ompl
     namespace base
     {
         /** \brief Tangent space and bounding polytope approximating some patch
-         * of the manifold. Has dimension k. */
+         * of the manifold. */
         class AtlasChart : private boost::noncopyable
         {
             /** \brief Halfspace equation on a chart.
@@ -148,48 +148,61 @@ namespace ompl
             /** \brief Destructor. */
             virtual ~AtlasChart (void);
             
-            /** \brief Forget all acquired information such as the halfspace boundary. */
+            /** \brief Forget all acquired information such as the halfspace
+             * boundary. */
             void clear (void);
             
-            /** \brief Returns phi(0), the center of the chart in ambient space. */
+            /** \brief Returns phi(0), the center of the chart in ambient
+             * space. */
             Eigen::Ref<const Eigen::VectorXd> getXorigin (void) const;
             
-            /** \brief Returns the pointer to the internal xorigin variable. */
+            /** \brief Returns the pointer to the const xorigin member. */
             const Eigen::VectorXd *getXoriginPtr (void) const;
             
-            /** \brief Write a chart point \a u in ambient space coordinates. Result stored in \a out,
-             * which should be allocated to a size of ambient dimension. */
+            /** \brief Rewrite a chart point \a u in ambient space coordinates
+             * and store the result in \a out.
+             * \pre \a out has size \a n_ (ambient dimension).
+             */
             void phi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
             
-            /** \brief Same as psi, except it starts from a point in ambient that is hopefully already close to the manifold. */
-            void psiFromGuess (Eigen::Ref<const Eigen::VectorXd> x_0, Eigen::Ref<Eigen::VectorXd> out) const;
-            
-            /** \brief Exponential mapping; projects chart point \a u onto the manifold. Result stored in \a out,
-             * which should be allocated to a size of ambient dimension. */
+            /** \brief Exponential mapping. Project chart point \a u onto the
+             * manifold and store the result in \a out.
+             * \pre \a out has size \a n_ (ambient dimension). */
             void psi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
             
-            /** \brief Logarithmic mapping; projects ambient point \a x onto the chart. Result stored in \a out,
-             * which should be allocated to a size of manifold dimension.*/
-            void psiInverse (Eigen::Ref<const Eigen::VectorXd> x, Eigen::Ref<Eigen::VectorXd> out) const;
+            /** \brief Same as AtlasChart::psi(), except it starts from an
+             * ambient space point \a x0. */
+            void psiFromAmbient (Eigen::Ref<const Eigen::VectorXd> x0,
+                                 Eigen::Ref<Eigen::VectorXd> out) const;
             
-            /** \brief Check if a point \a u on the chart lies within its polytope P. LinearInequalities
-             * \a ignore1 and \a ignore2, if specified, are ignored during the check. */
-            virtual bool inP (Eigen::Ref<const Eigen::VectorXd> u, const Halfspace *const ignore1 = nullptr, const Halfspace *const ignore2 = nullptr) const;
+            /** \brief Logarithmic mapping. Project ambient point \a x onto the
+             * chart and store the result in \a out.
+             * \pre \a out has size \a k_ (manifold dimension). */
+            void psiInverse (Eigen::Ref<const Eigen::VectorXd> x,
+                             Eigen::Ref<Eigen::VectorXd> out) const;
             
-            /** \brief Check if chart point \a v lies too close to any linear inequality. When it does,
-             * expand the neighboring chart's polytope. */
-            virtual void borderCheck (Eigen::Ref<const Eigen::VectorXd> v) const;
+            /** \brief Check if a point \a u on the chart lies within its
+             * polytope boundary. Can ignore up to 2 of the halfspaces if
+             * specified in \a ignore1 and \a ignore2. */
+            bool inP (Eigen::Ref<const Eigen::VectorXd> u,
+                              const Halfspace *const ignore1 = nullptr,
+                              const Halfspace *const ignore2 = nullptr) const;
             
-            /** \brief Check each of our neighboring charts to see if ambient point \a x lies within its
-             * polytope when projected onto it. Returns nullptr if none. */
-            virtual const AtlasChart *owningNeighbor (Eigen::Ref<const Eigen::VectorXd> x) const;
+            /** \brief Check if chart point \a v lies very close to any part of
+             * the boundary. Wherever it does, expand the neighboring chart's
+             * boundary to include.. */
+            void borderCheck (Eigen::Ref<const Eigen::VectorXd> v) const;
             
-            /** \brief Set this chart's unique identifier in its atlas. Needs to be its index in the atlas'
-             * vector of charts. */
+            /** \brief Try to find an owner for ambient point \x from among the
+             * neighbors of this chart. Returns nullptr if none found.*/
+            const AtlasChart *owningNeighbor (Eigen::Ref<const Eigen::VectorXd> x) const;
+            
+            /** \brief Set this chart's unique identifier in its atlas. Should
+             * be its index in the atlas's vector of charts. */
             void setID (unsigned int);
             
-            /** \brief Get this chart's unique identifier in its atlas. Same as its index in the atlas'
-             * vector of charts. */
+            /** \brief Get this chart's unique identifier in its atlas. This is
+             * its index in the atlas's vector of charts. */
             unsigned int getID (void) const;
             
             /** \brief Is this chart marked as an anchor chart for the atlas? */
@@ -209,12 +222,11 @@ namespace ompl
             bool estimateIsFrontier () const;
             /// @cond IGNORE
             
-            /** \brief Create two complementary linear inequalities dividing the space between charts \a c1 and \a c2,
-             * and add them to the charts' polytopes. */
+            /** \brief Create two complementary halfspaces dividing the space
+             * between charts \a c1 and \a c2, and add them to the charts'
+             * polytopes boundaries.
+             * \note Charts must be from same atlas. */
             static void generateHalfspace (AtlasChart &c1, AtlasChart &c2);
-            
-            /** \brief Compute the distance between the centers of the two charts. */
-            static double distanceBetweenCenters (AtlasChart *c1, AtlasChart *c2);
             
         protected:
             
@@ -224,9 +236,10 @@ namespace ompl
             /** \brief Set of linear inequalities defining the polytope P. */
             std::vector<Halfspace *> bigL_;
             
-            /** \brief Introduce a new linear inequality \a halfspace to bound the polytope P. Updates
-             * approximate measure. This chart assumes responsibility for deleting \a halfspace. */
-            void addBoundary (Halfspace &halfspace);
+            /** \brief Introduce a new \a halfspace to the chart's bounding
+             * polytope. This chart assumes responsibility for deleting \a
+             * halfspace. */
+            void addBoundary (Halfspace *halfspace);
             
         private:
             
@@ -252,8 +265,10 @@ namespace ompl
             Eigen::MatrixXd bigPhi_;
 
             /// @cond IGNORE
-            /** \brief Compare the angles \a v1 and \a v2 make with the origin. */
-            bool angleCompare (Eigen::Ref<const Eigen::VectorXd> v1, Eigen::Ref<const Eigen::VectorXd> v2) const;
+            /** \brief Compare the angles that \a x1 and \a x2 make around the
+             * origin after projection to the chart plane. Requires k_ == 2. */
+            bool angleCompare (Eigen::Ref<const Eigen::VectorXd> x1,
+                               Eigen::Ref<const Eigen::VectorXd> x2) const;
             /// @endcond
         };
     }

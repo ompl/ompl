@@ -206,39 +206,49 @@ const Eigen::VectorXd *ompl::base::AtlasChart::getXoriginPtr (void) const
     return &xorigin_;
 }
 
-void ompl::base::AtlasChart::phi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const
+void ompl::base::AtlasChart::phi (Eigen::Ref<const Eigen::VectorXd> u,
+                                  Eigen::Ref<Eigen::VectorXd> out) const
 {
     out = xorigin_ + bigPhi_ * u;
 }
 
-void ompl::base::AtlasChart::psiFromGuess (Eigen::Ref<const Eigen::VectorXd> x_0, Eigen::Ref<Eigen::VectorXd> out) const
+void ompl::base::AtlasChart::psi (Eigen::Ref<const Eigen::VectorXd> u,
+                                  Eigen::Ref<Eigen::VectorXd> out) const
 {
-    out = x_0;
-    
+    // Initial guess for Newton's method
+    Eigen::VectorXd x0(n_);
+    phi(u, x0);
+    psiFromAmbient(x0, out);
+}
+
+void ompl::base::AtlasChart::psiFromAmbient (Eigen::Ref<const Eigen::VectorXd> x0,
+                                             Eigen::Ref<Eigen::VectorXd> out) const
+{
+    // Newton's method.
+    out = x0;
     unsigned int iter = 0;
+    // b holds info about constraint satisfaction and orthogonality of the
+    // projection to the chart.
     Eigen::VectorXd b(n_);
     atlas_.bigF(out, b.head(n_-k_));
     b.tail(k_).setZero();
+    // A is the derivative used in Newton's method.
     Eigen::MatrixXd A(n_, n_);
-    A.block(n_-k_, 0, k_, n_) = bigPhi_.transpose();
-    while (b.norm() > atlas_.getProjectionTolerance() && iter++ < atlas_.getProjectionMaxIterations())
+    A.block(n_-k_, 0, k_, n_) = bigPhi_.transpose();    // This part is constant.
+    while (b.norm() > atlas_.getProjectionTolerance() &&
+           iter++ < atlas_.getProjectionMaxIterations())
     {
+        // Recompute the Jacobian at the new guess.
         atlas_.bigJ(out, A.block(0, 0, n_-k_, n_));
         
-        // Move in the direction that decreases F(out) and is perpendicular to the chart plane
+        // Move in the direction that decreases F(out) and is perpendicular to
+        // the chart.
         out += A.householderQr().solve(-b);
-        
-        atlas_.bigF(out, b.head(n_-k_));
-        b.tail(k_) = bigPhi_.transpose() * (out - x_0);
-    }
-}
 
-void ompl::base::AtlasChart::psi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const
-{
-    // Initial guess for Newton's method
-    Eigen::VectorXd x_0(n_);
-    phi(u, x_0);
-    psiFromGuess(x_0, out);
+        // Recompute b with new guess.
+        atlas_.bigF(out, b.head(n_-k_));
+        b.tail(k_) = bigPhi_.transpose() * (out - x0);
+    }
 }
 
 void ompl::base::AtlasChart::psiInverse (Eigen::Ref<const Eigen::VectorXd> x, Eigen::Ref<Eigen::VectorXd> out) const
@@ -251,6 +261,7 @@ bool ompl::base::AtlasChart::inP (Eigen::Ref<const Eigen::VectorXd> u, const Hal
 {
     for (std::size_t i = 0; i < bigL_.size(); i++)
     {
+        // Skip these.
         if (bigL_[i] == ignore1 || bigL_[i] == ignore2)
             continue;
         
@@ -267,17 +278,17 @@ void ompl::base::AtlasChart::borderCheck (Eigen::Ref<const Eigen::VectorXd> v) c
         bigL_[i]->checkNear(v);
 }
 
-const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (Eigen::Ref<const Eigen::VectorXd> x) const
+const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (
+    Eigen::Ref<const Eigen::VectorXd> x) const
 {
     Eigen::VectorXd tempx(n_), tempu(k_);
     for (std::size_t i = 0; i < bigL_.size(); i++)
     {
-        const Halfspace *comp = bigL_[i]->getComplement();
-        
-        // Project onto the chart and check if it's in the validity region and polytope
-        const AtlasChart &c = comp->getOwner();
+        // Project onto the neighboring chart, then onto the manifold.
+        const AtlasChart &c = bigL_[i]->getComplement()->getOwner();
         c.psiInverse(x, tempu);
         c.phi(tempu, tempx);
+        // Check if it's within the validity region and polytope boundary.
         if ((tempx - x).norm() < atlas_.getEpsilon() && tempu.norm() < atlas_.getRho() && c.inP(tempu))
             return &c;
     }
@@ -376,33 +387,29 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
     if (&c1.atlas_ != &c2.atlas_)
         throw ompl::Exception("generateHalfspace() must be called on charts in the same atlas!");
     
-    // c1, c2 will delete l1, l2, respectively, upon destruction
+    // c1, c2 will delete l1, l2, respectively, upon destruction.
     Halfspace *l1, *l2;
     l1 = new Halfspace(c1, c2);
     l2 = new Halfspace(c2, c1);
     l1->setComplement(l2);
     l2->setComplement(l1);
-    c1.addBoundary(*l1);
-    c2.addBoundary(*l2);
-}
-
-double ompl::base::AtlasChart::distanceBetweenCenters (AtlasChart *c1, AtlasChart *c2)
-{
-    return (c1->getXorigin() - c2->getXorigin()).norm();
+    c1.addBoundary(l1);
+    c2.addBoundary(l2);
 }
 
 /// Protected
 
-void ompl::base::AtlasChart::addBoundary (Halfspace &halfspace)
+void ompl::base::AtlasChart::addBoundary (Halfspace *halfspace)
 {
-    bigL_.push_back(&halfspace);
+    bigL_.push_back(halfspace);
 }
 
 /// Private
 
-bool ompl::base::AtlasChart::angleCompare (Eigen::Ref<const Eigen::VectorXd> x1, Eigen::Ref<const Eigen::VectorXd> x2) const
+bool ompl::base::AtlasChart::angleCompare (Eigen::Ref<const Eigen::VectorXd> x1,
+                                           Eigen::Ref<const Eigen::VectorXd> x2) const
 {
-    Eigen::VectorXd v1(k_), v2(k_);
+    Eigen::VectorXd v1(2), v2(2);
     psiInverse(x1, v1);
     psiInverse(x2, v2);
     return std::atan2(v1[1], v1[0]) < std::atan2(v2[1], v2[0]);
