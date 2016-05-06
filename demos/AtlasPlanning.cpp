@@ -93,7 +93,6 @@ int main (int argc, char **argv)
     atlas->setEpsilon(0.2); // 0.1
     atlas->setDelta(0.02);
     atlas->setMaxChartsPerExtension(200);
-    atlas->setMonteCarloSampleCount(0);
     
     // The atlas needs some place to start sampling from. We will make start and goal charts.
     ompl::base::AtlasChart &startChart = atlas->anchorChart(x);

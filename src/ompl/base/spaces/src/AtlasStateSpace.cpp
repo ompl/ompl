@@ -376,7 +376,7 @@ void ompl::base::AtlasStateSpace::StateType::setChart (AtlasChart *const c) cons
 ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int ambient, const unsigned int manifold)
 : RealVectorStateSpace(ambient),
     n_(ambient), k_(manifold), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
-    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), monteCarloSampleCount_(0), setup_(false), noAtlas_(false)
+    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), setup_(false), noAtlas_(false)
 {
     //rng_.setLocalSeed(414344382);
 
@@ -384,9 +384,6 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int ambient, const 
         
     setRho(0.1);
     setAlpha(M_PI/16);
-    setMonteCarloSampleCount(100);
-    
-    ballMeasure_ = std::pow(std::sqrt(M_PI), k_) / boost::math::tgamma(k_/2.0 + 1);
     
     chartNN_.setDistanceFunction(std::bind(
                                      &chartNNDistanceFunction,
@@ -469,7 +466,7 @@ void ompl::base::AtlasStateSpace::clear (void)
         for (std::size_t j = 0; j < charts_.size(); j++)
             AtlasChart::generateHalfspace(*charts_[j], c);
     
-        charts_.add(&c, c.getMeasure());
+        charts_.add(&c, 1);
         chartNN_.add(std::make_pair<>(c.getXoriginPtr(), charts_.size()-1));
     }
 }
@@ -558,20 +555,6 @@ void ompl::base::AtlasStateSpace::setMaxChartsPerExtension (const unsigned int c
     maxChartsPerExtension_ = charts;
 }
 
-void ompl::base::AtlasStateSpace::setMonteCarloSampleCount (const unsigned int count)
-{
-    samples_.resize(count);
-    // Generate random samples within the ball
-    for (std::size_t i = monteCarloSampleCount_; i < samples_.size(); i++)
-    {
-        samples_[i].resize(k_);
-        for (int j = 0; j < samples_[i].size(); j++)
-            samples_[i][j] = rng_.gaussian01();
-        samples_[i] *= std::pow(rng_.uniform01(), 1.0/samples_[i].size()) / samples_[i].norm();
-    }
-    monteCarloSampleCount_ = count;
-}
-
 double ompl::base::AtlasStateSpace::getDelta (void) const
 {
     return delta_;
@@ -620,11 +603,6 @@ unsigned int ompl::base::AtlasStateSpace::getProjectionMaxIterations (void) cons
 unsigned int ompl::base::AtlasStateSpace::getMaxChartsPerExtension (void) const
 {
     return maxChartsPerExtension_;
-}
-
-unsigned int ompl::base::AtlasStateSpace::getMonteCarloSampleCount (void) const
-{
-    return monteCarloSampleCount_;
 }
 
 unsigned int ompl::base::AtlasStateSpace::getAmbientDimension (void) const
@@ -683,7 +661,7 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::Vect
     for (std::size_t i = 0; i < nearbyCharts.size(); i++)
         AtlasChart::generateHalfspace(*charts_[nearbyCharts[i].second], addedC);
     
-    charts_.add(&addedC, addedC.getMeasure());
+    charts_.add(&addedC, 1);
     chartNN_.add(std::make_pair<>(addedC.getXoriginPtr(), charts_.size()-1));
     
     return addedC;
@@ -702,25 +680,6 @@ void ompl::base::AtlasStateSpace::dichotomicSearch (const AtlasChart &c, const E
     Eigen::VectorXd u(k_);
     while (c.psiInverse(out, u), !c.inP(u))
         out = 0.5 * (xinside + out);
-}
-
-void ompl::base::AtlasStateSpace::updateMeasure (const AtlasChart &c) const
-{
-    // It's possible we're not tracking this chart yet, in which case don't worry about it
-    std::size_t index = c.getID();
-    if (index >= charts_.size())
-        return;
-    charts_.update(charts_.getElements()[index], c.getMeasure());
-}
-
-double ompl::base::AtlasStateSpace::getMeasureKBall (void) const
-{
-    return ballMeasure_;
-}
-
-const std::vector<Eigen::VectorXd> &ompl::base::AtlasStateSpace::getMonteCarloSamples (void) const
-{
-    return samples_;
 }
 
 std::size_t ompl::base::AtlasStateSpace::getChartCount (void) const

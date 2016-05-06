@@ -38,8 +38,6 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
-#include "ompl/base/spaces/AtlasStateSpace.h"
-
 ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, bool addIntermediateStates) : base::Planner(si, addIntermediateStates ? "RRTConnectIntermediate" : "RRTConnect")
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;

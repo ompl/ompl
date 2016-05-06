@@ -217,7 +217,6 @@ ompl::geometric::ConstrainedSimpleSetupPtr createChainSetup(std::size_t dimensio
     atlas->setEpsilon(0.2);
     atlas->setDelta(0.02);
     atlas->setMaxChartsPerExtension(200);
-    atlas->setMonteCarloSampleCount(0);
     atlas->setProjectionTolerance(1e-8);
 
     // The atlas needs some place to start sampling from. We will make start and goal charts.

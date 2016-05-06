@@ -136,15 +136,19 @@ namespace ompl
             
         public:
             
-            /** \brief Constructor; \a atlas is the atlas to which it belongs, and \a xorigin
-             * is the ambient space point on the manifold at which the chart will be centered.
-             * Chart will persist through calls to AtlasStateSpace::clear() if \a anchor is true. */
-            AtlasChart (const AtlasStateSpace &atlas, Eigen::Ref<const Eigen::VectorXd> xorigin, const bool anchor = false);
+            /** \brief Create a tangent space chart for \a atlas with center at
+             * ambient space point \a xorigin. Use \a isAnchor to specify if
+             * this is a special chart (e.g. start or goal is on it) that should
+             * persist through a call to AtlasStateSpace::clear().
+             * \throws ompl::Exception when manifold seems degenerate here. */
+            AtlasChart (const AtlasStateSpace &atlas,
+                        Eigen::Ref<const Eigen::VectorXd> xorigin,
+                        const bool isAnchor = false);
             
             /** \brief Destructor. */
             virtual ~AtlasChart (void);
             
-            /** \brief Forget all acquired information like radius and linear inequalities. */
+            /** \brief Forget all acquired information such as the halfspace boundary. */
             void clear (void);
             
             /** \brief Returns phi(0), the center of the chart in ambient space. */
@@ -180,15 +184,6 @@ namespace ompl
              * polytope when projected onto it. Returns nullptr if none. */
             virtual const AtlasChart *owningNeighbor (Eigen::Ref<const Eigen::VectorXd> x) const;
             
-            /** \brief Perform calculations to approximate the measure of this chart. */
-            virtual void approximateMeasure (void);
-            
-            /** \brief Get the measure (k_-dimensional volume) of this chart. */
-            double getMeasure (void) const;
-            
-            /** \brief Reduce the valid radius of the chart. */
-            void shrinkRadius (void) const;
-            
             /** \brief Set this chart's unique identifier in its atlas. Needs to be its index in the atlas'
              * vector of charts. */
             void setID (unsigned int);
@@ -199,12 +194,20 @@ namespace ompl
             
             /** \brief Is this chart marked as an anchor chart for the atlas? */
             bool isAnchor (void) const;
-            
-            /** \brief If the manifold dimension is 2, compute the sequence of vertices for the polygon of this
-             * chart and return them in \a vertices, in order. */
+
+            /// @cond IGNORE
+            /** \brief For manifolds of dimension 2, return in order in \a
+             * vertices the polygon boundary of this chart, including an
+             * approximation of the circular boundary where the polygon exceeds
+             * radius \a rho_. Returns true if a circular portion is
+             * included. */
             bool toPolygon (std::vector<Eigen::VectorXd> &vertices) const;
 
+            /** \brief Use sampling to make a quick estimate as to whether this
+             * chart's polytope boundary is completely defined by its
+             * halfspaces. */
             bool estimateIsFrontier () const;
+            /// @cond IGNORE
             
             /** \brief Create two complementary linear inequalities dividing the space between charts \a c1 and \a c2,
              * and add them to the charts' polytopes. */
@@ -217,9 +220,6 @@ namespace ompl
             
             /** \brief Atlas to which this chart belongs. */
             const AtlasStateSpace &atlas_;
-            
-            /** \brief Measure of the convex polytope P. */
-            double measure_;
             
             /** \brief Set of linear inequalities defining the polytope P. */
             std::vector<Halfspace *> bigL_;
@@ -239,31 +239,22 @@ namespace ompl
             /** \brief Origin of the chart in ambient space coordinates. */
             const Eigen::VectorXd xorigin_;
             
-            /** \brief Unique ID in the atlas. */
-            unsigned int id_;
-            
+            /** \brief Maximum valid radius of this chart. */
+            const double radius_;
+
             /** \brief Whether this chart is an anchor chart in the atlas. */
-            const bool anchor_;
+            const bool isAnchor_;
+            
+            /** \brief Unique ID in the atlas. Must be manually set. */
+            unsigned int id_;
             
             /** \brief Basis for the chart space. */
             Eigen::MatrixXd bigPhi_;
-            
-            /** \brief Transpose of basis. */
-            Eigen::MatrixXd bigPhi_t_;
-            
-            /** \brief Pseudoinverse of the transpose of basis. */
-            Eigen::MatrixXd bigPhi_t_pinv_;
-            
-            /** \brief Maximum valid radius of this chart. */
-            double radius_;
 
-            mutable RNG rng_;
-            
-            /** \brief Perform initializations regarding measure estimate and linear inequalities. */
-            void init (void);
-            
+            /// @cond IGNORE
             /** \brief Compare the angles \a v1 and \a v2 make with the origin. */
             bool angleCompare (Eigen::Ref<const Eigen::VectorXd> v1, Eigen::Ref<const Eigen::VectorXd> v2) const;
+            /// @endcond
         };
     }
 }

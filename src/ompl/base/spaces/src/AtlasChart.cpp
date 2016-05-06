@@ -45,6 +45,7 @@
 /// AtlasChart::Halfspace
 
 /// Public
+
 ompl::base::AtlasChart::Halfspace::Halfspace (const AtlasChart &owner,
                                               const AtlasChart &neighbor)
     : owner_(owner), complement_(nullptr)
@@ -113,6 +114,7 @@ bool ompl::base::AtlasChart::Halfspace::circleIntersect (
 }
 
 /// Public static
+
 void ompl::base::AtlasChart::Halfspace::intersect (
     const Halfspace &l1, const Halfspace &l2, Eigen::Ref<Eigen::VectorXd> out)
 {
@@ -129,6 +131,7 @@ void ompl::base::AtlasChart::Halfspace::intersect (
 }
 
 /// Private
+
 void ompl::base::AtlasChart::Halfspace::setU (const Eigen::VectorXd &u)
 {
     u_ = u;
@@ -157,31 +160,33 @@ void ompl::base::AtlasChart::Halfspace::expandToInclude (Eigen::Ref<const Eigen:
 /// AtlasChart
 
 /// Public
-ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas, Eigen::Ref<const Eigen::VectorXd> xorigin, const bool anchor)
+
+ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas,
+                                    Eigen::Ref<const Eigen::VectorXd> xorigin,
+                                    const bool isAnchor)
 : atlas_(atlas), n_(atlas_.getAmbientDimension()), k_(atlas_.getManifoldDimension()),
-  xorigin_(xorigin), id_(0), anchor_(anchor), radius_(atlas_.getRho())
+  xorigin_(xorigin), radius_(atlas_.getRho()), isAnchor_(isAnchor)
 {
-    Eigen::VectorXd f(n_-k_);
+    id_ = 0;    // No id initially.
     
-    // Initialize basis by computing the null space of the Jacobian and orthonormalizing
+    // Decompose the Jacobian at xorigin.
     Eigen::MatrixXd j(n_-k_,n_);
     atlas_.bigJ(xorigin_, j);
     Eigen::FullPivLU<Eigen::MatrixXd> decomp = j.fullPivLu();
     if (!decomp.isSurjective()) {
         OMPL_WARN("AtlasChart::AtlasChart(): Jacobian not surjective! Possible singularity?");
-        throw ompl::Exception("Computing tangent basis here would cause floating-point exception.");
+        // AtlasStateSpace will deal with this exception.
+        throw ompl::Exception("Cannot compute full-rank tangent space.");
     }
+    // Compute the null space, which is a basis for the tangent space.
     Eigen::HouseholderQR<Eigen::MatrixXd> nullDecomp = decomp.kernel().householderQr();
+    // Orthonormalize.
     bigPhi_ = nullDecomp.householderQ() * Eigen::MatrixXd::Identity(n_, k_);
-    bigPhi_t_ = bigPhi_.transpose();
-    
-    init();
 }
 
 ompl::base::AtlasChart::~AtlasChart (void)
 {
-    for (std::size_t i = 0; i < bigL_.size(); i++)
-        delete bigL_[i];
+    clear();
 }
 
 void ompl::base::AtlasChart::clear (void)
@@ -189,10 +194,6 @@ void ompl::base::AtlasChart::clear (void)
     for (std::size_t i = 0; i < bigL_.size(); i++)
         delete bigL_[i];
     bigL_.clear();
-    
-    radius_ = atlas_.getRho();
-    
-    init();
 }
 
 Eigen::Ref<const Eigen::VectorXd> ompl::base::AtlasChart::getXorigin (void) const
@@ -219,7 +220,7 @@ void ompl::base::AtlasChart::psiFromGuess (Eigen::Ref<const Eigen::VectorXd> x_0
     atlas_.bigF(out, b.head(n_-k_));
     b.tail(k_).setZero();
     Eigen::MatrixXd A(n_, n_);
-    A.block(n_-k_, 0, k_, n_) = bigPhi_t_;
+    A.block(n_-k_, 0, k_, n_) = bigPhi_.transpose();
     while (b.norm() > atlas_.getProjectionTolerance() && iter++ < atlas_.getProjectionMaxIterations())
     {
         atlas_.bigJ(out, A.block(0, 0, n_-k_, n_));
@@ -228,7 +229,7 @@ void ompl::base::AtlasChart::psiFromGuess (Eigen::Ref<const Eigen::VectorXd> x_0
         out += A.householderQr().solve(-b);
         
         atlas_.bigF(out, b.head(n_-k_));
-        b.tail(k_) = bigPhi_t_ * (out - x_0);
+        b.tail(k_) = bigPhi_.transpose() * (out - x_0);
     }
 }
 
@@ -242,7 +243,7 @@ void ompl::base::AtlasChart::psi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Re
 
 void ompl::base::AtlasChart::psiInverse (Eigen::Ref<const Eigen::VectorXd> x, Eigen::Ref<Eigen::VectorXd> out) const
 {
-    out = bigPhi_t_ * (x - xorigin_);
+    out = bigPhi_.transpose() * (x - xorigin_);
 }
 
 bool ompl::base::AtlasChart::inP (Eigen::Ref<const Eigen::VectorXd> u, const Halfspace *const ignore1,
@@ -284,39 +285,6 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (Eigen::Ref
     return nullptr;
 }
 
-void ompl::base::AtlasChart::approximateMeasure (void)
-{
-    /*
-    // Perform Monte Carlo integration to estimate measure
-    unsigned int countInside = 0;
-    const std::vector<Eigen::VectorXd> &samples = atlas_.getMonteCarloSamples();
-    for (std::size_t i = 0; i < samples.size(); i++)
-    {
-        // Take a sample and check if it's inside P \intersect k-Ball
-        if (inP(samples[i]*radius_, nullptr))
-            countInside++;
-    }
-    
-    // Update measure with new estimate. If 0 samples, then pretend we are just a sphere.
-    measure_ = atlas_.getMeasureKBall() * std::pow(radius_, k_);
-    if (samples.size() > 0)
-        measure_ = countInside * (measure_ / samples.size());
-    atlas_.updateMeasure(*this);
-    */
-}
-
-double ompl::base::AtlasChart::getMeasure (void) const
-{
-    return 1;
-    //return measure_;
-}
-
-void ompl::base::AtlasChart::shrinkRadius (void) const
-{
-//     if (radius_ > atlas_.getDelta())
-//         radius_ *= 0.8;
-}
-
 void ompl::base::AtlasChart::setID (unsigned int id)
 {
     id_ = id;
@@ -329,7 +297,7 @@ unsigned int ompl::base::AtlasChart::getID (void) const
 
 bool ompl::base::AtlasChart::isAnchor (void) const
 {
-    return anchor_;
+    return isAnchor_;
 }
 
 bool ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) const
@@ -389,10 +357,11 @@ bool ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
 }
 
 bool ompl::base::AtlasChart::estimateIsFrontier () const {
+    RNG rng;
     Eigen::VectorXd ru(atlas_.getManifoldDimension());
     for (int k = 0; k < 1000; k++) {
         for (int i = 0; i < ru.size(); i++)
-            ru[i] = rng_.gaussian01();
+            ru[i] = rng.gaussian01();
         ru *= atlas_.getRho() / ru.norm();
         if (inP(ru))
             return true;
@@ -401,6 +370,7 @@ bool ompl::base::AtlasChart::estimateIsFrontier () const {
 }
 
 /// Public Static
+
 void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
 {
     if (&c1.atlas_ != &c2.atlas_)
@@ -422,31 +392,13 @@ double ompl::base::AtlasChart::distanceBetweenCenters (AtlasChart *c1, AtlasChar
 }
 
 /// Protected
+
 void ompl::base::AtlasChart::addBoundary (Halfspace &halfspace)
 {
     bigL_.push_back(&halfspace);
-    
-    // Update the measure estimate
-    approximateMeasure();
 }
 
 /// Private
-void ompl::base::AtlasChart::init (void)
-{
-    // Initialize set of linear inequalities so the polytope is the k-dimensional cube of side
-    //  length 2*rho so it completely contains the ball of radius rho
-    /*Eigen::VectorXd e = Eigen::VectorXd::Zero(k_);
-    for (unsigned int i = 0; i < k_; i++)
-    {
-        e[i] = 2 * atlas_.getRho();
-        bigL_.push_back(new Halfspace(*this, e));
-        e[i] *= -1;
-        bigL_.push_back(new Halfspace(*this, e));
-        e[i] = 0;
-    }
-    */
-    measure_ = 1;//atlas_.getMeasureKBall() * std::pow(radius_, k_);
-}
 
 bool ompl::base::AtlasChart::angleCompare (Eigen::Ref<const Eigen::VectorXd> x1, Eigen::Ref<const Eigen::VectorXd> x2) const
 {
