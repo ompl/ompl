@@ -388,7 +388,7 @@ namespace ompl
             SpaceInformation *si_;
             
             /** \brief Set of charts, sampleable by weight. */
-            mutable PDF<AtlasChart *> charts_;
+            mutable std::vector<AtlasChart *> charts_;
             
             /** \brief Set of charts, accessible by nearest-neighbor queries to the chart centers. */
             mutable NearestNeighborsGNAT<NNElement> chartNN_;

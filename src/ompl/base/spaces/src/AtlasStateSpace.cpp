@@ -466,7 +466,7 @@ void ompl::base::AtlasStateSpace::clear (void)
         for (std::size_t j = 0; j < charts_.size(); j++)
             AtlasChart::generateHalfspace(*charts_[j], c);
     
-        charts_.add(&c, 1);
+        charts_.push_back(&c);
         chartNN_.add(std::make_pair<>(c.getXoriginPtr(), charts_.size()-1));
     }
 }
@@ -623,11 +623,10 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::anchorChart (const Eigen::V
 
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::sampleChart (void) const
 {
-    double r = rng_.uniform01();
-    
     if (charts_.size() < 1)
         throw ompl::Exception("Atlas sampled before any charts were made. Use AtlasStateSpace::anchorChart() first.");
-    return *charts_.sample(r);
+    
+    return *charts_[rng_.uniformInt(0, charts_.size() - 1)];
 }
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::VectorXd &x) const
@@ -661,7 +660,7 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::Vect
     for (std::size_t i = 0; i < nearbyCharts.size(); i++)
         AtlasChart::generateHalfspace(*charts_[nearbyCharts[i].second], addedC);
     
-    charts_.add(&addedC, 1);
+    charts_.push_back(&addedC);
     chartNN_.add(std::make_pair<>(addedC.getXoriginPtr(), charts_.size()-1));
     
     return addedC;
