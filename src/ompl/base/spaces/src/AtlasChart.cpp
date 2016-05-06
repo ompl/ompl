@@ -36,10 +36,6 @@
 
 #include "ompl/base/spaces/AtlasChart.h"
 
-#include <boost/bind.hpp>
-#include <boost/lambda/lambda.hpp>
-#include <boost/thread/lock_guard.hpp>
-
 #include <eigen3/Eigen/Dense>
 
 /// AtlasChart::Halfspace
