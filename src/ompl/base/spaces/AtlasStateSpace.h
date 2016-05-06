@@ -43,10 +43,7 @@
 #include "ompl/base/ValidStateSampler.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
-#include "ompl/datastructures/PDF.h"
 #include "ompl/geometric/PathGeometric.h"
-
-#include <boost/thread/mutex.hpp>
 
 #include <eigen3/Eigen/Core>
 
@@ -88,12 +85,6 @@ namespace ompl
             
             /** \brief Atlas on which to sample. */
             const AtlasStateSpace &atlas_;
-            
-            /** \brief Locks to keep some operations thread-safe. */
-            mutable struct
-            {
-                boost::mutex rng_;
-            } mutices_;
         };
         
         /** \brief ValidStateSampler for use on an atlas. */
