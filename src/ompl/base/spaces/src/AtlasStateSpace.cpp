@@ -85,7 +85,7 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
                 ru[i] = rng_.gaussian01();
             ru *= atlas_.getRho_s() * std::pow(rng_.uniform01(), 1.0/ru.size()) / ru.norm();
         }
-        while (tries > 0 && !c->inP(ru));
+        while (tries > 0 && !c->inPolytope(ru));
         
         c->psi(ru, rx);
     }
@@ -163,7 +163,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state, const State
     }
 
     // Be lazy about determining the new chart if we are not in the old one
-    if (c->psiInverse(rx, ru), !c->inP(ru))
+    if (c->psiInverse(rx, ru), !c->inPolytope(ru))
         c = nullptr;
     else
         c->borderCheck(ru);
@@ -220,7 +220,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     }
 
     // Be lazy about determining the new chart if we are not in the old one
-    if (c->psiInverse(rx, ru), !c->inP(ru))
+    if (c->psiInverse(rx, ru), !c->inPolytope(ru))
         c = nullptr;
     else
         c->borderCheck(ru);
@@ -565,7 +565,7 @@ double ompl::base::AtlasStateSpace::getEpsilon (void) const
     return epsilon_;
 }
 
-double ompl::base::AtlasStateSpace::getRho (void) const
+const double &ompl::base::AtlasStateSpace::getRho (void) const
 {
     return rho_;
 }
@@ -641,7 +641,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
         AtlasChart *c = charts_[nearbyCharts[i].second];
         c->psiInverse(x, tempu);
         c->phi(tempu, tempx);
-        if ((tempx - x).norm() < epsilon_ && tempu.norm() < rho_ && c->inP(tempu))
+        if ((tempx - x).norm() < epsilon_ && tempu.norm() < rho_ && c->inPolytope(tempu))
             return c;
     }
     
@@ -677,7 +677,7 @@ void ompl::base::AtlasStateSpace::dichotomicSearch (const AtlasChart &c, const E
     // Cut the distance in half, moving toward xinside until we are inside the chart
     out = xoutside;
     Eigen::VectorXd u(k_);
-    while (c.psiInverse(out, u), !c.inP(u))
+    while (c.psiInverse(out, u), !c.inPolytope(u))
         out = 0.5 * (xinside + out);
 }
 
@@ -767,7 +767,7 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
 
         c->phi(u_j, tempx);
         if (((x_j - tempx).squaredNorm() > epsilon_*epsilon_ || delta_/d_s < cos_alpha_
-            || u_j.squaredNorm() > rho_*rho_) || !c->inP(u_j))
+            || u_j.squaredNorm() > rho_*rho_) || !c->inPolytope(u_j))
         {
             // Left the validity region or polytope of the chart; find or make a new one
             // The paper says we should always make (never find) one here, but, empirically, that's not always the case
@@ -1081,9 +1081,9 @@ void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *
     AtlasChart &c1 = *stateList[i > 0 ? i-1 : 0]->getChart();
     AtlasChart &c2 = *stateList[i]->getChart();
     Eigen::VectorXd u(k_);
-    if (c1.psiInverse(x, u), c1.inP(u))
+    if (c1.psiInverse(x, u), c1.inPolytope(u))
         astate->setChart(&c1);
-    else if (c2.psiInverse(x, u), c2.inP(u))
+    else if (c2.psiInverse(x, u), c2.inPolytope(u))
         astate->setChart(&c2);
     else
     {

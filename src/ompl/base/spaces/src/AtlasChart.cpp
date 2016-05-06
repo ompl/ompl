@@ -191,9 +191,9 @@ ompl::base::AtlasChart::~AtlasChart (void)
 
 void ompl::base::AtlasChart::clear (void)
 {
-    for (Halfspace *h : bigL_)
+    for (Halfspace *h : polytope_)
         delete h;
-    bigL_.clear();
+    polytope_.clear();
 }
 
 Eigen::Ref<const Eigen::VectorXd> ompl::base::AtlasChart::getXorigin (void) const
@@ -251,15 +251,17 @@ void ompl::base::AtlasChart::psiFromAmbient (Eigen::Ref<const Eigen::VectorXd> x
     }
 }
 
-void ompl::base::AtlasChart::psiInverse (Eigen::Ref<const Eigen::VectorXd> x, Eigen::Ref<Eigen::VectorXd> out) const
+void ompl::base::AtlasChart::psiInverse (Eigen::Ref<const Eigen::VectorXd> x,
+                                         Eigen::Ref<Eigen::VectorXd> out) const
 {
     out = bigPhi_.transpose() * (x - xorigin_);
 }
 
-bool ompl::base::AtlasChart::inP (Eigen::Ref<const Eigen::VectorXd> u, const Halfspace *const ignore1,
-                                  const Halfspace *const ignore2) const
+bool ompl::base::AtlasChart::inPolytope (Eigen::Ref<const Eigen::VectorXd> u,
+                                         const Halfspace *const ignore1,
+                                         const Halfspace *const ignore2) const
 {
-    for (Halfspace *h : bigL_)
+    for (Halfspace *h : polytope_)
     {
         if (h == ignore1 || h == ignore2)
             continue;
@@ -271,7 +273,7 @@ bool ompl::base::AtlasChart::inP (Eigen::Ref<const Eigen::VectorXd> u, const Hal
 
 void ompl::base::AtlasChart::borderCheck (Eigen::Ref<const Eigen::VectorXd> v) const
 {
-    for (Halfspace *h : bigL_)
+    for (Halfspace *h : polytope_)
         h->checkNear(v);
 }
 
@@ -279,7 +281,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (
     Eigen::Ref<const Eigen::VectorXd> x) const
 {
     Eigen::VectorXd projx(n_), proju(k_);
-    for (Halfspace *h : bigL_)
+    for (Halfspace *h : polytope_)
     {
         // Project onto the neighboring chart.
         const AtlasChart &c = h->getComplement()->getOwner();
@@ -288,7 +290,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (
         // Check if it's within the validity region and polytope boundary.
         if ((projx - x).norm() < atlas_.getEpsilon() &&
             proju.norm() < atlas_.getRho() &&
-            c.inP(proju))
+            c.inPolytope(proju))
             return &c;
     }
     
@@ -315,37 +317,39 @@ bool ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
     if (atlas_.getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::toPolygon() only works on 2D manifold/charts.");
     
-    // Compile a list of all the vertices in P and all the times the border intersects the circle
+    // Compile a list of all the vertices in P and all the times the border
+    // intersects the circle.
     vertices.clear();
     Eigen::VectorXd v(2);
     Eigen::VectorXd intersection(n_);
-    for (std::size_t i = 0; i < bigL_.size(); i++)
+    for (std::size_t i = 0; i < polytope_.size(); i++)
     {
-        for (std::size_t j = i+1; j < bigL_.size(); j++)
+        for (std::size_t j = i+1; j < polytope_.size(); j++)
         {
-            // Check if intersection of the lines is a part of the boundary and within the circle
-            Halfspace::intersect(*bigL_[i], *bigL_[j], v);
+            // Check if intersection of the lines is a part of the boundary and
+            // within the circle.
+            Halfspace::intersect(*polytope_[i], *polytope_[j], v);
             phi(v, intersection);
-            if (v.norm() <= radius_ && inP(v, bigL_[i], bigL_[j]))
+            if (v.norm() <= radius_ && inPolytope(v, polytope_[i], polytope_[j]))
                 vertices.push_back(intersection);
         }
         
-        // Check if intersection with circle is part of the boundary
+        // Check if intersection with circle is part of the boundary.
         Eigen::VectorXd v1(2), v2(2);
-        if ((bigL_[i])->circleIntersect(radius_, v1, v2))
+        if ((polytope_[i])->circleIntersect(radius_, v1, v2))
         {
-            if (inP(v1, bigL_[i])) {
+            if (inPolytope(v1, polytope_[i])) {
                 phi(v1, intersection);
                 vertices.push_back(intersection);
             }
-            if (inP(v2, bigL_[i])) {
+            if (inPolytope(v2, polytope_[i])) {
                 phi(v2, intersection);
                 vertices.push_back(intersection);
             }
         }
     }
     
-    // Throw in points approximating the circle, if they're inside P
+    // Include points approximating the circle, if they're inside the polytope.
     bool is_frontier = false;
     Eigen::VectorXd v0(2); v0 << radius_, 0;
     const double step = M_PI/16;
@@ -353,14 +357,14 @@ bool ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
     {
         const Eigen::VectorXd v = Eigen::Rotation2Dd(a)*v0;
         
-        if (inP(v)) {
+        if (inPolytope(v)) {
             is_frontier = true;
             phi(v, intersection);
             vertices.push_back(intersection);
         }
     }
     
-    // Put them in order
+    // Put all the points in order.
     std::sort(vertices.begin(), vertices.end(),
               [&] (Eigen::Ref<const Eigen::VectorXd> x1,
                    Eigen::Ref<const Eigen::VectorXd> x2) -> bool
@@ -382,7 +386,7 @@ bool ompl::base::AtlasChart::estimateIsFrontier () const {
         for (int i = 0; i < ru.size(); i++)
             ru[i] = rng.gaussian01();
         ru *= atlas_.getRho() / ru.norm();
-        if (inP(ru))
+        if (inPolytope(ru))
             return true;
     }
     return false;
@@ -409,5 +413,5 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
 
 void ompl::base::AtlasChart::addBoundary (Halfspace *halfspace)
 {
-    bigL_.push_back(halfspace);
+    polytope_.push_back(halfspace);
 }

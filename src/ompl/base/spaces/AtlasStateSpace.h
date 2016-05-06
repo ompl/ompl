@@ -265,7 +265,7 @@ namespace ompl
             double getEpsilon (void) const;
             
             /** \brief Get rho. */
-            double getRho (void) const;
+            const double &getRho (void) const;
             
             /** \brief Get alpha. */
             double getAlpha (void) const;

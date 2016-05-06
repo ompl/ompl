@@ -184,9 +184,9 @@ namespace ompl
             /** \brief Check if a point \a u on the chart lies within its
              * polytope boundary. Can ignore up to 2 of the halfspaces if
              * specified in \a ignore1 and \a ignore2. */
-            bool inP (Eigen::Ref<const Eigen::VectorXd> u,
-                              const Halfspace *const ignore1 = nullptr,
-                              const Halfspace *const ignore2 = nullptr) const;
+            bool inPolytope (Eigen::Ref<const Eigen::VectorXd> u,
+                             const Halfspace *const ignore1 = nullptr,
+                             const Halfspace *const ignore2 = nullptr) const;
             
             /** \brief Check if chart point \a v lies very close to any part of
              * the boundary. Wherever it does, expand the neighboring chart's
@@ -233,8 +233,8 @@ namespace ompl
             /** \brief Atlas to which this chart belongs. */
             const AtlasStateSpace &atlas_;
             
-            /** \brief Set of linear inequalities defining the polytope P. */
-            std::vector<Halfspace *> bigL_;
+            /** \brief Set of halfsaces defining the polytope boundary. */
+            std::vector<Halfspace *> polytope_;
             
             /** \brief Introduce a new \a halfspace to the chart's bounding
              * polytope. This chart assumes responsibility for deleting \a
@@ -246,14 +246,15 @@ namespace ompl
             /** \brief Dimension of the ambient space. */
             const unsigned int n_;
             
-            /** \brief Dimension of the chart, i.e. the dimension of the manifold. */
+            /** \brief Dimension of the chart, which is the dimension of the
+             * manifold. */
             const unsigned int k_;
             
             /** \brief Origin of the chart in ambient space coordinates. */
             const Eigen::VectorXd xorigin_;
             
             /** \brief Maximum valid radius of this chart. */
-            const double radius_;
+            const double &radius_;
 
             /** \brief Whether this chart is an anchor chart in the atlas. */
             const bool isAnchor_;
