@@ -42,11 +42,12 @@
 
 #include <eigen3/Eigen/Dense>
 
-/// AtlasChart::LinearInequality
+/// AtlasChart::Halfspace
 
 /// Public
-ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c, const AtlasChart &neighbor)
-: owner_(c), complement_(nullptr)
+ompl::base::AtlasChart::Halfspace::Halfspace (const AtlasChart &c,
+                                              const AtlasChart &neighbor)
+    : owner_(c), complement_(nullptr)
 {
     // u should be neighbor's center projected onto our chart
     Eigen::VectorXd u(owner_.k_);
@@ -54,33 +55,27 @@ ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c,
     setU(1.05*u); // Add a little bit extra, to patch up the cracks
 }
 
-ompl::base::AtlasChart::LinearInequality::LinearInequality (const AtlasChart &c, Eigen::Ref<const Eigen::VectorXd> u)
-: owner_(c), complement_(nullptr)
-{
-    setU(u);
-}
-
-void ompl::base::AtlasChart::LinearInequality::setComplement (LinearInequality *const complement)
+void ompl::base::AtlasChart::Halfspace::setComplement (Halfspace *const complement)
 {
     complement_ = complement;
 }
 
-ompl::base::AtlasChart::LinearInequality *ompl::base::AtlasChart::LinearInequality::getComplement (void) const
+ompl::base::AtlasChart::Halfspace *ompl::base::AtlasChart::Halfspace::getComplement (void) const
 {
     return complement_;
 }
 
-const ompl::base::AtlasChart &ompl::base::AtlasChart::LinearInequality::getOwner (void) const
+const ompl::base::AtlasChart &ompl::base::AtlasChart::Halfspace::getOwner (void) const
 {
     return owner_;
 }
 
-bool ompl::base::AtlasChart::LinearInequality::accepts (Eigen::Ref<const Eigen::VectorXd> v) const
+bool ompl::base::AtlasChart::Halfspace::accepts (Eigen::Ref<const Eigen::VectorXd> v) const
 {
     return v.dot(u_) <= rhs_;
 }
 
-void ompl::base::AtlasChart::LinearInequality::checkNear (Eigen::Ref<const Eigen::VectorXd> v) const
+void ompl::base::AtlasChart::Halfspace::checkNear (Eigen::Ref<const Eigen::VectorXd> v) const
 {
     // Threshold is 10% of the distance from the origin to the inequality
     if (complement_ && distanceToPoint(v) < 1.0/20)
@@ -91,10 +86,10 @@ void ompl::base::AtlasChart::LinearInequality::checkNear (Eigen::Ref<const Eigen
     }
 }
 
-bool ompl::base::AtlasChart::LinearInequality::circleIntersect (const double r, Eigen::Ref<Eigen::VectorXd> v1, Eigen::Ref<Eigen::VectorXd> v2) const
+bool ompl::base::AtlasChart::Halfspace::circleIntersect (const double r, Eigen::Ref<Eigen::VectorXd> v1, Eigen::Ref<Eigen::VectorXd> v2) const
 {
     if (owner_.atlas_.getManifoldDimension() != 2)
-        throw ompl::Exception("AtlasChart::LinearInequality::circleIntersect() only works on 2D manifolds.");
+        throw ompl::Exception("AtlasChart::Halfspace::circleIntersect() only works on 2D manifolds.");
     
     double discr = 4*r*r - u_.squaredNorm();
     if (discr < 0)
@@ -113,12 +108,12 @@ bool ompl::base::AtlasChart::LinearInequality::circleIntersect (const double r, 
 }
 
 /// Public static
-void ompl::base::AtlasChart::LinearInequality::intersect (const LinearInequality &l1, const LinearInequality &l2, Eigen::Ref<Eigen::VectorXd> out)
+void ompl::base::AtlasChart::Halfspace::intersect (const Halfspace &l1, const Halfspace &l2, Eigen::Ref<Eigen::VectorXd> out)
 {
     if (&l1.owner_ != &l2.owner_)
         throw ompl::Exception("Cannot intersect linear inequalities on different charts.");
     if (l1.owner_.atlas_.getManifoldDimension() != 2)
-        throw ompl::Exception("AtlasChart::LinearInequality::intersect() only works on 2D manifolds.");
+        throw ompl::Exception("AtlasChart::Halfspace::intersect() only works on 2D manifolds.");
     
     Eigen::MatrixXd A(2,2);
     A.row(0) = l1.u_.transpose(); A.row(1) = l2.u_.transpose();
@@ -127,18 +122,18 @@ void ompl::base::AtlasChart::LinearInequality::intersect (const LinearInequality
 }
 
 /// Private
-void ompl::base::AtlasChart::LinearInequality::setU (const Eigen::VectorXd &u)
+void ompl::base::AtlasChart::Halfspace::setU (const Eigen::VectorXd &u)
 {
     u_ = u;
     rhs_ = u_.squaredNorm()/2;
 }
 
-double ompl::base::AtlasChart::LinearInequality::distanceToPoint (Eigen::Ref<const Eigen::VectorXd> v) const
+double ompl::base::AtlasChart::Halfspace::distanceToPoint (Eigen::Ref<const Eigen::VectorXd> v) const
 {
     return (0.5 - v.dot(u_) / u_.squaredNorm());
 }
 
-void ompl::base::AtlasChart::LinearInequality::expandToInclude (Eigen::Ref<const Eigen::VectorXd> x)
+void ompl::base::AtlasChart::Halfspace::expandToInclude (Eigen::Ref<const Eigen::VectorXd> x)
 {
     // Compute how far v = psiInverse(x) lies outside the inequality, if at all
     Eigen::VectorXd u(owner_.k_);
@@ -241,8 +236,8 @@ void ompl::base::AtlasChart::psiInverse (Eigen::Ref<const Eigen::VectorXd> x, Ei
     out = bigPhi_t_ * (x - xorigin_);
 }
 
-bool ompl::base::AtlasChart::inP (Eigen::Ref<const Eigen::VectorXd> u, const LinearInequality *const ignore1,
-                                  const LinearInequality *const ignore2) const
+bool ompl::base::AtlasChart::inP (Eigen::Ref<const Eigen::VectorXd> u, const Halfspace *const ignore1,
+                                  const Halfspace *const ignore2) const
 {
     for (std::size_t i = 0; i < bigL_.size(); i++)
     {
@@ -267,7 +262,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor (Eigen::Ref
     Eigen::VectorXd tempx(n_), tempu(k_);
     for (std::size_t i = 0; i < bigL_.size(); i++)
     {
-        const LinearInequality *const comp = bigL_[i]->getComplement();
+        const Halfspace *const comp = bigL_[i]->getComplement();
         if (!comp)
             continue;
         
@@ -344,7 +339,7 @@ bool ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
         for (std::size_t j = i+1; j < bigL_.size(); j++)
         {
             // Check if intersection of the lines is a part of the boundary and within the circle
-            LinearInequality::intersect(*bigL_[i], *bigL_[j], v);
+            Halfspace::intersect(*bigL_[i], *bigL_[j], v);
             phi(v, intersection);
             if (v.norm() <= radius_ && inP(v, bigL_[i], bigL_[j]))
                 vertices.push_back(intersection);
@@ -405,9 +400,9 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
         throw ompl::Exception("generateHalfspace() must be called on charts in the same atlas!");
     
     // c1, c2 will delete l1, l2, respectively, upon destruction
-    LinearInequality *l1, *l2;
-    l1 = new LinearInequality(c1, c2);
-    l2 = new LinearInequality(c2, c1);
+    Halfspace *l1, *l2;
+    l1 = new Halfspace(c1, c2);
+    l2 = new Halfspace(c2, c1);
     l1->setComplement(l2);
     l2->setComplement(l1);
     c1.addBoundary(*l1);
@@ -420,7 +415,7 @@ double ompl::base::AtlasChart::distanceBetweenCenters (AtlasChart *c1, AtlasChar
 }
 
 /// Protected
-void ompl::base::AtlasChart::addBoundary (LinearInequality &halfspace)
+void ompl::base::AtlasChart::addBoundary (Halfspace &halfspace)
 {
     bigL_.push_back(&halfspace);
     
@@ -437,9 +432,9 @@ void ompl::base::AtlasChart::init (void)
     for (unsigned int i = 0; i < k_; i++)
     {
         e[i] = 2 * atlas_.getRho();
-        bigL_.push_back(new LinearInequality(*this, e));
+        bigL_.push_back(new Halfspace(*this, e));
         e[i] *= -1;
-        bigL_.push_back(new LinearInequality(*this, e));
+        bigL_.push_back(new Halfspace(*this, e));
         e[i] = 0;
     }
     */

@@ -41,36 +41,34 @@
 
 #include <vector>
 
-#include <boost/thread/mutex.hpp>
-
 #include <eigen3/Eigen/LU>
 
 namespace ompl
 {
     namespace base
     {
-        /** \brief Tangent space for use as a projection of a manifold patch. */
+        /** \brief Tangent space and bounding polytope approximating some patch
+         * of the manifold. Has dimension k. */
         class AtlasChart : private boost::noncopyable
         {
-            /** \brief Information defining a halfspace in which a chart may be valid. */
-            class LinearInequality
+            /** \brief Halfspace equation on a chart.
+             * \note Since each halfspace is associated to exactly one chart, we
+             * let the chart be responsible for deleting it. */
+            class Halfspace
             {
             public:
                 
-                /** \brief Constructor using the chart \a c owning the inequality and a neighboring chart,
-                 * \a neighbor. Inequality inferred from centers of \a c and \a neighbor. */
-                LinearInequality (const AtlasChart &c, const AtlasChart &neighbor);
+                /** \brief Create a halfspace equitably separating charts \a c
+                 * and \a neighbor. This halfspace will coincide with chart \a
+                 * c. */
+                Halfspace (const AtlasChart &c, const AtlasChart &neighbor);
                 
-                /** \brief Constructor using the chart owning the inequality \a c and an explicit point \a u
-                 * on \a c. Inequality inferred from center of \a c and point \a u. */
-                LinearInequality (const AtlasChart &c, Eigen::Ref<const Eigen::VectorXd> u);
-                
-                /** \brief Set the linear inequality which complements this one (though not exactly
-                 * because it would lie on a different chart). */
-                void setComplement (LinearInequality *const complement);
+                /** \brief Inform this halfspace about the "complementary"
+                 * halfspace which coincides with the neighboring chart. */
+                void setComplement (Halfspace *const complement);
                 
                 /** \brief Get the complementary inequality. Returns nullptr if none. */
-                LinearInequality *getComplement (void) const;
+                Halfspace *getComplement (void) const;
                 
                 /** \brief Get the chart to which this inequality belongs. */
                 const AtlasChart &getOwner (void) const;
@@ -90,7 +88,7 @@ namespace ompl
                 
                 /** \brief Compute the vertex of intersection of two 1-dimensional inequalities \a l1 and \a l2.
                  * Result stored in \a out, which should be allocated to a size of 2. */
-                static void intersect (const LinearInequality &l1, const LinearInequality &l2, Eigen::Ref<Eigen::VectorXd> out);
+                static void intersect (const Halfspace &l1, const Halfspace &l2, Eigen::Ref<Eigen::VectorXd> out);
                 
             private:
                 
@@ -99,7 +97,7 @@ namespace ompl
                 
                 /** \brief Inequality accepting the halfspace complementary to this one, but on
                  * the neighboring chart. */
-                LinearInequality *complement_;
+                Halfspace *complement_;
                 
                 /** \brief Center of the neighboring chart which owns the complement, projected
                  * onto our chart. */
@@ -157,7 +155,7 @@ namespace ompl
             
             /** \brief Check if a point \a u on the chart lies within its polytope P. LinearInequalities
              * \a ignore1 and \a ignore2, if specified, are ignored during the check. */
-            virtual bool inP (Eigen::Ref<const Eigen::VectorXd> u, const LinearInequality *const ignore1 = nullptr, const LinearInequality *const ignore2 = nullptr) const;
+            virtual bool inP (Eigen::Ref<const Eigen::VectorXd> u, const Halfspace *const ignore1 = nullptr, const Halfspace *const ignore2 = nullptr) const;
             
             /** \brief Check if chart point \a v lies too close to any linear inequality. When it does,
              * expand the neighboring chart's polytope. */
@@ -209,11 +207,11 @@ namespace ompl
             double measure_;
             
             /** \brief Set of linear inequalities defining the polytope P. */
-            std::vector<LinearInequality *> bigL_;
+            std::vector<Halfspace *> bigL_;
             
             /** \brief Introduce a new linear inequality \a halfspace to bound the polytope P. Updates
              * approximate measure. This chart assumes responsibility for deleting \a halfspace. */
-            void addBoundary (LinearInequality &halfspace);
+            void addBoundary (Halfspace &halfspace);
             
         private:
             
