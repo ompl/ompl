@@ -77,58 +77,22 @@ void ompl::geometric::RRTConnect::freeMemory()
     if (tStart_)
     {
         tStart_->list(motions);
-        // TODO (cav2): remove debug code.
-        if (tStart_->size() != motions.size())
+        for (unsigned int i = 0 ; i < motions.size() ; ++i)
         {
-            OMPL_DEBUG("RRTConnect::freeMemory(): tStart_->list() is exhibiting a bug.");
-            std::set<Motion*> deleted;
-            for (unsigned int i = 0; i < motions.size(); ++i)
-            {
-                if (deleted.count(motions[i]) == 1)
-                    continue;
-                deleted.insert(motions[i]);
-                if (motions[i]->state)
-                    si_->freeState(motions[i]->state);
-                delete motions[i];
-            }
-        }
-        else
-        {
-            for (unsigned int i = 0 ; i < motions.size() ; ++i)
-            {
-                if (motions[i]->state)
-                    si_->freeState(motions[i]->state);
-                delete motions[i];
-            }
+            if (motions[i]->state)
+                si_->freeState(motions[i]->state);
+            delete motions[i];
         }
     }
 
     if (tGoal_)
     {
         tGoal_->list(motions);
-        // TODO (cav2): see above.
-        if (tGoal_->size() != motions.size())
+        for (unsigned int i = 0 ; i < motions.size() ; ++i)
         {
-            OMPL_DEBUG("RRTConnect::freeMemory(): tGoal_->list() is exhibiting a bug.");
-            std::set<Motion*> deleted;
-            for (unsigned int i = 0; i < motions.size(); ++i)
-            {
-                if (deleted.count(motions[i]) == 1)
-                    continue;
-                deleted.insert(motions[i]);
-                if (motions[i]->state)
-                    si_->freeState(motions[i]->state);
-                delete motions[i];
-            }
-        }
-        else
-        {
-            for (unsigned int i = 0 ; i < motions.size() ; ++i)
-            {
-                if (motions[i]->state)
-                    si_->freeState(motions[i]->state);
-                delete motions[i];
-            }
+            if (motions[i]->state)
+                si_->freeState(motions[i]->state);
+            delete motions[i];
         }
     }
 }
@@ -261,15 +225,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
-
-    // TODO (cav2): delete.
-    //static bool first = true;
-    //if (first)
-    //    dynamic_cast<ompl::base::AtlasStateSampler*>(sampler_.get())->rng_.setLocalSeed(877369881);
-    //else
-    //    dynamic_cast<ompl::base::AtlasStateSampler*>(sampler_.get())->rng_.setLocalSeed(469264270);
-    //first = false;
-    //OMPL_INFORM("Seeds: %i,%i", dynamic_cast<ompl::base::AtlasStateSampler*>(sampler_.get())->rng_.getLocalSeed(), dynamic_cast<ompl::base::AtlasStateSpace*>(si_->getStateSpace().get())->rng_.getLocalSeed());
 
     OMPL_INFORM("%s: Starting planning with %d states already in datastructure", getName().c_str(), (int)(tStart_->size() + tGoal_->size()));
 
