@@ -466,8 +466,7 @@ void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
         bool result = true;
         try
         {
-            // FIXME(cav2): hacking this out for atlas tests
-            //stateSpace_->sanityChecks();
+            stateSpace_->sanityChecks();
         }
         catch(Exception &e)
         {
