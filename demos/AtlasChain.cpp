@@ -220,12 +220,12 @@ ompl::geometric::ConstrainedSimpleSetupPtr createChainSetup(std::size_t dimensio
     atlas->setProjectionTolerance(1e-8);
 
     // The atlas needs some place to start sampling from. We will make start and goal charts.
-    ompl::base::AtlasChart &startChart = atlas->anchorChart(x);
-    ompl::base::AtlasChart &goalChart = atlas->anchorChart(y);
+    ompl::base::AtlasChart *startChart = atlas->anchorChart(x);
+    ompl::base::AtlasChart *goalChart = atlas->anchorChart(y);
     ompl::base::ScopedState<> start(atlas);
     ompl::base::ScopedState<> goal(atlas);
-    start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, &startChart);
-    goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, &goalChart);
+    start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
+    goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
     ss->setStartAndGoalStates(start, goal);
 
     // Bounds

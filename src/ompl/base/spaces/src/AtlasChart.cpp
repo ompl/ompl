@@ -42,13 +42,13 @@
 
 /// Public
 
-ompl::base::AtlasChart::Halfspace::Halfspace (const AtlasChart &owner,
-                                              const AtlasChart &neighbor)
-    : owner_(owner)
+ompl::base::AtlasChart::Halfspace::Halfspace (const AtlasChart *owner,
+                                              const AtlasChart *neighbor)
+    : owner_(*owner)
 {
     // Project neighbor's chart center onto our chart.
     Eigen::VectorXd u(owner_.k_);
-    owner_.psiInverse(neighbor.getXorigin(), u);
+    owner_.psiInverse(neighbor->getXorigin(), u);
     // Compute the halfspace equation, which is the perpendicular bisector
     // between 0 and u (plus 5% to reduce cracks, see Jaillet et al.).
     setU(1.05*u);
@@ -89,7 +89,8 @@ bool ompl::base::AtlasChart::Halfspace::circleIntersect (
     const double r, Eigen::Ref<Eigen::VectorXd> v1, Eigen::Ref<Eigen::VectorXd> v2) const
 {
     if (owner_.atlas_.getManifoldDimension() != 2)
-        throw ompl::Exception("AtlasChart::Halfspace::circleIntersect() only works on 2D manifolds.");
+        throw ompl::Exception("ompl::base::AtlasChart::Halfspace::circleIntersect() "
+                              "Only works on 2D manifolds.");
 
     // Check if there will be no solutions.
     double discr = 4*r*r - u_.squaredNorm();
@@ -167,7 +168,6 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas,
     atlas_.jacobianFunction(xorigin_, j);
     Eigen::FullPivLU<Eigen::MatrixXd> decomp = j.fullPivLu();
     if (!decomp.isSurjective()) {
-        OMPL_WARN("AtlasChart::AtlasChart(): Jacobian not surjective! Possible singularity?");
         // AtlasStateSpace will deal with this exception.
         throw ompl::Exception("Cannot compute full-rank tangent space.");
     }
@@ -386,10 +386,14 @@ bool ompl::base::AtlasChart::estimateIsFrontier () const {
 
 /// Public Static
 
-void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
+void ompl::base::AtlasChart::generateHalfspace (AtlasChart *c1, AtlasChart *c2)
 {
-    if (&c1.atlas_ != &c2.atlas_)
-        throw ompl::Exception("generateHalfspace() must be called on charts in the same atlas!");
+    if (&c1->atlas_ != &c2->atlas_)
+        throw ompl::Exception("ompl::base::AtlasChart::generateHalfspace(): "
+                              "Must be called on charts in the same atlas.");
+    if (c1 == c2)
+        throw ompl::Exception("ompl::base::AtlasChart::generateHalfspace(): "
+                              "Must use two different charts.");
     
     // c1, c2 will delete l1, l2, respectively, upon destruction.
     Halfspace *l1, *l2;
@@ -397,8 +401,8 @@ void ompl::base::AtlasChart::generateHalfspace (AtlasChart &c1, AtlasChart &c2)
     l2 = new Halfspace(c2, c1);
     l1->setComplement(l2);
     l2->setComplement(l1);
-    c1.addBoundary(l1);
-    c2.addBoundary(l2);
+    c1->addBoundary(l1);
+    c2->addBoundary(l2);
 }
 
 /// Protected

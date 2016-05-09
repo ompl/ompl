@@ -333,14 +333,14 @@ namespace ompl
             /** \brief Wrapper for newChart(). Charts created this way will
              * persist through calls to clear().
              * \throws ompl::Exception if manifold seems degenerate here. */
-            AtlasChart &anchorChart (const Eigen::VectorXd &xorigin) const;
+            AtlasChart *anchorChart (const Eigen::VectorXd &xorigin) const;
             
             /** \brief Create a new chart for the atlas, centered at \a xorigin,
              * which should be on the manifold. Returns nullptr upon failure. */
             AtlasChart *newChart (const Eigen::VectorXd &xorigin) const;
 
             /** \brief Pick a chart at random. */
-            AtlasChart &sampleChart (void) const;
+            AtlasChart *sampleChart (void) const;
             
             /** \brief Find the chart to which \a x belongs. Returns nullptr if
              * no chart found. Assumes \a x is already on the manifold. */
@@ -349,17 +349,6 @@ namespace ompl
             /** Compute the distance between two charts represented by
              * nearest-neighbor elements. */
             static double chartNNDistanceFunction (const NNElement &e1, const NNElement &e2);
-            
-            /** \brief Search for the border of chart \a c between \a xinside,
-             * which is inside the polytope of \a c, and \a xoutside, which is
-             * outside. The computed point lies inside the border at a distance
-             * no farther than half the distance of \a xinside to the
-             * border. The output is stored to \a out, which should be allocated
-             * to size n_. */
-            void dichotomicSearch (const AtlasChart &c,
-                                   const Eigen::VectorXd &xinside,
-                                   const Eigen::VectorXd &xoutside,
-                                   Eigen::Ref<Eigen::VectorXd> out) const;
             
             /** \brief Return the number of charts currently in the atlas. */
             std::size_t getChartCount (void) const;

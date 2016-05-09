@@ -62,7 +62,7 @@ namespace ompl
                 /** \brief Create a halfspace equitably separating charts \a
                  * owner and \a neighbor. This halfspace will coincide with
                  * chart \a owner. */
-                Halfspace (const AtlasChart &owner, const AtlasChart &neighbor);
+                Halfspace (const AtlasChart *owner, const AtlasChart *neighbor);
                 
                 /** \brief Inform this halfspace about the "complementary"
                  * halfspace which coincides with the neighboring chart. */
@@ -224,8 +224,8 @@ namespace ompl
             /** \brief Create two complementary halfspaces dividing the space
              * between charts \a c1 and \a c2, and add them to the charts'
              * polytopes boundaries.
-             * \note Charts must be from same atlas. */
-            static void generateHalfspace (AtlasChart &c1, AtlasChart &c2);
+             * \note Charts must be different charts from the same atlas. */
+            static void generateHalfspace (AtlasChart *c1, AtlasChart *c2);
             
         protected:
             

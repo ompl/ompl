@@ -67,16 +67,16 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
     Eigen::VectorXd ru(atlas_.getManifoldDimension());
     AtlasChart *c;
     
-    // Sampling a point on the manifold
+    // Sampling a point on the manifold.
     Eigen::VectorXd f(atlas_.getAmbientDimension()-atlas_.getManifoldDimension());
     int tries = 100;
     do
     {
-        // Rejection sampling to find a point inside a chart's polytope
+        // Rejection sampling to find a point inside a chart's polytope.
         do
         {
             // Pick a chart.
-            c = &atlas_.sampleChart();
+            c = atlas_.sampleChart();
             
             // Sample a point within rho_s of the center. This is done by
             // sampling uniformly on the surface and multiplying by a distance
@@ -286,42 +286,40 @@ bool ompl::base::AtlasMotionValidator::checkMotion (
     const AtlasStateSpace::StateType *const as2 = s2->as<AtlasStateSpace::StateType>();
     bool reached = atlas_.traverseManifold(as1, as2, false, &stateList);
 
-    // XXX We are supposed to be able to assume that s1 is valid. However, it's
-    // not sometimes, and I don't know why. We shouldn't have to check that
-    // stateList is non-empty.
-    double distanceTraveled = 0;
-    double approxDistanceRemaining = 0;
-    if (stateList.size() > 0) {
-        for (std::size_t i = 0; i < stateList.size()-1; i++)
-        {
-            if (!reached)
-                distanceTraveled += atlas_.distance(stateList[i], stateList[i+1]);
-            atlas_.freeState(stateList[i]);
-        }
-    
-        // Check if manifold traversal stopped early and set its final state as
-        // lastValid.
-        if (!reached && lastValid.first)
-            atlas_.copyState(lastValid.first, stateList.back());
-        atlas_.freeState(stateList.back());
-
-        // Compute the interpolation parameter of the last valid
-        // state. (Although if you then interpolate, you probably won't get this
-        // exact state back.)
-        if (!reached)
-        {
-            approxDistanceRemaining = atlas_.distance(lastValid.first, as2);
-            lastValid.second = distanceTraveled / (distanceTraveled + approxDistanceRemaining);
-        }
-        return reached;
-    }
-    else
+    // We are supposed to be able to assume that s1 is valid. However, it's not
+    // on rare occasions, and I don't know why. This makes stateList empty.
+    if (stateList.empty())
     {
         if (lastValid.first)
             atlas_.copyState(lastValid.first, as1);
         lastValid.second = 0;
         return false;
     }
+
+    double distanceTraveled = 0;
+    double approxDistanceRemaining = 0;
+    for (std::size_t i = 0; i < stateList.size()-1; i++)
+    {
+        if (!reached)
+            distanceTraveled += atlas_.distance(stateList[i], stateList[i+1]);
+        atlas_.freeState(stateList[i]);
+    }
+    
+    // Check if manifold traversal stopped early and set its final state as
+    // lastValid.
+    if (!reached && lastValid.first)
+        atlas_.copyState(lastValid.first, stateList.back());
+    atlas_.freeState(stateList.back());
+
+    // Compute the interpolation parameter of the last valid
+    // state. (Although if you then interpolate, you probably won't get this
+    // exact state back.)
+    if (!reached)
+    {
+        approxDistanceRemaining = atlas_.distance(lastValid.first, as2);
+        lastValid.second = distanceTraveled / (distanceTraveled + approxDistanceRemaining);
+    }
+    return reached;
 }
 
 /// AtlasStateSpace::StateType
@@ -484,7 +482,7 @@ void ompl::base::AtlasStateSpace::clear (void)
         anchor->clear();
 
         for (AtlasChart *c : charts_)
-            AtlasChart::generateHalfspace(*c, *anchor);
+            AtlasChart::generateHalfspace(c, anchor);
     
         anchor->setID(charts_.size());
         chartNN_.add(std::make_pair<>(&anchor->getXorigin(), charts_.size()));
@@ -646,7 +644,7 @@ unsigned int ompl::base::AtlasStateSpace::getManifoldDimension (void) const
     return k_;
 }
 
-ompl::base::AtlasChart &ompl::base::AtlasStateSpace::anchorChart (
+ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart (
     const Eigen::VectorXd &xorigin) const
 {
     // This could fail with an exception. We cannot recover if that happens.
@@ -657,7 +655,7 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::anchorChart (
                               "Initial chart creation failed. Cannot proceed.");
     }
     c->makeAnchor();
-    return *c;
+    return c;
 }
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart (
@@ -680,7 +678,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart (
     std::vector<NNElement> nearbyCharts;
     chartNN_.nearestR(std::make_pair(&addedC->getXorigin(), 0), 2*rho_, nearbyCharts);
     for (auto &near : nearbyCharts)
-        AtlasChart::generateHalfspace(*charts_[near.second], *addedC);
+        AtlasChart::generateHalfspace(charts_[near.second], addedC);
     
     addedC->setID(charts_.size());
     chartNN_.add(std::make_pair<>(&addedC->getXorigin(), charts_.size()));
@@ -689,13 +687,13 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart (
     return addedC;
 }
 
-ompl::base::AtlasChart &ompl::base::AtlasStateSpace::sampleChart (void) const
+ompl::base::AtlasChart *ompl::base::AtlasStateSpace::sampleChart (void) const
 {
     if (charts_.empty())
         throw ompl::Exception("ompl::base::AtlasStateSpace::sampleChart(): "
             "Atlas sampled before any charts were made. Use AtlasStateSpace::anchorChart() first.");
     
-    return *charts_[rng_.uniformInt(0, charts_.size() - 1)];
+    return charts_[rng_.uniformInt(0, charts_.size() - 1)];
 }
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::VectorXd &x) const
@@ -721,17 +719,6 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
 double ompl::base::AtlasStateSpace::chartNNDistanceFunction (const NNElement &e1, const NNElement &e2)
 {
     return (*e1.first - *e2.first).norm();
-}
-        
-void ompl::base::AtlasStateSpace::dichotomicSearch (
-    const AtlasChart &c, const Eigen::VectorXd &xinside,
-    const Eigen::VectorXd &xoutside, Eigen::Ref<Eigen::VectorXd> out) const
-{
-    // Halve the distance, moving toward xinside until we are inside the chart.
-    out = xoutside;
-    Eigen::VectorXd u(k_);
-    while (c.psiInverse(out, u), !c.inPolytope(u))
-        out = 0.5 * (xinside + out);
 }
 
 std::size_t ompl::base::AtlasStateSpace::getChartCount (void) const
@@ -949,14 +936,13 @@ void ompl::base::AtlasStateSpace::piecewiseInterpolate (
     // Set the correct chart, guessing it might be one of the adjacent charts.
     StateType *astate = state->as<StateType>();
     Eigen::Ref<const Eigen::VectorXd> x = astate->constVectorView();
-    // TODO (cav2): Don't use references so much, here and elsewhere.
-    AtlasChart &c1 = *stateList[i > 0 ? i-1 : 0]->getChart();
-    AtlasChart &c2 = *stateList[i]->getChart();
+    AtlasChart *c1 = stateList[i > 0 ? i-1 : 0]->getChart();
+    AtlasChart *c2 = stateList[i]->getChart();
     Eigen::VectorXd u(k_);
-    if (c1.psiInverse(x, u), c1.inPolytope(u))
-        astate->setChart(&c1);
-    else if (c2.psiInverse(x, u), c2.inPolytope(u))
-        astate->setChart(&c2);
+    if (c1->psiInverse(x, u), c1->inPolytope(u))
+        astate->setChart(c1);
+    else if (c2->psiInverse(x, u), c2->inPolytope(u))
+        astate->setChart(c2);
     else
     {
         AtlasChart *c = owningChart(x);
