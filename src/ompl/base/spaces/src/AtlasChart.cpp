@@ -313,7 +313,6 @@ bool ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) 
     
     // Compile a list of all the vertices in P and all the times the border
     // intersects the circle.
-    vertices.clear();
     Eigen::VectorXd v(2);
     Eigen::VectorXd intersection(n_);
     for (std::size_t i = 0; i < polytope_.size(); i++)

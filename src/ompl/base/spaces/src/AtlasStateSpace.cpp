@@ -412,9 +412,8 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
 {
-    // TODO (cav2): size_t....
-    for (std::size_t i = 0; i < charts_.size(); i++)
-        delete charts_[i];
+    for (AtlasChart *c : charts_)
+        delete c;
 }
 
 void ompl::base::AtlasStateSpace::jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
@@ -461,12 +460,13 @@ void ompl::base::AtlasStateSpace::setup (void)
     if (setup_)
         return;
     
-    setup_ = true;
-    
     if (!si_)
         throw ompl::Exception("ompl::base::AtlasStateSpace::setup(): "
             "Must associate a SpaceInformation object to the AtlasStateSpace via setStateInformation() before use.");
+
+    setup_ = true;
     setDelta(delta_);   // This makes some setup-related calls
+
     RealVectorStateSpace::setup();
 }
 
@@ -474,29 +474,28 @@ void ompl::base::AtlasStateSpace::clear (void)
 {
     // Delete the non-anchor charts
     std::vector<AtlasChart *> anchorCharts;
-    for (std::size_t i = 0; i < charts_.size(); i++)
+    for (AtlasChart *c : charts_)
     {
-        if (charts_[i]->isAnchor())
-            anchorCharts.push_back(charts_[i]);
+        if (c->isAnchor())
+            anchorCharts.push_back(c);
         else
-            delete charts_[i];
+            delete c;
     }
     
     charts_.clear();
     chartNN_.clear();
     
     // Reinstate the anchor charts
-    for (std::size_t i = 0; i < anchorCharts.size(); i++)
+    for (AtlasChart *anchor : anchorCharts)
     {
-        AtlasChart &c = *anchorCharts[i];
-        c.clear();
-        c.setID(charts_.size());
-        
-        for (std::size_t j = 0; j < charts_.size(); j++)
-            AtlasChart::generateHalfspace(*charts_[j], c);
+        anchor->clear();
+
+        for (AtlasChart *c : charts_)
+            AtlasChart::generateHalfspace(*c, *anchor);
     
-        charts_.push_back(&c);
-        chartNN_.add(std::make_pair<>(c.getXoriginPtr(), charts_.size()-1));
+        anchor->setID(charts_.size());
+        chartNN_.add(std::make_pair<>(anchor->getXoriginPtr(), charts_.size()));
+        charts_.push_back(anchor);
     }
 }
 
@@ -675,10 +674,10 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
     std::vector<NNElement> nearbyCharts;
     chartNN_.nearestR(std::make_pair(&x, 0), rho_, nearbyCharts);
     Eigen::VectorXd tempx(n_), tempu(k_);
-    for (std::size_t i = 0; i < nearbyCharts.size(); i++)
+    for (auto &near : nearbyCharts)
     {
         // The point must lie in the chart's validity region and polytope
-        AtlasChart *c = charts_[nearbyCharts[i].second];
+        AtlasChart *c = charts_[near.second];
         c->psiInverse(x, tempu);
         c->phi(tempu, tempx);
         if ((tempx - x).norm() < epsilon_ && tempu.norm() < rho_ && c->inPolytope(tempu))
@@ -692,16 +691,16 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::VectorXd &xorigin, const bool anchor) const
 {
     AtlasChart &addedC = *new AtlasChart(*this, xorigin, anchor);
-    addedC.setID(charts_.size());
     
     // Ensure all charts respect boundaries of the new one, and vice versa, but only look at nearby ones
     std::vector<NNElement> nearbyCharts;
     chartNN_.nearestR(std::make_pair(addedC.getXoriginPtr(), 0), 2*rho_, nearbyCharts);
-    for (std::size_t i = 0; i < nearbyCharts.size(); i++)
-        AtlasChart::generateHalfspace(*charts_[nearbyCharts[i].second], addedC);
+    for (auto &near : nearbyCharts)
+        AtlasChart::generateHalfspace(*charts_[near.second], addedC);
     
+    addedC.setID(charts_.size());
+    chartNN_.add(std::make_pair<>(addedC.getXoriginPtr(), charts_.size()));
     charts_.push_back(&addedC);
-    chartNN_.add(std::make_pair<>(addedC.getXoriginPtr(), charts_.size()-1));
     
     return addedC;
 }
@@ -866,9 +865,8 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
 
 int ompl::base::AtlasStateSpace::estimateFrontierPercent () const {
     int frontier = 0;
-    for (std::size_t i = 0; i < charts_.size(); i++) {
-        frontier += charts_[i]->estimateIsFrontier();
-    }
+    for (AtlasChart *c : charts_)
+        frontier += c->estimateIsFrontier();
     return (100 * frontier) / charts_.size();
 }
 
@@ -878,17 +876,18 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
     std::size_t vcount = 0;
     std::size_t fcount = 0;
     std::vector<Eigen::VectorXd> vertices;
-    for (std::size_t i = 0; i < charts_.size(); i++)
+    int i = 0;
+    for (AtlasChart *c : charts_)
     {
         // Write the vertices and the faces
-        std::cout << "\rDumping chart " << i << std::flush;
-        const AtlasChart &c = *charts_[i];
-        c.toPolygon(vertices);
+        std::cout << "\rDumping chart " << i++ << std::flush;
+        vertices.clear();
+        c->toPolygon(vertices);
         std::stringstream poly;
         std::size_t fvcount = 0;
-        for (std::size_t j = 0; j < vertices.size(); j++)
+        for (Eigen::VectorXd &vert : vertices)
         {
-            v << vertices[j].transpose() << "\n";
+            v << vert.transpose() << "\n";
             poly << vcount++ << " ";
             fvcount++;
         }
@@ -934,8 +933,8 @@ void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, st
             vcount += 3;
             f << 3 << " " << vcount-3 << " " << vcount-2 << " " << vcount-1 << "\n";
             fcount++;
-            for (std::size_t j = 0; j < stateList.size(); j++)
-                freeState(stateList[j]);
+            for (StateType *state : stateList)
+                freeState(state);
             continue;
         }
         StateType *to, *from = stateList[0];
@@ -992,8 +991,8 @@ void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path
             vcount += 3;
             f << 3 << " " << vcount-3 << " " << vcount-2 << " " << vcount-1 << "\n";
             fcount++;
-            for (std::size_t j = 0; j < stateList.size(); j++)
-                freeState(stateList[j]);
+            for (StateType *state : stateList)
+                freeState(state);
             continue;
         }
         StateType *to, *from = stateList[0];

@@ -227,7 +227,8 @@ namespace ompl
             virtual void jacobianFunction (
                 const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const;
             
-            /** \brief Behave exactly like the underlying RealVectorStateSpace for all overridden functions. */
+            /** \brief Behave exactly like the underlying RealVectorStateSpace
+             * for all overridden functions. */
             void stopBeingAnAtlas (const bool yes);
             
             /** \brief Final setup for the space. */
