@@ -373,7 +373,7 @@ int main (int argc, char **argv)
                 
                 // Traverse the manifold
                 std::vector<ompl::base::AtlasStateSpace::StateType *> stateList;
-                atlas->followManifold(from, to, true, &stateList);
+                atlas->traverseManifold(from, to, true, &stateList);
                 if (atlas->equalStates(stateList.front(), stateList.back()))
                 {
                     //std::cout << "[" << stateList.front()->constVectorView().transpose() << "]  " << stateList.front()->getChart()->getID() << "\n";

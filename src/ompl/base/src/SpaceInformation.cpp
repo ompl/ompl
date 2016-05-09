@@ -200,13 +200,13 @@ bool ompl::base::SpaceInformation::searchValidNearby(State *state, const State *
 
 unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, unsigned int count, bool endpoints, bool alloc) const
 {
-    // HACK for use by RRT on an atlas with addIntermediateStates_ set to true
+    // HACK for use by Atlas + X.
     AtlasStateSpace *atlas = dynamic_cast<AtlasStateSpace *>(stateSpace_.get());
     if (atlas)
     {
         assert(alloc && endpoints);
         std::vector<AtlasStateSpace::StateType *> stateList;
-        atlas->followManifold(s1->as<AtlasStateSpace::StateType>(), s2->as<AtlasStateSpace::StateType>(), false, &stateList);
+        atlas->traverseManifold(s1->as<AtlasStateSpace::StateType>(), s2->as<AtlasStateSpace::StateType>(), false, &stateList);
         states.resize(stateList.size());
         for (unsigned int j = 0; j < stateList.size(); j++)
             states[j] = stateList[j];

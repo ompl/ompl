@@ -357,21 +357,72 @@ namespace ompl
              * no farther than half the distance of \a xinside to the
              * border. The output is stored to \a out, which should be allocated
              * to size n_. */
-            void dichotomicSearch (const AtlasChart &c, const Eigen::VectorXd &xinside, const Eigen::VectorXd &xoutside,
+            void dichotomicSearch (const AtlasChart &c,
+                                   const Eigen::VectorXd &xinside,
+                                   const Eigen::VectorXd &xoutside,
                                    Eigen::Ref<Eigen::VectorXd> out) const;
             
             /** \brief Return the number of charts currently in the atlas. */
             std::size_t getChartCount (void) const;
             
-            /** \brief Traverse the manifold from \a from toward \a to. Returns true if we reached \a to, and false if
-             * we stopped early for any reason, such as a collision or traveling too far. No collision checking is performed
-             * if \a interpolate is true. If \a stateList is not nullptr, the sequence of intermediates is saved to it, including
-             * a copy of \a from, as well as the final state. Caller is responsible for freeing states returned in \a stateList. */
-            bool followManifold (const StateType *from, const StateType *to, const bool interpolate = false,
-                                 std::vector<StateType *> *stateList = nullptr) const;
+            /** \brief Traverse the manifold from \a from toward \a to. Returns
+             * true if we reached \a to, and false if we stopped early for any
+             * reason, such as a collision or traveling too far. No collision
+             * checking is performed if \a interpolate is true. If \a stateList
+             * is not nullptr, the sequence of intermediates is saved to it,
+             * including a copy of \a from, as well as the final state, which is
+             * a copy of \a to if we reached \a to. Caller is responsible for
+             * freeing states returned in \a stateList. */
+            bool traverseManifold (const StateType *from, const StateType *to,
+                                   const bool interpolate = false,
+                                   std::vector<StateType *> *stateList = nullptr) const;
 
             /** @} */
 
+            /** @name Interpolation and state management
+             * @{ */
+            
+            /** \brief Try to project the vector \a x onto the manifold, without
+             * using charts. Result returned in \a x. Returns whether the
+             * projection succeeded. */
+            bool project (Eigen::Ref<Eigen::VectorXd> x) const;
+            
+            /** \brief Find the state between \a from and \a to at time \a t,
+             * where \a t = 0 is \a from, and \a t = 1 is the final state
+             * reached by followManifold(\a from, \a to, true, ...), which may
+             * not be \a to. State returned in \a state. */
+            void interpolate (const State *from, const State *to,
+                              const double t, State *state) const;
+            
+            /** \brief Like interpolate(...), but uses the information about
+             * intermediate states already supplied in \a stateList from a
+             * previous call to followManifold(..., true, \a stateList). The
+             * 'from' and 'to' states are the first and last elements \a
+             * stateList. Assumes \a stateList contains at least two
+             * elements. */
+            void piecewiseInterpolate (const std::vector<StateType *> &stateList,
+                                       const double t, State *state) const;
+            
+            /** \brief Whether interpolation is symmetric. (Yes.) */
+            bool hasSymmetricInterpolate (void) const;
+            
+            /** \brief Copy \a source to \a destination. The memory for
+             * these two states should not overlap. Assumes they are of type
+             * AtlasStateSpace::StateType. */
+            void copyState (State *destination, const State *source) const;
+            
+            /** \brief Return an instance of the AtlasStateSampler. */
+            StateSamplerPtr allocDefaultStateSampler (void) const;
+            
+            /** \brief Allocate a new state in this space. */
+            State *allocState (void) const;
+            
+            /** \brief Free \a state. Assumes \a state is of type
+             * AtlasStateSpace::StateType.  state. */
+            void freeState (State *state) const;
+            
+            /** @} */
+            
             /** @name Visualization and debug
              * @{ */
             
@@ -396,51 +447,7 @@ namespace ompl
                            std::ostream &out, const bool asIs = false) const;
             
             /** @} */
-            
-            /** @name Interpolation and state management
-             * @{ */
-            
-            /** \brief Try to project the vector \a x onto the manifold, without
-             * using charts. Result returned in \a x. Returns whether the
-             * projection succeeded. */
-            bool project (Eigen::Ref<Eigen::VectorXd> x) const;
-            
-            /** \brief Find the state between \a from and \a to at time \a t,
-             * where \a t = 0 is \a from, and \a t = 1 is the final state
-             * reached by followManifold(\a from, \a to, true, ...), which may
-             * not be \a to. State returned in \a state. */
-            void interpolate (const State *from, const State *to,
-                              const double t, State *state) const;
-            
-            /** \brief Like interpolate(...), but uses the information about
-             * intermediate states already supplied in \a stateList from a
-             * previous call to followManifold(..., true, \a stateList). The
-             * 'from' and 'to' states are the first and last elements \a
-             * stateList. Assumes \a stateList contains at least two
-             * elements. */
-            void fastInterpolate (const std::vector<StateType *> &stateList,
-                                  const double t, State *state) const;
-            
-            /** \brief Whether interpolation is symmetric. (No.) */
-            bool hasSymmetricInterpolate (void) const;
-            
-            /** \brief Duplicate \a source in \a destination. The memory for these two states should not overlap. */
-            void copyState (State *destination, const State *source) const;
-            
-            /** \brief Return an instance of the AtlasStateSampler. */
-            StateSamplerPtr allocDefaultStateSampler (void) const;
-            
-            /** \brief Allocate a new state in this space. */
-            State *allocState (void) const;
-            
-            /** \brief Free \a state. Assumes \a state is an AtlasStateSpace state. */
-            void freeState (State *state) const;
-            
-            /** @} */
-            
-            /** \brief Random number generator. */
-            mutable RNG rng_;
-                        
+
         protected:
             
             /** \brief SpaceInformation associated with this space. */
@@ -449,7 +456,8 @@ namespace ompl
             /** \brief Set of charts, sampleable by weight. */
             mutable std::vector<AtlasChart *> charts_;
             
-            /** \brief Set of charts, accessible by nearest-neighbor queries to the chart centers. */
+            /** \brief Set of chart centers and indices, accessible by
+             * nearest-neighbor queries to the chart centers. */
             mutable NearestNeighborsGNAT<NNElement> chartNN_;
             
         private:
@@ -496,11 +504,8 @@ namespace ompl
             /** \brief Whether we are not being an atlas. */
             bool noAtlas_;
             
-            /** \brief Measure of a manifold-dimensional ball with radius rho. */
-            mutable double ballMeasure_;
-            
-            /** \brief Collection of points to use in Monte Carlo integration. */
-            std::vector<Eigen::VectorXd> samples_;
+            /** \brief Random number generator. */
+            mutable RNG rng_;
         };
     }
 }

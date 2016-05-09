@@ -270,7 +270,7 @@ void saveSolutionPath(const ompl::geometric::ConstrainedSimpleSetupPtr &ss, bool
 
             // Traverse the manifold
             std::vector<ompl::base::AtlasStateSpace::StateType *> stateList;
-            atlas->followManifold(from, to, true, &stateList);
+            atlas->traverseManifold(from, to, true, &stateList);
             if (atlas->equalStates(stateList.front(), stateList.back()))
                 animFile << stateList.front()->constVectorView().transpose() << "\n";
             else
