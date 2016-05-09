@@ -120,25 +120,17 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state,
     Eigen::Ref<const Eigen::VectorXd> n = anear->constVectorView();
     Eigen::VectorXd rx(atlas_.getAmbientDimension()), ru(atlas_.getManifoldDimension());
     AtlasChart *c = anear->getChart();
-    // TODO: is this ever going to be the case (as long as we're not lazy below)?
     if (!c)
     {
         c = atlas_.owningChart(n);
         if (!c)
+            c = atlas_.newChart(n);
+        if (!c)
         {
-            // Chart creation can fail.
-            try
-            {
-                c = &atlas_.newChart(n);
-            }
-            catch (ompl::Exception &e)
-            {
-                // This is really bad, because we need a chart. Fall back to a uniform sample.
-                OMPL_WARN("ompl::base::AtlasStateSpace::sampleUniformNear(): "
-                          "Failed to sample because chart creation at state failed! Falling back to uniform sample.");
-                sampleUniform(state);
-                return;
-            }
+            OMPL_ERROR("ompl::base::AtlasStateSpace::sampleUniformNear(): "
+                       "Sampling failed because chart creation failed! Falling back to uniform sample.");
+            sampleUniform(state);
+            return;
         }
         anear->setChart(c);
     }
@@ -164,7 +156,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state,
         // Consider decreasing the distance argument if this becomes a
         // problem. Check planner code to see how it gets chosen.
         OMPL_WARN("ompl::base:::AtlasStateSpace::sampleUniformNear(): "
-                  "Got stuck; returning initial point.");
+                  "Took too long; returning initial point.");
         rx = n;
     }
 
@@ -184,25 +176,17 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     const std::size_t k = atlas_.getManifoldDimension();
     Eigen::VectorXd rx(atlas_.getAmbientDimension()), ru(k);
     AtlasChart *c = amean->getChart();
-    // TODO (cav2): ditto
     if (!c)
     {
         c = atlas_.owningChart(m);
         if (!c)
+            c = atlas_.newChart(m);
+        if (!c)
         {
-            // Chart creation can fail.
-            try
-            {
-                c = &atlas_.newChart(m);
-            }
-            catch (ompl::Exception &e)
-            {
-                // This is really bad, because we need a chart. Fall back to a uniform sample.
-                OMPL_WARN("ompl::base::AtlasStateSpace::sampleGaussian(): "
-                          "Failed to sample because chart creation at state failed! Falling back to uniform sample.");
-                sampleUniform(state);
-                return;
-            }
+            OMPL_ERROR("ompl::base::AtlasStateSpace::sampleGaussian(): "
+                       "Sampling failed because chart creation failed! Falling back to uniform sample.");
+            sampleUniform(state);
+            return;
         }
         amean->setChart(c);
     }
@@ -224,7 +208,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     if (tries == 0)
     {
         OMPL_WARN("ompl::base::AtlasStateSpace::sampleUniforGaussian(): "
-                  "Got stuck; returning initial point.");
+                  "Took too long; returning initial point.");
         rx = m;
     }
 
@@ -666,26 +650,41 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::anchorChart (
     const Eigen::VectorXd &xorigin) const
 {
     // This could fail with an exception. We cannot recover if that happens.
-    AtlasChart &c = newChart(xorigin);
-    c.makeAnchor();
-    return c;
+    AtlasChart *c = newChart(xorigin);
+    if (!c)
+    {
+        throw ompl::Exception("ompl::base::AtlasStateSpace::anchorChart(): "
+                              "Initial chart creation failed. Cannot proceed.");
+    }
+    c->makeAnchor();
+    return *c;
 }
 
-ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (
+ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart (
     const Eigen::VectorXd &xorigin) const
 {
-    AtlasChart &addedC = *new AtlasChart(*this, xorigin);
+    AtlasChart *addedC;
+    try
+    {
+        addedC = new AtlasChart(*this, xorigin);
+    }
+    catch (ompl::Exception &e)
+    {
+        OMPL_ERROR("ompl::base::AtlasStateSpace::newChart(): "
+                   "Failed because manifold looks degenerate here.");
+        return nullptr;
+    }
     
     // Ensure all charts respect boundaries of the new one, and vice versa, but
     // only look at nearby ones (within 2*rho).
     std::vector<NNElement> nearbyCharts;
-    chartNN_.nearestR(std::make_pair(&addedC.getXorigin(), 0), 2*rho_, nearbyCharts);
+    chartNN_.nearestR(std::make_pair(&addedC->getXorigin(), 0), 2*rho_, nearbyCharts);
     for (auto &near : nearbyCharts)
-        AtlasChart::generateHalfspace(*charts_[near.second], addedC);
+        AtlasChart::generateHalfspace(*charts_[near.second], *addedC);
     
-    addedC.setID(charts_.size());
-    chartNN_.add(std::make_pair<>(&addedC.getXorigin(), charts_.size()));
-    charts_.push_back(&addedC);
+    addedC->setID(charts_.size());
+    chartNN_.add(std::make_pair<>(&addedC->getXorigin(), charts_.size()));
+    charts_.push_back(addedC);
     
     return addedC;
 }
@@ -752,18 +751,12 @@ bool ompl::base::AtlasStateSpace::traverseManifold (
     {
         c = owningChart(x_a);
         if (!c)
+            c = newChart(x_a);
+        if (!c)
         {
-            // Chart creation can fail.
-            try
-            {
-                c = &newChart(x_a);
-            }
-            catch (ompl::Exception &e)
-            {
-                OMPL_DEBUG("ompl::base::AtlasStateSpace::traverseManifold(): "
-                           "Could not get valid chart for 'from' state!");
-                return false;
-            }
+            OMPL_DEBUG("ompl::base::AtlasStateSpace::traverseManifold(): "
+                       "'from' state has no chart!");
+            return false;
         }
         from->setChart(c);
     }
@@ -830,22 +823,17 @@ bool ompl::base::AtlasStateSpace::traverseManifold (
             c = owningChart(x_j);
             if (!c)
             {
-                // Chart creation can fail.
-                try
-                {
-                    c = &newChart(x_j);
-                }
-                catch (ompl::Exception &e)
-                {
-                    // Quit.
-                    OMPL_DEBUG("ompl::base::AtlasStateSpace::traverseManifold(): "
-                               "Treating singularity as an obstacle.");
-                    freeState(currentState);
-                    return false;
-                }
+                c = newChart(x_j);
                 chartsCreated++;
             }
-
+            if (!c)
+            {
+                // Pretend like we hit an obstacle.
+                OMPL_ERROR("ompl::base::AtlasStateSpace::traverseManifold(): "
+                           "Treating singularity as an obstacle.");
+                break;
+            }
+        
             // Re-project onto the next chart.
             c->psiInverse(x_j, u_j);
             c->psiInverse(x_b, u_b);
@@ -857,8 +845,8 @@ bool ompl::base::AtlasStateSpace::traverseManifold (
     }
 
     if (chartsCreated > maxChartsPerExtension_)
-        OMPL_DEBUG("ompl::base::AtlasStateSpace::traverseManifold(): "
-                   "Stopping extension early b/c too many charts created.");
+        OMPL_WARN("ompl::base::AtlasStateSpace::traverseManifold(): "
+                   "Too many new charts. Stopping extension early.");
 
     // Reached goal if final point is within delta and both current and goal are valid.
     const bool currentValid = interpolate || (x_j.allFinite() && svc->isValid(currentState));
@@ -973,18 +961,7 @@ void ompl::base::AtlasStateSpace::piecewiseInterpolate (
     {
         AtlasChart *c = owningChart(x);
         if (!c)
-        {
-            // Chart creation can fail. TODO (cav2): clean this up, and elsewhere.
-            try
-            {
-                c = &newChart(x);
-            }
-            catch (ompl::Exception &e)
-            {
-                OMPL_DEBUG("ompl::base::AtlasStateSpace::interpolate(): "
-                           "Could not get a chart.");
-            }
-        }
+            c = newChart(x);
         astate->setChart(c);
     }
 }

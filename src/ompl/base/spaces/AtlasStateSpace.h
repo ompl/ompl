@@ -336,9 +336,8 @@ namespace ompl
             AtlasChart &anchorChart (const Eigen::VectorXd &xorigin) const;
             
             /** \brief Create a new chart for the atlas, centered at \a xorigin,
-             * which should be on the manifold.
-             * \throws ompl::Exception if manifold seems degenerate here. */
-            AtlasChart &newChart (const Eigen::VectorXd &xorigin) const;
+             * which should be on the manifold. Returns nullptr upon failure. */
+            AtlasChart *newChart (const Eigen::VectorXd &xorigin) const;
 
             /** \brief Pick a chart at random. */
             AtlasChart &sampleChart (void) const;
