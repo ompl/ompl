@@ -326,19 +326,22 @@ namespace ompl
             /** @name Manifold and chart operations
              *  @{ */
                         
-            /** \brief Wrapper for newChart(). Charts created this way will persist through calls to clear(). */
+            /** \brief Wrapper for newChart(). Charts created this way will
+             * persist through calls to clear().
+             * \throws ompl::Exception if manifold seems degenerate here. */
             AtlasChart &anchorChart (const Eigen::VectorXd &xorigin) const;
             
-            /** \brief Pick a chart at random with probability proportional the chart measure / atlas measure. */
-            virtual AtlasChart &sampleChart (void) const;
+            /** \brief Create a new chart for the atlas, centered at \a xorigin,
+             * which should be on the manifold.
+             * \throws ompl::Exception if manifold seems degenerate here. */
+            AtlasChart &newChart (const Eigen::VectorXd &xorigin) const;
+
+            /** \brief Pick a chart at random. */
+            AtlasChart &sampleChart (void) const;
             
-            /** \brief Find the chart to which \a x belongs. Returns nullptr if no chart found. 
-             * Assumes \a x is already on the manifold. */
-            virtual AtlasChart *owningChart (const Eigen::VectorXd &x) const;
-            
-            /** \brief Create a new chart for the atlas, centered at \a xorigin, which should be on
-             * the manifold. Chart may be an \a anchor chart. */
-            virtual AtlasChart &newChart (const Eigen::VectorXd &xorigin, const bool anchor = false) const;
+            /** \brief Find the chart to which \a x belongs. Returns nullptr if
+             * no chart found. Assumes \a x is already on the manifold. */
+            AtlasChart *owningChart (const Eigen::VectorXd &x) const;
             
             /** Compute the distance between two charts represented by nearest-neighbor elements. */
             static double chartNNDistanceFunction (const NNElement &e1, const NNElement &e2);

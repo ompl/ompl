@@ -137,13 +137,10 @@ namespace ompl
         public:
             
             /** \brief Create a tangent space chart for \a atlas with center at
-             * ambient space point \a xorigin. Use \a isAnchor to specify if
-             * this is a special chart (e.g. start or goal is on it) that should
-             * persist through a call to AtlasStateSpace::clear().
+             * ambient space point \a xorigin. 
              * \throws ompl::Exception when manifold seems degenerate here. */
             AtlasChart (const AtlasStateSpace &atlas,
-                        Eigen::Ref<const Eigen::VectorXd> xorigin,
-                        const bool isAnchor = false);
+                        Eigen::Ref<const Eigen::VectorXd> xorigin);
             
             /** \brief Destructor. */
             virtual ~AtlasChart (void);
@@ -151,13 +148,18 @@ namespace ompl
             /** \brief Forget all acquired information such as the halfspace
              * boundary. */
             void clear (void);
-            
+
+            /* Specify that this is a special chart (e.g. start or goal is on
+             * it) that should persist through a call to
+             * AtlasStateSpace::clear(). */
+            void makeAnchor (void);
+
+            /** \brief Is this chart marked as an anchor chart for the atlas? */
+            bool isAnchor (void) const;
+
             /** \brief Returns phi(0), the center of the chart in ambient
              * space. */
-            Eigen::Ref<const Eigen::VectorXd> getXorigin (void) const;
-            
-            /** \brief Returns the pointer to the const xorigin member. */
-            const Eigen::VectorXd *getXoriginPtr (void) const;
+            const Eigen::VectorXd &getXorigin (void) const;
             
             /** \brief Rewrite a chart point \a u in ambient space coordinates
              * and store the result in \a out.
@@ -205,9 +207,6 @@ namespace ompl
              * its index in the atlas's vector of charts. */
             unsigned int getID (void) const;
             
-            /** \brief Is this chart marked as an anchor chart for the atlas? */
-            bool isAnchor (void) const;
-
             /// @cond IGNORE
             /** \brief For manifolds of dimension 2, return in order in \a
              * vertices the polygon boundary of this chart, including an
@@ -257,7 +256,7 @@ namespace ompl
             double radius_;
 
             /** \brief Whether this chart is an anchor chart in the atlas. */
-            const bool isAnchor_;
+            bool isAnchor_ = false;
             
             /** \brief Unique ID in the atlas. Must be manually set. */
             unsigned int id_ = 0;

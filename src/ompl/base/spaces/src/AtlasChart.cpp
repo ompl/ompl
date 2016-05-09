@@ -158,10 +158,9 @@ void ompl::base::AtlasChart::Halfspace::expandToInclude (Eigen::Ref<const Eigen:
 /// Public
 
 ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas,
-                                    Eigen::Ref<const Eigen::VectorXd> xorigin,
-                                    const bool isAnchor)
+                                    Eigen::Ref<const Eigen::VectorXd> xorigin)
 : atlas_(atlas), n_(atlas_.getAmbientDimension()), k_(atlas_.getManifoldDimension()),
-  xorigin_(xorigin), radius_(atlas_.getRho()), isAnchor_(isAnchor)
+  xorigin_(xorigin), radius_(atlas_.getRho())
 {
     // Decompose the Jacobian at xorigin.
     Eigen::MatrixXd j(n_-k_,n_);
@@ -190,14 +189,19 @@ void ompl::base::AtlasChart::clear (void)
     polytope_.clear();
 }
 
-Eigen::Ref<const Eigen::VectorXd> ompl::base::AtlasChart::getXorigin (void) const
+bool ompl::base::AtlasChart::isAnchor (void) const
 {
-    return xorigin_;
+    return isAnchor_;
 }
 
-const Eigen::VectorXd *ompl::base::AtlasChart::getXoriginPtr (void) const
+void ompl::base::AtlasChart::makeAnchor (void)
 {
-    return &xorigin_;
+    isAnchor_ = true;
+}
+
+const Eigen::VectorXd &ompl::base::AtlasChart::getXorigin (void) const
+{
+    return xorigin_;
 }
 
 void ompl::base::AtlasChart::phi (Eigen::Ref<const Eigen::VectorXd> u,
@@ -299,11 +303,6 @@ void ompl::base::AtlasChart::setID (unsigned int id)
 unsigned int ompl::base::AtlasChart::getID (void) const
 {
     return id_;
-}
-
-bool ompl::base::AtlasChart::isAnchor (void) const
-{
-    return isAnchor_;
 }
 
 bool ompl::base::AtlasChart::toPolygon (std::vector<Eigen::VectorXd> &vertices) const

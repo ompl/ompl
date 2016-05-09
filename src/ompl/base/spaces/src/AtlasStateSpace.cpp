@@ -494,7 +494,7 @@ void ompl::base::AtlasStateSpace::clear (void)
             AtlasChart::generateHalfspace(*c, *anchor);
     
         anchor->setID(charts_.size());
-        chartNN_.add(std::make_pair<>(anchor->getXoriginPtr(), charts_.size()));
+        chartNN_.add(std::make_pair<>(&anchor->getXorigin(), charts_.size()));
         charts_.push_back(anchor);
     }
 }
@@ -657,12 +657,33 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::anchorChart (
     const Eigen::VectorXd &xorigin) const
 {
     // This could fail with an exception. We cannot recover if that happens.
-    return newChart(xorigin, true);
+    AtlasChart &c = newChart(xorigin);
+    c.makeAnchor();
+    return c;
+}
+
+ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (
+    const Eigen::VectorXd &xorigin) const
+{
+    AtlasChart &addedC = *new AtlasChart(*this, xorigin);
+    
+    // Ensure all charts respect boundaries of the new one, and vice versa, but
+    // only look at nearby ones (within 2*rho).
+    std::vector<NNElement> nearbyCharts;
+    chartNN_.nearestR(std::make_pair(&addedC.getXorigin(), 0), 2*rho_, nearbyCharts);
+    for (auto &near : nearbyCharts)
+        AtlasChart::generateHalfspace(*charts_[near.second], addedC);
+    
+    addedC.setID(charts_.size());
+    chartNN_.add(std::make_pair<>(&addedC.getXorigin(), charts_.size()));
+    charts_.push_back(&addedC);
+    
+    return addedC;
 }
 
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::sampleChart (void) const
 {
-    if (charts_.size() < 1)
+    if (charts_.empty())
         throw ompl::Exception("ompl::base::AtlasStateSpace::sampleChart(): "
             "Atlas sampled before any charts were made. Use AtlasStateSpace::anchorChart() first.");
     
@@ -688,24 +709,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
     return nullptr;
 }
 
-// This function can throw an ompl::Exception if the manifold misbehaves at xorigin!
-ompl::base::AtlasChart &ompl::base::AtlasStateSpace::newChart (const Eigen::VectorXd &xorigin, const bool anchor) const
-{
-    AtlasChart &addedC = *new AtlasChart(*this, xorigin, anchor);
-    
-    // Ensure all charts respect boundaries of the new one, and vice versa, but only look at nearby ones
-    std::vector<NNElement> nearbyCharts;
-    chartNN_.nearestR(std::make_pair(addedC.getXoriginPtr(), 0), 2*rho_, nearbyCharts);
-    for (auto &near : nearbyCharts)
-        AtlasChart::generateHalfspace(*charts_[near.second], addedC);
-    
-    addedC.setID(charts_.size());
-    chartNN_.add(std::make_pair<>(addedC.getXoriginPtr(), charts_.size()));
-    charts_.push_back(&addedC);
-    
-    return addedC;
-}
-
+// Static.
 double ompl::base::AtlasStateSpace::chartNNDistanceFunction (const NNElement &e1, const NNElement &e2)
 {
     return (*e1.first - *e2.first).norm();
