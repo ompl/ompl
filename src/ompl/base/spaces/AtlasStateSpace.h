@@ -237,43 +237,52 @@ namespace ompl
             /** \brief Reset the space (except for anchor charts). */
             virtual void clear (void);
             
-            /** \brief Associate \a si with this space. Requires that \a si was constructed from this AtlasStateSpace. */
+            /** \brief Associate \a si with this space. Requires that \a si was
+             * constructed from this AtlasStateSpace. */
             void setSpaceInformation (const SpaceInformationPtr &si);
             
-            /** \brief Set \a delta, the step size for traversing the manifold and collision checking. Default is 0.02. */
+            /** \brief Set \a delta, the step size for traversing the manifold
+             * and collision checking. Default 0.02. */
             void setDelta (const double delta);
             
-            /** \brief Set \a epsilon, the maximum permissible distance between a point in the validity region
-             * of a chart and its projection onto the manifold. Default is 0.1. */
+            /** \brief Set \a epsilon, the maximum permissible distance between
+             * a point in the validity region of a chart and its projection onto
+             * the manifold. Default 0.1. */
             void setEpsilon (const double epsilon);
             
-            /** \brief Set \a rho, the maximum radius for which a chart is valid. Default is 0.1. If this value
-             * is too large, it will be decreased during operation of the atlas. */
+            /** \brief Set \a rho, the maximum radius for which a chart is
+             * valid. Default 0.1. */
             void setRho (const double rho);
             
-            /** \brief Set \a alpha, the maximum permissible angle between the chart and the manifold inside
-             * the validity region of the chart. Default is pi/16. Must be within the range (0,pi/2). */
+            /** \brief Set \a alpha, the maximum permissible angle between the
+             * chart and the manifold inside the validity region of the
+             * chart. Must be within the range (0, pi/2). Default pi/16. */
             void setAlpha (const double alpha);
             
-            /** \brief Set the \a exploration parameter, which tunes the balance of refinement (sampling within
-             * known regions) and exploration (sampling on the frontier). Valid values are in the range [0,1),
-             * where 0 is all refinement, and 1 is all exploration. Default is 0.5. */
+            /** \brief Set the \a exploration parameter, which tunes the balance
+             * of refinement (sampling within known regions) and exploration
+             * (sampling on the frontier). Valid values are in the range [0,1),
+             * where 0 is all refinement, and 1 is all exploration. Default
+             * 0.5. */
             void setExploration (const double exploration);
             
-            /** \brief Set \a lambda, where lambda * d(x,y) is the maximum distance that can be accumulated while
-             * traversing the manifold from x to y before the algorithm gives up. Default is 2. Must be > 1. */
+            /** \brief Set \a lambda, where lambda * ||x-y|| is the maximum
+             * distance that can be accumulated while traversing the manifold
+             * from x to y before the algorithm stops. Must be greater than 1.
+             * Default 2. */
             void setLambda (const double lambda);
             
-            /** \brief Projection from a chart to the manifold will stop if the norm of the error is less than
-             * \a tolerance. Default is 1e-8. */
+            /** \brief Projection from a chart to the manifold will stop if the
+             * norm of the error is less than \a tolerance. Default 1e-8. */
             void setProjectionTolerance (const double tolerance);
             
-            /** \brief Projection from a chart to the manifold will stop after at most \a iterations iterations.
-             * Default is 200. */
+            /** \brief Projection from a chart to the manifold will stop after
+             * at most \a iterations iterations. Default 50. */
             void setProjectionMaxIterations (const unsigned int iterations);
             
-            /** \brief Sometimes manifold traversal creates an inordinate number of tiny charts. This parameter limits
-             * the number of charts that can be created in one pass. */
+            /** \brief Sometimes manifold traversal creates many charts. This
+             * parameter limits the number of charts that can be created during
+             * one traversal. Default 200. */
             void setMaxChartsPerExtension (const unsigned int charts);
             
             /** \brief Get delta. */
@@ -283,7 +292,7 @@ namespace ompl
             double getEpsilon (void) const;
             
             /** \brief Get rho. */
-            const double &getRho (void) const;
+            double getRho (void) const;
             
             /** \brief Get alpha. */
             double getAlpha (void) const;

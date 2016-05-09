@@ -378,7 +378,7 @@ bool ompl::base::AtlasChart::estimateIsFrontier () const {
     for (int k = 0; k < 1000; k++) {
         for (int i = 0; i < ru.size(); i++)
             ru[i] = rng.gaussian01();
-        ru *= atlas_.getRho() / ru.norm();
+        ru *= radius_ / ru.norm();
         if (inPolytope(ru))
             return true;
     }

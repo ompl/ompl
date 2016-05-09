@@ -399,7 +399,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (
 : RealVectorStateSpace(ambientDimension),
   n_(ambientDimension), k_(manifoldDimension), delta_(0.02), epsilon_(0.1),
   exploration_(0.5), lambda_(2), projectionTolerance_(1e-8),
-  projectionMaxIterations_(300), maxChartsPerExtension_(200), setup_(false),
+  projectionMaxIterations_(50), maxChartsPerExtension_(200), setup_(false),
   noAtlas_(false)
 {
     setName("Atlas" + RealVectorStateSpace::getName());
@@ -603,7 +603,7 @@ double ompl::base::AtlasStateSpace::getEpsilon (void) const
     return epsilon_;
 }
 
-const double &ompl::base::AtlasStateSpace::getRho (void) const
+double ompl::base::AtlasStateSpace::getRho (void) const
 {
     return rho_;
 }
@@ -653,7 +653,8 @@ unsigned int ompl::base::AtlasStateSpace::getManifoldDimension (void) const
     return k_;
 }
 
-ompl::base::AtlasChart &ompl::base::AtlasStateSpace::anchorChart (const Eigen::VectorXd &xorigin) const
+ompl::base::AtlasChart &ompl::base::AtlasStateSpace::anchorChart (
+    const Eigen::VectorXd &xorigin) const
 {
     // This could fail with an exception. We cannot recover if that happens.
     return newChart(xorigin, true);

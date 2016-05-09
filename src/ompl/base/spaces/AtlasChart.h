@@ -254,7 +254,7 @@ namespace ompl
             const Eigen::VectorXd xorigin_;
             
             /** \brief Maximum valid radius of this chart. */
-            const double &radius_;
+            double radius_;
 
             /** \brief Whether this chart is an anchor chart in the atlas. */
             const bool isAnchor_;
