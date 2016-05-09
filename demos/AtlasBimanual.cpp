@@ -187,8 +187,8 @@ public:
         out[2] = obj.z;
     }
 
-    // We will let bigJ be computed numerically instead of writing it out.
-    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    // We will let jacobianFunction be computed numerically instead of writing it out.
+    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         // Compute left and right object positions.
         Eigen::VectorXd left(3), right(3);
@@ -260,10 +260,10 @@ int main (int argc, char **argv)
     std::cout << "Start effectors: " << sl.transpose() << "; " << sr.transpose() << "\n";
     std::cout << "Goal effectors: " << gl.transpose() << "; " << gr.transpose() << "\n";
     Eigen::VectorXd f(biman->getAmbientDimension() - biman->getManifoldDimension());
-    biman->bigF(x, f);
+    biman->constraintFunction(x, f);
     if (f.norm() > 0.01)
         std::cout << "Warning: start state off manifold! " << f.transpose() << "\n";
-    biman->bigF(y, f);
+    biman->constraintFunction(y, f);
     if (f.norm() > 0.01)
         std::cout << "Warning: goal state off manifold! " << f.transpose() << "\n";
 

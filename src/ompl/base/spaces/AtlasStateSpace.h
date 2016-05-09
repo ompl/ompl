@@ -200,27 +200,32 @@ namespace ompl
                 /** \brief Chart owning the real vector. */
                 mutable AtlasChart *chart_ = nullptr;
             };
-            
+
+            // Store an AtlasChart's xorigin and index in the charts_ array.
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
             
-            /** \brief Constructor. The ambient space has dimension \a ambient, and the manifold has dimension \a manifold. */
-            AtlasStateSpace (const unsigned int ambient, const unsigned int manifold);
+            /** \brief Construct an atlas with the specified dimensions. */
+            AtlasStateSpace (const unsigned int ambientDimension,
+                             const unsigned int manifoldDimension);
             
             /** \brief Destructor. */
             virtual ~AtlasStateSpace (void);
             
             /** @name Setup and tuning of atlas parameters
              * @{ */
+
+            /** \brief Compute the constraint function at \a x. Result is
+             * returned in \a out, which should be allocated to size n_. */
+            virtual void constraintFunction (
+                const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const = 0;
             
-            
-            /** \brief Compute the constraint function at \a x. Result is returned in \a out, which should be allocated
-             * to have a size equal to the number of constraints. */
-            virtual void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const = 0;
-            
-            /** \brief Compute the Jacobian of the constraint function at \a x. Result is returned in \a out, which should
-             * be allocated to have dimensions (# constraints) by (ambient dimension). Default implementation performs the
-             * differentiation numerically, and may be slower and/or inaccurate. */
-            virtual void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const;
+            /** \brief Compute the Jacobian of the constraint function at \a
+             * x. Result is returned in \a out, which should be allocated to
+             * size (n_-k_) by n_. Default implementation performs the
+             * differentiation numerically, which may be slower and/or
+             * more inaccurate than an explicit formula. */
+            virtual void jacobianFunction (
+                const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const;
             
             /** \brief Behave exactly like the underlying RealVectorStateSpace for all overridden functions. */
             void stopBeingAnAtlas (const bool yes);

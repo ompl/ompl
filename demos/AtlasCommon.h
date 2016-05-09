@@ -81,12 +81,12 @@ public:
     {
     }
     
-    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         out[0] = x.norm() - 1;
     }
 
-    void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         out = x.transpose().normalized();
     }
@@ -102,12 +102,12 @@ public:
     {
     }
         
-    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         out[0] = x[2];
     }
 
-    void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         out(0,0) = 0;
         out(0,1) = 0;
@@ -125,7 +125,7 @@ public:
     {
     }
         
-    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         const double p = x.squaredNorm() + 2*x[1] - 1;
         const double n = x.squaredNorm() - 2*x[1] - 1;
@@ -134,7 +134,7 @@ public:
         out[0] = p*u + 16*x[0]*x[1]*n;
     }
 
-    void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         const double p = x.squaredNorm() + 2*x[1] - 1;
         const double n = x.squaredNorm() - 2*x[1] - 1;
@@ -159,13 +159,13 @@ public:
     {
     }
     
-    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         Eigen::VectorXd c(3); c << x[0], x[1], 0;
         out[0] = (x - R1 * c.normalized()).norm() - R2;
     }
 
-    void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         const double xySquaredNorm = x[0]*x[0] + x[1]*x[1];
         const double xyNorm = std::sqrt(xySquaredNorm);
@@ -195,7 +195,7 @@ public:
     {
     }
     
-    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         // Consecutive joints must be a fixed distance apart
         Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(DIM);
@@ -210,7 +210,7 @@ public:
         out[LINKS] = x.tail(DIM).norm() - ENDEFFECTORRADIUS;
     }
 
-    void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         out.setZero();
         Eigen::VectorXd plus(DIM*(LINKS+1)); plus.head(DIM*LINKS) = x; plus.tail(DIM) = Eigen::VectorXd::Zero(DIM);
@@ -279,7 +279,7 @@ public:
     {
     }
     
-    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         // Consecutive joints must be a fixed distance apart
         Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(DIM);
@@ -296,7 +296,7 @@ public:
         out[LINKS] = (x.tail(DIM) - R1 * c.normalized()).norm() - R2;
     }
 
-    void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         out.setZero();
         Eigen::VectorXd plus(DIM*(LINKS+1));

@@ -165,7 +165,7 @@ ompl::base::AtlasChart::AtlasChart (const AtlasStateSpace &atlas,
 {
     // Decompose the Jacobian at xorigin.
     Eigen::MatrixXd j(n_-k_,n_);
-    atlas_.bigJ(xorigin_, j);
+    atlas_.jacobianFunction(xorigin_, j);
     Eigen::FullPivLU<Eigen::MatrixXd> decomp = j.fullPivLu();
     if (!decomp.isSurjective()) {
         OMPL_WARN("AtlasChart::AtlasChart(): Jacobian not surjective! Possible singularity?");
@@ -224,7 +224,7 @@ void ompl::base::AtlasChart::psiFromAmbient (Eigen::Ref<const Eigen::VectorXd> x
     // b holds info about constraint satisfaction and orthogonality of the
     // projection to the chart.
     Eigen::VectorXd b(n_);
-    atlas_.bigF(out, b.head(n_-k_));
+    atlas_.constraintFunction(out, b.head(n_-k_));
     b.tail(k_).setZero();
     // A is the derivative used in Newton's method.
     Eigen::MatrixXd A(n_, n_);
@@ -233,14 +233,14 @@ void ompl::base::AtlasChart::psiFromAmbient (Eigen::Ref<const Eigen::VectorXd> x
            iter++ < atlas_.getProjectionMaxIterations())
     {
         // Recompute the Jacobian at the new guess.
-        atlas_.bigJ(out, A.block(0, 0, n_-k_, n_));
+        atlas_.jacobianFunction(out, A.block(0, 0, n_-k_, n_));
         
         // Move in the direction that decreases F(out) and is perpendicular to
         // the chart.
         out += A.householderQr().solve(-b);
 
         // Recompute b with new guess.
-        atlas_.bigF(out, b.head(n_-k_));
+        atlas_.constraintFunction(out, b.head(n_-k_));
         b.tail(k_) = bigPhi_.transpose() * (out - x0);
     }
 }

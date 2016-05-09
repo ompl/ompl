@@ -90,7 +90,7 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
 
         // Project. Will need to try again if this fails.
         c->psi(ru, rx);
-        atlas_.bigF(rx, f);
+        atlas_.constraintFunction(rx, f);
     }
     while (tries > 0 &&
            (!rx.allFinite() || f.norm() > atlas_.getProjectionTolerance()));
@@ -99,7 +99,8 @@ void ompl::base::AtlasStateSampler::sampleUniform (State *state)
     {
         // Consider decreasing rho and/or the exploration paramter if this
         // becomes a problem.
-        OMPL_WARN("AtlasStateSpace::sampleUniform() took too long. Returning center of a random chart.");
+        OMPL_WARN("ompl::base::AtlasStateSpace::sampleUniform(): "
+                  "Took too long; returning center of a random chart.");
         rx = c->getXorigin();
     }
 
@@ -133,7 +134,8 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state,
             catch (ompl::Exception &e)
             {
                 // This is really bad, because we need a chart. Fall back to a uniform sample.
-                OMPL_WARN("AtlasStateSpace::sampleUniformNear(): Failed to sample because chart creation at state failed! Falling back to uniform sample.");
+                OMPL_WARN("ompl::base::AtlasStateSpace::sampleUniformNear(): "
+                          "Failed to sample because chart creation at state failed! Falling back to uniform sample.");
                 sampleUniform(state);
                 return;
             }
@@ -161,7 +163,8 @@ void ompl::base::AtlasStateSampler::sampleUniformNear (State *state,
     {
         // Consider decreasing the distance argument if this becomes a
         // problem. Check planner code to see how it gets chosen.
-        OMPL_WARN("AtlasStateSpace::sampleUniformNear() got stuck. Returning initial point.");
+        OMPL_WARN("ompl::base:::AtlasStateSpace::sampleUniformNear(): "
+                  "Got stuck; returning initial point.");
         rx = n;
     }
 
@@ -195,7 +198,8 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
             catch (ompl::Exception &e)
             {
                 // This is really bad, because we need a chart. Fall back to a uniform sample.
-                OMPL_WARN("AtlasStateSpace::sampleGaussian(): Failed to sample because chart creation at state failed! Falling back to uniform sample.");
+                OMPL_WARN("ompl::base::AtlasStateSpace::sampleGaussian(): "
+                          "Failed to sample because chart creation at state failed! Falling back to uniform sample.");
                 sampleUniform(state);
                 return;
             }
@@ -219,7 +223,8 @@ void ompl::base::AtlasStateSampler::sampleGaussian (State *state, const State *m
     
     if (tries == 0)
     {
-        OMPL_WARN("AtlasStateSpace::sampleUniforGaussian() got stuck. Returning initial point.");
+        OMPL_WARN("ompl::base::AtlasStateSpace::sampleUniforGaussian(): "
+                  "Got stuck; returning initial point.");
         rx = m;
     }
 
@@ -389,52 +394,59 @@ void ompl::base::AtlasStateSpace::StateType::setChart (AtlasChart *c) const
 /// AtlasStateSpace
 
 /// Public
-ompl::base::AtlasStateSpace::AtlasStateSpace (const unsigned int ambient, const unsigned int manifold)
-: RealVectorStateSpace(ambient),
-    n_(ambient), k_(manifold), delta_(0.02), epsilon_(0.1), exploration_(0.5), lambda_(2),
-    projectionTolerance_(1e-8), projectionMaxIterations_(300), maxChartsPerExtension_(200), setup_(false), noAtlas_(false)
+ompl::base::AtlasStateSpace::AtlasStateSpace (
+    const unsigned int ambientDimension, const unsigned int manifoldDimension)
+: RealVectorStateSpace(ambientDimension),
+  n_(ambientDimension), k_(manifoldDimension), delta_(0.02), epsilon_(0.1),
+  exploration_(0.5), lambda_(2), projectionTolerance_(1e-8),
+  projectionMaxIterations_(300), maxChartsPerExtension_(200), setup_(false),
+  noAtlas_(false)
 {
-    //rng_.setLocalSeed(414344382);
-
     setName("Atlas" + RealVectorStateSpace::getName());
         
     setRho(0.1);
     setAlpha(M_PI/16);
     
-    chartNN_.setDistanceFunction(std::bind(
-                                     &chartNNDistanceFunction,
-                                     std::placeholders::_1, std::placeholders::_2));
+    chartNN_.setDistanceFunction(&chartNNDistanceFunction);
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace (void)
 {
+    // TODO (cav2): size_t....
     for (std::size_t i = 0; i < charts_.size(); i++)
         delete charts_[i];
 }
 
-void ompl::base::AtlasStateSpace::bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+void ompl::base::AtlasStateSpace::jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
 {
     Eigen::VectorXd y1 = x;
     Eigen::VectorXd y2 = x;
     Eigen::VectorXd t1(n_-k_);
     Eigen::VectorXd t2(n_-k_);
     
-    // Use a 7-point central difference stencil on each column
+    // Use a 7-point central difference stencil on each column.
     for (std::size_t j = 0; j < n_; j++)
     {
-        // Make step size as small as possible while still giving usable accuracy
+        // Make step size as small as possible while still giving usable accuracy.
         const double h = std::sqrt(std::numeric_limits<double>::epsilon()) * (x[j] >= 1 ? x[j] : 1);
         
+        // Can't assume y1[j]-y2[j] == 2*h because of precision errors.
         y1[j] += h; y2[j] -= h;
-        const Eigen::VectorXd m1 = (bigF(y1, t1),  bigF(y2, t2), (t1 - t2) / (y1[j]-y2[j]));   // Can't assume y1[j]-y2[j] == 2*h because of precision errors
+        constraintFunction(y1, t1);
+        constraintFunction(y2, t2);
+        const Eigen::VectorXd m1 = (t1-t2) / (y1[j]-y2[j]);
         y1[j] += h; y2[j] -= h;
-        const Eigen::VectorXd m2 = (bigF(y1, t1),  bigF(y2, t2), (t1 - t2) / (y1[j]-y2[j]));
+        constraintFunction(y1, t1);
+        constraintFunction(y2, t2);
+        const Eigen::VectorXd m2 = (t1-t2) / (y1[j]-y2[j]);
         y1[j] += h; y2[j] -= h;
-        const Eigen::VectorXd m3 = (bigF(y1, t1),  bigF(y2, t2), (t1 - t2) / (y1[j]-y2[j]));
+        constraintFunction(y1, t1);
+        constraintFunction(y2, t2);
+        const Eigen::VectorXd m3 = (t1-t2) / (y1[j]-y2[j]);
         
         out.col(j) = 1.5*m1 - 0.6*m2 + 0.1*m3;
         
-        // Reset for next iteration
+        // Reset for next iteration.
         y1[j] = y2[j] = x[j];
     }
 }
@@ -452,7 +464,8 @@ void ompl::base::AtlasStateSpace::setup (void)
     setup_ = true;
     
     if (!si_)
-        throw ompl::Exception("Must associate a SpaceInformation object to the AtlasStateSpace via setStateInformation() before use.");
+        throw ompl::Exception("ompl::base::AtlasStateSpace::setup(): "
+            "Must associate a SpaceInformation object to the AtlasStateSpace via setStateInformation() before use.");
     setDelta(delta_);   // This makes some setup-related calls
     RealVectorStateSpace::setup();
 }
@@ -490,10 +503,12 @@ void ompl::base::AtlasStateSpace::clear (void)
 void ompl::base::AtlasStateSpace::setSpaceInformation (const SpaceInformationPtr &si)
 {
     // Check that the object is valid
-    if (!si)
-        throw ompl::Exception("SpaceInformationPtr associated to the AtlasStateSpace was nullptr.");
+    if (!si.get())
+        throw ompl::Exception("ompl::base::AtlasStateSpace::setSpaceInformation(): "
+            "si is nullptr.");
     if (si->getStateSpace().get() != this)
-        throw ompl::Exception("SpaceInformation for AtlasStateSpace must be constructed from the same space object.");
+        throw ompl::Exception("ompl::base::AtlasStateSpace::setSpaceInformation(): "
+            "si for AtlasStateSpace must be constructed from the same sta space object.");
     
     // Save only a raw pointer to prevent a cycle
     si_ = si.get();
@@ -504,7 +519,8 @@ void ompl::base::AtlasStateSpace::setSpaceInformation (const SpaceInformationPtr
 void ompl::base::AtlasStateSpace::setDelta (const double delta)
 {
     if (delta <= 0)
-        throw ompl::Exception("Please specify a positive delta.");
+        throw ompl::Exception("ompl::base::AtlasStateSpace::setDelta(): "
+                              "delta must be positive.");
     delta_  = delta;
     
     if (setup_)
@@ -516,14 +532,16 @@ void ompl::base::AtlasStateSpace::setDelta (const double delta)
 void ompl::base::AtlasStateSpace::setEpsilon (const double epsilon)
 {
     if (epsilon <= 0)
-        throw ompl::Exception("Please specify a positive epsilon.");
+        throw ompl::Exception("ompl::base::AtlasStateSpace::setEpsilon(): "
+                              "epsilon must be positive.");
     epsilon_ = epsilon;
 }
 
 void ompl::base::AtlasStateSpace::setRho (const double rho)
 {
     if (rho <= 0)
-        throw ompl::Exception("Please specify a positive rho.");
+        throw ompl::Exception("ompl::base::AtlasStateSpace::setRho(): "
+                              "rho must be positive.");
     rho_ = rho;
     rho_s_ = rho_ / std::pow(1 - exploration_, 1.0/k_);
 }
@@ -531,14 +549,16 @@ void ompl::base::AtlasStateSpace::setRho (const double rho)
 void ompl::base::AtlasStateSpace::setAlpha (const double alpha)
 {
     if (alpha <= 0 || alpha >= M_PI_2)
-        throw ompl::Exception("Please specify an alpha within the range (0,pi/2).");
+        throw ompl::Exception("ompl::base::AtlasStateSpace::setAlpha(): "
+                              "alpha must be in (0, pi/2).");
     cos_alpha_ = std::cos(alpha);
 }
 
 void ompl::base::AtlasStateSpace::setExploration (const double exploration)
 {
     if (exploration >= 1)
-        throw ompl::Exception("Please specify an exploration value within the range [0,1).");
+        throw ompl::Exception("ompl::base::AtlasStateSpace::setExploration(): "
+                              "exploration must be in [0, 1).");
     exploration_ = exploration;
     
     // Update sampling radius
@@ -548,21 +568,24 @@ void ompl::base::AtlasStateSpace::setExploration (const double exploration)
 void ompl::base::AtlasStateSpace::setLambda (const double lambda)
 {
     if (lambda <= 1)
-        throw ompl::Exception("Please specify a lambda greater than 1.");
+        throw ompl::Exception("ompl::base::AtlasStateSpace::setLambda(): "
+                              "lambda must be > 1.");
     lambda_ = lambda;
 }
 
 void ompl::base::AtlasStateSpace::setProjectionTolerance (const double tolerance)
 {
     if (tolerance <= 0)
-        throw ompl::Exception("Please specify a projection tolerance greater than 0.");
+        throw ompl::Exception("ompl::base::AtlasStateSpace::setProjectionTolerance(): "
+                              "tolerance must be positive.");
     projectionTolerance_ = tolerance;
 }
 
 void ompl::base::AtlasStateSpace::setProjectionMaxIterations (const unsigned int iterations)
 {
     if (iterations == 0)
-        throw ompl::Exception("Please specify a positive maximum projection iteration count.");
+        throw ompl::Exception("ompl::base::AtlasStateSpace::setProjectionMaxIterations(): "
+                              "iterations must be positive.");
     projectionMaxIterations_ = iterations;
 }
 
@@ -640,7 +663,8 @@ ompl::base::AtlasChart &ompl::base::AtlasStateSpace::anchorChart (const Eigen::V
 ompl::base::AtlasChart &ompl::base::AtlasStateSpace::sampleChart (void) const
 {
     if (charts_.size() < 1)
-        throw ompl::Exception("Atlas sampled before any charts were made. Use AtlasStateSpace::anchorChart() first.");
+        throw ompl::Exception("ompl::base::AtlasStateSpace::sampleChart(): "
+            "Atlas sampled before any charts were made. Use AtlasStateSpace::anchorChart() first.");
     
     return *charts_[rng_.uniformInt(0, charts_.size() - 1)];
 }
@@ -725,7 +749,8 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
             }
             catch (ompl::Exception &e)
             {
-                OMPL_DEBUG("Could not get valid chart for 'from' state!");
+                OMPL_DEBUG("ompl::base::AtlasStateSpace::followManifold(): "
+                           "Could not get valid chart for 'from' state!");
                 return false;
             }
         }
@@ -738,7 +763,8 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     
     // Collision check unless interpolating
     if (!interpolate && (!x_a.allFinite() || !svc->isValid(from))) {
-        OMPL_DEBUG("'from' state not valid!");
+        OMPL_DEBUG("ompl::base::AtlasStateSpace::followManifold(): "
+                   "'from' state not valid!");
         freeState(currentState);
         return false;
     }
@@ -798,7 +824,8 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
                 catch (ompl::Exception &e)
                 {
                     // Quit.
-                    OMPL_DEBUG("AtlasStateSpace::followManifold(): Treating singularity as an obstacle.");
+                    OMPL_DEBUG("ompl::base::AtlasStateSpace::followManifold(): "
+                               "Treating singularity as an obstacle.");
                     freeState(currentState);
                     return false;
                 }
@@ -818,7 +845,8 @@ bool ompl::base::AtlasStateSpace::followManifold (const StateType *from, const S
     }
 
     if (chartsCreated > maxChartsPerExtension_)
-        OMPL_DEBUG("Stopping extension early b/c too many charts created.");
+        OMPL_DEBUG("ompl::base::AtlasStateSpace::followManifold(): "
+                   "Stopping extension early b/c too many charts created.");
     // Reached goal if final point is within delta and both current and goal are valid.
     const bool currentValid = interpolate || (x_j.allFinite() && svc->isValid(currentState));
     const bool goalValid = interpolate || svc->isValid(to);
@@ -1005,10 +1033,10 @@ bool ompl::base::AtlasStateSpace::project (Eigen::Ref<Eigen::VectorXd> x) const
     unsigned int iter = 0;
     Eigen::VectorXd f(n_-k_);
     Eigen::MatrixXd j(n_-k_,n_);
-    while ((bigF(x, f), f.norm() > projectionTolerance_) && iter++ < projectionMaxIterations_)
+    while ((constraintFunction(x, f), f.norm() > projectionTolerance_) && iter++ < projectionMaxIterations_)
     {
         // Compute pseudoinverse of Jacobian
-        bigJ(x, j);
+        jacobianFunction(x, j);
         Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
         const double tolerance = std::numeric_limits<double>::epsilon() * getAmbientDimension() * svd.singularValues().array().abs().maxCoeff();
         x -= svd.matrixV()
@@ -1043,7 +1071,8 @@ void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *t
         }
         catch (ompl::Exception &e)
         {
-            OMPL_DEBUG("AtlasStateSpace::interpolate(): Could not get a chart.");
+            OMPL_DEBUG("ompl::base::AtlasStateSpace::interpolate(): "
+                       "Could not get a chart.");
         }
     }
     astate->setChart(c);
@@ -1053,7 +1082,8 @@ void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *t
     c->psiFromAmbient(x, astate->vectorView()); 
     if (!astate->constVectorView().allFinite())
     {
-        OMPL_DEBUG("AtlasStateSpace::interpolate(): Got non-finite state. Returning an endpoint.");
+        OMPL_DEBUG("ompl::base::AtlasStateSpace::interpolate():"
+                   "Got non-finite state. Returning an endpoint.");
         if (t < 0.5)
             copyState(state, from);
         else
@@ -1113,7 +1143,8 @@ void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *
             }
             catch (ompl::Exception &e)
 	    {
-		OMPL_DEBUG("AtlasStateSpace::interpolate(): Could not get a chart.");
+		OMPL_DEBUG("ompl::base::AtlasStateSpace::interpolate(): "
+                   "Could not get a chart.");
 	    }
         }
         astate->setChart(c);
@@ -1155,6 +1186,7 @@ void ompl::base::AtlasStateSpace::freeState (State *state) const
 void ompl::base::AtlasStateSpace::checkSpace (const SpaceInformation *si)
 {
     if (!dynamic_cast<AtlasStateSpace *>(si->getStateSpace().get()))
-        throw ompl::Exception("ompl::base::AtlasMotionValidator's SpaceInformation needs to use an AtlasStateSpace!");
+        throw ompl::Exception("ompl::base::AtlasMotionValidator(): "
+                              "si needs to use an AtlasStateSpace!");
 }
 

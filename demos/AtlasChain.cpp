@@ -64,7 +64,7 @@ public:
         std::cout << "Manifold dimension: " << getManifoldDimension() << "\n";
     }
 
-    void bigF (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         // Consecutive joints must be a fixed distance apart
         Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(DIM);
@@ -103,7 +103,7 @@ public:
         }
     }
 
-    void bigJ (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         out.setZero();
         Eigen::VectorXd plus(DIM*(LINKS+1)); plus.head(DIM*LINKS) = x; plus.tail(DIM) = Eigen::VectorXd::Zero(DIM);
