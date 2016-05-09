@@ -232,10 +232,14 @@ namespace ompl
             void stopBeingAnAtlas (const bool yes);
             
             /** \brief Final setup for the space. */
-            virtual void setup (void);
-            
+            void setup (void);
+
+            /** \brief Check that the space referred to by the space information
+             * \a si is, in fact, an AtlasStateSpace. */
+            static void checkSpace (const SpaceInformation *si);
+
             /** \brief Reset the space (except for anchor charts). */
-            virtual void clear (void);
+            void clear (void);
             
             /** \brief Associate \a si with this space. Requires that \a si was
              * constructed from this AtlasStateSpace. */
@@ -343,13 +347,16 @@ namespace ompl
              * no chart found. Assumes \a x is already on the manifold. */
             AtlasChart *owningChart (const Eigen::VectorXd &x) const;
             
-            /** Compute the distance between two charts represented by nearest-neighbor elements. */
+            /** Compute the distance between two charts represented by
+             * nearest-neighbor elements. */
             static double chartNNDistanceFunction (const NNElement &e1, const NNElement &e2);
             
-            /** \brief Search for the border of chart \a c between \a xinside, which is assumed to be inside the
-             * polytope of \a c, and \a xoutside. The computed point lies inside the border at a distance no farther
-             * than half the distance of \a xinside to the border. The output is stored to \a out, which should be allocated
-             * to a size of ambient dimension. */
+            /** \brief Search for the border of chart \a c between \a xinside,
+             * which is inside the polytope of \a c, and \a xoutside, which is
+             * outside. The computed point lies inside the border at a distance
+             * no farther than half the distance of \a xinside to the
+             * border. The output is stored to \a out, which should be allocated
+             * to size n_. */
             void dichotomicSearch (const AtlasChart &c, const Eigen::VectorXd &xinside, const Eigen::VectorXd &xoutside,
                                    Eigen::Ref<Eigen::VectorXd> out) const;
             
@@ -360,62 +367,80 @@ namespace ompl
              * we stopped early for any reason, such as a collision or traveling too far. No collision checking is performed
              * if \a interpolate is true. If \a stateList is not nullptr, the sequence of intermediates is saved to it, including
              * a copy of \a from, as well as the final state. Caller is responsible for freeing states returned in \a stateList. */
-            virtual bool followManifold (const StateType *from, const StateType *to, const bool interpolate = false,
-                                         std::vector<StateType *> *stateList = nullptr) const;
+            bool followManifold (const StateType *from, const StateType *to, const bool interpolate = false,
+                                 std::vector<StateType *> *stateList = nullptr) const;
 
+            /** @} */
+
+            /** @name Visualization and debug
+             * @{ */
+            
+            /** \brief Estimate what percentage of atlas charts do not have
+             * fully formed polytope boundaries, and are therefore on the
+             * frontier. */
             int estimateFrontierPercent () const;
             
             /** \brief Write a mesh representation of the atlas to a stream. */
             void dumpMesh (std::ostream &out) const;
             
-            /** \brief Write a mesh of a Boost graph on the atlas to a stream. */
-            void dumpGraph (const PlannerData::Graph &graph, std::ostream &out, const bool asIs = false) const;
+            /** \brief Write a mesh of the planner graph to a stream. Insert
+             * additional vertices to project the edges along the manifold if \a
+             * asIs == true. */
+            void dumpGraph (const PlannerData::Graph &graph, std::ostream &out,
+                            const bool asIs = false) const;
             
-            /** \brief Write a mesh of a path on the atlas to stream. Don't try to interpolate between path states if \a asIs. */
-            void dumpPath (ompl::geometric::PathGeometric &path, std::ostream &out, const bool asIs = false) const;
+            /** \brief Write a mesh of a path on the atlas to stream. Insert
+             * additional vertices to project the edges along the manifold if \a
+             * asIs == true. */
+            void dumpPath (ompl::geometric::PathGeometric &path,
+                           std::ostream &out, const bool asIs = false) const;
             
             /** @} */
             
             /** @name Interpolation and state management
              * @{ */
             
-            /** \brief Try to project the vector \a x onto the manifold, agnostic of charts. Result retuned in
-             * \a x. Returns whether the projection succeeded. */
+            /** \brief Try to project the vector \a x onto the manifold, without
+             * using charts. Result returned in \a x. Returns whether the
+             * projection succeeded. */
             bool project (Eigen::Ref<Eigen::VectorXd> x) const;
             
-            /** \brief Find the state between \a from and \a to at time \a t, where \a t = 0 is \a from, and \a t = 1 is the final
-             * state reached by followManifold(\a from, \a to, true, ...), which may not be \a to. State returned in \a state. */
-            virtual void interpolate (const State *from, const State *to, const double t, State *state) const;
+            /** \brief Find the state between \a from and \a to at time \a t,
+             * where \a t = 0 is \a from, and \a t = 1 is the final state
+             * reached by followManifold(\a from, \a to, true, ...), which may
+             * not be \a to. State returned in \a state. */
+            void interpolate (const State *from, const State *to,
+                              const double t, State *state) const;
             
-            /** \brief Like interpolate(...), but uses the information about intermediate states already supplied in \a stateList from
-             * a previous call to followManifold(..., true, \a stateList). The 'from' and 'to' states are the first and last
-             * elements \a stateList. Assumes \a stateList contains at least two elements. */
-            virtual void fastInterpolate (const std::vector<StateType *> &stateList, const double t, State *state) const;
+            /** \brief Like interpolate(...), but uses the information about
+             * intermediate states already supplied in \a stateList from a
+             * previous call to followManifold(..., true, \a stateList). The
+             * 'from' and 'to' states are the first and last elements \a
+             * stateList. Assumes \a stateList contains at least two
+             * elements. */
+            void fastInterpolate (const std::vector<StateType *> &stateList,
+                                  const double t, State *state) const;
             
             /** \brief Whether interpolation is symmetric. (No.) */
-            virtual bool hasSymmetricInterpolate (void) const;
+            bool hasSymmetricInterpolate (void) const;
             
             /** \brief Duplicate \a source in \a destination. The memory for these two states should not overlap. */
-            virtual void copyState (State *destination, const State *source) const;
+            void copyState (State *destination, const State *source) const;
             
             /** \brief Return an instance of the AtlasStateSampler. */
-            virtual StateSamplerPtr allocDefaultStateSampler (void) const;
+            StateSamplerPtr allocDefaultStateSampler (void) const;
             
             /** \brief Allocate a new state in this space. */
-            virtual State *allocState (void) const;
+            State *allocState (void) const;
             
             /** \brief Free \a state. Assumes \a state is an AtlasStateSpace state. */
-            virtual void freeState (State *state) const;
+            void freeState (State *state) const;
             
             /** @} */
             
             /** \brief Random number generator. */
             mutable RNG rng_;
                         
-            /** \brief Check that the space referred to by the space information
-             * \a si is, in fact, an AtlasStateSpace. */
-            static void checkSpace (const SpaceInformation *si);
-
         protected:
             
             /** \brief SpaceInformation associated with this space. */

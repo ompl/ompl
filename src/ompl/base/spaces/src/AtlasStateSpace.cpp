@@ -394,6 +394,7 @@ void ompl::base::AtlasStateSpace::StateType::setChart (AtlasChart *c) const
 /// AtlasStateSpace
 
 /// Public
+
 ompl::base::AtlasStateSpace::AtlasStateSpace (
     const unsigned int ambientDimension, const unsigned int manifoldDimension)
 : RealVectorStateSpace(ambientDimension),
@@ -468,6 +469,14 @@ void ompl::base::AtlasStateSpace::setup (void)
     setDelta(delta_);   // This makes some setup-related calls
 
     RealVectorStateSpace::setup();
+}
+
+/// Static.
+void ompl::base::AtlasStateSpace::checkSpace (const SpaceInformation *si)
+{
+    if (!dynamic_cast<AtlasStateSpace *>(si->getStateSpace().get()))
+        throw ompl::Exception("ompl::base::AtlasMotionValidator(): "
+                              "si needs to use an AtlasStateSpace!");
 }
 
 void ompl::base::AtlasStateSpace::clear (void)
@@ -709,16 +718,17 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart (const Eigen::V
     return nullptr;
 }
 
-// Static.
+// Static
 double ompl::base::AtlasStateSpace::chartNNDistanceFunction (const NNElement &e1, const NNElement &e2)
 {
     return (*e1.first - *e2.first).norm();
 }
         
-void ompl::base::AtlasStateSpace::dichotomicSearch (const AtlasChart &c, const Eigen::VectorXd &xinside, const Eigen::VectorXd &xoutside,
-                                                    Eigen::Ref<Eigen::VectorXd> out) const
+void ompl::base::AtlasStateSpace::dichotomicSearch (
+    const AtlasChart &c, const Eigen::VectorXd &xinside,
+    const Eigen::VectorXd &xoutside, Eigen::Ref<Eigen::VectorXd> out) const
 {
-    // Cut the distance in half, moving toward xinside until we are inside the chart
+    // Halve the distance, moving toward xinside until we are inside the chart.
     out = xoutside;
     Eigen::VectorXd u(k_);
     while (c.psiInverse(out, u), !c.inPolytope(u))
@@ -916,7 +926,8 @@ void ompl::base::AtlasStateSpace::dumpMesh (std::ostream &out) const
     out << v.str() << f.str();
 }
 
-void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, std::ostream &out, const bool asIs) const
+void ompl::base::AtlasStateSpace::dumpGraph (
+    const PlannerData::Graph &graph, std::ostream &out, const bool asIs) const
 {
     std::stringstream v, f;
     std::size_t vcount = 0;
@@ -925,8 +936,10 @@ void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, st
     BGL_FORALL_EDGES(edge, graph, PlannerData::Graph)
     {
         std::vector<StateType *> stateList;
-        const State *const source = boost::get(vertex_type, graph, boost::source(edge, graph))->getState();
-        const State *const target = boost::get(vertex_type, graph, boost::target(edge, graph))->getState();
+        const State *const source =
+            boost::get(vertex_type, graph, boost::source(edge, graph))->getState();
+        const State *const target =
+            boost::get(vertex_type, graph, boost::target(edge, graph))->getState();
         
         if (!asIs)
             followManifold(source->as<StateType>(), target->as<StateType>(), true, &stateList);
@@ -953,7 +966,8 @@ void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, st
             v << to->constVectorView().transpose() << "\n";
             v << from->constVectorView().transpose() << "\n";
             vcount += 2;
-            f << 3 << " " << (reset ? vcount-3 : vcount-4) << " " << vcount-2 << " " << vcount-1 << "\n";
+            f << 3 << " " << (reset ? vcount-3 : vcount-4) << " "
+              << vcount-2 << " " << vcount-1 << "\n";
             fcount++;
             freeState(stateList[i-1]);
             reset = false;
@@ -973,7 +987,8 @@ void ompl::base::AtlasStateSpace::dumpGraph (const PlannerData::Graph &graph, st
     out << v.str() << f.str();
 }
 
-void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path, std::ostream &out, const bool asIs) const
+void ompl::base::AtlasStateSpace::dumpPath (
+    ompl::geometric::PathGeometric &path, std::ostream &out, const bool asIs) const
 {
     std::stringstream v, f;
     std::size_t vcount = 0;
@@ -1011,7 +1026,8 @@ void ompl::base::AtlasStateSpace::dumpPath (ompl::geometric::PathGeometric &path
             v << to->constVectorView().transpose() << "\n";
             v << from->constVectorView().transpose() << "\n";
             vcount += 2;
-            f << 3 << " " << (reset ? vcount-3 : vcount-4) << " " << vcount-2 << " " << vcount-1 << "\n";
+            f << 3 << " " << (reset ? vcount-3 : vcount-4)
+              << " " << vcount-2 << " " << vcount-1 << "\n";
             fcount++;
             freeState(stateList[i-1]);
             reset = false;
@@ -1037,16 +1053,20 @@ bool ompl::base::AtlasStateSpace::project (Eigen::Ref<Eigen::VectorXd> x) const
     unsigned int iter = 0;
     Eigen::VectorXd f(n_-k_);
     Eigen::MatrixXd j(n_-k_,n_);
-    while ((constraintFunction(x, f), f.norm() > projectionTolerance_) && iter++ < projectionMaxIterations_)
+    constraintFunction(x, f);
+    while (f.norm() > projectionTolerance_ && iter++ < projectionMaxIterations_)
     {
         // Compute pseudoinverse of Jacobian
         jacobianFunction(x, j);
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-        const double tolerance = std::numeric_limits<double>::epsilon() * getAmbientDimension() * svd.singularValues().array().abs().maxCoeff();
-        x -= svd.matrixV()
-            * Eigen::MatrixXd((svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0)).asDiagonal()
-            * svd.matrixU().adjoint()
-            * f;
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd =
+            j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+        const double tolerance = std::numeric_limits<double>::epsilon() *
+            getAmbientDimension() * svd.singularValues().array().abs().maxCoeff();
+        x -= svd.matrixV() *
+            Eigen::MatrixXd((svd.singularValues().array().abs() > tolerance)
+                            .select(svd.singularValues().array().inverse(), 0)).asDiagonal() *
+            svd.matrixU().adjoint() * f;
+        constraintFunction(x, f);
     }
     
     if (iter > projectionMaxIterations_)
@@ -1055,44 +1075,27 @@ bool ompl::base::AtlasStateSpace::project (Eigen::Ref<Eigen::VectorXd> x) const
     return true;
 }
 
-void ompl::base::AtlasStateSpace::interpolate (const State *from, const State *to, const double t, State *state) const
+void ompl::base::AtlasStateSpace::interpolate (
+    const State *from, const State *to, const double t, State *state) const
 {
-     // Interpolate like a real vector space
-     RealVectorStateSpace::interpolate(from, to, t, state);
-     if (noAtlas_)
-         return;
-     
-    // Find or make a chart for the point
-    StateType *const astate = state->as<StateType>();
-    AtlasChart *c = owningChart(astate->constVectorView());
-    if (!c)
+    if (noAtlas_)
     {
-        project(astate->vectorView());
-        // Chart creation can fail.
-        try
-        {
-            c = &newChart(astate->constVectorView());
-        }
-        catch (ompl::Exception &e)
-        {
-            OMPL_DEBUG("ompl::base::AtlasStateSpace::interpolate(): "
-                       "Could not get a chart.");
-        }
+        // Interpolate like a real vector space
+        RealVectorStateSpace::interpolate(from, to, t, state);
+        return;
     }
-    astate->setChart(c);
-    
-    // Project using this chart
-    Eigen::VectorXd x = astate->constVectorView();
-    c->psiFromAmbient(x, astate->vectorView()); 
-    if (!astate->constVectorView().allFinite())
+
+    // Get the list of intermediate states along the manifold.
+    std::vector<StateType *> stateList;
+    bool succeeded = followManifold(from->as<StateType>(), to->as<StateType>(), true, &stateList);
+    if (!succeeded)
     {
-        OMPL_DEBUG("ompl::base::AtlasStateSpace::interpolate():"
-                   "Got non-finite state. Returning an endpoint.");
-        if (t < 0.5)
-            copyState(state, from);
-        else
-            copyState(state, to);
+        stateList.push_back(allocState()->as<StateType>());
+        copyState(stateList.back(), to);
     }
+    fastInterpolate(stateList, t, state);
+    for (StateType *state : stateList)
+        freeState(state);
 }
 
 void ompl::base::AtlasStateSpace::fastInterpolate (const std::vector<StateType *> &stateList, const double t, State *state) const
@@ -1183,14 +1186,5 @@ void ompl::base::AtlasStateSpace::freeState (State *state) const
 {
     StateType *const astate = state->as<StateType>();
     delete astate;
-}
-
-/// Public Static
-
-void ompl::base::AtlasStateSpace::checkSpace (const SpaceInformation *si)
-{
-    if (!dynamic_cast<AtlasStateSpace *>(si->getStateSpace().get()))
-        throw ompl::Exception("ompl::base::AtlasMotionValidator(): "
-                              "si needs to use an AtlasStateSpace!");
 }
 

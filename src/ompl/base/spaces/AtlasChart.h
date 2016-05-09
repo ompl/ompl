@@ -162,14 +162,14 @@ namespace ompl
             const Eigen::VectorXd &getXorigin (void) const;
             
             /** \brief Rewrite a chart point \a u in ambient space coordinates
-             * and store the result in \a out.
-             * \pre \a out has size \a n_ (ambient dimension).
+             * and store the result in \a out, which should be allocated to size
+             * n_.
              */
             void phi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
             
             /** \brief Exponential mapping. Project chart point \a u onto the
-             * manifold and store the result in \a out.
-             * \pre \a out has size \a n_ (ambient dimension). */
+             * manifold and store the result in \a out, which should be
+             * allocated to size n_. */
             void psi (Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
             
             /** \brief Same as AtlasChart::psi(), except it starts from an
@@ -178,8 +178,8 @@ namespace ompl
                                  Eigen::Ref<Eigen::VectorXd> out) const;
             
             /** \brief Logarithmic mapping. Project ambient point \a x onto the
-             * chart and store the result in \a out.
-             * \pre \a out has size \a k_ (manifold dimension). */
+             * chart and store the result in \a out, which should be allocated
+             * to size k_. */
             void psiInverse (Eigen::Ref<const Eigen::VectorXd> x,
                              Eigen::Ref<Eigen::VectorXd> out) const;
             
@@ -192,7 +192,7 @@ namespace ompl
             
             /** \brief Check if chart point \a v lies very close to any part of
              * the boundary. Wherever it does, expand the neighboring chart's
-             * boundary to include.. */
+             * boundary to include. */
             void borderCheck (Eigen::Ref<const Eigen::VectorXd> v) const;
             
             /** \brief Try to find an owner for ambient point \x from among the

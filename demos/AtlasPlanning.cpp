@@ -87,7 +87,7 @@ int main (int argc, char **argv)
     si->setConstraintInformation(ci);
     
     // Atlas parameters
-    atlas->setExploration(0.8);
+    atlas->setExploration(0.5);
     atlas->setRho(0.5); // 0.2
     atlas->setAlpha(M_PI/8);
     atlas->setEpsilon(0.2); // 0.1
