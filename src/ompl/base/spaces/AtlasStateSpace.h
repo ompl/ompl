@@ -227,9 +227,11 @@ namespace ompl
             virtual void jacobianFunction (
                 const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const;
             
-            /** \brief Behave exactly like the underlying RealVectorStateSpace
-             * for all overridden functions. */
-            void stopBeingAnAtlas (const bool yes);
+            /** \brief \a ATLAS mode enables all atlas functionality and is the
+             * normal operation mode. \a REALVECTOR mode is functionally
+             * equivalent to the underlying RealVectorStateSpace. */
+            typedef enum { ATLAS, REALVECTOR } Mode;
+            void setMode (const Mode mode);
             
             /** \brief Final setup for the space. */
             void setup (void);
@@ -489,8 +491,8 @@ namespace ompl
             /** \brief Whether setup() has been called. */
             bool setup_;
             
-            /** \brief Whether we are not being an atlas. */
-            bool noAtlas_;
+            /** \brief Whether we are actually acting like an atlas. */
+            Mode mode_;
             
             /** \brief Random number generator. */
             mutable RNG rng_;

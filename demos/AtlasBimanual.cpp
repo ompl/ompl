@@ -273,7 +273,7 @@ int main (int argc, char **argv)
     if (std::strcmp(argv[1], "ConstrainedRRT") == 0 || std::strcmp(argv[1], "CBiRRT2") == 0)
         cons = true;
     if (cons)
-        atlas->stopBeingAnAtlas(true);
+        atlas->setMode(ompl::base::AtlasStateSpace::REALVECTOR);
     
     // All the 'Constrained' classes are loose wrappers for the normal classes. No effect except on
     // the two special planners.

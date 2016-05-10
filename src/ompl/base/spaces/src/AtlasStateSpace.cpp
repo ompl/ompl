@@ -58,6 +58,7 @@ ompl::base::AtlasStateSampler::AtlasStateSampler (const SpaceInformation *si)
 ompl::base::AtlasStateSampler::AtlasStateSampler (const AtlasStateSpace &atlas)
     : StateSampler(&atlas), atlas_(atlas)
 {
+    // TODO (cav2): inline some small things.
 }
 
 void ompl::base::AtlasStateSampler::sampleUniform (State *state)
@@ -345,6 +346,7 @@ void ompl::base::AtlasStateSpace::StateType::copyFrom (const StateType *source)
     chart_ = source->chart_;
 }
 
+// TODO (cav2): give this a better name.
 void ompl::base::AtlasStateSpace::StateType::setRealState (
     const Eigen::VectorXd &x, AtlasChart *c)
 {
@@ -383,7 +385,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace (
   n_(ambientDimension), k_(manifoldDimension), delta_(0.02), epsilon_(0.1),
   exploration_(0.5), lambda_(2), projectionTolerance_(1e-8),
   projectionMaxIterations_(50), maxChartsPerExtension_(200), setup_(false),
-  noAtlas_(false)
+  mode_(ATLAS)
 {
     setName("Atlas" + RealVectorStateSpace::getName());
         
@@ -433,9 +435,9 @@ void ompl::base::AtlasStateSpace::jacobianFunction (const Eigen::VectorXd &x, Ei
     }
 }
 
-void ompl::base::AtlasStateSpace::stopBeingAnAtlas (const bool yes)
+void ompl::base::AtlasStateSpace::setMode (const Mode mode)
 {
-    noAtlas_ = yes;
+    mode_ = mode;
 }
 
 void ompl::base::AtlasStateSpace::setup (void)
@@ -883,7 +885,7 @@ bool ompl::base::AtlasStateSpace::project (Eigen::Ref<Eigen::VectorXd> x) const
 void ompl::base::AtlasStateSpace::interpolate (
     const State *from, const State *to, const double t, State *state) const
 {
-    if (noAtlas_)
+    if (mode_ == REALVECTOR)
     {
         // Interpolate like a real vector space.
         RealVectorStateSpace::interpolate(from, to, t, state);
@@ -966,7 +968,7 @@ void ompl::base::AtlasStateSpace::copyState (State *destination, const State *so
 
 ompl::base::StateSamplerPtr ompl::base::AtlasStateSpace::allocDefaultStateSampler (void) const
 {
-    if (noAtlas_)
+    if (mode_ == REALVECTOR)
         return RealVectorStateSpace::allocDefaultStateSampler();
     return StateSamplerPtr(new AtlasStateSampler(*this));
 }

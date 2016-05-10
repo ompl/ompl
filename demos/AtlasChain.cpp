@@ -177,9 +177,9 @@ void resetStateSpace(const ompl::base::PlannerPtr &planner)
     ompl::base::AtlasStateSpace *atlas = planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>();
     atlas->clear();
     if (name == "ConstrainedRRT" ||  name == "CBiRRT2")
-        atlas->stopBeingAnAtlas(true);
+        atlas->setMode(ompl::base::AtlasStateSpace::REALVECTOR);
     else
-        atlas->stopBeingAnAtlas(false);
+        atlas->setMode(ompl::base::AtlasStateSpace::ATLAS);
 }
 
 ompl::geometric::ConstrainedSimpleSetupPtr createChainSetup(std::size_t dimension, std::size_t links, double sleep, unsigned int extras)
