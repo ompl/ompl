@@ -49,6 +49,7 @@
 /// AtlasStateSampler
 
 /// Public
+
 ompl::base::AtlasStateSampler::AtlasStateSampler (const SpaceInformation *si)
     : StateSampler(si->getStateSpace().get()), atlas_(*si->getStateSpace()->as<AtlasStateSpace>())
 {
@@ -258,6 +259,7 @@ bool ompl::base::AtlasValidStateSampler::sampleNear (State *state, const State *
 /// AtlasMotionValidator
 
 /// Public
+
 ompl::base::AtlasMotionValidator::AtlasMotionValidator (SpaceInformation *si)
 : MotionValidator(si), atlas_(*si->getStateSpace()->as<AtlasStateSpace>())
 {
@@ -275,7 +277,7 @@ bool ompl::base::AtlasMotionValidator::checkMotion (
 {
     // Simply invoke the manifold-traversing algorithm of the atlas
     return atlas_.traverseManifold(s1->as<AtlasStateSpace::StateType>(),
-                                 s2->as<AtlasStateSpace::StateType>());
+                                   s2->as<AtlasStateSpace::StateType>());
 }
 
 bool ompl::base::AtlasMotionValidator::checkMotion (
@@ -306,26 +308,26 @@ bool ompl::base::AtlasMotionValidator::checkMotion (
         atlas_.freeState(stateList[i]);
     }
     
-    // Check if manifold traversal stopped early and set its final state as
-    // lastValid.
     if (!reached && lastValid.first)
+    {    
+        // Check if manifold traversal stopped early and set its final state as
+        // lastValid.
         atlas_.copyState(lastValid.first, stateList.back());
-    atlas_.freeState(stateList.back());
-
-    // Compute the interpolation parameter of the last valid
-    // state. (Although if you then interpolate, you probably won't get this
-    // exact state back.)
-    if (!reached)
-    {
+        // Compute the interpolation parameter of the last valid
+        // state. (Although if you then interpolate, you probably won't get this
+        // exact state back.)
         approxDistanceRemaining = atlas_.distance(lastValid.first, as2);
         lastValid.second = distanceTraveled / (distanceTraveled + approxDistanceRemaining);
     }
+
+    atlas_.freeState(stateList.back());
     return reached;
 }
 
 /// AtlasStateSpace::StateType
 
 /// Public
+
 ompl::base::AtlasStateSpace::StateType::StateType (const unsigned int &dimension)
   : RealVectorStateSpace::StateType(), dimension_(dimension)
 {
