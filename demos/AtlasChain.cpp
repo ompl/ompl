@@ -46,129 +46,6 @@ namespace po = boost::program_options;
 
 const double RANGE = 0.5;
 
-/** Kinematic chain manifold. */
-class ChainManifold2 : public ompl::base::AtlasStateSpace
-{
-public:
-
-    const unsigned int DIM;
-    const unsigned int LINKS;
-    const double LINKLENGTH;
-    const double ENDEFFECTORRADIUS;
-    const double JOINTWIDTH;
-    const unsigned int EXTRAS;
-
-    ChainManifold2 (unsigned int dim, unsigned int links, double endeffector_radius, unsigned int extras = 0)
-        : ompl::base::AtlasStateSpace(dim*links, (dim-1)*links - extras), DIM(dim), LINKS(links), LINKLENGTH(1), ENDEFFECTORRADIUS(endeffector_radius), JOINTWIDTH(0.2), EXTRAS(extras)
-    {
-        std::cout << "Manifold dimension: " << getManifoldDimension() << "\n";
-    }
-
-    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
-    {
-        // Consecutive joints must be a fixed distance apart
-        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(DIM);
-        for (unsigned int i = 0; i < LINKS; i++)
-        {
-            const Eigen::VectorXd joint2 = x.segment(DIM*i, DIM);
-            out[i] = (joint1 - joint2).norm() - LINKLENGTH;
-            joint1 = joint2;
-        }
-
-        if (EXTRAS >= 1) {
-            // End effector must lie on a sphere
-            out[LINKS] = x.tail(DIM).norm() - ENDEFFECTORRADIUS;
-            if (EXTRAS >= 2) {
-                // First and second joints must have same z-value.
-                out[LINKS+1] = x[2] - x[DIM + 2];
-                // First and third joints sqrt(2) apart.
-                //out[LINKS+1] = (x.segment(0, DIM) - x.segment(2*DIM, DIM)).norm() - M_SQRT2*LINKLENGTH;
-                if (EXTRAS >= 3) {
-		    // Second and third joints must have same x-value.
-		    out[LINKS+2] = x[DIM] - x[2*DIM];
-		    // Third and fifth joints sqrt(2) apart.
-		    //out[LINKS+2] = (x.segment(2*DIM, DIM) - x.segment(4*DIM, DIM)).norm() - M_SQRT2*LINKLENGTH;
-                    if (EXTRAS >= 4) {
-                        // Third and fourth joints must have the same y-value.
-                        out[LINKS+3] = x[2*DIM + 1] - x[3*DIM + 1];
-                        if (EXTRAS >= 5) {
-			    // First and fifth joints have same y-value.
-			    out[LINKS+4] = x[1] - x[4*DIM + 1];
-			    // Second and fifth joints have same z-value.
-			    //out[LINKS+4] = x[DIM + 2] - x[4*DIM + 2];
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
-    {
-        out.setZero();
-        Eigen::VectorXd plus(DIM*(LINKS+1)); plus.head(DIM*LINKS) = x; plus.tail(DIM) = Eigen::VectorXd::Zero(DIM);
-        Eigen::VectorXd minus(DIM*(LINKS+1)); minus.head(DIM) = Eigen::VectorXd::Zero(DIM); minus.tail(DIM*LINKS) = x;
-        const Eigen::VectorXd diagonal = plus - minus;
-        for (unsigned int i = 0; i < LINKS; i++)
-            out.row(i).segment(DIM*i, DIM) = diagonal.segment(DIM*i, DIM).normalized();
-        out.block(1, 0, LINKS, DIM*(LINKS-1)) -= out.block(1, DIM, LINKS, DIM*(LINKS-1));
-
-        if (EXTRAS >= 1) {
-            out.row(LINKS).tail(DIM) = -diagonal.tail(DIM).normalized().transpose();
-            if (EXTRAS >= 2) {
-		out(LINKS+1, 2) = 1;
-		out(LINKS+1, DIM + 2) = -1;
-		//out.row(LINKS+1).segment(0, DIM) = (x.segment(0, DIM) - x.segment(2*DIM, DIM)).normalized();
-		//out.row(LINKS+1).segment(2*DIM, DIM) = -out.row(LINKS+1).segment(0, DIM);
-                if (EXTRAS >= 3) {
-		    out(LINKS+2, DIM) = 1;
-		    out(LINKS+2, 2*DIM) = -1;
-		    //out.row(LINKS+2).segment(2*DIM, DIM) = (x.segment(2*DIM, DIM) - x.segment(4*DIM, DIM)).normalized();
-		    //out.row(LINKS+2).segment(4*DIM, DIM) = -out.row(LINKS+2).segment(2*DIM, DIM);
-                    if (EXTRAS >= 4) {
-                        out(LINKS+3, 2*DIM + 1) = 1;
-                        out(LINKS+3, 3*DIM + 1) = -1;
-                        if (EXTRAS >= 5) {
-			    out(LINKS+4, 1) = 1;
-			    out(LINKS+4, 4*DIM + 1) = -1;
-			    //out(LINKS+4, 2) = 1;
-			    //out(LINKS+4, 4*DIM + 2) = -1;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /** For the chain example. Joints may not get too close to each other. If \a tough, then the end effector
-    * may not occupy states similar to the sphereValid() obstacles (but rotated and scaled). */
-    bool isValid (double sleep, const ompl::base::State *state, const bool tough)
-    {
-        std::this_thread::sleep_for(ompl::time::seconds(sleep));
-        Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
-        for (unsigned int i = 0; i < LINKS-1; i++)
-        {
-            if (x.segment(DIM*i, DIM).cwiseAbs().maxCoeff() < JOINTWIDTH)
-                return false;
-            for (unsigned int j = i+1; j < LINKS; j++)
-            {
-                if ((x.segment(DIM*i, DIM) - x.segment(DIM*j, DIM)).cwiseAbs().maxCoeff() < JOINTWIDTH)
-                    return false;
-            }
-        }
-
-        if (!tough)
-            return true;
-
-        Eigen::VectorXd end = x.tail(DIM)/ENDEFFECTORRADIUS;
-        const double tmp = end[0];
-        end[0] = end[2];
-        end[2] = tmp;
-        return sphereValid_helper(end);
-    }
-
-};
-
 /** To be called between planner runs to clear all charts out of the atlas.
  * Also makes the atlas behave just like RealVectorStateSpace for two of the planners. */
 void resetStateSpace(const ompl::base::PlannerPtr &planner)
@@ -186,7 +63,7 @@ ompl::geometric::ConstrainedSimpleSetupPtr createChainSetup(std::size_t dimensio
 {
     Eigen::VectorXd x = Eigen::VectorXd::Zero(dimension * links);
     Eigen::VectorXd y = Eigen::VectorXd::Zero(dimension * links);
-    const std::size_t kink = links-3;   // Require kink >= 1 && kink <= links-3
+    const std::size_t kink = links-3;   // Need kink >= 1 && kink <= links-3.
     for (std::size_t i = 0; i < links; i++)
     {
         x[dimension * i] = i+1 - (i >= kink) - (i > kink+1);
@@ -194,9 +71,10 @@ ompl::geometric::ConstrainedSimpleSetupPtr createChainSetup(std::size_t dimensio
         x[dimension * i + 1] = (i >= kink && i <= kink+1);
         y[dimension * i + 2] = (i >= kink && i <= kink+1);
     }
-    ompl::base::AtlasStateSpacePtr atlas(new ChainManifold2(dimension, links, links-2, extras));
+    ompl::base::AtlasStateSpacePtr atlas(new ChainManifold(dimension, links, extras));
     ompl::base::StateValidityCheckerFn isValid =
-        std::bind(&ChainManifold2::isValid, (ChainManifold2 *) atlas.get(), sleep, std::placeholders::_1, false);
+        std::bind(&ChainManifold::isValid, (ChainManifold*) atlas.get(), sleep,
+                  std::placeholders::_1, false);
 
     // All the 'Constrained' classes are loose wrappers for the normal classes. No effect except on
     // the two special planners.
@@ -239,10 +117,10 @@ ompl::geometric::ConstrainedSimpleSetupPtr createChainSetup(std::size_t dimensio
 
 void saveSolutionPath(const ompl::geometric::ConstrainedSimpleSetupPtr &ss, bool cons)
 {
-    const ChainManifold2 *atlas = ss->getStateSpace()->as<ChainManifold2>();
+    const ChainManifold *atlas = ss->getStateSpace()->as<ChainManifold>();
     ompl::geometric::PathGeometric &path = ss->getSolutionPath();
 
-    if (atlas->DIM == 3)
+    if (atlas->workspaceDim == 3)
     {
         std::ofstream pathFile("path.ply");
         atlas->dumpPath(path, pathFile, cons);
@@ -296,7 +174,7 @@ void saveSolutionPath(const ompl::geometric::ConstrainedSimpleSetupPtr &ss, bool
     if (!cons)
         std::cout << "Atlas created " << atlas->getChartCount() << " charts.\n";
 
-    if (atlas->DIM == 3)
+    if (atlas->workspaceDim == 3)
     {
         if (!cons)
         {

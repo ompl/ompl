@@ -183,66 +183,114 @@ bool sphereValid_helper (const Eigen::VectorXd &);
 class ChainManifold : public ompl::base::AtlasStateSpace
 {
 public:
-    
-    const unsigned int DIM;
-    const unsigned int LINKS;
-    const double LINKLENGTH;
-    const double ENDEFFECTORRADIUS;
-    const double JOINTWIDTH;
-    
-    ChainManifold (unsigned int dim, unsigned int links)
-    : ompl::base::AtlasStateSpace(dim*links, (dim-1)*links - 1), DIM(dim), LINKS(links), LINKLENGTH(1), ENDEFFECTORRADIUS(3), JOINTWIDTH(0.2)
+
+    const unsigned int workspaceDim;     // Workspace dimension.
+    const unsigned int nLinks;   // Number of chain links.
+    const double linkLength;    // Length of one link.
+    // Radius of the sphere that the end effector is constrained to.
+    const double sphereRadius;
+    // Joints are cubes, and the collision checker makes sure they don't
+    // intersect. This controls how big they are.
+    const double jointSize;
+    // Number of additional constraints to apply.
+    // 1: end effector sphere
+    // 2: joints 0 and 1 have same z-value
+    // 3: joints 1 and 2 have same x-value
+    // 4: joints 2 and 3 have same y-value
+    // 5: joints 0 and 4 have same y value
+    const unsigned int extraConstraints;
+
+    ChainManifold (unsigned int dim, unsigned int links,
+                   unsigned int extraConstraints = 1)
+        : ompl::base::AtlasStateSpace(dim*links, (dim-1)*links - extraConstraints),
+          workspaceDim(dim), nLinks(links), linkLength(1.0),
+          sphereRadius(3.0), jointSize(0.2),
+          extraConstraints(extraConstraints)
     {
+        std::cout << "Ambient dimension: " << getAmbientDimension() << "\n";
+        std::cout << "Manifold dimension: " << getManifoldDimension() << "\n";
     }
-    
+
     void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
-        // Consecutive joints must be a fixed distance apart
-        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(DIM);
-        for (unsigned int i = 0; i < LINKS; i++)
+        // Consecutive joints must be a fixed distance apart.
+        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(workspaceDim);
+        for (unsigned int i = 0; i < nLinks; i++)
         {
-            const Eigen::VectorXd joint2 = x.segment(DIM*i, DIM);
-            out[i] = (joint1 - joint2).norm() - LINKLENGTH;
+            const Eigen::VectorXd joint2 = x.segment(workspaceDim*i, workspaceDim);
+            out[i] = (joint1 - joint2).norm() - linkLength;
             joint1 = joint2;
         }
-        
-        // End effector must lie on a sphere
-        out[LINKS] = x.tail(DIM).norm() - ENDEFFECTORRADIUS;
+
+        // End effector must lie on a sphere.
+        if (extraConstraints >= 1)
+            out[nLinks] = x.tail(workspaceDim).norm() - sphereRadius;
+        // Joints 0 and 1 must have same z-value.
+        if (extraConstraints >= 2)
+            out[nLinks+1] = x[0*workspaceDim + 2] - x[1*workspaceDim + 2];
+        // Joints 1 and 2 must have same x-value.
+        if (extraConstraints >= 3)
+            out[nLinks+2] = x[1*workspaceDim + 0] - x[2*workspaceDim + 0];
+        // Joints 2 and 3 must have the same y-value.
+        if (extraConstraints >= 4)
+            out[nLinks+3] = x[2*workspaceDim + 1] - x[3*workspaceDim + 1];
+        // Joints 0 and 4 joints have same y-value.
+        if (extraConstraints >= 5)
+            out[nLinks+4] = x[0*workspaceDim + 1] - x[4*workspaceDim + 1];
     }
 
     void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         out.setZero();
-        Eigen::VectorXd plus(DIM*(LINKS+1)); plus.head(DIM*LINKS) = x; plus.tail(DIM) = Eigen::VectorXd::Zero(DIM);
-        Eigen::VectorXd minus(DIM*(LINKS+1)); minus.head(DIM) = Eigen::VectorXd::Zero(DIM); minus.tail(DIM*LINKS) = x;
+        Eigen::VectorXd plus(workspaceDim*(nLinks+1)); plus.head(workspaceDim*nLinks) = x; plus.tail(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim);
+        Eigen::VectorXd minus(workspaceDim*(nLinks+1)); minus.head(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim); minus.tail(workspaceDim*nLinks) = x;
         const Eigen::VectorXd diagonal = plus - minus;
-        for (unsigned int i = 0; i < LINKS; i++)
-            out.row(i).segment(DIM*i, DIM) = diagonal.segment(DIM*i, DIM).normalized();
-        out.block(1, 0, LINKS, DIM*(LINKS-1)) -= out.block(1, DIM, LINKS, DIM*(LINKS-1));
-        out.row(LINKS).tail(DIM) = -diagonal.tail(DIM).normalized().transpose();
+        for (unsigned int i = 0; i < nLinks; i++)
+            out.row(i).segment(workspaceDim*i, workspaceDim) = diagonal.segment(workspaceDim*i, workspaceDim).normalized();
+        out.block(1, 0, nLinks, workspaceDim*(nLinks-1)) -= out.block(1, workspaceDim, nLinks, workspaceDim*(nLinks-1));
+
+        if (extraConstraints >= 1)
+            out.row(nLinks).tail(workspaceDim) = -diagonal.tail(workspaceDim).normalized().transpose();
+        if (extraConstraints >= 2) {
+            out(nLinks+1, 0*workspaceDim + 2) =  1;
+            out(nLinks+1, 1*workspaceDim + 2) = -1;
+        }
+        if (extraConstraints >= 3) {
+		    out(nLinks+2, 1*workspaceDim + 0) =  1;
+		    out(nLinks+2, 2*workspaceDim + 0) = -1;
+        }
+        if (extraConstraints >= 4) {
+            out(nLinks+3, 2*workspaceDim + 1) =  1;
+            out(nLinks+3, 3*workspaceDim + 1) = -1;
+        }
+        if (extraConstraints >= 5) {
+            out(nLinks+4, 0*workspaceDim + 1) =  1;
+            out(nLinks+4, 4*workspaceDim + 1) = -1;
+        }
     }
-    
-    /** For the chain example. Joints may not get too close to each other. If \a tough, then the end effector
-    * may not occupy states similar to the sphereValid() obstacles (but rotated and scaled). */
-    bool isValid (double sleep, const ompl::base::State *state, const bool tough)
+
+    /** Joints may not get touch each other. If \a tough == true, then the end
+    * effector may not occupy states on the sphere similar to the sphereValid()
+    * obstacles. */
+    bool isValid (double sleep, const ompl::base::State *state, const bool tough = false)
     {
         std::this_thread::sleep_for(ompl::time::seconds(sleep));
         Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
-        for (unsigned int i = 0; i < LINKS-1; i++)
+        for (unsigned int i = 0; i < nLinks-1; i++)
         {
-            if (x.segment(DIM*i, DIM).cwiseAbs().maxCoeff() < JOINTWIDTH)
+            if (x.segment(workspaceDim*i, workspaceDim).cwiseAbs().maxCoeff() < jointSize)
                 return false;
-            for (unsigned int j = i+1; j < LINKS; j++)
+            for (unsigned int j = i+1; j < nLinks; j++)
             {
-                if ((x.segment(DIM*i, DIM) - x.segment(DIM*j, DIM)).cwiseAbs().maxCoeff() < JOINTWIDTH)
+                if ((x.segment(workspaceDim*i, workspaceDim) - x.segment(workspaceDim*j, workspaceDim)).cwiseAbs().maxCoeff() < jointSize)
                     return false;
             }
         }
-        
+
         if (!tough)
             return true;
-        
-        Eigen::VectorXd end = x.tail(DIM)/ENDEFFECTORRADIUS;
+
+        Eigen::VectorXd end = x.tail(workspaceDim)/sphereRadius;
         const double tmp = end[0];
         end[0] = end[2];
         end[2] = tmp;
@@ -265,16 +313,16 @@ public:
     
     const double R1;
     const double R2;
-    const unsigned int DIM;
-    const unsigned int LINKS;
-    const std::vector<double> LINKLENGTH;
-    const double JOINTWIDTH;
+    const unsigned int workspaceDim;
+    const unsigned int nLinks;
+    const std::vector<double> linkLength;
+    const double jointSize;
     
     const png::image<png::index_pixel_1> maze;
 
     ChainTorusManifold (unsigned int links, std::vector<double> linklength, double r1, double r2)
-        : ompl::base::AtlasStateSpace(3*links, (3-1)*links - 1), R1(r1), R2(r2), DIM(3),
-          LINKS(links), LINKLENGTH(linklength), JOINTWIDTH(0.2),
+        : ompl::base::AtlasStateSpace(3*links, (3-1)*links - 1), R1(r1), R2(r2), workspaceDim(3),
+          nLinks(links), linkLength(linklength), jointSize(0.2),
           maze("../../demos/atlas/maze-wide.png", png::require_color_space<png::index_pixel_1>())
     {
     }
@@ -282,41 +330,41 @@ public:
     void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         // Consecutive joints must be a fixed distance apart
-        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(DIM);
-        for (unsigned int i = 0; i < LINKS; i++)
+        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(workspaceDim);
+        for (unsigned int i = 0; i < nLinks; i++)
         {
-            const Eigen::VectorXd joint2 = x.segment(DIM*i, DIM);
-            out[i] = (joint1 - joint2).norm() - LINKLENGTH[i];
+            const Eigen::VectorXd joint2 = x.segment(workspaceDim*i, workspaceDim);
+            out[i] = (joint1 - joint2).norm() - linkLength[i];
             joint1 = joint2;
         }
         
         // End effector must lie on the torus
-        Eigen::VectorXd c = x.tail(DIM);
+        Eigen::VectorXd c = x.tail(workspaceDim);
         c[2] = 0;
-        out[LINKS] = (x.tail(DIM) - R1 * c.normalized()).norm() - R2;
+        out[nLinks] = (x.tail(workspaceDim) - R1 * c.normalized()).norm() - R2;
     }
 
     void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         out.setZero();
-        Eigen::VectorXd plus(DIM*(LINKS+1));
-        plus.head(DIM*LINKS) = x; plus.tail(DIM) = Eigen::VectorXd::Zero(DIM);
-        Eigen::VectorXd minus(DIM*(LINKS+1));
-        minus.head(DIM) = Eigen::VectorXd::Zero(DIM); minus.tail(DIM*LINKS) = x;
+        Eigen::VectorXd plus(workspaceDim*(nLinks+1));
+        plus.head(workspaceDim*nLinks) = x; plus.tail(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim);
+        Eigen::VectorXd minus(workspaceDim*(nLinks+1));
+        minus.head(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim); minus.tail(workspaceDim*nLinks) = x;
         const Eigen::VectorXd diagonal = plus - minus;
-        for (unsigned int i = 0; i < LINKS; i++)
-            out.row(i).segment(DIM*i, DIM) = diagonal.segment(DIM*i, DIM).normalized();
-        out.block(1, 0, LINKS, DIM*(LINKS-1)) -= out.block(1, DIM, LINKS, DIM*(LINKS-1));
+        for (unsigned int i = 0; i < nLinks; i++)
+            out.row(i).segment(workspaceDim*i, workspaceDim) = diagonal.segment(workspaceDim*i, workspaceDim).normalized();
+        out.block(1, 0, nLinks, workspaceDim*(nLinks-1)) -= out.block(1, workspaceDim, nLinks, workspaceDim*(nLinks-1));
         
         // Torus part
-        Eigen::VectorXd end = x.tail(DIM);
+        Eigen::VectorXd end = x.tail(workspaceDim);
         const double xySquaredNorm = end[0]*end[0] + end[1]*end[1];
         const double xyNorm = std::sqrt(xySquaredNorm);
         const double denom = std::sqrt(end[2]*end[2] + (xyNorm - R1)*(xyNorm - R1));
         const double c = (xyNorm - R1) * (xyNorm*xySquaredNorm) /
             (xySquaredNorm * xySquaredNorm * denom);
         end[0] *= c; end[1] *= c; end[2] /= denom;
-        out.row(LINKS).tail(DIM) = end;
+        out.row(nLinks).tail(workspaceDim) = end;
     }
     
     /** 
@@ -329,27 +377,27 @@ public:
         Eigen::Ref<const Eigen::VectorXd> x =
           state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
         // Check link lengths.
-        for (unsigned int i = 0; i < LINKS; i++)
+        for (unsigned int i = 0; i < nLinks; i++)
         {
             Eigen::VectorXd joint1;
             if (i == 0)
-                joint1 = Eigen::VectorXd::Zero(DIM);
+                joint1 = Eigen::VectorXd::Zero(workspaceDim);
             else
-                joint1 = x.segment(DIM*(i-1), DIM);
+                joint1 = x.segment(workspaceDim*(i-1), workspaceDim);
 
-            Eigen::VectorXd joint2(x.segment(DIM*i, DIM));
-            if (std::abs((joint1 - joint2).norm() - LINKLENGTH[i]) > 0.1)
+            Eigen::VectorXd joint2(x.segment(workspaceDim*i, workspaceDim));
+            if (std::abs((joint1 - joint2).norm() - linkLength[i]) > 0.1)
                 return false;
         }
         // Check joint proximity.
-        /*for (unsigned int i = 0; i < LINKS-1; i++)
+        /*for (unsigned int i = 0; i < nLinks-1; i++)
         {
-            if (x.segment(DIM*i, DIM).cwiseAbs().maxCoeff() < JOINTWIDTH)
+            if (x.segment(workspaceDim*i, workspaceDim).cwiseAbs().maxCoeff() < jointSize)
                 return false;
-            for (unsigned int j = i+1; j < LINKS; j++)
+            for (unsigned int j = i+1; j < nLinks; j++)
             {
-                if ((x.segment(DIM*i, DIM) - x.segment(DIM*j, DIM)).cwiseAbs().maxCoeff()
-                  < JOINTWIDTH)
+                if ((x.segment(workspaceDim*i, workspaceDim) - x.segment(workspaceDim*j, workspaceDim)).cwiseAbs().maxCoeff()
+                  < jointSize)
                     return false;
             }
         }
@@ -357,14 +405,14 @@ public:
         
 
         // Check links and torus
-        for (unsigned int i = 0; i < LINKS; i++)
+        for (unsigned int i = 0; i < nLinks; i++)
         {
             Eigen::VectorXd P0, P1;
             if (i == 0)
-                P0 = Eigen::VectorXd::Zero(DIM);
+                P0 = Eigen::VectorXd::Zero(workspaceDim);
             else
-                P0 = x.segment(DIM*(i-1), DIM);
-            P1 = x.segment(DIM*i, DIM) - P0;
+                P0 = x.segment(workspaceDim*(i-1), workspaceDim);
+            P1 = x.segment(workspaceDim*i, workspaceDim) - P0;
 
             // Does the line segment P0 + tP1 intersect the torus with 0 <= t <= 1?
             
@@ -429,7 +477,7 @@ public:
                     std::swap(crit[1], crit[2]);
             }
             // Cut off all values at [0+e,1-e].
-            const double wiggleroom = JOINTWIDTH/2;
+            const double wiggleroom = jointSize/2;
             crit = crit.cwiseMax(wiggleroom).cwiseMin(1-wiggleroom);
 
             // Intersection occurs if the polynomial changes sign between any pair of crits.
@@ -444,7 +492,7 @@ public:
             
 
         // Check maze
-        Eigen::Ref<const Eigen::VectorXd> p = x.tail(DIM);
+        Eigen::Ref<const Eigen::VectorXd> p = x.tail(workspaceDim);
         Eigen::VectorXd vec(2);
         Eigen::VectorXd c(3); c << p[0], p[1], 0;
         vec[0] = std::atan2(p[2], c.norm()-R1)/(2*M_PI);
