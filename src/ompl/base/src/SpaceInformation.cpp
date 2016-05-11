@@ -466,7 +466,9 @@ void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
         bool result = true;
         try
         {
-            stateSpace_->sanityChecks();
+            // TODO (cav2):
+            if (!stateSpace_->as<AtlasStateSpace>())
+                stateSpace_->sanityChecks();
         }
         catch(Exception &e)
         {
