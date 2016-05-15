@@ -4,7 +4,7 @@
 # OMPL_FOUND - OMPL was found
 # OMPL_INCLUDE_DIRS - The OMPL include directory
 # OMPL_LIBRARIES - The OMPL library
-# OMPLAPP_LIBRARIES - The OMPL.app library
+# OMPLAPP_LIBRARIES - The OMPL.app libraries
 # OMPL_VERSION - The OMPL version in the form <major>.<minor>.<patchlevel>
 # OMPL_MAJOR_VERSION - Major version
 # OMPL_MINOR_VERSION - Minor version
@@ -55,17 +55,23 @@ if (OMPL_LIBRARY)
     endif()
     set(OMPL_LIBRARIES "${OMPL_LIBRARY}" CACHE FILEPATH "Path to OMPL library")
 endif()
-# find the OMPL.app library
+# find the OMPL.app libraries
+find_library(OMPLAPPBASE_LIBRARY ompl_app_base
+    PATHS ${OMPL_LIB_PATH}
+    PATH_SUFFIXES lib build/lib)
 find_library(OMPLAPP_LIBRARY ompl_app
     PATHS ${OMPL_LIB_PATH}
     PATH_SUFFIXES lib build/lib)
-if (OMPLAPP_LIBRARY)
+if (OMPLAPPBASE_LIBRARY AND OMPLAPP_LIBRARY)
     if (OMPL_FIND_VERSION)
+        get_filename_component(libpath ${OMPLAPPBASE_LIBRARY} PATH)
+        file(GLOB OMPLAPPBASE_LIBS "${libpath}/libompl_app_base.${OMPL_FIND_VERSION}.*")
+        list(GET OMPLAPPBASE_LIBS -1 OMPLAPPBASE_LIBRARY)
         get_filename_component(libpath ${OMPLAPP_LIBRARY} PATH)
         file(GLOB OMPLAPP_LIBS "${libpath}/libompl_app.${OMPL_FIND_VERSION}.*")
         list(GET OMPLAPP_LIBS -1 OMPLAPP_LIBRARY)
     endif()
-    set(OMPLAPP_LIBRARIES "${OMPLAPP_LIBRARY}" CACHE FILEPATH "Path to OMPL.app library")
+    set(OMPLAPP_LIBRARIES "${OMPLAPPBASE_LIBRARY};${OMPLAPP_LIBRARY}" CACHE STRING "Paths to OMPL.app libraries")
 endif()
 
 # find include path
