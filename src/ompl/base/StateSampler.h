@@ -81,10 +81,24 @@ namespace ompl
             /** \brief Sample a state */
             virtual void sampleUniform(State *state) = 0;
 
-            /** \brief Sample a state near another, within specified distance */
+            /** \brief Sample a state near another, within a neighborhood controlled by a distance parameter.
+
+            Typically, StateSampler-derived classes will return in `state` a
+            state that is uniformly distributed within a ball with radius
+            `distance` defined by the distance function from the corresponding
+            state space. However, this is not guaranteed. For example, the
+            default state sampler for the RealVectorStateSpace returns samples
+            uniformly distributed using L_inf distance, while the default
+            distance function is L_2 distance.
+            */
             virtual void sampleUniformNear(State *state, const State *near, const double distance) = 0;
 
-            /** \brief Sample a state using a Gaussian distribution with given \e mean and standard deviation (\e stdDev) */
+            /** \brief Sample a state using a Gaussian distribution with given \e mean and standard deviation (\e stdDev).
+
+            As with sampleUniform, the implementation of sampleGaussian is
+            specific to the derived class and few assumptions can be made
+            about the distance between `state` and `mean`.
+            */
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev) = 0;
 
         protected:
