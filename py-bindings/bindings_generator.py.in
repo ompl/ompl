@@ -189,7 +189,7 @@ class code_generator_t(object):
         cls.add_registration_code(reg)
         cls.add_declaration_code(wrapper % (cls.decl_string, rettype))
 
-    def add_boost_function(self, FT, func_name, func_doc):
+    def add_function_wrapper(self, FT, func_name, func_doc):
         self.mb.add_declaration_code('PYDECLARE_FUNCTION(%s,%s)' % (FT, func_name))
         self.mb.add_registration_code('PYREGISTER_FUNCTION(%s,%s,"%s")' % (FT, func_name, func_doc))
 
