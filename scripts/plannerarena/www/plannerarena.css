@@ -33,7 +33,7 @@ div.checkbox {
 }
 .table-bordered { border: none; }
 .table-bordered th, .table-bordered td { border-left: none; }
-.table tr:first-child > td, .table tr:first-child > th {
+.table tr:first-child > th {
     background-color: #666;
     color: #fff;
 }
