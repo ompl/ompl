@@ -1,11 +1,3 @@
-library(shiny)
-library(shinyjs, warn.conflicts=FALSE)
-library(dplyr, warn.conflicts=FALSE)
-library(tidyr)
-library(ggplot2)
-
-# set default max upload size to 50MB
-options(shiny.maxRequestSize = getOption("shiny.maxRequestSize", 50000000))
 
 defaultDatabase <- "www/benchmark.db"
 noDatabaseText <- "No database loaded yet. Upload one by clicking on “Change database”."
@@ -13,33 +5,6 @@ notReadyText <- "The benchmarking results are not available yet, check back late
 sessionsFolder <- "/tmp/omplweb_sessions"
 problemParamsAggregateText <- "all (aggregate)"
 problemParamsSeparateText <- "all (separate)"
-
-disable <- function(x) {
-  if (inherits(x, 'shiny.tag')) {
-    if (x$name %in% c('input', 'select', 'label'))
-      x$attribs$disabled <- 'disabled'
-    x$children <- disable(x$children)
-  }
-  else if (is.list(x) && length(x) > 0) {
-    for (i in 1:length(x))
-      x[[i]] <- disable(x[[i]])
-  }
-  x
-}
-conditionalDisable <- function(widget, condition) {
-    if (condition)
-        disable(widget)
-    else
-        widget
-}
-
-# see http://stackoverflow.com/questions/29948876/adding-prefix-or-suffix-to-most-data-frame-variable-names-in-piped-r-workflow
-tbl.renamer <- function(tbl, prefix="x", suffix=NULL, index=seq_along(tbl_vars(tbl))) {
-  newnames <- tbl_vars(tbl) # Get old variable names
-  names(newnames) <- newnames
-  names(newnames)[index] <- paste0(prefix,".",newnames,suffix)[index] # create a named vector for .dots
-  rename_(tbl,.dots=newnames) # rename the variables
-}
 
 problemSelectWidget <- function(problems, name) {
     widget <- selectInput(name,
@@ -58,9 +23,9 @@ problemParamSelect <- function(param, val) {
         # when real-valued parameter values are converted to strings for
         # parameter selection widget.
         if (regexpr('[-+]?\\d*\\.\\d+|\\d+', val)[1] == -1)
-            sprintf('%s == %s', param, val)
+            sprintf('experiment.%s == %s', param, val)
         else
-            sprintf('abs(%s - %s) < 0.0000001', param, val)
+            sprintf('abs(experiment.%s - %s) < 0.0000001', param, val)
 }
 
 # return parameters of parametrized benchmarks if they exist, NULL otherwise
@@ -86,7 +51,7 @@ problemParamGroupBy <- function(values) {
     if (is.na(grouping))
         NULL
     else
-        names(values)[grouping]
+        sprintf("experiment.%s", names(values)[grouping])
 }
 # create a widget for a given benchmark parameter
 problemParamSelectWidget <- function(name, experiments, prefix, problem, version) {
@@ -146,8 +111,9 @@ plannerSelectWidget <- function(performance, name) {
         selection <- planners
     else
         selection <- planners[1:4]
-    conditionalDisable(checkboxGroupInput(name, label = h4("Selected planners"),
-        choices = planners, selected = selection), length(planners) < 2)
+    #conditionalDisable(
+        checkboxGroupInput(name, label = h4("Selected planners"),
+        choices = planners, selected = selection)#, length(planners) < 2)
 }
 
 perfAttrSelectWidget <- function(runs, name) {
@@ -162,7 +128,7 @@ perfAttrSelectWidget <- function(runs, name) {
         choices = attrs[4:length(attrs)], selected = selection)
 }
 
-server <- function(input, output, session) {
+shinyServer(function(input, output, session) {
     db <- reactive({
         query <- parseQueryString(session$clientData$url_search)
 
@@ -196,7 +162,12 @@ server <- function(input, output, session) {
         names(rnames) <- gsub("_", " ", gsub("^run\\.", "", rnames))
         rnames
     })
-    progress <- reactive({tbl(db(), "progress")})
+    progress <- reactive({tbl(db(), "progress") %>% tbl.renamer("progress")})
+    progAttrs.names <- reactive({
+        rnames <- tbl_vars(progress())
+        names(rnames) <- gsub("_", " ", gsub("^progress\\.", "", rnames))
+        rnames
+    })
     enums <- reactive({tbl(db(), "enums")})
     runs_ext <- reactive({plannerConfigs() %>% tbl.renamer("planner") %>%
         inner_join(runs(), c("planner.id" = "run.plannerid")) %>%
@@ -206,8 +177,8 @@ server <- function(input, output, session) {
         filter(experiment.name == input$perfProblem & experiment.version == input$perfVersion)
     })
     progPerf <- reactive({runs_ext() %>%
-        inner_join(progress() %>% tbl.renamer("progress"), c("runs.id" = "progress.runid")) %>%
-        filter(experiment.name == input$progProblem & version == input$progVersion)
+        inner_join(progress(), c("run.id" = "progress.runid")) %>%
+        filter(experiment.name == input$progProblem & experiment.version == input$progVersion)
     })
     regrPerf <- reactive({runs_ext() %>%
         filter(experiment.name == input$regrProblem & experiment.version %in% input$regrVersions)
@@ -247,7 +218,7 @@ server <- function(input, output, session) {
     })
 
     output$perfAttrSelect <- renderUI({
-        list(
+        tagList(
             perfAttrSelectWidget(runs(), "perfAttr"),
             checkboxInput('perfShowAdvOptions', 'Show advanced options', FALSE),
             conditionalPanel(condition = 'input.perfShowAdvOptions',
@@ -264,9 +235,10 @@ server <- function(input, output, session) {
     })
     output$progAttrSelect <- renderUI({
         progressAttrs <- tbl_vars(progress())
+        names(progressAttrs) <- gsub("_", " ", gsub("^progress\\.", "", progressAttrs))
         # strip off first 2 names, which correspond to an internal id and time
-        attrs <- gsub("_", " ", progressAttrs[3:length(progressAttrs)])
-        list(
+        attrs <- progressAttrs[3:length(progressAttrs)]
+        tagList(
             conditionalDisable(selectInput("progress", label = h4("Progress attribute"),
                 choices = attrs
             ), length(attrs) < 2),
@@ -507,12 +479,10 @@ server <- function(input, output, session) {
         if (!is.null(grouping))
             selection <- c(selection, "grouping" = grouping)
         # compute selection of rows (add empty string to work around bug if there is only one planner selected)
-        filter_expr <- c(~ name.x %in% c(input$perfPlanners,''), ~ !is.na(attr))
+        filter_expr <- c(~ planner.name %in% c(input$progPlanners,''), ~ !is.na(attr))
         if (length(paramValues) > 0)
             filter_expr <- c(filter_expr, paste(mapply(
                 problemParamSelect, names(paramValues), paramValues), collapse= " & "))
-        #cat(paste(filter_expr))
-        #cat(paste(selection))
         # extract the data to be plotted
         data <- progPerf() %>%
             filter_(.dots = filter_expr) %>%
@@ -528,6 +498,7 @@ server <- function(input, output, session) {
     })
     progPlot <- reactive({
         attr <- gsub(" ", "_", input$progress)
+        dispAttr <- names(progAttrs.names()[progAttrs.names() == attr])
         progdata <- progPlotData()
         data <- progdata$data
         grouping <- progdata$grouping
@@ -535,7 +506,7 @@ server <- function(input, output, session) {
         p <- ggplot(data, aes(x = time, y = attr, group = planner, color = planner, fill = planner)) +
             # labels
             xlab('time (s)') +
-            ylab(input$progress) +
+            ylab(dispAttr) +
             theme(text = fontSelection()) +
             # smooth interpolating curve
             geom_smooth(method = "gam") +
@@ -549,6 +520,8 @@ server <- function(input, output, session) {
     })
     output$progPlot <- renderPlot({ progPlot() })
     progNumMeasurementsPlot <- reactive({
+        attr <- gsub(" ", "_", input$progress)
+        dispAttr <- names(progAttrs.names()[progAttrs.names() == attr])
         progdata <- progPlotData()
         data <- progdata$data
         grouping <- progdata$grouping
@@ -557,7 +530,7 @@ server <- function(input, output, session) {
             p <- ggplot(data, aes(x = time, group = planner, color = planner)) +
                 # labels
                 xlab('time (s)') +
-                ylab(sprintf("# measurements for %s", input$progress)) +
+                ylab(sprintf("# measurements for %s", dispAttr)) +
                 theme(text = fontSelection()) +
                 geom_freqpoly(binwidth=1) +
                 coord_cartesian(xlim = c(0, trunc(max(data$time))))
@@ -720,83 +693,6 @@ server <- function(input, output, session) {
             tabPanel("Planner Configurations", tableOutput("plannerConfigs"))
         )
     })
-}
+})
 
-ui <- navbarPage("Planner Arena",
-        useShinyjs(),
-        extendShinyjs(script = "www/plannerarena.js"),
-        tabPanel("Overall performance",
-            uiOutput("performancePage"),
-            value="performance",
-            icon=icon("bar-chart")),
-        tabPanel("Progress",
-            uiOutput("progressPage"),
-            value="progress",
-            icon=icon("area-chart")),
-        tabPanel("Regression",
-            uiOutput("regressionPage"),
-            value="regression",
-            icon=icon("bar-chart")),
-        tabPanel("Database info",
-            uiOutput('dbinfoPage'),
-            value="dbinfo",
-            icon=icon("info-circle")),
-        tabPanel("Change database",
-            div(class="row",
-                div(class="col-sm-10 col-sm-offset-1",
-                    fileInput("database",
-                        label = h2("Upload benchmark database"),
-                        accept = c("application/x-sqlite3", ".db")
-                    ),
-                    h2("Default benchmark database"),
-                    tags$ul(
-                        tags$li(a(href="javascript:history.go(0)", "Reset to default database")),
-                        tags$li(a(href="benchmark.db", "Download default database"))
-                    )
-                )
-            ),
-            value="database",
-            icon=icon("database")),
-        tabPanel("Help",
-            div(class="row",
-                div(class="col-sm-10 col-sm-offset-1",
-                    includeMarkdown("www/help.md")
-                )
-            ),
-            value="help",
-            icon=icon("question-circle")),
-        tabPanel("Settings",
-            div(class="row",
-                div(class="col-sm-10 col-sm-offset-1",
-                    h2("Plot settings"),
-                    h3("Font settings"),
-                    selectInput("fontFamily",
-                            label = "Font family",
-                            choices = c("Courier", "Helvetica", "Palatino", "Times"),
-                            selected ="Helvetica"),
-                    numericInput("fontSize", "Font size", 20, min=1, max=100),
-                    h3("PDF export paper size (in inches)"),
-                    numericInput("paperWidth", "Width", 12, min=1, max=50),
-                    numericInput("paperHeight", "Height", 8, min=1, max=50)
-                )
-            ),
-            value="settings",
-            icon=icon("gear")),
-        id = "navbar",
-        header = tags$link(rel="stylesheet", type="text/css", href="plannerarena.css"),
-        footer = div(class="footer",
-            div(class="container",
-                p(
-                    a(href="http://www.kavrakilab.org", "Physical and Biological Computing Group"),
-                    "•",
-                    a(href="http://www.cs.rice.edu", "Department of Computer Science"),
-                    "•",
-                    a(href="http://www.rice.edu", "Rice University")
-                )
-            ),
-            includeScript('www/ga.js')
-        ),
-        inverse = TRUE
-        )
 
-shinyApp(ui = ui, server = server)
