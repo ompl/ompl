@@ -808,7 +808,7 @@ bool ompl::geometric::SPARSdb::addPathToRoadmap(const base::PlannerTerminationCo
     for (std::size_t i = 1; i < solutionPath.getStateCount(); ++i)  // skip 0 because start already added
     {
         // Check if we've already used this id
-        if (i == addedStateIDs[usedIDTracker])
+        if (usedIDTracker < addedStateIDs.size() && i == addedStateIDs[usedIDTracker])
         {
             // skip this id
             usedIDTracker ++;
