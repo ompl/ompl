@@ -298,6 +298,9 @@ namespace ompl
             /** \brief Copy a state to another. The memory of source and destination should NOT overlap.
                 \note For more advanced state copying methods (partial copy, for example), see \ref advancedStateCopy. */
             virtual void copyState(State *destination, const State *source) const = 0;
+            
+            /** \brief Clone a state*/
+            State* cloneState(const State* source) const;
 
             /** \brief Computes distance between two states. This function satisfies the properties of a
                 metric if isMetricSpace() is true, and its return value will always be between 0 and getMaximumExtent() */
