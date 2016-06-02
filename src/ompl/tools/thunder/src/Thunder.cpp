@@ -209,7 +209,7 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
     time::point start = time::now();
 
     // Warn if there are queued paths that have not been added to the experience database
-    if (!QueuedSolutionPaths_.empty())
+    if (!queuedSolutionPaths_.empty())
     {
         OMPL_WARN("Previous solved paths are currently uninserted into the experience database and are in the post-proccessing queue");
     }
@@ -331,7 +331,7 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
                 stats_.numSolutionsFromRecallSaved_++;
 
                 // Queue the solution path for future insertion into experience database (post-processing)
-                QueuedSolutionPaths_.push_back(solutionPath);
+                queuedSolutionPaths_.push_back(solutionPath);
 
                 // Logging
                 log.insertion_failed = 0; // TODO this is wrong logging data
@@ -376,7 +376,7 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
                 log.is_saved = "saving";
 
                 // Queue the solution path for future insertion into experience database (post-processing)
-                QueuedSolutionPaths_.push_back(solutionPath);
+                queuedSolutionPaths_.push_back(solutionPath);
 
                 log.insertion_failed = 0; // TODO fix this wrong logging info
             }
@@ -525,18 +525,18 @@ bool ompl::tools::Thunder::doPostProcessing()
 {
     OMPL_INFORM("Performing post-processing");
 
-    for (std::size_t i = 0; i < QueuedSolutionPaths_.size(); ++i)
+    for (std::size_t i = 0; i < queuedSolutionPaths_.size(); ++i)
     {
         // Time to add a path to experience database
         double insertionTime;
 
-        experienceDB_->addPath(QueuedSolutionPaths_[i], insertionTime);
+        experienceDB_->addPath(queuedSolutionPaths_[i], insertionTime);
         OMPL_INFORM("Finished inserting experience path in %f seconds", insertionTime);
         stats_.totalInsertionTime_ += insertionTime; // used for averaging
     }
 
     // Remove all inserted paths from the queue
-    QueuedSolutionPaths_.clear();
+    queuedSolutionPaths_.clear();
 
     return true;
 }
