@@ -114,12 +114,25 @@ namespace ompl
                 BOOST_OMPL_EXPECT_NEAR(s2.distance(s3), 0.0, eps_);
             }
         }
+        
+        /** \brief Test that states are correctly cloned*/
+        void testCloneState(void)
+        {
+            base::ScopedState<> source(space_);
+            source.random();
+            const base::State* clonedState = space_->cloneState(source.get());
+            //Make sure the cloned state is actually a new state in memory.
+            BOOST_CHECK(clonedState != source.get());
+            //Make sure the states are the same.
+            BOOST_CHECK(space_->equalStates(clonedState, source.get()));
+        }
 
         /** \brief Call all tests for the state space */
         void test(void)
         {
             testDistance();
             testInterpolation();
+            testCloneState();
         }
 
     private:

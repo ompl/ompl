@@ -222,6 +222,13 @@ void ompl::base::StateSpace::computeSignature(std::vector<int> &signature) const
     signature.insert(signature.begin(), signature.size());
 }
 
+ompl::base::State* ompl::base::StateSpace::cloneState(const State* source) const
+{
+    State* copy = allocState();
+    copyState(copy, source);
+    return copy;
+}
+
 void ompl::base::StateSpace::registerProjections()
 {
 }

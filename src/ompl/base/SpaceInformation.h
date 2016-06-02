@@ -255,9 +255,7 @@ namespace ompl
             /** \brief Clone a state */
             State* cloneState(const State *source) const
             {
-                State *copy = stateSpace_->allocState();
-                stateSpace_->copyState(copy, source);
-                return copy;
+                return stateSpace_->cloneState(source);
             }
 
             /**  @} */
