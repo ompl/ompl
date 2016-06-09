@@ -77,9 +77,6 @@ public:
        ob::SE2StateSpace::StateType* ws = s->as<ob::SE2StateSpace::StateType>();
        ws->setXY(coord[0], coord[1]);
     }
-
-private:
-    ompl::RNG rng_;
 };
 
 void addObstaclesAndPropositions(oc::PropositionalTriangularDecomposition* decomp)
@@ -195,8 +192,7 @@ void plan(void)
 
     oc::SpaceInformationPtr si(new oc::SpaceInformation(space, cspace));
     si->setStateValidityChecker(std::bind(&isStateValid, si.get(), ptd, std::placeholders::_1));
-    si->setStatePropagator(std::bind(&propagate, std::placeholders::_1,
-        std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    si->setStatePropagator(propagate);
     si->setPropagationStepSize(0.025);
 
     //LTL co-safety sequencing formula: visit p2,p0 in that order
