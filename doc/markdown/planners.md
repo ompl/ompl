@@ -36,14 +36,18 @@ Planners in this category only accounts for the geometric and kinematic constrai
       An asymptotically optimal version of RRT: the algorithm converges on the optimal path as a function of time. This was the first provably asymptotically planner (together with PRM). Since its publication, several other algorithms have appeared that improve on RRT*'s convergence rate.
     - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT) \[__experimental__\]<br>
       LBTRRT is a asymptotically near-optimal version of RRT: it is guaranteed to converge to a solution that is within a constant factor of the optimal solution.
+    - [Sparse Stable RRT](\ref gSST)<br>
+      SST is an asymptotically near-optimal incremental version of RRT.
     - [Transition-based RRT (T-RRT)](\ref gTRRT)<br>
       T-RRT does not give any hard optimality guarantees, but tries to find short, low-cost paths.
+    - [Vector Field RRT](\gVFRRT)<br>
+      VF-RRT is a tree-based motion planner that tries to minimize the so-called upstream cost of a path. The upstream cost is defined by an integral over a user-defined vector field.
     - [Parallel RRT (pRRT)](\ref gpRRT) \[__experimental__\]<br>
       Many different parallelization schemes have been proposed for sampling-based planners, including RRT. In this implementation, several threads simultaneously add states to the same tree. Once a solution is found, all threads terminate.
     - [Lazy RRT (LazyRRT)](\ref gLazyRRT)<br>
       This planner performs lazy state validity checking (similar to LazyPRM). It is not experimental, but in our experience it does not seem to outperform other planners by a significant margin on any class of problems.
   - [Expansive Space Trees (EST)](\ref gEST)<br>
-    This planner was published around the same time as RRT. In our experience it is not as sensitive to having a good distance measure, which can be difficult to define for complex high-dimensional state spaces. On the other hand, in our implementation EST requires a low-dimensional projection to keep track of how the state space has been explored. Most of the time OMPL can automatically determine a reasonable projection. We have implemented a few planners that not necessarily simple variants of EST, but do share the same expansion strategy:
+    This planner was published around the same time as RRT. In our experience it is not as sensitive to having a good distance measure, which can be difficult to define for complex high-dimensional state spaces. There are actually three versions of EST: the [original version](\ref gEST) that is close to the first publication, [a bidirectional version](\ref gBiEST), and a [projection-based version](\ref gProjEST). The low-dimensional projection is used to keep track of how the state space has been explored. Most of the time OMPL can automatically determine a reasonable projection. We have implemented a few planners that not necessarily simple variants of EST, but do share the same expansion strategy:
     - [Single-query Bi-directional Lazy collision checking planner (SBL)](\ref gSBL)<br>
       This planner is essentially a bidirectional version of EST with lazy state validity checking.
     - [Parallel Single-query Bi-directional Lazy collision checking planner (pSBL)](\ref gpSBL) \[__experimental__\]<br>
@@ -71,6 +75,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
   - [Informed RRT*](\ref gInformedRRTstar)<br> A variant of RRT* that uses heuristics to bound the search for optimal solutions. _It uses the general cost framework._
   - [Batch Informed Trees (BIT*)](\ref gBITstar)<br> An anytime asymptotically optimal algorithm that uses heuristics to order and bound the search for optimal solutions. _It uses the general cost framework._
   - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT) \[__experimental__\]<br> An asymptotically near-optimal version of RRT.
+  - [Sparse Stable RRT](\ref gSST)<br> SST is an asymptotically near-optimal incremental version of RRT.
   - [Transition-based RRT (T-RRT)](\ref gTRRT)<br> T-RRT does not give any hard optimality guarantees, but tries to find short, low-cost paths. _It uses the general cost framework._
   - [SPARS](\ref gSPARS)<br> An asymptotically near-optimal roadmap-based planner.
   - [SPARS2](\ref gSPARStwo)<br> An asymptotically near-optimal roadmap-based planner.
@@ -95,6 +100,7 @@ If you use the ompl::geometric::SimpleSetup class (highly recommended) to define
 <div class="plannerlist">
 If the system under consideration is subject to differential constraints, then a control-based planner is used. These planners rely on [state propagation](\ref ompl::control::StatePropagator) rather than simple interpolation to generate motions. These planners do not require [a steering function](\ref ompl::control::StatePropagator::steer), but all of them (except KPIECE) will use it if the user implements it. The first two planners below are kinodynamic adaptations of the corresponding geometric planners above.
 - [Rapidly-exploring Random Trees (RRT)](\ref cRRT)
+- [Sparse Stable RRT](\ref cSST)<br> SST is an asymptotically near-optimal incremental version of RRT.
 - [Expansive Space Trees (EST)](\ref cEST)
 - [Kinodynamic Planning by Interior-Exterior Cell Exploration (KPIECE)](\ref cKPIECE1)<br>
   As the name suggest, the control-based version of KPIECE came first, and the geometric versions were derived from it.

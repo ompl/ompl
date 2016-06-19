@@ -3,7 +3,13 @@
 
 # OMPL 1.2.0 (???)
 
-- Minimum Boost version is now 1.54
+- C++11 is now **required**. A lot of Boost usage in older versions of OMPL has been replaced with C++11 STL equivalents.
+- Added several new planners and improved existing planners:
+  - Stable Sparse RRT, both a [geometric](\ref gSST) and a [control-based](\ref cSST) version. SST is an asymptotically near-optimal incremental version of RRT.
+  - [Vector Field RRT](\ref gVFRRT), a tree-based motion planner that tries to minimize the so-called upstream cost of a path. The upstream cost is defined by an integral over a user-defined vector field.
+  - [A bidirectional version of FMT](\ref gBFMT), small fixes in FMT.
+  - A new version of [Expansive Space Trees](\ref gEST) that does not rely on projections to estimate sampling density. Instead, it estimates density directly in the configuration space. This is closer to the original paper and actually works really well! There is now also a [bidirectional version of EST](\ref gBiEST). The previous implementation of EST has been renamed to [ProjEST](\ref gProjEST).
+- Minimum Boost version is now 1.54.
 
 
 # OMPL 1.1.0 (October 28, 2015)
