@@ -58,7 +58,6 @@
 #include "ompl/geometric/planners/rrt/RRTConnect.h"
 #include "ompl/geometric/planners/rrt/pRRT.h"
 #include "ompl/geometric/planners/rrt/LazyRRT.h"
-#include "ompl/geometric/planners/est/EST.h"
 #include "ompl/geometric/planners/prm/PRM.h"
 
 #if OMPL_VERSION_VALUE >= 12000
@@ -74,6 +73,12 @@
 
 #if OMPL_VERSION_VALUE >= 14000
 #include "ompl/geometric/planners/stride/STRIDE.h"
+#endif
+
+#if OMPL_VERSION_VALUE >= 1002000
+#include "ompl/geometric/planners/est/EST.h"
+#include "ompl/geometric/planners/est/BiEST.h"
+#include "ompl/geometric/planners/est/ProjEST.h"
 #endif
 
 using namespace ompl;

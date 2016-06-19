@@ -55,6 +55,8 @@
 #include "ompl/geometric/planners/rrt/LazyRRT.h"
 #include "ompl/geometric/planners/pdst/PDST.h"
 #include "ompl/geometric/planners/est/EST.h"
+#include "ompl/geometric/planners/est/BiEST.h"
+#include "ompl/geometric/planners/est/ProjEST.h"
 #include "ompl/geometric/planners/stride/STRIDE.h"
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
@@ -432,6 +434,32 @@ protected:
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
         geometric::EST *est = new geometric::EST(si);
+        est->setRange(10.0);
+        return base::PlannerPtr(est);
+    }
+
+};
+
+class BiESTTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::BiEST *est = new geometric::BiEST(si);
+        est->setRange(10.0);
+        return base::PlannerPtr(est);
+    }
+
+};
+
+class ProjESTTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    {
+        geometric::ProjEST *est = new geometric::ProjEST(si);
         est->setRange(10.0);
 
         std::vector<double> cdim;

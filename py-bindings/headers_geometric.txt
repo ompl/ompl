@@ -9,6 +9,8 @@ src/ompl/geometric/planners/prm/LazyPRMstar.h
 src/ompl/geometric/planners/prm/SPARS.h
 src/ompl/geometric/planners/prm/SPARStwo.h
 src/ompl/geometric/planners/est/EST.h
+src/ompl/geometric/planners/est/BiEST.h
+src/ompl/geometric/planners/est/ProjEST.h
 src/ompl/geometric/planners/kpiece/KPIECE1.h
 src/ompl/geometric/planners/kpiece/BKPIECE1.h
 src/ompl/geometric/planners/kpiece/LBKPIECE1.h

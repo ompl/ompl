@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2015, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,14 +32,13 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ryan Luna */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_EST_EST_
 #define OMPL_GEOMETRIC_PLANNERS_EST_EST_
 
-#include "ompl/datastructures/Grid.h"
 #include "ompl/geometric/planners/PlannerIncludes.h"
-#include "ompl/base/ProjectionEvaluator.h"
+#include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/datastructures/PDF.h"
 #include <vector>
 
@@ -53,15 +52,9 @@ namespace ompl
            @anchor gEST
            @par Short description
            EST is a tree-based motion planner that attempts to detect
-           the less explored area of the space through the use of a
-           grid imposed on a projection of the state space. Using this
-           information, EST continues tree expansion primarily from
-           less explored areas.  It is important to set the projection
-           the algorithm uses (setProjectionEvaluator() function). If
-           no projection is set, the planner will attempt to use the
-           default projection associated to the state space. An
-           exception is thrown if no default projection is available
-           either.
+           the less explored area of the space by measuring the density
+           of the explored space, biasing exploration toward parts of
+           the space with lowest density.
            @par External documentation
            D. Hsu, J.-C. Latombe, and R. Motwani, Path planning in expansive configuration spaces,
            <em>Intl. J. Computational Geometry and Applications</em>,
@@ -117,43 +110,23 @@ namespace ompl
                 return maxDistance_;
             }
 
-            /** \brief Set the projection evaluator. This class is
-                able to compute the projection of a given state.  */
-            void setProjectionEvaluator(const base::ProjectionEvaluatorPtr &projectionEvaluator)
-            {
-                projectionEvaluator_ = projectionEvaluator;
-            }
-
-            /** \brief Set the projection evaluator (select one from
-                the ones registered with the state space). */
-            void setProjectionEvaluator(const std::string &name)
-            {
-                projectionEvaluator_ = si_->getStateSpace()->getProjection(name);
-            }
-
-            /** \brief Get the projection evaluator */
-            const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
-            {
-                return projectionEvaluator_;
-            }
-
             virtual void setup();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
         protected:
 
-            /** \brief The definition of a motion */
+            /// \brief The definition of a motion
             class Motion
             {
             public:
 
-                Motion() : state(nullptr), parent(nullptr)
+                Motion() : state(NULL), parent(NULL), element(NULL)
                 {
                 }
 
-                /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr)
+                /// \brief Constructor that allocates memory for the state
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), element(NULL)
                 {
                 }
 
@@ -161,94 +134,53 @@ namespace ompl
                 {
                 }
 
-                /** \brief The state contained by the motion */
-                base::State       *state;
+                /// \brief The state contained by the motion
+                base::State           *state;
 
-                /** \brief The parent motion in the exploration tree */
-                Motion            *parent;
+                /// \brief The parent motion in the exploration tree
+                Motion                *parent;
+
+                /// \brief A pointer to the corresponding element in the probability distribution function
+                PDF<Motion*>::Element *element;
             };
 
-            struct MotionInfo;
-
-            /** \brief A grid cell */
-            typedef Grid<MotionInfo>::Cell GridCell;
-
-            /** \brief A PDF of grid cells */
-            typedef PDF<GridCell*>        CellPDF;
-
-            /** \brief A struct containing an array of motions and a corresponding PDF element */
-            struct MotionInfo
+            /// \brief Compute distance between motions (actually distance between contained states)
+            double distanceFunction(const Motion *a, const Motion *b) const
             {
-                Motion* operator[](unsigned int i)
-                {
-                    return motions_[i];
-                }
-                const Motion* operator[](unsigned int i) const
-                {
-                    return motions_[i];
-                }
-                void push_back(Motion *m)
-                {
-                    motions_.push_back(m);
-                }
-                unsigned int size() const
-                {
-                    return motions_.size();
-                }
-                bool empty() const
-                {
-                    return motions_.empty();
-                }
-                std::vector<Motion*> motions_;
-                CellPDF::Element    *elem_;
-            };
+                return si_->distance(a->state, b->state);
+            }
 
+            /// \brief A nearest-neighbors datastructure containing the tree of motions
+            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
 
-            /** \brief The data contained by a tree of exploration */
-            struct TreeData
-            {
-                TreeData() : grid(0), size(0)
-                {
-                }
+            /// \brief The set of all states in the tree
+            std::vector<Motion*> motions_;
 
-                /** \brief A grid where each cell contains an array of motions */
-                Grid<MotionInfo> grid;
+            /// \brief The probability distribution function over states in the tree
+            PDF<Motion*> pdf_;
 
-                /** \brief The total number of motions in the grid */
-                unsigned int    size;
-            };
-
-            /** \brief Free the memory allocated by this planner */
+            ///\brief Free the memory allocated by this planner
             void freeMemory();
 
-            /** \brief Add a motion to the exploration tree */
-            void addMotion(Motion *motion);
+            /// \brief Add a motion to the exploration tree
+            void addMotion(Motion *motion, const std::vector<Motion*>& neighbors);
 
-            /** \brief Select a motion to continue the expansion of the tree from */
-            Motion* selectMotion();
-
-            /** \brief Valid state sampler */
+            /// \brief Valid state sampler
             base::ValidStateSamplerPtr   sampler_;
 
-            /** \brief The exploration tree constructed by this algorithm */
-            TreeData                     tree_;
-
-            /** \brief This algorithm uses a discretization (a grid) to guide the exploration. The exploration is imposed on a projection of the state space. */
-            base::ProjectionEvaluatorPtr projectionEvaluator_;
-
-            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
+            /// \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available)
             double                       goalBias_;
 
-            /** \brief The maximum length of a motion to be added to a tree */
+            /// \brief The maximum length of a motion to be added to a tree
             double                       maxDistance_;
+
+            /// \brief The radius considered for neighborhood
+            double                       nbrhoodRadius_;
 
             /** \brief The random number generator */
             RNG                          rng_;
 
-            /** \brief The PDF used for selecting a cell from which to sample a motion */
-            CellPDF                      pdf_;
-
-            /** \brief The most recent goal motion.  Used for PlannerData computation */
+            /// \brief The most recent goal motion.  Used for PlannerData computation
             Motion                       *lastGoalMotion_;
         };
 

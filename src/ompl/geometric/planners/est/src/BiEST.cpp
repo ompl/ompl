@@ -34,28 +34,28 @@
 
 /* Author: Ryan Luna */
 
-#include "ompl/geometric/planners/est/BiRealEST.h"
+#include "ompl/geometric/planners/est/BiEST.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
 #include <cassert>
 
-ompl::geometric::BiRealEST::BiRealEST(const base::SpaceInformationPtr &si) : base::Planner(si, "BiRealEST")
+ompl::geometric::BiEST::BiEST(const base::SpaceInformationPtr &si) : base::Planner(si, "BiEST")
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.directed = true;
     maxDistance_ = 0.0;
     connectionPoint_ = std::make_pair<ompl::base::State*, ompl::base::State*>(NULL, NULL);
 
-    Planner::declareParam<double>("range", this, &BiRealEST::setRange, &BiRealEST::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("range", this, &BiEST::setRange, &BiEST::getRange, "0.:1.:10000.");
 }
 
-ompl::geometric::BiRealEST::~BiRealEST()
+ompl::geometric::BiEST::~BiEST()
 {
     freeMemory();
 }
 
-void ompl::geometric::BiRealEST::setup()
+void ompl::geometric::BiEST::setup()
 {
     Planner::setup();
 
@@ -73,11 +73,11 @@ void ompl::geometric::BiRealEST::setup()
         nnStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
     if (!nnGoal_)
         nnGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nnStart_->setDistanceFunction(boost::bind(&BiRealEST::distanceFunction, this, _1, _2));
-    nnGoal_->setDistanceFunction(boost::bind(&BiRealEST::distanceFunction, this, _1, _2));
+    nnStart_->setDistanceFunction(std::bind(&BiEST::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    nnGoal_->setDistanceFunction(std::bind(&BiEST::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-void ompl::geometric::BiRealEST::clear()
+void ompl::geometric::BiEST::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -96,7 +96,7 @@ void ompl::geometric::BiRealEST::clear()
     connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
 }
 
-void ompl::geometric::BiRealEST::freeMemory()
+void ompl::geometric::BiEST::freeMemory()
 {
     for(size_t i = 0; i < startMotions_.size(); ++i)
     {
@@ -113,7 +113,7 @@ void ompl::geometric::BiRealEST::freeMemory()
     }
 }
 
-ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
     base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
@@ -185,7 +185,7 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
         // Pointers to the tree structure we are expanding
         std::vector<Motion*>& motions                       = startTree ? startMotions_ : goalMotions_;
         PDF<Motion*>& pdf                                   = startTree ? startPdf_     : goalPdf_;
-        boost::shared_ptr< NearestNeighbors<Motion*> > nn   = startTree ? nnStart_      : nnGoal_;
+        std::shared_ptr< NearestNeighbors<Motion*> > nn   = startTree ? nnStart_      : nnGoal_;
 
         // Select a state to expand from
         Motion *existing = pdf.sample(rng_.uniform01());
@@ -272,8 +272,8 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
     return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
-void ompl::geometric::BiRealEST::addMotion(Motion* motion, std::vector<Motion*>& motions,
-                                           PDF<Motion*>& pdf, boost::shared_ptr< NearestNeighbors<Motion*> > nn,
+void ompl::geometric::BiEST::addMotion(Motion* motion, std::vector<Motion*>& motions,
+                                           PDF<Motion*>& pdf, std::shared_ptr< NearestNeighbors<Motion*> > nn,
                                            const std::vector<Motion*>& neighbors)
 {
     // Updating neighborhood size counts
@@ -289,7 +289,7 @@ void ompl::geometric::BiRealEST::addMotion(Motion* motion, std::vector<Motion*>&
     nn->add(motion);
 }
 
-void ompl::geometric::BiRealEST::getPlannerData(base::PlannerData &data) const
+void ompl::geometric::BiEST::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 

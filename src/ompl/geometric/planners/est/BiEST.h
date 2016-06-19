@@ -34,8 +34,8 @@
 
 /* Author: Ryan Luna */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_EST_BIREALEST_
-#define OMPL_GEOMETRIC_PLANNERS_EST_BIREALEST_
+#ifndef OMPL_GEOMETRIC_PLANNERS_EST_BIEST_
+#define OMPL_GEOMETRIC_PLANNERS_EST_BIEST_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
@@ -49,7 +49,7 @@ namespace ompl
     {
 
         /**
-           @anchor gBiRealEST
+           @anchor gBiEST
            @par Short description
            EST is a tree-based motion planner that attempts to detect
            the less explored area of the space by measuring the density
@@ -63,14 +63,14 @@ namespace ompl
         */
 
         /** \brief Bi-directional Expansive Space Trees */
-        class BiRealEST : public base::Planner
+        class BiEST : public base::Planner
         {
         public:
 
             /** \brief Constructor */
-            BiRealEST(const base::SpaceInformationPtr &si);
+            BiEST(const base::SpaceInformationPtr &si);
 
-            virtual ~BiRealEST();
+            virtual ~BiEST();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
@@ -140,8 +140,8 @@ namespace ompl
             }
 
             /// \brief A nearest-neighbors datastructure containing the tree of motions
-            boost::shared_ptr< NearestNeighbors<Motion*> > nnStart_;
-            boost::shared_ptr< NearestNeighbors<Motion*> > nnGoal_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nnStart_;
+            std::shared_ptr< NearestNeighbors<Motion*> > nnGoal_;
 
             /// \brief The set of all states in the start tree
             std::vector<Motion*> startMotions_;
@@ -156,7 +156,7 @@ namespace ompl
 
             /// \brief Add a motion to the exploration tree
             void addMotion(Motion* motion, std::vector<Motion*>& motions,
-                           PDF<Motion*>& pdf, boost::shared_ptr< NearestNeighbors<Motion*> > nn,
+                           PDF<Motion*>& pdf, std::shared_ptr< NearestNeighbors<Motion*> > nn,
                            const std::vector<Motion*>& neighbors);
 
             /// \brief Valid state sampler

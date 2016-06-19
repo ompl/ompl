@@ -57,6 +57,22 @@ void addPlanner<geometric::EST, CIRCLES_ID>(Benchmark &benchmark, const base::Sp
 {
     geometric::EST *est = new geometric::EST(si);
     est->setRange(10.0);
+    benchmark.addPlanner(base::PlannerPtr(est));
+}
+
+template<>
+void addPlanner<geometric::BiEST, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
+{
+    geometric::BiEST *est = new geometric::BiEST(si);
+    est->setRange(10.0);
+    benchmark.addPlanner(base::PlannerPtr(est));
+}
+
+template<>
+void addPlanner<geometric::ProjEST, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
+{
+    geometric::ProjEST *est = new geometric::ProjEST(si);
+    est->setRange(10.0);
     est->setProjectionEvaluator(getCirclesProjEvaluator(si));
     benchmark.addPlanner(base::PlannerPtr(est));
 }
