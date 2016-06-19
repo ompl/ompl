@@ -1,7 +1,7 @@
 # Release Notes
 
 
-# OMPL 1.2.0 (???)
+# OMPL 1.2.0 (June 20, 2016)
 
 - C++11 is now **required**. A lot of Boost usage in older versions of OMPL has been replaced with C++11 STL equivalents.
 - Added several new planners and improved existing planners:
