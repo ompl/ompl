@@ -261,6 +261,18 @@ class ESTTest(TestPlanner):
     def newplanner(self, si):
         planner = og.EST(si)
         planner.setRange(10.0)
+        return planner
+
+class BiESTTest(TestPlanner):
+    def newplanner(self, si):
+        planner = og.BiEST(si)
+        planner.setRange(10.0)
+        return planner
+
+class ProjESTTest(TestPlanner):
+    def newplanner(self, si):
+        planner = og.ProjEST(si)
+        planner.setRange(10.0)
         projection = ou.vectorUint()
         projection.extend([0, 1])
         cdim = ou.vectorDouble()
