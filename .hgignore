@@ -16,6 +16,7 @@ doc/markdown/download.md$
 doc/markdown/mainpage.md$
 doc/header.html$
 doc/html
+install-ompl-ubuntu.sh$
 py-bindings/ompl/bindings_generator.py$
 py-bindings/ompl/app
 src/ompl/config.h$
