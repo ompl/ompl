@@ -154,7 +154,10 @@ class code_generator_t(object):
 
     def filter_declarations(self):
         """Remove some classes and functions from the std namespace"""
-        self.std_ns.class_('ios_base').exclude()
+        try:
+            self.std_ns.class_('ios_base').exclude()
+        except:
+            pass
         self.std_ns.free_functions().exclude()
         self.std_ns.operators().exclude()
 
