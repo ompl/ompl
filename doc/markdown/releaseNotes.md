@@ -1,6 +1,13 @@
 # Release Notes
 
 
+# OMPL 1.2.1 (July 1, 2016)
+
+- New simplified installation instructions. There is now also a [installation script](http://ompl.kavrakilab.org/install-ompl-ubuntu.sh) that will download and install OMPL and all its dependencies on Ubuntu 14.04, 15.10, and 16.04.
+- Fixed python bindings for gcc5. Python bindings still take a [very long time](https://github.com/gccxml/pygccxml/issues/56) to generate.
+- Misc. small bug fixes.
+
+
 # OMPL 1.2.0 (June 20, 2016)
 
 - C++11 is now **required**. A lot of Boost usage in older versions of OMPL has been replaced with C++11 STL equivalents.
