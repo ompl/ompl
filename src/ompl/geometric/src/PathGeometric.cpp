@@ -236,14 +236,14 @@ std::pair<bool, bool> ompl::geometric::PathGeometric::checkAndRepair(unsigned in
             }
             else
             {
-                unsigned int nextValid = n1;
+                unsigned int nextValid = n1 - 1;
                 for (int j = i + 1 ; j < n1 ; ++j)
                     if (si_->isValid(states_[j]))
                     {
                         nextValid = j;
                         break;
                     }
-                // we know nextValid will be initialised because n1 is certainly valid.
+                // we know nextValid will be initialised because n1 - 1 is certainly valid.
                 si_->getStateSpace()->interpolate(states_[i - 1], states_[nextValid], 0.5, temp);
                 radius = std::max(si_->distance(states_[i-1], temp), si_->distance(states_[i-1], states_[i]));
             }
