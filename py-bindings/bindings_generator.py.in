@@ -121,6 +121,7 @@ class code_generator_t(object):
             files = [ 'bindings/' + name + '.h' ],
             cache = '@CMAKE_BINARY_DIR@/pyplusplus_'+name+'.cache',
             xml_generator_config = xml_generator_config,
+            start_with_declarations = ['ompl::' + name],
             indexing_suite_version = indexing_suite_version )
         self.replacement = {} if replacement_dict==None else replacement_dict
         self.mb.classes().always_expose_using_scope = True
