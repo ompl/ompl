@@ -384,7 +384,7 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
         BOOST_REQUIRE_NE ( &edge, &base::PlannerData::NO_EDGE );
         BOOST_CHECK_EQUAL( edge.getControl(), controls[i] );
         BOOST_OMPL_EXPECT_NEAR ( edge.getDuration(), i, 1e-9 );
-        BOOST_CHECK_EQUAL ( edge.id_, i+1 );
+        BOOST_CHECK_EQUAL ( (unsigned int)edge.id_, i+1 );
     }
 
     // Reset the tag for state #0
