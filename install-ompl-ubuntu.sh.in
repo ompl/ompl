@@ -10,9 +10,15 @@ install_common_dependencies()
     sudo apt-get -y update
     sudo apt-get -y upgrade
     # On Ubuntu 14.04 we need to add a PPA to get a recent compiler (g++-4.8 is too old).
-    # We also need to specify a boost version, since the default Boost is too old.
+    # We also need to specify a Boost version, since the default Boost is too old.
+    #
+    # We explicitly set the C++ compiler to g++, the default GNU g++ compiler. This is
+    # needed because we depend on system-installed libraries built with g++ and linked
+    # against libstdc++. In case `c++` corresponds to `clang++`, code will not build, even
+    # if we would pass the flag `-stdlib=libstdc++` to `clang++`.
     if [ -z $TRUSTY ]; then
         sudo apt-get -y install cmake libboost-all-dev libeigen3-dev libode-dev
+        export CXX=g++
     else
         # needed for the add-apt-repository command, which was not part of early Trusty releases
         sudo apt-get -y install software-properties-common
