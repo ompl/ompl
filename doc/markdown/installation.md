@@ -66,6 +66,7 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
     <h2>Linux (generic)</h2>
     <p>OMPL requires <a href="http://www.boost.org">Boost</a> (version 1.54 or higher) and <a href="http://www.cmake.org">CMake</a> (version 2.8.7 or higher). Some additional features are available if <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen 3</a> or <a href="http://www.ode.org">ODE</a> are installed.
     To be able to generate python bindings you need to install the <a href="http://www.python.org">Python</a> library and header files and <a href="installPyPlusPlus.html">Py++</a>.
+    Finally, you need a C++11 compiler (g++-5 or newer).</p>
     <p>Once the dependencies are installed, OMPL can then be compiled like so:</p>
     <ul>
     <li>Create a build directory and run cmake: <pre class="fragment">cd ompl
