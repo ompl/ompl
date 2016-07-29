@@ -581,9 +581,9 @@ BOOST_AUTO_TEST_CASE(Serialization)
         }
     }
 
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    for (auto & state : states)
+        space->freeState(state);
 
-    for (size_t i = 0; i < controls.size(); ++i)
-        cspace->freeControl(controls[i]);
+    for (auto & control : controls)
+        cspace->freeControl(control);
 }

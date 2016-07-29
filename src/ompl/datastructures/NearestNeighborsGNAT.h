@@ -498,8 +498,8 @@ namespace ompl
 
                 children_.reserve(degree_);
                 gnat.pivotSelector_.kcenters(data_, degree_, pivots, dists);
-                for(unsigned int i=0; i<pivots.size(); i++)
-                    children_.push_back(new Node(degree_, gnat.maxNumPtsPerLeaf_, data_[pivots[i]]));
+                for(unsigned int & pivot : pivots)
+                    children_.push_back(new Node(degree_, gnat.maxNumPtsPerLeaf_, data_[pivot]));
                 degree_ = pivots.size(); // in case fewer than degree_ pivots were found
                 for (unsigned int j=0; j<data_.size(); ++j)
                 {

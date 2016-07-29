@@ -525,12 +525,12 @@ bool ompl::tools::Thunder::doPostProcessing()
 {
     OMPL_INFORM("Performing post-processing");
 
-    for (std::size_t i = 0; i < queuedSolutionPaths_.size(); ++i)
+    for (auto & queuedSolutionPath : queuedSolutionPaths_)
     {
         // Time to add a path to experience database
         double insertionTime;
 
-        experienceDB_->addPath(queuedSolutionPaths_[i], insertionTime);
+        experienceDB_->addPath(queuedSolutionPath, insertionTime);
         OMPL_INFORM("Finished inserting experience path in %f seconds", insertionTime);
         stats_.totalInsertionTime_ += insertionTime; // used for averaging
     }

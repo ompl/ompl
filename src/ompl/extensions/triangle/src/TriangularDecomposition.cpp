@@ -157,9 +157,8 @@ int ompl::control::TriangularDecomposition::locateRegion(const base::State* s) c
     project(s, coord);
     const std::vector<int>& gridTriangles = locator.locateTriangles(s);
     int triangle = -1;
-    for (std::vector<int>::const_iterator i = gridTriangles.begin(); i != gridTriangles.end(); ++i)
+    for (int triID : gridTriangles)
     {
-        int triID = *i;
         if (triContains(triangles_[triID], coord))
         {
             if (triangle >= 0)
@@ -247,13 +246,13 @@ int ompl::control::TriangularDecomposition::createTriangles()
     //Run through obstacle vertices in holes_, and tally point and segment counters
     for (PolyIter p = holes_.begin(); p != holes_.end(); ++p)
     {
-        for (VertexIter v = p->pts.begin(); v != p->pts.end(); ++v)
+        for (auto pt : p->pts)
         {
             ++in.numberofsegments;
             /* Only assign an index to this vertex (and tally the point counter)
                if this is a newly discovered vertex. */
-            if (pointIndex.find(*v) == pointIndex.end())
-                pointIndex[*v] = in.numberofpoints++;
+            if (pointIndex.find(pt) == pointIndex.end())
+                pointIndex[pt] = in.numberofpoints++;
         }
     }
 
@@ -261,11 +260,11 @@ int ompl::control::TriangularDecomposition::createTriangles()
        Here we're following the same logic as above with holes_. */
     for (PolyIter p = intRegs_.begin(); p != intRegs_.end(); ++p)
     {
-        for (VertexIter v = p->pts.begin(); v != p->pts.end(); ++v)
+        for (auto pt : p->pts)
         {
             ++in.numberofsegments;
-            if (pointIndex.find(*v) == pointIndex.end())
-                pointIndex[*v] = in.numberofpoints++;
+            if (pointIndex.find(pt) == pointIndex.end())
+                pointIndex[pt] = in.numberofpoints++;
         }
     }
 
@@ -508,10 +507,10 @@ ompl::control::TriangularDecomposition::Vertex ompl::control::TriangularDecompos
     Vertex p;
     p.x = 0.;
     p.y = 0.;
-    for (std::vector<Vertex>::const_iterator i = poly.pts.begin(); i != poly.pts.end(); ++i)
+    for (auto pt : poly.pts)
     {
-        p.x += i->x;
-        p.y += i->y;
+        p.x += pt.x;
+        p.y += pt.y;
     }
     p.x /= poly.pts.size();
     p.y /= poly.pts.size();

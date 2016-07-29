@@ -86,11 +86,11 @@ void ompl::geometric::EST::clear()
 
 void ompl::geometric::EST::freeMemory()
 {
-    for(size_t i = 0; i < motions_.size(); ++i)
+    for(auto & motion : motions_)
     {
-        if (motions_[i]->state)
-            si_->freeState(motions_[i]->state);
-        delete motions_[i];
+        if (motion->state)
+            si_->freeState(motion->state);
+        delete motion;
     }
 }
 
@@ -229,9 +229,9 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 void ompl::geometric::EST::addMotion(Motion *motion, const std::vector<Motion*>& neighbors)
 {
     // Updating neighborhood size counts
-    for(size_t i = 0; i < neighbors.size(); ++i)
+    for(auto neighbor : neighbors)
     {
-        PDF<Motion*>::Element *elem = neighbors[i]->element;
+        PDF<Motion*>::Element *elem = neighbor->element;
         double w = pdf_.getWeight(elem);
         pdf_.update(elem, w / (w + 1.));
     }
@@ -249,12 +249,12 @@ void ompl::geometric::EST::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (unsigned int i = 0 ; i < motions_.size() ; ++i)
+    for (auto motion : motions_)
     {
-        if (motions_[i]->parent == nullptr)
-            data.addStartVertex(base::PlannerDataVertex(motions_[i]->state));
+        if (motion->parent == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(motion->state));
         else
-            data.addEdge(base::PlannerDataVertex(motions_[i]->parent->state),
-                         base::PlannerDataVertex(motions_[i]->state));
+            data.addEdge(base::PlannerDataVertex(motion->parent->state),
+                         base::PlannerDataVertex(motion->state));
     }
 }

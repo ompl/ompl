@@ -106,11 +106,11 @@ void ompl::geometric::STRIDE::freeMemory()
     {
         std::vector<Motion*> motions;
         tree_->list(motions);
-        for (std::size_t i = 0 ; i < motions.size() ; ++i)
+        for (auto & motion : motions)
         {
-            if (motions[i]->state)
-                si_->freeState(motions[i]->state);
-            delete motions[i];
+            if (motion->state)
+                si_->freeState(motion->state);
+            delete motion;
         }
         tree_.reset();
     }
@@ -234,11 +234,11 @@ void ompl::geometric::STRIDE::getPlannerData(base::PlannerData &data) const
 
     std::vector<Motion*> motions;
     tree_->list(motions);
-    for (std::vector<Motion*>::iterator it=motions.begin(); it!=motions.end(); it++)
+    for (auto & motion : motions)
     {
-        if((*it)->parent == nullptr)
-            data.addStartVertex(base::PlannerDataVertex((*it)->state,1));
+        if(motion->parent == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(motion->state,1));
         else
-            data.addEdge(base::PlannerDataVertex((*it)->parent->state,1),base::PlannerDataVertex((*it)->state,1));
+            data.addEdge(base::PlannerDataVertex(motion->parent->state,1),base::PlannerDataVertex(motion->state,1));
     }
 }

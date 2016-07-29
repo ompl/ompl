@@ -205,8 +205,8 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
                         path->getStates().reserve(mpath1.size() + mpath2.size());
                         for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
                             path->append(mpath1[i]->state);
-                        for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
-                            path->append(mpath2[i]->state);
+                        for (auto & i : mpath2)
+                            path->append(i->state);
 
                         pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
                         solved = true;

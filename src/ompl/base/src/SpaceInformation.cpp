@@ -440,8 +440,8 @@ void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
     out << "  - signature: ";
     std::vector<int> sig;
     stateSpace_->computeSignature(sig);
-    for (std::size_t i = 0 ; i < sig.size() ; ++i)
-        out << sig[i] << " ";
+    for (int i : sig)
+        out << i << " ";
     out << std::endl;
     out << "  - dimension: " << stateSpace_->getDimension() << std::endl;
     out << "  - extent: " << stateSpace_->getMaximumExtent() << std::endl;

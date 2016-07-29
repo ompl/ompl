@@ -125,10 +125,10 @@ void ompl::geometric::FMT::freeMemory()
         std::vector<Motion*> motions;
         motions.reserve(nn_->size());
         nn_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (auto & motion : motions)
         {
-            si_->freeState(motions[i]->getState());
-            delete motions[i];
+            si_->freeState(motion->getState());
+            delete motion;
         }
     }
 }
@@ -378,24 +378,24 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
                 // Get neighbours in the tree.
                 std::vector<Motion*> yNear;
                 yNear.reserve(nbh.size());
-                for (std::size_t j = 0; j < nbh.size(); ++j)
+                for (auto & j : nbh)
                 {
-                    if (nbh[j]->getSetType() == Motion::SET_CLOSED)
+                    if (j->getSetType() == Motion::SET_CLOSED)
                     {
                         if (nearestK_)
                         {
                             // Only include neighbors that are mutually k-nearest
                             // Relies on NN datastructure returning k-nearest in sorted order
-                            const base::Cost connCost = opt_->motionCost(nbh[j]->getState(), m->getState());
-                            const base::Cost worstCost = opt_->motionCost(neighborhoods_[nbh[j]].back()->getState(), nbh[j]->getState());
+                            const base::Cost connCost = opt_->motionCost(j->getState(), m->getState());
+                            const base::Cost worstCost = opt_->motionCost(neighborhoods_[j].back()->getState(), j->getState());
 
                             if (opt_->isCostBetterThan(worstCost, connCost))
                                 continue;
                             else
-                                yNear.push_back(nbh[j]);
+                                yNear.push_back(j);
                         }
                         else
-                            yNear.push_back(nbh[j]);
+                            yNear.push_back(j);
                     }
                 }
 
@@ -639,25 +639,25 @@ ompl::geometric::FMT::Motion* ompl::geometric::FMT::getBestParent(Motion *m, std
 
 void ompl::geometric::FMT::updateNeighborhood(Motion *m, const std::vector<Motion*> nbh)
 {
-    for (std::size_t i = 0; i < nbh.size(); ++i)
+    for (auto i : nbh)
     {
         // If CLOSED, the neighborhood already exists. If neighborhood already exists, we have
         // to insert the node in the corresponding place of the neighborhood of the neighbor of m.
-        if (nbh[i]->getSetType() == Motion::SET_CLOSED || neighborhoods_.find(nbh[i]) != neighborhoods_.end())
+        if (i->getSetType() == Motion::SET_CLOSED || neighborhoods_.find(i) != neighborhoods_.end())
         {
-            const base::Cost connCost = opt_->motionCost(nbh[i]->getState(), m->getState());
-            const base::Cost worstCost = opt_->motionCost(neighborhoods_[nbh[i]].back()->getState(), nbh[i]->getState());
+            const base::Cost connCost = opt_->motionCost(i->getState(), m->getState());
+            const base::Cost worstCost = opt_->motionCost(neighborhoods_[i].back()->getState(), i->getState());
 
             if (opt_->isCostBetterThan(worstCost, connCost))
                 continue;
             else
             {
                 // Insert the neighbor in the vector in the correct order
-                std::vector<Motion*> &nbhToUpdate = neighborhoods_[nbh[i]];
+                std::vector<Motion*> &nbhToUpdate = neighborhoods_[i];
                 for (std::size_t j = 0; j < nbhToUpdate.size(); ++j)
                 {
                     // If connection to the new state is better than the current neighbor tested, insert.
-                    const base::Cost cost = opt_->motionCost(nbh[i]->getState(), nbhToUpdate[j]->getState());
+                    const base::Cost cost = opt_->motionCost(i->getState(), nbhToUpdate[j]->getState());
                     if (opt_->isCostBetterThan(connCost, cost))
                     {
                         nbhToUpdate.insert(nbhToUpdate.begin()+j, m);
@@ -677,13 +677,13 @@ void ompl::geometric::FMT::updateNeighborhood(Motion *m, const std::vector<Motio
             if (!nbh2.empty())
             {
                 // Save the neighborhood but skip the first element, since it will be motion m
-                neighborhoods_[nbh[i]] = std::vector<Motion*>(nbh2.size() - 1, nullptr);
-                std::copy(nbh2.begin() + 1, nbh2.end(), neighborhoods_[nbh[i]].begin());
+                neighborhoods_[i] = std::vector<Motion*>(nbh2.size() - 1, nullptr);
+                std::copy(nbh2.begin() + 1, nbh2.end(), neighborhoods_[i].begin());
             }
             else
             {
                 // Save an empty neighborhood
-                neighborhoods_[nbh[i]] = std::vector<Motion*>(0);
+                neighborhoods_[i] = std::vector<Motion*>(0);
             }
         }
     }

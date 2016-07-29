@@ -123,8 +123,8 @@ void ompl::geometric::CForest::getPlannerData(base::PlannerData &data) const
 void ompl::geometric::CForest::clear()
 {
     Planner::clear();
-    for (std::size_t i = 0; i < planners_.size(); ++i)
-        planners_[i]->clear();
+    for (auto & planner : planners_)
+        planner->clear();
 
     bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
     numPathsShared_ = 0;
@@ -132,9 +132,9 @@ void ompl::geometric::CForest::clear()
 
     std::vector<base::StateSamplerPtr> samplers;
     samplers.reserve(samplers_.size());
-    for (std::size_t i = 0; i < samplers_.size(); ++i)
-        if (samplers_[i].use_count() > 1)
-            samplers.push_back(samplers_[i]);
+    for (auto & sampler : samplers_)
+        if (sampler.use_count() > 1)
+            samplers.push_back(sampler);
     samplers_.swap(samplers);
 }
 
@@ -157,9 +157,9 @@ void ompl::geometric::CForest::setup()
         addPlannerInstances<RRTstar>(numThreads_);
     }
 
-    for (std::size_t i = 0; i < planners_.size() ; ++i)
-        if (!planners_[i]->isSetup())
-            planners_[i]->setup();
+    for (auto & planner : planners_)
+        if (!planner->isSetup())
+            planner->setup();
 
     // This call is needed to make sure the ParamSet is up to date after changes induced by the planner setup calls above, via the state space wrappers for CForest.
     si_->setup();
@@ -186,10 +186,10 @@ ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTer
     for (std::size_t i = 0 ; i < threads.size() ; ++i)
         threads[i] = new std::thread(std::bind((solveFunctionType)&CForest::solve, this, planners_[i].get(), ptc));
 
-    for (std::size_t i = 0 ; i < threads.size() ; ++i)
+    for (auto & thread : threads)
     {
-        threads[i]->join();
-        delete threads[i];
+        thread->join();
+        delete thread;
     }
 
     // restore callback
@@ -226,12 +226,12 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, co
 
         // Filtering the states to add only those not already added.
         statesToShare.reserve(states.size());
-        for (std::vector<const base::State *>::const_iterator st = states.begin(); st != states.end(); ++st)
+        for (auto state : states)
         {
-            if (statesShared_.find(*st) == statesShared_.end())
+            if (statesShared_.find(state) == statesShared_.end())
             {
-                statesShared_.insert(*st);
-                statesToShare.push_back(*st);
+                statesShared_.insert(state);
+                statesToShare.push_back(state);
                 ++numStatesShared_;
             }
         }
@@ -240,9 +240,9 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner, co
 
     if (!change || statesToShare.empty()) return;
 
-    for (std::size_t i = 0; i < samplers_.size(); ++i)
+    for (auto & i : samplers_)
     {
-        base::CForestStateSampler *sampler = static_cast<base::CForestStateSampler*>(samplers_[i].get());
+        base::CForestStateSampler *sampler = static_cast<base::CForestStateSampler*>(i.get());
         const base::CForestStateSpaceWrapper *space = static_cast<const base::CForestStateSpaceWrapper*>(sampler->getStateSpace());
         const base::Planner *cfplanner = space->getPlanner();
         if (cfplanner != planner)

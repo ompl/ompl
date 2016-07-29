@@ -94,10 +94,10 @@ void BFMT::freeMemory()
     {
         BiDirMotionPtrs motions;
         nn_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (auto & motion : motions)
         {
-            si_->freeState(motions[i]->getState());
-            delete motions[i];
+            si_->freeState(motion->getState());
+            delete motion;
         }
     }
 }
@@ -132,9 +132,8 @@ void BFMT::getPlannerData(base::PlannerData &data) const
     int fwd_tree_tag        = 1;
     int rev_tree_tag        = 2;
 
-    for (unsigned int k = 0; k < motions.size(); ++k)
+    for (auto motion : motions)
     {
-        BiDirMotion* motion = motions[k];
         bool inFwdTree      = (motion->currentSet_[FWD] != BiDirMotion::SET_UNVISITED);
 
         // For samples added to the fwd tree, add incoming edges (from fwd tree parent)
@@ -159,9 +158,8 @@ void BFMT::getPlannerData(base::PlannerData &data) const
     }
 
     // The edges in the goal tree are reversed so that they are in the same direction as start tree
-    for (unsigned int k = 0; k < motions.size(); ++k)
+    for (auto motion : motions)
     {
-        BiDirMotion* motion = motions[k];
         bool inRevTree      = (motion->currentSet_[REV] != BiDirMotion::SET_UNVISITED);
 
         // For samples added to a tree, add incoming edges (from fwd tree parent)
@@ -451,42 +449,41 @@ void BFMT::expandTreeFromNode(BiDirMotion *&z, BiDirMotion *&connection_point)
     BiDirMotionPtrs        zNear;
     const BiDirMotionPtrs  &zNeighborhood = neighborhoods_[z];
 
-    for (unsigned int i = 0; i < zNeighborhood.size(); ++i)
+    for (auto i : zNeighborhood)
     {
-        if (zNeighborhood[i]->getCurrentSet() == BiDirMotion::SET_UNVISITED)
+        if (i->getCurrentSet() == BiDirMotion::SET_UNVISITED)
         {
-            zNear.push_back(zNeighborhood[i]);
+            zNear.push_back(i);
         }
     }
 
     // For each node x in Znear
-    for (unsigned int i = 0; i < zNear.size(); ++i)
+    for (auto x : zNear)
     {
-        BiDirMotion *x = zNear.at(i);
         if (!precomputeNN_)
             saveNeighborhood(nn_, x); // nearest neighbors
 
         // Define Xnear as all frontier nodes in the neighborhood around the unexplored node x
         BiDirMotionPtrs xNear;
         const BiDirMotionPtrs &xNeighborhood = neighborhoods_[x];
-        for (unsigned int j = 0; j < xNeighborhood.size(); ++j)
+        for (auto j : xNeighborhood)
         {
-            if (xNeighborhood[j]->getCurrentSet() == BiDirMotion::SET_OPEN)
+            if (j->getCurrentSet() == BiDirMotion::SET_OPEN)
             {
-                xNear.push_back(xNeighborhood[j]);
+                xNear.push_back(j);
             }
         }
         // Find the node in Xnear with minimum cost-to-come in the current tree
         BiDirMotion* xMin   = nullptr;
         double cMin         = std::numeric_limits<double>::infinity();
-        for (unsigned int j = 0; j < xNear.size(); ++j)
+        for (auto & j : xNear)
         {
             // check if node costs are smaller than minimum
-            double cNew = xNear.at(j)->getCost().value() + distanceFunction(xNear.at(j), x);
+            double cNew = j->getCost().value() + distanceFunction(j, x);
 
             if (cNew < cMin)
             {
-                xMin = xNear.at(j);
+                xMin = j;
                 cMin = cNew;
             }
         }
@@ -557,10 +554,10 @@ void BFMT::expandTreeFromNode(BiDirMotion *&z, BiDirMotion *&connection_point)
     z->setCurrentSet(BiDirMotion::SET_CLOSED);
 
     // add nodes in Open_new to Open
-    for (unsigned int i = 0; i < Open_new.size(); i++)
+    for (auto & i : Open_new)
     {
-        Open_elements[tree_][Open_new.at(i)] = Open_[tree_].insert(Open_new.at(i));
-        Open_new.at(i)->setCurrentSet(BiDirMotion::SET_OPEN);
+        Open_elements[tree_][i] = Open_[tree_].insert(i);
+        i->setCurrentSet(BiDirMotion::SET_OPEN);
     }
 }
 
@@ -577,9 +574,9 @@ bool BFMT::plan(BiDirMotion *x_init, BiDirMotion *x_goal,
     /// otherwise is probably a waste of time. Do a real precomputation before calling solve().
     if (precomputeNN_)
     {
-        for (unsigned int i = 0; i < sampleNodes.size(); i++)
+        for (auto & sampleNode : sampleNodes)
         {
-            saveNeighborhood(nn_, sampleNodes[i]); // nearest neighbors
+            saveNeighborhood(nn_, sampleNode); // nearest neighbors
         }
     }
     else
@@ -591,18 +588,18 @@ bool BFMT::plan(BiDirMotion *x_init, BiDirMotion *x_goal,
     // Copy nodes in the sample set to Unvisitedfwd.  Overwrite the label of the initial
     // node with set Open for the forward tree, since it starts in set Openfwd.
     useFwdTree();
-    for (unsigned int i = 0; i < sampleNodes.size(); i++)
+    for (auto & sampleNode : sampleNodes)
     {
-        sampleNodes[i]->setCurrentSet(BiDirMotion::SET_UNVISITED);
+        sampleNode->setCurrentSet(BiDirMotion::SET_UNVISITED);
     }
     x_init->setCurrentSet(BiDirMotion::SET_OPEN);
 
     // Copy nodes in the sample set to Unvisitedrev.  Overwrite the label of the goal
     // node with set Open for the reverse tree, since it starts in set Openrev.
     useRevTree();
-    for (unsigned int i = 0; i < sampleNodes.size(); i++)
+    for (auto & sampleNode : sampleNodes)
     {
-        sampleNodes[i]->setCurrentSet(BiDirMotion::SET_UNVISITED);
+        sampleNode->setCurrentSet(BiDirMotion::SET_UNVISITED);
     }
     x_goal->setCurrentSet(BiDirMotion::SET_OPEN);
 
@@ -677,24 +674,24 @@ void BFMT::insertNewSampleInOpen(const base::PlannerTerminationCondition& ptc)
             nn_->nearestR(m, NNr_, nbh);
 
         yNear.reserve(nbh.size());
-        for (std::size_t j = 0; j < nbh.size(); ++j)
+        for (auto & j : nbh)
         {
-            if (nbh[j]->getCurrentSet() == BiDirMotion::SET_CLOSED)
+            if (j->getCurrentSet() == BiDirMotion::SET_CLOSED)
             {
                 if (nearestK_)
                 {
                     // Only include neighbors that are mutually k-nearest
                     // Relies on NN datastructure returning k-nearest in sorted order
-                    const base::Cost connCost = opt_->motionCost(nbh[j]->getState(), m->getState());
-                    const base::Cost worstCost = opt_->motionCost(neighborhoods_[nbh[j]].back()->getState(), nbh[j]->getState());
+                    const base::Cost connCost = opt_->motionCost(j->getState(), m->getState());
+                    const base::Cost worstCost = opt_->motionCost(neighborhoods_[j].back()->getState(), j->getState());
 
                     if (opt_->isCostBetterThan(worstCost, connCost))
                         continue;
                     else
-                        yNear.push_back(nbh[j]);
+                        yNear.push_back(j);
                 }
                 else
-                    yNear.push_back(nbh[j]);
+                    yNear.push_back(j);
             }
         }
 
@@ -840,23 +837,23 @@ void BFMT::swapTrees()
 void BFMT::updateNeighborhood(BiDirMotion *m, const std::vector<BiDirMotion *> nbh)
 {
     // Neighborhoods are only updated if the new motion is within bounds (k nearest or within r).
-    for (std::size_t i = 0; i < nbh.size(); ++i)
+    for (auto i : nbh)
     {
         // If CLOSED, that neighborhood won't be used again.
         // Else, if neighhboorhod already exists, we have to insert the node in
         // the corresponding place of the neighborhood of the neighbor of m.
-        if (nbh[i]->getCurrentSet() == BiDirMotion::SET_CLOSED)
+        if (i->getCurrentSet() == BiDirMotion::SET_CLOSED)
             continue;
         else
         {
-            auto it = neighborhoods_.find(nbh[i]);
+            auto it = neighborhoods_.find(i);
             if (it != neighborhoods_.end())
             {
                 if (!it->second.size())
                     continue;
 
-                const base::Cost connCost = opt_->motionCost(nbh[i]->getState(), m->getState());
-                const base::Cost worstCost = opt_->motionCost(it->second.back()->getState(), nbh[i]->getState());
+                const base::Cost connCost = opt_->motionCost(i->getState(), m->getState());
+                const base::Cost worstCost = opt_->motionCost(it->second.back()->getState(), i->getState());
 
                 if (opt_->isCostBetterThan(worstCost, connCost))
                     continue;
@@ -867,7 +864,7 @@ void BFMT::updateNeighborhood(BiDirMotion *m, const std::vector<BiDirMotion *> n
                     for (std::size_t j = 0; j < nbhToUpdate.size(); ++j)
                     {
                         // If connection to the new state is better than the current neighbor tested, insert.
-                        const base::Cost cost = opt_->motionCost(nbh[i]->getState(), nbhToUpdate[j]->getState());
+                        const base::Cost cost = opt_->motionCost(i->getState(), nbhToUpdate[j]->getState());
                         if (opt_->isCostBetterThan(connCost, cost))
                         {
                             nbhToUpdate.insert(nbhToUpdate.begin()+j, m);

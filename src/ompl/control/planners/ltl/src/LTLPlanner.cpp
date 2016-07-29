@@ -307,9 +307,8 @@ double ompl::control::LTLPlanner::abstractEdgeWeight(ProductGraph::State* a, Pro
 void ompl::control::LTLPlanner::clearMotions(void)
 {
     availDist_.clear();
-    for (std::vector<Motion*>::iterator i = motions_.begin(); i != motions_.end(); ++i)
+    for (auto m : motions_)
     {
-        Motion* m = *i;
         if (m->state != nullptr)
             si_->freeState(m->state);
         if (m->control != nullptr)

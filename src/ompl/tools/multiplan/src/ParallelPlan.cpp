@@ -107,10 +107,10 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTe
         for (std::size_t i = 0 ; i < threads.size() ; ++i)
             threads[i] = new std::thread(std::bind(&ParallelPlan::solveOne, this, planners_[i].get(), minSolCount, &ptc));
 
-    for (std::size_t i = 0 ; i < threads.size() ; ++i)
+    for (auto & thread : threads)
     {
-        threads[i]->join();
-        delete threads[i];
+        thread->join();
+        delete thread;
     }
 
     if (hybridize)
@@ -173,8 +173,8 @@ void ompl::tools::ParallelPlan::solveMore(base::Planner *planner, std::size_t mi
         std::lock_guard<std::mutex> slock(phlock_);
         start = time::now();
         unsigned int attempts = 0;
-        for (std::size_t i = 0 ; i < paths.size() ; ++i)
-            attempts += phybrid_->recordPath(paths[i].path_, false);
+        for (const auto & path : paths)
+            attempts += phybrid_->recordPath(path.path_, false);
 
         if (phybrid_->pathCount() >= minSolCount)
             phybrid_->computeHybridPath();

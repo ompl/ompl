@@ -561,12 +561,12 @@ bool ompl::geometric::SPARS::checkAddConnectivity( const base::State *lastState,
         //Add the node
         SparseVertex g = addGuard( si_->cloneState(lastState), CONNECTIVITY );
 
-        for (std::size_t i = 0; i < links.size(); ++i )
+        for (unsigned long link : links)
             //If there's no edge
-            if (!boost::edge(g, links[i], s_).second)
+            if (!boost::edge(g, link, s_).second)
                 //And the components haven't been united by previous links
-                if (!sameComponent(links[i], g))
-                    connectSparsePoints( g, links[i] );
+                if (!sameComponent(link, g))
+                    connectSparsePoints( g, link );
         return true;
     }
     return false;
@@ -752,9 +752,9 @@ void ompl::geometric::SPARS::filterVisibleNeighbors(base::State *inState, const 
 {
     visibleNeighborhood.clear();
     //Now that we got the neighbors from the NN, we must remove any we can't see
-    for (std::size_t i = 0; i < graphNeighborhood.size(); ++i)
-        if (si_->checkMotion(inState, sparseStateProperty_[graphNeighborhood[i]]))
-            visibleNeighborhood.push_back(graphNeighborhood[i]);
+    for (unsigned long i : graphNeighborhood)
+        if (si_->checkMotion(inState, sparseStateProperty_[i]))
+            visibleNeighborhood.push_back(i);
 }
 
 ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::getInterfaceNeighbor(DenseVertex q, SparseVertex rep)
@@ -819,26 +819,26 @@ void ompl::geometric::SPARS::updateRepresentatives(SparseVertex v)
     stateProperty_[ queryVertex_ ] = nullptr;
 
     //For each of those points
-    for (std::size_t i = 0 ; i < dense_points.size() ; ++i)
+    for (unsigned long dense_point : dense_points)
     {
         //Remove that point from the old representative's list(s)
-        removeFromRepresentatives( dense_points[i], representativesProperty_[dense_points[i]] );
+        removeFromRepresentatives( dense_point, representativesProperty_[dense_point] );
         //Update that point's representative
-        calculateRepresentative( dense_points[i] );
+        calculateRepresentative( dense_point );
     }
 
     std::set<SparseVertex> interfaceRepresentatives;
     //For each of the points
-    for (std::size_t i = 0 ; i < dense_points.size(); ++i)
+    for (unsigned long dense_point : dense_points)
     {
         //Get it's representative
-        SparseVertex rep = representativesProperty_[dense_points[i]];
+        SparseVertex rep = representativesProperty_[dense_point];
         //Extract the representatives of any interface-sharing neighbors
-        getInterfaceNeighborRepresentatives( dense_points[i], interfaceRepresentatives );
+        getInterfaceNeighborRepresentatives( dense_point, interfaceRepresentatives );
         //For sanity's sake, make sure we clear ourselves out of what this new rep might think of us
-        removeFromRepresentatives( dense_points[i], rep );
+        removeFromRepresentatives( dense_point, rep );
         //Add this vertex to it's representative's list for the other representatives
-        addToRepresentatives( dense_points[i], rep, interfaceRepresentatives );
+        addToRepresentatives( dense_point, rep, interfaceRepresentatives );
     }
 }
 
@@ -849,11 +849,11 @@ void ompl::geometric::SPARS::calculateRepresentative(DenseVertex q)
     getSparseNeighbors(stateProperty_[q], graphNeighborhood);
 
     //For each neighbor
-    for (std::size_t i = 0; i < graphNeighborhood.size(); ++i)
-        if (si_->checkMotion(stateProperty_[q], sparseStateProperty_[graphNeighborhood[i]]))
+    for (unsigned long i : graphNeighborhood)
+        if (si_->checkMotion(stateProperty_[q], sparseStateProperty_[i]))
         {
             //update the representative
-            representativesProperty_[q] = graphNeighborhood[i];
+            representativesProperty_[q] = i;
             //abort
             break;
         }
@@ -1023,11 +1023,11 @@ void ompl::geometric::SPARS::getPlannerData(base::PlannerData &data) const
     Planner::getPlannerData(data);
 
     // Explicitly add start and goal states:
-    for (std::size_t i = 0; i < startM_.size(); ++i)
-        data.addStartVertex(base::PlannerDataVertex(sparseStateProperty_[startM_[i]], (int)START));
+    for (unsigned long i : startM_)
+        data.addStartVertex(base::PlannerDataVertex(sparseStateProperty_[i], (int)START));
 
-    for (std::size_t i = 0; i < goalM_.size(); ++i)
-        data.addGoalVertex(base::PlannerDataVertex(sparseStateProperty_[goalM_[i]], (int)GOAL));
+    for (unsigned long i : goalM_)
+        data.addGoalVertex(base::PlannerDataVertex(sparseStateProperty_[i], (int)GOAL));
 
     // Adding edges and all other vertices simultaneously
     foreach (const SparseEdge e, boost::edges(s_))

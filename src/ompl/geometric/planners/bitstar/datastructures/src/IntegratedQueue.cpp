@@ -246,10 +246,10 @@ namespace ompl
                     if (toDeleteIter != incomingEdges_.end())
                     {
                         //Iterate over the vector removing them from queue
-                        for (EdgeQueueIterList::iterator listIter = toDeleteIter->second.begin(); listIter != toDeleteIter->second.end(); ++listIter)
+                        for (auto & listIter : toDeleteIter->second)
                         {
                             //Erase the edge, removing it from the *other* lookup. No need to remove from this lookup, as that's being cleared:
-                            this->edgeRemoveHelper(*listIter, false, true);
+                            this->edgeRemoveHelper(listIter, false, true);
                         }
 
                         //Clear the list:
@@ -284,10 +284,10 @@ namespace ompl
                     if (toDeleteIter != outgoingEdges_.end())
                     {
                         //Iterate over the vector removing them from queue
-                        for (EdgeQueueIterList::iterator listIter = toDeleteIter->second.begin(); listIter != toDeleteIter->second.end(); ++listIter)
+                        for (auto & listIter : toDeleteIter->second)
                         {
                             //Erase the edge, removing it from the *other* lookup. No need to remove from this lookup, as that's being cleared:
-                            this->edgeRemoveHelper(*listIter, true, false);
+                            this->edgeRemoveHelper(listIter, true, false);
                         }
 
                         //Clear the list:
@@ -337,13 +337,13 @@ namespace ompl
                         }
 
                         //Now, iterate over the list of iterators to delete
-                        for (unsigned int i = 0u; i < listItersToDelete.size(); ++i)
+                        for (auto & i : listItersToDelete)
                         {
                             //Remove the edge and the edge iterator from the other lookup table:
-                            this->edgeRemoveHelper( *listItersToDelete.at(i), false, true);
+                            this->edgeRemoveHelper( *i, false, true);
 
                             //And finally erase the lookup iterator from the from lookup. If this was done first, the iterator would be invalidated for the above.
-                            itersToVertex->second.erase( listItersToDelete.at(i) );
+                            itersToVertex->second.erase( i );
                         }
                     }
                     //No else, nothing to delete
@@ -390,13 +390,13 @@ namespace ompl
                         }
 
                         //Now, iterate over the list of iterators to delete
-                        for (unsigned int i = 0u; i < listItersToDelete.size(); ++i)
+                        for (auto & i : listItersToDelete)
                         {
                             //Remove the edge and the edge iterator from the other lookup table:
-                            this->edgeRemoveHelper( *listItersToDelete.at(i), true, false );
+                            this->edgeRemoveHelper( *i, true, false );
 
                             //And finally erase the lookup iterator from the from lookup. If this was done first, the iterator would be invalidated for the above.
-                            itersFromVertex->second.erase( listItersToDelete.at(i) );
+                            itersFromVertex->second.erase( i );
 
                         }
                     }
@@ -512,40 +512,40 @@ namespace ompl
                 DepthToUMapMap uniqueResorts;
 
                 //Iterate over the vector and place into the unique queue indexed on *depth*. This guarantees that we won't process a branch multiple times by being given different vertices down its chain
-                for (std::list<VertexPtr>::iterator vIter = resortVertices_.begin(); vIter != resortVertices_.end(); ++vIter)
+                for (auto & resortVertex : resortVertices_)
                 {
                     //Add the vertex to the unordered map stored at the given depth.
                     //The [] return an reference to the existing entry, or create a new entry:
-                    uniqueResorts[(*vIter)->getDepth()].emplace((*vIter)->getId(), *vIter);
+                    uniqueResorts[resortVertex->getDepth()].emplace(resortVertex->getId(), resortVertex);
                 }
 
                 //Clear the list of vertices to resort from:
                 resortVertices_.clear();
 
                 //Now process the vertices in order of depth.
-                for (DepthToUMapMap::iterator deepIter = uniqueResorts.begin(); deepIter != uniqueResorts.end(); ++deepIter)
+                for (auto & deepIter : uniqueResorts)
                 {
-                    for (VertexIdToVertexPtrUMap::iterator vIter = deepIter->second.begin(); vIter != deepIter->second.end(); ++vIter)
+                    for (auto & vIter : deepIter.second)
                     {
                         //Make sure it has not already been pruned:
-                        if (vIter->second->isPruned() == false)
+                        if (vIter.second->isPruned() == false)
                         {
                             //Make sure it has not already been returned to the set of samples:
-                            if (vIter->second->isInTree() == true)
+                            if (vIter.second->isInTree() == true)
                             {
                                 //Are we pruning the vertex from the queue (and do we have "permission" to do so)?
-                                if (this->vertexPruneCondition(vIter->second) == true && static_cast<bool>(vertexNN) == true && static_cast<bool>(freeStateNN) == true)
+                                if (this->vertexPruneCondition(vIter.second) == true && static_cast<bool>(vertexNN) == true && static_cast<bool>(freeStateNN) == true)
                                 {
                                     //The vertex should just be pruned and forgotten about.
                                     //Prune the branch:
-                                    numPruned = this->pruneBranch(vIter->second, vertexNN, freeStateNN, recycledVertices);
+                                    numPruned = this->pruneBranch(vIter.second, vertexNN, freeStateNN, recycledVertices);
                                 }
                                 else
                                 {
                                     //The vertex is going to be kept.
 
                                     //Does it have any children?
-                                    if (vIter->second->hasChildren() == true)
+                                    if (vIter.second->hasChildren() == true)
                                     {
                                         //Variables:
                                         //The list of children:
@@ -553,21 +553,21 @@ namespace ompl
 
                                         //Put its children in the list to be resorted:
                                         //Get the list of children:
-                                        vIter->second->getChildren(&resortChildren);
+                                        vIter.second->getChildren(&resortChildren);
 
                                         //Get a reference to the container for the children, all children are 1 level deeper than their parent.:
                                         //The [] return an reference to the existing entry, or create a new entry:
-                                        VertexIdToVertexPtrUMap& depthContainer = uniqueResorts[vIter->second->getDepth() + 1u];
+                                        VertexIdToVertexPtrUMap& depthContainer = uniqueResorts[vIter.second->getDepth() + 1u];
 
                                         //Place the children into the container, as the container is a map, it will not allow the children to be entered twice.
-                                        for (unsigned int i = 0u; i < resortChildren.size(); ++i)
+                                        for (auto & i : resortChildren)
                                         {
-                                            depthContainer.emplace(resortChildren.at(i)->getId(), resortChildren.at(i));
+                                            depthContainer.emplace(i->getId(), i);
                                         }
                                     }
 
                                     //Reinsert the vertex:
-                                    this->reinsertVertex(vIter->second);
+                                    this->reinsertVertex(vIter.second);
                                 }
                             }
                             //No else, this vertex was a child of a vertex pruned during the resort. It has been returned to the set of free samples.
@@ -980,10 +980,10 @@ namespace ompl
                 if (vertex->hasBeenExpandedToSamples() == false)
                 {
                     //It has not, that means none of its outgoing edges have been considered. Add them all
-                    for (unsigned int i = 0u; i < neighbourSamples.size(); ++i)
+                    for (auto & neighbourSample : neighbourSamples)
                     {
                         //Attempt to queue the edge.
-                        this->queueupEdge(vertex, neighbourSamples.at(i));
+                        this->queueupEdge(vertex, neighbourSample);
                     }
 
                     //Mark it as expanded
@@ -992,13 +992,13 @@ namespace ompl
                 else
                 {
                     //It has, which means that outgoing edges to old unconnected vertices have already been considered. Only add those that lead to new vertices
-                    for (unsigned int i = 0u; i < neighbourSamples.size(); ++i)
+                    for (auto & neighbourSample : neighbourSamples)
                     {
                         //Is the target new?
-                        if (neighbourSamples.at(i)->isNew() == true)
+                        if (neighbourSample->isNew() == true)
                         {
                             //It is, attempt to queue the edge.
-                            this->queueupEdge(vertex, neighbourSamples.at(i));
+                            this->queueupEdge(vertex, neighbourSample);
                         }
                         //No else, we've considered this edge before.
                     }
@@ -1016,24 +1016,24 @@ namespace ompl
                     //No else
 
                     //Iterate over the vector of connected targets and add only those who could ever provide a better solution:
-                    for (unsigned int i = 0u; i < neighbourVertices.size(); ++i)
+                    for (auto & neighbourVertice : neighbourVertices)
                     {
                         //Make sure it is not the root or myself.
-                        if (neighbourVertices.at(i)->isRoot() == false && neighbourVertices.at(i) != vertex)
+                        if (neighbourVertice->isRoot() == false && neighbourVertice != vertex)
                         {
                             //Make sure I am not already the parent
-                            if (neighbourVertices.at(i)->getParent() != vertex)
+                            if (neighbourVertice->getParent() != vertex)
                             {
                                 //Make sure the neighbour vertex is not already my parent:
                                 if (vertex->isRoot() == true)
                                 {
                                     //I am root, I have no parent, so attempt to queue the edge:
-                                    this->queueupEdge(vertex, neighbourVertices.at(i));
+                                    this->queueupEdge(vertex, neighbourVertice);
                                 }
-                                else if (neighbourVertices.at(i) != vertex->getParent())
+                                else if (neighbourVertice != vertex->getParent())
                                 {
                                     //The neighbour is not my parent, attempt to queue the edge:
-                                    this->queueupEdge(vertex, neighbourVertices.at(i));
+                                    this->queueupEdge(vertex, neighbourVertice);
                                 }
                                 //No else, this vertex is my parent.
                             }
@@ -1178,18 +1178,18 @@ namespace ompl
                 edgeItersFromVertex->second =  EdgeQueueIterList();
 
                 //Iterate over the list of iters to resort, inserting each one as a new edge, and then removing it as an iterator from the edge queue and the incoming lookup
-                for (EdgeQueueIterList::iterator resortIter = edgeItersToResort.begin(); resortIter != edgeItersToResort.end(); ++resortIter)
+                for (auto & resortIter : edgeItersToResort)
                 {
                     //Check if the edge should be reinserted
-                    if ( this->edgePruneCondition((*resortIter)->second) == false )
+                    if ( this->edgePruneCondition(resortIter->second) == false )
                     {
                         //Call helper to reinsert. Looks after lookups, hint at the location it's coming out of
-                        this->edgeInsertHelper( (*resortIter)->second, *resortIter );
+                        this->edgeInsertHelper( resortIter->second, resortIter );
                     }
                     //No else, prune.
 
                     //Remove the old edge and its entry in the incoming lookup. No need to remove from this lookup, as that's been cleared:
-                    this->edgeRemoveHelper(*resortIter, true, false);
+                    this->edgeRemoveHelper(resortIter, true, false);
                 }
             }
             //No else, no edges from this vertex to requeue
@@ -1229,14 +1229,14 @@ namespace ompl
             numPruned.second = this->vertexRemoveHelper(branchBase, vertexNN, freeStateNN, recycledVertices, true);
 
             //Prune my children:
-            for (unsigned int i = 0u; i < children.size(); ++i)
+            for (auto & i : children)
             {
                 //Variable:
                 //The number pruned by my children:
                 std::pair<unsigned int, unsigned int> childNumPruned;
 
                 //Prune my children:
-                childNumPruned = this->pruneBranch(children.at(i), vertexNN, freeStateNN, recycledVertices);
+                childNumPruned = this->pruneBranch(i, vertexNN, freeStateNN, recycledVertices);
 
                 //Update my counter:
                 numPruned.first = numPruned.first + childNumPruned.first;

@@ -162,11 +162,11 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
     pi.length_ = length;
 
     // find matches with previously added paths
-    for (std::set<PathInfo>::const_iterator it = paths_.begin() ; it != paths_.end() ; ++it)
+    for (const auto & path : paths_)
     {
-        const PathGeometric *q = static_cast<const PathGeometric*>(it->path_.get());
+        const PathGeometric *q = static_cast<const PathGeometric*>(path.path_.get());
         std::vector<int> indexP, indexQ;
-        matchPaths(*p, *q, (pi.length_ + it->length_) / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
+        matchPaths(*p, *q, (pi.length_ + path.length_) / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
 
         if (matchAcrossGaps)
         {
@@ -194,7 +194,7 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
                     if (gapP)
                         for (std::size_t j = gapStartP ; j < i ; ++j)
                         {
-                            attemptNewEdge(pi, *it, indexP[i], indexQ[j]);
+                            attemptNewEdge(pi, path, indexP[i], indexQ[j]);
                             ++nattempts;
                         }
                     // remember the last non-negative index in p
@@ -212,7 +212,7 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
                     if (gapQ)
                         for (std::size_t j = gapStartQ ; j < i ; ++j)
                         {
-                            attemptNewEdge(pi, *it, indexP[j], indexQ[i]);
+                            attemptNewEdge(pi, path, indexP[j], indexQ[i]);
                             ++nattempts;
                         }
                     lastQ = i;
@@ -222,7 +222,7 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
                 // try to match corresponding index values and gep beginnings
                 if (lastP >= 0 && lastQ >= 0)
                 {
-                    attemptNewEdge(pi, *it, indexP[lastP], indexQ[lastQ]);
+                    attemptNewEdge(pi, path, indexP[lastP], indexQ[lastQ]);
                     ++nattempts;
                 }
             }
@@ -233,7 +233,7 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
             for (std::size_t i = 0 ; i < indexP.size() ; ++i)
                 if (indexP[i] >= 0 && indexQ[i] >= 0)
                 {
-                    attemptNewEdge(pi, *it, indexP[i], indexQ[i]);
+                    attemptNewEdge(pi, path, indexP[i], indexQ[i]);
                     ++nattempts;
                 }
         }

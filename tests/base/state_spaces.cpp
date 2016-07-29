@@ -234,12 +234,12 @@ BOOST_AUTO_TEST_CASE(SO3_Simple)
     BOOST_CHECK(states.size() == count);
     BOOST_CHECK(ns + 2 == count);
 
-    for (unsigned int i = 0 ; i < states.size() ; ++i)
+    for (auto & state : states)
     {
-        double nrm = m->as<base::SO3StateSpace>()->norm(states[i]->as<base::SO3StateSpace::StateType>());
+        double nrm = m->as<base::SO3StateSpace>()->norm(state->as<base::SO3StateSpace::StateType>());
         BOOST_OMPL_EXPECT_NEAR(nrm, 1.0, 1e-15);
-        BOOST_CHECK(m->satisfiesBounds(states[i]));
-        si.freeState(states[i]);
+        BOOST_CHECK(m->satisfiesBounds(state));
+        si.freeState(state);
     }
 
     base::ProjectionEvaluatorPtr proj = m->getDefaultProjection();

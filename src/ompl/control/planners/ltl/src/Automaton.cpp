@@ -115,9 +115,9 @@ void ompl::control::Automaton::addTransition(
 bool ompl::control::Automaton::run(const std::vector<World>& trace) const
 {
     int current = startState_;
-    for (std::vector<World>::const_iterator w = trace.begin(); w != trace.end(); ++w)
+    for (const auto & w : trace)
     {
-        current = step(current, *w);
+        current = step(current, w);
         if (current == -1)
             return false;
     }
@@ -145,8 +145,8 @@ unsigned int ompl::control::Automaton::numTransitions(void) const
 {
     unsigned int ntrans = 0;
     typedef std::vector<TransitionMap>::const_iterator TransIter;
-    for (TransIter i = transitions_.begin(); i != transitions_.end(); ++i)
-        ntrans += i->entries.size();
+    for (const auto & transition : transitions_)
+        ntrans += transition.entries.size();
     return ntrans;
 }
 
@@ -284,11 +284,11 @@ ompl::control::AutomatonPtr ompl::control::Automaton::DisjunctionAutomaton(unsig
 {
     AutomatonPtr disj(new Automaton(numProps, 2));
     World loop(numProps);
-    for (std::vector<unsigned int>::const_iterator p = disjProps.begin(); p != disjProps.end(); ++p)
+    for (unsigned int disjProp : disjProps)
     {
         World satisfy(numProps);
-        satisfy[*p] = true;
-        loop[*p] = false;
+        satisfy[disjProp] = true;
+        loop[disjProp] = false;
         disj->addTransition(0, satisfy, 1);
     }
     disj->addTransition(0, loop, 0);

@@ -187,8 +187,8 @@ namespace ompl
             /** \brief Clear all start states (memory is freed) */
             void clearStartStates()
             {
-                for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
-                    si_->freeState(startStates_[i]);
+                for (auto & startState : startStates_)
+                    si_->freeState(startState);
                 startStates_.clear();
             }
 

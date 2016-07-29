@@ -193,11 +193,9 @@ namespace ompl
                         std::string timeStamp = std::to_string(timeInSeconds);
                         std::map<std::string, std::string> data;
                         data["time REAL"] = timeStamp;
-                        for (base::Planner::PlannerProgressProperties::const_iterator item = properties.begin();
-                             item != properties.end();
-                             ++item)
+                        for (const auto & property : properties)
                         {
-                            data[item->first] = item->second();
+                            data[property.first] = property.second();
                         }
                         runProgressData_.push_back(data);
                     }
@@ -266,8 +264,8 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
     out << "Experiment " << (exp_.name.empty() ? "NO_NAME" : exp_.name) << std::endl;
 
     out << exp_.parameters.size() << " experiment properties" << std::endl;
-    for(std::map<std::string, std::string>::const_iterator it = exp_.parameters.begin(); it != exp_.parameters.end(); ++it)
-        out << it->first << " = " << it->second << std::endl;
+    for(const auto & parameter : exp_.parameters)
+        out << parameter.first << " = " << parameter.second << std::endl;
 
     out << "Running on " << (exp_.host.empty() ? "UNKNOWN" : exp_.host) << std::endl;
     out << "Starting at " << time::as_string(exp_.startTime) << std::endl;
@@ -289,51 +287,49 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
 
     out << exp_.planners.size() << " planners" << std::endl;
 
-    for (unsigned int i = 0 ; i < exp_.planners.size() ; ++i)
+    for (const auto & planner : exp_.planners)
     {
-        out << exp_.planners[i].name << std::endl;
+        out << planner.name << std::endl;
 
         // get names of common properties
         std::vector<std::string> properties;
-        for (std::map<std::string, std::string>::const_iterator mit = exp_.planners[i].common.begin() ;
-             mit != exp_.planners[i].common.end() ; ++mit)
-            properties.push_back(mit->first);
+        for (auto & property : planner.common)
+            properties.push_back(property.first);
         std::sort(properties.begin(), properties.end());
 
         // print names & values of common properties
         out << properties.size() << " common properties" << std::endl;
-        for (unsigned int k = 0 ; k < properties.size() ; ++k)
+        for (auto & property : properties)
         {
-            std::map<std::string, std::string>::const_iterator it = exp_.planners[i].common.find(properties[k]);
+            auto it = planner.common.find(property);
             out << it->first << " = " << it->second << std::endl;
         }
 
         // construct the list of all possible properties for all runs
         std::map<std::string, bool> propSeen;
-        for (unsigned int j = 0 ; j < exp_.planners[i].runs.size() ; ++j)
-            for (std::map<std::string, std::string>::const_iterator mit = exp_.planners[i].runs[j].begin() ;
-                 mit != exp_.planners[i].runs[j].end() ; ++mit)
-                propSeen[mit->first] = true;
+        for (auto & run : planner.runs)
+            for (auto & property : run)
+                propSeen[property.first] = true;
 
         properties.clear();
 
-        for (std::map<std::string, bool>::iterator it = propSeen.begin() ; it != propSeen.end() ; ++it)
-            properties.push_back(it->first);
+        for (auto & it : propSeen)
+            properties.push_back(it.first);
         std::sort(properties.begin(), properties.end());
 
         // print the property names
         out << properties.size() << " properties for each run" << std::endl;
-        for (unsigned int j = 0 ; j < properties.size() ; ++j)
-            out << properties[j] << std::endl;
+        for (auto & propertie : properties)
+            out << propertie << std::endl;
 
         // print the data for each run
-        out << exp_.planners[i].runs.size() << " runs" << std::endl;
-        for (unsigned int j = 0 ; j < exp_.planners[i].runs.size() ; ++j)
+        out << planner.runs.size() << " runs" << std::endl;
+        for (auto & run : planner.runs)
         {
-            for (unsigned int k = 0 ; k < properties.size() ; ++k)
+            for (auto & property : properties)
             {
-                std::map<std::string, std::string>::const_iterator it = exp_.planners[i].runs[j].find(properties[k]);
-                if (it != exp_.planners[i].runs[j].end())
+                auto it = run.find(property);
+                if (it != run.end())
                     out << it->second;
                 out << "; ";
             }
@@ -341,29 +337,26 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
         }
 
         // print the run progress data if it was reported
-        if (exp_.planners[i].runsProgressData.size() > 0)
+        if (planner.runsProgressData.size() > 0)
         {
             // Print number of progress properties
-            out << exp_.planners[i].progressPropertyNames.size() << " progress properties for each run" << std::endl;
+            out << planner.progressPropertyNames.size() << " progress properties for each run" << std::endl;
             // Print progress property names
-            for (std::vector<std::string>::const_iterator iter =
-                     exp_.planners[i].progressPropertyNames.begin();
-                 iter != exp_.planners[i].progressPropertyNames.end();
-                 ++iter)
+            for (const auto & progPropName : planner.progressPropertyNames)
             {
-                out << *iter << std::endl;
+                out << progPropName << std::endl;
             }
             // Print progress properties for each run
-            out << exp_.planners[i].runsProgressData.size() << " runs" << std::endl;
-            for (std::size_t r = 0; r < exp_.planners[i].runsProgressData.size(); ++r)
+            out << planner.runsProgressData.size() << " runs" << std::endl;
+            for (std::size_t r = 0; r < planner.runsProgressData.size(); ++r)
             {
                 // For each time point
-                for (std::size_t t = 0; t < exp_.planners[i].runsProgressData[r].size(); ++t)
+                for (std::size_t t = 0; t < planner.runsProgressData[r].size(); ++t)
                 {
                     // Print each of the properties at that time point
                     for (std::map<std::string, std::string>::const_iterator iter =
-                             exp_.planners[i].runsProgressData[r][t].begin();
-                         iter != exp_.planners[i].runsProgressData[r][t].end();
+                             planner.runsProgressData[r][t].begin();
+                         iter != planner.runsProgressData[r][t].end();
                          ++iter)
                     {
                         out << iter->second << ",";
@@ -447,8 +440,8 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     else
         csetup_->print(setupInfo);
     setupInfo << std::endl << "Properties of benchmarked planners:" << std::endl;
-    for (unsigned int i = 0 ; i < planners_.size() ; ++i)
-        planners_[i]->printProperties(setupInfo);
+    for (auto & planner : planners_)
+        planner->printProperties(setupInfo);
 
     exp_.setupInfo = setupInfo.str();
 

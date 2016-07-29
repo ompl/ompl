@@ -100,14 +100,14 @@ void ompl::control::KPIECE1::freeMemory()
 
 void ompl::control::KPIECE1::freeGridMotions(Grid &grid)
 {
-    for (Grid::iterator it = grid.begin(); it != grid.end() ; ++it)
-        freeCellData(it->second->data);
+    for (const auto & it : grid)
+        freeCellData(it.second->data);
 }
 
 void ompl::control::KPIECE1::freeCellData(CellData *cdata)
 {
-    for (unsigned int i = 0 ; i < cdata->motions.size() ; ++i)
-        freeMotion(cdata->motions[i]);
+    for (auto & motion : cdata->motions)
+        freeMotion(motion);
     delete cdata;
 }
 
@@ -209,8 +209,8 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
     std::vector<Grid::Coord>  coords(states.size());
     std::vector<Grid::Cell*>  cells(coords.size());
 
-    for (unsigned int i = 0 ; i < states.size() ; ++i)
-        states[i] = si_->allocState();
+    for (auto & state : states)
+        state = si_->allocState();
 
     // samples that were found to be the best, so far
     CloseSamples closeSamples(nCloseSamples_);
@@ -340,8 +340,8 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
     }
 
     siC_->freeControl(rctrl);
-    for (unsigned int i = 0 ; i < states.size() ; ++i)
-        si_->freeState(states[i]);
+    for (auto & state : states)
+        si_->freeState(state);
 
     OMPL_INFORM("%s: Created %u states in %u cells (%u internal + %u external)",
                 getName().c_str(), tree_.size, tree_.grid.size(),
@@ -363,8 +363,8 @@ bool ompl::control::KPIECE1::selectMotion(Motion* &smotion, Grid::Cell* &scell)
         std::vector<CellData*> content;
         content.reserve(tree_.grid.size());
         tree_.grid.getContent(content);
-        for (std::vector<CellData*>::iterator it = content.begin() ; it != content.end() ; ++it)
-            (*it)->score += 1.0 + log((double)((*it)->iteration));
+        for (auto & it : content)
+            it->score += 1.0 + log((double)(it->iteration));
         tree_.grid.updateAll();
     }
 
@@ -421,26 +421,26 @@ void ompl::control::KPIECE1::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (unsigned int i = 0 ; i < cells.size() ; ++i)
+    for (auto & cell : cells)
     {
-        for (unsigned int j = 0 ; j < cells[i]->data->motions.size() ; ++j)
+        for (unsigned int j = 0 ; j < cell->data->motions.size() ; ++j)
         {
-            const Motion *m = cells[i]->data->motions[j];
+            const Motion *m = cell->data->motions[j];
             if (m->parent)
             {
                 if (data.hasControls())
                     data.addEdge(base::PlannerDataVertex (m->parent->state),
-                                 base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1),
+                                 base::PlannerDataVertex (m->state, cell->border ? 2 : 1),
                                  control::PlannerDataEdgeControl (m->control, m->steps * delta));
                 else
                     data.addEdge(base::PlannerDataVertex (m->parent->state),
-                                 base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1));
+                                 base::PlannerDataVertex (m->state, cell->border ? 2 : 1));
             }
             else
-                data.addStartVertex(base::PlannerDataVertex (m->state, cells[i]->border ? 2 : 1));
+                data.addStartVertex(base::PlannerDataVertex (m->state, cell->border ? 2 : 1));
 
             // A state created as a parent first may have an improper tag variable
-            data.tagState(m->state, cells[i]->border ? 2 : 1);
+            data.tagState(m->state, cell->border ? 2 : 1);
         }
     }
 }

@@ -112,29 +112,29 @@ void ompl::geometric::SST::freeMemory()
     {
         std::vector<Motion*> motions;
         nn_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (auto & motion : motions)
         {
-            if (motions[i]->state_)
-                si_->freeState(motions[i]->state_);
-            delete motions[i];
+            if (motion->state_)
+                si_->freeState(motion->state_);
+            delete motion;
         }
     }
     if (witnesses_)
     {
         std::vector<Motion*> witnesses;
         witnesses_->list(witnesses);
-        for (unsigned int i = 0 ; i < witnesses.size() ; ++i)
+        for (auto & witness : witnesses)
         {
-            if (witnesses[i]->state_)
-                si_->freeState(witnesses[i]->state_);
-            delete witnesses[i];
+            if (witness->state_)
+                si_->freeState(witness->state_);
+            delete witness;
         }
     }
 
-    for (unsigned int i = 0 ; i < prevSolution_.size() ; ++i)
+    for (auto & i : prevSolution_)
     {
-        if (prevSolution_[i])
-            si_->freeState(prevSolution_[i]);
+        if (i)
+            si_->freeState(i);
     }
     prevSolution_.clear();
 }
@@ -145,12 +145,12 @@ ompl::geometric::SST::Motion* ompl::geometric::SST::selectNode(ompl::geometric::
     Motion* selected = nullptr;
     base::Cost bestCost = opt_->infiniteCost();
     nn_->nearestR(sample, selectionRadius_, ret);
-    for (unsigned int i = 0; i < ret.size(); i++)
+    for (auto & i : ret)
     {
-        if (!ret[i]->inactive_ && opt_->isCostBetterThan(ret[i]->accCost_, bestCost))
+        if (!i->inactive_ && opt_->isCostBetterThan(i->accCost_, bestCost))
         {
-            bestCost = ret[i]->accCost_;
-            selected = ret[i];
+            bestCost = i->accCost_;
+            selected = i;
         }
     }
     if(selected==nullptr)
@@ -305,9 +305,9 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
                     approxdif = dist;
                     solution = motion;
 
-                    for (unsigned int i = 0 ; i < prevSolution_.size() ; ++i)
-                        if (prevSolution_[i])
-                            si_->freeState(prevSolution_[i]);
+                    for (auto & i : prevSolution_)
+                        if (i)
+                            si_->freeState(i);
                     prevSolution_.clear();
                     Motion* solTrav = solution;
                     while (solTrav!=nullptr)
@@ -329,10 +329,10 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
                     approxdif = dist;
                     approxsol = motion;
 
-                    for (unsigned int i = 0 ; i < prevSolution_.size() ; ++i)
+                    for (auto & i : prevSolution_)
                     {
-                        if (prevSolution_[i])
-                            si_->freeState(prevSolution_[i]);
+                        if (i)
+                            si_->freeState(i);
                     }
                     prevSolution_.clear();
                     Motion *solTrav = approxsol;
@@ -402,9 +402,9 @@ void ompl::geometric::SST::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
-    for (unsigned i=0; i<motions.size(); i++)
-        if(motions[i]->numChildren_ == 0)
-            allMotions.push_back(motions[i]);
+    for (auto & motion : motions)
+        if(motion->numChildren_ == 0)
+            allMotions.push_back(motion);
     for(unsigned i=0;i <allMotions.size(); i++)
         if(allMotions[i]->getParent() != nullptr)
             allMotions.push_back(allMotions[i]->getParent());
@@ -412,12 +412,12 @@ void ompl::geometric::SST::getPlannerData(base::PlannerData &data) const
     if (prevSolution_.size()!=0)
         data.addGoalVertex(base::PlannerDataVertex(prevSolution_[0]));
 
-    for (unsigned int i = 0 ; i < allMotions.size() ; ++i)
+    for (auto & allMotion : allMotions)
     {
-        if (allMotions[i]->getParent() == nullptr)
-            data.addStartVertex(base::PlannerDataVertex(allMotions[i]->getState()));
+        if (allMotion->getParent() == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(allMotion->getState()));
         else
-            data.addEdge(base::PlannerDataVertex(allMotions[i]->getParent()->getState()),
-                         base::PlannerDataVertex(allMotions[i]->getState()));
+            data.addEdge(base::PlannerDataVertex(allMotion->getParent()->getState()),
+                         base::PlannerDataVertex(allMotion->getState()));
     }
 }

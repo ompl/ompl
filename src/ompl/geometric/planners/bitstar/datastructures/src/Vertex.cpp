@@ -259,16 +259,16 @@ namespace ompl
 
             children->clear();
 
-            for (std::vector<VertexWeakPtr>::const_iterator cIter = childWPtrs_.begin(); cIter != childWPtrs_.end(); ++cIter)
+            for (const auto & childWPtr : childWPtrs_)
             {
                 //Check that the weak pointer hasn't expired
-                if (cIter->expired() == true)
+                if (childWPtr.expired() == true)
                 {
                     throw ompl::Exception("A (weak) pointer to a child was found to have expired while calculating the children of a vertex.");
                 }
                 else
                 {
-                    children->push_back(cIter->lock());
+                    children->push_back(childWPtr.lock());
                 }
             }
         }
@@ -528,17 +528,17 @@ namespace ompl
             if (cascadeUpdates == true)
             {
                 //Now, iterate over my list of children and tell each one to update its own damn cost:
-                for (unsigned int i = 0u; i < childWPtrs_.size(); ++i)
+                for (auto & childWPtr : childWPtrs_)
                 {
                     //Check that it hasn't expired
-                    if (childWPtrs_.at(i).expired() == true)
+                    if (childWPtr.expired() == true)
                     {
                         throw ompl::Exception("A (weak) pointer to a child has was found to have expired while updating the costs and depths of descendant vertices.");
                     }
                     //No else, weak pointer is valid
 
                     //Get a lock and tell the child to update:
-                    childWPtrs_.at(i).lock()->updateCostAndDepth(true);
+                    childWPtr.lock()->updateCostAndDepth(true);
                 }
             }
             //No else, do not update the children. I hope the caller knows what they're doing.

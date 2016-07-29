@@ -109,11 +109,11 @@ void ompl::geometric::LazyLBTRRT::freeMemory(void)
 {
     if (idToMotionMap_.size() > 0)
     {
-        for (unsigned int i = 0 ; i < idToMotionMap_.size() ; ++i)
+        for (auto & i : idToMotionMap_)
         {
-            if (idToMotionMap_[i]->state_)
-                si_->freeState(idToMotionMap_[i]->state_);
-            delete idToMotionMap_[i];
+            if (i->state_)
+                si_->freeState(i->state_);
+            delete i;
         }
         idToMotionMap_.clear();
     }

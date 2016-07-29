@@ -139,8 +139,8 @@ namespace ompl
                 // to free all memory allocated here.
                 pd.decoupleFromPlanner();
 
-                for (size_t i = 0; i < controls.size(); ++i)
-                    space->freeControl(controls[i]);
+                for (auto & control : controls)
+                    space->freeControl(control);
             }
 
             /// \brief Serialize and store all edges in \e pd to the binary archive.  It is assumed

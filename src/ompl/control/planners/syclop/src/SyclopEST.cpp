@@ -62,20 +62,20 @@ void ompl::control::SyclopEST::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(lastGoalMotion_->state);
 
-    for (size_t i = 0; i < motions_.size(); ++i)
+    for (auto motion : motions_)
     {
-        if (motions_[i]->parent)
+        if (motion->parent)
         {
             if (data.hasControls())
-                data.addEdge (base::PlannerDataVertex(motions_[i]->parent->state),
-                              base::PlannerDataVertex(motions_[i]->state),
-                              control::PlannerDataEdgeControl (motions_[i]->control, motions_[i]->steps * delta));
+                data.addEdge (base::PlannerDataVertex(motion->parent->state),
+                              base::PlannerDataVertex(motion->state),
+                              control::PlannerDataEdgeControl (motion->control, motion->steps * delta));
             else
-                data.addEdge (base::PlannerDataVertex(motions_[i]->parent->state),
-                              base::PlannerDataVertex(motions_[i]->state));
+                data.addEdge (base::PlannerDataVertex(motion->parent->state),
+                              base::PlannerDataVertex(motion->state));
         }
         else
-            data.addStartVertex (base::PlannerDataVertex(motions_[i]->state));
+            data.addStartVertex (base::PlannerDataVertex(motion->state));
     }
 }
 
@@ -117,9 +117,8 @@ void ompl::control::SyclopEST::selectAndExtend(Region &region, std::vector<Motio
 
 void ompl::control::SyclopEST::freeMemory()
 {
-    for (std::vector<Motion*>::iterator i = motions_.begin(); i != motions_.end(); ++i)
+    for (auto m : motions_)
     {
-        Motion *m = *i;
         if (m->state)
             si_->freeState(m->state);
         if (m->control)

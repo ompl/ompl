@@ -786,12 +786,12 @@ namespace ompl
             this->updateNearestTerms();
 
             //Relabel all the previous samples as old
-            for (unsigned int i = 0u; i < newSamples_.size(); ++i)
+            for (auto & newSample : newSamples_)
             {
                 //If the sample still exists, mark as old. It can get pruned during a resort.
-                if (newSamples_.at(i)->isPruned() == false)
+                if (newSample->isPruned() == false)
                 {
-                    newSamples_.at(i)->markOld();
+                    newSample->markOld();
                 }
                 //No else, this sample has been pruned and will shortly disappear
             }
@@ -1351,13 +1351,13 @@ namespace ompl
                 freeStateNN_->list(samples);
 
                 //Iterate through the list and remove any samples that have a heuristic larger than the bestCost_
-                for (unsigned int i = 0u; i < samples.size(); ++i)
+                for (auto & sample : samples)
                 {
                     //Check if this state should be pruned:
-                    if (intQueue_->samplePruneCondition(samples.at(i)) == true)
+                    if (intQueue_->samplePruneCondition(sample) == true)
                     {
                         //Yes, remove it
-                        this->dropSample(samples.at(i));
+                        this->dropSample(sample);
                     }
                     //No else, keep.
                 }
@@ -1707,10 +1707,10 @@ namespace ompl
             ompl::base::Cost curBest = opt_->infiniteCost();
 
             //Iterate over the list of starts, finding the minimum estimated cost-to-come to the state
-            for (std::list<VertexPtr>::const_iterator startIter = startVertices_.begin(); startIter != startVertices_.end(); ++startIter)
+            for (const auto & startVertex : startVertices_)
             {
                 //Update the cost-to-come as the better of the best so far and the new one
-                curBest = opt_->betterCost(curBest, opt_->motionCostHeuristic((*startIter)->stateConst(), vertex->stateConst()));
+                curBest = opt_->betterCost(curBest, opt_->motionCostHeuristic(startVertex->stateConst(), vertex->stateConst()));
             }
 
             //Return
@@ -1733,10 +1733,10 @@ namespace ompl
             ompl::base::Cost curBest = opt_->infiniteCost();
 
             //Iterate over the list of goals, finding the minimum estimated cost-to-go from the state
-            for (std::list<VertexPtr>::const_iterator goalIter = goalVertices_.begin(); goalIter != goalVertices_.end(); ++goalIter)
+            for (const auto & goalVertex : goalVertices_)
             {
                 //Update the cost-to-go as the better of the best so far and the new one
-                curBest = opt_->betterCost(curBest, opt_->motionCostHeuristic(vertex->stateConst(), (*goalIter)->stateConst()));
+                curBest = opt_->betterCost(curBest, opt_->motionCostHeuristic(vertex->stateConst(), goalVertex->stateConst()));
             }
 
             //Return

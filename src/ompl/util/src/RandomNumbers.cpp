@@ -173,13 +173,13 @@ public:
     void reset()
     {
         // Iterate over each dimension
-        for (unsigned int i = 0u; i < dimVector_.size(); ++i)
+        for (auto & i : dimVector_)
         {
             //Check if the variate_generator is allocated
-            if (bool(dimVector_.at(i).first) == true)
+            if (bool(i.first) == true)
             {
                 //It is, reset THE DATA (not the pointer)
-                dimVector_.at(i).first->reset();
+                i.first->reset();
             }
             //No else, this is an uninitialized dimension.
         }

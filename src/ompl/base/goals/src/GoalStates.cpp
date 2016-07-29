@@ -52,16 +52,16 @@ void ompl::base::GoalStates::clear()
 
 void ompl::base::GoalStates::freeMemory()
 {
-    for (unsigned int i = 0 ; i < states_.size() ; ++i)
-        si_->freeState(states_[i]);
+    for (auto & state : states_)
+        si_->freeState(state);
 }
 
 double ompl::base::GoalStates::distanceGoal(const State *st) const
 {
     double dist = std::numeric_limits<double>::infinity();
-    for (unsigned int i = 0 ; i < states_.size() ; ++i)
+    for (auto state : states_)
     {
-        double d = si_->distance(st, states_[i]);
+        double d = si_->distance(st, state);
         if (d < dist)
             dist = d;
     }
@@ -71,9 +71,9 @@ double ompl::base::GoalStates::distanceGoal(const State *st) const
 void ompl::base::GoalStates::print(std::ostream &out) const
 {
     out << states_.size() << " goal states, threshold = " << threshold_ << ", memory address = " << this << std::endl;
-    for (unsigned int i = 0 ; i < states_.size() ; ++i)
+    for (auto state : states_)
     {
-        si_->printState(states_[i], out);
+        si_->printState(state, out);
         out << std::endl;
     }
 }

@@ -209,8 +209,8 @@ void ompl::control::SpaceInformation::propagate(const base::State *state, const 
     if (alloc)
     {
         result.resize(steps);
-        for (unsigned int i = 0 ; i < result.size() ; ++i)
-            result[i] = allocState();
+        for (auto & i : result)
+            i = allocState();
     }
     else
     {

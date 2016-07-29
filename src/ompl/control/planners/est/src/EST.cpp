@@ -81,15 +81,15 @@ void ompl::control::EST::clear()
 
 void ompl::control::EST::freeMemory()
 {
-    for (Grid<MotionInfo>::iterator it = tree_.grid.begin(); it != tree_.grid.end() ; ++it)
+    for (const auto & it : tree_.grid)
     {
-        for (unsigned int i = 0 ; i < it->second->data.size() ; ++i)
+        for (unsigned int i = 0 ; i < it.second->data.size() ; ++i)
         {
-            if (it->second->data[i]->state)
-                si_->freeState(it->second->data[i]->state);
-            if (it->second->data[i]->control)
-                siC_->freeControl(it->second->data[i]->control);
-            delete it->second->data[i];
+            if (it.second->data[i]->state)
+                si_->freeState(it.second->data[i]->state);
+            if (it.second->data[i]->control)
+                siC_->freeControl(it.second->data[i]->control);
+            delete it.second->data[i];
         }
     }
 }
@@ -249,28 +249,28 @@ void ompl::control::EST::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    std::vector<MotionInfo> motions;
-    tree_.grid.getContent(motions);
+    std::vector<MotionInfo> motionInfo;
+    tree_.grid.getContent(motionInfo);
 
     double stepSize = siC_->getPropagationStepSize();
 
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
+    for (auto & mi : motionInfo)
+        for (auto & motion : mi.motions_)
         {
-            if (motions[i][j]->parent)
+            if (motion->parent)
             {
                 if (data.hasControls())
-                    data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
-                                  base::PlannerDataVertex (motions[i][j]->state),
-                                  PlannerDataEdgeControl(motions[i][j]->control, motions[i][j]->steps * stepSize));
+                    data.addEdge (base::PlannerDataVertex (motion->parent->state),
+                                  base::PlannerDataVertex (motion->state),
+                                  PlannerDataEdgeControl(motion->control, motion->steps * stepSize));
                 else
-                    data.addEdge (base::PlannerDataVertex (motions[i][j]->parent->state),
-                                  base::PlannerDataVertex (motions[i][j]->state));
+                    data.addEdge (base::PlannerDataVertex (motion->parent->state),
+                                  base::PlannerDataVertex (motion->state));
             }
             else
-                data.addStartVertex (base::PlannerDataVertex (motions[i][j]->state));
+                data.addStartVertex (base::PlannerDataVertex (motion->state));
         }
 }

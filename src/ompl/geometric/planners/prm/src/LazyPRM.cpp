@@ -479,13 +479,13 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &st
             boost::remove_vertex(*it, g_);
         }
         // Update the connected component ID for neighbors.
-        for (std::set<Vertex>::iterator it = neighbors.begin() ; it != neighbors.end() ; ++it)
+        for (auto neighbor : neighbors)
         {
-            if (comp == vertexComponentProperty_[*it])
+            if (comp == vertexComponentProperty_[neighbor])
             {
                 unsigned long int newComponent = componentCount_++;
                 componentSize_[newComponent] = 0;
-                markComponent(*it, newComponent);
+                markComponent(neighbor, newComponent);
             }
         }
         return base::PathPtr();
@@ -538,11 +538,11 @@ void ompl::geometric::LazyPRM::getPlannerData(base::PlannerData &data) const
 
     // Explicitly add start and goal states. Tag all states known to be valid as 1.
     // Unchecked states are tagged as 0.
-    for (size_t i = 0; i < startM_.size(); ++i)
-        data.addStartVertex(base::PlannerDataVertex(stateProperty_[startM_[i]], 1));
+    for (auto i : startM_)
+        data.addStartVertex(base::PlannerDataVertex(stateProperty_[i], 1));
 
-    for (size_t i = 0; i < goalM_.size(); ++i)
-        data.addGoalVertex(base::PlannerDataVertex(stateProperty_[goalM_[i]], 1));
+    for (auto i : goalM_)
+        data.addGoalVertex(base::PlannerDataVertex(stateProperty_[i], 1));
 
     // Adding edges and all other vertices simultaneously
     foreach(const Edge e, boost::edges(g_))

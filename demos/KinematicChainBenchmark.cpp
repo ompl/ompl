@@ -179,9 +179,9 @@ protected:
     // return true iff no segment in env0 intersects any segment in env1
     bool environmentIntersectionTest(const Environment& env0, const Environment& env1) const
     {
-        for (unsigned int i = 0; i < env0.size(); ++i)
-            for (unsigned int j = 0; j < env1.size(); ++j)
-                if (intersectionTest(env0[i], env1[j]))
+        for (const auto & i : env0)
+            for (const auto & j : env1)
+                if (intersectionTest(i, j))
                     return false;
         return true;
     }

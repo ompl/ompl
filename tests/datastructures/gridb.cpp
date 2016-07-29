@@ -98,8 +98,8 @@ BOOST_AUTO_TEST_CASE(Simple)
 
     BOOST_CHECK_EQUAL((unsigned int)3, g.size());
     int sum = 0;
-    for (GridB<int>::iterator it = g.begin() ; it != g.end() ; ++it)
-        sum += it->second->data;
+    for (const auto & it : g)
+        sum += it.second->data;
     BOOST_CHECK_EQUAL(6, sum);
 
     coord[0] = 2;
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(Simple)
 
     BOOST_CHECK_EQUAL((unsigned int)4, g.size());
     sum = 0;
-    for (GridB<int>::iterator it = g.begin() ; it != g.end() ; ++it)
-        sum += it->second->data;
+    for (const auto & it : g)
+        sum += it.second->data;
     BOOST_CHECK_EQUAL(14, sum);
 }

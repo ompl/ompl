@@ -117,8 +117,8 @@ void ompl::base::Planner::clear()
 
 void ompl::base::Planner::getPlannerData(PlannerData &data) const
 {
-    for (PlannerProgressProperties::const_iterator it = plannerProgressProperties_.begin() ; it != plannerProgressProperties_.end() ; ++it)
-        data.properties[it->first] = it->second();
+    for (const auto & plannerProgressProperty : plannerProgressProperties_)
+        data.properties[plannerProgressProperty.first] = plannerProgressProperty.second();
 }
 
 ompl::base::PlannerStatus ompl::base::Planner::solve(const PlannerTerminationConditionFn &ptc, double checkInterval)
@@ -143,8 +143,8 @@ void ompl::base::Planner::printProperties(std::ostream &out) const
     out << "Aware of the following parameters:";
     std::vector<std::string> params;
     params_.getParamNames(params);
-    for (unsigned int i = 0 ; i < params.size() ; ++i)
-        out << " " << params[i];
+    for (auto & param : params)
+        out << " " << param;
     out << std::endl;
 }
 

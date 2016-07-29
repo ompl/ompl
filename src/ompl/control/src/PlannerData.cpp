@@ -59,10 +59,10 @@ bool ompl::control::PlannerData::removeVertex (const ompl::base::PlannerDataVert
     std::map<unsigned int, const base::PlannerDataEdge*> edgeMap;
     getEdges(index, edgeMap);
 
-    for (std::map<unsigned int, const base::PlannerDataEdge*>::iterator edgemapit = edgeMap.begin(); edgemapit != edgeMap.end(); ++edgemapit)
+    for (auto & edgemapit : edgeMap)
     {
         // Before deleting the edge, free the control associated with it, if it was decoupled
-        Control *ctrl = const_cast<Control*>(static_cast<const PlannerDataEdgeControl*>(edgemapit->second)->getControl());
+        Control *ctrl = const_cast<Control*>(static_cast<const PlannerDataEdgeControl*>(edgemapit.second)->getControl());
         std::set<Control*>::iterator it = decoupledControls_.find(ctrl);
         if (it != decoupledControls_.end())
         {
@@ -146,6 +146,6 @@ bool ompl::control::PlannerData::hasControls() const
 
 void ompl::control::PlannerData::freeMemory()
 {
-    for (std::set<Control*>::iterator it = decoupledControls_.begin(); it != decoupledControls_.end(); ++it)
-        siC_->freeControl(*it);
+    for (auto decoupledControl : decoupledControls_)
+        siC_->freeControl(decoupledControl);
 }

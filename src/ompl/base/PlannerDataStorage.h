@@ -206,8 +206,8 @@ namespace ompl
                 // to free all memory allocated here.
                 pd.decoupleFromPlanner();
 
-                for (size_t i = 0; i < states.size(); ++i)
-                    space->freeState(states[i]);
+                for (auto & state : states)
+                    space->freeState(state);
             }
 
             /// \brief Serialize and store all vertices in \e pd to the binary archive.

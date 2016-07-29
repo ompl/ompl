@@ -98,18 +98,18 @@ void ompl::geometric::BiEST::clear()
 
 void ompl::geometric::BiEST::freeMemory()
 {
-    for(size_t i = 0; i < startMotions_.size(); ++i)
+    for(auto & startMotion : startMotions_)
     {
-        if (startMotions_[i]->state)
-            si_->freeState(startMotions_[i]->state);
-        delete startMotions_[i];
+        if (startMotion->state)
+            si_->freeState(startMotion->state);
+        delete startMotion;
     }
 
-    for(size_t i = 0; i < goalMotions_.size(); ++i)
+    for(auto & goalMotion : goalMotions_)
     {
-        if (goalMotions_[i]->state)
-            si_->freeState(goalMotions_[i]->state);
-        delete goalMotions_[i];
+        if (goalMotion->state)
+            si_->freeState(goalMotion->state);
+        delete goalMotion;
     }
 }
 
@@ -252,8 +252,8 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
                     path->getStates().reserve(mpath1.size() + mpath2.size());
                     for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
                         path->append(mpath1[i]->state);
-                    for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
-                        path->append(mpath2[i]->state);
+                    for (auto & i : mpath2)
+                        path->append(i->state);
 
                     pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
                     solved = true;
@@ -277,9 +277,9 @@ void ompl::geometric::BiEST::addMotion(Motion* motion, std::vector<Motion*>& mot
                                            const std::vector<Motion*>& neighbors)
 {
     // Updating neighborhood size counts
-    for(size_t i = 0; i < neighbors.size(); ++i)
+    for(auto neighbor : neighbors)
     {
-        PDF<Motion*>::Element *elem = neighbors[i]->element;
+        PDF<Motion*>::Element *elem = neighbor->element;
         double w = pdf.getWeight(elem);
         pdf.update(elem, w / (w + 1.));
     }
@@ -293,23 +293,23 @@ void ompl::geometric::BiEST::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    for (unsigned int i = 0 ; i < startMotions_.size() ; ++i)
+    for (auto startMotion : startMotions_)
     {
-        if (startMotions_[i]->parent == nullptr)
-            data.addStartVertex(base::PlannerDataVertex(startMotions_[i]->state, 1));
+        if (startMotion->parent == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(startMotion->state, 1));
         else
-            data.addEdge(base::PlannerDataVertex(startMotions_[i]->parent->state, 1),
-                         base::PlannerDataVertex(startMotions_[i]->state, 1));
+            data.addEdge(base::PlannerDataVertex(startMotion->parent->state, 1),
+                         base::PlannerDataVertex(startMotion->state, 1));
     }
 
-    for (unsigned int i = 0 ; i < goalMotions_.size() ; ++i)
+    for (auto goalMotion : goalMotions_)
     {
-        if (goalMotions_[i]->parent == nullptr)
-            data.addGoalVertex(base::PlannerDataVertex(goalMotions_[i]->state, 2));
+        if (goalMotion->parent == nullptr)
+            data.addGoalVertex(base::PlannerDataVertex(goalMotion->state, 2));
         else
             // The edges in the goal tree are reversed to be consistent with start tree
-            data.addEdge(base::PlannerDataVertex(goalMotions_[i]->state, 2),
-                         base::PlannerDataVertex(goalMotions_[i]->parent->state, 2));
+            data.addEdge(base::PlannerDataVertex(goalMotion->state, 2),
+                         base::PlannerDataVertex(goalMotion->parent->state, 2));
     }
 
     // Add the edge connecting the two trees

@@ -82,11 +82,11 @@ void ompl::geometric::LazyRRT::freeMemory()
     {
         std::vector<Motion*> motions;
         nn_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (auto & motion : motions)
         {
-            if (motions[i]->state)
-                si_->freeState(motions[i]->state);
-            delete motions[i];
+            if (motion->state)
+                si_->freeState(motion->state);
+            delete motion;
         }
     }
 }
@@ -221,10 +221,10 @@ void ompl::geometric::LazyRRT::removeMotion(Motion *motion)
     }
 
     /* remove children */
-    for (unsigned int i = 0 ; i < motion->children.size() ; ++i)
+    for (auto & i : motion->children)
     {
-        motion->children[i]->parent = nullptr;
-        removeMotion(motion->children[i]);
+        i->parent = nullptr;
+        removeMotion(i);
     }
 
     if (motion->state)
@@ -243,14 +243,14 @@ void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state, 1));
 
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+    for (auto & motion : motions)
     {
-        if (motions[i]->parent == nullptr)
-            data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
+        if (motion->parent == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(motion->state));
         else
-            data.addEdge(base::PlannerDataVertex(motions[i]->parent ? motions[i]->parent->state : nullptr),
-                         base::PlannerDataVertex(motions[i]->state));
+            data.addEdge(base::PlannerDataVertex(motion->parent ? motion->parent->state : nullptr),
+                         base::PlannerDataVertex(motion->state));
 
-        data.tagState(motions[i]->state, motions[i]->valid ? 1 : 0);
+        data.tagState(motion->state, motion->valid ? 1 : 0);
     }
 }

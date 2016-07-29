@@ -115,8 +115,8 @@ BOOST_AUTO_TEST_CASE(SimpleConstruction)
         BOOST_CHECK_EQUAL( data.getVertex(i).getTag(), (signed)i );
     }
 
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    for (auto & state : states)
+        space->freeState(state);
 }
 
 BOOST_AUTO_TEST_CASE(AdvancedConstruction)
@@ -209,8 +209,8 @@ BOOST_AUTO_TEST_CASE(AdvancedConstruction)
         BOOST_CHECK_EQUAL(data.getVertex(i).getTag(), (signed)i);
     }
 
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    for (auto & state : states)
+        space->freeState(state);
 }
 
 class TestEdge : public base::PlannerDataEdge
@@ -297,8 +297,8 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
 
     // Try to tag an invalid state
     BOOST_CHECK_EQUAL( data.tagState(nullptr, 100), false );
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    for (auto & state : states)
+        space->freeState(state);
 }
 
 BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
@@ -376,8 +376,8 @@ BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
          }
     }
 
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    for (auto & state : states)
+        space->freeState(state);
 }
 
 BOOST_AUTO_TEST_CASE(AddRemoveStartAndGoalStates)
@@ -449,8 +449,8 @@ BOOST_AUTO_TEST_CASE(AddRemoveStartAndGoalStates)
         }
     }
 
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    for (auto & state : states)
+        space->freeState(state);
 }
 
 class PlannerDataTestVertex : public ompl::base::PlannerDataVertex
@@ -561,6 +561,6 @@ BOOST_AUTO_TEST_CASE(Serialization)
             BOOST_CHECK_EQUAL( neighbors[j], neighbors2[j] );
     }
 
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    for (auto & state : states)
+        space->freeState(state);
 }

@@ -109,8 +109,8 @@ void ompl::control::OpenDEStatePropagator::propagate(const base::State *state, c
 
     // created contacts as needed
     CallbackParam cp = { env_.get(), false };
-    for (unsigned int i = 0 ; i < env_->collisionSpaces_.size() ; ++i)
-        dSpaceCollide(env_->collisionSpaces_[i],  &cp, &nearCallback);
+    for (auto & collisionSpace : env_->collisionSpaces_)
+        dSpaceCollide(collisionSpace,  &cp, &nearCallback);
 
     // propagate one step forward
     dWorldQuickStep(env_->world_, (const dReal)duration);

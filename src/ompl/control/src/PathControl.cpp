@@ -339,9 +339,9 @@ bool ompl::control::PathControl::randomValid(unsigned int attempts)
 
 void ompl::control::PathControl::freeMemory()
 {
-    for (unsigned int i = 0 ; i < states_.size() ; ++i)
-        si_->freeState(states_[i]);
+    for (auto & state : states_)
+        si_->freeState(state);
     const SpaceInformation *si = static_cast<const SpaceInformation*>(si_.get());
-    for (unsigned int i = 0 ; i < controls_.size() ; ++i)
-        si->freeControl(controls_[i]);
+    for (auto & control : controls_)
+        si->freeControl(control);
 }

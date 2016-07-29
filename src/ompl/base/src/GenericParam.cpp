@@ -60,12 +60,12 @@ bool ompl::base::ParamSet::setParam(const std::string &key, const std::string &v
 bool ompl::base::ParamSet::setParams(const std::map<std::string, std::string> &kv, bool ignoreUnknown)
 {
     bool result = true;
-    for (std::map<std::string, std::string>::const_iterator it = kv.begin() ; it != kv.end() ; ++it)
+    for (const auto & it : kv)
     {
         if (ignoreUnknown)
-            if (!hasParam(it->first))
+            if (!hasParam(it.first))
                 continue;
-        bool r = setParam(it->first, it->second);
+        bool r = setParam(it.first, it.second);
         result = result && r;
     }
     return result;
@@ -86,8 +86,8 @@ void ompl::base::ParamSet::getParamNames(std::vector<std::string> &params) const
 {
     params.clear();
     params.reserve(params_.size());
-    for (std::map<std::string, GenericParamPtr>::const_iterator it = params_.begin() ; it != params_.end() ; ++it)
-        params.push_back(it->first);
+    for (const auto & param : params_)
+        params.push_back(param.first);
 }
 
 void ompl::base::ParamSet::getParamValues(std::vector<std::string> &vals) const
@@ -116,8 +116,8 @@ const ompl::base::GenericParamPtr& ompl::base::ParamSet::getParam(const std::str
 
 void ompl::base::ParamSet::getParams(std::map<std::string, std::string> &params) const
 {
-    for (std::map<std::string, GenericParamPtr>::const_iterator it = params_.begin() ; it != params_.end() ; ++it)
-        params[it->first] = it->second->getValue();
+    for (const auto & param : params_)
+        params[param.first] = param.second->getValue();
 }
 
 bool ompl::base::ParamSet::hasParam(const std::string &key) const
@@ -136,11 +136,11 @@ void ompl::base::ParamSet::include(const ParamSet &other, const std::string &pre
 {
     const std::map<std::string, GenericParamPtr> &p = other.getParams();
     if (prefix.empty())
-        for (std::map<std::string, GenericParamPtr>::const_iterator it = p.begin() ; it != p.end() ; ++it)
-            params_[it->first] = it->second;
+        for (const auto & it : p)
+            params_[it.first] = it.second;
     else
-        for (std::map<std::string, GenericParamPtr>::const_iterator it = p.begin() ; it != p.end() ; ++it)
-            params_[prefix + "." + it->first] = it->second;
+        for (const auto & it : p)
+            params_[prefix + "." + it.first] = it.second;
 }
 
 void ompl::base::ParamSet::add(const GenericParamPtr &param)
@@ -160,6 +160,6 @@ void ompl::base::ParamSet::clear()
 
 void ompl::base::ParamSet::print(std::ostream &out) const
 {
-    for (std::map<std::string, GenericParamPtr>::const_iterator it = params_.begin() ; it != params_.end() ; ++it)
-        out << it->first << " = " << it->second->getValue() << std::endl;
+    for (const auto & param : params_)
+        out << param.first << " = " << param.second->getValue() << std::endl;
 }

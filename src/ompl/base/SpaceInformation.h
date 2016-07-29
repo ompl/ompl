@@ -229,8 +229,8 @@ namespace ompl
             /** \brief Allocate memory for each element of the array \e states */
             void allocStates(std::vector<State*> &states) const
             {
-                for (unsigned int i = 0 ; i < states.size() ; ++i)
-                    states[i] = stateSpace_->allocState();
+                for (auto & state : states)
+                    state = stateSpace_->allocState();
             }
 
             /** \brief Free the memory of a state */
@@ -242,8 +242,8 @@ namespace ompl
             /** \brief Free the memory of an array of states */
             void freeStates(std::vector<State*> &states) const
             {
-                for (unsigned int i = 0 ; i < states.size() ; ++i)
-                    stateSpace_->freeState(states[i]);
+                for (auto & state : states)
+                    stateSpace_->freeState(state);
             }
 
             /** \brief Copy a state to another */

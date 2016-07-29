@@ -83,13 +83,13 @@ void ompl::control::RRT::freeMemory()
     {
         std::vector<Motion*> motions;
         nn_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (auto & motion : motions)
         {
-            if (motions[i]->state)
-                si_->freeState(motions[i]->state);
-            if (motions[i]->control)
-                siC_->freeControl(motions[i]->control);
-            delete motions[i];
+            if (motion->state)
+                si_->freeState(motion->state);
+            if (motion->control)
+                siC_->freeControl(motion->control);
+            delete motion;
         }
     }
 }
@@ -189,8 +189,8 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
                     break;
             }
             else
-                for (size_t p = 0 ; p < pstates.size(); ++p)
-                    si_->freeState(pstates[p]);
+                for (auto & pstate : pstates)
+                    si_->freeState(pstate);
         }
         else
         {
@@ -277,9 +277,8 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+    for (auto m : motions)
     {
-        const Motion *m = motions[i];
         if (m->parent)
         {
             if (data.hasControls())

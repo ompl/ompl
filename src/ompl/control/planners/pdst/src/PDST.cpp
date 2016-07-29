@@ -133,8 +133,8 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
         std::vector<Motion*> motions;
         cellSelected->subdivide(ndim);
         motions.swap(cellSelected->motions_);
-        for (std::vector<Motion*>::iterator m = motions.begin() ; m != motions.end() ; ++m)
-            addMotion(*m, cellSelected, tmpState1, tmpState2, tmpProj1, tmpProj2);
+        for (auto & motion : motions)
+            addMotion(motion, cellSelected, tmpState1, tmpState2, tmpProj1, tmpProj2);
     }
 
     if (lastGoalMotion_ != nullptr)

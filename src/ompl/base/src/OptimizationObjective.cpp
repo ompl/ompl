@@ -252,11 +252,9 @@ bool ompl::base::MultiOptimizationObjective::isLocked() const
 ompl::base::Cost ompl::base::MultiOptimizationObjective::stateCost(const State *s) const
 {
     Cost c = identityCost();
-    for (std::vector<Component>::const_iterator comp = components_.begin();
-         comp != components_.end();
-         ++comp)
+    for (const auto & component : components_)
     {
-        c = Cost(c.value() + comp->weight * (comp->objective->stateCost(s).value()));
+        c = Cost(c.value() + component.weight * (component.objective->stateCost(s).value()));
     }
 
     return c;
@@ -266,11 +264,9 @@ ompl::base::Cost ompl::base::MultiOptimizationObjective::motionCost(const State 
                                                                     const State *s2) const
 {
     Cost c = identityCost();
-     for (std::vector<Component>::const_iterator comp = components_.begin();
-         comp != components_.end();
-         ++comp)
+     for (const auto & component : components_)
      {
-         c = Cost(c.value() + comp->weight * (comp->objective->motionCost(s1, s2).value()));
+         c = Cost(c.value() + component.weight * (component.objective->motionCost(s1, s2).value()));
      }
 
      return c;

@@ -81,8 +81,8 @@ void ompl::geometric::PathGeometric::copyFrom(const PathGeometric &other)
 
 void ompl::geometric::PathGeometric::freeMemory()
 {
-    for (unsigned int i = 0 ; i < states_.size() ; ++i)
-        si_->freeState(states_[i]);
+    for (auto & state : states_)
+        si_->freeState(state);
 }
 
 ompl::base::Cost ompl::geometric::PathGeometric::cost(const base::OptimizationObjectivePtr &opt) const
@@ -107,8 +107,8 @@ double ompl::geometric::PathGeometric::length() const
 double ompl::geometric::PathGeometric::clearance() const
 {
     double c = 0.0;
-    for (unsigned int i = 0 ; i < states_.size() ; ++i)
-        c += si_->getStateValidityChecker()->clearance(states_[i]);
+    for (auto state : states_)
+        c += si_->getStateValidityChecker()->clearance(state);
     if (states_.empty())
         c = std::numeric_limits<double>::infinity();
     else
@@ -178,17 +178,17 @@ bool ompl::geometric::PathGeometric::check() const
 void ompl::geometric::PathGeometric::print(std::ostream &out) const
 {
     out << "Geometric path with " << states_.size() << " states" << std::endl;
-    for (unsigned int i = 0 ; i < states_.size() ; ++i)
-        si_->printState(states_[i], out);
+    for (auto state : states_)
+        si_->printState(state, out);
     out << std::endl;
 }
 void ompl::geometric::PathGeometric::printAsMatrix(std::ostream &out) const
 {
     const base::StateSpace* space(si_->getStateSpace().get());
     std::vector<double> reals;
-    for (unsigned int i = 0 ; i < states_.size() ; ++i)
+    for (auto state : states_)
     {
-        space->copyToReals(reals, states_[i]);
+        space->copyToReals(reals, state);
         std::copy(reals.begin(), reals.end(), std::ostream_iterator<double>(out, " "));
         out << std::endl;
     }

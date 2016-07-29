@@ -91,13 +91,13 @@ void ompl::geometric::pSBL::clear()
 
 void ompl::geometric::pSBL::freeGridMotions(Grid<MotionInfo> &grid)
 {
-    for (Grid<MotionInfo>::iterator it = grid.begin(); it != grid.end() ; ++it)
+    for (const auto & it : grid)
     {
-        for (unsigned int i = 0 ; i < it->second->data.size() ; ++i)
+        for (unsigned int i = 0 ; i < it.second->data.size() ; ++i)
         {
-            if (it->second->data[i]->state)
-                si_->freeState(it->second->data[i]->state);
-            delete it->second->data[i];
+            if (it.second->data[i]->state)
+                si_->freeState(it.second->data[i]->state);
+            delete it.second->data[i];
         }
     }
 }
@@ -122,9 +122,9 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTer
                 {
                     retry = false;
                     std::map<Motion*, bool> seen;
-                    for (unsigned int i = 0 ; i < removeList_.motions.size() ; ++i)
-                        if (seen.find(removeList_.motions[i].motion) == seen.end())
-                            removeMotion(*removeList_.motions[i].tree, removeList_.motions[i].motion, seen);
+                    for (auto & motion : removeList_.motions)
+                        if (seen.find(motion.motion) == seen.end())
+                            removeMotion(*motion.tree, motion.motion, seen);
                     removeList_.motions.clear();
                     loopLock_.unlock();
                 }
@@ -171,8 +171,8 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTer
             {
                 sol->found = true;
                 PathGeometric *path = new PathGeometric(si_);
-                for (unsigned int i = 0 ; i < solution.size() ; ++i)
-                    path->append(solution[i]->state);
+                for (auto & i : solution)
+                    path->append(i->state);
                 pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
             }
             sol->lock.unlock();
@@ -416,10 +416,10 @@ void ompl::geometric::pSBL::removeMotion(TreeData &tree, Motion *motion, std::ma
     }
 
     /* remove children */
-    for (unsigned int i = 0 ; i < motion->children.size() ; ++i)
+    for (auto & i : motion->children)
     {
-        motion->children[i]->parent = nullptr;
-        removeMotion(tree, motion->children[i], seen);
+        i->parent = nullptr;
+        removeMotion(tree, i, seen);
     }
 
     if (motion->state)
@@ -453,27 +453,27 @@ void ompl::geometric::pSBL::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    std::vector<MotionInfo> motions;
-    tStart_.grid.getContent(motions);
+    std::vector<MotionInfo> motionInfo;
+    tStart_.grid.getContent(motionInfo);
 
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-            if (motions[i][j]->parent == nullptr)
-                data.addStartVertex(base::PlannerDataVertex(motions[i][j]->state, 1));
+    for (auto & m : motionInfo)
+        for (auto & motion : m.motions_)
+            if (motion->parent == nullptr)
+                data.addStartVertex(base::PlannerDataVertex(motion->state, 1));
             else
-                data.addEdge(base::PlannerDataVertex(motions[i][j]->parent->state, 1),
-                             base::PlannerDataVertex(motions[i][j]->state, 1));
+                data.addEdge(base::PlannerDataVertex(motion->parent->state, 1),
+                             base::PlannerDataVertex(motion->state, 1));
 
-    motions.clear();
-    tGoal_.grid.getContent(motions);
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
-        for (unsigned int j = 0 ; j < motions[i].size() ; ++j)
-            if (motions[i][j]->parent == nullptr)
-                data.addGoalVertex(base::PlannerDataVertex(motions[i][j]->state, 2));
+    motionInfo.clear();
+    tGoal_.grid.getContent(motionInfo);
+    for (auto & m : motionInfo)
+        for (auto & motion : m.motions_)
+            if (motion->parent == nullptr)
+                data.addGoalVertex(base::PlannerDataVertex(motion->state, 2));
             else
                 // The edges in the goal tree are reversed so that they are in the same direction as start tree
-                data.addEdge(base::PlannerDataVertex(motions[i][j]->state, 2),
-                             base::PlannerDataVertex(motions[i][j]->parent->state, 2));
+                data.addEdge(base::PlannerDataVertex(motion->state, 2),
+                             base::PlannerDataVertex(motion->parent->state, 2));
 
     data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }

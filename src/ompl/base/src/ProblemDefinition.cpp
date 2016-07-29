@@ -236,8 +236,8 @@ bool ompl::base::ProblemDefinition::fixInvalidInputStates(double distStart, doub
     bool result = true;
 
     // fix start states
-    for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
-        if (!fixInvalidInputState(startStates_[i], distStart, true, attempts))
+    for (auto & startState : startStates_)
+        if (!fixInvalidInputState(startState, distStart, true, attempts))
             result = false;
 
     // fix goal state
@@ -263,8 +263,8 @@ bool ompl::base::ProblemDefinition::fixInvalidInputStates(double distStart, doub
 void ompl::base::ProblemDefinition::getInputStates(std::vector<const State*> &states) const
 {
     states.clear();
-    for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
-        states.push_back(startStates_[i]);
+    for (auto startState : startStates_)
+        states.push_back(startState);
 
     GoalState *goal = dynamic_cast<GoalState*>(goal_.get());
     if (goal)
@@ -465,8 +465,8 @@ void ompl::base::ProblemDefinition::clearSolutionPaths() const
 void ompl::base::ProblemDefinition::print(std::ostream &out) const
 {
     out << "Start states:" << std::endl;
-    for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
-        si_->printState(startStates_[i], out);
+    for (auto startState : startStates_)
+        si_->printState(startState, out);
     if (goal_)
         goal_->print(out);
     else

@@ -95,11 +95,11 @@ void ompl::geometric::LBTRRT::freeMemory()
 {
     if (idToMotionMap_.size() > 0)
     {
-        for (unsigned int i = 0 ; i < idToMotionMap_.size() ; ++i)
+        for (auto & i : idToMotionMap_)
         {
-            if (idToMotionMap_[i]->state_)
-                si_->freeState(idToMotionMap_[i]->state_);
-            delete idToMotionMap_[i];
+            if (i->state_)
+                si_->freeState(i->state_);
+            delete i;
         }
     }
 }
@@ -216,9 +216,8 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
             //-------------------------------------------------//
             if (motion->parentApx_ != nnVec.front())
             {
-                for (std::size_t i(0); i < nnVec.size(); ++i)
+                for (auto potentialParent : nnVec)
                 {
-                    Motion *potentialParent = nnVec[i];
                     double dist = distanceFunction(potentialParent, motion);
                     considerEdge(potentialParent, motion, dist);
                 }
@@ -228,9 +227,8 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
             //  Rewiring Part (ii)                                              //
             //  check if motion may be a better parent to one of its neighbors  //
             //------------------------------------------------------------------//
-            for (std::size_t i(0); i < nnVec.size(); ++i)
+            for (auto child : nnVec)
             {
-                Motion *child = nnVec[i];
                 double dist = distanceFunction(motion, child);
                 considerEdge(motion, child, dist);
             }
@@ -393,21 +391,20 @@ void ompl::geometric::LBTRRT::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state_));
 
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+    for (auto & motion : motions)
     {
-        if (motions[i]->parentApx_ == nullptr)
-            data.addStartVertex(base::PlannerDataVertex(motions[i]->state_));
+        if (motion->parentApx_ == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(motion->state_));
         else
-            data.addEdge(base::PlannerDataVertex(motions[i]->parentApx_->state_),
-                         base::PlannerDataVertex(motions[i]->state_));
+            data.addEdge(base::PlannerDataVertex(motion->parentApx_->state_),
+                         base::PlannerDataVertex(motion->state_));
     }
 }
 
 void ompl::geometric::LBTRRT::updateChildCostsApx(Motion *m, double delta)
 {
-    for (std::size_t i = 0; i < m->childrenApx_.size(); ++i)
+    for (auto child : m->childrenApx_)
     {
-        Motion* child = m->childrenApx_[i];
         child->costApx_ += delta;
         updateChildCostsApx(child, delta);
     }

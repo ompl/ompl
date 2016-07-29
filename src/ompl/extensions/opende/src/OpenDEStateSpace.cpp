@@ -81,8 +81,8 @@ void ompl::control::OpenDEStateSpace::setDefaultBounds()
     bool found = false;
 
     std::queue<dSpaceID> spaces;
-    for (unsigned int i = 0 ; i < env_->collisionSpaces_.size() ; ++i)
-        spaces.push(env_->collisionSpaces_[i]);
+    for (auto & collisionSpace : env_->collisionSpaces_)
+        spaces.push(collisionSpace);
 
     while (!spaces.empty())
     {
@@ -103,8 +103,8 @@ void ompl::control::OpenDEStateSpace::setDefaultBounds()
                 dGeomGetAABB(geom, aabb);
 
                 // things like planes are infinite; we want to ignore those
-                for (int k = 0 ; k < 6 ; ++k)
-                    if (fabs(aabb[k]) >= std::numeric_limits<dReal>::max())
+                for (double k : aabb)
+                    if (fabs(k) >= std::numeric_limits<dReal>::max())
                     {
                         valid = false;
                         break;

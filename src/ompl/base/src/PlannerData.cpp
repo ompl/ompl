@@ -508,16 +508,16 @@ bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
     std::vector<unsigned int>::iterator it = std::find(startVertexIndices_.begin(), startVertexIndices_.end(), vIndex);
     if (it != startVertexIndices_.end())
         startVertexIndices_.erase(it);
-    for (size_t i = 0; i < startVertexIndices_.size(); ++i)
-        if (startVertexIndices_[i] > vIndex)
-            startVertexIndices_[i]--;
+    for (unsigned int & startVertexIndex : startVertexIndices_)
+        if (startVertexIndex > vIndex)
+            startVertexIndex--;
 
     it = std::find(goalVertexIndices_.begin(), goalVertexIndices_.end(), vIndex);
     if (it != goalVertexIndices_.end())
         goalVertexIndices_.erase(it);
-    for (size_t i = 0; i < goalVertexIndices_.size(); ++i)
-        if (goalVertexIndices_[i] > vIndex)
-            goalVertexIndices_[i]--;
+    for (unsigned int & goalVertexIndex : goalVertexIndices_)
+        if (goalVertexIndex > vIndex)
+            goalVertexIndex--;
 
     // If the state attached to this vertex was decoupled, free it here
     State *vtxState = const_cast<State*>(getVertex(vIndex).getState());
@@ -729,10 +729,10 @@ ompl::base::StateStoragePtr ompl::base::PlannerData::extractStateStorage() const
     {
         // copy the states
         std::map<unsigned int, unsigned int> indexMap;
-        for (std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.begin() ; it != stateIndexMap_.end() ; ++it)
+        for (const auto & it : stateIndexMap_)
         {
-            indexMap[it->second] = store->size();
-            store->addState(it->first);
+            indexMap[it.second] = store->size();
+            store->addState(it.first);
         }
 
         // add the edges
@@ -770,8 +770,8 @@ const ompl::base::SpaceInformationPtr& ompl::base::PlannerData::getSpaceInformat
 void ompl::base::PlannerData::freeMemory()
 {
     // Freeing decoupled states, if any
-    for (std::set<State*>::iterator it = decoupledStates_.begin(); it != decoupledStates_.end(); ++it)
-        si_->freeState(*it);
+    for (auto decoupledState : decoupledStates_)
+        si_->freeState(decoupledState);
 
     if (graph_)
     {

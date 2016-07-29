@@ -111,8 +111,8 @@ NearestNeighborConfig nnConfig;
 // helper function to determine if a state is stored in a vector of states
 bool find(base::State* s, std::vector<base::State*> states)
 {
-    for (unsigned int k=0; k<states.size(); ++k)
-        if (s == states[k])
+    for (auto & state : states)
+        if (s == state)
             return true;
     return false;
 }

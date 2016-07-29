@@ -258,9 +258,9 @@ void randomizedAllocator(const base::SpaceInformation *si)
             states[j] = nullptr;
         }
     }
-    for (unsigned int i = 0 ; i < states.size() ; ++i)
-        if (states[i])
-            si->freeState(states[i]);
+    for (auto & state : states)
+        if (state)
+            si->freeState(state);
 }
 
 BOOST_AUTO_TEST_CASE(AllocationWithThreads)

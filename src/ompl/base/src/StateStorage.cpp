@@ -57,11 +57,11 @@ static ompl::base::StateSamplerPtr allocPrecomputedStateSampler(const ompl::base
         std::stringstream ss;
         ss << "Cannot allocate state sampler for a state space whose signature does not match that of the stored states. ";
         ss << "Expected signature ";
-        for (std::size_t i = 0 ; i < expectedSignature.size() ; ++i)
-            ss << expectedSignature[i] << " ";
+        for (int i : expectedSignature)
+            ss << i << " ";
         ss << "but space " << space->getName() << " has signature ";
-        for (std::size_t i = 0 ; i < sig.size() ; ++i)
-            ss << sig[i] << " ";
+        for (int i : sig)
+            ss << i << " ";
         throw ompl::Exception(ss.str());
     }
     return ompl::base::StateSamplerPtr(new ompl::base::PrecomputedStateSampler(space, *states, minIndex, maxIndex));
@@ -185,9 +185,9 @@ void ompl::base::StateStorage::storeStates(const Header& /*h*/, boost::archive::
 
     unsigned int l = space_->getSerializationLength();
     char *buffer = new char[l];
-    for (std::size_t i = 0 ; i < states_.size() ; ++i)
+    for (auto & state : states_)
     {
-        space_->serialize(buffer, states_[i]);
+        space_->serialize(buffer, state);
         oa << boost::serialization::make_binary_object(buffer, l);
     }
     delete[] buffer;
@@ -219,8 +219,8 @@ void ompl::base::StateStorage::generateSamples(unsigned int count)
 
 void ompl::base::StateStorage::freeMemory()
 {
-    for (std::size_t i = 0 ; i < states_.size() ; ++i)
-        space_->freeState(const_cast<State*>(states_[i]));
+    for (auto & state : states_)
+        space_->freeState(const_cast<State*>(state));
 }
 
 void ompl::base::StateStorage::clear()
@@ -260,6 +260,6 @@ ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAlloc
 
 void ompl::base::StateStorage::print(std::ostream &out) const
 {
-    for (std::size_t i = 0 ; i < states_.size() ; ++i)
-        space_->printState(states_[i], out);
+    for (auto state : states_)
+        space_->printState(state, out);
 }

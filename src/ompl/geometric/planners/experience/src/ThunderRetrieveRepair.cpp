@@ -368,9 +368,8 @@ void ThunderRetrieveRepair::getPlannerData(base::PlannerData &data) const
     OMPL_INFORM("ThunderRetrieveRepair getPlannerData: including %d similar paths", nearestPaths_.size());
 
     // Visualize the n candidate paths that we recalled from the database
-    for (std::size_t i = 0 ; i < nearestPaths_.size() ; ++i)
+    for (auto path : nearestPaths_)
     {
-        PathGeometric path = nearestPaths_[i];
         for (std::size_t j = 1; j < path.getStateCount(); ++j)
         {
             data.addEdge(

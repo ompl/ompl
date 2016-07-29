@@ -78,22 +78,22 @@ void ompl::geometric::BiTRRT::freeMemory()
     if (tStart_)
     {
         tStart_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (auto & motion : motions)
         {
-            if (motions[i]->state)
-                si_->freeState(motions[i]->state);
-            delete motions[i];
+            if (motion->state)
+                si_->freeState(motion->state);
+            delete motion;
         }
     }
 
     if (tGoal_)
     {
         tGoal_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (auto & motion : motions)
         {
-            if (motions[i]->state)
-                si_->freeState(motions[i]->state);
-            delete motions[i];
+            if (motion->state)
+                si_->freeState(motion->state);
+            delete motion;
         }
     }
 }
@@ -433,8 +433,8 @@ ompl::base::PlannerStatus ompl::geometric::BiTRRT::solve(const base::PlannerTerm
                 path->getStates().reserve(mpath1.size() + mpath2.size());
                 for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
                     path->append(mpath1[i]->state);
-                for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
-                    path->append(mpath2[i]->state);
+                for (auto & i : mpath2)
+                    path->append(i->state);
 
                 pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
                 solved = true;
@@ -461,29 +461,29 @@ void ompl::geometric::BiTRRT::getPlannerData(base::PlannerData &data) const
     std::vector<Motion*> motions;
     if (tStart_)
         tStart_->list(motions);
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+    for (auto & motion : motions)
     {
-        if (motions[i]->parent == nullptr)
-            data.addStartVertex(base::PlannerDataVertex(motions[i]->state, 1));
+        if (motion->parent == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(motion->state, 1));
         else
         {
-            data.addEdge(base::PlannerDataVertex(motions[i]->parent->state, 1),
-                         base::PlannerDataVertex(motions[i]->state, 1));
+            data.addEdge(base::PlannerDataVertex(motion->parent->state, 1),
+                         base::PlannerDataVertex(motion->state, 1));
         }
     }
 
     motions.clear();
     if (tGoal_)
         tGoal_->list(motions);
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+    for (auto & motion : motions)
     {
-        if (motions[i]->parent == nullptr)
-            data.addGoalVertex(base::PlannerDataVertex(motions[i]->state, 2));
+        if (motion->parent == nullptr)
+            data.addGoalVertex(base::PlannerDataVertex(motion->state, 2));
         else
         {
             // The edges in the goal tree are reversed to be consistent with start tree
-            data.addEdge(base::PlannerDataVertex(motions[i]->state, 2),
-                         base::PlannerDataVertex(motions[i]->parent->state, 2));
+            data.addEdge(base::PlannerDataVertex(motion->state, 2),
+                         base::PlannerDataVertex(motion->parent->state, 2));
         }
     }
 

@@ -135,9 +135,9 @@ bool isStateValid(
     double y = se2->getY();
     const std::vector<Polygon>& obstacles = decomp->getHoles();
     typedef std::vector<Polygon>::const_iterator ObstacleIter;
-    for (ObstacleIter o = obstacles.begin(); o != obstacles.end(); ++o)
+    for (const auto & obstacle : obstacles)
     {
-        if (polyContains(*o, x, y))
+        if (polyContains(obstacle, x, y))
             return false;
     }
     return true;

@@ -135,9 +135,9 @@ void ompl::tools::LightningDB::addPathHelper(ompl::geometric::PathGeometric &sol
     ompl::base::PlannerDataPtr plannerData(new ompl::base::PlannerData(si_));
 
     // Add the states to one nodes files
-    for (std::size_t i = 0; i < solutionPath.getStates().size(); ++i)
+    for (auto & i : solutionPath.getStates())
     {
-        ompl::base::PlannerDataVertex vert( solutionPath.getStates()[i] ); // TODO tag?
+        ompl::base::PlannerDataVertex vert( i ); // TODO tag?
 
         plannerData->addVertex(vert);
     }
@@ -265,9 +265,9 @@ std::size_t ompl::tools::LightningDB::getStatesCount() const
     nn_->list(plannerDatas);
 
     // Start saving each planner data object
-    for (std::size_t i = 0; i < plannerDatas.size(); ++i)
+    for (auto & plannerData : plannerDatas)
     {
-        statesCount += plannerDatas[i]->numVertices();
+        statesCount += plannerData->numVertices();
     }
 
     return statesCount;

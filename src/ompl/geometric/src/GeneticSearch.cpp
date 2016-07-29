@@ -50,8 +50,8 @@ ompl::geometric::GeneticSearch::GeneticSearch(const base::SpaceInformationPtr &s
 
 ompl::geometric::GeneticSearch::~GeneticSearch()
 {
-    for (unsigned int i = 0 ; i < pool_.size() ; ++i)
-        si_->freeState(pool_[i].state);
+    for (auto & i : pool_)
+        si_->freeState(i.state);
 }
 
 bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalRegion &goal, base::State *result, const std::vector<base::State*> &hint)

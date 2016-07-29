@@ -294,12 +294,12 @@ namespace ompl
             double informedMeasure = 0.0;
 
             // The informed measure is then the sum of the measure of the individual PHSs for the given cost:
-            for (std::list<ompl::ProlateHyperspheroidPtr>::const_iterator phsIter = listPhsPtrs_.begin(); phsIter != listPhsPtrs_.end(); ++phsIter)
+            for (const auto & phsPtr : listPhsPtrs_)
             {
                 //It is nonsensical for a PHS to have a transverse diameter less than the distance between its foci, so skip those that do
-                if (currentCost.value() > (*phsIter)->getMinTransverseDiameter())
+                if (currentCost.value() > phsPtr->getMinTransverseDiameter())
                 {
-                    informedMeasure = informedMeasure + (*phsIter)->getPhsMeasure(currentCost.value());
+                    informedMeasure = informedMeasure + phsPtr->getPhsMeasure(currentCost.value());
                 }
                 //No else, this value is better than this ellipse. It will get removed later.
             }
@@ -325,10 +325,10 @@ namespace ompl
             Cost minCost = InformedSampler::opt_->infiniteCost();
 
             // Iterate over the separate subsets and return the minimum
-            for (std::list<ompl::ProlateHyperspheroidPtr>::const_iterator phsIter = listPhsPtrs_.begin(); phsIter != listPhsPtrs_.end(); ++phsIter)
+            for (const auto & phsPtr : listPhsPtrs_)
             {
                 /** \todo Use a heuristic function for the full solution cost defined in OptimizationObjective or some new Heuristic class once said function is defined. */
-                minCost = InformedSampler::opt_->betterCost(minCost, Cost((*phsIter)->getPathLength(&rawData[0])));
+                minCost = InformedSampler::opt_->betterCost(minCost, Cost(phsPtr->getPathLength(&rawData[0])));
             }
 
             return minCost;
@@ -661,10 +661,10 @@ namespace ompl
             unsigned int numInclusions = 0u;
 
             // Iterate over the list counting
-            for (std::list<ompl::ProlateHyperspheroidPtr>::const_iterator phsIter = listPhsPtrs_.begin(); phsIter != listPhsPtrs_.end(); ++ phsIter)
+            for (const auto & phsPtr : listPhsPtrs_)
             {
                 // Conditionally increment
-                if ((*phsIter)->isInPhs(&informedVector[0]) == true)
+                if (phsPtr->isInPhs(&informedVector[0]) == true)
                 {
                     ++numInclusions;
                 }

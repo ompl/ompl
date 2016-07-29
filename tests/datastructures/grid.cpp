@@ -87,8 +87,8 @@ BOOST_AUTO_TEST_CASE(Grid_Simple)
 
     BOOST_CHECK_EQUAL((unsigned int)3, g.size());
     int sum = 0;
-    for (Grid<int>::iterator it = g.begin() ; it != g.end() ; ++it)
-        sum += it->second->data;
+    for (const auto & it : g)
+        sum += it.second->data;
     BOOST_CHECK_EQUAL(6, sum);
 
     g.remove(cell2);
@@ -96,8 +96,8 @@ BOOST_AUTO_TEST_CASE(Grid_Simple)
 
     BOOST_CHECK_EQUAL((unsigned int)2, g.size());
     sum = 0;
-    for (Grid<int>::iterator it = g.begin() ; it != g.end() ; ++it)
-        sum += it->second->data;
+    for (const auto & it : g)
+        sum += it.second->data;
     BOOST_CHECK_EQUAL(4, sum);
 }
 
@@ -152,8 +152,8 @@ BOOST_AUTO_TEST_CASE(GridN_Simple)
 
     BOOST_CHECK_EQUAL((unsigned int)3, g.size());
     int sum = 0;
-    for (GridN<int>::iterator it = g.begin() ; it != g.end() ; ++it)
-        sum += it->second->data;
+    for (const auto & it : g)
+        sum += it.second->data;
     BOOST_CHECK_EQUAL(6, sum);
 
     coord[0] = 2;
@@ -185,8 +185,8 @@ BOOST_AUTO_TEST_CASE(GridN_Simple)
 
     BOOST_CHECK_EQUAL((unsigned int)4, g.size());
     sum = 0;
-    for (GridN<int>::iterator it = g.begin() ; it != g.end() ; ++it)
-        sum += it->second->data;
+    for (const auto & it : g)
+        sum += it.second->data;
     BOOST_CHECK_EQUAL(14, sum);
 
     BOOST_CHECK_EQUAL((unsigned int)1, g.components().size());

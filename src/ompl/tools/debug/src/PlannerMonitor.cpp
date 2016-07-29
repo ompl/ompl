@@ -78,9 +78,9 @@ void ompl::tools::PlannerMonitor::threadFunction()
             return;
         }
         const base::Planner::PlannerProgressProperties &props = planner_->getPlannerProgressProperties();
-        for (base::Planner::PlannerProgressProperties::const_iterator it = props.begin() ; it != props.end() ; ++it)
+        for (const auto & prop : props)
         {
-            out_ << "    \t * " << it->first << " \t : " << it->second() << std::endl;
+            out_ << "    \t * " << prop.first << " \t : " << prop.second() << std::endl;
         }
         out_ << std::endl;
         out_.flush();

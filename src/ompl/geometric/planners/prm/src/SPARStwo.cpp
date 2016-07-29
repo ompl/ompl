@@ -275,16 +275,16 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
                     {
                         std::map<Vertex, base::State*> closeRepresentatives;
                         findCloseRepresentatives(workState, qNew, visibleNeighborhood[0], closeRepresentatives, ptc);
-                        for (std::map<Vertex, base::State*>::iterator it = closeRepresentatives.begin(); it != closeRepresentatives.end(); ++it)
+                        for (auto & closeRepresentative : closeRepresentatives)
                         {
-                            updatePairPoints(visibleNeighborhood[0], qNew, it->first, it->second);
-                            updatePairPoints(it->first, it->second, visibleNeighborhood[0], qNew);
+                            updatePairPoints(visibleNeighborhood[0], qNew, closeRepresentative.first, closeRepresentative.second);
+                            updatePairPoints(closeRepresentative.first, closeRepresentative.second, visibleNeighborhood[0], qNew);
                         }
                         checkAddPath(visibleNeighborhood[0]);
-                        for (std::map<Vertex, base::State*>::iterator it = closeRepresentatives.begin(); it != closeRepresentatives.end(); ++it)
+                        for (auto & closeRepresentative : closeRepresentatives)
                         {
-                            checkAddPath(it->first);
-                            si_->freeState(it->second);
+                            checkAddPath(closeRepresentative.first);
+                            si_->freeState(closeRepresentative.second);
                         }
                     }
                 }
@@ -419,12 +419,12 @@ bool ompl::geometric::SPARStwo::checkAddConnectivity(const base::State *qNew, st
             //Add the node
             Vertex g = addGuard(si_->cloneState(qNew), CONNECTIVITY);
 
-            for (std::size_t i = 0; i < links.size() ; ++i)
+            for (unsigned long link : links)
                 //If there's no edge
-                if (!boost::edge(g, links[i], g_).second)
+                if (!boost::edge(g, link, g_).second)
                     //And the components haven't been united by previous links
-                    if (!sameComponent(links[i], g))
-                        connectGuards(g, links[i]);
+                    if (!sameComponent(link, g))
+                        connectGuards(g, link);
             return true;
         }
     }
@@ -565,9 +565,9 @@ void ompl::geometric::SPARStwo::findGraphNeighbors(base::State *st, std::vector<
     stateProperty_[ queryVertex_ ] = nullptr;
 
     //Now that we got the neighbors from the NN, we must remove any we can't see
-    for (std::size_t i = 0; i < graphNeighborhood.size() ; ++i )
-        if (si_->checkMotion(st, stateProperty_[graphNeighborhood[i]]))
-            visibleNeighborhood.push_back(graphNeighborhood[i]);
+    for (unsigned long i : graphNeighborhood)
+        if (si_->checkMotion(st, stateProperty_[i]))
+            visibleNeighborhood.push_back(i);
 }
 
 void ompl::geometric::SPARStwo::approachGraph( Vertex v )
@@ -576,9 +576,9 @@ void ompl::geometric::SPARStwo::approachGraph( Vertex v )
     nn_->nearestR( v, sparseDelta_, hold );
 
     std::vector< Vertex > neigh;
-    for (std::size_t i = 0; i < hold.size(); ++i)
-        if (si_->checkMotion( stateProperty_[v], stateProperty_[hold[i]]))
-            neigh.push_back( hold[i] );
+    for (unsigned long i : hold)
+        if (si_->checkMotion( stateProperty_[v], stateProperty_[i]))
+            neigh.push_back( i );
 
     foreach (Vertex vp, neigh)
         connectGuards(v, vp);
@@ -593,10 +593,10 @@ ompl::geometric::SPARStwo::Vertex ompl::geometric::SPARStwo::findGraphRepresenta
 
     Vertex result = boost::graph_traits<Graph>::null_vertex();
 
-    for (std::size_t i = 0 ; i< nbh.size() ; ++i)
-        if (si_->checkMotion(st, stateProperty_[nbh[i]]))
+    for (unsigned long i : nbh)
+        if (si_->checkMotion(st, stateProperty_[i]))
         {
-            result = nbh[i];
+            result = i;
             break;
         }
     return result;
@@ -606,8 +606,8 @@ void ompl::geometric::SPARStwo::findCloseRepresentatives(base::State *workArea, 
                                                          std::map<Vertex, base::State*> &closeRepresentatives,
                                                          const base::PlannerTerminationCondition &ptc)
 {
-    for (std::map<Vertex, base::State*>::iterator it = closeRepresentatives.begin(); it != closeRepresentatives.end(); ++it)
-        si_->freeState(it->second);
+    for (auto & closeRepresentative : closeRepresentatives)
+        si_->freeState(closeRepresentative.second);
     closeRepresentatives.clear();
 
     // Then, begin searching the space around him
@@ -641,8 +641,8 @@ void ompl::geometric::SPARStwo::findCloseRepresentatives(base::State *workArea, 
             addGuard(si_->cloneState(workArea), COVERAGE);
 
             //We should also stop our efforts to add a dense path
-            for (std::map<Vertex, base::State*>::iterator it = closeRepresentatives.begin(); it != closeRepresentatives.end(); ++it)
-                si_->freeState(it->second);
+            for (auto & closeRepresentative : closeRepresentatives)
+                si_->freeState(closeRepresentative.second);
             closeRepresentatives.clear();
             break;
         }
@@ -847,11 +847,11 @@ void ompl::geometric::SPARStwo::getPlannerData(base::PlannerData &data) const
     Planner::getPlannerData(data);
 
     // Explicitly add start and goal states:
-    for (size_t i = 0; i < startM_.size(); ++i)
-        data.addStartVertex(base::PlannerDataVertex(stateProperty_[startM_[i]], (int)START));
+    for (unsigned long i : startM_)
+        data.addStartVertex(base::PlannerDataVertex(stateProperty_[i], (int)START));
 
-    for (size_t i = 0; i < goalM_.size(); ++i)
-        data.addGoalVertex(base::PlannerDataVertex(stateProperty_[goalM_[i]], (int)GOAL));
+    for (unsigned long i : goalM_)
+        data.addGoalVertex(base::PlannerDataVertex(stateProperty_[i], (int)GOAL));
 
     // If there are even edges here
     if (boost::num_edges( g_ ) > 0)
