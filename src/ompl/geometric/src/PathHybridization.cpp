@@ -36,6 +36,7 @@
 
 #include "ompl/geometric/PathHybridization.h"
 #include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <utility>
 
 namespace ompl
 {
@@ -46,8 +47,8 @@ namespace ompl
     }
 }
 
-ompl::geometric::PathHybridization::PathHybridization(const base::SpaceInformationPtr &si) :
-    si_(si),
+ompl::geometric::PathHybridization::PathHybridization(base::SpaceInformationPtr si) :
+    si_(std::move(si)),
     stateProperty_(boost::get(vertex_state_t(), g_)),
     name_("PathHybridization")
 {

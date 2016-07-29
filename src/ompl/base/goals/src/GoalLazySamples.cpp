@@ -34,12 +34,14 @@
 
 /* Author: Ioan Sucan */
 
+#include <utility>
+
 #include "ompl/base/goals/GoalLazySamples.h"
 #include "ompl/base/ScopedState.h"
 #include "ompl/util/Time.h"
 
-ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc, bool autoStart, double minDist) :
-    GoalStates(si), samplerFunc_(samplerFunc), terminateSamplingThread_(false), samplingThread_(nullptr), samplingAttempts_(0), minDist_(minDist)
+ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, GoalSamplingFn samplerFunc, bool autoStart, double minDist) :
+    GoalStates(si), samplerFunc_(std::move(samplerFunc)), terminateSamplingThread_(false), samplingThread_(nullptr), samplingAttempts_(0), minDist_(minDist)
 {
     type_ = GOAL_LAZY_SAMPLES;
     if (autoStart)

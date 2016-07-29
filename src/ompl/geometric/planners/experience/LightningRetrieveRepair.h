@@ -79,7 +79,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            LightningRetrieveRepair(const base::SpaceInformationPtr &si, const tools::LightningDBPtr &experienceDB);
+            LightningRetrieveRepair(const base::SpaceInformationPtr &si, tools::LightningDBPtr experienceDB);
 
             virtual ~LightningRetrieveRepair();
 

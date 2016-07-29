@@ -40,6 +40,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include <boost/concept_check.hpp>
 #include <iostream>
+#include <utility>
 
 namespace ompl
 {
@@ -84,7 +85,7 @@ namespace ompl
             /** \brief Given the state space that we are working with,
                 allocate a state. */
             explicit
-            ScopedState(const StateSpacePtr &space) : space_(space)
+            ScopedState(StateSpacePtr space) : space_(std::move(space))
             {
                 State *s = space_->allocState();
 
@@ -123,7 +124,7 @@ namespace ompl
 
             /** \brief Given the state space that we are working with,
                 allocate a state and fill that state with a given value. */
-            ScopedState(const StateSpacePtr &space, const State *state) : space_(space)
+            ScopedState(StateSpacePtr space, const State *state) : space_(std::move(space))
             {
                 State *s = space_->allocState();
                 space_->copyState(s, state);

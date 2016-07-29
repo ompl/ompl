@@ -43,6 +43,7 @@
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 #include <map>
 
@@ -66,7 +67,7 @@ namespace ompl
         public:
 
             /** \brief The constructor of a parameter takes the name of the parameter (\e name) */
-            GenericParam(const std::string &name) : name_(name)
+            GenericParam(std::string name) : name_(std::move(name))
             {
             }
 
@@ -167,8 +168,8 @@ namespace ompl
 
             /** \brief An explicit instantiation of a parameter \e name requires the \e setter function and optionally the \e
                 getter function. */
-            SpecificParam(const std::string &name, const SetterFn &setter, const GetterFn &getter = GetterFn()) :
-                GenericParam(name), setter_(setter), getter_(getter)
+            SpecificParam(const std::string &name, SetterFn setter, GetterFn getter = GetterFn()) :
+                GenericParam(name), setter_(std::move(setter)), getter_(std::move(getter))
             {
                 if (!setter_ && !getter_)
                     OMPL_ERROR("At least one setter or getter function must be specified for parameter");

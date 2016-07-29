@@ -98,7 +98,7 @@ void ompl::control::SpaceInformation::setStatePropagator(const StatePropagatorFn
     {
     public:
 
-        BoostFnStatePropagator(SpaceInformation *si, const StatePropagatorFn &fn) : StatePropagator(si), fn_(fn)
+        BoostFnStatePropagator(SpaceInformation *si, StatePropagatorFn fn) : StatePropagator(si), fn_(std::move(fn))
         {
         }
 

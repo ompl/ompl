@@ -38,10 +38,11 @@
 #include "ompl/util/Console.h"
 #include <limits>
 #include <queue>
+#include <utility>
 
-ompl::control::OpenDEStateSpace::OpenDEStateSpace(const OpenDEEnvironmentPtr &env,
+ompl::control::OpenDEStateSpace::OpenDEStateSpace(OpenDEEnvironmentPtr env,
                                                   double positionWeight, double linVelWeight, double angVelWeight, double orientationWeight) :
-    base::CompoundStateSpace(), env_(env)
+    base::CompoundStateSpace(), env_(std::move(env))
 {
     setName("OpenDE" + getName());
     type_ = base::STATE_SPACE_TYPE_COUNT + 1;
@@ -263,7 +264,7 @@ namespace ompl
         class WrapperForOpenDESampler : public ompl::base::StateSampler
         {
         public:
-            WrapperForOpenDESampler(const base::StateSpace *space, const base::StateSamplerPtr &wrapped) : base::StateSampler(space), wrapped_(wrapped)
+            WrapperForOpenDESampler(const base::StateSpace *space, base::StateSamplerPtr wrapped) : base::StateSampler(space), wrapped_(std::move(wrapped))
             {
             }
 

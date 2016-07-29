@@ -43,6 +43,7 @@
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Hash.h"
 #include <ostream>
+#include <utility>
 #include <vector>
 #include <set>
 #include <string>
@@ -72,10 +73,10 @@ namespace std
 }
 
 ompl::control::TriangularDecomposition::TriangularDecomposition(const base::RealVectorBounds &bounds,
-    const std::vector<Polygon> &holes, const std::vector<Polygon> &intRegs) :
+    std::vector<Polygon> holes, std::vector<Polygon> intRegs) :
     Decomposition(2, bounds),
-    holes_(holes),
-    intRegs_(intRegs),
+    holes_(std::move(holes)),
+    intRegs_(std::move(intRegs)),
     triAreaPct_(0.005),
     locator(64, this)
 {

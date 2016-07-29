@@ -117,7 +117,7 @@ namespace ompl
             //Public functions:
             /** \brief Construct an integrated queue. */
             //std::make_shared can only take 9 arguments, so be careful:
-            IntegratedQueue(const ompl::base::OptimizationObjectivePtr& opt, const DistanceFunc& distanceFunc, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget);
+            IntegratedQueue(ompl::base::OptimizationObjectivePtr  opt, DistanceFunc  distanceFunc, NeighbourhoodFunc  nearSamplesFunc, NeighbourhoodFunc  nearVerticesFunc, VertexHeuristicFunc  lowerBoundHeuristicVertex, VertexHeuristicFunc  currentHeuristicVertex, EdgeHeuristicFunc  lowerBoundHeuristicEdge, EdgeHeuristicFunc  currentHeuristicEdge, EdgeHeuristicFunc  currentHeuristicEdgeTarget);
 
             virtual ~IntegratedQueue();
 

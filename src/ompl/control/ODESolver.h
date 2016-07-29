@@ -48,6 +48,7 @@
 namespace odeint = boost::numeric::odeint;
 #include <functional>
 #include <cassert>
+#include <utility>
 #include <vector>
 
 namespace ompl
@@ -83,7 +84,7 @@ namespace ompl
 
             /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
             /// an ODE to solve, and the integration step size.
-            ODESolver (const SpaceInformationPtr& si, const ODE& ode, double intStep) : si_(si), ode_(ode), intStep_(intStep)
+            ODESolver (SpaceInformationPtr  si, ODE  ode, double intStep) : si_(std::move(si)), ode_(std::move(ode)), intStep_(intStep)
             {
             }
 
@@ -127,7 +128,7 @@ namespace ompl
                 class ODESolverStatePropagator : public StatePropagator
                 {
                     public:
-                        ODESolverStatePropagator (ODESolverPtr solver, const PostPropagationEvent &pe) : StatePropagator (solver->si_), solver_(solver), postEvent_(pe)
+                        ODESolverStatePropagator (ODESolverPtr solver, PostPropagationEvent pe) : StatePropagator (solver->si_), solver_(solver), postEvent_(std::move(pe))
                         {
                             if (!solver.get())
                                 OMPL_ERROR("ODESolverPtr does not reference a valid ODESolver object");
@@ -169,7 +170,7 @@ namespace ompl
             // Functor used by the boost::numeric::odeint stepper object
             struct ODEFunctor
             {
-                ODEFunctor (const ODE &o, const Control *ctrl) : ode(o), control(ctrl) {}
+                ODEFunctor (ODE o, const Control *ctrl) : ode(std::move(o)), control(ctrl) {}
 
                 // boost::numeric::odeint will callback to this method during integration to evaluate the system
                 void operator () (const StateType &current, StateType &output, double /*time*/)

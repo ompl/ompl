@@ -37,6 +37,8 @@
 #ifndef OMPL_BASE_SOLUTION_NON_EXISTENCE_PROOF_
 #define OMPL_BASE_SOLUTION_NON_EXISTENCE_PROOF_
 
+#include <utility>
+
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"
 
@@ -56,7 +58,7 @@ namespace ompl
         class SolutionNonExistenceProof
         {
             public:
-                SolutionNonExistenceProof(const SpaceInformationPtr &si) : si_(si)
+                SolutionNonExistenceProof(SpaceInformationPtr si) : si_(std::move(si))
                 {
                 }
 

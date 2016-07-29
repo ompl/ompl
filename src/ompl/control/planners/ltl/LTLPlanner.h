@@ -61,7 +61,7 @@ namespace ompl
             /** \brief Create an LTLPlanner with a given space and product graph.
                 Accepts an optional third parameter to control how much time is spent
                 promoting low-level tree exploration along a given high-level lead. */
-            LTLPlanner(const LTLSpaceInformationPtr& si, const ProductGraphPtr& a, double exploreTime = 0.5);
+            LTLPlanner(const LTLSpaceInformationPtr& si, ProductGraphPtr  a, double exploreTime = 0.5);
 
             /** \brief Clears all memory belonging to this LTLPlanner .*/
             virtual ~LTLPlanner(void);

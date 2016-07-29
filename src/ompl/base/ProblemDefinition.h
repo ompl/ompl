@@ -154,7 +154,7 @@ namespace ompl
             ProblemDefinition& operator=(const ProblemDefinition&) = delete;
 
             /** \brief Create a problem definition given the SpaceInformation it is part of */
-            ProblemDefinition(const SpaceInformationPtr &si);
+            ProblemDefinition(SpaceInformationPtr si);
 
             virtual ~ProblemDefinition()
             {

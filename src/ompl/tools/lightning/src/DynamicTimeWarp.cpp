@@ -37,6 +37,8 @@
 
 #include <ompl/tools/lightning/DynamicTimeWarp.h>
 
+#include <utility>
+
 namespace // anonymous
 {
     /**
@@ -48,8 +50,8 @@ namespace // anonymous
     }
 }
 
-ompl::tools::DynamicTimeWarp::DynamicTimeWarp(const base::SpaceInformationPtr &si)
-    : si_(si), table_(1, 1)
+ompl::tools::DynamicTimeWarp::DynamicTimeWarp(base::SpaceInformationPtr si)
+    : si_(std::move(si)), table_(1, 1)
 {
     table_(0, 0) = 0.;
 }

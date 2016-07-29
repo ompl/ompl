@@ -177,7 +177,7 @@ namespace ompl
             PlannerData& operator=(const PlannerData&) = delete;
 
             /// \brief Constructor.  Accepts a SpaceInformationPtr for the space planned in.
-            PlannerData(const SpaceInformationPtr &si);
+            PlannerData(SpaceInformationPtr si);
             /// \brief Destructor.
             virtual ~PlannerData();
 

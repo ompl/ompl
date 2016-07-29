@@ -45,6 +45,7 @@
 #include <boost/graph/graphml.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/property_map/function_property_map.hpp>
+#include <utility>
 
 // This is a convenient macro to cast the void* graph pointer as the
 // Boost.Graph structure from PlannerDataGraph.h
@@ -54,7 +55,7 @@ const ompl::base::PlannerDataEdge   ompl::base::PlannerData::NO_EDGE = ompl::bas
 const ompl::base::PlannerDataVertex ompl::base::PlannerData::NO_VERTEX = ompl::base::PlannerDataVertex(nullptr);
 const unsigned int ompl::base::PlannerData::INVALID_INDEX = std::numeric_limits<unsigned int>::max();
 
-ompl::base::PlannerData::PlannerData (const SpaceInformationPtr &si) : si_(si)
+ompl::base::PlannerData::PlannerData (SpaceInformationPtr si) : si_(std::move(si))
 {
     graphRaw_ = new Graph();
 }

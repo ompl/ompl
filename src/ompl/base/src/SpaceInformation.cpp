@@ -44,9 +44,10 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <queue>
 #include <cassert>
+#include <utility>
 
-ompl::base::SpaceInformation::SpaceInformation(const StateSpacePtr &space) :
-    stateSpace_(space), setup_(false)
+ompl::base::SpaceInformation::SpaceInformation(StateSpacePtr space) :
+    stateSpace_(std::move(space)), setup_(false)
 {
     if (!stateSpace_)
         throw Exception("Invalid space definition");
@@ -87,7 +88,7 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
     public:
 
         BoostFnStateValidityChecker(SpaceInformation *si,
-                                    const StateValidityCheckerFn &fn) : StateValidityChecker(si), fn_(fn)
+                                    StateValidityCheckerFn fn) : StateValidityChecker(si), fn_(std::move(fn))
         {
         }
 

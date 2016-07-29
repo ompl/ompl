@@ -132,9 +132,9 @@ namespace ompl
             /** \brief Initializes a ProductGraph with a given PropositionalDecomposition,
                 co-safe Automaton, and safe Automaton. */
             ProductGraph(
-                const PropositionalDecompositionPtr& decomp,
-                const AutomatonPtr& cosafetyAut,
-                const AutomatonPtr& safetyAut
+                PropositionalDecompositionPtr  decomp,
+                AutomatonPtr  cosafetyAut,
+                AutomatonPtr  safetyAut
             );
 
             /** \brief Initializes an abstraction with a given propositional
@@ -142,7 +142,7 @@ namespace ompl
                 set to be one that always accepts. */
             ProductGraph(
                 const PropositionalDecompositionPtr& decomp,
-                const AutomatonPtr& cosafetyAut
+                AutomatonPtr  cosafetyAut
             );
 
             ~ProductGraph();

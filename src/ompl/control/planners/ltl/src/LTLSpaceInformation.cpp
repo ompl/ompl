@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "ompl/control/planners/ltl/LTLSpaceInformation.h"
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/control/StatePropagator.h"
@@ -81,10 +83,10 @@ void oc::LTLSpaceInformation::extendPropagator(const oc::SpaceInformationPtr& ol
     {
     public:
         LTLStatePropagator(oc::LTLSpaceInformation* ltlsi,
-                           const oc::ProductGraphPtr& prod,
-                           const oc::StatePropagatorPtr& lowProp)
+                           oc::ProductGraphPtr  prod,
+                           oc::StatePropagatorPtr  lowProp)
             : oc::StatePropagator(ltlsi),
-              prod_(prod), lowProp_(lowProp), ltlsi_(ltlsi) {}
+              prod_(std::move(prod)), lowProp_(std::move(lowProp)), ltlsi_(ltlsi) {}
         virtual ~LTLStatePropagator() {}
 
         virtual void propagate(const ob::State* state, const oc::Control* control,
@@ -125,9 +127,9 @@ void oc::LTLSpaceInformation::extendValidityChecker(const oc::SpaceInformationPt
     {
     public:
         LTLStateValidityChecker(oc::LTLSpaceInformation* ltlsi,
-                                const oc::ProductGraphPtr& prod,
-                                const ob::StateValidityCheckerPtr& lowChecker)
-            : ob::StateValidityChecker(ltlsi), prod_(prod), lowChecker_(lowChecker), ltlsi_(ltlsi)
+                                oc::ProductGraphPtr  prod,
+                                ob::StateValidityCheckerPtr  lowChecker)
+            : ob::StateValidityChecker(ltlsi), prod_(std::move(prod)), lowChecker_(std::move(lowChecker)), ltlsi_(ltlsi)
         {
         }
         virtual ~LTLStateValidityChecker() { }

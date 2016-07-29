@@ -88,7 +88,7 @@ namespace ompl
             SpaceInformation& operator=(const SpaceInformation&) = delete;
 
             /** \brief Constructor. Sets the instance of the state space to plan with. */
-            SpaceInformation(const StateSpacePtr &space);
+            SpaceInformation(StateSpacePtr space);
 
             virtual ~SpaceInformation()
             {

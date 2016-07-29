@@ -73,7 +73,7 @@ namespace ompl
             OptimizationObjective& operator=(const OptimizationObjective&) = delete;
 
             /** \brief Constructor. The objective must always know the space information it is part of. The cost threshold for objective satisfaction defaults to 0.0. */
-            OptimizationObjective(const SpaceInformationPtr &si);
+            OptimizationObjective(SpaceInformationPtr si);
 
             virtual ~OptimizationObjective()
             {
@@ -220,7 +220,7 @@ namespace ompl
             /** \brief Defines a pairing of an objective and its weight */
             struct Component
             {
-                Component(const OptimizationObjectivePtr& obj, double weight);
+                Component(OptimizationObjectivePtr  obj, double weight);
                 OptimizationObjectivePtr objective;
                 double weight;
             };

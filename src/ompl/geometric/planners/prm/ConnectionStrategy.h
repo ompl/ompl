@@ -42,6 +42,7 @@
 #include <memory>
 #include <boost/math/constants/constants.hpp>
 #include <algorithm>
+#include <utility>
 #include <vector>
 
 namespace ompl
@@ -61,8 +62,8 @@ namespace ompl
             /** \brief Constructor takes the maximum number of nearest neighbors to return (\e k) and the
                 nearest neighbors datastruture to use (\e nn) */
             KStrategy(const unsigned int k,
-                      const std::shared_ptr< NearestNeighbors<Milestone> > &nn) :
-                k_(k), nn_(nn)
+                      std::shared_ptr< NearestNeighbors<Milestone> > nn) :
+                k_(k), nn_(std::move(nn))
             {
                 neighbors_.reserve(k_);
             }

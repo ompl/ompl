@@ -236,7 +236,7 @@ namespace ompl
             Planner& operator=(const Planner&) = delete;
 
             /** \brief Constructor */
-            Planner(const SpaceInformationPtr &si, const std::string &name);
+            Planner(SpaceInformationPtr si, std::string name);
 
             /** \brief Destructor */
             virtual ~Planner()

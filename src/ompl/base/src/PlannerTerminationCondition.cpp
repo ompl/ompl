@@ -49,8 +49,8 @@ namespace ompl
         class PlannerTerminationCondition::PlannerTerminationConditionImpl
         {
         public:
-            PlannerTerminationConditionImpl(const PlannerTerminationConditionFn &fn, double period) :
-            fn_(fn),
+            PlannerTerminationConditionImpl(PlannerTerminationConditionFn fn, double period) :
+            fn_(std::move(fn)),
             period_(period),
             terminate_(false),
             thread_(nullptr),

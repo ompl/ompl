@@ -47,6 +47,7 @@
 #include "ompl/datastructures/PDF.h"
 #include "ompl/util/Hash.h"
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace ompl
@@ -92,7 +93,7 @@ namespace ompl
             typedef std::function<void(int, int, std::vector<int>&)> LeadComputeFn;
 
             /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
-            Syclop(const SpaceInformationPtr& si, const DecompositionPtr &d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
+            Syclop(const SpaceInformationPtr& si, DecompositionPtr d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
                 numFreeVolSamples_(Defaults::NUM_FREEVOL_SAMPLES),
                 probShortestPath_(Defaults::PROB_SHORTEST_PATH),
                 probKeepAddingToAvail_(Defaults::PROB_KEEP_ADDING_TO_AVAIL),
@@ -100,7 +101,7 @@ namespace ompl
                 numTreeSelections_(Defaults::NUM_TREE_SELECTIONS),
                 probAbandonLeadEarly_(Defaults::PROB_ABANDON_LEAD_EARLY),
                 siC_(si.get()),
-                decomp_(d),
+                decomp_(std::move(d)),
                 covGrid_(Defaults::COVGRID_LENGTH, decomp_),
                 graphReady_(false),
                 numMotions_(0)

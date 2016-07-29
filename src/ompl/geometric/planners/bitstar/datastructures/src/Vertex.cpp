@@ -35,6 +35,8 @@
 /* Authors: Jonathan Gammell */
 
 //My definition:
+#include <utility>
+
 #include "ompl/geometric/planners/bitstar/datastructures/Vertex.h"
 //The ID generator class, this is actually included via Vertex.h->BITstar.h, but to be clear.
 #include "ompl/geometric/planners/bitstar/datastructures/IdGenerator.h"
@@ -45,10 +47,10 @@ namespace ompl
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
         //Public functions:
-        BITstar::Vertex::Vertex(const ompl::base::SpaceInformationPtr& si, const ompl::base::OptimizationObjectivePtr& opt, bool root /*= false*/)
+        BITstar::Vertex::Vertex(ompl::base::SpaceInformationPtr  si, ompl::base::OptimizationObjectivePtr  opt, bool root /*= false*/)
           : vId_(getIdGenerator().getNewId()),
-            si_(si),
-            opt_(opt),
+            si_(std::move(si)),
+            opt_(std::move(opt)),
             state_( si_->allocState() ),
             isRoot_(root),
             isNew_(true),

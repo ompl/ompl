@@ -46,6 +46,7 @@
 #include "ompl/base/StateSpace.h"
 
 #include <flann/flann.hpp>
+#include <utility>
 
 namespace ompl
 {
@@ -88,8 +89,8 @@ namespace ompl
     {
     public:
 
-        NearestNeighborsFLANN(const std::shared_ptr<flann::IndexParams> &params)
-            : index_(nullptr), params_(params), searchParams_(32, 0., true), dimension_(1)
+        NearestNeighborsFLANN(std::shared_ptr<flann::IndexParams> params)
+            : index_(nullptr), params_(std::move(params)), searchParams_(32, 0., true), dimension_(1)
         {
         }
 

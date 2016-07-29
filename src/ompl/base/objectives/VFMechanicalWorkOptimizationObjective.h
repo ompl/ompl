@@ -37,6 +37,8 @@
 #ifndef OMPL_BASE_OBJECTIVES_VF_MECHANICAL_WORK_OPTIMIZATION_OBJECTIVE_
 #define OMPL_BASE_OBJECTIVES_VF_MECHANICAL_WORK_OPTIMIZATION_OBJECTIVE_
 
+#include <utility>
+
 #include "ompl/base/objectives/MechanicalWorkOptimizationObjective.h"
 #include "ompl/geometric/planners/rrt/VFRRT.h"
 
@@ -55,8 +57,8 @@ namespace ompl
 
             /** Constructor. */
             VFMechanicalWorkOptimizationObjective(const ompl::base::SpaceInformationPtr &si,
-                const geometric::VFRRT::VectorField& vf)
-                : ompl::base::MechanicalWorkOptimizationObjective(si), vf_(vf)
+                geometric::VFRRT::VectorField  vf)
+                : ompl::base::MechanicalWorkOptimizationObjective(si), vf_(std::move(vf))
             {
             }
 

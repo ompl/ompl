@@ -39,6 +39,8 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_PDST_PDST_
 #define OMPL_GEOMETRIC_PLANNERS_PDST_PDST_
 
+#include <utility>
+
 #include "ompl/base/Planner.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/geometric/PathGeometric.h"
@@ -194,10 +196,10 @@ namespace ompl
             /// Cell is a Binary Space Partition
             struct Cell
             {
-                Cell(double volume, const ompl::base::RealVectorBounds &bounds,
+                Cell(double volume, ompl::base::RealVectorBounds bounds,
                     unsigned int splitDimension = 0)
                     : volume_(volume), splitDimension_(splitDimension), splitValue_(0.0),
-                    left_(nullptr), right_(nullptr), bounds_(bounds)
+                    left_(nullptr), right_(nullptr), bounds_(std::move(bounds))
                 {
                 }
 

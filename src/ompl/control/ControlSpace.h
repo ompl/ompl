@@ -70,7 +70,7 @@ namespace ompl
             ControlSpace& operator=(const ControlSpace&) = delete;
 
             /** \brief Construct a control space, given the state space */
-            ControlSpace(const base::StateSpacePtr &stateSpace);
+            ControlSpace(base::StateSpacePtr stateSpace);
 
             virtual ~ControlSpace();
 

@@ -34,6 +34,8 @@
 
 /* Authors: Caleb Voss, Wilson Beebe */
 
+#include <utility>
+
 #include "ompl/geometric/planners/rrt/VFRRT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 
@@ -46,9 +48,9 @@ namespace ompl
     }
 }
 
-ompl::geometric::VFRRT::VFRRT(const base::SpaceInformationPtr &si, const VectorField &vf,
+ompl::geometric::VFRRT::VFRRT(const base::SpaceInformationPtr &si, VectorField vf,
     double exploration, double initial_lambda, unsigned int update_freq)
-    : RRT(si), vf_(vf), efficientCount_(0), inefficientCount_(0), explorationInefficiency_(0.),
+    : RRT(si), vf_(std::move(vf)), efficientCount_(0), inefficientCount_(0), explorationInefficiency_(0.),
       explorationSetting_(exploration), lambda_(initial_lambda),
       nth_step_(update_freq), step_(0), meanNorm_(0.), vfdim_(0)
 {

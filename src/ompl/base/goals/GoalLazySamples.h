@@ -102,7 +102,7 @@ namespace ompl
                 different" from previously added states. A state is
                 considered "sufficiently different" if it is at least
                 \e minDist away from previously added states.  */
-            GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc,
+            GoalLazySamples(const SpaceInformationPtr &si, GoalSamplingFn samplerFunc,
                             bool autoStart = true, double minDist = std::numeric_limits<double>::epsilon());
 
             virtual ~GoalLazySamples();

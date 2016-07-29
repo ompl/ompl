@@ -38,6 +38,8 @@
 #ifndef OMPL_CONTROL_PLANNERS_PDST_PDST_
 #define OMPL_CONTROL_PLANNERS_PDST_PDST_
 
+#include <utility>
+
 #include "ompl/base/Planner.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/control/PathControl.h"
@@ -195,10 +197,10 @@ namespace ompl
             /// Cell is a Binary Space Partition
             struct Cell
             {
-                Cell(double volume, const base::RealVectorBounds &bounds,
+                Cell(double volume, base::RealVectorBounds bounds,
                      unsigned int splitDimension = 0)
                     : volume_(volume), splitDimension_(splitDimension), splitValue_(0.0),
-                    left_(nullptr), right_(nullptr), bounds_(bounds)
+                    left_(nullptr), right_(nullptr), bounds_(std::move(bounds))
                 {
                 }
 

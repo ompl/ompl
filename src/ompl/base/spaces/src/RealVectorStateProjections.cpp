@@ -38,6 +38,7 @@
 #include "ompl/util/Exception.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include <cstring>
+#include <utility>
 
 /// @cond IGNORE
 namespace ompl
@@ -88,8 +89,8 @@ ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvalu
 }
 
 ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateSpace *space, const std::vector<double> &cellSizes,
-                                                                                             const std::vector<unsigned int> &components) :
-    ProjectionEvaluator(space), components_(components)
+                                                                                             std::vector<unsigned int> components) :
+    ProjectionEvaluator(space), components_(std::move(components))
 {
     checkSpaceType(space_);
     setCellSizes(cellSizes);
@@ -97,22 +98,22 @@ ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProject
 }
 
 ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateSpacePtr &space, const std::vector<double> &cellSizes,
-                                                                                             const std::vector<unsigned int> &components) :
-    ProjectionEvaluator(space), components_(components)
+                                                                                             std::vector<unsigned int> components) :
+    ProjectionEvaluator(space), components_(std::move(components))
 {
     checkSpaceType(space_);
     setCellSizes(cellSizes);
     copyBounds();
 }
 
-ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateSpace *space, const std::vector<unsigned int> &components) :
-    ProjectionEvaluator(space), components_(components)
+ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateSpace *space, std::vector<unsigned int> components) :
+    ProjectionEvaluator(space), components_(std::move(components))
 {
     checkSpaceType(space_);
 }
 
-ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateSpacePtr &space, const std::vector<unsigned int> &components) :
-    ProjectionEvaluator(space), components_(components)
+ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateSpacePtr &space, std::vector<unsigned int> components) :
+    ProjectionEvaluator(space), components_(std::move(components))
 {
     checkSpaceType(space_);
 }

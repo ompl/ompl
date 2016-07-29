@@ -52,6 +52,7 @@
 #include <ostream>
 #include <queue>
 #include <stack>
+#include <utility>
 #include <vector>
 
 bool ompl::control::ProductGraph::State::operator==(const State& s) const
@@ -102,18 +103,18 @@ int ompl::control::ProductGraph::State::getSafeState(void) const
     return safeState;
 }
 
-ompl::control::ProductGraph::ProductGraph(const PropositionalDecompositionPtr& decomp,
-    const AutomatonPtr& cosafetyAut, const AutomatonPtr& safetyAut) :
-    decomp_(decomp),
-    cosafety_(cosafetyAut),
-    safety_(safetyAut)
+ompl::control::ProductGraph::ProductGraph(PropositionalDecompositionPtr  decomp,
+    AutomatonPtr  cosafetyAut, AutomatonPtr  safetyAut) :
+    decomp_(std::move(decomp)),
+    cosafety_(std::move(cosafetyAut)),
+    safety_(std::move(safetyAut))
 {
 }
 
 ompl::control::ProductGraph::ProductGraph(const PropositionalDecompositionPtr& decomp,
-    const AutomatonPtr& cosafetyAut) :
+    AutomatonPtr  cosafetyAut) :
     decomp_(decomp),
-    cosafety_(cosafetyAut),
+    cosafety_(std::move(cosafetyAut)),
     safety_(Automaton::AcceptingAutomaton(decomp->getNumProps()))
 {
 }

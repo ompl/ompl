@@ -41,6 +41,7 @@
 #include "ompl/datastructures/GridB.h"
 #include "ompl/util/Exception.h"
 #include <functional>
+#include <utility>
 #include <vector>
 #include <limits>
 #include <cassert>
@@ -119,8 +120,8 @@ namespace ompl
             /** \brief The signature of a function that frees the memory for a motion */
             typedef typename std::function<void(Motion*)> FreeMotionFn;
 
-            Discretization(const FreeMotionFn &freeMotion) : grid_(0), size_(0), iteration_(1), recentCell_(nullptr),
-                                                             freeMotion_(freeMotion)
+            Discretization(FreeMotionFn freeMotion) : grid_(0), size_(0), iteration_(1), recentCell_(nullptr),
+                                                             freeMotion_(std::move(freeMotion))
             {
                 grid_.onCellUpdate(computeImportance, nullptr);
                 selectBorderFraction_ = 0.9;

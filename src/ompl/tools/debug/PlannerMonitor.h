@@ -40,6 +40,7 @@
 #include <iostream>
 #include <boost/scoped_ptr.hpp>
 #include <thread>
+#include <utility>
 
 #include "ompl/base/Planner.h"
 
@@ -60,8 +61,8 @@ namespace ompl
 
                 Every time the properties are dumped, the stream offset is set to 0. It is often useful to have the
                 stream be a file, and then issue commands such as 'watch cat filename'. */
-            PlannerMonitor(const base::PlannerPtr &planner, std::ostream &out, double period = 0.5, bool autoStart = true) :
-                planner_(planner), out_(out), period_(period), shouldMonitor_(false)
+            PlannerMonitor(base::PlannerPtr planner, std::ostream &out, double period = 0.5, bool autoStart = true) :
+                planner_(std::move(planner)), out_(out), period_(period), shouldMonitor_(false)
             {
                 if (autoStart)
                     startMonitor();

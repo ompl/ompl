@@ -40,6 +40,7 @@
 #include "ompl/base/StateSpace.h"
 
 #include <mutex>
+#include <utility>
 
 namespace ompl
 {
@@ -53,7 +54,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            CForestStateSampler(const StateSpace *space, StateSamplerPtr sampler) : StateSampler(space), sampler_(sampler)
+            CForestStateSampler(const StateSpace *space, StateSamplerPtr sampler) : StateSampler(space), sampler_(std::move(sampler))
             {
             }
 

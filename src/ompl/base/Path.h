@@ -41,6 +41,7 @@
 #include "ompl/base/Cost.h"
 #include <iostream>
 #include <boost/concept_check.hpp>
+#include <utility>
 
 namespace ompl
 {
@@ -72,7 +73,7 @@ namespace ompl
             Path& operator=(const Path&) = delete;
 
             /** \brief Constructor. A path must always know the space information it is part of */
-            Path(const SpaceInformationPtr &si) : si_(si)
+            Path(SpaceInformationPtr si) : si_(std::move(si))
             {
             }
 

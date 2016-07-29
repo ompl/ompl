@@ -37,6 +37,8 @@
 #ifndef OMPL_CONTROL_SPACE_INFORMATION_
 #define OMPL_CONTROL_SPACE_INFORMATION_
 
+#include <utility>
+
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/control/ControlSpace.h"
 #include "ompl/control/ControlSampler.h"
@@ -71,8 +73,8 @@ namespace ompl
         public:
 
             /** \brief Constructor. Sets the instance of the state and control spaces to plan with. */
-            SpaceInformation(const base::StateSpacePtr &stateSpace, const ControlSpacePtr &controlSpace) :
-                base::SpaceInformation(stateSpace), controlSpace_(controlSpace),
+            SpaceInformation(const base::StateSpacePtr &stateSpace, ControlSpacePtr controlSpace) :
+                base::SpaceInformation(stateSpace), controlSpace_(std::move(controlSpace)),
                 minSteps_(0), maxSteps_(0), stepSize_(0.0)
             {
             }

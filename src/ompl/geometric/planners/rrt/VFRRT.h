@@ -67,7 +67,7 @@ namespace ompl
             typedef std::function<Eigen::VectorXd(const base::State *state)> VectorField;
 
             /** Constructor. */
-            VFRRT(const base::SpaceInformationPtr &si, const VectorField &vf, double exploration,
+            VFRRT(const base::SpaceInformationPtr &si, VectorField vf, double exploration,
                   double initial_lambda, unsigned int update_freq);
 
             /** Destructor. */

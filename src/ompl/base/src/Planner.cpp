@@ -39,9 +39,10 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include <sstream>
 #include <thread>
+#include <utility>
 
-ompl::base::Planner::Planner(const SpaceInformationPtr &si, const std::string &name) :
-    si_(si), pis_(this), name_(name), setup_(false)
+ompl::base::Planner::Planner(SpaceInformationPtr si, std::string name) :
+    si_(std::move(si)), pis_(this), name_(std::move(name)), setup_(false)
 {
     if (!si_)
         throw Exception(name_, "Invalid space information instance for planner");

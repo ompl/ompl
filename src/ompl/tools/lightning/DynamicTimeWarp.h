@@ -61,7 +61,7 @@ OMPL_CLASS_FORWARD(DynamicTimeWarp);
 class DynamicTimeWarp
 {
 public:
-    explicit DynamicTimeWarp(const base::SpaceInformationPtr &si);
+    explicit DynamicTimeWarp(base::SpaceInformationPtr si);
 
     /**
      * \brief Use Dynamic Timewarping to score two paths

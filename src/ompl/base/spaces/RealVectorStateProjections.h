@@ -130,20 +130,20 @@ namespace ompl
             /** \brief Initialize an orthogonal projection evaluator for state space \e space. The indices of the
                 kept components are in \e components and the cell sizes are in \e cellSizes */
             RealVectorOrthogonalProjectionEvaluator(const StateSpace *space, const std::vector<double> &cellSizes,
-                                                    const std::vector<unsigned int> &components);
+                                                    std::vector<unsigned int> components);
 
             /** \brief Initialize an orthogonal projection evaluator for state space \e space. The indices of the
                 kept components are in \e components and the cell sizes are in \e cellSizes */
             RealVectorOrthogonalProjectionEvaluator(const StateSpacePtr &space, const std::vector<double> &cellSizes,
-                                                    const std::vector<unsigned int> &components);
+                                                    std::vector<unsigned int> components);
 
             /** \brief Initialize an orthogonal projection evaluator for state space \e space. The indices of the
                 kept components are in \e components and the cell sizes are a tenth of the corresponding bounds from the state space. */
-            RealVectorOrthogonalProjectionEvaluator(const StateSpace *space, const std::vector<unsigned int> &components);
+            RealVectorOrthogonalProjectionEvaluator(const StateSpace *space, std::vector<unsigned int> components);
 
             /** \brief Initialize an orthogonal projection evaluator for state space \e space. The indices of the
                 kept components are in \e components and the cell sizes are a tenth of the corresponding bounds from the state space.  */
-            RealVectorOrthogonalProjectionEvaluator(const StateSpacePtr &space, const std::vector<unsigned int> &components);
+            RealVectorOrthogonalProjectionEvaluator(const StateSpacePtr &space, std::vector<unsigned int> components);
 
             virtual unsigned int getDimension() const;
 

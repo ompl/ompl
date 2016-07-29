@@ -47,6 +47,7 @@
 #include <unordered_set>
 #include <queue>
 #include <algorithm>
+#include <utility>
 
 namespace ompl
 {
@@ -382,8 +383,8 @@ namespace ompl
         public:
             /// \brief Construct a node of given degree with at most
             /// \e capacity data elements and with given pivot.
-            Node(int degree, int capacity, const _T &pivot)
-                : degree_(degree), pivot_(pivot),
+            Node(int degree, int capacity, _T pivot)
+                : degree_(degree), pivot_(std::move(pivot)),
                 minRadius_(std::numeric_limits<double>::infinity()),
                 maxRadius_(-minRadius_), minRange_(degree, minRadius_),
                 maxRange_(degree, maxRadius_)

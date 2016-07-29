@@ -37,6 +37,8 @@
 #ifndef OMPL_GEOMETRIC_HILL_CLIMBING_
 #define OMPL_GEOMETRIC_HILL_CLIMBING_
 
+#include <utility>
+
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/goals/GoalRegion.h"
 
@@ -62,7 +64,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            HillClimbing(const base::SpaceInformationPtr &si) : si_(si), maxImproveSteps_(2), checkValidity_(true)
+            HillClimbing(base::SpaceInformationPtr si) : si_(std::move(si)), maxImproveSteps_(2), checkValidity_(true)
             {
             }
 

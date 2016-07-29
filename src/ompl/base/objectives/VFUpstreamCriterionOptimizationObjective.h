@@ -37,6 +37,8 @@
 #ifndef OMPL_BASE_OBJECTIVES_VF_UPSTREAM_CRITERION_OPTIMIZATION_OBJECTIVE_
 #define OMPL_BASE_OBJECTIVES_VF_UPSTREAM_CRITERION_OPTIMIZATION_OBJECTIVE_
 
+#include <utility>
+
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/geometric/planners/rrt/VFRRT.h"
 
@@ -55,8 +57,8 @@ namespace ompl
 
             /** Constructor. */
             VFUpstreamCriterionOptimizationObjective(const ompl::base::SpaceInformationPtr &si,
-                const geometric::VFRRT::VectorField &vf)
-                : ompl::base::OptimizationObjective(si), vf_(vf)
+                geometric::VFRRT::VectorField vf)
+                : ompl::base::OptimizationObjective(si), vf_(std::move(vf))
             {
                 description_ = "Upstream Criterion";
             }

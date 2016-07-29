@@ -67,7 +67,7 @@ namespace ompl
             Goal& operator=(const Goal&) = delete;
 
             /** \brief Constructor. The goal must always know the space information it is part of */
-            Goal(const SpaceInformationPtr &si);
+            Goal(SpaceInformationPtr si);
 
             /** \brief Destructor.*/
             virtual ~Goal()

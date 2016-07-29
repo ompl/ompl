@@ -44,6 +44,7 @@
 #include <sstream>
 #include <algorithm>
 #include <mutex>
+#include <utility>
 
 /// @cond IGNORE
 namespace ompl
@@ -163,7 +164,7 @@ bool ompl::base::PlannerSolution::operator<(const PlannerSolution &b) const
     return opt_ ? opt_->isCostBetterThan(cost_, b.cost_) : length_ < b.length_;
 }
 
-ompl::base::ProblemDefinition::ProblemDefinition(const SpaceInformationPtr &si) : si_(si), solutions_(new PlannerSolutionSet())
+ompl::base::ProblemDefinition::ProblemDefinition(SpaceInformationPtr si) : si_(std::move(si)), solutions_(new PlannerSolutionSet())
 {
 }
 

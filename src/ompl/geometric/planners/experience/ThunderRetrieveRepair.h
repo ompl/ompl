@@ -77,7 +77,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            ThunderRetrieveRepair(const base::SpaceInformationPtr &si, const tools::ThunderDBPtr &experienceDB);
+            ThunderRetrieveRepair(const base::SpaceInformationPtr &si, tools::ThunderDBPtr experienceDB);
 
             virtual ~ThunderRetrieveRepair(void);
 

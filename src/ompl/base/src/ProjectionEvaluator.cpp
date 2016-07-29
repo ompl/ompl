@@ -47,6 +47,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <utility>
 
 ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale)
 {
@@ -346,8 +347,8 @@ void ompl::base::ProjectionEvaluator::printProjection(const EuclideanProjection 
     out << projection << std::endl;
 }
 
-ompl::base::SubspaceProjectionEvaluator::SubspaceProjectionEvaluator(const StateSpace *space, unsigned int index, const ProjectionEvaluatorPtr &projToUse) :
-    ProjectionEvaluator(space), index_(index), specifiedProj_(projToUse)
+ompl::base::SubspaceProjectionEvaluator::SubspaceProjectionEvaluator(const StateSpace *space, unsigned int index, ProjectionEvaluatorPtr projToUse) :
+    ProjectionEvaluator(space), index_(index), specifiedProj_(std::move(projToUse))
 {
     if (!space_->isCompound())
         throw Exception("Cannot construct a subspace projection evaluator for a space that is not compound");

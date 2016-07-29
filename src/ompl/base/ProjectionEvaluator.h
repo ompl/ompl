@@ -305,7 +305,7 @@ namespace ompl
                 projection to use can be specified by \e projToUse. If
                 the projection is not specified, the default one for
                 the subspace at position \e index is used. */
-            SubspaceProjectionEvaluator(const StateSpace *space, unsigned int index, const ProjectionEvaluatorPtr &projToUse = ProjectionEvaluatorPtr());
+            SubspaceProjectionEvaluator(const StateSpace *space, unsigned int index, ProjectionEvaluatorPtr projToUse = ProjectionEvaluatorPtr());
 
             virtual void setup();
 

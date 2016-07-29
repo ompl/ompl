@@ -45,11 +45,12 @@
 #include <thread>
 
 #include <limits>
+#include <utility>
 
 ompl::geometric::LightningRetrieveRepair::LightningRetrieveRepair(const base::SpaceInformationPtr &si,
-                                                                  const ompl::tools::LightningDBPtr &experienceDB)
+                                                                  ompl::tools::LightningDBPtr experienceDB)
     : base::Planner(si, "LightningRetrieveRepair"),
-      experienceDB_(experienceDB),
+      experienceDB_(std::move(experienceDB)),
       nearestK_(ompl::magic::NEAREST_K_RECALL_SOLUTIONS) // default value
 {
     specs_.approximateSolutions = true;

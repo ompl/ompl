@@ -34,6 +34,8 @@
 
 /* Author: Ioan Sucan */
 
+#include <utility>
+
 #include "ompl/control/ControlSpace.h"
 #include "ompl/util/Exception.h"
 
@@ -58,7 +60,7 @@ namespace ompl
 }
 /// @endcond
 
-ompl::control::ControlSpace::ControlSpace(const base::StateSpacePtr &stateSpace) : stateSpace_(stateSpace)
+ompl::control::ControlSpace::ControlSpace(base::StateSpacePtr stateSpace) : stateSpace_(std::move(stateSpace))
 {
     name_ = "Control[" + stateSpace_->getName() + "]";
     type_ = CONTROL_SPACE_UNKNOWN;

@@ -41,8 +41,9 @@
 #include <cstdlib>
 #include <cmath>
 #include <map>
+#include <utility>
 
-ompl::geometric::PathSimplifier::PathSimplifier(const base::SpaceInformationPtr &si, const base::GoalPtr& goal) : si_(si), freeStates_(true)
+ompl::geometric::PathSimplifier::PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr& goal) : si_(std::move(si)), freeStates_(true)
 {
     if (goal)
     {

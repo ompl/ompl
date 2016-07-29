@@ -46,6 +46,7 @@
 #include <thread>
 
 #include <limits>
+#include <utility>
 
 namespace ompl
 {
@@ -53,9 +54,9 @@ namespace ompl
 namespace geometric
 {
 
-ThunderRetrieveRepair::ThunderRetrieveRepair(const base::SpaceInformationPtr &si, const tools::ThunderDBPtr &experienceDB)
+ThunderRetrieveRepair::ThunderRetrieveRepair(const base::SpaceInformationPtr &si, tools::ThunderDBPtr experienceDB)
     : base::Planner(si, "Thunder_Retrieve_Repair")
-    , experienceDB_(experienceDB)
+    , experienceDB_(std::move(experienceDB))
     , nearestK_(ompl::magic::NEAREST_K_RECALL_SOLUTIONS) // default value
     , smoothingEnabled_(false) // makes understanding recalled paths more difficult if enabled
 {

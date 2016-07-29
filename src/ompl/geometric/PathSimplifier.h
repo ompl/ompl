@@ -71,7 +71,7 @@ namespace ompl
             /** \brief Create an instance for a specified space information.
             Optionally, a GoalSampleableRegion may be passed in to attempt
             improvements at the end of the path as well. */
-            PathSimplifier(const base::SpaceInformationPtr &si, const base::GoalPtr& goal = ompl::base::GoalPtr());
+            PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr& goal = ompl::base::GoalPtr());
 
             virtual ~PathSimplifier()
             {

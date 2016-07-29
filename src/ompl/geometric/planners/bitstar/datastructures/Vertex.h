@@ -81,7 +81,7 @@ namespace ompl
         {
         public:
             /** \brief Constructor */
-            Vertex(const ompl::base::SpaceInformationPtr& si, const ompl::base::OptimizationObjectivePtr& opt, bool root = false);
+            Vertex(ompl::base::SpaceInformationPtr  si, ompl::base::OptimizationObjectivePtr  opt, bool root = false);
 
             /** \brief Destructor */
             ~Vertex();

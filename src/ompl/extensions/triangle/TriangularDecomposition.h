@@ -88,8 +88,8 @@ namespace ompl
                 polygons. No two obstacles may overlap, and no two regions of interest may overlap.*/
             TriangularDecomposition(
                 const base::RealVectorBounds &bounds,
-                const std::vector<Polygon> &holes = std::vector<Polygon>(),
-                const std::vector<Polygon> &intRegs = std::vector<Polygon>()
+                std::vector<Polygon> holes = std::vector<Polygon>(),
+                std::vector<Polygon> intRegs = std::vector<Polygon>()
             );
 
             virtual ~TriangularDecomposition(void);

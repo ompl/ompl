@@ -35,6 +35,8 @@
 /* Authors: Jonathan Gammell */
 
 //My definition:
+#include <utility>
+
 #include "ompl/geometric/planners/bitstar/datastructures/IntegratedQueue.h"
 
 //OMPL:
@@ -47,16 +49,16 @@ namespace ompl
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
         //Public functions:
-        BITstar::IntegratedQueue::IntegratedQueue(const ompl::base::OptimizationObjectivePtr& opt, const DistanceFunc& distanceFunc, const NeighbourhoodFunc& nearSamplesFunc, const NeighbourhoodFunc& nearVerticesFunc, const VertexHeuristicFunc& lowerBoundHeuristicVertex, const VertexHeuristicFunc& currentHeuristicVertex, const EdgeHeuristicFunc& lowerBoundHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdge, const EdgeHeuristicFunc& currentHeuristicEdgeTarget)
-            :   opt_(opt),
-                distanceFunc_(distanceFunc),
-                nearSamplesFunc_(nearSamplesFunc),
-                nearVerticesFunc_(nearVerticesFunc),
-                lowerBoundHeuristicVertexFunc_(lowerBoundHeuristicVertex),
-                currentHeuristicVertexFunc_(currentHeuristicVertex),
-                lowerBoundHeuristicEdgeFunc_(lowerBoundHeuristicEdge),
-                currentHeuristicEdgeFunc_(currentHeuristicEdge),
-                currentHeuristicEdgeTargetFunc_(currentHeuristicEdgeTarget),
+        BITstar::IntegratedQueue::IntegratedQueue(ompl::base::OptimizationObjectivePtr  opt, DistanceFunc  distanceFunc, NeighbourhoodFunc  nearSamplesFunc, NeighbourhoodFunc  nearVerticesFunc, VertexHeuristicFunc  lowerBoundHeuristicVertex, VertexHeuristicFunc  currentHeuristicVertex, EdgeHeuristicFunc  lowerBoundHeuristicEdge, EdgeHeuristicFunc  currentHeuristicEdge, EdgeHeuristicFunc  currentHeuristicEdgeTarget)
+            :   opt_(std::move(opt)),
+                distanceFunc_(std::move(distanceFunc)),
+                nearSamplesFunc_(std::move(nearSamplesFunc)),
+                nearVerticesFunc_(std::move(nearVerticesFunc)),
+                lowerBoundHeuristicVertexFunc_(std::move(lowerBoundHeuristicVertex)),
+                currentHeuristicVertexFunc_(std::move(currentHeuristicVertex)),
+                lowerBoundHeuristicEdgeFunc_(std::move(lowerBoundHeuristicEdge)),
+                currentHeuristicEdgeFunc_(std::move(currentHeuristicEdge)),
+                currentHeuristicEdgeTargetFunc_(std::move(currentHeuristicEdgeTarget)),
                 delayRewiring_(true),
                 outgoingLookupTables_(true),
                 incomingLookupTables_(true),

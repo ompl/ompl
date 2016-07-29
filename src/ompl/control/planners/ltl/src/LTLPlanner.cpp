@@ -44,14 +44,15 @@
 #include <unordered_map>
 #include <limits>
 #include <map>
+#include <utility>
 #include <vector>
 
 #include <cstdio>
 
-ompl::control::LTLPlanner::LTLPlanner(const LTLSpaceInformationPtr& ltlsi, const ProductGraphPtr& a, double exploreTime) :
+ompl::control::LTLPlanner::LTLPlanner(const LTLSpaceInformationPtr& ltlsi, ProductGraphPtr  a, double exploreTime) :
     ompl::base::Planner(ltlsi, "LTLPlanner"),
     ltlsi_(ltlsi.get()),
-    abstraction_(a),
+    abstraction_(std::move(a)),
     prodStart_(nullptr),
     exploreTime_(exploreTime)
 {

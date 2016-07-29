@@ -63,7 +63,7 @@ namespace ompl
         public:
 
             /** \brief The state space to store states for is specified as argument */
-            StateStorage(const StateSpacePtr &space);
+            StateStorage(StateSpacePtr space);
             virtual ~StateStorage();
 
             /** \brief Get the state space this class maintains states for */

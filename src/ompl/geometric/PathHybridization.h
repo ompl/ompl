@@ -72,7 +72,7 @@ namespace ompl
         public:
 
             /** \brief The constructor needs to know about the space information of the paths it will operate on */
-            PathHybridization(const base::SpaceInformationPtr &si);
+            PathHybridization(base::SpaceInformationPtr si);
             ~PathHybridization();
 
             /** \brief Get the currently computed hybrid path. computeHybridPath() needs to have been called before. */

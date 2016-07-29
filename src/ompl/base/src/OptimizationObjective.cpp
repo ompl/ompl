@@ -41,9 +41,10 @@
 #include <limits>
 // For std::make_shared
 #include <memory>
+#include <utility>
 
-ompl::base::OptimizationObjective::OptimizationObjective(const SpaceInformationPtr &si) :
-    si_(si),
+ompl::base::OptimizationObjective::OptimizationObjective(SpaceInformationPtr si) :
+    si_(std::move(si)),
     threshold_(0.0)
 {
 }
@@ -193,8 +194,8 @@ ompl::base::MultiOptimizationObjective::MultiOptimizationObjective(const SpaceIn
 }
 
 ompl::base::MultiOptimizationObjective::Component::
-Component(const OptimizationObjectivePtr& obj, double weight) :
-    objective(obj), weight(weight)
+Component(OptimizationObjectivePtr  obj, double weight) :
+    objective(std::move(obj)), weight(weight)
 {
 }
 
