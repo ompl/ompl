@@ -668,9 +668,9 @@ namespace ompl
             double getSamplingWeight(const GNAT &gnat) const
             {
                 double minR = std::numeric_limits<double>::max();
-                for(size_t i = 0; i<minRange_.size(); i++)
-                    if(minRange_[i] < minR && minRange_[i] > 0.0)
-                        minR =  minRange_[i];
+                for(auto minRange : minRange_)
+                    if(minRange < minR && minRange > 0.0)
+                        minR =  minRange;
                 minR = std::max(minR, maxRadius_);
                 return std::pow(minR, gnat.estimatedDimension_) / (double) subtreeSize_;
             }
@@ -681,8 +681,8 @@ namespace ompl
                     if (rng.uniform01() < 1./(double) subtreeSize_)
                         return pivot_;
                     PDF<const Node*> distribution;
-                    for(unsigned int i = 0; i < children_.size(); ++i)
-                        distribution.add(children_[i], children_[i]->getSamplingWeight(gnat));
+                    for(const auto & child : children_)
+                        distribution.add(child, child->getSamplingWeight(gnat));
                     return distribution.sample(rng.uniform01())->sample(gnat, rng);
                 }
                 else

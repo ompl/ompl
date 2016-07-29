@@ -872,9 +872,9 @@ namespace ompl
             edgeQueue->clear();
 
             //I don't think there's a std::copy way to do this, so just iterate
-            for( CostToVertexPtrPairMMap::const_iterator eIter = edgeQueue_.begin(); eIter != edgeQueue_.end(); ++eIter )
+            for(const auto & eIter : edgeQueue_)
             {
-                edgeQueue->push_back(eIter->second);
+                edgeQueue->push_back(eIter.second);
             }
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
