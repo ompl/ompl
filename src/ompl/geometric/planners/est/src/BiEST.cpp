@@ -128,7 +128,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         motion->root = motion->state;
 
@@ -154,7 +154,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), startMotions_.size() + goalMotions_.size());
 
     base::State *xstate = si_->allocState();
-    Motion* xmotion = new Motion();
+    auto* xmotion = new Motion();
 
     bool startTree = true;
     bool solved = false;
@@ -167,7 +167,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
             const base::State *st = goalMotions_.size() == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
             if (st)
             {
-                Motion *motion = new Motion(si_);
+                auto *motion = new Motion(si_);
                 si_->copyState(motion->state, st);
                 motion->root = motion->state;
 
@@ -211,7 +211,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
         if (si_->checkMotion(existing->state, xstate))
         {
             // create a motion
-            Motion *motion = new Motion(si_);
+            auto *motion = new Motion(si_);
             si_->copyState(motion->state, xstate);
             motion->parent = existing;
             motion->root = existing->root;
@@ -248,7 +248,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
                         solution = solution->parent;
                     }
 
-                    PathGeometric *path = new PathGeometric(si_);
+                    auto *path = new PathGeometric(si_);
                     path->getStates().reserve(mpath1.size() + mpath2.size());
                     for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
                         path->append(mpath1[i]->state);

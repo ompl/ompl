@@ -503,7 +503,7 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
                     connectGuards(r, rp);
                 else
                 {
-                    PathGeometric *p = new PathGeometric( si_ );
+                    auto *p = new PathGeometric( si_ );
                     if (r < rp)
                     {
                         p->append(d.sigmaA_);
@@ -818,7 +818,7 @@ ompl::base::PathPtr ompl::geometric::SPARStwo::constructSolution(const Vertex st
         throw Exception(name_, "Could not find solution path");
     else
     {
-        PathGeometric *p = new PathGeometric(si_);
+        auto *p = new PathGeometric(si_);
         for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
             p->append(stateProperty_[pos]);
         p->append(stateProperty_[start]);

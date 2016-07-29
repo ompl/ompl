@@ -560,7 +560,7 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start,
     if (prev[goal] == goal)
         throw Exception(name_, "Could not find solution path");
 
-    PathGeometric *p = new PathGeometric(si_);
+    auto *p = new PathGeometric(si_);
     for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
         p->append(stateProperty_[pos]);
     p->append(stateProperty_[start]);

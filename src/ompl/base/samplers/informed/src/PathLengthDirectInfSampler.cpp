@@ -510,7 +510,7 @@ namespace ompl
         {
             // Variable
             // The iterator for the list:
-            std::list<ompl::ProlateHyperspheroidPtr>::iterator phsIter = listPhsPtrs_.begin();
+            auto phsIter = listPhsPtrs_.begin();
 
             // Iterate over the list of PHSs, updating the summed measure
             // Reset the sum
@@ -637,7 +637,7 @@ namespace ompl
             bool inPhs = false;
 
             // Iterate over the list, stopping as soon as we get our first true
-            for (std::list<ompl::ProlateHyperspheroidPtr>::const_iterator phsIter = listPhsPtrs_.begin(); phsIter != listPhsPtrs_.end() && inPhs == false; ++ phsIter)
+            for (auto phsIter = listPhsPtrs_.begin(); phsIter != listPhsPtrs_.end() && inPhs == false; ++ phsIter)
             {
                 inPhs = isInPhs(*phsIter, informedVector);
             }

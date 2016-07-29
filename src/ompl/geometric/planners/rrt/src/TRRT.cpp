@@ -163,7 +163,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
     while (const base::State *state = pis_.nextStart())
     {
         // Allocate memory for a new start state motion based on the "space-information"-size
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
 
         // Copy destination <= source
         si_->copyState(motion->state, state);
@@ -206,7 +206,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
     double randMotionDistance;
 
     // Create random motion and a pointer (for optimization) to its state
-    Motion *randMotion   = new Motion(si_);
+    auto *randMotion   = new Motion(si_);
     Motion *nearMotion;
 
     // STATES
@@ -282,7 +282,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         // V.
 
         // Create a motion
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state, newState);
         motion->parent = nearMotion; // link q_new to q_near as an edge
         motion->cost = childCost;
@@ -343,7 +343,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         }
 
         // set the solution path
-        PathGeometric *path = new PathGeometric(si_);
+        auto *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
 

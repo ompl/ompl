@@ -120,7 +120,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     // update start and check validity
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state_, st);
         motion->id_ = nn_->size();
         idToMotionMap_.push_back(motion);
@@ -152,7 +152,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     double k_rrg      = boost::math::constants::e<double>() +
                         boost::math::constants::e<double>() / (double)si_->getStateDimension();
 
-    Motion *rmotion   = new Motion(si_);
+    auto *rmotion   = new Motion(si_);
     base::State *rstate = rmotion->state_;
     base::State *xstate = si_->allocState();
     unsigned int statesGenerated = 0;
@@ -185,7 +185,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
         {
             statesGenerated++;
             /* create a motion */
-            Motion *motion = new Motion(si_);
+            auto *motion = new Motion(si_);
             si_->copyState(motion->state_, dstate);
 
             /* update fields */
@@ -278,7 +278,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
         }
 
         /* set the solution path */
-        PathGeometric *path = new PathGeometric(si_);
+        auto *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state_);
         // Add the solution path.
@@ -353,7 +353,7 @@ void ompl::geometric::LBTRRT::considerEdge(Motion *parent, Motion *child, double
                 for (iter = affected.begin(); iter != affected.end(); ++iter)
                 {
                     Motion *affected = getMotion(*iter);
-                    Lb_queue_iter lb_queue_iter = queue.find(affected);
+                    auto lb_queue_iter = queue.find(affected);
                     if (lb_queue_iter != queue.end())
                     {
                         queue.erase(lb_queue_iter);
@@ -426,7 +426,7 @@ double ompl::geometric::LBTRRT::lazilyUpdateApxParent(Motion *child, Motion *par
 void ompl::geometric::LBTRRT::removeFromParentApx(Motion *m)
 {
     std::vector<Motion*>& vec = m->parentApx_->childrenApx_;
-    for (std::vector<Motion*>::iterator it = vec.begin (); it != vec.end(); ++it)
+    for (auto it = vec.begin (); it != vec.end(); ++it)
         if (*it == m)
         {
             vec.erase(it);

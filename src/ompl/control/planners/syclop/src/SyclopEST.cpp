@@ -81,7 +81,7 @@ void ompl::control::SyclopEST::getPlannerData(base::PlannerData &data) const
 
 ompl::control::Syclop::Motion* ompl::control::SyclopEST::addRoot(const base::State *s)
 {
-    Motion *motion = new Motion(siC_);
+    auto *motion = new Motion(siC_);
     si_->copyState(motion->state, s);
     siC_->nullControl(motion->control);
     motions_.push_back(motion);
@@ -100,7 +100,7 @@ void ompl::control::SyclopEST::selectAndExtend(Region &region, std::vector<Motio
 
     if (duration >= siC_->getMinControlDuration())
     {
-        Motion *motion = new Motion(siC_);
+        auto *motion = new Motion(siC_);
         si_->copyState(motion->state, newState);
         siC_->copyControl(motion->control, rctrl);
         motion->steps = duration;

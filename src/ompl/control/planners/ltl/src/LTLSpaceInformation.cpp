@@ -161,7 +161,7 @@ namespace
         ob::StateSpacePtr cosafeSpace (new ob::DiscreteStateSpace(0, cosafe->numStates()-1));
         ob::StateSpacePtr safeSpace (new ob::DiscreteStateSpace(0, safe->numStates()-1));
 
-        ob::CompoundStateSpace* compound = new ob::CompoundStateSpace();
+        auto* compound = new ob::CompoundStateSpace();
         compound->addSubspace(lowSpace, 1.);
         compound->addSubspace(regionSpace, 0.);
         compound->addSubspace(cosafeSpace, 0.);

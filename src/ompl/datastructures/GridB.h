@@ -170,13 +170,13 @@ namespace ompl
         /// Create a cell but do not add it to the grid; update neighboring cells however
         virtual Cell* createCell(const Coord& coord, CellArray *nbh = nullptr)
         {
-            CellX* cell = new CellX();
+            auto* cell = new CellX();
             cell->coord = coord;
 
             CellArray *list = nbh ? nbh : new CellArray();
             this->neighbors(cell->coord, *list);
 
-            for (typename CellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
+            for (auto cl = list->begin() ; cl != list->end() ; ++cl)
             {
                 CellX* c = static_cast<CellX*>(*cl);
                 bool wasBorder = c->border;
@@ -229,10 +229,10 @@ namespace ompl
         {
             if (cell)
             {
-                CellArray *list = new CellArray();
+                auto *list = new CellArray();
                 this->neighbors(cell->coord, *list);
 
-                for (typename CellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
+                for (auto cl = list->begin() ; cl != list->end() ; ++cl)
                 {
                     CellX* c = static_cast<CellX*>(*cl);
                     bool wasBorder = c->border;
@@ -258,7 +258,7 @@ namespace ompl
 
                 delete list;
 
-                typename GridN<_T>::CoordHash::iterator pos = GridN<_T>::hash_.find(&cell->coord);
+                auto pos = GridN<_T>::hash_.find(&cell->coord);
                 if (pos != GridN<_T>::hash_.end())
                 {
                     GridN<_T>::hash_.erase(pos);

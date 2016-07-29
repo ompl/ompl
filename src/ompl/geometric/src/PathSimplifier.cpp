@@ -208,7 +208,7 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
         int index0 = -1;
         double t0 = 0.0;
         double p0 = rng_.uniformReal(0.0, dists.back());                                        // sample a random point (p0) along the path
-        std::vector<double>::iterator pit = std::lower_bound(dists.begin(), dists.end(), p0);   // find the NEXT waypoint after the random point
+        auto pit = std::lower_bound(dists.begin(), dists.end(), p0);   // find the NEXT waypoint after the random point
         int pos0 = pit == dists.end() ? dists.size() - 1 : pit - dists.begin();                 // get the index of the NEXT waypoint after the point
 
         if (pos0 == 0 || dists[pos0] - p0 < threshold) // snap to the NEXT waypoint
@@ -508,8 +508,8 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
             // sample a state within rangeRatio
             double t = rng_.uniformReal(std::max(dists.back() - rd, 0.0), dists.back());    // Sample a random point within rd of the end of the path
 
-            std::vector<double>::iterator end = std::lower_bound(dists.begin(), dists.end(), t);
-            std::vector<double>::iterator start = end;
+            auto end = std::lower_bound(dists.begin(), dists.end(), t);
+            auto start = end;
             while(start != dists.begin() && *start >= t)
                 start -= 1;
 

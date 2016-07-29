@@ -310,7 +310,7 @@ bool ompl::control::PathControl::randomValid(unsigned int attempts)
     controls_[0] = si->allocControl();
 
     ControlSamplerPtr cs = si->allocControlSampler();
-    base::UniformValidStateSampler *uvss = new base::UniformValidStateSampler(si);
+    auto *uvss = new base::UniformValidStateSampler(si);
     uvss->setNrAttempts(attempts);
     bool ok = false;
     for (unsigned int i = 0 ; i < attempts ; ++i)

@@ -137,7 +137,7 @@ void ompl::base::StateStorage::loadStates(const Header &h, boost::archive::binar
     OMPL_DEBUG("Deserializing %u states", h.state_count);
     // load the file
     unsigned int l = space_->getSerializationLength();
-    char *buffer = new char[l];
+    auto *buffer = new char[l];
     State *s = space_->allocState();
     for (std::size_t i = 0 ; i < h.state_count ; ++i)
     {
@@ -185,7 +185,7 @@ void ompl::base::StateStorage::storeStates(const Header& /*h*/, boost::archive::
     OMPL_DEBUG("Serializing %u states", (unsigned int)states_.size());
 
     unsigned int l = space_->getSerializationLength();
-    char *buffer = new char[l];
+    auto *buffer = new char[l];
     for (auto & state : states_)
     {
         space_->serialize(buffer, state);

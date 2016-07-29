@@ -328,7 +328,7 @@ namespace ompl
                         std::vector<EdgeQueueIterList::iterator> listItersToDelete;
 
                         //Iterate over the incoming edges and record those that are to be deleted
-                        for (EdgeQueueIterList::iterator listIter = itersToVertex->second.begin(); listIter != itersToVertex->second.end(); ++listIter)
+                        for (auto listIter = itersToVertex->second.begin(); listIter != itersToVertex->second.end(); ++listIter)
                         {
                             //Check if it is to be pruned
                             if ( this->edgePruneCondition((*listIter)->second) == true )
@@ -381,7 +381,7 @@ namespace ompl
                         std::vector<EdgeQueueIterList::iterator> listItersToDelete;
 
                         //Iterate over the incoming edges and record those that are to be deleted
-                        for (EdgeQueueIterList::iterator listIter = itersFromVertex->second.begin(); listIter != itersFromVertex->second.end(); ++listIter)
+                        for (auto listIter = itersFromVertex->second.begin(); listIter != itersFromVertex->second.end(); ++listIter)
                         {
                             //Check if it is to be pruned
                             if ( this->edgePruneCondition((*listIter)->second) == true )

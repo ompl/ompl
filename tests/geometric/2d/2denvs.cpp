@@ -250,7 +250,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::RRT *rrt = new geometric::RRT(si);
+        auto *rrt = new geometric::RRT(si);
         rrt->setRange(10.0);
         return base::PlannerPtr(rrt);
     }
@@ -262,7 +262,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::RRTConnect *rrt = new geometric::RRTConnect(si);
+        auto *rrt = new geometric::RRTConnect(si);
         rrt->setRange(10.0);
         return base::PlannerPtr(rrt);
     }
@@ -274,7 +274,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::pRRT *rrt = new geometric::pRRT(si);
+        auto *rrt = new geometric::pRRT(si);
         rrt->setRange(10.0);
         rrt->setThreadCount(4);
         return base::PlannerPtr(rrt);
@@ -287,7 +287,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::TRRT *rrt = new geometric::TRRT(si);
+        auto *rrt = new geometric::TRRT(si);
         rrt->setRange(10.0);
         return base::PlannerPtr(rrt);
     }
@@ -299,7 +299,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::LazyRRT *rrt = new geometric::LazyRRT(si);
+        auto *rrt = new geometric::LazyRRT(si);
         rrt->setRange(10.0);
         return base::PlannerPtr(rrt);
     }
@@ -312,7 +312,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::SBL *sbl = new geometric::SBL(si);
+        auto *sbl = new geometric::SBL(si);
         sbl->setRange(10.0);
 
         std::vector<unsigned int> projection;
@@ -337,7 +337,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::pSBL *sbl = new geometric::pSBL(si);
+        auto *sbl = new geometric::pSBL(si);
         sbl->setRange(10.0);
         sbl->setThreadCount(4);
 
@@ -362,7 +362,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::KPIECE1 *kpiece = new geometric::KPIECE1(si);
+        auto *kpiece = new geometric::KPIECE1(si);
         kpiece->setRange(10.0);
 
         std::vector<unsigned int> projection;
@@ -385,7 +385,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::LBKPIECE1 *kpiece = new geometric::LBKPIECE1(si);
+        auto *kpiece = new geometric::LBKPIECE1(si);
         kpiece->setRange(10.0);
 
         std::vector<unsigned int> projection;
@@ -409,7 +409,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::BKPIECE1 *kpiece = new geometric::BKPIECE1(si);
+        auto *kpiece = new geometric::BKPIECE1(si);
         kpiece->setRange(10.0);
 
         std::vector<unsigned int> projection;
@@ -433,7 +433,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::EST *est = new geometric::EST(si);
+        auto *est = new geometric::EST(si);
         est->setRange(10.0);
         return base::PlannerPtr(est);
     }
@@ -446,7 +446,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::BiEST *est = new geometric::BiEST(si);
+        auto *est = new geometric::BiEST(si);
         est->setRange(10.0);
         return base::PlannerPtr(est);
     }
@@ -459,7 +459,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::ProjEST *est = new geometric::ProjEST(si);
+        auto *est = new geometric::ProjEST(si);
         est->setRange(10.0);
 
         std::vector<double> cdim;
@@ -483,7 +483,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::STRIDE *stride = new geometric::STRIDE(si);
+        auto *stride = new geometric::STRIDE(si);
         stride->setRange(10.0);
         return base::PlannerPtr(stride);
     }
@@ -496,7 +496,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::PDST *pdst = new geometric::PDST(si);
+        auto *pdst = new geometric::PDST(si);
 
         std::vector<double> cdim;
         cdim.push_back(1);
@@ -518,7 +518,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::PRM *prm = new geometric::PRM(si);
+        auto *prm = new geometric::PRM(si);
         return base::PlannerPtr(prm);
     }
 };
@@ -529,7 +529,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::PRMstar *prm = new geometric::PRMstar(si);
+        auto *prm = new geometric::PRMstar(si);
         return base::PlannerPtr(prm);
     }
 };
@@ -540,7 +540,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::LazyPRM *prm = new geometric::LazyPRM(si);
+        auto *prm = new geometric::LazyPRM(si);
         return base::PlannerPtr(prm);
     }
 
@@ -552,7 +552,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::LazyPRMstar *prm = new geometric::LazyPRMstar(si);
+        auto *prm = new geometric::LazyPRMstar(si);
         return base::PlannerPtr(prm);
     }
 
@@ -564,7 +564,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::SPARS *spars = new geometric::SPARS(si);
+        auto *spars = new geometric::SPARS(si);
         return base::PlannerPtr(spars);
     }
 };
@@ -575,7 +575,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::SPARStwo *sparstwo = new geometric::SPARStwo(si);
+        auto *sparstwo = new geometric::SPARStwo(si);
         return base::PlannerPtr(sparstwo);
     }
 };

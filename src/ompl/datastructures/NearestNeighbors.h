@@ -86,7 +86,7 @@ namespace ompl
         /** \brief Add a vector of points */
         virtual void add(const std::vector<_T> &data)
         {
-            for (typename std::vector<_T>::const_iterator elt = data.begin() ; elt != data.end() ; ++elt)
+            for (auto elt = data.begin() ; elt != data.end() ; ++elt)
                 add(*elt);
         }
 

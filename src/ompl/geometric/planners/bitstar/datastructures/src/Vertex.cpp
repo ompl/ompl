@@ -325,7 +325,7 @@ namespace ompl
 
             //Iterate over the list of children pointers until the child is found. Iterators make erase easier
             foundChild = false;
-            for (std::vector<VertexWeakPtr>::iterator cIter = childWPtrs_.begin(); cIter != childWPtrs_.end() && foundChild == false; ++cIter)
+            for (auto cIter = childWPtrs_.begin(); cIter != childWPtrs_.end() && foundChild == false; ++cIter)
             {
                 //Check that the weak pointer hasn't expired
                 if (cIter->expired() == true)

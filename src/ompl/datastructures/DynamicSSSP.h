@@ -127,7 +127,7 @@ namespace ompl
                         parent_[x] = u;
 
                         // insert to queue
-                        QueueIter qIter = queue.find(x);
+                        auto qIter = queue.find(x);
                         if (qIter != queue.end() )
                             queue.erase(qIter);
 
@@ -175,7 +175,7 @@ namespace ompl
             // Phase 2: Determine new distances from affected vertices to source(G) and update SP(G).
             IsLessThan isLessThan(distance_);
             Queue queue(isLessThan);
-            for (IntSetIter set_iter = affectedVerticesSet.begin(); set_iter!= affectedVerticesSet.end(); ++set_iter)
+            for (auto set_iter = affectedVerticesSet.begin(); set_iter!= affectedVerticesSet.end(); ++set_iter)
             {
                 std::size_t a = *set_iter;
                 distance_[a] = std::numeric_limits<double>::infinity();
@@ -223,7 +223,7 @@ namespace ompl
                         parent_[c] = a;
 
                         // insert to queue
-                        QueueIter qIter = queue.find(c);
+                        auto qIter = queue.find(c);
                         if (qIter != queue.end() )
                             queue.erase(qIter);
 

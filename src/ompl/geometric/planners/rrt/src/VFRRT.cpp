@@ -166,7 +166,7 @@ ompl::geometric::VFRRT::Motion *ompl::geometric::VFRRT::extendTree(
         *space->getValueAddressAtIndex(newState, i) += d * v[i];
     if (!v.hasNaN() && si_->checkMotion(m->state, newState))
     {
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         motion->state = newState;
         motion->parent = m;
         updateExplorationEfficiency(motion);
@@ -204,7 +204,7 @@ ompl::base::PlannerStatus ompl::geometric::VFRRT::solve(const base::PlannerTermi
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         nn_->add(motion);
     }
@@ -220,7 +220,7 @@ ompl::base::PlannerStatus ompl::geometric::VFRRT::solve(const base::PlannerTermi
     Motion *solution  = nullptr;
     Motion *approxsol = nullptr;
     double  approxdif = std::numeric_limits<double>::infinity();
-    Motion *rmotion   = new Motion(si_);
+    auto *rmotion   = new Motion(si_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
@@ -277,7 +277,7 @@ ompl::base::PlannerStatus ompl::geometric::VFRRT::solve(const base::PlannerTermi
         }
 
         // Set the solution path
-        PathGeometric *path = new PathGeometric(si_);
+        auto *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
         pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, name_);

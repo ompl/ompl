@@ -214,7 +214,7 @@ void ompl::geometric::FMT::sampleFree(const base::PlannerTerminationCondition &p
 {
     unsigned int nodeCount = 0;
     unsigned int sampleAttempts = 0;
-    Motion *motion = new Motion(si_);
+    auto *motion = new Motion(si_);
 
     // Sample numSamples_ number of nodes from the free configuration space
     while (nodeCount < numSamples_ && !ptc)
@@ -243,7 +243,7 @@ void ompl::geometric::FMT::assureGoalIsSampled(const ompl::base::GoalSampleableR
     // Ensure that there is at least one node near each goal
     while (const base::State *goalState = pis_.nextGoal())
     {
-        Motion *gMotion = new Motion(si_);
+        auto *gMotion = new Motion(si_);
         si_->copyState(gMotion->getState(), goalState);
 
         std::vector<Motion*> nearGoal;
@@ -362,7 +362,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
             // our functor for sorting nearest neighbors
             CostIndexCompare compareFn(costs, *opt_);
 
-            Motion *m = new Motion(si_);
+            auto *m = new Motion(si_);
             while (!ptc && Open_.empty())
             {
                 sampler_->sampleUniform(m->getState());
@@ -491,7 +491,7 @@ void ompl::geometric::FMT::traceSolutionPathThroughTree(Motion *goalMotion)
     }
 
     // Set the solution path
-    PathGeometric *path = new PathGeometric(si_);
+    auto *path = new PathGeometric(si_);
     int mPathSize = mpath.size();
     for (int i = mPathSize - 1 ; i >= 0 ; --i)
         path->append(mpath[i]->getState());

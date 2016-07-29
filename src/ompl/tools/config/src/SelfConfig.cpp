@@ -183,7 +183,7 @@ ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const s
     static ConfigMap    SMAP;
 
     // clean expired entries from the map
-    ConfigMap::iterator dit = SMAP.begin();
+    auto dit = SMAP.begin();
     while (dit != SMAP.end())
     {
         if (dit->second->expired())

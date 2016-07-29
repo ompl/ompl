@@ -214,7 +214,7 @@ void BFMT::sampleFree(std::shared_ptr<NearestNeighbors<BiDirMotion*> > nn,
 {
     unsigned int nodeCount  = 0;
     unsigned int sampleAttempts = 0;
-    BiDirMotion *motion     = new BiDirMotion(si_, &tree_);
+    auto *motion     = new BiDirMotion(si_, &tree_);
 
     // Sample numSamples_ number of nodes from the free configuration space
     while (nodeCount < numSamples_ && !ptc)
@@ -418,7 +418,7 @@ base::PlannerStatus BFMT::solve(const base::PlannerTerminationCondition& ptc)
         mpath.insert(mpath.end(), path_fwd.begin(), path_fwd.end());
 
         // Set the solution path
-        PathGeometric *path = new PathGeometric(si_);
+        auto *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
         {
             path->append(mpath[i]->getState());
@@ -658,7 +658,7 @@ void BFMT::insertNewSampleInOpen(const base::PlannerTerminationCondition& ptc)
     // our functor for sorting nearest neighbors
     CostIndexCompare compareFn(costs, *opt_);
 
-    BiDirMotion *m = new BiDirMotion(si_, &tree_);
+    auto *m = new BiDirMotion(si_, &tree_);
     while (!ptc && Open_[tree_].empty()) //&& oneSample)
     {
         // Get new sample and check whether it is valid.

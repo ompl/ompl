@@ -187,7 +187,7 @@ namespace ompl
         /// using LPA* to approximate costToCome
         double operator()(std::size_t u)
         {
-            IdNodeMapIter iter = idNodeMap_.find(u);
+            auto iter = idNodeMap_.find(u);
             if (iter != idNodeMap_.end())
                 return iter->second->costToCome();
             return std::numeric_limits<double>::infinity();
@@ -392,12 +392,12 @@ namespace ompl
 
         Node* getNode(std::size_t id)
         {
-            IdNodeMapIter iter = idNodeMap_.find(id);
+            auto iter = idNodeMap_.find(id);
             if (iter != idNodeMap_.end())
                 return iter->second;
 
             double c = std::numeric_limits<double>::infinity();
-            Node *n = new Node(c, costEstimator_(id), c, id);
+            auto *n = new Node(c, costEstimator_(id), c, id);
             addNewNode(n);
 
             return n;
@@ -405,7 +405,7 @@ namespace ompl
 
         void clear()
         {
-            for (IdNodeMapIter iter = idNodeMap_.begin(); iter != idNodeMap_.end(); ++iter)
+            for (auto iter = idNodeMap_.begin(); iter != idNodeMap_.end(); ++iter)
             {
                 Node* n= iter->second;
                 delete n;

@@ -237,7 +237,7 @@ void ompl::control::OpenDEStateSpace::setAngularVelocityBounds(const base::RealV
 
 ompl::base::State* ompl::control::OpenDEStateSpace::allocState() const
 {
-    StateType *state = new StateType();
+    auto *state = new StateType();
     allocStateComponents(state);
     return state;
 }

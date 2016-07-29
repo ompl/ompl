@@ -58,7 +58,7 @@ void ompl::control::OpenDEEnvironment::setupContact(dGeomID /*geom1*/, dGeomID /
 
 std::string ompl::control::OpenDEEnvironment::getGeomName(dGeomID geom) const
 {
-    std::map<dGeomID, std::string>::const_iterator it = geomNames_.find(geom);
+    auto it = geomNames_.find(geom);
     if (it == geomNames_.end())
         return std::to_string(reinterpret_cast<unsigned long>(geom));
     else

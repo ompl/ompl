@@ -98,7 +98,7 @@ namespace ompl
         {
             if (w < 0)
                 throw Exception("Weight argument must be a nonnegative value");
-            Element *elem = new Element(d, data_.size());
+            auto *elem = new Element(d, data_.size());
             data_.push_back(elem);
             if (data_.size() == 1)
             {
@@ -240,7 +240,7 @@ which must be between 0 and 1. */
         /** \brief Clears the PDF. */
         void clear()
         {
-            for (typename std::vector<Element*>::iterator e = data_.begin(); e != data_.end(); ++e)
+            for (auto e = data_.begin(); e != data_.end(); ++e)
                 delete *e;
             data_.clear();
             tree_.clear();

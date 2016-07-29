@@ -52,7 +52,7 @@ using namespace ompl;
 
 BOOST_AUTO_TEST_CASE(Scoped)
 {
-    base::SE3StateSpace *mSE3 = new base::SE3StateSpace();
+    auto *mSE3 = new base::SE3StateSpace();
     base::StateSpacePtr pSE3(mSE3);
 
     base::RealVectorBounds b(3);
@@ -61,17 +61,17 @@ BOOST_AUTO_TEST_CASE(Scoped)
     mSE3->setBounds(b);
     mSE3->setup();
 
-    base::CompoundStateSpace *mC0 = new base::CompoundStateSpace();
+    auto *mC0 = new base::CompoundStateSpace();
     base::StateSpacePtr pC0(mC0);
     mC0->addSubspace(pSE3, 1.0);
     mC0->setup();
 
-    base::CompoundStateSpace *mC1 = new base::CompoundStateSpace();
+    auto *mC1 = new base::CompoundStateSpace();
     base::StateSpacePtr pC1(mC1);
     mC1->addSubspace(pC0, 1.0);
     mC1->setup();
 
-    base::CompoundStateSpace *mC2 = new base::CompoundStateSpace();
+    auto *mC2 = new base::CompoundStateSpace();
     base::StateSpacePtr pC2(mC2);
     mC2->addSubspace(mSE3->getSubspace(1), 1.0);
     mC2->addSubspace(mSE3->getSubspace(0), 1.0);

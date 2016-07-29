@@ -463,7 +463,7 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &st
         unsigned long int comp = vertexComponentProperty_[start];
         // Remember the current neighbors.
         std::set<Vertex> neighbors;
-        for (std::set<Vertex>::iterator it = milestonesToRemove.begin() ; it != milestonesToRemove.end() ; ++it)
+        for (auto it = milestonesToRemove.begin() ; it != milestonesToRemove.end() ; ++it)
         {
             boost::graph_traits<Graph>::adjacency_iterator nbh, last;
             for (boost::tie(nbh, last) = boost::adjacent_vertices(*it, g_) ; nbh != last ; ++nbh)
@@ -521,7 +521,7 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &st
     }
     while (prevVertex != pos);
 
-    PathGeometric *p = new PathGeometric(si_);
+    auto *p = new PathGeometric(si_);
     for (std::vector<const base::State*>::const_reverse_iterator st = states.rbegin(); st != states.rend(); ++st)
         p->append(*st);
     return base::PathPtr(p);

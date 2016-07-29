@@ -88,7 +88,7 @@ protected:
         base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
 
         // define an objective that is met the moment the solution is found
-        base::PathLengthOptimizationObjective *opt = new base::PathLengthOptimizationObjective(si);
+        auto *opt = new base::PathLengthOptimizationObjective(si);
         opt->setCostThreshold(opt->infiniteCost());
         pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
 
@@ -184,7 +184,7 @@ protected:
         base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
 
         // define an objective that is met the moment the solution is found
-        base::PathLengthOptimizationObjective *opt = new base::PathLengthOptimizationObjective(si);
+        auto *opt = new base::PathLengthOptimizationObjective(si);
         opt->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
         pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
 
@@ -281,7 +281,7 @@ protected:
         goal2D[0] = q.goalX_;
         goal2D[1] = q.goalY_;
 
-        base::GoalState* goalState = new base::GoalState(si);
+        auto* goalState = new base::GoalState(si);
         goalState->setState(goal2D);
         goalState->setThreshold(1e-3);
         return base::GoalPtr(goalState);
@@ -294,7 +294,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::RRTstar *rrt = new geometric::RRTstar(si);
+        auto *rrt = new geometric::RRTstar(si);
         return base::PlannerPtr(rrt);
     }
 };
@@ -305,7 +305,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::PRMstar *prm = new geometric::PRMstar(si);
+        auto *prm = new geometric::PRMstar(si);
         return base::PlannerPtr(prm);
     }
 };
@@ -316,7 +316,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::PRM *prm = new geometric::PRM(si);
+        auto *prm = new geometric::PRM(si);
         return base::PlannerPtr(prm);
     }
 };
@@ -327,7 +327,7 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
     {
-        geometric::CForest *cforest = new geometric::CForest(si);
+        auto *cforest = new geometric::CForest(si);
         return base::PlannerPtr(cforest);
     }
 };

@@ -46,7 +46,7 @@ ompl::control::World::World(unsigned int np) : numProps_(np)
 
 bool ompl::control::World::operator[](unsigned int i) const
 {
-    std::unordered_map<unsigned int, bool>::const_iterator p = props_.find(i);
+    auto p = props_.find(i);
     if (p == props_.end())
         OMPL_ERROR("Proposition %u is not set in world", i);
     return p->second;
@@ -78,7 +78,7 @@ std::string ompl::control::World::formula() const
 {
     if (props_.empty())
         return "true";
-    std::unordered_map<unsigned int, bool>::const_iterator p = props_.begin();
+    auto p = props_.begin();
     std::string f = std::string(p->second ? "p" : "!p") + std::to_string(p->first);
     ++p;
     for (; p != props_.end(); ++p)

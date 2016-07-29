@@ -70,7 +70,7 @@ namespace ompl
         const unsigned int maxContacts = cp->env->getMaxContacts(o1, o2);
         if (maxContacts <= 0) return;
 
-        dContact *contact = new dContact[maxContacts];
+        auto *contact = new dContact[maxContacts];
 
         for (unsigned int i = 0; i < maxContacts; ++i)
             cp->env->setupContact(o1, o2, contact[i]);

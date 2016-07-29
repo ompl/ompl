@@ -182,7 +182,7 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(siC_);
+        auto *motion = new Motion(siC_);
         si_->copyState(motion->state, st);
         siC_->nullControl(motion->control);
         addMotion(motion, 1.0);
@@ -265,7 +265,7 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
                 while (index < cd)
                 {
                     unsigned int nextIndex = findNextMotion(coords, index, cd);
-                    Motion *motion = new Motion(siC_);
+                    auto *motion = new Motion(siC_);
                     si_->copyState(motion->state, states[nextIndex]);
                     siC_->copyControl(motion->control, rctrl);
                     motion->steps = nextIndex - index + 1;
@@ -328,7 +328,7 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
         }
 
         /* set the solution path */
-        PathControl *path = new PathControl(si_);
+        auto *path = new PathControl(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             if (mpath[i]->parent)
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());

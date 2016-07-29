@@ -307,7 +307,7 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
             components.push_back(MultiOptimizationObjective::Component(b, 1.0));
     }
 
-    MultiOptimizationObjective *multObj = new MultiOptimizationObjective(a->getSpaceInformation());
+    auto *multObj = new MultiOptimizationObjective(a->getSpaceInformation());
 
     for (std::vector<MultiOptimizationObjective::Component>::const_iterator comp = components.begin();
          comp != components.end();
@@ -339,7 +339,7 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator*(double weight,
             components.push_back(MultiOptimizationObjective::Component(a, weight));
     }
 
-    MultiOptimizationObjective *multObj = new MultiOptimizationObjective(a->getSpaceInformation());
+    auto *multObj = new MultiOptimizationObjective(a->getSpaceInformation());
 
     for (std::vector<MultiOptimizationObjective::Component>::const_iterator comp = components.begin();
          comp != components.end();

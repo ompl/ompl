@@ -178,7 +178,7 @@ void ompl::base::ProblemDefinition::setStartAndGoalStates(const State *start, co
 void ompl::base::ProblemDefinition::setGoalState(const State *goal, const double threshold)
 {
     clearGoal();
-    GoalState *gs = new GoalState(si_);
+    auto *gs = new GoalState(si_);
     gs->setState(goal);
     gs->setThreshold(threshold);
     setGoal(GoalPtr(gs));
@@ -344,7 +344,7 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() con
             unsigned int startIndex;
             if (isTrivial(&startIndex))
             {
-                geometric::PathGeometric *pg = new geometric::PathGeometric(si_, startStates_[startIndex], startStates_[startIndex]);
+                auto *pg = new geometric::PathGeometric(si_, startStates_[startIndex], startStates_[startIndex]);
                 path.reset(pg);
             }
         }
@@ -358,7 +358,7 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() con
                     for (unsigned int j = 0 ; j < states.size() && !path ; ++j)
                         if (si_->checkMotion(start, states[j]))
                         {
-                            geometric::PathGeometric *pg = new geometric::PathGeometric(si_, start, states[j]);
+                            auto *pg = new geometric::PathGeometric(si_, start, states[j]);
                             path.reset(pg);
                             break;
                         }

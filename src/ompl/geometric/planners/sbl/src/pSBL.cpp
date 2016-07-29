@@ -153,7 +153,7 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTer
             continue;
 
         /* create a motion */
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state, xstate);
         motion->parent = existing;
         motion->root = existing->root;
@@ -170,7 +170,7 @@ void ompl::geometric::pSBL::threadSolve(unsigned int tid, const base::PlannerTer
             if (!sol->found)
             {
                 sol->found = true;
-                PathGeometric *path = new PathGeometric(si_);
+                auto *path = new PathGeometric(si_);
                 for (auto & i : solution)
                     path->append(i->state);
                 pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
@@ -203,7 +203,7 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         motion->valid = true;
         motion->root = motion->state;
@@ -214,7 +214,7 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
     {
         if (si_->satisfiesBounds(goal->getState()) && si_->isValid(goal->getState()))
         {
-            Motion *motion = new Motion(si_);
+            auto *motion = new Motion(si_);
             si_->copyState(motion->state, goal->getState());
             motion->valid = true;
             motion->root = motion->state;
@@ -274,7 +274,7 @@ bool ompl::geometric::pSBL::checkSolution(RNG &rng, bool start, TreeData &tree, 
 
         if (pdef_->getGoal()->isStartGoalPairValid(start ? motion->root : connectOther->root, start ? connectOther->root : motion->root))
         {
-            Motion *connect = new Motion(si_);
+            auto *connect = new Motion(si_);
 
             si_->copyState(connect->state, connectOther->state);
             connect->parent = motion;

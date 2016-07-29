@@ -96,7 +96,7 @@ ompl::control::ControlSamplerPtr ompl::control::RealVectorControlSpace::allocDef
 
 ompl::control::Control* ompl::control::RealVectorControlSpace::allocControl() const
 {
-    ControlType *rcontrol = new ControlType();
+    auto *rcontrol = new ControlType();
     rcontrol->values = new double[dimension_];
     return rcontrol;
 }

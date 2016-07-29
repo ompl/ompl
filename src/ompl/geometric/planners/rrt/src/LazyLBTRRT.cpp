@@ -153,7 +153,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
 
     bool solved = false;
 
-    Motion *rmotion   = new Motion(si_);
+    auto *rmotion   = new Motion(si_);
     base::State *xstate = si_->allocState();
 
     goalMotion_ = createGoalMotion(goal_s);
@@ -241,10 +241,10 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
         LPAstarApx_->computeShortestPath(pathApx);
 
         /* set the solution path */
-        PathGeometric *path = new PathGeometric(si_);
+        auto *path = new PathGeometric(si_);
 
         //the path is in reverse order
-        for (std::list<std::size_t>::reverse_iterator rit = pathApx.rbegin(); rit!=pathApx.rend(); ++rit)
+        for (auto rit = pathApx.rbegin(); rit!=pathApx.rend(); ++rit)
             path->append(idToMotionMap_[*rit]->state_);
 
         pdef_->addSolutionPath(base::PathPtr(path), !solved, 0);
@@ -365,7 +365,7 @@ ompl::geometric::LazyLBTRRT::Motion* ompl::geometric::LazyLBTRRT::createMotion(
     if (goal_s->isSatisfied(st))
         return goalMotion_;
 
-    Motion *motion = new Motion(si_);
+    auto *motion = new Motion(si_);
     si_->copyState(motion->state_, st);
     motion->id_ = idToMotionMap_.size();
     nn_->add(motion);
@@ -380,7 +380,7 @@ ompl::geometric::LazyLBTRRT::Motion* ompl::geometric::LazyLBTRRT::createGoalMoti
     ompl::base::State *gstate = si_->allocState();
     goal_s->sampleGoal(gstate);
 
-    Motion *motion = new Motion(si_);
+    auto *motion = new Motion(si_);
     motion->state_ = gstate;
     motion->id_ = idToMotionMap_.size();
     idToMotionMap_.push_back(motion);
@@ -401,7 +401,7 @@ void ompl::geometric::LazyLBTRRT::closeBounds(const base::PlannerTerminationCond
         if (ptc())
             return;
 
-        std::list<std::size_t>::iterator pathLbIter = pathLb.end();
+        auto pathLbIter = pathLb.end();
         pathLbIter--;
         std::size_t v = *pathLbIter;
         pathLbIter--;

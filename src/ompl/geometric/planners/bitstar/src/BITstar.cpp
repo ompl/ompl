@@ -1110,7 +1110,7 @@ namespace ompl
             {
                 //Variable
                 //An iterator to the list of pruned goals
-                std::list<VertexPtr>::iterator pgIter = prunedGoalVertices_.begin();
+                auto pgIter = prunedGoalVertices_.begin();
 
                 //Consider each one
                 while (pgIter != prunedGoalVertices_.end())
@@ -1153,7 +1153,7 @@ namespace ompl
             {
                 //Variable
                 //An iterator to the list of pruned starts
-                std::list<VertexPtr>::iterator psIter = prunedStartVertices_.begin();
+                auto psIter = prunedStartVertices_.begin();
 
                 //Consider each one
                 while (psIter != prunedStartVertices_.end())
@@ -1244,7 +1244,7 @@ namespace ompl
 
                 //Variable
                 //The iterator to the start:
-                std::list<VertexPtr>::iterator startIter = startVertices_.begin();
+                auto startIter = startVertices_.begin();
 
                 //Run until at the end:
                 while (startIter != startVertices_.end())
@@ -1281,7 +1281,7 @@ namespace ompl
 
                 //Variable
                 //The iterator to the start:
-                std::list<VertexPtr>::iterator goalIter = goalVertices_.begin();
+                auto goalIter = goalVertices_.begin();
 
                 //Run until at the end:
                 while (goalIter != goalVertices_.end())

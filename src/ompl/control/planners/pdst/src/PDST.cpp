@@ -83,7 +83,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     // Initialize tree with start state(s)
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *startMotion = new Motion(si_->cloneState(st));
+        auto *startMotion = new Motion(si_->cloneState(st));
         bsp_->addMotion(startMotion);
         startMotion->heapElement_ = priorityQueue_.insert(startMotion);
     }
@@ -154,7 +154,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
             mpath.push_back(m);
         }
 
-        PathControl *path = new PathControl(si_);
+        auto *path = new PathControl(si_);
         double dt = siC_->getPropagationStepSize();
         path->append(mpath.back()->endState_);
         for (int i = (int) mpath.size() - 2; i > 0; i--)
@@ -222,7 +222,7 @@ void ompl::control::PDST::addMotion(Motion *motion, Cell *bsp, base::State *prev
         cell = bsp->stab(proj);
         if (duration > 0 && cell != prevCell)
         {
-            Motion *newMotion = new Motion(motion->startState_, si_->cloneState(prevState),
+            auto *newMotion = new Motion(motion->startState_, si_->cloneState(prevState),
                 motion->control_, duration, motion->priority_, motion->parent_);
             newMotion->isSplit_ = true;
             prevCell->addMotion(newMotion);
@@ -298,7 +298,7 @@ void ompl::control::PDST::freeMemory()
     std::vector<Motion*> motions;
     motions.reserve(priorityQueue_.size());
     priorityQueue_.getContent(motions);
-    for (std::vector<Motion*>::iterator it = motions.begin() ; it < motions.end() ; ++it)
+    for (auto it = motions.begin() ; it < motions.end() ; ++it)
     {
         if ((*it)->startState_ != (*it)->endState_)
             si_->freeState((*it)->startState_);
@@ -344,7 +344,7 @@ void ompl::control::PDST::getPlannerData(ompl::base::PlannerData &data) const
     if (lastGoalMotion_ != nullptr)
         data.addGoalVertex(lastGoalMotion_->endState_);
 
-    for (std::vector<Motion*>::iterator it = motions.begin(); it < motions.end(); ++it)
+    for (auto it = motions.begin(); it < motions.end(); ++it)
         if (!(*it)->isSplit_)
         {
             // We only add one edge for each motion that has been split into smaller segments

@@ -87,7 +87,7 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
     if (pis_.haveMoreStartStates())
         OMPL_WARN("Multiple start states given. Using only the first start state.");
 
-    Motion* startMotion = new Motion(ltlsi_);
+    auto* startMotion = new Motion(ltlsi_);
     si_->copyState(startMotion->state, start);
     ltlsi_->nullControl(startMotion->control);
     startMotion->abstractState = prodStart_;
@@ -125,7 +125,7 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
             path.push_back(soln);
             soln = soln->parent;
         }
-        PathControl* pc = new PathControl(si_);
+        auto* pc = new PathControl(si_);
         for (int i = path.size()-1; i >= 0; --i)
         {
             if (path[i]->parent != nullptr) {
@@ -264,7 +264,7 @@ bool ompl::control::LTLPlanner::explore(const std::vector<ProductGraph::State*>&
             ltlsi_->freeControl(rctrl);
             continue;
         }
-        Motion* m = new Motion();
+        auto* m = new Motion();
         m->state = newState;
         m->control = rctrl;
         m->steps = cd;

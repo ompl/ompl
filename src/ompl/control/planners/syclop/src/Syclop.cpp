@@ -198,7 +198,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
             mpath.push_back(solution);
             solution = solution->parent;
         }
-        PathControl *path = new PathControl(si_);
+        auto *path = new PathControl(si_);
         for (int i = mpath.size()-1; i >= 0; --i)
             if (mpath[i]->parent)
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());

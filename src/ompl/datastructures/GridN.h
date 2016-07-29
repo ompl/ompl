@@ -165,13 +165,13 @@ namespace ompl
         /// neighboring cells
         virtual BaseCell* createCell(const Coord& coord, BaseCellArray *nbh = nullptr)
         {
-            Cell *cell = new Cell();
+            auto *cell = new Cell();
             cell->coord = coord;
 
             BaseCellArray *list = nbh ? nbh : new BaseCellArray();
             Grid<_T>::neighbors(cell->coord, *list);
 
-            for (typename BaseCellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
+            for (auto cl = list->begin() ; cl != list->end() ; ++cl)
             {
                 Cell* c = static_cast<Cell*>(*cl);
                 c->neighbors++;
@@ -195,9 +195,9 @@ namespace ompl
         {
             if (cell)
             {
-                BaseCellArray *list = new BaseCellArray();
+                auto *list = new BaseCellArray();
                 Grid<_T>::neighbors(cell->coord, *list);
-                for (typename BaseCellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
+                for (auto cl = list->begin() ; cl != list->end() ; ++cl)
                 {
                     Cell* c = static_cast<Cell*>(*cl);
                     c->neighbors--;
@@ -205,7 +205,7 @@ namespace ompl
                         c->border = true;
                 }
                 delete list;
-                typename Grid<_T>::CoordHash::iterator pos = Grid<_T>::hash_.find(&cell->coord);
+                auto pos = Grid<_T>::hash_.find(&cell->coord);
                 if (pos != Grid<_T>::hash_.end())
                 {
                     Grid<_T>::hash_.erase(pos);
@@ -218,7 +218,7 @@ namespace ompl
         /// Get the set of instantiated cells in the grid
         void getCells(CellArray &cells) const
         {
-            for (typename Grid<_T>::CoordHash::const_iterator i = Grid<_T>::hash_.begin() ;
+            for (auto i = Grid<_T>::hash_.begin() ;
                  i != Grid<_T>::hash_.end() ; ++i)
                 cells.push_back(static_cast<Cell*>(i->second));
         }

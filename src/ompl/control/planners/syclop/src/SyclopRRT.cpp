@@ -94,7 +94,7 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData &data) const
 
 ompl::control::Syclop::Motion* ompl::control::SyclopRRT::addRoot(const base::State *s)
 {
-    Motion *motion = new Motion(siC_);
+    auto *motion = new Motion(siC_);
     si_->copyState(motion->state, s);
     siC_->nullControl(motion->control);
 
@@ -105,7 +105,7 @@ ompl::control::Syclop::Motion* ompl::control::SyclopRRT::addRoot(const base::Sta
 
 void ompl::control::SyclopRRT::selectAndExtend(Region &region, std::vector<Motion*>& newMotions)
 {
-    Motion *rmotion = new Motion(siC_);
+    auto *rmotion = new Motion(siC_);
     base::StateSamplerPtr sampler(si_->allocStateSampler());
     std::vector<double> coord(decomp_->getDimension());
     decomp_->sampleFromRegion(region.index, rng_, coord);

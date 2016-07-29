@@ -104,7 +104,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state, st);
 
         nn_->nearestR(motion, nbrhoodRadius_, neighbors);
@@ -126,7 +126,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
     Motion *approxsol = nullptr;
     double  approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
-    Motion* xmotion = new Motion();
+    auto* xmotion = new Motion();
 
     while (ptc == false)
     {
@@ -166,7 +166,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
         if (si_->checkMotion(existing->state, xstate))
         {
             // create a motion
-            Motion *motion = new Motion(si_);
+            auto *motion = new Motion(si_);
             si_->copyState(motion->state, xstate);
             motion->parent = existing;
 
@@ -211,7 +211,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
         }
 
         // set the solution path
-        PathGeometric *path = new PathGeometric(si_);
+        auto *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
         pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());

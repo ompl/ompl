@@ -158,7 +158,7 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     assert(chosenPath->numVertices() >= 2);
 
     // Convert chosen PlannerData experience to an actual path
-    ompl::geometric::PathGeometric *primaryPath = new PathGeometric(si_);
+    auto *primaryPath = new PathGeometric(si_);
     // Add start
     primaryPath->append(startState);
     // Add old states

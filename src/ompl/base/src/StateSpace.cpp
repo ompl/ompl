@@ -255,7 +255,7 @@ void ompl::base::StateSpace::setup()
     for (auto & oldProjection : oldProjections)
         if (oldProjection.second->userConfigured())
         {
-            std::map<std::string, ProjectionEvaluatorPtr>::iterator o = projections_.find(oldProjection.first);
+            auto o = projections_.find(oldProjection.first);
             if (o != projections_.end())
                 if (!o->second->userConfigured())
                     projections_[oldProjection.first] = oldProjection.second;
@@ -353,13 +353,13 @@ const double* ompl::base::StateSpace::getValueAddressAtLocation(const State *sta
 
 double* ompl::base::StateSpace::getValueAddressAtName(State *state, const std::string &name) const
 {
-    std::map<std::string, ValueLocation>::const_iterator it = valueLocationsByName_.find(name);
+    auto it = valueLocationsByName_.find(name);
     return (it != valueLocationsByName_.end()) ? getValueAddressAtLocation(state, it->second) : nullptr;
 }
 
 const double* ompl::base::StateSpace::getValueAddressAtName(const State *state, const std::string &name) const
 {
-    std::map<std::string, ValueLocation>::const_iterator it = valueLocationsByName_.find(name);
+    auto it = valueLocationsByName_.find(name);
     return (it != valueLocationsByName_.end()) ? getValueAddressAtLocation(state, it->second) : nullptr;
 }
 
@@ -502,8 +502,8 @@ void ompl::base::StateSpace::getCommonSubspaces(const StateSpace *other, std::ve
     while (found)
     {
       found = false;
-      for (std::set<StateSpace::SubstateLocation, CompareSubstateLocation>::iterator it = intersection.begin() ; it != intersection.end() ; ++it)
-          for (std::set<StateSpace::SubstateLocation, CompareSubstateLocation>::iterator jt = intersection.begin() ; jt != intersection.end() ; ++jt)
+      for (auto it = intersection.begin() ; it != intersection.end() ; ++it)
+          for (auto jt = intersection.begin() ; jt != intersection.end() ; ++jt)
               if (it != jt)
                   if (StateSpaceCovers(it->space, jt->space))
                   {
@@ -575,10 +575,10 @@ void ompl::base::StateSpace::Diagram(std::ostream &out)
     AllocatedSpaces &as = getAllocatedSpaces();
     std::lock_guard<std::mutex> smLock(as.lock_);
     out << "digraph StateSpaces {" << std::endl;
-    for (std::list<StateSpace*>::iterator it = as.list_.begin() ; it != as.list_.end(); ++it)
+    for (auto it = as.list_.begin() ; it != as.list_.end(); ++it)
     {
         out << '"' << (*it)->getName() << '"' << std::endl;
-        for (std::list<StateSpace*>::iterator jt = as.list_.begin() ; jt != as.list_.end(); ++jt)
+        for (auto jt = as.list_.begin() ; jt != as.list_.end(); ++jt)
             if (it != jt)
             {
                 if ((*it)->isCompound() && (*it)->as<CompoundStateSpace>()->hasSubspace((*jt)->getName()))
@@ -724,7 +724,7 @@ ompl::base::ProjectionEvaluatorPtr ompl::base::StateSpace::getDefaultProjection(
 
 ompl::base::ProjectionEvaluatorPtr ompl::base::StateSpace::getProjection(const std::string &name) const
 {
-    std::map<std::string, ProjectionEvaluatorPtr>::const_iterator it = projections_.find(name);
+    auto it = projections_.find(name);
     if (it != projections_.end())
         return it->second;
     else
@@ -1106,7 +1106,7 @@ void ompl::base::CompoundStateSpace::interpolate(const State *from, const State 
 
 ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocDefaultStateSampler() const
 {
-    CompoundStateSampler *ss = new CompoundStateSampler(this);
+    auto *ss = new CompoundStateSampler(this);
     if (weightSum_ < std::numeric_limits<double>::epsilon())
         for (unsigned int i = 0 ; i < componentCount_ ; ++i)
             ss->addSampler(components_[i]->allocStateSampler(), 1.0);
@@ -1127,7 +1127,7 @@ ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocSubspaceStateSa
 
 ompl::base::State* ompl::base::CompoundStateSpace::allocState() const
 {
-    CompoundState *state = new CompoundState();
+    auto *state = new CompoundState();
     allocStateComponents(state);
     return static_cast<State*>(state);
 }
@@ -1311,10 +1311,10 @@ namespace ompl
             const std::map<std::string, StateSpace::SubstateLocation> &sourceLoc = sourceS->getSubstateLocationsByName();
             for (const auto & subspace : subspaces)
             {
-                std::map<std::string, StateSpace::SubstateLocation>::const_iterator dt = destLoc.find(subspace);
+                auto dt = destLoc.find(subspace);
                 if (dt != destLoc.end())
                 {
-                    std::map<std::string, StateSpace::SubstateLocation>::const_iterator st = sourceLoc.find(subspace);
+                    auto st = sourceLoc.find(subspace);
                     if (st != sourceLoc.end())
                     {
                         dt->second.space->copyState(destS->getSubstateAtLocation(dest, dt->second), sourceS->getSubstateAtLocation(source, st->second));

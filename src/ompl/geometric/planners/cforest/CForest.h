@@ -91,7 +91,7 @@ namespace ompl
             template <class T>
             void addPlannerInstance()
             {
-                base::CForestStateSpaceWrapper *cfspace = new base::CForestStateSpaceWrapper(this, si_->getStateSpace().get());
+                auto *cfspace = new base::CForestStateSpaceWrapper(this, si_->getStateSpace().get());
                 base::StateSpacePtr space(cfspace);
                 base::SpaceInformationPtr si(new base::SpaceInformation(space));
                 si->setStateValidityChecker(si_->getStateValidityChecker());

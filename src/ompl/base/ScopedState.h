@@ -292,7 +292,7 @@ namespace ompl
             double& operator[](const std::string &name)
             {
                 const std::map<std::string, StateSpace::ValueLocation> &vm = space_->getValueLocationsByName();
-                std::map<std::string, StateSpace::ValueLocation>::const_iterator it = vm.find(name);
+                auto it = vm.find(name);
                 if (it != vm.end())
                 {
                     double *val = space_->getValueAddressAtLocation(state_, it->second);
@@ -306,7 +306,7 @@ namespace ompl
             double operator[](const std::string &name) const
             {
                 const std::map<std::string, StateSpace::ValueLocation> &vm = space_->getValueLocationsByName();
-                std::map<std::string, StateSpace::ValueLocation>::const_iterator it = vm.find(name);
+                auto it = vm.find(name);
                 if (it != vm.end())
                 {
                     const double *val = space_->getValueAddressAtLocation(state_, it->second);

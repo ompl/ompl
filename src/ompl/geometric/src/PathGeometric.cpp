@@ -391,7 +391,7 @@ bool ompl::geometric::PathGeometric::randomValid(unsigned int attempts)
     states_.resize(2);
     states_[0] = si_->allocState();
     states_[1] = si_->allocState();
-    base::UniformValidStateSampler *uvss = new base::UniformValidStateSampler(si_.get());
+    auto *uvss = new base::UniformValidStateSampler(si_.get());
     uvss->setNrAttempts(attempts);
     bool ok = false;
     for (unsigned int i = 0 ; i < attempts ; ++i)

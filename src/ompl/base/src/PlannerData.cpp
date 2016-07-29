@@ -319,7 +319,7 @@ void ompl::base::PlannerData::printGraphML (std::ostream& out) const
 
 unsigned int ompl::base::PlannerData::vertexIndex (const PlannerDataVertex &v) const
 {
-    std::map<const State*, unsigned int>::const_iterator it = stateIndexMap_.find(v.getState());
+    auto it = stateIndexMap_.find(v.getState());
     if (it != stateIndexMap_.end())
         return it->second;
     return INVALID_INDEX;
@@ -506,7 +506,7 @@ bool ompl::base::PlannerData::removeVertex (unsigned int vIndex)
          stateIndexMap_[vertices[boost::vertex(i, *graph_)]->getState()]--;
 
     // Remove this vertex from the start and/or goal index list, if it exists.  Update the lists.
-    std::vector<unsigned int>::iterator it = std::find(startVertexIndices_.begin(), startVertexIndices_.end(), vIndex);
+    auto it = std::find(startVertexIndices_.begin(), startVertexIndices_.end(), vIndex);
     if (it != startVertexIndices_.end())
         startVertexIndices_.erase(it);
     for (unsigned int & startVertexIndex : startVertexIndices_)
@@ -725,7 +725,7 @@ void ompl::base::PlannerData::extractReachable(unsigned int v, base::PlannerData
 
 ompl::base::StateStoragePtr ompl::base::PlannerData::extractStateStorage() const
 {
-    GraphStateStorage *store = new GraphStateStorage(si_->getStateSpace());
+    auto *store = new GraphStateStorage(si_->getStateSpace());
     if (graph_)
     {
         // copy the states

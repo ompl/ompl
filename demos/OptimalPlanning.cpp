@@ -381,7 +381,7 @@ ob::OptimizationObjectivePtr getBalancedObjective1(const ob::SpaceInformationPtr
     ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(si));
     ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
 
-    ob::MultiOptimizationObjective* opt = new ob::MultiOptimizationObjective(si);
+    auto* opt = new ob::MultiOptimizationObjective(si);
     opt->addObjective(lengthObj, 10.0);
     opt->addObjective(clearObj, 1.0);
 

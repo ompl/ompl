@@ -354,7 +354,7 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
                 for (std::size_t t = 0; t < planner.runsProgressData[r].size(); ++t)
                 {
                     // Print each of the properties at that time point
-                    for (std::map<std::string, std::string>::const_iterator iter =
+                    for (auto iter =
                              planner.runsProgressData[r][t].begin();
                          iter != planner.runsProgressData[r][t].end();
                          ++iter)

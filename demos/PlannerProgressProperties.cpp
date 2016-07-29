@@ -84,7 +84,7 @@ int main(int argc, char** argv)
     // RRTstar algorithm reports interesting planner progress
     // properties.
     ompl::tools::Benchmark b(ss, "my experiment");
-    og::RRTstar* rrt = new og::RRTstar(ss.getSpaceInformation());
+    auto* rrt = new og::RRTstar(ss.getSpaceInformation());
     rrt->setName("rrtstar");
 
     // We disable goal biasing so that the straight-line path doesn't

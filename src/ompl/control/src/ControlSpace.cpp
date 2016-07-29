@@ -182,7 +182,7 @@ unsigned int ompl::control::CompoundControlSpace::getDimension() const
 
 ompl::control::Control* ompl::control::CompoundControlSpace::allocControl() const
 {
-    CompoundControl *control = new CompoundControl();
+    auto *control = new CompoundControl();
     control->components = new Control*[componentCount_];
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
         control->components[i] = components_[i]->allocControl();
@@ -225,7 +225,7 @@ void ompl::control::CompoundControlSpace::nullControl(Control *control) const
 
 ompl::control::ControlSamplerPtr ompl::control::CompoundControlSpace::allocDefaultControlSampler() const
 {
-    CompoundControlSampler *ss = new CompoundControlSampler(this);
+    auto *ss = new CompoundControlSampler(this);
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
         ss->addSampler(components_[i]->allocControlSampler());
     return ControlSamplerPtr(ss);

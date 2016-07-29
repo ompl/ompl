@@ -190,7 +190,7 @@ bool ompl::base::SpaceInformation::searchValidNearby(State *state, const State *
     else
     {
         // try to find a valid state nearby
-        UniformValidStateSampler *uvss = new UniformValidStateSampler(this);
+        auto *uvss = new UniformValidStateSampler(this);
         uvss->setNrAttempts(attempts);
         return searchValidNearby(ValidStateSamplerPtr(uvss), state, near, distance);
     }
@@ -362,7 +362,7 @@ double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attem
     attempts = std::max((unsigned int)floor(sqrt((double)attempts) + 0.5), 2u);
 
     StateSamplerPtr ss = allocStateSampler();
-    UniformValidStateSampler *uvss = new UniformValidStateSampler(this);
+    auto *uvss = new UniformValidStateSampler(this);
     uvss->setNrAttempts(attempts);
 
     State *s1 = allocState();

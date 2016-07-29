@@ -185,7 +185,7 @@ namespace ompl
             /** \brief Free the memory for the motions contained in a grid */
             void freeMemory()
             {
-                for (typename Grid::iterator it = grid_.begin(); it != grid_.end() ; ++it)
+                for (auto it = grid_.begin(); it != grid_.end() ; ++it)
                     freeCellData(it->second->data);
                 grid_.clear();
             }
@@ -241,7 +241,7 @@ namespace ompl
                     std::vector<CellData*> content;
                     content.reserve(grid_.size());
                     grid_.getContent(content);
-                    for (typename std::vector<CellData*>::iterator it = content.begin() ; it != content.end() ; ++it)
+                    for (auto it = content.begin() ; it != content.end() ; ++it)
                         (*it)->score += 1.0 + log((double)((*it)->iteration));
                     grid_.updateAll();
                 }

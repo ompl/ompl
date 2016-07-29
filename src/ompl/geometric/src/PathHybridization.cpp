@@ -78,7 +78,7 @@ void ompl::geometric::PathHybridization::print(std::ostream &out) const
 {
     out << "Path hybridization is aware of " << paths_.size() << " paths" << std::endl;
     int i = 1;
-    for (std::set<PathInfo>::const_iterator it = paths_.begin() ; it != paths_.end() ; ++it, ++i)
+    for (auto it = paths_.begin() ; it != paths_.end() ; ++it, ++i)
         out << "  path " << i << " of length " << it->length_ << std::endl;
     if (hpath_)
         out << "Hybridized path of length " << hpath_->length() << std::endl;
@@ -95,7 +95,7 @@ void ompl::geometric::PathHybridization::computeHybridPath()
     boost::dijkstra_shortest_paths(g_, root_, boost::predecessor_map(prev));
     if (prev[goal_] != goal_)
     {
-        PathGeometric *h = new PathGeometric(si_);
+        auto *h = new PathGeometric(si_);
         for (Vertex pos = prev[goal_]; prev[pos] != pos; pos = prev[pos])
             h->append(stateProperty_[pos]);
         h->reverse();

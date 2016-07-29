@@ -184,7 +184,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         // There are, add them
         while (const base::State *st = pis_.nextStart())
         {
-            Motion *motion = new Motion(si_);
+            auto *motion = new Motion(si_);
             si_->copyState(motion->state, st);
             motion->cost = opt_->identityCost();
             nn_->add(motion);
@@ -223,7 +223,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     double approximatedist = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
 
-    Motion *rmotion        = new Motion(si_);
+    auto *rmotion        = new Motion(si_);
     base::State *rstate    = rmotion->state;
     base::State *xstate    = si_->allocState();
 
@@ -283,7 +283,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         if (si_->checkMotion(nmotion->state, dstate))
         {
             // create a motion
-            Motion *motion = new Motion(si_);
+            auto *motion = new Motion(si_);
             si_->copyState(motion->state, dstate);
             motion->parent = nmotion;
             motion->incCost = opt_->motionCost(nmotion->state, motion->state);
@@ -546,7 +546,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         }
 
         // set the solution path
-        PathGeometric *geoPath = new PathGeometric(si_);
+        auto *geoPath = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             geoPath->append(mpath[i]->state);
 
@@ -591,7 +591,7 @@ void ompl::geometric::RRTstar::getNeighbors(Motion *motion, std::vector<Motion*>
 
 void ompl::geometric::RRTstar::removeFromParent(Motion *m)
 {
-    for (std::vector<Motion*>::iterator it = m->parent->children.begin ();
+    for (auto it = m->parent->children.begin ();
         it != m->parent->children.end (); ++it)
     {
         if (*it == m)
@@ -782,7 +782,7 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost& pruneTreeCost)
             }
 
             // Now, we need to go through the list of chain vertices and see if any are now leaves
-            std::list<Motion*>::iterator mIter = chainsToRecheck.begin();
+            auto mIter = chainsToRecheck.begin();
             while (mIter != chainsToRecheck.end())
             {
                 // Is the Motion a leaf?

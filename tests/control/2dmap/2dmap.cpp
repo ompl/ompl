@@ -192,7 +192,7 @@ control::SpaceInformationPtr mySpaceInformation(Environment2D &env)
 
     base::StateSpacePtr sManPtr(sMan);
 
-    control::RealVectorControlSpace *cMan = new control::RealVectorControlSpace(sManPtr, 2);
+    auto *cMan = new control::RealVectorControlSpace(sManPtr, 2);
     base::RealVectorBounds cbounds(2);
 
     cbounds.low[0] = -MAX_VELOCITY;
@@ -329,7 +329,7 @@ protected:
 
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
     {
-        control::RRT *rrt = new control::RRT(si);
+        auto *rrt = new control::RRT(si);
         rrt->setIntermediateStates(false);
         return base::PlannerPtr(rrt);
     }
@@ -341,7 +341,7 @@ protected:
 
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
     {
-        control::RRT *rrt = new control::RRT(si);
+        auto *rrt = new control::RRT(si);
         rrt->setIntermediateStates(true);
         return base::PlannerPtr(rrt);
     }
@@ -386,7 +386,7 @@ class SyclopRRTTest : public TestPlanner
         // Create a 10x10 grid decomposition for Syclop
         control::DecompositionPtr decomp(new SyclopDecomposition (10, bounds));
 
-        control::SyclopRRT *srrt = new control::SyclopRRT(si, decomp);
+        auto *srrt = new control::SyclopRRT(si, decomp);
         // Set syclop parameters conducive to a tiny workspace
         srrt->setNumFreeVolumeSamples(1000);
         srrt->setNumRegionExpansions(10);
@@ -410,7 +410,7 @@ class SyclopESTTest : public TestPlanner
         // Create a 10x10 grid decomposition for Syclop
         control::DecompositionPtr decomp(new SyclopDecomposition (10, bounds));
 
-        control::SyclopEST *sest = new control::SyclopEST(si, decomp);
+        auto *sest = new control::SyclopEST(si, decomp);
         // Set syclop parameters conducive to a tiny workspace
         sest->setNumFreeVolumeSamples(1000);
         sest->setNumRegionExpansions(10);
@@ -425,7 +425,7 @@ protected:
 
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
     {
-        control::KPIECE1 *kpiece = new control::KPIECE1(si);
+        auto *kpiece = new control::KPIECE1(si);
 
         std::vector<double> cdim;
         cdim.push_back(1);
@@ -444,7 +444,7 @@ protected:
 
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
     {
-        control::EST *est = new control::EST(si);
+        auto *est = new control::EST(si);
 
         std::vector<double> cdim;
         cdim.push_back(1);
@@ -463,7 +463,7 @@ protected:
 
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
     {
-        control::PDST *pdst = new control::PDST(si);
+        auto *pdst = new control::PDST(si);
 
         std::vector<double> cdim;
         cdim.push_back(1);

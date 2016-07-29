@@ -91,7 +91,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         motion->valid = true;
         motion->root = motion->state;
@@ -133,7 +133,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
             const base::State *st = tGoal_.size == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
             if (st)
             {
-                Motion *motion = new Motion(si_);
+                auto *motion = new Motion(si_);
                 si_->copyState(motion->state, st);
                 motion->root = motion->state;
                 motion->valid = true;
@@ -152,7 +152,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
             continue;
 
         /* create a motion */
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state, xstate);
         motion->parent = existing;
         motion->root = existing->root;
@@ -162,7 +162,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
         if (checkSolution(!startTree, tree, otherTree, motion, solution))
         {
-            PathGeometric *path = new PathGeometric(si_);
+            auto *path = new PathGeometric(si_);
             for (auto & i : solution)
                 path->append(i->state);
 
@@ -193,7 +193,7 @@ bool ompl::geometric::SBL::checkSolution(bool start, TreeData &tree, TreeData &o
 
         if (pdef_->getGoal()->isStartGoalPairValid(start ? motion->root : connectOther->root, start ? connectOther->root : motion->root))
         {
-            Motion *connect = new Motion(si_);
+            auto *connect = new Motion(si_);
 
             si_->copyState(connect->state, connectOther->state);
             connect->parent = motion;

@@ -174,7 +174,7 @@ void plan()
     space->as<ob::SE2StateSpace>()->setBounds(bounds);
 
     // create triangulation that ignores obstacle and respects propositions
-    MyDecomposition* ptd = new MyDecomposition(bounds);
+    auto* ptd = new MyDecomposition(bounds);
     // helper method that adds an obstacle, as well as three propositions p0,p1,p2
     addObstaclesAndPropositions(ptd);
     ptd->setup();

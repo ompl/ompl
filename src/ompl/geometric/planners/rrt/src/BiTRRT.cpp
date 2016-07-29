@@ -162,7 +162,7 @@ void ompl::geometric::BiTRRT::setup()
 
 ompl::geometric::BiTRRT::Motion* ompl::geometric::BiTRRT::addMotion(const base::State* state, TreeData& tree, Motion* parent)
 {
-    Motion *motion = new Motion(si_);
+    auto *motion = new Motion(si_);
     si_->copyState(motion->state, state);
     motion->cost = opt_->stateCost(motion->state);
     motion->parent = parent;
@@ -341,7 +341,7 @@ ompl::base::PlannerStatus ompl::geometric::BiTRRT::solve(const base::PlannerTerm
     // Loop through the (valid) input states and add them to the start tree
     while (const base::State *state = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state, state);
         motion->cost = opt_->stateCost(motion->state);
         motion->root = motion->state; // this state is the root of a tree
@@ -380,10 +380,10 @@ ompl::base::PlannerStatus ompl::geometric::BiTRRT::solve(const base::PlannerTerm
 
     base::StateSamplerPtr sampler = si_->allocStateSampler();
 
-    Motion   *rmotion   = new Motion(si_);
+    auto   *rmotion   = new Motion(si_);
     base::State *rstate = rmotion->state;
 
-    Motion   *xmotion   = new Motion(si_);
+    auto   *xmotion   = new Motion(si_);
     base::State *xstate = xmotion->state;
 
     TreeData tree = tStart_;
@@ -429,7 +429,7 @@ ompl::base::PlannerStatus ompl::geometric::BiTRRT::solve(const base::PlannerTerm
                     solution = solution->parent;
                 }
 
-                PathGeometric *path = new PathGeometric(si_);
+                auto *path = new PathGeometric(si_);
                 path->getStates().reserve(mpath1.size() + mpath2.size());
                 for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
                     path->append(mpath1[i]->state);

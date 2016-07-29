@@ -262,7 +262,7 @@ const ompl::base::RealVectorBounds& ompl::control::GridDecomposition::getRegionB
 {
     if (regToBounds_.count(rid) > 0)
         return *regToBounds_[rid].get();
-    ompl::base::RealVectorBounds *regionBounds = new ompl::base::RealVectorBounds(dimension_);
+    auto *regionBounds = new ompl::base::RealVectorBounds(dimension_);
     std::vector<int> rc(dimension_);
     regionToGridCoord(rid, rc);
     for (int i = 0; i < dimension_; ++i)

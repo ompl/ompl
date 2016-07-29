@@ -121,7 +121,7 @@ namespace ompl
         /// Get the cell at a specified coordinate
         Cell* getCell(const Coord &coord) const
         {
-            iterator pos = hash_.find(const_cast<Coord*>(&coord));
+            auto pos = hash_.find(const_cast<Coord*>(&coord));
             Cell *c = (pos != hash_.end()) ? pos->second : nullptr;
             return c;
         }
@@ -149,7 +149,7 @@ namespace ompl
             {
                 coord[i]--;
 
-                iterator pos = hash_.find(&coord);
+                auto pos = hash_.find(&coord);
                 Cell *cell = (pos != hash_.end()) ? pos->second : nullptr;
 
                 if (cell)
@@ -175,10 +175,10 @@ namespace ompl
             ComponentHash ch;
             std::vector< std::vector<Cell*> > res;
 
-            for (iterator i = hash_.begin() ; i != hash_.end() ; ++i)
+            for (auto i = hash_.begin() ; i != hash_.end() ; ++i)
             {
                 Cell *c0 = i->second;
-                CHit pos = ch.find(&c0->coord);
+                auto pos = ch.find(&c0->coord);
                 int comp = (pos != ch.end()) ? pos->second : -1;
 
                 if (comp < 0)
@@ -225,7 +225,7 @@ namespace ompl
         /// It however updates the neighbor count for neighboring cells
         virtual Cell* createCell(const Coord& coord, CellArray *nbh = nullptr)
         {
-            Cell *cell = new Cell();
+            auto *cell = new Cell();
             cell->coord = coord;
             if (nbh)
                 neighbors(cell->coord, *nbh);
@@ -238,7 +238,7 @@ namespace ompl
         {
             if (cell)
             {
-                typename CoordHash::iterator pos = hash_.find(&cell->coord);
+                auto pos = hash_.find(&cell->coord);
                 if (pos != hash_.end())
                 {
                     hash_.erase(pos);
@@ -263,7 +263,7 @@ namespace ompl
         /// Get the data stored in the cells we are aware of
         void getContent(std::vector<_T> &content) const
         {
-            for (iterator i = hash_.begin() ; i != hash_.end() ; ++i)
+            for (auto i = hash_.begin() ; i != hash_.end() ; ++i)
                 content.push_back(i->second->data);
         }
 
@@ -277,7 +277,7 @@ namespace ompl
         /// Get the set of instantiated cells in the grid
         void getCells(CellArray &cells) const
         {
-            for (iterator i = hash_.begin() ; i != hash_.end() ; ++i)
+            for (auto i = hash_.begin() ; i != hash_.end() ; ++i)
                 cells.push_back(i->second);
         }
 

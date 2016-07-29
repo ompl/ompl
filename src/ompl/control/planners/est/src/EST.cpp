@@ -103,7 +103,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
     // Initializing tree with start state(s)
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(siC_);
+        auto *motion = new Motion(siC_);
         si_->copyState(motion->state, st);
         siC_->nullControl(motion->control);
         addMotion(motion);
@@ -126,7 +126,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
     Motion  *solution = nullptr;
     Motion *approxsol = nullptr;
     double  approxdif = std::numeric_limits<double>::infinity();
-    Motion   *rmotion = new Motion(siC_);
+    auto   *rmotion = new Motion(siC_);
     bool       solved = false;
 
     while (!ptc)
@@ -152,7 +152,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
         if (duration >= siC_->getMinControlDuration())
         {
             // create a motion to the resulting state
-            Motion *motion = new Motion(siC_);
+            auto *motion = new Motion(siC_);
             si_->copyState(motion->state, rmotion->state);
             siC_->copyControl(motion->control, rmotion->control);
             motion->steps = duration;
@@ -197,7 +197,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
             solution = solution->parent;
         }
 
-        PathControl *path = new PathControl(si_);
+        auto *path = new PathControl(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             if (mpath[i]->parent)
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());

@@ -226,7 +226,7 @@ int main(int, char **)
     oc::OpenDEEnvironmentPtr env(new RigidBodyEnvironment());
 
     // create the state space and the control space for planning
-    RigidBodyStateSpace *stateSpace = new RigidBodyStateSpace(env);
+    auto *stateSpace = new RigidBodyStateSpace(env);
     ob::StateSpacePtr stateSpacePtr = ob::StateSpacePtr(stateSpace);
 
     // this will take care of setting a proper collision checker and the starting state for the planner as the initial OpenDE state

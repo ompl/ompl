@@ -194,7 +194,7 @@ ompl::control::SST::Witness* ompl::control::SST::findClosestWitness(ompl::contro
     }
     else
     {
-        Witness* closest = new Witness(siC_);
+        auto* closest = new Witness(siC_);
         closest->linkRep(node);
         si_->copyState(closest->state_, node->state_);
         witnesses_->add(closest);
@@ -210,7 +210,7 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(siC_);
+        auto *motion = new Motion(siC_);
         si_->copyState(motion->state_, st);
         siC_->nullControl(motion->control_);
         nn_->add(motion);
@@ -236,7 +236,7 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
     double  approxdif = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
 
-    Motion      *rmotion = new Motion(siC_);
+    auto      *rmotion = new Motion(siC_);
     base::State  *rstate = rmotion->state_;
     Control       *rctrl = rmotion->control_;
     base::State  *xstate = si_->allocState();
@@ -274,7 +274,7 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
             {
                 Motion* oldRep = closestWitness->rep_;
                 /* create a motion */
-                Motion *motion = new Motion(siC_);
+                auto *motion = new Motion(siC_);
                 motion->accCost_ = cost;
                 si_->copyState(motion->state_, rmotion->state_);
                 siC_->copyControl(motion->control_, rctrl);
@@ -385,7 +385,7 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
     if (solution != nullptr)
     {
         /* set the solution path */
-        PathControl *path = new PathControl(si_);
+        auto *path = new PathControl(si_);
         for (int i = prevSolution_.size() - 1 ; i >= 1 ; --i)
             path->append(prevSolution_[i], prevSolutionControls_[i-1], prevSolutionSteps_[i-1] * siC_->getPropagationStepSize());
         path->append(prevSolution_[0]);

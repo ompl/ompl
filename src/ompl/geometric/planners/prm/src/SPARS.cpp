@@ -618,7 +618,7 @@ bool ompl::geometric::SPARS::checkAddPath(DenseVertex q, const std::vector<Dense
 
     std::vector<SparseVertex> Xs;
     //for each v' in n_rep
-    for (std::set<SparseVertex>::iterator it = n_rep.begin() ; it != n_rep.end() && !result ; ++it)
+    for (auto it = n_rep.begin() ; it != n_rep.end() && !result ; ++it)
     {
         SparseVertex vp = *it;
         //Identify appropriate v" candidates => vpps
@@ -671,7 +671,7 @@ bool ompl::geometric::SPARS::checkAddPath(DenseVertex q, const std::vector<Dense
                             // compute path length
                             double length = 0.0;
                             DensePath::const_iterator jt = dPath.begin();
-                            for (DensePath::const_iterator it = jt + 1 ; it != dPath.end() ; ++it)
+                            for (auto it = jt + 1 ; it != dPath.end() ; ++it)
                             {
                                 length += si_->distance(*jt, *it);
                                 jt = it;
@@ -980,7 +980,7 @@ ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const SparseVertex
         throw Exception(name_, "Could not find solution path");
     else
     {
-        PathGeometric *p = new PathGeometric(si_);
+        auto *p = new PathGeometric(si_);
 
         for (SparseVertex pos = goal; prev[pos] != pos; pos = prev[pos])
             p->append(sparseStateProperty_[pos]);

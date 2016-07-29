@@ -424,10 +424,10 @@ bool ompl::geometric::SPARSdb::lazyCollisionSearch(const Vertex &start,
 bool ompl::geometric::SPARSdb::constructSolution(const Vertex start, const Vertex goal,
                                                  std::vector<Vertex> &vertexPath) const
 {
-    Vertex *vertexPredecessors = new Vertex[boost::num_vertices(g_)];
+    auto *vertexPredecessors = new Vertex[boost::num_vertices(g_)];
     bool foundGoal = false;
 
-    double *vertexDistances = new double[boost::num_vertices(g_)];
+    auto *vertexDistances = new double[boost::num_vertices(g_)];
 
     try
     {
@@ -1209,7 +1209,7 @@ bool ompl::geometric::SPARSdb::checkAddPath( Vertex v )
                     connectGuards(r, rp);
                 else
                 {
-                    PathGeometric *p = new PathGeometric( si_ );
+                    auto *p = new PathGeometric( si_ );
                     if (r < rp)
                     {
                         p->append(d.sigmaA_);
@@ -1658,7 +1658,7 @@ bool ompl::geometric::SPARSdb::convertVertexPathToStatePath(std::vector<Vertex> 
     if (!vertexPath.size())
         return false;
 
-    ompl::geometric::PathGeometric *pathGeometric = new ompl::geometric::PathGeometric(si_);
+    auto *pathGeometric = new ompl::geometric::PathGeometric(si_);
     candidateSolution.isApproximate_ = false; // assume path is valid
 
     // Add original start if it is different than the first state

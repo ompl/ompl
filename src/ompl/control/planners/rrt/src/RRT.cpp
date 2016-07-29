@@ -102,7 +102,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(siC_);
+        auto *motion = new Motion(siC_);
         si_->copyState(motion->state, st);
         siC_->nullControl(motion->control);
         nn_->add(motion);
@@ -125,7 +125,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
     Motion *approxsol = nullptr;
     double  approxdif = std::numeric_limits<double>::infinity();
 
-    Motion      *rmotion = new Motion(siC_);
+    auto      *rmotion = new Motion(siC_);
     base::State  *rstate = rmotion->state;
     Control       *rctrl = rmotion->control;
     base::State  *xstate = si_->allocState();
@@ -158,7 +158,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
                 for ( ; p < pstates.size(); ++p)
                 {
                     /* create a motion */
-                    Motion *motion = new Motion();
+                    auto *motion = new Motion();
                     motion->state = pstates[p];
                     //we need multiple copies of rctrl
                     motion->control = siC_->allocControl();
@@ -197,7 +197,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
             if (cd >= siC_->getMinControlDuration())
             {
                 /* create a motion */
-                Motion *motion = new Motion(siC_);
+                auto *motion = new Motion(siC_);
                 si_->copyState(motion->state, rmotion->state);
                 siC_->copyControl(motion->control, rctrl);
                 motion->steps = cd;
@@ -242,7 +242,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
         }
 
         /* set the solution path */
-        PathControl *path = new PathControl(si_);
+        auto *path = new PathControl(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             if (mpath[i]->parent)
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());

@@ -105,7 +105,7 @@ namespace ompl
         /** \brief Clear the heap */
         void clear()
         {
-            for (typename std::vector<Element*>::iterator i = vector_.begin() ;
+            for (auto i = vector_.begin() ;
                  i != vector_.end() ; ++i)
                 delete *i;
             vector_.clear();
@@ -134,7 +134,7 @@ namespace ompl
         /** \brief Add a new element */
         Element* insert(const _T& data)
         {
-            Element *element = new Element();
+            auto *element = new Element();
             element->data = data;
             const unsigned int pos = vector_.size();
             element->position = pos;
@@ -201,7 +201,7 @@ namespace ompl
         /** \brief Get the data stored in this heap */
         void getContent(std::vector<_T> &content) const
         {
-            for (typename std::vector<Element*>::const_iterator i = vector_.begin();
+            for (auto i = vector_.begin();
                  i != vector_.end() ; ++i)
                 content.push_back((*i)->data);
         }
@@ -260,7 +260,7 @@ namespace ompl
 
         Element* newElement(_T& data, unsigned int pos) const
         {
-            Element *element = new Element();
+            auto *element = new Element();
             element->data = data;
             element->position = pos;
             return element;

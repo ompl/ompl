@@ -184,7 +184,7 @@ ompl::geometric::SST::Witness* ompl::geometric::SST::findClosestWitness(ompl::ge
     }
     else
     {
-        Witness *closest = new Witness(si_);
+        auto *closest = new Witness(si_);
         closest->linkRep(node);
         si_->copyState(closest->state_, node->state_);
         witnesses_->add(closest);
@@ -217,7 +217,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state_, st);
         nn_->add(motion);
         motion->accCost_ = opt_->identityCost();
@@ -239,7 +239,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
     Motion *approxsol = nullptr;
     double  approxdif = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
-    Motion      *rmotion = new Motion(si_);
+    auto      *rmotion = new Motion(si_);
     base::State  *rstate = rmotion->state_;
     base::State  *xstate = si_->allocState();
 
@@ -287,7 +287,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
             {
                 Motion* oldRep = closestWitness->rep_;
                 /* create a motion */
-                Motion *motion = new Motion(si_);
+                auto *motion = new Motion(si_);
                 motion->accCost_ = cost;
                 si_->copyState(motion->state_, rstate);
 
@@ -375,7 +375,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
     if (solution != nullptr)
     {
         /* set the solution path */
-        PathGeometric *path = new PathGeometric(si_);
+        auto *path = new PathGeometric(si_);
         for (int i = prevSolution_.size() - 1 ; i >= 0 ; --i)
             path->append(prevSolution_[i]);
         solved = true;

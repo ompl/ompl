@@ -40,7 +40,7 @@
 
 ompl::base::State* ompl::base::SE3StateSpace::allocState() const
 {
-    StateType *state = new StateType();
+    auto *state = new StateType();
     allocStateComponents(state);
     return state;
 }

@@ -99,7 +99,7 @@ ompl::base::PlannerStatus ompl::geometric::ProjEST::solve(const base::PlannerTer
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         addMotion(motion);
     }
@@ -136,7 +136,7 @@ ompl::base::PlannerStatus ompl::geometric::ProjEST::solve(const base::PlannerTer
         if (si_->checkMotion(existing->state, xstate))
         {
             /* create a motion */
-            Motion *motion = new Motion(si_);
+            auto *motion = new Motion(si_);
             si_->copyState(motion->state, xstate);
             motion->parent = existing;
 
@@ -178,7 +178,7 @@ ompl::base::PlannerStatus ompl::geometric::ProjEST::solve(const base::PlannerTer
         }
 
         /* set the solution path */
-        PathGeometric *path = new PathGeometric(si_);
+        auto *path = new PathGeometric(si_);
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
         pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());

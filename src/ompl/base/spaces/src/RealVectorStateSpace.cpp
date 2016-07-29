@@ -152,7 +152,7 @@ const std::string& ompl::base::RealVectorStateSpace::getDimensionName(unsigned i
 
 int ompl::base::RealVectorStateSpace::getDimensionIndex(const std::string &name) const
 {
-    std::map<std::string, unsigned int>::const_iterator it = dimensionIndex_.find(name);
+    auto it = dimensionIndex_.find(name);
     return it != dimensionIndex_.end() ? (int)it->second : -1;
 }
 
@@ -275,7 +275,7 @@ ompl::base::StateSamplerPtr ompl::base::RealVectorStateSpace::allocDefaultStateS
 
 ompl::base::State* ompl::base::RealVectorStateSpace::allocState() const
 {
-    StateType *rstate = new StateType();
+    auto *rstate = new StateType();
     rstate->values = new double[dimension_];
     return rstate;
 }

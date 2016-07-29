@@ -67,7 +67,7 @@ public:
         }
         if (ok)
         {
-            ob::RealVectorStateSpace *space = new ob::RealVectorStateSpace();
+            auto *space = new ob::RealVectorStateSpace();
             space->addDimension(0.0, ppm_.getWidth());
             space->addDimension(0.0, ppm_.getHeight());
             maxWidth_ = ppm_.getWidth() - 1;

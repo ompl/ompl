@@ -73,7 +73,7 @@ bool ompl::base::ParamSet::setParams(const std::map<std::string, std::string> &k
 
 bool ompl::base::ParamSet::getParam(const std::string &key, std::string &value) const
 {
-    std::map<std::string, GenericParamPtr>::const_iterator it = params_.find(key);
+    auto it = params_.find(key);
     if (it != params_.end())
     {
         value = it->second->getValue();
@@ -107,7 +107,7 @@ const std::map<std::string, ompl::base::GenericParamPtr>& ompl::base::ParamSet::
 const ompl::base::GenericParamPtr& ompl::base::ParamSet::getParam(const std::string &key) const
 {
     static GenericParamPtr empty;
-    std::map<std::string, GenericParamPtr>::const_iterator it = params_.find(key);
+    auto it = params_.find(key);
     if (it != params_.end())
         return it->second;
     else
