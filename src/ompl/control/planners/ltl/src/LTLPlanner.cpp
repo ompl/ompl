@@ -46,7 +46,7 @@
 #include <map>
 #include <vector>
 
-#include <stdio.h>
+#include <cstdio>
 
 ompl::control::LTLPlanner::LTLPlanner(const LTLSpaceInformationPtr& ltlsi, const ProductGraphPtr& a, double exploreTime) :
     ompl::base::Planner(ltlsi, "LTLPlanner"),

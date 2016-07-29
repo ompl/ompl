@@ -95,7 +95,7 @@ std::string getCPUInfoAux()
 #include <mach/task.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <stdint.h>
+#include <cstdint>
 #include <cstring>
 #include <unistd.h>
 

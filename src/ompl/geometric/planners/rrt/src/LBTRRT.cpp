@@ -38,7 +38,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
-#include <math.h>
+#include <cmath>
 #include <boost/math/constants/constants.hpp>
 
 ompl::geometric::LBTRRT::LBTRRT(const base::SpaceInformationPtr &si) :
