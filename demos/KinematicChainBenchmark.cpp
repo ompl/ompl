@@ -155,13 +155,13 @@ public:
             theta += s->as<ompl::base::SO2StateSpace::StateType>(i)->value;
             xN = x + cos(theta) * linkLength;
             yN = y + sin(theta) * linkLength;
-            segments.push_back(Segment(x, y, xN, yN));
+            segments.emplace_back(x, y, xN, yN);
             x = xN;
             y = yN;
         }
         xN = x + cos(theta) * 0.001;
         yN = y + sin(theta) * 0.001;
-        segments.push_back(Segment(x, y, xN, yN));
+        segments.emplace_back(x, y, xN, yN);
         return selfIntersectionTest(segments)
             && environmentIntersectionTest(segments, *space->environment());
     }
@@ -228,7 +228,7 @@ Environment createHornEnvironment(unsigned int d, double eps)
         theta += boost::math::constants::pi<double>() / (double) d;
         xN = x + cos(theta) * scale;
         yN = y + sin(theta) * scale;
-        env.push_back(Segment(x, y, xN, yN));
+        env.emplace_back(x, y, xN, yN);
         x = xN;
         y = yN;
         envFile << x << " " << y << std::endl;
@@ -244,7 +244,7 @@ Environment createHornEnvironment(unsigned int d, double eps)
         theta += boost::math::constants::pi<double>() / d;
         xN = x + cos(theta) * scale;
         yN = y + sin(theta) * scale;
-        env.push_back(Segment(x, y, xN, yN));
+        env.emplace_back(x, y, xN, yN);
         x = xN;
         y = yN;
         envFile << x << " " << y << std::endl;

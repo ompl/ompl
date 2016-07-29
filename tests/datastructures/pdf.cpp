@@ -141,11 +141,11 @@ BOOST_AUTO_TEST_CASE(Statistical)
     const double STDERR_WIDENING_FACTOR = 2.5;
 
     std::vector<std::pair<int,double> > values;
-    values.push_back(std::pair<int,double>(0, 30.0));
-    values.push_back(std::pair<int,double>(1, 10.0));
-    values.push_back(std::pair<int,double>(2, 25.0));
-    values.push_back(std::pair<int,double>(3, 15.0));
-    values.push_back(std::pair<int,double>(4, 20.0));
+    values.emplace_back(0, 30.0);
+    values.emplace_back(1, 10.0);
+    values.emplace_back(2, 25.0);
+    values.emplace_back(3, 15.0);
+    values.emplace_back(4, 20.0);
 
     ompl::PDF<int> p;
     double mean = 0.0;
