@@ -146,10 +146,10 @@ public:
     using container_type_t = boost::numeric::ublas::shallow_array_adaptor<double>;
 
     /** \brief The uniform_on_sphere distribution type. */
-    typedef boost::uniform_on_sphere<double, container_type_t> spherical_dist_t;
+    using spherical_dist_t = boost::uniform_on_sphere<double, container_type_t>;
 
     /** \brief The resulting variate generator type. */
-    typedef boost::variate_generator<std::mt19937*, spherical_dist_t > variate_generator_t;
+    using variate_generator_t = boost::variate_generator<std::mt19937*, spherical_dist_t >;
 
     /** \brief Constructor */
     SphericalData(std::mt19937* generatorPtr) : generatorPtr_(generatorPtr)
@@ -187,8 +187,8 @@ public:
 
 private:
     /** \brief The pair of distribution and variate generator. */
-    typedef std::pair<std::shared_ptr<spherical_dist_t>,
-        std::shared_ptr<variate_generator_t> > dist_gen_pair_t;
+    using dist_gen_pair_t = std::pair<std::shared_ptr<spherical_dist_t>,
+        std::shared_ptr<variate_generator_t> >;
 
     /** \brief A vector distribution and variate generators (as pointers) indexed on dimension. */
     std::vector<dist_gen_pair_t>               dimVector_;
@@ -330,7 +330,7 @@ void ompl::RNG::uniformInBall(double r, unsigned int n, double value[])
     // Scale the point on the unit sphere
     for (unsigned int i = 0u; i < n; ++i)
     {
-        value[i] = radiusScale * value[i];
+        value[i] *= radiusScale;
     }
 }
 

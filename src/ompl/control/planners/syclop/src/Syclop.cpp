@@ -301,9 +301,8 @@ void ompl::control::Syclop::setupEdgeEstimates()
 void ompl::control::Syclop::updateEdge(Adjacency &a)
 {
     a.cost = 1.0;
-    for (std::vector<EdgeCostFactorFn>::const_iterator i = edgeCostFactors_.begin(); i != edgeCostFactors_.end(); ++i)
+    for (const auto & factor : edgeCostFactors_)
     {
-        const EdgeCostFactorFn& factor = *i;
         a.cost *= factor(a.source->index, a.target->index);
     }
 }
@@ -346,12 +345,12 @@ void ompl::control::Syclop::buildGraph()
         /* Create an edge between this vertex and each of its neighboring regions in the decomposition,
             and initialize the edge's Adjacency object. */
         decomp_->getNeighbors(index[*vi], neighbors);
-        for (std::vector<int>::const_iterator j = neighbors.begin(); j != neighbors.end(); ++j)
+        for (const auto & j : neighbors)
         {
             RegionGraph::edge_descriptor edge;
             bool ignore;
-            boost::tie(edge, ignore) = boost::add_edge(*vi, boost::vertex(*j, graph_), graph_);
-            initEdge(graph_[edge], &graph_[*vi], &graph_[boost::vertex(*j, graph_)]);
+            boost::tie(edge, ignore) = boost::add_edge(*vi, boost::vertex(j, graph_), graph_);
+            initEdge(graph_[edge], &graph_[*vi], &graph_[boost::vertex(j, graph_)]);
         }
         neighbors.clear();
     }

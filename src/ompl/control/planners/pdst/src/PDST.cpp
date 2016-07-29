@@ -298,17 +298,17 @@ void ompl::control::PDST::freeMemory()
     std::vector<Motion*> motions;
     motions.reserve(priorityQueue_.size());
     priorityQueue_.getContent(motions);
-    for (auto it = motions.begin() ; it < motions.end() ; ++it)
+    for (auto & motion : motions)
     {
-        if ((*it)->startState_ != (*it)->endState_)
-            si_->freeState((*it)->startState_);
-        if (!(*it)->isSplit_)
+        if (motion->startState_ != motion->endState_)
+            si_->freeState(motion->startState_);
+        if (!motion->isSplit_)
         {
-            si_->freeState((*it)->endState_);
-            if ((*it)->control_)
-                siC_->freeControl((*it)->control_);
+            si_->freeState(motion->endState_);
+            if (motion->control_)
+                siC_->freeControl(motion->control_);
         }
-        delete *it;
+        delete motion;
     }
     priorityQueue_.clear(); // clears the Element objects in the priority queue
     delete bsp_;
@@ -344,11 +344,11 @@ void ompl::control::PDST::getPlannerData(ompl::base::PlannerData &data) const
     if (lastGoalMotion_ != nullptr)
         data.addGoalVertex(lastGoalMotion_->endState_);
 
-    for (auto it = motions.begin(); it < motions.end(); ++it)
-        if (!(*it)->isSplit_)
+    for (auto & motion : motions)
+        if (!motion->isSplit_)
         {
             // We only add one edge for each motion that has been split into smaller segments
-            Motion *cur = *it, *ancestor;
+            Motion *cur = motion, *ancestor;
             unsigned int duration = findDurationAndAncestor(cur, cur->endState_, scratch, ancestor);
 
             if (cur->parent_ == nullptr)

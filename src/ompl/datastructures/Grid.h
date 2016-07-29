@@ -164,7 +164,7 @@ namespace ompl
         /// Get the connected components formed by the cells in this grid (based on neighboring relation)
         std::vector< std::vector<Cell*> > components() const
         {
-            typedef std::unordered_map<Coord*, int, HashFunCoordPtr, EqualCoordPtr> ComponentHash;
+            using ComponentHash = std::unordered_map<Coord*, int, HashFunCoordPtr, EqualCoordPtr>;
             using CHit = typename ComponentHash::iterator;
 
             int components = 0;
@@ -352,7 +352,7 @@ namespace ompl
         };
 
         /// Define the datatype for the used hash structure
-        typedef std::unordered_map<Coord*, Cell*, HashFunCoordPtr, EqualCoordPtr> CoordHash;
+        using CoordHash = std::unordered_map<Coord*, Cell*, HashFunCoordPtr, EqualCoordPtr>;
 
         /// Helper to sort components by size
         struct SortComponents

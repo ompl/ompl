@@ -91,13 +91,13 @@ namespace ompl
         {
         public:
             ////////////////////////////////
-            //Data typedefs:
-            /** \brief A typedef for a pair of costs, i.e., the edge sorting key */
-            typedef std::pair<ompl::base::Cost, ompl::base::Cost> CostPair;
+            //Data alias declarations:
+            /** \brief An alias declaration for a pair of costs, i.e., the edge sorting key */
+            using CostPair = std::pair<ompl::base::Cost, ompl::base::Cost>;
             ////////////////////////////////
 
             ////////////////////////////////
-            //Function typedefs:
+            //Function alias declarations:
             /** \brief A std::function definition of a heuristic function for a vertex. */
             using VertexHeuristicFunc = std::function<ompl::base::Cost (const VertexConstPtr &)>;
 
@@ -252,27 +252,27 @@ namespace ompl
 
         private:
             ////////////////////////////////
-            //Helpful typedefs:
-            /** \brief A typedef to the underlying vertex queue as a multiset.  The advantage to a multimap over a multiset is that a copy of the key is stored with the value, which guarantees that the ordering remains sane. Even if the inherent key for a value has changed, it will still be sorted under the old key until manually updated and the map will be sorted */
-            typedef std::multimap<ompl::base::Cost, VertexPtr, std::function<bool (const ompl::base::Cost&, const ompl::base::Cost&)> > CostToVertexMMap;
+            //Helpful alias declarations:
+            /** \brief An alias declaration to the underlying vertex queue as a multiset.  The advantage to a multimap over a multiset is that a copy of the key is stored with the value, which guarantees that the ordering remains sane. Even if the inherent key for a value has changed, it will still be sorted under the old key until manually updated and the map will be sorted */
+            using CostToVertexMMap = std::multimap<ompl::base::Cost, VertexPtr, std::function<bool (const ompl::base::Cost&, const ompl::base::Cost&)>>;
 
-            /** \brief A typedef to the underlying edge queue as a multimap. Multimapped for the same reason as CostToVertexMMap */
-            typedef std::multimap<CostPair, VertexPtrPair, std::function<bool (const CostPair&, const CostPair&)> > CostToVertexPtrPairMMap;
+            /** \brief An alias declaration to the underlying edge queue as a multimap. Multimapped for the same reason as CostToVertexMMap */
+            using CostToVertexPtrPairMMap = std::multimap<CostPair, VertexPtrPair, std::function<bool (const CostPair&, const CostPair&)>>;
 
-            /** \brief A typedef for an iterator into the vertex queue multimap */
+            /** \brief An alias declaration for an iterator into the vertex queue multimap */
             using VertexQueueIter = CostToVertexMMap::iterator;
 
-            /** \brief A typedef for an unordered_map of vertex queue iterators indexed on vertex*/
-            typedef std::unordered_map<BITstar::VertexId, VertexQueueIter> VertexIdToVertexQueueIterUMap;
+            /** \brief An alias declaration for an unordered_map of vertex queue iterators indexed on vertex*/
+            using VertexIdToVertexQueueIterUMap = std::unordered_map<BITstar::VertexId, VertexQueueIter>;
 
-            /** \brief A typedef for an iterator into the edge queue multimap */
+            /** \brief An alias declaration for an iterator into the edge queue multimap */
             using EdgeQueueIter = CostToVertexPtrPairMMap::iterator;
 
-            /** \brief A typedef for a list of edge queue iterators*/
+            /** \brief An alias declaration for a list of edge queue iterators*/
             using EdgeQueueIterList = std::list<EdgeQueueIter>;
 
-            /** \brief A typedef for an unordered_map of edge queue iterators indexed by vertex*/
-            typedef std::unordered_map<BITstar::VertexId, EdgeQueueIterList> VertexIdToEdgeQueueIterListUMap;
+            /** \brief An alias declaration for an unordered_map of edge queue iterators indexed by vertex*/
+            using VertexIdToEdgeQueueIterListUMap = std::unordered_map<BITstar::VertexId, EdgeQueueIterList>;
             ////////////////////////////////
 
 

@@ -49,7 +49,7 @@ static const int T_ERROR    = 3;
 /** \brief Representation of a 2D environment */
 struct Environment2D
 {
-    Environment2D(void)
+    Environment2D()
     {
         width = height = 0;
     }

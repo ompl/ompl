@@ -60,7 +60,7 @@ namespace ompl
         {
         public:
 
-            StateSpace2DMap(void) : base::RealVectorStateSpace(2)
+            StateSpace2DMap() : base::RealVectorStateSpace(2)
             {
             }
 
@@ -128,7 +128,7 @@ namespace ompl
         protected:
 
             /** \brief Set the bounds and the state validity checker */
-            void configure2DMap(void)
+            void configure2DMap()
             {
                 base::RealVectorBounds sbounds(2);
 

@@ -301,10 +301,10 @@ namespace ompl
             std::hash<std::size_t> h;
         }; // Hash
 
-        typedef std::multiset<Node*, LessThanNodeK>             Queue;
-        typedef std::unordered_map<std::size_t, Node*, Hash>  IdNodeMap;
+        using Queue = std::multiset<Node*, LessThanNodeK>;
+        using IdNodeMap = std::unordered_map<std::size_t, Node*, Hash>;
         using IdNodeMapIter = typename IdNodeMap::iterator;
-        typedef typename boost::property_map<Graph, boost::edge_weight_t>::type WeightMap;
+        using WeightMap = typename boost::property_map<Graph, boost::edge_weight_t>::type;
 
         // LPA* subprocedures
         void updateVertex(Node *n)

@@ -348,18 +348,15 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
             }
             // Print progress properties for each run
             out << planner.runsProgressData.size() << " runs" << std::endl;
-            for (std::size_t r = 0; r < planner.runsProgressData.size(); ++r)
+            for (const auto & r : planner.runsProgressData)
             {
                 // For each time point
-                for (std::size_t t = 0; t < planner.runsProgressData[r].size(); ++t)
+                for (const auto & t : r)
                 {
                     // Print each of the properties at that time point
-                    for (auto iter =
-                             planner.runsProgressData[r][t].begin();
-                         iter != planner.runsProgressData[r][t].end();
-                         ++iter)
+                    for (const auto & iter : t)
                     {
-                        out << iter->second << ",";
+                        out << iter.second << ",";
                     }
 
                     // Separate time points by semicolons

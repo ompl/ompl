@@ -77,9 +77,9 @@ namespace ompl
 
             /** \brief The data collected from a run of a planner is
                 stored as key-value pairs. */
-            typedef std::map<std::string, std::string> RunProperties;
+            using RunProperties = std::map<std::string, std::string>;
 
-            typedef std::vector<std::map<std::string, std::string> > RunProgressData;
+            using RunProgressData = std::vector<std::map<std::string, std::string>>;
 
             /** \brief Signature of function that can be called before a planner execution is started */
             using PreSetupEvent = std::function<void (const base::PlannerPtr &)>;

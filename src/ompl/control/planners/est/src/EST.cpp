@@ -83,13 +83,13 @@ void ompl::control::EST::freeMemory()
 {
     for (const auto & it : tree_.grid)
     {
-        for (unsigned int i = 0 ; i < it.second->data.size() ; ++i)
+        for (const auto & motion : it.second->data.motions_)
         {
-            if (it.second->data[i]->state)
-                si_->freeState(it.second->data[i]->state);
-            if (it.second->data[i]->control)
-                siC_->freeControl(it.second->data[i]->control);
-            delete it.second->data[i];
+            if (motion->state)
+                si_->freeState(motion->state);
+            if (motion->control)
+                siC_->freeControl(motion->control);
+            delete motion;
         }
     }
 }

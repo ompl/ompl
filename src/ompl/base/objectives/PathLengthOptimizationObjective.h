@@ -64,7 +64,7 @@ namespace ompl
             Cost motionCostHeuristic(const State *s1, const State *s2) const override;
 
             /** \brief Allocate a state sampler for the path-length objective (i.e., direct ellipsoidal sampling). */
-            InformedSamplerPtr allocInformedStateSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls) const override;
+            InformedSamplerPtr allocInformedStateSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls) const override;
 
         };
     }

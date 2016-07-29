@@ -202,9 +202,8 @@ void ompl::control::ProductGraph::clear()
     stateToIndex_.clear();
     startState_ = nullptr;
     graph_.clear();
-    std::unordered_map<State,State*,HashState>::iterator i;
-    for (i = stateToPtr_.begin(); i != stateToPtr_.end(); ++i)
-        delete i->second;
+    for (auto & i : stateToPtr_)
+        delete i.second;
     stateToPtr_.clear();
 }
 
@@ -244,9 +243,9 @@ void ompl::control::ProductGraph::buildGraph(State* start, const std::function<v
 
         //enqueue each neighbor of current
         decomp_->getNeighbors(current->decompRegion, regNeighbors);
-        for (std::vector<int>::const_iterator r = regNeighbors.begin(); r != regNeighbors.end(); ++r)
+        for (const auto & r : regNeighbors)
         {
-            State* nextState = getState(current, *r);
+            State* nextState = getState(current, r);
             if (!nextState->isValid())
                 continue;
             //if this state is newly discovered,

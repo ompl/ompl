@@ -434,10 +434,10 @@ namespace ompl
                 const DecompositionPtr& decomp;
             };
 
-            typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Region, Adjacency> RegionGraph;
+            using RegionGraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Region, Adjacency>;
             using Vertex = boost::graph_traits<RegionGraph>::vertex_descriptor;
             using VertexIter = boost::graph_traits<RegionGraph>::vertex_iterator;
-            typedef boost::property_map<RegionGraph, boost::vertex_index_t>::type VertexIndexMap;
+            using VertexIndexMap = boost::property_map<RegionGraph, boost::vertex_index_t>::type;
             using EdgeIter = boost::graph_traits<RegionGraph>::edge_iterator;
 
             /// @cond IGNORE

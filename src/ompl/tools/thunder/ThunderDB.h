@@ -62,7 +62,7 @@ namespace ompl
         OMPL_CLASS_FORWARD(ThunderDB);
         /// @endcond
 
-        typedef std::shared_ptr<ompl::geometric::SPARSdb> SPARSdbPtr;
+        using SPARSdbPtr = std::shared_ptr<ompl::geometric::SPARSdb>;
 
         /** \class ompl::geometric::ThunderDBPtr
             \brief A shared pointer wrapper for ompl::tools::ThunderDB */

@@ -337,10 +337,10 @@ namespace ompl
         };
 
         /// Datatype for a heap of cells containing interior cells
-        typedef BinaryHeap< CellX*, LessThanInternalCell > internalBHeap;
+        using internalBHeap = BinaryHeap<CellX*, LessThanInternalCell>;
 
         /// Datatype for a heap of cells containing exterior cells
-        typedef BinaryHeap< CellX*, LessThanExternalCell > externalBHeap;
+        using externalBHeap = BinaryHeap<CellX*, LessThanExternalCell>;
 
         /// Routine used internally for keeping track of binary heap elements for internal cells
         static void setHeapElementI(typename internalBHeap::Element *element, void*)

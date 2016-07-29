@@ -75,7 +75,7 @@ namespace ompl
         /// \cond IGNORE
         // internally, we use a priority queue for nearest neighbors, paired
         // with their distance to the query point
-        typedef std::pair<const _T*, double> DataDist;
+        using DataDist = std::pair<const _T*, double>;
         struct DataDistCompare
         {
             bool operator()(const DataDist& d0, const DataDist& d1)
@@ -83,7 +83,7 @@ namespace ompl
                 return d0.second < d1.second;
             }
         };
-        typedef std::priority_queue<DataDist, std::vector<DataDist>, DataDistCompare> NearQueue;
+        using NearQueue = std::priority_queue<DataDist, std::vector<DataDist>, DataDistCompare>;
         /// \endcond
 
     public:
@@ -757,7 +757,7 @@ namespace ompl
                 return (n0->distToPivot_ - n0->maxRadius_) > (n1->distToPivot_ - n1->maxRadius_);
             }
         };
-        typedef std::priority_queue<Node*, std::vector<Node*>, NodeCompare> NodeQueue;
+        using NodeQueue = std::priority_queue<Node*, std::vector<Node*>, NodeCompare>;
         /// \endcond
 
         /// \brief The data structure containing the elements stored in this structure.

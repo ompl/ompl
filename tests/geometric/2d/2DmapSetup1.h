@@ -57,7 +57,7 @@ namespace ompl
         {
         public:
 
-            StateSpace2DMap1(void) : base::RealVectorStateSpace(1)
+            StateSpace2DMap1() : base::RealVectorStateSpace(1)
             {
             }
 
@@ -110,13 +110,13 @@ namespace ompl
 
         protected:
 
-            base::StateSpacePtr constructSpace(void)
+            base::StateSpacePtr constructSpace()
             {
                 return base::StateSpacePtr(new StateSpace2DMap1()) + base::StateSpacePtr(new StateSpace2DMap1());
             }
 
             /** \brief Set the bounds and the state validity checker */
-            void configure2DMap1(void)
+            void configure2DMap1()
             {
                 base::RealVectorBounds bounds(1);
                 bounds.low[0] = 0.0;

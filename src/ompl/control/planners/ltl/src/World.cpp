@@ -104,8 +104,7 @@ void ompl::control::World::clear()
 size_t std::hash<ompl::control::World>::operator()(const ompl::control::World &w) const
 {
     std::size_t hash = 0;
-    std::unordered_map<unsigned int, bool>::const_iterator p;
-    for (p = w.props_.begin(); p != w.props_.end(); ++p)
-        ompl::hash_combine(hash, *p);
+    for (const auto & p : w.props_)
+        ompl::hash_combine(hash, p);
     return hash;
 }

@@ -151,9 +151,8 @@ BOOST_AUTO_TEST_CASE(Statistical)
     double mean = 0.0;
     double sumWeights = 0.0;
     /* Calculate weighted mean of discrete uniform distribution as we add elements to PDF. */
-    for (std::vector<std::pair<int,double> >::const_iterator i = values.begin(); i != values.end(); ++i)
+    for (const auto & elem : values)
     {
-        const std::pair<int,double>& elem = *i;
         p.add(elem.first, elem.second);
         mean += elem.first*elem.second;
         sumWeights += elem.second;
@@ -163,10 +162,9 @@ BOOST_AUTO_TEST_CASE(Statistical)
     /* Calculate weighted variance of discrete uniform distribution, which is defined as
      * sum(w[i]*(x[i]-mean)^2)/sumWeights. */
     double variance = 0.0;
-    for (std::vector<std::pair<int,double> >::const_iterator i = values.begin(); i != values.end(); ++i)
+    for (const auto elem : values)
     {
-        const std::pair<int,double>& elem = *i;
-        variance += elem.second*(elem.first-mean)*(elem.first-mean);
+        variance += elem.second * (elem.first - mean) * (elem.first - mean);
     }
     variance /= sumWeights;
     double standerr = sqrt(variance/NUM_SAMPLES);

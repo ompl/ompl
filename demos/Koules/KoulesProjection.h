@@ -53,11 +53,11 @@ public:
             numDimensions_ = 3;
     }
 
-    virtual unsigned int getDimension(void) const
+    virtual unsigned int getDimension() const
     {
         return numDimensions_;
     }
-    virtual void defaultCellSizes(void)
+    virtual void defaultCellSizes()
     {
         cellSizes_.resize(numDimensions_, .05);
     }

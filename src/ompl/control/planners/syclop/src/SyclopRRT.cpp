@@ -121,9 +121,9 @@ void ompl::control::SyclopRRT::selectAndExtend(Region &region, std::vector<Motio
         searchRegions.push_back(region.index);
 
         std::vector<Motion*> motions;
-        for (std::vector<int>::const_iterator i = searchRegions.begin(); i != searchRegions.end(); ++i)
+        for (const auto & i : searchRegions)
         {
-            const std::vector<Motion*>& regionMotions = getRegionFromIndex(*i).motions;
+            const std::vector<Motion*>& regionMotions = getRegionFromIndex(i).motions;
             motions.insert(motions.end(), regionMotions.begin(), regionMotions.end());
         }
 

@@ -242,10 +242,10 @@ namespace ompl
                 double cost;
             };
 
-            typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, State*, Edge> GraphType;
+            using GraphType = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, State*, Edge>;
             using Vertex = boost::graph_traits<GraphType>::vertex_descriptor;
             using VertexIter = boost::graph_traits<GraphType>::vertex_iterator;
-            typedef boost::property_map<GraphType, boost::vertex_index_t>::type VertexIndexMap;
+            using VertexIndexMap = boost::property_map<GraphType, boost::vertex_index_t>::type;
             using EdgeIter = boost::graph_traits<GraphType>::edge_iterator;
 
             PropositionalDecompositionPtr decomp_;

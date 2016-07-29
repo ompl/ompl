@@ -92,8 +92,8 @@ namespace ompl
             };
 
             /** @brief The type for a vertex in the roadmap. */
-            typedef boost::adjacency_list_traits<boost::vecS, boost::listS,
-                                                 boost::undirectedS>::vertex_descriptor Vertex;
+            using Vertex = boost::adjacency_list_traits<boost::vecS, boost::listS,
+                                                 boost::undirectedS>::vertex_descriptor;
 
             /**
              @brief The underlying roadmap graph.
@@ -111,7 +111,7 @@ namespace ompl
 
              @par Edges should be undirected and have a weight property.
              */
-            typedef boost::adjacency_list <
+            using Graph = boost::adjacency_list <
                 boost::vecS, boost::listS, boost::undirectedS,
                 boost::property < vertex_state_t, base::State*,
                 boost::property < boost::vertex_index_t, unsigned long int,
@@ -121,7 +121,7 @@ namespace ompl
                 boost::property < boost::vertex_rank_t, unsigned long int > > > > > >,
                 boost::property < boost::edge_weight_t, base::Cost,
                 boost::property < edge_flags_t, unsigned int > >
-            > Graph;
+            >;
 
             /** @brief The type for an edge in the roadmap. */
             using Edge = boost::graph_traits<Graph>::edge_descriptor;

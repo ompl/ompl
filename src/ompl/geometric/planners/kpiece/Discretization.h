@@ -107,7 +107,7 @@ namespace ompl
             };
 
             /** \brief The datatype for the maintained grid datastructure */
-            typedef GridB<CellData*, OrderCellsByImportance> Grid;
+            using Grid = GridB<CellData*, OrderCellsByImportance>;
 
             /** \brief The datatype for the maintained grid cells */
             using Cell = typename Grid::Cell;

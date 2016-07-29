@@ -47,18 +47,17 @@
 
 int ompl::control::Automaton::TransitionMap::eval(const World& w) const
 {
-    typedef std::unordered_map<World, unsigned int>::const_iterator DestIter;
-    DestIter d = entries.find(w);
+    const auto d = entries.find(w);
     if (d != entries.end())
         return d->second;
-    for (d = entries.begin(); d != entries.end(); ++d)
+    for (const auto & entry : entries)
     {
-        if (w.satisfies(d->first))
+        if (w.satisfies(entry.first))
         {
             //Since w satisfies another world that leads to d->second,
             //we can add an edge directly from w to d->second.
-            entries[w] = d->second;
-            return d->second;
+            entries[w] = entry.second;
+            return entry.second;
         }
     }
     return -1;
@@ -144,7 +143,6 @@ unsigned int ompl::control::Automaton::numStates() const
 unsigned int ompl::control::Automaton::numTransitions() const
 {
     unsigned int ntrans = 0;
-    using TransIter = std::vector<TransitionMap>::const_iterator;
     for (const auto & transition : transitions_)
         ntrans += transition.entries.size();
     return ntrans;
@@ -164,12 +162,10 @@ void ompl::control::Automaton::print(std::ostream& out) const
         out << i << R"( [label=")" << i << R"(",shape=)";
         out << (accepting_[i] ? "doublecircle" : "circle") << "]" << std::endl;
 
-        const TransitionMap& map = transitions_[i];
-        std::unordered_map<World, unsigned int>::const_iterator e;
-        for (e = map.entries.begin(); e != map.entries.end(); ++e)
+        for (const auto & e : transitions_[i].entries)
         {
-            const World& w = e->first;
-            unsigned int dest = e->second;
+            const World& w = e.first;
+            unsigned int dest = e.second;
             const std::string formula = w.formula();
             out << i << " -> " << dest << R"( [label=")" << formula << R"("])" << std::endl;
         }
@@ -200,11 +196,9 @@ unsigned int ompl::control::Automaton::distFromAccepting(unsigned int s, unsigne
             distances_[s] = distance[current];
             return distance[current];
         }
-        const TransitionMap& map = transitions_[current];
-        std::unordered_map<World, unsigned int>::const_iterator e;
-        for (e = map.entries.begin(); e != map.entries.end(); ++e)
+        for (const auto & e : transitions_[current].entries)
         {
-            unsigned int neighbor = e->second;
+            unsigned int neighbor = e.second;
             if (processed.count(neighbor) > 0)
                 continue;
             q.push(neighbor);

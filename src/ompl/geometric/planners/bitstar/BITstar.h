@@ -118,7 +118,7 @@ namespace ompl
             class IdGenerator;
             /** \brief The queue of edges to process as an integrated dual-stage queue (tracks both the expansion of vertices and the resulting edges) */
             class IntegratedQueue;
-            //Helpful typedefs:
+            //Helpful alias declarations:
             /** \brief A vertex shared pointer. */
             using VertexPtr = std::shared_ptr<Vertex>;
             /** \brief A \e constant vertex shared pointer. */
@@ -130,9 +130,9 @@ namespace ompl
             /** \brief The vertex id type */
             using VertexId = unsigned int;
             /** \brief A pair of vertices, i.e., an edge. */
-            typedef std::pair<VertexPtr, VertexPtr> VertexPtrPair;
+            using VertexPtrPair = std::pair<VertexPtr, VertexPtr>;
             /** \brief A pair of const vertices, i.e., an edge. */
-            typedef std::pair<VertexConstPtr, VertexConstPtr> VertexConstPtrPair;
+            using VertexConstPtrPair = std::pair<VertexConstPtr, VertexConstPtr>;
             /** \brief The OMPL::NearestNeighbors structure. */
             using VertexPtrNNPtr = std::shared_ptr<NearestNeighbors<VertexPtr> >;
 

@@ -264,18 +264,18 @@ void ompl::base::StateSpace::setup()
     // remove previously set parameters for projections
     std::vector<std::string> pnames;
     params_.getParamNames(pnames);
-    for (std::vector<std::string>::const_iterator it = pnames.begin() ; it != pnames.end() ; ++it)
-        if (it->substr(0, 11) == "projection.")
-            params_.remove(*it);
+    for (const auto & pname : pnames)
+        if (pname.substr(0, 11) == "projection.")
+            params_.remove(pname);
 
     // setup projections and add their parameters
-    for (std::map<std::string, ProjectionEvaluatorPtr>::const_iterator it = projections_.begin() ; it != projections_.end() ; ++it)
+    for (const auto & projection : projections_)
     {
-        it->second->setup();
-        if (it->first == DEFAULT_PROJECTION_NAME)
-            params_.include(it->second->params(), "projection");
+        projection.second->setup();
+        if (projection.first == DEFAULT_PROJECTION_NAME)
+            params_.include(projection.second->params(), "projection");
         else
-            params_.include(it->second->params(), "projection." + it->first);
+            params_.include(projection.second->params(), "projection." + projection.first);
     }
 }
 

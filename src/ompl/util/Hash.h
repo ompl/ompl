@@ -57,7 +57,7 @@ namespace std
     template <class U, class V>
     struct hash<std::pair<U,V> >
     {
-        typedef std::pair<U,V> argument_type;
+        using argument_type = std::pair<U,V>;
         using result_type = std::size_t;
         result_type operator()(argument_type const& p) const
         {

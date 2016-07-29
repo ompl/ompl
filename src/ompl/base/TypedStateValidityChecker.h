@@ -51,8 +51,8 @@ namespace ompl
         {
         public:
 
-            typedef SpaceType_ SpaceType;
-            typedef TypedSpaceInformation<SpaceType> SpaceInformationType;
+            using SpaceType = SpaceType_;
+            using SpaceInformationType = TypedSpaceInformation<SpaceType>;
 
             TypedStateValidityChecker(SpaceInformationType *si) : StateValidityChecker(si)
             {

@@ -112,13 +112,12 @@ namespace ompl
                 using kind = boost::vertex_property_tag;
             };
 
-            typedef boost::adjacency_list <
+            using HGraph = boost::adjacency_list <
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property < vertex_state_t, base::State*,
                                   boost::property < boost::vertex_predecessor_t, unsigned long int,
                                                     boost::property < boost::vertex_rank_t, unsigned long int > > >,
-                boost::property < boost::edge_weight_t, double >
-                > HGraph;
+                boost::property < boost::edge_weight_t, double >>;
 
             using Vertex = boost::graph_traits<HGraph>::vertex_descriptor;
             using Edge = boost::graph_traits<HGraph>::edge_descriptor;

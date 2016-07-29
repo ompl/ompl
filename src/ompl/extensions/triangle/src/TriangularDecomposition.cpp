@@ -271,11 +271,10 @@ int ompl::control::TriangularDecomposition::createTriangles()
     in.pointlist = (REAL*) malloc(2*in.numberofpoints*sizeof(REAL));
 
     //add unique vertices from our map, using their assigned indices
-    typedef std::unordered_map<Vertex, int>::const_iterator IndexIter;
-    for (IndexIter i = pointIndex.begin(); i != pointIndex.end(); ++i)
+    for (const auto & i : pointIndex)
     {
-        const Vertex& v = i->first;
-        int index = i->second;
+        const Vertex& v = i.first;
+        int index = i.second;
         in.pointlist[2*index] = v.x;
         in.pointlist[2*index+1] = v.y;
     }

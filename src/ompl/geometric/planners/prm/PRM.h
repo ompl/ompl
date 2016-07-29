@@ -111,7 +111,7 @@ namespace ompl
 
              @par Edges should be undirected and have a weight property.
              */
-            typedef boost::adjacency_list <
+            using Graph = boost::adjacency_list <
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property < vertex_state_t, base::State*,
                 boost::property < vertex_total_connection_attempts_t, unsigned long int,
@@ -119,7 +119,7 @@ namespace ompl
                 boost::property < boost::vertex_predecessor_t, unsigned long int,
                 boost::property < boost::vertex_rank_t, unsigned long int > > > > >,
                 boost::property < boost::edge_weight_t, base::Cost >
-            > Graph;
+            >;
 
             /** @brief The type for a vertex in the roadmap. */
             using Vertex = boost::graph_traits<Graph>::vertex_descriptor;

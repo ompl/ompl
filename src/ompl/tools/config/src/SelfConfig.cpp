@@ -176,7 +176,7 @@ std::mutex ompl::tools::SelfConfig::staticConstructorLock_;
 ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const std::string &context) :
     context_(context.empty() ? "" : context + ": ")
 {
-    typedef std::map<base::SpaceInformation*, std::shared_ptr<SelfConfigImpl> > ConfigMap;
+    using ConfigMap = std::map<base::SpaceInformation*, std::shared_ptr<SelfConfigImpl> >;
 
     std::unique_lock<std::mutex> smLock(staticConstructorLock_);
 
@@ -192,7 +192,7 @@ ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const s
           ++dit;
     }
 
-    ConfigMap::const_iterator it = SMAP.find(si.get());
+    const auto it = SMAP.find(si.get());
 
     if (it != SMAP.end())
         impl_ = it->second.get();

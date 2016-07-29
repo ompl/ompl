@@ -496,8 +496,8 @@ namespace ompl
         std::pair<unsigned int, unsigned int> BITstar::IntegratedQueue::resort(const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices)
         {
             //Variable:
-            typedef std::unordered_map<BITstar::VertexId, VertexPtr> VertexIdToVertexPtrUMap;
-            typedef std::map<unsigned int, VertexIdToVertexPtrUMap> DepthToUMapMap;
+            using VertexIdToVertexPtrUMap = std::unordered_map<BITstar::VertexId, VertexPtr> ;
+            using DepthToUMapMap = std::map<unsigned int, VertexIdToVertexPtrUMap>;
             //The number of vertices and samples pruned, respectively:
             std::pair<unsigned int, unsigned int> numPruned;
 

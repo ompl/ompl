@@ -64,12 +64,12 @@ namespace ompl
         {
         }
 
-        ~StateSpaceTest(void)
+        ~StateSpaceTest()
         {
         }
 
         /** \brief Test that distances are always positive */
-        void testDistance(void)
+        void testDistance()
         {
             base::ScopedState<> s1(space_);
             base::ScopedState<> s2(space_);
@@ -90,7 +90,7 @@ namespace ompl
         }
 
         /** \brief Test that interpolation works as expected and also test triangle inequality */
-        void testInterpolation(void)
+        void testInterpolation()
         {
             base::ScopedState<> s1(space_);
             base::ScopedState<> s2(space_);
@@ -116,7 +116,7 @@ namespace ompl
         }
         
         /** \brief Test that states are correctly cloned*/
-        void testCloneState(void)
+        void testCloneState()
         {
             base::ScopedState<> source(space_);
             source.random();
@@ -128,7 +128,7 @@ namespace ompl
         }
 
         /** \brief Call all tests for the state space */
-        void test(void)
+        void test()
         {
             testDistance();
             testInterpolation();

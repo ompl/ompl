@@ -63,8 +63,7 @@ ompl::geometric::AnytimePathShortening::AnytimePathShortening (const ompl::base:
 }
 
 ompl::geometric::AnytimePathShortening::~AnytimePathShortening()
-{
-}
+= default;
 
 void ompl::geometric::AnytimePathShortening::addPlanner(base::PlannerPtr &planner)
 {
@@ -75,9 +74,9 @@ void ompl::geometric::AnytimePathShortening::addPlanner(base::PlannerPtr &planne
     }
 
     // Ensure all planners are unique instances
-    for(size_t i = 0; i < planners_.size(); ++i)
+    for(auto & i : planners_)
     {
-        if (planner.get() == planners_[i].get())
+        if (planner.get() == i.get())
         {
             OMPL_ERROR("NOT adding planner %s: Planner instances MUST be unique", planner->getName().c_str());
             return;
@@ -90,8 +89,8 @@ void ompl::geometric::AnytimePathShortening::addPlanner(base::PlannerPtr &planne
 void ompl::geometric::AnytimePathShortening::setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef)
 {
     ompl::base::Planner::setProblemDefinition(pdef);
-    for (size_t i = 0; i < planners_.size(); ++i)
-        planners_[i]->setProblemDefinition(pdef);
+    for (auto & planner : planners_)
+        planner->setProblemDefinition(pdef);
 }
 
 ompl::base::PlannerStatus ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminationCondition &ptc)
@@ -131,10 +130,10 @@ ompl::base::PlannerStatus ompl::geometric::AnytimePathShortening::solve(const om
             threads[i] = new std::thread(std::bind(&AnytimePathShortening::threadSolve, this, planners_[i].get(), ptc));
 
         // Join each thread, and then delete it
-        for (std::size_t i = 0 ; i < threads.size() ; ++i)
+        for (auto & thread : threads)
         {
-            threads[i]->join();
-            delete threads[i];
+            thread->join();
+            delete thread;
         }
 
         // Hybridize the set of paths computed.  Add the new hybrid path to the mix.
@@ -179,7 +178,7 @@ void ompl::geometric::AnytimePathShortening::threadSolve(base::Planner* planner,
     if (shortcut_ && status == base::PlannerStatus::EXACT_SOLUTION)
     {
         geometric::PathGeometric* sln = static_cast<geometric::PathGeometric*>(pdef_->getSolutionPath().get());
-        geometric::PathGeometric* pathCopy = new geometric::PathGeometric(*sln);
+        auto* pathCopy = new geometric::PathGeometric(*sln);
         geometric::PathSimplifier ps(pdef_->getSpaceInformation());
         if (ps.shortcutPath(*pathCopy))
         {
@@ -191,11 +190,11 @@ void ompl::geometric::AnytimePathShortening::threadSolve(base::Planner* planner,
     }
 }
 
-void ompl::geometric::AnytimePathShortening::clear(void)
+void ompl::geometric::AnytimePathShortening::clear()
 {
     Planner::clear();
-    for (size_t i = 0; i < planners_.size(); ++i)
-        planners_[i]->clear();
+    for (auto & planner : planners_)
+        planner->clear();
 }
 
 void ompl::geometric::AnytimePathShortening::getPlannerData(ompl::base::PlannerData &data) const
@@ -214,7 +213,7 @@ void ompl::geometric::AnytimePathShortening::getPlannerData(ompl::base::PlannerD
     planners_[idx]->getPlannerData(data);
 }
 
-void ompl::geometric::AnytimePathShortening::setup(void)
+void ompl::geometric::AnytimePathShortening::setup()
 {
     Planner::setup();
 
@@ -230,17 +229,17 @@ void ompl::geometric::AnytimePathShortening::setup(void)
             getName().c_str(), planners_.size(), planners_[0]->getName().c_str());
     }
 
-    for (size_t i = 0; i < planners_.size(); ++i)
-        planners_[i]->setup();
+    for (auto & planner : planners_)
+        planner->setup();
 }
 
-void ompl::geometric::AnytimePathShortening::checkValidity(void)
+void ompl::geometric::AnytimePathShortening::checkValidity()
 {
-    for (size_t i = 0; i < planners_.size(); ++i)
-        planners_[i]->checkValidity();
+    for (auto & planner : planners_)
+        planner->checkValidity();
 }
 
-unsigned int ompl::geometric::AnytimePathShortening::getNumPlanners(void) const
+unsigned int ompl::geometric::AnytimePathShortening::getNumPlanners() const
 {
     return planners_.size();
 }
@@ -251,7 +250,7 @@ ompl::base::PlannerPtr ompl::geometric::AnytimePathShortening::getPlanner(unsign
     return planners_[idx];
 }
 
-bool ompl::geometric::AnytimePathShortening::isShortcutting(void) const
+bool ompl::geometric::AnytimePathShortening::isShortcutting() const
 {
     return shortcut_;
 }
@@ -261,7 +260,7 @@ void ompl::geometric::AnytimePathShortening::setShortcut(bool shortcut)
     shortcut_ = shortcut;
 }
 
-bool ompl::geometric::AnytimePathShortening::isHybridizing(void) const
+bool ompl::geometric::AnytimePathShortening::isHybridizing() const
 {
     return hybridize_;
 }
@@ -271,7 +270,7 @@ void ompl::geometric::AnytimePathShortening::setHybridize(bool hybridize)
     hybridize_ = hybridize;
 }
 
-unsigned int ompl::geometric::AnytimePathShortening::maxHybridizationPaths(void) const
+unsigned int ompl::geometric::AnytimePathShortening::maxHybridizationPaths() const
 {
     return maxHybridPaths_;
 }

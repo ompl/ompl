@@ -115,7 +115,7 @@ namespace ompl
             using VertexIndexType = unsigned long;
 
             /** \brief Hash for storing interface information. */
-            typedef std::unordered_map<VertexIndexType, std::set<VertexIndexType> > InterfaceHash;
+            using InterfaceHash = std::unordered_map<VertexIndexType, std::set<VertexIndexType>>;
 
             /** \brief Internal representation of a dense path */
             using DensePath = std::deque<base::State *>;
@@ -132,7 +132,7 @@ namespace ompl
 
              @par SparseEdges should be undirected and have a weight property.
              */
-            typedef boost::adjacency_list <
+            using SpannerGraph = boost::adjacency_list <
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property < vertex_state_t, base::State*,
                 boost::property < boost::vertex_predecessor_t, VertexIndexType,
@@ -141,7 +141,7 @@ namespace ompl
                 boost::property < vertex_list_t, std::set<VertexIndexType>,
                 boost::property < vertex_interface_list_t, InterfaceHash > > > > > >,
                 boost::property < boost::edge_weight_t, base::Cost >
-            > SpannerGraph;
+            >;
 
             /** \brief A vertex in the sparse roadmap that is constructed */
             using SparseVertex = boost::graph_traits<SpannerGraph>::vertex_descriptor;
@@ -167,14 +167,14 @@ namespace ompl
 
              @par DenseEdges should be undirected and have a weight property.
              */
-            typedef boost::adjacency_list <
+            using DenseGraph = boost::adjacency_list <
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property < vertex_state_t, base::State*,
                 boost::property < boost::vertex_predecessor_t, VertexIndexType,
                 boost::property < boost::vertex_rank_t, VertexIndexType,
                 boost::property < vertex_representative_t, SparseVertex > > > >,
                 boost::property < boost::edge_weight_t, double >
-            > DenseGraph;
+            >;
 
             /** \brief A vertex in DenseGraph */
             using DenseVertex = boost::graph_traits<DenseGraph>::vertex_descriptor;

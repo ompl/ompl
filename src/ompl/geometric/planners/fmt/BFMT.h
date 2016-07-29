@@ -448,7 +448,7 @@ namespace ompl
                 bool heuristics_;
             };
 
-            typedef ompl::BinaryHeap<BiDirMotion*, BiDirMotionCompare> BiDirMotionBinHeap;
+            using BiDirMotionBinHeap = ompl::BinaryHeap<BiDirMotion*, BiDirMotionCompare>;
 
             /** \brief Change the active tree */
             void swapTrees();

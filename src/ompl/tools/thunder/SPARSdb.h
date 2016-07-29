@@ -105,10 +105,10 @@ namespace ompl
             ////////////////////////////////////////////////////////////////////////////////////////
 
             /** \brief The type used internally for representing vertex IDs */
-            typedef unsigned long int VertexIndexType;
+            using VertexIndexType = unsigned long int;
 
             /** \brief Pair of vertices which support an interface. */
-            typedef std::pair< VertexIndexType, VertexIndexType > VertexPair;
+            using VertexPair = std::pair<VertexIndexType, VertexIndexType>;
 
             ////////////////////////////////////////////////////////////////////////////////////////
             /** \brief Interface information storage class, which does bookkeeping for criterion four. */
@@ -193,7 +193,7 @@ namespace ompl
             };
 
             /** \brief the hash which maps pairs of neighbor points to pairs of states */
-            typedef std::unordered_map<VertexPair, InterfaceData> InterfaceHash;
+            using InterfaceHash = std::unordered_map<VertexPair, InterfaceData>;
 
             ////////////////////////////////////////////////////////////////////////////////////////
             // The InterfaceHash structure is wrapped inside of this struct due to a compilation error on
@@ -210,22 +210,22 @@ namespace ompl
             // Vertex properties
 
             struct vertex_state_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             struct vertex_color_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             struct vertex_interface_data_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             ////////////////////////////////////////////////////////////////////////////////////////
             // Edge properties
 
             struct edge_collision_state_t {
-                typedef boost::edge_property_tag kind;
+                using kind = boost::edge_property_tag;
             };
 
             /** \brief Possible collision states of an edge */
@@ -281,36 +281,36 @@ namespace ompl
              */
 
             /** Wrapper for the vertex's multiple as its property. */
-            typedef boost::property < vertex_state_t, base::State*,
+            using VertexProperties = boost::property < vertex_state_t, base::State*,
                     boost::property < boost::vertex_predecessor_t, VertexIndexType,
                     boost::property < boost::vertex_rank_t, VertexIndexType,
                     boost::property < vertex_color_t, GuardType,
-                    boost::property < vertex_interface_data_t, InterfaceHashStruct > > > > > VertexProperties;
+                    boost::property < vertex_interface_data_t, InterfaceHashStruct>>>>>;
 
             /** Wrapper for the double assigned to an edge as its weight property. */
-            typedef boost::property < boost::edge_weight_t, double,
-                    boost::property < edge_collision_state_t, int > > EdgeProperties;
+            using EdgeProperties = boost::property < boost::edge_weight_t, double,
+                    boost::property < edge_collision_state_t, int>>;
 
             /** The underlying boost graph type (undirected weighted-edge adjacency list with above properties). */
-            typedef boost::adjacency_list <
+            using Graph = boost::adjacency_list <
                 boost::vecS, // store in std::vector
                 boost::vecS, // store in std::vector
                 boost::undirectedS,
                 VertexProperties,
                 EdgeProperties
-            > Graph;
+            >;
 
             /** \brief Vertex in Graph */
-            typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+            using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
 
             /** \brief Edge in Graph */
-            typedef boost::graph_traits<Graph>::edge_descriptor   Edge;
+            using Edge = boost::graph_traits<Graph>::edge_descriptor;
 
             ////////////////////////////////////////////////////////////////////////////////////////
             // Typedefs for property maps
 
             /** \brief Access map that stores the lazy collision checking status of each edge */
-            typedef boost::property_map<Graph, edge_collision_state_t>::type EdgeCollisionStateMap;
+            using EdgeCollisionStateMap = boost::property_map<Graph, edge_collision_state_t>::type;
 
             ////////////////////////////////////////////////////////////////////////////////////////
             /**
@@ -327,13 +327,13 @@ namespace ompl
             public:
 
                 /** Map key type. */
-                typedef Edge key_type;
+                using key_type = Edge;
                 /** Map value type. */
-                typedef double value_type;
+                using value_type = double;
                 /** Map auxiliary value type. */
-                typedef double &reference;
+                using reference = double &;
                 /** Map type. */
-                typedef boost::readable_property_map_tag category;
+                using category = boost::readable_property_map_tag;
 
                 /**
                  * Construct map for certain constraints.

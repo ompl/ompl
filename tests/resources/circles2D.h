@@ -56,7 +56,7 @@ struct Circles2D
         double startX_, startY_, goalX_, goalY_;
     };
 
-    Circles2D(void)
+    Circles2D()
     {
         minX_ = minY_ = 0.0;
         maxX_ = maxY_ = 0.0;
@@ -127,7 +127,7 @@ struct Circles2D
         return queries_[index];
     }
 
-    std::size_t getQueryCount(void) const
+    std::size_t getQueryCount() const
     {
         return queries_.size();
     }

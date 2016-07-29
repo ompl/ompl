@@ -245,14 +245,13 @@ namespace ompl
             return parent_[u];
         }
     private:
-        typedef boost::property<boost::edge_weight_t, double> WeightProperty;
-        typedef boost::adjacency_list<boost::vecS, // container type for the edge list
-        boost::vecS,                               // container type for the vertex list
-        boost::bidirectionalS,                     // directedS / undirectedS / bidirectionalS
-        std::size_t,                               // vertex properties
-        WeightProperty                             // edge properties
-            > Graph;
-        typedef boost::property_map<Graph, boost::edge_weight_t>::type WeightMap;
+        using WeightProperty = boost::property<boost::edge_weight_t, double>;
+        using Graph = boost::adjacency_list<boost::vecS, // container type for the edge list
+        boost::vecS,                                     // container type for the vertex list
+        boost::bidirectionalS,                           // directedS / undirectedS / bidirectionalS
+        std::size_t,                                     // vertex properties
+        WeightProperty>;                                 // edge properties
+        using WeightMap = boost::property_map<Graph, boost::edge_weight_t>::type;
 
         static const int NO_ID = -1;
 
@@ -272,7 +271,7 @@ namespace ompl
             std::vector<double>& cost_;
         }; //IsLessThan
 
-        typedef std::set<std::size_t, IsLessThan>   Queue;
+        using Queue = std::set<std::size_t, IsLessThan>;
         using QueueIter = Queue::iterator;
         using IntSet = std::unordered_set<std::size_t>;
         using IntSetIter = IntSet::iterator;

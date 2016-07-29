@@ -353,7 +353,7 @@ namespace ompl
             using PlannerProgressProperty = std::function<std::string ()>;
 
             /** \brief A dictionary which maps the name of a progress property to the function to be used for querying that property */
-            typedef std::map<std::string, PlannerProgressProperty> PlannerProgressProperties;
+            using PlannerProgressProperties = std::map<std::string, PlannerProgressProperty>;
 
             /** \brief Retrieve a planner's planner progress property map */
             const PlannerProgressProperties& getPlannerProgressProperties() const
