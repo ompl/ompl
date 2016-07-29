@@ -69,9 +69,7 @@ namespace ompl
             If iteration is required, only maxNumberCalls are attempted, to assure that the function returns. */
             InformedSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls);
 
-            virtual ~InformedSampler()
-            {
-            }
+            virtual ~InformedSampler() = default;
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost, i.e. in the interval [0, maxCost). Returns false if such a state was not found in the specified number of iterations. */
             virtual bool sampleUniform(State *statePtr, const Cost &maxCost) = 0;
@@ -120,9 +118,7 @@ namespace ompl
             /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution using the provided informed sampler. Requires a function pointer to a method to query the cost of the current solution. */
             InformedStateSampler(const ProblemDefinitionPtr &probDefn, const GetCurrentCostFunc &costFunc, const InformedSamplerPtr &infSampler);
 
-            ~InformedStateSampler() override
-            {
-            }
+            ~InformedStateSampler() override = default;
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the current best cost (as defined by the pointer passed at construction). By default just calls sampleUniform(State*, Cost) with cost given by the member variable. */
             void sampleUniform(State *statePtr) override;

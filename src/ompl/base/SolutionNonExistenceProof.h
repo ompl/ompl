@@ -62,9 +62,7 @@ namespace ompl
                 {
                 }
 
-                virtual ~SolutionNonExistenceProof()
-                {
-                }
+                virtual ~SolutionNonExistenceProof() = default;
 
             protected:
                 SpaceInformationPtr si_;

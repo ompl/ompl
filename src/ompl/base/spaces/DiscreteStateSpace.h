@@ -86,9 +86,7 @@ namespace ompl
                 type_ = STATE_SPACE_DISCRETE;
             }
 
-            ~DiscreteStateSpace() override
-            {
-            }
+            ~DiscreteStateSpace() override = default;
 
             bool isDiscrete() const override;
 

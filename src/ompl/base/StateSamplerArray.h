@@ -105,9 +105,7 @@ namespace ompl
             {
             }
 
-            ~StateSamplerArray()
-            {
-            }
+            ~StateSamplerArray() = default;
 
             /** \brief Access operator for a specific sampler. For
                 performance reasons, the bounds are not checked. */

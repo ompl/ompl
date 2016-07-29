@@ -74,9 +74,7 @@ namespace ompl
             explicit
             SimpleSetup(const base::StateSpacePtr &space);
 
-            virtual ~SimpleSetup()
-            {
-            }
+            virtual ~SimpleSetup() = default;
 
             /** \brief Get the current instance of the space information */
             const base::SpaceInformationPtr& getSpaceInformation() const

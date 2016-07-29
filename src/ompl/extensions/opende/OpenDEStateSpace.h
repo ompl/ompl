@@ -149,9 +149,7 @@ namespace ompl
                              double positionWeight = 1.0, double linVelWeight = 0.5,
                              double angVelWeight = 0.5, double orientationWeight = 1.0);
 
-            ~OpenDEStateSpace() override
-            {
-            }
+            ~OpenDEStateSpace() override = default;
 
             /** \brief Get the OpenDE environment this state space corresponds to */
             const OpenDEEnvironmentPtr& getEnvironment() const

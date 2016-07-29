@@ -71,9 +71,7 @@ namespace ompl
             {
             }
 
-            virtual ~GenericParam()
-            {
-            }
+            virtual ~GenericParam() = default;
 
             /** \brief Get the name of the parameter */
             const std::string& getName() const
@@ -175,9 +173,7 @@ namespace ompl
                     OMPL_ERROR("At least one setter or getter function must be specified for parameter");
             }
 
-            ~SpecificParam() override
-            {
-            }
+            ~SpecificParam() override = default;
 
             bool setValue(const std::string &value) override
             {

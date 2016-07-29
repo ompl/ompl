@@ -182,9 +182,7 @@ namespace ompl
 
 
 
-        BITstar::~BITstar()
-        {
-        }
+        BITstar::~BITstar() = default;
 
 
 

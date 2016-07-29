@@ -60,7 +60,7 @@ namespace ompl
             /** \brief Constructor */
             MinimumClearanceValidStateSampler(const SpaceInformation *si);
 
-            ~MinimumClearanceValidStateSampler() override {};
+            ~MinimumClearanceValidStateSampler() override = default;;
 
             bool sample(State *state) override;
 

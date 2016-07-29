@@ -53,13 +53,9 @@ namespace ompl
         /** \brief The definition of a distance function */
         using DistanceFunction = std::function<double(const _T&, const _T&)>;
 
-        NearestNeighbors()
-        {
-        }
+        NearestNeighbors() = default;
 
-        virtual ~NearestNeighbors()
-        {
-        }
+        virtual ~NearestNeighbors() = default;
 
         /** \brief Set the distance function to use */
         virtual void setDistanceFunction(const DistanceFunction &distFun)

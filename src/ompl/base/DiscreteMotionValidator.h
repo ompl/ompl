@@ -63,9 +63,7 @@ namespace ompl
                 defaultSettings();
             }
 
-            ~DiscreteMotionValidator() override
-            {
-            }
+            ~DiscreteMotionValidator() override = default;
 
             bool checkMotion(const State *s1, const State *s2) const override;
 

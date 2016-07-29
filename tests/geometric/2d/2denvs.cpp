@@ -83,9 +83,7 @@ public:
         msg::setLogLevel(msg::LOG_ERROR);
     }
 
-    virtual ~TestPlanner()
-    {
-    }
+    virtual ~TestPlanner() = default;
 
     /* test a planner in a planar environment with circular obstacles */
     double test2DCircles(const Circles2D &circles, bool show = false, double *time = nullptr, double *pathLength = nullptr)

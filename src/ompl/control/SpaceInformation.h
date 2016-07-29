@@ -79,9 +79,7 @@ namespace ompl
             {
             }
 
-            ~SpaceInformation() override
-            {
-            }
+            ~SpaceInformation() override = default;
 
             /** \brief Get the control space */
             const ControlSpacePtr& getControlSpace() const

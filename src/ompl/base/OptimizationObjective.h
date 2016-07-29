@@ -75,9 +75,7 @@ namespace ompl
             /** \brief Constructor. The objective must always know the space information it is part of. The cost threshold for objective satisfaction defaults to 0.0. */
             OptimizationObjective(SpaceInformationPtr si);
 
-            virtual ~OptimizationObjective()
-            {
-            }
+            virtual ~OptimizationObjective() = default;
 
             /** \brief Get the description of this optimization objective */
             const std::string& getDescription() const;

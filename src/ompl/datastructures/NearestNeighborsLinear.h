@@ -61,9 +61,7 @@ namespace ompl
         {
         }
 
-        ~NearestNeighborsLinear() override
-        {
-        }
+        ~NearestNeighborsLinear() override = default;
 
         void clear() override
         {

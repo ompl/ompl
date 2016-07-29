@@ -43,9 +43,7 @@ ompl::tools::ParallelPlan::ParallelPlan(const base::ProblemDefinitionPtr &pdef) 
 {
 }
 
-ompl::tools::ParallelPlan::~ParallelPlan()
-{
-}
+ompl::tools::ParallelPlan::~ParallelPlan() = default;
 
 void ompl::tools::ParallelPlan::addPlanner(const base::PlannerPtr &planner)
 {

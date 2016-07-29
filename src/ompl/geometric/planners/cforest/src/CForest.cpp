@@ -60,9 +60,7 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
                                std::bind(&CForest::getNumStatesShared, this));
 }
 
-ompl::geometric::CForest::~CForest()
-{
-}
+ompl::geometric::CForest::~CForest() = default;
 
 void ompl::geometric::CForest::setNumThreads(unsigned int numThreads)
 {

@@ -218,7 +218,7 @@ class TestEdge : public base::PlannerDataEdge
 public:
     TestEdge (unsigned int _a, unsigned int _b) : base::PlannerDataEdge(), a(_a), b(_b) {}
     TestEdge (const TestEdge &rhs) : base::PlannerDataEdge(), a(rhs.a), b(rhs.b) {}
-    ~TestEdge () override {}
+    ~TestEdge () override = default;
 
     /// \brief Return a clone of this object, allocated from the heap.
     PlannerDataEdge* clone () const override

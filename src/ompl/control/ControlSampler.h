@@ -78,9 +78,7 @@ namespace ompl
             {
             }
 
-            virtual ~ControlSampler()
-            {
-            }
+            virtual ~ControlSampler() = default;
 
             /** \brief Sample a control. All other control sampling
                 functions default to this one, unless a user-specified
@@ -138,9 +136,7 @@ namespace ompl
             }
 
             /** \brief Destructor. This frees the added samplers as well. */
-            ~CompoundControlSampler() override
-            {
-            }
+            ~CompoundControlSampler() override = default;
 
             /** \brief Add a sampler as part of the new compound
                 sampler. This sampler is used to sample part of the

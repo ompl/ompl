@@ -207,9 +207,7 @@ namespace ompl
             {
             }
 
-            ~CompoundControlSpace() override
-            {
-            }
+            ~CompoundControlSpace() override = default;
 
             /** \brief Cast a component of this instance to a desired type. */
             template<class T>

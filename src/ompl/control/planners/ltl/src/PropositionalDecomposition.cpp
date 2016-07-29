@@ -50,8 +50,7 @@ ompl::control::PropositionalDecomposition::PropositionalDecomposition(const Deco
 }
 
 ompl::control::PropositionalDecomposition::~PropositionalDecomposition()
-{
-}
+= default;
 
 int ompl::control::PropositionalDecomposition::getNumRegions() const
 {

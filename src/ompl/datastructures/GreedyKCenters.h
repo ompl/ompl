@@ -55,13 +55,9 @@ namespace ompl
         /** \brief A matrix type for storing distances between points and centers */
         using Matrix = boost::numeric::ublas::matrix<double>;
 
-        GreedyKCenters()
-        {
-        }
+        GreedyKCenters() = default;
 
-        virtual ~GreedyKCenters()
-        {
-        }
+        virtual ~GreedyKCenters() = default;
 
         /** \brief Set the distance function to use */
         void setDistanceFunction(const DistanceFunction &distFun)

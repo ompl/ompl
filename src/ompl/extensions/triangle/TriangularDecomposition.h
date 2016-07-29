@@ -59,7 +59,7 @@ namespace ompl
         public:
             struct Vertex
             {
-                Vertex() {}
+                Vertex() = default;
                 Vertex(double vx, double vy);
                 bool operator==(const Vertex& v) const;
                 double x, y;
@@ -69,14 +69,14 @@ namespace ompl
             struct Polygon
             {
                 Polygon(int nv) : pts(nv) {}
-                virtual ~Polygon() {}
+                virtual ~Polygon() = default;
                 std::vector<Vertex> pts;
             };
 
             struct Triangle : public Polygon
             {
                 Triangle() : Polygon(3) {}
-                ~Triangle() override {}
+                ~Triangle() override = default;
                 std::vector<int> neighbors;
                 double volume;
             };
@@ -148,9 +148,7 @@ namespace ompl
                 {
                 }
 
-                ~LocatorGrid() override
-                {
-                }
+                ~LocatorGrid() override = default;
 
                 void project(const base::State *s, std::vector<double>& coord) const override
                 {

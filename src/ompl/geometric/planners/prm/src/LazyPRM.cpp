@@ -97,9 +97,7 @@ ompl::geometric::LazyPRM::LazyPRM(const base::SpaceInformationPtr &si, bool star
                                std::bind(&LazyPRM::getEdgeCountString, this));
 }
 
-ompl::geometric::LazyPRM::~LazyPRM()
-{
-}
+ompl::geometric::LazyPRM::~LazyPRM() = default;
 
 void ompl::geometric::LazyPRM::setup()
 {

@@ -192,9 +192,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion()
-                {
-                }
+                ~Motion() = default;
 
                 /** \brief The root state (start state) that leads to this motion */
                 const base::State   *root;

@@ -169,9 +169,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion()
-                {
-                }
+                ~Motion() = default;
 
                 const base::State   *root;
                 base::State         *state;

@@ -56,9 +56,7 @@ namespace ompl
                 type_ = GOAL_SAMPLEABLE_REGION;
             }
 
-            ~GoalSampleableRegion() override
-            {
-            }
+            ~GoalSampleableRegion() override = default;
 
             /** \brief Sample a state in the goal region */
             virtual void sampleGoal(State *st) const = 0;

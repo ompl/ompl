@@ -64,9 +64,7 @@ public:
         msg::setLogLevel(msg::LOG_ERROR);
     }
 
-    virtual ~TestPlanner()
-    {
-    }
+    virtual ~TestPlanner() = default;
 
     virtual base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) = 0;
 

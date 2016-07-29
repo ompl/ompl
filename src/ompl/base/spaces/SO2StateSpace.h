@@ -87,9 +87,7 @@ namespace ompl
                 type_ = STATE_SPACE_SO2;
             }
 
-            ~SO2StateSpace() override
-            {
-            }
+            ~SO2StateSpace() override = default;
 
             unsigned int getDimension() const override;
 

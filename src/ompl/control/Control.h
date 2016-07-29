@@ -57,13 +57,9 @@ namespace ompl
 
         protected:
 
-            Control()
-            {
-            }
+            Control() = default;
 
-            virtual ~Control()
-            {
-            }
+            virtual ~Control() = default;
 
         public:
 
@@ -98,9 +94,7 @@ namespace ompl
             {
             }
 
-            ~CompoundControl() override
-            {
-            }
+            ~CompoundControl() override = default;
 
             /** \brief Cast a component of this instance to a desired type. */
             template<class T>

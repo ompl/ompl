@@ -174,9 +174,7 @@ ompl::control::LTLPlanner::Motion::Motion(const SpaceInformation* si) :
 {
 }
 
-ompl::control::LTLPlanner::Motion::~Motion()
-{
-}
+ompl::control::LTLPlanner::Motion::~Motion() = default;
 
 ompl::control::LTLPlanner::ProductGraphStateInfo::ProductGraphStateInfo() :
     numSel(0),

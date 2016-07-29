@@ -66,9 +66,7 @@ ompl::control::ControlSpace::ControlSpace(base::StateSpacePtr stateSpace) : stat
     type_ = CONTROL_SPACE_UNKNOWN;
 }
 
-ompl::control::ControlSpace::~ControlSpace()
-{
-}
+ompl::control::ControlSpace::~ControlSpace() = default;
 
 const std::string& ompl::control::ControlSpace::getName() const
 {

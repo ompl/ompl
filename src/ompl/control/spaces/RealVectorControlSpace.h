@@ -95,9 +95,7 @@ namespace ompl
                 type_ = CONTROL_SPACE_REAL_VECTOR;
             }
 
-            ~RealVectorControlSpace() override
-            {
-            }
+            ~RealVectorControlSpace() override = default;
 
             /** \brief Set the bounds (min max values for each dimension) for the control */
             void setBounds(const base::RealVectorBounds &bounds);

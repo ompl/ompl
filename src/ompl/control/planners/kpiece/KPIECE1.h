@@ -211,9 +211,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion()
-                {
-                }
+                ~Motion() = default;
 
                 /** \brief The state contained by this motion */
                 base::State       *state;
@@ -235,9 +233,7 @@ namespace ompl
                 {
                 }
 
-                ~CellData()
-                {
-                }
+                ~CellData() = default;
 
                 /** \brief The set of motions contained in this grid cell */
                 std::vector<Motion*> motions;

@@ -54,9 +54,7 @@ namespace ompl
             /** \brief Constructor */
             UniformValidStateSampler(const SpaceInformation *si);
 
-            ~UniformValidStateSampler() override
-            {
-            }
+            ~UniformValidStateSampler() override = default;
 
             bool sample(State *state) override;
             bool sampleNear(State *state, const State *near, const double distance) override;

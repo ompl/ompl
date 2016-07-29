@@ -91,8 +91,7 @@ namespace ompl
             SpaceInformation(StateSpacePtr space);
 
             virtual ~SpaceInformation()
-            {
-            }
+            = default;
 
             /** \brief Check if a given state is valid or not */
             bool isValid(const State *state) const

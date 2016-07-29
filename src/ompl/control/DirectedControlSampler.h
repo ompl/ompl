@@ -71,9 +71,7 @@ namespace ompl
             {
             }
 
-            virtual ~DirectedControlSampler()
-            {
-            }
+            virtual ~DirectedControlSampler() = default;
 
             /** \brief Sample a control given that it will be applied to state
                 \e state and the intention is to reach state \e target. This is

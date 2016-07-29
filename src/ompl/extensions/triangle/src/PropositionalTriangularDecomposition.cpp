@@ -64,7 +64,7 @@ namespace
                              const ob::RealVectorBounds& bounds,
                              const std::vector<Polygon>& holes,
                              const std::vector<Polygon>& props);
-        ~WrapperDecomposition() override {}
+        ~WrapperDecomposition() override = default;
         void project(const ob::State* s, std::vector<double>& coord) const override;
         void sampleFromRegion(int rid, ompl::RNG& rng, std::vector<double>& coord) const override;
         void sampleFullState(const ob::StateSamplerPtr& sampler,

@@ -184,7 +184,7 @@ namespace ompl
                 /// \brief Constructor that allocates memory for the state
                 Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), root(nullptr) {}
 
-                ~Motion() {}
+                ~Motion() = default;
 
 
                 /// \brief The state contained by the motion

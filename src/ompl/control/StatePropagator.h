@@ -74,9 +74,7 @@ namespace ompl
             {
             }
 
-            virtual ~StatePropagator()
-            {
-            }
+            virtual ~StatePropagator() = default;
 
             /** \brief Propagate from a state, given a control, for some specified amount of time (the amount of time can
                 also be negative, if canPropagateBackward() returns true)

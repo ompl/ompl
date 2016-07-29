@@ -240,8 +240,7 @@ namespace ompl
 
             /** \brief Destructor */
             virtual ~Planner()
-            {
-            }
+            = default;
 
             /** \brief Cast this instance to a desired type. */
             template<class T>

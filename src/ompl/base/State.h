@@ -59,13 +59,9 @@ namespace ompl
 
         protected:
 
-            State()
-            {
-            }
+            State() = default;
 
-            virtual ~State()
-            {
-            }
+            virtual ~State() = default;
 
         public:
 
@@ -100,9 +96,7 @@ namespace ompl
             {
             }
 
-            ~CompoundState() override
-            {
-            }
+            ~CompoundState() override = default;
 
             /** \brief Cast a component of this instance to a desired type. */
             template<class T>

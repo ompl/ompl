@@ -149,9 +149,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion()
-                {
-                }
+                ~Motion() = default;
 
                 /** \brief The id of the motion */
                 std::size_t       id_;

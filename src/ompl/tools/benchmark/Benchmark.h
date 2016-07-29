@@ -208,9 +208,7 @@ namespace ompl
                 exp_.name = name;
             }
 
-            virtual ~Benchmark()
-            {
-            }
+            virtual ~Benchmark() = default;
 
             /** \brief Add an optional parameter's information to the benchmark output.  Useful for aggregating results
                  over different benchmark instances, e.g., parameter sweep.  \e type is typically "BOOLEAN", "INTEGER",

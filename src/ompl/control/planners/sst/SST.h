@@ -164,9 +164,7 @@ namespace ompl
                 {
                 }
 
-                virtual ~Motion()
-                {
-                }
+                virtual ~Motion() = default;
 
                 virtual base::State* getState() const
                 {

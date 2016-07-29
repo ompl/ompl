@@ -87,7 +87,7 @@ void oc::LTLSpaceInformation::extendPropagator(const oc::SpaceInformationPtr& ol
                            oc::StatePropagatorPtr  lowProp)
             : oc::StatePropagator(ltlsi),
               prod_(std::move(prod)), lowProp_(std::move(lowProp)), ltlsi_(ltlsi) {}
-        ~LTLStatePropagator() override {}
+        ~LTLStatePropagator() override = default;
 
         void propagate(const ob::State* state, const oc::Control* control,
                                const double duration, ob::State* result) const override
@@ -132,7 +132,7 @@ void oc::LTLSpaceInformation::extendValidityChecker(const oc::SpaceInformationPt
             : ob::StateValidityChecker(ltlsi), prod_(std::move(prod)), lowChecker_(std::move(lowChecker)), ltlsi_(ltlsi)
         {
         }
-        ~LTLStateValidityChecker() override { }
+        ~LTLStateValidityChecker() override = default;
         bool isValid(const ob::State* s) const override
         {
             return ltlsi_->getProdGraphState(s)->isValid()

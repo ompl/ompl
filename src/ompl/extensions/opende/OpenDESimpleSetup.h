@@ -69,9 +69,7 @@ namespace ompl
             explicit
             OpenDESimpleSetup(const OpenDEEnvironmentPtr &env);
 
-            ~OpenDESimpleSetup() override
-            {
-            }
+            ~OpenDESimpleSetup() override = default;
 
             /** \brief Get the OpenDE environment associated to the state and control spaces */
             const OpenDEEnvironmentPtr& getEnvironment() const

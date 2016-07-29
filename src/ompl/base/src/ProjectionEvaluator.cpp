@@ -140,9 +140,7 @@ ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpacePtr &space)
     params_.declareParam<double>("cellsize_factor", std::bind(&ProjectionEvaluator::mulCellSizes, this, std::placeholders::_1));
 }
 
-ompl::base::ProjectionEvaluator::~ProjectionEvaluator()
-{
-}
+ompl::base::ProjectionEvaluator::~ProjectionEvaluator() = default;
 
 bool ompl::base::ProjectionEvaluator::userConfigured() const
 {

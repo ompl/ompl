@@ -76,9 +76,7 @@ namespace ompl
             {
             }
 
-            virtual ~MotionValidator()
-            {
-            }
+            virtual ~MotionValidator() = default;
 
             /** \brief Check if the path between two states (from \e s1 to \e s2) is valid. This function assumes \e s1 is valid.
 

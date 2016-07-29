@@ -126,9 +126,7 @@ namespace ompl
                 lock();
             }
 
-            ~SE3StateSpace() override
-            {
-            }
+            ~SE3StateSpace() override = default;
 
             /** \copydoc RealVectorStateSpace::setBounds() */
             void setBounds(const RealVectorBounds &bounds)

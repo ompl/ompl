@@ -57,9 +57,7 @@ namespace ompl
                 OpenDEStateSpace, an exception is thrown. */
             OpenDEControlSpace(const base::StateSpacePtr &stateSpace);
 
-            ~OpenDEControlSpace() override
-            {
-            }
+            ~OpenDEControlSpace() override = default;
 
             /** \brief Get the OpenDE environment this state space corresponds to */
             const OpenDEEnvironmentPtr& getEnvironment() const

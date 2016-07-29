@@ -120,9 +120,7 @@ namespace ompl
                 type_ = STATE_SPACE_SO3;
             }
 
-            ~SO3StateSpace() override
-            {
-            }
+            ~SO3StateSpace() override = default;
 
             /** \brief Compute the norm of a state */
             double norm(const StateType *state) const;

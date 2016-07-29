@@ -55,9 +55,7 @@ namespace ompl
             {
             }
 
-            virtual ~OptimizePlan()
-            {
-            }
+            virtual ~OptimizePlan() = default;
 
             /** \brief Add a planner to use. */
             void addPlanner(const base::PlannerPtr &planner);

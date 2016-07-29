@@ -68,9 +68,7 @@ namespace ompl
                 {
                 }
 
-                ~CellData()
-                {
-                }
+                ~CellData() = default;
 
                 /** \brief The set of motions contained in this grid cell */
                 std::vector<Motion*> motions;

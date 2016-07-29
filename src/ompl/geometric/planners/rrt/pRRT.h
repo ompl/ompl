@@ -146,9 +146,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion()
-                {
-                }
+                ~Motion() = default;
 
                 base::State       *state;
                 Motion            *parent;

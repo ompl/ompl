@@ -68,9 +68,7 @@ namespace ompl
                 OpenDEStateSpace, an exception is thrown. */
             OpenDEStatePropagator(const SpaceInformationPtr &si);
 
-            ~OpenDEStatePropagator() override
-            {
-            }
+            ~OpenDEStatePropagator() override = default;
 
             /** \brief Get the OpenDE environment this state propagator operates on */
             const OpenDEEnvironmentPtr& getEnvironment() const

@@ -62,9 +62,7 @@ ompl::geometric::LightningRetrieveRepair::LightningRetrieveRepair(const base::Sp
     psk_.reset(new ompl::geometric::PathSimplifier(si_));
 }
 
-ompl::geometric::LightningRetrieveRepair::~LightningRetrieveRepair()
-{
-}
+ompl::geometric::LightningRetrieveRepair::~LightningRetrieveRepair() = default;
 
 void ompl::geometric::LightningRetrieveRepair::clear()
 {

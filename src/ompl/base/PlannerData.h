@@ -62,8 +62,8 @@ namespace ompl
             /// \brief Constructor.  Takes a state pointer and an optional integer tag.
             PlannerDataVertex(const State *st, int tag = 0) : state_(st), tag_(tag) {}
             /// \brief Copy constructor.
-            PlannerDataVertex(const PlannerDataVertex &rhs) : state_(rhs.state_), tag_(rhs.tag_) {}
-            virtual ~PlannerDataVertex() {}
+            PlannerDataVertex(const PlannerDataVertex &rhs) = default;
+            virtual ~PlannerDataVertex() = default;
 
             /// \brief Returns the integer tag associated with this vertex.
             virtual int  getTag() const { return tag_; }
@@ -93,7 +93,7 @@ namespace ompl
             }
 
         protected:
-            PlannerDataVertex() {}
+            PlannerDataVertex() = default;
 
             friend class boost::serialization::access;
             template <class Archive>
@@ -116,8 +116,8 @@ namespace ompl
         class PlannerDataEdge
         {
         public:
-            PlannerDataEdge() {}
-            virtual ~PlannerDataEdge() {}
+            PlannerDataEdge() = default;
+            virtual ~PlannerDataEdge() = default;
             /// \brief Return a clone of this object, allocated from the heap.
             virtual PlannerDataEdge* clone() const { return new PlannerDataEdge(); }
 

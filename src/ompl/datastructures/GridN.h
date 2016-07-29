@@ -70,9 +70,7 @@ namespace ompl
             {
             }
 
-            ~Cell() override
-            {
-            }
+            ~Cell() override = default;
         };
 
         /// The datatype for arrays of cells
@@ -88,9 +86,7 @@ namespace ompl
             setDimension(dimension);
         }
 
-        ~GridN() override
-        {
-        }
+        ~GridN() override = default;
 
         /// Update the dimension of the grid; this should not be done
         /// unless the grid is empty

@@ -58,9 +58,7 @@ ompl::geometric::PathHybridization::PathHybridization(base::SpaceInformationPtr 
     stateProperty_[goal_] = nullptr;
 }
 
-ompl::geometric::PathHybridization::~PathHybridization()
-{
-}
+ompl::geometric::PathHybridization::~PathHybridization() = default;
 
 void ompl::geometric::PathHybridization::clear()
 {

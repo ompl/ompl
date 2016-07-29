@@ -116,9 +116,7 @@ namespace ompl
                 Planner::declareParam<double>("prob_shortest_path_lead", this, &Syclop::setProbShortestPathLead, &Syclop::getProbShortestPathLead, "0.:.05:1.");
             }
 
-            ~Syclop() override
-            {
-            }
+            ~Syclop() override = default;
 
             /// @name ompl::base::Planner Interface
             /// @{
@@ -260,9 +258,7 @@ namespace ompl
                 Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), parent(nullptr), steps(0)
                 {
                 }
-                virtual ~Motion()
-                {
-                }
+                virtual ~Motion() = default;
                 /** \brief The state contained by the motion */
                 base::State *state;
                 /** \brief The control contained by the motion */
@@ -282,9 +278,7 @@ namespace ompl
                 Region()
                 {
                 }
-                virtual ~Region()
-                {
-                }
+                virtual ~Region() = default;
 
 #if __cplusplus >= 201103L
                 Region(const Region&) = default;
@@ -333,9 +327,7 @@ namespace ompl
                 Adjacency()
                 {
                 }
-                virtual ~Adjacency()
-                {
-                }
+                virtual ~Adjacency() = default;
                 /** \brief Clears coverage information from this adjacency. */
                 void clear()
                 {
@@ -424,9 +416,7 @@ namespace ompl
                 {
                 }
 
-                ~CoverageGrid() override
-                {
-                }
+                ~CoverageGrid() override = default;
 
                 /** \brief Since the CoverageGrid is defined in the same space as the Decomposition,
                     it uses the Decomposition's projection function. */

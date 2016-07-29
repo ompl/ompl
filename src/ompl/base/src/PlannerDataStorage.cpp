@@ -39,13 +39,9 @@
 
 static const boost::uint32_t OMPL_PLANNER_DATA_ARCHIVE_MARKER = 0x5044414D; // this spells PDAM
 
-ompl::base::PlannerDataStorage::PlannerDataStorage()
-{
-}
+ompl::base::PlannerDataStorage::PlannerDataStorage() = default;
 
-ompl::base::PlannerDataStorage::~PlannerDataStorage()
-{
-}
+ompl::base::PlannerDataStorage::~PlannerDataStorage() = default;
 
 void ompl::base::PlannerDataStorage::store(const PlannerData &pd, const char *filename)
 {

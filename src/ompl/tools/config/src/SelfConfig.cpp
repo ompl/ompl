@@ -203,9 +203,7 @@ ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const s
     }
 }
 
-ompl::tools::SelfConfig::~SelfConfig()
-{
-}
+ompl::tools::SelfConfig::~SelfConfig() = default;
 
 /* ------------------------------------------------------------------------ */
 

@@ -64,13 +64,9 @@ namespace ompl
             /// The coordinate of the cell
             Coord               coord;
 
-            Cell()
-            {
-            }
+            Cell() = default;
 
-            virtual ~Cell()
-            {
-            }
+            virtual ~Cell() = default;
         };
 
         /// The datatype for arrays of cells

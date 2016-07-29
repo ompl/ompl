@@ -68,9 +68,7 @@ namespace ompl
             {
             }
 
-            ~HillClimbing()
-            {
-            }
+            ~HillClimbing() = default;
 
             /** \brief Try to improve a state (reduce distance to goal). The updates are performed by sampling near the
                 state, within the specified distance. If improvements were found, the function returns true and the better

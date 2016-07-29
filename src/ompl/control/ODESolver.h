@@ -89,9 +89,7 @@ namespace ompl
             }
 
             /// \brief Destructor.
-            virtual ~ODESolver ()
-            {
-            }
+            virtual ~ODESolver () = default;
 
             /// \brief Set the ODE to solve
             void setODE (const ODE &ode)

@@ -74,9 +74,7 @@ namespace ompl
             {
             }
 
-            virtual ~StateSampler()
-            {
-            }
+            virtual ~StateSampler() = default;
 
             /** \brief Sample a state */
             virtual void sampleUniform(State *state) = 0;
@@ -121,9 +119,7 @@ namespace ompl
             }
 
             /** \brief Destructor. This frees the added samplers as well. */
-            ~CompoundStateSampler() override
-            {
-            }
+            ~CompoundStateSampler() override = default;
 
             /** \brief Add a sampler as part of the new compound
                 sampler. This sampler is used to sample part of the

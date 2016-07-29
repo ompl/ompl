@@ -348,9 +348,7 @@ namespace ompl
                 {
                 }
 
-                ~ScopedBlock()
-                {
-                }
+                ~ScopedBlock() = default;
             };
 
             class ScopedStart
@@ -361,9 +359,7 @@ namespace ompl
                 {
                 }
 
-                ~ScopedStart()
-                {
-                }
+                ~ScopedStart() = default;
             };
 
             static Profiler& Instance();
@@ -372,9 +368,7 @@ namespace ompl
             {
             }
 
-            ~Profiler()
-            {
-            }
+            ~Profiler() = default;
 
             static void Start()
             {

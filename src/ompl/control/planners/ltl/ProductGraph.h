@@ -93,10 +93,7 @@ namespace ompl
                       safeState(-1) { }
 
                 /** \brief Basic copy constructor for State. */
-                State(const State& s)
-                    : decompRegion(s.decompRegion),
-                      cosafeState(s.cosafeState),
-                      safeState(s.safeState) { }
+                State(const State& s) = default;
 
                 /** \brief Returns whether this State is equivalent to a given State,
                     by comparing their PropositionalDecomposition regions and

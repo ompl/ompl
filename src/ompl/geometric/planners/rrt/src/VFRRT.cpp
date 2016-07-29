@@ -58,9 +58,7 @@ ompl::geometric::VFRRT::VFRRT(const base::SpaceInformationPtr &si, VectorField v
     maxDistance_ = si->getStateValidityCheckingResolution();
 }
 
-ompl::geometric::VFRRT::~VFRRT()
-{
-}
+ompl::geometric::VFRRT::~VFRRT() = default;
 
 void ompl::geometric::VFRRT::clear()
 {

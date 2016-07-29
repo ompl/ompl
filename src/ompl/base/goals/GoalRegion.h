@@ -54,9 +54,7 @@ namespace ompl
             /** \brief Create a goal region */
             GoalRegion(const SpaceInformationPtr &si);
 
-            ~GoalRegion() override
-            {
-            }
+            ~GoalRegion() override = default;
 
             /** \brief Equivalent to calling isSatisfied(const State *, double *) with a nullptr second argument. */
             bool isSatisfied(const State *st) const override;

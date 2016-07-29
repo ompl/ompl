@@ -60,9 +60,7 @@ namespace ompl
             {
             }
 
-            ~SteeredControlSampler() override
-            {
-            }
+            ~SteeredControlSampler() override = default;
 
             unsigned int sampleTo(Control *control, const base::State *source, base::State *dest) override
             {

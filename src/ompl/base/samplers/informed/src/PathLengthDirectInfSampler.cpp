@@ -226,9 +226,7 @@ namespace ompl
 
 
 
-        PathLengthDirectInfSampler::~PathLengthDirectInfSampler()
-        {
-        }
+        PathLengthDirectInfSampler::~PathLengthDirectInfSampler() = default;
 
 
 

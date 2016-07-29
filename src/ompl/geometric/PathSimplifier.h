@@ -73,9 +73,7 @@ namespace ompl
             improvements at the end of the path as well. */
             PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr& goal = ompl::base::GoalPtr());
 
-            virtual ~PathSimplifier()
-            {
-            }
+            virtual ~PathSimplifier() = default;
 
 
             /** \brief Given a path, attempt to remove vertices from

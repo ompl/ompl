@@ -103,7 +103,7 @@ public:
 
     PlannerDataTestEdge (const PlannerDataTestEdge &rhs) : PlannerDataEdgeControl(rhs.c_, rhs.duration_), id_(rhs.id_)  {}
 
-    ~PlannerDataTestEdge () override {}
+    ~PlannerDataTestEdge () override = default;
 
     ompl::base::PlannerDataEdge* clone () const override
     {

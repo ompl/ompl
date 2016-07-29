@@ -65,7 +65,7 @@ namespace ompl
             /// \brief Copy constructor.
             PlannerDataEdgeControl(const PlannerDataEdgeControl &rhs) : PlannerDataEdge(), c_(rhs.c_), duration_(rhs.duration_) {}
 
-            ~PlannerDataEdgeControl() override {}
+            ~PlannerDataEdgeControl() override = default;
 
             base::PlannerDataEdge* clone() const override
             {

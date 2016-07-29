@@ -70,9 +70,7 @@ namespace ompl
             Goal(SpaceInformationPtr si);
 
             /** \brief Destructor.*/
-            virtual ~Goal()
-            {
-            }
+            virtual ~Goal() = default;
 
             /** \brief Cast this instance to a desired type. */
             template<class T>

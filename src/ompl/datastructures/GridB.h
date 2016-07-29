@@ -72,9 +72,7 @@ namespace ompl
             {
             }
 
-            ~CellX() override
-            {
-            }
+            ~CellX() override = default;
 
             void *heapElement;
         };

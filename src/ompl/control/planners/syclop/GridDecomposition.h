@@ -58,9 +58,7 @@ namespace ompl
                 \f$(r_1,\ldots,r_k)\f$, where \f$ 0 \leq r_i < \texttt{len}\f$. */
             GridDecomposition(int len, int dim, const base::RealVectorBounds &b);
 
-            ~GridDecomposition() override
-            {
-            }
+            ~GridDecomposition() override = default;
 
             int getNumRegions() const override { return numGridCells_; }
 

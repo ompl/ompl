@@ -54,9 +54,7 @@ ompl::geometric::LBKPIECE1::LBKPIECE1(const base::SpaceInformationPtr &si) : bas
     Planner::declareParam<double>("min_valid_path_fraction", this, &LBKPIECE1::setMinValidPathFraction, &LBKPIECE1::getMinValidPathFraction);
 }
 
- ompl::geometric::LBKPIECE1::~LBKPIECE1()
-{
-}
+ ompl::geometric::LBKPIECE1::~LBKPIECE1() = default;
 
 void ompl::geometric::LBKPIECE1::setup()
 {

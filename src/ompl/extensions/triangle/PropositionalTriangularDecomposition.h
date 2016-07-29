@@ -73,7 +73,7 @@ namespace ompl
                 const std::vector<Polygon>& props = std::vector<Polygon>()
             );
 
-            ~PropositionalTriangularDecomposition() override {}
+            ~PropositionalTriangularDecomposition() override = default;
 
             int getNumProps() const override;
 

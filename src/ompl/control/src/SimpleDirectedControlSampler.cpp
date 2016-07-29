@@ -42,9 +42,7 @@ ompl::control::SimpleDirectedControlSampler::SimpleDirectedControlSampler(const 
 {
 }
 
-ompl::control::SimpleDirectedControlSampler::~SimpleDirectedControlSampler()
-{
-}
+ompl::control::SimpleDirectedControlSampler::~SimpleDirectedControlSampler() = default;
 
 unsigned int ompl::control::SimpleDirectedControlSampler::sampleTo(Control *control, const base::State *source, base::State *dest)
 {

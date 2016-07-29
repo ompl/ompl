@@ -61,9 +61,7 @@ namespace ompl
                 setName(space->getName() + "CForestWrapper");
             }
 
-            ~CForestStateSpaceWrapper() override
-            {
-            }
+            ~CForestStateSpaceWrapper() override = default;
 
             void setPlanner(base::Planner *planner)
             {

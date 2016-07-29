@@ -68,9 +68,7 @@ namespace ompl
                 neighbors_.reserve(k_);
             }
 
-            virtual ~KStrategy()
-            {
-            }
+            virtual ~KStrategy() = default;
 
             /** \brief Set the nearest neighbors datastructure to use */
             void setNearestNeighbors(const std::shared_ptr< NearestNeighbors<Milestone> > &nn)

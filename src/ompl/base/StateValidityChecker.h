@@ -104,9 +104,7 @@ namespace ompl
             {
             }
 
-            virtual ~StateValidityChecker()
-            {
-            }
+            virtual ~StateValidityChecker() = default;
 
             /** \brief Return true if the state \e state is valid. Usually, this means at least collision checking. If it is
                 possible that ompl::base::StateSpace::interpolate() or ompl::control::ControlSpace::propagate() return states that

@@ -111,9 +111,7 @@ namespace ompl
                 dimensionNames_.resize(dim, "");
             }
 
-            ~RealVectorStateSpace() override
-            {
-            }
+            ~RealVectorStateSpace() override = default;
 
             /** \brief Increase the dimensionality of the state space by 1. Optionally, bounds can be specified for this added dimension. setup() will need to be called after adding dimensions. */
             void addDimension(double minBound = 0.0, double maxBound = 0.0);

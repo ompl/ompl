@@ -45,9 +45,7 @@ ompl::control::PlannerDataStorage::PlannerDataStorage() : base::PlannerDataStora
 {
 }
 
-ompl::control::PlannerDataStorage::~PlannerDataStorage()
-{
-}
+ompl::control::PlannerDataStorage::~PlannerDataStorage() = default;
 
 void ompl::control::PlannerDataStorage::load(const char *filename, base::PlannerData &pd)
 {

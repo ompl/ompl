@@ -61,9 +61,7 @@ namespace ompl
             /** \brief Constructor */
             ObstacleBasedValidStateSampler(const SpaceInformation *si);
 
-            ~ObstacleBasedValidStateSampler() override
-            {
-            }
+            ~ObstacleBasedValidStateSampler() override = default;
 
             bool sample(State *state) override;
             bool sampleNear(State *state, const State *near, const double distance) override;

@@ -104,13 +104,9 @@ namespace ompl
         {
         public:
 
-            OutputHandler()
-            {
-            }
+            OutputHandler() = default;
 
-            virtual ~OutputHandler()
-            {
-            }
+            virtual ~OutputHandler() = default;
 
             /** \brief log a message to the output handler with the given text
                 and logging level from a specific file and line number */

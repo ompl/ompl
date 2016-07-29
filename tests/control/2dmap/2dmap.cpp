@@ -223,9 +223,7 @@ public:
         msg::setLogLevel(msg::LOG_ERROR);
     }
 
-    virtual ~TestPlanner()
-    {
-    }
+    virtual ~TestPlanner() = default;
 
     virtual bool execute(Environment2D &env, bool show = false, double *time = nullptr, double *pathLength = nullptr)
     {

@@ -53,9 +53,7 @@ namespace ompl
             /** \brief Constructor */
             GaussianValidStateSampler(const SpaceInformation *si);
 
-            ~GaussianValidStateSampler() override
-            {
-            }
+            ~GaussianValidStateSampler() override = default;
 
             bool sample(State *state) override;
             bool sampleNear(State *state, const State *near, const double distance) override;

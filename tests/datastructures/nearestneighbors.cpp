@@ -78,9 +78,7 @@ struct NearestNeighborConfig
         b.setHigh(1);
         space1.setBounds(b);
     }
-    ~NearestNeighborConfig()
-    {
-    }
+    ~NearestNeighborConfig() = default;
 
     base::DiscreteStateSpace space0;
     base::SE3StateSpace     space1;

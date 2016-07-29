@@ -80,9 +80,7 @@ namespace ompl
 
 
 
-        BITstar::IntegratedQueue::~IntegratedQueue()
-        {
-        }
+        BITstar::IntegratedQueue::~IntegratedQueue() = default;
 
 
 

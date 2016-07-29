@@ -57,7 +57,7 @@ namespace ompl
         public:
             LTLSpaceInformation(const SpaceInformationPtr& si, const ProductGraphPtr& prod);
 
-            ~LTLSpaceInformation() override {}
+            ~LTLSpaceInformation() override = default;
 
             void setup() override;
 

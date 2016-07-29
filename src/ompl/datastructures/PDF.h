@@ -64,9 +64,7 @@ namespace ompl
         };
 
         /** \brief Constructs an empty PDF. */
-        PDF()
-        {
-        }
+        PDF() = default;
 
         /** \brief Constructs a PDF containing a given vector of data with given weights. */
         PDF(const std::vector<_T>& d, const std::vector<double>& weights)

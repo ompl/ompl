@@ -82,9 +82,7 @@ namespace ompl
                 type_ = CONTROL_SPACE_DISCRETE;
             }
 
-            ~DiscreteControlSpace() override
-            {
-            }
+            ~DiscreteControlSpace() override = default;
 
             unsigned int getDimension() const override;
 

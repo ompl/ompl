@@ -119,8 +119,7 @@ namespace ompl
             }
 
             ~SE2StateSpace() override
-            {
-            }
+            = default;
 
             /** \copydoc RealVectorStateSpace::setBounds() */
             void setBounds(const RealVectorBounds &bounds)

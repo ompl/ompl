@@ -59,9 +59,7 @@ ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::P
     Planner::declareParam<double>("min_valid_path_fraction", this, &KPIECE1::setMinValidPathFraction, &KPIECE1::getMinValidPathFraction);
 }
 
-ompl::geometric::KPIECE1::~KPIECE1()
-{
-}
+ompl::geometric::KPIECE1::~KPIECE1() = default;
 
 void ompl::geometric::KPIECE1::setup()
 {

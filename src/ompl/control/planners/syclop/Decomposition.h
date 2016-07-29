@@ -74,9 +74,7 @@ namespace ompl
                     OMPL_WARN("Decomposition: dimension of given bounds exceeds argument 'dim'. Using the first 'dim' values of bounds");
             }
 
-            virtual ~Decomposition()
-            {
-            }
+            virtual ~Decomposition() = default;
 
             /** \brief Returns the number of regions in this Decomposition. */
             virtual int getNumRegions() const = 0;

@@ -559,9 +559,7 @@ namespace ompl
             /** \brief Construct a compound state space from a list of subspaces (\e components) and their corresponding weights (\e weights) */
             CompoundStateSpace(const std::vector<StateSpacePtr> &components, const std::vector<double> &weights);
 
-            ~CompoundStateSpace() override
-            {
-            }
+            ~CompoundStateSpace() override = default;
 
             /** \brief Cast a component of this instance to a desired type. */
             template<class T>

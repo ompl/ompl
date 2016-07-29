@@ -84,9 +84,7 @@ ompl::control::TriangularDecomposition::TriangularDecomposition(const base::Real
     // Report an error otherwise.
 }
 
-ompl::control::TriangularDecomposition::~TriangularDecomposition()
-{
-}
+ompl::control::TriangularDecomposition::~TriangularDecomposition() = default;
 
 void ompl::control::TriangularDecomposition::setup()
 {

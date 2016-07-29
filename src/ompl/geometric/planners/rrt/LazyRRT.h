@@ -151,9 +151,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion()
-                {
-                }
+                ~Motion() = default;
 
                 /** \brief The state contained by the motion */
                 base::State          *state;

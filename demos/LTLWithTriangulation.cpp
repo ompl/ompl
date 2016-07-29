@@ -62,7 +62,7 @@ class MyDecomposition : public oc::PropositionalTriangularDecomposition
 public:
     MyDecomposition(const ob::RealVectorBounds& bounds)
         : oc::PropositionalTriangularDecomposition(bounds) { }
-    ~MyDecomposition() override { }
+    ~MyDecomposition() override = default;
 
     void project(const ob::State* s, std::vector<double>& coord) const override
     {

@@ -78,9 +78,7 @@ namespace ompl
             }
 
             /** \brief Destructor */
-            virtual ~Path()
-            {
-            }
+            virtual ~Path() = default;
 
             /** \brief Get the space information associated to this class */
             const SpaceInformationPtr& getSpaceInformation() const

@@ -73,9 +73,7 @@ namespace ompl
             explicit
             SimpleSetup(const ControlSpacePtr &space);
 
-            virtual ~SimpleSetup()
-            {
-            }
+            virtual ~SimpleSetup() = default;
 
             /** \brief Get the current instance of the space information */
             const SpaceInformationPtr& getSpaceInformation() const

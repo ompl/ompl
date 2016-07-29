@@ -87,9 +87,7 @@ namespace ompl
                 type_ = STATE_SPACE_TIME;
             }
 
-            ~TimeStateSpace() override
-            {
-            }
+            ~TimeStateSpace() override = default;
 
             unsigned int getDimension() const override;
 

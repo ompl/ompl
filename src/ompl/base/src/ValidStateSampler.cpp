@@ -46,6 +46,4 @@ ompl::base::ValidStateSampler::ValidStateSampler(const SpaceInformation *si) :
                                        std::bind(&ValidStateSampler::getNrAttempts, this));
 }
 
-ompl::base::ValidStateSampler::~ValidStateSampler()
-{
-}
+ompl::base::ValidStateSampler::~ValidStateSampler() = default;
