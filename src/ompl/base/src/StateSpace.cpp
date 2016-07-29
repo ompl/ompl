@@ -561,8 +561,8 @@ void ompl::base::StateSpace::diagram(std::ostream &out) const
             {
                 const StateSpace *s = m->as<CompoundStateSpace>()->getSubspace(i).get();
                 q.push(s);
-                out << '"' << m->getName() << "\" -> \"" << s->getName() << "\" [label=\"" <<
-                    std::to_string(m->as<CompoundStateSpace>()->getSubspaceWeight(i)) << "\"];" << std::endl;
+                out << '"' << m->getName() << R"(" -> ")" << s->getName() << R"(" [label=")" <<
+                    std::to_string(m->as<CompoundStateSpace>()->getSubspaceWeight(i)) << R"("];)" << std::endl;
             }
         }
     }
@@ -582,12 +582,12 @@ void ompl::base::StateSpace::Diagram(std::ostream &out)
             if (it != jt)
             {
                 if ((*it)->isCompound() && (*it)->as<CompoundStateSpace>()->hasSubspace((*jt)->getName()))
-                    out << '"' << (*it)->getName() << "\" -> \"" << (*jt)->getName() << "\" [label=\"" <<
+                    out << '"' << (*it)->getName() << R"(" -> ")" << (*jt)->getName() << R"(" [label=")" <<
                         std::to_string((*it)->as<CompoundStateSpace>()->getSubspaceWeight((*jt)->getName())) <<
-                        "\"];" << std::endl;
+                        R"("];)" << std::endl;
                 else
                     if (!StateSpaceIncludes(*it, *jt) && StateSpaceCovers(*it, *jt))
-                        out << '"' << (*it)->getName() << "\" -> \"" << (*jt)->getName() << "\" [style=dashed];" << std::endl;
+                        out << '"' << (*it)->getName() << R"(" -> ")" << (*jt)->getName() << R"(" [style=dashed];)" << std::endl;
             }
     }
     out << '}' << std::endl;

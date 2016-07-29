@@ -161,7 +161,7 @@ void ompl::control::Automaton::print(std::ostream& out) const
     out << "rankdir=LR" << std::endl;
     for (unsigned int i = 0; i < numStates_; ++i)
     {
-        out << i << " [label=\"" << i << "\",shape=";
+        out << i << R"( [label=")" << i << R"(",shape=)";
         out << (accepting_[i] ? "doublecircle" : "circle") << "]" << std::endl;
 
         const TransitionMap& map = transitions_[i];
@@ -171,7 +171,7 @@ void ompl::control::Automaton::print(std::ostream& out) const
             const World& w = e->first;
             unsigned int dest = e->second;
             const std::string formula = w.formula();
-            out << i << " -> " << dest << " [label=\"" << formula << "\"]" << std::endl;
+            out << i << " -> " << dest << R"( [label=")" << formula << R"("])" << std::endl;
         }
     }
     out << "}" << std::endl;
