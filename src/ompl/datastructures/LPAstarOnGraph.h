@@ -303,7 +303,7 @@ namespace ompl
 
         typedef std::multiset<Node*, LessThanNodeK>             Queue;
         typedef std::unordered_map<std::size_t, Node*, Hash>  IdNodeMap;
-        typedef typename IdNodeMap::iterator                    IdNodeMapIter;
+        using IdNodeMapIter = typename IdNodeMap::iterator;
         typedef typename boost::property_map<Graph, boost::edge_weight_t>::type WeightMap;
 
         // LPA* subprocedures

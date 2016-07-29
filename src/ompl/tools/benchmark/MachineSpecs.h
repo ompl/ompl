@@ -47,7 +47,7 @@ namespace ompl
     {
 
         /** \brief Amount of memory used, in bytes */
-        typedef unsigned long long MemUsage_t;
+        using MemUsage_t = unsigned long long;
 
         /** \brief Get the amount of memory the current process is using. This should work on major platforms (Windows, Mac OS, Linux) */
         MemUsage_t getProcessMemoryUsage();

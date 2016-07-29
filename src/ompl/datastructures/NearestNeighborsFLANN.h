@@ -57,8 +57,8 @@ namespace ompl
     class FLANNDistance
     {
     public:
-        typedef _T ElementType;
-        typedef double ResultType;
+        using ElementType = ompl::base::State *;
+        using ResultType = double;
 
         FLANNDistance(const typename NearestNeighbors<_T>::DistanceFunction& distFun)
             : distFun_(distFun)

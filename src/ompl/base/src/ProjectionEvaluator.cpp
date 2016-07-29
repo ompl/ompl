@@ -295,8 +295,8 @@ void ompl::base::ProjectionEvaluator::inferCellSizes()
 
 void ompl::base::ProjectionEvaluator::setup()
 {
-    typedef void(ProjectionEvaluator::*setCellSizesFunctionType)(unsigned int, double);
-    typedef double(ProjectionEvaluator::*getCellSizesFunctionType)(unsigned int) const;
+    using setCellSizesFunctionType = void (ompl::base::ProjectionEvaluator::*)(unsigned int, double);
+    using getCellSizesFunctionType = double (ompl::base::ProjectionEvaluator::*)(unsigned int) const;
 
     if (defaultCellSizes_)
         defaultCellSizes();

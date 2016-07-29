@@ -144,7 +144,7 @@ unsigned int ompl::control::Automaton::numStates() const
 unsigned int ompl::control::Automaton::numTransitions() const
 {
     unsigned int ntrans = 0;
-    typedef std::vector<TransitionMap>::const_iterator TransIter;
+    using TransIter = std::vector<TransitionMap>::const_iterator;
     for (const auto & transition : transitions_)
         ntrans += transition.entries.size();
     return ntrans;

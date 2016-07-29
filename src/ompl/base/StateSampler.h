@@ -197,7 +197,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a state sampler */
-        typedef std::function<StateSamplerPtr(const StateSpace*)> StateSamplerAllocator;
+        using StateSamplerAllocator = std::function<StateSamplerPtr (const StateSpace *)>;
     }
 }
 

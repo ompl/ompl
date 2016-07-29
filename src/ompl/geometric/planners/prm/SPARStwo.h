@@ -93,7 +93,7 @@ namespace ompl
             };
 
             /** \brief The type used internally for representing vertex IDs */
-            typedef unsigned long int VertexIndexType;
+            using VertexIndexType = unsigned long;
 
             /** \brief Pair of vertices which support an interface. */
             typedef std::pair< VertexIndexType, VertexIndexType > VertexPair;
@@ -183,15 +183,15 @@ namespace ompl
             typedef std::unordered_map<VertexPair, InterfaceData> InterfaceHash;
 
             struct vertex_state_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             struct vertex_color_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             struct vertex_interface_data_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             /**
@@ -220,10 +220,10 @@ namespace ompl
             > Graph;
 
             /** \brief Vertex in Graph */
-            typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+            using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
 
             /** \brief Edge in Graph */
-            typedef boost::graph_traits<Graph>::edge_descriptor   Edge;
+            using Edge = boost::graph_traits<Graph>::edge_descriptor;
 
             /** \brief Constructor */
             SPARStwo(const base::SpaceInformationPtr &si);

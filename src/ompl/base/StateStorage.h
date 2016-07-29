@@ -212,7 +212,7 @@ namespace ompl
         public:
 
             /** \brief the datatype of the metadata */
-            typedef M MetadataType;
+            using MetadataType = M;
 
             /** \brief The state space to store states for is specified as argument */
             StateStorageWithMetadata(const StateSpacePtr &space) : StateStorage(space)
@@ -276,8 +276,8 @@ namespace ompl
         };
 
         /** \brief Storage of states where the metadata is a vector of indices. This is is typically used to store a graph */
-        typedef StateStorageWithMetadata<std::vector<std::size_t> > GraphStateStorage;
-        typedef std::shared_ptr<GraphStateStorage> GraphStateStoragePtr;
+        using GraphStateStorage = StateStorageWithMetadata<std::vector<std::size_t> >;
+        using GraphStateStoragePtr = std::shared_ptr<GraphStateStorage>;
     }
 }
 #endif

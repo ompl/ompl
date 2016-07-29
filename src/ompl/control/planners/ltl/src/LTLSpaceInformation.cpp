@@ -52,7 +52,7 @@ void oc::LTLSpaceInformation::getFullState(const ob::State* low, ob::State* full
     ob::CompoundState& cs = *full->as<ob::CompoundState>();
     stateSpace_->as<ob::CompoundStateSpace>()->getSubspace(LOW_LEVEL)->
         copyState(cs[LOW_LEVEL], low);
-    typedef ob::DiscreteStateSpace::StateType DiscreteState;
+    using DiscreteState = ob::DiscreteStateSpace::StateType;
     cs[REGION]->as<DiscreteState>()->value = high->getDecompRegion();
     cs[COSAFE]->as<DiscreteState>()->value = high->getCosafeState();
     cs[SAFE]->as<DiscreteState>()->value = high->getSafeState();
@@ -71,7 +71,7 @@ const ob::State* oc::LTLSpaceInformation::getLowLevelState(const ob::State* s)
 oc::ProductGraph::State* oc::LTLSpaceInformation::getProdGraphState(const ob::State* s) const
 {
     const ob::CompoundState& cs = *s->as<ob::CompoundState>();
-    typedef ob::DiscreteStateSpace::StateType DiscreteState;
+    using DiscreteState = ob::DiscreteStateSpace::StateType;
     return prod_->getState(cs[REGION]->as<DiscreteState>()->value,
                            cs[COSAFE]->as<DiscreteState>()->value,
                            cs[SAFE]->as<DiscreteState>()->value);

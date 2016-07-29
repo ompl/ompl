@@ -58,7 +58,7 @@ namespace std
     struct hash<std::pair<U,V> >
     {
         typedef std::pair<U,V> argument_type;
-        typedef std::size_t result_type;
+        using result_type = std::size_t;
         result_type operator()(argument_type const& p) const
         {
             result_type h = std::hash<typename std::remove_cv<U>::type>()(p.first);

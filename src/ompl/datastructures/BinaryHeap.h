@@ -72,10 +72,10 @@ namespace ompl
         };
 
         /** \brief Event that gets called after an insertion */
-        typedef void (*EventAfterInsert) (Element*, void*);
+        using EventAfterInsert = void (*)(Element*, void*);
 
         /** \brief Event that gets called just before a removal */
-        typedef void (*EventBeforeRemove)(Element*, void*);
+        using EventBeforeRemove = void (*)(Element*, void*);
 
         BinaryHeap()
         {

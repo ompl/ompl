@@ -57,7 +57,7 @@ struct Segment
 };
 
 // the robot and environment are modeled both as a vector of segments.
-typedef std::vector<Segment> Environment;
+using Environment = std::vector<Segment>;
 
 // simply use a random projection
 class KinematicChainProjector : public ompl::base::ProjectionEvaluator

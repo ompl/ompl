@@ -53,7 +53,7 @@ namespace ompl
     public:
 
         /// Definition of a coordinate within this grid
-        typedef std::vector<int> Coord;
+        using Coord = std::vector<int>;
 
         /// Definition of a cell in this grid
         struct Cell
@@ -74,7 +74,7 @@ namespace ompl
         };
 
         /// The datatype for arrays of cells
-        typedef std::vector<Cell*> CellArray;
+        using CellArray = std::vector<Cell *>;
 
 
         /// The constructor takes the dimension of the grid as argument
@@ -169,7 +169,7 @@ namespace ompl
         std::vector< std::vector<Cell*> > components() const
         {
             typedef std::unordered_map<Coord*, int, HashFunCoordPtr, EqualCoordPtr> ComponentHash;
-            typedef typename ComponentHash::iterator CHit;
+            using CHit = typename ComponentHash::iterator;
 
             int components = 0;
             ComponentHash ch;
@@ -371,7 +371,7 @@ namespace ompl
     public:
 
         /// We only allow const iterators
-        typedef typename CoordHash::const_iterator iterator;
+        using iterator = typename CoordHash::const_iterator;
 
         /// Return the begin() iterator for the grid
         iterator begin() const

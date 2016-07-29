@@ -51,9 +51,9 @@ namespace ompl
     {
     public:
         /** \brief The definition of a distance function */
-        typedef std::function<double(const _T&, const _T&)> DistanceFunction;
+        using DistanceFunction = std::function<double(const _T&, const _T&)>;
         /** \brief A matrix type for storing distances between points and centers */
-        typedef boost::numeric::ublas::matrix<double> Matrix;
+        using Matrix = boost::numeric::ublas::matrix<double>;
 
         GreedyKCenters()
         {

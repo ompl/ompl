@@ -273,9 +273,9 @@ namespace ompl
         }; //IsLessThan
 
         typedef std::set<std::size_t, IsLessThan>   Queue;
-        typedef Queue::iterator                     QueueIter;
-        typedef std::unordered_set<std::size_t>     IntSet;
-        typedef IntSet::iterator                    IntSetIter;
+        using QueueIter = Queue::iterator;
+        using IntSet = std::unordered_set<std::size_t>;
+        using IntSetIter = IntSet::iterator;
 
         Graph*                                      graph_;
         /// \brief distance from source which is node zero

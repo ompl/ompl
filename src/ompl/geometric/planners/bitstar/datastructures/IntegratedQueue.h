@@ -99,16 +99,16 @@ namespace ompl
             ////////////////////////////////
             //Function typedefs:
             /** \brief A std::function definition of a heuristic function for a vertex. */
-            typedef std::function<ompl::base::Cost (const VertexConstPtr&)> VertexHeuristicFunc;
+            using VertexHeuristicFunc = std::function<ompl::base::Cost (const VertexConstPtr &)>;
 
             /** \brief A std::function definition of a heuristic function for an edge. */
-            typedef std::function<ompl::base::Cost (const VertexConstPtrPair&)> EdgeHeuristicFunc;
+            using EdgeHeuristicFunc = std::function<ompl::base::Cost (const VertexConstPtrPair &)>;
 
             /** \brief A std::function definition for the distance between two vertices. */
-            typedef std::function<double (const VertexConstPtr&, const VertexConstPtr&)> DistanceFunc;
+            using DistanceFunc = std::function<double (const VertexConstPtr &, const VertexConstPtr &)>;
 
             /** \brief A std::function definition for the neighbourhood of a vertex . */
-            typedef std::function<unsigned int (const VertexPtr&, std::vector<VertexPtr>*)> NeighbourhoodFunc;
+            using NeighbourhoodFunc = std::function<unsigned int (const VertexPtr &, std::vector<VertexPtr> *)>;
             ////////////////////////////////
 
 
@@ -260,16 +260,16 @@ namespace ompl
             typedef std::multimap<CostPair, VertexPtrPair, std::function<bool (const CostPair&, const CostPair&)> > CostToVertexPtrPairMMap;
 
             /** \brief A typedef for an iterator into the vertex queue multimap */
-            typedef CostToVertexMMap::iterator VertexQueueIter;
+            using VertexQueueIter = CostToVertexMMap::iterator;
 
             /** \brief A typedef for an unordered_map of vertex queue iterators indexed on vertex*/
             typedef std::unordered_map<BITstar::VertexId, VertexQueueIter> VertexIdToVertexQueueIterUMap;
 
             /** \brief A typedef for an iterator into the edge queue multimap */
-            typedef CostToVertexPtrPairMMap::iterator EdgeQueueIter;
+            using EdgeQueueIter = CostToVertexPtrPairMMap::iterator;
 
             /** \brief A typedef for a list of edge queue iterators*/
-            typedef std::list<EdgeQueueIter> EdgeQueueIterList;
+            using EdgeQueueIterList = std::list<EdgeQueueIter>;
 
             /** \brief A typedef for an unordered_map of edge queue iterators indexed by vertex*/
             typedef std::unordered_map<BITstar::VertexId, EdgeQueueIterList> VertexIdToEdgeQueueIterListUMap;

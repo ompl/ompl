@@ -315,7 +315,7 @@ namespace ompl
             assert(lst.size() == size_);
         }
     protected:
-        typedef NearestNeighborsGNATNoThreadSafety<_T> GNAT;
+        using GNAT = NearestNeighborsGNATNoThreadSafety<_T>;
 
         /// Return true iff data has been marked for removal.
         bool isRemoved(const _T &data) const

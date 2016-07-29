@@ -139,7 +139,7 @@ namespace ompl
 
         /** \brief When a planner has an intermediate solution (e.g., optimizing planners), a function with this signature can be called
             to report the states of that solution. */
-        typedef std::function<void(const Planner*, const std::vector<const base::State*> &, const Cost)> ReportIntermediateSolutionFn;
+        using ReportIntermediateSolutionFn = std::function<void (const Planner *, const std::vector<const base::State *> &, const Cost)>;
 
         OMPL_CLASS_FORWARD(OptimizationObjective);
 

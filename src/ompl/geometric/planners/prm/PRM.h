@@ -85,15 +85,15 @@ namespace ompl
         public:
 
             struct vertex_state_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             struct vertex_total_connection_attempts_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             struct vertex_successful_connection_attempts_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             /**
@@ -122,23 +122,23 @@ namespace ompl
             > Graph;
 
             /** @brief The type for a vertex in the roadmap. */
-            typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+            using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
             /** @brief The type for an edge in the roadmap. */
-            typedef boost::graph_traits<Graph>::edge_descriptor   Edge;
+            using Edge = boost::graph_traits<Graph>::edge_descriptor;
 
             /** @brief A nearest neighbors data structure for roadmap vertices. */
-            typedef std::shared_ptr< NearestNeighbors<Vertex> > RoadmapNeighbors;
+            using RoadmapNeighbors = std::shared_ptr<NearestNeighbors<Vertex> >;
 
             /** @brief A function returning the milestones that should be
              * attempted to connect to. */
-            typedef std::function<const std::vector<Vertex>&(const Vertex)> ConnectionStrategy;
+            using ConnectionStrategy = std::function<const std::vector<Vertex> &(const Vertex)>;
 
             /** @brief A function that can reject connections.
 
              This is called after previous connections from the neighbor list
              have been added to the roadmap.
              */
-            typedef std::function<bool(const Vertex&, const Vertex&)> ConnectionFilter;
+            using ConnectionFilter = std::function<bool (const Vertex &, const Vertex &)>;
 
             /** \brief Constructor */
             PRM(const base::SpaceInformationPtr &si, bool starStrategy = false);

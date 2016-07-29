@@ -47,7 +47,7 @@
 
 BOOST_AUTO_TEST_CASE(Simple)
 {
-    typedef ompl::PDF<int>::Element Element;
+    using Element = ompl::PDF<int>::Element;
     ompl::PDF<int> p;
     BOOST_CHECK(p.empty());
     p.add(0, 1.0);

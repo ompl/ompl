@@ -54,7 +54,7 @@ namespace ompl
         /** \brief Goal sampling function. Returns false when no further calls should be made to it.
             Fills its second argument (the state) with the sampled goal state. This function need not
             be thread safe. */
-        typedef std::function<bool(const GoalLazySamples*, State*)> GoalSamplingFn;
+        using GoalSamplingFn = std::function<bool (const GoalLazySamples *, State *)>;
 
         /** \brief Definition of a goal region that can be sampled,
          but the sampling process can be slow.  This class allows
@@ -77,7 +77,7 @@ namespace ompl
             /** \brief When new samples are generated and added to the
                 list of possible samples, a callback can be
                 called. This type specifies the signature of that callback */
-            typedef std::function<void(const base::State*)> NewStateCallbackFn;
+            using NewStateCallbackFn = std::function<void (const base::State *)>;
 
             /** \brief Create a goal region that can be sampled in a
                 lazy fashion. A function (\e samplerFunc) that

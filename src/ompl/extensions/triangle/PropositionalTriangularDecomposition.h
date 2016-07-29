@@ -58,8 +58,8 @@ namespace ompl
         class PropositionalTriangularDecomposition : public PropositionalDecomposition
         {
         public:
-            typedef TriangularDecomposition::Polygon Polygon;
-            typedef TriangularDecomposition::Vertex Vertex;
+            using Polygon = TriangularDecomposition::Polygon;
+            using Vertex = TriangularDecomposition::Vertex;
 
             /** \brief Creates a PropositionalTriangularDecomposition over the given bounds,
                 which must be 2-dimensional.

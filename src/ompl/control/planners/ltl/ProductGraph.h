@@ -246,10 +246,10 @@ namespace ompl
             };
 
             typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, State*, Edge> GraphType;
-            typedef boost::graph_traits<GraphType>::vertex_descriptor Vertex;
-            typedef boost::graph_traits<GraphType>::vertex_iterator VertexIter;
+            using Vertex = boost::graph_traits<GraphType>::vertex_descriptor;
+            using VertexIter = boost::graph_traits<GraphType>::vertex_iterator;
             typedef boost::property_map<GraphType, boost::vertex_index_t>::type VertexIndexMap;
-            typedef boost::graph_traits<GraphType>::edge_iterator EdgeIter;
+            using EdgeIter = boost::graph_traits<GraphType>::edge_iterator;
 
             PropositionalDecompositionPtr decomp_;
             AutomatonPtr cosafety_;

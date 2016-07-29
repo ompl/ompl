@@ -92,33 +92,33 @@ namespace ompl
             };
 
             struct vertex_state_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             struct vertex_representative_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             struct vertex_color_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             struct vertex_list_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             struct vertex_interface_list_t {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
             /** \brief The type used internally for representing vertex IDs */
-            typedef unsigned long int VertexIndexType;
+            using VertexIndexType = unsigned long;
 
             /** \brief Hash for storing interface information. */
             typedef std::unordered_map<VertexIndexType, std::set<VertexIndexType> > InterfaceHash;
 
             /** \brief Internal representation of a dense path */
-            typedef std::deque<base::State*> DensePath;
+            using DensePath = std::deque<base::State *>;
 
             /**
              @brief The constructed roadmap spanner.
@@ -144,13 +144,13 @@ namespace ompl
             > SpannerGraph;
 
             /** \brief A vertex in the sparse roadmap that is constructed */
-            typedef boost::graph_traits<SpannerGraph>::vertex_descriptor SparseVertex;
+            using SparseVertex = boost::graph_traits<SpannerGraph>::vertex_descriptor;
 
             /** \brief An edge in the sparse roadmap that is constructed */
-            typedef boost::graph_traits<SpannerGraph>::edge_descriptor   SparseEdge;
+            using SparseEdge = boost::graph_traits<SpannerGraph>::edge_descriptor;
 
             /** \brief Nearest neighbor structure which works over the SpannerGraph */
-            typedef std::shared_ptr< NearestNeighbors<SparseVertex> > SparseNeighbors;
+            using SparseNeighbors = std::shared_ptr<NearestNeighbors<SparseVertex> >;
 
             /**
              @brief The underlying roadmap graph.
@@ -177,13 +177,13 @@ namespace ompl
             > DenseGraph;
 
             /** \brief A vertex in DenseGraph */
-            typedef boost::graph_traits<DenseGraph>::vertex_descriptor DenseVertex;
+            using DenseVertex = boost::graph_traits<DenseGraph>::vertex_descriptor;
 
             /** \brief An edge in DenseGraph */
-            typedef boost::graph_traits<DenseGraph>::edge_descriptor   DenseEdge;
+            using DenseEdge = boost::graph_traits<DenseGraph>::edge_descriptor;
 
             /** \brief Nearest neighbor structure which works over the DenseGraph */
-            typedef std::shared_ptr< NearestNeighbors<DenseVertex> > DenseNeighbors;
+            using DenseNeighbors = std::shared_ptr<NearestNeighbors<DenseVertex> >;
 
             /** \brief Constructor. */
             SPARS(const base::SpaceInformationPtr &si);

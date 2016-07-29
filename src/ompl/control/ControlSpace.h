@@ -200,7 +200,7 @@ namespace ompl
         public:
 
             /** \brief Define the type of control allocated by this control space */
-            typedef CompoundControl ControlType;
+            using ControlType = ompl::control::CompoundControl;
 
             /** \brief Constructor. The corresponding state space needs to be specified. */
             CompoundControlSpace(const base::StateSpacePtr &stateSpace) : ControlSpace(stateSpace), componentCount_(0), locked_(false)

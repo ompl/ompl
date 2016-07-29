@@ -58,8 +58,8 @@ namespace
     class WrapperDecomposition : public oc::TriangularDecomposition
     {
     public:
-        typedef TriangularDecomposition::Polygon Polygon;
-        typedef TriangularDecomposition::Vertex Vertex;
+        using Polygon = TriangularDecomposition::Polygon;
+        using Vertex = TriangularDecomposition::Vertex;
         WrapperDecomposition(const oc::Decomposition* decomp,
                              const ob::RealVectorBounds& bounds,
                              const std::vector<Polygon>& holes,

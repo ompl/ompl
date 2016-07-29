@@ -77,7 +77,7 @@ namespace ompl
             StateSpace& operator=(const StateSpace&) = delete;
 
             /** \brief Define the type of state allocated by this space */
-            typedef State StateType;
+            using StateType = ompl::base::State;
 
             /** \brief Constructor. Assigns a @b unique name to the space */
             StateSpace();
@@ -551,7 +551,7 @@ namespace ompl
         public:
 
             /** \brief Define the type of state allocated by this state space */
-            typedef CompoundState StateType;
+            using StateType = ompl::base::CompoundState;
 
             /** \brief Construct an empty compound state space */
             CompoundStateSpace();

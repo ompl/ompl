@@ -166,7 +166,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a control sampler */
-        typedef std::function<ControlSamplerPtr(const ControlSpace*)> ControlSamplerAllocator;
+        using ControlSamplerAllocator = std::function<ControlSamplerPtr (const ControlSpace *)>;
     }
 }
 

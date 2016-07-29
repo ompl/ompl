@@ -55,10 +55,10 @@ namespace ompl
     {
 
         /** \brief Grid cells corresponding to a projection value are described in terms of their coordinates. */
-        typedef std::vector<int> ProjectionCoordinates;
+        using ProjectionCoordinates = std::vector<int>;
 
         /** \brief The datatype for state projections. This class contains a real vector. */
-        typedef boost::numeric::ublas::vector<double> EuclideanProjection;
+        using EuclideanProjection = boost::numeric::ublas::vector<double>;
 
 
         /** \brief A projection matrix -- it allows multiplication of
@@ -69,7 +69,7 @@ namespace ompl
         public:
 
             /** \brief Datatype for projection matrices */
-            typedef boost::numeric::ublas::matrix<double> Matrix;
+            using Matrix = boost::numeric::ublas::matrix<double>;
 
             /** \brief Compute a random projection matrix with \e from
                 columns and \e to rows. A vector with \e from elements

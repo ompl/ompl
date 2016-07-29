@@ -143,7 +143,7 @@ class ompl::RNG::SphericalData
 {
 public:
     /** \brief The container type for the variate generators. Allows for a vector "view" of an underlying array. */
-    typedef boost::numeric::ublas::shallow_array_adaptor<double> container_type_t;
+    using container_type_t = boost::numeric::ublas::shallow_array_adaptor<double>;
 
     /** \brief The uniform_on_sphere distribution type. */
     typedef boost::uniform_on_sphere<double, container_type_t> spherical_dist_t;

@@ -293,7 +293,7 @@ namespace ompl
                     currentSet_[REV]    = SET_UNVISITED;
                 }
 
-                typedef std::vector<BiDirMotion*> BiDirMotionPtrs;
+                using BiDirMotionPtrs = std::vector<BiDirMotion *>;
 
                 /** \brief The state contained by the motion */
                 base::State             *state_;
@@ -430,7 +430,7 @@ namespace ompl
                 }
             };
 
-            typedef std::vector<BiDirMotion*> BiDirMotionPtrs;
+            using BiDirMotionPtrs = std::vector<BiDirMotion *>;
 
         protected:
 

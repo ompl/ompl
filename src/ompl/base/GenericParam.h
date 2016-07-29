@@ -161,10 +161,10 @@ namespace ompl
         public:
 
             /** \brief The type for the 'setter' function for this parameter */
-            typedef std::function<void(T)> SetterFn;
+            using SetterFn = std::function<void(T)>;
 
             /** \brief The type for the 'getter' function for this parameter */
-            typedef std::function<T()>     GetterFn;
+            using GetterFn = std::function<T()>;
 
             /** \brief An explicit instantiation of a parameter \e name requires the \e setter function and optionally the \e
                 getter function. */

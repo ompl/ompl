@@ -140,10 +140,10 @@ namespace ompl
             struct MotionInfo;
 
             /** \brief A grid cell */
-            typedef Grid<MotionInfo>::Cell GridCell;
+            using GridCell = Grid<MotionInfo>::Cell;
 
             /** \brief A PDF of grid cells */
-            typedef PDF<GridCell*>         CellPDF;
+            using CellPDF = PDF<GridCell *>;
 
             /** \brief Representation of a motion */
             class Motion

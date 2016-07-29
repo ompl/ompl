@@ -52,8 +52,8 @@
 namespace ob = ompl::base;
 namespace oc = ompl::control;
 
-typedef oc::PropositionalTriangularDecomposition::Polygon Polygon;
-typedef oc::PropositionalTriangularDecomposition::Vertex Vertex;
+using Polygon = oc::PropositionalTriangularDecomposition::Polygon;
+using Vertex = oc::PropositionalTriangularDecomposition::Vertex;
 
 // a decomposition is only needed for SyclopRRT and SyclopEST
 // use TriangularDecomp
@@ -134,7 +134,7 @@ bool isStateValid(
     double x = se2->getX();
     double y = se2->getY();
     const std::vector<Polygon>& obstacles = decomp->getHoles();
-    typedef std::vector<Polygon>::const_iterator ObstacleIter;
+    using ObstacleIter = std::vector<Polygon>::const_iterator;
     for (const auto & obstacle : obstacles)
     {
         if (polyContains(obstacle, x, y))

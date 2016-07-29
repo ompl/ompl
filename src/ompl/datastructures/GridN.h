@@ -49,13 +49,13 @@ namespace ompl
     public:
 
         /// Datatype for cell in base class
-        typedef typename Grid<_T>::Cell      BaseCell;
+        using BaseCell = typename Grid<_T>::Cell;
 
         /// Datatype for array of cells in base class
-        typedef typename Grid<_T>::CellArray BaseCellArray;
+        using BaseCellArray = typename Grid<_T>::CellArray;
 
         /// Datatype for cell coordinates
-        typedef typename Grid<_T>::Coord     Coord;
+        using Coord = typename Grid<_T>::Coord;
 
         /// Definition of a cell in this grid
         struct Cell : public BaseCell
@@ -76,7 +76,7 @@ namespace ompl
         };
 
         /// The datatype for arrays of cells
-        typedef std::vector<Cell*> CellArray;
+        using CellArray = std::vector<Cell *>;
 
 
         /// The constructor takes the dimension of the grid as argument

@@ -167,7 +167,7 @@ void ompl::geometric::CForest::setup()
 
 ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTerminationCondition &ptc)
 {
-    typedef void(CForest::*solveFunctionType)(base::Planner*, const base::PlannerTerminationCondition&);
+    using solveFunctionType = void (ompl::geometric::CForest::*)(base::Planner *, const base::PlannerTerminationCondition &);
 
     checkValidity();
 

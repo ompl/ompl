@@ -53,13 +53,13 @@ namespace ompl
     public:
 
         /// Definition of a cell in this grid
-        typedef typename GridN<_T>::Cell      Cell;
+        using Cell = typename GridN<_T>::Cell;
 
         /// The datatype for arrays of cells
-        typedef typename GridN<_T>::CellArray CellArray;
+        using CellArray = typename GridN<_T>::CellArray;
 
         /// Datatype for cell coordinates
-        typedef typename GridN<_T>::Coord     Coord;
+        using Coord = typename GridN<_T>::Coord;
 
     protected:
 
@@ -84,7 +84,7 @@ namespace ompl
     public:
 
         /// Event to be called when a cell's priority is to be updated
-        typedef void (*EventCellUpdate)(Cell*, void*);
+        using EventCellUpdate = void (*)(Cell*, void*);
 
         /// Constructor
         explicit

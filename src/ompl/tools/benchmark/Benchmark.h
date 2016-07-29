@@ -82,10 +82,10 @@ namespace ompl
             typedef std::vector<std::map<std::string, std::string> > RunProgressData;
 
             /** \brief Signature of function that can be called before a planner execution is started */
-            typedef std::function<void(const base::PlannerPtr&)> PreSetupEvent;
+            using PreSetupEvent = std::function<void (const base::PlannerPtr &)>;
 
             /** \brief Signature of function that can be called after a planner execution is completed */
-            typedef std::function<void(const base::PlannerPtr&, RunProperties&)> PostSetupEvent;
+            using PostSetupEvent = std::function<void (const base::PlannerPtr &, RunProperties &)>;
 
             /** \brief The data collected after running a planner multiple times */
             struct PlannerExperiment
