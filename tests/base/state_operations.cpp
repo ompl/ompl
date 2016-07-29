@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(Scoped)
     BOOST_CHECK_EQUAL(sSE3_copy, sSE3);
     BOOST_CHECK_EQUAL(sSE3[6], r[6]);
     BOOST_CHECK_EQUAL(sSE3[0], r[0]);
-    BOOST_CHECK_EQUAL(sSE3.getSpace()->getValueAddressAtIndex(sSE3.get(), 7), (double*)NULL);
+    BOOST_CHECK_EQUAL(sSE3.getSpace()->getValueAddressAtIndex(sSE3.get(), 7), (double*)nullptr);
 
     sSE3_R = 0.5;
     BOOST_CHECK_EQUAL(sSE3_R[0], 0.5);
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(Allocation)
 
     const unsigned int N = 30000;
     const unsigned int M = 20;
-    std::vector<base::State*> states(N, NULL);
+    std::vector<base::State*> states(N, nullptr);
 
     ompl::time::point start = ompl::time::now();
     for (unsigned int j = 0 ; j < M ; ++j)
@@ -246,16 +246,16 @@ void randomizedAllocator(const base::SpaceInformation *si)
     RNG r;
     const unsigned int n = 500;
 
-    std::vector<base::State*> states(n + 1, NULL);
+    std::vector<base::State*> states(n + 1, nullptr);
     for (unsigned int i = 0 ; i < n * 1000 ; ++i)
     {
         int j = r.uniformInt(0, n);
-        if (states[j] == NULL)
+        if (states[j] == nullptr)
             states[j] = si->allocState();
         else
         {
             si->freeState(states[j]);
-            states[j] = NULL;
+            states[j] = nullptr;
         }
     }
     for (unsigned int i = 0 ; i < states.size() ; ++i)

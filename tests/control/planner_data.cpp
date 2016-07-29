@@ -390,7 +390,7 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
     // Reset the tag for state #0
     BOOST_CHECK( data.tagState(states[0], 10000) );
     BOOST_CHECK_EQUAL( data.getVertex(0).getTag(), 10000 );
-    BOOST_CHECK_EQUAL( data.tagState(0, 1000), false ); // state doesn't exist
+    BOOST_CHECK_EQUAL( data.tagState(nullptr, 1000), false ); // state doesn't exist
 
     // Reset the edge weight for 0->1
     BOOST_CHECK( data.setEdgeWeight(0, 1, base::Cost(1.234)) );
@@ -403,7 +403,7 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
     BOOST_CHECK_EQUAL( data.setEdgeWeight(0, 5, base::Cost(2.345)), false );
 
     // Try to tag an invalid state
-    BOOST_CHECK_EQUAL( data.tagState(0, 100), false );
+    BOOST_CHECK_EQUAL( data.tagState(nullptr, 100), false );
 
     for (size_t i = 0; i < states.size(); ++i)
     {

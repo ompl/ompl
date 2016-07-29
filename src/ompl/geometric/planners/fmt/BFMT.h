@@ -267,10 +267,10 @@ namespace ompl
                 enum SetType { SET_CLOSED, SET_OPEN, SET_UNVISITED };
 
                 BiDirMotion(TreeType* tree)
-                    : state_(NULL), tree_(tree)
+                    : state_(nullptr), tree_(tree)
                 {
-                    parent_[FWD]        = NULL;
-                    parent_[REV]        = NULL;
+                    parent_[FWD]        = nullptr;
+                    parent_[REV]        = nullptr;
                     cost_[FWD]          = base::Cost(0.0);
                     cost_[REV]          = base::Cost(0.0);
                     hcost_[FWD]         = base::Cost(0.0);
@@ -283,8 +283,8 @@ namespace ompl
                 BiDirMotion(const base::SpaceInformationPtr &si, TreeType* tree)
                     : state_(si->allocState()), tree_(tree)
                 {
-                    parent_[FWD]        = NULL;
-                    parent_[REV]        = NULL;
+                    parent_[FWD]        = nullptr;
+                    parent_[REV]        = nullptr;
                     cost_[FWD]          = base::Cost(0.0);
                     cost_[REV]          = base::Cost(0.0);
                     hcost_[FWD]         = base::Cost(0.0);

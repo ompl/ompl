@@ -88,7 +88,7 @@ public:
     }
 
     /* test a planner in a planar environment with circular obstacles */
-    double test2DCircles(const Circles2D &circles, bool show = false, double *time = NULL, double *pathLength = NULL)
+    double test2DCircles(const Circles2D &circles, bool show = false, double *time = nullptr, double *pathLength = nullptr)
     {
         /* instantiate space information */
         base::SpaceInformationPtr si = geometric::spaceInformation2DCircles(circles);
@@ -157,7 +157,7 @@ public:
 
 
     /* test a planner in a planar grid environment where some cells are occupied */
-    bool test2DEnv(const Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
+    bool test2DEnv(const Environment2D &env, bool show = false, double *time = nullptr, double *pathLength = nullptr)
     {
         bool result = true;
 

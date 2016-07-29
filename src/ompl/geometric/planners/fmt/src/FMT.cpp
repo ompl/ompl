@@ -180,7 +180,7 @@ void ompl::geometric::FMT::saveNeighborhood(Motion *m)
         if (!nbh.empty())
         {
             // Save the neighborhood but skip the first element, since it will be motion m
-            neighborhoods_[m] = std::vector<Motion*>(nbh.size() - 1, 0);
+            neighborhoods_[m] = std::vector<Motion*>(nbh.size() - 1, nullptr);
             std::copy(nbh.begin() + 1, nbh.end(), neighborhoods_[m].begin());
         }
         else
@@ -677,7 +677,7 @@ void ompl::geometric::FMT::updateNeighborhood(Motion *m, const std::vector<Motio
             if (!nbh2.empty())
             {
                 // Save the neighborhood but skip the first element, since it will be motion m
-                neighborhoods_[nbh[i]] = std::vector<Motion*>(nbh2.size() - 1, 0);
+                neighborhoods_[nbh[i]] = std::vector<Motion*>(nbh2.size() - 1, nullptr);
                 std::copy(nbh2.begin() + 1, nbh2.end(), neighborhoods_[nbh[i]].begin());
             }
             else

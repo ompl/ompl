@@ -45,7 +45,7 @@ ompl::geometric::BiEST::BiEST(const base::SpaceInformationPtr &si) : base::Plann
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.directed = true;
     maxDistance_ = 0.0;
-    connectionPoint_ = std::make_pair<ompl::base::State*, ompl::base::State*>(NULL, NULL);
+    connectionPoint_ = std::make_pair<ompl::base::State*, ompl::base::State*>(nullptr, nullptr);
 
     Planner::declareParam<double>("range", this, &BiEST::setRange, &BiEST::getRange, "0.:1.:10000.");
 }
@@ -93,7 +93,7 @@ void ompl::geometric::BiEST::clear()
     goalMotions_.clear();
     goalPdf_.clear();
 
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(NULL, NULL);
+    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
 }
 
 void ompl::geometric::BiEST::freeMemory()
@@ -234,7 +234,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
 
                     Motion *solution = startMotion;
                     std::vector<Motion*> mpath1;
-                    while (solution != NULL)
+                    while (solution != nullptr)
                     {
                         mpath1.push_back(solution);
                         solution = solution->parent;
@@ -242,7 +242,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
 
                     solution = goalMotion;
                     std::vector<Motion*> mpath2;
-                    while (solution != NULL)
+                    while (solution != nullptr)
                     {
                         mpath2.push_back(solution);
                         solution = solution->parent;
@@ -295,7 +295,7 @@ void ompl::geometric::BiEST::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < startMotions_.size() ; ++i)
     {
-        if (startMotions_[i]->parent == NULL)
+        if (startMotions_[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(startMotions_[i]->state, 1));
         else
             data.addEdge(base::PlannerDataVertex(startMotions_[i]->parent->state, 1),
@@ -304,7 +304,7 @@ void ompl::geometric::BiEST::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < goalMotions_.size() ; ++i)
     {
-        if (goalMotions_[i]->parent == NULL)
+        if (goalMotions_[i]->parent == nullptr)
             data.addGoalVertex(base::PlannerDataVertex(goalMotions_[i]->state, 2));
         else
             // The edges in the goal tree are reversed to be consistent with start tree

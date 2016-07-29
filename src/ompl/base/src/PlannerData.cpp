@@ -51,7 +51,7 @@
 #define graph_ reinterpret_cast<ompl::base::PlannerData::Graph*>(graphRaw_)
 
 const ompl::base::PlannerDataEdge   ompl::base::PlannerData::NO_EDGE = ompl::base::PlannerDataEdge();
-const ompl::base::PlannerDataVertex ompl::base::PlannerData::NO_VERTEX = ompl::base::PlannerDataVertex(0);
+const ompl::base::PlannerDataVertex ompl::base::PlannerData::NO_VERTEX = ompl::base::PlannerDataVertex(nullptr);
 const unsigned int ompl::base::PlannerData::INVALID_INDEX = std::numeric_limits<unsigned int>::max();
 
 ompl::base::PlannerData::PlannerData (const SpaceInformationPtr &si) : si_(si)

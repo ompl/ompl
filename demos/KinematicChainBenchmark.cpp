@@ -87,7 +87,7 @@ protected:
 class KinematicChainSpace : public ompl::base::CompoundStateSpace
 {
 public:
-    KinematicChainSpace(unsigned int numLinks, double linkLength, Environment *env = NULL)
+    KinematicChainSpace(unsigned int numLinks, double linkLength, Environment *env = nullptr)
         : ompl::base::CompoundStateSpace(), linkLength_(linkLength), environment_(env)
     {
         for (unsigned int i = 0; i < numLinks; ++i)

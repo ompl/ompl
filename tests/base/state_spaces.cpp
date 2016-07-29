@@ -413,7 +413,7 @@ BOOST_AUTO_TEST_CASE(Compound_Simple)
     BOOST_CHECK_EQUAL((m1 - m1)->getDimension(), 0u);
     t->setName(t->getName());
     base::ScopedState<> st(t);
-    BOOST_CHECK(t->getValueAddressAtIndex(st.get(), 10000) == NULL);
+    BOOST_CHECK(t->getValueAddressAtIndex(st.get(), 10000) == nullptr);
     BOOST_CHECK(t->includes(m1));
     BOOST_CHECK_EQUAL(t->includes(m2), false);
     BOOST_CHECK_EQUAL(m1->includes(t), false);

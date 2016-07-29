@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(Simple)
     coord[1] = 0;
     BOOST_CHECK_EQUAL(g.has(coord), false);
     GridB<int>::Cell *cell1 = g.createCell(coord);
-    BOOST_CHECK(cell1 != NULL);
+    BOOST_CHECK(cell1 != nullptr);
     BOOST_CHECK(cell1->neighbors == 0);
     cell1->data = 1;
     g.add(cell1);
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(Simple)
     GridB<int>::Cell *cell2 = g.createCell(coord);
     BOOST_CHECK(cell1->neighbors == 1);
     BOOST_CHECK(cell2->neighbors == 1);
-    BOOST_CHECK(cell2 != NULL);
+    BOOST_CHECK(cell2 != nullptr);
     cell2->data = 2;
     g.add(cell2);
     BOOST_CHECK(g.has(coord));
@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(Simple)
     BOOST_CHECK_EQUAL(ca[0], cell2);
 
     GridB<int>::Cell *cell3 = g.createCell(coord);
-    BOOST_CHECK(cell3 != NULL);
+    BOOST_CHECK(cell3 != nullptr);
     BOOST_CHECK(cell1->neighbors == 1);
     BOOST_CHECK(cell2->neighbors == 2);
     BOOST_CHECK(cell3->neighbors == 1);
@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(Simple)
 
     coord[0] = 2;
     GridB<int>::Cell *cell4 = g.createCell(coord);
-    BOOST_CHECK(cell4 != NULL);
+    BOOST_CHECK(cell4 != nullptr);
     cell4->data = 4;
     g.add(cell4);
     BOOST_CHECK(cell2->neighbors == 3);
@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE(Simple)
     coord[0] = 1;
     coord[1] = 2;
     GridB<int>::Cell *cell5 = g.createCell(coord);
-    BOOST_CHECK(cell5 != NULL);
+    BOOST_CHECK(cell5 != nullptr);
     cell5->data = 5;
     g.add(cell5);
     BOOST_CHECK(cell2->neighbors == 4);

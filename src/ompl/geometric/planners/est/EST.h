@@ -121,12 +121,12 @@ namespace ompl
             {
             public:
 
-                Motion() : state(NULL), parent(NULL), element(NULL)
+                Motion() : state(nullptr), parent(nullptr), element(nullptr)
                 {
                 }
 
                 /// \brief Constructor that allocates memory for the state
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), element(NULL)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), element(nullptr)
                 {
                 }
 

@@ -140,7 +140,7 @@ void BFMT::getPlannerData(base::PlannerData &data) const
         // For samples added to the fwd tree, add incoming edges (from fwd tree parent)
         if (inFwdTree)
         {
-            if (motion->parent_[FWD] == NULL)
+            if (motion->parent_[FWD] == nullptr)
             {
                 // Motion is a forward tree root node
                 ++numStartNodes;
@@ -167,7 +167,7 @@ void BFMT::getPlannerData(base::PlannerData &data) const
         // For samples added to a tree, add incoming edges (from fwd tree parent)
         if (inRevTree)
         {
-            if (motion->parent_[REV] == NULL)
+            if (motion->parent_[REV] == nullptr)
             {
                 // Motion is a reverse tree root node
                 ++numGoalNodes;
@@ -200,7 +200,7 @@ void BFMT::saveNeighborhood(std::shared_ptr< NearestNeighbors<BiDirMotion*> > nn
         if (!neighborhood.empty())
         {
             // Save the neighborhood but skip the first element (m)
-            neighborhoods_[m] = std::vector<BiDirMotion*>(neighborhood.size()-1, 0);
+            neighborhoods_[m] = std::vector<BiDirMotion*>(neighborhood.size()-1, nullptr);
             std::copy(neighborhood.begin()+1, neighborhood.end(), neighborhoods_[m].begin());
         }
         else
@@ -351,10 +351,10 @@ base::PlannerStatus BFMT::solve(const base::PlannerTerminationCondition& ptc)
     useRevTree();
 
     // Plan a path
-    BiDirMotion *connection_point = NULL;
+    BiDirMotion *connection_point = nullptr;
     bool earlyFailure = true;
 
-    if (initMotion != NULL && goalMotion != NULL)
+    if (initMotion != nullptr && goalMotion != nullptr)
     {
         earlyFailure = plan(initMotion, goalMotion, connection_point, ptc);
     }
@@ -477,7 +477,7 @@ void BFMT::expandTreeFromNode(BiDirMotion *&z, BiDirMotion *&connection_point)
             }
         }
         // Find the node in Xnear with minimum cost-to-come in the current tree
-        BiDirMotion* xMin   = NULL;
+        BiDirMotion* xMin   = nullptr;
         double cMin         = std::numeric_limits<double>::infinity();
         for (unsigned int j = 0; j < xNear.size(); ++j)
         {
@@ -492,7 +492,7 @@ void BFMT::expandTreeFromNode(BiDirMotion *&z, BiDirMotion *&connection_point)
         }
 
         // xMin was found
-        if (xMin != NULL)
+        if (xMin != nullptr)
         {
             bool collision_free = false;
             if (cacheCC_)
@@ -526,7 +526,7 @@ void BFMT::expandTreeFromNode(BiDirMotion *&z, BiDirMotion *&connection_point)
                 // check if new node x is in the other tree; if so, save result
                 if (x->getOtherSet() != BiDirMotion::SET_UNVISITED)
                 {
-                    if (connection_point == NULL)
+                    if (connection_point == nullptr)
                     {
                         connection_point = x;
                         if (termination_ == FEASIBILITY)
@@ -766,7 +766,7 @@ bool BFMT::termination(BiDirMotion *&z, BiDirMotion *&connection_point, const ba
     {
         case FEASIBILITY:
             // Test if a connection point was found during tree expansion
-            return (connection_point != NULL || ptc);
+            return (connection_point != nullptr || ptc);
             break;
 
         case OPTIMALITY:
@@ -825,7 +825,7 @@ void BFMT::tracePath(BiDirMotion *z, BiDirMotionPtrs& path)
 {
     BiDirMotion* solution = z;
 
-    while (solution != NULL)
+    while (solution != nullptr)
     {
         path.push_back(solution);
         solution = solution->getParent();

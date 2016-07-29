@@ -89,7 +89,7 @@ namespace ompl
     public:
 
         NearestNeighborsFLANN(const std::shared_ptr<flann::IndexParams> &params)
-            : index_(0), params_(params), searchParams_(32, 0., true), dimension_(1)
+            : index_(nullptr), params_(params), searchParams_(32, 0., true), dimension_(1)
         {
         }
 

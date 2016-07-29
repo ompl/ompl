@@ -275,7 +275,7 @@ void RigidBodyEnvironment::createWorld(void)
     // ***********************************
 
     bodyWorld = dWorldCreate();
-    space = dHashSpaceCreate(0);
+    space = dHashSpaceCreate(nullptr);
 
     dWorldSetGravity(bodyWorld, 0, 0, -0.981);
 

@@ -58,7 +58,7 @@ public:
     {
     }
 
-    virtual bool execute(Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
+    virtual bool execute(Environment2D &env, bool show = false, double *time = nullptr, double *pathLength = nullptr)
     {
         bool result = true;
 

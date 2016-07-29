@@ -46,7 +46,7 @@ ompl::geometric::EST::EST(const base::SpaceInformationPtr &si) : base::Planner(s
     specs_.directed = true;
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias, "0.:.05:1.");
@@ -81,7 +81,7 @@ void ompl::geometric::EST::clear()
 
     motions_.clear();
     pdf_.clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 }
 
 void ompl::geometric::EST::freeMemory()
@@ -122,8 +122,8 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), motions_.size());
 
-    Motion *solution  = NULL;
-    Motion *approxsol = NULL;
+    Motion *solution  = nullptr;
+    Motion *approxsol = nullptr;
     double  approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
     Motion* xmotion = new Motion();
@@ -192,19 +192,19 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     bool solved = false;
     bool approximate = false;
-    if (solution == NULL)
+    if (solution == nullptr)
     {
         solution = approxsol;
         approximate = true;
     }
 
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         lastGoalMotion_ = solution;
 
         // construct the solution path
         std::vector<Motion*> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;
@@ -251,7 +251,7 @@ void ompl::geometric::EST::getPlannerData(base::PlannerData &data) const
 
     for (unsigned int i = 0 ; i < motions_.size() ; ++i)
     {
-        if (motions_[i]->parent == NULL)
+        if (motions_[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions_[i]->state));
         else
             data.addEdge(base::PlannerDataVertex(motions_[i]->parent->state),
