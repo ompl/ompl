@@ -42,7 +42,7 @@ namespace ompl
     namespace base
     {
         // The default rejection-sampling class:
-        RejectionInfSampler::RejectionInfSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls)
+        RejectionInfSampler::RejectionInfSampler(const ProblemDefinitionPtr& probDefn, unsigned int maxNumberCalls)
           : InformedSampler(probDefn, maxNumberCalls)
         {
             // Create the basic sampler

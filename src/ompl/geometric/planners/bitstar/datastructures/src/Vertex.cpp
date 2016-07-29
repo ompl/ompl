@@ -315,7 +315,7 @@ namespace ompl
 
 
 
-        void BITstar::Vertex::removeChild(VertexPtr oldChild, bool updateChildCosts /*= true*/)
+        void BITstar::Vertex::removeChild(const VertexPtr& oldChild, bool updateChildCosts /*= true*/)
         {
             this->assertNotPruned();
 

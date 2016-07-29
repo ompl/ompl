@@ -135,7 +135,7 @@ namespace ompl
             void addChild(const VertexPtr& newChild, bool updateChildCosts = true);
 
             /** \brief Remove a child vertex. Does not change this vertex's cost, and can update the child and its descendent costs. Will throw an exception if the given vertex pointer is not in the list of children. The VertexPtr to be removed is \e not passed by const ref to assure that the function cannot delete it out from under itself. */
-            void removeChild(VertexPtr oldChild, bool updateChildCosts = true);
+            void removeChild(const VertexPtr& oldChild, bool updateChildCosts = true);
 
             /** \brief Get the cost-to-come of a vertex. Return infinity if the edge is disconnected */
             ompl::base::Cost getCost() const;

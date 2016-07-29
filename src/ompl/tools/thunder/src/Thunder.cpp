@@ -487,7 +487,7 @@ void ompl::tools::Thunder::getAllPlannerDatas(std::vector<ob::PlannerDataPtr> &p
     experienceDB_->getAllPlannerDatas(plannerDatas);
 }
 
-void ompl::tools::Thunder::convertPlannerData(const ob::PlannerDataPtr plannerData, og::PathGeometric &path)
+void ompl::tools::Thunder::convertPlannerData(const ob::PlannerDataPtr& plannerData, og::PathGeometric &path)
 {
     // Convert the planner data verticies into a vector of states
     for (std::size_t i = 0; i < plannerData->numVertices(); ++i)

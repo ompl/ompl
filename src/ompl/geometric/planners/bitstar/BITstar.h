@@ -311,7 +311,7 @@ namespace ompl
             bool checkEdge(const VertexConstPtrPair& edge);
 
             /** \brief Actually remove a sample from its NN struct.*/
-            void dropSample(VertexPtr oldSample);
+            void dropSample(const VertexPtr& oldSample);
 
             /** \brief Add an edge from the edge queue to the tree. Will add the state to the vertex queue if it's new to the tree or otherwise replace the parent. Updates solution information if the solution improves. */
             void addEdge(const VertexPtrPair& newEdge, const ompl::base::Cost& edgeCost, const bool& removeFromFree, const bool& updateDescendants);

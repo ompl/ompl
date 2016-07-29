@@ -55,7 +55,7 @@ namespace ompl
         //Public functions:
 
         // The direct ellipsoid sampling class for path-length:
-        PathLengthDirectInfSampler::PathLengthDirectInfSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls)
+        PathLengthDirectInfSampler::PathLengthDirectInfSampler(const ProblemDefinitionPtr& probDefn, unsigned int maxNumberCalls)
           : InformedSampler(probDefn, maxNumberCalls),
             informedIdx_(0u),
             uninformedIdx_(0u)

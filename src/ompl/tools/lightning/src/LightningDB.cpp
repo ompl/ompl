@@ -238,7 +238,7 @@ std::vector<ompl::base::PlannerDataPtr> ompl::tools::LightningDB::findNearestSta
     return nearest;
 }
 
-double ompl::tools::LightningDB::distanceFunction(const ompl::base::PlannerDataPtr a, const ompl::base::PlannerDataPtr b) const
+double ompl::tools::LightningDB::distanceFunction(const ompl::base::PlannerDataPtr& a, const ompl::base::PlannerDataPtr& b) const
 {
     // Bi-directional implementation - check path b from [start, goal] and [goal, start]
     return std::min(

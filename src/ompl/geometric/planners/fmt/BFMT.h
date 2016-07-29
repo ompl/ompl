@@ -46,6 +46,7 @@
 #include <ompl/datastructures/BinaryHeap.h>
 #include <ompl/base/OptimizationObjective.h>
 #include <map>
+#include <utility>
 
 namespace ompl
 {
@@ -353,7 +354,7 @@ namespace ompl
                 /** \brief Set the children of the motion */
                 inline void setChildren(BiDirMotionPtrs children)
                 {
-                    this->children_[*tree_] = children;
+                    this->children_[*tree_] = std::move(children);
                 }
 
                 /** \brief Get the children of the motion */
@@ -488,11 +489,11 @@ namespace ompl
 
             /** \brief Save the neighbors within a neighborhood of a given state. The strategy
                 used (nearestK or nearestR depends on the planner configuration */
-            void saveNeighborhood(std::shared_ptr< NearestNeighbors<BiDirMotion*> > nn, BiDirMotion* m);
+            void saveNeighborhood(const std::shared_ptr< NearestNeighbors<BiDirMotion*> >& nn, BiDirMotion* m);
 
             /** \brief Sample a state from the free configuration space and save
                 it into the nearest neighbors data structure */
-            void sampleFree(std::shared_ptr<NearestNeighbors<BiDirMotion*> > nn,
+            void sampleFree(const std::shared_ptr<NearestNeighbors<BiDirMotion*> >& nn,
                 const base::PlannerTerminationCondition &ptc );
 
             /** \brief Carries out some planner checks */

@@ -1374,7 +1374,7 @@ namespace ompl
 
 
 
-        void BITstar::dropSample(VertexPtr oldSample)
+        void BITstar::dropSample(const VertexPtr& oldSample)
         {
             //Update the counter:
             ++numFreeStatesPruned_;

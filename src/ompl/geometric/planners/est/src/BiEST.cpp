@@ -273,7 +273,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
 }
 
 void ompl::geometric::BiEST::addMotion(Motion* motion, std::vector<Motion*>& motions,
-                                           PDF<Motion*>& pdf, std::shared_ptr< NearestNeighbors<Motion*> > nn,
+                                           PDF<Motion*>& pdf, const std::shared_ptr< NearestNeighbors<Motion*> >& nn,
                                            const std::vector<Motion*>& neighbors)
 {
     // Updating neighborhood size counts

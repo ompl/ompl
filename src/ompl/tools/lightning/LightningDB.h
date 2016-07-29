@@ -152,7 +152,7 @@ namespace ompl
             /**
              * \brief Add the distance between both path's starts and the distance between both path's ends together
              */
-            double distanceFunction(const ompl::base::PlannerDataPtr a, const ompl::base::PlannerDataPtr b) const;
+            double distanceFunction(const ompl::base::PlannerDataPtr& a, const ompl::base::PlannerDataPtr& b) const;
 
         protected:
 

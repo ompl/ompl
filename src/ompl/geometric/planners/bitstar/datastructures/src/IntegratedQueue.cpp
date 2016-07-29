@@ -1353,7 +1353,7 @@ namespace ompl
 
 
 
-        unsigned int BITstar::IntegratedQueue::vertexRemoveHelper(VertexPtr oldVertex, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices, bool removeLookups)
+        unsigned int BITstar::IntegratedQueue::vertexRemoveHelper(const VertexPtr& oldVertex, const VertexPtrNNPtr& vertexNN, const VertexPtrNNPtr& freeStateNN, std::vector<VertexPtr>* recycledVertices, bool removeLookups)
         {
             //Variable
             //The number of samples deleted (i.e., if this vertex is NOT moved to a sample, this is a 1)

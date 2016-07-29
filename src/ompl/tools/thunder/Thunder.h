@@ -165,7 +165,7 @@ namespace ompl
             std::size_t getExperiencesCount() const override;
 
             /** \brief Convert PlannerData to PathGeometric. Assume ordering of verticies is order of path */
-            void convertPlannerData(const ompl::base::PlannerDataPtr plannerData, ompl::geometric::PathGeometric &path);
+            void convertPlannerData(const ompl::base::PlannerDataPtr& plannerData, ompl::geometric::PathGeometric &path);
 
             /**
              * \brief If path1 and path2 have a better start/goal match when reverse, then reverse path2

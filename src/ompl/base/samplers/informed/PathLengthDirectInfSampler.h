@@ -82,7 +82,7 @@ namespace ompl
         public:
 
             /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution using a direct ellipsoidal method. */
-            PathLengthDirectInfSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls);
+            PathLengthDirectInfSampler(const ProblemDefinitionPtr& probDefn, unsigned int maxNumberCalls);
             ~PathLengthDirectInfSampler() override;
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost, i.e. in the interval [0, maxCost). Returns false if such a state was not found in the specified number of iterations. */

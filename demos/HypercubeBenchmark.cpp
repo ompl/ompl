@@ -70,7 +70,7 @@ bool isStateValid(const ompl::base::State *state)
         return true;
 }
 
-void addPlanner(ompl::tools::Benchmark& benchmark, ompl::base::PlannerPtr planner, double range)
+void addPlanner(ompl::tools::Benchmark& benchmark, const ompl::base::PlannerPtr& planner, double range)
 {
     ompl::base::ParamSet& params = planner->params();
     if (params.hasParam(std::string("range")))

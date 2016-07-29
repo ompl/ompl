@@ -187,7 +187,7 @@ namespace ompl
              * \param PlannerData
              * \param PathGeometric
              */
-            void convertPlannerData(const ompl::base::PlannerDataPtr plannerData, ompl::geometric::PathGeometric &path);
+            void convertPlannerData(const ompl::base::PlannerDataPtr& plannerData, ompl::geometric::PathGeometric &path);
 
             /** \brief Tool for comparing two paths and scoring them */
             const ompl::tools::DynamicTimeWarpPtr& getDynamicTimeWarp() const

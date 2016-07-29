@@ -129,7 +129,7 @@ namespace ompl
 
             base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            void addSampler(base::StateSamplerPtr sampler)
+            void addSampler(const base::StateSamplerPtr& sampler)
             {
                 addSamplerMutex_.lock();
                 samplers_.push_back(sampler);

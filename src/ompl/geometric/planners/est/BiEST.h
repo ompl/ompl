@@ -156,7 +156,7 @@ namespace ompl
 
             /// \brief Add a motion to the exploration tree
             void addMotion(Motion* motion, std::vector<Motion*>& motions,
-                           PDF<Motion*>& pdf, std::shared_ptr< NearestNeighbors<Motion*> > nn,
+                           PDF<Motion*>& pdf, const std::shared_ptr< NearestNeighbors<Motion*> >& nn,
                            const std::vector<Motion*>& neighbors);
 
             /// \brief Valid state sampler

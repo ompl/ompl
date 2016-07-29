@@ -183,7 +183,7 @@ void BFMT::getPlannerData(base::PlannerData &data) const
     }
 }
 
-void BFMT::saveNeighborhood(std::shared_ptr< NearestNeighbors<BiDirMotion*> > nn,
+void BFMT::saveNeighborhood(const std::shared_ptr< NearestNeighbors<BiDirMotion*> >& nn,
         BiDirMotion* m)
 {
     // Check if neighborhood has already been saved
@@ -209,7 +209,7 @@ void BFMT::saveNeighborhood(std::shared_ptr< NearestNeighbors<BiDirMotion*> > nn
     }
 }
 
-void BFMT::sampleFree(std::shared_ptr<NearestNeighbors<BiDirMotion*> > nn,
+void BFMT::sampleFree(const std::shared_ptr<NearestNeighbors<BiDirMotion*> >& nn,
         const base::PlannerTerminationCondition &ptc)
 {
     unsigned int nodeCount  = 0;

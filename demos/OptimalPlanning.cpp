@@ -186,7 +186,7 @@ ob::PlannerPtr allocatePlanner(ob::SpaceInformationPtr si, optimalPlanner planne
     }
 }
 
-ob::OptimizationObjectivePtr allocateObjective(ob::SpaceInformationPtr si, planningObjective objectiveType)
+ob::OptimizationObjectivePtr allocateObjective(const ob::SpaceInformationPtr& si, planningObjective objectiveType)
 {
     switch (objectiveType)
     {
@@ -209,7 +209,7 @@ ob::OptimizationObjectivePtr allocateObjective(ob::SpaceInformationPtr si, plann
     }
 }
 
-void plan(double runTime, optimalPlanner plannerType, planningObjective objectiveType, std::string outputFile)
+void plan(double runTime, optimalPlanner plannerType, planningObjective objectiveType, const std::string& outputFile)
 {
     // Construct the robot state space in which we're planning. We're
     // planning in [0,1]x[0,1], a subset of R^2.

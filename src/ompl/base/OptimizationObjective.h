@@ -146,7 +146,7 @@ namespace ompl
             const SpaceInformationPtr& getSpaceInformation() const;
 
             /** \brief Allocate a heuristic-sampling state generator for this cost function, defaults to a basic rejection sampling scheme when the derived class does not provide a better method.*/
-            virtual InformedSamplerPtr allocInformedStateSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls) const;
+            virtual InformedSamplerPtr allocInformedStateSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls) const;
 
             /** \brief Print information about this optimization objective */
             virtual void print(std::ostream &out) const;

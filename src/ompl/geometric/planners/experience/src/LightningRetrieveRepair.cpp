@@ -528,7 +528,7 @@ void ompl::geometric::LightningRetrieveRepair::getPlannerData(base::PlannerData 
     OMPL_INFORM("LightningRetrieveRepair: including %d similar paths", nearestPaths_.size());
 
     // Visualize the n candidate paths that we recalled from the database
-    for (auto pd : nearestPaths_)
+    for (const auto& pd : nearestPaths_)
     {
         for (std::size_t j = 1; j < pd->numVertices(); ++j)
         {
