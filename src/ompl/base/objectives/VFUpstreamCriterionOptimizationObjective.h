@@ -101,7 +101,7 @@ namespace ompl
                 return ompl::base::Cost(cost);
             }
 
-            bool isSymmetric(void) const
+            bool isSymmetric() const
             {
                 return false;
             }

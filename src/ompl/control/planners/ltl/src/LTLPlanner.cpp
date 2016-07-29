@@ -59,7 +59,7 @@ ompl::control::LTLPlanner::LTLPlanner(const LTLSpaceInformationPtr& ltlsi, Produ
     specs_.approximateSolutions = true;
 }
 
-ompl::control::LTLPlanner::~LTLPlanner(void)
+ompl::control::LTLPlanner::~LTLPlanner()
 {
     clearMotions();
 }
@@ -162,7 +162,7 @@ std::vector<ompl::control::ProductGraph::State*> ompl::control::LTLPlanner::getH
     return hlPath;
 }
 
-ompl::control::LTLPlanner::Motion::Motion(void) : state(nullptr), control(nullptr), parent(nullptr), steps(0)
+ompl::control::LTLPlanner::Motion::Motion() : state(nullptr), control(nullptr), parent(nullptr), steps(0)
 {
 }
 
@@ -174,11 +174,11 @@ ompl::control::LTLPlanner::Motion::Motion(const SpaceInformation* si) :
 {
 }
 
-ompl::control::LTLPlanner::Motion::~Motion(void)
+ompl::control::LTLPlanner::Motion::~Motion()
 {
 }
 
-ompl::control::LTLPlanner::ProductGraphStateInfo::ProductGraphStateInfo(void) :
+ompl::control::LTLPlanner::ProductGraphStateInfo::ProductGraphStateInfo() :
     numSel(0),
     pdfElem(nullptr)
 {
@@ -305,7 +305,7 @@ double ompl::control::LTLPlanner::abstractEdgeWeight(ProductGraph::State* a, Pro
     return 1./(infoA.weight * infoB.weight);
 }
 
-void ompl::control::LTLPlanner::clearMotions(void)
+void ompl::control::LTLPlanner::clearMotions()
 {
     availDist_.clear();
     for (auto m : motions_)

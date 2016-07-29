@@ -73,21 +73,21 @@ namespace ompl
                 const std::vector<Polygon>& props = std::vector<Polygon>()
             );
 
-            virtual ~PropositionalTriangularDecomposition(void) {}
+            virtual ~PropositionalTriangularDecomposition() {}
 
-            virtual int getNumProps(void) const;
+            virtual int getNumProps() const;
 
             virtual World worldAtRegion(int triID);
 
-            void setup(void);
+            void setup();
 
             void addHole(const Polygon& hole);
 
             void addProposition(const Polygon& prop);
 
-            const std::vector<Polygon>& getHoles(void) const;
+            const std::vector<Polygon>& getHoles() const;
 
-            const std::vector<Polygon>& getPropositions(void) const;
+            const std::vector<Polygon>& getPropositions() const;
 
             //Debug method: prints this decomposition as a list of polygons
             void print(std::ostream& out) const;

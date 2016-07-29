@@ -84,7 +84,7 @@ namespace ompl
 
             /** \brief Returns the number of propositions declared for this World.
                 Not all of the propositions have necessarily been set. */
-            unsigned int numProps(void) const;
+            unsigned int numProps() const;
 
             /** \brief Returns whether this World propositionally satisfies a given World w.
                 Specifically, returns true iff for every proposition p assigned in w,
@@ -93,18 +93,18 @@ namespace ompl
 
             /** \brief Returns a formatted string representation of this World,
                 as a conjunction of literals. */
-            std::string formula(void) const;
+            std::string formula() const;
 
             /** \brief Returns this World's underlying proposition-to-boolean
                 assignment map. */
-            const std::unordered_map<unsigned int, bool>& props(void) const;
+            const std::unordered_map<unsigned int, bool>& props() const;
 
             /** \brief Returns whether this World is equivalent to a given World,
                 by comparing their truth assignment maps. */
             bool operator==(const World& w) const;
 
             /** \brief Clears this world's truth assignment. */
-            void clear(void);
+            void clear();
 
             friend struct std::hash<World>;
 

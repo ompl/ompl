@@ -53,7 +53,7 @@ ompl::tools::ThunderDB::ThunderDB(const base::StateSpacePtr &space)
     si_.reset(new base::SpaceInformation(space));
 }
 
-ompl::tools::ThunderDB::~ThunderDB(void)
+ompl::tools::ThunderDB::~ThunderDB()
 {
     if (numPathsInserted_)
         OMPL_WARN("The database is being unloaded with unsaved experiences");

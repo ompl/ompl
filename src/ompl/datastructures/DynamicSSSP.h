@@ -60,7 +60,7 @@ namespace ompl
         {
             graph_ = new Graph(0);
         }
-        ~DynamicSSSP(void)
+        ~DynamicSSSP()
         {
             delete graph_;
         }

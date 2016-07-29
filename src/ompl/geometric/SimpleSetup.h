@@ -148,7 +148,7 @@ namespace ompl
             }
 
             /** \brief Get the best solution's planer name. Throw an exception if no solution is available */
-            const std::string getSolutionPlannerName(void) const;
+            const std::string getSolutionPlannerName() const;
 
             /** \brief Get the solution path. Throw an exception if no solution is available */
             PathGeometric& getSolutionPath() const;

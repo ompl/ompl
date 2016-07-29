@@ -189,7 +189,7 @@ void ompl::geometric::SimpleSetup::simplifySolution(double duration)
     OMPL_WARN("No solution to simplify");
 }
 
-const std::string ompl::geometric::SimpleSetup::getSolutionPlannerName(void) const
+const std::string ompl::geometric::SimpleSetup::getSolutionPlannerName() const
 {
     if (pdef_)
     {

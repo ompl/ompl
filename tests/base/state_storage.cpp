@@ -49,7 +49,7 @@ using namespace ompl;
 
 struct Metadata
 {
-    Metadata(void) : tag1(0), tag2(0.5f)
+    Metadata() : tag1(0), tag2(0.5f)
     {
     }
 

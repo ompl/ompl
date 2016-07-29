@@ -48,7 +48,7 @@ using namespace ompl;
 
 struct SetSeedTo1
 {
-    SetSeedTo1(void)
+    SetSeedTo1()
     {
         ompl::RNG::setSeed(1);
     }

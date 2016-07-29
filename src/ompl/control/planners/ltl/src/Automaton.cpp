@@ -98,7 +98,7 @@ void ompl::control::Automaton::setStartState(unsigned int s)
     startState_ = s;
 }
 
-int ompl::control::Automaton::getStartState(void) const
+int ompl::control::Automaton::getStartState() const
 {
     return startState_;
 }
@@ -136,12 +136,12 @@ ompl::control::Automaton::TransitionMap& ompl::control::Automaton::getTransition
     return transitions_[src];
 }
 
-unsigned int ompl::control::Automaton::numStates(void) const
+unsigned int ompl::control::Automaton::numStates() const
 {
     return numStates_;
 }
 
-unsigned int ompl::control::Automaton::numTransitions(void) const
+unsigned int ompl::control::Automaton::numTransitions() const
 {
     unsigned int ntrans = 0;
     typedef std::vector<TransitionMap>::const_iterator TransIter;
@@ -150,7 +150,7 @@ unsigned int ompl::control::Automaton::numTransitions(void) const
     return ntrans;
 }
 
-unsigned int ompl::control::Automaton::numProps(void) const
+unsigned int ompl::control::Automaton::numProps() const
 {
     return numProps_;
 }

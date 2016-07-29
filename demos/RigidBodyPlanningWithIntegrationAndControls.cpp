@@ -117,7 +117,7 @@ public:
         }
     }
 
-    double getTimeStep(void) const
+    double getTimeStep() const
     {
         return timeStep_;
     }
@@ -183,7 +183,7 @@ public:
         integrator_.setTimeStep(timeStep);
     }
 
-    double getIntegrationTimeStep(void) const
+    double getIntegrationTimeStep() const
     {
         return integrator_.getTimeStep();
     }
@@ -193,7 +193,7 @@ public:
 
 /// @endcond
 
-void planWithSimpleSetup(void)
+void planWithSimpleSetup()
 {
     /// construct the state space we are planning in
     ob::StateSpacePtr space(new ob::SE2StateSpace());

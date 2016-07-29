@@ -78,12 +78,12 @@ static const bool VERBOSE = true;
 class TestPlanner
 {
 public:
-    TestPlanner(void)
+    TestPlanner()
     {
         msg::setLogLevel(msg::LOG_ERROR);
     }
 
-    virtual ~TestPlanner(void)
+    virtual ~TestPlanner()
     {
     }
 
@@ -721,7 +721,7 @@ public:
 
 protected:
 
-    PlanTest(void)
+    PlanTest()
     {
         verbose_ = VERBOSE;
         boost::filesystem::path path(TEST_RESOURCES_DIR);

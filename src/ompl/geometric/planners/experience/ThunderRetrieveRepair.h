@@ -79,7 +79,7 @@ namespace ompl
             /** \brief Constructor */
             ThunderRetrieveRepair(const base::SpaceInformationPtr &si, tools::ThunderDBPtr experienceDB);
 
-            virtual ~ThunderRetrieveRepair(void);
+            virtual ~ThunderRetrieveRepair();
 
             /** \brief Get information about the exploration data structure the planning from scratch motion planner used. */
             virtual void getPlannerData(base::PlannerData &data) const;
@@ -107,7 +107,7 @@ namespace ompl
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /**
              * \brief Pass a pointer of the database from the thunder framework
@@ -117,7 +117,7 @@ namespace ompl
             /** \brief Set the planner that will be used for repairing invalid paths recalled from experience */
             void setRepairPlanner(const base::PlannerPtr &planner);
 
-            virtual void setup(void);
+            virtual void setup();
 
             /**
              * \brief Repairs a path to be valid in the current planning environment
@@ -166,7 +166,7 @@ namespace ompl
             std::size_t checkMotionScore(const base::State *s1, const base::State *s2) const;
 
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief The database of motions to search through */
             tools::ThunderDBPtr                          experienceDB_;

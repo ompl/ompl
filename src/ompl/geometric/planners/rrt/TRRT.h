@@ -139,7 +139,7 @@ namespace ompl
             }
 
             /** \brief Get the factor by which the temperature rises based on current acceptance/rejection rate */
-            double getTempChangeFactor( void ) const
+            double getTempChangeFactor( ) const
             {
                 return log(tempChangeFactor_);
             }
@@ -168,7 +168,7 @@ namespace ompl
             }
 
             /** \brief Get the temperature at the start of planning. */
-            double getInitTemperature( void ) const
+            double getInitTemperature( ) const
             {
                 return initTemperature_;
             }
@@ -182,7 +182,7 @@ namespace ompl
 
             /** \brief Get the distance between a new state and the nearest neighbor
                 that qualifies that state as being a frontier */
-            double getFrontierThreshold( void ) const
+            double getFrontierThreshold( ) const
             {
                 return frontierThreshold_;
             }
@@ -196,7 +196,7 @@ namespace ompl
 
             /** \brief Get the ratio between adding nonfrontier nodes to frontier nodes,
                 for example .1 is 1/10 or one nonfrontier node for every 10 frontier nodes added */
-            double getFrontierNodeRatio( void ) const
+            double getFrontierNodeRatio( ) const
             {
                 return frontierNodeRatio_;
             }

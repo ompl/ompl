@@ -153,7 +153,7 @@ public:
         bounds_.setHigh(1, spacebounds.high[1]);
     }
 
-    virtual unsigned int getDimension(void) const
+    virtual unsigned int getDimension() const
     {
         return 2;
     }
@@ -218,12 +218,12 @@ control::SpaceInformationPtr mySpaceInformation(Environment2D &env)
 class TestPlanner
 {
 public:
-    TestPlanner(void)
+    TestPlanner()
     {
         msg::setLogLevel(msg::LOG_ERROR);
     }
 
-    virtual ~TestPlanner(void)
+    virtual ~TestPlanner()
     {
     }
 
@@ -521,7 +521,7 @@ public:
 
 protected:
 
-    PlanTest(void)
+    PlanTest()
     {
         verbose = true;
         boost::filesystem::path path(TEST_RESOURCES_DIR);

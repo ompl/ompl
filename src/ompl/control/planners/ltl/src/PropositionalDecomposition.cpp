@@ -49,11 +49,11 @@ ompl::control::PropositionalDecomposition::PropositionalDecomposition(const Deco
 {
 }
 
-ompl::control::PropositionalDecomposition::~PropositionalDecomposition(void)
+ompl::control::PropositionalDecomposition::~PropositionalDecomposition()
 {
 }
 
-int ompl::control::PropositionalDecomposition::getNumRegions(void) const
+int ompl::control::PropositionalDecomposition::getNumRegions() const
 {
     return decomp_->getNumRegions();
 }

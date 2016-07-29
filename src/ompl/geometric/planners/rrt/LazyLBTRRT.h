@@ -64,13 +64,13 @@ namespace ompl
             /** \brief Constructor */
             LazyLBTRRT(const base::SpaceInformationPtr &si);
 
-            virtual ~LazyLBTRRT(void);
+            virtual ~LazyLBTRRT();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
 
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Set the goal bias
 
@@ -87,7 +87,7 @@ namespace ompl
             }
 
             /** \brief Get the goal bias the planner is using */
-            double getGoalBias(void) const
+            double getGoalBias() const
             {
                 return goalBias_;
             }
@@ -103,19 +103,19 @@ namespace ompl
             }
 
             /** \brief Get the range the planner is using */
-            double getRange(void) const
+            double getRange() const
             {
                 return maxDistance_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
-            void setNearestNeighbors(void)
+            void setNearestNeighbors()
             {
                 nn_.reset(new NN<Motion*>());
             }
 
-            virtual void setup(void);
+            virtual void setup();
 
             /** \brief Set the apprimation factor */
             void setApproximationFactor (double epsilon)
@@ -140,7 +140,7 @@ namespace ompl
             {
             public:
 
-                Motion(void) : state_(nullptr)
+                Motion() : state_(nullptr)
                 {
                 }
 
@@ -149,7 +149,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion(void)
+                ~Motion()
                 {
                 }
 
@@ -215,7 +215,7 @@ namespace ompl
             void sampleBiased(const base::GoalSampleableRegion* goal_s, base::State *rstate);
 
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const base::State *a, const base::State *b) const
@@ -291,7 +291,7 @@ namespace ompl
             void closeBounds(const base::PlannerTerminationCondition &ptc);
 
             /** \brief Get the apprimation factor */
-            double getApproximationFactor(void) const
+            double getApproximationFactor() const
             {
                 return epsilon_;
             }

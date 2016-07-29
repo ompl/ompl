@@ -87,7 +87,7 @@ namespace ompl
             public:
                 /** \brief Creates a State without any assigned PropositionalDecomposition
                     region or Automaton states. All of these values are initialized to -1. */
-                State(void)
+                State()
                     : decompRegion(-1),
                       cosafeState(-1),
                       safeState(-1) { }
@@ -106,7 +106,7 @@ namespace ompl
                 /** \brief Returns whether this State is valid.
                     A State is valid if and only if none of its Automaton states
                     are dead states (a dead state has value -1). */
-                bool isValid(void) const;
+                bool isValid() const;
 
 
                 friend struct HashState;
@@ -115,13 +115,13 @@ namespace ompl
                 friend std::ostream& operator<<(std::ostream& out, const State& s);
 
                 /** \brief Returns this State's PropositionalDecomposition region component. */
-                int getDecompRegion(void) const;
+                int getDecompRegion() const;
 
                 /** \brief Returns this State's co-safe Automaton state component. */
-                int getCosafeState(void) const;
+                int getCosafeState() const;
 
                 /** \brief Returns this State's safe Automaton state component. */
-                int getSafeState(void) const;
+                int getSafeState() const;
 
             private:
                 int decompRegion;
@@ -188,7 +188,7 @@ namespace ompl
             bool isSolution(const State* s) const;
 
             /** \brief Returns the initial State of this ProductGraph. */
-            State* getStartState(void) const;
+            State* getStartState() const;
 
             /** \brief Helper method to return the volume of the PropositionalDecomposition
                 region corresponding to the given ProductGraph State. */

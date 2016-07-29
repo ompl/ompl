@@ -84,11 +84,11 @@ ompl::control::TriangularDecomposition::TriangularDecomposition(const base::Real
     // Report an error otherwise.
 }
 
-ompl::control::TriangularDecomposition::~TriangularDecomposition(void)
+ompl::control::TriangularDecomposition::~TriangularDecomposition()
 {
 }
 
-void ompl::control::TriangularDecomposition::setup(void)
+void ompl::control::TriangularDecomposition::setup()
 {
     int numTriangles = createTriangles();
     OMPL_INFORM("Created %u triangles", numTriangles);
@@ -105,24 +105,24 @@ void ompl::control::TriangularDecomposition::addRegionOfInterest(const Polygon& 
     intRegs_.push_back(region);
 }
 
-int ompl::control::TriangularDecomposition::getNumHoles(void) const
+int ompl::control::TriangularDecomposition::getNumHoles() const
 {
     return holes_.size();
 }
 
-int ompl::control::TriangularDecomposition::getNumRegionsOfInterest(void) const
+int ompl::control::TriangularDecomposition::getNumRegionsOfInterest() const
 {
     return intRegs_.size();
 }
 
 const std::vector<ompl::control::TriangularDecomposition::Polygon>&
-    ompl::control::TriangularDecomposition::getHoles(void) const
+    ompl::control::TriangularDecomposition::getHoles() const
 {
     return holes_;
 }
 
 const std::vector<ompl::control::TriangularDecomposition::Polygon>&
-    ompl::control::TriangularDecomposition::getAreasOfInterest(void) const
+    ompl::control::TriangularDecomposition::getAreasOfInterest() const
 {
     return intRegs_;
 }

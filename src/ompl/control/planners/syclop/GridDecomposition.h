@@ -62,7 +62,7 @@ namespace ompl
             {
             }
 
-            virtual int getNumRegions(void) const { return numGridCells_; }
+            virtual int getNumRegions() const { return numGridCells_; }
 
             virtual double getRegionVolume(int /*rid*/)
             {

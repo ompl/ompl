@@ -72,12 +72,12 @@ ompl::geometric::LazyLBTRRT::LazyLBTRRT(const base::SpaceInformationPtr &si) :
 
 }
 
-ompl::geometric::LazyLBTRRT::~LazyLBTRRT(void)
+ompl::geometric::LazyLBTRRT::~LazyLBTRRT()
 {
     freeMemory();
 }
 
-void ompl::geometric::LazyLBTRRT::clear(void)
+void ompl::geometric::LazyLBTRRT::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -92,7 +92,7 @@ void ompl::geometric::LazyLBTRRT::clear(void)
     bestCost_ = std::numeric_limits<double>::infinity();
 }
 
-void ompl::geometric::LazyLBTRRT::setup(void)
+void ompl::geometric::LazyLBTRRT::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -105,7 +105,7 @@ void ompl::geometric::LazyLBTRRT::setup(void)
             &LazyLBTRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-void ompl::geometric::LazyLBTRRT::freeMemory(void)
+void ompl::geometric::LazyLBTRRT::freeMemory()
 {
     if (idToMotionMap_.size() > 0)
     {

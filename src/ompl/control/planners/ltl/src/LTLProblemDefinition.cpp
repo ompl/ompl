@@ -55,7 +55,7 @@ void oc::LTLProblemDefinition::addLowerStartState(const ob::State* s)
     addStartState(fullStart);
 }
 
-ob::PathPtr oc::LTLProblemDefinition::getLowerSolutionPath(void) const
+ob::PathPtr oc::LTLProblemDefinition::getLowerSolutionPath() const
 {
     PathControl* fullPath = static_cast<PathControl*>(getSolutionPath().get());
     ob::PathPtr lowPathPtr(new PathControl(ltlsi_->getLowSpace()));
@@ -75,14 +75,14 @@ ob::PathPtr oc::LTLProblemDefinition::getLowerSolutionPath(void) const
     return lowPathPtr;
 }
 
-void oc::LTLProblemDefinition::createGoal(void)
+void oc::LTLProblemDefinition::createGoal()
 {
     class LTLGoal : public base::Goal
     {
     public:
         LTLGoal(const LTLSpaceInformationPtr& ltlsi)
             : ob::Goal(ltlsi), ltlsi_(ltlsi), prod_(ltlsi->getProductGraph()) {}
-        virtual ~LTLGoal(void) {}
+        virtual ~LTLGoal() {}
         virtual bool isSatisfied(const ob::State* s) const
         {
             return prod_->isSolution(ltlsi_->getProdGraphState(s));

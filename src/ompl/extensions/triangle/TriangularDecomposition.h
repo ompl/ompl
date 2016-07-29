@@ -59,7 +59,7 @@ namespace ompl
         public:
             struct Vertex
             {
-                Vertex(void) {}
+                Vertex() {}
                 Vertex(double vx, double vy);
                 bool operator==(const Vertex& v) const;
                 double x, y;
@@ -92,9 +92,9 @@ namespace ompl
                 std::vector<Polygon> intRegs = std::vector<Polygon>()
             );
 
-            virtual ~TriangularDecomposition(void);
+            virtual ~TriangularDecomposition();
 
-            virtual int getNumRegions(void) const { return triangles_.size(); }
+            virtual int getNumRegions() const { return triangles_.size(); }
 
             virtual double getRegionVolume(int triID);
 
@@ -104,19 +104,19 @@ namespace ompl
 
             virtual void sampleFromRegion(int triID, RNG& rng, std::vector<double>& coord) const;
 
-            void setup(void);
+            void setup();
 
             void addHole(const Polygon& hole);
 
             void addRegionOfInterest(const Polygon& region);
 
-            int getNumHoles(void) const;
+            int getNumHoles() const;
 
-            int getNumRegionsOfInterest(void) const;
+            int getNumRegionsOfInterest() const;
 
-            const std::vector<Polygon>& getHoles(void) const;
+            const std::vector<Polygon>& getHoles() const;
 
-            const std::vector<Polygon>& getAreasOfInterest(void) const;
+            const std::vector<Polygon>& getAreasOfInterest() const;
 
             /** \brief Returns the region of interest that contains the given triangle ID.
                 Returns -1 if the triangle ID is not within a region of interest. */

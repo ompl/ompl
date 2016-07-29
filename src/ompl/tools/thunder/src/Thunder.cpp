@@ -75,7 +75,7 @@ void ompl::tools::Thunder::initialize()
     OMPL_INFORM("Thunder Framework initialized.");
 }
 
-void ompl::tools::Thunder::setup(void)
+void ompl::tools::Thunder::setup()
 {
     if (!configured_ || !si_->isSetup() || !planner_->isSetup() || !rrPlanner_->isSetup() )
     {
@@ -172,7 +172,7 @@ void ompl::tools::Thunder::setup(void)
     }
 }
 
-void ompl::tools::Thunder::clear(void)
+void ompl::tools::Thunder::clear()
 {
     if (planner_)
         planner_->clear();

@@ -74,7 +74,7 @@ bool ompl::control::World::satisfies(const World& w) const
     return true;
 }
 
-std::string ompl::control::World::formula(void) const
+std::string ompl::control::World::formula() const
 {
     if (props_.empty())
         return "true";
@@ -86,7 +86,7 @@ std::string ompl::control::World::formula(void) const
     return f;
 }
 
-const std::unordered_map<unsigned int, bool>& ompl::control::World::props(void) const
+const std::unordered_map<unsigned int, bool>& ompl::control::World::props() const
 {
     return props_;
 }
@@ -96,7 +96,7 @@ bool ompl::control::World::operator==(const World& w) const
     return numProps_ == w.numProps_ && props_ == w.props_;
 }
 
-void ompl::control::World::clear(void)
+void ompl::control::World::clear()
 {
     props_.clear();
 }

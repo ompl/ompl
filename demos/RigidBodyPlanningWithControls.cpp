@@ -107,7 +107,7 @@ void propagate(const ob::State *start, const oc::Control *control, const double 
         rot    + ctrl[1] * duration);
 }
 
-void plan(void)
+void plan()
 {
 
     // construct the state space we are planning in
@@ -195,7 +195,7 @@ void plan(void)
 }
 
 
-void planWithSimpleSetup(void)
+void planWithSimpleSetup()
 {
     // construct the state space we are planning in
     ob::StateSpacePtr space(new ob::SE2StateSpace());

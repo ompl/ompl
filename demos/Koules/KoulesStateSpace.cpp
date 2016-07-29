@@ -82,7 +82,7 @@ KoulesStateSpace::KoulesStateSpace(unsigned int numKoules)
     }
 }
 
-void KoulesStateSpace::registerProjections(void)
+void KoulesStateSpace::registerProjections()
 {
     registerDefaultProjection(ob::ProjectionEvaluatorPtr(new KoulesProjection(this, (getDimension() - 1) / 4 + 1)));
     registerProjection("PDSTProjection", ob::ProjectionEvaluatorPtr(

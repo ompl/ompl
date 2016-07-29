@@ -50,12 +50,12 @@ class RigidBodyEnvironment : public oc::OpenDEEnvironment
 {
 public:
 
-    RigidBodyEnvironment(void) : oc::OpenDEEnvironment()
+    RigidBodyEnvironment() : oc::OpenDEEnvironment()
     {
         createWorld();
     }
 
-    virtual ~RigidBodyEnvironment(void)
+    virtual ~RigidBodyEnvironment()
     {
         destroyWorld();
     }
@@ -64,7 +64,7 @@ public:
      * Implementation of functions needed by planning *
      **************************************************/
 
-    virtual unsigned int getControlDimension(void) const
+    virtual unsigned int getControlDimension() const
     {
         return 3;
     }
@@ -108,14 +108,14 @@ public:
     // simulation environment. At the end of the function, there is a
     // call to setPlanningParameters(), which configures members of
     // the base class needed by planners.
-    void createWorld(void);
+    void createWorld();
 
     // Clear all OpenDE objects
-    void destroyWorld(void);
+    void destroyWorld();
 
     // Set parameters needed by the base class (such as the bodies
     // that make up to state of the system we are planning for)
-    void setPlanningParameters(void);
+    void setPlanningParameters();
 
     // the simulation world
     dWorldID bodyWorld;
@@ -166,12 +166,12 @@ public:
     {
     }
 
-    virtual unsigned int getDimension(void) const
+    virtual unsigned int getDimension() const
     {
         return 3;
     }
 
-    virtual void defaultCellSizes(void)
+    virtual void defaultCellSizes()
     {
         cellSizes_.resize(3);
         cellSizes_[0] = 1;
@@ -208,7 +208,7 @@ public:
         return sqrt(dx * dx + dy * dy + dz * dz);
     }
 
-    virtual void registerProjections(void)
+    virtual void registerProjections()
     {
             registerDefaultProjection(ob::ProjectionEvaluatorPtr(new RigidBodyStateProjectionEvaluator(this)));
     }
@@ -269,7 +269,7 @@ int main(int, char **)
  * Member function implementations             *
  ***********************************************/
 
-void RigidBodyEnvironment::createWorld(void)
+void RigidBodyEnvironment::createWorld()
 {
     // BEGIN SETTING UP AN OPENDE ENVIRONMENT
     // ***********************************
@@ -296,13 +296,13 @@ void RigidBodyEnvironment::createWorld(void)
     setPlanningParameters();
 }
 
-void RigidBodyEnvironment::destroyWorld(void)
+void RigidBodyEnvironment::destroyWorld()
 {
     dSpaceDestroy(space);
     dWorldDestroy(bodyWorld);
 }
 
-void RigidBodyEnvironment::setPlanningParameters(void)
+void RigidBodyEnvironment::setPlanningParameters()
 {
     // Fill in parameters for OMPL:
     world_ = bodyWorld;

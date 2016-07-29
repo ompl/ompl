@@ -64,7 +64,7 @@ namespace
                              const ob::RealVectorBounds& bounds,
                              const std::vector<Polygon>& holes,
                              const std::vector<Polygon>& props);
-        virtual ~WrapperDecomposition(void) {}
+        virtual ~WrapperDecomposition() {}
         virtual void project(const ob::State* s, std::vector<double>& coord) const;
         virtual void sampleFromRegion(int rid, ompl::RNG& rng, std::vector<double>& coord) const;
         virtual void sampleFullState(const ob::StateSamplerPtr& sampler,
@@ -81,7 +81,7 @@ oc::PropositionalTriangularDecomposition::PropositionalTriangularDecomposition(
 {
 }
 
-int oc::PropositionalTriangularDecomposition::getNumProps(void) const
+int oc::PropositionalTriangularDecomposition::getNumProps() const
 {
     return triDecomp_->getNumRegionsOfInterest();
 }
@@ -98,7 +98,7 @@ oc::World oc::PropositionalTriangularDecomposition::worldAtRegion(int triID)
     return world;
 }
 
-void oc::PropositionalTriangularDecomposition::setup(void)
+void oc::PropositionalTriangularDecomposition::setup()
 {
     triDecomp_->setup();
 }
@@ -114,13 +114,13 @@ void oc::PropositionalTriangularDecomposition::addProposition(const Polygon& pro
 }
 
 const std::vector<oc::PropositionalTriangularDecomposition::Polygon>&
-    oc::PropositionalTriangularDecomposition::getHoles(void) const
+    oc::PropositionalTriangularDecomposition::getHoles() const
 {
     return triDecomp_->getHoles();
 }
 
 const std::vector<oc::PropositionalTriangularDecomposition::Polygon>&
-    oc::PropositionalTriangularDecomposition::getPropositions(void) const
+    oc::PropositionalTriangularDecomposition::getPropositions() const
 {
     return triDecomp_->getAreasOfInterest();
 }

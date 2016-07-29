@@ -69,7 +69,7 @@ namespace ompl
             If iteration is required, only maxNumberCalls are attempted, to assure that the function returns. */
             InformedSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls);
 
-            virtual ~InformedSampler(void)
+            virtual ~InformedSampler()
             {
             }
 
@@ -120,7 +120,7 @@ namespace ompl
             /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution using the provided informed sampler. Requires a function pointer to a method to query the cost of the current solution. */
             InformedStateSampler(const ProblemDefinitionPtr &probDefn, const GetCurrentCostFunc &costFunc, const InformedSamplerPtr &infSampler);
 
-            virtual ~InformedStateSampler(void)
+            virtual ~InformedStateSampler()
             {
             }
 

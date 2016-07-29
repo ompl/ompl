@@ -57,14 +57,14 @@ namespace ompl
         public:
             LTLProblemDefinition(const control::LTLSpaceInformationPtr& ltlsi);
 
-            virtual ~LTLProblemDefinition(void) {}
+            virtual ~LTLProblemDefinition() {}
 
             void addLowerStartState(const base::State* s);
 
-            base::PathPtr getLowerSolutionPath(void) const;
+            base::PathPtr getLowerSolutionPath() const;
 
         protected:
-            void createGoal(void);
+            void createGoal();
 
             LTLSpaceInformationPtr ltlsi_;
         };

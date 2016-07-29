@@ -63,7 +63,7 @@ bool isStateValid(const ob::State *state)
     return (const void*)rot != (const void*)pos;
 }
 
-void plan(void)
+void plan()
 {
     // construct the state space we are planning in
     ob::StateSpacePtr space(new ob::SE3StateSpace());
@@ -128,7 +128,7 @@ void plan(void)
         std::cout << "No solution found" << std::endl;
 }
 
-void planWithSimpleSetup(void)
+void planWithSimpleSetup()
 {
     // construct the state space we are planning in
     ob::StateSpacePtr space(new ob::SE3StateSpace());

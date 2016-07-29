@@ -69,7 +69,7 @@ public:
         int dimension = std::max(2, (int)ceil(log((double) space->getDimension())));
         projectionMatrix_.computeRandom(space->getDimension(), dimension);
     }
-    virtual unsigned int getDimension(void) const
+    virtual unsigned int getDimension() const
     {
         return projectionMatrix_.mat.size1();
     }

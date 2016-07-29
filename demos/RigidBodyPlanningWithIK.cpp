@@ -99,7 +99,7 @@ bool regionSamplingWithGS(const ob::SpaceInformationPtr &si, const ob::ProblemDe
     return cont && gls->maxSampleCount() < 3 && !pd->hasSolution();
 }
 
-void planWithIK(void)
+void planWithIK()
 {
     // construct the state space we are planning in
     ob::StateSpacePtr space(new ob::SE3StateSpace());

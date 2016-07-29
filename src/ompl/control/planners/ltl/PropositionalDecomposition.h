@@ -68,7 +68,7 @@ namespace ompl
             PropositionalDecomposition(const DecompositionPtr& decomp);
 
             /** \brief Clears all memory belonging to this propositional decomposition. */
-            virtual ~PropositionalDecomposition(void);
+            virtual ~PropositionalDecomposition();
 
             /** \brief Returns the World corresponding to a given region. */
             virtual World worldAtRegion(int rid) = 0;
@@ -78,10 +78,10 @@ namespace ompl
 
             /** \brief Returns the number of regions in this propositional decomposition's
                 underlying decomposition. */
-            virtual int getNumRegions(void) const;
+            virtual int getNumRegions() const;
 
             /** \brief Returns the number of propositions in this propositional decomposition. */
-            virtual int getNumProps(void) const = 0;
+            virtual int getNumProps() const = 0;
 
             /** \brief Returns the volume of a given region. */
             virtual double getRegionVolume(int rid);

@@ -164,7 +164,7 @@ public:
 };
 /// @endcond
 
-void planWithSimpleSetup(void)
+void planWithSimpleSetup()
 {
     /// construct the state space we are planning in
     ob::StateSpacePtr space(new ob::SE2StateSpace());

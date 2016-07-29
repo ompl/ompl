@@ -144,7 +144,7 @@ void ompl::tools::Lightning::setup()
     }
 }
 
-void ompl::tools::Lightning::clear(void)
+void ompl::tools::Lightning::clear()
 {
     if (planner_)
         planner_->clear();

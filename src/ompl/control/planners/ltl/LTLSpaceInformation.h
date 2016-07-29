@@ -57,11 +57,11 @@ namespace ompl
         public:
             LTLSpaceInformation(const SpaceInformationPtr& si, const ProductGraphPtr& prod);
 
-            virtual ~LTLSpaceInformation(void) {}
+            virtual ~LTLSpaceInformation() {}
 
-            virtual void setup(void);
+            virtual void setup();
 
-            const ProductGraphPtr& getProductGraph(void) const { return prod_; }
+            const ProductGraphPtr& getProductGraph() const { return prod_; }
 
             const SpaceInformationPtr& getLowSpace() { return lowSpace_; }
 

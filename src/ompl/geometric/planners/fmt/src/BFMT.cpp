@@ -49,7 +49,7 @@ ompl::geometric::BFMT::~BFMT()
     freeMemory();
 }
 
-void BFMT::setup(void)
+void BFMT::setup()
 {
     if (pdef_)
     {

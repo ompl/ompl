@@ -66,7 +66,7 @@ bool isStateValid(const ob::State *state)
     return (const void*)rot != (const void*)pos;
 }
 
-void planWithSimpleSetup(void)
+void planWithSimpleSetup()
 {
     // construct the state space we are planning in
     ob::StateSpacePtr space(new ob::SE3StateSpace());
@@ -130,7 +130,7 @@ ob::Cost distanceHeuristic(ob::PlannerData::Graph::Vertex v1,
     return ob::Cost(obj->costToGo(plannerDataVertices[v1]->getState(), goal));
 }
 
-void readPlannerData(void)
+void readPlannerData()
 {
     std::cout << std::endl;
     std::cout << "Reading PlannerData from './myPlannerData'" << std::endl;

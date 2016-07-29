@@ -49,12 +49,12 @@ static const double SOLUTION_TIME = 2.0;
 class TestPlanner
 {
 public:
-    TestPlanner(void)
+    TestPlanner()
     {
         msg::setLogLevel(msg::LOG_ERROR);
     }
 
-    virtual ~TestPlanner(void)
+    virtual ~TestPlanner()
     {
     }
 
@@ -131,7 +131,7 @@ class PlanTest
 {
 public:
 
-    PlanTest(void)
+    PlanTest()
     {
         verbose = true;
         boost::filesystem::path path(TEST_RESOURCES_DIR);
@@ -144,7 +144,7 @@ public:
         }
     }
 
-    ~PlanTest(void)
+    ~PlanTest()
     {
     }
 

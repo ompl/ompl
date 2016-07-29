@@ -86,7 +86,7 @@ namespace ompl
                 return ompl::base::Cost(positiveCostAccrued + pathLengthWeight_ * si_->distance(s1, s2));
             }
 
-            bool isSymmetric(void) const
+            bool isSymmetric() const
             {
                 return false;
             }

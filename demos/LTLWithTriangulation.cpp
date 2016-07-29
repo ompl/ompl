@@ -161,7 +161,7 @@ void propagate(const ob::State *start, const oc::Control *control, const double 
     SO2.enforceBounds (so2out);
 }
 
-void plan(void)
+void plan()
 {
     // construct the state space we are planning in
     ob::StateSpacePtr space(new ob::SE2StateSpace());

@@ -95,7 +95,7 @@ namespace ompl
 
             virtual ~BFMT();
 
-            virtual void setup(void);
+            virtual void setup();
 
             virtual base::PlannerStatus solve(const base::PlannerTerminationCondition& ptc);
 
@@ -320,13 +320,13 @@ namespace ompl
                 std::set<BiDirMotion *> collChecksDone_;
 
                 /** \brief Set the state associated with the motion */
-                inline base::Cost getCost(void) const
+                inline base::Cost getCost() const
                 {
                     return this->cost_[*tree_];
                 }
 
                 /** \brief Get cost of this motion in the inactive tree */
-                inline base::Cost getOtherCost(void) const
+                inline base::Cost getOtherCost() const
                 {
                     return this->cost_[(*tree_+1) % 2];
 
@@ -345,7 +345,7 @@ namespace ompl
                 }
 
                 /** \brief Get the parent of the motion */
-                inline BiDirMotion* getParent(void) const
+                inline BiDirMotion* getParent() const
                 {
                     return this->parent_[*tree_];
                 }
@@ -357,7 +357,7 @@ namespace ompl
                 }
 
                 /** \brief Get the children of the motion */
-                inline BiDirMotionPtrs getChildren(void) const
+                inline BiDirMotionPtrs getChildren() const
                 {
                     return this->children_[*tree_];
                 }
@@ -369,13 +369,13 @@ namespace ompl
                 }
 
                 /** \brief Fet the current set of the motion */
-                inline SetType getCurrentSet(void) const
+                inline SetType getCurrentSet() const
                 {
                     return this->currentSet_[*tree_];
                 }
 
                 /** \brief Get set of this motion in the inactive tree */
-                inline SetType getOtherSet(void) const
+                inline SetType getOtherSet() const
                 {
                     return this->currentSet_[(*tree_+1) % 2];
                 }
@@ -387,7 +387,7 @@ namespace ompl
                 }
 
                 /** \brief Get tree identifier for this motion */
-                inline TreeType getTreeType(void) const
+                inline TreeType getTreeType() const
                 {
                     return *tree_;
                 }

@@ -106,7 +106,7 @@ namespace ompl
 
             /** \brief Returns the start state of the automaton.
                 Returns -1 if no start state has been set. */
-            int getStartState(void) const;
+            int getStartState() const;
 
             /** \brief Adds a given transition to the automaton. */
             void addTransition(unsigned int src, const World& w,
@@ -128,13 +128,13 @@ namespace ompl
             TransitionMap& getTransitions(unsigned int src);
 
             /** \brief Returns the number of states in this automaton. */
-            unsigned int numStates(void) const;
+            unsigned int numStates() const;
 
             /** \brief Returns the number of transitions in this automaton. */
-            unsigned int numTransitions(void) const;
+            unsigned int numTransitions() const;
 
             /** \brief Returns the number of propositions used by this automaton. */
-            unsigned int numProps(void) const;
+            unsigned int numProps() const;
 
             /** \brief Prints the automaton to a given output stream, in Graphviz dot format. */
             void print(std::ostream& out) const;

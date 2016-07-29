@@ -32,7 +32,7 @@ oc::LTLSpaceInformation::LTLSpaceInformation(const oc::SpaceInformationPtr& si,
     extendValidityChecker(si);
 }
 
-void oc::LTLSpaceInformation::setup(void)
+void oc::LTLSpaceInformation::setup()
 {
     // Set up the low space, then match our parameters to it.
     if (!lowSpace_->isSetup()) lowSpace_->setup();
@@ -105,7 +105,7 @@ void oc::LTLSpaceInformation::extendPropagator(const oc::SpaceInformationPtr& ol
                 <ob::DiscreteStateSpace::StateType>(SAFE)->value = nextHigh->getSafeState();
         }
 
-        virtual bool canPropagateBackward(void) const
+        virtual bool canPropagateBackward() const
         {
             return lowProp_->canPropagateBackward();
         }

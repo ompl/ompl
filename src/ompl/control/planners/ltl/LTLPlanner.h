@@ -64,16 +64,16 @@ namespace ompl
             LTLPlanner(const LTLSpaceInformationPtr& si, ProductGraphPtr  a, double exploreTime = 0.5);
 
             /** \brief Clears all memory belonging to this LTLPlanner .*/
-            virtual ~LTLPlanner(void);
+            virtual ~LTLPlanner();
 
             /// @name ompl::base::Planner Interface
             /// @{
 
             /** \brief Initializes LTLPlanner data structures. */
-            virtual void setup(void);
+            virtual void setup();
 
             /** \brief Clears all datastructures belonging to this LTLPlanner. */
-            virtual void clear(void);
+            virtual void clear();
 
             /** \brief Continues solving until a solution is found
                 or a given planner termination condition is met.
@@ -99,7 +99,7 @@ namespace ompl
             {
             public:
                 /** \brief Default constructor for Motion. */
-                Motion(void);
+                Motion();
 
                 /** \brief Constructor that allocates memory for the state and the control,
                     given a space. */
@@ -107,7 +107,7 @@ namespace ompl
 
                 /** \brief Motion destructor does not clear memory.
                     Deletions should be performed by the LTLPlanner. */
-                virtual ~Motion(void);
+                virtual ~Motion();
 
                 /** \brief The state contained by the motion */
                 base::State* state;
@@ -131,7 +131,7 @@ namespace ompl
             struct ProductGraphStateInfo
             {
                 /** \brief Creates an info object with no measurements and no tree motions. */
-                ProductGraphStateInfo(void);
+                ProductGraphStateInfo();
 
                 /** \brief Adds a tree motion to an info object.
                     This method is called whenever a new tree motion is created
@@ -201,7 +201,7 @@ namespace ompl
 
         private:
             /** \brief Clears this planner's underlying tree of system states. */
-            void clearMotions(void);
+            void clearMotions();
         };
     }
 }

@@ -69,12 +69,12 @@ ThunderRetrieveRepair::ThunderRetrieveRepair(const base::SpaceInformationPtr &si
     path_simplifier_.reset(new PathSimplifier(si_));
 }
 
-ThunderRetrieveRepair::~ThunderRetrieveRepair(void)
+ThunderRetrieveRepair::~ThunderRetrieveRepair()
 {
     freeMemory();
 }
 
-void ThunderRetrieveRepair::clear(void)
+void ThunderRetrieveRepair::clear()
 {
     Planner::clear();
     freeMemory();
@@ -97,7 +97,7 @@ void ThunderRetrieveRepair::setRepairPlanner(const base::PlannerPtr &planner)
     setup_ = false;
 }
 
-void ThunderRetrieveRepair::setup(void)
+void ThunderRetrieveRepair::setup()
 {
     Planner::setup();
 
@@ -120,7 +120,7 @@ void ThunderRetrieveRepair::setup(void)
         repairPlanner_->setup();
 }
 
-void ThunderRetrieveRepair::freeMemory(void)
+void ThunderRetrieveRepair::freeMemory()
 {
 }
 

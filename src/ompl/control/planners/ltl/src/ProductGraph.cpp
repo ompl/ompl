@@ -62,7 +62,7 @@ bool ompl::control::ProductGraph::State::operator==(const State& s) const
         && safeState==s.safeState;
 }
 
-bool ompl::control::ProductGraph::State::isValid(void) const
+bool ompl::control::ProductGraph::State::isValid() const
 {
     return cosafeState != -1 && safeState != -1;
 }
@@ -88,17 +88,17 @@ namespace ompl
     }
 }
 
-int ompl::control::ProductGraph::State::getDecompRegion(void) const
+int ompl::control::ProductGraph::State::getDecompRegion() const
 {
     return decompRegion;
 }
 
-int ompl::control::ProductGraph::State::getCosafeState(void) const
+int ompl::control::ProductGraph::State::getCosafeState() const
 {
     return cosafeState;
 }
 
-int ompl::control::ProductGraph::State::getSafeState(void) const
+int ompl::control::ProductGraph::State::getSafeState() const
 {
     return safeState;
 }
@@ -289,7 +289,7 @@ bool ompl::control::ProductGraph::isSolution(const State* s) const
         != solutionStates_.end();
 }
 
-ompl::control::ProductGraph::State* ompl::control::ProductGraph::getStartState(void) const
+ompl::control::ProductGraph::State* ompl::control::ProductGraph::getStartState() const
 {
     return startState_;
 }

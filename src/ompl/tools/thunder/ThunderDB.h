@@ -78,7 +78,7 @@ namespace ompl
             ThunderDB(const base::StateSpacePtr &space);
 
             /** \brief Deconstructor */
-            virtual ~ThunderDB(void);
+            virtual ~ThunderDB();
 
             /**
              * \brief Load database from file
