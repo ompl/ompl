@@ -157,12 +157,12 @@ void ompl::base::DiscreteStateSpace::registerProjections()
         {
         }
 
-        virtual unsigned int getDimension() const
+        unsigned int getDimension() const override
         {
             return 1;
         }
 
-        virtual void defaultCellSizes()
+        void defaultCellSizes() override
         {
             bounds_.resize(1);
             bounds_.low[0] = space_->as<DiscreteStateSpace>()->lowerBound_;
@@ -171,7 +171,7 @@ void ompl::base::DiscreteStateSpace::registerProjections()
             cellSizes_[0] = 1.0;
         }
 
-        virtual void project(const State *state, EuclideanProjection &projection) const
+        void project(const State *state, EuclideanProjection &projection) const override
         {
             projection(0) = state->as<DiscreteStateSpace::StateType>()->value;
         }

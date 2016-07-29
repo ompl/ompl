@@ -64,21 +64,21 @@ namespace ompl
             LTLPlanner(const LTLSpaceInformationPtr& si, ProductGraphPtr  a, double exploreTime = 0.5);
 
             /** \brief Clears all memory belonging to this LTLPlanner .*/
-            virtual ~LTLPlanner();
+            ~LTLPlanner() override;
 
             /// @name ompl::base::Planner Interface
             /// @{
 
             /** \brief Initializes LTLPlanner data structures. */
-            virtual void setup();
+            void setup() override;
 
             /** \brief Clears all datastructures belonging to this LTLPlanner. */
-            virtual void clear();
+            void clear() override;
 
             /** \brief Continues solving until a solution is found
                 or a given planner termination condition is met.
                 Returns true if a solution was found. */
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition& ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition& ptc) override;
             /// @}
 
             /** \brief Helper debug method to access this planner's

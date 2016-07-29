@@ -66,7 +66,7 @@ namespace ompl
                 try when directing a system toward a specific state.  Default value is 1. */
             SimpleDirectedControlSampler(const SpaceInformation *si, unsigned int k = 1);
 
-            virtual ~SimpleDirectedControlSampler();
+            ~SimpleDirectedControlSampler() override;
 
             /** \brief Retrieve the number of controls to generate when finding the best control. */
             unsigned int getNumControlSamples () const
@@ -88,7 +88,7 @@ namespace ompl
                 this control should be applied. The state
                 \e dest is modified to match the state reached with the computed
                 control and duration. The motion is checked for validity. */
-            virtual unsigned int sampleTo(Control *control, const base::State *source, base::State *dest);
+            unsigned int sampleTo(Control *control, const base::State *source, base::State *dest) override;
 
             /** \brief Sample a control given that it will be applied
                 to state \e state and the intention is to reach state
@@ -100,7 +100,7 @@ namespace ompl
                 this control should be applied. The state \e dest is
                 modified to match the state reached with the computed
                 control and duration. The motion is checked for validity. */
-            virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest);
+            unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest) override;
 
         protected:
 

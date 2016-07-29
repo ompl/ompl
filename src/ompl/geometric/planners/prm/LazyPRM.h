@@ -143,7 +143,7 @@ namespace ompl
             /** \brief Constructor */
             LazyPRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
 
-            virtual ~LazyPRM();
+            ~LazyPRM() override;
 
             /** \brief Set the maximum length of a motion to be added to the roadmap. */
             void setRange(double distance);
@@ -165,7 +165,7 @@ namespace ompl
                     setup();
             }
 
-            virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
+            void setProblemDefinition(const base::ProblemDefinitionPtr &pdef) override;
 
             /** \brief Set the connection strategy function that specifies the
              milestones that connection attempts will be make to for a
@@ -221,11 +221,11 @@ namespace ompl
                 return boost::num_edges(g_);
             }
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
-            virtual void setup();
+            void setup() override;
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Clear the query previously loaded from the ProblemDefinition.
                 Subsequent calls to solve() will reuse the previously computed roadmap,
@@ -233,7 +233,7 @@ namespace ompl
                 This enables multi-query functionality for LazyPRM. */
             void clearQuery();
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
         protected:
 

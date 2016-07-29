@@ -223,7 +223,7 @@ namespace ompl
             /** \brief Add a state to the set of states maintained by
                 this storage structure. The state is copied to
                 internal storage and metadata with default values is stored as well. */
-            virtual void addState(const State *state)
+            void addState(const State *state) override
             {
                 addState(state, M());
             }
@@ -236,7 +236,7 @@ namespace ompl
                 metadata_.push_back(metadata);
             }
 
-            virtual void clear()
+            void clear() override
             {
                 StateStorage::clear();
                 metadata_.clear();
@@ -258,14 +258,14 @@ namespace ompl
 
         protected:
 
-            virtual void loadMetadata(const Header& /*h*/, boost::archive::binary_iarchive &ia)
+            void loadMetadata(const Header& /*h*/, boost::archive::binary_iarchive &ia) override
             {
                 // clear default metadata that was added by StateStorage::loadStates()
                 metadata_.clear();
                 ia >> metadata_;
             }
 
-            virtual void storeMetadata(const Header& /*h*/, boost::archive::binary_oarchive &oa)
+            void storeMetadata(const Header& /*h*/, boost::archive::binary_oarchive &oa) override
             {
                 oa << metadata_;
             }

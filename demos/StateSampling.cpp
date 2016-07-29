@@ -67,7 +67,7 @@ public:
     // Valid states satisfy the following constraints:
     // -1<= x,y,z <=1
     // if .25 <= z <= .5, then |x|>.8 and |y|>.8
-    virtual bool sample(ob::State *state)
+    bool sample(ob::State *state) override
     {
         double* val = static_cast<ob::RealVectorStateSpace::StateType*>(state)->values;
         double z = rng_.uniformReal(-1,1);
@@ -93,7 +93,7 @@ public:
         return true;
     }
     // We don't need this in the example below.
-    virtual bool sampleNear(ob::State*, const ob::State*, const double)
+    bool sampleNear(ob::State*, const ob::State*, const double) override
     {
         throw ompl::Exception("MyValidStateSampler::sampleNear", "not implemented");
         return false;

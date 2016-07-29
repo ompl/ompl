@@ -292,7 +292,7 @@ class RRTstarTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *rrt = new geometric::RRTstar(si);
         return base::PlannerPtr(rrt);
@@ -303,7 +303,7 @@ class PRMstarTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *prm = new geometric::PRMstar(si);
         return base::PlannerPtr(prm);
@@ -314,7 +314,7 @@ class PRMTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *prm = new geometric::PRM(si);
         return base::PlannerPtr(prm);
@@ -325,7 +325,7 @@ class CForestTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *cforest = new geometric::CForest(si);
         return base::PlannerPtr(cforest);

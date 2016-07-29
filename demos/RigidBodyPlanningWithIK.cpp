@@ -56,7 +56,7 @@ public:
         setThreshold(1e-2);
     }
 
-    virtual double distanceGoal(const ob::State *state) const
+    double distanceGoal(const ob::State *state) const override
     {
         // goal region is given by states where x + y = z and orientation is close to identity
         double d = fabs(state->as<ob::SE3StateSpace::StateType>()->getX()

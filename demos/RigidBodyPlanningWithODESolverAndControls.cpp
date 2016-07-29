@@ -58,7 +58,7 @@ class KinematicCarModel : public oc::StatePropagator
             timeStep_  = 0.01;
         }
 
-        virtual void propagate(const ob::State *state, const oc::Control* control, const double duration, ob::State *result) const
+        void propagate(const ob::State *state, const oc::Control* control, const double duration, ob::State *result) const override
         {
             EulerIntegration(state, control, duration, result);
         }

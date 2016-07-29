@@ -63,13 +63,13 @@ namespace ompl
             }
 
             /** Assume we can always do better. */
-            bool isSatisfied(ompl::base::Cost c) const
+            bool isSatisfied(ompl::base::Cost c) const override
             {
                 return false;
             }
 
             /** Compute mechanical work between two states. */
-            ompl::base::Cost motionCost(const ompl::base::State *s1, const ompl::base::State *s2) const
+            ompl::base::Cost motionCost(const ompl::base::State *s1, const ompl::base::State *s2) const override
             {
                 const base::StateSpacePtr &space = si_->getStateSpace();
                 // Per equation 7 in the paper
@@ -86,7 +86,7 @@ namespace ompl
                 return ompl::base::Cost(positiveCostAccrued + pathLengthWeight_ * si_->distance(s1, s2));
             }
 
-            bool isSymmetric() const
+            bool isSymmetric() const override
             {
                 return false;
             }

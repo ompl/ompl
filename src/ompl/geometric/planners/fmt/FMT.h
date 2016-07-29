@@ -94,15 +94,15 @@ namespace ompl
 
             FMT(const base::SpaceInformationPtr &si);
 
-            virtual ~FMT();
+            ~FMT() override;
 
-            virtual void setup();
+            void setup() override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear();
+            void clear() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
             /** \brief Set the number of states that the planner should sample.
                 The planner will sample this number of states in addition to the

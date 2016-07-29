@@ -120,18 +120,18 @@ namespace ompl
             /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution using the provided informed sampler. Requires a function pointer to a method to query the cost of the current solution. */
             InformedStateSampler(const ProblemDefinitionPtr &probDefn, const GetCurrentCostFunc &costFunc, const InformedSamplerPtr &infSampler);
 
-            virtual ~InformedStateSampler()
+            ~InformedStateSampler() override
             {
             }
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the current best cost (as defined by the pointer passed at construction). By default just calls sampleUniform(State*, Cost) with cost given by the member variable. */
-            virtual void sampleUniform(State *statePtr);
+            void sampleUniform(State *statePtr) override;
 
             /** \brief By default sampleUniformNear throws. This can be overloaded by a specific informed sampler if desired. */
-            virtual void sampleUniformNear(State *statePtr, const State *near, const double distance);
+            void sampleUniformNear(State *statePtr, const State *near, const double distance) override;
 
             /** \brief By default sampleGaussian throws. This can be overloaded by a specific informed sampler if desired. */
-            virtual void sampleGaussian(State *statePtr, const State *mean, const double stdDev);
+            void sampleGaussian(State *statePtr, const State *mean, const double stdDev) override;
 
         private:
             /** \brief A helper function for construction */

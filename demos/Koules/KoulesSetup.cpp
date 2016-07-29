@@ -57,7 +57,7 @@ public:
     {
     }
 
-    virtual bool isValid(const ob::State *state) const
+    bool isValid(const ob::State *state) const override
     {
         return si_->satisfiesBounds(state);
     }

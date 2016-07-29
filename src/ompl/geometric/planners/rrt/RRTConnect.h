@@ -65,13 +65,13 @@ namespace ompl
             /** \brief Constructor */
             RRTConnect(const base::SpaceInformationPtr &si);
 
-            virtual ~RRTConnect();
+            ~RRTConnect() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Set the range the planner is supposed to use.
 
@@ -97,7 +97,7 @@ namespace ompl
                 tGoal_.reset(new NN<Motion*>());
             }
 
-            virtual void setup();
+            void setup() override;
 
         protected:
 

@@ -167,12 +167,12 @@ void ompl::base::TimeStateSpace::registerProjections()
         {
         }
 
-        virtual unsigned int getDimension() const
+        unsigned int getDimension() const override
         {
             return 1;
         }
 
-        virtual void defaultCellSizes()
+        void defaultCellSizes() override
         {
             cellSizes_.resize(1);
             if (space_->as<TimeStateSpace>()->isBounded())
@@ -186,7 +186,7 @@ void ompl::base::TimeStateSpace::registerProjections()
                 cellSizes_[0] = 1.0;
         }
 
-        virtual void project(const State *state, EuclideanProjection &projection) const
+        void project(const State *state, EuclideanProjection &projection) const override
         {
             projection(0) = state->as<TimeStateSpace::StateType>()->position;
         }

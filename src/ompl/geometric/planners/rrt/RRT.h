@@ -69,13 +69,13 @@ namespace ompl
             /** \brief Constructor */
             RRT(const base::SpaceInformationPtr &si);
 
-            virtual ~RRT();
+            ~RRT() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Set the goal bias
 
@@ -120,7 +120,7 @@ namespace ompl
                 nn_.reset(new NN<Motion*>());
             }
 
-            virtual void setup();
+            void setup() override;
 
         protected:
 

@@ -92,7 +92,7 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
         {
         }
 
-        virtual bool isValid(const State *state) const
+        bool isValid(const State *state) const override
         {
             return fn_(state);
         }

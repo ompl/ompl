@@ -173,7 +173,7 @@ public:
     {
     }
 
-    virtual void propagate(const ob::State *state, const oc::Control* control, const double duration, ob::State *result) const
+    void propagate(const ob::State *state, const oc::Control* control, const double duration, ob::State *result) const override
     {
         integrator_.propagate(state, control, duration, result);
     }

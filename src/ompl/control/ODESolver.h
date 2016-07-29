@@ -134,7 +134,7 @@ namespace ompl
                                 OMPL_ERROR("ODESolverPtr does not reference a valid ODESolver object");
                         }
 
-                        virtual void propagate (const base::State *state, const Control *control, const double duration, base::State *result) const
+                        void propagate (const base::State *state, const Control *control, const double duration, base::State *result) const override
                         {
                             ODESolver::StateType reals;
                             si_->getStateSpace()->copyToReals(reals, state);
@@ -204,7 +204,7 @@ namespace ompl
         protected:
 
             /// \brief Solve the ODE using boost::numeric::odeint.
-            virtual void solve (StateType &state, const Control *control, const double duration) const
+            void solve (StateType &state, const Control *control, const double duration) const override
             {
                 Solver solver;
                 ODESolver::ODEFunctor odefunc (ode_, control);
@@ -236,7 +236,7 @@ namespace ompl
 
         protected:
             /// \brief Solve the ODE using boost::numeric::odeint.  Save the resulting error values into error_.
-            virtual void solve (StateType &state, const Control *control, const double duration) const
+            void solve (StateType &state, const Control *control, const double duration) const override
             {
                 ODESolver::ODEFunctor odefunc (ode_, control);
 
@@ -304,7 +304,7 @@ namespace ompl
             /// of the system, a control to apply to the system, and the duration to
             /// apply the control.  The value of \e state will contain the final
             /// values for the system after integration.
-            virtual void solve (StateType &state, const Control *control, const double duration) const
+            void solve (StateType &state, const Control *control, const double duration) const override
             {
                 ODESolver::ODEFunctor odefunc (ode_, control);
 

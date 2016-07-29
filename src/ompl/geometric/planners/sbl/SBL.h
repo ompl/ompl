@@ -89,7 +89,7 @@ namespace ompl
             /** \brief The constructor needs the instance of the space information */
             SBL(const base::SpaceInformationPtr &si);
 
-            virtual ~SBL();
+            ~SBL() override;
 
             /** \brief Set the projection evaluator. This class is
                 able to compute the projection of a given state. */
@@ -127,13 +127,13 @@ namespace ompl
                 return maxDistance_;
             }
 
-            virtual void setup();
+            void setup() override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear();
+            void clear() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
         protected:
 

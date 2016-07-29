@@ -57,15 +57,15 @@ namespace ompl
                 type_ = GOAL_STATES;
             }
 
-            virtual ~GoalStates();
+            ~GoalStates() override;
 
-            virtual void sampleGoal(State *st) const;
+            void sampleGoal(State *st) const override;
 
-            virtual unsigned int maxSampleCount() const;
+            unsigned int maxSampleCount() const override;
 
-            virtual double distanceGoal(const State *st) const;
+            double distanceGoal(const State *st) const override;
 
-            virtual void print(std::ostream &out = std::cout) const;
+            void print(std::ostream &out = std::cout) const override;
 
             /** \brief Add a goal state */
             virtual void addState(const State *st);

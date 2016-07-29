@@ -69,7 +69,7 @@ namespace ompl
             explicit
             OpenDESimpleSetup(const OpenDEEnvironmentPtr &env);
 
-            virtual ~OpenDESimpleSetup()
+            ~OpenDESimpleSetup() override
             {
             }
 
@@ -129,7 +129,7 @@ namespace ompl
                 Construct a path representing this action. */
             base::PathPtr simulate(unsigned int steps) const;
 
-            virtual void setup();
+            void setup() override;
 
         private:
 

@@ -77,7 +77,7 @@ public:
     PlannerDataTestVertex (base::State* st, int tag = 0, int tag2 = 0) : ompl::base::PlannerDataVertex(st, tag), tag2_(tag2) {}
     PlannerDataTestVertex (const PlannerDataTestVertex &rhs) : ompl::base::PlannerDataVertex(rhs.state_, rhs.tag_), tag2_(rhs.tag2_) {}
 
-    virtual ompl::base::PlannerDataVertex* clone () const
+    ompl::base::PlannerDataVertex* clone () const override
     {
         return static_cast<ompl::base::PlannerDataVertex*>(new PlannerDataTestVertex(*this));
     }
@@ -103,14 +103,14 @@ public:
 
     PlannerDataTestEdge (const PlannerDataTestEdge &rhs) : PlannerDataEdgeControl(rhs.c_, rhs.duration_), id_(rhs.id_)  {}
 
-    virtual ~PlannerDataTestEdge () {}
+    ~PlannerDataTestEdge () override {}
 
-    virtual ompl::base::PlannerDataEdge* clone () const
+    ompl::base::PlannerDataEdge* clone () const override
     {
         return static_cast<base::PlannerDataEdge*>(new PlannerDataTestEdge(*this));
     }
 
-    virtual bool operator == (const ompl::base::PlannerDataEdge &rhs) const
+    bool operator == (const ompl::base::PlannerDataEdge &rhs) const override
     {
         const PlannerDataTestEdge *rhst = static_cast<const PlannerDataTestEdge*> (&rhs);
         if (rhst)

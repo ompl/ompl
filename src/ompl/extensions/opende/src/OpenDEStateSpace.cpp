@@ -268,19 +268,19 @@ namespace ompl
             {
             }
 
-            virtual void sampleUniform(ompl::base::State *state)
+            void sampleUniform(ompl::base::State *state) override
             {
                 wrapped_->sampleUniform(state);
                 state->as<OpenDEStateSpace::StateType>()->collision = 0;
             }
 
-            virtual void sampleUniformNear(base::State *state, const base::State *near, const double distance)
+            void sampleUniformNear(base::State *state, const base::State *near, const double distance) override
             {
                 wrapped_->sampleUniformNear(state, near, distance);
                 state->as<OpenDEStateSpace::StateType>()->collision = 0;
             }
 
-            virtual void sampleGaussian(base::State *state, const base::State *mean, const double stdDev)
+            void sampleGaussian(base::State *state, const base::State *mean, const double stdDev) override
             {
                 wrapped_->sampleGaussian(state, mean, stdDev);
                 state->as<OpenDEStateSpace::StateType>()->collision = 0;

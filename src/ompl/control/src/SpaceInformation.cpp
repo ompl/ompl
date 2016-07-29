@@ -102,7 +102,7 @@ void ompl::control::SpaceInformation::setStatePropagator(const StatePropagatorFn
         {
         }
 
-        virtual void propagate(const base::State *state, const Control *control, const double duration, base::State *result) const
+        void propagate(const base::State *state, const Control *control, const double duration, base::State *result) const override
         {
             fn_(state, control, duration, result);
         }

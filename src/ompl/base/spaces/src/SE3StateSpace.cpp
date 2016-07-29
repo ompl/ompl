@@ -60,12 +60,12 @@ void ompl::base::SE3StateSpace::registerProjections()
         {
         }
 
-        virtual unsigned int getDimension() const
+        unsigned int getDimension() const override
         {
             return 3;
         }
 
-        virtual void defaultCellSizes()
+        void defaultCellSizes() override
         {
             cellSizes_.resize(3);
             bounds_ = space_->as<SE3StateSpace>()->getBounds();
@@ -74,7 +74,7 @@ void ompl::base::SE3StateSpace::registerProjections()
             cellSizes_[2] = (bounds_.high[2] - bounds_.low[2]) / magic::PROJECTION_DIMENSION_SPLITS;
         }
 
-        virtual void project(const State *state, EuclideanProjection &projection) const
+        void project(const State *state, EuclideanProjection &projection) const override
         {
             memcpy(&projection(0), state->as<SE3StateSpace::StateType>()->as<RealVectorStateSpace::StateType>(0)->values, 3 * sizeof(double));
         }

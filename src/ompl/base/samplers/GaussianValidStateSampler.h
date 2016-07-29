@@ -53,12 +53,12 @@ namespace ompl
             /** \brief Constructor */
             GaussianValidStateSampler(const SpaceInformation *si);
 
-            virtual ~GaussianValidStateSampler()
+            ~GaussianValidStateSampler() override
             {
             }
 
-            virtual bool sample(State *state);
-            virtual bool sampleNear(State *state, const State *near, const double distance);
+            bool sample(State *state) override;
+            bool sampleNear(State *state, const State *near, const double distance) override;
 
             /** \brief Get the standard deviation used when sampling */
             double getStdDev() const

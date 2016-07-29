@@ -72,7 +72,7 @@ namespace ompl
             {
             }
 
-            virtual ~CellX()
+            ~CellX() override
             {
             }
 
@@ -93,7 +93,7 @@ namespace ompl
             setupHeaps();
         }
 
-        virtual ~GridB()
+        ~GridB() override
         {
             clearHeaps();
         }
@@ -273,13 +273,13 @@ namespace ompl
             return false;
         }
 
-        virtual void clear()
+        void clear() override
         {
             GridN<_T>::clear();
             clearHeaps();
         }
 
-        virtual void status(std::ostream &out = std::cout) const
+        void status(std::ostream &out = std::cout) const override
         {
             GridN<_T>::status(out);
             out << countInternal() << " internal cells" << std::endl;

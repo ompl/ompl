@@ -229,9 +229,9 @@ namespace ompl
             SPARStwo(const base::SpaceInformationPtr &si);
 
             /** \brief Destructor */
-            virtual ~SPARStwo();
+            ~SPARStwo() override;
 
-            virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
+            void setProblemDefinition(const base::ProblemDefinitionPtr &pdef) override;
 
             /** \brief Sets the stretch factor */
             void setStretchFactor(double t)
@@ -304,7 +304,7 @@ namespace ompl
                 input states should be however cleared, without
                 clearing the roadmap itself. This can be done using
                 the clearQuery() function. */
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
             /** \brief Clear the query previously loaded from the ProblemDefinition.
                 Subsequent calls to solve() will reuse the previously computed roadmap,
@@ -312,7 +312,7 @@ namespace ompl
                 This enables multi-query functionality for PRM. */
             void clearQuery();
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
@@ -323,7 +323,7 @@ namespace ompl
                     setup();
             }
 
-            virtual void setup();
+            void setup() override;
 
             /** \brief Retrieve the computed roadmap. */
             const Graph& getRoadmap() const
@@ -337,7 +337,7 @@ namespace ompl
                 return boost::num_vertices(g_);
             }
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
             /** \brief Print debug information about planner */
             void printDebug(std::ostream &out = std::cout) const;

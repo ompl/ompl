@@ -127,7 +127,7 @@ namespace ompl
             {
             }
 
-            virtual void log(const std::string &text, LogLevel level, const char *filename, int line);
+            void log(const std::string &text, LogLevel level, const char *filename, int line) override;
 
         };
 
@@ -139,9 +139,9 @@ namespace ompl
             /** \brief The name of the file in which to save the message data */
             OutputHandlerFile(const char *filename);
 
-            virtual ~OutputHandlerFile();
+            ~OutputHandlerFile() override;
 
-            virtual void log(const std::string &text, LogLevel level, const char *filename, int line);
+            void log(const std::string &text, LogLevel level, const char *filename, int line) override;
 
         private:
 

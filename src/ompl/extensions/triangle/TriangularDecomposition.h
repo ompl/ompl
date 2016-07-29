@@ -76,7 +76,7 @@ namespace ompl
             struct Triangle : public Polygon
             {
                 Triangle() : Polygon(3) {}
-                virtual ~Triangle() {}
+                ~Triangle() override {}
                 std::vector<int> neighbors;
                 double volume;
             };
@@ -92,17 +92,17 @@ namespace ompl
                 std::vector<Polygon> intRegs = std::vector<Polygon>()
             );
 
-            virtual ~TriangularDecomposition();
+            ~TriangularDecomposition() override;
 
-            virtual int getNumRegions() const { return triangles_.size(); }
+            int getNumRegions() const override { return triangles_.size(); }
 
-            virtual double getRegionVolume(int triID);
+            double getRegionVolume(int triID) override;
 
-            virtual void getNeighbors(int triID, std::vector<int>& neighbors) const;
+            void getNeighbors(int triID, std::vector<int>& neighbors) const override;
 
-            virtual int locateRegion(const base::State* s) const;
+            int locateRegion(const base::State* s) const override;
 
-            virtual void sampleFromRegion(int triID, RNG& rng, std::vector<double>& coord) const;
+            void sampleFromRegion(int triID, RNG& rng, std::vector<double>& coord) const override;
 
             void setup();
 
@@ -148,16 +148,16 @@ namespace ompl
                 {
                 }
 
-                virtual ~LocatorGrid()
+                ~LocatorGrid() override
                 {
                 }
 
-                virtual void project(const base::State *s, std::vector<double>& coord) const
+                void project(const base::State *s, std::vector<double>& coord) const override
                 {
                     triDecomp->project(s, coord);
                 }
 
-                virtual void sampleFullState(const base::StateSamplerPtr& /*sampler*/, const std::vector<double>& /*coord*/, base::State* /*s*/) const
+                void sampleFullState(const base::StateSamplerPtr& /*sampler*/, const std::vector<double>& /*coord*/, base::State* /*s*/) const override
                 {
                 }
 

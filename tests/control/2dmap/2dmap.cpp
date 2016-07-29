@@ -71,7 +71,7 @@ public:
         setGrid(grid);
     }
 
-    virtual bool isValid(const base::State *state) const
+    bool isValid(const base::State *state) const override
     {
         /* planning is done in a continuous space, but our collision space representation is discrete */
         int x = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[0]);
@@ -105,7 +105,7 @@ public:
     {
     }
 
-    virtual double distance(const base::State *state1, const base::State *state2) const
+    double distance(const base::State *state1, const base::State *state2) const override
     {
         /* planning is done in a continuous space, but our collision space representation is discrete */
         int x1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[0]);
@@ -126,7 +126,7 @@ public:
     {
     }
 
-    virtual void propagate(const base::State *state, const control::Control* control, const double duration, base::State *result) const
+    void propagate(const base::State *state, const control::Control* control, const double duration, base::State *result) const override
     {
         result->as<base::RealVectorStateSpace::StateType>()->values[0] =
             state->as<base::RealVectorStateSpace::StateType>()->values[0] + duration * control->as<control::RealVectorControlSpace::ControlType>()->values[0];
@@ -153,12 +153,12 @@ public:
         bounds_.setHigh(1, spacebounds.high[1]);
     }
 
-    virtual unsigned int getDimension() const
+    unsigned int getDimension() const override
     {
         return 2;
     }
 
-    virtual void project(const base::State *state, base::EuclideanProjection &projection) const
+    void project(const base::State *state, base::EuclideanProjection &projection) const override
     {
         projection(0) = state->as<base::RealVectorStateSpace::StateType>()->values[0];
         projection(1) = state->as<base::RealVectorStateSpace::StateType>()->values[1];
@@ -327,7 +327,7 @@ class RRTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si) override
     {
         auto *rrt = new control::RRT(si);
         rrt->setIntermediateStates(false);
@@ -339,7 +339,7 @@ class RRTIntermediateTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si) override
     {
         auto *rrt = new control::RRT(si);
         rrt->setIntermediateStates(true);
@@ -353,14 +353,14 @@ class SyclopDecomposition : public control::GridDecomposition
     public:
         SyclopDecomposition(const int len, const base::RealVectorBounds& b) : GridDecomposition(len, 2, b) {}
 
-        virtual void project(const base::State* s, std::vector<double>& coord) const
+        void project(const base::State* s, std::vector<double>& coord) const override
         {
             coord.resize(2);
             coord[0] = s->as<base::RealVectorStateSpace::StateType>()->values[0];
             coord[1] = s->as<base::RealVectorStateSpace::StateType>()->values[1];
         }
 
-        virtual void sampleFullState(const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State* s) const
+        void sampleFullState(const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State* s) const override
         {
             sampler->sampleUniform(s);
             s->as<base::RealVectorStateSpace::StateType>()->values[0] = coord[0];
@@ -373,7 +373,7 @@ class SyclopDecomposition : public control::GridDecomposition
 
 class SyclopRRTTest : public TestPlanner
 {
-    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si) override
     {
         base::RealVectorBounds bounds(2);
 
@@ -397,7 +397,7 @@ class SyclopRRTTest : public TestPlanner
 
 class SyclopESTTest : public TestPlanner
 {
-    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si) override
     {
         base::RealVectorBounds bounds(2);
 
@@ -423,7 +423,7 @@ class KPIECETest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si) override
     {
         auto *kpiece = new control::KPIECE1(si);
 
@@ -442,7 +442,7 @@ class ESTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si) override
     {
         auto *est = new control::EST(si);
 
@@ -461,7 +461,7 @@ class PDSTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si) override
     {
         auto *pdst = new control::PDST(si);
 

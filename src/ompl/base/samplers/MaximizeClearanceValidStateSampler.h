@@ -54,11 +54,11 @@ namespace ompl
             /** \brief Constructor */
             MaximizeClearanceValidStateSampler(const SpaceInformation *si);
 
-            virtual ~MaximizeClearanceValidStateSampler();
+            ~MaximizeClearanceValidStateSampler() override;
 
-            virtual bool sample(State *state);
+            bool sample(State *state) override;
 
-            virtual bool sampleNear(State *state, const State *near, const double distance);
+            bool sampleNear(State *state, const State *near, const double distance) override;
 
             /** \brief The number of attempts at improving the clearance of the sampled state. */
             void setNrImproveAttempts(unsigned int attempts)

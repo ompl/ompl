@@ -82,8 +82,8 @@ void oc::LTLProblemDefinition::createGoal()
     public:
         LTLGoal(const LTLSpaceInformationPtr& ltlsi)
             : ob::Goal(ltlsi), ltlsi_(ltlsi), prod_(ltlsi->getProductGraph()) {}
-        virtual ~LTLGoal() {}
-        virtual bool isSatisfied(const ob::State* s) const
+        ~LTLGoal() override {}
+        bool isSatisfied(const ob::State* s) const override
         {
             return prod_->isSolution(ltlsi_->getProdGraphState(s));
         }

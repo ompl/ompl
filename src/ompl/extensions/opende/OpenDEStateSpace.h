@@ -149,7 +149,7 @@ namespace ompl
                              double positionWeight = 1.0, double linVelWeight = 0.5,
                              double angVelWeight = 0.5, double orientationWeight = 1.0);
 
-            virtual ~OpenDEStateSpace()
+            ~OpenDEStateSpace() override
             {
             }
 
@@ -200,13 +200,13 @@ namespace ompl
                 (position, linear and agular velocities) */
             bool satisfiesBoundsExceptRotation(const StateType *state) const;
 
-            virtual base::State* allocState() const;
-            virtual void freeState(base::State *state) const;
-            virtual void copyState(base::State *destination, const base::State *source) const;
-            virtual void interpolate(const base::State *from, const base::State *to, const double t, base::State *state) const;
+            base::State* allocState() const override;
+            void freeState(base::State *state) const override;
+            void copyState(base::State *destination, const base::State *source) const override;
+            void interpolate(const base::State *from, const base::State *to, const double t, base::State *state) const override;
 
-            virtual base::StateSamplerPtr allocDefaultStateSampler() const;
-            virtual base::StateSamplerPtr allocStateSampler() const;
+            base::StateSamplerPtr allocDefaultStateSampler() const override;
+            base::StateSamplerPtr allocStateSampler() const override;
 
             /** \brief Fill the OpenDEStateSpace::STATE_COLLISION_VALUE_BIT of StateType::collision member of a state, if unspecified.
                 Return the value value of that bit. */

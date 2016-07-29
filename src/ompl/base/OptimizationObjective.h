@@ -207,13 +207,13 @@ namespace ompl
               addition to add up all the individual objectives' state cost
               values, where each individual value is scaled by its
               weight */
-            virtual Cost stateCost(const State *s) const;
+            Cost stateCost(const State *s) const override;
 
             /** The default implementation of this method is to use
               addition to add up all the individual objectives' motion
               cost values, where each individual value is scaled by
               its weight */
-            virtual Cost motionCost(const State *s1, const State *s2) const;
+            Cost motionCost(const State *s1, const State *s2) const override;
 
         protected:
 

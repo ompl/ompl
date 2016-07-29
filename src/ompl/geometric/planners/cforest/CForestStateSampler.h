@@ -59,22 +59,22 @@ namespace ompl
             }
 
             /** \brief Destructor */
-            ~CForestStateSampler()
+            ~CForestStateSampler() override
             {
                 clear();
             }
 
             /** \brief It will sample the next state of the vector StatesToSample_. If this is empty,
                 it will call the sampleUniform() method of the specified sampler. */
-            virtual void sampleUniform(State *state);
+            void sampleUniform(State *state) override;
 
             /** \brief It will sample the next state of the vector StatesToSample_. If this is empty,
                 it will call the sampleUniformNear() method of the specified sampler. */
-            virtual void sampleUniformNear(State *state, const State *near, const double distance);
+            void sampleUniformNear(State *state, const State *near, const double distance) override;
 
             /** \brief It will sample the next state of the vector StatesToSample_. If this is empty,
                 it will call the sampleGaussian() method of the specified sampler. */
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
 
             const StateSpace* getStateSpace() const
             {

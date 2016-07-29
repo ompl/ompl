@@ -117,13 +117,13 @@ namespace ompl
         {
         }
 
-        virtual ~NearestNeighborsGNAT()
+        ~NearestNeighborsGNAT() override
         {
             if (tree_)
                 delete tree_;
         }
         /// \brief Set the distance function to use
-        virtual void setDistanceFunction(const typename NearestNeighbors<_T>::DistanceFunction &distFun)
+        void setDistanceFunction(const typename NearestNeighbors<_T>::DistanceFunction &distFun) override
         {
             NearestNeighbors<_T>::setDistanceFunction(distFun);
             pivotSelector_.setDistanceFunction(distFun);
@@ -131,7 +131,7 @@ namespace ompl
                 rebuildDataStructure();
         }
 
-        virtual void clear()
+        void clear() override
         {
             if (tree_)
             {
@@ -144,12 +144,12 @@ namespace ompl
                 rebuildSize_ = maxNumPtsPerLeaf_ * degree_;
         }
 
-        virtual bool reportsSortedResults() const
+        bool reportsSortedResults() const override
         {
             return true;
         }
 
-        virtual void add(const _T &data)
+        void add(const _T &data) override
         {
             if (tree_)
             {
@@ -163,7 +163,7 @@ namespace ompl
                 size_ = 1;
             }
         }
-        virtual void add(const std::vector<_T> &data)
+        void add(const std::vector<_T> &data) override
         {
             if (tree_)
                 NearestNeighbors<_T>::add(data);
@@ -193,7 +193,7 @@ namespace ompl
         /// for removal in the removed_ cache. When the cache is full, the tree
         /// will be rebuilt and the elements marked for removal will actually
         /// be removed.
-        virtual bool remove(const _T &data)
+        bool remove(const _T &data) override
         {
             if (!size_) return false;
             NearQueue nbhQueue;
@@ -211,7 +211,7 @@ namespace ompl
             return true;
         }
 
-        virtual _T nearest(const _T &data) const
+        _T nearest(const _T &data) const override
         {
             if (size_)
             {
@@ -224,7 +224,7 @@ namespace ompl
         }
 
         /// Return the k nearest neighbors in sorted order
-        virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const
+        void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const override
         {
             nbh.clear();
             if (k == 0) return;
@@ -237,7 +237,7 @@ namespace ompl
         }
 
         /// Return the nearest neighbors within distance \c radius in sorted order
-        virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const
+        void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const override
         {
             nbh.clear();
             if (size_)
@@ -248,7 +248,7 @@ namespace ompl
             }
         }
 
-        virtual std::size_t size() const
+        std::size_t size() const override
         {
             return size_;
         }
@@ -264,7 +264,7 @@ namespace ompl
         }
 #endif
 
-        virtual void list(std::vector<_T> &data) const
+        void list(std::vector<_T> &data) const override
         {
             data.clear();
             data.reserve(size());

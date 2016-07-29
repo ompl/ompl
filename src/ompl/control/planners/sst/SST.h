@@ -63,19 +63,19 @@ namespace ompl
             /** \brief Constructor */
             SST(const SpaceInformationPtr &si);
 
-            virtual ~SST();
+            ~SST() override;
 
-            virtual void setup();
+            void setup() override;
 
             /** \brief Continue solving for some amount of time. Return true if solution was found. */
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
             /** \brief Clear datastructures. Call this function if the
                 input data to the planner has changed and you do not
                 want to continue planning */
-            virtual void clear();
+            void clear() override;
 
             /** In the process of randomly selecting states in the state
                 space to attempt to go towards, the algorithm may in fact
@@ -211,11 +211,11 @@ namespace ompl
                 Witness(const SpaceInformation *si) : Motion(si), rep_(nullptr)
                 {
                 }
-                virtual base::State* getState() const
+                base::State* getState() const override
                 {
                     return rep_->state_;
                 }
-                virtual Motion* getParent() const
+                Motion* getParent() const override
                 {
                     return rep_->parent_;
                 }

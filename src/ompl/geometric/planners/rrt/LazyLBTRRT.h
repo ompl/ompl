@@ -64,13 +64,13 @@ namespace ompl
             /** \brief Constructor */
             LazyLBTRRT(const base::SpaceInformationPtr &si);
 
-            virtual ~LazyLBTRRT();
+            ~LazyLBTRRT() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Set the goal bias
 
@@ -115,7 +115,7 @@ namespace ompl
                 nn_.reset(new NN<Motion*>());
             }
 
-            virtual void setup();
+            void setup() override;
 
             /** \brief Set the apprimation factor */
             void setApproximationFactor (double epsilon)

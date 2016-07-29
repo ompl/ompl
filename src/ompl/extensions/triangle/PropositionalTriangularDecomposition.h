@@ -73,11 +73,11 @@ namespace ompl
                 const std::vector<Polygon>& props = std::vector<Polygon>()
             );
 
-            virtual ~PropositionalTriangularDecomposition() {}
+            ~PropositionalTriangularDecomposition() override {}
 
-            virtual int getNumProps() const;
+            int getNumProps() const override;
 
-            virtual World worldAtRegion(int triID);
+            World worldAtRegion(int triID) override;
 
             void setup();
 

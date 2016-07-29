@@ -81,11 +81,11 @@ namespace ompl
             /** \brief Constructor */
             KPIECE1(const SpaceInformationPtr &si);
 
-            virtual ~KPIECE1();
+            ~KPIECE1() override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear();
+            void clear() override;
 
             /** In the process of randomly selecting states in the state
                 space to attempt to go towards, the algorithm may in fact
@@ -194,8 +194,8 @@ namespace ompl
                 return projectionEvaluator_;
             }
 
-            virtual void setup();
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void setup() override;
+            void getPlannerData(base::PlannerData &data) const override;
 
         protected:
 

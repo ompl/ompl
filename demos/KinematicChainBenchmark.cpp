@@ -69,11 +69,11 @@ public:
         int dimension = std::max(2, (int)ceil(log((double) space->getDimension())));
         projectionMatrix_.computeRandom(space->getDimension(), dimension);
     }
-    virtual unsigned int getDimension() const
+    unsigned int getDimension() const override
     {
         return projectionMatrix_.mat.size1();
     }
-    void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
+    void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const override
     {
         std::vector<double> v(space_->getDimension());
         space_->copyToReals(v, state);
@@ -95,13 +95,13 @@ public:
         lock();
     }
 
-    void registerProjections()
+    void registerProjections() override
     {
         registerDefaultProjection(ompl::base::ProjectionEvaluatorPtr(
             new KinematicChainProjector(this)));
     }
 
-    double distance(const ompl::base::State *state1, const ompl::base::State *state2) const
+    double distance(const ompl::base::State *state1, const ompl::base::State *state2) const override
     {
         const StateType *cstate1 = state1->as<StateType>();
         const StateType *cstate2 = state2->as<StateType>();
@@ -140,7 +140,7 @@ public:
     {
     }
 
-    bool isValid(const ompl::base::State *state) const
+    bool isValid(const ompl::base::State *state) const override
     {
         const KinematicChainSpace* space = si_->getStateSpace()->as<KinematicChainSpace>();
         const KinematicChainSpace::StateType *s = state->as<KinematicChainSpace::StateType>();

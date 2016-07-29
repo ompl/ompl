@@ -54,24 +54,24 @@ namespace ompl
         public:
             /** \brief Construct a rejection sampler that only generates states with a heuristic solution estimate that is less than the cost of the current solution. */
             RejectionInfSampler(const ProblemDefinitionPtr probDefn, unsigned int maxNumberCalls);
-            virtual ~RejectionInfSampler()
+            ~RejectionInfSampler() override
             {
             }
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less than the provided cost, i.e. in the interval [0, maxCost). Returns false if such a state was not found in the specified number of iterations. */
-            virtual bool sampleUniform(State *statePtr, const Cost &maxCost);
+            bool sampleUniform(State *statePtr, const Cost &maxCost) override;
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are between the provided costs, [minCost, maxCost). Returns false if such a state was not found in the specified number of iterations. */
-            virtual bool sampleUniform(State *statePtr, const Cost &minCost, const Cost &maxCost);
+            bool sampleUniform(State *statePtr, const Cost &minCost, const Cost &maxCost) override;
 
             /** \brief Whether the sampler can provide a measure of the informed subset */
-            virtual bool hasInformedMeasure() const;
+            bool hasInformedMeasure() const override;
 
             /** \brief The measure of the subset of the state space defined by the current solution cost that is being searched. As rejection sampling has no closed-form knowledge of the informed subset, the measure of the informed space is always the measure of the entire space. */
-            virtual double getInformedMeasure(const Cost &/*currentCost*/) const;
+            double getInformedMeasure(const Cost &/*currentCost*/) const override;
 
             /** \brief The measure of the subset of the state space defined by the current solution cost that is being searched. As rejection sampling has no closed-form knowledge of the informed subset, the measure of the informed space is always the measure of the entire space. */
-            virtual double getInformedMeasure(const Cost &/*minCost*/, const Cost &/*maxCost*/) const;
+            double getInformedMeasure(const Cost &/*minCost*/, const Cost &/*maxCost*/) const override;
 
         private:
             // Variables

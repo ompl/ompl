@@ -141,19 +141,19 @@ namespace ompl
             BITstar(const base::SpaceInformationPtr& si, const std::string& name = "BITstar");
 
             /** \brief Destruct! */
-            virtual ~BITstar();
+            ~BITstar() override;
 
             /** \brief Setup */
-            virtual void setup();
+            void setup() override;
 
             /** \brief Clear */
-            virtual void clear();
+            void clear() override;
 
             /** \brief Solve */
-            base::PlannerStatus solve(const base::PlannerTerminationCondition& ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition& ptc) override;
 
             /** \brief Get results */
-            virtual void getPlannerData(base::PlannerData& data) const;
+            void getPlannerData(base::PlannerData& data) const override;
 
             ///////////////////////////////////////
             // Planner info for debugging, etc:

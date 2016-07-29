@@ -91,7 +91,7 @@ namespace ompl
 
             pSBL(const base::SpaceInformationPtr &si);
 
-            virtual ~pSBL();
+            ~pSBL() override;
 
             /** \brief Set the projection evaluator. This class is
                 able to compute the projection of a given state. */
@@ -138,13 +138,13 @@ namespace ompl
                 return threadCount_;
             }
 
-            virtual void setup();
+            void setup() override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear();
+            void clear() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
         protected:
 

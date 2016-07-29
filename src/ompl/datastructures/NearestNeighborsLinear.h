@@ -61,32 +61,32 @@ namespace ompl
         {
         }
 
-        virtual ~NearestNeighborsLinear()
+        ~NearestNeighborsLinear() override
         {
         }
 
-        virtual void clear()
+        void clear() override
         {
             data_.clear();
         }
 
-        virtual bool reportsSortedResults() const
+        bool reportsSortedResults() const override
         {
             return true;
         }
 
-        virtual void add(const _T &data)
+        void add(const _T &data) override
         {
             data_.push_back(data);
         }
 
-        virtual void add(const std::vector<_T> &data)
+        void add(const std::vector<_T> &data) override
         {
             data_.reserve(data_.size() + data.size());
             data_.insert(data_.end(), data.begin(), data.end());
         }
 
-        virtual bool remove(const _T &data)
+        bool remove(const _T &data) override
         {
             if (!data_.empty())
                 for (int i = data_.size() - 1 ; i >= 0 ; --i)
@@ -98,7 +98,7 @@ namespace ompl
             return false;
         }
 
-        virtual _T nearest(const _T &data) const
+        _T nearest(const _T &data) const override
         {
             const std::size_t sz = data_.size();
             std::size_t pos = sz;
@@ -119,7 +119,7 @@ namespace ompl
         }
 
         /// Return the k nearest neighbors in sorted order
-        virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const
+        void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const override
         {
             nbh = data_;
             if (nbh.size() > k)
@@ -135,7 +135,7 @@ namespace ompl
         }
 
         /// Return the nearest neighbors within distance \c radius in sorted order
-        virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const
+        void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const override
         {
             nbh.clear();
             for (std::size_t i = 0 ; i < data_.size() ; ++i)
@@ -144,12 +144,12 @@ namespace ompl
             std::sort(nbh.begin(), nbh.end(), ElemSort(data, NearestNeighbors<_T>::distFun_));
         }
 
-        virtual std::size_t size() const
+        std::size_t size() const override
         {
             return data_.size();
         }
 
-        virtual void list(std::vector<_T> &data) const
+        void list(std::vector<_T> &data) const override
         {
             data = data_;
         }

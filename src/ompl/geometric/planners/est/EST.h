@@ -70,11 +70,11 @@ namespace ompl
             /** \brief Constructor */
             EST(const base::SpaceInformationPtr &si);
 
-            virtual ~EST();
+            ~EST() override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief In the process of randomly selecting states in
                 the state space to attempt to go towards, the
@@ -110,9 +110,9 @@ namespace ompl
                 return maxDistance_;
             }
 
-            virtual void setup();
+            void setup() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
         protected:
 

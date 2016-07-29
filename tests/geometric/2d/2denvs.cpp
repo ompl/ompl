@@ -248,7 +248,7 @@ class RRTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *rrt = new geometric::RRT(si);
         rrt->setRange(10.0);
@@ -260,7 +260,7 @@ class RRTConnectTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *rrt = new geometric::RRTConnect(si);
         rrt->setRange(10.0);
@@ -272,7 +272,7 @@ class pRRTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *rrt = new geometric::pRRT(si);
         rrt->setRange(10.0);
@@ -285,7 +285,7 @@ class TRRTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *rrt = new geometric::TRRT(si);
         rrt->setRange(10.0);
@@ -297,7 +297,7 @@ class LazyRRTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *rrt = new geometric::LazyRRT(si);
         rrt->setRange(10.0);
@@ -310,7 +310,7 @@ class SBLTest : public TestPlanner
 
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *sbl = new geometric::SBL(si);
         sbl->setRange(10.0);
@@ -335,7 +335,7 @@ class pSBLTest : public TestPlanner
 
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *sbl = new geometric::pSBL(si);
         sbl->setRange(10.0);
@@ -360,7 +360,7 @@ class KPIECE1Test : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *kpiece = new geometric::KPIECE1(si);
         kpiece->setRange(10.0);
@@ -383,7 +383,7 @@ class LBKPIECE1Test : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *kpiece = new geometric::LBKPIECE1(si);
         kpiece->setRange(10.0);
@@ -407,7 +407,7 @@ class BKPIECE1Test : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *kpiece = new geometric::BKPIECE1(si);
         kpiece->setRange(10.0);
@@ -431,7 +431,7 @@ class ESTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *est = new geometric::EST(si);
         est->setRange(10.0);
@@ -444,7 +444,7 @@ class BiESTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *est = new geometric::BiEST(si);
         est->setRange(10.0);
@@ -457,7 +457,7 @@ class ProjESTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *est = new geometric::ProjEST(si);
         est->setRange(10.0);
@@ -481,7 +481,7 @@ class STRIDETest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *stride = new geometric::STRIDE(si);
         stride->setRange(10.0);
@@ -494,7 +494,7 @@ class PDSTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *pdst = new geometric::PDST(si);
 
@@ -516,7 +516,7 @@ class PRMTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *prm = new geometric::PRM(si);
         return base::PlannerPtr(prm);
@@ -527,7 +527,7 @@ class PRMstarTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *prm = new geometric::PRMstar(si);
         return base::PlannerPtr(prm);
@@ -538,7 +538,7 @@ class LazyPRMTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *prm = new geometric::LazyPRM(si);
         return base::PlannerPtr(prm);
@@ -550,7 +550,7 @@ class LazyPRMstarTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *prm = new geometric::LazyPRMstar(si);
         return base::PlannerPtr(prm);
@@ -562,7 +562,7 @@ class SPARSTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *spars = new geometric::SPARS(si);
         return base::PlannerPtr(spars);
@@ -573,7 +573,7 @@ class SPARStwoTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto *sparstwo = new geometric::SPARStwo(si);
         return base::PlannerPtr(sparstwo);
@@ -613,7 +613,7 @@ public:
             {
             }
 
-            virtual bool isValid(const base::State *state) const
+            bool isValid(const base::State *state) const override
             {
                 return si_->equalStates(state, start_) || si_->equalStates(state, goal_);
             }

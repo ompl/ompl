@@ -100,7 +100,7 @@ namespace ompl
             {
             }
 
-            virtual ~CompoundState()
+            ~CompoundState() override
             {
             }
 

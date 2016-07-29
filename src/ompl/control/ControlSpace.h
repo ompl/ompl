@@ -207,7 +207,7 @@ namespace ompl
             {
             }
 
-            virtual ~CompoundControlSpace()
+            ~CompoundControlSpace() override
             {
             }
 
@@ -233,38 +233,38 @@ namespace ompl
             /** \brief Get a specific subspace from the compound control space */
             const ControlSpacePtr& getSubspace(const std::string &name) const;
 
-            virtual unsigned int getDimension() const;
+            unsigned int getDimension() const override;
 
-            virtual Control* allocControl() const;
+            Control* allocControl() const override;
 
-            virtual void freeControl(Control *control) const;
+            void freeControl(Control *control) const override;
 
-            virtual void copyControl(Control *destination, const Control *source) const;
+            void copyControl(Control *destination, const Control *source) const override;
 
-            virtual bool equalControls(const Control *control1, const Control *control2) const;
+            bool equalControls(const Control *control1, const Control *control2) const override;
 
-            virtual void nullControl(Control *control) const;
+            void nullControl(Control *control) const override;
 
-            virtual ControlSamplerPtr allocDefaultControlSampler() const;
+            ControlSamplerPtr allocDefaultControlSampler() const override;
 
-            virtual double* getValueAddressAtIndex(Control *control, const unsigned int index) const;
+            double* getValueAddressAtIndex(Control *control, const unsigned int index) const override;
 
-            virtual void printControl(const Control *control, std::ostream &out = std::cout) const;
+            void printControl(const Control *control, std::ostream &out = std::cout) const override;
 
-            virtual void printSettings(std::ostream &out) const;
+            void printSettings(std::ostream &out) const override;
 
-            virtual void setup();
+            void setup() override;
 
             /** \brief Returns the serialization size for a single control in this space */
-            virtual unsigned int getSerializationLength() const;
+            unsigned int getSerializationLength() const override;
 
             /** \brief Serializes the given control into the serialization buffer. */
-            virtual void serialize(void *serialization, const Control *ctrl) const;
+            void serialize(void *serialization, const Control *ctrl) const override;
 
             /** \brief Deserializes a control from the serialization buffer. */
-            virtual void deserialize(Control *ctrl, const void *serialization) const;
+            void deserialize(Control *ctrl, const void *serialization) const override;
 
-            virtual bool isCompound() const;
+            bool isCompound() const override;
 
             /** \brief Lock this control space. This means no further
              control spaces can be added as components.  This function can

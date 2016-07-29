@@ -67,7 +67,7 @@ namespace ompl
             /** \brief Copy constructor */
             PathControl(const PathControl &path);
 
-            virtual ~PathControl()
+            ~PathControl() override
             {
                 freeMemory();
             }
@@ -76,16 +76,16 @@ namespace ompl
             PathControl& operator=(const PathControl &other);
 
             /** \brief Not yet implemented. */
-            virtual base::Cost cost(const base::OptimizationObjectivePtr& obj) const;
+            base::Cost cost(const base::OptimizationObjectivePtr& obj) const override;
 
             /** \brief The path length (sum of control durations) */
-            virtual double length() const;
+            double length() const override;
 
             /** \brief Check if the path is valid */
-            virtual bool check() const;
+            bool check() const override;
 
             /** \brief Print the path to a stream */
-            virtual void print(std::ostream &out) const;
+            void print(std::ostream &out) const override;
             /** \brief Print the path as a real-valued matrix where the
                 i-th row represents the i-th state along the path, followed
                 by the control and duration needed to reach this state. For

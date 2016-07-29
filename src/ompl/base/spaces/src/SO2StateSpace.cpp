@@ -180,12 +180,12 @@ void ompl::base::SO2StateSpace::registerProjections()
         {
         }
 
-        virtual unsigned int getDimension() const
+        unsigned int getDimension() const override
         {
             return 1;
         }
 
-        virtual void defaultCellSizes()
+        void defaultCellSizes() override
         {
             cellSizes_.resize(1);
             cellSizes_[0] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
@@ -194,7 +194,7 @@ void ompl::base::SO2StateSpace::registerProjections()
             bounds_.high[0] = boost::math::constants::pi<double>();
         }
 
-        virtual void project(const State *state, EuclideanProjection &projection) const
+        void project(const State *state, EuclideanProjection &projection) const override
         {
             projection(0) = state->as<SO2StateSpace::StateType>()->value;
         }

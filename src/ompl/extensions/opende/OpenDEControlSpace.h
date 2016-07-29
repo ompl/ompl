@@ -57,7 +57,7 @@ namespace ompl
                 OpenDEStateSpace, an exception is thrown. */
             OpenDEControlSpace(const base::StateSpacePtr &stateSpace);
 
-            virtual ~OpenDEControlSpace()
+            ~OpenDEControlSpace() override
             {
             }
 

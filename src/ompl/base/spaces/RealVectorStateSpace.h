@@ -58,17 +58,17 @@ namespace ompl
             {
             }
 
-            virtual void sampleUniform(State *state);
+            void sampleUniform(State *state) override;
             /** \brief Sample a state such that each component state[i] is
                 uniformly sampled from [near[i]-distance, near[i]+distance].
                 If this interval exceeds the state space bounds, the
                 interval is truncated. */
-            virtual void sampleUniformNear(State *state, const State *near, const double distance);
+            void sampleUniformNear(State *state, const State *near, const double distance) override;
             /** \brief Sample a state such that each component state[i] has
                 a Gaussian distribution with mean mean[i] and standard
                 deviation stdDev. If the sampled value exceeds the state
                 space boundary, it is thresholded to the nearest boundary. */
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
         };
 
         /** \brief A state space representing R<sup>n</sup>. The distance function is the L2 norm. */
@@ -111,7 +111,7 @@ namespace ompl
                 dimensionNames_.resize(dim, "");
             }
 
-            virtual ~RealVectorStateSpace()
+            ~RealVectorStateSpace() override
             {
             }
 
@@ -135,7 +135,7 @@ namespace ompl
                 return bounds_;
             }
 
-            virtual unsigned int getDimension() const;
+            unsigned int getDimension() const override;
 
             /** \brief Each dimension can optionally have a name associated to it. If it does, this function returns that name.
                 Return empty string otherwise */
@@ -147,43 +147,43 @@ namespace ompl
             /** \brief Set the name of a dimension */
             void setDimensionName(unsigned int index, const std::string &name);
 
-            virtual double getMaximumExtent() const;
+            double getMaximumExtent() const override;
 
-            virtual double getMeasure() const;
+            double getMeasure() const override;
 
-            virtual void enforceBounds(State *state) const;
+            void enforceBounds(State *state) const override;
 
-            virtual bool satisfiesBounds(const State *state) const;
+            bool satisfiesBounds(const State *state) const override;
 
-            virtual void copyState(State *destination, const State *source) const;
+            void copyState(State *destination, const State *source) const override;
 
-            virtual unsigned int getSerializationLength() const;
+            unsigned int getSerializationLength() const override;
 
-            virtual void serialize(void *serialization, const State *state) const;
+            void serialize(void *serialization, const State *state) const override;
 
-            virtual void deserialize(State *state, const void *serialization) const;
+            void deserialize(State *state, const void *serialization) const override;
 
-            virtual double distance(const State *state1, const State *state2) const;
+            double distance(const State *state1, const State *state2) const override;
 
-            virtual bool equalStates(const State *state1, const State *state2) const;
+            bool equalStates(const State *state1, const State *state2) const override;
 
-            virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
+            void interpolate(const State *from, const State *to, const double t, State *state) const override;
 
-            virtual StateSamplerPtr allocDefaultStateSampler() const;
+            StateSamplerPtr allocDefaultStateSampler() const override;
 
-            virtual State* allocState() const;
+            State* allocState() const override;
 
-            virtual void freeState(State *state) const;
+            void freeState(State *state) const override;
 
-            virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
+            double* getValueAddressAtIndex(State *state, const unsigned int index) const override;
 
-            virtual void printState(const State *state, std::ostream &out) const;
+            void printState(const State *state, std::ostream &out) const override;
 
-            virtual void printSettings(std::ostream &out) const;
+            void printSettings(std::ostream &out) const override;
 
-            virtual void registerProjections();
+            void registerProjections() override;
 
-            virtual void setup();
+            void setup() override;
 
         protected:
 

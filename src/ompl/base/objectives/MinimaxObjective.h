@@ -52,17 +52,17 @@ namespace ompl
             MinimaxObjective(const SpaceInformationPtr &si);
 
             /** \brief Returns a cost with a value of 1. */
-            virtual Cost stateCost(const State *s) const;
+            Cost stateCost(const State *s) const override;
 
             /** \brief Interpolates between \e s1 and \e s2 to check for
                 state costs along the motion between the two
                 states. Assumes all costs are worse than identity */
-            virtual Cost motionCost(const State *s1, const State *s2) const;
+            Cost motionCost(const State *s1, const State *s2) const override;
 
             /** \brief Since we're only concerned about the "worst"
                 state cost in the path, combining two costs just
                 returns the worse of the two. */
-            virtual Cost combineCosts(Cost c1, Cost c2) const;
+            Cost combineCosts(Cost c1, Cost c2) const override;
         };
     }
 }

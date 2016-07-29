@@ -98,7 +98,7 @@ namespace ompl
             {
             }
 
-            virtual ~CompoundControl()
+            ~CompoundControl() override
             {
             }
 

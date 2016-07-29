@@ -307,11 +307,11 @@ namespace ompl
                 the subspace at position \e index is used. */
             SubspaceProjectionEvaluator(const StateSpace *space, unsigned int index, ProjectionEvaluatorPtr projToUse = ProjectionEvaluatorPtr());
 
-            virtual void setup();
+            void setup() override;
 
-            virtual unsigned int getDimension() const;
+            unsigned int getDimension() const override;
 
-            virtual void project(const State *state, EuclideanProjection &projection) const;
+            void project(const State *state, EuclideanProjection &projection) const override;
 
         protected:
 

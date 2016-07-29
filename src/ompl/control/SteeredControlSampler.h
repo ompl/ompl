@@ -60,11 +60,11 @@ namespace ompl
             {
             }
 
-            virtual ~SteeredControlSampler()
+            ~SteeredControlSampler() override
             {
             }
 
-            virtual unsigned int sampleTo(Control *control, const base::State *source, base::State *dest)
+            unsigned int sampleTo(Control *control, const base::State *source, base::State *dest) override
             {
                 double duration;
                 if (!si_->getStatePropagator()->steer(source, dest, control, duration)) return 0;
@@ -72,7 +72,7 @@ namespace ompl
                 return si_->propagateWhileValid(source, control, steps, dest);
             }
 
-            virtual unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest)
+            unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest) override
             {
                 return sampleTo(control, source, dest);
             }

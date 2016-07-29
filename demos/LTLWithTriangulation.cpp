@@ -62,16 +62,16 @@ class MyDecomposition : public oc::PropositionalTriangularDecomposition
 public:
     MyDecomposition(const ob::RealVectorBounds& bounds)
         : oc::PropositionalTriangularDecomposition(bounds) { }
-    virtual ~MyDecomposition() { }
+    ~MyDecomposition() override { }
 
-    virtual void project(const ob::State* s, std::vector<double>& coord) const
+    void project(const ob::State* s, std::vector<double>& coord) const override
     {
         coord.resize(2);
         coord[0] = s->as<ob::SE2StateSpace::StateType>()->getX();
         coord[1] = s->as<ob::SE2StateSpace::StateType>()->getY();
     }
 
-    virtual void sampleFullState(const ob::StateSamplerPtr& sampler, const std::vector<double>& coord, ob::State* s) const
+    void sampleFullState(const ob::StateSamplerPtr& sampler, const std::vector<double>& coord, ob::State* s) const override
     {
        sampler->sampleUniform(s);
        ob::SE2StateSpace::StateType* ws = s->as<ob::SE2StateSpace::StateType>();

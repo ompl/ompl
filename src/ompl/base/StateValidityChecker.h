@@ -178,7 +178,7 @@ namespace ompl
             }
 
             /** \brief Always return true (all states are considered valid) */
-            virtual bool isValid(const State * /* state */ ) const
+            bool isValid(const State * /* state */ ) const override
             {
                 return true;
             }

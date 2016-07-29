@@ -84,13 +84,13 @@ namespace ompl
             /** \brief Constructor */
             TRRT(const base::SpaceInformationPtr &si);
 
-            virtual ~TRRT();
+            ~TRRT() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &plannerTerminationCondition);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &plannerTerminationCondition) override;
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Set the goal bias
 
@@ -208,7 +208,7 @@ namespace ompl
                 nearestNeighbors_.reset(new NN<Motion*>());
             }
 
-            virtual void setup();
+            void setup() override;
 
         protected:
 

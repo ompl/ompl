@@ -55,23 +55,23 @@ namespace ompl
             /// \brief Default constructor
             PlannerDataStorage();
             /// \brief Destructor
-            virtual ~PlannerDataStorage();
+            ~PlannerDataStorage() override;
 
             /// \brief Load the PlannerData structure from the given filename.
-            virtual void load(const char *filename, base::PlannerData &pd);
+            void load(const char *filename, base::PlannerData &pd) override;
 
             /// \brief Deserializes the structure from the given stream.
-            virtual void load(std::istream &in, base::PlannerData &pd);
+            void load(std::istream &in, base::PlannerData &pd) override;
 
             /// \brief Store (serialize) the structure to the given filename.
             /// The StateSpace and ControlSpace that was used to store the data
             /// must match those inside of the argument PlannerData.
-            virtual void store(const base::PlannerData &pd, const char *filename);
+            void store(const base::PlannerData &pd, const char *filename) override;
 
             /// \brief Load the PlannerData structure from the given stream.
             /// The StateSpace and ControlSpace that was used to store the data
             /// must match those inside of the argument PlannerData.
-            virtual void store(const base::PlannerData &pd, std::ostream &out);
+            void store(const base::PlannerData &pd, std::ostream &out) override;
 
         protected:
 
@@ -107,7 +107,7 @@ namespace ompl
 
             /// \brief Read \e numEdges from the binary input \e ia and store them as PlannerData.  It is assumed
             /// that the edges can be cast to ompl::control::PlannerDataEdgeControl.
-            virtual void loadEdges(base::PlannerData &pd, unsigned int numEdges, boost::archive::binary_iarchive &ia)
+            void loadEdges(base::PlannerData &pd, unsigned int numEdges, boost::archive::binary_iarchive &ia) override
             {
                 OMPL_DEBUG("Loading %d PlannerDataEdgeControl objects", numEdges);
 
@@ -145,7 +145,7 @@ namespace ompl
 
             /// \brief Serialize and store all edges in \e pd to the binary archive.  It is assumed
             /// that the edges can be cast to ompl::control::PlannerDataEdgeControl.
-            virtual void storeEdges(const base::PlannerData &pd, boost::archive::binary_oarchive &oa)
+            void storeEdges(const base::PlannerData &pd, boost::archive::binary_oarchive &oa) override
             {
                 OMPL_DEBUG("Storing %d PlannerDataEdgeControl objects", pd.numEdges());
 

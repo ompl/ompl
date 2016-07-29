@@ -70,15 +70,15 @@ namespace ompl
             /** \brief Constructor */
             RRT(const SpaceInformationPtr &si);
 
-            virtual ~RRT();
+            ~RRT() override;
 
             /** \brief Continue solving for some amount of time. Return true if solution was found. */
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
             /** \brief Clear datastructures. Call this function if the
                 input data to the planner has changed and you do not
                 want to continue planning */
-            virtual void clear();
+            void clear() override;
 
             /** In the process of randomly selecting states in the state
                 space to attempt to go towards, the algorithm may in fact
@@ -110,7 +110,7 @@ namespace ompl
                 addIntermediateStates_ = addIntermediateStates;
             }
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
@@ -119,7 +119,7 @@ namespace ompl
                 nn_.reset(new NN<Motion*>());
             }
 
-            virtual void setup();
+            void setup() override;
 
         protected:
 

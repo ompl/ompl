@@ -102,14 +102,14 @@ public:
 
     // Returns whether the given state's position overlaps the
     // circular obstacle
-    bool isValid(const ob::State* state) const
+    bool isValid(const ob::State* state) const override
     {
         return this->clearance(state) > 0.0;
     }
 
     // Returns the distance from the given state's position to the
     // boundary of the circular obstacle.
-    double clearance(const ob::State* state) const
+    double clearance(const ob::State* state) const override
     {
         // We know we're working with a RealVectorStateSpace in this
         // example, so we downcast state into the specific type.
@@ -351,7 +351,7 @@ public:
     // minimization. Therefore, we set each state's cost to be the
     // reciprocal of its clearance, so that as state clearance
     // increases, the state cost decreases.
-    ob::Cost stateCost(const ob::State* s) const
+    ob::Cost stateCost(const ob::State* s) const override
     {
         return ob::Cost(1 / si_->getStateValidityChecker()->clearance(s));
     }

@@ -78,11 +78,11 @@ namespace ompl
             /** \brief Constructor */
             KPIECE1(const base::SpaceInformationPtr &si);
 
-            virtual ~KPIECE1();
+            ~KPIECE1() override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Set the goal bias.
 
@@ -191,9 +191,9 @@ namespace ompl
                 return projectionEvaluator_;
             }
 
-            virtual void setup();
+            void setup() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
         protected:
 

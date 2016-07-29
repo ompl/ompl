@@ -68,11 +68,11 @@ namespace ompl
         public:
             /// Constructor
             BiTRRT(const base::SpaceInformationPtr& si);
-            virtual ~BiTRRT();
-            virtual void clear();
-            virtual void setup();
-            virtual void getPlannerData(base::PlannerData &data) const;
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            ~BiTRRT() override;
+            void clear() override;
+            void setup() override;
+            void getPlannerData(base::PlannerData &data) const override;
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
             /// \brief Set the maximum possible length of any one motion in
             ///  the search tree.  Very short/long motions may inhibit

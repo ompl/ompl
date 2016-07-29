@@ -61,30 +61,30 @@ namespace ompl
         {
         }
 
-        virtual ~NearestNeighborsSqrtApprox()
+        ~NearestNeighborsSqrtApprox() override
         {
         }
 
-        virtual void clear()
+        void clear() override
         {
             NearestNeighborsLinear<_T>::clear();
             checks_ = 0;
             offset_ = 0;
         }
 
-        virtual void add(const _T &data)
+        void add(const _T &data) override
         {
             NearestNeighborsLinear<_T>::add(data);
             updateCheckCount();
         }
 
-        virtual void add(const std::vector<_T> &data)
+        void add(const std::vector<_T> &data) override
         {
             NearestNeighborsLinear<_T>::add(data);
             updateCheckCount();
         }
 
-        virtual bool remove(const _T &data)
+        bool remove(const _T &data) override
         {
             bool result = NearestNeighborsLinear<_T>::remove(data);
             if (result)
@@ -92,7 +92,7 @@ namespace ompl
             return result;
         }
 
-        virtual _T nearest(const _T &data) const
+        _T nearest(const _T &data) const override
         {
             const std::size_t n = NearestNeighborsLinear<_T>::data_.size();
             std::size_t pos = n;

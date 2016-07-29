@@ -175,11 +175,11 @@ namespace ompl
                     OMPL_ERROR("At least one setter or getter function must be specified for parameter");
             }
 
-            virtual ~SpecificParam()
+            ~SpecificParam() override
             {
             }
 
-            virtual bool setValue(const std::string &value)
+            bool setValue(const std::string &value) override
             {
                 bool result = true;
                 try
@@ -200,7 +200,7 @@ namespace ompl
                 return result;
             }
 
-            virtual std::string getValue() const
+            std::string getValue() const override
             {
                 if (getter_)
                     try

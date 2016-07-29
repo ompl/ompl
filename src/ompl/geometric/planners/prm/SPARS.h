@@ -188,11 +188,11 @@ namespace ompl
             /** \brief Constructor. */
             SPARS(const base::SpaceInformationPtr &si);
             /** \brief Destructor. */
-            virtual ~SPARS();
+            ~SPARS() override;
 
-            virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
+            void setProblemDefinition(const base::ProblemDefinitionPtr &pdef) override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
             /** \brief While the termination condition permits, construct the spanner graph */
             void constructRoadmap(const base::PlannerTerminationCondition &ptc);
@@ -213,7 +213,7 @@ namespace ompl
                 input states should be however cleared, without
                 clearing the roadmap itself. This can be done using
                 the clearQuery() function. */
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
             /** \brief Clear the query previously loaded from the ProblemDefinition.
                 Subsequent calls to solve() will reuse the previously computed roadmap,
@@ -221,7 +221,7 @@ namespace ompl
                 This enables multi-query functionality for PRM. */
             void clearQuery();
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Set a different nearest neighbors datastructure for the roadmap graph.
                 This nearest neighbor structure contains only information on the nodes
@@ -311,7 +311,7 @@ namespace ompl
                 return stretchFactor_;
             }
 
-            virtual void setup();
+            void setup() override;
 
             /** \brief Retrieve the underlying dense graph structure.  This is built as a PRM* and asymptotically approximates best paths through the space. */
             const DenseGraph& getDenseGraph() const

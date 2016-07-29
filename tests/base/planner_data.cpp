@@ -218,10 +218,10 @@ class TestEdge : public base::PlannerDataEdge
 public:
     TestEdge (unsigned int _a, unsigned int _b) : base::PlannerDataEdge(), a(_a), b(_b) {}
     TestEdge (const TestEdge &rhs) : base::PlannerDataEdge(), a(rhs.a), b(rhs.b) {}
-    virtual ~TestEdge () {}
+    ~TestEdge () override {}
 
     /// \brief Return a clone of this object, allocated from the heap.
-    virtual PlannerDataEdge* clone () const
+    PlannerDataEdge* clone () const override
     {
         return static_cast<PlannerDataEdge*>(new TestEdge(*this));
     }
@@ -459,7 +459,7 @@ public:
     PlannerDataTestVertex (base::State* st, int tag = 0, int tag2 = 0) : ompl::base::PlannerDataVertex(st, tag), tag2_(tag2) {}
     PlannerDataTestVertex (const PlannerDataTestVertex &rhs) : ompl::base::PlannerDataVertex(rhs.state_, rhs.tag_), tag2_(rhs.tag2_) {}
 
-    virtual ompl::base::PlannerDataVertex* clone () const
+    ompl::base::PlannerDataVertex* clone () const override
     {
         return static_cast<ompl::base::PlannerDataVertex*>(new PlannerDataTestVertex(*this));
     }

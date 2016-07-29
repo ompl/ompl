@@ -71,10 +71,10 @@ namespace ompl
                   double initial_lambda, unsigned int update_freq);
 
             /** Destructor. */
-            virtual ~VFRRT();
+            ~VFRRT() override;
 
             /** Reset internal data. */
-            virtual void clear();
+            void clear() override;
 
             /** Make a Monte Carlo estimate for the mean vector norm in the field. */
             double determineMeanNorm();
@@ -114,9 +114,9 @@ namespace ompl
             void updateExplorationEfficiency(Motion *m);
 
             /** Solve the planning problem. */
-            virtual base::PlannerStatus solve (const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve (const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void setup();
+            void setup() override;
 
         private:
 

@@ -91,14 +91,14 @@ namespace ompl
             {
             }
 
-            virtual double distance(const State *state1, const State *state2) const;
+            double distance(const State *state1, const State *state2) const override;
 
-            virtual void interpolate(const State *from, const State *to, const double t,
-                State *state) const;
+            void interpolate(const State *from, const State *to, const double t,
+                State *state) const override;
             virtual void interpolate(const State *from, const State *to, const double t,
                 bool &firstTime, ReedsSheppPath &path, State *state) const;
 
-            virtual void sanityChecks() const
+            void sanityChecks() const override
             {
                 double zero = std::numeric_limits<double>::epsilon();
                 double eps = .1; // rarely such a large error will occur
@@ -133,11 +133,11 @@ namespace ompl
             {
                 defaultSettings();
             }
-            virtual ~ReedsSheppMotionValidator()
+            ~ReedsSheppMotionValidator() override
             {
             }
-            virtual bool checkMotion(const State *s1, const State *s2) const;
-            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
+            bool checkMotion(const State *s1, const State *s2) const override;
+            bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const override;
         private:
             ReedsSheppStateSpace *stateSpace_;
             void defaultSettings();

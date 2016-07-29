@@ -54,7 +54,7 @@ namespace ompl
             OpenDEStateValidityChecker(const SpaceInformationPtr &si);
 
             /** \brief A state is considered valid if it is within bounds and not in collision */
-            virtual bool isValid(const base::State *state) const;
+            bool isValid(const base::State *state) const override;
 
         protected:
 

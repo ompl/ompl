@@ -56,7 +56,7 @@ namespace ompl
                 type_ = GOAL_SAMPLEABLE_REGION;
             }
 
-            virtual ~GoalSampleableRegion()
+            ~GoalSampleableRegion() override
             {
             }
 

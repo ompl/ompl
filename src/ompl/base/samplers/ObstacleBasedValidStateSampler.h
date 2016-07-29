@@ -61,12 +61,12 @@ namespace ompl
             /** \brief Constructor */
             ObstacleBasedValidStateSampler(const SpaceInformation *si);
 
-            virtual ~ObstacleBasedValidStateSampler()
+            ~ObstacleBasedValidStateSampler() override
             {
             }
 
-            virtual bool sample(State *state);
-            virtual bool sampleNear(State *state, const State *near, const double distance);
+            bool sample(State *state) override;
+            bool sampleNear(State *state, const State *near, const double distance) override;
 
         protected:
 

@@ -85,13 +85,13 @@ namespace ompl
                 STRIDE(const base::SpaceInformationPtr &si, bool useProjectedDistance = false,
                         unsigned int degree = 16, unsigned int minDegree = 12, unsigned int maxDegree = 18,
                         unsigned int maxNumPtsPerLeaf = 6, double estimatedDimension = 0.0);
-                virtual ~STRIDE();
+                ~STRIDE() override;
 
-                virtual void setup();
+                void setup() override;
 
-                virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+                base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-                virtual void clear();
+                void clear() override;
 
                 /** \brief In the process of randomly selecting states in
                   the state space to attempt to go towards, the
@@ -234,7 +234,7 @@ namespace ompl
                     return projectionEvaluator_;
                 }
 
-                virtual void getPlannerData(base::PlannerData &data) const;
+                void getPlannerData(base::PlannerData &data) const override;
 
             protected:
 

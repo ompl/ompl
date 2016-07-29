@@ -105,13 +105,13 @@ namespace ompl
             GoalLazySamples(const SpaceInformationPtr &si, GoalSamplingFn samplerFunc,
                             bool autoStart = true, double minDist = std::numeric_limits<double>::epsilon());
 
-            virtual ~GoalLazySamples();
+            ~GoalLazySamples() override;
 
-            virtual void sampleGoal(State *st) const;
+            void sampleGoal(State *st) const override;
 
-            virtual double distanceGoal(const State *st) const;
+            double distanceGoal(const State *st) const override;
 
-            virtual void addState(const State *st);
+            void addState(const State *st) override;
 
             /** \brief Start the goal sampling thread */
             void startSampling();
@@ -150,13 +150,13 @@ namespace ompl
             bool addStateIfDifferent(const State *st, double minDistance);
 
             /** \brief Return true if GoalStates::couldSample() is true or if the sampling thread is active, as in this case it is possible a sample can be produced at some point. */
-            virtual bool couldSample() const;
+            bool couldSample() const override;
 
-            virtual bool hasStates() const;
-            virtual const State* getState(unsigned int index) const;
-            virtual std::size_t getStateCount() const;
+            bool hasStates() const override;
+            const State* getState(unsigned int index) const override;
+            std::size_t getStateCount() const override;
 
-            virtual void clear();
+            void clear() override;
 
         protected:
 

@@ -118,7 +118,7 @@ namespace ompl
                 lock();
             }
 
-            virtual ~SE2StateSpace()
+            ~SE2StateSpace() override
             {
             }
 
@@ -134,10 +134,10 @@ namespace ompl
                 return as<RealVectorStateSpace>(0)->getBounds();
             }
 
-            virtual State* allocState() const;
-            virtual void freeState(State *state) const;
+            State* allocState() const override;
+            void freeState(State *state) const override;
 
-            virtual void registerProjections();
+            void registerProjections() override;
 
         };
     }

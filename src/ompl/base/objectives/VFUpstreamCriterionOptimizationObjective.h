@@ -64,19 +64,19 @@ namespace ompl
             }
 
             /** Assume we can always do better. */
-            bool isSatisfied(ompl::base::Cost c) const
+            bool isSatisfied(ompl::base::Cost c) const override
             {
                 return false;
             }
 
             /** \brief Returns a cost with a value of 0. */
-            virtual Cost stateCost(const State *s) const
+            Cost stateCost(const State *s) const override
             {
                 return Cost(0.);
             }
 
             /** Compute upstream criterion between two states. */
-            ompl::base::Cost motionCost(const State *s1, const State *s2) const
+            ompl::base::Cost motionCost(const State *s1, const State *s2) const override
             {
                 const base::StateSpacePtr &space = si_->getStateSpace();
                 // Per equation 1 in the paper, Riemann approximation on the left
@@ -101,7 +101,7 @@ namespace ompl
                 return ompl::base::Cost(cost);
             }
 
-            bool isSymmetric() const
+            bool isSymmetric() const override
             {
                 return false;
             }

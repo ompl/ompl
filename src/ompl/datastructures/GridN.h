@@ -70,7 +70,7 @@ namespace ompl
             {
             }
 
-            virtual ~Cell()
+            ~Cell() override
             {
             }
         };
@@ -88,7 +88,7 @@ namespace ompl
             setDimension(dimension);
         }
 
-        virtual ~GridN()
+        ~GridN() override
         {
         }
 
@@ -163,7 +163,7 @@ namespace ompl
         /// this call only creates the cell, but does not add it to
         /// the grid.  It however updates the neighbor count for
         /// neighboring cells
-        virtual BaseCell* createCell(const Coord& coord, BaseCellArray *nbh = nullptr)
+        BaseCell* createCell(const Coord& coord, BaseCellArray *nbh = nullptr) override
         {
             auto *cell = new Cell();
             cell->coord = coord;
@@ -191,7 +191,7 @@ namespace ompl
 
         /// Remove a cell from the grid. If the cell has not been
         /// Added to the grid, only update the neighbor list
-        virtual bool remove(BaseCell *cell)
+        bool remove(BaseCell *cell) override
         {
             if (cell)
             {

@@ -57,14 +57,14 @@ namespace ompl
             {
             }
 
-            virtual ~SyclopRRT()
+            ~SyclopRRT() override
             {
                 freeMemory();
             }
 
-            virtual void setup();
-            virtual void clear();
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void setup() override;
+            void clear() override;
+            void getPlannerData(base::PlannerData &data) const override;
 
             /** \brief If regionalNearestNeighbors is enabled, then when computing the closest Motion to a generated state
                 in a given Region, SyclopRRT will perform a linear search over the current Region and its neighbors instead of
@@ -86,8 +86,8 @@ namespace ompl
             }
 
         protected:
-            virtual Syclop::Motion* addRoot(const base::State *s);
-            virtual void selectAndExtend(Region &region, std::vector<Motion*> &newMotions);
+            Syclop::Motion* addRoot(const base::State *s) override;
+            void selectAndExtend(Region &region, std::vector<Motion*> &newMotions) override;
 
             /** \brief Free the memory allocated by this planner. */
             void freeMemory();

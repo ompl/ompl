@@ -87,14 +87,14 @@ namespace ompl
 
             PDST(const SpaceInformationPtr &si);
 
-            virtual ~PDST();
+            ~PDST() override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
-            virtual void clear();
-            virtual void setup();
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
+            void clear() override;
+            void setup() override;
 
             /// Extracts the planner data from the priority queue into data.
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
             /// Set the projection evaluator. This class is able to compute the projection of a given state.
             void setProjectionEvaluator(const base::ProjectionEvaluatorPtr &projectionEvaluator)

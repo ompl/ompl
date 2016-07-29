@@ -116,20 +116,20 @@ namespace ompl
                 Planner::declareParam<double>("prob_shortest_path_lead", this, &Syclop::setProbShortestPathLead, &Syclop::getProbShortestPathLead, "0.:.05:1.");
             }
 
-            virtual ~Syclop()
+            ~Syclop() override
             {
             }
 
             /// @name ompl::base::Planner Interface
             /// @{
 
-            virtual void setup();
+            void setup() override;
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Continues solving until a solution is found or a given planner termination condition is met.
                 Returns true if solution was found. */
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
             /// @}
 
             /// @name Tunable parameters
@@ -424,19 +424,19 @@ namespace ompl
                 {
                 }
 
-                virtual ~CoverageGrid()
+                ~CoverageGrid() override
                 {
                 }
 
                 /** \brief Since the CoverageGrid is defined in the same space as the Decomposition,
                     it uses the Decomposition's projection function. */
-                virtual void project(const base::State *s, std::vector<double>& coord) const
+                void project(const base::State *s, std::vector<double>& coord) const override
                 {
                     decomp->project(s, coord);
                 }
 
                 /** \brief Syclop will not sample from the CoverageGrid. */
-                virtual void sampleFullState(const base::StateSamplerPtr& /*sampler*/, const std::vector<double>& /*coord*/, base::State* /*s*/) const
+                void sampleFullState(const base::StateSamplerPtr& /*sampler*/, const std::vector<double>& /*coord*/, base::State* /*s*/) const override
                 {
                 }
 

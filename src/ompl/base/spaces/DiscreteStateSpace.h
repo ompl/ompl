@@ -54,9 +54,9 @@ namespace ompl
             {
             }
 
-            virtual void sampleUniform(State *state);
-            virtual void sampleUniformNear(State *state, const State *near, const double distance);
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+            void sampleUniform(State *state) override;
+            void sampleUniformNear(State *state, const State *near, const double distance) override;
+            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
         };
 
         /** \brief A space representing discrete states; i.e. there
@@ -86,47 +86,47 @@ namespace ompl
                 type_ = STATE_SPACE_DISCRETE;
             }
 
-            virtual ~DiscreteStateSpace()
+            ~DiscreteStateSpace() override
             {
             }
 
-            virtual bool isDiscrete() const;
+            bool isDiscrete() const override;
 
-            virtual unsigned int getDimension() const;
+            unsigned int getDimension() const override;
 
-            virtual double getMaximumExtent() const;
+            double getMaximumExtent() const override;
 
-            virtual double getMeasure() const;
+            double getMeasure() const override;
 
-            virtual void enforceBounds(State *state) const;
+            void enforceBounds(State *state) const override;
 
-            virtual bool satisfiesBounds(const State *state) const;
+            bool satisfiesBounds(const State *state) const override;
 
-            virtual unsigned int getSerializationLength() const;
+            unsigned int getSerializationLength() const override;
 
-            virtual void serialize(void *serialization, const State *state) const;
+            void serialize(void *serialization, const State *state) const override;
 
-            virtual void deserialize(State *state, const void *serialization) const;
+            void deserialize(State *state, const void *serialization) const override;
 
-            virtual void copyState(State *destination, const State *source) const;
+            void copyState(State *destination, const State *source) const override;
 
-            virtual double distance(const State *state1, const State *state2) const;
+            double distance(const State *state1, const State *state2) const override;
 
-            virtual bool equalStates(const State *state1, const State *state2) const;
+            bool equalStates(const State *state1, const State *state2) const override;
 
-            virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
+            void interpolate(const State *from, const State *to, const double t, State *state) const override;
 
-            virtual StateSamplerPtr allocDefaultStateSampler() const;
+            StateSamplerPtr allocDefaultStateSampler() const override;
 
-            virtual State* allocState() const;
+            State* allocState() const override;
 
-            virtual void freeState(State *state) const;
+            void freeState(State *state) const override;
 
-            virtual void printState(const State *state, std::ostream &out) const;
+            void printState(const State *state, std::ostream &out) const override;
 
-            virtual void printSettings(std::ostream &out) const;
+            void printSettings(std::ostream &out) const override;
 
-            virtual void registerProjections();
+            void registerProjections() override;
 
             /** \brief Returns the number of states possible */
             unsigned int getStateCount() const
@@ -153,7 +153,7 @@ namespace ompl
                 upperBound_ = upperBound;
             }
 
-            virtual void setup();
+            void setup() override;
 
         protected:
 

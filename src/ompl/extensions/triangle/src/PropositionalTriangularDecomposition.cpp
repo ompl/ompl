@@ -64,11 +64,11 @@ namespace
                              const ob::RealVectorBounds& bounds,
                              const std::vector<Polygon>& holes,
                              const std::vector<Polygon>& props);
-        virtual ~WrapperDecomposition() {}
-        virtual void project(const ob::State* s, std::vector<double>& coord) const;
-        virtual void sampleFromRegion(int rid, ompl::RNG& rng, std::vector<double>& coord) const;
-        virtual void sampleFullState(const ob::StateSamplerPtr& sampler,
-            const std::vector<double>& coord, ob::State* s) const;
+        ~WrapperDecomposition() override {}
+        void project(const ob::State* s, std::vector<double>& coord) const override;
+        void sampleFromRegion(int rid, ompl::RNG& rng, std::vector<double>& coord) const override;
+        void sampleFullState(const ob::StateSamplerPtr& sampler,
+            const std::vector<double>& coord, ob::State* s) const override;
     protected:
         const oc::Decomposition* decomp_;
     };

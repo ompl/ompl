@@ -65,7 +65,7 @@ namespace ompl
                                        bool enableMotionCostInterpolation = false);
 
             /** \brief Returns a cost with a value of 1. */
-            virtual Cost stateCost(const State *s) const;
+            Cost stateCost(const State *s) const override;
 
             /** \brief Compute the cost of a path segment from \e s1 to \e s2 (including endpoints)
                 \param s1 start state of the motion to be evaluated
@@ -84,7 +84,7 @@ namespace ompl
                 above formula to compute the cost of each of those
                 segments, and adding them up.
             */
-            virtual Cost motionCost(const State *s1, const State *s2) const;
+            Cost motionCost(const State *s1, const State *s2) const override;
 
             /** \brief Returns whether this objective subdivides
                 motions into smaller segments for more accurate motion

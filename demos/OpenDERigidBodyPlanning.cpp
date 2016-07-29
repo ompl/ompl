@@ -55,7 +55,7 @@ public:
         createWorld();
     }
 
-    virtual ~RigidBodyEnvironment()
+    ~RigidBodyEnvironment() override
     {
         destroyWorld();
     }
@@ -64,12 +64,12 @@ public:
      * Implementation of functions needed by planning *
      **************************************************/
 
-    virtual unsigned int getControlDimension() const
+    unsigned int getControlDimension() const override
     {
         return 3;
     }
 
-    virtual void getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const
+    void getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const override
     {
         static double maxForce = 0.2;
         lower.resize(3);
@@ -83,17 +83,17 @@ public:
         upper[2] = maxForce;
     }
 
-    virtual void applyControl(const double *control) const
+    void applyControl(const double *control) const override
     {
         dBodyAddForce(boxBody, control[0], control[1], control[2]);
     }
 
-    virtual bool isValidCollision(dGeomID /*geom1*/, dGeomID /*geom2*/, const dContact& /*contact*/) const
+    bool isValidCollision(dGeomID /*geom1*/, dGeomID /*geom2*/, const dContact& /*contact*/) const override
     {
         return false;
     }
 
-    virtual void setupContact(dGeomID /*geom1*/, dGeomID /*geom2*/, dContact &contact) const
+    void setupContact(dGeomID /*geom1*/, dGeomID /*geom2*/, dContact &contact) const override
     {
         contact.surface.mode = dContactSoftCFM | dContactApprox1;
         contact.surface.mu = 0.9;
@@ -145,7 +145,7 @@ public:
         threshold_ = 0.5;
     }
 
-    virtual double distanceGoal(const ob::State *st) const
+    double distanceGoal(const ob::State *st) const override
     {
         const double *pos = st->as<oc::OpenDEStateSpace::StateType>()->getBodyPosition(0);
         double dx = fabs(pos[0] - 30);
@@ -166,12 +166,12 @@ public:
     {
     }
 
-    virtual unsigned int getDimension() const
+    unsigned int getDimension() const override
     {
         return 3;
     }
 
-    virtual void defaultCellSizes()
+    void defaultCellSizes() override
     {
         cellSizes_.resize(3);
         cellSizes_[0] = 1;
@@ -179,7 +179,7 @@ public:
         cellSizes_[2] = 1;
     }
 
-    virtual void project(const ob::State *state, ob::EuclideanProjection &projection) const
+    void project(const ob::State *state, ob::EuclideanProjection &projection) const override
     {
         const double *pos = state->as<oc::OpenDEStateSpace::StateType>()->getBodyPosition(0);
         projection[0] = pos[0];
@@ -198,7 +198,7 @@ public:
     {
     }
 
-    virtual double distance(const ob::State *s1, const ob::State *s2) const
+    double distance(const ob::State *s1, const ob::State *s2) const override
     {
         const double *p1 = s1->as<oc::OpenDEStateSpace::StateType>()->getBodyPosition(0);
         const double *p2 = s2->as<oc::OpenDEStateSpace::StateType>()->getBodyPosition(0);
@@ -208,7 +208,7 @@ public:
         return sqrt(dx * dx + dy * dy + dz * dz);
     }
 
-    virtual void registerProjections()
+    void registerProjections() override
     {
             registerDefaultProjection(ob::ProjectionEvaluatorPtr(new RigidBodyStateProjectionEvaluator(this)));
     }

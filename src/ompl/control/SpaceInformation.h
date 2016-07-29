@@ -79,7 +79,7 @@ namespace ompl
             {
             }
 
-            virtual ~SpaceInformation()
+            ~SpaceInformation() override
             {
             }
 
@@ -264,10 +264,10 @@ namespace ompl
             /** @} */
 
             /** \brief Print information about the current instance of the state space */
-            virtual void printSettings(std::ostream &out = std::cout) const;
+            void printSettings(std::ostream &out = std::cout) const override;
 
             /** \brief Perform additional setup tasks (run once, before use) */
-            virtual void setup();
+            void setup() override;
 
         protected:
 

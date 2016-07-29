@@ -58,22 +58,22 @@ namespace ompl
                 \f$(r_1,\ldots,r_k)\f$, where \f$ 0 \leq r_i < \texttt{len}\f$. */
             GridDecomposition(int len, int dim, const base::RealVectorBounds &b);
 
-            virtual ~GridDecomposition()
+            ~GridDecomposition() override
             {
             }
 
-            virtual int getNumRegions() const { return numGridCells_; }
+            int getNumRegions() const override { return numGridCells_; }
 
-            virtual double getRegionVolume(int /*rid*/)
+            double getRegionVolume(int /*rid*/) override
             {
                 return cellVolume_;
             }
 
-            virtual void getNeighbors(int rid, std::vector<int>& neighbors) const;
+            void getNeighbors(int rid, std::vector<int>& neighbors) const override;
 
-            virtual int locateRegion(const base::State *s) const;
+            int locateRegion(const base::State *s) const override;
 
-            virtual void sampleFromRegion(int rid, RNG &rng, std::vector<double>& coord) const;
+            void sampleFromRegion(int rid, RNG &rng, std::vector<double>& coord) const override;
 
         protected:
             /** \brief Helper method to return the bounds of a given region. */

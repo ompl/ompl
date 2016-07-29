@@ -143,9 +143,9 @@ namespace ompl
             /** \brief Constructor */
             PRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
 
-            virtual ~PRM();
+            ~PRM() override;
 
-            virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
+            void setProblemDefinition(const base::ProblemDefinitionPtr &pdef) override;
 
             /** \brief Set the connection strategy function that specifies the
              milestones that connection attempts will be make to for a
@@ -188,7 +188,7 @@ namespace ompl
                 connectionFilter_ = connectionFilter;
             }
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
             /** \brief While the termination condition allows, this function will construct the roadmap (using growRoadmap() and expandRoadmap(),
                 maintaining a 2:1 ratio for growing/expansion of roadmap) */
@@ -227,7 +227,7 @@ namespace ompl
                 planner, the input states should be however cleared,
                 without clearing the roadmap itself. This can be done
                 using the clearQuery() function. */
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
             /** \brief Clear the query previously loaded from the ProblemDefinition.
                 Subsequent calls to solve() will reuse the previously computed roadmap,
@@ -235,7 +235,7 @@ namespace ompl
                 This enables multi-query functionality for PRM. */
             void clearQuery();
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Set a different nearest neighbors datastructure */
             template<template<typename T> class NN>
@@ -248,7 +248,7 @@ namespace ompl
                     setup();
             }
 
-            virtual void setup();
+            void setup() override;
 
             const Graph& getRoadmap() const
             {

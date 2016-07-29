@@ -138,7 +138,7 @@ namespace ompl
             }
 
             /** \brief Destructor. This frees the added samplers as well. */
-            virtual ~CompoundControlSampler()
+            ~CompoundControlSampler() override
             {
             }
 
@@ -148,10 +148,10 @@ namespace ompl
             virtual void addSampler(const ControlSamplerPtr &sampler);
 
 
-            virtual void sample(Control *control);
-            virtual void sample(Control *control, const base::State *state);
-            virtual void sampleNext(Control *control, const Control *previous);
-            virtual void sampleNext(Control *control, const Control *previous, const base::State *state);
+            void sample(Control *control) override;
+            void sample(Control *control, const base::State *state) override;
+            void sampleNext(Control *control, const Control *previous) override;
+            void sampleNext(Control *control, const Control *previous, const base::State *state) override;
 
         protected:
 

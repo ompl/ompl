@@ -103,29 +103,29 @@ namespace ompl
             {
             }
 
-            virtual bool isMetricSpace() const
+            bool isMetricSpace() const override
             {
                 return false;
             }
 
-            virtual double distance(const State *state1, const State *state2) const;
+            double distance(const State *state1, const State *state2) const override;
 
-            virtual void interpolate(const State *from, const State *to, const double t,
-                State *state) const;
+            void interpolate(const State *from, const State *to, const double t,
+                State *state) const override;
             virtual void interpolate(const State *from, const State *to, const double t,
                 bool &firstTime, DubinsPath &path, State *state) const;
 
-            virtual bool hasSymmetricDistance() const
+            bool hasSymmetricDistance() const override
             {
                 return isSymmetric_;
             }
 
-            virtual bool hasSymmetricInterpolate() const
+            bool hasSymmetricInterpolate() const override
             {
                 return isSymmetric_;
             }
 
-            virtual void sanityChecks() const
+            void sanityChecks() const override
             {
                 double zero = std::numeric_limits<double>::epsilon();
                 double eps = std::numeric_limits<float>::epsilon();
@@ -172,11 +172,11 @@ namespace ompl
             {
                 defaultSettings();
             }
-            virtual ~DubinsMotionValidator()
+            ~DubinsMotionValidator() override
             {
             }
-            virtual bool checkMotion(const State *s1, const State *s2) const;
-            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
+            bool checkMotion(const State *s1, const State *s2) const override;
+            bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const override;
         private:
             DubinsStateSpace *stateSpace_;
             void defaultSettings();

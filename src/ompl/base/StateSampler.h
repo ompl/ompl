@@ -121,7 +121,7 @@ namespace ompl
             }
 
             /** \brief Destructor. This frees the added samplers as well. */
-            virtual ~CompoundStateSampler()
+            ~CompoundStateSampler() override
             {
             }
 
@@ -133,15 +133,15 @@ namespace ompl
                 according to the specified importance. */
             virtual void addSampler(const StateSamplerPtr &sampler, double weightImportance);
 
-            virtual void sampleUniform(State *state);
+            void sampleUniform(State *state) override;
 
             /** \brief Call sampleUniformNear for each of the subspace states
                 with distance scaled by the corresponding subspace weight. */
-            virtual void sampleUniformNear(State *state, const State *near, const double distance);
+            void sampleUniformNear(State *state, const State *near, const double distance) override;
 
             /** \brief Call sampleGaussian for each of the subspace states
                 with stdDev scaled by the corresponding subspace weight. */
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
 
         protected:
 
@@ -165,13 +165,13 @@ namespace ompl
 
             /** \brief Construct a sampler for \e space but only sample components common to \e subspace. Use \e weight as a multiplicative factor for \e distance and \e stdDev in the sampleUniformNear() and sampleGaussian() functions. */
             SubspaceStateSampler(const StateSpace *space, const StateSpace *subspace, double weight);
-            virtual ~SubspaceStateSampler();
+            ~SubspaceStateSampler() override;
 
-            virtual void sampleUniform(State *state);
+            void sampleUniform(State *state) override;
 
-            virtual void sampleUniformNear(State *state, const State *near, const double distance);
+            void sampleUniformNear(State *state, const State *near, const double distance) override;
 
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
 
         protected:
 

@@ -24,14 +24,14 @@ public:
     {
         setup();
     }
-    virtual void project(const ob::State* s, std::vector<double>& coord) const
+    void project(const ob::State* s, std::vector<double>& coord) const override
     {
         coord.resize(2);
         coord[0] = s->as<ob::SE2StateSpace::StateType>()->getX();
         coord[1] = s->as<ob::SE2StateSpace::StateType>()->getY();
     }
 
-    virtual void sampleFullState(const ob::StateSamplerPtr& sampler, const std::vector<double>& coord, ob::State* s) const
+    void sampleFullState(const ob::StateSamplerPtr& sampler, const std::vector<double>& coord, ob::State* s) const override
     {
         sampler->sampleUniform(s);
         s->as<ob::SE2StateSpace::StateType>()->setXY(coord[0], coord[1]);

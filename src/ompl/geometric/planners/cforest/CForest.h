@@ -81,11 +81,11 @@ namespace ompl
 
             CForest(const base::SpaceInformationPtr &si);
 
-            virtual ~CForest();
+            ~CForest() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Add an specific planner instance. */
             template <class T>
@@ -125,9 +125,9 @@ namespace ompl
                 return planners_[idx];
             }
 
-            virtual void setup();
+            void setup() override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
             void addSampler(base::StateSamplerPtr sampler)
             {

@@ -87,10 +87,10 @@ void oc::LTLSpaceInformation::extendPropagator(const oc::SpaceInformationPtr& ol
                            oc::StatePropagatorPtr  lowProp)
             : oc::StatePropagator(ltlsi),
               prod_(std::move(prod)), lowProp_(std::move(lowProp)), ltlsi_(ltlsi) {}
-        virtual ~LTLStatePropagator() {}
+        ~LTLStatePropagator() override {}
 
-        virtual void propagate(const ob::State* state, const oc::Control* control,
-                               const double duration, ob::State* result) const
+        void propagate(const ob::State* state, const oc::Control* control,
+                               const double duration, ob::State* result) const override
         {
             const ob::State* lowLevelPrev = ltlsi_->getLowLevelState(state);
             ob::State* lowLevelResult = ltlsi_->getLowLevelState(result);
@@ -105,7 +105,7 @@ void oc::LTLSpaceInformation::extendPropagator(const oc::SpaceInformationPtr& ol
                 <ob::DiscreteStateSpace::StateType>(SAFE)->value = nextHigh->getSafeState();
         }
 
-        virtual bool canPropagateBackward() const
+        bool canPropagateBackward() const override
         {
             return lowProp_->canPropagateBackward();
         }
@@ -132,8 +132,8 @@ void oc::LTLSpaceInformation::extendValidityChecker(const oc::SpaceInformationPt
             : ob::StateValidityChecker(ltlsi), prod_(std::move(prod)), lowChecker_(std::move(lowChecker)), ltlsi_(ltlsi)
         {
         }
-        virtual ~LTLStateValidityChecker() { }
-        virtual bool isValid(const ob::State* s) const
+        ~LTLStateValidityChecker() override { }
+        bool isValid(const ob::State* s) const override
         {
             return ltlsi_->getProdGraphState(s)->isValid()
                 && lowChecker_->isValid(ltlsi_->getLowLevelState(s));

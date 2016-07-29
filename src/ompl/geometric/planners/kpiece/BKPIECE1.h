@@ -79,7 +79,7 @@ namespace ompl
             /** \brief Constructor */
             BKPIECE1(const base::SpaceInformationPtr &si);
 
-            virtual ~BKPIECE1();
+            ~BKPIECE1() override;
 
             /** \brief Set the projection evaluator. This class is
                 able to compute the projection of a given state. */
@@ -169,12 +169,12 @@ namespace ompl
                 return minValidPathFraction_;
             }
 
-            virtual void setup();
+            void setup() override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
-            virtual void clear();
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
+            void clear() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
         protected:
 
