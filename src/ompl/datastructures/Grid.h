@@ -165,7 +165,6 @@ namespace ompl
         std::vector< std::vector<Cell*> > components() const
         {
             using ComponentHash = std::unordered_map<Coord*, int, HashFunCoordPtr, EqualCoordPtr>;
-            using CHit = typename ComponentHash::iterator;
 
             int components = 0;
             ComponentHash ch;
