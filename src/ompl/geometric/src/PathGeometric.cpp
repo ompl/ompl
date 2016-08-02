@@ -206,8 +206,8 @@ std::pair<bool, bool> ompl::geometric::PathGeometric::checkAndRepair(unsigned in
     }
 
     // a path with invalid endpoints cannot be fixed; planners should not return such paths anyway
-    const int n1 = states_.size();
-    if (!si_->isValid(states_[0]) || !si_->isValid(states_[n1 - 1]))
+    const int n1 = states_.size() - 1;
+    if (!si_->isValid(states_[0]) || !si_->isValid(states_[n1]))
         return std::make_pair(false, false);
 
     base::State *temp = nullptr;
@@ -215,7 +215,11 @@ std::pair<bool, bool> ompl::geometric::PathGeometric::checkAndRepair(unsigned in
     bool result = true;
 
     for (int i = 1 ; i < n1 ; ++i)
-        if (!si_->checkMotion(states_[i-1], states_[i]))
+        if (!si_->checkMotion(states_[i-1], states_[i]) ||
+            // the penultimate state in the path needs an additional check:
+            // the motion between that state and the last state needs to be
+            // valid as well since we cannot change the last state.
+            (i == n1 - 1 && !si_->checkMotion(states_[i], states_[i + 1])))
         {
             // we now compute a state around which to sample
             if (!temp)
@@ -253,7 +257,10 @@ std::pair<bool, bool> ompl::geometric::PathGeometric::checkAndRepair(unsigned in
             for (unsigned int a = 0 ; a < attempts ; ++a)
                 if (uvss->sampleNear(states_[i], temp, radius))
                 {
-                    if (si_->checkMotion(states_[i-1], states_[i]))
+                    if (si_->checkMotion(states_[i-1], states_[i]) &&
+                        // the penultimate state needs an additional check
+                        // (see comment at the top of outermost for-loop)
+                        (i < n1 - 1 || si_->checkMotion(states_[i], states_[i + 1])))
                     {
                         success = true;
                         break;
