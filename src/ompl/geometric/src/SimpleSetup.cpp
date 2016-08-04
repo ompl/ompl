@@ -90,6 +90,12 @@ void ompl::geometric::SimpleSetup::clear()
 void ompl::geometric::SimpleSetup::setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal,
                                                          const double threshold)
 {
+    setStartAndGoalStates(start.get(), goal.get(), threshold);
+}
+
+void ompl::geometric::SimpleSetup::setStartAndGoalStates(const base::State* start, const base::State* goal,
+                                                         const double threshold)
+{
     pdef_->setStartAndGoalStates(start, goal, threshold);
 
     // Clear any past solutions since they no longer correspond to our start and goal states
