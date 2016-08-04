@@ -37,6 +37,7 @@
 #ifndef OMPL_DATASTRUCTURES_BINARY_HEAP_
 #define OMPL_DATASTRUCTURES_BINARY_HEAP_
 
+#include <functional>
 #include <vector>
 #include <cassert>
 

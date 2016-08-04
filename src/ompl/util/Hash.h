@@ -37,6 +37,7 @@
 #ifndef OMPL_UTIL_HASH_
 #define OMPL_UTIL_HASH_
 
+#include <functional>
 #include <type_traits>
 #include <utility>
 
