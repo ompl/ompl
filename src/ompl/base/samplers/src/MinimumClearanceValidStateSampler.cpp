@@ -44,9 +44,9 @@ ompl::base::MinimumClearanceValidStateSampler::MinimumClearanceValidStateSampler
     ValidStateSampler(si), sampler_(si->allocStateSampler()), clearance_(1)
 {
     name_ = "min_clearance";
-    params_.declareParam<unsigned int>("min_obstacle_clearance",
-                                       std::bind(&MinimumClearanceValidStateSampler::setMinimumObstacleClearance, this, std::placeholders::_1),
-                                       std::bind(&MinimumClearanceValidStateSampler::getMinimumObstacleClearance, this));
+    params_.declareParam<double>("min_obstacle_clearance",
+        [this](double c) { setMinimumObstacleClearance(c); },
+        [this] { return getMinimumObstacleClearance(); });
 }
 
 bool ompl::base::MinimumClearanceValidStateSampler::sample(State *state)

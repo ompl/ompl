@@ -191,7 +191,11 @@ void plan()
     cspace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
 
     oc::SpaceInformationPtr si(new oc::SpaceInformation(space, cspace));
-    si->setStateValidityChecker(std::bind(&isStateValid, si.get(), ptd, std::placeholders::_1));
+    si->setStateValidityChecker(
+        [&si, ptd](const ob::State *state)
+        {
+            return isStateValid(si.get(), ptd, state);
+        });
     si->setStatePropagator(propagate);
     si->setPropagationStepSize(0.025);
 

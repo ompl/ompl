@@ -42,7 +42,6 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/pending/disjoint_sets.hpp>
-#include <functional>
 #include <mutex>
 #include <utility>
 #include <vector>

@@ -45,7 +45,6 @@
 #include "ompl/base/Cost.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"
-#include <functional>
 #include <boost/serialization/access.hpp>
 
 namespace ompl

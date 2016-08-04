@@ -87,14 +87,10 @@ ompl::geometric::LazyPRM::LazyPRM(const base::SpaceInformationPtr &si, bool star
     if (!starStrategy_)
         Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &LazyPRM::setMaxNearestNeighbors, std::string("8:1000"));
 
-    addPlannerProgressProperty("iterations INTEGER",
-                               std::bind(&LazyPRM::getIterationCount, this));
-    addPlannerProgressProperty("best cost REAL",
-                               std::bind(&LazyPRM::getBestCost, this));
-    addPlannerProgressProperty("milestone count INTEGER",
-                               std::bind(&LazyPRM::getMilestoneCountString, this));
-    addPlannerProgressProperty("edge count INTEGER",
-                               std::bind(&LazyPRM::getEdgeCountString, this));
+    addPlannerProgressProperty("iterations INTEGER", [this] { return getIterationCount(); });
+    addPlannerProgressProperty("best cost REAL", [this] { return getBestCost(); });
+    addPlannerProgressProperty("milestone count INTEGER", [this] { return getMilestoneCountString(); });
+    addPlannerProgressProperty("edge count INTEGER", [this] { return getEdgeCountString(); });
 }
 
 ompl::geometric::LazyPRM::~LazyPRM() = default;
@@ -108,18 +104,17 @@ void ompl::geometric::LazyPRM::setup()
     if (!nn_)
     {
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
-        nn_->setDistanceFunction(std::bind(&LazyPRM::distanceFunction, this,
-            std::placeholders::_1, std::placeholders::_2));
+        nn_->setDistanceFunction([this](const Vertex a, const Vertex b) { return distanceFunction(a, b); });
     }
     if (!connectionStrategy_)
     {
         if (starStrategy_)
-            connectionStrategy_ = KStarStrategy<Vertex>(std::bind(&LazyPRM::milestoneCount, this), nn_, si_->getStateDimension());
+            connectionStrategy_ = KStarStrategy<Vertex>([this] { return milestoneCount(); }, nn_, si_->getStateDimension());
         else
             connectionStrategy_ = KBoundedStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS_LAZY, maxDistance_, nn_);
     }
     if (!connectionFilter_)
-        connectionFilter_ = [] (const Vertex&, const Vertex&) { return true; };
+        connectionFilter_ = [](const Vertex&, const Vertex&) { return true; };
 
     // Setup optimization objective
     //
@@ -162,8 +157,7 @@ void ompl::geometric::LazyPRM::setMaxNearestNeighbors(unsigned int k)
     if (!nn_)
     {
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
-        nn_->setDistanceFunction(std::bind(&LazyPRM::distanceFunction, this,
-            std::placeholders::_1, std::placeholders::_2));
+        nn_->setDistanceFunction([this](const Vertex a, const Vertex b) { return distanceFunction(a, b); });
     }
     if (!userSetConnectionStrategy_)
         connectionStrategy_ = ConnectionStrategy();
@@ -418,12 +412,10 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &st
     {
         // Consider using a persistent distance_map if it's slow
         boost::astar_search(g_, start,
-                            std::bind(&LazyPRM::costHeuristic, this, std::placeholders::_1, goal),
+                            [this, goal](Vertex v) { return costHeuristic(v, goal); },
                             boost::predecessor_map(prev).
-                            distance_compare(std::bind(&base::OptimizationObjective::
-                                                         isCostBetterThan, opt_.get(), std::placeholders::_1, std::placeholders::_2)).
-                            distance_combine(std::bind(&base::OptimizationObjective::
-                                                         combineCosts, opt_.get(), std::placeholders::_1, std::placeholders::_2)).
+                            distance_compare([this](base::Cost c1, base::Cost c2) { return opt_->isCostBetterThan(c1, c2); }).
+                            distance_combine([this](base::Cost c1, base::Cost c2) { return opt_->combineCosts(c1, c2); }).
                             distance_inf(opt_->infiniteCost()).
                             distance_zero(opt_->identityCost()).
                             visitor(AStarGoalVisitor<Vertex>(goal)));

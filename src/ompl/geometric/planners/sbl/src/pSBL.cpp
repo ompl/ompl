@@ -245,7 +245,7 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
 
     std::vector<std::thread*> th(threadCount_);
     for (unsigned int i = 0 ; i < threadCount_ ; ++i)
-        th[i] = new std::thread(std::bind(&pSBL::threadSolve, this, i, ptc, &sol));
+        th[i] = new std::thread([this, i, &ptc, &sol] { threadSolve(i, ptc, &sol); });
     for (unsigned int i = 0 ; i < threadCount_ ; ++i)
     {
         th[i]->join();

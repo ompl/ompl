@@ -69,7 +69,7 @@ void ompl::geometric::pRRT::setup()
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(std::bind(&pRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    nn_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 }
 
 void ompl::geometric::pRRT::clear()
@@ -205,7 +205,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
 
     std::vector<std::thread*> th(threadCount_);
     for (unsigned int i = 0 ; i < threadCount_ ; ++i)
-        th[i] = new std::thread(std::bind(&pRRT::threadSolve, this, i, ptc, &sol));
+        th[i] = new std::thread([this, i, &ptc, &sol] { return threadSolve(i, ptc, &sol); });
     for (unsigned int i = 0 ; i < threadCount_ ; ++i)
     {
         th[i]->join();

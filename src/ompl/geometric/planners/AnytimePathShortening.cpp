@@ -58,12 +58,10 @@ ompl::geometric::AnytimePathShortening::AnytimePathShortening (const ompl::base:
     Planner::declareParam<unsigned int>("max_hybrid_paths", this, &AnytimePathShortening::setMaxHybridizationPath, &AnytimePathShortening::maxHybridizationPaths, "0:1:50");
     Planner::declareParam<unsigned int>("num_planners", this, &AnytimePathShortening::setDefaultNumPlanners, &AnytimePathShortening::getDefaultNumPlanners, "0:64");
 
-    addPlannerProgressProperty("best cost REAL",
-                               std::bind(&AnytimePathShortening::getBestCost, this));
+    addPlannerProgressProperty("best cost REAL", [this] { return getBestCost(); });
 }
 
-ompl::geometric::AnytimePathShortening::~AnytimePathShortening()
-= default;
+ompl::geometric::AnytimePathShortening::~AnytimePathShortening() = default;
 
 void ompl::geometric::AnytimePathShortening::addPlanner(base::PlannerPtr &planner)
 {
@@ -127,7 +125,8 @@ ompl::base::PlannerStatus ompl::geometric::AnytimePathShortening::solve(const om
 
         // Spawn a thread for each planner.  This will shortcut the best path after solving.
         for (size_t i = 0; i < threads.size(); ++i)
-            threads[i] = new std::thread(std::bind(&AnytimePathShortening::threadSolve, this, planners_[i].get(), ptc));
+            threads[i] = new std::thread(
+                [this, i, &ptc] { return threadSolve(planners_[i].get(), ptc); });
 
         // Join each thread, and then delete it
         for (auto & thread : threads)

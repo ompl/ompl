@@ -49,11 +49,13 @@ void ompl::control::Syclop::setup()
 {
     base::Planner::setup();
     if (!leadComputeFn)
-        setLeadComputeFn(std::bind(&ompl::control::Syclop::defaultComputeLead, this,
-            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        setLeadComputeFn(
+            [this](int startRegion, int goalRegion, std::vector<int>& lead)
+            {
+                defaultComputeLead(startRegion, goalRegion, lead);
+            });
     buildGraph();
-    addEdgeCostFactor(std::bind(&ompl::control::Syclop::defaultEdgeCost, this,
-        std::placeholders::_1, std::placeholders::_2));
+    addEdgeCostFactor([this](int r, int s) { return defaultEdgeCost(r,s); });
 }
 
 void ompl::control::Syclop::clear()

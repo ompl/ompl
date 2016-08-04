@@ -50,8 +50,7 @@ void ompl::control::SyclopRRT::setup()
     if (!nn_ && !regionalNN_)
     {
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-        nn_->setDistanceFunction(std::bind(&SyclopRRT::distanceFunction, this,
-            std::placeholders::_1, std::placeholders::_2));
+        nn_->setDistanceFunction([this](Motion *a, const Motion *b) { return distanceFunction(a, b); });
     }
 }
 

@@ -43,7 +43,6 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
-#include <functional>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -129,7 +128,7 @@ ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpace *space) :
     bounds_(0), estimatedBounds_(0),
     defaultCellSizes_(true), cellSizesWereInferred_(false)
 {
-    params_.declareParam<double>("cellsize_factor", std::bind(&ProjectionEvaluator::mulCellSizes, this, std::placeholders::_1));
+    params_.declareParam<double>("cellsize_factor", [this](double factor) { mulCellSizes(factor); });
 }
 
 ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpacePtr &space) :
@@ -137,7 +136,7 @@ ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpacePtr &space)
     bounds_(0), estimatedBounds_(0),
     defaultCellSizes_(true), cellSizesWereInferred_(false)
 {
-    params_.declareParam<double>("cellsize_factor", std::bind(&ProjectionEvaluator::mulCellSizes, this, std::placeholders::_1));
+    params_.declareParam<double>("cellsize_factor", [this](double factor) { mulCellSizes(factor); });
 }
 
 ompl::base::ProjectionEvaluator::~ProjectionEvaluator() = default;
@@ -293,9 +292,6 @@ void ompl::base::ProjectionEvaluator::inferCellSizes()
 
 void ompl::base::ProjectionEvaluator::setup()
 {
-    using setCellSizesFunctionType = void (ompl::base::ProjectionEvaluator::*)(unsigned int, double);
-    using getCellSizesFunctionType = double (ompl::base::ProjectionEvaluator::*)(unsigned int) const;
-
     if (defaultCellSizes_)
         defaultCellSizes();
 
@@ -308,8 +304,8 @@ void ompl::base::ProjectionEvaluator::setup()
     unsigned int dim = getDimension();
     for (unsigned int i = 0 ; i < dim ; ++i)
         params_.declareParam<double>("cellsize." + std::to_string(i),
-                                     std::bind((setCellSizesFunctionType)&ProjectionEvaluator::setCellSizes, this, i, std::placeholders::_1),
-                                     std::bind((getCellSizesFunctionType)&ProjectionEvaluator::getCellSizes, this, i));
+            [this, i](double cellsize) { setCellSizes(i, cellsize); },
+            [this, i] { return getCellSizes(i); });
 }
 
 void ompl::base::ProjectionEvaluator::computeCoordinates(const EuclideanProjection &projection, ProjectionCoordinates &coord) const

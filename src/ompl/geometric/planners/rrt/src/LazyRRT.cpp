@@ -63,7 +63,7 @@ void ompl::geometric::LazyRRT::setup()
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(std::bind(&LazyRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    nn_->setDistanceFunction([this] (const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 }
 
 void ompl::geometric::LazyRRT::clear()

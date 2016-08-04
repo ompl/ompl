@@ -46,6 +46,7 @@
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 #include "ompl/datastructures/PDF.h"
 #include "ompl/util/Hash.h"
+#include <functional>
 #include <map>
 #include <utility>
 #include <vector>

@@ -44,7 +44,7 @@ void ompl::tools::PlannerMonitor::startMonitor()
     if (monitorThread_)
         return;
     shouldMonitor_ = true;
-    monitorThread_.reset(new std::thread(std::bind(&PlannerMonitor::threadFunction, this)));
+    monitorThread_.reset(new std::thread([this] { threadFunction(); }));
 }
 
 void ompl::tools::PlannerMonitor::stopMonitor()

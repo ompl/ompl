@@ -53,7 +53,6 @@
 #include <boost/graph/connected_components.hpp>
 #include <boost/property_map/property_map.hpp>
 #include <boost/pending/disjoint_sets.hpp>
-#include <functional>
 #include <thread>
 #include <iostream>
 #include <fstream>

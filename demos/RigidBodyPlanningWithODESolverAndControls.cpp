@@ -190,7 +190,9 @@ void planWithSimpleSetup()
     oc::SimpleSetup ss(cspace);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(std::bind(&isStateValid, ss.getSpaceInformation().get(), std::placeholders::_1));
+    oc::SpaceInformation *si = ss.getSpaceInformation().get();
+    ss.setStateValidityChecker(
+        [si](const ob::State *state) { return isStateValid(si, state); });
 
     // Setting the propagation routine for this space:
     // KinematicCarModel does NOT use ODESolver

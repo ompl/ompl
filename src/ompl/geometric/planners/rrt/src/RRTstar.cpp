@@ -90,10 +90,8 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     Planner::declareParam<bool>("focus_search", this, &RRTstar::setFocusSearch, &RRTstar::getFocusSearch, "0,1");
     Planner::declareParam<bool>("number_sampling_attempts", this, &RRTstar::setNumSamplingAttempts, &RRTstar::getNumSamplingAttempts, "10:10:100000");
 
-    addPlannerProgressProperty("iterations INTEGER",
-                               std::bind(&RRTstar::numIterationsProperty, this));
-    addPlannerProgressProperty("best cost REAL",
-                               std::bind(&RRTstar::bestCostProperty, this));
+    addPlannerProgressProperty("iterations INTEGER", [this] { return numIterationsProperty(); });
+    addPlannerProgressProperty("best cost REAL", [this] { return bestCostProperty(); });
 }
 
 ompl::geometric::RRTstar::~RRTstar()
@@ -113,7 +111,7 @@ void ompl::geometric::RRTstar::setup()
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(std::bind(&RRTstar::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    nn_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 
     // Setup optimization objective
     //

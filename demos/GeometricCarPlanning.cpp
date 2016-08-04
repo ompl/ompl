@@ -79,9 +79,12 @@ void plan(const ob::StateSpacePtr& space, bool easy)
     og::SimpleSetup ss(space);
 
     // set state validity checking for this space
-    ob::SpaceInformationPtr si(ss.getSpaceInformation());
-    ss.setStateValidityChecker(std::bind(
-        easy ? &isStateValidEasy : &isStateValidHard, si.get(), std::placeholders::_1));
+    const ob::SpaceInformation *si = ss.getSpaceInformation().get();
+    auto isStateValid = easy ? isStateValidEasy : isStateValidHard;
+    ss.setStateValidityChecker([isStateValid, si](const ob::State *state)
+        {
+            return isStateValid(si, state);
+        });
 
     // set the start and goal states
     if (easy)

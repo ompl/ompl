@@ -126,7 +126,10 @@ namespace ompl
                 bounds.high[0] = (double)env_.height - 0.000000001;
                 getStateSpace()->as<base::CompoundStateSpace>()->as<StateSpace2DMap1>(1)->setBounds(bounds);
 
-                setStateValidityChecker(std::bind(&isValidFn2DMap1, &env_.grid, std::placeholders::_1));
+                setStateValidityChecker([this](const base::State *state)
+                    {
+                        return isValidFn2DMap1(&env_.grid, state);
+                    });
 
                 base::ScopedState<base::CompoundStateSpace> state(getSpaceInformation());
                 state->as<base::RealVectorStateSpace::StateType>(0)->values[0] = env_.start.first;

@@ -69,10 +69,10 @@ void ompl::geometric::SST::setup()
     base::Planner::setup();
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(std::bind(&SST::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    nn_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
     if (!witnesses_)
         witnesses_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    witnesses_->setDistanceFunction(std::bind(&SST::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    witnesses_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 
     if (pdef_)
     {

@@ -43,7 +43,6 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/Hash.h"
 #include <algorithm>
-#include <functional>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <unordered_map>

@@ -142,13 +142,17 @@ int main(int, char**)
     cmanifold->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
 
     oc::SimpleSetup setup(cmanifold);
+    const oc::SpaceInformation *si = setup.getSpaceInformation().get();
     setup.setStartAndGoalStates(start, goal, 5.);
-    setup.setStateValidityChecker(std::bind(
-        &isStateValid, setup.getSpaceInformation().get(), std::placeholders::_1));
-    setup.setStatePropagator(std::bind(
-        &propagate, setup.getSpaceInformation().get(),
-        std::placeholders::_1, std::placeholders::_2,
-        std::placeholders::_3, std::placeholders::_4));
+    setup.setStateValidityChecker([si](const ob::State *state)
+        {
+            return isStateValid(si, state);
+        });
+    setup.setStatePropagator([si](const ob::State *state, const oc::Control* control,
+        const double duration, ob::State *result)
+        {
+            propagate(si, state, control, duration, result);
+        });
     setup.getSpaceInformation()->setPropagationStepSize(.1);
     setup.getSpaceInformation()->setMinMaxControlDuration(2, 3);
 

@@ -100,10 +100,16 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTe
     // Decide if we are combining solutions or just taking the first one
     if (hybridize)
         for (std::size_t i = 0 ; i < threads.size() ; ++i)
-            threads[i] = new std::thread(std::bind(&ParallelPlan::solveMore, this, planners_[i].get(), minSolCount, maxSolCount, &ptc));
+            threads[i] = new std::thread([this, i, minSolCount, maxSolCount, &ptc]
+                {
+                    solveMore(planners_[i].get(), minSolCount, maxSolCount, &ptc);
+                });
     else
         for (std::size_t i = 0 ; i < threads.size() ; ++i)
-            threads[i] = new std::thread(std::bind(&ParallelPlan::solveOne, this, planners_[i].get(), minSolCount, &ptc));
+            threads[i] = new std::thread([this, i, minSolCount, maxSolCount, &ptc]
+                {
+                    solveOne(planners_[i].get(), minSolCount, &ptc);
+                });
 
     for (auto & thread : threads)
     {

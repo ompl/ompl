@@ -73,7 +73,7 @@ namespace ompl
             }
 
             /** \brief Get the minimum required distance of sample from nearest obstacle to be considered valid */
-            unsigned int getMinimumObstacleClearance() const
+            double getMinimumObstacleClearance() const
             {
                 return clearance_;
             }

@@ -87,7 +87,10 @@ namespace ompl
                 //     return;
                 // }
 
-                // std::thread t(std::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates)));
+                // std::thread t([planner, memStart, maxMem, maxTime, timeBetweenUpdates]
+                //      {
+                //          runThread(planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates)); });
+                //      }
 
                 // allow 25% more time than originally specified, in order to detect planner termination
                 // if (!t.try_join_for(time::seconds(maxTime * 1.25)))
@@ -142,7 +145,9 @@ namespace ompl
 
                 try
                 {
-                    base::PlannerTerminationConditionFn ptc = std::bind(&terminationCondition, maxMem, time::now() + maxDuration);
+                    const time::point endtime = time::now() + maxDuration;
+                    base::PlannerTerminationConditionFn ptc(
+                        [maxMem, endtime] { return terminationCondition(maxMem, endtime); });
                     solved_ = false;
                     // Only launch the planner progress property
                     // collector if there is any data for it to report
@@ -153,9 +158,13 @@ namespace ompl
                     // collector begins sampling
                     boost::scoped_ptr<std::thread> t;
                     if (planner->getPlannerProgressProperties().size() > 0)
-                        t.reset(new std::thread(std::bind(&RunPlanner::collectProgressProperties,                                                               this,
-                                                              planner->getPlannerProgressProperties(),
-                                                              timeBetweenUpdates)));
+                        t.reset(new std::thread(
+                            [this, &planner, timeBetweenUpdates]
+                            {
+                                collectProgressProperties(
+                                    planner->getPlannerProgressProperties(),
+                                    timeBetweenUpdates);
+                            }));
                     status_ = planner->solve(ptc, 0.1);
                     solvedFlag_.lock();
                     solved_ = true;

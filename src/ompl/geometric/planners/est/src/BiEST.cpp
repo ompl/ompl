@@ -73,8 +73,10 @@ void ompl::geometric::BiEST::setup()
         nnStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
     if (!nnGoal_)
         nnGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nnStart_->setDistanceFunction(std::bind(&BiEST::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
-    nnGoal_->setDistanceFunction(std::bind(&BiEST::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    nnStart_->setDistanceFunction(
+        [this](const Motion *a, const Motion *b) { return distanceFunction(a,b); });
+    nnGoal_->setDistanceFunction(
+        [this](const Motion *a, const Motion *b) { return distanceFunction(a,b); });
 }
 
 void ompl::geometric::BiEST::clear()

@@ -63,11 +63,6 @@ using namespace ompl;
 
 const double PI = boost::math::constants::pi<double>();
 
-bool isValid(const base::State *)
-{
-    return true;
-}
-
 BOOST_AUTO_TEST_CASE(Dubins_Simple)
 {
     base::StateSpacePtr d(new base::DubinsStateSpace()), dsym(new base::DubinsStateSpace(1., true));
@@ -225,7 +220,7 @@ BOOST_AUTO_TEST_CASE(SO3_Simple)
     s2.random();
 
     base::SpaceInformation si(m);
-    si.setStateValidityChecker(std::bind(&isValid, std::placeholders::_1));
+    si.setStateValidityChecker([](const base::State *) { return true; });
     si.setup();
 
     std::vector<base::State*> states;

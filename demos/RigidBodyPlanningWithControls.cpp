@@ -134,11 +134,11 @@ void plan()
     oc::SpaceInformationPtr si(new oc::SpaceInformation(space, cspace));
 
     // set state validity checking for this space
-    si->setStateValidityChecker(std::bind(&isStateValid, si.get(),  std::placeholders::_1));
+    si->setStateValidityChecker(
+        [&si](const ob::State *state) { return isStateValid(si.get(), state); });
 
     // set the state propagation routine
-    si->setStatePropagator(std::bind(&propagate, std::placeholders::_1,
-        std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    si->setStatePropagator(propagate);
 
     // create a start state
     ob::ScopedState<ob::SE2StateSpace> start(space);
@@ -221,12 +221,11 @@ void planWithSimpleSetup()
     oc::SimpleSetup ss(cspace);
 
     // set the state propagation routine
-    ss.setStatePropagator(std::bind(&propagate, std::placeholders::_1,
-        std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    ss.setStatePropagator(propagate);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(std::bind(&isStateValid,
-        ss.getSpaceInformation().get(), std::placeholders::_1));
+    ss.setStateValidityChecker(
+        [&ss](const ob::State *state) { return isStateValid(ss.getSpaceInformation().get(), state); });
 
     // create a start state
     ob::ScopedState<ob::SE2StateSpace> start(space);

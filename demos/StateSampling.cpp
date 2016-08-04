@@ -149,7 +149,7 @@ void plan(int samplerIndex)
     og::SimpleSetup ss(space);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(std::bind(&isStateValid, std::placeholders::_1));
+    ss.setStateValidityChecker(isStateValid);
 
     // create a start state
     ob::ScopedState<> start(space);

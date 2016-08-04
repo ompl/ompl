@@ -123,8 +123,14 @@ void stateSpaceTest(base::StateSpace& space, NearestNeighbors<base::State*>& pro
     NearestNeighborsLinear<base::State*> proximityLinear;
     base::State* s;
 
-    proximity.setDistanceFunction(std::bind(&base::StateSpace::distance, &space, std::placeholders::_1, std::placeholders::_2));
-    proximityLinear.setDistanceFunction(std::bind(&base::StateSpace::distance, &space, std::placeholders::_1, std::placeholders::_2));
+    proximity.setDistanceFunction([&space](const base::State *a, const base::State *b)
+        {
+            return space.distance(a, b);
+        });
+    proximityLinear.setDistanceFunction([&space](const base::State *a, const base::State *b)
+        {
+            return space.distance(a, b);
+        });
 
     for(i=0; i<n; ++i)
     {
@@ -213,8 +219,14 @@ void randomAccessPatternTest(base::StateSpace& space, NearestNeighbors<base::Sta
     base::State* s;
     double r;
 
-    proximity.setDistanceFunction(std::bind(&base::StateSpace::distance, &space, std::placeholders::_1, std::placeholders::_2));
-    proximityLinear.setDistanceFunction(std::bind(&base::StateSpace::distance, &space, std::placeholders::_1, std::placeholders::_2));
+    proximity.setDistanceFunction([&space](const base::State *a, const base::State *b)
+        {
+            return space.distance(a, b);
+        });
+    proximityLinear.setDistanceFunction([&space](const base::State *a, const base::State *b)
+        {
+            return space.distance(a, b);
+        });
 
     for (i=0; i<m; ++i)
     {

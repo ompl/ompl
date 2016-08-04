@@ -276,7 +276,7 @@ BOOST_AUTO_TEST_CASE(AllocationWithThreads)
     ompl::time::point start = ompl::time::now();
     std::vector<std::thread*> threads;
     for (int i = 0 ; i < NT ; ++i)
-        threads.push_back(new std::thread(std::bind(&randomizedAllocator, &si)));
+        threads.push_back(new std::thread([&si] { randomizedAllocator(&si); }));
     for (int i = 0 ; i < NT ; ++i)
     {
         threads[i]->join();

@@ -43,8 +43,6 @@
 #include <sstream>
 //For stream manipulations
 #include <iomanip>
-//For std::bind
-#include <functional>
 //For boost math constants
 #include <boost/math/constants/constants.hpp>
 
@@ -159,25 +157,25 @@ namespace ompl
             //Planner::declareParam<bool>("use_edge_failure_tracking", this, &BITstar::setUseFailureTracking, &BITstar::getUseFailureTracking, "0,1");
 
             //Register my progress info:
-            addPlannerProgressProperty("best cost DOUBLE", std::bind(&BITstar::bestCostProgressProperty, this));
-            addPlannerProgressProperty("number of segments in solution path INTEGER", std::bind(&BITstar::bestLengthProgressProperty, this));
-            addPlannerProgressProperty("current free states INTEGER", std::bind(&BITstar::currentFreeProgressProperty, this));
-            addPlannerProgressProperty("current graph vertices INTEGER", std::bind(&BITstar::currentVertexProgressProperty, this));
-            addPlannerProgressProperty("state collision checks INTEGER", std::bind(&BITstar::stateCollisionCheckProgressProperty, this));
-            addPlannerProgressProperty("edge collision checks INTEGER", std::bind(&BITstar::edgeCollisionCheckProgressProperty, this));
-            addPlannerProgressProperty("nearest neighbour calls INTEGER", std::bind(&BITstar::nearestNeighbourProgressProperty, this));
+            addPlannerProgressProperty("best cost DOUBLE", [this] { return bestCostProgressProperty(); });
+            addPlannerProgressProperty("number of segments in solution path INTEGER", [this] { return bestLengthProgressProperty(); });
+            addPlannerProgressProperty("current free states INTEGER", [this] { return currentFreeProgressProperty(); });
+            addPlannerProgressProperty("current graph vertices INTEGER", [this] { return currentVertexProgressProperty(); });
+            addPlannerProgressProperty("state collision checks INTEGER", [this] { return stateCollisionCheckProgressProperty(); });
+            addPlannerProgressProperty("edge collision checks INTEGER", [this] { return edgeCollisionCheckProgressProperty(); });
+            addPlannerProgressProperty("nearest neighbour calls INTEGER", [this] { return nearestNeighbourProgressProperty(); });
 
             //Extra progress info that aren't necessary for every day use. Uncomment if desired.
-            //addPlannerProgressProperty("vertex queue size INTEGER", std::bind(&BITstar::vertexQueueSizeProgressProperty, this));
-            //addPlannerProgressProperty("edge queue size INTEGER", std::bind(&BITstar::edgeQueueSizeProgressProperty, this));
-            //addPlannerProgressProperty("iterations INTEGER", std::bind(&BITstar::iterationProgressProperty, this));
-            //addPlannerProgressProperty("batches INTEGER", std::bind(&BITstar::batchesProgressProperty, this));
-            //addPlannerProgressProperty("graph prunings INTEGER", std::bind(&BITstar::pruningProgressProperty, this));
-            //addPlannerProgressProperty("total states generated INTEGER", std::bind(&BITstar::totalStatesCreatedProgressProperty, this));
-            //addPlannerProgressProperty("vertices constructed INTEGER", std::bind(&BITstar::verticesConstructedProgressProperty, this));
-            //addPlannerProgressProperty("states pruned INTEGER", std::bind(&BITstar::statesPrunedProgressProperty, this));
-            //addPlannerProgressProperty("graph vertices disconnected INTEGER", std::bind(&BITstar::verticesDisconnectedProgressProperty, this));
-            //addPlannerProgressProperty("rewiring edges INTEGER", std::bind(&BITstar::rewiringProgressProperty, this));
+            //addPlannerProgressProperty("vertex queue size INTEGER", [this] { return vertexQueueSizeProgressProperty(); });
+            //addPlannerProgressProperty("edge queue size INTEGER", [this] { return edgeQueueSizeProgressProperty(); });
+            //addPlannerProgressProperty("iterations INTEGER", [this] { return iterationProgressProperty(); });
+            //addPlannerProgressProperty("batches INTEGER", [this] { return batchesProgressProperty(); });
+            //addPlannerProgressProperty("graph prunings INTEGER", [this] { return pruningProgressProperty(); });
+            //addPlannerProgressProperty("total states generated INTEGER", [this] { return totalStatesCreatedProgressProperty(); });
+            //addPlannerProgressProperty("vertices constructed INTEGER", [this] { return verticesConstructedProgressProperty(); });
+            //addPlannerProgressProperty("states pruned INTEGER", [this] { return statesPrunedProgressProperty(); });
+            //addPlannerProgressProperty("graph vertices disconnected INTEGER", [this] { return verticesDisconnectedProgressProperty(); });
+            //addPlannerProgressProperty("rewiring edges INTEGER", [this] { return rewiringProgressProperty(); });
         }
 
 
@@ -238,22 +236,22 @@ namespace ompl
             //No else, already allocated (by a call to setNearestNeighbors())
 
             //Configure:
-            freeStateNN_->setDistanceFunction(std::bind(&BITstar::nnDistance, this,
-                std::placeholders::_1, std::placeholders::_2));
-            vertexNN_->setDistanceFunction(std::bind(&BITstar::nnDistance, this,
-                std::placeholders::_1, std::placeholders::_2));
+            NearestNeighbors<VertexPtr>::DistanceFunction distfun(
+                [this](const VertexConstPtr& a, const VertexConstPtr& b) { return nnDistance(a,b); });
+            freeStateNN_->setDistanceFunction(distfun);
+            vertexNN_->setDistanceFunction(distfun);
 
             //Configure the queue
             //std::make_shared can only take 9 arguments, so be careful:
             intQueue_ = std::make_shared<IntegratedQueue> (opt_,
-                std::bind(&BITstar::nnDistance, this, std::placeholders::_1, std::placeholders::_2),
-                std::bind(&BITstar::nearestSamples, this, std::placeholders::_1, std::placeholders::_2),
-                std::bind(&BITstar::nearestVertices, this, std::placeholders::_1, std::placeholders::_2),
-                std::bind(&BITstar::lowerBoundHeuristicVertex, this, std::placeholders::_1),
-                std::bind(&BITstar::currentHeuristicVertex, this, std::placeholders::_1),
-                std::bind(&BITstar::lowerBoundHeuristicEdge, this, std::placeholders::_1),
-                std::bind(&BITstar::currentHeuristicEdge, this, std::placeholders::_1),
-                std::bind(&BITstar::currentHeuristicEdgeTarget, this, std::placeholders::_1));
+                [this](const VertexConstPtr &a, const VertexConstPtr &b) { return nnDistance(a, b); },
+                [this](const VertexPtr &a, std::vector<VertexPtr> *b) { return nearestSamples(a, b); },
+                [this](const VertexPtr &a, std::vector<VertexPtr> *b) { return nearestVertices(a, b); },
+                [this](const VertexConstPtr &a) { return lowerBoundHeuristicVertex(a); },
+                [this](const VertexConstPtr &a) { return currentHeuristicVertex(a); },
+                [this](const VertexConstPtrPair &a) { return lowerBoundHeuristicEdge(a); },
+                [this](const VertexConstPtrPair &a) { return currentHeuristicEdge(a); },
+                [this](const VertexConstPtrPair &a) { return currentHeuristicEdgeTarget(a); });
             intQueue_->setDelayedRewiring(delayRewiring_);
 
             //Set the best-cost, pruned-cost, sampled-cost and min-cost to the proper opt_-based values:

@@ -97,8 +97,7 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
     updateWeight(prodStart_);
     availDist_.add(prodStart_, abstractInfo_[prodStart_].weight);
 
-    abstraction_->buildGraph(prodStart_,
-        std::bind(&LTLPlanner::initAbstractInfo, this, std::placeholders::_1));
+    abstraction_->buildGraph(prodStart_, [this](ProductGraph::State* as) { initAbstractInfo(as); });
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
@@ -111,7 +110,7 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
     while (ptc()==false && !solved)
     {
         const std::vector<ProductGraph::State*> lead = abstraction_->computeLead(prodStart_,
-            std::bind(&LTLPlanner::abstractEdgeWeight, this, std::placeholders::_1, std::placeholders::_2));
+            [this](ProductGraph::State* a, ProductGraph::State* b) { return abstractEdgeWeight(a, b); });
         buildAvail(lead);
         solved = explore(lead, soln, exploreTime_);
     }

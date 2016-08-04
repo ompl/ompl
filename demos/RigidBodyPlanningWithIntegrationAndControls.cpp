@@ -219,7 +219,9 @@ void planWithSimpleSetup()
     oc::SimpleSetup ss(cspace);
 
     /// set state validity checking for this space
-    ss.setStateValidityChecker(std::bind(&isStateValid, ss.getSpaceInformation().get(), std::placeholders::_1));
+    const oc::SpaceInformation *si = ss.getSpaceInformation().get();
+    ss.setStateValidityChecker(
+        [si](const ob::State *state) { return isStateValid(si, state); });
 
     /// set the propagation routine for this space
     ss.setStatePropagator(oc::StatePropagatorPtr(new DemoStatePropagator(ss.getSpaceInformation())));

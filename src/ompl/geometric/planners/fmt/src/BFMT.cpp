@@ -72,8 +72,8 @@ void BFMT::setup()
 
         if (!nn_)
             nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<BiDirMotion*>(this));
-        nn_->setDistanceFunction(std::bind(&BFMT::distanceFunction, this,
-            std::placeholders::_1, std::placeholders::_2));
+        nn_->setDistanceFunction(
+            [this](const BiDirMotion *a, const BiDirMotion *b) { return distanceFunction(a,b); });
 
         if (nearestK_ && !nn_->reportsSortedResults())
         {

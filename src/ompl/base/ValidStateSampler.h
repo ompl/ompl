@@ -40,7 +40,6 @@
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/base/GenericParam.h"
-#include <functional>
 #include <string>
 
 namespace ompl

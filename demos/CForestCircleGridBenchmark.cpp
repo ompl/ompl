@@ -113,7 +113,12 @@ int main(int argc, char **argv)
     og::SimpleSetup ss(space);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(std::bind(&isStateValid, obstacleRadius*obstacleRadius, std::placeholders::_1));
+    double radiusSquared = obstacleRadius * obstacleRadius;
+    ss.setStateValidityChecker(
+        [radiusSquared](const ob::State *state)
+        {
+            return isStateValid(radiusSquared, state);
+        });
 
     // define start & goal states
     ob::ScopedState<ob::SE2StateSpace> start(space), goal(space);

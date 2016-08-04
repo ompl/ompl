@@ -91,14 +91,10 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
     if (!starStrategy_)
         Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors, std::string("8:1000"));
 
-    addPlannerProgressProperty("iterations INTEGER",
-                               std::bind(&PRM::getIterationCount, this));
-    addPlannerProgressProperty("best cost REAL",
-                               std::bind(&PRM::getBestCost, this));
-    addPlannerProgressProperty("milestone count INTEGER",
-                               std::bind(&PRM::getMilestoneCountString, this));
-    addPlannerProgressProperty("edge count INTEGER",
-                               std::bind(&PRM::getEdgeCountString, this));
+    addPlannerProgressProperty("iterations INTEGER", [this] { return getIterationCount(); });
+    addPlannerProgressProperty("best cost REAL", [this] { return getBestCost(); });
+    addPlannerProgressProperty("milestone count INTEGER", [this] { return getMilestoneCountString(); });
+    addPlannerProgressProperty("edge count INTEGER", [this] { return getEdgeCountString(); });
 }
 
 ompl::geometric::PRM::~PRM()
@@ -114,12 +110,12 @@ void ompl::geometric::PRM::setup()
         specs_.multithreaded = false;  // temporarily set to false since nn_ is used only in single thread
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
         specs_.multithreaded = true;
-        nn_->setDistanceFunction(std::bind(&PRM::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+        nn_->setDistanceFunction([this](const Vertex a, const Vertex b) { return distanceFunction(a, b); });
     }
     if (!connectionStrategy_)
     {
         if (starStrategy_)
-            connectionStrategy_ = KStarStrategy<Vertex>(std::bind(&PRM::milestoneCount, this), nn_, si_->getStateDimension());
+            connectionStrategy_ = KStarStrategy<Vertex>([this] { return milestoneCount(); }, nn_, si_->getStateDimension());
         else
             connectionStrategy_ = KStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS, nn_);
     }
@@ -158,7 +154,7 @@ void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
         specs_.multithreaded = false; // temporarily set to false since nn_ is used only in single thread
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
         specs_.multithreaded = true;
-        nn_->setDistanceFunction(std::bind(&PRM::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+        nn_->setDistanceFunction([this](const Vertex a, const Vertex b) { return distanceFunction(a, b); });
     }
     if (!userSetConnectionStrategy_)
         connectionStrategy_ = ConnectionStrategy();
@@ -435,11 +431,10 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     // Reset addedNewSolution_ member and create solution checking thread
     addedNewSolution_ = false;
     base::PathPtr sol;
-    std::thread slnThread(std::bind(&PRM::checkForSolution, this, ptc, boost::ref(sol)));
+    std::thread slnThread([this, &ptc, &sol] { checkForSolution(ptc, sol); });
 
     // construct new planner termination condition that fires when the given ptc is true, or a solution is found
-    base::PlannerTerminationCondition ptcOrSolutionFound =
-        base::plannerOrTerminationCondition(ptc, base::PlannerTerminationCondition(std::bind(&PRM::addedNewSolution, this)));
+    base::PlannerTerminationCondition ptcOrSolutionFound([this, &ptc] { return ptc || addedNewSolution(); });
 
     constructRoadmap(ptcOrSolutionFound);
 
@@ -543,12 +538,10 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start,
     {
         // Consider using a persistent distance_map if it's slow
         boost::astar_search(g_, start,
-                            std::bind(&PRM::costHeuristic, this, std::placeholders::_1, goal),
+                            [this, goal](Vertex v) { return costHeuristic(v, goal); },
                             boost::predecessor_map(prev).
-                            distance_compare(std::bind(&base::OptimizationObjective::
-                                                         isCostBetterThan, opt_.get(), std::placeholders::_1, std::placeholders::_2)).
-                            distance_combine(std::bind(&base::OptimizationObjective::
-                                                         combineCosts, opt_.get(), std::placeholders::_1, std::placeholders::_2)).
+                            distance_compare([this](base::Cost c1, base::Cost c2) { return opt_->isCostBetterThan(c1, c2); }).
+                            distance_combine([this](base::Cost c1, base::Cost c2) { return opt_->combineCosts(c1, c2); }).
                             distance_inf(opt_->infiniteCost()).
                             distance_zero(opt_->identityCost()).
                             visitor(AStarGoalVisitor<Vertex>(goal)));

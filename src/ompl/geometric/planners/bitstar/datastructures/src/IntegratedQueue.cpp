@@ -62,11 +62,17 @@ namespace ompl
                 delayRewiring_(true),
                 outgoingLookupTables_(true),
                 incomingLookupTables_(true),
-                vertexQueue_( std::bind(&BITstar::IntegratedQueue::vertexQueueComparison, this,
-                    std::placeholders::_1, std::placeholders::_2) ), //This tells the vertexQueue_ to use the vertexQueueComparison for sorting
+                vertexQueue_(
+                    [this](const ompl::base::Cost& lhs, const ompl::base::Cost& rhs)
+                    {
+                        return vertexQueueComparison(lhs, rhs);
+                    }), //This tells the vertexQueue_ to use the vertexQueueComparison for sorting
                 vertexToExpand_( vertexQueue_.begin() ),
-                edgeQueue_( std::bind(&BITstar::IntegratedQueue::edgeQueueComparison, this,
-                    std::placeholders::_1, std::placeholders::_2) ), //This tells the edgeQueue_ to use the edgeQueueComparison for sorting
+                edgeQueue_(
+                    [this](const CostPair& lhs, const CostPair& rhs)
+                    {
+                        return edgeQueueComparison(lhs, rhs);
+                    }), //This tells the edgeQueue_ to use the edgeQueueComparison for sorting
                 vertexIterLookup_(),
                 outgoingEdges_(),
                 incomingEdges_(),

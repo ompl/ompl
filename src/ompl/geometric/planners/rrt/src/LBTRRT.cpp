@@ -56,10 +56,8 @@ ompl::geometric::LBTRRT::LBTRRT(const base::SpaceInformationPtr &si) :
     Planner::declareParam<double>("goal_bias", this, &LBTRRT::setGoalBias, &LBTRRT::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("epsilon", this, &LBTRRT::setApproximationFactor, &LBTRRT::getApproximationFactor, "0.:.1:10.");
 
-    addPlannerProgressProperty("iterations INTEGER",
-                               std::bind(&LBTRRT::getIterationCount, this));
-    addPlannerProgressProperty("best cost REAL",
-                               std::bind(&LBTRRT::getBestCost, this));
+    addPlannerProgressProperty("iterations INTEGER", [this] { return getIterationCount(); });
+    addPlannerProgressProperty("best cost REAL", [this] { return getBestCost(); });
 }
 
 ompl::geometric::LBTRRT::~LBTRRT()
@@ -88,7 +86,7 @@ void ompl::geometric::LBTRRT::setup()
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(std::bind(&LBTRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    nn_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 }
 
 void ompl::geometric::LBTRRT::freeMemory()

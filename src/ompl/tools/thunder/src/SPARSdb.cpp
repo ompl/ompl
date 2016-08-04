@@ -144,7 +144,7 @@ void ompl::geometric::SPARSdb::setup()
     Planner::setup();
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
-    nn_->setDistanceFunction(std::bind(&SPARSdb::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    nn_->setDistanceFunction([this] (const Vertex a, const Vertex b) { return distanceFunction(a, b); });
     double maxExt = si_->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
     denseDelta_ = denseDeltaFraction_ * maxExt;
@@ -433,7 +433,7 @@ bool ompl::geometric::SPARSdb::constructSolution(const Vertex start, const Verte
     {
         boost::astar_search(g_, // graph
                             start, // start state
-                            std::bind(&SPARSdb::distanceFunction, this, std::placeholders::_1, goal), // the heuristic
+                            [this, goal] (const Vertex v) { return distanceFunction(v, goal); }, // the heuristic
                             // ability to disable edges (set cost to inifinity):
                             boost::weight_map(edgeWeightMap(g_, edgeCollisionStateProperty_)).
                             predecessor_map(vertexPredecessors).

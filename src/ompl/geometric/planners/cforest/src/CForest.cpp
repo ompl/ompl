@@ -52,12 +52,9 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
     Planner::declareParam<bool>("focus_search", this, &CForest::setFocusSearch, &CForest::getFocusSearch, "0,1");
     Planner::declareParam<unsigned int>("num_threads", this, &CForest::setNumThreads, &CForest::getNumThreads, "0:64");
 
-    addPlannerProgressProperty("best cost REAL",
-                               std::bind(&CForest::getBestCost, this));
-    addPlannerProgressProperty("shared paths INTEGER",
-                               std::bind(&CForest::getNumPathsShared, this));
-    addPlannerProgressProperty("shared states INTEGER",
-                               std::bind(&CForest::getNumStatesShared, this));
+    addPlannerProgressProperty("best cost REAL", [this] { return getBestCost(); });
+    addPlannerProgressProperty("shared paths INTEGER", [this] { return getNumPathsShared(); });
+    addPlannerProgressProperty("shared states INTEGER", [this] { return getNumStatesShared(); });
 }
 
 ompl::geometric::CForest::~CForest() = default;
@@ -165,8 +162,6 @@ void ompl::geometric::CForest::setup()
 
 ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTerminationCondition &ptc)
 {
-    using solveFunctionType = void (ompl::geometric::CForest::*)(base::Planner *, const base::PlannerTerminationCondition &);
-
     checkValidity();
 
     time::point start = time::now();
@@ -176,13 +171,19 @@ ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTer
     if (prevSolutionCallback)
         OMPL_WARN("Cannot use previously set intermediate solution callback with %s", getName().c_str());
 
-    pdef_->setIntermediateSolutionCallback(std::bind(&CForest::newSolutionFound, this,
-        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    pdef_->setIntermediateSolutionCallback(
+        [this](const base::Planner *planner, const std::vector<const base::State *> &states, const base::Cost cost)
+        {
+            return newSolutionFound(planner, states, cost);
+        });
     bestCost_ = opt_->infiniteCost();
 
     // run each planner in its own thread, with the same ptc.
     for (std::size_t i = 0 ; i < threads.size() ; ++i)
-        threads[i] = new std::thread(std::bind((solveFunctionType)&CForest::solve, this, planners_[i].get(), ptc));
+    {
+        base::Planner *planner = planners_[i].get();
+        threads[i] = new std::thread([this, planner, &ptc] { return solve(planner, ptc); });
+    }
 
     for (auto & thread : threads)
     {

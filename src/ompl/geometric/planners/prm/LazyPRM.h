@@ -41,7 +41,6 @@
 #include "ompl/datastructures/NearestNeighbors.h"
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include <functional>
 #include <utility>
 #include <vector>
 #include <map>

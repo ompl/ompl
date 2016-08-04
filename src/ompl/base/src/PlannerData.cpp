@@ -296,18 +296,13 @@ void ompl::base::PlannerData::printGraphML (std::ostream& out) const
     //
     // \todo Can we use make_function_property_map() here and have it
     // infer the property template arguments?
-    boost::function_property_map<
-        std::function<double (ompl::base::PlannerData::Graph::Edge)>,
-        ompl::base::PlannerData::Graph::Edge,
-        double>
-        weightmap(std::bind(&edgeWeightAsDouble, *graph_, std::placeholders::_1));
+    using Edge = ompl::base::PlannerData::Graph::Edge;
+    boost::function_property_map<std::function<double(Edge)>, Edge>
+        weightmap([this](Edge e) { return edgeWeightAsDouble(*graph_, e); });
     ompl::base::ScopedState<> s(si_);
-    boost::function_property_map<
-        std::function<std::string (ompl::base::PlannerData::Graph::Vertex)>,
-        ompl::base::PlannerData::Graph::Vertex,
-        std::string >
-        coordsmap(std::bind(&vertexCoords, *graph_, s, std::placeholders::_1));
-
+    using Vertex = ompl::base::PlannerData::Graph::Vertex;
+    boost::function_property_map<std::function<std::string(Vertex)>, Vertex>
+        coordsmap([this, &s](Vertex v) { return vertexCoords(*graph_, s, v); });
 
     // Not writing vertex or edge structures.
     boost::dynamic_properties dp;
@@ -637,15 +632,6 @@ void ompl::base::PlannerData::computeEdgeWeights ()
     computeEdgeWeights(opt);
 }
 
-namespace
-{
-    // Used in minimum spanning tree
-    ompl::base::Cost project2nd (ompl::base::Cost /*unused*/, ompl::base::Cost second)
-    {
-        return second;
-    }
-}
-
 void ompl::base::PlannerData::extractMinimumSpanningTree (unsigned int v,
                                                           const base::OptimizationObjective &opt,
                                                           base::PlannerData &mst) const
@@ -662,10 +648,8 @@ void ompl::base::PlannerData::extractMinimumSpanningTree (unsigned int v,
     boost::dijkstra_shortest_paths
         (*graph_, v,
          boost::predecessor_map(&pred[0]).
-         distance_compare(std::bind(&base::OptimizationObjective::
-                                      isCostBetterThan, &opt,
-                                      std::placeholders::_1, std::placeholders::_2)).
-         distance_combine(&project2nd).
+         distance_compare([&opt](Cost c1, Cost c2) { return opt.isCostBetterThan(c1, c2); }).
+         distance_combine([] (Cost, Cost c) { return c; }).
          distance_inf(opt.infiniteCost()).
          distance_zero(opt.identityCost()));
 

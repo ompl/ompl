@@ -38,7 +38,6 @@
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include <mutex>
 #include <boost/scoped_ptr.hpp>
-#include <functional>
 #include <numeric>
 #include <limits>
 #include <queue>
@@ -100,12 +99,12 @@ ompl::base::StateSpace::StateSpace()
     maxExtent_ = std::numeric_limits<double>::infinity();
 
     params_.declareParam<double>("longest_valid_segment_fraction",
-                                 std::bind(&StateSpace::setLongestValidSegmentFraction, this, std::placeholders::_1),
-                                 std::bind(&StateSpace::getLongestValidSegmentFraction, this));
+        [this](double segmentFraction) { setLongestValidSegmentFraction(segmentFraction); },
+        [this] { return getLongestValidSegmentFraction(); });
 
     params_.declareParam<unsigned int>("valid_segment_count_factor",
-                                       std::bind(&StateSpace::setValidSegmentCountFactor, this, std::placeholders::_1),
-                                       std::bind(&StateSpace::getValidSegmentCountFactor, this));
+        [this](unsigned int factor) { setValidSegmentCountFactor(factor); },
+        [this] { return getValidSegmentCountFactor(); });
     as.list_.push_back(this);
 }
 

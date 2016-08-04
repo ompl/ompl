@@ -373,7 +373,9 @@ namespace ompl
             template<typename T, typename PlannerType, typename SetterType, typename GetterType>
             void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const GetterType& getter, const std::string &rangeSuggestion = "")
             {
-                params_.declareParam<T>(name, std::bind(setter, planner, std::placeholders::_1), std::bind(getter, planner));
+                params_.declareParam<T>(name,
+                    [planner, setter](T param) { (*planner.*setter)(param); },
+                    [planner, getter] { return (*planner.*getter)(); });
                 if (!rangeSuggestion.empty())
                     params_[name].setRangeSuggestion(rangeSuggestion);
             }
@@ -382,7 +384,8 @@ namespace ompl
             template<typename T, typename PlannerType, typename SetterType>
             void declareParam(const std::string &name, const PlannerType &planner, const SetterType& setter, const std::string &rangeSuggestion = "")
             {
-                params_.declareParam<T>(name, std::bind(setter, planner, std::placeholders::_1));
+                params_.declareParam<T>(name,
+                    [planner, setter](T param) { (*planner.*setter)(param); });
                 if (!rangeSuggestion.empty())
                     params_[name].setRangeSuggestion(rangeSuggestion);
             }

@@ -128,8 +128,13 @@ void KoulesSetup::initialize(unsigned int numKoules, const std::string& plannerN
     // set min/max propagation steps
     si_->setMinMaxControlDuration(propagationMinSteps, propagationMaxSteps);
     // set directed control sampler; when using the PDST planner, propagate as long as possible
+    bool isPDST = plannerName == "pdst";
+    const ompl::base::GoalPtr& goal = getGoal();
     si_->setDirectedControlSamplerAllocator(
-        std::bind(&KoulesDirectedControlSamplerAllocator, std::placeholders::_1, getGoal(), plannerName == "pdst"));
+        [&goal, isPDST](const ompl::control::SpaceInformation *si)
+        {
+            return KoulesDirectedControlSamplerAllocator(si,  goal, isPDST);
+        });
     // set planner
     setPlanner(getConfiguredPlannerInstance(plannerName));
     // set validity checker

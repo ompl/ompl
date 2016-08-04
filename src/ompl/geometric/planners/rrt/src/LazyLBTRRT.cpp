@@ -65,10 +65,8 @@ ompl::geometric::LazyLBTRRT::LazyLBTRRT(const base::SpaceInformationPtr &si) :
     Planner::declareParam<double>("goal_bias", this, &LazyLBTRRT::setGoalBias, &LazyLBTRRT::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("epsilon", this, &LazyLBTRRT::setApproximationFactor, &LazyLBTRRT::getApproximationFactor, "0.:.1:10.");
 
-    addPlannerProgressProperty("iterations INTEGER",
-                               std::bind(&LazyLBTRRT::getIterationCount, this));
-    addPlannerProgressProperty("best cost REAL",
-                               std::bind(&LazyLBTRRT::getBestCost, this));
+    addPlannerProgressProperty("iterations INTEGER", [this] { return getIterationCount(); });
+    addPlannerProgressProperty("best cost REAL", [this] { return getBestCost(); });
 
 }
 
@@ -100,9 +98,7 @@ void ompl::geometric::LazyLBTRRT::setup()
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(std::bind(
-        (double(LazyLBTRRT::*)(const Motion*, const Motion*) const)
-            &LazyLBTRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    nn_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 }
 
 void ompl::geometric::LazyLBTRRT::freeMemory()

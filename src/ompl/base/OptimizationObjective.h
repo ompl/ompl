@@ -43,6 +43,7 @@
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/samplers/InformedStateSampler.h"
 
+#include <functional>
 #include <iostream>
 
 namespace ompl

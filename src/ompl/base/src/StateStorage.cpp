@@ -39,7 +39,6 @@
 #include "ompl/util/Exception.h"
 #include <fstream>
 #include <algorithm>
-#include <functional>
 
 #include <boost/serialization/binary_object.hpp>
 #include <boost/archive/archive_exception.hpp>
@@ -256,7 +255,10 @@ ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAlloc
         throw Exception("Cannot allocate state sampler from empty state storage");
     std::vector<int> sig;
     space_->computeSignature(sig);
-    return std::bind(&allocPrecomputedStateSampler, std::placeholders::_1, sig, &states_, from, to);
+    return [this, sig, from, to](const ompl::base::StateSpace *space)
+        {
+            return allocPrecomputedStateSampler(space, sig, &states_, from, to);
+        };
 }
 
 void ompl::base::StateStorage::print(std::ostream &out) const

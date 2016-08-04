@@ -83,7 +83,8 @@ public:
                 expPlanner_->setFilePath("lightning.db");
             }
             // set state validity checking for this space
-            expPlanner_->setStateValidityChecker(std::bind(&Plane2DEnvironment::isStateValid, this, std::placeholders::_1));
+            expPlanner_->setStateValidityChecker([this](const ob::State *state)
+                { return isStateValid(state); });
             space->setup();
             expPlanner_->getSpaceInformation()->setStateValidityCheckingResolution(1.0 / space->getMaximumExtent());
             vss_ = expPlanner_->getSpaceInformation()->allocValidStateSampler();

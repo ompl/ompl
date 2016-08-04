@@ -42,7 +42,6 @@
 #include "ompl/control/planners/ltl/PropositionalDecomposition.h"
 #include "ompl/util/ClassForward.h"
 #include <boost/graph/adjacency_list.hpp>
-#include <functional>
 #include <unordered_map>
 #include <map>
 #include <ostream>
