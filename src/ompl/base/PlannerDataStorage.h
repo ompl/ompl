@@ -256,22 +256,32 @@ namespace ompl
             /// \brief Serialize and store all edges in \e pd to the binary archive.
             virtual void storeEdges(const PlannerData &pd, boost::archive::binary_oarchive &oa)
             {
-                for (unsigned int i = 0; i < pd.numVertices(); ++i)
-                    for (unsigned int j = 0; j < pd.numVertices(); ++j)
-                    {
-                        if(pd.edgeExists(i, j))
-                        {
-                            PlannerDataEdgeData edgeData;
-                            edgeData.e_ = &pd.getEdge(i, j);
-                            edgeData.endpoints_.first = i;
-                            edgeData.endpoints_.second = j;
-                            Cost weight;
-                            pd.getEdgeWeight(i, j, &weight);
-                            edgeData.weight_ = weight.value();
+                std::vector<unsigned int> edgeList;
+                for (unsigned int fromVertex = 0; fromVertex < pd.numVertices(); ++fromVertex)
+                {
+                    edgeList.clear();
+                    pd.getEdges(fromVertex, edgeList);  // returns the id of each edge
 
-                            oa << edgeData;
-                        }
-                    }
+                    // Process edges
+                    for (unsigned int edgeId = 0; edgeId < edgeList.size(); ++edgeId)
+                    {
+                        unsigned int toVertex = edgeList[edgeId];
+
+                        // Get cost
+                        Cost weight;
+                        if (!pd.getEdgeWeight(fromVertex, toVertex, &weight))
+                            OMPL_ERROR("Unable to get edge weight");
+
+                        // Convert to new structure
+                        PlannerDataEdgeData edgeData;
+                        edgeData.e_ = &pd.getEdge(fromVertex, toVertex);
+                        edgeData.endpoints_.first = fromVertex;
+                        edgeData.endpoints_.second = toVertex;
+                        edgeData.weight_ = weight.value();
+                        oa << edgeData;
+
+                    } // for each edge
+                }  // for each vertex
             }
         };
     }
