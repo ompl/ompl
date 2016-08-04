@@ -261,14 +261,6 @@ void ompl::base::PlannerData::printGraphviz (std::ostream& out) const
 
 namespace
 {
-    // Property map for extracting the edge weight of a graph edge as
-    // a double for printGraphML.
-    double edgeWeightAsDouble(ompl::base::PlannerData::Graph::Type &g,
-                              ompl::base::PlannerData::Graph::Edge e)
-    {
-        return get(boost::edge_weight_t(), g)[e].value();
-    }
-
     // Property map for extracting states as arrays of doubles
     std::string vertexCoords (ompl::base::PlannerData::Graph::Type &g,
                               ompl::base::ScopedState<>& s,
@@ -298,7 +290,7 @@ void ompl::base::PlannerData::printGraphML (std::ostream& out) const
     // infer the property template arguments?
     using Edge = ompl::base::PlannerData::Graph::Edge;
     boost::function_property_map<std::function<double(Edge)>, Edge>
-        weightmap([this](Edge e) { return edgeWeightAsDouble(*graph_, e); });
+        weightmap([this](Edge e) { return get(boost::edge_weight_t(), *graph_)[e].value(); });
     ompl::base::ScopedState<> s(si_);
     using Vertex = ompl::base::PlannerData::Graph::Vertex;
     boost::function_property_map<std::function<std::string(Vertex)>, Vertex>
@@ -698,12 +690,12 @@ void ompl::base::PlannerData::extractReachable(unsigned int v, base::PlannerData
 
     // Depth-first traversal of reachable graph
     std::map<unsigned int, const PlannerDataEdge*>::iterator it;
-    for (it = neighbors.begin(); it != neighbors.end(); ++it)
+    for (auto & it : neighbors)
     {
-        extractReachable(it->first, data);
+        extractReachable(it.first, data);
         Cost weight;
-        getEdgeWeight(v, it->first, &weight);
-        data.addEdge(idx, data.vertexIndex(getVertex(it->first)), *(it->second), weight);
+        getEdgeWeight(v, it.first, &weight);
+        data.addEdge(idx, data.vertexIndex(getVertex(it.first)), *it.second, weight);
     }
 }
 
@@ -721,11 +713,11 @@ ompl::base::StateStoragePtr ompl::base::PlannerData::extractStateStorage() const
         }
 
         // add the edges
-        for (std::map<unsigned int, unsigned int>::const_iterator it = indexMap.begin() ; it != indexMap.end() ; ++it)
+        for (const auto & it : indexMap)
         {
             std::vector<unsigned int> edgeList;
-            getEdges(it->first, edgeList);
-            GraphStateStorage::MetadataType &md = store->getMetadata(it->second);
+            getEdges(it.first, edgeList);
+            GraphStateStorage::MetadataType &md = store->getMetadata(it.second);
             md.resize(edgeList.size());
             // map node indices to index values in StateStorage
             for (std::size_t k = 0 ; k < edgeList.size() ; ++k)

@@ -263,10 +263,8 @@ namespace ompl
                     pd.getEdges(fromVertex, edgeList);  // returns the id of each edge
 
                     // Process edges
-                    for (unsigned int edgeId = 0; edgeId < edgeList.size(); ++edgeId)
+                    for (unsigned int toVertex : edgeList)
                     {
-                        unsigned int toVertex = edgeList[edgeId];
-
                         // Get cost
                         Cost weight;
                         if (!pd.getEdgeWeight(fromVertex, toVertex, &weight))
