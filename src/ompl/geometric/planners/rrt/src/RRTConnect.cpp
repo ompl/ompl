@@ -271,14 +271,14 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
                     solution = solution->parent;
                 }
 
-                auto *path = new PathGeometric(si_);
+                auto path(std::make_shared<PathGeometric>(si_));
                 path->getStates().reserve(mpath1.size() + mpath2.size());
                 for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
                     path->append(mpath1[i]->state);
                 for (auto & i : mpath2)
                     path->append(i->state);
 
-                pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
+                pdef_->addSolutionPath(path, false, 0.0, getName());
                 solved = true;
                 break;
             }

@@ -223,10 +223,10 @@ void ompl::control::CompoundControlSpace::nullControl(Control *control) const
 
 ompl::control::ControlSamplerPtr ompl::control::CompoundControlSpace::allocDefaultControlSampler() const
 {
-    auto *ss = new CompoundControlSampler(this);
+    auto ss(std::make_shared<CompoundControlSampler>(this));
     for (unsigned int i = 0 ; i < componentCount_ ; ++i)
         ss->addSampler(components_[i]->allocControlSampler());
-    return ControlSamplerPtr(ss);
+    return ss;
 }
 
 void ompl::control::CompoundControlSpace::lock()

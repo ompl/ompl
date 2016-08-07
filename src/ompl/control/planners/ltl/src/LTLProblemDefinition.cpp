@@ -58,8 +58,7 @@ void oc::LTLProblemDefinition::addLowerStartState(const ob::State* s)
 ob::PathPtr oc::LTLProblemDefinition::getLowerSolutionPath() const
 {
     PathControl* fullPath = static_cast<PathControl*>(getSolutionPath().get());
-    ob::PathPtr lowPathPtr(new PathControl(ltlsi_->getLowSpace()));
-    PathControl* lowPath = static_cast<PathControl*>(lowPathPtr.get());
+    auto lowPath(std::make_shared<PathControl>(ltlsi_->getLowSpace()));
 
     if (fullPath->getStateCount() > 0)
     {
@@ -72,7 +71,7 @@ ob::PathPtr oc::LTLProblemDefinition::getLowerSolutionPath() const
         lowPath->append(ltlsi_->getLowLevelState(fullPath->getState(fullPath->getStateCount()-1)));
     }
 
-    return lowPathPtr;
+    return lowPath;
 }
 
 void oc::LTLProblemDefinition::createGoal()
@@ -94,5 +93,5 @@ void oc::LTLProblemDefinition::createGoal()
 
     // Some compilers have trouble with LTLGoal being hidden in this function,
     // and so we explicitly cast it to its base type.
-    setGoal(ob::GoalPtr(static_cast<ob::Goal*>(new LTLGoal(ltlsi_))));
+    setGoal(std::make_shared<LTLGoal>(ltlsi_));
 }

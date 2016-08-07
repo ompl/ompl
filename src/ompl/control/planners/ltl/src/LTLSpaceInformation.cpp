@@ -117,8 +117,7 @@ void oc::LTLSpaceInformation::extendPropagator(const oc::SpaceInformationPtr& ol
 
     // Some compilers have trouble with LTLStatePropagator being hidden in this function,
     // and so we explicitly cast it to its base type.
-    setStatePropagator(oc::StatePropagatorPtr(static_cast<oc::StatePropagator*>(
-        new LTLStatePropagator(this, prod_, oldsi->getStatePropagator()))));
+    setStatePropagator(std::make_shared<LTLStatePropagator>(this, prod_, oldsi->getStatePropagator()));
 }
 
 void oc::LTLSpaceInformation::extendValidityChecker(const oc::SpaceInformationPtr& oldsi)
@@ -146,8 +145,7 @@ void oc::LTLSpaceInformation::extendValidityChecker(const oc::SpaceInformationPt
 
     // Some compilers have trouble with LTLStateValidityChecker being hidden in this function,
     // and so we explicitly cast it to its base type.
-    setStateValidityChecker(ob::StateValidityCheckerPtr(static_cast<ob::StateValidityChecker*>(
-        new LTLStateValidityChecker(this, prod_, oldsi->getStateValidityChecker()))));
+    setStateValidityChecker(std::make_shared<LTLStateValidityChecker>(this, prod_, oldsi->getStateValidityChecker()));
 }
 
 namespace
@@ -157,17 +155,17 @@ namespace
     {
         const oc::AutomatonPtr cosafe (prod->getCosafetyAutom());
         const oc::AutomatonPtr safe (prod->getSafetyAutom());
-        ob::StateSpacePtr regionSpace(new ob::DiscreteStateSpace(0, prod->getDecomp()->getNumRegions()-1));
-        ob::StateSpacePtr cosafeSpace (new ob::DiscreteStateSpace(0, cosafe->numStates()-1));
-        ob::StateSpacePtr safeSpace (new ob::DiscreteStateSpace(0, safe->numStates()-1));
+        auto regionSpace(std::make_shared<ob::DiscreteStateSpace>(0, prod->getDecomp()->getNumRegions()-1));
+        auto cosafeSpace(std::make_shared<ob::DiscreteStateSpace>(0, cosafe->numStates()-1));
+        auto safeSpace(std::make_shared<ob::DiscreteStateSpace>(0, safe->numStates()-1));
 
-        auto* compound = new ob::CompoundStateSpace();
+        auto compound(std::make_shared<ob::CompoundStateSpace>());
         compound->addSubspace(lowSpace, 1.);
         compound->addSubspace(regionSpace, 0.);
         compound->addSubspace(cosafeSpace, 0.);
         compound->addSubspace(safeSpace, 0.);
         compound->lock();
 
-        return ob::StateSpacePtr(compound);
+        return compound;
     }
 }

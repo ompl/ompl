@@ -237,13 +237,13 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
         LPAstarApx_->computeShortestPath(pathApx);
 
         /* set the solution path */
-        auto *path = new PathGeometric(si_);
+        auto path(std::make_shared<PathGeometric>(si_));
 
         //the path is in reverse order
         for (auto rit = pathApx.rbegin(); rit!=pathApx.rend(); ++rit)
             path->append(idToMotionMap_[*rit]->state_);
 
-        pdef_->addSolutionPath(base::PathPtr(path), !solved, 0);
+        pdef_->addSolutionPath(path, !solved, 0);
     }
 
     si_->freeState(xstate);

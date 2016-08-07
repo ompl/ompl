@@ -64,21 +64,20 @@ Eigen::VectorXd field(const ob::State *state)
 og::SimpleSetupPtr setupProblem(PlannerType plannerType)
 {
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::RealVectorStateSpace(2));
-    ob::SpaceInformationPtr si(new ob::SpaceInformation(space));
+    auto space(std::make_shared<ob::RealVectorStateSpace>(2));
+    auto si(std::make_shared<ob::SpaceInformation>(space));
 
     ob::RealVectorBounds bounds(2);
     bounds.setLow(-10);
     bounds.setHigh(10);
 
-    space->as<ob::RealVectorStateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
 
     // define a simple setup class
-    og::SimpleSetupPtr ss(new og::SimpleSetup(space));
+    auto ss(std::make_shared<og::SimpleSetup>(space));
 
     // set state validity checking for this space
-    ss->setStateValidityChecker(ob::StateValidityCheckerPtr(
-        new ob::AllValidStateValidityChecker(si)));
+    ss->setStateValidityChecker(std::make_shared<ob::AllValidStateValidityChecker>(si));
 
     // create a start state
     ob::ScopedState<> start(space);
@@ -96,22 +95,22 @@ og::SimpleSetupPtr setupProblem(PlannerType plannerType)
     // make the optimization objectives for TRRT and RRT*, and set the planner
     if (plannerType == TRRT)
     {
-        ss->setOptimizationObjective(ob::OptimizationObjectivePtr(
-            new ob::VFMechanicalWorkOptimizationObjective(si, field)));
-        ss->setPlanner(ob::PlannerPtr(new og::TRRT(ss->getSpaceInformation())));
+        ss->setOptimizationObjective(
+            std::make_shared<ob::VFMechanicalWorkOptimizationObjective>(si, field));
+        ss->setPlanner(std::make_shared<og::TRRT>(ss->getSpaceInformation()));
     }
     else if (plannerType == RRTSTAR)
     {
-        ss->setOptimizationObjective(ob::OptimizationObjectivePtr(
-            new ob::VFUpstreamCriterionOptimizationObjective(si, field)));
-        ss->setPlanner(ob::PlannerPtr(new og::RRTstar(ss->getSpaceInformation())));
+        ss->setOptimizationObjective(
+            std::make_shared<ob::VFUpstreamCriterionOptimizationObjective>(si, field));
+        ss->setPlanner(std::make_shared<og::RRTstar>(ss->getSpaceInformation()));
     }
     else if (plannerType == VFRRT)
     {
         double explorationSetting = 0.7;
         double lambda = 1;
         unsigned int update_freq = 100;
-        ss->setPlanner(ob::PlannerPtr(new og::VFRRT(ss->getSpaceInformation(), field, explorationSetting, lambda, update_freq)));
+        ss->setPlanner(std::make_shared<og::VFRRT>(ss->getSpaceInformation(), field, explorationSetting, lambda, update_freq));
     }
     else
     {
@@ -162,7 +161,7 @@ int main(int argc, char **argv)
             std::ofstream f(problemName(PlannerType(n)).c_str());
             ompl::geometric::PathGeometric p = ss->getSolutionPath();
             p.interpolate();
-            ob::OptimizationObjectivePtr upstream(new ob::VFUpstreamCriterionOptimizationObjective(
+            auto upstream(std::make_shared<ob::VFUpstreamCriterionOptimizationObjective>(
                 ss->getSpaceInformation(), field));
             p.printAsMatrix(f);
             std::cout << "Total upstream cost: " << p.cost(upstream) << "\n";

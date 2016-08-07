@@ -76,8 +76,10 @@ ompl::control::DirectedControlSamplerPtr ompl::control::SpaceInformation::allocD
     if (dcsa_)
         return dcsa_(this);
     else
-        return statePropagator_->canSteer() ? DirectedControlSamplerPtr(new SteeredControlSampler(this))
-            : DirectedControlSamplerPtr(new SimpleDirectedControlSampler(this));
+        if (statePropagator_->canSteer())
+            return std::make_shared<SteeredControlSampler>(this);
+        else
+            return std::make_shared<SimpleDirectedControlSampler>(this);
 }
 
 void ompl::control::SpaceInformation::setDirectedControlSamplerAllocator(const DirectedControlSamplerAllocator &dcsa)
@@ -94,11 +96,11 @@ void ompl::control::SpaceInformation::clearDirectedSamplerAllocator()
 
 void ompl::control::SpaceInformation::setStatePropagator(const StatePropagatorFn &fn)
 {
-    class BoostFnStatePropagator : public StatePropagator
+    class FnStatePropagator : public StatePropagator
     {
     public:
 
-        BoostFnStatePropagator(SpaceInformation *si, StatePropagatorFn fn) : StatePropagator(si), fn_(std::move(fn))
+        FnStatePropagator(SpaceInformation *si, StatePropagatorFn fn) : StatePropagator(si), fn_(std::move(fn))
         {
         }
 
@@ -113,7 +115,7 @@ void ompl::control::SpaceInformation::setStatePropagator(const StatePropagatorFn
 
     };
 
-    setStatePropagator(StatePropagatorPtr(dynamic_cast<StatePropagator*>(new BoostFnStatePropagator(this, fn))));
+    setStatePropagator(std::make_shared<FnStatePropagator>(this, fn));
 }
 
 void ompl::control::SpaceInformation::setStatePropagator(const StatePropagatorPtr &sp)

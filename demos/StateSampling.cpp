@@ -124,26 +124,26 @@ ob::ValidStateSamplerPtr allocOBValidStateSampler(const ob::SpaceInformation *si
 {
     // we can perform any additional setup / configuration of a sampler here,
     // but there is nothing to tweak in case of the ObstacleBasedValidStateSampler.
-    return ob::ValidStateSamplerPtr(new ob::ObstacleBasedValidStateSampler(si));
+    return std::make_shared<ob::ObstacleBasedValidStateSampler>(si);
 }
 
 // return an instance of my sampler
 ob::ValidStateSamplerPtr allocMyValidStateSampler(const ob::SpaceInformation *si)
 {
-    return ob::ValidStateSamplerPtr(new MyValidStateSampler(si));
+    return std::make_shared<MyValidStateSampler>(si);
 }
 
 
 void plan(int samplerIndex)
 {
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::RealVectorStateSpace(3));
+    auto space(std::make_shared<ob::RealVectorStateSpace>(3));
 
     // set the bounds
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
-    space->as<ob::RealVectorStateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
 
     // define a simple setup class
     og::SimpleSetup ss(space);
@@ -172,7 +172,7 @@ void plan(int samplerIndex)
         ss.getSpaceInformation()->setValidStateSamplerAllocator(allocMyValidStateSampler);
 
     // create a planner for the defined space
-    ob::PlannerPtr planner(new og::PRM(ss.getSpaceInformation()));
+    auto planner(std::make_shared<og::PRM>(ss.getSpaceInformation()));
     ss.setPlanner(planner);
 
     // attempt to solve the problem within ten seconds of planning time

@@ -76,7 +76,7 @@ namespace
 
 oc::PropositionalTriangularDecomposition::PropositionalTriangularDecomposition(
     const ob::RealVectorBounds& bounds, const std::vector<Polygon>& holes, const std::vector<Polygon>& props)
-    : PropositionalDecomposition(DecompositionPtr(new WrapperDecomposition(this, bounds, holes, props))),
+    : PropositionalDecomposition(std::make_shared<WrapperDecomposition>(this, bounds, holes, props)),
       triDecomp_(static_cast<TriangularDecomposition*>(decomp_.get()))
 {
 }

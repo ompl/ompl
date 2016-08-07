@@ -39,7 +39,8 @@
 #include <thread>
 
 ompl::tools::ParallelPlan::ParallelPlan(const base::ProblemDefinitionPtr &pdef) :
-    pdef_(pdef), phybrid_(new geometric::PathHybridization(pdef->getSpaceInformation()))
+    pdef_(pdef),
+    phybrid_(std::make_shared<geometric::PathHybridization>(pdef->getSpaceInformation()))
 {
 }
 

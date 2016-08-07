@@ -244,14 +244,14 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
         }
 
         /* set the solution path */
-        auto *path = new PathControl(si_);
+        auto path(std::make_shared<PathControl>(si_));
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             if (mpath[i]->parent)
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
             else
                 path->append(mpath[i]->state);
         solved = true;
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
+        pdef_->addSolutionPath(path, approximate, approxdif, getName());
     }
 
     if (rmotion->state)

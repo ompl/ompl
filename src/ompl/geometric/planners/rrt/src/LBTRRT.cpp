@@ -276,12 +276,11 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
         }
 
         /* set the solution path */
-        auto *path = new PathGeometric(si_);
+        auto path(std::make_shared<PathGeometric>(si_));
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state_);
         // Add the solution path.
-        base::PathPtr bpath(path);
-        base::PlannerSolution psol(bpath);
+        base::PlannerSolution psol(path);
         psol.setPlannerName(getName());
         if (approximate)
             psol.setApproximate(approxdif);

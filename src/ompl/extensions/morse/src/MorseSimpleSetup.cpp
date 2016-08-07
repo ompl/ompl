@@ -43,12 +43,12 @@
 #include "ompl/util/Console.h"
 
 ompl::control::MorseSimpleSetup::MorseSimpleSetup(const base::MorseEnvironmentPtr &env) :
-    SimpleSetup(ControlSpacePtr(new MorseControlSpace(base::StateSpacePtr(new base::MorseStateSpace(env))))),
+    SimpleSetup(std::make_shared<MorseControlSpace>(std::make_shared<base::MorseStateSpace>(env))),
     env_(env)
 {
     si_->setPropagationStepSize(env_->stepSize_);
     si_->setMinMaxControlDuration(env_->minControlSteps_, env_->maxControlSteps_);
-    si_->setStatePropagator(StatePropagatorPtr(new MorseStatePropagator(si_)));
+    si_->setStatePropagator(std::make_shared<MorseStatePropagator>(si_));
 }
 
 ompl::base::ScopedState<ompl::base::MorseStateSpace> ompl::control::MorseSimpleSetup::getCurrentState() const
@@ -73,13 +73,13 @@ void ompl::control::MorseSimpleSetup::setup()
     if (!si_->getStateValidityChecker())
     {
         OMPL_INFORM("Using default state validity checker for MORSE");
-        si_->setStateValidityChecker(base::StateValidityCheckerPtr(new base::MorseStateValidityChecker(si_)));
+        si_->setStateValidityChecker(std::make_shared<base::MorseStateValidityChecker>(si_));
     }
     base::StateSpacePtr space = si_->getStateSpace();
     if (!space->hasDefaultProjection())
     {
         OMPL_INFORM("Registering MorseProjection as default projection evaluator for MORSE");
-        space->registerDefaultProjection(base::ProjectionEvaluatorPtr(new base::MorseProjection(space)));
+        space->registerDefaultProjection(std::make_shared<base::MorseProjection>(space));
     }
     if (pdef_->getStartStateCount() == 0)
     {
@@ -144,7 +144,7 @@ ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const doubl
 
 ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const Control *control, unsigned int steps) const
 {
-    PathControl *p = new PathControl(si_);
+    auto p(std::make_shared<PathControl>(si_));
 
     base::State *s0 = si_->allocState();
     getStateSpace()->as<base::MorseStateSpace>()->readState(s0);
@@ -156,7 +156,7 @@ ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulateControl(const Contr
 
     p->getControls().push_back(si_->cloneControl(control));
     p->getControlDurations().push_back(steps);
-    return base::PathPtr(p);
+    return p;
 }
 
 ompl::base::PathPtr ompl::control::MorseSimpleSetup::simulate(unsigned int steps) const

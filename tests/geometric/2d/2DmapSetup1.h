@@ -112,7 +112,7 @@ namespace ompl
 
             base::StateSpacePtr constructSpace()
             {
-                return base::StateSpacePtr(new StateSpace2DMap1()) + base::StateSpacePtr(new StateSpace2DMap1());
+                return std::make_shared<StateSpace2DMap1>() + std::make_shared<StateSpace2DMap1>();
             }
 
             /** \brief Set the bounds and the state validity checker */

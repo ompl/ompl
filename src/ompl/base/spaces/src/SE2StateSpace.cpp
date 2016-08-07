@@ -79,5 +79,5 @@ void ompl::base::SE2StateSpace::registerProjections()
         }
     };
 
-    registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SE2DefaultProjection(this))));
+    registerDefaultProjection(std::make_shared<SE2DefaultProjection>(this));
 }

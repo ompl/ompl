@@ -256,10 +256,10 @@ ompl::base::PlannerPtr ompl::tools::SelfConfig::getDefaultPlanner(const base::Go
     {
         // if we have a default projection
         if (space->hasDefaultProjection())
-            planner = base::PlannerPtr(new control::KPIECE1(siC));
+            planner = std::make_shared<control::KPIECE1>(siC);
         // otherwise use a single-tree planner
         else
-            planner = base::PlannerPtr(new control::RRT(siC));
+            planner = std::make_shared<control::RRT>(siC);
     }
     // if we can sample the goal region and interpolation between states is symmetric,
     // use a bi-directional planner
@@ -267,18 +267,18 @@ ompl::base::PlannerPtr ompl::tools::SelfConfig::getDefaultPlanner(const base::Go
     {
         // if we have a default projection
         if (space->hasDefaultProjection())
-            planner = base::PlannerPtr(new geometric::LBKPIECE1(goal->getSpaceInformation()));
+            planner = std::make_shared<geometric::LBKPIECE1>(goal->getSpaceInformation());
         else
-            planner = base::PlannerPtr(new geometric::RRTConnect(goal->getSpaceInformation()));
+            planner = std::make_shared<geometric::RRTConnect>(goal->getSpaceInformation());
     }
     // otherwise use a single-tree planner
     else
     {
         // if we have a default projection
         if (space->hasDefaultProjection())
-            planner = base::PlannerPtr(new geometric::KPIECE1(goal->getSpaceInformation()));
+            planner = std::make_shared<geometric::KPIECE1>(goal->getSpaceInformation());
         else
-            planner = base::PlannerPtr(new geometric::RRT(goal->getSpaceInformation()));
+            planner = std::make_shared<geometric::RRT>(goal->getSpaceInformation());
     }
 
     if (!planner)

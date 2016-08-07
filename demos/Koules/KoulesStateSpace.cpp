@@ -84,9 +84,8 @@ KoulesStateSpace::KoulesStateSpace(unsigned int numKoules)
 
 void KoulesStateSpace::registerProjections()
 {
-    registerDefaultProjection(ob::ProjectionEvaluatorPtr(new KoulesProjection(this, (getDimension() - 1) / 4 + 1)));
-    registerProjection("PDSTProjection", ob::ProjectionEvaluatorPtr(
-        new KoulesProjection(this, (getDimension() - 1) / 2 + 1)));
+    registerDefaultProjection(std::make_shared<KoulesProjection>(this, (getDimension() - 1) / 4 + 1));
+    registerProjection("PDSTProjection", std::make_shared<KoulesProjection>(this, (getDimension() - 1) / 2 + 1));
 }
 
 bool KoulesStateSpace::isDead(const ompl::base::State* state, unsigned int i) const

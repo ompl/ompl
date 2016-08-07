@@ -61,7 +61,7 @@ bool ompl::control::DiscreteControlSpace::equalControls(const Control *control1,
 
 ompl::control::ControlSamplerPtr ompl::control::DiscreteControlSpace::allocDefaultControlSampler() const
 {
-    return ControlSamplerPtr(new DiscreteControlSampler(this));
+    return std::make_shared<DiscreteControlSampler>(this);
 }
 
 ompl::control::Control* ompl::control::DiscreteControlSpace::allocControl() const

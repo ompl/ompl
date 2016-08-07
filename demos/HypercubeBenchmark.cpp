@@ -84,14 +84,14 @@ int main(int argc, char **argv)
         ndim = boost::lexical_cast<size_t>(argv[1]);
 
     double range = edgeWidth * 0.5;
-    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(ndim));
+    auto space(std::make_shared<ompl::base::RealVectorStateSpace>(ndim));
     ompl::base::RealVectorBounds bounds(ndim);
     ompl::geometric::SimpleSetup ss(space);
     ompl::base::ScopedState<> start(space), goal(space);
 
     bounds.setLow(0.);
     bounds.setHigh(1.);
-    space->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
     ss.setStateValidityChecker(&isStateValid);
     ss.getSpaceInformation()->setStateValidityCheckingResolution(0.001);
     for(unsigned int i = 0; i < ndim; ++i)
@@ -108,11 +108,11 @@ int main(int argc, char **argv)
     ompl::tools::Benchmark b(ss, "HyperCube");
     b.addExperimentParameter("num_dims", "INTEGER", std::to_string(ndim));
 
-    addPlanner(b, ompl::base::PlannerPtr(new ompl::geometric::STRIDE(ss.getSpaceInformation())), range);
-    addPlanner(b, ompl::base::PlannerPtr(new ompl::geometric::EST(ss.getSpaceInformation())), range);
-    addPlanner(b, ompl::base::PlannerPtr(new ompl::geometric::KPIECE1(ss.getSpaceInformation())), range);
-    addPlanner(b, ompl::base::PlannerPtr(new ompl::geometric::RRT(ss.getSpaceInformation())), range);
-    addPlanner(b, ompl::base::PlannerPtr(new ompl::geometric::PRM(ss.getSpaceInformation())), range);
+    addPlanner(b, std::make_shared<ompl::geometric::STRIDE>(ss.getSpaceInformation()), range);
+    addPlanner(b, std::make_shared<ompl::geometric::EST>(ss.getSpaceInformation()), range);
+    addPlanner(b, std::make_shared<ompl::geometric::KPIECE1>(ss.getSpaceInformation()), range);
+    addPlanner(b, std::make_shared<ompl::geometric::RRT>(ss.getSpaceInformation()), range);
+    addPlanner(b, std::make_shared<ompl::geometric::PRM>(ss.getSpaceInformation()), range);
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("hypercube_%i.log") % ndim).c_str());
 

@@ -98,7 +98,7 @@ void ompl::geometric::TRRT::setup()
     if (!pdef_ || !pdef_->hasOptimizationObjective())
     {
         OMPL_INFORM("%s: No optimization objective specified.  Defaulting to mechanical work minimization.", getName().c_str());
-        opt_.reset(new base::MechanicalWorkOptimizationObjective(si_));
+        opt_ = std::make_shared<base::MechanicalWorkOptimizationObjective>(si_);
     }
     else
         opt_ = pdef_->getOptimizationObjective();
@@ -343,11 +343,11 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         }
 
         // set the solution path
-        auto *path = new PathGeometric(si_);
+        auto path(std::make_shared<PathGeometric>(si_));
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
 
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxDifference, getName());
+        pdef_->addSolutionPath(path, approximate, approxDifference, getName());
         solved = true;
     }
 

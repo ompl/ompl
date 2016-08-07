@@ -65,13 +65,14 @@ const double PI = boost::math::constants::pi<double>();
 
 BOOST_AUTO_TEST_CASE(Dubins_Simple)
 {
-    base::StateSpacePtr d(new base::DubinsStateSpace()), dsym(new base::DubinsStateSpace(1., true));
+    auto d(std::make_shared<base::DubinsStateSpace>());
+    auto dsym(std::make_shared<base::DubinsStateSpace>(1., true));
 
     base::RealVectorBounds bounds2(2);
     bounds2.setLow(-3);
     bounds2.setHigh(3);
-    d->as<base::DubinsStateSpace>()->setBounds(bounds2);
-    dsym->as<base::DubinsStateSpace>()->setBounds(bounds2);
+    d->setBounds(bounds2);
+    dsym->setBounds(bounds2);
 
     d->setup();
     d->sanityChecks();
@@ -82,12 +83,12 @@ BOOST_AUTO_TEST_CASE(Dubins_Simple)
 
 BOOST_AUTO_TEST_CASE(ReedsShepp_Simple)
 {
-    base::StateSpacePtr d(new base::ReedsSheppStateSpace());
+    auto d(std::make_shared<base::ReedsSheppStateSpace>());
 
     base::RealVectorBounds bounds2(2);
     bounds2.setLow(-3);
     bounds2.setHigh(3);
-    d->as<base::ReedsSheppStateSpace>()->setBounds(bounds2);
+    d->setBounds(bounds2);
 
     d->setup();
     d->sanityChecks();
@@ -96,8 +97,8 @@ BOOST_AUTO_TEST_CASE(ReedsShepp_Simple)
 
 BOOST_AUTO_TEST_CASE(Discrete_Simple)
 {
-    base::StateSpacePtr d(new base::DiscreteStateSpace(0, 2));
-    base::DiscreteStateSpace &dm = *d->as<base::DiscreteStateSpace>();
+    auto d(std::make_shared<base::DiscreteStateSpace>(0, 2));
+    base::DiscreteStateSpace &dm = *d;
     d->setup();
     d->sanityChecks();
 
@@ -120,7 +121,7 @@ BOOST_AUTO_TEST_CASE(Discrete_Simple)
 
 BOOST_AUTO_TEST_CASE(SO2_Simple)
 {
-    base::StateSpacePtr m(new base::SO2StateSpace());
+    auto m(std::make_shared<base::SO2StateSpace>());
     m->setup();
     m->sanityChecks();
 
@@ -168,7 +169,7 @@ BOOST_AUTO_TEST_CASE(SO2_Simple)
 
 BOOST_AUTO_TEST_CASE(SO2_Projection)
 {
-    base::StateSpacePtr m(new base::SO2StateSpace());
+    auto m(std::make_shared<base::SO2StateSpace>());
     m->setup();
 
     base::ProjectionEvaluatorPtr proj = m->getDefaultProjection();
@@ -182,7 +183,7 @@ BOOST_AUTO_TEST_CASE(SO2_Projection)
 
 BOOST_AUTO_TEST_CASE(SO2_Sampler)
 {
-    base::StateSpacePtr m(new base::SO2StateSpace());
+    auto m(std::make_shared<base::SO2StateSpace>());
     m->setup();
     base::StateSamplerPtr s = m->allocStateSampler();
     base::ScopedState<base::SO2StateSpace> x(m);
@@ -198,7 +199,7 @@ BOOST_AUTO_TEST_CASE(SO2_Sampler)
 
 BOOST_AUTO_TEST_CASE(SO3_Simple)
 {
-    base::StateSpacePtr m(new base::SO3StateSpace());
+    auto m(std::make_shared<base::SO3StateSpace>());
     m->setup();
     m->sanityChecks();
 
@@ -270,7 +271,7 @@ BOOST_AUTO_TEST_CASE(RealVector_Simple)
     base::RealVectorBounds bounds3(3);
     bounds3.setLow(0);
     bounds3.setHigh(1);
-    base::StateSpacePtr m(new base::RealVectorStateSpace(3));
+    auto m(std::make_shared<base::RealVectorStateSpace>(3));
     base::RealVectorStateSpace &rm = *m->as<base::RealVectorStateSpace>();
     rm.setBounds(bounds3);
     rm.setDimensionName(2, "testDim");
@@ -299,8 +300,8 @@ BOOST_AUTO_TEST_CASE(RealVector_Simple)
 
     BOOST_OMPL_EXPECT_NEAR((*s0)[rm.getDimensionIndex("testDim")], 0.5, 1e-3);
 
-    base::StateSpacePtr m2(new base::RealVectorStateSpace());
-    m2->as<base::RealVectorStateSpace>()->addDimension(1, 2);
+    auto m2(std::make_shared<base::RealVectorStateSpace>());
+    m2->addDimension(1, 2);
     m2->setup();
     BOOST_OMPL_EXPECT_NEAR(m2->getMaximumExtent(), 1.0, 1e-3);
     BOOST_CHECK_EQUAL(m2->getDimension(), 1u);
@@ -322,7 +323,7 @@ BOOST_AUTO_TEST_CASE(Time_Bounds)
 
 BOOST_AUTO_TEST_CASE(Time_Simple)
 {
-    base::StateSpacePtr t(new base::TimeStateSpace());
+    auto t(std::make_shared<base::TimeStateSpace>());
     t->setup();
     t->sanityChecks();
     t->params()["valid_segment_count_factor"] = 1;
@@ -363,10 +364,10 @@ BOOST_AUTO_TEST_CASE(Time_Simple)
 
 BOOST_AUTO_TEST_CASE(Compound_Simple)
 {
-    base::StateSpacePtr m1(new base::SE2StateSpace());
-    base::StateSpacePtr m2(new base::SE3StateSpace());
-    base::StateSpacePtr m3(new base::SO2StateSpace());
-    base::StateSpacePtr m4(new base::SO3StateSpace());
+    auto m1(std::make_shared<base::SE2StateSpace>());
+    auto m2(std::make_shared<base::SE3StateSpace>());
+    auto m3(std::make_shared<base::SO2StateSpace>());
+    auto m4(std::make_shared<base::SO3StateSpace>());
 
     BOOST_CHECK(m1 + m1 == m1);
 

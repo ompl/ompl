@@ -77,7 +77,7 @@ struct Circles2D
             fin >> id >> x >> y >> r;
             if (fin.eof() || !fin.good())
                 break;
-            circles_.push_back(Circle(x,y,r));
+            circles_.emplace_back(x,y,r);
             //      std::cout << "Added circle " << id << " at center " << x << ", " << y << " of radius " << r << std::endl;
         }
         fin.close();

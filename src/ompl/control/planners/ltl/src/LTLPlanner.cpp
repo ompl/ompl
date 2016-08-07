@@ -124,17 +124,15 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
             path.push_back(soln);
             soln = soln->parent;
         }
-        auto* pc = new PathControl(si_);
+        auto pc(std::make_shared<PathControl>(si_));
         for (int i = path.size()-1; i >= 0; --i)
         {
-            if (path[i]->parent != nullptr) {
+            if (path[i]->parent != nullptr)
                 pc->append(path[i]->state, path[i]->control, path[i]->steps * ltlsi_->getPropagationStepSize());
-            }
-            else {
+            else
                 pc->append(path[i]->state);
-            }
         }
-        pdef_->addSolutionPath(base::PathPtr(pc));
+        pdef_->addSolutionPath(pc);
     }
 
     OMPL_INFORM("Created %u states", motions_.size());

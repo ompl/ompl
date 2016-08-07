@@ -72,12 +72,12 @@ namespace ompl
 
         static base::SpaceInformationPtr spaceInformation2DCircles(const Circles2D &circles)
         {
-            base::RealVectorStateSpace *space = new base::RealVectorStateSpace();
+            auto space(std::make_shared<base::RealVectorStateSpace>());
             space->addDimension(circles.minX_, circles.maxX_);
             space->addDimension(circles.minY_, circles.maxY_);
-            base::SpaceInformationPtr si(new base::SpaceInformation(base::StateSpacePtr(space)));
-            StateValidityChecker2DCircles *svc = new StateValidityChecker2DCircles(si, circles);
-            si->setStateValidityChecker(base::StateValidityCheckerPtr(svc));
+            auto si(std::make_shared<base::SpaceInformation>(space));
+            si->setStateValidityChecker(
+                std::make_shared<StateValidityChecker2DCircles>(si, circles));
             si->setStateValidityCheckingResolution(0.002);
             si->setup();
             return si;

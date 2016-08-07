@@ -60,13 +60,13 @@ void ompl::tools::Lightning::initialize()
     scratchEnabled_ = true;
 
     // Load dynamic time warp
-    dtw_.reset(new ot::DynamicTimeWarp(si_));
+    dtw_ = std::make_shared<ot::DynamicTimeWarp>(si_);
 
     // Load the experience database
-    experienceDB_.reset(new ompl::tools::LightningDB(si_->getStateSpace()));
+    experienceDB_ = std::make_shared<ompl::tools::LightningDB>(si_->getStateSpace());
 
     // Load the Retrieve repair database. We do it here so that setRepairPlanner() works
-    rrPlanner_ = ob::PlannerPtr(new og::LightningRetrieveRepair(si_, experienceDB_));
+    rrPlanner_ = std::make_shared<og::LightningRetrieveRepair>(si_, experienceDB_);
 
     OMPL_INFORM("Lightning Framework initialized.");
 }
@@ -113,7 +113,7 @@ void ompl::tools::Lightning::setup()
             rrPlanner_->setup();
 
         // Create the parallel component for splitting into two threads
-        pp_ = ot::ParallelPlanPtr(new ot::ParallelPlan(pdef_) );
+        pp_ = std::make_shared<ot::ParallelPlan>(pdef_);
         if (!scratchEnabled_ && !recallEnabled_)
         {
             throw Exception("Both planning from scratch and experience have been disabled, unable to plan");

@@ -111,27 +111,27 @@ void plan()
 {
 
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::SE2StateSpace());
+    auto space(std::make_shared<ob::SE2StateSpace>());
 
     // set the bounds for the R^2 part of SE(2)
     ob::RealVectorBounds bounds(2);
     bounds.setLow(-1);
     bounds.setHigh(1);
 
-    space->as<ob::SE2StateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
 
     // create a control space
-    oc::ControlSpacePtr cspace(new oc::RealVectorControlSpace(space, 2));
+    auto cspace(std::make_shared<oc::RealVectorControlSpace>(space, 2));
 
     // set the bounds for the control space
     ob::RealVectorBounds cbounds(2);
     cbounds.setLow(-0.3);
     cbounds.setHigh(0.3);
 
-    cspace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
+    cspace->setBounds(cbounds);
 
     // construct an instance of  space information from this control space
-    oc::SpaceInformationPtr si(new oc::SpaceInformation(space, cspace));
+    auto si(std::make_shared<oc::SpaceInformation>(space, cspace));
 
     // set state validity checking for this space
     si->setStateValidityChecker(
@@ -151,18 +151,18 @@ void plan()
     goal->setX(0.5);
 
     // create a problem instance
-    ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
+    auto pdef(std::make_shared<ob::ProblemDefinition>(si));
 
     // set the start and goal states
     pdef->setStartAndGoalStates(start, goal, 0.1);
 
     // create a planner for the defined space
-    //ob::PlannerPtr planner(new oc::RRT(si));
-    //ob::PlannerPtr planner(new oc::EST(si));
-    //ob::PlannerPtr planner(new oc::KPIECE1(si));
-    oc::DecompositionPtr decomp(new MyDecomposition(32, bounds));
-    ob::PlannerPtr planner(new oc::SyclopEST(si, decomp));
-    //ob::PlannerPtr planner(new oc::SyclopRRT(si, decomp));
+    //auto planner(std::make_shared<oc::RRT>(si));
+    //auto planner(std::make_shared<oc::EST>(si));
+    //auto planner(std::make_shared<oc::KPIECE1>(si));
+    auto decomp(std::make_shared<MyDecomposition>(32, bounds));
+    auto planner(std::make_shared<oc::SyclopEST>(si, decomp));
+    //auto planner(std::make_shared<oc::SyclopRRT>(si, decomp));
 
     // set the problem we are trying to solve for the planner
     planner->setProblemDefinition(pdef);
@@ -178,7 +178,7 @@ void plan()
     pdef->print(std::cout);
 
     // attempt to solve the problem within one second of planning time
-    ob::PlannerStatus solved = planner->solve(10.0);
+    ob::PlannerStatus solved = planner->ob::Planner::solve(10.0);
 
     if (solved)
     {
@@ -198,24 +198,24 @@ void plan()
 void planWithSimpleSetup()
 {
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::SE2StateSpace());
+    auto space(std::make_shared<ob::SE2StateSpace>());
 
     // set the bounds for the R^2 part of SE(2)
     ob::RealVectorBounds bounds(2);
     bounds.setLow(-1);
     bounds.setHigh(1);
 
-    space->as<ob::SE2StateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
 
     // create a control space
-    oc::ControlSpacePtr cspace(new oc::RealVectorControlSpace(space, 2));
+    auto cspace(std::make_shared<oc::RealVectorControlSpace>(space, 2));
 
     // set the bounds for the control space
     ob::RealVectorBounds cbounds(2);
     cbounds.setLow(-0.3);
     cbounds.setHigh(0.3);
 
-    cspace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
+    cspace->setBounds(cbounds);
 
     // define a simple setup class
     oc::SimpleSetup ss(cspace);
@@ -243,7 +243,7 @@ void planWithSimpleSetup()
     // set the start and goal states
     ss.setStartAndGoalStates(start, goal, 0.05);
 
-    // ss.setPlanner(ob::PlannerPtr(new oc::PDST(ss.getSpaceInformation())));
+    // ss.setPlanner(std::make_shared<oc::PDST>(ss.getSpaceInformation()));
     // ss.getSpaceInformation()->setMinMaxControlDuration(1,100);
     // attempt to solve the problem within one second of planning time
     ob::PlannerStatus solved = ss.solve(10.0);

@@ -41,13 +41,8 @@ static std::shared_ptr<geometric::SimpleSetup> setupCirclesProblem(unsigned int 
 // Configure planners for solving this problem.
 static base::ProjectionEvaluatorPtr getCirclesProjEvaluator(const base::SpaceInformationPtr &si)
 {
-    std::vector<double> cdim;
-    cdim.push_back(1);
-    cdim.push_back(1);
-
-    std::vector<unsigned int> projection;
-    projection.push_back(0);
-    projection.push_back(1);
+    std::vector<double> cdim = {1, 1};
+    std::vector<unsigned int> projection = {0, 1};
 
     return base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection));
 }
@@ -55,70 +50,70 @@ static base::ProjectionEvaluatorPtr getCirclesProjEvaluator(const base::SpaceInf
 template<>
 void addPlanner<geometric::EST, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
-    geometric::EST *est = new geometric::EST(si);
+    auto est(std::make_shared<geometric::EST>(si));
     est->setRange(10.0);
-    benchmark.addPlanner(base::PlannerPtr(est));
+    benchmark.addPlanner(est);
 }
 
 template<>
 void addPlanner<geometric::BiEST, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
-    geometric::BiEST *est = new geometric::BiEST(si);
+    auto est(std::make_shared<geometric::BiEST>(si));
     est->setRange(10.0);
-    benchmark.addPlanner(base::PlannerPtr(est));
+    benchmark.addPlanner(est);
 }
 
 template<>
 void addPlanner<geometric::ProjEST, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
-    geometric::ProjEST *est = new geometric::ProjEST(si);
+    auto est(std::make_shared<geometric::ProjEST>(si));
     est->setRange(10.0);
     est->setProjectionEvaluator(getCirclesProjEvaluator(si));
-    benchmark.addPlanner(base::PlannerPtr(est));
+    benchmark.addPlanner(est);
 }
 
 template<>
 void addPlanner<geometric::SBL, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
-    geometric::SBL *sbl = new geometric::SBL(si);
+    auto sbl(std::make_shared<geometric::SBL>(si));
     sbl->setRange(10.0);
     sbl->setProjectionEvaluator(getCirclesProjEvaluator(si));
-    benchmark.addPlanner(base::PlannerPtr(sbl));
+    benchmark.addPlanner(sbl);
 }
 
 template<>
 void addPlanner<geometric::KPIECE1, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
-    geometric::KPIECE1 *kpiece = new geometric::KPIECE1(si);
+    auto kpiece(std::make_shared<geometric::KPIECE1>(si));
     kpiece->setRange(10.0);
     kpiece->setProjectionEvaluator(getCirclesProjEvaluator(si));
-    benchmark.addPlanner(base::PlannerPtr(kpiece));
+    benchmark.addPlanner(kpiece);
 }
 
 template<>
 void addPlanner<geometric::BKPIECE1, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
-    geometric::BKPIECE1 *kpiece = new geometric::BKPIECE1(si);
+    auto kpiece(std::make_shared<geometric::BKPIECE1>(si));
     kpiece->setRange(10.0);
     kpiece->setProjectionEvaluator(getCirclesProjEvaluator(si));
-    benchmark.addPlanner(base::PlannerPtr(kpiece));
+    benchmark.addPlanner(kpiece);
 }
 
 template<>
 void addPlanner<geometric::LBKPIECE1, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
-    geometric::LBKPIECE1 *kpiece = new geometric::LBKPIECE1(si);
+    auto kpiece(std::make_shared<geometric::LBKPIECE1>(si));
     kpiece->setRange(10.0);
     kpiece->setProjectionEvaluator(getCirclesProjEvaluator(si));
-    benchmark.addPlanner(base::PlannerPtr(kpiece));
+    benchmark.addPlanner(kpiece);
 }
 
 #if OMPL_VERSION_VALUE >= 13000
 template<>
 void addPlanner<geometric::PDST, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
-    geometric::PDST *pdst = new geometric::PDST(si);
+    auto pdst(std::make_shared<geometric::PDST>(si));
     pdst->setProjectionEvaluator(getCirclesProjEvaluator(si));
-    benchmark.addPlanner(base::PlannerPtr(pdst));
+    benchmark.addPlanner(pdst);
 }
 #endif

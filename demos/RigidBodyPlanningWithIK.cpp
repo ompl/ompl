@@ -102,14 +102,14 @@ bool regionSamplingWithGS(const ob::SpaceInformationPtr &si, const ob::ProblemDe
 void planWithIK()
 {
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::SE3StateSpace());
+    auto space(std::make_shared<ob::SE3StateSpace>());
 
     // set the bounds for the R^3 part of SE(3)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
 
-    space->as<ob::SE3StateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
 
     // define a simple setup class
     og::SimpleSetup ss(space);
@@ -123,8 +123,10 @@ void planWithIK()
     // define our goal region
     MyGoalRegion region(ss.getSpaceInformation());
 
-    // bind a sampling function that fills its argument with a sampled state and returns true while it can produce new samples
-    // we don't need to check if new samples are different from ones previously computed as this is pefromed automatically by GoalLazySamples
+    // bind a sampling function that fills its argument with a sampled state
+    // and returns true while it can produce new samples we don't need to
+    // check if new samples are different from ones previously computed as
+    // this is pefromed automatically by GoalLazySamples
     ob::GoalSamplingFn samplingFunction = [&ss, &region](const ob::GoalLazySamples *gls, ob::State *result)
         {
             return regionSamplingWithGS(ss.getSpaceInformation(), ss.getProblemDefinition(), &region,
@@ -132,7 +134,7 @@ void planWithIK()
         };
 
     // create an instance of GoalLazySamples:
-    ob::GoalPtr goal(new ob::GoalLazySamples(ss.getSpaceInformation(), samplingFunction));
+    auto goal(std::make_shared<ob::GoalLazySamples>(ss.getSpaceInformation(), samplingFunction));
 
     // we set a goal that is sampleable, but it in fact corresponds to a region that is not sampleable by default
     ss.setGoal(goal);

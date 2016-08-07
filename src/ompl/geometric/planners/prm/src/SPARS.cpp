@@ -79,7 +79,7 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si) :
     specs_.optimizingPaths = true;
     specs_.multithreaded = true;
 
-    psimp_.reset(new PathSimplifier(si_));
+    psimp_ = std::make_shared<PathSimplifier>(si_);
     psimp_->freeStates(false);
 
     Planner::declareParam<double>("stretch_factor", this, &SPARS::setStretchFactor, &SPARS::getStretchFactor, "1.1:0.1:3.0");
@@ -125,7 +125,7 @@ void ompl::geometric::SPARS::setup()
                 OMPL_WARN("%s: Asymptotic optimality has only been proven with path length optimizaton; convergence for other optimizaton objectives is not guaranteed.", getName().c_str());
         }
         else
-            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
     }
     else
     {
@@ -972,14 +972,14 @@ ompl::base::PathPtr ompl::geometric::SPARS::constructSolution(const SparseVertex
         throw Exception(name_, "Could not find solution path");
     else
     {
-        auto *p = new PathGeometric(si_);
+        auto p(std::make_shared<PathGeometric>(si_));
 
         for (SparseVertex pos = goal; prev[pos] != pos; pos = prev[pos])
             p->append(sparseStateProperty_[pos]);
         p->append(sparseStateProperty_[start]);
         p->reverse();
 
-        return base::PathPtr(p);
+        return p;
     }
 }
 

@@ -75,7 +75,7 @@ ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si) :
     specs_.optimizingPaths = true;
     specs_.multithreaded = true;
 
-    psimp_.reset(new PathSimplifier(si_));
+    psimp_ = std::make_shared<PathSimplifier>(si_);
 
     Planner::declareParam<double>("stretch_factor", this, &SPARStwo::setStretchFactor, &SPARStwo::getStretchFactor, "1.1:0.1:3.0");
     Planner::declareParam<double>("sparse_delta_fraction", this, &SPARStwo::setSparseDeltaFraction, &SPARStwo::getSparseDeltaFraction, "0.0:0.01:1.0");
@@ -115,7 +115,7 @@ void ompl::geometric::SPARStwo::setup()
                 OMPL_WARN("%s: Asymptotic optimality has only been proven with path length optimizaton; convergence for other optimizaton objectives is not guaranteed.", getName().c_str());
         }
         else
-            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
     }
     else
     {
@@ -498,7 +498,7 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
                     connectGuards(r, rp);
                 else
                 {
-                    auto *p = new PathGeometric( si_ );
+                    auto p(std::make_shared<PathGeometric>(si_));
                     if (r < rp)
                     {
                         p->append(d.sigmaA_);
@@ -537,8 +537,6 @@ bool ompl::geometric::SPARStwo::checkAddPath( Vertex v )
                         states.clear();
                         connectGuards(prior, rp);
                     }
-
-                    delete p;
                 }
             }
         }
@@ -811,13 +809,13 @@ ompl::base::PathPtr ompl::geometric::SPARStwo::constructSolution(const Vertex st
         throw Exception(name_, "Could not find solution path");
     else
     {
-        auto *p = new PathGeometric(si_);
+        auto p(std::make_shared<PathGeometric>(si_));
         for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
             p->append(stateProperty_[pos]);
         p->append(stateProperty_[start]);
         p->reverse();
 
-        return base::PathPtr(p);
+        return p;
     }
 }
 

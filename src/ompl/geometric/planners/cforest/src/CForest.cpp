@@ -141,7 +141,7 @@ void ompl::geometric::CForest::setup()
     else
     {
         OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length for the allowed planning time.", getName().c_str());
-        opt_.reset(new base::PathLengthOptimizationObjective(si_));
+        opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
     }
 
     bestCost_ = opt_->infiniteCost();

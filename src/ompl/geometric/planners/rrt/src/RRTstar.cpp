@@ -125,7 +125,7 @@ void ompl::geometric::RRTstar::setup()
         else
         {
             OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length for the allowed planning time.", getName().c_str());
-            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
 
             // Store the new objective in the problem def'n
             pdef_->setOptimizationObjective(opt_);
@@ -544,11 +544,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         }
 
         // set the solution path
-        auto *geoPath = new PathGeometric(si_);
+        auto path(std::make_shared<PathGeometric>(si_));
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            geoPath->append(mpath[i]->state);
+            path->append(mpath[i]->state);
 
-        base::PathPtr path(geoPath);
         // Add the solution path.
         base::PlannerSolution psol(path);
         psol.setPlannerName(getName());

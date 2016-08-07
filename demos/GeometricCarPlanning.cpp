@@ -199,12 +199,12 @@ int main(int argc, char* argv[])
             return 1;
         }
 
-        ob::StateSpacePtr space(new ob::ReedsSheppStateSpace);
+        ob::StateSpacePtr space(std::make_shared<ob::ReedsSheppStateSpace>());
 
         if (vm.count("dubins"))
-            space = ob::StateSpacePtr(new ob::DubinsStateSpace);
+            space = std::make_shared<ob::DubinsStateSpace>();
         if (vm.count("dubinssym"))
-            space = ob::StateSpacePtr(new ob::DubinsStateSpace(1., true));
+            space = std::make_shared<ob::DubinsStateSpace>(1., true);
         if (vm.count("easyplan"))
             plan(space, true);
         if (vm.count("hardplan"))

@@ -210,7 +210,8 @@ public:
 
     void registerProjections() override
     {
-            registerDefaultProjection(ob::ProjectionEvaluatorPtr(new RigidBodyStateProjectionEvaluator(this)));
+        registerDefaultProjection(
+            std::make_shared<RigidBodyStateProjectionEvaluator>(this));
     }
 
 };
@@ -223,17 +224,16 @@ int main(int, char **)
     dInitODE2(0);
 
     // create the OpenDE environment
-    oc::OpenDEEnvironmentPtr env(new RigidBodyEnvironment());
+    oc::OpenDEEnvironmentPtr env(std::make_shared<RigidBodyEnvironment>());
 
     // create the state space and the control space for planning
-    auto *stateSpace = new RigidBodyStateSpace(env);
-    ob::StateSpacePtr stateSpacePtr = ob::StateSpacePtr(stateSpace);
+    auto stateSpace = std::make_shared<RigidBodyStateSpace>(env);
 
     // this will take care of setting a proper collision checker and the starting state for the planner as the initial OpenDE state
-    oc::OpenDESimpleSetup ss(stateSpacePtr);
+    oc::OpenDESimpleSetup ss(stateSpace);
 
     // set the goal we would like to reach
-    ss.setGoal(ob::GoalPtr(new RigidBodyGoal(ss.getSpaceInformation())));
+    ss.setGoal(std::make_shared<RigidBodyGoal>(ss.getSpaceInformation()));
 
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-200);

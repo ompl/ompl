@@ -61,7 +61,7 @@ void BFMT::setup()
         else
         {
             OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length.", getName().c_str());
-            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
             // Store the new objective in the problem def'n
             pdef_->setOptimizationObjective(opt_);
         }
@@ -418,7 +418,7 @@ base::PlannerStatus BFMT::solve(const base::PlannerTerminationCondition& ptc)
         mpath.insert(mpath.end(), path_fwd.begin(), path_fwd.end());
 
         // Set the solution path
-        auto *path = new PathGeometric(si_);
+        auto path(std::make_shared<PathGeometric>(si_));
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
         {
             path->append(mpath[i]->getState());
@@ -426,7 +426,7 @@ base::PlannerStatus BFMT::solve(const base::PlannerTerminationCondition& ptc)
 
         static const bool    approximate                 = false;
         static const double  cost_difference_from_goal   = 0.0;
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, cost_difference_from_goal, getName());
+        pdef_->addSolutionPath(path, approximate, cost_difference_from_goal, getName());
 
         OMPL_DEBUG("Total path cost: %f\n", fwd_cost.value() + rev_cost.value());
         return base::PlannerStatus(true, false);

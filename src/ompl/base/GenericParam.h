@@ -236,7 +236,7 @@ namespace ompl
             void declareParam(const std::string &name, const typename SpecificParam<T>::SetterFn &setter,
                               const typename SpecificParam<T>::GetterFn &getter = typename SpecificParam<T>::GetterFn())
             {
-                params_[name].reset(new SpecificParam<T>(name, setter, getter));
+                params_[name] = std::make_shared<SpecificParam<T>>(name, setter, getter);
             }
 
             /** \brief Add a parameter to the set */

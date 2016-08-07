@@ -50,7 +50,7 @@ ompl::tools::ThunderDB::ThunderDB(const base::StateSpacePtr &space)
     , saving_enabled_(true)
 {
     // Set space information
-    si_.reset(new base::SpaceInformation(space));
+    si_ = std::make_shared<base::SpaceInformation>(space);
 }
 
 ompl::tools::ThunderDB::~ThunderDB()
@@ -104,7 +104,7 @@ bool ompl::tools::ThunderDB::load(const std::string& fileName)
     }
 
     // Create a new planner data instance
-    ompl::base::PlannerDataPtr plannerData(new ompl::base::PlannerData(si_));
+    auto plannerData(std::make_shared<ompl::base::PlannerData>(si_));
 
     // Note: the StateStorage class checks if the states match for us
     plannerDataStorage_.load(iStream, *plannerData.get());
@@ -205,7 +205,7 @@ bool ompl::tools::ThunderDB::save(const std::string& fileName)
     std::vector<ompl::base::PlannerDataPtr> plannerDatas;
 
     // TODO: make this more than 1 planner data perhaps
-    base::PlannerDataPtr data(new base::PlannerData(si_));
+    auto data(std::make_shared<base::PlannerData>(si_));
     spars_->getPlannerData(*data);
     OMPL_INFORM("Get planner data from SPARS2 with \n  %d vertices\n  %d edges\n  %d start states\n  %d goal states",
                 data->numVertices(), data->numEdges(), data->numStartVertices(), data->numGoalVertices());
@@ -269,7 +269,7 @@ void ompl::tools::ThunderDB::getAllPlannerDatas(std::vector<ompl::base::PlannerD
         return;
     }
 
-    base::PlannerDataPtr data(new base::PlannerData(si_));
+    auto data(std::make_shared<base::PlannerData>(si_));
     spars_->getPlannerData(*data);
     plannerDatas.push_back(data);
 

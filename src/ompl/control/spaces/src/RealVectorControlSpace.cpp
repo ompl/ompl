@@ -91,7 +91,7 @@ bool ompl::control::RealVectorControlSpace::equalControls(const Control *control
 
 ompl::control::ControlSamplerPtr ompl::control::RealVectorControlSpace::allocDefaultControlSampler() const
 {
-    return ControlSamplerPtr(new RealVectorControlUniformSampler(this));
+    return std::make_shared<RealVectorControlUniformSampler>(this);
 }
 
 ompl::control::Control* ompl::control::RealVectorControlSpace::allocControl() const

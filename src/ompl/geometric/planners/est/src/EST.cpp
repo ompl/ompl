@@ -212,10 +212,10 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
         }
 
         // set the solution path
-        auto *path = new PathGeometric(si_);
+        auto path(std::make_shared<PathGeometric>(si_));
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
+        pdef_->addSolutionPath(path, approximate, approxdif, getName());
         solved = true;
     }
 

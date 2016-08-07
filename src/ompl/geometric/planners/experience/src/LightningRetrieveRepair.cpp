@@ -57,9 +57,9 @@ ompl::geometric::LightningRetrieveRepair::LightningRetrieveRepair(const base::Sp
     specs_.directed = true;
 
     // Repair Planner Specific:
-    repairProblemDef_.reset(new base::ProblemDefinition(si_));
+    repairProblemDef_ = std::make_shared<base::ProblemDefinition>(si_);
 
-    psk_.reset(new ompl::geometric::PathSimplifier(si_));
+    psk_ = std::make_shared<PathSimplifier>(si_);
 }
 
 ompl::geometric::LightningRetrieveRepair::~LightningRetrieveRepair() = default;
@@ -95,7 +95,7 @@ void ompl::geometric::LightningRetrieveRepair::setup()
     if (!repairPlanner_)
     {
         // Set the repair planner
-        repairPlanner_.reset(new ompl::geometric::RRTConnect(si_));
+        repairPlanner_ = std::make_shared<RRTConnect>(si_);
         OMPL_DEBUG("LightningRetrieveRepair: No repairing planner specified. Using default: %s", repairPlanner_->getName().c_str() );
     }
 
@@ -156,7 +156,7 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     assert(chosenPath->numVertices() >= 2);
 
     // Convert chosen PlannerData experience to an actual path
-    auto *primaryPath = new PathGeometric(si_);
+    auto primaryPath(std::make_shared<PathGeometric>(si_));
     // Add start
     primaryPath->append(startState);
     // Add old states
@@ -187,7 +187,7 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
         simplifyTime, numStates - primaryPath->getStateCount());
 
     // Finished
-    pdef_->addSolutionPath(base::PathPtr(primaryPath), false, 0., getName());
+    pdef_->addSolutionPath(primaryPath, false, 0., getName());
     solved = true;
     return base::PlannerStatus(solved, false);
 }
@@ -320,7 +320,7 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
     if (isReversed[nearestPathsChosenID_])
     {
         OMPL_DEBUG("LightningRetrieveRepair: Reversing planner data verticies count %d", bestPath->numVertices());
-        ompl::base::PlannerDataPtr newPath(new ompl::base::PlannerData(si_));
+        auto newPath(std::make_shared<ompl::base::PlannerData>(si_));
         for (std::size_t i = bestPath->numVertices(); i > 0; --i) // size_t can't go negative so subtract 1 instead
         {
             newPath->addVertex( bestPath->getVertex(i-1) );
@@ -510,7 +510,7 @@ bool ompl::geometric::LightningRetrieveRepair::replan(const ompl::base::State *s
         simplifyTime, numStates - newPathSegment.getStateCount());
 
     // Save the planner data for debugging purposes
-    repairPlannerDatas_.push_back(ompl::base::PlannerDataPtr( new ompl::base::PlannerData(si_) ));
+    repairPlannerDatas_.push_back(std::make_shared<ompl::base::PlannerData>(si_));
     repairPlanner_->getPlannerData( *repairPlannerDatas_.back() );
     repairPlannerDatas_.back()->decoupleFromPlanner(); // copy states so that when planner unloads/clears we don't lose them
 

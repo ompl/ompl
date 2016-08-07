@@ -317,7 +317,7 @@ namespace ompl
             template<template<typename T> class NN>
             void setNearestNeighbors()
             {
-                nn_.reset(new NN< Vertex >());
+                nn_ = std::make_shared<NN<Vertex>>();
                 if (isSetup())
                     setup();
             }

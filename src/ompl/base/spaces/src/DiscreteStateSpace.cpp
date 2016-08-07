@@ -134,7 +134,7 @@ void ompl::base::DiscreteStateSpace::interpolate(const State *from, const State 
 
 ompl::base::StateSamplerPtr ompl::base::DiscreteStateSpace::allocDefaultStateSampler() const
 {
-    return StateSamplerPtr(new DiscreteStateSampler(this));
+    return std::make_shared<DiscreteStateSampler>(this);
 }
 
 ompl::base::State* ompl::base::DiscreteStateSpace::allocState() const
@@ -177,7 +177,7 @@ void ompl::base::DiscreteStateSpace::registerProjections()
         }
     };
 
-    registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new DiscreteDefaultProjection(this))));
+    registerDefaultProjection(std::make_shared<DiscreteDefaultProjection>(this));
 }
 
 void ompl::base::DiscreteStateSpace::setup()

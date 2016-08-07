@@ -52,8 +52,8 @@ using namespace ompl;
 
 BOOST_AUTO_TEST_CASE(SimpleConstruction)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    auto space(std::make_shared<base::RealVectorStateSpace>(1));
+    auto si(std::make_shared<base::SpaceInformation>(space));
     base::PlannerData data(si);
     std::vector<base::State*> states;
 
@@ -121,8 +121,8 @@ BOOST_AUTO_TEST_CASE(SimpleConstruction)
 
 BOOST_AUTO_TEST_CASE(AdvancedConstruction)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    auto space(std::make_shared<base::RealVectorStateSpace>(1));
+    auto si(std::make_shared<base::SpaceInformation>(space));
     base::PlannerData data(si);
     std::vector<base::State*> states;
 
@@ -231,8 +231,8 @@ public:
 
 BOOST_AUTO_TEST_CASE(DataIntegrity)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    auto space(std::make_shared<base::RealVectorStateSpace>(1));
+    auto si(std::make_shared<base::SpaceInformation>(space));
     base::PlannerData data(si);
     std::vector<base::State*> states;
 
@@ -303,8 +303,8 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
 
 BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    auto space(std::make_shared<base::RealVectorStateSpace>(1));
+    auto si(std::make_shared<base::SpaceInformation>(space));
     base::PlannerData data(si);
     std::vector<base::State*> states;
 
@@ -382,8 +382,8 @@ BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
 
 BOOST_AUTO_TEST_CASE(AddRemoveStartAndGoalStates)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    auto space(std::make_shared<base::RealVectorStateSpace>(1));
+    auto si(std::make_shared<base::SpaceInformation>(space));
     base::PlannerData data(si);
     std::vector<base::State*> states;
 
@@ -483,8 +483,8 @@ BOOST_CLASS_EXPORT(PlannerDataTestVertex);
 
 BOOST_AUTO_TEST_CASE(Serialization)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    auto space(std::make_shared<base::RealVectorStateSpace>(1));
+    auto si(std::make_shared<base::SpaceInformation>(space));
     base::PlannerData data(si);
     std::vector<base::State*> states;
 

@@ -200,13 +200,13 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
             mpath.push_back(solution);
             solution = solution->parent;
         }
-        auto *path = new PathControl(si_);
+        auto path(std::make_shared<PathControl>(si_));
         for (int i = mpath.size()-1; i >= 0; --i)
             if (mpath[i]->parent)
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
             else
                 path->append(mpath[i]->state);
-        pdef_->addSolutionPath(base::PathPtr(path), !solved, goalDist, getName());
+        pdef_->addSolutionPath(path, !solved, goalDist, getName());
         addedSolution = true;
     }
     return addedSolution ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;

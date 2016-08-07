@@ -164,7 +164,8 @@ bool ompl::base::PlannerSolution::operator<(const PlannerSolution &b) const
     return opt_ ? opt_->isCostBetterThan(cost_, b.cost_) : length_ < b.length_;
 }
 
-ompl::base::ProblemDefinition::ProblemDefinition(SpaceInformationPtr si) : si_(std::move(si)), solutions_(new PlannerSolutionSet())
+ompl::base::ProblemDefinition::ProblemDefinition(SpaceInformationPtr si)
+    : si_(std::move(si)), solutions_(std::make_shared<PlannerSolutionSet>())
 {
 }
 
@@ -178,10 +179,10 @@ void ompl::base::ProblemDefinition::setStartAndGoalStates(const State *start, co
 void ompl::base::ProblemDefinition::setGoalState(const State *goal, const double threshold)
 {
     clearGoal();
-    auto *gs = new GoalState(si_);
+    auto gs(std::make_shared<GoalState>(si_));
     gs->setState(goal);
     gs->setThreshold(threshold);
-    setGoal(GoalPtr(gs));
+    setGoal(gs);
 }
 
 bool ompl::base::ProblemDefinition::hasStartState(const State *state, unsigned int *startIndex) const
@@ -285,13 +286,13 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() con
         unsigned int startIndex;
         if (isTrivial(&startIndex, nullptr))
         {
-            control::PathControl *pc = new control::PathControl(sic);
+            auto pc(std::make_shared<control::PathControl>(sic));
             pc->append(startStates_[startIndex]);
             control::Control *null = sic->allocControl();
             sic->nullControl(null);
             pc->append(startStates_[startIndex], null, 0.0);
             sic->freeControl(null);
-            path.reset(pc);
+            path = pc;
         }
         else
         {
@@ -311,10 +312,10 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() con
                         {
                             if (goal_->isSatisfied(result2))
                             {
-                                control::PathControl *pc = new control::PathControl(sic);
+                                auto pc(std::make_shared<control::PathControl>(sic));
                                 pc->append(start);
                                 pc->append(result2, nc, (i + 1) * sic->getPropagationStepSize());
-                                path.reset(pc);
+                                path = pc;
                                 break;
                             }
                             std::swap(result1, result2);
@@ -343,10 +344,8 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() con
         {
             unsigned int startIndex;
             if (isTrivial(&startIndex))
-            {
-                auto *pg = new geometric::PathGeometric(si_, startStates_[startIndex], startStates_[startIndex]);
-                path.reset(pg);
-            }
+                path = std::make_shared<geometric::PathGeometric>(
+                    si_, startStates_[startIndex], startStates_[startIndex]);
         }
         else
         {
@@ -358,8 +357,7 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() con
                     for (unsigned int j = 0 ; j < states.size() && !path ; ++j)
                         if (si_->checkMotion(start, states[j]))
                         {
-                            auto *pg = new geometric::PathGeometric(si_, start, states[j]);
-                            path.reset(pg);
+                            path = std::make_shared<geometric::PathGeometric>(si_, start, states[j]);
                             break;
                         }
                 }

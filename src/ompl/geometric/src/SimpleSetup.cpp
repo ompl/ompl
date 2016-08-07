@@ -46,14 +46,14 @@ ompl::geometric::SimpleSetup::SimpleSetup(const base::SpaceInformationPtr &si) :
     configured_(false), planTime_(0.0), simplifyTime_(0.0), lastStatus_(base::PlannerStatus::UNKNOWN)
 {
     si_ = si;
-    pdef_.reset(new base::ProblemDefinition(si_));
+    pdef_ = std::make_shared<base::ProblemDefinition>(si_);
 }
 
 ompl::geometric::SimpleSetup::SimpleSetup(const base::StateSpacePtr &space) :
     configured_(false), planTime_(0.0), simplifyTime_(0.0), lastStatus_(base::PlannerStatus::UNKNOWN)
 {
-    si_.reset(new base::SpaceInformation(space));
-    pdef_.reset(new base::ProblemDefinition(si_));
+    si_ = std::make_shared<base::SpaceInformation>(space);
+    pdef_ = std::make_shared<base::ProblemDefinition>(si_);
 }
 
 void ompl::geometric::SimpleSetup::setup()
@@ -95,13 +95,13 @@ void ompl::geometric::SimpleSetup::setStartAndGoalStates(const base::ScopedState
     // Clear any past solutions since they no longer correspond to our start and goal states
     pdef_->clearSolutionPaths();
 
-    psk_.reset(new PathSimplifier(si_, pdef_->getGoal()));
+    psk_ = std::make_shared<PathSimplifier>(si_, pdef_->getGoal());
 }
 
 void ompl::geometric::SimpleSetup::setGoalState(const base::ScopedState<> &goal, const double threshold)
 {
     pdef_->setGoalState(goal, threshold);
-    psk_.reset(new PathSimplifier(si_, pdef_->getGoal()));
+    psk_ = std::make_shared<PathSimplifier>(si_, pdef_->getGoal());
 }
 
 /** \brief Set the goal for planning. This call is not
@@ -111,9 +111,9 @@ void ompl::geometric::SimpleSetup::setGoal(const base::GoalPtr &goal)
     pdef_->setGoal(goal);
 
     if (goal && goal->hasType(base::GOAL_SAMPLEABLE_REGION))
-        psk_.reset(new PathSimplifier(si_, pdef_->getGoal()));
+        psk_ = std::make_shared<PathSimplifier>(si_, pdef_->getGoal());
     else
-        psk_.reset(new PathSimplifier(si_));
+        psk_ = std::make_shared<PathSimplifier>(si_);
 }
 
 

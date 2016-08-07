@@ -126,7 +126,7 @@ ompl::geometric::SPARSdb::SPARSdb(const base::SpaceInformationPtr &si) :
     specs_.approximateSolutions = false;
     specs_.optimizingPaths = true;
 
-    psimp_.reset(new PathSimplifier(si_));
+    psimp_ = std::make_shared<PathSimplifier>(si_);
 
     Planner::declareParam<double>("stretch_factor", this, &SPARSdb::setStretchFactor, &SPARSdb::getStretchFactor, "1.1:0.1:3.0");
     Planner::declareParam<double>("sparse_delta_fraction", this, &SPARSdb::setSparseDeltaFraction, &SPARSdb::getSparseDeltaFraction, "0.0:0.01:1.0");
@@ -1209,7 +1209,7 @@ bool ompl::geometric::SPARSdb::checkAddPath( Vertex v )
                     connectGuards(r, rp);
                 else
                 {
-                    auto *p = new PathGeometric( si_ );
+                    auto p(std::make_shared<PathGeometric>(si_));
                     if (r < rp)
                     {
                         p->append(d.sigmaA_);
@@ -1250,8 +1250,6 @@ bool ompl::geometric::SPARSdb::checkAddPath( Vertex v )
                         states.clear();
                         connectGuards(prior, rp);
                     }
-
-                    delete p;
                 }
             }
         }
@@ -1658,7 +1656,7 @@ bool ompl::geometric::SPARSdb::convertVertexPathToStatePath(std::vector<Vertex> 
     if (!vertexPath.size())
         return false;
 
-    auto *pathGeometric = new ompl::geometric::PathGeometric(si_);
+    auto pathGeometric(std::make_shared<ompl::geometric::PathGeometric>(si_));
     candidateSolution.isApproximate_ = false; // assume path is valid
 
     // Add original start if it is different than the first state
@@ -1710,7 +1708,7 @@ bool ompl::geometric::SPARSdb::convertVertexPathToStatePath(std::vector<Vertex> 
         candidateSolution.edgeCollisionStatus_.push_back(FREE);
     }
 
-    candidateSolution.path_ = base::PathPtr(pathGeometric);
+    candidateSolution.path_ = pathGeometric;
 
     return true;
 }

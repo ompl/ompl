@@ -310,7 +310,7 @@ bool ompl::control::PathControl::randomValid(unsigned int attempts)
     controls_[0] = si->allocControl();
 
     ControlSamplerPtr cs = si->allocControlSampler();
-    auto *uvss = new base::UniformValidStateSampler(si);
+    auto uvss(std::make_shared<base::UniformValidStateSampler>(si));
     uvss->setNrAttempts(attempts);
     bool ok = false;
     for (unsigned int i = 0 ; i < attempts ; ++i)
@@ -325,7 +325,6 @@ bool ompl::control::PathControl::randomValid(unsigned int attempts)
                 break;
             }
         }
-    delete uvss;
 
     if (!ok)
     {

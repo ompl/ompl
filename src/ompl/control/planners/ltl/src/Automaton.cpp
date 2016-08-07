@@ -211,7 +211,7 @@ unsigned int ompl::control::Automaton::distFromAccepting(unsigned int s, unsigne
 
 ompl::control::AutomatonPtr ompl::control::Automaton::AcceptingAutomaton(unsigned int numProps)
 {
-    AutomatonPtr phi(new Automaton(numProps, 1));
+    auto phi(std::make_shared<Automaton>(numProps, 1));
     World trivial(numProps);
     phi->addTransition(0, trivial, 0);
     phi->setStartState(0);
@@ -221,7 +221,7 @@ ompl::control::AutomatonPtr ompl::control::Automaton::AcceptingAutomaton(unsigne
 
 ompl::control::AutomatonPtr ompl::control::Automaton::CoverageAutomaton(unsigned int numProps, const std::vector<unsigned int>& covProps)
 {
-    AutomatonPtr phi(new Automaton(numProps, 1<<covProps.size()));
+    auto phi(std::make_shared<Automaton>(numProps, 1<<covProps.size()));
     for (unsigned int src = 0; src < phi->numStates(); ++src)
     {
         const boost::dynamic_bitset<> state(covProps.size(), src);
@@ -254,7 +254,7 @@ ompl::control::AutomatonPtr ompl::control::Automaton::CoverageAutomaton(unsigned
 
 ompl::control::AutomatonPtr ompl::control::Automaton::SequenceAutomaton(unsigned int numProps, const std::vector<unsigned int>& seqProps)
 {
-    AutomatonPtr seq(new Automaton(numProps, seqProps.size()+1));
+    auto seq(std::make_shared<Automaton>(numProps, seqProps.size()+1));
     for (unsigned int state = 0; state < seqProps.size(); ++state)
     {
         // loop when next proposition in sequence is not satisfied
@@ -276,7 +276,7 @@ ompl::control::AutomatonPtr ompl::control::Automaton::SequenceAutomaton(unsigned
 
 ompl::control::AutomatonPtr ompl::control::Automaton::DisjunctionAutomaton(unsigned int numProps, const std::vector<unsigned int>& disjProps)
 {
-    AutomatonPtr disj(new Automaton(numProps, 2));
+    auto disj(std::make_shared<Automaton>(numProps, 2));
     World loop(numProps);
     for (unsigned int disjProp : disjProps)
     {

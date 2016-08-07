@@ -213,16 +213,16 @@ void plan(double runTime, optimalPlanner plannerType, planningObjective objectiv
 {
     // Construct the robot state space in which we're planning. We're
     // planning in [0,1]x[0,1], a subset of R^2.
-    ob::StateSpacePtr space(new ob::RealVectorStateSpace(2));
+    auto space(std::make_shared<ob::RealVectorStateSpace>(2));
 
     // Set the bounds of space to be in [0,1].
-    space->as<ob::RealVectorStateSpace>()->setBounds(0.0, 1.0);
+    space->setBounds(0.0, 1.0);
 
     // Construct a space information instance for this state space
-    ob::SpaceInformationPtr si(new ob::SpaceInformation(space));
+    auto si(std::make_shared<ob::SpaceInformation>(space));
 
     // Set the object used to check which states in the space are valid
-    si->setStateValidityChecker(ob::StateValidityCheckerPtr(new ValidityChecker(si)));
+    si->setStateValidityChecker(std::make_shared<ValidityChecker>(si));
 
     si->setup();
 
@@ -239,7 +239,7 @@ void plan(double runTime, optimalPlanner plannerType, planningObjective objectiv
     goal->as<ob::RealVectorStateSpace::StateType>()->values[1] = 1.0;
 
     // Create a problem instance
-    ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
+    auto pdef(std::make_shared<ob::ProblemDefinition>(si));
 
     // Set the start and goal states
     pdef->setStartAndGoalStates(start, goal);
@@ -313,7 +313,7 @@ int main(int argc, char** argv)
     computed paths. */
 ob::OptimizationObjectivePtr getPathLengthObjective(const ob::SpaceInformationPtr& si)
 {
-    return ob::OptimizationObjectivePtr(new ob::PathLengthOptimizationObjective(si));
+    return std::make_shared<ob::PathLengthOptimizationObjective>(si);
 }
 
 /** Returns an optimization objective which attempts to minimize path
@@ -321,7 +321,7 @@ ob::OptimizationObjectivePtr getPathLengthObjective(const ob::SpaceInformationPt
     is found. */
 ob::OptimizationObjectivePtr getThresholdPathLengthObj(const ob::SpaceInformationPtr& si)
 {
-    ob::OptimizationObjectivePtr obj(new ob::PathLengthOptimizationObjective(si));
+    auto obj(std::make_shared<ob::PathLengthOptimizationObjective>(si));
     obj->setCostThreshold(ob::Cost(1.51));
     return obj;
 }
@@ -361,7 +361,7 @@ public:
     away from obstacles. */
 ob::OptimizationObjectivePtr getClearanceObjective(const ob::SpaceInformationPtr& si)
 {
-    return ob::OptimizationObjectivePtr(new ClearanceObjective(si));
+    return std::make_shared<ClearanceObjective>(si);
 }
 
 /** Create an optimization objective which attempts to optimize both
@@ -378,10 +378,9 @@ ob::OptimizationObjectivePtr getClearanceObjective(const ob::SpaceInformationPtr
 */
 ob::OptimizationObjectivePtr getBalancedObjective1(const ob::SpaceInformationPtr& si)
 {
-    ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(si));
-    ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
-
-    auto* opt = new ob::MultiOptimizationObjective(si);
+    auto lengthObj(std::make_shared<ob::PathLengthOptimizationObjective>(si));
+    auto clearObj(std::make_shared<ClearanceObjective>(si));
+    auto opt(std::make_shared<ob::MultiOptimizationObjective>(si));
     opt->addObjective(lengthObj, 10.0);
     opt->addObjective(clearObj, 1.0);
 
@@ -393,8 +392,8 @@ ob::OptimizationObjectivePtr getBalancedObjective1(const ob::SpaceInformationPtr
  */
 ob::OptimizationObjectivePtr getBalancedObjective2(const ob::SpaceInformationPtr& si)
 {
-    ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(si));
-    ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
+    auto lengthObj(std::make_shared<ob::PathLengthOptimizationObjective>(si));
+    auto clearObj(std::make_shared<ClearanceObjective>(si));
 
     return 10.0*lengthObj + clearObj;
 }
@@ -404,7 +403,7 @@ ob::OptimizationObjectivePtr getBalancedObjective2(const ob::SpaceInformationPtr
     problem. */
 ob::OptimizationObjectivePtr getPathLengthObjWithCostToGo(const ob::SpaceInformationPtr& si)
 {
-    ob::OptimizationObjectivePtr obj(new ob::PathLengthOptimizationObjective(si));
+    auto obj(std::make_shared<ob::PathLengthOptimizationObjective>(si));
     obj->setCostToGoHeuristic(&ob::goalRegionCostToGo);
     return obj;
 }

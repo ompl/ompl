@@ -46,13 +46,13 @@ ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const ControlSpacePtr &space
 }
 
 ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const base::StateSpacePtr &space) :
-    SimpleSetup(ControlSpacePtr(new OpenDEControlSpace(space)))
+    SimpleSetup(std::make_shared<OpenDEControlSpace>(space))
 {
     useEnvParams();
 }
 
 ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const OpenDEEnvironmentPtr &env) :
-    SimpleSetup(ControlSpacePtr(new OpenDEControlSpace(base::StateSpacePtr(new OpenDEStateSpace(env)))))
+    SimpleSetup(std::make_shared<OpenDEControlSpace>(std::make_shared<OpenDEStateSpace>(env)))
 {
     useEnvParams();
 }
@@ -62,7 +62,7 @@ void ompl::control::OpenDESimpleSetup::useEnvParams()
     si_->setPropagationStepSize(getStateSpace()->as<OpenDEStateSpace>()->getEnvironment()->stepSize_);
     si_->setMinMaxControlDuration(getStateSpace()->as<OpenDEStateSpace>()->getEnvironment()->minControlSteps_,
                                   getStateSpace()->as<OpenDEStateSpace>()->getEnvironment()->maxControlSteps_);
-    si_->setStatePropagator(StatePropagatorPtr(new OpenDEStatePropagator(si_)));
+    si_->setStatePropagator(std::make_shared<OpenDEStatePropagator>(si_));
 }
 
 ompl::base::ScopedState<ompl::control::OpenDEStateSpace> ompl::control::OpenDESimpleSetup::getCurrentState() const
@@ -87,7 +87,7 @@ void ompl::control::OpenDESimpleSetup::setup()
     if (!si_->getStateValidityChecker())
     {
         OMPL_INFORM("Using default state validity checker for OpenDE");
-        si_->setStateValidityChecker(base::StateValidityCheckerPtr(new OpenDEStateValidityChecker(si_)));
+        si_->setStateValidityChecker(std::make_shared<OpenDEStateValidityChecker>(si_));
     }
     if (pdef_->getStartStateCount() == 0)
     {
@@ -140,7 +140,7 @@ ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const doub
 
 ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const Control *control, unsigned int steps) const
 {
-    PathControl *p = new PathControl(si_);
+    auto p(std::make_shared<PathControl>(si_));
 
     base::State *s0 = si_->allocState();
     getStateSpace()->as<OpenDEStateSpace>()->readState(s0);
@@ -152,7 +152,7 @@ ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const Cont
 
     p->getControls().push_back(si_->cloneControl(control));
     p->getControlDurations().push_back(steps);
-    return base::PathPtr(p);
+    return p;
 }
 
 ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulate(unsigned int steps) const

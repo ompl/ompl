@@ -46,14 +46,14 @@ ompl::control::SimpleSetup::SimpleSetup(const SpaceInformationPtr &si) :
     configured_(false), planTime_(0.0), last_status_(base::PlannerStatus::UNKNOWN)
 {
     si_ = si;
-    pdef_.reset(new base::ProblemDefinition(si_));
+    pdef_ = std::make_shared<base::ProblemDefinition>(si_);
 }
 
 ompl::control::SimpleSetup::SimpleSetup(const ControlSpacePtr &space) :
     configured_(false), planTime_(0.0), last_status_(base::PlannerStatus::UNKNOWN)
 {
-    si_.reset(new SpaceInformation(space->getStateSpace(), space));
-    pdef_.reset(new base::ProblemDefinition(si_));
+    si_ = std::make_shared<SpaceInformation>(space->getStateSpace(), space);
+    pdef_ = std::make_shared<base::ProblemDefinition>(si_);
 }
 
 void ompl::control::SimpleSetup::setup()

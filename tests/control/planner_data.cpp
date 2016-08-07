@@ -53,8 +53,8 @@ using namespace ompl;
 
 // Define the state and control spaces used throughout the testing
 #define SETUP_STATE_CONTROL_SPACES \
-base::StateSpacePtr space(new base::RealVectorStateSpace(1)); \
-control::ControlSpacePtr cspace (new control::RealVectorControlSpace(space, 2)); \
+base::StateSpacePtr space(std::make_shared<base::RealVectorStateSpace>(1)); \
+control::ControlSpacePtr cspace(std::make_shared<control::RealVectorControlSpace>(space, 2)); \
 base::RealVectorBounds spacebounds(1); \
 spacebounds.setLow(-10); \
 spacebounds.setHigh(10); \
@@ -63,7 +63,7 @@ ctrlbounds.setLow(-1); \
 ctrlbounds.setHigh(1); \
 space->as<base::RealVectorStateSpace>()->setBounds(spacebounds); \
 cspace->as<control::RealVectorControlSpace>()->setBounds(ctrlbounds); \
-control::SpaceInformationPtr si(new control::SpaceInformation(space, cspace)); \
+control::SpaceInformationPtr si(std::make_shared<control::SpaceInformation>(space, cspace)); \
 si->setStateValidityChecker(isValid); \
 si->setStatePropagator(propagate); \
 si->setMinMaxControlDuration(1, 10); \

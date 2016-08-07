@@ -111,24 +111,24 @@ void propagate(const ob::State *start, const oc::Control *control, const double 
 void planWithSimpleSetup()
 {
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::SE2StateSpace());
+    auto space(std::make_shared<ob::SE2StateSpace>());
 
     // set the bounds for the R^2 part of SE(2)
     ob::RealVectorBounds bounds(2);
     bounds.setLow(-1);
     bounds.setHigh(1);
 
-    space->as<ob::SE2StateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
 
     // create a control space
-    oc::ControlSpacePtr cspace(new oc::RealVectorControlSpace(space, 2));
+    auto cspace(std::make_shared<oc::RealVectorControlSpace>(space, 2));
 
     // set the bounds for the control space
     ob::RealVectorBounds cbounds(2);
     cbounds.setLow(-0.3);
     cbounds.setHigh(0.3);
 
-    cspace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
+    cspace->setBounds(cbounds);
 
     // define a simple setup class
     oc::SimpleSetup ss(cspace);
@@ -153,12 +153,12 @@ void planWithSimpleSetup()
     // set the start and goal states
     ss.setStartAndGoalStates(start, goal, 0.05);
 
-    oc::TriangularDecomposition* td = new MyTriangularDecomposition(bounds);
+    auto td(std::make_shared<MyTriangularDecomposition>(bounds));
     // print the triangulation to stdout
     td->print(std::cout);
 
     // hand the triangulation to SyclopEST
-    ob::PlannerPtr planner(new oc::SyclopEST(ss.getSpaceInformation(), oc::DecompositionPtr(td)));
+    auto planner(std::make_shared<oc::SyclopEST>(ss.getSpaceInformation(), td));
     // hand the SyclopEST planner to SimpleSetup
     ss.setPlanner(planner);
 

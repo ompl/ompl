@@ -47,16 +47,16 @@
 ompl::tools::LightningDB::LightningDB(const base::StateSpacePtr &space)
     : numUnsavedPaths_(0)
 {
-    si_.reset(new base::SpaceInformation(space));
+    si_ = std::make_shared<base::SpaceInformation>(space);
 
     // Set nearest neighbor type
-    nn_.reset(new ompl::NearestNeighborsSqrtApprox<ompl::base::PlannerDataPtr>());
+    nn_ = std::make_shared<ompl::NearestNeighborsSqrtApprox<ompl::base::PlannerDataPtr>>();
 
     // Use our custom distance function for nearest neighbor tree
     nn_->setDistanceFunction([this] (const ompl::base::PlannerDataPtr &a, const ompl::base::PlannerDataPtr &b) { return distanceFunction(a, b); });
 
     // Load the PlannerData instance to be used for searching
-    nnSearchKey_.reset(new ompl::base::PlannerData(si_));
+    nnSearchKey_ = std::make_shared<ompl::base::PlannerData>(si_);
 }
 
 ompl::tools::LightningDB::~LightningDB()
@@ -102,7 +102,7 @@ bool ompl::tools::LightningDB::load(const std::string &fileName)
     for (std::size_t i = 0; i < numPaths; ++i)
     {
         // Create a new planner data instance
-        ompl::base::PlannerDataPtr plannerData(new ompl::base::PlannerData(si_));
+        auto plannerData(std::make_shared<ompl::base::PlannerData>(si_));
 
         // Note: the StateStorage class checks if the states match for us
         plannerDataStorage_.load(iStream, *plannerData.get());
@@ -132,7 +132,7 @@ void ompl::tools::LightningDB::addPath(ompl::geometric::PathGeometric& solutionP
 void ompl::tools::LightningDB::addPathHelper(ompl::geometric::PathGeometric &solutionPath)
 {
     // Create a new planner data instance
-    ompl::base::PlannerDataPtr plannerData(new ompl::base::PlannerData(si_));
+    auto plannerData(std::make_shared<ompl::base::PlannerData>(si_));
 
     // Add the states to one nodes files
     for (auto & i : solutionPath.getStates())

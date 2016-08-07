@@ -93,11 +93,11 @@ void ompl::geometric::PathHybridization::computeHybridPath()
     boost::dijkstra_shortest_paths(g_, root_, boost::predecessor_map(prev));
     if (prev[goal_] != goal_)
     {
-        auto *h = new PathGeometric(si_);
+        auto h(std::make_shared<PathGeometric>(si_));
         for (Vertex pos = prev[goal_]; prev[pos] != pos; pos = prev[pos])
             h->append(stateProperty_[pos]);
         h->reverse();
-        hpath_.reset(h);
+        hpath_ = h;
     }
 }
 

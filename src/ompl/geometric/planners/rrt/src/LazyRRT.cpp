@@ -186,11 +186,11 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
             if (solutionFound)
             {
                 // set the solution path
-                auto *path = new PathGeometric(si_);
+                auto path(std::make_shared<PathGeometric>(si_));
                 for (int i = mpath.size() - 1 ; i >= 0 ; --i)
                     path->append(mpath[i]->state);
 
-                pdef_->addSolutionPath(base::PathPtr(path), false, distsol, getName());
+                pdef_->addSolutionPath(path, false, distsol, getName());
             }
         }
     }

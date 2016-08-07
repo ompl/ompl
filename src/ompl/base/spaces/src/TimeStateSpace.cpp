@@ -144,7 +144,7 @@ void ompl::base::TimeStateSpace::interpolate(const State *from, const State *to,
 
 ompl::base::StateSamplerPtr ompl::base::TimeStateSpace::allocDefaultStateSampler() const
 {
-    return StateSamplerPtr(new TimeStateSampler(this));
+    return std::make_shared<TimeStateSampler>(this);
 }
 
 ompl::base::State* ompl::base::TimeStateSpace::allocState() const
@@ -192,7 +192,7 @@ void ompl::base::TimeStateSpace::registerProjections()
         }
     };
 
-    registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new TimeDefaultProjection(this))));
+    registerDefaultProjection(std::make_shared<TimeDefaultProjection>(this));
 }
 
 double* ompl::base::TimeStateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const

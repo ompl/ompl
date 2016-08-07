@@ -50,16 +50,16 @@ ompl::control::OpenDEStateSpace::OpenDEStateSpace(OpenDEEnvironmentPtr env,
     {
         std::string body = ":B" + std::to_string(i);
 
-        addSubspace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), positionWeight); // position
+        addSubspace(std::make_shared<base::RealVectorStateSpace>(3), positionWeight); // position
         components_.back()->setName(components_.back()->getName() + body + ":position");
 
-        addSubspace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), linVelWeight);   // linear velocity
+        addSubspace(std::make_shared<base::RealVectorStateSpace>(3), linVelWeight);   // linear velocity
         components_.back()->setName(components_.back()->getName() + body + ":linvel");
 
-        addSubspace(base::StateSpacePtr(new base::RealVectorStateSpace(3)), angVelWeight);   // angular velocity
+        addSubspace(std::make_shared<base::RealVectorStateSpace>(3), angVelWeight);   // angular velocity
         components_.back()->setName(components_.back()->getName() + body + ":angvel");
 
-        addSubspace(base::StateSpacePtr(new base::SO3StateSpace()), orientationWeight);      // orientation
+        addSubspace(std::make_shared<base::SO3StateSpace>(), orientationWeight);      // orientation
         components_.back()->setName(components_.back()->getName() + body + ":orientation");
     }
     lock();
@@ -295,7 +295,7 @@ namespace ompl
 ompl::base::StateSamplerPtr ompl::control::OpenDEStateSpace::allocDefaultStateSampler() const
 {
     base::StateSamplerPtr sampler = base::CompoundStateSpace::allocDefaultStateSampler();
-    return base::StateSamplerPtr(new WrapperForOpenDESampler(this, sampler));
+    return std::make_shared<WrapperForOpenDESampler>(this, sampler);
 }
 
 ompl::base::StateSamplerPtr ompl::control::OpenDEStateSpace::allocStateSampler() const
@@ -304,7 +304,7 @@ ompl::base::StateSamplerPtr ompl::control::OpenDEStateSpace::allocStateSampler()
     if (dynamic_cast<WrapperForOpenDESampler*>(sampler.get()))
         return sampler;
     else
-        return base::StateSamplerPtr(new WrapperForOpenDESampler(this, sampler));
+        return std::make_shared<WrapperForOpenDESampler>(this, sampler);
 }
 
 void ompl::control::OpenDEStateSpace::readState(base::State *state) const

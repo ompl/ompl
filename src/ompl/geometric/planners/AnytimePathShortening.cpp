@@ -102,7 +102,7 @@ ompl::base::PlannerStatus ompl::geometric::AnytimePathShortening::solve(const om
     if (!opt)
     {
         OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length for the allowed planning time.", getName().c_str());
-        opt.reset(new base::PathLengthOptimizationObjective(si_));
+        opt = std::make_shared<base::PathLengthOptimizationObjective>(si_);
         pdef_->setOptimizationObjective(opt);
     }
     else
@@ -177,15 +177,14 @@ void ompl::geometric::AnytimePathShortening::threadSolve(base::Planner* planner,
     if (shortcut_ && status == base::PlannerStatus::EXACT_SOLUTION)
     {
         geometric::PathGeometric* sln = static_cast<geometric::PathGeometric*>(pdef_->getSolutionPath().get());
-        auto* pathCopy = new geometric::PathGeometric(*sln);
+        auto pathCopy(std::make_shared<geometric::PathGeometric>(*sln));
         geometric::PathSimplifier ps(pdef_->getSpaceInformation());
         if (ps.shortcutPath(*pathCopy))
         {
             double difference = 0.0;
             bool approximate = !pdef_->getGoal()->isSatisfied(pathCopy->getStates().back(), &difference);
-            pdef_->addSolutionPath(base::PathPtr(pathCopy), approximate, difference);
+            pdef_->addSolutionPath(pathCopy, approximate, difference);
         }
-        else delete pathCopy;
     }
 }
 

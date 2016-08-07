@@ -72,7 +72,7 @@ public:
 
     virtual ompl::control::ControlSamplerPtr allocDefaultControlSampler() const
     {
-        return ompl::control::ControlSamplerPtr(new KoulesControlSampler(this));
+        return std::make_shared<KoulesControlSampler>(this);
     }
 };
 

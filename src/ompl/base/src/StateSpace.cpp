@@ -803,7 +803,7 @@ ompl::base::StateSamplerPtr ompl::base::StateSpace::allocSubspaceStateSampler(co
 {
     if (subspace->getName() == getName())
         return allocStateSampler();
-    return StateSamplerPtr(new SubspaceStateSampler(this, subspace, 1.0));
+    return std::make_shared<SubspaceStateSampler>(this, subspace, 1.0);
 }
 
 void ompl::base::StateSpace::setValidSegmentCountFactor(unsigned int factor)
@@ -1105,14 +1105,14 @@ void ompl::base::CompoundStateSpace::interpolate(const State *from, const State 
 
 ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocDefaultStateSampler() const
 {
-    auto *ss = new CompoundStateSampler(this);
+    auto ss(std::make_shared<CompoundStateSampler>(this));
     if (weightSum_ < std::numeric_limits<double>::epsilon())
         for (unsigned int i = 0 ; i < componentCount_ ; ++i)
             ss->addSampler(components_[i]->allocStateSampler(), 1.0);
     else
         for (unsigned int i = 0 ; i < componentCount_ ; ++i)
             ss->addSampler(components_[i]->allocStateSampler(), weights_[i] / weightSum_);
-    return StateSamplerPtr(ss);
+    return ss;
 }
 
 ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocSubspaceStateSampler(const StateSpace *subspace) const
@@ -1120,7 +1120,7 @@ ompl::base::StateSamplerPtr ompl::base::CompoundStateSpace::allocSubspaceStateSa
     if (subspace->getName() == getName())
         return allocStateSampler();
     if (hasSubspace(subspace->getName()))
-        return StateSamplerPtr(new SubspaceStateSampler(this, subspace, getSubspaceWeight(subspace->getName()) / weightSum_));
+        return std::make_shared<SubspaceStateSampler>(this, subspace, getSubspaceWeight(subspace->getName()) / weightSum_);
     return StateSpace::allocSubspaceStateSampler(subspace);
 }
 
@@ -1430,7 +1430,7 @@ namespace ompl
             if (components.size() == 1)
                 return components[0];
 
-            return StateSpacePtr(new CompoundStateSpace(components, weights));
+            return std::make_shared<CompoundStateSpace>(components, weights);
         }
 
         StateSpacePtr operator-(const StateSpacePtr &a, const StateSpacePtr &b)
@@ -1491,7 +1491,7 @@ namespace ompl
             if (components_a.size() == 1)
                 return components_a[0];
 
-            return StateSpacePtr(new CompoundStateSpace(components_a, weights_a));
+            return std::make_shared<CompoundStateSpace>(components_a, weights_a);
         }
 
         StateSpacePtr operator-(const StateSpacePtr &a, const std::string &name)
@@ -1537,7 +1537,7 @@ namespace ompl
             if (components.size() == 1)
                 return components[0];
 
-            return StateSpacePtr(new CompoundStateSpace(components, weights));
+            return std::make_shared<CompoundStateSpace>(components, weights);
         }
 
         StateSpacePtr operator*(const StateSpacePtr &a, const StateSpacePtr &b)
@@ -1612,7 +1612,7 @@ namespace ompl
             if (components.size() == 1)
                 return components[0];
 
-            return StateSpacePtr(new CompoundStateSpace(components, weights));
+            return std::make_shared<CompoundStateSpace>(components, weights);
         }
     }
 }

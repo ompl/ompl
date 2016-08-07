@@ -398,19 +398,18 @@ bool ompl::geometric::PathGeometric::randomValid(unsigned int attempts)
     states_.resize(2);
     states_[0] = si_->allocState();
     states_[1] = si_->allocState();
-    auto *uvss = new base::UniformValidStateSampler(si_.get());
-    uvss->setNrAttempts(attempts);
+    base::UniformValidStateSampler uvss(si_.get());
+    uvss.setNrAttempts(attempts);
     bool ok = false;
     for (unsigned int i = 0 ; i < attempts ; ++i)
     {
-        if (uvss->sample(states_[0]) && uvss->sample(states_[1]))
+        if (uvss.sample(states_[0]) && uvss.sample(states_[1]))
             if (si_->checkMotion(states_[0], states_[1]))
             {
                 ok = true;
                 break;
             }
     }
-    delete uvss;
     if (!ok)
     {
         freeMemory();

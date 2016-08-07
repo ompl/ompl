@@ -147,7 +147,7 @@ namespace ompl
                         ODESolverPtr solver_;
                         ODESolver::PostPropagationEvent postEvent_;
                 };
-                return StatePropagatorPtr(dynamic_cast<StatePropagator*>(new ODESolverStatePropagator(std::move(solver), postEvent)));
+                return std::make_shared<ODESolverStatePropagator>(std::move(solver), postEvent);
             }
 
         protected:

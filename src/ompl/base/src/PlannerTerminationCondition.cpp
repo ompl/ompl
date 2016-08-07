@@ -155,12 +155,12 @@ namespace ompl
 }
 
 ompl::base::PlannerTerminationCondition::PlannerTerminationCondition(const PlannerTerminationConditionFn &fn) :
-impl_(new PlannerTerminationConditionImpl(fn, -1.0))
+impl_(std::make_shared<PlannerTerminationConditionImpl>(fn, -1.0))
 {
 }
 
 ompl::base::PlannerTerminationCondition::PlannerTerminationCondition(const PlannerTerminationConditionFn &fn, double period) :
-impl_(new PlannerTerminationConditionImpl(fn, period))
+impl_(std::make_shared<PlannerTerminationConditionImpl>(fn, period))
 {
 }
 

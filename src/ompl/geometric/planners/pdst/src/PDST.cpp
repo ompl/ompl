@@ -142,7 +142,7 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
     // If a solution path has been computed, save it in the problem definition object.
     if (hasSolution)
     {
-        auto *path = new PathGeometric(si_);
+        auto path(std::make_shared<PathGeometric>(si_));
 
         // Compute the path by going up the tree of motions.
         std::vector<base::State*> spath(1,  lastGoalMotion_->endState_);
@@ -157,7 +157,7 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
         // Add the solution path in order from the start state to the goal.
         for (auto rIt = spath.rbegin(); rIt != spath.rend(); ++rIt)
             path->append((*rIt));
-        pdef_->addSolutionPath(base::PathPtr(path), isApproximate, closestDistanceToGoal, getName());
+        pdef_->addSolutionPath(path, isApproximate, closestDistanceToGoal, getName());
     }
 
     si_->freeState(tmpState1);

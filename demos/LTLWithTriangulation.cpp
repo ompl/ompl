@@ -79,7 +79,7 @@ public:
     }
 };
 
-void addObstaclesAndPropositions(oc::PropositionalTriangularDecomposition* decomp)
+void addObstaclesAndPropositions(std::shared_ptr<oc::PropositionalTriangularDecomposition> &decomp)
 {
     Polygon obstacle(4);
     obstacle.pts[0] = Vertex(0.,.9);
@@ -124,7 +124,7 @@ bool polyContains(const Polygon& poly, double x, double y)
    This is to prevent us from having to redefine the obstacles in multiple places. */
 bool isStateValid(
     const oc::SpaceInformation *si,
-    const oc::PropositionalTriangularDecomposition* decomp,
+    const std::shared_ptr<oc::PropositionalTriangularDecomposition> &decomp,
     const ob::State *state)
 {
     if (!si->satisfiesBounds(state))
@@ -164,33 +164,32 @@ void propagate(const ob::State *start, const oc::Control *control, const double 
 void plan()
 {
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::SE2StateSpace());
+    auto space(std::make_shared<ob::SE2StateSpace>());
 
     // set the bounds for the R^2 part of SE(2)
     ob::RealVectorBounds bounds(2);
     bounds.setLow(0);
     bounds.setHigh(2);
 
-    space->as<ob::SE2StateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
 
     // create triangulation that ignores obstacle and respects propositions
-    auto* ptd = new MyDecomposition(bounds);
+    std::shared_ptr<oc::PropositionalTriangularDecomposition> ptd = std::make_shared<MyDecomposition>(bounds);
     // helper method that adds an obstacle, as well as three propositions p0,p1,p2
     addObstaclesAndPropositions(ptd);
     ptd->setup();
-    oc::PropositionalDecompositionPtr pd(ptd);
 
     // create a control space
-    oc::ControlSpacePtr cspace(new oc::RealVectorControlSpace(space, 2));
+    auto cspace(std::make_shared<oc::RealVectorControlSpace>(space, 2));
 
     // set the bounds for the control space
     ob::RealVectorBounds cbounds(2);
     cbounds.setLow(-.5);
     cbounds.setHigh(.5);
 
-    cspace->as<oc::RealVectorControlSpace>()->setBounds(cbounds);
+    cspace->setBounds(cbounds);
 
-    oc::SpaceInformationPtr si(new oc::SpaceInformation(space, cspace));
+    oc::SpaceInformationPtr si(std::make_shared<oc::SpaceInformation>(space, cspace));
     si->setStateValidityChecker(
         [&si, ptd](const ob::State *state)
         {
@@ -211,7 +210,7 @@ void plan()
     oc::AutomatonPtr safety = oc::Automaton::AvoidanceAutomaton(3, toAvoid);
 
     //construct product graph (propDecomp x A_{cosafety} x A_{safety})
-    oc::ProductGraphPtr product(new oc::ProductGraph(pd, cosafety, safety));
+    auto product(std::make_shared<oc::ProductGraph>(ptd, cosafety, safety));
 
     // LTLSpaceInformation creates a hybrid space of robot state space x product graph.
     // It takes the validity checker from SpaceInformation and expands it to one that also
@@ -221,11 +220,11 @@ void plan()
     // and automaton states accordingly.
     //
     // The robot state space, given by SpaceInformation, is referred to as the "lower space".
-    oc::LTLSpaceInformationPtr ltlsi(new oc::LTLSpaceInformation(si, product));
+    auto ltlsi(std::make_shared<oc::LTLSpaceInformation>(si, product));
 
     // LTLProblemDefinition creates a goal in hybrid space, corresponding to any
     // state in which both automata are accepting
-    oc::LTLProblemDefinitionPtr pdef(new oc::LTLProblemDefinition(ltlsi));
+    auto pdef(std::make_shared<oc::LTLProblemDefinition>(ltlsi));
 
     // create a start state
     ob::ScopedState<ob::SE2StateSpace> start(space);
@@ -239,13 +238,13 @@ void plan()
     pdef->addLowerStartState(start.get());
 
     //LTL planner (input: LTL space information, product automaton)
-    oc::LTLPlanner* ltlPlanner = new oc::LTLPlanner(ltlsi, product);
-    ltlPlanner->setProblemDefinition(pdef);
+    oc::LTLPlanner ltlPlanner(ltlsi, product);
+    ltlPlanner.setProblemDefinition(pdef);
 
     // attempt to solve the problem within thirty seconds of planning time
     // considering the above cosafety/safety automata, a solution path is any
     // path that visits p2 followed by p0 while avoiding obstacles and avoiding p1.
-    ob::PlannerStatus solved = ltlPlanner->as<ob::Planner>()->solve(30.0);
+    ob::PlannerStatus solved = ltlPlanner.ob::Planner::solve(30.0);
 
     if (solved)
     {
@@ -257,8 +256,6 @@ void plan()
     }
     else
         std::cout << "No solution found" << std::endl;
-
-    delete ltlPlanner;
 }
 
 int main(int, char **)

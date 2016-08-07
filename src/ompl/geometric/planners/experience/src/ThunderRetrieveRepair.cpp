@@ -64,9 +64,9 @@ ThunderRetrieveRepair::ThunderRetrieveRepair(const base::SpaceInformationPtr &si
     specs_.directed = true;
 
     // Repair Planner Specific:
-    repairProblemDef_.reset(new base::ProblemDefinition(si_));
+    repairProblemDef_ = std::make_shared<base::ProblemDefinition>(si_);
 
-    path_simplifier_.reset(new PathSimplifier(si_));
+    path_simplifier_ = std::make_shared<PathSimplifier>(si_);
 }
 
 ThunderRetrieveRepair::~ThunderRetrieveRepair()
@@ -106,7 +106,7 @@ void ThunderRetrieveRepair::setup()
     if (!repairPlanner_)
     {
         // Set the repair planner
-        std::shared_ptr<RRTConnect> repair_planner( new RRTConnect( si_ ) );
+        auto repair_planner(std::make_shared<RRTConnect>(si_));
 
         OMPL_DEBUG("No repairing planner specified. Using default: %s", repair_planner->getName().c_str() );
         repairPlanner_ = repair_planner; //Planner( repair_planer );
@@ -354,7 +354,7 @@ bool ThunderRetrieveRepair::replan(const base::State* start, const base::State* 
     OMPL_INFORM("ThunderRetrieveRepair: Path simplification took %f seconds and removed %d states", simplifyTime, numStates - newPathSegment.getStateCount());
 
     // Save the planner data for debugging purposes
-    repairPlannerDatas_.push_back(base::PlannerDataPtr( new base::PlannerData(si_) ));
+    repairPlannerDatas_.push_back(std::make_shared<base::PlannerData>(si_));
     repairPlanner_->getPlannerData( *repairPlannerDatas_.back() );
     repairPlannerDatas_.back()->decoupleFromPlanner(); // copy states so that when planner unloads/clears we don't lose them
 

@@ -133,7 +133,7 @@ void ompl::geometric::PRM::setup()
             opt_ = pdef_->getOptimizationObjective();
         else
         {
-            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
             if (!starStrategy_)
                 opt_->setCostThreshold(opt_->infiniteCost());
         }
@@ -553,13 +553,13 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start,
     if (prev[goal] == goal)
         throw Exception(name_, "Could not find solution path");
 
-    auto *p = new PathGeometric(si_);
+    auto p(std::make_shared<PathGeometric>(si_));
     for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
         p->append(stateProperty_[pos]);
     p->append(stateProperty_[start]);
     p->reverse();
 
-    return base::PathPtr(p);
+    return p;
 }
 
 void ompl::geometric::PRM::getPlannerData(base::PlannerData &data) const

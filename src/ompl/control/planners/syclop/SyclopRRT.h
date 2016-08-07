@@ -82,7 +82,7 @@ namespace ompl
             void setNearestNeighbors()
             {
                 regionalNN_ = false;
-                nn_.reset(new NN<Motion*>());
+                nn_ = std::make_shared<NN<Motion*>>();
             }
 
         protected:

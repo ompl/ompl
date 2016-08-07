@@ -49,20 +49,20 @@ ompl::base::MorseStateSpace::MorseStateSpace(const MorseEnvironmentPtr &env, dou
     {
         std::string body = ":B" + std::to_string(i);
 
-        addSubspace(StateSpacePtr(new RealVectorStateSpace(3)), positionWeight); // position
+        addSubspace(std::make_shared<RealVectorStateSpace>(3), positionWeight); // position
         components_.back()->setName(components_.back()->getName() + body + ":position");
 
-        addSubspace(StateSpacePtr(new RealVectorStateSpace(3)), linVelWeight);   // linear velocity
+        addSubspace(std::make_shared<RealVectorStateSpace>(3), linVelWeight);   // linear velocity
         components_.back()->setName(components_.back()->getName() + body + ":linvel");
 
-        addSubspace(StateSpacePtr(new RealVectorStateSpace(3)), angVelWeight);   // angular velocity
+        addSubspace(std::make_shared<RealVectorStateSpace>(3), angVelWeight);   // angular velocity
         components_.back()->setName(components_.back()->getName() + body + ":angvel");
 
-        addSubspace(StateSpacePtr(new SO3StateSpace()), orientationWeight);      // orientation
+        addSubspace(std::make_shared<SO3StateSpace>(), orientationWeight);      // orientation
         components_.back()->setName(components_.back()->getName() + body + ":orientation");
     }
     // Add the goal region satisfaction flag as a subspace.
-    addSubspace(StateSpacePtr(new DiscreteStateSpace(0, 1)), 0.01);
+    addSubspace(std::make_shared<DiscreteStateSpace>(0, 1), 0.01);
     components_.back()->setName(components_.back()->getName() + ":goalRegionSat");
 
     lock();

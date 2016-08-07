@@ -92,10 +92,10 @@ void ompl::base::RealVectorStateSpace::registerProjections()
         if (dimension_ > 2)
         {
             int p = std::max(2, (int)ceil(log((double)dimension_)));
-            registerDefaultProjection(ProjectionEvaluatorPtr(new RealVectorRandomLinearProjectionEvaluator(this, p)));
+            registerDefaultProjection(std::make_shared<RealVectorRandomLinearProjectionEvaluator>(this, p));
         }
         else
-            registerDefaultProjection(ProjectionEvaluatorPtr(new RealVectorIdentityProjectionEvaluator(this)));
+            registerDefaultProjection(std::make_shared<RealVectorIdentityProjectionEvaluator>(this));
     }
 }
 
@@ -270,7 +270,7 @@ void ompl::base::RealVectorStateSpace::interpolate(const State *from, const Stat
 
 ompl::base::StateSamplerPtr ompl::base::RealVectorStateSpace::allocDefaultStateSampler() const
 {
-    return StateSamplerPtr(new RealVectorStateSampler(this));
+    return std::make_shared<RealVectorStateSampler>(this);
 }
 
 ompl::base::State* ompl::base::RealVectorStateSpace::allocState() const

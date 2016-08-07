@@ -67,10 +67,10 @@ void ompl::tools::Thunder::initialize()
     dualThreadScratchEnabled_ = true;
 
     // Load the experience database
-    experienceDB_.reset(new ompl::tools::ThunderDB(si_->getStateSpace()));
+    experienceDB_ = std::make_shared<ompl::tools::ThunderDB>(si_->getStateSpace());
 
     // Load the Retrieve repair database. We do it here so that setRepairPlanner() works
-    rrPlanner_ = ob::PlannerPtr(new og::ThunderRetrieveRepair(si_, experienceDB_));
+    rrPlanner_ = std::make_shared<og::ThunderRetrieveRepair>(si_, experienceDB_);
 
     OMPL_INFORM("Thunder Framework initialized.");
 }
@@ -91,7 +91,7 @@ void ompl::tools::Thunder::setup()
             if (!planner_)
             {
                 OMPL_INFORM("Getting default planner: ");
-                planner_ = ompl::base::PlannerPtr(new ompl::geometric::RRTConnect(si_));
+                planner_ = std::make_shared<ompl::geometric::RRTConnect>(si_);
                 // This was disabled because i like to use Thunder / SPARSdb without setting a goal definition
                 //planner_ = ompl::geometric::getDefaultPlanner(pdef_->getGoal()); // we could use the repairProblemDef_ here but that isn't setup yet
 
@@ -113,7 +113,7 @@ void ompl::tools::Thunder::setup()
                 if (!planner2_)
                 {
                     OMPL_INFORM("Getting default planner: ");
-                    planner2_ = ompl::base::PlannerPtr(new ompl::geometric::RRTConnect(si_));
+                    planner2_ = std::make_shared<ompl::geometric::RRTConnect>(si_);
                     // This was disabled because i like to use Thunder / SPARSdb without setting a goal definition
                     //planner2_ = ompl::geometric::getDefaultPlanner(pdef_->getGoal()); // we could use the repairProblemDef_ here but that isn't setup yet
 
@@ -133,7 +133,7 @@ void ompl::tools::Thunder::setup()
             rrPlanner_->setup();
 
         // Create the parallel component for splitting into two threads
-        pp_ = ot::ParallelPlanPtr(new ot::ParallelPlan(pdef_) );
+        pp_ = std::make_shared<ot::ParallelPlan>(pdef_);
         if (!scratchEnabled_ && !recallEnabled_)
         {
             throw Exception("Both planning from scratch and experience have been disabled, unable to plan");
@@ -154,7 +154,7 @@ void ompl::tools::Thunder::setup()
             OMPL_INFORM("Calling setup() for SPARSdb");
 
             // Load SPARSdb
-            experienceDB_->getSPARSdb().reset(new ompl::geometric::SPARSdb(si_));
+            experienceDB_->getSPARSdb() = std::make_shared<ompl::geometric::SPARSdb>(si_);
             experienceDB_->getSPARSdb()->setProblemDefinition(pdef_);
             experienceDB_->getSPARSdb()->setup();
 

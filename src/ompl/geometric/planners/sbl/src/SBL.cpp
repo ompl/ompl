@@ -162,11 +162,11 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
         if (checkSolution(!startTree, tree, otherTree, motion, solution))
         {
-            auto *path = new PathGeometric(si_);
+            auto path(std::make_shared<PathGeometric>(si_));
             for (auto & i : solution)
                 path->append(i->state);
 
-            pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
+            pdef_->addSolutionPath(path, false, 0.0, getName());
             solved = true;
             break;
         }

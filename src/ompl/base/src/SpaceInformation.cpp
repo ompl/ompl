@@ -59,7 +59,7 @@ void ompl::base::SpaceInformation::setup()
 {
     if (!stateValidityChecker_)
     {
-        stateValidityChecker_.reset(new AllValidStateValidityChecker(this));
+        stateValidityChecker_ = std::make_shared<AllValidStateValidityChecker>(this);
         OMPL_WARN("State validity checker not set! No collision checking is performed");
     }
 
@@ -83,12 +83,12 @@ bool ompl::base::SpaceInformation::isSetup() const
 
 void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCheckerFn &svc)
 {
-    class BoostFnStateValidityChecker : public StateValidityChecker
+    class FnStateValidityChecker : public StateValidityChecker
     {
     public:
 
-        BoostFnStateValidityChecker(SpaceInformation *si,
-                                    StateValidityCheckerFn fn) : StateValidityChecker(si), fn_(std::move(fn))
+        FnStateValidityChecker(SpaceInformation *si,
+                               StateValidityCheckerFn fn) : StateValidityChecker(si), fn_(std::move(fn))
         {
         }
 
@@ -105,17 +105,17 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
     if (!svc)
         throw Exception("Invalid function definition for state validity checking");
 
-    setStateValidityChecker(StateValidityCheckerPtr(dynamic_cast<StateValidityChecker*>(new BoostFnStateValidityChecker(this, svc))));
+    setStateValidityChecker(std::make_shared<FnStateValidityChecker>(this, svc));
 }
 
 void ompl::base::SpaceInformation::setDefaultMotionValidator()
 {
     if (dynamic_cast<ReedsSheppStateSpace*>(stateSpace_.get()))
-         motionValidator_.reset(new ReedsSheppMotionValidator(this));
+         motionValidator_ = std::make_shared<ReedsSheppMotionValidator>(this);
      else if (dynamic_cast<DubinsStateSpace*>(stateSpace_.get()))
-         motionValidator_.reset(new DubinsMotionValidator(this));
+         motionValidator_ = std::make_shared<DubinsMotionValidator>(this);
      else
-         motionValidator_.reset(new DiscreteMotionValidator(this));
+         motionValidator_ = std::make_shared<DiscreteMotionValidator>(this);
 }
 
 
@@ -190,9 +190,9 @@ bool ompl::base::SpaceInformation::searchValidNearby(State *state, const State *
     else
     {
         // try to find a valid state nearby
-        auto *uvss = new UniformValidStateSampler(this);
+        auto uvss = std::make_shared<UniformValidStateSampler>(this);
         uvss->setNrAttempts(attempts);
-        return searchValidNearby(ValidStateSamplerPtr(uvss), state, near, distance);
+        return searchValidNearby(uvss, state, near, distance);
     }
 }
 
@@ -327,7 +327,7 @@ ompl::base::ValidStateSamplerPtr ompl::base::SpaceInformation::allocValidStateSa
     if (vssa_)
         return vssa_(this);
     else
-        return ValidStateSamplerPtr(new UniformValidStateSampler(this));
+        return std::make_shared<UniformValidStateSampler>(this);
 }
 
 double ompl::base::SpaceInformation::probabilityOfValidState(unsigned int attempts) const
@@ -362,7 +362,7 @@ double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attem
     attempts = std::max((unsigned int)floor(sqrt((double)attempts) + 0.5), 2u);
 
     StateSamplerPtr ss = allocStateSampler();
-    auto *uvss = new UniformValidStateSampler(this);
+    auto uvss(std::make_shared<UniformValidStateSampler>(this));
     uvss->setNrAttempts(attempts);
 
     State *s1 = allocState();
@@ -386,7 +386,6 @@ double ompl::base::SpaceInformation::averageValidMotionLength(unsigned int attem
 
     freeState(s2);
     freeState(s1);
-    delete uvss;
 
     if (count > 0)
         return d / (double)count;

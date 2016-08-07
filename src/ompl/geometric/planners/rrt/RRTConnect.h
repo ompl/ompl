@@ -93,8 +93,8 @@ namespace ompl
             template<template<typename T> class NN>
             void setNearestNeighbors()
             {
-                tStart_.reset(new NN<Motion*>());
-                tGoal_.reset(new NN<Motion*>());
+                tStart_ = std::make_shared<NN<Motion*>>();
+                tGoal_ = std::make_shared<NN<Motion*>>();
             }
 
             void setup() override;

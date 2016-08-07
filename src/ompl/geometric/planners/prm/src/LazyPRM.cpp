@@ -127,7 +127,7 @@ void ompl::geometric::LazyPRM::setup()
             opt_ = pdef_->getOptimizationObjective();
         else
         {
-            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
             if (!starStrategy_)
                 opt_->setCostThreshold(opt_->infiniteCost());
         }
@@ -511,10 +511,10 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &st
     }
     while (prevVertex != pos);
 
-    auto *p = new PathGeometric(si_);
+    auto p(std::make_shared<PathGeometric>(si_));
     for (std::vector<const base::State*>::const_reverse_iterator st = states.rbegin(); st != states.rend(); ++st)
         p->append(*st);
-    return base::PathPtr(p);
+    return p;
 }
 
 ompl::base::Cost ompl::geometric::LazyPRM::costHeuristic(Vertex u, Vertex v) const

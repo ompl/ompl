@@ -85,7 +85,7 @@ void ompl::geometric::SST::setup()
         else
         {
             OMPL_WARN("%s: No optimization object set. Using path length", getName().c_str());
-            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
             pdef_->setOptimizationObjective(opt_);
         }
     }
@@ -375,11 +375,11 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
     if (solution != nullptr)
     {
         /* set the solution path */
-        auto *path = new PathGeometric(si_);
+        auto path(std::make_shared<PathGeometric>(si_));
         for (int i = prevSolution_.size() - 1 ; i >= 0 ; --i)
             path->append(prevSolution_[i]);
         solved = true;
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
+        pdef_->addSolutionPath(path, approximate, approxdif, getName());
     }
 
     si_->freeState(xstate);

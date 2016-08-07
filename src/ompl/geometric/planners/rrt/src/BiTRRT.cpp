@@ -140,7 +140,7 @@ void ompl::geometric::BiTRRT::setup()
     if (!pdef_ || !pdef_->hasOptimizationObjective())
     {
         OMPL_INFORM("%s: No optimization objective specified.  Defaulting to mechanical work minimization.", getName().c_str());
-        opt_.reset(new base::MechanicalWorkOptimizationObjective(si_));
+        opt_ = std::make_shared<base::MechanicalWorkOptimizationObjective>(si_);
     }
     else
         opt_ = pdef_->getOptimizationObjective();
@@ -429,14 +429,14 @@ ompl::base::PlannerStatus ompl::geometric::BiTRRT::solve(const base::PlannerTerm
                     solution = solution->parent;
                 }
 
-                auto *path = new PathGeometric(si_);
+                auto path(std::make_shared<PathGeometric>(si_));
                 path->getStates().reserve(mpath1.size() + mpath2.size());
                 for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
                     path->append(mpath1[i]->state);
                 for (auto & i : mpath2)
                     path->append(i->state);
 
-                pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
+                pdef_->addSolutionPath(path, false, 0.0, getName());
                 solved = true;
                 break;
             }

@@ -701,7 +701,7 @@ void ompl::base::PlannerData::extractReachable(unsigned int v, base::PlannerData
 
 ompl::base::StateStoragePtr ompl::base::PlannerData::extractStateStorage() const
 {
-    auto *store = new GraphStateStorage(si_->getStateSpace());
+    auto store(std::make_shared<GraphStateStorage>(si_->getStateSpace()));
     if (graph_)
     {
         // copy the states
@@ -724,7 +724,7 @@ ompl::base::StateStoragePtr ompl::base::PlannerData::extractStateStorage() const
                 md[k] = indexMap[edgeList[k]];
         }
     }
-    return StateStoragePtr(store);
+    return store;
 }
 
 ompl::base::PlannerData::Graph& ompl::base::PlannerData::toBoostGraph()

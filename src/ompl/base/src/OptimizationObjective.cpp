@@ -307,16 +307,11 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
             components.push_back(MultiOptimizationObjective::Component(b, 1.0));
     }
 
-    auto *multObj = new MultiOptimizationObjective(a->getSpaceInformation());
+    auto multObj(std::make_shared<MultiOptimizationObjective>(a->getSpaceInformation()));
+    for (const auto & comp : components)
+        multObj->addObjective(comp.objective, comp.weight);
 
-    for (std::vector<MultiOptimizationObjective::Component>::const_iterator comp = components.begin();
-         comp != components.end();
-         ++comp)
-    {
-        multObj->addObjective(comp->objective, comp->weight);
-    }
-
-    return OptimizationObjectivePtr(multObj);
+    return multObj;
 }
 
 ompl::base::OptimizationObjectivePtr ompl::base::operator*(double weight,
@@ -339,16 +334,11 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator*(double weight,
             components.push_back(MultiOptimizationObjective::Component(a, weight));
     }
 
-    auto *multObj = new MultiOptimizationObjective(a->getSpaceInformation());
+    auto multObj(std::make_shared<MultiOptimizationObjective>(a->getSpaceInformation()));
+    for (auto const & comp : components)
+        multObj->addObjective(comp.objective, comp.weight);
 
-    for (std::vector<MultiOptimizationObjective::Component>::const_iterator comp = components.begin();
-         comp != components.end();
-         ++comp)
-    {
-        multObj->addObjective(comp->objective, comp->weight);
-    }
-
-    return OptimizationObjectivePtr(multObj);
+    return multObj;
 }
 
 ompl::base::OptimizationObjectivePtr ompl::base::operator*(const OptimizationObjectivePtr &a,

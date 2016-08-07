@@ -275,10 +275,10 @@ ompl::base::PlannerStatus ompl::geometric::VFRRT::solve(const base::PlannerTermi
         }
 
         // Set the solution path
-        auto *path = new PathGeometric(si_);
+        auto path(std::make_shared<PathGeometric>(si_));
         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, name_);
+        pdef_->addSolutionPath(path, approximate, approxdif, name_);
         solved = true;
     }
 

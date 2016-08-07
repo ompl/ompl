@@ -91,13 +91,12 @@ namespace ompl
             template <class T>
             void addPlannerInstance()
             {
-                auto *cfspace = new base::CForestStateSpaceWrapper(this, si_->getStateSpace().get());
-                base::StateSpacePtr space(cfspace);
-                base::SpaceInformationPtr si(new base::SpaceInformation(space));
+                auto space(std::make_shared<base::CForestStateSpaceWrapper>(this, si_->getStateSpace().get()));
+                auto si(std::make_shared<base::SpaceInformation>(space));
                 si->setStateValidityChecker(si_->getStateValidityChecker());
                 si->setMotionValidator(si_->getMotionValidator());
-                base::PlannerPtr planner(new T(si));
-                cfspace->setPlanner(planner.get());
+                auto planner(std::make_shared<T>(si));
+                space->setPlanner(planner.get());
                 addPlannerInstanceInternal(planner);
             }
 

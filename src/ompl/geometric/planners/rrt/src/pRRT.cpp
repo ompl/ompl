@@ -233,11 +233,11 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
         }
 
         /* set the solution path */
-        auto *path = new PathGeometric(si_);
-           for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        auto path(std::make_shared<PathGeometric>(si_));
+        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
             path->append(mpath[i]->state);
 
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, sol.approxdif, getName());
+        pdef_->addSolutionPath(path, approximate, sol.approxdif, getName());
         solved = true;
     }
 

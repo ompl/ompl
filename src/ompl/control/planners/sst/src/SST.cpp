@@ -86,7 +86,7 @@ void ompl::control::SST::setup()
         else
         {
             OMPL_WARN("%s: No optimization object set. Using path length", getName().c_str());
-            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
             pdef_->setOptimizationObjective(opt_);
         }
     }
@@ -383,12 +383,12 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
     if (solution != nullptr)
     {
         /* set the solution path */
-        auto *path = new PathControl(si_);
+        auto path(std::make_shared<PathControl>(si_));
         for (int i = prevSolution_.size() - 1 ; i >= 1 ; --i)
             path->append(prevSolution_[i], prevSolutionControls_[i-1], prevSolutionSteps_[i-1] * siC_->getPropagationStepSize());
         path->append(prevSolution_[0]);
         solved = true;
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
+        pdef_->addSolutionPath(path, approximate, approxdif, getName());
     }
 
     si_->freeState(xstate);

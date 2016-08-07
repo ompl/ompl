@@ -230,7 +230,7 @@ namespace ompl
             template<template<typename T> class NN>
             void setDenseNeighbors()
             {
-                nn_.reset(new NN<DenseVertex>());
+                nn_ = std::make_shared<NN<DenseVertex>>();
                 connectionStrategy_ = std::function<const std::vector<DenseVertex>&(const DenseVertex)>();
                 if (isSetup())
                     setup();
@@ -243,7 +243,7 @@ namespace ompl
             template<template<typename T> class NN>
             void setSparseNeighbors()
             {
-                snn_.reset(new NN<SparseVertex>());
+                snn_ = std::make_shared<NN<SparseVertex>>();
                 if (isSetup())
                     setup();
             }

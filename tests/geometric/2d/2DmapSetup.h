@@ -105,12 +105,14 @@ namespace ompl
         {
         public:
 
-            SimpleSetup2DMap(const std::string &fileName) : SimpleSetup(base::StateSpacePtr(new StateSpace2DMap()))
+            SimpleSetup2DMap(const std::string &fileName)
+                : SimpleSetup(std::make_shared<StateSpace2DMap>())
             {
                 loadTestFile(fileName);
             }
 
-            SimpleSetup2DMap(const Environment2D &env) : SimpleSetup(base::StateSpacePtr(new StateSpace2DMap())), env_(env)
+            SimpleSetup2DMap(const Environment2D &env)
+                : SimpleSetup(std::make_shared<StateSpace2DMap>()), env_(env)
             {
                 configure2DMap();
             }
@@ -145,7 +147,8 @@ namespace ompl
 
                 getStateSpace()->as<StateSpace2DMap>()->setBounds(sbounds);
                 getSpaceInformation()->setStateValidityCheckingResolution(0.016);
-                setStateValidityChecker(base::StateValidityCheckerPtr(new StateValidityChecker2DMap(getSpaceInformation(), env_.grid)));
+                setStateValidityChecker(std::make_shared<StateValidityChecker2DMap>(
+                    getSpaceInformation(), env_.grid));
 
                 /* set the initial state; the memory for this is automatically cleaned by SpaceInformation */
                 base::ScopedState<base::RealVectorStateSpace> state(getStateSpace());
@@ -154,13 +157,13 @@ namespace ompl
                 setStartState(state);
 
                 /* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
-                base::GoalState *goal = new base::GoalState(getSpaceInformation());
+                auto goal(std::make_shared<base::GoalState>(getSpaceInformation()));
                 base::ScopedState<base::RealVectorStateSpace> gstate(getStateSpace());
                 gstate->values[0] = env_.goal.first;
                 gstate->values[1] = env_.goal.second;
                 goal->setState(gstate);
                 goal->setThreshold(1e-3); // this basically means 0, but we want to account for numerical instabilities
-                setGoal(base::GoalPtr(goal));
+                setGoal(goal);
                 // we could have used setGoalState() as well
             }
 
@@ -173,7 +176,7 @@ namespace ompl
         /** \brief Construct an instance of space information (done automatically when using SimpleSetup) */
         static base::SpaceInformationPtr spaceInformation2DMap(const Environment2D &env)
         {
-            base::RealVectorStateSpace *sSpace = new StateSpace2DMap();
+            auto sSpace(std::make_shared<StateSpace2DMap>());
 
             base::RealVectorBounds sbounds(2);
 
@@ -190,12 +193,10 @@ namespace ompl
 
             sSpace->setBounds(sbounds);
 
-            base::StateSpacePtr sSpacePtr(sSpace);
-
-            base::SpaceInformationPtr si(new base::SpaceInformation(sSpacePtr));
+            auto si(std::make_shared<base::SpaceInformation>(sSpace));
             si->setStateValidityCheckingResolution(0.016);
 
-            si->setStateValidityChecker(base::StateValidityCheckerPtr(new StateValidityChecker2DMap(si, env.grid)));
+            si->setStateValidityChecker(std::make_shared<StateValidityChecker2DMap>(si, env.grid));
 
             si->setup();
 
@@ -205,7 +206,7 @@ namespace ompl
         /** \brief Construct a problem definition  (done automatically when using SimpleSetup) */
         static base::ProblemDefinitionPtr problemDefinition2DMap(const base::SpaceInformationPtr &si, const Environment2D &env)
         {
-            base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
+            auto pdef(std::make_shared<base::ProblemDefinition>(si));
 
             /* set the initial state; the memory for this is automatically cleaned by SpaceInformation */
             base::ScopedState<base::RealVectorStateSpace> state(si);
@@ -214,13 +215,13 @@ namespace ompl
             pdef->addStartState(state);
 
             /* set the goal state; the memory for this is automatically cleaned by SpaceInformation */
-            base::GoalState *goal = new base::GoalState(si);
+            auto goal(std::make_shared<base::GoalState>(si));
             base::ScopedState<base::RealVectorStateSpace> gstate(si);
             gstate->values[0] = env.goal.first;
             gstate->values[1] = env.goal.second;
             goal->setState(gstate);
             goal->setThreshold(1e-3); // this is basically 0, but we want to account for numerical instabilities
-            pdef->setGoal(base::GoalPtr(goal));
+            pdef->setGoal(goal);
 
             return pdef;
         }

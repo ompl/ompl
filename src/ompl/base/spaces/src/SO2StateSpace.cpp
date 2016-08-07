@@ -157,7 +157,7 @@ void ompl::base::SO2StateSpace::interpolate(const State *from, const State *to, 
 
 ompl::base::StateSamplerPtr ompl::base::SO2StateSpace::allocDefaultStateSampler() const
 {
-    return StateSamplerPtr(new SO2StateSampler(this));
+    return std::make_shared<SO2StateSampler>(this);
 }
 
 ompl::base::State* ompl::base::SO2StateSpace::allocState() const
@@ -200,7 +200,7 @@ void ompl::base::SO2StateSpace::registerProjections()
         }
     };
 
-    registerDefaultProjection(ProjectionEvaluatorPtr(dynamic_cast<ProjectionEvaluator*>(new SO2DefaultProjection(this))));
+    registerDefaultProjection(std::make_shared<SO2DefaultProjection>(this));
 }
 
 double* ompl::base::SO2StateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const

@@ -69,14 +69,14 @@ bool isStateValid(const ob::State *state)
 void planWithSimpleSetup()
 {
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::SE3StateSpace());
+    auto space(std::make_shared<ob::SE3StateSpace>());
 
     // set the bounds for the R^3 part of SE(3)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-10);
     bounds.setHigh(10);
 
-    space->as<ob::SE3StateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
 
     // define a simple setup class
     og::SimpleSetup ss(space);
@@ -136,8 +136,8 @@ void readPlannerData()
     std::cout << "Reading PlannerData from './myPlannerData'" << std::endl;
 
     // Recreating the space information from the stored planner data instance
-    ob::StateSpacePtr space(new ob::SE3StateSpace());
-    ob::SpaceInformationPtr si(new ob::SpaceInformation(space));
+    auto space(std::make_shared<ob::SE3StateSpace>());
+    auto si(std::make_shared<ob::SpaceInformation>(space));
 
     ob::PlannerDataStorage dataStorage;
     ob::PlannerData data(si);

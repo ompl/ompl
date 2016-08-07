@@ -93,7 +93,7 @@ void ompl::geometric::FMT::setup()
         else
         {
             OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length.", getName().c_str());
-            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
             // Store the new objective in the problem def'n
             pdef_->setOptimizationObjective(opt_);
         }
@@ -491,11 +491,11 @@ void ompl::geometric::FMT::traceSolutionPathThroughTree(Motion *goalMotion)
     }
 
     // Set the solution path
-    auto *path = new PathGeometric(si_);
+    auto path(std::make_shared<PathGeometric>(si_));
     int mPathSize = mpath.size();
     for (int i = mPathSize - 1 ; i >= 0 ; --i)
         path->append(mpath[i]->getState());
-    pdef_->addSolutionPath(base::PathPtr(path), false, -1.0, getName());
+    pdef_->addSolutionPath(path, false, -1.0, getName());
 }
 
 bool ompl::geometric::FMT::expandTreeFromNode(Motion **z)

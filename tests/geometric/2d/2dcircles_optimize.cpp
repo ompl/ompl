@@ -83,12 +83,12 @@ protected:
                               double solutionTime)
     {
         /* instantiate problem definition */
-        base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
+        auto pdef(std::make_shared<base::ProblemDefinition>(si));
 
         // define an objective that is met the moment the solution is found
-        auto *opt = new base::PathLengthOptimizationObjective(si);
+        auto opt(std::make_shared<base::PathLengthOptimizationObjective>(si));
         opt->setCostThreshold(opt->infiniteCost());
-        pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
+        pdef->setOptimizationObjective(opt);
 
         /* instantiate motion planner */
         base::PlannerPtr planner = newPlanner(si);
@@ -179,10 +179,10 @@ protected:
                                  double solutionTime)
     {
         /* instantiate problem definition */
-        base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
+        auto pdef(std::make_shared<base::ProblemDefinition>(si));
 
         // define an objective that is met the moment the solution is found
-        auto *opt = new base::PathLengthOptimizationObjective(si);
+        auto opt(std::make_shared<base::PathLengthOptimizationObjective>(si));
         opt->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
         pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
 
@@ -279,10 +279,10 @@ protected:
         goal2D[0] = q.goalX_;
         goal2D[1] = q.goalY_;
 
-        auto* goalState = new base::GoalState(si);
+        auto goalState(std::make_shared<base::GoalState>(si));
         goalState->setState(goal2D);
         goalState->setThreshold(1e-3);
-        return base::GoalPtr(goalState);
+        return goalState;
     }
 };
 
@@ -292,8 +292,8 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        auto *rrt = new geometric::RRTstar(si);
-        return base::PlannerPtr(rrt);
+        auto rrt(std::make_shared<geometric::RRTstar>(si));
+        return rrt;
     }
 };
 
@@ -303,8 +303,8 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        auto *prm = new geometric::PRMstar(si);
-        return base::PlannerPtr(prm);
+        auto prm(std::make_shared<geometric::PRMstar>(si));
+        return prm;
     }
 };
 
@@ -314,8 +314,8 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        auto *prm = new geometric::PRM(si);
-        return base::PlannerPtr(prm);
+        auto prm(std::make_shared<geometric::PRM>(si));
+        return prm;
     }
 };
 
@@ -325,8 +325,8 @@ protected:
 
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        auto *cforest = new geometric::CForest(si);
-        return base::PlannerPtr(cforest);
+        auto cforest(std::make_shared<geometric::CForest>(si));
+        return cforest;
     }
 };
 
