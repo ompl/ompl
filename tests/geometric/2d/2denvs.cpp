@@ -274,7 +274,7 @@ protected:
     {
         auto rrt(std::make_shared<geometric::pRRT>(si));
         rrt->setRange(10.0);
-        rrt->setThreadCount(4);
+        rrt->setThreadCount(std::min(4u, std::thread::hardware_concurrency()));
         return rrt;
     }
 };
@@ -334,7 +334,7 @@ protected:
     {
         auto sbl(std::make_shared<geometric::pSBL>(si));
         sbl->setRange(10.0);
-        sbl->setThreadCount(4);
+        sbl->setThreadCount(std::min(4u, std::thread::hardware_concurrency()));
 
         std::vector<unsigned int> projection = {0, 1};
         std::vector<double> cdim = {1, 1};
