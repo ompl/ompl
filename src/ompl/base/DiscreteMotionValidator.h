@@ -69,12 +69,21 @@ namespace ompl
 
             bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const override;
 
+            bool isValid(const State *state) const;
+
+            void setRequiredStateClearance(double clearance)
+            {
+                clearance_ = clearance;
+            }
+
         private:
 
             StateSpace *stateSpace_;
 
             void defaultSettings();
 
+            /** \brief Minimum required distance of sample from nearest obstacle to be considered valid */
+            double clearance_ = 0.0;
         };
 
     }
