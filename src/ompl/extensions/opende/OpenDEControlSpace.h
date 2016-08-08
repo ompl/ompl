@@ -42,16 +42,13 @@
 
 namespace ompl
 {
-
     namespace control
     {
-
         /** \brief Representation of controls applied in OpenDE
             environments. This is an array of double values. */
         class OpenDEControlSpace : public RealVectorControlSpace
         {
         public:
-
             /** \brief Construct a representation of controls passed
                 to OpenDE. If \e stateSpace does not cast to an
                 OpenDEStateSpace, an exception is thrown. */
@@ -60,15 +57,12 @@ namespace ompl
             ~OpenDEControlSpace() override = default;
 
             /** \brief Get the OpenDE environment this state space corresponds to */
-            const OpenDEEnvironmentPtr& getEnvironment() const
+            const OpenDEEnvironmentPtr &getEnvironment() const
             {
                 return stateSpace_->as<OpenDEStateSpace>()->getEnvironment();
             }
-
         };
     }
-
 }
-
 
 #endif

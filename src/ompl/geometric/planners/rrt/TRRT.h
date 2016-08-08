@@ -53,10 +53,8 @@
   pis_ -> PlannerInputStates - Utility class to extract valid input states
 */
 
-
 namespace ompl
 {
-
     namespace geometric
     {
         /**
@@ -67,12 +65,17 @@ namespace ompl
            costmap. It uses transition tests from stochastic optimization methods to accept or reject new
            potential states.
            @par Example usage
-           Please see [Dave Coleman's example](https://github.com/davetcoleman/ompl_rviz_viewer/) to see how TRRT can be used.
+           Please see [Dave Coleman's example](https://github.com/davetcoleman/ompl_rviz_viewer/) to see how TRRT can be
+           used.
            @par External documentation
-           L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in <em>IEEE TRANSACTIONS ON ROBOTICS, VOL. 26, NO. 4, AUGUST 2010</em>. DOI: [10.1109/TRO.2010.2049527](http://dx.doi.org/10.1109/TRO.2010.2049527)<br />
+           L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in <em>IEEE
+           TRANSACTIONS ON ROBOTICS, VOL. 26, NO. 4, AUGUST 2010</em>. DOI:
+           [10.1109/TRO.2010.2049527](http://dx.doi.org/10.1109/TRO.2010.2049527)<br />
            [[PDF]](http://homepages.laas.fr/nic/Papers/10TRO.pdf)
 
-           D. Devaurs, T. Siméon, J. Cortés, Enhancing the Transition-based RRT to Deal with Complex Cost Spaces, in <em>IEEE International Conference on Robotics and Automation, 2013, pp. 4120-4125. DOI: [10.1109/ICRA.2013.6631158](http://dx.doi.org/10.1109/ICRA.2013.6631158)<br/>
+           D. Devaurs, T. Siméon, J. Cortés, Enhancing the Transition-based RRT to Deal with Complex Cost Spaces, in
+           <em>IEEE International Conference on Robotics and Automation, 2013, pp. 4120-4125. DOI:
+           [10.1109/ICRA.2013.6631158](http://dx.doi.org/10.1109/ICRA.2013.6631158)<br/>
            [[PDF]](https://hal.archives-ouvertes.fr/hal-00872224/document)
         */
 
@@ -80,7 +83,6 @@ namespace ompl
         class TRRT : public base::Planner
         {
         public:
-
             /** \brief Constructor */
             TRRT(const base::SpaceInformationPtr &si);
 
@@ -133,13 +135,13 @@ namespace ompl
                 range (0, 1], typically close to zero (default is 0.1).
                 This value is an exponential (e^factor) that is multiplied with
                 the current temperature. */
-            void setTempChangeFactor( double factor )
+            void setTempChangeFactor(double factor)
             {
                 tempChangeFactor_ = exp(factor);
             }
 
             /** \brief Get the factor by which the temperature rises based on current acceptance/rejection rate */
-            double getTempChangeFactor( ) const
+            double getTempChangeFactor() const
             {
                 return log(tempChangeFactor_);
             }
@@ -147,7 +149,7 @@ namespace ompl
             /** \brief Set the cost threshold (default is infinity).
                 Any motion cost that is not better than this cost (according to
                 the optimization objective) will not be expanded by the planner. */
-            void setCostThreshold( double maxCost )
+            void setCostThreshold(double maxCost)
             {
                 costThreshold_ = base::Cost(maxCost);
             }
@@ -162,57 +164,55 @@ namespace ompl
 
             /** \brief Set the initial temperature at the beginning of the algorithm. Should be high
                        to allow for initial exploration. */
-            void setInitTemperature( double initTemperature )
+            void setInitTemperature(double initTemperature)
             {
                 initTemperature_ = initTemperature;
             }
 
             /** \brief Get the temperature at the start of planning. */
-            double getInitTemperature( ) const
+            double getInitTemperature() const
             {
                 return initTemperature_;
             }
 
             /** \brief Set the distance between a new state and the nearest neighbor
                 that qualifies that state as being a frontier */
-            void setFrontierThreshold( double frontier_threshold )
+            void setFrontierThreshold(double frontier_threshold)
             {
                 frontierThreshold_ = frontier_threshold;
             }
 
             /** \brief Get the distance between a new state and the nearest neighbor
                 that qualifies that state as being a frontier */
-            double getFrontierThreshold( ) const
+            double getFrontierThreshold() const
             {
                 return frontierThreshold_;
             }
 
             /** \brief Set the ratio between adding nonfrontier nodes to frontier nodes,
                 for example .1 is 1/10 or one nonfrontier node for every 10 frontier nodes added */
-            void setFrontierNodeRatio( double frontierNodeRatio )
+            void setFrontierNodeRatio(double frontierNodeRatio)
             {
                 frontierNodeRatio_ = frontierNodeRatio;
             }
 
             /** \brief Get the ratio between adding nonfrontier nodes to frontier nodes,
                 for example .1 is 1/10 or one nonfrontier node for every 10 frontier nodes added */
-            double getFrontierNodeRatio( ) const
+            double getFrontierNodeRatio() const
             {
                 return frontierNodeRatio_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
-            template<template<typename T> class NN>
+            template <template <typename T> class NN>
             void setNearestNeighbors()
             {
-                nearestNeighbors_ = std::make_shared<NN<Motion*>>();
+                nearestNeighbors_ = std::make_shared<NN<Motion *>>();
             }
 
             void setup() override;
 
         protected:
-
-
             /** \brief Representation of a motion
 
                 This only contains pointers to parent motions as we
@@ -220,7 +220,6 @@ namespace ompl
             class Motion
             {
             public:
-
                 Motion() : state(nullptr), parent(nullptr)
                 {
                 }
@@ -233,14 +232,13 @@ namespace ompl
                 ~Motion() = default;
 
                 /** \brief The state contained by the motion */
-                base::State       *state;
+                base::State *state;
 
                 /** \brief The parent motion in the exploration tree */
-                Motion            *parent;
+                Motion *parent;
 
                 /** \brief Cost of the state */
-                base::Cost            cost;
-
+                base::Cost cost;
             };
 
             /** \brief Free the memory allocated by this planner */
@@ -255,28 +253,29 @@ namespace ompl
             /** \brief Filter irrelevant configuration regarding the search of low-cost paths before inserting into tree
                 \param motionCost - cost of the motion to be evaluated
             */
-            bool transitionTest( const base::Cost& motionCost );
+            bool transitionTest(const base::Cost &motionCost);
 
             /** \brief Use ratio to prefer frontier nodes to nonfrontier ones */
-            bool minExpansionControl( double randMotionDistance );
+            bool minExpansionControl(double randMotionDistance);
 
             /** \brief State sampler */
-            base::StateSamplerPtr                          sampler_;
+            base::StateSamplerPtr sampler_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
-            std::shared_ptr< NearestNeighbors<Motion*> > nearestNeighbors_;
+            std::shared_ptr<NearestNeighbors<Motion *>> nearestNeighbors_;
 
-            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
-            double                                         goalBias_;
+            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
+             * available) */
+            double goalBias_;
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double                                         maxDistance_;
+            double maxDistance_;
 
             /** \brief The random number generator */
-            RNG                                            rng_;
+            RNG rng_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion                                         *lastGoalMotion_;
+            Motion *lastGoalMotion_;
 
             // *********************************************************************************************************
             // TRRT-Specific Variables
@@ -287,40 +286,40 @@ namespace ompl
             /** \brief Temperature parameter used to control the difficulty level of transition tests. Low temperatures
                 limit the expansion to a slightly positive slopes, high temps enable to climb the steeper slopes.
                 Dynamically tuned according to the information acquired during exploration */
-            double                                          temp_;
+            double temp_;
 
             /** \brief The most desirable (e.g., minimum) cost value in the search tree */
-            base::Cost                                      bestCost_;
+            base::Cost bestCost_;
 
             /** \brief The least desirable (e.g., maximum) cost value in the search tree */
-            base::Cost                                      worstCost_;
+            base::Cost worstCost_;
 
             /** \brief All motion costs must be better than this cost (default is infinity) */
-            base::Cost                                      costThreshold_;
+            base::Cost costThreshold_;
 
             /** \brief The value of the expression exp^T_rate.  The temperature
                  is increased by this factor whenever the transition test fails. */
-            double                                          tempChangeFactor_;
+            double tempChangeFactor_;
 
             /** \brief The initial value of \e temp_ */
-            double                                          initTemperature_;
+            double initTemperature_;
 
             // Minimum Expansion Control --------------------------------------------------------------
 
             /** \brief The number of non-frontier nodes in the search tree */
-            double                                          nonfrontierCount_;
+            double nonfrontierCount_;
             /** \brief The number of frontier nodes in the search tree */
-            double                                          frontierCount_;
+            double frontierCount_;
 
             /** \brief The distance between an old state and a new state that
                 qualifies it as a frontier state */
-            double                                          frontierThreshold_;
+            double frontierThreshold_;
 
             /** \brief Target ratio of non-frontier nodes to frontier nodes. rho */
-            double                                          frontierNodeRatio_;
+            double frontierNodeRatio_;
 
             /** \brief The optimization objective being optimized by TRRT */
-            ompl::base::OptimizationObjectivePtr            opt_;
+            ompl::base::OptimizationObjectivePtr opt_;
         };
     }
 }

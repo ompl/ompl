@@ -43,7 +43,6 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief This class implements a generic projection for the MorseStateSpace,
             namely, the subspace representing the x and y positions of every rigid body */
         class MorseProjection : public ProjectionEvaluator

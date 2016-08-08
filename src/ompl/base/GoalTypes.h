@@ -41,28 +41,29 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief The type of goal */
         enum GoalType
-            {
-                /** \brief This bit is set if casting to generic goal regions (ompl::base::Goal) is possible. This bit shold always be set */
-                GOAL_ANY               = 1,
+        {
+            /** \brief This bit is set if casting to generic goal regions (ompl::base::Goal) is possible. This bit shold
+               always be set */
+            GOAL_ANY = 1,
 
-                /** \brief This bit is set if casting to goal regions (ompl::base::GoalRegion) is possible */
-                GOAL_REGION            = GOAL_ANY + 2,
+            /** \brief This bit is set if casting to goal regions (ompl::base::GoalRegion) is possible */
+            GOAL_REGION = GOAL_ANY + 2,
 
-                /** \brief This bit is set if casting to sampleable goal regions (ompl::base::GoalSampleableRegion) is possible */
-                GOAL_SAMPLEABLE_REGION = GOAL_REGION + 4,
+            /** \brief This bit is set if casting to sampleable goal regions (ompl::base::GoalSampleableRegion) is
+               possible */
+            GOAL_SAMPLEABLE_REGION = GOAL_REGION + 4,
 
-                /** \brief This bit is set if casting to goal state (ompl::base::GoalState) is possible */
-                GOAL_STATE             = GOAL_SAMPLEABLE_REGION + 8,
+            /** \brief This bit is set if casting to goal state (ompl::base::GoalState) is possible */
+            GOAL_STATE = GOAL_SAMPLEABLE_REGION + 8,
 
-                /** \brief This bit is set if casting to goal states (ompl::base::GoalStates) is possible */
-                GOAL_STATES            = GOAL_SAMPLEABLE_REGION + 16,
+            /** \brief This bit is set if casting to goal states (ompl::base::GoalStates) is possible */
+            GOAL_STATES = GOAL_SAMPLEABLE_REGION + 16,
 
-                /** \brief This bit is set if casting to goal states (ompl::base::GoalLazySamples) is possible */
-                GOAL_LAZY_SAMPLES      = GOAL_STATES + 32
-            };
+            /** \brief This bit is set if casting to goal states (ompl::base::GoalLazySamples) is possible */
+            GOAL_LAZY_SAMPLES = GOAL_STATES + 32
+        };
     }
 }
 

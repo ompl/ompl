@@ -48,17 +48,23 @@ namespace ompl
         {
         public:
             /** \brief Construct cost with a specified value */
-            explicit Cost(double v = 0.0) : v_(v) {}
+            explicit Cost(double v = 0.0) : v_(v)
+            {
+            }
 
             /** \brief The value of the cost */
-            double value() const { return v_; }
+            double value() const
+            {
+                return v_;
+            }
+
         private:
             /** \brief The value of the cost */
             double v_;
         };
 
         /** \brief Output operator for Cost */
-        std::ostream& operator<<(std::ostream& stream, Cost c);
+        std::ostream &operator<<(std::ostream &stream, Cost c);
     }
 }
 #endif

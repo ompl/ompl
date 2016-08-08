@@ -37,8 +37,8 @@
 #include "ompl/base/samplers/UniformValidStateSampler.h"
 #include "ompl/base/SpaceInformation.h"
 
-ompl::base::UniformValidStateSampler::UniformValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocStateSampler())
+ompl::base::UniformValidStateSampler::UniformValidStateSampler(const SpaceInformation *si)
+  : ValidStateSampler(si), sampler_(si->allocStateSampler())
 {
     name_ = "uniform";
 }

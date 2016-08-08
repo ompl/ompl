@@ -39,7 +39,6 @@
 
 namespace ompl
 {
-
     /** \brief This namespace includes magic constants used in various places in OMPL.
 
         We strive to minimize the use of constants in the code, but at
@@ -50,12 +49,10 @@ namespace ompl
         settings. */
     namespace magic
     {
-
         /** \brief When the cell sizes for a projection are
             automatically computed, this value defines the number of
             parts into which each dimension is split. */
         static const double PROJECTION_DIMENSION_SPLITS = 20.0;
-
 
         /** \brief When no cell sizes are specified for a projection, they are inferred like so:
             1. approximate extent of projected space by taking a number of samples (the constant below)

@@ -43,7 +43,6 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief Defines optimization objectives where path cost can
             be represented as a path integral over a cost function
             defined over the state space. This cost function is
@@ -61,8 +60,7 @@ namespace ompl
                 only the two endpoint states are used for motion cost
                 computation.
             */
-            StateCostIntegralObjective(const SpaceInformationPtr &si,
-                                       bool enableMotionCostInterpolation = false);
+            StateCostIntegralObjective(const SpaceInformationPtr &si, bool enableMotionCostInterpolation = false);
 
             /** \brief Returns a cost with a value of 1. */
             Cost stateCost(const State *s) const override;
@@ -94,7 +92,6 @@ namespace ompl
             bool isMotionCostInterpolationEnabled() const;
 
         protected:
-
             /** \brief If true, then motionCost() will more accurately compute
                 the cost of a motion by taking small steps along the
                 motion and accumulating the cost. This sacrifices speed

@@ -54,15 +54,15 @@ namespace ompl
         {
         public:
             // non-copyright
-            PlannerMonitor(const PlannerMonitor&) = delete;
-            PlannerMonitor& operator=(const PlannerMonitor&) = delete;
+            PlannerMonitor(const PlannerMonitor &) = delete;
+            PlannerMonitor &operator=(const PlannerMonitor &) = delete;
 
             /** \brief Monitor a planner instance, and dump its properties to a specified stream, periodically.
 
                 Every time the properties are dumped, the stream offset is set to 0. It is often useful to have the
                 stream be a file, and then issue commands such as 'watch cat filename'. */
-            PlannerMonitor(base::PlannerPtr planner, std::ostream &out, double period = 0.5, bool autoStart = true) :
-                planner_(std::move(planner)), out_(out), period_(period), shouldMonitor_(false)
+            PlannerMonitor(base::PlannerPtr planner, std::ostream &out, double period = 0.5, bool autoStart = true)
+              : planner_(std::move(planner)), out_(out), period_(period), shouldMonitor_(false)
             {
                 if (autoStart)
                     startMonitor();
@@ -83,11 +83,11 @@ namespace ompl
         private:
             void threadFunction();
 
-            base::PlannerPtr                  planner_;
-            std::ostream                     &out_;
-            double                            period_;
-            bool                              shouldMonitor_;
-            boost::scoped_ptr<std::thread>    monitorThread_;
+            base::PlannerPtr planner_;
+            std::ostream &out_;
+            double period_;
+            bool shouldMonitor_;
+            boost::scoped_ptr<std::thread> monitorThread_;
         };
     }
 }

@@ -51,4 +51,3 @@ bool ompl::base::MorseGoal::isSatisfied(const State *state, double *distance) co
     }
     return sat;
 }
-

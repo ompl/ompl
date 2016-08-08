@@ -43,12 +43,10 @@ namespace ompl
 {
     namespace control
     {
-
         /** \brief Control space sampler for discrete controls */
         class DiscreteControlSampler : public ControlSampler
         {
         public:
-
             /** \brief Constructor */
             DiscreteControlSampler(const ControlSpace *space) : ControlSampler(space)
             {
@@ -64,19 +62,18 @@ namespace ompl
         class DiscreteControlSpace : public ControlSpace
         {
         public:
-
             /** \brief The definition of a discrete control */
             class ControlType : public Control
             {
             public:
-
                 /** \brief The current control - an int in range [lowerBound, upperBound] */
                 int value;
             };
 
-            /** \brief Construct a discrete space in wich controls can take values in the set [\e lowerBound, \e upperBound] */
-            DiscreteControlSpace(const base::StateSpacePtr &stateSpace, int lowerBound, int upperBound) :
-                ControlSpace(stateSpace), lowerBound_(lowerBound), upperBound_(upperBound)
+            /** \brief Construct a discrete space in wich controls can take values in the set [\e lowerBound, \e
+             * upperBound] */
+            DiscreteControlSpace(const base::StateSpacePtr &stateSpace, int lowerBound, int upperBound)
+              : ControlSpace(stateSpace), lowerBound_(lowerBound), upperBound_(upperBound)
             {
                 setName("Discrete" + getName());
                 type_ = CONTROL_SPACE_DISCRETE;
@@ -92,7 +89,7 @@ namespace ompl
 
             ControlSamplerPtr allocDefaultControlSampler() const override;
 
-            Control* allocControl() const override;
+            Control *allocControl() const override;
 
             void freeControl(Control *control) const override;
 
@@ -121,7 +118,8 @@ namespace ompl
                 return upperBound_;
             }
 
-            /** \brief Set the bounds for the states in this space (the states will be in the set [\e lowerBound, \e upperBound] */
+            /** \brief Set the bounds for the states in this space (the states will be in the set [\e lowerBound, \e
+             * upperBound] */
             void setBounds(int lowerBound, int upperBound)
             {
                 lowerBound_ = lowerBound;
@@ -140,14 +138,12 @@ namespace ompl
             void deserialize(Control *ctrl, const void *serialization) const override;
 
         protected:
-
             /** \brief The lowest integer state */
             int lowerBound_;
 
             /** \brief The highest integer state */
             int upperBound_;
         };
-
     }
 }
 

@@ -79,7 +79,6 @@ namespace ompl
         class PlannerDataStorage
         {
         public:
-
             /// \brief Default constructor.
             PlannerDataStorage();
             /// \brief Destructor
@@ -106,25 +105,26 @@ namespace ompl
             struct Header
             {
                 /// \brief OMPL PlannerData specific marker (fixed value)
-                boost::uint32_t  marker;
+                boost::uint32_t marker;
 
                 /// \brief Number of vertices stored in the archive
-                std::size_t      vertex_count;
+                std::size_t vertex_count;
 
                 /// \brief Number of edges stored in the archive
-                std::size_t      edge_count;
+                std::size_t edge_count;
 
-                /// \brief Signature of state space that allocated the saved states in the vertices (see ompl::base::StateSpace::computeSignature()) */
+                /// \brief Signature of state space that allocated the saved states in the vertices (see
+                /// ompl::base::StateSpace::computeSignature()) */
                 std::vector<int> signature;
 
                 /// \brief boost::serialization routine
-                template<typename Archive>
-                void serialize(Archive & ar, const unsigned int /*version*/)
+                template <typename Archive>
+                void serialize(Archive &ar, const unsigned int /*version*/)
                 {
-                    ar & marker;
-                    ar & vertex_count;
-                    ar & edge_count;
-                    ar & signature;
+                    ar &marker;
+                    ar &vertex_count;
+                    ar &edge_count;
+                    ar &signature;
                 }
             };
 
@@ -138,12 +138,12 @@ namespace ompl
                     GOAL
                 };
 
-                template<typename Archive>
-                void serialize(Archive & ar, const unsigned int /*version*/)
+                template <typename Archive>
+                void serialize(Archive &ar, const unsigned int /*version*/)
                 {
-                    ar & v_;
-                    ar & state_;
-                    ar & type_;
+                    ar &v_;
+                    ar &state_;
+                    ar &type_;
                 }
 
                 const PlannerDataVertex *v_;
@@ -154,12 +154,12 @@ namespace ompl
             /// \brief The object containing all edge data that will be stored
             struct PlannerDataEdgeData
             {
-                template<typename Archive>
-                void serialize(Archive & ar, const unsigned int /*version*/)
+                template <typename Archive>
+                void serialize(Archive &ar, const unsigned int /*version*/)
                 {
-                    ar & e_;
-                    ar & endpoints_;
-                    ar & weight_;
+                    ar &e_;
+                    ar &endpoints_;
+                    ar &weight_;
                 }
 
                 const PlannerDataEdge *e_;
@@ -171,7 +171,7 @@ namespace ompl
             virtual void loadVertices(PlannerData &pd, unsigned int numVertices, boost::archive::binary_iarchive &ia)
             {
                 const StateSpacePtr &space = pd.getSpaceInformation()->getStateSpace();
-                std::vector<State*> states;
+                std::vector<State *> states;
                 for (unsigned int i = 0; i < numVertices; ++i)
                 {
                     PlannerDataVertexData vertexData;
@@ -183,8 +183,8 @@ namespace ompl
                     // Allocating a new state and deserializing it from the buffer
                     State *state = space->allocState();
                     states.push_back(state);
-                    space->deserialize (state, &vertexData.state_[0]);
-                    const_cast<PlannerDataVertex*>(v)->state_ = state;
+                    space->deserialize(state, &vertexData.state_[0]);
+                    const_cast<PlannerDataVertex *>(v)->state_ = state;
 
                     // Record the type of the vertex (i.e. start vertex).
                     if (vertexData.type_ == PlannerDataVertexData::START)
@@ -206,7 +206,7 @@ namespace ompl
                 // to free all memory allocated here.
                 pd.decoupleFromPlanner();
 
-                for (auto & state : states)
+                for (auto &state : states)
                     space->freeState(state);
             }
 
@@ -214,7 +214,7 @@ namespace ompl
             virtual void storeVertices(const PlannerData &pd, boost::archive::binary_oarchive &oa)
             {
                 const StateSpacePtr &space = pd.getSpaceInformation()->getStateSpace();
-                std::vector<unsigned char> state (space->getSerializationLength());
+                std::vector<unsigned char> state(space->getSerializationLength());
                 for (unsigned int i = 0; i < pd.numVertices(); ++i)
                 {
                     PlannerDataVertexData vertexData;
@@ -228,10 +228,11 @@ namespace ompl
                         vertexData.type_ = PlannerDataVertexData::START;
                     else if (pd.isGoalVertex(i))
                         vertexData.type_ = PlannerDataVertexData::GOAL;
-                    else vertexData.type_ = PlannerDataVertexData::STANDARD;
+                    else
+                        vertexData.type_ = PlannerDataVertexData::STANDARD;
 
                     // Serializing the state contained in this vertex
-                    space->serialize (&state[0], v.getState());
+                    space->serialize(&state[0], v.getState());
                     vertexData.state_ = state;
 
                     oa << vertexData;
@@ -245,7 +246,8 @@ namespace ompl
                 {
                     PlannerDataEdgeData edgeData;
                     ia >> edgeData;
-                    pd.addEdge(edgeData.endpoints_.first, edgeData.endpoints_.second, *edgeData.e_, Cost(edgeData.weight_));
+                    pd.addEdge(edgeData.endpoints_.first, edgeData.endpoints_.second, *edgeData.e_,
+                               Cost(edgeData.weight_));
 
                     // We deserialized the edge object pointer, and we own it.
                     // Since addEdge copies the object, it is safe to free here.
@@ -278,8 +280,8 @@ namespace ompl
                         edgeData.weight_ = weight.value();
                         oa << edgeData;
 
-                    } // for each edge
-                }  // for each vertex
+                    }  // for each edge
+                }      // for each vertex
             }
         };
     }

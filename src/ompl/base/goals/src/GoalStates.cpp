@@ -52,7 +52,7 @@ void ompl::base::GoalStates::clear()
 
 void ompl::base::GoalStates::freeMemory()
 {
-    for (auto & state : states_)
+    for (auto &state : states_)
         si_->freeState(state);
 }
 
@@ -106,11 +106,11 @@ void ompl::base::GoalStates::addState(const ScopedState<> &st)
     addState(st.get());
 }
 
-const ompl::base::State* ompl::base::GoalStates::getState(unsigned int index) const
+const ompl::base::State *ompl::base::GoalStates::getState(unsigned int index) const
 {
     if (index >= states_.size())
-        throw Exception("Index " + std::to_string(index) + " out of range. Only " +
-                        std::to_string(states_.size()) + " states are available");
+        throw Exception("Index " + std::to_string(index) + " out of range. Only " + std::to_string(states_.size()) +
+                        " states are available");
     return states_[index];
 }
 

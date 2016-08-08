@@ -41,7 +41,6 @@
 
 namespace ompl
 {
-
     /// \brief A permutation of indices into an array
     ///
     /// This class tends to be faster than the two-argument version of
@@ -64,6 +63,7 @@ namespace ompl
                 operator[](i) = i;
             std::shuffle(begin(), begin() + n, generator_);
         }
+
     private:
         /// Mersenne twister random number generator
         std::mt19937 generator_;

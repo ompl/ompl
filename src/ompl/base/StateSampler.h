@@ -48,7 +48,6 @@ namespace ompl
 {
     namespace base
     {
-
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(StateSpace);
         /// @endcond
@@ -66,8 +65,8 @@ namespace ompl
         {
         public:
             // non-copyable
-            StateSampler(const StateSampler&) = delete;
-            StateSampler& operator=(const StateSampler&) = delete;
+            StateSampler(const StateSampler &) = delete;
+            StateSampler &operator=(const StateSampler &) = delete;
 
             /** \brief Constructor */
             StateSampler(const StateSpace *space) : space_(space)
@@ -91,7 +90,8 @@ namespace ompl
             */
             virtual void sampleUniformNear(State *state, const State *near, const double distance) = 0;
 
-            /** \brief Sample a state using a Gaussian distribution with given \e mean and standard deviation (\e stdDev).
+            /** \brief Sample a state using a Gaussian distribution with given \e mean and standard deviation (\e
+            stdDev).
 
             As with sampleUniform, the implementation of sampleGaussian is
             specific to the derived class and few assumptions can be made
@@ -100,19 +100,17 @@ namespace ompl
             virtual void sampleGaussian(State *state, const State *mean, const double stdDev) = 0;
 
         protected:
-
             /** \brief The state space this sampler samples */
             const StateSpace *space_;
 
             /** \brief An instance of a random number generator */
-            RNG               rng_;
+            RNG rng_;
         };
 
         /** \brief Definition of a compound state sampler. This is useful to construct samplers for compound states. */
         class CompoundStateSampler : public StateSampler
         {
         public:
-
             /** \brief Constructor */
             CompoundStateSampler(const StateSpace *space) : StateSampler(space), samplerCount_(0)
             {
@@ -140,26 +138,24 @@ namespace ompl
             void sampleGaussian(State *state, const State *mean, const double stdDev) override;
 
         protected:
-
             /** \brief The samplers that are composed */
             std::vector<StateSamplerPtr> samplers_;
 
             /** \brief The weight of each sampler (used when sampling near a state) */
-            std::vector<double>          weightImportance_;
+            std::vector<double> weightImportance_;
 
         private:
-
             /** \brief The number of samplers that are composed */
-            unsigned int                 samplerCount_;
-
+            unsigned int samplerCount_;
         };
 
         /** \brief Construct a sampler that samples only within a subspace of the space */
         class SubspaceStateSampler : public StateSampler
         {
         public:
-
-            /** \brief Construct a sampler for \e space but only sample components common to \e subspace. Use \e weight as a multiplicative factor for \e distance and \e stdDev in the sampleUniformNear() and sampleGaussian() functions. */
+            /** \brief Construct a sampler for \e space but only sample components common to \e subspace. Use \e weight
+             * as a multiplicative factor for \e distance and \e stdDev in the sampleUniformNear() and sampleGaussian()
+             * functions. */
             SubspaceStateSampler(const StateSpace *space, const StateSpace *subspace, double weight);
             ~SubspaceStateSampler() override;
 
@@ -170,32 +166,30 @@ namespace ompl
             void sampleGaussian(State *state, const State *mean, const double stdDev) override;
 
         protected:
-
             /** \brief The subspace to sample */
-            const StateSpace        *subspace_;
+            const StateSpace *subspace_;
 
             /** \brief The sampler for the subspace */
-            StateSamplerPtr          subspaceSampler_;
+            StateSamplerPtr subspaceSampler_;
 
             /** \brief The weigth factor to multiply distance and stdDev when sampling in the vicinity of a state */
-            double                   weight_;
+            double weight_;
 
-            /** \brief The names of common subspaces between \e space_ and \e subspace_; these are the ones copied after sampling a state */
+            /** \brief The names of common subspaces between \e space_ and \e subspace_; these are the ones copied after
+             * sampling a state */
             std::vector<std::string> subspaces_;
 
         private:
+            /** \brief Temporary work area */
+            State *work_;
 
             /** \brief Temporary work area */
-            State                   *work_;
-
-            /** \brief Temporary work area */
-            State                   *work2_;
+            State *work2_;
         };
 
         /** \brief Definition of a function that can allocate a state sampler */
-        using StateSamplerAllocator = std::function<StateSamplerPtr (const StateSpace *)>;
+        using StateSamplerAllocator = std::function<StateSamplerPtr(const StateSpace *)>;
     }
 }
-
 
 #endif

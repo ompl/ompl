@@ -41,19 +41,19 @@
 #include <thread>
 #include <utility>
 
-ompl::base::Planner::Planner(SpaceInformationPtr si, std::string name) :
-    si_(std::move(si)), pis_(this), name_(std::move(name)), setup_(false)
+ompl::base::Planner::Planner(SpaceInformationPtr si, std::string name)
+  : si_(std::move(si)), pis_(this), name_(std::move(name)), setup_(false)
 {
     if (!si_)
         throw Exception(name_, "Invalid space information instance for planner");
 }
 
-const ompl::base::PlannerSpecs& ompl::base::Planner::getSpecs() const
+const ompl::base::PlannerSpecs &ompl::base::Planner::getSpecs() const
 {
     return specs_;
 }
 
-const std::string& ompl::base::Planner::getName() const
+const std::string &ompl::base::Planner::getName() const
 {
     return name_;
 }
@@ -63,12 +63,12 @@ void ompl::base::Planner::setName(const std::string &name)
     name_ = name;
 }
 
-const ompl::base::SpaceInformationPtr&  ompl::base::Planner::getSpaceInformation() const
+const ompl::base::SpaceInformationPtr &ompl::base::Planner::getSpaceInformation() const
 {
     return si_;
 }
 
-const ompl::base::ProblemDefinitionPtr& ompl::base::Planner::getProblemDefinition() const
+const ompl::base::ProblemDefinitionPtr &ompl::base::Planner::getProblemDefinition() const
 {
     return pdef_;
 }
@@ -79,7 +79,7 @@ void ompl::base::Planner::setProblemDefinition(const ProblemDefinitionPtr &pdef)
     pis_.update();
 }
 
-const ompl::base::PlannerInputStates& ompl::base::Planner::getPlannerInputStates() const
+const ompl::base::PlannerInputStates &ompl::base::Planner::getPlannerInputStates() const
 {
     return pis_;
 }
@@ -118,7 +118,7 @@ void ompl::base::Planner::clear()
 
 void ompl::base::Planner::getPlannerData(PlannerData &data) const
 {
-    for (const auto & plannerProgressProperty : plannerProgressProperties_)
+    for (const auto &plannerProgressProperty : plannerProgressProperties_)
         data.properties[plannerProgressProperty.first] = plannerProgressProperty.second();
 }
 
@@ -144,7 +144,7 @@ void ompl::base::Planner::printProperties(std::ostream &out) const
     out << "Aware of the following parameters:";
     std::vector<std::string> params;
     params_.getParamNames(params);
-    for (auto & param : params)
+    for (auto &param : params)
         out << " " << param;
     out << std::endl;
 }
@@ -191,9 +191,8 @@ void ompl::base::PlannerInputStates::checkValidity() const
     {
         if (pdef_->getStartStateCount() <= 0)
             error = "No start states specified";
-        else
-            if (!pdef_->getGoal())
-                error = "No goal specified";
+        else if (!pdef_->getGoal())
+            error = "No goal specified";
     }
 
     if (!error.empty())
@@ -228,7 +227,7 @@ bool ompl::base::PlannerInputStates::use(const ProblemDefinition *pdef)
     return false;
 }
 
-const ompl::base::State* ompl::base::PlannerInputStates::nextStart()
+const ompl::base::State *ompl::base::PlannerInputStates::nextStart()
 {
     if (pdef_ == nullptr || si_ == nullptr)
     {
@@ -250,26 +249,24 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextStart()
         else
         {
             OMPL_WARN("%s: Skipping invalid start state (invalid %s)",
-                      planner_ ? planner_->getName().c_str() : "PlannerInputStates",
-                      bounds ? "state": "bounds");
+                      planner_ ? planner_->getName().c_str() : "PlannerInputStates", bounds ? "state" : "bounds");
             std::stringstream ss;
             si_->printState(st, ss);
-            OMPL_DEBUG("%s: Discarded start state %s",
-                       planner_ ? planner_->getName().c_str() : "PlannerInputStates",
+            OMPL_DEBUG("%s: Discarded start state %s", planner_ ? planner_->getName().c_str() : "PlannerInputStates",
                        ss.str().c_str());
         }
     }
     return nullptr;
 }
 
-const ompl::base::State* ompl::base::PlannerInputStates::nextGoal()
+const ompl::base::State *ompl::base::PlannerInputStates::nextGoal()
 {
     // This initialization is safe since we are in a non-const function anyway.
     static PlannerTerminationCondition ptc = plannerAlwaysTerminatingCondition();
     return nextGoal(ptc);
 }
 
-const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerTerminationCondition &ptc)
+const ompl::base::State *ompl::base::PlannerInputStates::nextGoal(const PlannerTerminationCondition &ptc)
 {
     if (pdef_ == nullptr || si_ == nullptr)
     {
@@ -280,7 +277,8 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
             throw Exception(error);
     }
 
-    const GoalSampleableRegion *goal = pdef_->getGoal()->hasType(GOAL_SAMPLEABLE_REGION) ? pdef_->getGoal()->as<GoalSampleableRegion>() : nullptr;
+    const GoalSampleableRegion *goal =
+        pdef_->getGoal()->hasType(GOAL_SAMPLEABLE_REGION) ? pdef_->getGoal()->as<GoalSampleableRegion>() : nullptr;
 
     if (goal)
     {
@@ -303,7 +301,7 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                     bool valid = bounds ? si_->isValid(tempState_) : false;
                     if (bounds && valid)
                     {
-                        if (!first) // if we waited, show how long
+                        if (!first)  // if we waited, show how long
                         {
                             OMPL_DEBUG("%s: Waited %lf seconds for the first goal sample.",
                                        planner_ ? planner_->getName().c_str() : "PlannerInputStates",
@@ -315,15 +313,13 @@ const ompl::base::State* ompl::base::PlannerInputStates::nextGoal(const PlannerT
                     {
                         OMPL_WARN("%s: Skipping invalid goal state (invalid %s)",
                                   planner_ ? planner_->getName().c_str() : "PlannerInputStates",
-                                  bounds ? "state": "bounds");
+                                  bounds ? "state" : "bounds");
                         std::stringstream ss;
                         si_->printState(tempState_, ss);
                         OMPL_DEBUG("%s: Discarded goal state %s",
-                                   planner_ ? planner_->getName().c_str() : "PlannerInputStates",
-                                   ss.str().c_str());
+                                   planner_ ? planner_->getName().c_str() : "PlannerInputStates", ss.str().c_str());
                     }
-                }
-                while (!ptc && sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample());
+                } while (!ptc && sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample());
             }
             if (goal->couldSample() && !ptc)
             {

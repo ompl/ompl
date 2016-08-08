@@ -45,12 +45,10 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief A state space representing SE(2) */
         class SE2StateSpace : public CompoundStateSpace
         {
         public:
-
             /** \brief A state in SE(2): (x, y, yaw) */
             class StateType : public CompoundStateSpace::StateType
             {
@@ -105,9 +103,7 @@ namespace ompl
                 {
                     as<SO2StateSpace::StateType>(1)->value = yaw;
                 }
-
             };
-
 
             SE2StateSpace() : CompoundStateSpace()
             {
@@ -118,8 +114,7 @@ namespace ompl
                 lock();
             }
 
-            ~SE2StateSpace() override
-            = default;
+            ~SE2StateSpace() override = default;
 
             /** \copydoc RealVectorStateSpace::setBounds() */
             void setBounds(const RealVectorBounds &bounds)
@@ -128,16 +123,15 @@ namespace ompl
             }
 
             /** \copydoc RealVectorStateSpace::getBounds() */
-            const RealVectorBounds& getBounds() const
+            const RealVectorBounds &getBounds() const
             {
                 return as<RealVectorStateSpace>(0)->getBounds();
             }
 
-            State* allocState() const override;
+            State *allocState() const override;
             void freeState(State *state) const override;
 
             void registerProjections() override;
-
         };
     }
 }

@@ -43,12 +43,10 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief State space sampler for time */
         class TimeStateSampler : public StateSampler
         {
         public:
-
             /** \brief Constructor */
             TimeStateSampler(const StateSpace *space) : StateSampler(space)
             {
@@ -71,12 +69,10 @@ namespace ompl
         class TimeStateSpace : public StateSpace
         {
         public:
-
             /** \brief The definition of a time state */
             class StateType : public State
             {
             public:
-
                 /** \brief The position in time */
                 double position;
             };
@@ -103,13 +99,15 @@ namespace ompl
                 getMaximumExtent() returns 1. */
             void setBounds(double minTime, double maxTime);
 
-            /** \brief Get the minimum allowed value of \e position in a state. The function returns 0 if time is not bounded. */
+            /** \brief Get the minimum allowed value of \e position in a state. The function returns 0 if time is not
+             * bounded. */
             double getMinTimeBound() const
             {
                 return minTime_;
             }
 
-            /** \brief Get the maximum allowed value of \e position in a state. The function returns 0 if time is not bounded. */
+            /** \brief Get the maximum allowed value of \e position in a state. The function returns 0 if time is not
+             * bounded. */
             double getMaxTimeBound() const
             {
                 return maxTime_;
@@ -141,11 +139,11 @@ namespace ompl
 
             StateSamplerPtr allocDefaultStateSampler() const override;
 
-            State* allocState() const override;
+            State *allocState() const override;
 
             void freeState(State *state) const override;
 
-            double* getValueAddressAtIndex(State *state, const unsigned int index) const override;
+            double *getValueAddressAtIndex(State *state, const unsigned int index) const override;
 
             void printState(const State *state, std::ostream &out) const override;
 
@@ -154,16 +152,14 @@ namespace ompl
             void registerProjections() override;
 
         protected:
-
             /** \brief Flag indicating whether the state space is considering bounds or not */
-            bool   bounded_;
+            bool bounded_;
 
             /** \brief The minimum point in time considered by the state space (if bounds are used) */
             double minTime_;
 
             /** \brief The maximum point in time considered by the state space (if bounds are used) */
             double maxTime_;
-
         };
     }
 }

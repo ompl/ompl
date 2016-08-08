@@ -48,11 +48,19 @@ namespace ompl
     }
 }
 
-ompl::geometric::VFRRT::VFRRT(const base::SpaceInformationPtr &si, VectorField vf,
-    double exploration, double initial_lambda, unsigned int update_freq)
-    : RRT(si), vf_(std::move(vf)), efficientCount_(0), inefficientCount_(0), explorationInefficiency_(0.),
-      explorationSetting_(exploration), lambda_(initial_lambda),
-      nth_step_(update_freq), step_(0), meanNorm_(0.), vfdim_(0)
+ompl::geometric::VFRRT::VFRRT(const base::SpaceInformationPtr &si, VectorField vf, double exploration,
+                              double initial_lambda, unsigned int update_freq)
+  : RRT(si)
+  , vf_(std::move(vf))
+  , efficientCount_(0)
+  , inefficientCount_(0)
+  , explorationInefficiency_(0.)
+  , explorationSetting_(exploration)
+  , lambda_(initial_lambda)
+  , nth_step_(update_freq)
+  , step_(0)
+  , meanNorm_(0.)
+  , vfdim_(0)
 {
     setName("VFRRT");
     maxDistance_ = si->getStateValidityCheckingResolution();
@@ -93,8 +101,8 @@ Eigen::VectorXd ompl::geometric::VFRRT::getNewDirection(const base::State *qnear
     // Set vrand to be the normalized vector from qnear to qrand
     Eigen::VectorXd vrand(vfdim_);
     for (unsigned int i = 0; i < vfdim_; i++)
-        vrand[i] = *si_->getStateSpace()->getValueAddressAtIndex(qrand, i)
-            - *si_->getStateSpace()->getValueAddressAtIndex(qnear, i);
+        vrand[i] = *si_->getStateSpace()->getValueAddressAtIndex(qrand, i) -
+                   *si_->getStateSpace()->getValueAddressAtIndex(qnear, i);
     vrand /= si_->distance(qnear, qrand);
 
     // Get the vector at qnear, and normalize
@@ -111,14 +119,14 @@ Eigen::VectorXd ompl::geometric::VFRRT::getNewDirection(const base::State *qnear
     return computeAlphaBeta(omega, vrand, vfield);
 }
 
-double ompl::geometric::VFRRT::biasedSampling(const Eigen::VectorXd &vrand,
-    const Eigen::VectorXd &vfield, double lambdaScale)
+double ompl::geometric::VFRRT::biasedSampling(const Eigen::VectorXd &vrand, const Eigen::VectorXd &vfield,
+                                              double lambdaScale)
 {
     double sigma = .25 * (vrand - vfield).squaredNorm();
     updateGain();
     double scaledLambda = lambda_ * lambdaScale / meanNorm_;
     double phi = scaledLambda / (1. - std::exp(-2. * scaledLambda));
-    double z = - std::log(1. - sigma * scaledLambda / phi) / scaledLambda;
+    double z = -std::log(1. - sigma * scaledLambda / phi) / scaledLambda;
     return std::sqrt(2. * z);
 }
 
@@ -135,8 +143,8 @@ void ompl::geometric::VFRRT::updateGain()
         step_++;
 }
 
-Eigen::VectorXd ompl::geometric::VFRRT::computeAlphaBeta(
-    double omega, const Eigen::VectorXd &vrand, const Eigen::VectorXd &vfield)
+Eigen::VectorXd ompl::geometric::VFRRT::computeAlphaBeta(double omega, const Eigen::VectorXd &vrand,
+                                                         const Eigen::VectorXd &vfield)
 {
     double w2 = omega * omega;
     double c = vfield.dot(vrand);
@@ -149,10 +157,10 @@ Eigen::VectorXd ompl::geometric::VFRRT::computeAlphaBeta(
     return alpha * vfield + beta * vrand;
 }
 
-ompl::geometric::VFRRT::Motion *ompl::geometric::VFRRT::extendTree(
-    Motion *m, base::State* rstate, const Eigen::VectorXd &v)
+ompl::geometric::VFRRT::Motion *ompl::geometric::VFRRT::extendTree(Motion *m, base::State *rstate,
+                                                                   const Eigen::VectorXd &v)
 {
-    base::State* newState = si_->allocState();
+    base::State *newState = si_->allocState();
     si_->copyState(newState, m->state);
 
     double d = si_->distance(m->state, rstate);
@@ -192,8 +200,8 @@ void ompl::geometric::VFRRT::updateExplorationEfficiency(Motion *m)
 ompl::base::PlannerStatus ompl::geometric::VFRRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                 *goal   = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
@@ -215,10 +223,10 @@ ompl::base::PlannerStatus ompl::geometric::VFRRT::solve(const base::PlannerTermi
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
-    Motion *solution  = nullptr;
+    Motion *solution = nullptr;
     Motion *approxsol = nullptr;
-    double  approxdif = std::numeric_limits<double>::infinity();
-    auto *rmotion   = new Motion(si_);
+    double approxdif = std::numeric_limits<double>::infinity();
+    auto *rmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
@@ -267,7 +275,7 @@ ompl::base::PlannerStatus ompl::geometric::VFRRT::solve(const base::PlannerTermi
         lastGoalMotion_ = solution;
 
         // Construct the solution path
-        std::vector<Motion*> mpath;
+        std::vector<Motion *> mpath;
         while (solution != nullptr)
         {
             mpath.push_back(solution);
@@ -276,7 +284,7 @@ ompl::base::PlannerStatus ompl::geometric::VFRRT::solve(const base::PlannerTermi
 
         // Set the solution path
         auto path(std::make_shared<PathGeometric>(si_));
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1; i >= 0; --i)
             path->append(mpath[i]->state);
         pdef_->addSolutionPath(path, approximate, approxdif, name_);
         solved = true;

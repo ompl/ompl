@@ -75,15 +75,15 @@ void ompl::control::EST::clear()
     freeMemory();
     tree_.grid.clear();
     tree_.size = 0;
-    pdf_.clear ();
+    pdf_.clear();
     lastGoalMotion_ = nullptr;
 }
 
 void ompl::control::EST::freeMemory()
 {
-    for (const auto & it : tree_.grid)
+    for (const auto &it : tree_.grid)
     {
-        for (const auto & motion : it.second->data.motions_)
+        for (const auto &motion : it.second->data.motions_)
         {
             if (motion->state)
                 si_->freeState(motion->state);
@@ -97,8 +97,8 @@ void ompl::control::EST::freeMemory()
 ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                   *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     // Initializing tree with start state(s)
     while (const base::State *st = pis_.nextStart())
@@ -123,17 +123,17 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), tree_.size);
 
-    Motion  *solution = nullptr;
+    Motion *solution = nullptr;
     Motion *approxsol = nullptr;
-    double  approxdif = std::numeric_limits<double>::infinity();
-    auto   *rmotion = new Motion(siC_);
-    bool       solved = false;
+    double approxdif = std::numeric_limits<double>::infinity();
+    auto *rmotion = new Motion(siC_);
+    bool solved = false;
 
     while (!ptc)
     {
         // Select a state to expand the tree from
         Motion *existing = selectMotion();
-        assert (existing);
+        assert(existing);
 
         // sample a random state (with goal biasing) near the state selected for expansion
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
@@ -145,8 +145,8 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
         }
 
         // Extend a motion toward the state we just sampled
-        unsigned int duration = controlSampler_->sampleTo(rmotion->control, existing->control,
-                                                          existing->state, rmotion->state);
+        unsigned int duration =
+            controlSampler_->sampleTo(rmotion->control, existing->control, existing->state, rmotion->state);
 
         // If the system was propagated for a meaningful amount of time, save into the tree
         if (duration >= siC_->getMinControlDuration())
@@ -190,7 +190,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
     {
         lastGoalMotion_ = solution;
 
-        std::vector<Motion*> mpath;
+        std::vector<Motion *> mpath;
         while (solution != nullptr)
         {
             mpath.push_back(solution);
@@ -198,7 +198,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
         }
 
         auto path(std::make_shared<PathControl>(si_));
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1; i >= 0; --i)
             if (mpath[i]->parent)
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
             else
@@ -219,9 +219,9 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
     return base::PlannerStatus(solved, approximate);
 }
 
-ompl::control::EST::Motion* ompl::control::EST::selectMotion()
+ompl::control::EST::Motion *ompl::control::EST::selectMotion()
 {
-    GridCell* cell = pdf_.sample(rng_.uniform01());
+    GridCell *cell = pdf_.sample(rng_.uniform01());
     return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : nullptr;
 }
 
@@ -229,11 +229,11 @@ void ompl::control::EST::addMotion(Motion *motion)
 {
     Grid<MotionInfo>::Coord coord;
     projectionEvaluator_->computeCoordinates(motion->state, coord);
-    GridCell* cell = tree_.grid.getCell(coord);
+    GridCell *cell = tree_.grid.getCell(coord);
     if (cell)
     {
         cell->data.push_back(motion);
-        pdf_.update(cell->data.elem_, 1.0/cell->data.size());
+        pdf_.update(cell->data.elem_, 1.0 / cell->data.size());
     }
     else
     {
@@ -257,20 +257,19 @@ void ompl::control::EST::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (auto & mi : motionInfo)
-        for (auto & motion : mi.motions_)
+    for (auto &mi : motionInfo)
+        for (auto &motion : mi.motions_)
         {
             if (motion->parent)
             {
                 if (data.hasControls())
-                    data.addEdge (base::PlannerDataVertex (motion->parent->state),
-                                  base::PlannerDataVertex (motion->state),
-                                  PlannerDataEdgeControl(motion->control, motion->steps * stepSize));
+                    data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state),
+                                 PlannerDataEdgeControl(motion->control, motion->steps * stepSize));
                 else
-                    data.addEdge (base::PlannerDataVertex (motion->parent->state),
-                                  base::PlannerDataVertex (motion->state));
+                    data.addEdge(base::PlannerDataVertex(motion->parent->state),
+                                 base::PlannerDataVertex(motion->state));
             }
             else
-                data.addStartVertex (base::PlannerDataVertex (motion->state));
+                data.addStartVertex(base::PlannerDataVertex(motion->state));
         }
 }

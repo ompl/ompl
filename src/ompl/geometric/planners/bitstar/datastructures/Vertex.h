@@ -37,28 +37,28 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_VERTEX_
 #define OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_VERTEX_
 
-//vector
+// vector
 #include <vector>
 
-//shared and weak pointers
+// shared and weak pointers
 #include <memory>
-//For unordered sets of failed children:
+// For unordered sets of failed children:
 #include <unordered_set>
 
-//OMPL:
-//The space information
+// OMPL:
+// The space information
 #include "ompl/base/SpaceInformation.h"
-//The optimization objective
+// The optimization objective
 #include "ompl/base/OptimizationObjective.h"
 
-//I am member class of the BITstar class, so I need to include it's definition to be aware of the class BITstar. It has a forward declaration to me.
+// I am member class of the BITstar class, so I need to include it's definition to be aware of the class BITstar. It has
+// a forward declaration to me.
 #include "ompl/geometric/planners/bitstar/BITstar.h"
 
 namespace ompl
 {
     namespace geometric
     {
-
         /** @anchor gVertex
         @par Short description
         A class to store a state as a vertex in a (tree) graph.
@@ -81,7 +81,7 @@ namespace ompl
         {
         public:
             /** \brief Constructor */
-            Vertex(ompl::base::SpaceInformationPtr  si, ompl::base::OptimizationObjectivePtr  opt, bool root = false);
+            Vertex(ompl::base::SpaceInformationPtr si, ompl::base::OptimizationObjectivePtr opt, bool root = false);
 
             /** \brief Destructor */
             ~Vertex();
@@ -93,10 +93,10 @@ namespace ompl
             ompl::base::OptimizationObjectivePtr getOpt() const;
 
             /** \brief The state of a vertex as a constant pointer */
-            ompl::base::State const* stateConst() const;
+            ompl::base::State const *stateConst() const;
 
             /** \brief The state of a vertex as a mutable pointer*/
-            ompl::base::State* state();
+            ompl::base::State *state();
 
             /** \brief Whether the vertex is root */
             bool isRoot() const;
@@ -104,10 +104,12 @@ namespace ompl
             /** \brief Get whether this vertex has a parent */
             bool hasParent() const;
 
-            /** \brief Get whether a vertex is "in the graph" or not. This returns true if the vertex is the graph root or is connected to a parent. */
+            /** \brief Get whether a vertex is "in the graph" or not. This returns true if the vertex is the graph root
+             * or is connected to a parent. */
             bool isInTree() const;
 
-            /** \brief Get the "depth" of the vertex from the root. A root vertex is at depth 0, a direct descendent of the root 1, etc. */
+            /** \brief Get the "depth" of the vertex from the root. A root vertex is at depth 0, a direct descendent of
+             * the root 1, etc. */
             unsigned int getDepth() const;
 
             /** \brief Get the parent of a vertex as a constant pointer */
@@ -116,8 +118,10 @@ namespace ompl
             /** \brief Get the parent of a vertex as a mutable pointer*/
             VertexPtr getParent();
 
-            /** \brief Set the parent of a vertex, cannot be used to replace a previous parent. Will update this vertex's cost, and can update descendent costs */
-            void addParent(const VertexPtr& newParent, const ompl::base::Cost& edgeInCost, bool updateChildCosts = true);
+            /** \brief Set the parent of a vertex, cannot be used to replace a previous parent. Will update this
+             * vertex's cost, and can update descendent costs */
+            void addParent(const VertexPtr &newParent, const ompl::base::Cost &edgeInCost,
+                           bool updateChildCosts = true);
 
             /** \brief Remove the parent edge. Will update this vertex's cost, and can update the descendent costs */
             void removeParent(bool updateChildCosts = true);
@@ -126,16 +130,20 @@ namespace ompl
             bool hasChildren() const;
 
             /** \brief Get the children of a vertex as constant pointers */
-            void getChildrenConst(std::vector<VertexConstPtr>* children) const;
+            void getChildrenConst(std::vector<VertexConstPtr> *children) const;
 
             /** \brief Get the children of a vertex as mutable pointers */
-            void getChildren(std::vector<VertexPtr>* children);
+            void getChildren(std::vector<VertexPtr> *children);
 
-            /** \brief Add a child vertex. Does not change this vertex's cost, and can update the child and its descendent costs */
-            void addChild(const VertexPtr& newChild, bool updateChildCosts = true);
+            /** \brief Add a child vertex. Does not change this vertex's cost, and can update the child and its
+             * descendent costs */
+            void addChild(const VertexPtr &newChild, bool updateChildCosts = true);
 
-            /** \brief Remove a child vertex. Does not change this vertex's cost, and can update the child and its descendent costs. Will throw an exception if the given vertex pointer is not in the list of children. The VertexPtr to be removed is \e not passed by const ref to assure that the function cannot delete it out from under itself. */
-            void removeChild(const VertexPtr& oldChild, bool updateChildCosts = true);
+            /** \brief Remove a child vertex. Does not change this vertex's cost, and can update the child and its
+             * descendent costs. Will throw an exception if the given vertex pointer is not in the list of children. The
+             * VertexPtr to be removed is \e not passed by const ref to assure that the function cannot delete it out
+             * from under itself. */
+            void removeChild(const VertexPtr &oldChild, bool updateChildCosts = true);
 
             /** \brief Get the cost-to-come of a vertex. Return infinity if the edge is disconnected */
             ompl::base::Cost getCost() const;
@@ -180,63 +188,65 @@ namespace ompl
             void markUnpruned();
 
             /** \brief Mark the given vertex as a \e failed connection from this vertex */
-            void markAsFailedChild(const VertexConstPtr& failedChild);
+            void markAsFailedChild(const VertexConstPtr &failedChild);
 
             /** \brief Check if the given vertex has previously been marked as a failed child of this vertex */
-            bool hasAlreadyFailed(const VertexConstPtr& potentialChild) const;
+            bool hasAlreadyFailed(const VertexConstPtr &potentialChild) const;
 
         protected:
-            /** \brief Calculates the updated cost and depth of the current state, as well as calling all children's updateCostAndDepth() functions and thus updating everything down-stream (if desired).*/
+            /** \brief Calculates the updated cost and depth of the current state, as well as calling all children's
+             * updateCostAndDepth() functions and thus updating everything down-stream (if desired).*/
             void updateCostAndDepth(bool cascadeUpdates = true);
 
         private:
             /** \brief The vertex ID */
-            BITstar::VertexId                                           vId_;
+            BITstar::VertexId vId_;
 
             /** \brief The state space used by the planner */
-            ompl::base::SpaceInformationPtr                          si_;
+            ompl::base::SpaceInformationPtr si_;
 
             /** \brief The optimization objective used by the planner */
-            ompl::base::OptimizationObjectivePtr                     opt_;
+            ompl::base::OptimizationObjectivePtr opt_;
 
             /** \brief The state itself */
-            ompl::base::State*                                       state_;
+            ompl::base::State *state_;
 
             /** \brief Whether the vertex is a root */
-            bool                                                     isRoot_;
+            bool isRoot_;
 
             /** \brief Whether the vertex is new. */
-            bool                                                     isNew_;
+            bool isNew_;
 
             /** \brief Whether the vertex had been expanded to samples. */
-            bool                                                     hasBeenExpandedToSamples_;
+            bool hasBeenExpandedToSamples_;
 
             /** \brief Whether the vertex has been expanded to vertices. */
-            bool                                                     hasBeenExpandedToVertices_;
+            bool hasBeenExpandedToVertices_;
 
-            /** \brief Whether the vertex is pruned. Vertices throw if any member function other than isPruned() is access after they are pruned. */
-            bool                                                     isPruned_;
+            /** \brief Whether the vertex is pruned. Vertices throw if any member function other than isPruned() is
+             * access after they are pruned. */
+            bool isPruned_;
 
             /** \brief The depth of the state  */
-            unsigned int                                             depth_;
+            unsigned int depth_;
 
-            /** \brief The parent state as a shared pointer such that the parent will not be deleted until all the children are. */
-            VertexPtr                                                parentSPtr_;
+            /** \brief The parent state as a shared pointer such that the parent will not be deleted until all the
+             * children are. */
+            VertexPtr parentSPtr_;
 
             /** \brief The incremental cost to get to the state. I.e., the cost of the parent -> state edge */
-            ompl::base::Cost                                         edgeCost_;
+            ompl::base::Cost edgeCost_;
 
             /** \brief The cost of the state  */
-            ompl::base::Cost                                         cost_;
+            ompl::base::Cost cost_;
 
-            /** \brief The child states as weak pointers, such that the ownership loop is broken and a state can be deleted once it's children are.*/
-            std::vector<VertexWeakPtr>                               childWPtrs_;
-
+            /** \brief The child states as weak pointers, such that the ownership loop is broken and a state can be
+             * deleted once it's children are.*/
+            std::vector<VertexWeakPtr> childWPtrs_;
 
             /** \brief A helper function to check that the vertex is not pruned and throw if so */
             void assertNotPruned() const;
-        }; //class: Vertex
-    } //geometric
-} //ompl
-#endif //OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_VERTEX_
-
+        };  // class: Vertex
+    }  // geometric
+}  // ompl
+#endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_VERTEX_

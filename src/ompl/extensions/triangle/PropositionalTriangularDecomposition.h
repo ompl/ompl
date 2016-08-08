@@ -67,11 +67,9 @@ namespace ompl
                 The triangulation will ignore any obstacles, given as a list of polygons.
                 The triangulation will respect the boundaries of any propositional regions
                 of interest, given as a list of polygons. */
-            PropositionalTriangularDecomposition(
-                const base::RealVectorBounds& bounds,
-                const std::vector<Polygon>& holes = std::vector<Polygon>(),
-                const std::vector<Polygon>& props = std::vector<Polygon>()
-            );
+            PropositionalTriangularDecomposition(const base::RealVectorBounds &bounds,
+                                                 const std::vector<Polygon> &holes = std::vector<Polygon>(),
+                                                 const std::vector<Polygon> &props = std::vector<Polygon>());
 
             ~PropositionalTriangularDecomposition() override = default;
 
@@ -81,19 +79,19 @@ namespace ompl
 
             void setup();
 
-            void addHole(const Polygon& hole);
+            void addHole(const Polygon &hole);
 
-            void addProposition(const Polygon& prop);
+            void addProposition(const Polygon &prop);
 
-            const std::vector<Polygon>& getHoles() const;
+            const std::vector<Polygon> &getHoles() const;
 
-            const std::vector<Polygon>& getPropositions() const;
+            const std::vector<Polygon> &getPropositions() const;
 
-            //Debug method: prints this decomposition as a list of polygons
-            void print(std::ostream& out) const;
+            // Debug method: prints this decomposition as a list of polygons
+            void print(std::ostream &out) const;
 
         protected:
-            TriangularDecomposition* triDecomp_;
+            TriangularDecomposition *triDecomp_;
         };
     }
 }

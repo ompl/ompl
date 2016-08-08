@@ -49,7 +49,6 @@
 
 namespace ompl
 {
-
     namespace control
     {
         /// @cond IGNORE
@@ -64,83 +63,81 @@ namespace ompl
         class SimpleSetup
         {
         public:
+            /** \brief Constructor needs the control space used for planning. */
+            explicit SimpleSetup(const SpaceInformationPtr &si);
 
             /** \brief Constructor needs the control space used for planning. */
-            explicit
-            SimpleSetup(const SpaceInformationPtr &si);
-
-            /** \brief Constructor needs the control space used for planning. */
-            explicit
-            SimpleSetup(const ControlSpacePtr &space);
+            explicit SimpleSetup(const ControlSpacePtr &space);
 
             virtual ~SimpleSetup() = default;
 
             /** \brief Get the current instance of the space information */
-            const SpaceInformationPtr& getSpaceInformation() const
+            const SpaceInformationPtr &getSpaceInformation() const
             {
                 return si_;
             }
 
             /** \brief Get the current instance of the problem definition */
-            const base::ProblemDefinitionPtr& getProblemDefinition() const
+            const base::ProblemDefinitionPtr &getProblemDefinition() const
             {
                 return pdef_;
             }
 
             /** \brief Get the current instance of the state space */
-            const base::StateSpacePtr& getStateSpace() const
+            const base::StateSpacePtr &getStateSpace() const
             {
                 return si_->getStateSpace();
             }
 
             /** \brief Get the current instance of the control space */
-            const ControlSpacePtr& getControlSpace() const
+            const ControlSpacePtr &getControlSpace() const
             {
                 return si_->getControlSpace();
             }
 
             /** \brief Get the current instance of the state validity checker */
-            const base::StateValidityCheckerPtr& getStateValidityChecker() const
+            const base::StateValidityCheckerPtr &getStateValidityChecker() const
             {
                 return si_->getStateValidityChecker();
             }
 
             /** \brief Get the instance of the state propagator being used */
-            const StatePropagatorPtr& getStatePropagator() const
+            const StatePropagatorPtr &getStatePropagator() const
             {
                 return si_->getStatePropagator();
             }
 
             /** \brief Get the current goal definition */
-            const base::GoalPtr& getGoal() const
+            const base::GoalPtr &getGoal() const
             {
                 return pdef_->getGoal();
             }
 
             /** \brief Get the current planner */
-            const base::PlannerPtr& getPlanner() const
+            const base::PlannerPtr &getPlanner() const
             {
                 return planner_;
             }
 
             /** \brief Get the planner allocator */
-            const base::PlannerAllocator& getPlannerAllocator() const
+            const base::PlannerAllocator &getPlannerAllocator() const
             {
                 return pa_;
             }
 
-            /** \brief Return true if a solution path is available (previous call to solve() was successful) and the solution is exact (not approximate) */
+            /** \brief Return true if a solution path is available (previous call to solve() was successful) and the
+             * solution is exact (not approximate) */
             bool haveExactSolutionPath() const;
 
-
-            /** \brief Return true if a solution path is available (previous call to solve() was successful). The solution may be approximate. */
+            /** \brief Return true if a solution path is available (previous call to solve() was successful). The
+             * solution may be approximate. */
             bool haveSolutionPath() const
             {
                 return pdef_->getSolutionPath().get();
             }
 
             /** \brief Get the solution path. Throw an exception if no solution is available */
-            PathControl& getSolutionPath() const;
+            PathControl &getSolutionPath() const;
 
             /** \brief Get information about the exploration data structure the motion planner used. */
             void getPlannerData(base::PlannerData &pd) const;
@@ -176,13 +173,15 @@ namespace ompl
             }
 
             /** \brief Set the start and goal states to use. */
-            void setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon())
+            void setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal,
+                                       const double threshold = std::numeric_limits<double>::epsilon())
             {
                 pdef_->setStartAndGoalStates(start, goal, threshold);
             }
 
             /** \brief A simple form of setGoal(). The goal will be an instance of ompl::base::GoalState */
-            void setGoalState(const base::ScopedState<> &goal, const double threshold = std::numeric_limits<double>::epsilon())
+            void setGoalState(const base::ScopedState<> &goal,
+                              const double threshold = std::numeric_limits<double>::epsilon())
             {
                 pdef_->setGoalState(goal, threshold);
             }
@@ -268,33 +267,31 @@ namespace ompl
             virtual void setup();
 
         protected:
-
             /// The created space information
-            SpaceInformationPtr           si_;
+            SpaceInformationPtr si_;
 
             /// The created problem definition
-            base::ProblemDefinitionPtr    pdef_;
+            base::ProblemDefinitionPtr pdef_;
 
             /// The maintained planner instance
-            base::PlannerPtr              planner_;
+            base::PlannerPtr planner_;
 
             /// The optional planner allocator
-            base::PlannerAllocator        pa_;
+            base::PlannerAllocator pa_;
 
             /// Flag indicating whether the classes needed for planning are set up
-            bool                          configured_;
+            bool configured_;
 
             /// The amount of time the last planning step took
-            double                        planTime_;
+            double planTime_;
 
             /// The status of the last planning request
-            base::PlannerStatus           last_status_;
+            base::PlannerStatus last_status_;
         };
 
         /** \brief Given a goal specification, decide on a planner for that goal.
             \deprecated Use tools::SelfConfig::getDefaultPlanner() instead. */
         OMPL_DEPRECATED base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
     }
-
 }
 #endif

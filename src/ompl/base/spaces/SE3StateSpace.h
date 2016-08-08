@@ -45,12 +45,10 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief A state space representing SE(3) */
         class SE3StateSpace : public CompoundStateSpace
         {
         public:
-
             /** \brief A state in SE(3): position = (x, y, z), quaternion = (x, y, z, w) */
             class StateType : public CompoundStateSpace::StateType
             {
@@ -78,13 +76,13 @@ namespace ompl
                 }
 
                 /** \brief Get the rotation component of the state */
-                const SO3StateSpace::StateType& rotation() const
+                const SO3StateSpace::StateType &rotation() const
                 {
                     return *as<SO3StateSpace::StateType>(1);
                 }
 
                 /** \brief Get the rotation component of the state and allow changing it as well */
-                SO3StateSpace::StateType& rotation()
+                SO3StateSpace::StateType &rotation()
                 {
                     return *as<SO3StateSpace::StateType>(1);
                 }
@@ -114,7 +112,6 @@ namespace ompl
                     setY(y);
                     setZ(z);
                 }
-
             };
 
             SE3StateSpace() : CompoundStateSpace()
@@ -135,12 +132,12 @@ namespace ompl
             }
 
             /** \copydoc RealVectorStateSpace::getBounds() */
-            const RealVectorBounds& getBounds() const
+            const RealVectorBounds &getBounds() const
             {
                 return as<RealVectorStateSpace>(0)->getBounds();
             }
 
-            State* allocState() const override;
+            State *allocState() const override;
             void freeState(State *state) const override;
 
             void registerProjections() override;

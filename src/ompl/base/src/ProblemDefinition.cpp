@@ -51,11 +51,9 @@ namespace ompl
 {
     namespace base
     {
-
         class ProblemDefinition::PlannerSolutionSet
         {
         public:
-
             PlannerSolutionSet()
             {
             }
@@ -118,7 +116,7 @@ namespace ompl
                 return copy;
             }
 
-            bool getTopSolution(PlannerSolution& solution)
+            bool getTopSolution(PlannerSolution &solution)
             {
                 std::lock_guard<std::mutex> slock(lock_);
 
@@ -141,9 +139,8 @@ namespace ompl
             }
 
         private:
-
             std::vector<PlannerSolution> solutions_;
-            std::mutex                   lock_;
+            std::mutex lock_;
         };
     }
 }
@@ -165,7 +162,7 @@ bool ompl::base::PlannerSolution::operator<(const PlannerSolution &b) const
 }
 
 ompl::base::ProblemDefinition::ProblemDefinition(SpaceInformationPtr si)
-    : si_(std::move(si)), solutions_(std::make_shared<PlannerSolutionSet>())
+  : si_(std::move(si)), solutions_(std::make_shared<PlannerSolutionSet>())
 {
 }
 
@@ -187,7 +184,7 @@ void ompl::base::ProblemDefinition::setGoalState(const State *goal, const double
 
 bool ompl::base::ProblemDefinition::hasStartState(const State *state, unsigned int *startIndex) const
 {
-    for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
+    for (unsigned int i = 0; i < startStates_.size(); ++i)
         if (si_->equalStates(state, startStates_[i]))
         {
             if (startIndex)
@@ -238,44 +235,44 @@ bool ompl::base::ProblemDefinition::fixInvalidInputStates(double distStart, doub
     bool result = true;
 
     // fix start states
-    for (auto & startState : startStates_)
+    for (auto &startState : startStates_)
         if (!fixInvalidInputState(startState, distStart, true, attempts))
             result = false;
 
     // fix goal state
-    GoalState *goal = dynamic_cast<GoalState*>(goal_.get());
+    GoalState *goal = dynamic_cast<GoalState *>(goal_.get());
     if (goal)
     {
-        if (!fixInvalidInputState(const_cast<State*>(goal->getState()), distGoal, false, attempts))
+        if (!fixInvalidInputState(const_cast<State *>(goal->getState()), distGoal, false, attempts))
             result = false;
     }
 
     // fix goal state
-    GoalStates *goals = dynamic_cast<GoalStates*>(goal_.get());
+    GoalStates *goals = dynamic_cast<GoalStates *>(goal_.get());
     if (goals)
     {
         for (unsigned int i = 0; i < goals->getStateCount(); ++i)
-            if (!fixInvalidInputState(const_cast<State*>(goals->getState(i)), distGoal, false, attempts))
+            if (!fixInvalidInputState(const_cast<State *>(goals->getState(i)), distGoal, false, attempts))
                 result = false;
     }
 
     return result;
 }
 
-void ompl::base::ProblemDefinition::getInputStates(std::vector<const State*> &states) const
+void ompl::base::ProblemDefinition::getInputStates(std::vector<const State *> &states) const
 {
     states.clear();
     for (auto startState : startStates_)
         states.push_back(startState);
 
-    GoalState *goal = dynamic_cast<GoalState*>(goal_.get());
+    GoalState *goal = dynamic_cast<GoalState *>(goal_.get());
     if (goal)
         states.push_back(goal->getState());
 
-    GoalStates *goals = dynamic_cast<GoalStates*>(goal_.get());
+    GoalStates *goals = dynamic_cast<GoalStates *>(goal_.get());
     if (goals)
         for (unsigned int i = 0; i < goals->getStateCount(); ++i)
-            states.push_back (goals->getState(i));
+            states.push_back(goals->getState(i));
 }
 
 ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() const
@@ -301,13 +298,13 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() con
             State *result2 = sic->allocState();
             sic->nullControl(nc);
 
-            for (unsigned int k = 0 ; k < startStates_.size() && !path ; ++k)
+            for (unsigned int k = 0; k < startStates_.size() && !path; ++k)
             {
                 const State *start = startStates_[k];
                 if (start && si_->isValid(start) && si_->satisfiesBounds(start))
                 {
                     sic->copyState(result1, start);
-                    for (unsigned int i = 0 ; i < sic->getMaxControlDuration() && !path ; ++i)
+                    for (unsigned int i = 0; i < sic->getMaxControlDuration() && !path; ++i)
                         if (sic->propagateWhileValid(result1, nc, 1, result2))
                         {
                             if (goal_->isSatisfied(result2))
@@ -329,12 +326,12 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() con
     }
     else
     {
-        std::vector<const State*> states;
-        GoalState *goal = dynamic_cast<GoalState*>(goal_.get());
+        std::vector<const State *> states;
+        GoalState *goal = dynamic_cast<GoalState *>(goal_.get());
         if (goal)
             if (si_->isValid(goal->getState()) && si_->satisfiesBounds(goal->getState()))
                 states.push_back(goal->getState());
-        GoalStates *goals = dynamic_cast<GoalStates*>(goal_.get());
+        GoalStates *goals = dynamic_cast<GoalStates *>(goal_.get());
         if (goals)
             for (unsigned int i = 0; i < goals->getStateCount(); ++i)
                 if (si_->isValid(goals->getState(i)) && si_->satisfiesBounds(goals->getState(i)))
@@ -344,17 +341,17 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() con
         {
             unsigned int startIndex;
             if (isTrivial(&startIndex))
-                path = std::make_shared<geometric::PathGeometric>(
-                    si_, startStates_[startIndex], startStates_[startIndex]);
+                path =
+                    std::make_shared<geometric::PathGeometric>(si_, startStates_[startIndex], startStates_[startIndex]);
         }
         else
         {
-            for (unsigned int i = 0 ; i < startStates_.size() && !path ; ++i)
+            for (unsigned int i = 0; i < startStates_.size() && !path; ++i)
             {
                 const State *start = startStates_[i];
                 if (start && si_->isValid(start) && si_->satisfiesBounds(start))
                 {
-                    for (unsigned int j = 0 ; j < states.size() && !path ; ++j)
+                    for (unsigned int j = 0; j < states.size() && !path; ++j)
                         if (si_->checkMotion(start, states[j]))
                         {
                             path = std::make_shared<geometric::PathGeometric>(si_, start, states[j]);
@@ -376,7 +373,7 @@ bool ompl::base::ProblemDefinition::isTrivial(unsigned int *startIndex, double *
         return false;
     }
 
-    for (unsigned int i = 0 ; i < startStates_.size() ; ++i)
+    for (unsigned int i = 0; i < startStates_.size(); ++i)
     {
         const State *start = startStates_[i];
         if (start && si_->isValid(start) && si_->satisfiesBounds(start))
@@ -415,12 +412,13 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::getSolutionPath() const
     return solutions_->getTopSolution();
 }
 
-bool ompl::base::ProblemDefinition::getSolution(PlannerSolution& solution) const
+bool ompl::base::ProblemDefinition::getSolution(PlannerSolution &solution) const
 {
     return solutions_->getTopSolution(solution);
 }
 
-void ompl::base::ProblemDefinition::addSolutionPath(const PathPtr &path, bool approximate, double difference, const std::string& plannerName) const
+void ompl::base::ProblemDefinition::addSolutionPath(const PathPtr &path, bool approximate, double difference,
+                                                    const std::string &plannerName) const
 {
     PlannerSolution sol(path);
     if (approximate)
@@ -490,12 +488,13 @@ void ompl::base::ProblemDefinition::clearSolutionNonExistenceProof()
     nonExistenceProof_.reset();
 }
 
-const ompl::base::SolutionNonExistenceProofPtr& ompl::base::ProblemDefinition::getSolutionNonExistenceProof() const
+const ompl::base::SolutionNonExistenceProofPtr &ompl::base::ProblemDefinition::getSolutionNonExistenceProof() const
 {
     return nonExistenceProof_;
 }
 
-void ompl::base::ProblemDefinition::setSolutionNonExistenceProof(const ompl::base::SolutionNonExistenceProofPtr& nonExistenceProof)
+void ompl::base::ProblemDefinition::setSolutionNonExistenceProof(
+    const ompl::base::SolutionNonExistenceProofPtr &nonExistenceProof)
 {
     nonExistenceProof_ = nonExistenceProof;
 }

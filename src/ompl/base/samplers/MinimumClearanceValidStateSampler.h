@@ -47,7 +47,6 @@ namespace ompl
 {
     namespace base
     {
-
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(MinimumClearanceValidStateSampler);
         /// @endcond
@@ -56,11 +55,11 @@ namespace ompl
         class MinimumClearanceValidStateSampler : public ValidStateSampler
         {
         public:
-
             /** \brief Constructor */
             MinimumClearanceValidStateSampler(const SpaceInformation *si);
 
-            ~MinimumClearanceValidStateSampler() override = default;;
+            ~MinimumClearanceValidStateSampler() override = default;
+            ;
 
             bool sample(State *state) override;
 
@@ -79,16 +78,13 @@ namespace ompl
             }
 
         protected:
-
             /** \brief The sampler to build upon */
             StateSamplerPtr sampler_;
 
             /** \brief Minimum required distance of sample from nearest obstacle to be considered valid */
-            double          clearance_;
+            double clearance_;
         };
-
     }
 }
-
 
 #endif

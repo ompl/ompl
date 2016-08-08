@@ -44,7 +44,7 @@
 
 #include <memory>
 
-//For ease-of-use shared_ptr definition
+// For ease-of-use shared_ptr definition
 #include <ompl/util/ClassForward.h>
 
 namespace ompl
@@ -93,14 +93,14 @@ namespace ompl
         /** \brief The minimum transverse diameter of the PHS, i.e., the distance between the foci */
         double getMinTransverseDiameter() const;
 
-        /** \brief Calculate length of a line that originates from one focus, passes through the given point, and terminates at the other focus, i.e., the transverse diameter of the ellipse on which the given sample lies*/
+        /** \brief Calculate length of a line that originates from one focus, passes through the given point, and
+         * terminates at the other focus, i.e., the transverse diameter of the ellipse on which the given sample lies*/
         double getPathLength(const double point[]) const;
 
         /** \brief The state dimension of the PHS */
         unsigned int getDimension() const;
 
     protected:
-
     private:
         /** \brief A forward declaration to the data structure class for the PIMPL idiom. */
         struct PhsData;
@@ -109,7 +109,8 @@ namespace ompl
         std::shared_ptr<PhsData> dataPtr_;
 
         // Functions
-        /** \brief Calculate the rotation from the PHS frame to the world frame via singular-value decomposition using the transverse symmetry of the PHS. */
+        /** \brief Calculate the rotation from the PHS frame to the world frame via singular-value decomposition using
+         * the transverse symmetry of the PHS. */
         void updateRotation();
 
         /** \brief Calculate the hyperspheroid to PHS transformation matrix */
@@ -118,4 +119,3 @@ namespace ompl
 }
 
 #endif
-

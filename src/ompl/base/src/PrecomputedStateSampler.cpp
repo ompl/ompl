@@ -38,8 +38,9 @@
 #include "ompl/base/StateSpace.h"
 #include "ompl/util/Exception.h"
 
-ompl::base::PrecomputedStateSampler::PrecomputedStateSampler(const StateSpace *space, const std::vector<const State*> &states) :
-    StateSampler(space), states_(states)
+ompl::base::PrecomputedStateSampler::PrecomputedStateSampler(const StateSpace *space,
+                                                             const std::vector<const State *> &states)
+  : StateSampler(space), states_(states)
 {
     if (states_.empty())
         throw Exception("Empty set of states to sample from was specified");
@@ -47,8 +48,10 @@ ompl::base::PrecomputedStateSampler::PrecomputedStateSampler(const StateSpace *s
     maxStateIndex_ = states_.size() - 1;
 }
 
-ompl::base::PrecomputedStateSampler::PrecomputedStateSampler(const StateSpace *space, const std::vector<const State*> &states, std::size_t minStateIndex, std::size_t maxStateIndex) :
-    StateSampler(space), states_(states), minStateIndex_(minStateIndex), maxStateIndex_(maxStateIndex)
+ompl::base::PrecomputedStateSampler::PrecomputedStateSampler(const StateSpace *space,
+                                                             const std::vector<const State *> &states,
+                                                             std::size_t minStateIndex, std::size_t maxStateIndex)
+  : StateSampler(space), states_(states), minStateIndex_(minStateIndex), maxStateIndex_(maxStateIndex)
 {
     if (states_.empty())
         throw Exception("Empty set of states to sample from was specified");
@@ -68,9 +71,9 @@ void ompl::base::PrecomputedStateSampler::sampleUniformNear(State *state, const 
     int index = rng_.uniformInt(minStateIndex_, maxStateIndex_);
     double dist = space_->distance(near, states_[index]);
     if (dist > distance)
-      space_->interpolate(near, states_[index], distance / dist, state);
+        space_->interpolate(near, states_[index], distance / dist, state);
     else
-      space_->copyState(state, states_[index]);
+        space_->copyState(state, states_[index]);
 }
 
 void ompl::base::PrecomputedStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)

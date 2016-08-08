@@ -42,15 +42,15 @@ ompl::base::PlannerPtr ompl::control::getDefaultPlanner(const base::GoalPtr &goa
     return tools::SelfConfig::getDefaultPlanner(goal);
 }
 
-ompl::control::SimpleSetup::SimpleSetup(const SpaceInformationPtr &si) :
-    configured_(false), planTime_(0.0), last_status_(base::PlannerStatus::UNKNOWN)
+ompl::control::SimpleSetup::SimpleSetup(const SpaceInformationPtr &si)
+  : configured_(false), planTime_(0.0), last_status_(base::PlannerStatus::UNKNOWN)
 {
     si_ = si;
     pdef_ = std::make_shared<base::ProblemDefinition>(si_);
 }
 
-ompl::control::SimpleSetup::SimpleSetup(const ControlSpacePtr &space) :
-    configured_(false), planTime_(0.0), last_status_(base::PlannerStatus::UNKNOWN)
+ompl::control::SimpleSetup::SimpleSetup(const ControlSpacePtr &space)
+  : configured_(false), planTime_(0.0), last_status_(base::PlannerStatus::UNKNOWN)
 {
     si_ = std::make_shared<SpaceInformation>(space->getStateSpace(), space);
     pdef_ = std::make_shared<base::ProblemDefinition>(si_);
@@ -88,7 +88,8 @@ void ompl::control::SimpleSetup::clear()
         pdef_->clearSolutionPaths();
 }
 
-// we provide a duplicate implementation here to allow the planner to choose how the time is turned into a planner termination condition
+// we provide a duplicate implementation here to allow the planner to choose how the time is turned into a planner
+// termination condition
 ompl::base::PlannerStatus ompl::control::SimpleSetup::solve(double time)
 {
     setup();
@@ -117,20 +118,21 @@ ompl::base::PlannerStatus ompl::control::SimpleSetup::solve(const base::PlannerT
     return last_status_;
 }
 
-ompl::control::PathControl& ompl::control::SimpleSetup::getSolutionPath() const
+ompl::control::PathControl &ompl::control::SimpleSetup::getSolutionPath() const
 {
     if (pdef_)
     {
         const base::PathPtr &p = pdef_->getSolutionPath();
         if (p)
-            return static_cast<PathControl&>(*p);
+            return static_cast<PathControl &>(*p);
     }
     throw Exception("No solution path");
 }
 
 bool ompl::control::SimpleSetup::haveExactSolutionPath() const
 {
-    return haveSolutionPath() && (!pdef_->hasApproximateSolution() || pdef_->getSolutionDifference() < std::numeric_limits<double>::epsilon());
+    return haveSolutionPath() && (!pdef_->hasApproximateSolution() ||
+                                  pdef_->getSolutionDifference() < std::numeric_limits<double>::epsilon());
 }
 
 void ompl::control::SimpleSetup::getPlannerData(base::PlannerData &pd) const

@@ -63,8 +63,8 @@ namespace ompl
         {
         public:
             // non-copyable
-            Goal(const Goal&) = delete;
-            Goal& operator=(const Goal&) = delete;
+            Goal(const Goal &) = delete;
+            Goal &operator=(const Goal &) = delete;
 
             /** \brief Constructor. The goal must always know the space information it is part of */
             Goal(SpaceInformationPtr si);
@@ -73,23 +73,23 @@ namespace ompl
             virtual ~Goal() = default;
 
             /** \brief Cast this instance to a desired type. */
-            template<class T>
-            T* as()
+            template <class T>
+            T *as()
             {
                 /** \brief Make sure the type we are casting to is indeed a goal */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Goal*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, Goal *>));
 
-                return static_cast<T*>(this);
+                return static_cast<T *>(this);
             }
 
             /** \brief Cast this instance to a desired type. */
-            template<class T>
-            const T* as() const
+            template <class T>
+            const T *as() const
             {
                 /** \brief Make sure the type we are casting to is indeed a goal */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Goal*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, Goal *>));
 
-                return static_cast<const T*>(this);
+                return static_cast<const T *>(this);
             }
 
             /** \brief Return the goal type */
@@ -105,7 +105,7 @@ namespace ompl
             }
 
             /** \brief Get the space information this goal is for */
-            const SpaceInformationPtr& getSpaceInformation() const
+            const SpaceInformationPtr &getSpaceInformation() const
             {
                 return si_;
             }
@@ -142,14 +142,12 @@ namespace ompl
             virtual void print(std::ostream &out = std::cout) const;
 
         protected:
-
             /** \brief Goal type */
-            GoalType                     type_;
+            GoalType type_;
 
             /** \brief The space information for this goal */
-            SpaceInformationPtr          si_;
+            SpaceInformationPtr si_;
         };
-
     }
 }
 

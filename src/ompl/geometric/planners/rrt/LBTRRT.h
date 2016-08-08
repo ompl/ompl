@@ -46,10 +46,8 @@
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /**
            @anchor gLBTRRT
            @par Short description
@@ -73,9 +71,8 @@ namespace ompl
         class LBTRRT : public base::Planner
         {
         public:
-
             /** \brief Constructor */
-            LBTRRT (const base::SpaceInformationPtr &si);
+            LBTRRT(const base::SpaceInformationPtr &si);
 
             ~LBTRRT() override;
 
@@ -122,10 +119,10 @@ namespace ompl
             }
 
             /** \brief Set a different nearest neighbors datastructure */
-            template<template<typename T> class NN>
+            template <template <typename T> class NN>
             void setNearestNeighbors()
             {
-                nn_ = std::make_shared<NN<Motion*>>();
+                nn_ = std::make_shared<NN<Motion *>>();
             }
 
             void setup() override;
@@ -154,7 +151,6 @@ namespace ompl
             }
 
         protected:
-
             /** \brief Representation of a motion
 
                 a motion is a simultunaeous represntation of the two trees used by LBT-RRT
@@ -162,46 +158,44 @@ namespace ompl
             class Motion
             {
             public:
-
                 Motion() : state_(nullptr), parentApx_(nullptr), costApx_(0.0)
                 {
                 }
 
                 /** \brief Constructor that allocates memory for the state */
                 Motion(const base::SpaceInformationPtr &si)
-                    : state_(si->allocState()), parentApx_(nullptr), costApx_(0.0)
+                  : state_(si->allocState()), parentApx_(nullptr), costApx_(0.0)
                 {
                 }
 
                 ~Motion() = default;
 
                 /** \brief The state contained by the motion */
-                base::State          *state_;
+                base::State *state_;
                 /** \brief unique id of the motion */
-                std::size_t          id_;
+                std::size_t id_;
                 /** \brief The lower bound cost of the motion
                 while it is stored in the lowerBoundGraph_ and this may seem redundant,
                 the cost in lowerBoundGraph_ may change causing ordering according to it
                 inconsistencies
                 */
-                double               costLb_;
+                double costLb_;
                 /** \brief The parent motion in the approximation tree */
-                Motion               *parentApx_;
+                Motion *parentApx_;
                 /** \brief The approximation cost */
-                double               costApx_;
+                double costApx_;
                 /** \brief The children in the approximation tree */
-                std::vector<Motion*> childrenApx_;
+                std::vector<Motion *> childrenApx_;
             };
 
             /** \brief comparator  - metric is the cost to reach state via a specific state*/
             struct IsLessThan
             {
-                IsLessThan (LBTRRT *plannerPtr, Motion *motion)
-                    : plannerPtr_(plannerPtr), motion_(motion)
+                IsLessThan(LBTRRT *plannerPtr, Motion *motion) : plannerPtr_(plannerPtr), motion_(motion)
                 {
                 }
 
-                bool operator() (const Motion *motionA, const Motion *motionB)
+                bool operator()(const Motion *motionA, const Motion *motionB)
                 {
                     double costA = motionA->costLb_;
                     double costB = motionB->costLb_;
@@ -213,23 +207,23 @@ namespace ompl
                 }
                 LBTRRT *plannerPtr_;
                 Motion *motion_;
-            }; //IsLessThan
+            };  // IsLessThan
 
             /** \brief comparator  - metric is the lower bound cost*/
             struct IsLessThanLB
             {
-                IsLessThanLB (LBTRRT *plannerPtr): plannerPtr_(plannerPtr)
+                IsLessThanLB(LBTRRT *plannerPtr) : plannerPtr_(plannerPtr)
                 {
                 }
 
-                bool operator() (const Motion *motionA, const Motion *motionB) const
+                bool operator()(const Motion *motionA, const Motion *motionB) const
                 {
                     return motionA->costLb_ < motionB->costLb_;
                 }
-                LBTRRT*  plannerPtr_;
-            }; //IsLessThanLB
+                LBTRRT *plannerPtr_;
+            };  // IsLessThanLB
 
-            using Lb_queue = std::set<Motion*, IsLessThanLB>;
+            using Lb_queue = std::set<Motion *, IsLessThanLB>;
             using Lb_queue_iter = Lb_queue::iterator;
 
             /** \brief consider an edge for addition to the roadmap*/
@@ -265,47 +259,47 @@ namespace ompl
             }
 
             /** \brief get motion from id */
-            Motion* getMotion(std::size_t i)
+            Motion *getMotion(std::size_t i)
             {
                 return idToMotionMap_[i];
             }
 
             /** \brief State sampler */
-            base::StateSamplerPtr                          sampler_;
+            base::StateSamplerPtr sampler_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
-            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr<NearestNeighbors<Motion *>> nn_;
 
             /** \brief A graph of motions Glb*/
-            DynamicSSSP                                    lowerBoundGraph_;
+            DynamicSSSP lowerBoundGraph_;
 
             /** \brief mapping between a motion id and the motion*/
-            std::vector<Motion*>                           idToMotionMap_;
+            std::vector<Motion *> idToMotionMap_;
 
-            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
-            double                                         goalBias_;
+            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
+             * available) */
+            double goalBias_;
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double                                         maxDistance_;
+            double maxDistance_;
 
             /** \brief approximation factor*/
-            double                                         epsilon_;
+            double epsilon_;
 
             /** \brief The random number generator */
-            RNG                                            rng_;
+            RNG rng_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion                                         *lastGoalMotion_;
+            Motion *lastGoalMotion_;
 
             //////////////////////////////
             // Planner progress properties
             /** \brief Number of iterations the algorithm performed */
-            unsigned int                                   iterations_;
+            unsigned int iterations_;
             /** \brief Best cost found so far by algorithm */
-            double                                         bestCost_;
+            double bestCost_;
         };
-
     }
 }
 
-#endif //OMPL_GEOMETRIC_PLANNERS_RRT_LBT_RRT_
+#endif  // OMPL_GEOMETRIC_PLANNERS_RRT_LBT_RRT_

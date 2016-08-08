@@ -34,7 +34,8 @@
 
 /* Authors: Joseph Starek (Stanford) */
 /* Co-developers: Javier V Gomez (UC3M)*/
-/* Algorithm design: Joseph Starek (Stanford), Ed Schmerling (Stanford), Lucas Janson (Stanford) and Marco Pavone (Stanford) */
+/* Algorithm design: Joseph Starek (Stanford), Ed Schmerling (Stanford), Lucas Janson (Stanford) and Marco Pavone
+ * (Stanford) */
 /* Acknowledgements for insightful comments: Ashley Clark (Stanford) */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_BIDIRECTIONALFMT_H
@@ -50,47 +51,57 @@
 
 namespace ompl
 {
-
     namespace geometric
     {
+        /**
+          @anchor gBFMT
+          @par Short description
+          \ref gBFMT "BFMT*" is an asymptotically-optimal, bidirectional sampling-based
+           motion planning algorithm, which is guaranteed to converge to a shortest
+           path solution. The algorithm is specifically aimed at solving complex
+           motion planning problems in high-dimensional configuration spaces.
+           The \ref gBFMT "BFMT*" algorithm essentially performs a lazy dynamic
+           programming recursion on a set of probabilistically-drawn samples to
+           grow two trees of paths, which moves steadily outward in cost-to-come space,
+           one from the start state and the other one from the goal state.
 
-         /**
-           @anchor gBFMT
-           @par Short description
-           \ref gBFMT "BFMT*" is an asymptotically-optimal, bidirectional sampling-based
-            motion planning algorithm, which is guaranteed to converge to a shortest
-            path solution. The algorithm is specifically aimed at solving complex
-            motion planning problems in high-dimensional configuration spaces.
-            The \ref gBFMT "BFMT*" algorithm essentially performs a lazy dynamic
-            programming recursion on a set of probabilistically-drawn samples to
-            grow two trees of paths, which moves steadily outward in cost-to-come space,
-            one from the start state and the other one from the goal state.
+          @par Deviation from the paper
+          The implementation includes a cache in the collision checking since the original
+          algorithm could check the same collision more than once. It increases the
+          memory requirements to O(n logn), but as samples tend to infinity this
+          bound tend to O(n).
 
-           @par Deviation from the paper
-           The implementation includes a cache in the collision checking since the original
-           algorithm could check the same collision more than once. It increases the
-           memory requirements to O(n logn), but as samples tend to infinity this
-           bound tend to O(n).
-
-           @par External documentation
-           J. A. Starek, J. V. Gomez, E. Schmerling, L. Janson, L. Moreno, and M. Pavone,
-           An Asymptotically-Optimal Sampling-Based Algorithm for Bi-directional Motion Planning,
-           inIEEE/RSJ International Conference on Intelligent Robots Systems, 2015.
-           [[PDF]](http://arxiv.org/pdf/1507.07602.pdf)
-        */
+          @par External documentation
+          J. A. Starek, J. V. Gomez, E. Schmerling, L. Janson, L. Moreno, and M. Pavone,
+          An Asymptotically-Optimal Sampling-Based Algorithm for Bi-directional Motion Planning,
+          inIEEE/RSJ International Conference on Intelligent Robots Systems, 2015.
+          [[PDF]](http://arxiv.org/pdf/1507.07602.pdf)
+       */
         /** @brief Bidirectional Asymptotically Optimal Fast Marching Tree algorithm developed
             by J. Starek, J.V. Gomez, et al. */
-        class BFMT : public ompl::base::Planner {
+        class BFMT : public ompl::base::Planner
+        {
         public:
-
             /** \brief Tree identifier */
-            enum TreeType { FWD = 0, REV = 1 };
+            enum TreeType
+            {
+                FWD = 0,
+                REV = 1
+            };
 
             /** \brief Exploration strategy identifier */
-            enum ExploreType { SWAP_EVERY_TIME = 0, CHOOSE_SMALLEST_Z = 1 };
+            enum ExploreType
+            {
+                SWAP_EVERY_TIME = 0,
+                CHOOSE_SMALLEST_Z = 1
+            };
 
             /** \brief Termination strategy identifier */
-            enum TerminateType { FEASIBILITY = 0, OPTIMALITY = 1 };
+            enum TerminateType
+            {
+                FEASIBILITY = 0,
+                OPTIMALITY = 1
+            };
 
             BFMT(const base::SpaceInformationPtr &si);
 
@@ -98,7 +109,7 @@ namespace ompl
 
             void setup() override;
 
-            base::PlannerStatus solve(const base::PlannerTerminationCondition& ptc) override;
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
             void clear() override;
 
@@ -134,7 +145,9 @@ namespace ompl
 
             /** \brief The planner searches for neighbors of a node within a
                 cost r, where r is the value described for BFMT* in Section 4
-                of [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based method for optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf). For guaranteed asymptotic
+                of [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based
+               method for optimal motion planning in many dimensions. The International Journal of Robotics Research,
+               34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf). For guaranteed asymptotic
                 convergence, the user should choose a constant multiplier for
                 the search radius that is greater than one. The default value is 1.1.
                 In general, a radius multiplier between 0.9 and 5 appears to
@@ -213,7 +226,8 @@ namespace ompl
             void setExploration(bool balanced)
             {
                 exploration_ = SWAP_EVERY_TIME;
-                if (balanced) {
+                if (balanced)
+                {
                     exploration_ = CHOOSE_SMALLEST_Z;
                 }
             }
@@ -230,7 +244,8 @@ namespace ompl
             void setTermination(bool optimality)
             {
                 termination_ = FEASIBILITY;
-                if (optimality) {
+                if (optimality)
+                {
                     termination_ = OPTIMALITY;
                 }
             }
@@ -241,8 +256,8 @@ namespace ompl
                 return (termination_ == OPTIMALITY);
             }
 
-           /** \brief Sets Nearest Neighbors precomputation. Currently, it precomputes
-               once solve() has been called. */
+            /** \brief Sets Nearest Neighbors precomputation. Currently, it precomputes
+                once solve() has been called. */
             void setPrecomputeNN(bool p)
             {
                 precomputeNN_ = p;
@@ -255,9 +270,9 @@ namespace ompl
             }
 
             /** \brief Representation of a bidirectional motion. */
-            class BiDirMotion {
+            class BiDirMotion
+            {
             public:
-
                 /** \brief The FMT* planner begins with all nodes included in
                     set Unvisited "Waiting for optimal connection". As nodes are
                     connected to the tree, they are transferred into set Open
@@ -265,57 +280,60 @@ namespace ompl
                     close enough to the frontier to connect to any more nodes in
                     Unvisited, it is removed from Open. These three SetTypes are flags
                     indicating which set the node belongs to; Open, Unvisited, or Closed (neither) */
-                enum SetType { SET_CLOSED, SET_OPEN, SET_UNVISITED };
-
-                BiDirMotion(TreeType* tree)
-                    : state_(nullptr), tree_(tree)
+                enum SetType
                 {
-                    parent_[FWD]        = nullptr;
-                    parent_[REV]        = nullptr;
-                    cost_[FWD]          = base::Cost(0.0);
-                    cost_[REV]          = base::Cost(0.0);
-                    hcost_[FWD]         = base::Cost(0.0);
-                    hcost_[REV]         = base::Cost(0.0);
-                    currentSet_[FWD]    = SET_UNVISITED;
-                    currentSet_[REV]    = SET_UNVISITED;
+                    SET_CLOSED,
+                    SET_OPEN,
+                    SET_UNVISITED
+                };
+
+                BiDirMotion(TreeType *tree) : state_(nullptr), tree_(tree)
+                {
+                    parent_[FWD] = nullptr;
+                    parent_[REV] = nullptr;
+                    cost_[FWD] = base::Cost(0.0);
+                    cost_[REV] = base::Cost(0.0);
+                    hcost_[FWD] = base::Cost(0.0);
+                    hcost_[REV] = base::Cost(0.0);
+                    currentSet_[FWD] = SET_UNVISITED;
+                    currentSet_[REV] = SET_UNVISITED;
                 }
 
                 /** \brief Constructor that allocates memory for the state */
-                BiDirMotion(const base::SpaceInformationPtr &si, TreeType* tree)
-                    : state_(si->allocState()), tree_(tree)
+                BiDirMotion(const base::SpaceInformationPtr &si, TreeType *tree) : state_(si->allocState()), tree_(tree)
                 {
-                    parent_[FWD]        = nullptr;
-                    parent_[REV]        = nullptr;
-                    cost_[FWD]          = base::Cost(0.0);
-                    cost_[REV]          = base::Cost(0.0);
-                    hcost_[FWD]         = base::Cost(0.0);
-                    hcost_[REV]         = base::Cost(0.0);
-                    currentSet_[FWD]    = SET_UNVISITED;
-                    currentSet_[REV]    = SET_UNVISITED;
+                    parent_[FWD] = nullptr;
+                    parent_[REV] = nullptr;
+                    cost_[FWD] = base::Cost(0.0);
+                    cost_[REV] = base::Cost(0.0);
+                    hcost_[FWD] = base::Cost(0.0);
+                    hcost_[REV] = base::Cost(0.0);
+                    currentSet_[FWD] = SET_UNVISITED;
+                    currentSet_[REV] = SET_UNVISITED;
                 }
 
                 using BiDirMotionPtrs = std::vector<BiDirMotion *>;
 
                 /** \brief The state contained by the motion */
-                base::State             *state_;
+                base::State *state_;
 
                 /** \brief The parent motion in the exploration tree  */
-                BiDirMotion*            parent_[2];
+                BiDirMotion *parent_[2];
 
                 /** \brief The set of motions descending from the current motion  */
-                BiDirMotionPtrs         children_[2];
+                BiDirMotionPtrs children_[2];
 
                 /** \brief Current set in which the motion is included.  */
-                SetType                 currentSet_[2];
+                SetType currentSet_[2];
 
                 /** \brief Tree identifier  */
-                TreeType*               tree_;
+                TreeType *tree_;
 
                 /** \brief The cost of this motion  */
-                base::Cost              cost_[2];
+                base::Cost cost_[2];
 
                 /** \brief The minimum cost to go of this motion (heuristically computed) */
-                base::Cost              hcost_[2];
+                base::Cost hcost_[2];
 
                 /** \brief Contains the connections attempted FROM this node */
                 std::set<BiDirMotion *> collChecksDone_;
@@ -329,8 +347,7 @@ namespace ompl
                 /** \brief Get cost of this motion in the inactive tree */
                 inline base::Cost getOtherCost() const
                 {
-                    return this->cost_[(*tree_+1) % 2];
-
+                    return this->cost_[(*tree_ + 1) % 2];
                 }
 
                 /** \brief Set the cost of the motion */
@@ -340,13 +357,13 @@ namespace ompl
                 }
 
                 /** \brief Set the parent of the motion */
-                inline void setParent(BiDirMotion* parent)
+                inline void setParent(BiDirMotion *parent)
                 {
                     this->parent_[*tree_] = parent;
                 }
 
                 /** \brief Get the parent of the motion */
-                inline BiDirMotion* getParent() const
+                inline BiDirMotion *getParent() const
                 {
                     return this->parent_[*tree_];
                 }
@@ -378,11 +395,11 @@ namespace ompl
                 /** \brief Get set of this motion in the inactive tree */
                 inline SetType getOtherSet() const
                 {
-                    return this->currentSet_[(*tree_+1) % 2];
+                    return this->currentSet_[(*tree_ + 1) % 2];
                 }
 
                 /** \brief Set tree identifier for this motion */
-                inline void setTreeType(TreeType* treePtr)
+                inline void setTreeType(TreeType *treePtr)
                 {
                     this->tree_ = treePtr;
                 }
@@ -394,12 +411,14 @@ namespace ompl
                 }
 
                 /** \brief Set the state associated with the motion */
-                void setState(base::State *state) {
+                void setState(base::State *state)
+                {
                     state_ = state;
                 }
 
                 /** \brief Get the state associated with the motion */
-                base::State* getState() const {
+                base::State *getState() const
+                {
                     return state_;
                 }
 
@@ -434,21 +453,23 @@ namespace ompl
             using BiDirMotionPtrs = std::vector<BiDirMotion *>;
 
         protected:
-
             /** \brief Comparator used to order motions in a binary heap */
-            struct BiDirMotionCompare {
-                bool operator()(const BiDirMotion* p1, const BiDirMotion* p2) const {
+            struct BiDirMotionCompare
+            {
+                bool operator()(const BiDirMotion *p1, const BiDirMotion *p2) const
+                {
                     if (heuristics_)
-                        return ( opt_->combineCosts(p1->getCost(), p1->getHeuristicCost()).value() < opt_->combineCosts(p2->getCost(), p2->getHeuristicCost()).value() );
+                        return (opt_->combineCosts(p1->getCost(), p1->getHeuristicCost()).value() <
+                                opt_->combineCosts(p2->getCost(), p2->getHeuristicCost()).value());
                     else
                         return (p1->getCost().value() < p2->getCost().value());
                 }
 
-                base::OptimizationObjective* opt_;
+                base::OptimizationObjective *opt_;
                 bool heuristics_;
             };
 
-            using BiDirMotionBinHeap = ompl::BinaryHeap<BiDirMotion*, BiDirMotionCompare>;
+            using BiDirMotionBinHeap = ompl::BinaryHeap<BiDirMotion *, BiDirMotionCompare>;
 
             /** \brief Change the active tree */
             void swapTrees();
@@ -469,7 +490,7 @@ namespace ompl
                 between their contained states. Note that for computationally
                 intensive cost functions, the cost between motions should be
                 stored to avoid duplicate calculations */
-            double distanceFunction(const BiDirMotion* a, const BiDirMotion* b) const
+            double distanceFunction(const BiDirMotion *a, const BiDirMotion *b) const
             {
                 return opt_->motionCost(a->getState(), b->getState()).value();
             }
@@ -477,11 +498,13 @@ namespace ompl
             /** \brief Compute the volume of the unit ball in a given dimension */
             double calculateUnitBallVolume(const unsigned int dimension) const;
 
-           /** \brief Calculate the radius to use for nearest neighbor searches,
-                using the bound given in [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based method for optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf). The radius depends on
-                the radiusMultiplier parameter, the volume of the free
-                configuration space, the volume of the unit ball in the current
-                dimension, and the number of nodes in the graph */
+            /** \brief Calculate the radius to use for nearest neighbor searches,
+                 using the bound given in [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast
+               marching sampling-based method for optimal motion planning in many dimensions. The International Journal
+               of Robotics Research, 34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf). The radius depends on
+                 the radiusMultiplier parameter, the volume of the free
+                 configuration space, the volume of the unit ball in the current
+                 dimension, and the number of nodes in the graph */
             double calculateRadius(unsigned int dimension, unsigned int n) const;
 
             /** \brief Free the memory allocated by this planner */
@@ -489,15 +512,15 @@ namespace ompl
 
             /** \brief Save the neighbors within a neighborhood of a given state. The strategy
                 used (nearestK or nearestR depends on the planner configuration */
-            void saveNeighborhood(const std::shared_ptr< NearestNeighbors<BiDirMotion*> >& nn, BiDirMotion* m);
+            void saveNeighborhood(const std::shared_ptr<NearestNeighbors<BiDirMotion *>> &nn, BiDirMotion *m);
 
             /** \brief Sample a state from the free configuration space and save
                 it into the nearest neighbors data structure */
-            void sampleFree(const std::shared_ptr<NearestNeighbors<BiDirMotion*> >& nn,
-                const base::PlannerTerminationCondition &ptc );
+            void sampleFree(const std::shared_ptr<NearestNeighbors<BiDirMotion *>> &nn,
+                            const base::PlannerTerminationCondition &ptc);
 
             /** \brief Carries out some planner checks */
-            void initializeProblem(base::GoalSampleableRegion*& goal_s);
+            void initializeProblem(base::GoalSampleableRegion *&goal_s);
 
             /** \brief Complete one iteration of the main loop of the BFMT* algorithm:
                 Find K nearest nodes in set Unvisited (or within a radius r) of the node z.
@@ -508,79 +531,83 @@ namespace ompl
             void expandTreeFromNode(BiDirMotion *&z, BiDirMotion *&connection_point);
 
             /** \brief Executes the actual planning algorithm, swapping and expanding the trees */
-            bool plan(BiDirMotion *x_init, BiDirMotion *x_goal, BiDirMotion *&z, const base::PlannerTerminationCondition& ptc);
+            bool plan(BiDirMotion *x_init, BiDirMotion *x_goal, BiDirMotion *&z,
+                      const base::PlannerTerminationCondition &ptc);
 
             /** \brief Checks if the termination condition is met */
-            bool termination(BiDirMotion *&z, BiDirMotion *&connection_point, const base::PlannerTerminationCondition& ptc);
+            bool termination(BiDirMotion *&z, BiDirMotion *&connection_point,
+                             const base::PlannerTerminationCondition &ptc);
 
             /** \brief Chooses and expand a tree according to the exploration strategy */
             void chooseTreeAndExpansionNode(BiDirMotion *&z);
 
             /** \brief Trace the path along a tree towards the root (forward or reverse) */
-            void tracePath(BiDirMotion *z, BiDirMotionPtrs& path);
+            void tracePath(BiDirMotion *z, BiDirMotionPtrs &path);
 
             /** \brief For a motion m, updates the stored neighborhoods of all its neighbors by
                 by inserting m (maintaining the cost-based sorting) */
             void updateNeighborhood(BiDirMotion *m, const std::vector<BiDirMotion *> nbh);
 
             /** \brief Extended FMT strategy: inserts a new motion in open if the heap is empty */
-            void insertNewSampleInOpen(const base::PlannerTerminationCondition& ptc);
+            void insertNewSampleInOpen(const base::PlannerTerminationCondition &ptc);
 
             /** \brief The number of samples to use when planning */
-            unsigned int                numSamples_;
+            unsigned int numSamples_;
 
             /** \brief This planner uses a nearest neighbor search radius
                 proportional to the lower bound for optimality derived for FMT*
-                in Section 4 of [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based method for optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf).  The radius multiplier
+                in Section 4 of [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching
+               sampling-based method for optimal motion planning in many dimensions. The International Journal of
+               Robotics Research, 34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf).  The radius multiplier
                 is the multiplier for the lower bound. For guaranteed asymptotic
                 convergence, the user should choose a multiplier for the search
                 radius that is greater than one. The default value is 1.1.
                 In general, a radius between 0.9 and 5 appears to perform the best */
-            double                      radiusMultiplier_;
+            double radiusMultiplier_;
 
             /** \brief The volume of numSathe free configuration space, computed
                 as an upper bound with 95% confidence */
-            double                      freeSpaceVolume_;
+            double freeSpaceVolume_;
 
             /** \brief Number of collision checks performed by the algorithm */
-            unsigned int                collisionChecks_;
+            unsigned int collisionChecks_;
 
             /** \brief Flag to activate the K nearest neighbors strategy */
-            bool                        nearestK_;
+            bool nearestK_;
 
             /** \brief Radius employed in the nearestR strategy. */
-            double                      NNr_;
+            double NNr_;
 
             /** \brief K used in the nearestK strategy */
-            unsigned int                NNk_;
+            unsigned int NNk_;
 
             /** \brief Active tree */
-            TreeType                    tree_;
+            TreeType tree_;
 
             /** \brief Exploration strategy used */
-            ExploreType                 exploration_;
+            ExploreType exploration_;
 
             /** \brief Termination strategy used */
-            TerminateType               termination_;
+            TerminateType termination_;
 
             /** \brief If true all the nearest neighbors maps are precomputed before solving. */
-            bool                  precomputeNN_;
+            bool precomputeNN_;
 
             /** \brief A nearest-neighbor datastructure containing the set of all motions */
-            std::shared_ptr< NearestNeighbors<BiDirMotion*> >       nn_;
+            std::shared_ptr<NearestNeighbors<BiDirMotion *>> nn_;
 
             /** \brief A map linking a motion to all of the motions within a
                 distance r of that motion */
-            std::map<BiDirMotion*, BiDirMotionPtrs >                neighborhoods_;
+            std::map<BiDirMotion *, BiDirMotionPtrs> neighborhoods_;
 
             /** \brief A binary heap for storing explored motions in
                 cost-to-come sorted order. The motions in Open have been explored,
                 yet are still close enough to the frontier of the explored set Open
                 to be connected to nodes in the unexplored set Unvisited */
-            BiDirMotionBinHeap                                      Open_[2];
+            BiDirMotionBinHeap Open_[2];
 
             /** \brief Map to know the corresponding heap element from the given motion */
-            std::map<BiDirMotion*, BiDirMotionBinHeap::Element*>    Open_elements[2];
+            std::map<BiDirMotion *, BiDirMotionBinHeap::Element *> Open_elements[2];
 
             /** \brief State sampler */
             base::StateSamplerPtr sampler_;
@@ -588,11 +615,11 @@ namespace ompl
             /** \brief The cost objective function */
             base::OptimizationObjectivePtr opt_;
 
-           /** \brief Flag to activate the cost to go heuristics */
+            /** \brief Flag to activate the cost to go heuristics */
             bool heuristics_;
 
             /** \brief Goal state caching to accelerate cost to go heuristic computation */
-            base::State* heurGoalState_[2];
+            base::State *heurGoalState_[2];
 
             /** \brief Flag to activate the collision check caching */
             bool cacheCC_;
@@ -603,23 +630,20 @@ namespace ompl
             // For sorting a list of costs and getting only their sorted indices
             struct CostIndexCompare
             {
-                CostIndexCompare(const std::vector<base::Cost>& costs,
-                                 const base::OptimizationObjective &opt) :
-                    costs_(costs), opt_(opt)
-                {}
+                CostIndexCompare(const std::vector<base::Cost> &costs, const base::OptimizationObjective &opt)
+                  : costs_(costs), opt_(opt)
+                {
+                }
                 bool operator()(unsigned i, unsigned j)
                 {
                     return (costs_[i].value() < costs_[j].value());
                 }
-                const std::vector<base::Cost>& costs_;
+                const std::vector<base::Cost> &costs_;
                 const base::OptimizationObjective &opt_;
             };
-
         };
 
-    }   // End "geometric" namespace
-}       // End "ompl" namespace
+    }  // End "geometric" namespace
+}  // End "ompl" namespace
 
-
-#endif	/* OMPL_GEOMETRIC_PLANNERS_BIDIRECTIONALFMT_H */
-
+#endif /* OMPL_GEOMETRIC_PLANNERS_BIDIRECTIONALFMT_H */

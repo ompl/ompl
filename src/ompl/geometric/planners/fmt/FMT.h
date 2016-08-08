@@ -49,13 +49,10 @@
 #include <ompl/base/OptimizationObjective.h>
 #include <map>
 
-
 namespace ompl
 {
-
     namespace geometric
     {
-
         /**
            @anchor gFMT
            @par Short description
@@ -77,7 +74,9 @@ namespace ompl
            BiDirectional FMT* paper.
 
            @par External documentation
-           L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based method for optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921, 2015.
+           L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based method for
+           optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921,
+           2015.
            DOI: [10.1177/0278364915577958](http://dx.doi.org/10.1177/0278364915577958)<br>
            [[PDF]](http://arxiv.org/pdf/1306.3532.pdf)
 
@@ -91,7 +90,6 @@ namespace ompl
         class FMT : public ompl::base::Planner
         {
         public:
-
             FMT(const base::SpaceInformationPtr &si);
 
             ~FMT() override;
@@ -134,7 +132,9 @@ namespace ompl
 
             /** \brief The planner searches for neighbors of a node within a
                 cost r, where r is the value described for FMT* in Section 4
-                of [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based method for optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf). For guaranteed asymptotic
+                of [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based
+               method for optimal motion planning in many dimensions. The International Journal of Robotics Research,
+               34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf). For guaranteed asymptotic
                 convergence, the user should choose a constant multiplier for
                 the search radius that is greater than one. The default value is 1.1.
                 In general, a radius multiplier between 0.9 and 5 appears to
@@ -183,11 +183,11 @@ namespace ompl
                 return cacheCC_;
             }
 
-           /** \brief Activates the cost to go heuristics when ordering the heap */
-           void setHeuristics(bool h)
-           {
-               heuristics_ = h;
-           }
+            /** \brief Activates the cost to go heuristics when ordering the heap */
+            void setHeuristics(bool h)
+            {
+                heuristics_ = h;
+            }
 
             /** \brief Returns true if the heap is ordered taking into account
                 cost to go heuristics */
@@ -196,150 +196,152 @@ namespace ompl
                 return heuristics_;
             }
 
-           /** \brief Activates the extended FMT*: adding new samples if planner does not finish successfully. */
-           void setExtendedFMT(bool e)
-           {
-               extendedFMT_ = e;
-           }
+            /** \brief Activates the extended FMT*: adding new samples if planner does not finish successfully. */
+            void setExtendedFMT(bool e)
+            {
+                extendedFMT_ = e;
+            }
 
-           /** \brief Returns true if the extended FMT* is activated. */
-           bool getExtendedFMT() const
-           {
-               return extendedFMT_;
-           }
+            /** \brief Returns true if the extended FMT* is activated. */
+            bool getExtendedFMT() const
+            {
+                return extendedFMT_;
+            }
 
         protected:
             /** \brief Representation of a motion
               */
             class Motion
             {
-                public:
+            public:
+                /** \brief The FMT* planner begins with all nodes included in
+                    set Unvisited "Waiting for optimal connection". As nodes are
+                    connected to the tree, they are transferred into set Open
+                    "Horizon of explored tree." Once a node in Open is no longer
+                    close enough to the frontier to connect to any more nodes in
+                    Unvisited, it is removed from Open. These three SetTypes are flags
+                    indicating which set the node belongs to; Open, Unvisited, or Closed (neither) */
+                enum SetType
+                {
+                    SET_CLOSED,
+                    SET_OPEN,
+                    SET_UNVISITED
+                };
 
-                    /** \brief The FMT* planner begins with all nodes included in
-                        set Unvisited "Waiting for optimal connection". As nodes are
-                        connected to the tree, they are transferred into set Open
-                        "Horizon of explored tree." Once a node in Open is no longer
-                        close enough to the frontier to connect to any more nodes in
-                        Unvisited, it is removed from Open. These three SetTypes are flags
-                        indicating which set the node belongs to; Open, Unvisited, or Closed (neither) */
-                    enum SetType { SET_CLOSED, SET_OPEN, SET_UNVISITED };
+                Motion() : state_(nullptr), parent_(nullptr), cost_(0.0), currentSet_(SET_UNVISITED)
+                {
+                }
 
-                    Motion()
-                        : state_(nullptr), parent_(nullptr), cost_(0.0), currentSet_(SET_UNVISITED)
-                    {
-                    }
+                /** \brief Constructor that allocates memory for the state */
+                Motion(const base::SpaceInformationPtr &si)
+                  : state_(si->allocState()), parent_(nullptr), cost_(0.0), currentSet_(SET_UNVISITED)
+                {
+                }
 
-                    /** \brief Constructor that allocates memory for the state */
-                    Motion(const base::SpaceInformationPtr &si)
-                        : state_(si->allocState()), parent_(nullptr), cost_(0.0), currentSet_(SET_UNVISITED)
-                    {
-                    }
+                ~Motion() = default;
 
-                    ~Motion() = default;
+                /** \brief Set the state associated with the motion */
+                void setState(base::State *state)
+                {
+                    state_ = state;
+                }
 
-                    /** \brief Set the state associated with the motion */
-                    void setState(base::State *state)
-                    {
-                        state_ = state;
-                    }
+                /** \brief Get the state associated with the motion */
+                base::State *getState() const
+                {
+                    return state_;
+                }
 
-                    /** \brief Get the state associated with the motion */
-                    base::State* getState() const
-                    {
-                        return state_;
-                    }
+                /** \brief Set the parent motion of the current motion */
+                void setParent(Motion *parent)
+                {
+                    parent_ = parent;
+                }
 
-                    /** \brief Set the parent motion of the current motion */
-                    void setParent(Motion *parent)
-                    {
-                        parent_ = parent;
-                    }
+                /** \brief Get the parent motion of the current motion */
+                Motion *getParent() const
+                {
+                    return parent_;
+                }
 
-                    /** \brief Get the parent motion of the current motion */
-                    Motion* getParent() const
-                    {
-                        return parent_;
-                    }
+                /** \brief Set the cost-to-come for the current motion */
+                void setCost(const base::Cost cost)
+                {
+                    cost_ = cost;
+                }
 
-                    /** \brief Set the cost-to-come for the current motion */
-                    void setCost(const base::Cost cost)
-                    {
-                        cost_ = cost;
-                    }
+                /** \brief Get the cost-to-come for the current motion */
+                base::Cost getCost() const
+                {
+                    return cost_;
+                }
 
-                    /** \brief Get the cost-to-come for the current motion */
-                    base::Cost getCost() const
-                    {
-                        return cost_;
-                    }
+                /** \brief Specify the set that this motion belongs to */
+                void setSetType(const SetType currentSet)
+                {
+                    currentSet_ = currentSet;
+                }
 
-                    /** \brief Specify the set that this motion belongs to */
-                    void setSetType(const SetType currentSet)
-                    {
-                        currentSet_ = currentSet;
-                    }
+                /** \brief Get the set that this motion belongs to */
+                SetType getSetType() const
+                {
+                    return currentSet_;
+                }
 
-                    /** \brief Get the set that this motion belongs to */
-                    SetType getSetType() const
-                    {
-                        return currentSet_;
-                    }
+                /** \brief Returns true if the connection to m has been already
+                    tested and failed because of a collision */
+                bool alreadyCC(Motion *m)
+                {
+                    if (collChecksDone_.find(m) == collChecksDone_.end())
+                        return false;
+                    return true;
+                }
 
-                    /** \brief Returns true if the connection to m has been already
-                        tested and failed because of a collision */
-                    bool alreadyCC(Motion *m)
-                    {
-                        if (collChecksDone_.find(m) == collChecksDone_.end())
-                            return false;
-                        return true;
-                    }
+                /** \brief Caches a failed collision check to m */
+                void addCC(Motion *m)
+                {
+                    collChecksDone_.insert(m);
+                }
 
-                    /** \brief Caches a failed collision check to m */
-                    void addCC(Motion *m)
-                    {
-                        collChecksDone_.insert(m);
-                    }
+                /** \brief Set the cost to go heuristic cost */
+                void setHeuristicCost(const base::Cost h)
+                {
+                    hcost_ = h;
+                }
 
-                    /** \brief Set the cost to go heuristic cost */
-                    void setHeuristicCost(const base::Cost h)
-                    {
-                        hcost_ = h;
-                    }
+                /** \brief Get the cost to go heuristic cost */
+                base::Cost getHeuristicCost() const
+                {
+                    return hcost_;
+                }
 
-                    /** \brief Get the cost to go heuristic cost */
-                    base::Cost getHeuristicCost() const
-                    {
-                        return hcost_;
-                    }
+                /** \brief Get the children of the motion */
+                std::vector<Motion *> &getChildren()
+                {
+                    return children_;
+                }
 
-                    /** \brief Get the children of the motion */
-                    std::vector<Motion*>& getChildren()
-                    {
-                        return children_;
-                    }
+            protected:
+                /** \brief The state contained by the motion */
+                base::State *state_;
 
-                protected:
+                /** \brief The parent motion in the exploration tree */
+                Motion *parent_;
 
-                    /** \brief The state contained by the motion */
-                    base::State *state_;
+                /** \brief The cost of this motion */
+                base::Cost cost_;
 
-                    /** \brief The parent motion in the exploration tree */
-                    Motion *parent_;
+                /** \brief The minimum cost to go of this motion (heuristically computed) */
+                base::Cost hcost_;
 
-                    /** \brief The cost of this motion */
-                    base::Cost cost_;
+                /** \brief The flag indicating which set a motion belongs to */
+                SetType currentSet_;
 
-                    /** \brief The minimum cost to go of this motion (heuristically computed) */
-                    base::Cost hcost_;
+                /** \brief Contains the connections attempted FROM this node */
+                std::set<Motion *> collChecksDone_;
 
-                    /** \brief The flag indicating which set a motion belongs to */
-                    SetType currentSet_;
-
-                    /** \brief Contains the connections attempted FROM this node */
-                    std::set<Motion*> collChecksDone_;
-
-                    /** \brief The set of motions descending from the current motion */
-                    std::vector<Motion*> children_;
+                /** \brief The set of motions descending from the current motion */
+                std::vector<Motion *> children_;
             };
 
             /** \brief Comparator used to order motions in a binary heap */
@@ -360,7 +362,7 @@ namespace ompl
                         return opt_->isCostBetterThan(m1->getCost(), m2->getCost());
                 }
 
-                base::OptimizationObjective* opt_;
+                base::OptimizationObjective *opt_;
                 bool heuristics_;
             };
 
@@ -392,7 +394,9 @@ namespace ompl
             double calculateUnitBallVolume(const unsigned int dimension) const;
 
             /** \brief Calculate the radius to use for nearest neighbor searches,
-                using the bound given in [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based method for optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf). The radius depends on
+                using the bound given in [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast
+               marching sampling-based method for optimal motion planning in many dimensions. The International Journal
+               of Robotics Research, 34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf). The radius depends on
                 the radiusMultiplier parameter, the volume of the free
                 configuration space, the volume of the unit ball in the current
                 dimension, and the number of nodes in the graph */
@@ -420,11 +424,11 @@ namespace ompl
             void updateNeighborhood(Motion *m, const std::vector<Motion *> nbh);
 
             /** \brief Returns the best parent and the connection cost in the neighborhood of a motion m. */
-            Motion* getBestParent(Motion *m, std::vector<Motion*> &neighbors, base::Cost &cMin);
+            Motion *getBestParent(Motion *m, std::vector<Motion *> &neighbors, base::Cost &cMin);
 
             /** \brief A binary heap for storing explored motions in
                 cost-to-come sorted order */
-            using MotionBinHeap = ompl::BinaryHeap<Motion*, MotionCompare>;
+            using MotionBinHeap = ompl::BinaryHeap<Motion *, MotionCompare>;
 
             /** \brief A binary heap for storing explored motions in
                 cost-to-come sorted order. The motions in Open have been explored,
@@ -434,7 +438,7 @@ namespace ompl
 
             /** \brief A map linking a motion to all of the motions within a
                 distance r of that motion */
-            std::map<Motion*, std::vector<Motion*> > neighborhoods_;
+            std::map<Motion *, std::vector<Motion *>> neighborhoods_;
 
             /** \brief The number of samples to use when planning */
             unsigned int numSamples_;
@@ -463,7 +467,9 @@ namespace ompl
 
             /** \brief This planner uses a nearest neighbor search radius
                 proportional to the lower bound for optimality derived for FMT*
-                in Section 4 of [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based method for optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf).  The radius multiplier
+                in Section 4 of [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching
+               sampling-based method for optimal motion planning in many dimensions. The International Journal of
+               Robotics Research, 34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf).  The radius multiplier
                 is the multiplier for the lower bound. For guaranteed asymptotic
                 convergence, the user should choose a multiplier for the search
                 radius that is greater than one. The default value is 1.1.
@@ -472,7 +478,7 @@ namespace ompl
             double radiusMultiplier_;
 
             /** \brief A nearest-neighbor datastructure containing the set of all motions */
-            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr<NearestNeighbors<Motion *>> nn_;
 
             /** \brief State sampler */
             base::StateSamplerPtr sampler_;
@@ -484,7 +490,7 @@ namespace ompl
             Motion *lastGoalMotion_;
 
             /** \brief Goal state caching to accelerate cost to go heuristic computation */
-            base::State* goalState_;
+            base::State *goalState_;
 
             /** \brief Add new samples if the tree was not able to find a solution. */
             bool extendedFMT_;
@@ -492,20 +498,19 @@ namespace ompl
             // For sorting a list of costs and getting only their sorted indices
             struct CostIndexCompare
             {
-                CostIndexCompare(const std::vector<base::Cost>& costs,
-                                 const base::OptimizationObjective &opt) :
-                    costs_(costs), opt_(opt)
-                {}
+                CostIndexCompare(const std::vector<base::Cost> &costs, const base::OptimizationObjective &opt)
+                  : costs_(costs), opt_(opt)
+                {
+                }
                 bool operator()(unsigned i, unsigned j)
                 {
-                    return opt_.isCostBetterThan(costs_[i],costs_[j]);
+                    return opt_.isCostBetterThan(costs_[i], costs_[j]);
                 }
-                const std::vector<base::Cost>& costs_;
+                const std::vector<base::Cost> &costs_;
                 const base::OptimizationObjective &opt_;
             };
-
         };
     }
 }
 
-#endif // OMPL_GEOMETRIC_PLANNERS_FMT_
+#endif  // OMPL_GEOMETRIC_PLANNERS_FMT_

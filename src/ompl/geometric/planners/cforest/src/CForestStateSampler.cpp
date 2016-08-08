@@ -63,7 +63,7 @@ void ompl::base::CForestStateSampler::sampleGaussian(State *state, const State *
 void ompl::base::CForestStateSampler::setStatesToSample(const std::vector<const State *> &states)
 {
     std::lock_guard<std::mutex> slock(statesLock_);
-    for (auto & i : statesToSample_)
+    for (auto &i : statesToSample_)
         space_->freeState(i);
     statesToSample_.clear();
 
@@ -88,7 +88,7 @@ void ompl::base::CForestStateSampler::getNextSample(State *state)
 void ompl::base::CForestStateSampler::clear()
 {
     std::lock_guard<std::mutex> slock(statesLock_);
-    for (auto & i : statesToSample_)
+    for (auto &i : statesToSample_)
         space_->freeState(i);
     statesToSample_.clear();
     sampler_.reset();

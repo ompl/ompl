@@ -44,12 +44,10 @@ namespace ompl
 {
     namespace control
     {
-
         /** \brief The simplest state validity checker: all states are valid */
         class OpenDEStateValidityChecker : public base::StateValidityChecker
         {
         public:
-
             /** \brief Constructor */
             OpenDEStateValidityChecker(const SpaceInformationPtr &si);
 
@@ -57,7 +55,6 @@ namespace ompl
             bool isValid(const base::State *state) const override;
 
         protected:
-
             /** \brief The corresponding OpenDE state space */
             OpenDEStateSpace *osm_;
         };

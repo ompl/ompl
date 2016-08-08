@@ -37,9 +37,10 @@
 #include "ompl/extensions/opende/OpenDEStateValidityChecker.h"
 #include "ompl/util/Exception.h"
 
-ompl::control::OpenDEStateValidityChecker::OpenDEStateValidityChecker(const SpaceInformationPtr &si) : base::StateValidityChecker(si)
+ompl::control::OpenDEStateValidityChecker::OpenDEStateValidityChecker(const SpaceInformationPtr &si)
+  : base::StateValidityChecker(si)
 {
-    if (!dynamic_cast<OpenDEStateSpace*>(si->getStateSpace().get()))
+    if (!dynamic_cast<OpenDEStateSpace *>(si->getStateSpace().get()))
         throw Exception("Cannot create state validity checking for OpenDE without OpenDE state space");
     osm_ = si->getStateSpace()->as<OpenDEStateSpace>();
 }
