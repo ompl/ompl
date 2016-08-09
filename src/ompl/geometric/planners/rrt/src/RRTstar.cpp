@@ -132,6 +132,9 @@ void ompl::geometric::RRTstar::setup()
             // Store the new objective in the problem def'n
             pdef_->setOptimizationObjective(opt_);
         }
+        // Set the bestCost_ and prunedCost_ as infinite
+        bestCost_ = opt_->infiniteCost();
+        prunedCost_ = opt_->infiniteCost();
     }
     else
     {
@@ -144,10 +147,6 @@ void ompl::geometric::RRTstar::setup()
 
     // Calculate some constants:
     calculateRewiringLowerBounds();
-
-    // Set the bestCost_ and prunedCost_ as infinite
-    bestCost_ = opt_->infiniteCost();
-    prunedCost_ = opt_->infiniteCost();
 }
 
 void ompl::geometric::RRTstar::clear()
