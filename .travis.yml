@@ -21,7 +21,7 @@ matrix:
 addons:
   apt:
     packages:
-      - libboost-all-dev
+      - libboost1.55-all-dev
       - python-dev
       - libode-dev
       - libeigen3-dev
