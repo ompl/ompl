@@ -61,11 +61,11 @@ void ompl::control::RRT::setup()
 {
     base::Planner::setup();
     if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
     nn_->setDistanceFunction([this](const Motion *a, const Motion *b)
-        {
-            return distanceFunction(a, b);
-        });
+                             {
+                                 return distanceFunction(a, b);
+                             });
 }
 
 void ompl::control::RRT::clear()
@@ -83,9 +83,9 @@ void ompl::control::RRT::freeMemory()
 {
     if (nn_)
     {
-        std::vector<Motion*> motions;
+        std::vector<Motion *> motions;
         nn_->list(motions);
-        for (auto & motion : motions)
+        for (auto &motion : motions)
         {
             if (motion->state)
                 si_->freeState(motion->state);
@@ -99,8 +99,8 @@ void ompl::control::RRT::freeMemory()
 ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                   *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -123,14 +123,14 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
-    Motion *solution  = nullptr;
+    Motion *solution = nullptr;
     Motion *approxsol = nullptr;
-    double  approxdif = std::numeric_limits<double>::infinity();
+    double approxdif = std::numeric_limits<double>::infinity();
 
-    auto      *rmotion = new Motion(siC_);
-    base::State  *rstate = rmotion->state;
-    Control       *rctrl = rmotion->control;
-    base::State  *xstate = si_->allocState();
+    auto *rmotion = new Motion(siC_);
+    base::State *rstate = rmotion->state;
+    Control *rctrl = rmotion->control;
+    base::State *xstate = si_->allocState();
 
     while (ptc == false)
     {
@@ -157,12 +157,12 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
                 Motion *lastmotion = nmotion;
                 bool solved = false;
                 size_t p = 0;
-                for ( ; p < pstates.size(); ++p)
+                for (; p < pstates.size(); ++p)
                 {
                     /* create a motion */
                     auto *motion = new Motion();
                     motion->state = pstates[p];
-                    //we need multiple copies of rctrl
+                    // we need multiple copies of rctrl
                     motion->control = siC_->allocControl();
                     siC_->copyControl(motion->control, rctrl);
                     motion->steps = 1;
@@ -184,14 +184,14 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
                     }
                 }
 
-                //free any states after we hit the goal
+                // free any states after we hit the goal
                 while (++p < pstates.size())
                     si_->freeState(pstates[p]);
                 if (solved)
                     break;
             }
             else
-                for (auto & pstate : pstates)
+                for (auto &pstate : pstates)
                     si_->freeState(pstate);
         }
         else
@@ -236,7 +236,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
         lastGoalMotion_ = solution;
 
         /* construct the solution path */
-        std::vector<Motion*> mpath;
+        std::vector<Motion *> mpath;
         while (solution != nullptr)
         {
             mpath.push_back(solution);
@@ -245,7 +245,7 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
 
         /* set the solution path */
         auto path(std::make_shared<PathControl>(si_));
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1; i >= 0; --i)
             if (mpath[i]->parent)
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
             else
@@ -270,7 +270,7 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    std::vector<Motion*> motions;
+    std::vector<Motion *> motions;
     if (nn_)
         nn_->list(motions);
 
@@ -284,12 +284,10 @@ void ompl::control::RRT::getPlannerData(base::PlannerData &data) const
         if (m->parent)
         {
             if (data.hasControls())
-                data.addEdge(base::PlannerDataVertex(m->parent->state),
-                             base::PlannerDataVertex(m->state),
+                data.addEdge(base::PlannerDataVertex(m->parent->state), base::PlannerDataVertex(m->state),
                              control::PlannerDataEdgeControl(m->control, m->steps * delta));
             else
-                data.addEdge(base::PlannerDataVertex(m->parent->state),
-                             base::PlannerDataVertex(m->state));
+                data.addEdge(base::PlannerDataVertex(m->parent->state), base::PlannerDataVertex(m->state));
         }
         else
             data.addStartVertex(base::PlannerDataVertex(m->state));

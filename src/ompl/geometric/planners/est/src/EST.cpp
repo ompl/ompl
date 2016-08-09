@@ -63,13 +63,16 @@ void ompl::geometric::EST::setup()
     tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
 
-    // Make the neighborhood radius smaller than sampling range to keep probabilities relatively high for rejection sampling
+    // Make the neighborhood radius smaller than sampling range to keep probabilities relatively high for rejection
+    // sampling
     nbrhoodRadius_ = maxDistance_ / 3.0;
 
     if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(
-        [this](const Motion *a, const Motion *b) { return distanceFunction(a,b); });
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
+    nn_->setDistanceFunction([this](const Motion *a, const Motion *b)
+                             {
+                                 return distanceFunction(a, b);
+                             });
 }
 
 void ompl::geometric::EST::clear()
@@ -87,7 +90,7 @@ void ompl::geometric::EST::clear()
 
 void ompl::geometric::EST::freeMemory()
 {
-    for(auto & motion : motions_)
+    for (auto &motion : motions_)
     {
         if (motion->state)
             si_->freeState(motion->state);
@@ -98,10 +101,10 @@ void ompl::geometric::EST::freeMemory()
 ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                   *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
-    std::vector<Motion*> neighbors;
+    std::vector<Motion *> neighbors;
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -123,11 +126,11 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), motions_.size());
 
-    Motion *solution  = nullptr;
+    Motion *solution = nullptr;
     Motion *approxsol = nullptr;
-    double  approxdif = std::numeric_limits<double>::infinity();
+    double approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
-    auto* xmotion = new Motion();
+    auto *xmotion = new Motion();
 
     while (ptc == false)
     {
@@ -204,7 +207,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
         lastGoalMotion_ = solution;
 
         // construct the solution path
-        std::vector<Motion*> mpath;
+        std::vector<Motion *> mpath;
         while (solution != nullptr)
         {
             mpath.push_back(solution);
@@ -213,7 +216,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
         // set the solution path
         auto path(std::make_shared<PathGeometric>(si_));
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1; i >= 0; --i)
             path->append(mpath[i]->state);
         pdef_->addSolutionPath(path, approximate, approxdif, getName());
         solved = true;
@@ -227,12 +230,12 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
     return base::PlannerStatus(solved, approximate);
 }
 
-void ompl::geometric::EST::addMotion(Motion *motion, const std::vector<Motion*>& neighbors)
+void ompl::geometric::EST::addMotion(Motion *motion, const std::vector<Motion *> &neighbors)
 {
     // Updating neighborhood size counts
-    for(auto neighbor : neighbors)
+    for (auto neighbor : neighbors)
     {
-        PDF<Motion*>::Element *elem = neighbor->element;
+        PDF<Motion *>::Element *elem = neighbor->element;
         double w = pdf_.getWeight(elem);
         pdf_.update(elem, w / (w + 1.));
     }
@@ -255,7 +258,6 @@ void ompl::geometric::EST::getPlannerData(base::PlannerData &data) const
         if (motion->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motion->state));
         else
-            data.addEdge(base::PlannerDataVertex(motion->parent->state),
-                         base::PlannerDataVertex(motion->state));
+            data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state));
     }
 }

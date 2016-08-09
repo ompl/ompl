@@ -46,12 +46,12 @@ namespace ompl
     /** \brief An instance of this class can be used to greedily select a given
         number of representatives from a set of data points that are all far
         apart from each other. */
-    template<typename _T>
+    template <typename _T>
     class GreedyKCenters
     {
     public:
         /** \brief The definition of a distance function */
-        using DistanceFunction = std::function<double(const _T&, const _T&)>;
+        using DistanceFunction = std::function<double(const _T &, const _T &)>;
         /** \brief A matrix type for storing distances between points and centers */
         using Matrix = boost::numeric::ublas::matrix<double>;
 
@@ -66,7 +66,7 @@ namespace ompl
         }
 
         /** \brief Get the distance function used */
-        const DistanceFunction& getDistanceFunction() const
+        const DistanceFunction &getDistanceFunction() const
         {
             return distFun_;
         }
@@ -79,8 +79,7 @@ namespace ompl
             \param dists a matrix such that dists(i,j) is the distance
                 between data[i] and data[center[j]]
         */
-        void kcenters(const std::vector<_T>& data, unsigned int k,
-            std::vector<unsigned int>& centers, Matrix& dists)
+        void kcenters(const std::vector<_T> &data, unsigned int k, std::vector<unsigned int> &centers, Matrix &dists)
         {
             // array containing the minimum distance between each data point
             // and the centers computed so far
@@ -92,12 +91,12 @@ namespace ompl
                 dists.resize(std::max(2 * dists.size1() + 1, data.size()), k, false);
             // first center is picked randomly
             centers.push_back(rng_.uniformInt(0, data.size() - 1));
-            for (unsigned i=1; i<k; ++i)
+            for (unsigned i = 1; i < k; ++i)
             {
                 unsigned ind;
-                const _T& center = data[centers[i - 1]];
+                const _T &center = data[centers[i - 1]];
                 double maxDist = -std::numeric_limits<double>::infinity();
-                for (unsigned j=0; j<data.size(); ++j)
+                for (unsigned j = 0; j < data.size(); ++j)
                 {
                     if ((dists(j, i - 1) = distFun_(data[j], center)) < minDist[j])
                         minDist[j] = dists(j, i - 1);
@@ -109,11 +108,12 @@ namespace ompl
                     }
                 }
                 // no more centers available
-                if (maxDist < std::numeric_limits<double>::epsilon()) break;
+                if (maxDist < std::numeric_limits<double>::epsilon())
+                    break;
                 centers.push_back(ind);
             }
 
-            const _T& center = data[centers.back()];
+            const _T &center = data[centers.back()];
             unsigned i = centers.size() - 1;
             for (unsigned j = 0; j < data.size(); ++j)
                 dists(j, i) = distFun_(data[j], center);
@@ -124,7 +124,7 @@ namespace ompl
         DistanceFunction distFun_;
 
         /** Random number generator used to select first center */
-        RNG              rng_;
+        RNG rng_;
     };
 }
 

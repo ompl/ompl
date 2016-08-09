@@ -43,12 +43,10 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief State space sampler for SO(3), using quaternion representation  */
         class SO3StateSampler : public StateSampler
         {
         public:
-
             /** \brief Constructor */
             SO3StateSampler(const StateSpace *space) : StateSampler(space)
             {
@@ -84,8 +82,6 @@ namespace ompl
         class SO3StateSpace : public StateSpace
         {
         public:
-
-
             /** \brief The definition of a state in SO(3) represented as a unit quaternion
 
                 \note The order of the elements matters in this
@@ -94,7 +90,6 @@ namespace ompl
             class StateType : public State
             {
             public:
-
                 /** \brief Set the quaternion from axis-angle representation.  The angle is given in radians. */
                 void setAxisAngle(double ax, double ay, double az, double angle);
 
@@ -151,11 +146,11 @@ namespace ompl
 
             StateSamplerPtr allocDefaultStateSampler() const override;
 
-            State* allocState() const override;
+            State *allocState() const override;
 
             void freeState(State *state) const override;
 
-            double* getValueAddressAtIndex(State *state, const unsigned int index) const override;
+            double *getValueAddressAtIndex(State *state, const unsigned int index) const override;
 
             void printState(const State *state, std::ostream &out) const override;
 

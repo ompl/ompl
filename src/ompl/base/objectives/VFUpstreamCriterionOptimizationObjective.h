@@ -46,19 +46,16 @@ namespace ompl
 {
     namespace base
     {
-
         /**
          * Optimization objective that computes the upstream criterion between two states.
          */
         class VFUpstreamCriterionOptimizationObjective : public ompl::base::OptimizationObjective
         {
-
         public:
-
             /** Constructor. */
             VFUpstreamCriterionOptimizationObjective(const ompl::base::SpaceInformationPtr &si,
-                geometric::VFRRT::VectorField vf)
-                : ompl::base::OptimizationObjective(si), vf_(std::move(vf))
+                                                     geometric::VFRRT::VectorField vf)
+              : ompl::base::OptimizationObjective(si), vf_(std::move(vf))
             {
                 description_ = "Upstream Criterion";
             }
@@ -83,11 +80,10 @@ namespace ompl
                 unsigned int vfdim = space->getValueLocations().size();
                 Eigen::VectorXd qprime(vfdim);
                 unsigned int numSegments = space->validSegmentCount(s1, s2);
-                std::vector<ompl::base::State*> interp;
+                std::vector<ompl::base::State *> interp;
 
                 for (unsigned int i = 0; i < vfdim; i++)
-                    qprime[i] = *space->getValueAddressAtIndex(s2, i)
-                        - *space->getValueAddressAtIndex(s1, i);
+                    qprime[i] = *space->getValueAddressAtIndex(s2, i) - *space->getValueAddressAtIndex(s1, i);
                 qprime.normalize();
                 si_->getMotionStates(s1, s2, interp, numSegments - 1, true, true);
                 double cost = 0;
@@ -97,7 +93,7 @@ namespace ompl
                     cost += si_->distance(interp[i], interp[i + 1]) * (f.norm() - f.dot(qprime));
                     si_->freeState(interp[i]);
                 }
-                si_->freeState(interp[interp.size()-1]);
+                si_->freeState(interp[interp.size() - 1]);
                 return ompl::base::Cost(cost);
             }
 
@@ -110,7 +106,6 @@ namespace ompl
             /** VectorField associated with the space. */
             geometric::VFRRT::VectorField vf_;
         };
-
     }
 }
 

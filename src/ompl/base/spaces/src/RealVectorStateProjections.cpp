@@ -47,73 +47,75 @@ namespace ompl
     {
         static inline void checkSpaceType(const StateSpace *m)
         {
-            if (!dynamic_cast<const RealVectorStateSpace*>(m))
+            if (!dynamic_cast<const RealVectorStateSpace *>(m))
                 throw Exception("Expected real vector state space for projection");
         }
     }
 }
 /// @endcond
 
-ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(const StateSpace *space, const std::vector<double> &cellSizes,
-                                                                                     const ProjectionMatrix::Matrix &projection) :
-    ProjectionEvaluator(space)
+ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(
+    const StateSpace *space, const std::vector<double> &cellSizes, const ProjectionMatrix::Matrix &projection)
+  : ProjectionEvaluator(space)
 {
     checkSpaceType(space_);
     projection_.mat = projection;
     setCellSizes(cellSizes);
 }
 
-ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(const StateSpacePtr &space, const std::vector<double> &cellSizes,
-                                                                                     const ProjectionMatrix::Matrix &projection) :
-    ProjectionEvaluator(space)
+ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(
+    const StateSpacePtr &space, const std::vector<double> &cellSizes, const ProjectionMatrix::Matrix &projection)
+  : ProjectionEvaluator(space)
 {
     checkSpaceType(space_);
     projection_.mat = projection;
     setCellSizes(cellSizes);
 }
 
-ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(const StateSpace *space,
-                                                                                     const ProjectionMatrix::Matrix &projection) :
-    ProjectionEvaluator(space)
+ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(
+    const StateSpace *space, const ProjectionMatrix::Matrix &projection)
+  : ProjectionEvaluator(space)
 {
     checkSpaceType(space_);
     projection_.mat = projection;
 }
 
-ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(const StateSpacePtr &space,
-                                                                                     const ProjectionMatrix::Matrix &projection) :
-    ProjectionEvaluator(space)
+ompl::base::RealVectorLinearProjectionEvaluator::RealVectorLinearProjectionEvaluator(
+    const StateSpacePtr &space, const ProjectionMatrix::Matrix &projection)
+  : ProjectionEvaluator(space)
 {
     checkSpaceType(space_);
     projection_.mat = projection;
 }
 
-ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateSpace *space, const std::vector<double> &cellSizes,
-                                                                                             std::vector<unsigned int> components) :
-    ProjectionEvaluator(space), components_(std::move(components))
-{
-    checkSpaceType(space_);
-    setCellSizes(cellSizes);
-    copyBounds();
-}
-
-ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateSpacePtr &space, const std::vector<double> &cellSizes,
-                                                                                             std::vector<unsigned int> components) :
-    ProjectionEvaluator(space), components_(std::move(components))
+ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(
+    const StateSpace *space, const std::vector<double> &cellSizes, std::vector<unsigned int> components)
+  : ProjectionEvaluator(space), components_(std::move(components))
 {
     checkSpaceType(space_);
     setCellSizes(cellSizes);
     copyBounds();
 }
 
-ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateSpace *space, std::vector<unsigned int> components) :
-    ProjectionEvaluator(space), components_(std::move(components))
+ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(
+    const StateSpacePtr &space, const std::vector<double> &cellSizes, std::vector<unsigned int> components)
+  : ProjectionEvaluator(space), components_(std::move(components))
+{
+    checkSpaceType(space_);
+    setCellSizes(cellSizes);
+    copyBounds();
+}
+
+ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(
+    const StateSpace *space, std::vector<unsigned int> components)
+  : ProjectionEvaluator(space), components_(std::move(components))
 {
     checkSpaceType(space_);
 }
 
-ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(const StateSpacePtr &space, std::vector<unsigned int> components) :
-    ProjectionEvaluator(space), components_(std::move(components))
+ompl::base::RealVectorOrthogonalProjectionEvaluator::RealVectorOrthogonalProjectionEvaluator(
+    const StateSpacePtr &space, std::vector<unsigned int> components)
+  : ProjectionEvaluator(space), components_(std::move(components))
 {
     checkSpaceType(space_);
 }
@@ -122,7 +124,7 @@ void ompl::base::RealVectorOrthogonalProjectionEvaluator::copyBounds()
 {
     bounds_.resize(components_.size());
     const RealVectorBounds &bounds = space_->as<RealVectorStateSpace>()->getBounds();
-    for (unsigned int i = 0 ; i < components_.size() ; ++i)
+    for (unsigned int i = 0; i < components_.size(); ++i)
     {
         bounds_.low[i] = bounds.low[components_[i]];
         bounds_.high[i] = bounds.high[components_[i]];
@@ -134,7 +136,7 @@ void ompl::base::RealVectorOrthogonalProjectionEvaluator::defaultCellSizes()
     const RealVectorBounds &bounds = space_->as<RealVectorStateSpace>()->getBounds();
     bounds_.resize(components_.size());
     cellSizes_.resize(components_.size());
-    for (unsigned int i = 0 ; i < cellSizes_.size() ; ++i)
+    for (unsigned int i = 0; i < cellSizes_.size(); ++i)
     {
         bounds_.low[i] = bounds.low[components_[i]];
         bounds_.high[i] = bounds.high[components_[i]];
@@ -157,36 +159,39 @@ unsigned int ompl::base::RealVectorOrthogonalProjectionEvaluator::getDimension()
     return components_.size();
 }
 
-void ompl::base::RealVectorOrthogonalProjectionEvaluator::project(const State *state, EuclideanProjection &projection) const
+void ompl::base::RealVectorOrthogonalProjectionEvaluator::project(const State *state,
+                                                                  EuclideanProjection &projection) const
 {
-    for (unsigned int i = 0 ; i < components_.size() ; ++i)
+    for (unsigned int i = 0; i < components_.size(); ++i)
         projection(i) = state->as<RealVectorStateSpace::StateType>()->values[components_[i]];
 }
 
-ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateSpace *space, const std::vector<double> &cellSizes) :
-    ProjectionEvaluator(space)
+ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(
+    const StateSpace *space, const std::vector<double> &cellSizes)
+  : ProjectionEvaluator(space)
 {
     checkSpaceType(space_);
     setCellSizes(cellSizes);
     copyBounds();
 }
 
-ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateSpace *space) :
-    ProjectionEvaluator(space)
+ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateSpace *space)
+  : ProjectionEvaluator(space)
 {
     checkSpaceType(space_);
 }
 
-ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateSpacePtr &space, const std::vector<double> &cellSizes) :
-    ProjectionEvaluator(space)
+ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(
+    const StateSpacePtr &space, const std::vector<double> &cellSizes)
+  : ProjectionEvaluator(space)
 {
     checkSpaceType(space_);
     setCellSizes(cellSizes);
     copyBounds();
 }
 
-ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateSpacePtr &space) :
-    ProjectionEvaluator(space)
+ompl::base::RealVectorIdentityProjectionEvaluator::RealVectorIdentityProjectionEvaluator(const StateSpacePtr &space)
+  : ProjectionEvaluator(space)
 {
     checkSpaceType(space_);
 }
@@ -200,7 +205,7 @@ void ompl::base::RealVectorIdentityProjectionEvaluator::defaultCellSizes()
 {
     bounds_ = space_->as<RealVectorStateSpace>()->getBounds();
     cellSizes_.resize(getDimension());
-    for (unsigned int i = 0 ; i < cellSizes_.size() ; ++i)
+    for (unsigned int i = 0; i < cellSizes_.size(); ++i)
         cellSizes_[i] = (bounds_.high[i] - bounds_.low[i]) / magic::PROJECTION_DIMENSION_SPLITS;
 }
 
@@ -215,7 +220,8 @@ unsigned int ompl::base::RealVectorIdentityProjectionEvaluator::getDimension() c
     return space_->getDimension();
 }
 
-void ompl::base::RealVectorIdentityProjectionEvaluator::project(const State *state, EuclideanProjection &projection) const
+void ompl::base::RealVectorIdentityProjectionEvaluator::project(const State *state,
+                                                                EuclideanProjection &projection) const
 {
     memcpy(&projection(0), state->as<RealVectorStateSpace::StateType>()->values, copySize_);
 }

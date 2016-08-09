@@ -69,7 +69,7 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
     while (time::now() < end)
     {
         pp_.clearPlanners();
-        for (unsigned int i = 0 ; i < nt ; ++i)
+        for (unsigned int i = 0; i < nt; ++i)
         {
             planners_[np]->clear();
             pp_.addPlanner(planners_[np]);
@@ -105,7 +105,7 @@ ompl::base::PlannerStatus ompl::tools::OptimizePlan::solve(double solveTime, uns
     // if we have more time, and we have a geometric path, we try to simplify it
     if (time::now() < end && result)
     {
-        geometric::PathGeometric *p = dynamic_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
+        geometric::PathGeometric *p = dynamic_cast<geometric::PathGeometric *>(pdef->getSolutionPath().get());
         if (p)
         {
             geometric::PathSimplifier ps(getProblemDefinition()->getSpaceInformation());

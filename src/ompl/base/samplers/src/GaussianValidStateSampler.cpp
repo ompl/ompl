@@ -38,13 +38,21 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/tools/config/MagicConstants.h"
 
-ompl::base::GaussianValidStateSampler::GaussianValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocStateSampler()), stddev_(si->getMaximumExtent() * magic::STD_DEV_AS_SPACE_EXTENT_FRACTION)
+ompl::base::GaussianValidStateSampler::GaussianValidStateSampler(const SpaceInformation *si)
+  : ValidStateSampler(si)
+  , sampler_(si->allocStateSampler())
+  , stddev_(si->getMaximumExtent() * magic::STD_DEV_AS_SPACE_EXTENT_FRACTION)
 {
     name_ = "gaussian";
     params_.declareParam<double>("standard_deviation",
-        [this](double stddev) { setStdDev(stddev); },
-        [this] { return getStdDev(); });
+                                 [this](double stddev)
+                                 {
+                                     setStdDev(stddev);
+                                 },
+                                 [this]
+                                 {
+                                     return getStdDev();
+                                 });
 }
 
 bool ompl::base::GaussianValidStateSampler::sample(State *state)

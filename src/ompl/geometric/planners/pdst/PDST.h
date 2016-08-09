@@ -34,8 +34,6 @@
 
 /* Author: Jonathan Sobieski, Mark Moll */
 
-
-
 #ifndef OMPL_GEOMETRIC_PLANNERS_PDST_PDST_
 #define OMPL_GEOMETRIC_PLANNERS_PDST_PDST_
 
@@ -47,42 +45,38 @@
 #include "ompl/base/PlannerData.h"
 #include "ompl/datastructures/BinaryHeap.h"
 
-
 namespace ompl
 {
-
     namespace geometric
     {
-
-         /**
-            @anchor gPDST
-            @par Short description
-            PDST is a tree-based motion planner that attempts to detect
-            the less explored area of the space through the use of a
-            binary space partition of a projection of the state space.
-            Exploration is biased towards large cells with few path
-            segments. Unlike most tree-based planners which expand from
-            a randomly select endpoint of a path segment, PDST expands
-            from a randomly selected point along a deterministically
-            selected path segment. It is important to set the projection
-            the algorithm uses (setProjectionEvaluator() function). If
-            no projection is set, the planner will attempt to use the
-            default projection associated to the state space. An
-            exception is thrown if no default projection is available
-            either.
-            @par External documentation
-            A.M. Ladd and L.E. Kavraki, Motion planning in the presence
-            of drift, underactuation and discrete system changes, in
-            <em>Robotics: Science and Systems I</em>, pp. 233–241, MIT
-            Press, June 2005.
-            [[PDF]](http://www.roboticsproceedings.org/rss01/p31.pdf)
-         */
+        /**
+           @anchor gPDST
+           @par Short description
+           PDST is a tree-based motion planner that attempts to detect
+           the less explored area of the space through the use of a
+           binary space partition of a projection of the state space.
+           Exploration is biased towards large cells with few path
+           segments. Unlike most tree-based planners which expand from
+           a randomly select endpoint of a path segment, PDST expands
+           from a randomly selected point along a deterministically
+           selected path segment. It is important to set the projection
+           the algorithm uses (setProjectionEvaluator() function). If
+           no projection is set, the planner will attempt to use the
+           default projection associated to the state space. An
+           exception is thrown if no default projection is available
+           either.
+           @par External documentation
+           A.M. Ladd and L.E. Kavraki, Motion planning in the presence
+           of drift, underactuation and discrete system changes, in
+           <em>Robotics: Science and Systems I</em>, pp. 233–241, MIT
+           Press, June 2005.
+           [[PDF]](http://www.roboticsproceedings.org/rss01/p31.pdf)
+        */
 
         /// \brief Path-Directed Subdivision Tree
         class PDST : public base::Planner
         {
         public:
-
             PDST(const base::SpaceInformationPtr &si);
 
             ~PDST() override;
@@ -107,7 +101,7 @@ namespace ompl
             }
 
             /// Get the projection evaluator
-            const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
+            const base::ProjectionEvaluatorPtr &getProjectionEvaluator() const
             {
                 return projectionEvaluator_;
             }
@@ -149,14 +143,24 @@ namespace ompl
             {
             public:
                 Motion(base::State *startState, base::State *endState, double priority, Motion *parent)
-                    : startState_(startState), endState_(endState), priority_(priority),
-                    parent_(parent), cell_(nullptr), heapElement_(nullptr), isSplit_(false)
+                  : startState_(startState)
+                  , endState_(endState)
+                  , priority_(priority)
+                  , parent_(parent)
+                  , cell_(nullptr)
+                  , heapElement_(nullptr)
+                  , isSplit_(false)
                 {
                 }
                 /// constructor for start states
                 Motion(base::State *state)
-                    : startState_(state), endState_(state), priority_(0.),
-                    parent_(nullptr), cell_(nullptr), heapElement_(nullptr), isSplit_(false)
+                  : startState_(state)
+                  , endState_(state)
+                  , priority_(0.)
+                  , parent_(nullptr)
+                  , cell_(nullptr)
+                  , heapElement_(nullptr)
+                  , isSplit_(false)
                 {
                 }
                 /// The score is used to order motions in a priority queue.
@@ -168,38 +172,41 @@ namespace ompl
                 {
                     priority_ = priority_ * 2.0 + 1.0;
                 }
-                Motion* ancestor() const
+                Motion *ancestor() const
                 {
-                    Motion *m = const_cast<Motion*>(this);
+                    Motion *m = const_cast<Motion *>(this);
                     while (m->parent_ && m->parent_->endState_ == m->startState_)
                         m = m->parent_;
                     return m;
                 }
 
                 /// The starting point of this motion
-                ompl::base::State               *startState_;
+                ompl::base::State *startState_;
                 /// The state reached by this motion
-                ompl::base::State               *endState_;
+                ompl::base::State *endState_;
                 /// Priority for selecting this path to extend from in the future
-                double                           priority_;
+                double priority_;
                 /// Parent motion from which this one started
                 Motion *parent_;
                 /// pointer to the cell that contains this path
-                Cell*                            cell_;
+                Cell *cell_;
                 /// Handle to the element of the priority queue for this Motion
-                ompl::BinaryHeap<Motion*, MotionCompare>::Element *heapElement_;
+                ompl::BinaryHeap<Motion *, MotionCompare>::Element *heapElement_;
                 /// Whether this motion is the result of a split operation, in which case
                 /// its endState_ should not be freed.
-                bool                             isSplit_;
+                bool isSplit_;
             };
 
             /// Cell is a Binary Space Partition
             struct Cell
             {
-                Cell(double volume, ompl::base::RealVectorBounds bounds,
-                    unsigned int splitDimension = 0)
-                    : volume_(volume), splitDimension_(splitDimension), splitValue_(0.0),
-                    left_(nullptr), right_(nullptr), bounds_(std::move(bounds))
+                Cell(double volume, ompl::base::RealVectorBounds bounds, unsigned int splitDimension = 0)
+                  : volume_(volume)
+                  , splitDimension_(splitDimension)
+                  , splitValue_(0.0)
+                  , left_(nullptr)
+                  , right_(nullptr)
+                  , bounds_(std::move(bounds))
                 {
                 }
 
@@ -216,9 +223,9 @@ namespace ompl
                 void subdivide(unsigned int spaceDimension);
 
                 /// Locates the cell that this motion begins in
-                Cell* stab(const ompl::base::EuclideanProjection& projection) const
+                Cell *stab(const ompl::base::EuclideanProjection &projection) const
                 {
-                    Cell *containingCell = const_cast<Cell*>(this);
+                    Cell *containingCell = const_cast<Cell *>(this);
                     while (containingCell->left_ != nullptr)
                     {
                         if (projection[containingCell->splitDimension_] <= containingCell->splitValue_)
@@ -245,24 +252,23 @@ namespace ompl
                 }
 
                 /// Volume of the cell
-                double                       volume_;
+                double volume_;
                 /// Dimension along which the cell is split into smaller cells
-                unsigned int                 splitDimension_;
+                unsigned int splitDimension_;
                 /// The midpoint between the bounds_ at the splitDimension_
-                double                       splitValue_;
+                double splitValue_;
                 /// The left child cell (nullptr for a leaf cell)
-                Cell*                        left_;
+                Cell *left_;
                 /// The right child cell (nullptr for a leaf cell)
-                Cell*                        right_;
+                Cell *right_;
                 /// A bounding box for this cell
                 ompl::base::RealVectorBounds bounds_;
                 /// The motions contained in this cell. Motions are stored only in leaf nodes.
-                std::vector<Motion*>         motions_;
+                std::vector<Motion *> motions_;
             };
 
-
             /// Inserts the motion into the appropriate cell
-            void addMotion(Motion *motion, Cell *cell, base::State*, base::EuclideanProjection&);
+            void addMotion(Motion *motion, Cell *cell, base::State *, base::EuclideanProjection &);
             /// \brief Either update heap after motion's priority has changed or insert motion into heap.
             void updateHeapElement(Motion *motion)
             {
@@ -274,31 +280,31 @@ namespace ompl
             /// \brief Select a state along motion and propagate a new motion from there.
             /// Return nullptr if no valid motion could be generated starting at the
             /// selected state.
-            Motion* propagateFrom(Motion *motion, base::State*, base::State*);
+            Motion *propagateFrom(Motion *motion, base::State *, base::State *);
 
             void freeMemory();
 
             /// State sampler
-            ompl::base::StateSamplerPtr              sampler_;
+            ompl::base::StateSamplerPtr sampler_;
             // Random number generator
-            RNG                                      rng_;
+            RNG rng_;
             /// \brief Vector holding all of the start states supplied for the problem
             /// Each start motion is the root of its own tree of motions.
-            std::vector<Motion*>                     startMotions_;
+            std::vector<Motion *> startMotions_;
             /// Priority queue of motions
-            ompl::BinaryHeap<Motion*, MotionCompare> priorityQueue_;
+            ompl::BinaryHeap<Motion *, MotionCompare> priorityQueue_;
             /// Binary Space Partition
-            Cell*                                    bsp_;
+            Cell *bsp_;
             /// Projection evaluator for the problem
-            ompl::base::ProjectionEvaluatorPtr       projectionEvaluator_;
+            ompl::base::ProjectionEvaluatorPtr projectionEvaluator_;
             /// Number between 0 and 1 specifying the probability with which the goal should be sampled
-            double                                   goalBias_;
+            double goalBias_;
             /// Objected used to sample the goal
-            ompl::base::GoalSampleableRegion        *goalSampler_;
+            ompl::base::GoalSampleableRegion *goalSampler_;
             /// Iteration number and priority of the next Motion that will be generated
-            unsigned int                             iteration_;
+            unsigned int iteration_;
             /// Closest motion to the goal
-            Motion                                  *lastGoalMotion_;
+            Motion *lastGoalMotion_;
         };
     }
 }

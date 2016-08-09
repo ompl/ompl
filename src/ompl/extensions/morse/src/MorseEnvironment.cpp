@@ -41,10 +41,9 @@ void ompl::base::MorseEnvironment::getControlBounds(std::vector<double> &lower, 
     // copy out the control bounds data into separate upper and lower bound vectors
     lower.resize(controlDim_);
     upper.resize(controlDim_);
-    for (unsigned int i = 0; i < controlBounds_.size()/2; i++)
+    for (unsigned int i = 0; i < controlBounds_.size() / 2; i++)
     {
-        lower[i] = controlBounds_[2*i];
-        upper[i] = controlBounds_[2*i+1];
+        lower[i] = controlBounds_[2 * i];
+        upper[i] = controlBounds_[2 * i + 1];
     }
 }
-

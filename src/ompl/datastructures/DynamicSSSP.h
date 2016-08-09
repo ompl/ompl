@@ -75,20 +75,20 @@ namespace ompl
 
         // we assume that no two paths have the same cost,
         // this asssumption is valid when the nodes have some randomeness to them
-        void addEdge(std::size_t v, std::size_t w, double weight,
-            bool collectVertices, std::list<std::size_t>& affectedVertices)
+        void addEdge(std::size_t v, std::size_t w, double weight, bool collectVertices,
+                     std::list<std::size_t> &affectedVertices)
         {
             // first, add edge to graph
             WeightProperty edge_property(weight);
             boost::add_edge(v, w, edge_property, *graph_);
 
             // now, update distance_
-            assert ( (distance_[v] == std::numeric_limits<double>::infinity()) ||
-                (distance_[w] == std::numeric_limits<double>::infinity()) ||
-                    (distance_[w] + weight != distance_[w]) );
+            assert((distance_[v] == std::numeric_limits<double>::infinity()) ||
+                   (distance_[w] == std::numeric_limits<double>::infinity()) ||
+                   (distance_[w] + weight != distance_[w]));
 
-            std::vector<double> cost(   boost::num_vertices(*graph_),
-            std::numeric_limits<double>::infinity()); // initialize to n values of cost oo
+            std::vector<double> cost(boost::num_vertices(*graph_),
+                                     std::numeric_limits<double>::infinity());  // initialize to n values of cost oo
 
             IsLessThan isLessThan(cost);
             Queue queue(isLessThan);
@@ -128,7 +128,7 @@ namespace ompl
 
                         // insert to queue
                         auto qIter = queue.find(x);
-                        if (qIter != queue.end() )
+                        if (qIter != queue.end())
                             queue.erase(qIter);
 
                         cost[x] = distance_[x] - distance_[v];
@@ -140,8 +140,7 @@ namespace ompl
             return;
         }
 
-        void removeEdge(std::size_t v, std::size_t w,
-            bool collectVertices, std::list<std::size_t>& affectedVertices)
+        void removeEdge(std::size_t v, std::size_t w, bool collectVertices, std::list<std::size_t> &affectedVertices)
         {
             // first, remove edge from graph
             boost::remove_edge(v, w, *graph_);
@@ -155,7 +154,7 @@ namespace ompl
 
             while (!workSet.empty())
             {
-                //S elect and remove a vertex u from WorkSet
+                // S elect and remove a vertex u from WorkSet
                 std::size_t u = workSet.front();
                 workSet.pop_front();
 
@@ -175,7 +174,7 @@ namespace ompl
             // Phase 2: Determine new distances from affected vertices to source(G) and update SP(G).
             IsLessThan isLessThan(distance_);
             Queue queue(isLessThan);
-            for (auto set_iter = affectedVerticesSet.begin(); set_iter!= affectedVerticesSet.end(); ++set_iter)
+            for (auto set_iter = affectedVerticesSet.begin(); set_iter != affectedVerticesSet.end(); ++set_iter)
             {
                 std::size_t a = *set_iter;
                 distance_[a] = std::numeric_limits<double>::infinity();
@@ -201,7 +200,7 @@ namespace ompl
                     queue.insert(a);
             }
 
-            while(!queue.empty())
+            while (!queue.empty())
             {
                 // pop head of queue
                 std::size_t a = *queue.begin();
@@ -224,7 +223,7 @@ namespace ompl
 
                         // insert to queue
                         auto qIter = queue.find(c);
-                        if (qIter != queue.end() )
+                        if (qIter != queue.end())
                             queue.erase(qIter);
 
                         queue.insert(c);
@@ -244,13 +243,14 @@ namespace ompl
         {
             return parent_[u];
         }
+
     private:
         using WeightProperty = boost::property<boost::edge_weight_t, double>;
-        using Graph = boost::adjacency_list<boost::vecS, // container type for the edge list
-        boost::vecS,                                     // container type for the vertex list
-        boost::bidirectionalS,                           // directedS / undirectedS / bidirectionalS
-        std::size_t,                                     // vertex properties
-        WeightProperty>;                                 // edge properties
+        using Graph = boost::adjacency_list<boost::vecS,            // container type for the edge list
+                                            boost::vecS,            // container type for the vertex list
+                                            boost::bidirectionalS,  // directedS / undirectedS / bidirectionalS
+                                            std::size_t,            // vertex properties
+                                            WeightProperty>;        // edge properties
         using WeightMap = boost::property_map<Graph, boost::edge_weight_t>::type;
 
         static const int NO_ID = -1;
@@ -258,8 +258,7 @@ namespace ompl
         class IsLessThan
         {
         public:
-            IsLessThan(std::vector<double>& cost)
-                :cost_(cost)
+            IsLessThan(std::vector<double> &cost) : cost_(cost)
             {
             }
 
@@ -267,21 +266,22 @@ namespace ompl
             {
                 return (cost_[id1] < cost_[id2]);
             }
+
         private:
-            std::vector<double>& cost_;
-        }; //IsLessThan
+            std::vector<double> &cost_;
+        };  // IsLessThan
 
         using Queue = std::set<std::size_t, IsLessThan>;
         using QueueIter = Queue::iterator;
         using IntSet = std::unordered_set<std::size_t>;
         using IntSetIter = IntSet::iterator;
 
-        Graph*                                      graph_;
+        Graph *graph_;
         /// \brief distance from source which is node zero
-        std::vector<double>                         distance_;
+        std::vector<double> distance_;
         /// \brief parent of each node
-        std::vector<std::size_t>                    parent_;
-    };  //DynamicSSSP
+        std::vector<std::size_t> parent_;
+    };  // DynamicSSSP
 }
 
-#endif  //OMPL_DATASTRUCTURES_DYNAMICSSSP_H
+#endif  // OMPL_DATASTRUCTURES_DYNAMICSSSP_H

@@ -46,19 +46,16 @@ namespace ompl
 {
     namespace base
     {
-
         /**
          * Optimization objective that computes mechanical work between two states by following a vector field.
          */
         class VFMechanicalWorkOptimizationObjective : public ompl::base::MechanicalWorkOptimizationObjective
         {
-
         public:
-
             /** Constructor. */
             VFMechanicalWorkOptimizationObjective(const ompl::base::SpaceInformationPtr &si,
-                geometric::VFRRT::VectorField  vf)
-                : ompl::base::MechanicalWorkOptimizationObjective(si), vf_(std::move(vf))
+                                                  geometric::VFRRT::VectorField vf)
+              : ompl::base::MechanicalWorkOptimizationObjective(si), vf_(std::move(vf))
             {
             }
 
@@ -78,8 +75,7 @@ namespace ompl
                 Eigen::VectorXd qprime(vfdim);
 
                 for (unsigned int i = 0; i < vfdim; i++)
-                    qprime[i] = *space->getValueAddressAtIndex(s2, i)
-                        - *space->getValueAddressAtIndex(s1, i);
+                    qprime[i] = *space->getValueAddressAtIndex(s2, i) - *space->getValueAddressAtIndex(s1, i);
 
                 // Don't included negative work
                 double positiveCostAccrued = std::max(-(f.dot(qprime)), 0.);

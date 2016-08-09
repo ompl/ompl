@@ -45,12 +45,10 @@ namespace ompl
 {
     namespace control
     {
-
         /** \brief Uniform sampler for the R<sup>n</sup> state space */
         class RealVectorControlUniformSampler : public ControlSampler
         {
         public:
-
             /** \brief Constructor */
             RealVectorControlUniformSampler(const ControlSpace *space) : ControlSampler(space)
             {
@@ -63,12 +61,10 @@ namespace ompl
         class RealVectorControlSpace : public ControlSpace
         {
         public:
-
             /** \brief The definition of a control in R<sup>n</sup> */
             class ControlType : public Control
             {
             public:
-
                 /** \brief Access element i of values.  This does not
                     check whether the index is within bounds */
                 double operator[](unsigned int i) const
@@ -78,7 +74,7 @@ namespace ompl
 
                 /** \brief Access element i of values.  This does not
                     check whether the index is within bounds */
-                double& operator[](unsigned int i)
+                double &operator[](unsigned int i)
                 {
                     return values[i];
                 }
@@ -87,9 +83,10 @@ namespace ompl
                 double *values;
             };
 
-            /** \brief Constructor takes the state space the controls correspond to and the dimension of the space of controls, \e dim */
-            RealVectorControlSpace(const base::StateSpacePtr &stateSpace, unsigned int dim) :
-                ControlSpace(stateSpace), dimension_(dim), bounds_(dim), controlBytes_(dim * sizeof(double))
+            /** \brief Constructor takes the state space the controls correspond to and the dimension of the space of
+             * controls, \e dim */
+            RealVectorControlSpace(const base::StateSpacePtr &stateSpace, unsigned int dim)
+              : ControlSpace(stateSpace), dimension_(dim), bounds_(dim), controlBytes_(dim * sizeof(double))
             {
                 setName("RealVector" + getName());
                 type_ = CONTROL_SPACE_REAL_VECTOR;
@@ -101,7 +98,7 @@ namespace ompl
             void setBounds(const base::RealVectorBounds &bounds);
 
             /** \brief Get the bounds (min max values for each dimension) for the control */
-            const base::RealVectorBounds& getBounds() const
+            const base::RealVectorBounds &getBounds() const
             {
                 return bounds_;
             }
@@ -114,7 +111,7 @@ namespace ompl
 
             ControlSamplerPtr allocDefaultControlSampler() const override;
 
-            Control* allocControl() const override;
+            Control *allocControl() const override;
 
             void freeControl(Control *control) const override;
 
@@ -122,7 +119,7 @@ namespace ompl
 
             void printControl(const Control *control, std::ostream &out) const override;
 
-            double* getValueAddressAtIndex(Control *control, const unsigned int index) const override;
+            double *getValueAddressAtIndex(Control *control, const unsigned int index) const override;
 
             void printSettings(std::ostream &out) const override;
 
@@ -138,15 +135,14 @@ namespace ompl
             void deserialize(Control *ctrl, const void *serialization) const override;
 
         protected:
-
             /** \brief The dimension of the state space */
-            unsigned int           dimension_;
+            unsigned int dimension_;
 
             /** \brief The bounds on controls */
             base::RealVectorBounds bounds_;
 
         private:
-            std::size_t            controlBytes_;
+            std::size_t controlBytes_;
         };
     }
 }

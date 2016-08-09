@@ -42,13 +42,13 @@
 namespace ob = ompl::base;
 namespace oc = ompl::control;
 
-oc::LTLProblemDefinition::LTLProblemDefinition(const LTLSpaceInformationPtr& ltlsi)
-    : ob::ProblemDefinition(ltlsi), ltlsi_(ltlsi)
+oc::LTLProblemDefinition::LTLProblemDefinition(const LTLSpaceInformationPtr &ltlsi)
+  : ob::ProblemDefinition(ltlsi), ltlsi_(ltlsi)
 {
     createGoal();
 }
 
-void oc::LTLProblemDefinition::addLowerStartState(const ob::State* s)
+void oc::LTLProblemDefinition::addLowerStartState(const ob::State *s)
 {
     ob::ScopedState<ob::CompoundStateSpace> fullStart(si_);
     ltlsi_->getFullState(s, fullStart.get());
@@ -57,18 +57,17 @@ void oc::LTLProblemDefinition::addLowerStartState(const ob::State* s)
 
 ob::PathPtr oc::LTLProblemDefinition::getLowerSolutionPath() const
 {
-    PathControl* fullPath = static_cast<PathControl*>(getSolutionPath().get());
+    PathControl *fullPath = static_cast<PathControl *>(getSolutionPath().get());
     auto lowPath(std::make_shared<PathControl>(ltlsi_->getLowSpace()));
 
     if (fullPath->getStateCount() > 0)
     {
-        for(size_t i = 0; i < fullPath->getStateCount()-1; ++i)
-            lowPath->append(ltlsi_->getLowLevelState(fullPath->getState(i)),
-                            fullPath->getControl(i),
+        for (size_t i = 0; i < fullPath->getStateCount() - 1; ++i)
+            lowPath->append(ltlsi_->getLowLevelState(fullPath->getState(i)), fullPath->getControl(i),
                             fullPath->getControlDuration(i));
 
         // The last state does not have a control
-        lowPath->append(ltlsi_->getLowLevelState(fullPath->getState(fullPath->getStateCount()-1)));
+        lowPath->append(ltlsi_->getLowLevelState(fullPath->getState(fullPath->getStateCount() - 1)));
     }
 
     return lowPath;
@@ -79,13 +78,15 @@ void oc::LTLProblemDefinition::createGoal()
     class LTLGoal : public base::Goal
     {
     public:
-        LTLGoal(const LTLSpaceInformationPtr& ltlsi)
-            : ob::Goal(ltlsi), ltlsi_(ltlsi), prod_(ltlsi->getProductGraph()) {}
+        LTLGoal(const LTLSpaceInformationPtr &ltlsi) : ob::Goal(ltlsi), ltlsi_(ltlsi), prod_(ltlsi->getProductGraph())
+        {
+        }
         ~LTLGoal() override = default;
-        bool isSatisfied(const ob::State* s) const override
+        bool isSatisfied(const ob::State *s) const override
         {
             return prod_->isSolution(ltlsi_->getProdGraphState(s));
         }
+
     protected:
         const LTLSpaceInformationPtr ltlsi_;
         const ProductGraphPtr prod_;

@@ -46,15 +46,12 @@ namespace ompl
 {
     namespace control
     {
-
-
         /** \brief Abstract definition of a steered control sampler. It uses the
             steering function in a state propagator to find the controls that
             drive from one state to another. */
         class SteeredControlSampler : public DirectedControlSampler
         {
         public:
-
             /** \brief Constructor takes the state space to construct samples for as argument */
             SteeredControlSampler(const SpaceInformation *si) : DirectedControlSampler(si)
             {
@@ -65,18 +62,19 @@ namespace ompl
             unsigned int sampleTo(Control *control, const base::State *source, base::State *dest) override
             {
                 double duration;
-                if (!si_->getStatePropagator()->steer(source, dest, control, duration)) return 0;
+                if (!si_->getStatePropagator()->steer(source, dest, control, duration))
+                    return 0;
                 unsigned int steps = std::floor(duration / si_->getPropagationStepSize() + 0.5);
                 return si_->propagateWhileValid(source, control, steps, dest);
             }
 
-            unsigned int sampleTo(Control *control, const Control *previous, const base::State *source, base::State *dest) override
+            unsigned int sampleTo(Control *control, const Control *previous, const base::State *source,
+                                  base::State *dest) override
             {
                 return sampleTo(control, source, dest);
             }
         };
     }
 }
-
 
 #endif

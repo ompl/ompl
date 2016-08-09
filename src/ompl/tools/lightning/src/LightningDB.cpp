@@ -44,8 +44,7 @@
 // Boost
 #include <boost/filesystem.hpp>
 
-ompl::tools::LightningDB::LightningDB(const base::StateSpacePtr &space)
-    : numUnsavedPaths_(0)
+ompl::tools::LightningDB::LightningDB(const base::StateSpacePtr &space) : numUnsavedPaths_(0)
 {
     si_ = std::make_shared<base::SpaceInformation>(space);
 
@@ -53,7 +52,10 @@ ompl::tools::LightningDB::LightningDB(const base::StateSpacePtr &space)
     nn_ = std::make_shared<ompl::NearestNeighborsSqrtApprox<ompl::base::PlannerDataPtr>>();
 
     // Use our custom distance function for nearest neighbor tree
-    nn_->setDistanceFunction([this] (const ompl::base::PlannerDataPtr &a, const ompl::base::PlannerDataPtr &b) { return distanceFunction(a, b); });
+    nn_->setDistanceFunction([this](const ompl::base::PlannerDataPtr &a, const ompl::base::PlannerDataPtr &b)
+                             {
+                                 return distanceFunction(a, b);
+                             });
 
     // Load the PlannerData instance to be used for searching
     nnSearchKey_ = std::make_shared<ompl::base::PlannerData>(si_);
@@ -73,7 +75,7 @@ bool ompl::tools::LightningDB::load(const std::string &fileName)
         OMPL_ERROR("Empty filename passed to save function");
         return false;
     }
-    if ( !boost::filesystem::exists( fileName ) )
+    if (!boost::filesystem::exists(fileName))
     {
         OMPL_WARN("Database file does not exist: %s", fileName.c_str());
         return false;
@@ -119,7 +121,7 @@ bool ompl::tools::LightningDB::load(const std::string &fileName)
     return true;
 }
 
-void ompl::tools::LightningDB::addPath(ompl::geometric::PathGeometric& solutionPath, double &insertionTime)
+void ompl::tools::LightningDB::addPath(ompl::geometric::PathGeometric &solutionPath, double &insertionTime)
 {
     // Benchmark runtime
     time::point startTime = time::now();
@@ -135,9 +137,9 @@ void ompl::tools::LightningDB::addPathHelper(ompl::geometric::PathGeometric &sol
     auto plannerData(std::make_shared<ompl::base::PlannerData>(si_));
 
     // Add the states to one nodes files
-    for (auto & i : solutionPath.getStates())
+    for (auto &i : solutionPath.getStates())
     {
-        ompl::base::PlannerDataVertex vert( i ); // TODO tag?
+        ompl::base::PlannerDataVertex vert(i);  // TODO tag?
 
         plannerData->addVertex(vert);
     }
@@ -216,8 +218,9 @@ void ompl::tools::LightningDB::getAllPlannerDatas(std::vector<ompl::base::Planne
     OMPL_DEBUG("Number of paths found: %d", plannerDatas.size());
 }
 
-std::vector<ompl::base::PlannerDataPtr> ompl::tools::LightningDB::findNearestStartGoal(
-    int nearestK, const base::State *start, const base::State *goal)
+std::vector<ompl::base::PlannerDataPtr> ompl::tools::LightningDB::findNearestStartGoal(int nearestK,
+                                                                                       const base::State *start,
+                                                                                       const base::State *goal)
 {
     // Fill in our pre-made PlannerData instance with the new start and goal states to be searched for
     if (nnSearchKey_->numVertices() == 2)
@@ -230,7 +233,7 @@ std::vector<ompl::base::PlannerDataPtr> ompl::tools::LightningDB::findNearestSta
         nnSearchKey_->addVertex(ompl::base::PlannerDataVertex(start));
         nnSearchKey_->addVertex(ompl::base::PlannerDataVertex(goal));
     }
-    assert( nnSearchKey_->numVertices() == 2);
+    assert(nnSearchKey_->numVertices() == 2);
 
     std::vector<ompl::base::PlannerDataPtr> nearest;
     nn_->nearestK(nnSearchKey_, nearestK, nearest);
@@ -238,16 +241,17 @@ std::vector<ompl::base::PlannerDataPtr> ompl::tools::LightningDB::findNearestSta
     return nearest;
 }
 
-double ompl::tools::LightningDB::distanceFunction(const ompl::base::PlannerDataPtr& a, const ompl::base::PlannerDataPtr& b) const
+double ompl::tools::LightningDB::distanceFunction(const ompl::base::PlannerDataPtr &a,
+                                                  const ompl::base::PlannerDataPtr &b) const
 {
     // Bi-directional implementation - check path b from [start, goal] and [goal, start]
     return std::min(
         // [ a.start, b.start] + [a.goal + b.goal]
         si_->distance(a->getVertex(0).getState(), b->getVertex(0).getState()) +
-        si_->distance(a->getVertex(a->numVertices()-1).getState(), b->getVertex(b->numVertices()-1).getState()),
+            si_->distance(a->getVertex(a->numVertices() - 1).getState(), b->getVertex(b->numVertices() - 1).getState()),
         // [ a.start, b.goal] + [a.goal + b.start]
-        si_->distance(a->getVertex(0).getState(), b->getVertex(b->numVertices()-1).getState()) +
-        si_->distance(a->getVertex(a->numVertices()-1).getState(), b->getVertex(0).getState()));
+        si_->distance(a->getVertex(0).getState(), b->getVertex(b->numVertices() - 1).getState()) +
+            si_->distance(a->getVertex(a->numVertices() - 1).getState(), b->getVertex(0).getState()));
 }
 
 std::size_t ompl::tools::LightningDB::getExperiencesCount() const
@@ -265,7 +269,7 @@ std::size_t ompl::tools::LightningDB::getStatesCount() const
     nn_->list(plannerDatas);
 
     // Start saving each planner data object
-    for (auto & plannerData : plannerDatas)
+    for (auto &plannerData : plannerDatas)
     {
         statesCount += plannerData->numVertices();
     }

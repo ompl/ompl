@@ -43,7 +43,7 @@
 #elif defined(_MSC_VER)
 #define OMPL_DEPRECATED __declspec(deprecated)
 #elif defined(__clang__)
-#define OMPL_DEPRECATED  __attribute__((deprecated("OMPL: Use of this method is deprecated")))
+#define OMPL_DEPRECATED __attribute__((deprecated("OMPL: Use of this method is deprecated")))
 #else
 #define OMPL_DEPRECATED /* Nothing */
 #endif

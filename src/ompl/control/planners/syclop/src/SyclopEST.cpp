@@ -67,19 +67,17 @@ void ompl::control::SyclopEST::getPlannerData(base::PlannerData &data) const
         if (motion->parent)
         {
             if (data.hasControls())
-                data.addEdge (base::PlannerDataVertex(motion->parent->state),
-                              base::PlannerDataVertex(motion->state),
-                              control::PlannerDataEdgeControl (motion->control, motion->steps * delta));
+                data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state),
+                             control::PlannerDataEdgeControl(motion->control, motion->steps * delta));
             else
-                data.addEdge (base::PlannerDataVertex(motion->parent->state),
-                              base::PlannerDataVertex(motion->state));
+                data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state));
         }
         else
-            data.addStartVertex (base::PlannerDataVertex(motion->state));
+            data.addStartVertex(base::PlannerDataVertex(motion->state));
     }
 }
 
-ompl::control::Syclop::Motion* ompl::control::SyclopEST::addRoot(const base::State *s)
+ompl::control::Syclop::Motion *ompl::control::SyclopEST::addRoot(const base::State *s)
 {
     auto *motion = new Motion(siC_);
     si_->copyState(motion->state, s);
@@ -88,14 +86,15 @@ ompl::control::Syclop::Motion* ompl::control::SyclopEST::addRoot(const base::Sta
     return motion;
 }
 
-void ompl::control::SyclopEST::selectAndExtend(Region &region, std::vector<Motion*>& newMotions)
+void ompl::control::SyclopEST::selectAndExtend(Region &region, std::vector<Motion *> &newMotions)
 {
-    Motion *treeMotion = region.motions[rng_.uniformInt(0, region.motions.size()-1)];
+    Motion *treeMotion = region.motions[rng_.uniformInt(0, region.motions.size() - 1)];
     Control *rctrl = siC_->allocControl();
     base::State *newState = si_->allocState();
 
     controlSampler_->sample(rctrl, treeMotion->state);
-    unsigned int duration = controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
+    unsigned int duration =
+        controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
     duration = siC_->propagateWhileValid(treeMotion->state, rctrl, duration, newState);
 
     if (duration >= siC_->getMinControlDuration())

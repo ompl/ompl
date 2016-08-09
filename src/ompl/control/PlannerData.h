@@ -61,25 +61,36 @@ namespace ompl
         {
         public:
             /// \brief Constructor.  Accepts a control pointer and a duration.
-            PlannerDataEdgeControl(const Control *c, double duration) : PlannerDataEdge(), c_(c), duration_(duration) {}
+            PlannerDataEdgeControl(const Control *c, double duration) : PlannerDataEdge(), c_(c), duration_(duration)
+            {
+            }
             /// \brief Copy constructor.
-            PlannerDataEdgeControl(const PlannerDataEdgeControl &rhs) : PlannerDataEdge(), c_(rhs.c_), duration_(rhs.duration_) {}
+            PlannerDataEdgeControl(const PlannerDataEdgeControl &rhs)
+              : PlannerDataEdge(), c_(rhs.c_), duration_(rhs.duration_)
+            {
+            }
 
             ~PlannerDataEdgeControl() override = default;
 
-            base::PlannerDataEdge* clone() const override
+            base::PlannerDataEdge *clone() const override
             {
-                return static_cast<base::PlannerDataEdge*>(new PlannerDataEdgeControl(*this));
+                return static_cast<base::PlannerDataEdge *>(new PlannerDataEdgeControl(*this));
             }
 
             /// \brief Return the control associated with this edge.
-            const Control* getControl() const { return c_; }
+            const Control *getControl() const
+            {
+                return c_;
+            }
             /// \brief Return the duration associated with this edge.
-            double getDuration() const { return duration_; }
+            double getDuration() const
+            {
+                return duration_;
+            }
 
             bool operator==(const PlannerDataEdge &rhs) const override
             {
-                const PlannerDataEdgeControl *rhsc = static_cast<const PlannerDataEdgeControl*> (&rhs);
+                const PlannerDataEdgeControl *rhsc = static_cast<const PlannerDataEdgeControl *>(&rhs);
                 if (c_ == rhsc->c_)
                     return static_cast<const PlannerDataEdge>(*this) == rhs;
                 else
@@ -91,13 +102,13 @@ namespace ompl
             friend class PlannerDataStorage;
             friend class PlannerData;
 
-            PlannerDataEdgeControl() : PlannerDataEdge(), c_(nullptr) {};
+            PlannerDataEdgeControl() : PlannerDataEdge(), c_(nullptr){};
 
             template <class Archive>
             void serialize(Archive &ar, const unsigned int /*version*/)
             {
-                ar & boost::serialization::base_object<base::PlannerDataEdge>(*this);
-                ar & duration_;
+                ar &boost::serialization::base_object<base::PlannerDataEdge>(*this);
+                ar &duration_;
                 // Serializing the control is handled by control::PlannerDataStorage
             }
 
@@ -111,7 +122,6 @@ namespace ompl
         class PlannerData : public base::PlannerData
         {
         public:
-
             /// \brief Constructor.  Accepts a SpaceInformationPtr for the space planned in.
             PlannerData(const SpaceInformationPtr &siC);
             /// \brief Destructor.
@@ -145,17 +155,17 @@ namespace ompl
             void decoupleFromPlanner() override;
 
             /// \brief Return the instance of SpaceInformation used in this PlannerData
-            const SpaceInformationPtr& getSpaceInformation() const;
+            const SpaceInformationPtr &getSpaceInformation() const;
 
             /// \brief Returns true if this PlannerData instance has controls associated with it
             bool hasControls() const override;
 
         protected:
             /// \brief The instance of control::SpaceInformation associated with this data
-            SpaceInformationPtr  siC_;
+            SpaceInformationPtr siC_;
             /// \brief A list of controls that are allocated during the decoupleFromPlanner method.
             /// These controls are freed by PlannerData in the destructor.
-            std::set<Control*> decoupledControls_;
+            std::set<Control *> decoupledControls_;
 
         private:
             void freeMemory();

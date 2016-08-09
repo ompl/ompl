@@ -38,7 +38,7 @@
 #ifndef OMPL_TOOLS_THUNDER_THUNDER_
 #define OMPL_TOOLS_THUNDER_THUNDER_
 
-#include <ompl/tools/experience/ExperienceSetup.h> // the parent class
+#include <ompl/tools/experience/ExperienceSetup.h>  // the parent class
 
 #include <ompl/tools/thunder/ThunderDB.h>
 #include <ompl/geometric/planners/experience/ThunderRetrieveRepair.h>
@@ -48,7 +48,7 @@
 #include <ompl/base/ProblemDefinition.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/ProblemDefinition.h>
-#include <ompl/base/StateSpace.h> // for storing to file
+#include <ompl/base/StateSpace.h>  // for storing to file
 
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/PathSimplifier.h>
@@ -60,7 +60,6 @@
 
 namespace ompl
 {
-
     namespace tools
     {
         /**
@@ -69,8 +68,10 @@ namespace ompl
            Thunder is an experience-based planning framework that learns to reduce computation time
            required to solve high-dimensional planning problems in varying environments.
            @par External documentation
-           Berenson, Dmitry, Pieter Abbeel, and Ken Goldberg: A robot path planning framework that learns from experience, in <em>Robotics and Automation (ICRA), 2012 IEEE International Conference on. IEEE</em>, 2012.
-           David Coleman, Ioan A. Sucan, Mark Moll, Kei Okada, Nikolaus Correll, "Experience-Based Planning with Sparse Roadmap Spanners"
+           Berenson, Dmitry, Pieter Abbeel, and Ken Goldberg: A robot path planning framework that learns from
+           experience, in <em>Robotics and Automation (ICRA), 2012 IEEE International Conference on. IEEE</em>, 2012.
+           David Coleman, Ioan A. Sucan, Mark Moll, Kei Okada, Nikolaus Correll, "Experience-Based Planning with Sparse
+           Roadmap Spanners"
            <a href="http://arxiv.org/pdf/1410.1950.pdf">[PDF]</a>
         */
 
@@ -85,24 +86,19 @@ namespace ompl
         class Thunder : public ompl::tools::ExperienceSetup
         {
         public:
-
             /** \brief Constructor needs the state space used for planning. */
-            explicit
-            Thunder(const base::SpaceInformationPtr &si);
+            explicit Thunder(const base::SpaceInformationPtr &si);
 
             /** \brief Constructor needs the state space used for planning.
              *  \param space - the state space to plan in
              */
-            explicit
-            Thunder(const base::StateSpacePtr &space);
+            explicit Thunder(const base::StateSpacePtr &space);
 
         private:
-
             /** \brief Shared constructor functions */
             void initialize();
 
         public:
-
             /** \brief Display debug data about potential available solutions */
             void printResultsInfo(std::ostream &out = std::cout) const override;
 
@@ -110,15 +106,15 @@ namespace ompl
             void printLogs(std::ostream &out = std::cout) const override;
 
             /** \brief Get the current planner */
-            ompl::base::PlannerPtr& getPlanner()
+            ompl::base::PlannerPtr &getPlanner()
             {
                 return planner_;
             }
 
             /** \brief Get a pointer to the retrieve repair planner */
-            ompl::geometric::ThunderRetrieveRepair& getRetrieveRepairPlanner() const
+            ompl::geometric::ThunderRetrieveRepair &getRetrieveRepairPlanner() const
             {
-                return static_cast<ompl::geometric::ThunderRetrieveRepair&>(*rrPlanner_);
+                return static_cast<ompl::geometric::ThunderRetrieveRepair &>(*rrPlanner_);
             }
 
             /** \brief Set the planner to use for repairing experience paths
@@ -126,7 +122,7 @@ namespace ompl
                 set, a default planner is set. */
             void setRepairPlanner(const base::PlannerPtr &planner) override
             {
-                static_cast<ompl::geometric::ThunderRetrieveRepair&>(*rrPlanner_).setRepairPlanner(planner);
+                static_cast<ompl::geometric::ThunderRetrieveRepair &>(*rrPlanner_).setRepairPlanner(planner);
             }
 
             /** \brief Set the planner allocator to use. This is only
@@ -165,7 +161,8 @@ namespace ompl
             std::size_t getExperiencesCount() const override;
 
             /** \brief Convert PlannerData to PathGeometric. Assume ordering of verticies is order of path */
-            void convertPlannerData(const ompl::base::PlannerDataPtr& plannerData, ompl::geometric::PathGeometric &path);
+            void convertPlannerData(const ompl::base::PlannerDataPtr &plannerData,
+                                    ompl::geometric::PathGeometric &path);
 
             /**
              * \brief If path1 and path2 have a better start/goal match when reverse, then reverse path2
@@ -182,29 +179,27 @@ namespace ompl
             bool doPostProcessing() override;
 
         protected:
-
             /**  The maintained experience planner instance */
-            base::PlannerPtr                             rrPlanner_;
+            base::PlannerPtr rrPlanner_;
 
             /**  A third planner used for testing dual-thread scratch-only planning */
-            base::PlannerPtr                             planner2_;
+            base::PlannerPtr planner2_;
 
             /**  Flag indicating whether dual thread scratch planning is enabled */
-            bool                                         dualThreadScratchEnabled_;
+            bool dualThreadScratchEnabled_;
 
             /** \brief Instance of parallel planning to use for computing solutions in parallel */
-            ompl::tools::ParallelPlanPtr                 pp_;
+            ompl::tools::ParallelPlanPtr pp_;
 
             /** \brief A shared object between all the planners for saving and loading previous experience */
-            ompl::tools::ThunderDBPtr                    experienceDB_;
+            ompl::tools::ThunderDBPtr experienceDB_;
 
             /** \brief Accumulated experiences to be later added to experience database */
-            std::vector<ompl::geometric::PathGeometric>  queuedSolutionPaths_;
+            std::vector<ompl::geometric::PathGeometric> queuedSolutionPaths_;
 
-        }; // end of class Thunder
+        };  // end of class Thunder
 
-    } // end of namespace
+    }  // end of namespace
 
-} // end of namespace
+}  // end of namespace
 #endif
-

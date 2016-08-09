@@ -42,7 +42,7 @@
 
 ompl::control::OpenDEStatePropagator::OpenDEStatePropagator(const SpaceInformationPtr &si) : StatePropagator(si)
 {
-    if (OpenDEStateSpace *oss = dynamic_cast<OpenDEStateSpace*>(si->getStateSpace().get()))
+    if (OpenDEStateSpace *oss = dynamic_cast<OpenDEStateSpace *>(si->getStateSpace().get()))
         env_ = oss->getEnvironment();
     else
         throw Exception("OpenDE State Space needed for OpenDEStatePropagator");
@@ -51,11 +51,10 @@ ompl::control::OpenDEStatePropagator::OpenDEStatePropagator(const SpaceInformati
 /// @cond IGNORE
 namespace ompl
 {
-
     struct CallbackParam
     {
         const control::OpenDEEnvironment *env;
-        bool                              collision;
+        bool collision;
     };
 
     void nearCallback(void *data, dGeomID o1, dGeomID o2)
@@ -63,12 +62,14 @@ namespace ompl
         dBodyID b1 = dGeomGetBody(o1);
         dBodyID b2 = dGeomGetBody(o2);
 
-        if (b1 && b2 && dAreConnectedExcluding(b1, b2, dJointTypeContact)) return;
+        if (b1 && b2 && dAreConnectedExcluding(b1, b2, dJointTypeContact))
+            return;
 
-        CallbackParam *cp = reinterpret_cast<CallbackParam*>(data);
+        CallbackParam *cp = reinterpret_cast<CallbackParam *>(data);
 
         const unsigned int maxContacts = cp->env->getMaxContacts(o1, o2);
-        if (maxContacts <= 0) return;
+        if (maxContacts <= 0)
+            return;
 
         auto *contact = new dContact[maxContacts];
 
@@ -87,7 +88,7 @@ namespace ompl
                 if (cp->env->verboseContacts_)
                 {
                     OMPL_DEBUG("%s contact between %s and %s", (valid ? "Valid" : "Invalid"),
-                             cp->env->getGeomName(o1).c_str(), cp->env->getGeomName(o1).c_str());
+                               cp->env->getGeomName(o1).c_str(), cp->env->getGeomName(o1).c_str());
                 }
             }
         }
@@ -97,7 +98,8 @@ namespace ompl
 }
 /// @endcond
 
-void ompl::control::OpenDEStatePropagator::propagate(const base::State *state, const Control *control, const double duration, base::State *result) const
+void ompl::control::OpenDEStatePropagator::propagate(const base::State *state, const Control *control,
+                                                     const double duration, base::State *result) const
 {
     env_->mutex_.lock();
 
@@ -108,9 +110,9 @@ void ompl::control::OpenDEStatePropagator::propagate(const base::State *state, c
     env_->applyControl(control->as<RealVectorControlSpace::ControlType>()->values);
 
     // created contacts as needed
-    CallbackParam cp = { env_.get(), false };
-    for (auto & collisionSpace : env_->collisionSpaces_)
-        dSpaceCollide(collisionSpace,  &cp, &nearCallback);
+    CallbackParam cp = {env_.get(), false};
+    for (auto &collisionSpace : env_->collisionSpaces_)
+        dSpaceCollide(collisionSpace, &cp, &nearCallback);
 
     // propagate one step forward
     dWorldQuickStep(env_->world_, (const dReal)duration);

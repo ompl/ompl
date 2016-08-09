@@ -37,7 +37,7 @@
 #include "ompl/base/samplers/informed/PathLengthDirectInfSampler.h"
 #include "ompl/util/Exception.h"
 #include "ompl/base/OptimizationObjective.h"
-//For ompl::base::GoalSampleableRegion, which both GoalState and GoalStates derive from:
+// For ompl::base::GoalSampleableRegion, which both GoalState and GoalStates derive from:
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/base/StateSpace.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
@@ -52,29 +52,32 @@ namespace ompl
     namespace base
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
-        //Public functions:
+        // Public functions:
 
         // The direct ellipsoid sampling class for path-length:
-        PathLengthDirectInfSampler::PathLengthDirectInfSampler(const ProblemDefinitionPtr& probDefn, unsigned int maxNumberCalls)
-          : InformedSampler(probDefn, maxNumberCalls),
-            informedIdx_(0u),
-            uninformedIdx_(0u)
+        PathLengthDirectInfSampler::PathLengthDirectInfSampler(const ProblemDefinitionPtr &probDefn,
+                                                               unsigned int maxNumberCalls)
+          : InformedSampler(probDefn, maxNumberCalls), informedIdx_(0u), uninformedIdx_(0u)
         {
             // Variables
             // The number of start states
             unsigned int numStarts;
             // The number of goal states
             unsigned numGoals;
-            // The foci of the PHSs as a std::vector of states. Goals must be nonconst, as we need to allocate them (unfortunately):
-            std::vector<const State*> startStates;
-            std::vector<State*> goalStates;
+            // The foci of the PHSs as a std::vector of states. Goals must be nonconst, as we need to allocate them
+            // (unfortunately):
+            std::vector<const State *> startStates;
+            std::vector<State *> goalStates;
 
             if (probDefn_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION) == false)
             {
-                throw Exception("PathLengthDirectInfSampler: The direct path-length informed sampler currently only supports goals that can be cast to a sampleable goal region (i.e., are countable sets).");
+                throw Exception("PathLengthDirectInfSampler: The direct path-length informed sampler currently only "
+                                "supports goals that can be cast to a sampleable goal region (i.e., are countable "
+                                "sets).");
             }
 
-            /// Note: We don't check that there is a cost-to-go heuristic set in the optimization objective, as this direct sampling is only for Euclidean distance.
+            /// Note: We don't check that there is a cost-to-go heuristic set in the optimization objective, as this
+            /// direct sampling is only for Euclidean distance.
 
             // Store the number of starts and goals
             numStarts = probDefn_->getStartStateCount();
@@ -83,7 +86,8 @@ namespace ompl
             // Sanity check that there is atleast one of each
             if (numStarts < 1u || numGoals < 1u)
             {
-                throw Exception("PathLengthDirectInfSampler: There must be at least 1 start and and 1 goal state when the informed sampler is created.");
+                throw Exception("PathLengthDirectInfSampler: There must be at least 1 start and and 1 goal state when "
+                                "the informed sampler is created.");
             }
 
             // Check that the provided statespace is compatible and extract the necessary indices.
@@ -103,21 +107,24 @@ namespace ompl
             else if (InformedSampler::space_->isCompound() == true)
             {
                 // Check that it is SE2 or SE3
-                if (InformedSampler::space_->getType() == STATE_SPACE_SE2 || InformedSampler::space_->getType() == STATE_SPACE_SE3)
+                if (InformedSampler::space_->getType() == STATE_SPACE_SE2 ||
+                    InformedSampler::space_->getType() == STATE_SPACE_SE3)
                 {
                     // Variable:
                     // An ease of use upcasted pointer to the space as a compound space
-                    const CompoundStateSpace* compoundSpace = InformedSampler::space_->as<CompoundStateSpace>();
+                    const CompoundStateSpace *compoundSpace = InformedSampler::space_->as<CompoundStateSpace>();
 
                     // Sanity check
                     if (compoundSpace->getSubspaceCount() != 2u)
                     {
                         // Pout
-                        throw Exception("The provided compound StateSpace is SE(2) or SE(3) but does not have exactly 2 subspaces.");
+                        throw Exception("The provided compound StateSpace is SE(2) or SE(3) but does not have exactly "
+                                        "2 subspaces.");
                     }
 
                     // Iterate over the state spaces, finding the real vector and SO components.
-                    for (unsigned int idx = 0u; idx < InformedSampler::space_->as<CompoundStateSpace>()->getSubspaceCount(); ++idx)
+                    for (unsigned int idx = 0u;
+                         idx < InformedSampler::space_->as<CompoundStateSpace>()->getSubspaceCount(); ++idx)
                     {
                         // Check if the space is real-vectored, SO2 or SO3
                         if (compoundSpace->getSubspace(idx)->getType() == STATE_SPACE_REAL_VECTOR)
@@ -135,7 +142,8 @@ namespace ompl
                         else
                         {
                             // Pout
-                            throw Exception("The provided compound StateSpace is SE(2) or SE(3) but contains a subspace that is not R^2, R^3, SO(2), or SO(3).");
+                            throw Exception("The provided compound StateSpace is SE(2) or SE(3) but contains a "
+                                            "subspace that is not R^2, R^3, SO(2), or SO(3).");
                         }
                     }
                 }
@@ -180,7 +188,6 @@ namespace ompl
                 startStates.push_back(probDefn_->getStartState(i));
             }
 
-
             // Extract the state of each goal one and place into the goal vector!
             for (unsigned int i = 0u; i < numGoals; ++i)
             {
@@ -200,14 +207,15 @@ namespace ompl
                 std::vector<double> startFocusVector = getInformedSubstate(startStates.at(i));
 
                 // Each goal
-                for (unsigned int j = 0u; j < numGoals; ++ j)
+                for (unsigned int j = 0u; j < numGoals; ++j)
                 {
                     // Variable
                     // The goal as a vector
                     std::vector<double> goalFocusVector = getInformedSubstate(goalStates.at(j));
 
                     // Create the definition of the PHS
-                    listPhsPtrs_.push_back(std::make_shared<ProlateHyperspheroid>(informedSubSpace_->getDimension(), &startFocusVector[0], &goalFocusVector[0]));
+                    listPhsPtrs_.push_back(std::make_shared<ProlateHyperspheroid>(
+                        informedSubSpace_->getDimension(), &startFocusVector[0], &goalFocusVector[0]));
                 }
             }
 
@@ -220,15 +228,14 @@ namespace ompl
 
             if (listPhsPtrs_.size() > 100u)
             {
-                OMPL_WARN("PathLengthDirectInfSampler: Rejection sampling is used in order to maintain uniform density in the presence of overlapping informed subsets. At some number of independent subsets, this will become prohibitively expensive. Current number of independent subsets: %d", listPhsPtrs_.size());
+                OMPL_WARN("PathLengthDirectInfSampler: Rejection sampling is used in order to maintain uniform density "
+                          "in the presence of overlapping informed subsets. At some number of independent subsets, "
+                          "this will become prohibitively expensive. Current number of independent subsets: %d",
+                          listPhsPtrs_.size());
             }
         }
 
-
-
         PathLengthDirectInfSampler::~PathLengthDirectInfSampler() = default;
-
-
 
         bool PathLengthDirectInfSampler::sampleUniform(State *statePtr, const Cost &maxCost)
         {
@@ -236,16 +243,15 @@ namespace ompl
             // The persistent iteration counter:
             unsigned int iter = 0u;
 
-            //Call the sampleUniform helper function with my iteration counter:
+            // Call the sampleUniform helper function with my iteration counter:
             return sampleUniform(statePtr, maxCost, &iter);
         }
-
-
 
         bool PathLengthDirectInfSampler::sampleUniform(State *statePtr, const Cost &minCost, const Cost &maxCost)
         {
             // Sample from the larger PHS until the sample does not lie within the smaller PHS.
-            // Since volume in a sphere/spheroid is proportionately concentrated near the surface, this isn't horribly inefficient, though a direct method would be better
+            // Since volume in a sphere/spheroid is proportionately concentrated near the surface, this isn't horribly
+            // inefficient, though a direct method would be better
 
             // Variable
             // Whether we were successful in creating an informed sample. Initially not:
@@ -267,7 +273,8 @@ namespace ompl
                     Cost sampledCost = heuristicSolnCost(statePtr);
 
                     // Check if the sample's cost is greater than or equal to the lower bound
-                    foundSample = InformedSampler::opt_->isCostEquivalentTo(minCost, sampledCost) || InformedSampler::opt_->isCostBetterThan(minCost, sampledCost);
+                    foundSample = InformedSampler::opt_->isCostEquivalentTo(minCost, sampledCost) ||
+                                  InformedSampler::opt_->isCostBetterThan(minCost, sampledCost);
                 }
                 // No else, no sample was found.
             }
@@ -276,14 +283,10 @@ namespace ompl
             return foundSample;
         }
 
-
-
         bool PathLengthDirectInfSampler::hasInformedMeasure() const
         {
             return true;
         }
-
-
 
         double PathLengthDirectInfSampler::getInformedMeasure(const Cost &currentCost) const
         {
@@ -292,14 +295,15 @@ namespace ompl
             double informedMeasure = 0.0;
 
             // The informed measure is then the sum of the measure of the individual PHSs for the given cost:
-            for (const auto & phsPtr : listPhsPtrs_)
+            for (const auto &phsPtr : listPhsPtrs_)
             {
-                //It is nonsensical for a PHS to have a transverse diameter less than the distance between its foci, so skip those that do
+                // It is nonsensical for a PHS to have a transverse diameter less than the distance between its foci, so
+                // skip those that do
                 if (currentCost.value() > phsPtr->getMinTransverseDiameter())
                 {
                     informedMeasure = informedMeasure + phsPtr->getPhsMeasure(currentCost.value());
                 }
-                //No else, this value is better than this ellipse. It will get removed later.
+                // No else, this value is better than this ellipse. It will get removed later.
             }
 
             // And if the space is compound, further multiplied by the measure of the uniformed subspace
@@ -312,8 +316,6 @@ namespace ompl
             return std::min(InformedSampler::space_->getMeasure(), informedMeasure);
         }
 
-
-
         Cost PathLengthDirectInfSampler::heuristicSolnCost(const State *statePtr) const
         {
             // Variable
@@ -323,9 +325,10 @@ namespace ompl
             Cost minCost = InformedSampler::opt_->infiniteCost();
 
             // Iterate over the separate subsets and return the minimum
-            for (const auto & phsPtr : listPhsPtrs_)
+            for (const auto &phsPtr : listPhsPtrs_)
             {
-                /** \todo Use a heuristic function for the full solution cost defined in OptimizationObjective or some new Heuristic class once said function is defined. */
+                /** \todo Use a heuristic function for the full solution cost defined in OptimizationObjective or some
+                 * new Heuristic class once said function is defined. */
                 minCost = InformedSampler::opt_->betterCost(minCost, Cost(phsPtr->getPathLength(&rawData[0])));
             }
 
@@ -333,46 +336,46 @@ namespace ompl
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
         /////////////////////////////////////////////////////////////////////////////////////////////
-        //Private functions:
+        // Private functions:
         bool PathLengthDirectInfSampler::sampleUniform(State *statePtr, const Cost &maxCost, unsigned int *iters)
         {
             // Variable
             // Whether we were successful in creating an informed sample. Initially not:
             bool foundSample = false;
 
-            //Whether we successfully returnes
+            // Whether we successfully returnes
             // Check if a solution path has been found
             if (InformedSampler::opt_->isFinite(maxCost) == false)
             {
                 // We don't have a solution yet, we sample from our basic sampler instead...
                 baseSampler_->sampleUniform(statePtr);
 
-                //Up our counter by one:
+                // Up our counter by one:
                 ++(*iters);
 
                 // Mark that we sampled:
                 foundSample = true;
             }
-            else // We have a solution
+            else  // We have a solution
             {
                 // Update the definitions of the PHSs
                 updatePhsDefinitions(maxCost);
 
                 // Sample from the PHSs.
 
-                // When the summed measure of the PHSes are suitably large, it makes more sense to just sample from the entire planning space and keep the sample if it lies in any PHS
+                // When the summed measure of the PHSes are suitably large, it makes more sense to just sample from the
+                // entire planning space and keep the sample if it lies in any PHS
                 // Check if the average measure is greater than half the domain's measure. Half is an arbitrary number.
-                if (informedSubSpace_->getMeasure() < summedMeasure_/static_cast<double>(listPhsPtrs_.size()))
+                if (informedSubSpace_->getMeasure() < summedMeasure_ / static_cast<double>(listPhsPtrs_.size()))
                 {
                     // The measure is large, sample from the entire world and keep if it's in any PHS
                     foundSample = sampleBoundsRejectPhs(statePtr, iters);
                 }
                 else
                 {
-                    // The measure is sufficiently small that we will directly sample the PHSes, with the weighting given by their relative measures
+                    // The measure is sufficiently small that we will directly sample the PHSes, with the weighting
+                    // given by their relative measures
                     foundSample = samplePhsRejectBounds(statePtr, iters);
                 }
             }
@@ -381,13 +384,11 @@ namespace ompl
             return foundSample;
         }
 
-
-
-        bool PathLengthDirectInfSampler::sampleBoundsRejectPhs(State* statePtr, unsigned int *iters)
+        bool PathLengthDirectInfSampler::sampleBoundsRejectPhs(State *statePtr, unsigned int *iters)
         {
             // Variable
             // Whether we've found a sample:
-            bool foundSample  = false;
+            bool foundSample = false;
 
             // Spend numIters_ iterations trying to find an informed sample:
             while (foundSample == false && *iters < InformedSampler::numIters_)
@@ -409,15 +410,14 @@ namespace ompl
             return foundSample;
         }
 
-
-
         bool PathLengthDirectInfSampler::samplePhsRejectBounds(State *statePtr, unsigned int *iters)
         {
             // Variable
             // Whether we were successful in creating an informed sample. Initially not:
             bool foundSample = false;
 
-            // Due to the possibility of overlap between multiple PHSs, we keep a sample with a probability of 1/K, where K is the number of PHSs the sample is in.
+            // Due to the possibility of overlap between multiple PHSs, we keep a sample with a probability of 1/K,
+            // where K is the number of PHSs the sample is in.
             while (foundSample == false && *iters < InformedSampler::numIters_)
             {
                 // Variables
@@ -432,7 +432,7 @@ namespace ompl
                 // Keep with probability 1/K
                 foundSample = keepSample(informedVector);
 
-                //If we're keeping it, then check if the state is in the problem domain:
+                // If we're keeping it, then check if the state is in the problem domain:
                 if (foundSample == true)
                 {
                     // Turn into a state of our full space
@@ -447,8 +447,6 @@ namespace ompl
             // Successful?
             return foundSample;
         }
-
-
 
         std::vector<double> PathLengthDirectInfSampler::getInformedSubstate(const State *statePtr) const
         {
@@ -469,12 +467,10 @@ namespace ompl
             return rawData;
         }
 
-
-
-        void PathLengthDirectInfSampler::createFullState(State * statePtr, const std::vector<double> &informedVector)
+        void PathLengthDirectInfSampler::createFullState(State *statePtr, const std::vector<double> &informedVector)
         {
-
-            // If there is an extra "uninformed" subspace, we need to add that to the state before converting the raw vector representation into a state....
+            // If there is an extra "uninformed" subspace, we need to add that to the state before converting the raw
+            // vector representation into a state....
             if (InformedSampler::space_->isCompound() == false)
             {
                 // No, space_ == informedSubSpace_
@@ -489,20 +485,20 @@ namespace ompl
                 State *uninformedState = uninformedSubSpace_->allocState();
 
                 // Copy the informed subspace into the state pointer
-                informedSubSpace_->copyFromReals(statePtr->as<CompoundState>()->components[informedIdx_], informedVector);
+                informedSubSpace_->copyFromReals(statePtr->as<CompoundState>()->components[informedIdx_],
+                                                 informedVector);
 
                 // Sample the uniformed subspace
                 uninformedSubSampler_->sampleUniform(uninformedState);
 
                 // Copy the informed subspace into the state pointer
-                uninformedSubSpace_->copyState(statePtr->as<CompoundState>()->components[uninformedIdx_], uninformedState);
+                uninformedSubSpace_->copyState(statePtr->as<CompoundState>()->components[uninformedIdx_],
+                                               uninformedState);
 
                 // Free the state
                 uninformedSubSpace_->freeState(uninformedState);
             }
         }
-
-
 
         void PathLengthDirectInfSampler::updatePhsDefinitions(const Cost &maxCost)
         {
@@ -515,7 +511,8 @@ namespace ompl
             summedMeasure_ = 0.0;
             while (phsIter != listPhsPtrs_.end())
             {
-                // Check if the specific PHS can ever be better than the given maxCost, i.e., if the distance between the foci is less than the current max cost
+                // Check if the specific PHS can ever be better than the given maxCost, i.e., if the distance between
+                // the foci is less than the current max cost
                 if ((*phsIter)->getMinTransverseDiameter() < maxCost.value())
                 {
                     // It can improve the solution, or it's the only PHS we have, update it
@@ -553,8 +550,6 @@ namespace ompl
             }
         }
 
-
-
         ompl::ProlateHyperspheroidPtr PathLengthDirectInfSampler::randomPhsPtr()
         {
             // Variable
@@ -579,11 +574,13 @@ namespace ompl
                 // The running measure
                 double runningRelativeMeasure = 0.0;
 
-                // The probability of using each PHS is weighted by it's measure. Therefore, if we iterate up the list of PHSs, the first one who's relative measure is greater than the PHS randomly selected
-                for (std::list<ompl::ProlateHyperspheroidPtr>::const_iterator phsIter = listPhsPtrs_.begin(); phsIter != listPhsPtrs_.end() && static_cast<bool>(rval) == false; ++phsIter)
+                // The probability of using each PHS is weighted by it's measure. Therefore, if we iterate up the list
+                // of PHSs, the first one who's relative measure is greater than the PHS randomly selected
+                for (std::list<ompl::ProlateHyperspheroidPtr>::const_iterator phsIter = listPhsPtrs_.begin();
+                     phsIter != listPhsPtrs_.end() && static_cast<bool>(rval) == false; ++phsIter)
                 {
                     // Update the running measure
-                    runningRelativeMeasure = runningRelativeMeasure + (*phsIter)->getPhsMeasure()/summedMeasure_;
+                    runningRelativeMeasure = runningRelativeMeasure + (*phsIter)->getPhsMeasure() / summedMeasure_;
 
                     // Check if it's now greater than the proportion of the summed measure
                     if (runningRelativeMeasure > randDbl)
@@ -599,9 +596,7 @@ namespace ompl
             return rval;
         }
 
-
-
-        bool PathLengthDirectInfSampler::keepSample(const std::vector<double>& informedVector)
+        bool PathLengthDirectInfSampler::keepSample(const std::vector<double> &informedVector)
         {
             // Variable
             // The return value, do we keep this sample? Start true.
@@ -619,23 +614,21 @@ namespace ompl
                 double randDbl = rng_.uniform01();
 
                 // Keep the sample if the random number is less than 1/K
-                keep = (randDbl <= 1.0/static_cast<double>(numIn));
+                keep = (randDbl <= 1.0 / static_cast<double>(numIn));
             }
             // No else, keep is true by default.
 
             return keep;
         }
 
-
-
-        bool PathLengthDirectInfSampler::isInAnyPhs(const std::vector<double>& informedVector) const
+        bool PathLengthDirectInfSampler::isInAnyPhs(const std::vector<double> &informedVector) const
         {
             // Variable
             // The return value, whether the given state is in any PHS
             bool inPhs = false;
 
             // Iterate over the list, stopping as soon as we get our first true
-            for (auto phsIter = listPhsPtrs_.begin(); phsIter != listPhsPtrs_.end() && inPhs == false; ++ phsIter)
+            for (auto phsIter = listPhsPtrs_.begin(); phsIter != listPhsPtrs_.end() && inPhs == false; ++phsIter)
             {
                 inPhs = isInPhs(*phsIter, informedVector);
             }
@@ -643,23 +636,20 @@ namespace ompl
             return inPhs;
         }
 
-
-
-        bool PathLengthDirectInfSampler::isInPhs(const ProlateHyperspheroidCPtr &phsCPtr, const std::vector<double> &informedVector) const
+        bool PathLengthDirectInfSampler::isInPhs(const ProlateHyperspheroidCPtr &phsCPtr,
+                                                 const std::vector<double> &informedVector) const
         {
             return phsCPtr->isInPhs(&informedVector[0]);
         }
 
-
-
-        unsigned int PathLengthDirectInfSampler::numberOfPhsInclusions(const std::vector<double>& informedVector) const
+        unsigned int PathLengthDirectInfSampler::numberOfPhsInclusions(const std::vector<double> &informedVector) const
         {
             // Variable
             // The return value, the number of PHSs the vector is in
             unsigned int numInclusions = 0u;
 
             // Iterate over the list counting
-            for (const auto & phsPtr : listPhsPtrs_)
+            for (const auto &phsPtr : listPhsPtrs_)
             {
                 // Conditionally increment
                 if (phsPtr->isInPhs(&informedVector[0]) == true)
@@ -672,5 +662,5 @@ namespace ompl
             return numInclusions;
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
-    }; // base
-};  // ompl
+    };  // base
+};      // ompl

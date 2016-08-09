@@ -43,12 +43,10 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief The lower and upper bounds for an R<sup>n</sup> space */
         class RealVectorBounds
         {
         public:
-
             /** \brief Constructor; \e dim represents the dimension of the space these bounds are for. */
             RealVectorBounds(unsigned int dim)
             {
@@ -73,7 +71,8 @@ namespace ompl
             /** \brief Compute the volume of the space enclosed by the bounds */
             double getVolume() const;
 
-            /** \brief Get the difference between the high and low bounds for each dimension: result[i] = high[i] - low[i] */
+            /** \brief Get the difference between the high and low bounds for each dimension: result[i] = high[i] -
+             * low[i] */
             std::vector<double> getDifference() const;
 
             /** \brief Check if the bounds are valid (same length for

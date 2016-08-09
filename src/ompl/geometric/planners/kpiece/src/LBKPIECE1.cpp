@@ -39,22 +39,31 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
 
-ompl::geometric::LBKPIECE1::LBKPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "LBKPIECE1"),
-                                                                             dStart_([this](Motion *m) { freeMotion(m); }),
-                                                                             dGoal_([this](Motion *m) { freeMotion(m); })
+ompl::geometric::LBKPIECE1::LBKPIECE1(const base::SpaceInformationPtr &si)
+  : base::Planner(si, "LBKPIECE1")
+  , dStart_([this](Motion *m)
+            {
+                freeMotion(m);
+            })
+  , dGoal_([this](Motion *m)
+           {
+               freeMotion(m);
+           })
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 
     minValidPathFraction_ = 0.5;
     maxDistance_ = 0.0;
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
+    connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
 
     Planner::declareParam<double>("range", this, &LBKPIECE1::setRange, &LBKPIECE1::getRange, "0.:1.:10000");
-    Planner::declareParam<double>("border_fraction", this, &LBKPIECE1::setBorderFraction, &LBKPIECE1::getBorderFraction, "0.:.05:1.");
-    Planner::declareParam<double>("min_valid_path_fraction", this, &LBKPIECE1::setMinValidPathFraction, &LBKPIECE1::getMinValidPathFraction);
+    Planner::declareParam<double>("border_fraction", this, &LBKPIECE1::setBorderFraction, &LBKPIECE1::getBorderFraction,
+                                  "0.:.05:1.");
+    Planner::declareParam<double>("min_valid_path_fraction", this, &LBKPIECE1::setMinValidPathFraction,
+                                  &LBKPIECE1::getMinValidPathFraction);
 }
 
- ompl::geometric::LBKPIECE1::~LBKPIECE1() = default;
+ompl::geometric::LBKPIECE1::~LBKPIECE1() = default;
 
 void ompl::geometric::LBKPIECE1::setup()
 {
@@ -73,7 +82,7 @@ void ompl::geometric::LBKPIECE1::setup()
 ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
+    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
     if (!goal)
     {
@@ -108,15 +117,16 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("%s: Starting planning with %d states already in datastructure", getName().c_str(), (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
+    OMPL_INFORM("%s: Starting planning with %d states already in datastructure", getName().c_str(),
+                (int)(dStart_.getMotionCount() + dGoal_.getMotionCount()));
 
     base::State *xstate = si_->allocState();
-    bool      startTree = true;
-    bool         solved = false;
+    bool startTree = true;
+    bool solved = false;
 
     while (ptc == false)
     {
-        Discretization<Motion> &disc      = startTree ? dStart_ : dGoal_;
+        Discretization<Motion> &disc = startTree ? dStart_ : dGoal_;
         startTree = !startTree;
         Discretization<Motion> &otherDisc = startTree ? dStart_ : dGoal_;
         disc.countIteration();
@@ -141,8 +151,8 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
             }
         }
 
-        Discretization<Motion>::Cell *ecell    = nullptr;
-        Motion                       *existing = nullptr;
+        Discretization<Motion>::Cell *ecell = nullptr;
+        Motion *existing = nullptr;
         disc.selectMotion(existing, ecell);
         assert(existing);
         sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
@@ -162,7 +172,8 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
         {
             Motion *connectOther = ocell->data->motions[rng_.uniformInt(0, ocell->data->motions.size() - 1)];
 
-            if (goal->isStartGoalPairValid(startTree ? connectOther->root : motion->root, startTree ? motion->root : connectOther->root))
+            if (goal->isStartGoalPairValid(startTree ? connectOther->root : motion->root,
+                                           startTree ? motion->root : connectOther->root))
             {
                 auto *connect = new Motion(si_);
                 si_->copyState(connect->state, connectOther->state);
@@ -181,14 +192,14 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
 
                     /* extract the motions and put them in solution vector */
 
-                    std::vector<Motion*> mpath1;
+                    std::vector<Motion *> mpath1;
                     while (motion != nullptr)
                     {
                         mpath1.push_back(motion);
                         motion = motion->parent;
                     }
 
-                    std::vector<Motion*> mpath2;
+                    std::vector<Motion *> mpath2;
                     while (connectOther != nullptr)
                     {
                         mpath2.push_back(connectOther);
@@ -200,9 +211,9 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
 
                     auto path(std::make_shared<PathGeometric>(si_));
                     path->getStates().reserve(mpath1.size() + mpath2.size());
-                    for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
+                    for (int i = mpath1.size() - 1; i >= 0; --i)
                         path->append(mpath1[i]->state);
-                    for (auto & i : mpath2)
+                    for (auto &i : mpath2)
                         path->append(i->state);
 
                     pdef_->addSolutionPath(path, false, 0.0, getName());
@@ -215,18 +226,18 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
 
     si_->freeState(xstate);
 
-    OMPL_INFORM("%s: Created %u (%u start + %u goal) states in %u cells (%u start (%u on boundary) + %u goal (%u on boundary))",
-                getName().c_str(),
-                dStart_.getMotionCount() + dGoal_.getMotionCount(), dStart_.getMotionCount(), dGoal_.getMotionCount(),
-                dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(), dStart_.getGrid().countExternal(),
-                dGoal_.getCellCount(), dGoal_.getGrid().countExternal());
+    OMPL_INFORM("%s: Created %u (%u start + %u goal) states in %u cells (%u start (%u on boundary) + %u goal (%u on "
+                "boundary))",
+                getName().c_str(), dStart_.getMotionCount() + dGoal_.getMotionCount(), dStart_.getMotionCount(),
+                dGoal_.getMotionCount(), dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(),
+                dStart_.getGrid().countExternal(), dGoal_.getCellCount(), dGoal_.getGrid().countExternal());
 
     return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 bool ompl::geometric::LBKPIECE1::isPathValid(Discretization<Motion> &disc, Motion *motion, base::State *temp)
 {
-    std::vector<Motion*> mpath;
+    std::vector<Motion *> mpath;
 
     /* construct the solution path */
     while (motion != nullptr)
@@ -235,11 +246,11 @@ bool ompl::geometric::LBKPIECE1::isPathValid(Discretization<Motion> &disc, Motio
         motion = motion->parent;
     }
 
-    std::pair<base::State*, double> lastValid;
+    std::pair<base::State *, double> lastValid;
     lastValid.first = temp;
 
     /* check the path */
-    for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+    for (int i = mpath.size() - 1; i >= 0; --i)
         if (!mpath[i]->valid)
         {
             if (si_->checkMotion(mpath[i]->parent->state, mpath[i]->state, lastValid))
@@ -281,7 +292,7 @@ void ompl::geometric::LBKPIECE1::removeMotion(Discretization<Motion> &disc, Moti
 
     if (motion->parent)
     {
-        for (unsigned int i = 0 ; i < motion->parent->children.size() ; ++i)
+        for (unsigned int i = 0; i < motion->parent->children.size(); ++i)
             if (motion->parent->children[i] == motion)
             {
                 motion->parent->children.erase(motion->parent->children.begin() + i);
@@ -290,7 +301,7 @@ void ompl::geometric::LBKPIECE1::removeMotion(Discretization<Motion> &disc, Moti
     }
 
     /* remove children */
-    for (auto & i : motion->children)
+    for (auto &i : motion->children)
     {
         i->parent = nullptr;
         removeMotion(disc, i);
@@ -298,7 +309,6 @@ void ompl::geometric::LBKPIECE1::removeMotion(Discretization<Motion> &disc, Moti
 
     freeMotion(motion);
 }
-
 
 void ompl::geometric::LBKPIECE1::freeMotion(Motion *motion)
 {
@@ -314,7 +324,7 @@ void ompl::geometric::LBKPIECE1::clear()
     sampler_.reset();
     dStart_.clear();
     dGoal_.clear();
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
+    connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
 }
 
 void ompl::geometric::LBKPIECE1::getPlannerData(base::PlannerData &data) const
@@ -324,5 +334,5 @@ void ompl::geometric::LBKPIECE1::getPlannerData(base::PlannerData &data) const
     dGoal_.getPlannerData(data, 2, false, nullptr);
 
     // Insert the edge connecting the two trees
-    data.addEdge (data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
+    data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }

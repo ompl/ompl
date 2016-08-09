@@ -40,13 +40,19 @@
 #include "ompl/base/samplers/MinimumClearanceValidStateSampler.h"
 #include "ompl/base/SpaceInformation.h"
 
-ompl::base::MinimumClearanceValidStateSampler::MinimumClearanceValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocStateSampler()), clearance_(1)
+ompl::base::MinimumClearanceValidStateSampler::MinimumClearanceValidStateSampler(const SpaceInformation *si)
+  : ValidStateSampler(si), sampler_(si->allocStateSampler()), clearance_(1)
 {
     name_ = "min_clearance";
     params_.declareParam<double>("min_obstacle_clearance",
-        [this](double c) { setMinimumObstacleClearance(c); },
-        [this] { return getMinimumObstacleClearance(); });
+                                 [this](double c)
+                                 {
+                                     setMinimumObstacleClearance(c);
+                                 },
+                                 [this]
+                                 {
+                                     return getMinimumObstacleClearance();
+                                 });
 }
 
 bool ompl::base::MinimumClearanceValidStateSampler::sample(State *state)

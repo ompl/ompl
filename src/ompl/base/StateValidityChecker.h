@@ -42,10 +42,8 @@
 
 namespace ompl
 {
-
     namespace base
     {
-
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(SpaceInformation);
         /// @endcond
@@ -68,7 +66,8 @@ namespace ompl
                 NONE = 0,
                 /// Exact clearance computation is available.
                 EXACT,
-                /// Some approximation of clearance is computed, but it is not clear if this is above or below the exact clearance.
+                /// Some approximation of clearance is computed, but it is not clear if this is above or below the exact
+                /// clearance.
                 APPROXIMATE,
                 /// A lower bound on clearance is computed.
                 BOUNDED_APPROXIMATE,
@@ -84,7 +83,7 @@ namespace ompl
 
             /** \brief Flag indicating that this state validity checker can return
                 a direction that moves a state away from being invalid. */
-            bool                     hasValidDirectionComputation;
+            bool hasValidDirectionComputation;
         };
 
         /** \brief Abstract definition for a class checking the
@@ -93,7 +92,6 @@ namespace ompl
         class StateValidityChecker
         {
         public:
-
             /** \brief Constructor */
             StateValidityChecker(SpaceInformation *si) : si_(si)
             {
@@ -106,21 +104,28 @@ namespace ompl
 
             virtual ~StateValidityChecker() = default;
 
-            /** \brief Return true if the state \e state is valid. Usually, this means at least collision checking. If it is
-                possible that ompl::base::StateSpace::interpolate() or ompl::control::ControlSpace::propagate() return states that
-                are outside of bounds, this function should also make a call to ompl::base::SpaceInformation::satisfiesBounds(). */
+            /** \brief Return true if the state \e state is valid. Usually, this means at least collision checking. If
+               it is
+                possible that ompl::base::StateSpace::interpolate() or ompl::control::ControlSpace::propagate() return
+               states that
+                are outside of bounds, this function should also make a call to
+               ompl::base::SpaceInformation::satisfiesBounds(). */
             virtual bool isValid(const State *state) const = 0;
 
-            /** \brief Return true if the state \e state is valid. In addition, set \e dist to the distance to the nearest invalid state. */
+            /** \brief Return true if the state \e state is valid. In addition, set \e dist to the distance to the
+             * nearest invalid state. */
             virtual bool isValid(const State *state, double &dist) const
             {
                 dist = clearance(state);
                 return isValid(state);
             }
 
-            /** \brief Return true if the state \e state is valid. In addition, set \e dist to the distance to the nearest
-                invalid state (using clearance()). If a direction that moves \e state away from being invalid is available,
-                a valid state in that direction is also set (\e validState). \e validStateAvailable is set to true if \e validState
+            /** \brief Return true if the state \e state is valid. In addition, set \e dist to the distance to the
+               nearest
+                invalid state (using clearance()). If a direction that moves \e state away from being invalid is
+               available,
+                a valid state in that direction is also set (\e validState). \e validStateAvailable is set to true if \e
+               validState
                 is updated. */
             virtual bool isValid(const State *state, double &dist, State *validState, bool &validStateAvailable) const
             {
@@ -130,7 +135,7 @@ namespace ompl
 
             /** \brief Report the distance to the nearest invalid state when starting from \e state. If the distance is
                 negative, the value of clearance is the penetration depth.*/
-            virtual double clearance(const State* /*state*/) const
+            virtual double clearance(const State * /*state*/) const
             {
                 return 0.0;
             }
@@ -138,33 +143,30 @@ namespace ompl
             /** \brief Report the distance to the nearest invalid state when starting from \e state, and if possible,
                 also specify a valid state \e validState in the direction that moves away from the colliding
                 state. The \e validStateAvailable flag is set to true if \e validState is updated. */
-            virtual double clearance(const State *state, State* /*validState*/, bool &validStateAvailable) const
+            virtual double clearance(const State *state, State * /*validState*/, bool &validStateAvailable) const
             {
                 validStateAvailable = false;
                 return clearance(state);
             }
 
             /** \brief Return the specifications (capabilities of this state validity checker) */
-            const StateValidityCheckerSpecs& getSpecs() const
+            const StateValidityCheckerSpecs &getSpecs() const
             {
                 return specs_;
             }
 
         protected:
-
             /** \brief The instance of space information this state validity checker operates on */
-            SpaceInformation         *si_;
+            SpaceInformation *si_;
 
             /** \brief The specifications of the state validity checker (its capabilities) */
             StateValidityCheckerSpecs specs_;
-
         };
 
         /** \brief The simplest state validity checker: all states are valid */
         class AllValidStateValidityChecker : public StateValidityChecker
         {
         public:
-
             /** \brief Constructor */
             AllValidStateValidityChecker(SpaceInformation *si) : StateValidityChecker(si)
             {
@@ -176,12 +178,11 @@ namespace ompl
             }
 
             /** \brief Always return true (all states are considered valid) */
-            bool isValid(const State * /* state */ ) const override
+            bool isValid(const State * /* state */) const override
             {
                 return true;
             }
         };
-
     }
 }
 

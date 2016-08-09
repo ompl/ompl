@@ -61,21 +61,25 @@ namespace ompl
             {
                 Vertex() = default;
                 Vertex(double vx, double vy);
-                bool operator==(const Vertex& v) const;
+                bool operator==(const Vertex &v) const;
                 double x, y;
             };
 
-            //A polygon is a list of vertices in counter-clockwise order.
+            // A polygon is a list of vertices in counter-clockwise order.
             struct Polygon
             {
-                Polygon(int nv) : pts(nv) {}
+                Polygon(int nv) : pts(nv)
+                {
+                }
                 virtual ~Polygon() = default;
                 std::vector<Vertex> pts;
             };
 
             struct Triangle : public Polygon
             {
-                Triangle() : Polygon(3) {}
+                Triangle() : Polygon(3)
+                {
+                }
                 ~Triangle() override = default;
                 std::vector<int> neighbors;
                 double volume;
@@ -86,44 +90,45 @@ namespace ompl
                 The triangulation will ignore any obstacles, given as a list of polygons.
                 The triangulation will respect the boundaries of any regions of interest, given as a list of
                 polygons. No two obstacles may overlap, and no two regions of interest may overlap.*/
-            TriangularDecomposition(
-                const base::RealVectorBounds &bounds,
-                std::vector<Polygon> holes = std::vector<Polygon>(),
-                std::vector<Polygon> intRegs = std::vector<Polygon>()
-            );
+            TriangularDecomposition(const base::RealVectorBounds &bounds,
+                                    std::vector<Polygon> holes = std::vector<Polygon>(),
+                                    std::vector<Polygon> intRegs = std::vector<Polygon>());
 
             ~TriangularDecomposition() override;
 
-            int getNumRegions() const override { return triangles_.size(); }
+            int getNumRegions() const override
+            {
+                return triangles_.size();
+            }
 
             double getRegionVolume(int triID) override;
 
-            void getNeighbors(int triID, std::vector<int>& neighbors) const override;
+            void getNeighbors(int triID, std::vector<int> &neighbors) const override;
 
-            int locateRegion(const base::State* s) const override;
+            int locateRegion(const base::State *s) const override;
 
-            void sampleFromRegion(int triID, RNG& rng, std::vector<double>& coord) const override;
+            void sampleFromRegion(int triID, RNG &rng, std::vector<double> &coord) const override;
 
             void setup();
 
-            void addHole(const Polygon& hole);
+            void addHole(const Polygon &hole);
 
-            void addRegionOfInterest(const Polygon& region);
+            void addRegionOfInterest(const Polygon &region);
 
             int getNumHoles() const;
 
             int getNumRegionsOfInterest() const;
 
-            const std::vector<Polygon>& getHoles() const;
+            const std::vector<Polygon> &getHoles() const;
 
-            const std::vector<Polygon>& getAreasOfInterest() const;
+            const std::vector<Polygon> &getAreasOfInterest() const;
 
             /** \brief Returns the region of interest that contains the given triangle ID.
                 Returns -1 if the triangle ID is not within a region of interest. */
             int getRegionOfInterestAt(int triID) const;
 
-            //Debug method: prints this decomposition as a list of polygons
-            void print(std::ostream& out) const;
+            // Debug method: prints this decomposition as a list of polygons
+            void print(std::ostream &out) const;
 
         protected:
             /** \brief Helper method to triangulate the space and return the number of triangles. */
@@ -142,45 +147,45 @@ namespace ompl
             class LocatorGrid : public GridDecomposition
             {
             public:
-                LocatorGrid(int len, const Decomposition *d) :
-                    GridDecomposition(len, d->getDimension(), d->getBounds()),
-                    triDecomp(d)
+                LocatorGrid(int len, const Decomposition *d)
+                  : GridDecomposition(len, d->getDimension(), d->getBounds()), triDecomp(d)
                 {
                 }
 
                 ~LocatorGrid() override = default;
 
-                void project(const base::State *s, std::vector<double>& coord) const override
+                void project(const base::State *s, std::vector<double> &coord) const override
                 {
                     triDecomp->project(s, coord);
                 }
 
-                void sampleFullState(const base::StateSamplerPtr& /*sampler*/, const std::vector<double>& /*coord*/, base::State* /*s*/) const override
+                void sampleFullState(const base::StateSamplerPtr & /*sampler*/, const std::vector<double> & /*coord*/,
+                                     base::State * /*s*/) const override
                 {
                 }
 
-                const std::vector<int>& locateTriangles(const base::State *s) const
+                const std::vector<int> &locateTriangles(const base::State *s) const
                 {
                     return regToTriangles_[locateRegion(s)];
                 }
 
-                void buildTriangleMap(const std::vector<Triangle>& triangles);
+                void buildTriangleMap(const std::vector<Triangle> &triangles);
 
             protected:
                 const Decomposition *triDecomp;
                 /* map from locator grid cell ID to set of triangles with which
                  * that cell intersects */
-                std::vector<std::vector<int> > regToTriangles_;
+                std::vector<std::vector<int>> regToTriangles_;
             };
 
             /** \brief Helper method to build a locator grid to help locate states in triangles. */
             void buildLocatorGrid();
 
             /** \brief Helper method to determine whether a point lies within a triangle. */
-            static bool triContains(const Triangle& tri, const std::vector<double>& coord);
+            static bool triContains(const Triangle &tri, const std::vector<double> &coord);
 
             /** \brief Helper method to generate a point within a convex polygon. */
-            static Vertex getPointInPoly(const Polygon& poly);
+            static Vertex getPointInPoly(const Polygon &poly);
 
             LocatorGrid locator;
         };

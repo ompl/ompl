@@ -41,24 +41,23 @@ namespace ompl
 {
     namespace control
     {
-
         /** \brief The type of a control space */
         enum ControlSpaceType
-            {
+        {
 
-                /** \brief Unset type; this is the default type */
-                CONTROL_SPACE_UNKNOWN     =  0,
+            /** \brief Unset type; this is the default type */
+            CONTROL_SPACE_UNKNOWN = 0,
 
-                /** \brief ompl::control::RealVectorControlSpace */
-                CONTROL_SPACE_REAL_VECTOR =  1,
+            /** \brief ompl::control::RealVectorControlSpace */
+            CONTROL_SPACE_REAL_VECTOR = 1,
 
-                /** \brief ompl::control::DiscreteControlSpace */
-                CONTROL_SPACE_DISCRETE    =  2,
+            /** \brief ompl::control::DiscreteControlSpace */
+            CONTROL_SPACE_DISCRETE = 2,
 
-                /** \brief Number of control space types; To add new types,
-                    use values that are larger than the count */
-                CONTROL_SPACE_TYPE_COUNT
-            };
+            /** \brief Number of control space types; To add new types,
+                use values that are larger than the count */
+            CONTROL_SPACE_TYPE_COUNT
+        };
     }
 }
 

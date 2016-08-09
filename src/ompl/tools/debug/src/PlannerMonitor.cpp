@@ -44,7 +44,10 @@ void ompl::tools::PlannerMonitor::startMonitor()
     if (monitorThread_)
         return;
     shouldMonitor_ = true;
-    monitorThread_.reset(new std::thread([this] { threadFunction(); }));
+    monitorThread_.reset(new std::thread([this]
+                                         {
+                                             threadFunction();
+                                         }));
 }
 
 void ompl::tools::PlannerMonitor::stopMonitor()
@@ -70,7 +73,8 @@ void ompl::tools::PlannerMonitor::threadFunction()
             continue;
         }
         out_.seekp(0);
-        out_ << "[T = " << static_cast<unsigned int>(time::seconds(time::now() - startTime) + 0.5) << " s]" << std::endl << std::endl;
+        out_ << "[T = " << static_cast<unsigned int>(time::seconds(time::now() - startTime) + 0.5) << " s]" << std::endl
+             << std::endl;
         out_ << "Planner " << planner_->getName() << ":" << std::endl;
         if (!planner_->isSetup())
         {
@@ -78,7 +82,7 @@ void ompl::tools::PlannerMonitor::threadFunction()
             return;
         }
         const base::Planner::PlannerProgressProperties &props = planner_->getPlannerProgressProperties();
-        for (const auto & prop : props)
+        for (const auto &prop : props)
         {
             out_ << "    \t * " << prop.first << " \t : " << prop.second() << std::endl;
         }

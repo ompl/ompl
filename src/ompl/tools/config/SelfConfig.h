@@ -53,14 +53,12 @@ namespace ompl
     /** \brief Includes various tools such as self config, benchmarking, etc. */
     namespace tools
     {
-
         /** \brief This class contains methods that automatically
             configure various parameters for motion planning. If expensive
             computation is performed, the results are cached. */
         class SelfConfig
         {
         public:
-
             /** \brief Construct an instance that can configure the space
                 encapsulated by \e si. Any information printed to the
                 console is prefixed by \e context */
@@ -68,14 +66,18 @@ namespace ompl
 
             ~SelfConfig();
 
-            /** \brief Get the probability of a sampled state being valid (calls base::SpaceInformation::probabilityOfValidState())*/
+            /** \brief Get the probability of a sampled state being valid (calls
+             * base::SpaceInformation::probabilityOfValidState())*/
             double getProbabilityOfValidState();
 
-            /** \brief Get the probability of a sampled state being valid (calls base::SpaceInformation::averageValidMotionLength())*/
+            /** \brief Get the probability of a sampled state being valid (calls
+             * base::SpaceInformation::averageValidMotionLength())*/
             double getAverageValidMotionLength();
 
-            /** \brief Instances of base::ValidStateSampler need a number of attempts to be specified -- the maximum number of times
-                a new sample is selected and checked to be valid. This function computes a number of \e attempts such that the probability
+            /** \brief Instances of base::ValidStateSampler need a number of attempts to be specified -- the maximum
+               number of times
+                a new sample is selected and checked to be valid. This function computes a number of \e attempts such
+               that the probability
                 of obtaining a valid sample is 90\% */
             void configureValidStateSamplingAttempts(unsigned int &attempts);
 
@@ -91,8 +93,8 @@ namespace ompl
             void print(std::ostream &out = std::cout) const;
 
             /** \brief Select a default nearest neighbor datastructure for the given space */
-            template<typename _T>
-            static NearestNeighbors<_T>* getDefaultNearestNeighbors(const base::Planner *planner)
+            template <typename _T>
+            static NearestNeighbors<_T> *getDefaultNearestNeighbors(const base::Planner *planner)
             {
                 const base::StateSpacePtr &space = planner->getSpaceInformation()->getStateSpace();
                 const base::PlannerSpecs &specs = planner->getSpecs();
@@ -111,12 +113,11 @@ namespace ompl
             static base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
 
         private:
-
             /// @cond IGNORE
             class SelfConfigImpl;
 
             SelfConfigImpl *impl_;
-            std::string     context_;
+            std::string context_;
             static std::mutex staticConstructorLock_;
             /// @endcond
         };

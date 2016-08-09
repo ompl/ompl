@@ -80,9 +80,9 @@ void ompl::geometric::ProjEST::clear()
 
 void ompl::geometric::ProjEST::freeMemory()
 {
-    for (const auto & it : tree_.grid)
+    for (const auto &it : tree_.grid)
     {
-        for (auto & motion : it.second->data.motions_)
+        for (auto &motion : it.second->data.motions_)
         {
             if (motion->state)
                 si_->freeState(motion->state);
@@ -94,8 +94,8 @@ void ompl::geometric::ProjEST::freeMemory()
 ompl::base::PlannerStatus ompl::geometric::ProjEST::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                   *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -115,9 +115,9 @@ ompl::base::PlannerStatus ompl::geometric::ProjEST::solve(const base::PlannerTer
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), tree_.size);
 
-    Motion *solution  = nullptr;
+    Motion *solution = nullptr;
     Motion *approxsol = nullptr;
-    double  approxdif = std::numeric_limits<double>::infinity();
+    double approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
 
     while (ptc == false)
@@ -129,9 +129,8 @@ ompl::base::PlannerStatus ompl::geometric::ProjEST::solve(const base::PlannerTer
         /* sample random state (with goal biasing) */
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(xstate);
-        else
-            if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
-                continue;
+        else if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
+            continue;
 
         if (si_->checkMotion(existing->state, xstate))
         {
@@ -170,7 +169,7 @@ ompl::base::PlannerStatus ompl::geometric::ProjEST::solve(const base::PlannerTer
         lastGoalMotion_ = solution;
 
         /* construct the solution path */
-        std::vector<Motion*> mpath;
+        std::vector<Motion *> mpath;
         while (solution != nullptr)
         {
             mpath.push_back(solution);
@@ -179,7 +178,7 @@ ompl::base::PlannerStatus ompl::geometric::ProjEST::solve(const base::PlannerTer
 
         /* set the solution path */
         auto path(std::make_shared<PathGeometric>(si_));
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1; i >= 0; --i)
             path->append(mpath[i]->state);
         pdef_->addSolutionPath(path, approximate, approxdif, getName());
         solved = true;
@@ -192,9 +191,9 @@ ompl::base::PlannerStatus ompl::geometric::ProjEST::solve(const base::PlannerTer
     return base::PlannerStatus(solved, approximate);
 }
 
-ompl::geometric::ProjEST::Motion* ompl::geometric::ProjEST::selectMotion()
+ompl::geometric::ProjEST::Motion *ompl::geometric::ProjEST::selectMotion()
 {
-    GridCell* cell = pdf_.sample(rng_.uniform01());
+    GridCell *cell = pdf_.sample(rng_.uniform01());
     return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : nullptr;
 }
 
@@ -202,11 +201,11 @@ void ompl::geometric::ProjEST::addMotion(Motion *motion)
 {
     Grid<MotionInfo>::Coord coord;
     projectionEvaluator_->computeCoordinates(motion->state, coord);
-    GridCell* cell = tree_.grid.getCell(coord);
+    GridCell *cell = tree_.grid.getCell(coord);
     if (cell)
     {
         cell->data.push_back(motion);
-        pdf_.update(cell->data.elem_, 1.0/cell->data.size());
+        pdf_.update(cell->data.elem_, 1.0 / cell->data.size());
     }
     else
     {
@@ -228,13 +227,12 @@ void ompl::geometric::ProjEST::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (auto & m : motionInfo)
-        for (auto & motion : m.motions_)
+    for (auto &m : motionInfo)
+        for (auto &motion : m.motions_)
         {
             if (motion->parent == nullptr)
                 data.addStartVertex(base::PlannerDataVertex(motion->state));
             else
-                data.addEdge(base::PlannerDataVertex(motion->parent->state),
-                             base::PlannerDataVertex(motion->state));
+                data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state));
         }
 }

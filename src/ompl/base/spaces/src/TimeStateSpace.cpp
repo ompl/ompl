@@ -42,8 +42,8 @@
 void ompl::base::TimeStateSampler::sampleUniform(State *state)
 {
     if (space_->as<TimeStateSpace>()->isBounded())
-        state->as<TimeStateSpace::StateType>()->position = rng_.uniformReal(space_->as<TimeStateSpace>()->getMinTimeBound(),
-                                                                               space_->as<TimeStateSpace>()->getMaxTimeBound());
+        state->as<TimeStateSpace::StateType>()->position = rng_.uniformReal(
+            space_->as<TimeStateSpace>()->getMinTimeBound(), space_->as<TimeStateSpace>()->getMaxTimeBound());
     else
         state->as<TimeStateSpace::StateType>()->position = 0.0;
 }
@@ -94,9 +94,8 @@ void ompl::base::TimeStateSpace::enforceBounds(State *state) const
     {
         if (state->as<StateType>()->position > maxTime_)
             state->as<StateType>()->position = maxTime_;
-        else
-            if (state->as<StateType>()->position < minTime_)
-                state->as<StateType>()->position = minTime_;
+        else if (state->as<StateType>()->position < minTime_)
+            state->as<StateType>()->position = minTime_;
     }
 }
 
@@ -133,13 +132,14 @@ double ompl::base::TimeStateSpace::distance(const State *state1, const State *st
 
 bool ompl::base::TimeStateSpace::equalStates(const State *state1, const State *state2) const
 {
-    return fabs(state1->as<StateType>()->position - state2->as<StateType>()->position) < std::numeric_limits<double>::epsilon() * 2.0;
+    return fabs(state1->as<StateType>()->position - state2->as<StateType>()->position) <
+           std::numeric_limits<double>::epsilon() * 2.0;
 }
 
 void ompl::base::TimeStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
-    state->as<StateType>()->position = from->as<StateType>()->position +
-        (to->as<StateType>()->position - from->as<StateType>()->position) * t;
+    state->as<StateType>()->position =
+        from->as<StateType>()->position + (to->as<StateType>()->position - from->as<StateType>()->position) * t;
 }
 
 ompl::base::StateSamplerPtr ompl::base::TimeStateSpace::allocDefaultStateSampler() const
@@ -147,14 +147,14 @@ ompl::base::StateSamplerPtr ompl::base::TimeStateSpace::allocDefaultStateSampler
     return std::make_shared<TimeStateSampler>(this);
 }
 
-ompl::base::State* ompl::base::TimeStateSpace::allocState() const
+ompl::base::State *ompl::base::TimeStateSpace::allocState() const
 {
     return new StateType();
 }
 
 void ompl::base::TimeStateSpace::freeState(State *state) const
 {
-    delete static_cast<StateType*>(state);
+    delete static_cast<StateType *>(state);
 }
 
 void ompl::base::TimeStateSpace::registerProjections()
@@ -162,7 +162,6 @@ void ompl::base::TimeStateSpace::registerProjections()
     class TimeDefaultProjection : public ProjectionEvaluator
     {
     public:
-
         TimeDefaultProjection(const StateSpace *space) : ProjectionEvaluator(space)
         {
         }
@@ -195,7 +194,7 @@ void ompl::base::TimeStateSpace::registerProjections()
     registerDefaultProjection(std::make_shared<TimeDefaultProjection>(this));
 }
 
-double* ompl::base::TimeStateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
+double *ompl::base::TimeStateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
     return index == 0 ? &(state->as<StateType>()->position) : nullptr;
 }

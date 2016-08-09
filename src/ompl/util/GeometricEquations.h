@@ -47,8 +47,9 @@ namespace ompl
     /** \brief The Lebesgue measure (i.e., "volume") of an n-dimensional ball with a unit radius. */
     double unitNBallMeasure(unsigned int N);
 
-    /** \brief The Lebesgue measure (i.e., "volume") of an n-dimensional prolate hyperspheroid (a symmetric hyperellipse) given as the distance between the foci and the transverse diameter */
+    /** \brief The Lebesgue measure (i.e., "volume") of an n-dimensional prolate hyperspheroid (a symmetric
+     * hyperellipse) given as the distance between the foci and the transverse diameter */
     double prolateHyperspheroidMeasure(unsigned int N, double dFoci, double dTransverse);
-} //ompl
+}  // ompl
 
 #endif

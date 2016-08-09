@@ -43,53 +43,47 @@ namespace ompl
 {
     namespace control
     {
-
         /** \brief Definition of an abstract control */
         class Control
         {
         private:
-
             /** \brief Disable copy-constructor */
-            Control(const Control&);
+            Control(const Control &);
 
             /** \brief Disable copy operator */
-            const Control& operator=(const Control&);
+            const Control &operator=(const Control &);
 
         protected:
-
             Control() = default;
 
             virtual ~Control() = default;
 
         public:
-
             /** \brief Cast this instance to a desired type. */
-            template<class T>
-            const T* as() const
+            template <class T>
+            const T *as() const
             {
                 /** \brief Make sure the type we are allocating is indeed a state */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, Control *>));
 
-                return static_cast<const T*>(this);
+                return static_cast<const T *>(this);
             }
 
             /** \brief Cast this instance to a desired type. */
-            template<class T>
-            T* as()
+            template <class T>
+            T *as()
             {
                 /** \brief Make sure the type we are allocating is indeed a state */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, Control *>));
 
-                return static_cast<T*>(this);
+                return static_cast<T *>(this);
             }
-
         };
 
         /** \brief Definition of a compound control */
         class CompoundControl : public Control
         {
         public:
-
             CompoundControl() : Control()
             {
             }
@@ -97,23 +91,23 @@ namespace ompl
             ~CompoundControl() override = default;
 
             /** \brief Cast a component of this instance to a desired type. */
-            template<class T>
-            const T* as(const unsigned int index) const
+            template <class T>
+            const T *as(const unsigned int index) const
             {
                 /** \brief Make sure the type we are allocating is indeed a state */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, Control *>));
 
-                return static_cast<const T*>(components[index]);
+                return static_cast<const T *>(components[index]);
             }
 
             /** \brief Cast a component of this instance to a desired type. */
-            template<class T>
-            T* as(const unsigned int index)
+            template <class T>
+            T *as(const unsigned int index)
             {
                 /** \brief Make sure the type we are allocating is indeed a state */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, Control*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, Control *>));
 
-                return static_cast<T*>(components[index]);
+                return static_cast<T *>(components[index]);
             }
 
             /** \brief The components that make up a compound control */

@@ -49,10 +49,8 @@
 
 namespace ompl
 {
-
     namespace control
     {
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::ControlSpace */
         OMPL_CLASS_FORWARD(ControlSpace);
@@ -66,8 +64,8 @@ namespace ompl
         {
         public:
             // non-copyable
-            ControlSpace(const ControlSpace&) = delete;
-            ControlSpace& operator=(const ControlSpace&) = delete;
+            ControlSpace(const ControlSpace &) = delete;
+            ControlSpace &operator=(const ControlSpace &) = delete;
 
             /** \brief Construct a control space, given the state space */
             ControlSpace(base::StateSpacePtr stateSpace);
@@ -75,27 +73,27 @@ namespace ompl
             virtual ~ControlSpace();
 
             /** \brief Cast this instance to a desired type. */
-            template<class T>
-            T* as()
+            template <class T>
+            T *as()
             {
                 /** \brief Make sure the type we are casting to is indeed a control space */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, ControlSpace*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, ControlSpace *>));
 
-                return static_cast<T*>(this);
+                return static_cast<T *>(this);
             }
 
             /** \brief Cast this instance to a desired type. */
-            template<class T>
-            const T* as() const
+            template <class T>
+            const T *as() const
             {
                 /** \brief Make sure the type we are casting to is indeed a control space */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, ControlSpace*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, ControlSpace *>));
 
-                return static_cast<const T*>(this);
+                return static_cast<const T *>(this);
             }
 
             /** \brief Get the name of the control space */
-            const std::string& getName() const;
+            const std::string &getName() const;
 
             /** \brief Set the name of the control space */
             void setName(const std::string &name);
@@ -109,7 +107,7 @@ namespace ompl
             }
 
             /** \brief Return the state space this control space depends on */
-            const base::StateSpacePtr& getStateSpace() const
+            const base::StateSpacePtr &getStateSpace() const
             {
                 return stateSpace_;
             }
@@ -118,7 +116,7 @@ namespace ompl
             virtual unsigned int getDimension() const = 0;
 
             /** \brief Allocate memory for a control */
-            virtual Control* allocControl() const = 0;
+            virtual Control *allocControl() const = 0;
 
             /** \brief Free the memory of a control */
             virtual void freeControl(Control *control) const = 0;
@@ -135,8 +133,10 @@ namespace ompl
             /** \brief Allocate the default control sampler */
             virtual ControlSamplerPtr allocDefaultControlSampler() const = 0;
 
-            /** \brief Allocate an instance of the control sampler for this space. This sampler will be allocated with the
-                sampler allocator that was previously specified by setControlSamplerAllocator() or, if no sampler allocator was specified,
+            /** \brief Allocate an instance of the control sampler for this space. This sampler will be allocated with
+               the
+                sampler allocator that was previously specified by setControlSamplerAllocator() or, if no sampler
+               allocator was specified,
                 allocDefaultControlSampler() is called */
             virtual ControlSamplerPtr allocControlSampler() const;
 
@@ -147,10 +147,12 @@ namespace ompl
             void clearControlSamplerAllocator();
 
             /** \brief Many controls contain a number of double values. This function provides a means to get the
-                memory address of a double value from a control \e control located at position \e index. The first double value
-                is returned for \e index = 0. If \e index is too large (does not point to any double values in the control),
+                memory address of a double value from a control \e control located at position \e index. The first
+               double value
+                is returned for \e index = 0. If \e index is too large (does not point to any double values in the
+               control),
                 the return value is nullptr. */
-            virtual double* getValueAddressAtIndex(Control *control, const unsigned int index) const;
+            virtual double *getValueAddressAtIndex(Control *control, const unsigned int index) const;
 
             /** \brief Print a control to a stream */
             virtual void printControl(const Control *control, std::ostream &out) const;
@@ -178,45 +180,43 @@ namespace ompl
             virtual bool isCompound() const;
 
         protected:
-
             /** \brief A type assigned for this control space */
-            int                     type_;
+            int type_;
 
             /** \brief The state space controls can be applied to */
-            base::StateSpacePtr     stateSpace_;
+            base::StateSpacePtr stateSpace_;
 
             /** \brief An optional control sampler allocator */
             ControlSamplerAllocator csa_;
 
         private:
-
             /** \brief The name of this control space */
-            std::string             name_;
+            std::string name_;
         };
 
         /** \brief A control space to allow the composition of control spaces */
         class CompoundControlSpace : public ControlSpace
         {
         public:
-
             /** \brief Define the type of control allocated by this control space */
             using ControlType = ompl::control::CompoundControl;
 
             /** \brief Constructor. The corresponding state space needs to be specified. */
-            CompoundControlSpace(const base::StateSpacePtr &stateSpace) : ControlSpace(stateSpace), componentCount_(0), locked_(false)
+            CompoundControlSpace(const base::StateSpacePtr &stateSpace)
+              : ControlSpace(stateSpace), componentCount_(0), locked_(false)
             {
             }
 
             ~CompoundControlSpace() override = default;
 
             /** \brief Cast a component of this instance to a desired type. */
-            template<class T>
-            T* as(const unsigned int index) const
+            template <class T>
+            T *as(const unsigned int index) const
             {
                 /** \brief Make sure the type we are casting to is indeed a control space */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, ControlSpace*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, ControlSpace *>));
 
-                return static_cast<T*>(getSubspace(index).get());
+                return static_cast<T *>(getSubspace(index).get());
             }
 
             /** \brief Adds a control space as a component of the compound control space. */
@@ -226,14 +226,14 @@ namespace ompl
             unsigned int getSubspaceCount() const;
 
             /** \brief Get a specific subspace from the compound control space */
-            const ControlSpacePtr& getSubspace(const unsigned int index) const;
+            const ControlSpacePtr &getSubspace(const unsigned int index) const;
 
             /** \brief Get a specific subspace from the compound control space */
-            const ControlSpacePtr& getSubspace(const std::string &name) const;
+            const ControlSpacePtr &getSubspace(const std::string &name) const;
 
             unsigned int getDimension() const override;
 
-            Control* allocControl() const override;
+            Control *allocControl() const override;
 
             void freeControl(Control *control) const override;
 
@@ -245,7 +245,7 @@ namespace ompl
 
             ControlSamplerPtr allocDefaultControlSampler() const override;
 
-            double* getValueAddressAtIndex(Control *control, const unsigned int index) const override;
+            double *getValueAddressAtIndex(Control *control, const unsigned int index) const override;
 
             void printControl(const Control *control, std::ostream &out = std::cout) const override;
 
@@ -272,15 +272,14 @@ namespace ompl
             void lock();
 
         protected:
-
             /** \brief The component control spaces that make up the compound control space */
-            std::vector<ControlSpacePtr>    components_;
+            std::vector<ControlSpacePtr> components_;
 
             /** \brief The number of contained components */
-            unsigned int                    componentCount_;
+            unsigned int componentCount_;
 
             /** \brief Flag indicating whether adding further components is allowed or not */
-            bool                            locked_;
+            bool locked_;
         };
     }
 }

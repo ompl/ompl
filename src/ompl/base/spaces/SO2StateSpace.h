@@ -43,12 +43,10 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief State space sampler for SO(2) */
         class SO2StateSampler : public StateSampler
         {
         public:
-
             /** \brief Constructor */
             SO2StateSampler(const StateSpace *space) : StateSampler(space)
             {
@@ -65,12 +63,10 @@ namespace ompl
         class SO2StateSpace : public StateSpace
         {
         public:
-
             /** \brief The definition of a state in SO(2) */
             class StateType : public State
             {
             public:
-
                 /** \brief Set the state to identity -- no rotation (value = 0.0) */
                 void setIdentity()
                 {
@@ -117,11 +113,11 @@ namespace ompl
 
             StateSamplerPtr allocDefaultStateSampler() const override;
 
-            State* allocState() const override;
+            State *allocState() const override;
 
             void freeState(State *state) const override;
 
-            double* getValueAddressAtIndex(State *state, const unsigned int index) const override;
+            double *getValueAddressAtIndex(State *state, const unsigned int index) const override;
 
             void printState(const State *state, std::ostream &out) const override;
 

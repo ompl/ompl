@@ -41,7 +41,8 @@ unsigned int ompl::control::OpenDEEnvironment::getMaxContacts(dGeomID /*geom1*/,
     return maxContacts_;
 }
 
-bool ompl::control::OpenDEEnvironment::isValidCollision(dGeomID /*geom1*/, dGeomID /*geom2*/, const dContact& /*contact*/) const
+bool ompl::control::OpenDEEnvironment::isValidCollision(dGeomID /*geom1*/, dGeomID /*geom2*/,
+                                                        const dContact & /*contact*/) const
 {
     return false;
 }

@@ -38,8 +38,7 @@
 #include <limits>
 #include <utility>
 
-ompl::base::Goal::Goal(SpaceInformationPtr si) :
-    type_(GOAL_ANY), si_(std::move(si))
+ompl::base::Goal::Goal(SpaceInformationPtr si) : type_(GOAL_ANY), si_(std::move(si))
 {
 }
 

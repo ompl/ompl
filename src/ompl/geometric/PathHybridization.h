@@ -48,7 +48,6 @@ namespace ompl
 {
     namespace geometric
     {
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::geometric::PathHybridization */
         OMPL_CLASS_FORWARD(PathHybridization);
@@ -70,18 +69,18 @@ namespace ompl
         class PathHybridization
         {
         public:
-
             /** \brief The constructor needs to know about the space information of the paths it will operate on */
             PathHybridization(base::SpaceInformationPtr si);
             ~PathHybridization();
 
             /** \brief Get the currently computed hybrid path. computeHybridPath() needs to have been called before. */
-            const base::PathPtr& getHybridPath() const;
+            const base::PathPtr &getHybridPath() const;
 
             /** \brief Run Dijkstra's algorithm to find out the shortest path among the mixed ones */
             void computeHybridPath();
 
-            /** \brief Add a path to the hybridization. If \e matchAcrossGaps is true, more possible edge connections are evaluated.
+            /** \brief Add a path to the hybridization. If \e matchAcrossGaps is true, more possible edge connections
+               are evaluated.
                 Return the number of attempted connections between paths. */
             unsigned int recordPath(const base::PathPtr &pp, bool matchAcrossGaps);
 
@@ -103,28 +102,29 @@ namespace ompl
             void print(std::ostream &out = std::cout) const;
 
             /** \brief Get the name of the algorithm */
-            const std::string& getName() const;
+            const std::string &getName() const;
 
         private:
-
             /// @cond IGNORE
-            struct vertex_state_t {
+            struct vertex_state_t
+            {
                 using kind = boost::vertex_property_tag;
             };
 
-            using HGraph = boost::adjacency_list <
+            using HGraph = boost::adjacency_list<
                 boost::vecS, boost::vecS, boost::undirectedS,
-                boost::property < vertex_state_t, base::State*,
-                                  boost::property < boost::vertex_predecessor_t, unsigned long int,
-                                                    boost::property < boost::vertex_rank_t, unsigned long int > > >,
-                boost::property < boost::edge_weight_t, double >>;
+                boost::property<vertex_state_t, base::State *,
+                                boost::property<boost::vertex_predecessor_t, unsigned long int,
+                                                boost::property<boost::vertex_rank_t, unsigned long int>>>,
+                boost::property<boost::edge_weight_t, double>>;
 
             using Vertex = boost::graph_traits<HGraph>::vertex_descriptor;
             using Edge = boost::graph_traits<HGraph>::edge_descriptor;
 
             struct PathInfo
             {
-                PathInfo(const base::PathPtr &path) : path_(path), states_(static_cast<PathGeometric*>(path.get())->getStates()), length_(0.0)
+                PathInfo(const base::PathPtr &path)
+                  : path_(path), states_(static_cast<PathGeometric *>(path.get())->getStates()), length_(0.0)
                 {
                     vertices_.reserve(states_.size());
                 }
@@ -139,25 +139,25 @@ namespace ompl
                     return path_ < other.path_;
                 }
 
-                base::PathPtr                    path_;
-                const std::vector<base::State*> &states_;
-                double                           length_;
-                std::vector<Vertex>              vertices_;
+                base::PathPtr path_;
+                const std::vector<base::State *> &states_;
+                double length_;
+                std::vector<Vertex> vertices_;
             };
             /// @endcond
 
             void attemptNewEdge(const PathInfo &p, const PathInfo &q, int indexP, int indexQ);
 
-            base::SpaceInformationPtr                         si_;
-            HGraph                                            g_;
+            base::SpaceInformationPtr si_;
+            HGraph g_;
             boost::property_map<HGraph, vertex_state_t>::type stateProperty_;
-            Vertex                                            root_;
-            Vertex                                            goal_;
-            std::set<PathInfo>                                paths_;
-            base::PathPtr                                     hpath_;
+            Vertex root_;
+            Vertex goal_;
+            std::set<PathInfo> paths_;
+            base::PathPtr hpath_;
 
             /** \brief The name of the path hybridization algorithm, used for tracking planner solution sources */
-            std::string                                       name_;
+            std::string name_;
         };
     }
 }
