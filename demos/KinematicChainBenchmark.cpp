@@ -314,7 +314,7 @@ int main(int argc, char **argv)
     b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::EST(ss.getSpaceInformation())));
     b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::KPIECE1(ss.getSpaceInformation())));
     b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::RRT(ss.getSpaceInformation())));
-    // b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::PRM(ss.getSpaceInformation())));
+    b.addPlanner(ompl::base::PlannerPtr(new ompl::geometric::PRM(ss.getSpaceInformation())));
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("kinematic_%i.log") % numLinks).c_str());
 

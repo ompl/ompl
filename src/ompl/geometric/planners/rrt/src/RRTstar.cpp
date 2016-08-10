@@ -47,10 +47,6 @@
 #include <limits>
 #include <boost/math/constants/constants.hpp>
 #include <vector>
-#include <ompl/base/spaces/RealVectorStateSpace.h>
-
-
-namespace ob = ompl::base;
 
 ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     base::Planner(si, "RRTstar"),
@@ -68,10 +64,10 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     useInformedSampling_(false),
     useIntelligentSampling_(false),
     biasingRatio_(0.3),
+    pathFound_(false),  
     useRejectionSampling_(false),
     useNewStateRejection_(false),
-    useAdmissibleCostToCome_(true),
-    pathFound(false),   //fahad
+    useAdmissibleCostToCome_(true), 
     numSampleAttempts_ (100u),
     bestCost_(std::numeric_limits<double>::quiet_NaN()),
     prunedCost_(std::numeric_limits<double>::quiet_NaN()),
@@ -83,7 +79,6 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     specs_.canReportIntermediateSolutions = true;
 
     psimp_.reset(new PathSimplifier(si_));
-    // psimp_->freeStates(false);
 
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
@@ -106,7 +101,6 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
                                std::bind(&RRTstar::numIterationsProperty, this));
     addPlannerProgressProperty("best cost REAL",
                                std::bind(&RRTstar::bestCostProperty, this));
-
 }
 
 ompl::geometric::RRTstar::~RRTstar()
@@ -273,21 +267,18 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         else
         {
             // Attempt to generate a sample, if we fail (e.g., too many rejection attempts), skip the remainder of this loop and return to try again
-            if (useIntelligentSampling_)
+            if (useIntelligentSampling_)    // Biasing the samples towards the beacons
             {
                 double bias = ((double) rand() / (RAND_MAX));
-                // printf("%f bias\n", bias);
-                if (bias > 0.3 || !pathFound || mpath_shortened.size() == 2)
+                if (bias > biasingRatio_ || !pathFound_ || beacons.size() == 2)
                 {
                     if (!sampleUniform(rstate))
                         continue;                
                 }
-                else
-                {
-
-                    int index = rng_.uniformInt(1, mpath_shortened.size()-2);  
-                    sampler_->sampleUniformNear(rstate, mpath_shortened[index], std::min(maxDistance_, r_rrg_*std::pow(log((double)(nn_->size() + 1u))/((double)(nn_->size() + 1u)), 1/(double)(si_->getStateDimension()))));                
-                    // sampler_->sampleGaussian(rstate, mpath_shortened[index], 0.02); 
+                else    //randomly picking a beacon for biasing 
+                {   
+                    int index = rng_.uniformInt(1, beacons.size()-2);  
+                    sampler_->sampleUniformNear(rstate, beacons[index], std::min(maxDistance_, r_rrg_*std::pow(log((double)(nn_->size() + 1u))/((double)(nn_->size() + 1u)), 1/(double)(si_->getStateDimension()))));                
                 }                
             }
             else
@@ -295,14 +286,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 if (!sampleUniform(rstate))
                     continue;  
             }
-            //dynamic biasing
-            static int valid = 0, invalid = 0;
-            if (si_->isValid(rstate))
-                ++valid;
-            else
-                ++invalid;
-
-            printf("density %f\n", (double)valid / (double)(valid + invalid));
 
         }
 
@@ -494,8 +477,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     }
                 }
             }
-            // printf("%f, %f\n", motion->state->as<ompl::base::RealVectorStateSpace::StateType>()->values[0], 
-            //     motion->state->as<ompl::base::RealVectorStateSpace::StateType>()->values[0]);
 
             // Add the new motion to the goalMotion_ list, if it satisfies the goal
             double distanceFromGoal;
@@ -524,7 +505,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     sufficientlyShort = opt_->isSatisfied(goalMotions_[i]->cost);
                     if (sufficientlyShort)
                     {
-                        printf("sufficientlyShort\n");
                         solution = goalMotions_[i];
                         break;
                     }
@@ -557,10 +537,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
                         intermediateSolutionCallback(this, spath, bestCost_);
                     }
-                    ///-----fahad
-                    if (useIntelligentSampling_)
+                   
+                    if (useIntelligentSampling_)        //Update beacons if better path found
                     {
-                        pathFound = true;
+                        pathFound_ = true;
                         std::vector<Motion*> mpath;
                         solution_tmp = solution;
                         while (solution != nullptr)
@@ -568,31 +548,22 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                             mpath.push_back(solution);
                             solution = solution->parent;
                         }
-
                         // set the solution path
                         PathGeometric *geoPath = new PathGeometric(si_);
                         
                         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-                        // for (int i = 0 ; i <= mpath.size() - 1 ; ++i)
                             geoPath->append(mpath[i]->state);
-                        //***********//
-                        mpath_shortened.clear();
-                        // printf("size before  %lu\n", geoPath->getStateCount());
-                        // printf("file 1 %f\n", rng_.uniform01()); 
+                       
+                        beacons.clear();; 
                         
                         psimp_->reduceVertices(*geoPath);
-                        // psimp_->shortcutPath(*geoPath, 100,100);
-                        // printf("beacons %lu\n", geoPath->getStateCount() - 2);
-
 
                         for (std::size_t i = 0 ; i< geoPath->getStateCount() ; ++i)
-                            mpath_shortened.push_back(geoPath->getState(i));
+                            beacons.push_back(geoPath->getState(i));
 
-                
                         solution = solution_tmp;
-
                     }
-                    ///------ 
+
                 }
             }
 
@@ -605,10 +576,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         }
 
         // terminate if a sufficient solution is found
-        if (solution && sufficientlyShort){
-            printf("breakinggggg\n");
+        if (solution && sufficientlyShort)
             break;
-        }
             
     }
 
@@ -633,19 +602,13 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         // set the solution path
         PathGeometric *geoPath = new PathGeometric(si_);
 
-/////////////fahad
-        // printf("size before  %lu\n", mpath.size());
-        if (useIntelligentSampling_)
+        if (useIntelligentSampling_)        // Using beacons to construct the final path
         {
-            printf("smartttt %lu\n", mpath_shortened.size());
-            // geoPath->clear();
-            // geoPath->reset(new PathGeometric(si_));
-            for (int i = mpath_shortened.size() - 1 ; i >= 0 ; --i)
-                geoPath->append(mpath_shortened[i]);
+            for (int i = beacons.size() - 1 ; i >= 0 ; --i)
+                geoPath->append(beacons[i]);
         }
         else
         {
-            printf("starrrr %lu\n", mpath.size());
             for (int i = mpath.size() - 1 ; i >= 0 ; --i)
                 geoPath->append(mpath[i]->state);            
         }
@@ -744,7 +707,6 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
         else
             data.addEdge(base::PlannerDataVertex(motions[i]->parent->state),
                          base::PlannerDataVertex(motions[i]->state));
-
     }
 }
 

@@ -63,7 +63,7 @@ namespace
             firstSeed_(std::chrono::duration_cast<std::chrono::microseconds>(
                 std::chrono::system_clock::now() -
                 std::chrono::system_clock::time_point::min()).count()),
-            sGen_(0),
+            sGen_(firstSeed_),
             sDist_(1, 1000000000)
         {
         }

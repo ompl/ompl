@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Jonathan Gammell */
+/* Authors: Fahad Islam */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_RRT_RRTSTAR_SMART
 #define OMPL_GEOMETRIC_PLANNERS_RRT_RRTSTAR_SMART

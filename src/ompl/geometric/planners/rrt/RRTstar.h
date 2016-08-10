@@ -210,26 +210,30 @@ namespace ompl
            If a direct sampling method is not defined for the objective, rejection sampling will be used by default. */
             void setInformedSampling(bool informedSampling);
 
-
             /** \brief Get the state direct heuristic sampling */
             bool getInformedSampling() const
             {
                 return useInformedSampling_;
             }
 
+            /** \ Use intelligent sampling to bias samples towards the beacons */
             void setIntelligentSampling(bool intelligentSampling);
 
+            /** \ Get the state of intelligent sampling */
             bool getIntelligentSampling() const
             {
                 return useIntelligentSampling_;
             }
 
+            /** \ Control the bias towards the beacons */
             void setBiasingRatio(double biasingRatio);
 
+            /** \ Get the state of biasing ratio*/
             double getBiasingRatio() const
             {
                 return biasingRatio_;
             }
+
             /** \brief Controls whether heuristic rejection is used on samples (e.g., x_rand) */
             void setSampleRejection(const bool reject);
 
@@ -461,8 +465,10 @@ namespace ompl
             /** \brief Option to use informed sampling */
             bool                                           useInformedSampling_;
 
+            /** \brief Option to use intelligent sampling */
             bool                                           useIntelligentSampling_;
 
+            /** \brief The ratio of bias towards the beacons */
             double                                         biasingRatio_;
 
             /** \brief The status of the sample rejection parameter. */
@@ -492,13 +498,15 @@ namespace ompl
             /** \brief Number of iterations the algorithm performed */
             unsigned int                                   iterations_;
 
+            /** \brief To access reduceVertices function to generate beacons */
             PathSimplifierPtr                               psimp_;
 
-            std::vector<base::State*>                       mpath_shortened;
+            /** \brief States used for intelligent biasing */
+            std::vector<base::State*>                       beacons;
 
-            bool                                            pathFound;
+            /** \brief Flag true after first path is found */
+            bool                                            pathFound_;
 
-            bool                                            useIntelligentBiasing_;                     
             ///////////////////////////////////////
             // Planner progress property functions
             std::string numIterationsProperty() const

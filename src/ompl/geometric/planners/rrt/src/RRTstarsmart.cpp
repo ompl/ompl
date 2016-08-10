@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Jonathan Gammell */
+/* Authors: Fahad Islam */
 
 #include "ompl/geometric/planners/rrt/RRTstarsmart.h"
 
