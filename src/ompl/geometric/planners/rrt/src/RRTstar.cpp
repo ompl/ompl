@@ -225,7 +225,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     const base::ReportIntermediateSolutionFn intermediateSolutionCallback = pdef_->getIntermediateSolutionCallback();
 
     Motion *solution       = lastGoalMotion_;
-    Motion *solution_tmp       = lastGoalMotion_;   //fahad
+    Motion *solution_tmp       = lastGoalMotion_;  
 
     Motion *approximation  = nullptr;
     double approximatedist = std::numeric_limits<double>::infinity();

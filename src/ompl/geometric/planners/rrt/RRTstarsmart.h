@@ -46,7 +46,7 @@ namespace ompl
     namespace geometric
     {
 
-        /** \brief Informed RRT* */
+        /** \brief RRT*-Smart */
         class RRTstarsmart : public RRTstar
         {
         public:
