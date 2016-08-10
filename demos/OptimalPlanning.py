@@ -37,6 +37,10 @@
 # Author: Luis G. Torres, Mark Moll
 
 try:
+
+    import graph_tool.all as gt
+    graphtool = True
+
     from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
@@ -58,6 +62,105 @@ import argparse
 # lies in [0,1]x[0,1], with a circular obstacle of radius 0.25
 # centered at (0.5,0.5). Any states lying in this circular region are
 # considered "in collision".
+
+def useGraphTool(pd, space):
+    # Extract the graphml representation of the planner data
+    graphml = pd.printGraphML()
+    f = open("graph.graphml", 'w')
+    f.write(graphml)
+    f.close()
+
+    # Load the graphml data using graph-tool
+    graph = gt.load_graph("graph.graphml", fmt="xml")
+    edgeweights = graph.edge_properties["weight"]
+
+    # Write some interesting statistics
+    # avgdeg, stddevdeg = gt.vertex_average(graph, "total")
+    # avgwt, stddevwt = gt.edge_average(graph, edgeweights)
+
+    # print("---- PLANNER DATA STATISTICS ----")
+    # print(str(graph.num_vertices()) + " vertices and " + str(graph.num_edges()) + " edges")
+    # print("Average vertex degree (in+out) = " + str(avgdeg) + "  St. Dev = " + str(stddevdeg))
+    # print("Average edge weight = " + str(avgwt)  + "  St. Dev = " + str(stddevwt))
+
+    # comps, hist = gt.label_components(graph)
+    # print("Strongly connected components: " + str(len(hist)))
+
+    # graph.set_directed(False)  # Make the graph undirected (for weak components, and a simpler drawing)
+    # comps, hist = gt.label_components(graph)
+    # print("Weakly connected components: " + str(len(hist)))
+
+    # Plotting the graph
+    gt.remove_parallel_edges(graph) # Removing any superfluous edges
+
+    edgeweights = graph.edge_properties["weight"]
+    colorprops = graph.new_vertex_property("string")
+    vertexsize = graph.new_vertex_property("double")
+
+    start = -1
+    goal = -1
+
+    for v in range(graph.num_vertices()):
+
+        # Color and size vertices by type: start, goal, other
+        if (pd.isStartVertex(v)):
+            start = v
+            colorprops[graph.vertex(v)] = "cyan"
+            vertexsize[graph.vertex(v)] = 0.1
+        elif (pd.isGoalVertex(v)):
+            goal = v
+            colorprops[graph.vertex(v)] = "green"
+            vertexsize[graph.vertex(v)] = 0.1
+        else:
+            colorprops[graph.vertex(v)] = "orange"
+            vertexsize[graph.vertex(v)] = 0.02
+
+    # default edge color is black with size 0.5:
+    edgecolor = graph.new_edge_property("string")
+    edgesize = graph.new_edge_property("double")
+    for e in graph.edges():
+        edgecolor[e] = "black"
+        edgesize[e]  = 0.5
+
+    # using A* to find shortest path in planner data
+    if start != -1 and goal != -1:
+        dist, pred = gt.astar_search(graph, graph.vertex(start), edgeweights)
+
+        # Color edges along shortest path red with size 3.0
+        v = graph.vertex(goal)
+        while v != graph.vertex(start):
+            p = graph.vertex(pred[v])
+            vertexsize[graph.vertex(pred[v])] = 0.1
+            colorprops[graph.vertex(pred[v])] = "yellow"
+            for e in p.out_edges():
+                if e.target() == v:
+                    edgecolor[e] = "red"
+                    edgesize[e]  = 2.0
+            v = p
+
+    # Writing graph to file:
+    # pos indicates the desired vertex positions, and pin=True says that we
+    # really REALLY want the vertices at those positions
+    
+    coordinates = graph.vertex_properties["coords"]
+
+    
+    # pos = gt.radial_tree_layout(graph,0)
+    pos = graph.new_vertex_property("vector<double>")
+
+
+    i = 0
+    for v in graph.vertices():
+        tmp = coordinates[graph.vertex(i)].split(",")
+        pos[graph.vertex(i)] = (float(tmp[0]), float(tmp[1]))
+        i = i + 1
+
+
+    gt.graphviz_draw(graph, pos = pos, pin=True, vsize = vertexsize, vcolor = colorprops,
+                   penwidth=edgesize, 
+                   output="graph.png")
+    print('\nGraph written to graph.png')
+
 class ValidityChecker(ob.StateValidityChecker):
     def __init__(self, si):
         super(ValidityChecker, self).__init__(si)
@@ -65,7 +168,9 @@ class ValidityChecker(ob.StateValidityChecker):
     # Returns whether the given state's position overlaps the
     # circular obstacle
     def isValid(self, state):
-        return self.clearance(state) > 0.0
+        # return self.clearance(state) > 0.0
+        return not(state[0] > 0.25 and state[0] <0.75 and state[1] > 0.25 and state[1] < 0.75)
+            
 
     # Returns the distance from the given state's position to the
     # boundary of the circular obstacle.
@@ -174,6 +279,8 @@ def allocatePlanner(si, plannerType):
         return og.BFMT(si)
     elif plannerType.lower() == "informedrrtstar":
         return og.InformedRRTstar(si)
+    elif plannerType.lower() == "rrtstarsmart":
+        return og.RRTstarsmart(si)
     elif plannerType.lower() == "prmstar":
         return og.PRMstar(si)
     elif plannerType.lower() == "rrtstar":
@@ -247,10 +354,20 @@ def plan(runTime, plannerType, objectiveType, fname):
     # attempt to solve the planning problem in the given runtime
     solved = optimizingPlanner.solve(runTime)
 
+    # print optimizingPlanner.numIterationsProperty()
+
     if solved:
         # Output the length of the path found
         print("{0} found solution of path length {1:.4f} with an optimization objective value of {2:.4f}".format(optimizingPlanner.getName(), pdef.getSolutionPath().length(), pdef.getSolutionPath().cost(pdef.getOptimizationObjective()).value()))
 
+        pd = ob.PlannerData(optimizingPlanner.getSpaceInformation())
+        optimizingPlanner.getPlannerData(pd)
+
+        # Computing weights of all edges based on state space distance
+        pd.computeEdgeWeights()
+
+        if graphtool:
+            useGraphTool(pd, space)
         # If a filename was specified, output the path as a matrix to
         # that file for visualization
         if fname:
@@ -265,7 +382,7 @@ if __name__ == "__main__":
 
     # Add a filename argument
     parser.add_argument('-t', '--runtime', type=float, default=1.0, help='(Optional) Specify the runtime in seconds. Defaults to 1 and must be greater than 0.')
-    parser.add_argument('-p', '--planner', default='RRTstar', choices=['BITstar', 'FMTstar', 'BFMTstar', 'InformedRRTstar', 'PRMstar', 'RRTstar'], help='(Optional) Specify the optimal planner to use, defaults to RRTstar if not given.') # Alphabetical order
+    parser.add_argument('-p', '--planner', default='RRTstar', choices=['BITstar', 'FMTstar', 'BFMTstar', 'InformedRRTstar', 'RRTstarsmart','PRMstar', 'RRTstar'], help='(Optional) Specify the optimal planner to use, defaults to RRTstar if not given.') # Alphabetical order
     parser.add_argument('-o', '--objective', default='PathLength', choices=['PathClearance', 'PathLength', 'ThresholdPathLength', 'WeightedLengthAndClearanceCombo'], help='(Optional) Specify the optimization objective, defaults to PathLength if not given.') # Alphabetical order
     parser.add_argument('-f', '--file',  default=None, help='(Optional) Specify an output path for the found solution path.')
     parser.add_argument('-i', '--info', type=int, default=0, choices=[0, 1, 2], help='(Optional) Set the OMPL log level. 0 for WARN, 1 for INFO, 2 for DEBUG. Defaults to WARN.')

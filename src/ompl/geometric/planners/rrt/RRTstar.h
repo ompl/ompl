@@ -40,6 +40,7 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/geometric/PathSimplifier.h"
 
 #include <limits>
 #include <vector>
@@ -209,12 +210,26 @@ namespace ompl
            If a direct sampling method is not defined for the objective, rejection sampling will be used by default. */
             void setInformedSampling(bool informedSampling);
 
+
             /** \brief Get the state direct heuristic sampling */
             bool getInformedSampling() const
             {
                 return useInformedSampling_;
             }
 
+            void setIntelligentSampling(bool intelligentSampling);
+
+            bool getIntelligentSampling() const
+            {
+                return useIntelligentSampling_;
+            }
+
+            void setBiasingRatio(double biasingRatio);
+
+            double getBiasingRatio() const
+            {
+                return biasingRatio_;
+            }
             /** \brief Controls whether heuristic rejection is used on samples (e.g., x_rand) */
             void setSampleRejection(const bool reject);
 
@@ -446,6 +461,10 @@ namespace ompl
             /** \brief Option to use informed sampling */
             bool                                           useInformedSampling_;
 
+            bool                                           useIntelligentSampling_;
+
+            double                                         biasingRatio_;
+
             /** \brief The status of the sample rejection parameter. */
             bool                                           useRejectionSampling_;
 
@@ -473,6 +492,13 @@ namespace ompl
             /** \brief Number of iterations the algorithm performed */
             unsigned int                                   iterations_;
 
+            PathSimplifierPtr                               psimp_;
+
+            std::vector<base::State*>                       mpath_shortened;
+
+            bool                                            pathFound;
+
+            bool                                            useIntelligentBiasing_;                     
             ///////////////////////////////////////
             // Planner progress property functions
             std::string numIterationsProperty() const

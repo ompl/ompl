@@ -47,6 +47,10 @@
 #include <limits>
 #include <boost/math/constants/constants.hpp>
 #include <vector>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
+
+
+namespace ob = ompl::base;
 
 ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     base::Planner(si, "RRTstar"),
@@ -62,9 +66,12 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     pruneThreshold_(0.05),
     usePrunedMeasure_(false),
     useInformedSampling_(false),
+    useIntelligentSampling_(false),
+    biasingRatio_(0.3),
     useRejectionSampling_(false),
     useNewStateRejection_(false),
     useAdmissibleCostToCome_(true),
+    pathFound(false),   //fahad
     numSampleAttempts_ (100u),
     bestCost_(std::numeric_limits<double>::quiet_NaN()),
     prunedCost_(std::numeric_limits<double>::quiet_NaN()),
@@ -75,6 +82,9 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     specs_.optimizingPaths = true;
     specs_.canReportIntermediateSolutions = true;
 
+    psimp_.reset(new PathSimplifier(si_));
+    // psimp_->freeStates(false);
+
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("rewire_factor", this, &RRTstar::setRewireFactor, &RRTstar::getRewireFactor, "1.0:0.01:2.0");
@@ -84,6 +94,8 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     Planner::declareParam<double>("prune_threshold", this, &RRTstar::setPruneThreshold, &RRTstar::getPruneThreshold, "0.:.01:1.");
     Planner::declareParam<bool>("pruned_measure", this, &RRTstar::setPrunedMeasure, &RRTstar::getPrunedMeasure, "0,1");
     Planner::declareParam<bool>("informed_sampling", this, &RRTstar::setInformedSampling, &RRTstar::getInformedSampling, "0,1");
+    Planner::declareParam<bool>("intelligent_sampling", this, &RRTstar::setIntelligentSampling, &RRTstar::getIntelligentSampling, "0,1");
+    Planner::declareParam<double>("biasing_ratio", this, &RRTstar::setBiasingRatio, &RRTstar::getBiasingRatio, "0.:.01:1.");
     Planner::declareParam<bool>("sample_rejection", this, &RRTstar::setSampleRejection, &RRTstar::getSampleRejection, "0,1");
     Planner::declareParam<bool>("new_state_rejection", this, &RRTstar::setNewStateRejection, &RRTstar::getNewStateRejection, "0,1");
     Planner::declareParam<bool>("use_admissible_heuristic", this, &RRTstar::setAdmissibleCostToCome, &RRTstar::getAdmissibleCostToCome, "0,1");
@@ -94,6 +106,7 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
                                std::bind(&RRTstar::numIterationsProperty, this));
     addPlannerProgressProperty("best cost REAL",
                                std::bind(&RRTstar::bestCostProperty, this));
+
 }
 
 ompl::geometric::RRTstar::~RRTstar()
@@ -218,6 +231,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     const base::ReportIntermediateSolutionFn intermediateSolutionCallback = pdef_->getIntermediateSolutionCallback();
 
     Motion *solution       = lastGoalMotion_;
+    Motion *solution_tmp       = lastGoalMotion_;   //fahad
 
     Motion *approximation  = nullptr;
     double approximatedist = std::numeric_limits<double>::infinity();
@@ -259,8 +273,37 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         else
         {
             // Attempt to generate a sample, if we fail (e.g., too many rejection attempts), skip the remainder of this loop and return to try again
-            if (!sampleUniform(rstate))
-                continue;
+            if (useIntelligentSampling_)
+            {
+                double bias = ((double) rand() / (RAND_MAX));
+                // printf("%f bias\n", bias);
+                if (bias > 0.3 || !pathFound || mpath_shortened.size() == 2)
+                {
+                    if (!sampleUniform(rstate))
+                        continue;                
+                }
+                else
+                {
+
+                    int index = rng_.uniformInt(1, mpath_shortened.size()-2);  
+                    sampler_->sampleUniformNear(rstate, mpath_shortened[index], std::min(maxDistance_, r_rrg_*std::pow(log((double)(nn_->size() + 1u))/((double)(nn_->size() + 1u)), 1/(double)(si_->getStateDimension()))));                
+                    // sampler_->sampleGaussian(rstate, mpath_shortened[index], 0.02); 
+                }                
+            }
+            else
+            {
+                if (!sampleUniform(rstate))
+                    continue;  
+            }
+            //dynamic biasing
+            static int valid = 0, invalid = 0;
+            if (si_->isValid(rstate))
+                ++valid;
+            else
+                ++invalid;
+
+            printf("density %f\n", (double)valid / (double)(valid + invalid));
+
         }
 
         // find closest state in the tree
@@ -451,6 +494,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     }
                 }
             }
+            // printf("%f, %f\n", motion->state->as<ompl::base::RealVectorStateSpace::StateType>()->values[0], 
+            //     motion->state->as<ompl::base::RealVectorStateSpace::StateType>()->values[0]);
 
             // Add the new motion to the goalMotion_ list, if it satisfies the goal
             double distanceFromGoal;
@@ -479,6 +524,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     sufficientlyShort = opt_->isSatisfied(goalMotions_[i]->cost);
                     if (sufficientlyShort)
                     {
+                        printf("sufficientlyShort\n");
                         solution = goalMotions_[i];
                         break;
                     }
@@ -511,6 +557,42 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
                         intermediateSolutionCallback(this, spath, bestCost_);
                     }
+                    ///-----fahad
+                    if (useIntelligentSampling_)
+                    {
+                        pathFound = true;
+                        std::vector<Motion*> mpath;
+                        solution_tmp = solution;
+                        while (solution != nullptr)
+                        {
+                            mpath.push_back(solution);
+                            solution = solution->parent;
+                        }
+
+                        // set the solution path
+                        PathGeometric *geoPath = new PathGeometric(si_);
+                        
+                        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+                        // for (int i = 0 ; i <= mpath.size() - 1 ; ++i)
+                            geoPath->append(mpath[i]->state);
+                        //***********//
+                        mpath_shortened.clear();
+                        // printf("size before  %lu\n", geoPath->getStateCount());
+                        // printf("file 1 %f\n", rng_.uniform01()); 
+                        
+                        psimp_->reduceVertices(*geoPath);
+                        // psimp_->shortcutPath(*geoPath, 100,100);
+                        // printf("beacons %lu\n", geoPath->getStateCount() - 2);
+
+
+                        for (std::size_t i = 0 ; i< geoPath->getStateCount() ; ++i)
+                            mpath_shortened.push_back(geoPath->getState(i));
+
+                
+                        solution = solution_tmp;
+
+                    }
+                    ///------ 
                 }
             }
 
@@ -523,8 +605,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         }
 
         // terminate if a sufficient solution is found
-        if (solution && sufficientlyShort)
+        if (solution && sufficientlyShort){
+            printf("breakinggggg\n");
             break;
+        }
+            
     }
 
     bool approximate = (solution == nullptr);
@@ -547,8 +632,23 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
         // set the solution path
         PathGeometric *geoPath = new PathGeometric(si_);
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            geoPath->append(mpath[i]->state);
+
+/////////////fahad
+        // printf("size before  %lu\n", mpath.size());
+        if (useIntelligentSampling_)
+        {
+            printf("smartttt %lu\n", mpath_shortened.size());
+            // geoPath->clear();
+            // geoPath->reset(new PathGeometric(si_));
+            for (int i = mpath_shortened.size() - 1 ; i >= 0 ; --i)
+                geoPath->append(mpath_shortened[i]);
+        }
+        else
+        {
+            printf("starrrr %lu\n", mpath.size());
+            for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+                geoPath->append(mpath[i]->state);            
+        }
 
         base::PathPtr path(geoPath);
         // Add the solution path.
@@ -644,6 +744,7 @@ void ompl::geometric::RRTstar::getPlannerData(base::PlannerData &data) const
         else
             data.addEdge(base::PlannerDataVertex(motions[i]->parent->state),
                          base::PlannerDataVertex(motions[i]->state));
+
     }
 }
 
@@ -976,6 +1077,16 @@ void ompl::geometric::RRTstar::setInformedSampling(bool informedSampling)
             allocSampler();
         }
     }
+}
+
+void ompl::geometric::RRTstar::setIntelligentSampling(bool informedSampling)
+{
+    useIntelligentSampling_ =  true;
+}
+
+void ompl::geometric::RRTstar::setBiasingRatio(double biasingRatio)
+{
+    biasingRatio_ =  biasingRatio;
 }
 
 void ompl::geometric::RRTstar::setSampleRejection(const bool reject)

@@ -48,6 +48,7 @@
 #include <ompl/geometric/planners/fmt/FMT.h>
 #include <ompl/geometric/planners/fmt/BFMT.h>
 #include <ompl/geometric/planners/rrt/InformedRRTstar.h>
+#include <ompl/geometric/planners/rrt/RRTstarsmart.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 
@@ -74,6 +75,7 @@ enum optimalPlanner
     PLANNER_FMTSTAR,
     PLANNER_BFMTSTAR,
     PLANNER_INF_RRTSTAR,
+    PLANNER_RRTSTARSMART,
     PLANNER_PRMSTAR,
     PLANNER_RRTSTAR
 };
@@ -165,6 +167,11 @@ ob::PlannerPtr allocatePlanner(ob::SpaceInformationPtr si, optimalPlanner planne
         case PLANNER_INF_RRTSTAR:
         {
             return std::make_shared<og::InformedRRTstar>(si);
+            break;
+        }
+        case PLANNER_RRTSTARSMART:
+        {
+            return std::make_shared<og::RRTstarsmart>(si);
             break;
         }
         case PLANNER_PRMSTAR:
@@ -419,7 +426,7 @@ bool argParse(int argc, char** argv, double* runTimePtr, optimalPlanner *planner
     desc.add_options()
         ("help,h", "produce help message")
         ("runtime,t", bpo::value<double>()->default_value(1.0), "(Optional) Specify the runtime in seconds. Defaults to 1 and must be greater than 0.")
-        ("planner,p", bpo::value<std::string>()->default_value("RRTstar"), "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. Valid options are BITstar, CForest, FMTstar, BFMTstar, InformedRRTstar, PRMstar, and RRTstar.") //Alphabetical order
+        ("planner,p", bpo::value<std::string>()->default_value("RRTstar"), "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. Valid options are BITstar, CForest, FMTstar, BFMTstar, InformedRRTstar, RRTstarsmart, PRMstar, and RRTstar.") //Alphabetical order
         ("objective,o", bpo::value<std::string>()->default_value("PathLength"), "(Optional) Specify the optimization objective, defaults to PathLength if not given. Valid options are PathClearance, PathLength, ThresholdPathLength, and WeightedLengthAndClearanceCombo.") //Alphabetical order
         ("file,f", bpo::value<std::string>()->default_value(""), "(Optional) Specify an output path for the found solution path.")
         ("info,i", bpo::value<unsigned int>()->default_value(0u), "(Optional) Set the OMPL log level. 0 for WARN, 1 for INFO, 2 for DEBUG. Defaults to WARN.");
@@ -489,6 +496,10 @@ bool argParse(int argc, char** argv, double* runTimePtr, optimalPlanner *planner
     else if (boost::iequals("InformedRRTstar", plannerStr))
     {
         *plannerPtr = PLANNER_INF_RRTSTAR;
+    }
+    else if (boost::iequals("RRTstarsmart", plannerStr))
+    {
+        *plannerPtr = PLANNER_RRTSTARSMART;
     }
     else if (boost::iequals("PRMstar", plannerStr))
     {
