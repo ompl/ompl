@@ -481,6 +481,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             double distanceFromGoal;
             if (goal->isSatisfied(motion->state, &distanceFromGoal))
             {
+                motion->inGoal = true;
                 goalMotions_.push_back(motion);
                 checkForSolution = true;
             }
@@ -796,6 +797,14 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost &pruneTreeCost)
             // First empty the leave-to-prune
             while (leavesToPrune.empty() == false)
             {
+                // If this leave is a goal, remove it from the goal set
+                if (leavesToPrune.front()->inGoal == true)
+                {
+                    // Remove it
+                    goalMotions_.erase(std::remove(goalMotions_.begin(), goalMotions_.end(), leavesToPrune.front()),
+                                       goalMotions_.end());
+                }
+
                 // Remove the leaf from its parent
                 removeFromParent(leavesToPrune.front());
 
