@@ -78,13 +78,9 @@ namespace ompl
                 /** \brief Returns the automaton state corresponding to a given
                     World in this transition map.
                     Returns -1 if no such transition exists. */
-                int eval(const World& w) const;
+                int eval(const World &w) const;
 
-                TransitionMap& operator=(const TransitionMap& tm)
-                {
-                    entries = tm.entries;
-                    return *this;
-                }
+                TransitionMap &operator=(const TransitionMap &tm) = default;
 
                 mutable std::unordered_map<World, unsigned int> entries;
             };
@@ -106,61 +102,61 @@ namespace ompl
 
             /** \brief Returns the start state of the automaton.
                 Returns -1 if no start state has been set. */
-            int getStartState(void) const;
+            int getStartState() const;
 
             /** \brief Adds a given transition to the automaton. */
-            void addTransition(unsigned int src, const World& w,
-                unsigned int dest);
+            void addTransition(unsigned int src, const World &w, unsigned int dest);
 
             /** \brief Runs the automaton from its start state, using
                 the values of propositions from a given sequence of Worlds.
                 Returns false if and only if the result is a nonexistent state
                 (i.e., if and only if there does not exist an extension to trace
                 that will lead it to an accepting state). */
-            bool run(const std::vector<World>& trace) const;
+            bool run(const std::vector<World> &trace) const;
 
             /** \brief Runs the automaton for one step from the given state,
                 using the values of propositions from a given World.
                 Returns the resulting state, or -1 if the result is a nonexistent state. */
-            int step(int state, const World& w) const;
+            int step(int state, const World &w) const;
 
             /** \brief Returns the outgoing transition map for a given automaton state. */
-            TransitionMap& getTransitions(unsigned int src);
+            TransitionMap &getTransitions(unsigned int src);
 
             /** \brief Returns the number of states in this automaton. */
-            unsigned int numStates(void) const;
+            unsigned int numStates() const;
 
             /** \brief Returns the number of transitions in this automaton. */
-            unsigned int numTransitions(void) const;
+            unsigned int numTransitions() const;
 
             /** \brief Returns the number of propositions used by this automaton. */
-            unsigned int numProps(void) const;
+            unsigned int numProps() const;
 
             /** \brief Prints the automaton to a given output stream, in Graphviz dot format. */
-            void print(std::ostream& out) const;
+            void print(std::ostream &out) const;
 
             /** \brief Returns the shortest number of transitions from a given state to
                 an accepting state. */
-            unsigned int distFromAccepting(unsigned int s, unsigned int maxDist = std::numeric_limits<unsigned int>::max()) const;
+            unsigned int distFromAccepting(unsigned int s,
+                                           unsigned int maxDist = std::numeric_limits<unsigned int>::max()) const;
 
             /** \brief Returns a single-state automaton that accepts on all inputs. */
             static AutomatonPtr AcceptingAutomaton(unsigned int numProps);
 
             /** \brief Helper function to return a coverage automaton.
                 Assumes all propositions are mutually exclusive. */
-            static AutomatonPtr CoverageAutomaton(unsigned int numProps, const std::vector<unsigned int>& covProps);
+            static AutomatonPtr CoverageAutomaton(unsigned int numProps, const std::vector<unsigned int> &covProps);
 
             /** \brief Helper function to return a sequence automaton.
                 Assumes all propositions are mutually exclusive. */
-            static AutomatonPtr SequenceAutomaton(unsigned int numProps, const std::vector<unsigned int>& seqProps);
+            static AutomatonPtr SequenceAutomaton(unsigned int numProps, const std::vector<unsigned int> &seqProps);
 
             /** \brief Helper function to return a disjunction automaton,
                 which accepts when one of the given propositions becomes true. */
-            static AutomatonPtr DisjunctionAutomaton(unsigned int numProps, const std::vector<unsigned int>& disjProps);
+            static AutomatonPtr DisjunctionAutomaton(unsigned int numProps, const std::vector<unsigned int> &disjProps);
 
             /** \brief Returns an avoidance automaton, which rejects when any one of the
                 given list of propositions becomes true. Accepts otherwise. */
-            static AutomatonPtr AvoidanceAutomaton(unsigned int numProps, const std::vector<unsigned int>& avoidProps);
+            static AutomatonPtr AvoidanceAutomaton(unsigned int numProps, const std::vector<unsigned int> &avoidProps);
 
             /** \brief Helper function to return a coverage automaton
                 over propositions from 0 to numProps-1.

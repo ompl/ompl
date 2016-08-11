@@ -42,27 +42,22 @@
 
 namespace ompl
 {
-
     /** \brief This class defines a grid that keeps track of its boundary:
      * it distinguishes between interior and exterior cells.  */
-    template < typename _T,
-               class LessThanExternal = std::less<_T>,
-               class LessThanInternal = LessThanExternal >
+    template <typename _T, class LessThanExternal = std::less<_T>, class LessThanInternal = LessThanExternal>
     class GridB : public GridN<_T>
     {
     public:
-
         /// Definition of a cell in this grid
-        typedef typename GridN<_T>::Cell      Cell;
+        using Cell = typename GridN<_T>::Cell;
 
         /// The datatype for arrays of cells
-        typedef typename GridN<_T>::CellArray CellArray;
+        using CellArray = typename GridN<_T>::CellArray;
 
         /// Datatype for cell coordinates
-        typedef typename GridN<_T>::Coord     Coord;
+        using Coord = typename GridN<_T>::Coord;
 
     protected:
-
         /// \cond IGNORE
         // the type of cell here needs an extra pointer to allow the updatable heap to work fast
         // however, this stays hidden from the user
@@ -72,9 +67,7 @@ namespace ompl
             {
             }
 
-            virtual ~CellX()
-            {
-            }
+            ~CellX() override = default;
 
             void *heapElement;
         };
@@ -82,18 +75,16 @@ namespace ompl
         /// \endcond
 
     public:
-
         /// Event to be called when a cell's priority is to be updated
-        typedef void (*EventCellUpdate)(Cell*, void*);
+        using EventCellUpdate = void (*)(Cell *, void *);
 
         /// Constructor
-        explicit
-        GridB(unsigned int dimension) : GridN<_T>(dimension)
+        explicit GridB(unsigned int dimension) : GridN<_T>(dimension)
         {
             setupHeaps();
         }
 
-        virtual ~GridB()
+        ~GridB() override
         {
             clearHeaps();
         }
@@ -107,16 +98,16 @@ namespace ompl
         }
 
         /// Return the cell that is at the top of the heap maintaining internal cells
-        Cell* topInternal() const
+        Cell *topInternal() const
         {
-            Cell* top = static_cast<Cell*>(internal_.top()->data);
+            Cell *top = static_cast<Cell *>(internal_.top()->data);
             return top ? top : topExternal();
         }
 
         /// Return the cell that is at the top of the heap maintaining external cells
-        Cell* topExternal() const
+        Cell *topExternal() const
         {
-            Cell* top = static_cast<Cell*>(external_.top()->data);
+            Cell *top = static_cast<Cell *>(external_.top()->data);
             return top ? top : topInternal();
         }
 
@@ -145,40 +136,40 @@ namespace ompl
         }
 
         /// Update the position in the heaps for a particular cell.
-        void update(Cell* cell)
+        void update(Cell *cell)
         {
             eventCellUpdate_(cell, eventCellUpdateData_);
             if (cell->border)
-                external_.update(reinterpret_cast<typename externalBHeap::Element*>
-                                  (static_cast<CellX*>(cell)->heapElement));
+                external_.update(
+                    reinterpret_cast<typename externalBHeap::Element *>(static_cast<CellX *>(cell)->heapElement));
             else
-                internal_.update(reinterpret_cast<typename internalBHeap::Element*>
-                                  (static_cast<CellX*>(cell)->heapElement));
+                internal_.update(
+                    reinterpret_cast<typename internalBHeap::Element *>(static_cast<CellX *>(cell)->heapElement));
         }
 
-            /// Update all cells and reconstruct the heaps
+        /// Update all cells and reconstruct the heaps
         void updateAll()
         {
-            std::vector< Cell* > cells;
+            std::vector<Cell *> cells;
             this->getCells(cells);
-            for (int i = cells.size() - 1 ; i >= 0 ; --i)
+            for (int i = cells.size() - 1; i >= 0; --i)
                 eventCellUpdate_(cells[i], eventCellUpdateData_);
             external_.rebuild();
             internal_.rebuild();
         }
 
         /// Create a cell but do not add it to the grid; update neighboring cells however
-        virtual Cell* createCell(const Coord& coord, CellArray *nbh = nullptr)
+        virtual Cell *createCell(const Coord &coord, CellArray *nbh = nullptr)
         {
-            CellX* cell = new CellX();
+            auto *cell = new CellX();
             cell->coord = coord;
 
             CellArray *list = nbh ? nbh : new CellArray();
             this->neighbors(cell->coord, *list);
 
-            for (typename CellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
+            for (auto cl = list->begin(); cl != list->end(); ++cl)
             {
-                CellX* c = static_cast<CellX*>(*cl);
+                CellX *c = static_cast<CellX *>(*cl);
                 bool wasBorder = c->border;
                 c->neighbors++;
                 if (c->border && c->neighbors >= GridN<_T>::interiorCellNeighborsLimit_)
@@ -187,16 +178,16 @@ namespace ompl
                 eventCellUpdate_(c, eventCellUpdateData_);
 
                 if (c->border)
-                    external_.update(reinterpret_cast<typename externalBHeap::Element*>(c->heapElement));
+                    external_.update(reinterpret_cast<typename externalBHeap::Element *>(c->heapElement));
                 else
                 {
                     if (wasBorder)
                     {
-                        external_.remove(reinterpret_cast<typename externalBHeap::Element*>(c->heapElement));
+                        external_.remove(reinterpret_cast<typename externalBHeap::Element *>(c->heapElement));
                         internal_.insert(c);
                     }
                     else
-                        internal_.update(reinterpret_cast<typename internalBHeap::Element*>(c->heapElement));
+                        internal_.update(reinterpret_cast<typename internalBHeap::Element *>(c->heapElement));
                 }
             }
 
@@ -207,13 +198,13 @@ namespace ompl
             if (!nbh)
                 delete list;
 
-            return static_cast<Cell*>(cell);
+            return static_cast<Cell *>(cell);
         }
 
         /// Add the cell to the grid
-        virtual void add(Cell* cell)
+        virtual void add(Cell *cell)
         {
-            CellX* ccell = static_cast<CellX*>(cell);
+            CellX *ccell = static_cast<CellX *>(cell);
             eventCellUpdate_(ccell, eventCellUpdateData_);
 
             GridN<_T>::add(cell);
@@ -225,16 +216,16 @@ namespace ompl
         }
 
         /// Remove a cell from the grid
-        virtual bool remove(Cell* cell)
+        virtual bool remove(Cell *cell)
         {
             if (cell)
             {
-                CellArray *list = new CellArray();
+                auto *list = new CellArray();
                 this->neighbors(cell->coord, *list);
 
-                for (typename CellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
+                for (auto cl = list->begin(); cl != list->end(); ++cl)
                 {
-                    CellX* c = static_cast<CellX*>(*cl);
+                    CellX *c = static_cast<CellX *>(*cl);
                     bool wasBorder = c->border;
                     c->neighbors--;
                     if (!c->border && c->neighbors < GridN<_T>::interiorCellNeighborsLimit_)
@@ -245,41 +236,41 @@ namespace ompl
                     if (c->border)
                     {
                         if (wasBorder)
-                            external_.update(reinterpret_cast<typename externalBHeap::Element*>(c->heapElement));
+                            external_.update(reinterpret_cast<typename externalBHeap::Element *>(c->heapElement));
                         else
                         {
-                            internal_.remove(reinterpret_cast<typename internalBHeap::Element*>(c->heapElement));
+                            internal_.remove(reinterpret_cast<typename internalBHeap::Element *>(c->heapElement));
                             external_.insert(c);
                         }
                     }
                     else
-                        internal_.update(reinterpret_cast<typename internalBHeap::Element*>(c->heapElement));
+                        internal_.update(reinterpret_cast<typename internalBHeap::Element *>(c->heapElement));
                 }
 
                 delete list;
 
-                typename GridN<_T>::CoordHash::iterator pos = GridN<_T>::hash_.find(&cell->coord);
+                auto pos = GridN<_T>::hash_.find(&cell->coord);
                 if (pos != GridN<_T>::hash_.end())
                 {
                     GridN<_T>::hash_.erase(pos);
-                    CellX* cx = static_cast<CellX*>(cell);
+                    CellX *cx = static_cast<CellX *>(cell);
                     if (cx->border)
-                        external_.remove(reinterpret_cast<typename externalBHeap::Element*>(cx->heapElement));
+                        external_.remove(reinterpret_cast<typename externalBHeap::Element *>(cx->heapElement));
                     else
-                        internal_.remove(reinterpret_cast<typename internalBHeap::Element*>(cx->heapElement));
+                        internal_.remove(reinterpret_cast<typename internalBHeap::Element *>(cx->heapElement));
                     return true;
                 }
             }
             return false;
         }
 
-        virtual void clear()
+        void clear() override
         {
             GridN<_T>::clear();
             clearHeaps();
         }
 
-        virtual void status(std::ostream &out = std::cout) const
+        void status(std::ostream &out = std::cout) const override
         {
             GridN<_T>::status(out);
             out << countInternal() << " internal cells" << std::endl;
@@ -287,22 +278,21 @@ namespace ompl
         }
 
     protected:
-
         /// Pointer to function to be called when a cell needs to be updated
-        EventCellUpdate          eventCellUpdate_;
+        EventCellUpdate eventCellUpdate_;
 
         /// Data to be passed to function pointer above
-        void                    *eventCellUpdateData_;
+        void *eventCellUpdateData_;
 
         /// Default no-op update routine for a cell
-        static void noCellUpdate(Cell*, void*)
+        static void noCellUpdate(Cell *, void *)
         {
         }
 
         /// Set the update procedure for the heaps of internal and external cells
         void setupHeaps()
         {
-            eventCellUpdate_     = &noCellUpdate;
+            eventCellUpdate_ = &noCellUpdate;
             eventCellUpdateData_ = nullptr;
             internal_.onAfterInsert(&setHeapElementI, nullptr);
             external_.onAfterInsert(&setHeapElementE, nullptr);
@@ -318,7 +308,7 @@ namespace ompl
         /// Define order for internal cells
         struct LessThanInternalCell
         {
-            bool operator()(const CellX* const a, const CellX* const b) const
+            bool operator()(const CellX *const a, const CellX *const b) const
             {
                 return lt_(a->data, b->data);
             }
@@ -330,30 +320,31 @@ namespace ompl
         /// Define order for external cells
         struct LessThanExternalCell
         {
-            bool operator()(const CellX* const a, const CellX* const b) const
+            bool operator()(const CellX *const a, const CellX *const b) const
             {
                 return lt_(a->data, b->data);
             }
+
         private:
             LessThanExternal lt_;
         };
 
         /// Datatype for a heap of cells containing interior cells
-        typedef BinaryHeap< CellX*, LessThanInternalCell > internalBHeap;
+        using internalBHeap = BinaryHeap<CellX *, LessThanInternalCell>;
 
         /// Datatype for a heap of cells containing exterior cells
-        typedef BinaryHeap< CellX*, LessThanExternalCell > externalBHeap;
+        using externalBHeap = BinaryHeap<CellX *, LessThanExternalCell>;
 
         /// Routine used internally for keeping track of binary heap elements for internal cells
-        static void setHeapElementI(typename internalBHeap::Element *element, void*)
+        static void setHeapElementI(typename internalBHeap::Element *element, void *)
         {
-            element->data->heapElement = reinterpret_cast<void*>(element);
+            element->data->heapElement = reinterpret_cast<void *>(element);
         }
 
         /// Routine used internally for keeping track of binary heap elements for external cells
-        static void setHeapElementE(typename externalBHeap::Element *element, void*)
+        static void setHeapElementE(typename externalBHeap::Element *element, void *)
         {
-            element->data->heapElement = reinterpret_cast<void*>(element);
+            element->data->heapElement = reinterpret_cast<void *>(element);
         }
 
         /// The heap of interior cells
@@ -362,7 +353,6 @@ namespace ompl
         /// The heap of external cells
         externalBHeap external_;
     };
-
 }
 
 #endif

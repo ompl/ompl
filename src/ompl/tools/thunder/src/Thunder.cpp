@@ -43,14 +43,12 @@ namespace og = ompl::geometric;
 namespace ob = ompl::base;
 namespace ot = ompl::tools;
 
-ompl::tools::Thunder::Thunder(const base::SpaceInformationPtr &si)
-    : ompl::tools::ExperienceSetup(si)
+ompl::tools::Thunder::Thunder(const base::SpaceInformationPtr &si) : ompl::tools::ExperienceSetup(si)
 {
     initialize();
 }
 
-ompl::tools::Thunder::Thunder(const base::StateSpacePtr &space)
-    : ompl::tools::ExperienceSetup(space)
+ompl::tools::Thunder::Thunder(const base::StateSpacePtr &space) : ompl::tools::ExperienceSetup(space)
 {
     initialize();
 }
@@ -67,17 +65,17 @@ void ompl::tools::Thunder::initialize()
     dualThreadScratchEnabled_ = true;
 
     // Load the experience database
-    experienceDB_.reset(new ompl::tools::ThunderDB(si_->getStateSpace()));
+    experienceDB_ = std::make_shared<ompl::tools::ThunderDB>(si_->getStateSpace());
 
     // Load the Retrieve repair database. We do it here so that setRepairPlanner() works
-    rrPlanner_ = ob::PlannerPtr(new og::ThunderRetrieveRepair(si_, experienceDB_));
+    rrPlanner_ = std::make_shared<og::ThunderRetrieveRepair>(si_, experienceDB_);
 
     OMPL_INFORM("Thunder Framework initialized.");
 }
 
-void ompl::tools::Thunder::setup(void)
+void ompl::tools::Thunder::setup()
 {
-    if (!configured_ || !si_->isSetup() || !planner_->isSetup() || !rrPlanner_->isSetup() )
+    if (!configured_ || !si_->isSetup() || !planner_->isSetup() || !rrPlanner_->isSetup())
     {
         // Setup Space Information if we haven't already done so
         if (!si_->isSetup())
@@ -91,11 +89,12 @@ void ompl::tools::Thunder::setup(void)
             if (!planner_)
             {
                 OMPL_INFORM("Getting default planner: ");
-                planner_ = ompl::base::PlannerPtr(new ompl::geometric::RRTConnect(si_));
+                planner_ = std::make_shared<ompl::geometric::RRTConnect>(si_);
                 // This was disabled because i like to use Thunder / SPARSdb without setting a goal definition
-                //planner_ = ompl::geometric::getDefaultPlanner(pdef_->getGoal()); // we could use the repairProblemDef_ here but that isn't setup yet
+                // planner_ = ompl::geometric::getDefaultPlanner(pdef_->getGoal()); // we could use the
+                // repairProblemDef_ here but that isn't setup yet
 
-                OMPL_INFORM("No planner specified. Using default: %s", planner_->getName().c_str() );
+                OMPL_INFORM("No planner specified. Using default: %s", planner_->getName().c_str());
             }
         }
         planner_->setProblemDefinition(pdef_);
@@ -113,17 +112,17 @@ void ompl::tools::Thunder::setup(void)
                 if (!planner2_)
                 {
                     OMPL_INFORM("Getting default planner: ");
-                    planner2_ = ompl::base::PlannerPtr(new ompl::geometric::RRTConnect(si_));
+                    planner2_ = std::make_shared<ompl::geometric::RRTConnect>(si_);
                     // This was disabled because i like to use Thunder / SPARSdb without setting a goal definition
-                    //planner2_ = ompl::geometric::getDefaultPlanner(pdef_->getGoal()); // we could use the repairProblemDef_ here but that isn't setup yet
+                    // planner2_ = ompl::geometric::getDefaultPlanner(pdef_->getGoal()); // we could use the
+                    // repairProblemDef_ here but that isn't setup yet
 
-                    OMPL_INFORM("No planner 2 specified. Using default: %s", planner2_->getName().c_str() );
+                    OMPL_INFORM("No planner 2 specified. Using default: %s", planner2_->getName().c_str());
                 }
             }
             planner2_->setProblemDefinition(pdef_);
             if (!planner2_->isSetup())
                 planner2_->setup();
-
         }
 
         // Setup planning from experience planner
@@ -133,7 +132,7 @@ void ompl::tools::Thunder::setup(void)
             rrPlanner_->setup();
 
         // Create the parallel component for splitting into two threads
-        pp_ = ot::ParallelPlanPtr(new ot::ParallelPlan(pdef_) );
+        pp_ = std::make_shared<ot::ParallelPlan>(pdef_);
         if (!scratchEnabled_ && !recallEnabled_)
         {
             throw Exception("Both planning from scratch and experience have been disabled, unable to plan");
@@ -141,11 +140,11 @@ void ompl::tools::Thunder::setup(void)
         if (recallEnabled_)
             pp_->addPlanner(rrPlanner_);  // Add the planning from experience planner if desired
         if (scratchEnabled_)
-            pp_->addPlanner(planner_);   // Add the planning from scratch planner if desired
+            pp_->addPlanner(planner_);  // Add the planning from scratch planner if desired
         if (dualThreadScratchEnabled_ && !recallEnabled_)
         {
             OMPL_INFORM("Adding second planning from scratch planner");
-            pp_->addPlanner(planner2_);   // Add a SECOND planning from scratch planner if desired
+            pp_->addPlanner(planner2_);  // Add a SECOND planning from scratch planner if desired
         }
 
         // Setup SPARS
@@ -154,17 +153,18 @@ void ompl::tools::Thunder::setup(void)
             OMPL_INFORM("Calling setup() for SPARSdb");
 
             // Load SPARSdb
-            experienceDB_->getSPARSdb().reset(new ompl::geometric::SPARSdb(si_));
+            experienceDB_->getSPARSdb() = std::make_shared<ompl::geometric::SPARSdb>(si_);
             experienceDB_->getSPARSdb()->setProblemDefinition(pdef_);
             experienceDB_->getSPARSdb()->setup();
 
             experienceDB_->getSPARSdb()->setStretchFactor(1.2);
-            experienceDB_->getSPARSdb()->setSparseDeltaFraction(0.05); // vertex visibility range  = maximum_extent * this_fraction
-            //experienceDB_->getSPARSdb()->setDenseDeltaFraction(0.001);
+            experienceDB_->getSPARSdb()->setSparseDeltaFraction(
+                0.05);  // vertex visibility range  = maximum_extent * this_fraction
+            // experienceDB_->getSPARSdb()->setDenseDeltaFraction(0.001);
 
             experienceDB_->getSPARSdb()->printDebug();
 
-            experienceDB_->load(filePath_); // load from file
+            experienceDB_->load(filePath_);  // load from file
         }
 
         // Set the configured flag
@@ -172,7 +172,7 @@ void ompl::tools::Thunder::setup(void)
     }
 }
 
-void ompl::tools::Thunder::clear(void)
+void ompl::tools::Thunder::clear()
 {
     if (planner_)
         planner_->clear();
@@ -198,7 +198,8 @@ void ompl::tools::Thunder::setPlannerAllocator(const base::PlannerAllocator &pa)
 
 ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTerminationCondition &ptc)
 {
-    // we provide a duplicate implementation here to allow the planner to choose how the time is turned into a planner termination condition
+    // we provide a duplicate implementation here to allow the planner to choose how the time is turned into a planner
+    // termination condition
 
     OMPL_INFORM("Thunder Framework: Starting solve()");
 
@@ -211,26 +212,30 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
     // Warn if there are queued paths that have not been added to the experience database
     if (!queuedSolutionPaths_.empty())
     {
-        OMPL_WARN("Previous solved paths are currently uninserted into the experience database and are in the post-proccessing queue");
+        OMPL_WARN("Previous solved paths are currently uninserted into the experience database and are in the "
+                  "post-proccessing queue");
     }
 
-    // There are two modes for running parallel plan - one in which both threads are run until they both return a result and/or fail
+    // There are two modes for running parallel plan - one in which both threads are run until they both return a result
+    // and/or fail
     // The second mode stops with the first solution found - we want this one
     bool stopWhenFirstSolutionFound = true;
 
     if (stopWhenFirstSolutionFound)
     {
         // If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
-        //OMPL_DEBUG("Thunder: stopping when first solution is found from either thread");
+        // OMPL_DEBUG("Thunder: stopping when first solution is found from either thread");
         // Start both threads
         bool hybridize = false;
         lastStatus_ = pp_->solve(ptc, hybridize);
     }
     else
     {
-        OMPL_WARN("Thunder: not stopping until a solution or a failure is found from both threads. THIS MODE IS JUST FOR TESTING");
+        OMPL_WARN("Thunder: not stopping until a solution or a failure is found from both threads. THIS MODE IS JUST "
+                  "FOR TESTING");
         // This mode is more for benchmarking, since I don't care about optimality
-        // If \e hybridize is false, when \e minSolCount new solutions are found (added to the set of solutions maintained by ompl::base::Goal), the rest of the planners are stopped as well.
+        // If \e hybridize is false, when \e minSolCount new solutions are found (added to the set of solutions
+        // maintained by ompl::base::Goal), the rest of the planners are stopped as well.
 
         // Start both threads
         std::size_t minSolCount = 2;
@@ -247,8 +252,8 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
     log.planning_time = planTime_;
 
     // Record stats
-    stats_.totalPlanningTime_ += planTime_; // used for averaging
-    stats_.numProblems_++; // used for averaging
+    stats_.totalPlanningTime_ += planTime_;  // used for averaging
+    stats_.numProblems_++;                   // used for averaging
 
     if (lastStatus_ == ompl::base::PlannerStatus::TIMEOUT)
     {
@@ -280,8 +285,9 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
         // Smooth the result
         simplifySolution(ptc);
 
-        og::PathGeometric solutionPath = getSolutionPath(); // copied so that it is non-const
-        OMPL_INFORM("Solution path has %d states and was generated from planner %s", solutionPath.getStateCount(), getSolutionPlannerName().c_str());
+        og::PathGeometric solutionPath = getSolutionPath();  // copied so that it is non-const
+        OMPL_INFORM("Solution path has %d states and was generated from planner %s", solutionPath.getStateCount(),
+                    getSolutionPlannerName().c_str());
 
         // Logging
         log.planner = getSolutionPlannerName();
@@ -321,9 +327,8 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
                 // Logging
                 log.is_saved = "less_2_states";
                 log.too_short = true;
-
             }
-            else if (false) // always add when from recall
+            else if (false)  // always add when from recall
             {
                 OMPL_INFORM("Adding path to database because SPARS will decide for us if we should keep the nodes");
 
@@ -334,10 +339,10 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
                 queuedSolutionPaths_.push_back(solutionPath);
 
                 // Logging
-                log.insertion_failed = 0; // TODO this is wrong logging data
+                log.insertion_failed = false;  // TODO this is wrong logging data
                 log.is_saved = "always_attempt";
             }
-            else // never add when from recall
+            else  // never add when from recall
             {
                 OMPL_INFORM("NOT adding path to database because SPARS already has it");
 
@@ -378,13 +383,13 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
                 // Queue the solution path for future insertion into experience database (post-processing)
                 queuedSolutionPaths_.push_back(solutionPath);
 
-                log.insertion_failed = 0; // TODO fix this wrong logging info
+                log.insertion_failed = false;  // TODO fix this wrong logging info
             }
         }
     }
 
     // Final log data
-    //log.insertion_time = insertionTime; TODO fix this
+    // log.insertion_time = insertionTime; TODO fix this
     log.num_vertices = experienceDB_->getSPARSdb()->getNumVertices();
     log.num_edges = experienceDB_->getSPARSdb()->getNumEdges();
     log.num_connected_components = experienceDB_->getSPARSdb()->getNumConnectedComponents();
@@ -397,19 +402,19 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
 
 ompl::base::PlannerStatus ompl::tools::Thunder::solve(double time)
 {
-    ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition( time );
+    ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(time);
     return solve(ptc);
 }
 
 bool ompl::tools::Thunder::save()
 {
-    setup(); // ensure the PRM db has been loaded to the Experience DB
+    setup();  // ensure the PRM db has been loaded to the Experience DB
     return experienceDB_->save(filePath_);
 }
 
 bool ompl::tools::Thunder::saveIfChanged()
 {
-    setup(); // ensure the PRM db has been loaded to the Experience DB
+    setup();  // ensure the PRM db has been loaded to the Experience DB
     return experienceDB_->saveIfChanged(filePath_);
 }
 
@@ -417,8 +422,7 @@ void ompl::tools::Thunder::printResultsInfo(std::ostream &out) const
 {
     for (std::size_t i = 0; i < pdef_->getSolutionCount(); ++i)
     {
-        out << "Solution " << i
-            << "\t | Length: " << pdef_->getSolutions()[i].length_
+        out << "Solution " << i << "\t | Length: " << pdef_->getSolutions()[i].length_
             << "\t | Approximate: " << (pdef_->getSolutions()[i].approximate_ ? "true" : "false")
             << "\t | Planner: " << pdef_->getSolutions()[i].plannerName_ << std::endl;
     }
@@ -457,10 +461,13 @@ void ompl::tools::Thunder::printLogs(std::ostream &out) const
     else
         out << "Thunder Framework Logging Results" << std::endl;
     out << "  Solutions Attempted:           " << stats_.numProblems_ << std::endl;
-    out << "    Solved from scratch:        " << stats_.numSolutionsFromScratch_ << " (" << stats_.numSolutionsFromScratch_/stats_.numProblems_*100 << "%)" << std::endl;
-    out << "    Solved from recall:         " << stats_.numSolutionsFromRecall_  << " (" << stats_.numSolutionsFromRecall_/stats_.numProblems_*100 << "%)" << std::endl;
+    out << "    Solved from scratch:        " << stats_.numSolutionsFromScratch_ << " ("
+        << stats_.numSolutionsFromScratch_ / stats_.numProblems_ * 100 << "%)" << std::endl;
+    out << "    Solved from recall:         " << stats_.numSolutionsFromRecall_ << " ("
+        << stats_.numSolutionsFromRecall_ / stats_.numProblems_ * 100 << "%)" << std::endl;
     out << "      That were saved:         " << stats_.numSolutionsFromRecallSaved_ << std::endl;
-    out << "      That were discarded:     " << stats_.numSolutionsFromRecall_ - stats_.numSolutionsFromRecallSaved_ << std::endl;
+    out << "      That were discarded:     " << stats_.numSolutionsFromRecall_ - stats_.numSolutionsFromRecallSaved_
+        << std::endl;
     out << "      Less than 2 states:      " << stats_.numSolutionsTooShort_ << std::endl;
     out << "    Failed:                     " << stats_.numSolutionsFailed_ << std::endl;
     out << "    Timedout:                    " << stats_.numSolutionsTimedout_ << std::endl;
@@ -487,7 +494,7 @@ void ompl::tools::Thunder::getAllPlannerDatas(std::vector<ob::PlannerDataPtr> &p
     experienceDB_->getAllPlannerDatas(plannerDatas);
 }
 
-void ompl::tools::Thunder::convertPlannerData(const ob::PlannerDataPtr plannerData, og::PathGeometric &path)
+void ompl::tools::Thunder::convertPlannerData(const ob::PlannerDataPtr &plannerData, og::PathGeometric &path)
 {
     // Convert the planner data verticies into a vector of states
     for (std::size_t i = 0; i < plannerData->numVertices(); ++i)
@@ -497,16 +504,16 @@ void ompl::tools::Thunder::convertPlannerData(const ob::PlannerDataPtr plannerDa
 bool ompl::tools::Thunder::reversePathIfNecessary(og::PathGeometric &path1, og::PathGeometric &path2)
 {
     // Reverse path2 if it matches better
-    const ob::State* s1 = path1.getState(0);
-    const ob::State* s2 = path2.getState(0);
-    const ob::State* g1 = path1.getState(path1.getStateCount()-1);
-    const ob::State* g2 = path2.getState(path2.getStateCount()-1);
+    const ob::State *s1 = path1.getState(0);
+    const ob::State *s2 = path2.getState(0);
+    const ob::State *g1 = path1.getState(path1.getStateCount() - 1);
+    const ob::State *g2 = path2.getState(path2.getStateCount() - 1);
 
-    double regularDistance  = si_->distance(s1,s2) + si_->distance(g1,g2);
-    double reversedDistance = si_->distance(s1,g2) + si_->distance(s2,g1);
+    double regularDistance = si_->distance(s1, s2) + si_->distance(g1, g2);
+    double reversedDistance = si_->distance(s1, g2) + si_->distance(s2, g1);
 
     // Check if path is reversed from normal [start->goal] direction
-    if ( regularDistance > reversedDistance )
+    if (regularDistance > reversedDistance)
     {
         // needs to be reversed
         path2.reverse();
@@ -525,14 +532,14 @@ bool ompl::tools::Thunder::doPostProcessing()
 {
     OMPL_INFORM("Performing post-processing");
 
-    for (std::size_t i = 0; i < queuedSolutionPaths_.size(); ++i)
+    for (auto &queuedSolutionPath : queuedSolutionPaths_)
     {
         // Time to add a path to experience database
         double insertionTime;
 
-        experienceDB_->addPath(queuedSolutionPaths_[i], insertionTime);
+        experienceDB_->addPath(queuedSolutionPath, insertionTime);
         OMPL_INFORM("Finished inserting experience path in %f seconds", insertionTime);
-        stats_.totalInsertionTime_ += insertionTime; // used for averaging
+        stats_.totalInsertionTime_ += insertionTime;  // used for averaging
     }
 
     // Remove all inserted paths from the queue

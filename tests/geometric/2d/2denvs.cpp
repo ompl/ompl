@@ -78,24 +78,22 @@ static const bool VERBOSE = true;
 class TestPlanner
 {
 public:
-    TestPlanner(void)
+    TestPlanner()
     {
         msg::setLogLevel(msg::LOG_ERROR);
     }
 
-    virtual ~TestPlanner(void)
-    {
-    }
+    virtual ~TestPlanner() = default;
 
     /* test a planner in a planar environment with circular obstacles */
-    double test2DCircles(const Circles2D &circles, bool show = false, double *time = NULL, double *pathLength = NULL)
+    double test2DCircles(const Circles2D &circles, bool show = false, double *time = nullptr, double *pathLength = nullptr)
     {
         /* instantiate space information */
         base::SpaceInformationPtr si = geometric::spaceInformation2DCircles(circles);
 
         /* instantiate problem definition */
-        base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
-        base::OptimizationObjectivePtr opt(new base::PathLengthOptimizationObjective(si));
+        auto pdef(std::make_shared<base::ProblemDefinition>(si));
+        auto opt(std::make_shared<base::PathLengthOptimizationObjective>(si));
         /* make optimizing planners stop when any solution is found */
         opt->setCostThreshold(opt->infiniteCost());
         pdef->setOptimizationObjective(opt);
@@ -135,7 +133,7 @@ public:
                 geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
 
                 /* make the solution more smooth */
-                geometric::PathSimplifierPtr sm(new geometric::PathSimplifier(si));
+                auto sm(std::make_shared<geometric::PathSimplifier>(si));
 
                 startTime = ompl::time::now();
                 sm->simplify(*path, SOLUTION_TIME);
@@ -157,7 +155,7 @@ public:
 
 
     /* test a planner in a planar grid environment where some cells are occupied */
-    bool test2DEnv(const Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
+    bool test2DEnv(const Environment2D &env, bool show = false, double *time = nullptr, double *pathLength = nullptr)
     {
         bool result = true;
 
@@ -166,7 +164,7 @@ public:
 
         /* instantiate problem definition */
         base::ProblemDefinitionPtr pdef = geometric::problemDefinition2DMap(si, env);
-        base::OptimizationObjectivePtr opt(new base::PathLengthOptimizationObjective(si));
+        auto opt(std::make_shared<base::PathLengthOptimizationObjective>(si));
         /* make optimizing planners stop when any solution is found */
         opt->setCostThreshold(opt->infiniteCost());
         pdef->setOptimizationObjective(opt);
@@ -192,7 +190,7 @@ public:
 
 
             /* make the solution more smooth */
-            geometric::PathSimplifierPtr sm(new geometric::PathSimplifier(si));
+            auto sm(std::make_shared<geometric::PathSimplifier>(si));
 
             startTime = ompl::time::now();
             sm->reduceVertices(*path);
@@ -248,11 +246,11 @@ class RRTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::RRT *rrt = new geometric::RRT(si);
+        auto rrt(std::make_shared<geometric::RRT>(si));
         rrt->setRange(10.0);
-        return base::PlannerPtr(rrt);
+        return rrt;
     }
 };
 
@@ -260,11 +258,11 @@ class RRTConnectTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::RRTConnect *rrt = new geometric::RRTConnect(si);
+        auto rrt(std::make_shared<geometric::RRTConnect>(si));
         rrt->setRange(10.0);
-        return base::PlannerPtr(rrt);
+        return rrt;
     }
 };
 
@@ -272,12 +270,12 @@ class pRRTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::pRRT *rrt = new geometric::pRRT(si);
+        auto rrt(std::make_shared<geometric::pRRT>(si));
         rrt->setRange(10.0);
-        rrt->setThreadCount(4);
-        return base::PlannerPtr(rrt);
+        rrt->setThreadCount(std::min(4u, std::thread::hardware_concurrency()));
+        return rrt;
     }
 };
 
@@ -285,11 +283,11 @@ class TRRTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::TRRT *rrt = new geometric::TRRT(si);
+        auto rrt(std::make_shared<geometric::TRRT>(si));
         rrt->setRange(10.0);
-        return base::PlannerPtr(rrt);
+        return rrt;
     }
 };
 
@@ -297,11 +295,11 @@ class LazyRRTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::LazyRRT *rrt = new geometric::LazyRRT(si);
+        auto rrt(std::make_shared<geometric::LazyRRT>(si));
         rrt->setRange(10.0);
-        return base::PlannerPtr(rrt);
+        return rrt;
     }
 };
 
@@ -310,22 +308,19 @@ class SBLTest : public TestPlanner
 
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::SBL *sbl = new geometric::SBL(si);
+        auto sbl(std::make_shared<geometric::SBL>(si));
         sbl->setRange(10.0);
 
-        std::vector<unsigned int> projection;
-        projection.push_back(0);
-        projection.push_back(1);
+        std::vector<unsigned int> projection = {0, 1};
+        std::vector<double> cdim = {1, 1};
 
-        std::vector<double> cdim;
-        cdim.push_back(1);
-        cdim.push_back(1);
+        sbl->setProjectionEvaluator(
+            std::make_shared<base::RealVectorOrthogonalProjectionEvaluator>(
+                si->getStateSpace(), cdim, projection));
 
-        sbl->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
-
-        return base::PlannerPtr(sbl);
+        return sbl;
     }
 };
 
@@ -335,23 +330,20 @@ class pSBLTest : public TestPlanner
 
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::pSBL *sbl = new geometric::pSBL(si);
+        auto sbl(std::make_shared<geometric::pSBL>(si));
         sbl->setRange(10.0);
-        sbl->setThreadCount(4);
+        sbl->setThreadCount(std::min(4u, std::thread::hardware_concurrency()));
 
-        std::vector<unsigned int> projection;
-        projection.push_back(0);
-        projection.push_back(1);
+        std::vector<unsigned int> projection = {0, 1};
+        std::vector<double> cdim = {1, 1};
 
-        std::vector<double> cdim;
-        cdim.push_back(1);
-        cdim.push_back(1);
+        sbl->setProjectionEvaluator(
+            std::make_shared<base::RealVectorOrthogonalProjectionEvaluator>(
+                si->getStateSpace(), cdim, projection));
 
-        sbl->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
-
-        return base::PlannerPtr(sbl);
+        return sbl;
     }
 
 };
@@ -360,22 +352,19 @@ class KPIECE1Test : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::KPIECE1 *kpiece = new geometric::KPIECE1(si);
+        auto kpiece(std::make_shared<geometric::KPIECE1>(si));
         kpiece->setRange(10.0);
 
-        std::vector<unsigned int> projection;
-        projection.push_back(0);
-        projection.push_back(1);
+        std::vector<unsigned int> projection = {0, 1};
+        std::vector<double> cdim = {1, 1};
 
-        std::vector<double> cdim;
-        cdim.push_back(1);
-        cdim.push_back(1);
+        kpiece->setProjectionEvaluator(
+            std::make_shared<base::RealVectorOrthogonalProjectionEvaluator>(
+                si->getStateSpace(), cdim, projection));
 
-        kpiece->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
-
-        return base::PlannerPtr(kpiece);
+        return kpiece;
     }
 };
 
@@ -383,22 +372,19 @@ class LBKPIECE1Test : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::LBKPIECE1 *kpiece = new geometric::LBKPIECE1(si);
+        auto kpiece(std::make_shared<geometric::LBKPIECE1>(si));
         kpiece->setRange(10.0);
 
-        std::vector<unsigned int> projection;
-        projection.push_back(0);
-        projection.push_back(1);
+        std::vector<unsigned int> projection = {0, 1};
+        std::vector<double> cdim = {1, 1};
 
-        std::vector<double> cdim;
-        cdim.push_back(1);
-        cdim.push_back(1);
+        kpiece->setProjectionEvaluator(
+            std::make_shared<base::RealVectorOrthogonalProjectionEvaluator>(
+                si->getStateSpace(), cdim, projection));
 
-        kpiece->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
-
-        return base::PlannerPtr(kpiece);
+        return kpiece;
     }
 
 };
@@ -407,22 +393,19 @@ class BKPIECE1Test : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::BKPIECE1 *kpiece = new geometric::BKPIECE1(si);
+        auto kpiece(std::make_shared<geometric::BKPIECE1>(si));
         kpiece->setRange(10.0);
 
-        std::vector<unsigned int> projection;
-        projection.push_back(0);
-        projection.push_back(1);
+        std::vector<unsigned int> projection = {0, 1};
+        std::vector<double> cdim = {1, 1};
 
-        std::vector<double> cdim;
-        cdim.push_back(1);
-        cdim.push_back(1);
+        kpiece->setProjectionEvaluator(
+            std::make_shared<base::RealVectorOrthogonalProjectionEvaluator>(
+                si->getStateSpace(), cdim, projection));
 
-        kpiece->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
-
-        return base::PlannerPtr(kpiece);
+        return kpiece;
     }
 
 };
@@ -431,11 +414,11 @@ class ESTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::EST *est = new geometric::EST(si);
+        auto est(std::make_shared<geometric::EST>(si));
         est->setRange(10.0);
-        return base::PlannerPtr(est);
+        return est;
     }
 
 };
@@ -444,11 +427,11 @@ class BiESTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::BiEST *est = new geometric::BiEST(si);
+        auto est(std::make_shared<geometric::BiEST>(si));
         est->setRange(10.0);
-        return base::PlannerPtr(est);
+        return est;
     }
 
 };
@@ -457,22 +440,19 @@ class ProjESTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::ProjEST *est = new geometric::ProjEST(si);
+        auto est(std::make_shared<geometric::ProjEST>(si));
         est->setRange(10.0);
 
-        std::vector<double> cdim;
-        cdim.push_back(1);
-        cdim.push_back(1);
+        std::vector<unsigned int> projection = {0, 1};
+        std::vector<double> cdim = {1, 1};
 
-        std::vector<unsigned int> projection;
-        projection.push_back(0);
-        projection.push_back(1);
+        est->setProjectionEvaluator(
+            std::make_shared<base::RealVectorOrthogonalProjectionEvaluator>(
+                si->getStateSpace(), cdim, projection));
 
-        est->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
-
-        return base::PlannerPtr(est);
+        return est;
     }
 
 };
@@ -481,11 +461,11 @@ class STRIDETest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::STRIDE *stride = new geometric::STRIDE(si);
+        auto stride(std::make_shared<geometric::STRIDE>(si));
         stride->setRange(10.0);
-        return base::PlannerPtr(stride);
+        return stride;
     }
 
 };
@@ -494,21 +474,18 @@ class PDSTTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::PDST *pdst = new geometric::PDST(si);
+        auto pdst(std::make_shared<geometric::PDST>(si));
 
-        std::vector<double> cdim;
-        cdim.push_back(1);
-        cdim.push_back(1);
+        std::vector<unsigned int> projection = {0, 1};
+        std::vector<double> cdim = {1, 1};
 
-        std::vector<unsigned int> projection;
-        projection.push_back(0);
-        projection.push_back(1);
+        pdst->setProjectionEvaluator(
+            std::make_shared<base::RealVectorOrthogonalProjectionEvaluator>(
+                si->getStateSpace(), cdim, projection));
 
-        pdst->setProjectionEvaluator(base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection)));
-
-        return base::PlannerPtr(pdst);
+        return pdst;
     }
 };
 
@@ -516,10 +493,10 @@ class PRMTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::PRM *prm = new geometric::PRM(si);
-        return base::PlannerPtr(prm);
+        auto prm(std::make_shared<geometric::PRM>(si));
+        return prm;
     }
 };
 
@@ -527,10 +504,10 @@ class PRMstarTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::PRMstar *prm = new geometric::PRMstar(si);
-        return base::PlannerPtr(prm);
+        auto prm(std::make_shared<geometric::PRMstar>(si));
+        return prm;
     }
 };
 
@@ -538,10 +515,10 @@ class LazyPRMTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::LazyPRM *prm = new geometric::LazyPRM(si);
-        return base::PlannerPtr(prm);
+        auto prm(std::make_shared<geometric::LazyPRM>(si));
+        return prm;
     }
 
 };
@@ -550,10 +527,10 @@ class LazyPRMstarTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::LazyPRMstar *prm = new geometric::LazyPRMstar(si);
-        return base::PlannerPtr(prm);
+        auto prm(std::make_shared<geometric::LazyPRMstar>(si));
+        return prm;
     }
 
 };
@@ -562,10 +539,10 @@ class SPARSTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::SPARS *spars = new geometric::SPARS(si);
-        return base::PlannerPtr(spars);
+        auto spars(std::make_shared<geometric::SPARS>(si));
+        return spars;
     }
 };
 
@@ -573,10 +550,10 @@ class SPARStwoTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::SPARStwo *sparstwo = new geometric::SPARStwo(si);
-        return base::PlannerPtr(sparstwo);
+        auto sparstwo(std::make_shared<geometric::SPARStwo>(si));
+        return sparstwo;
     }
 };
 
@@ -589,7 +566,7 @@ public:
         geometric::SimpleSetup2DMap s(env_);
         s.setPlanner(p->newPlanner(s.getSpaceInformation()));
 
-        base::OptimizationObjectivePtr opt(new base::PathLengthOptimizationObjective(s.getSpaceInformation()));
+        auto opt(std::make_shared<base::PathLengthOptimizationObjective>(s.getSpaceInformation()));
         /* make optimizing planners stop when any solution is found */
         opt->setCostThreshold(opt->infiniteCost());
         s.setOptimizationObjective(opt);
@@ -613,7 +590,7 @@ public:
             {
             }
 
-            virtual bool isValid(const base::State *state) const
+            bool isValid(const base::State *state) const override
             {
                 return si_->equalStates(state, start_) || si_->equalStates(state, goal_);
             }
@@ -627,12 +604,10 @@ public:
         s.setPlanner(p->newPlanner(s.getSpaceInformation()));
 
         // change the state validity checker to one that reports true only for the query states (no sampling will succeed)
-        s.getSpaceInformation()->setStateValidityChecker(base::StateValidityCheckerPtr
-                                                         (static_cast<base::StateValidityChecker*>
-                                                          (new NeverValidStateValidityChecker
-                                                           (s.getSpaceInformation(),
-                                                            s.getProblemDefinition()->getStartState(0),
-                                                            s.getProblemDefinition()->getGoal()->as<base::GoalState>()->getState()))));
+        s.getSpaceInformation()->setStateValidityChecker(
+            std::make_shared<NeverValidStateValidityChecker>(s.getSpaceInformation(),
+                s.getProblemDefinition()->getStartState(0),
+                s.getProblemDefinition()->getGoal()->as<base::GoalState>()->getState()));
         s.setup();
         if (verbose_)
             printf("Testing planner termination for %s. The planner should terminate within 0.1s; "
@@ -721,7 +696,7 @@ public:
 
 protected:
 
-    PlanTest(void)
+    PlanTest()
     {
         verbose_ = VERBOSE;
         boost::filesystem::path path(TEST_RESOURCES_DIR);

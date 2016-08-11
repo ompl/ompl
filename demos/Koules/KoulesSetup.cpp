@@ -57,7 +57,7 @@ public:
     {
     }
 
-    virtual bool isValid(const ob::State *state) const
+    bool isValid(const ob::State *state) const override
     {
         return si_->satisfiesBounds(state);
     }
@@ -67,19 +67,19 @@ public:
 ompl::control::DirectedControlSamplerPtr KoulesDirectedControlSamplerAllocator(
     const ompl::control::SpaceInformation *si, const ompl::base::GoalPtr &goal, bool propagateMax)
 {
-    return ompl::control::DirectedControlSamplerPtr(new KoulesDirectedControlSampler(si, goal, propagateMax));
+    return std::make_shared<KoulesDirectedControlSampler>(si, goal, propagateMax);
 }
 
 
 KoulesSetup::KoulesSetup(unsigned int numKoules, const std::string& plannerName,
     const std::vector<double>& stateVec)
-    : ompl::control::SimpleSetup(ompl::control::ControlSpacePtr(new KoulesControlSpace(numKoules)))
+    : ompl::control::SimpleSetup(std::make_shared<KoulesControlSpace>(numKoules))
 {
     initialize(numKoules, plannerName, stateVec);
 }
 
 KoulesSetup::KoulesSetup(unsigned int numKoules, const std::string& plannerName, double kouleVel)
-    : ompl::control::SimpleSetup(ompl::control::ControlSpacePtr(new KoulesControlSpace(numKoules)))
+    : ompl::control::SimpleSetup(std::make_shared<KoulesControlSpace>(numKoules))
 {
     initialize(numKoules, plannerName);
     double* state = getProblemDefinition()->getStartState(0)->as<KoulesStateSpace::StateType>()->values;
@@ -122,38 +122,43 @@ void KoulesSetup::initialize(unsigned int numKoules, const std::string& plannerN
     }
     setStartState(start);
     // set goal
-    setGoal(ob::GoalPtr(new KoulesGoal(si_)));
+    setGoal(std::make_shared<KoulesGoal>(si_));
     // set propagation step size
     si_->setPropagationStepSize(propagationStepSize);
     // set min/max propagation steps
     si_->setMinMaxControlDuration(propagationMinSteps, propagationMaxSteps);
     // set directed control sampler; when using the PDST planner, propagate as long as possible
+    bool isPDST = plannerName == "pdst";
+    const ompl::base::GoalPtr& goal = getGoal();
     si_->setDirectedControlSamplerAllocator(
-        std::bind(&KoulesDirectedControlSamplerAllocator, std::placeholders::_1, getGoal(), plannerName == "pdst"));
+        [&goal, isPDST](const ompl::control::SpaceInformation *si)
+        {
+            return KoulesDirectedControlSamplerAllocator(si,  goal, isPDST);
+        });
     // set planner
     setPlanner(getConfiguredPlannerInstance(plannerName));
     // set validity checker
-    setStateValidityChecker(ob::StateValidityCheckerPtr(new KoulesStateValidityChecker(si_)));
+    setStateValidityChecker(std::make_shared<KoulesStateValidityChecker>(si_));
     // set state propagator
-    setStatePropagator(oc::StatePropagatorPtr(new KoulesStatePropagator(si_)));
+    setStatePropagator(std::make_shared<KoulesStatePropagator>(si_));
 }
 
 ob::PlannerPtr KoulesSetup::getConfiguredPlannerInstance(const std::string& plannerName)
 {
     if (plannerName == "rrt")
     {
-        ob::PlannerPtr rrtplanner(new oc::RRT(si_));
-        rrtplanner->as<oc::RRT>()->setIntermediateStates(true);
+        auto rrtplanner(std::make_shared<oc::RRT>(si_));
+        rrtplanner->setIntermediateStates(true);
         return rrtplanner;
     }
     else if (plannerName == "est")
-        return ob::PlannerPtr(new oc::EST(si_));
+        return std::make_shared<oc::EST>(si_);
     else if (plannerName == "kpiece")
-        return ob::PlannerPtr(new oc::KPIECE1(si_));
+        return std::make_shared<oc::KPIECE1>(si_);
     else
     {
-        ob::PlannerPtr pdstplanner(new oc::PDST(si_));
-        pdstplanner->as<oc::PDST>()->setProjectionEvaluator(
+        auto pdstplanner(std::make_shared<oc::PDST>(si_));
+        pdstplanner->setProjectionEvaluator(
             si_->getStateSpace()->getProjection("PDSTProjection"));
         return pdstplanner;
     }

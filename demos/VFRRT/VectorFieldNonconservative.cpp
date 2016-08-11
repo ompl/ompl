@@ -61,8 +61,8 @@ Eigen::VectorXd field(const ob::State *state)
 int main(int argc, char **argv)
 {
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::RealVectorStateSpace(2));
-    ob::SpaceInformationPtr si(new ob::SpaceInformation(space));
+    auto space(std::make_shared<ob::RealVectorStateSpace>(2));
+    auto si(std::make_shared<ob::SpaceInformation>(space));
 
     ob::RealVectorBounds bounds(2);
     bounds.setLow(-10);
@@ -74,8 +74,8 @@ int main(int argc, char **argv)
     og::SimpleSetup ss(space);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(ob::StateValidityCheckerPtr(
-        new ob::AllValidStateValidityChecker(si)));
+    ss.setStateValidityChecker(
+        std::make_shared<ob::AllValidStateValidityChecker>(si));
 
     // create a start state
     ob::ScopedState<> start(space);
@@ -94,7 +94,8 @@ int main(int argc, char **argv)
     double explorationSetting = 0.7;
     double lambda = 1;
     unsigned int update_freq = 100;
-    ss.setPlanner(ob::PlannerPtr(new og::VFRRT(ss.getSpaceInformation(), field, explorationSetting, lambda, update_freq)));
+    ss.setPlanner(std::make_shared<og::VFRRT>(
+        ss.getSpaceInformation(), field, explorationSetting, lambda, update_freq));
     ss.setup();
 
     // attempt to solve the problem
@@ -111,7 +112,7 @@ int main(int argc, char **argv)
         std::ofstream f("vfrrt-nonconservative.path");
         ompl::geometric::PathGeometric p = ss.getSolutionPath();
         p.interpolate();
-        ob::OptimizationObjectivePtr upstream(new ob::VFUpstreamCriterionOptimizationObjective(
+        auto upstream(std::make_shared<ob::VFUpstreamCriterionOptimizationObjective>(
             ss.getSpaceInformation(), field));
         p.printAsMatrix(f);
         std::cout << "Total upstream cost: " << p.cost(upstream) << "\n";

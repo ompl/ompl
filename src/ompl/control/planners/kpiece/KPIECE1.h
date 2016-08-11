@@ -45,10 +45,8 @@
 
 namespace ompl
 {
-
     namespace control
     {
-
         /**
            @anchor cKPIECE1
            @par Short description
@@ -77,15 +75,14 @@ namespace ompl
         class KPIECE1 : public base::Planner
         {
         public:
-
             /** \brief Constructor */
             KPIECE1(const SpaceInformationPtr &si);
 
-            virtual ~KPIECE1();
+            ~KPIECE1() override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear();
+            void clear() override;
 
             /** In the process of randomly selecting states in the state
                 space to attempt to go towards, the algorithm may in fact
@@ -141,7 +138,8 @@ namespace ompl
                 badScoreFactor_ = bad;
             }
 
-            /** \brief Set the factor that is to be applied to a cell's score when an expansion from that cell succeedes */
+            /** \brief Set the factor that is to be applied to a cell's score when an expansion from that cell succeedes
+             */
             void setGoodCellScoreFactor(double good)
             {
                 goodScoreFactor_ = good;
@@ -189,16 +187,15 @@ namespace ompl
             }
 
             /** \brief Get the projection evaluator */
-            const base::ProjectionEvaluatorPtr& getProjectionEvaluator() const
+            const base::ProjectionEvaluatorPtr &getProjectionEvaluator() const
             {
                 return projectionEvaluator_;
             }
 
-            virtual void setup();
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void setup() override;
+            void getPlannerData(base::PlannerData &data) const override;
 
         protected:
-
             /** \brief Representation of a motion for this algorithm */
             struct Motion
             {
@@ -207,25 +204,24 @@ namespace ompl
                 }
 
                 /** \brief Constructor that allocates memory for the state and the control */
-                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), steps(0), parent(nullptr)
+                Motion(const SpaceInformation *si)
+                  : state(si->allocState()), control(si->allocControl()), steps(0), parent(nullptr)
                 {
                 }
 
-                ~Motion()
-                {
-                }
+                ~Motion() = default;
 
                 /** \brief The state contained by this motion */
-                base::State       *state;
+                base::State *state;
 
                 /** \brief The control contained by this motion */
-                Control           *control;
+                Control *control;
 
                 /** \brief The number of steps the control is applied for */
-                unsigned int       steps;
+                unsigned int steps;
 
                 /** \brief The parent motion in the exploration tree */
-                Motion            *parent;
+                Motion *parent;
             };
 
             /** \brief The data held by a cell in the grid of motions */
@@ -235,46 +231,44 @@ namespace ompl
                 {
                 }
 
-                ~CellData()
-                {
-                }
+                ~CellData() = default;
 
                 /** \brief The set of motions contained in this grid cell */
-                std::vector<Motion*> motions;
+                std::vector<Motion *> motions;
 
                 /** \brief A measure of coverage for this cell. For
                     this implementation, this is the sum of motion
                     durations */
-                double               coverage;
+                double coverage;
 
                 /** \brief The number of times this cell has been
                     selected for expansion */
-                unsigned int         selections;
+                unsigned int selections;
 
                 /** \brief A heuristic score computed based on
                     distance to goal (if available), successes and
                     failures at expanding from this cell. */
-                double               score;
+                double score;
 
                 /** \brief The iteration at which this cell was created */
-                unsigned int         iteration;
+                unsigned int iteration;
 
                 /** \brief The computed importance (based on other class members) */
-                double               importance;
+                double importance;
             };
 
             /** \brief Definintion of an operator passed to the Grid
                 structure, to order cells by importance */
             struct OrderCellsByImportance
             {
-                bool operator()(const CellData * const a, const CellData * const b) const
+                bool operator()(const CellData *const a, const CellData *const b) const
                 {
                     return a->importance > b->importance;
                 }
             };
 
             /** \brief The datatype for the maintained grid datastructure */
-            typedef GridB<CellData*, OrderCellsByImportance> Grid;
+            using Grid = GridB<CellData *, OrderCellsByImportance>;
 
             /** \brief Information about a known good sample (closer to the goal than others) */
             struct CloseSample
@@ -288,10 +282,11 @@ namespace ompl
                 Grid::Cell *cell;
 
                 /** \brief The motion that is close to the goal */
-                Motion     *motion;
+                Motion *motion;
 
-                /** \brief The distance to the goal. This value is increased over time, as the number of selections for this sample increases */
-                double      distance;
+                /** \brief The distance to the goal. This value is increased over time, as the number of selections for
+                 * this sample increases */
+                double distance;
 
                 /** \brief Sort samples in accordance to their distance to the goal */
                 bool operator<(const CloseSample &other) const
@@ -320,7 +315,7 @@ namespace ompl
                     (pretend the distance to the goal is
                     larger). Returns true if the sample selection is
                     successful. */
-                bool selectMotion(Motion* &smotion, Grid::Cell* &scell);
+                bool selectMotion(Motion *&smotion, Grid::Cell *&scell);
 
                 /** \brief Return true if samples can be selected from this set */
                 bool canSample() const
@@ -329,12 +324,11 @@ namespace ompl
                 }
 
                 /** \brief Maximum number of samples to maintain */
-                unsigned int          maxSize;
+                unsigned int maxSize;
 
                 /** \brief The maintained samples */
                 std::set<CloseSample> samples;
             };
-
 
             /** \brief The data defining a tree of motions for this algorithm */
             struct TreeData
@@ -345,7 +339,7 @@ namespace ompl
 
                 /** \brief A grid containing motions, imposed on a
                     projection of the state space */
-                Grid         grid;
+                Grid grid;
 
                 /** \brief The total number of motions (there can be
                     multiple per cell) in the grid */
@@ -358,10 +352,10 @@ namespace ompl
             /** \brief This function is provided as a calback to the
                 grid datastructure to update the importance of a
                 cell */
-            static void computeImportance(Grid::Cell *cell, void*)
+            static void computeImportance(Grid::Cell *cell, void *)
             {
                 CellData &cd = *(cell->data);
-                cd.importance =  cd.score / ((cell->neighbors + 1) * cd.coverage * cd.selections);
+                cd.importance = cd.score / ((cell->neighbors + 1) * cd.coverage * cd.selections);
             }
 
             /** \brief Free all the memory allocated by this planner */
@@ -381,61 +375,64 @@ namespace ompl
                 from the state of the motion being added. The function
                 Returns the number of cells created to accommodate the
                 new motion (0 or 1). */
-                Grid::Cell* addMotion(Motion *motion, double dist);
+            Grid::Cell *addMotion(Motion *motion, double dist);
 
             /** \brief Select a motion and the cell it is part of from
                 the grid of motions. This is where preference is given
                 to cells on the boundary of the grid.*/
-            bool selectMotion(Motion* &smotion, Grid::Cell* &scell);
+            bool selectMotion(Motion *&smotion, Grid::Cell *&scell);
 
-            /** \brief When generated motions are to be added to the tree of motions, they often need to be split, so they don't cross cell boundaries.
-                Given that a motion starts out in the cell \e origin and it crosses the cells in \e coords[\e index] through \e coords[\e last] (inclusively),
-                return the index of the state to be used in the next part of the motion (that is within a cell). This will be a value between \e index and \e last. */
+            /** \brief When generated motions are to be added to the tree of motions, they often need to be split, so
+               they don't cross cell boundaries.
+                Given that a motion starts out in the cell \e origin and it crosses the cells in \e coords[\e index]
+               through \e coords[\e last] (inclusively),
+                return the index of the state to be used in the next part of the motion (that is within a cell). This
+               will be a value between \e index and \e last. */
             unsigned int findNextMotion(const std::vector<Grid::Coord> &coords, unsigned int index, unsigned int count);
 
             /** \brief A control sampler */
-            ControlSamplerPtr             controlSampler_;
+            ControlSamplerPtr controlSampler_;
 
             /** \brief The tree datastructure */
-            TreeData                      tree_;
+            TreeData tree_;
 
             /** \brief The base::SpaceInformation cast as control::SpaceInformation, for convenience */
-            const SpaceInformation       *siC_;
+            const SpaceInformation *siC_;
 
             /** \brief This algorithm uses a discretization (a grid)
                 to guide the exploration. The exploration is imposed
                 on a projection of the state space. */
-            base::ProjectionEvaluatorPtr  projectionEvaluator_;
+            base::ProjectionEvaluatorPtr projectionEvaluator_;
 
             /** \brief When extending a motion from a cell, the
                 extension can be successful. If it is, the score of the
                 cell is multiplied by this factor. */
-            double                        goodScoreFactor_;
+            double goodScoreFactor_;
 
             /** \brief When extending a motion from a cell, the
                 extension can fail. If it is, the score of the cell is
                 multiplied by this factor. */
-            double                        badScoreFactor_;
+            double badScoreFactor_;
 
             /** \brief When motions reach close to the goal, they are stored in a separate queue
                 to allow biasing towards the goal. This variable specifies the maximum number of samples
                 to keep in that queue. */
-            unsigned int                  nCloseSamples_;
+            unsigned int nCloseSamples_;
 
             /** \brief The fraction of time to focus exploration on
                 the border of the grid. */
-            double                        selectBorderFraction_;
+            double selectBorderFraction_;
 
-            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
-            double                        goalBias_;
+            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
+             * available) */
+            double goalBias_;
 
             /** \brief The random number generator */
-            RNG                           rng_;
+            RNG rng_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion                       *lastGoalMotion_;
+            Motion *lastGoalMotion_;
         };
-
     }
 }
 

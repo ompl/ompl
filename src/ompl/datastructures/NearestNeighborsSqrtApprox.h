@@ -53,7 +53,7 @@ namespace ompl
         \li Adding an element to the datastructure is O(1).
         \li Removing an element from the datastructure O(n).
     */
-    template<typename _T>
+    template <typename _T>
     class NearestNeighborsSqrtApprox : public NearestNeighborsLinear<_T>
     {
     public:
@@ -61,30 +61,28 @@ namespace ompl
         {
         }
 
-        virtual ~NearestNeighborsSqrtApprox()
-        {
-        }
+        ~NearestNeighborsSqrtApprox() override = default;
 
-        virtual void clear()
+        void clear() override
         {
             NearestNeighborsLinear<_T>::clear();
             checks_ = 0;
             offset_ = 0;
         }
 
-        virtual void add(const _T &data)
+        void add(const _T &data) override
         {
             NearestNeighborsLinear<_T>::add(data);
             updateCheckCount();
         }
 
-        virtual void add(const std::vector<_T> &data)
+        void add(const std::vector<_T> &data) override
         {
             NearestNeighborsLinear<_T>::add(data);
             updateCheckCount();
         }
 
-        virtual bool remove(const _T &data)
+        bool remove(const _T &data) override
         {
             bool result = NearestNeighborsLinear<_T>::remove(data);
             if (result)
@@ -92,7 +90,7 @@ namespace ompl
             return result;
         }
 
-        virtual _T nearest(const _T &data) const
+        _T nearest(const _T &data) const override
         {
             const std::size_t n = NearestNeighborsLinear<_T>::data_.size();
             std::size_t pos = n;
@@ -100,7 +98,7 @@ namespace ompl
             if (checks_ > 0 && n > 0)
             {
                 double dmin = 0.0;
-                for (std::size_t j = 0 ; j < checks_ ; ++j)
+                for (std::size_t j = 0; j < checks_; ++j)
                 {
                     std::size_t i = (j * checks_ + offset_) % n;
 
@@ -120,7 +118,6 @@ namespace ompl
         }
 
     protected:
-
         /** \brief The maximum number of checks to perform when searching for a nearest neighbor */
         inline void updateCheckCount()
         {
@@ -128,13 +125,11 @@ namespace ompl
         }
 
         /** \brief The number of checks to be performed when looking for a nearest neighbor */
-        std::size_t         checks_;
+        std::size_t checks_;
 
         /** \brief The offset to start checking at (between 0 and \e checks_) */
         mutable std::size_t offset_;
-
     };
-
 }
 
 #endif

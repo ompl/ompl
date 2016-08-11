@@ -40,18 +40,18 @@
 /// @cond IGNORE
 namespace ompl
 {
-    const base::MorseEnvironmentPtr& getMorseStateSpaceEnvironmentWithCheck(const base::StateSpacePtr &space)
+    const base::MorseEnvironmentPtr &getMorseStateSpaceEnvironmentWithCheck(const base::StateSpacePtr &space)
     {
         // It doesn't make sense to have a MorseControlSpace without a MorseStateSpace
-        if (!dynamic_cast<base::MorseStateSpace*>(space.get()))
+        if (!dynamic_cast<base::MorseStateSpace *>(space.get()))
             throw Exception("MORSE State Space needed for creating MORSE Control Space");
         return space->as<base::MorseStateSpace>()->getEnvironment();
     }
 }
 /// @endcond
 
-ompl::control::MorseControlSpace::MorseControlSpace(const base::StateSpacePtr &stateSpace) :
-    RealVectorControlSpace(stateSpace, getMorseStateSpaceEnvironmentWithCheck(stateSpace)->controlDim_)
+ompl::control::MorseControlSpace::MorseControlSpace(const base::StateSpacePtr &stateSpace)
+  : RealVectorControlSpace(stateSpace, getMorseStateSpaceEnvironmentWithCheck(stateSpace)->controlDim_)
 {
     setName("Morse" + getName());
     type_ = CONTROL_SPACE_TYPE_COUNT + 1;

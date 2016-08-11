@@ -44,10 +44,8 @@
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /**
            @anchor gEST
            @par Short description
@@ -58,7 +56,8 @@ namespace ompl
            @par External documentation
            D. Hsu, J.-C. Latombe, and R. Motwani, Path planning in expansive configuration spaces,
            <em>Intl. J. Computational Geometry and Applications</em>,
-           vol. 9, no. 4-5, pp. 495–512, 1999. DOI: [10.1142/S0218195999000285](http://dx.doi.org/10.1142/S0218195999000285)<br>
+           vol. 9, no. 4-5, pp. 495–512, 1999. DOI:
+           [10.1142/S0218195999000285](http://dx.doi.org/10.1142/S0218195999000285)<br>
            [[PDF]](http://bigbird.comp.nus.edu.sg/pmwiki/farm/motion/uploads/Site/ijcga96.pdf)
         */
 
@@ -66,15 +65,14 @@ namespace ompl
         class EST : public base::Planner
         {
         public:
-
             /** \brief Constructor */
             EST(const base::SpaceInformationPtr &si);
 
-            virtual ~EST();
+            ~EST() override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief In the process of randomly selecting states in
                 the state space to attempt to go towards, the
@@ -110,38 +108,34 @@ namespace ompl
                 return maxDistance_;
             }
 
-            virtual void setup();
+            void setup() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
         protected:
-
             /// \brief The definition of a motion
             class Motion
             {
             public:
-
-                Motion() : state(NULL), parent(NULL), element(NULL)
+                Motion() : state(nullptr), parent(nullptr), element(nullptr)
                 {
                 }
 
                 /// \brief Constructor that allocates memory for the state
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(NULL), element(NULL)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), element(nullptr)
                 {
                 }
 
-                ~Motion()
-                {
-                }
+                ~Motion() = default;
 
                 /// \brief The state contained by the motion
-                base::State           *state;
+                base::State *state;
 
                 /// \brief The parent motion in the exploration tree
-                Motion                *parent;
+                Motion *parent;
 
                 /// \brief A pointer to the corresponding element in the probability distribution function
-                PDF<Motion*>::Element *element;
+                PDF<Motion *>::Element *element;
             };
 
             /// \brief Compute distance between motions (actually distance between contained states)
@@ -151,39 +145,39 @@ namespace ompl
             }
 
             /// \brief A nearest-neighbors datastructure containing the tree of motions
-            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr<NearestNeighbors<Motion *>> nn_;
 
             /// \brief The set of all states in the tree
-            std::vector<Motion*> motions_;
+            std::vector<Motion *> motions_;
 
             /// \brief The probability distribution function over states in the tree
-            PDF<Motion*> pdf_;
+            PDF<Motion *> pdf_;
 
             ///\brief Free the memory allocated by this planner
             void freeMemory();
 
             /// \brief Add a motion to the exploration tree
-            void addMotion(Motion *motion, const std::vector<Motion*>& neighbors);
+            void addMotion(Motion *motion, const std::vector<Motion *> &neighbors);
 
             /// \brief Valid state sampler
-            base::ValidStateSamplerPtr   sampler_;
+            base::ValidStateSamplerPtr sampler_;
 
-            /// \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available)
-            double                       goalBias_;
+            /// \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
+            /// available)
+            double goalBias_;
 
             /// \brief The maximum length of a motion to be added to a tree
-            double                       maxDistance_;
+            double maxDistance_;
 
             /// \brief The radius considered for neighborhood
-            double                       nbrhoodRadius_;
+            double nbrhoodRadius_;
 
             /** \brief The random number generator */
-            RNG                          rng_;
+            RNG rng_;
 
             /// \brief The most recent goal motion.  Used for PlannerData computation
-            Motion                       *lastGoalMotion_;
+            Motion *lastGoalMotion_;
         };
-
     }
 }
 

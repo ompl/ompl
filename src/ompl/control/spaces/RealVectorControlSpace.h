@@ -45,30 +45,26 @@ namespace ompl
 {
     namespace control
     {
-
         /** \brief Uniform sampler for the R<sup>n</sup> state space */
         class RealVectorControlUniformSampler : public ControlSampler
         {
         public:
-
             /** \brief Constructor */
             RealVectorControlUniformSampler(const ControlSpace *space) : ControlSampler(space)
             {
             }
 
-            virtual void sample(Control *control);
+            void sample(Control *control) override;
         };
 
         /** \brief A control space representing R<sup>n</sup>. */
         class RealVectorControlSpace : public ControlSpace
         {
         public:
-
             /** \brief The definition of a control in R<sup>n</sup> */
             class ControlType : public Control
             {
             public:
-
                 /** \brief Access element i of values.  This does not
                     check whether the index is within bounds */
                 double operator[](unsigned int i) const
@@ -78,7 +74,7 @@ namespace ompl
 
                 /** \brief Access element i of values.  This does not
                     check whether the index is within bounds */
-                double& operator[](unsigned int i)
+                double &operator[](unsigned int i)
                 {
                     return values[i];
                 }
@@ -87,68 +83,66 @@ namespace ompl
                 double *values;
             };
 
-            /** \brief Constructor takes the state space the controls correspond to and the dimension of the space of controls, \e dim */
-            RealVectorControlSpace(const base::StateSpacePtr &stateSpace, unsigned int dim) :
-                ControlSpace(stateSpace), dimension_(dim), bounds_(dim), controlBytes_(dim * sizeof(double))
+            /** \brief Constructor takes the state space the controls correspond to and the dimension of the space of
+             * controls, \e dim */
+            RealVectorControlSpace(const base::StateSpacePtr &stateSpace, unsigned int dim)
+              : ControlSpace(stateSpace), dimension_(dim), bounds_(dim), controlBytes_(dim * sizeof(double))
             {
                 setName("RealVector" + getName());
                 type_ = CONTROL_SPACE_REAL_VECTOR;
             }
 
-            virtual ~RealVectorControlSpace()
-            {
-            }
+            ~RealVectorControlSpace() override = default;
 
             /** \brief Set the bounds (min max values for each dimension) for the control */
             void setBounds(const base::RealVectorBounds &bounds);
 
             /** \brief Get the bounds (min max values for each dimension) for the control */
-            const base::RealVectorBounds& getBounds() const
+            const base::RealVectorBounds &getBounds() const
             {
                 return bounds_;
             }
 
-            virtual unsigned int getDimension() const;
+            unsigned int getDimension() const override;
 
-            virtual void copyControl(Control *destination, const Control *source) const;
+            void copyControl(Control *destination, const Control *source) const override;
 
-            virtual bool equalControls(const Control *control1, const Control *control2) const;
+            bool equalControls(const Control *control1, const Control *control2) const override;
 
-            virtual ControlSamplerPtr allocDefaultControlSampler() const;
+            ControlSamplerPtr allocDefaultControlSampler() const override;
 
-            virtual Control* allocControl() const;
+            Control *allocControl() const override;
 
-            virtual void freeControl(Control *control) const;
+            void freeControl(Control *control) const override;
 
-            virtual void nullControl(Control *control) const;
+            void nullControl(Control *control) const override;
 
-            virtual void printControl(const Control *control, std::ostream &out) const;
+            void printControl(const Control *control, std::ostream &out) const override;
 
-            virtual double* getValueAddressAtIndex(Control *control, const unsigned int index) const;
+            double *getValueAddressAtIndex(Control *control, const unsigned int index) const override;
 
-            virtual void printSettings(std::ostream &out) const;
+            void printSettings(std::ostream &out) const override;
 
-            virtual void setup();
+            void setup() override;
 
             /** \brief Returns the serialization size for a single control in this space */
-            virtual unsigned int getSerializationLength() const;
+            unsigned int getSerializationLength() const override;
 
             /** \brief Serializes the given control into the serialization buffer. */
-            virtual void serialize(void *serialization, const Control *ctrl) const;
+            void serialize(void *serialization, const Control *ctrl) const override;
 
             /** \brief Deserializes a control from the serialization buffer. */
-            virtual void deserialize(Control *ctrl, const void *serialization) const;
+            void deserialize(Control *ctrl, const void *serialization) const override;
 
         protected:
-
             /** \brief The dimension of the state space */
-            unsigned int           dimension_;
+            unsigned int dimension_;
 
             /** \brief The bounds on controls */
             base::RealVectorBounds bounds_;
 
         private:
-            std::size_t            controlBytes_;
+            std::size_t controlBytes_;
         };
     }
 }

@@ -67,7 +67,7 @@ public:
     // Valid states satisfy the following constraints:
     // -1<= x,y,z <=1
     // if .25 <= z <= .5, then |x|>.8 and |y|>.8
-    virtual bool sample(ob::State *state)
+    bool sample(ob::State *state) override
     {
         double* val = static_cast<ob::RealVectorStateSpace::StateType*>(state)->values;
         double z = rng_.uniformReal(-1,1);
@@ -93,7 +93,7 @@ public:
         return true;
     }
     // We don't need this in the example below.
-    virtual bool sampleNear(ob::State*, const ob::State*, const double)
+    bool sampleNear(ob::State*, const ob::State*, const double) override
     {
         throw ompl::Exception("MyValidStateSampler::sampleNear", "not implemented");
         return false;
@@ -124,32 +124,32 @@ ob::ValidStateSamplerPtr allocOBValidStateSampler(const ob::SpaceInformation *si
 {
     // we can perform any additional setup / configuration of a sampler here,
     // but there is nothing to tweak in case of the ObstacleBasedValidStateSampler.
-    return ob::ValidStateSamplerPtr(new ob::ObstacleBasedValidStateSampler(si));
+    return std::make_shared<ob::ObstacleBasedValidStateSampler>(si);
 }
 
 // return an instance of my sampler
 ob::ValidStateSamplerPtr allocMyValidStateSampler(const ob::SpaceInformation *si)
 {
-    return ob::ValidStateSamplerPtr(new MyValidStateSampler(si));
+    return std::make_shared<MyValidStateSampler>(si);
 }
 
 
 void plan(int samplerIndex)
 {
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::RealVectorStateSpace(3));
+    auto space(std::make_shared<ob::RealVectorStateSpace>(3));
 
     // set the bounds
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
-    space->as<ob::RealVectorStateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
 
     // define a simple setup class
     og::SimpleSetup ss(space);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(std::bind(&isStateValid, std::placeholders::_1));
+    ss.setStateValidityChecker(isStateValid);
 
     // create a start state
     ob::ScopedState<> start(space);
@@ -172,7 +172,7 @@ void plan(int samplerIndex)
         ss.getSpaceInformation()->setValidStateSamplerAllocator(allocMyValidStateSampler);
 
     // create a planner for the defined space
-    ob::PlannerPtr planner(new og::PRM(ss.getSpaceInformation()));
+    auto planner(std::make_shared<og::PRM>(ss.getSpaceInformation()));
     ss.setPlanner(planner);
 
     // attempt to solve the problem within ten seconds of planning time

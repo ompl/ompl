@@ -56,7 +56,7 @@ struct Circles2D
         double startX_, startY_, goalX_, goalY_;
     };
 
-    Circles2D(void)
+    Circles2D()
     {
         minX_ = minY_ = 0.0;
         maxX_ = maxY_ = 0.0;
@@ -77,7 +77,7 @@ struct Circles2D
             fin >> id >> x >> y >> r;
             if (fin.eof() || !fin.good())
                 break;
-            circles_.push_back(Circle(x,y,r));
+            circles_.emplace_back(x,y,r);
             //      std::cout << "Added circle " << id << " at center " << x << ", " << y << " of radius " << r << std::endl;
         }
         fin.close();
@@ -127,7 +127,7 @@ struct Circles2D
         return queries_[index];
     }
 
-    std::size_t getQueryCount(void) const
+    std::size_t getQueryCount() const
     {
         return queries_.size();
     }

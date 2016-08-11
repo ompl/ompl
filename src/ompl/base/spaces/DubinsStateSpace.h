@@ -45,7 +45,6 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief An SE(2) state space where distance is measured by the
             length of Dubins curves.
 
@@ -65,18 +64,22 @@ namespace ompl
         class DubinsStateSpace : public SE2StateSpace
         {
         public:
-
             /** \brief The Dubins path segment type */
-            enum DubinsPathSegmentType { DUBINS_LEFT=0, DUBINS_STRAIGHT=1, DUBINS_RIGHT=2 };
+            enum DubinsPathSegmentType
+            {
+                DUBINS_LEFT = 0,
+                DUBINS_STRAIGHT = 1,
+                DUBINS_RIGHT = 2
+            };
             /** \brief Dubins path types */
             static const DubinsPathSegmentType dubinsPathType[6][3];
             /** \brief Complete description of a Dubins path */
             class DubinsPath
             {
             public:
-                DubinsPath(const DubinsPathSegmentType* type = dubinsPathType[0],
-                    double t=0., double p=std::numeric_limits<double>::max(), double q=0.)
-                    : type_(type), reverse_(false)
+                DubinsPath(const DubinsPathSegmentType *type = dubinsPathType[0], double t = 0.,
+                           double p = std::numeric_limits<double>::max(), double q = 0.)
+                  : type_(type), reverse_(false)
                 {
                     length_[0] = t;
                     length_[1] = p;
@@ -91,7 +94,7 @@ namespace ompl
                 }
 
                 /** Path segment types */
-                const DubinsPathSegmentType* type_;
+                const DubinsPathSegmentType *type_;
                 /** Path segment lengths */
                 double length_[3];
                 /** Whether the path should be followed "in reverse" */
@@ -99,33 +102,32 @@ namespace ompl
             };
 
             DubinsStateSpace(double turningRadius = 1.0, bool isSymmetric = false)
-                : SE2StateSpace(), rho_(turningRadius), isSymmetric_(isSymmetric)
+              : SE2StateSpace(), rho_(turningRadius), isSymmetric_(isSymmetric)
             {
             }
 
-            virtual bool isMetricSpace() const
+            bool isMetricSpace() const override
             {
                 return false;
             }
 
-            virtual double distance(const State *state1, const State *state2) const;
+            double distance(const State *state1, const State *state2) const override;
 
-            virtual void interpolate(const State *from, const State *to, const double t,
-                State *state) const;
-            virtual void interpolate(const State *from, const State *to, const double t,
-                bool &firstTime, DubinsPath &path, State *state) const;
+            void interpolate(const State *from, const State *to, const double t, State *state) const override;
+            virtual void interpolate(const State *from, const State *to, const double t, bool &firstTime,
+                                     DubinsPath &path, State *state) const;
 
-            virtual bool hasSymmetricDistance() const
+            bool hasSymmetricDistance() const override
             {
                 return isSymmetric_;
             }
 
-            virtual bool hasSymmetricInterpolate() const
+            bool hasSymmetricInterpolate() const override
             {
                 return isSymmetric_;
             }
 
-            virtual void sanityChecks() const
+            void sanityChecks() const override
             {
                 double zero = std::numeric_limits<double>::epsilon();
                 double eps = std::numeric_limits<float>::epsilon();
@@ -139,8 +141,7 @@ namespace ompl
             DubinsPath dubins(const State *state1, const State *state2) const;
 
         protected:
-            virtual void interpolate(const State *from, const DubinsPath &path, const double t,
-                State *state) const;
+            virtual void interpolate(const State *from, const DubinsPath &path, const double t, State *state) const;
 
             /** \brief Turning radius */
             double rho_;
@@ -172,16 +173,14 @@ namespace ompl
             {
                 defaultSettings();
             }
-            virtual ~DubinsMotionValidator()
-            {
-            }
-            virtual bool checkMotion(const State *s1, const State *s2) const;
-            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const;
+            ~DubinsMotionValidator() override = default;
+            bool checkMotion(const State *s1, const State *s2) const override;
+            bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
+
         private:
             DubinsStateSpace *stateSpace_;
             void defaultSettings();
         };
-
     }
 }
 

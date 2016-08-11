@@ -93,7 +93,7 @@ std::string problemName() { return ""; }
 template<typename T, unsigned int PROBLEM>
 void addPlanner(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
-    benchmark.addPlanner(base::PlannerPtr(new T(si)));
+    benchmark.addPlanner(std::make_shared<T>(si));
 }
 
 #include "RegressionTestCirclesProblem.inl.h"

@@ -62,45 +62,44 @@ void ompl::control::SyclopEST::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(lastGoalMotion_->state);
 
-    for (size_t i = 0; i < motions_.size(); ++i)
+    for (auto motion : motions_)
     {
-        if (motions_[i]->parent)
+        if (motion->parent)
         {
             if (data.hasControls())
-                data.addEdge (base::PlannerDataVertex(motions_[i]->parent->state),
-                              base::PlannerDataVertex(motions_[i]->state),
-                              control::PlannerDataEdgeControl (motions_[i]->control, motions_[i]->steps * delta));
+                data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state),
+                             control::PlannerDataEdgeControl(motion->control, motion->steps * delta));
             else
-                data.addEdge (base::PlannerDataVertex(motions_[i]->parent->state),
-                              base::PlannerDataVertex(motions_[i]->state));
+                data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state));
         }
         else
-            data.addStartVertex (base::PlannerDataVertex(motions_[i]->state));
+            data.addStartVertex(base::PlannerDataVertex(motion->state));
     }
 }
 
-ompl::control::Syclop::Motion* ompl::control::SyclopEST::addRoot(const base::State *s)
+ompl::control::Syclop::Motion *ompl::control::SyclopEST::addRoot(const base::State *s)
 {
-    Motion *motion = new Motion(siC_);
+    auto *motion = new Motion(siC_);
     si_->copyState(motion->state, s);
     siC_->nullControl(motion->control);
     motions_.push_back(motion);
     return motion;
 }
 
-void ompl::control::SyclopEST::selectAndExtend(Region &region, std::vector<Motion*>& newMotions)
+void ompl::control::SyclopEST::selectAndExtend(Region &region, std::vector<Motion *> &newMotions)
 {
-    Motion *treeMotion = region.motions[rng_.uniformInt(0, region.motions.size()-1)];
+    Motion *treeMotion = region.motions[rng_.uniformInt(0, region.motions.size() - 1)];
     Control *rctrl = siC_->allocControl();
     base::State *newState = si_->allocState();
 
     controlSampler_->sample(rctrl, treeMotion->state);
-    unsigned int duration = controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
+    unsigned int duration =
+        controlSampler_->sampleStepCount(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
     duration = siC_->propagateWhileValid(treeMotion->state, rctrl, duration, newState);
 
     if (duration >= siC_->getMinControlDuration())
     {
-        Motion *motion = new Motion(siC_);
+        auto *motion = new Motion(siC_);
         si_->copyState(motion->state, newState);
         siC_->copyControl(motion->control, rctrl);
         motion->steps = duration;
@@ -117,9 +116,8 @@ void ompl::control::SyclopEST::selectAndExtend(Region &region, std::vector<Motio
 
 void ompl::control::SyclopEST::freeMemory()
 {
-    for (std::vector<Motion*>::iterator i = motions_.begin(); i != motions_.end(); ++i)
+    for (auto m : motions_)
     {
-        Motion *m = *i;
         if (m->state)
             si_->freeState(m->state);
         if (m->control)

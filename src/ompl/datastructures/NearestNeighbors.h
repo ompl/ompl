@@ -43,23 +43,17 @@
 
 namespace ompl
 {
-
     /** \brief Abstract representation of a container that can perform nearest neighbors queries */
-    template<typename _T>
+    template <typename _T>
     class NearestNeighbors
     {
     public:
-
         /** \brief The definition of a distance function */
-        typedef std::function<double(const _T&, const _T&)> DistanceFunction;
+        using DistanceFunction = std::function<double(const _T &, const _T &)>;
 
-        NearestNeighbors()
-        {
-        }
+        NearestNeighbors() = default;
 
-        virtual ~NearestNeighbors()
-        {
-        }
+        virtual ~NearestNeighbors() = default;
 
         /** \brief Set the distance function to use */
         virtual void setDistanceFunction(const DistanceFunction &distFun)
@@ -68,7 +62,7 @@ namespace ompl
         }
 
         /** \brief Get the distance function used */
-        const DistanceFunction& getDistanceFunction() const
+        const DistanceFunction &getDistanceFunction() const
         {
             return distFun_;
         }
@@ -86,7 +80,7 @@ namespace ompl
         /** \brief Add a vector of points */
         virtual void add(const std::vector<_T> &data)
         {
-            for (typename std::vector<_T>::const_iterator elt = data.begin() ; elt != data.end() ; ++elt)
+            for (auto elt = data.begin(); elt != data.end(); ++elt)
                 add(*elt);
         }
 
@@ -117,10 +111,8 @@ namespace ompl
         virtual void list(std::vector<_T> &data) const = 0;
 
     protected:
-
         /** \brief The used distance function */
         DistanceFunction distFun_;
-
     };
 }
 

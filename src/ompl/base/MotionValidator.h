@@ -43,7 +43,6 @@
 
 namespace ompl
 {
-
     namespace base
     {
         /// @cond IGNORE
@@ -65,7 +64,6 @@ namespace ompl
         class MotionValidator
         {
         public:
-
             /** \brief Constructor */
             MotionValidator(SpaceInformation *si) : si_(si), valid_(0), invalid_(0)
             {
@@ -76,24 +74,29 @@ namespace ompl
             {
             }
 
-            virtual ~MotionValidator()
-            {
-            }
+            virtual ~MotionValidator() = default;
 
-            /** \brief Check if the path between two states (from \e s1 to \e s2) is valid. This function assumes \e s1 is valid.
+            /** \brief Check if the path between two states (from \e s1 to \e s2) is valid. This function assumes \e s1
+               is valid.
 
                 \note This function updates the number of valid and invalid segments. */
             virtual bool checkMotion(const State *s1, const State *s2) const = 0;
 
             /** \brief Check if the path between two states is valid. Also compute the last state that was
-                valid and the time of that state. The time is used to parametrize the motion from \e s1 to \e s2, \e s1 being at t =
+                valid and the time of that state. The time is used to parametrize the motion from \e s1 to \e s2, \e s1
+               being at t =
                 0 and \e s2 being at t = 1. This function assumes \e s1 is valid.
                 \param s1 start state of the motion to be checked (assumed to be valid)
                 \param s2 final state of the motion to be checked
-                \param lastValid first: storage for the last valid state (may be nullptr, if the user does not care about the exact state); this need not be different from \e s1 or \e s2. second: the time (between 0 and 1) of the last valid state, on the motion from \e s1 to \e s2. If the function returns false, \e lastValid.first must be set to a valid state, even if that implies copying \e s1 to \e lastValid.first (in case \e lastValid.second = 0). If the function returns true, \e lastValid.first and \e lastValid.second should \b not be modified.
+                \param lastValid first: storage for the last valid state (may be nullptr, if the user does not care
+               about the exact state); this need not be different from \e s1 or \e s2. second: the time (between 0 and
+               1) of the last valid state, on the motion from \e s1 to \e s2. If the function returns false, \e
+               lastValid.first must be set to a valid state, even if that implies copying \e s1 to \e lastValid.first
+               (in case \e lastValid.second = 0). If the function returns true, \e lastValid.first and \e
+               lastValid.second should \b not be modified.
 
                 \note This function updates the number of valid and invalid segments. */
-            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const = 0;
+            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const = 0;
 
             /** \brief Get the number of segments that tested as valid */
             unsigned int getValidMotionCount() const
@@ -126,18 +129,15 @@ namespace ompl
             }
 
         protected:
-
             /** \brief The instance of space information this state validity checker operates on */
-            SpaceInformation    *si_;
+            SpaceInformation *si_;
 
             /** \brief Number of valid segments */
             mutable unsigned int valid_;
 
             /** \brief Number of invalid segments */
             mutable unsigned int invalid_;
-
         };
-
     }
 }
 

@@ -40,56 +40,42 @@
 #include "ompl/tools/multiplan/ParallelPlan.h"
 
 ompl::tools::ExperienceSetup::ExperienceSetup(const base::SpaceInformationPtr &si)
-    : ompl::geometric::SimpleSetup(si)
-    , recallEnabled_(true)
-    , scratchEnabled_(true)
+  : ompl::geometric::SimpleSetup(si), recallEnabled_(true), scratchEnabled_(true)
 {
-  logInitialize();
+    logInitialize();
 };
 
-ompl::tools::ExperienceSetup::ExperienceSetup(const base::StateSpacePtr &space)
-  : ompl::geometric::SimpleSetup(space)
+ompl::tools::ExperienceSetup::ExperienceSetup(const base::StateSpacePtr &space) : ompl::geometric::SimpleSetup(space)
 {
-  logInitialize();
+    logInitialize();
 };
 
 void ompl::tools::ExperienceSetup::logInitialize()
 {
-  // Header of CSV file
-  csvDataLogStream_
-    // Times
-    << "planning_time,insertion_time,"
-    // Solution properties
-    << "planner,result,is_saved,"
-    // Failure booleans
-    << "approximate,too_short,insertion_failed,"
-    // Lightning properties
-    << "score,"
-    // Thunder (SPARS) properties
-    << "num_vertices,num_edges,num_connected_components,"
-    // Hack for using python cause im lazy right now
-    << "total_experiences,total_scratch,total_recall,total_failed,total_approximate,"
-    << "total_too_short,total_insertion_failed,"
-    << "avg_planning_time,avg_insertion_time"
-    << std::endl;
+    // Header of CSV file
+    csvDataLogStream_
+        // Times
+        << "planning_time,insertion_time,"
+        // Solution properties
+        << "planner,result,is_saved,"
+        // Failure booleans
+        << "approximate,too_short,insertion_failed,"
+        // Lightning properties
+        << "score,"
+        // Thunder (SPARS) properties
+        << "num_vertices,num_edges,num_connected_components,"
+        // Hack for using python cause im lazy right now
+        << "total_experiences,total_scratch,total_recall,total_failed,total_approximate,"
+        << "total_too_short,total_insertion_failed,"
+        << "avg_planning_time,avg_insertion_time" << std::endl;
 }
 
 void ompl::tools::ExperienceSetup::convertLogToString(const ExperienceLog &log)
 {
-  csvDataLogStream_
-    << log.planning_time << ","
-    << log.insertion_time << ","
-    << log.planner << ","
-    << log.result << ","
-    << log.is_saved << ","
-    << log.approximate << ","
-    << log.too_short << ","
-    << log.insertion_failed << ","
-    << log.score << ","
-    << log.num_vertices << ","
-    << log.num_edges << ","
-    << log.num_connected_components
-    << std::endl;
+    csvDataLogStream_ << log.planning_time << "," << log.insertion_time << "," << log.planner << "," << log.result
+                      << "," << log.is_saved << "," << log.approximate << "," << log.too_short << ","
+                      << log.insertion_failed << "," << log.score << "," << log.num_vertices << "," << log.num_edges
+                      << "," << log.num_connected_components << std::endl;
 }
 
 void ompl::tools::ExperienceSetup::saveDataLog(std::ostream &out)
@@ -99,7 +85,7 @@ void ompl::tools::ExperienceSetup::saveDataLog(std::ostream &out)
     csvDataLogStream_.str("");
 }
 
-const std::string& ompl::tools::ExperienceSetup::getFilePath() const
+const std::string &ompl::tools::ExperienceSetup::getFilePath() const
 {
     return filePath_;
 }
@@ -127,4 +113,3 @@ void ompl::tools::ExperienceSetup::enablePlanningFromScratch(bool enable)
     // Flag the planners as possibly misconfigured
     configured_ = false;
 }
-

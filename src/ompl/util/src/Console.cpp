@@ -48,13 +48,13 @@
 #include <unistd.h>
 #endif
 
-#define ANSI_COLOR_RED     "\x1b[31m"
-#define ANSI_COLOR_GREEN   "\x1b[32m"
-#define ANSI_COLOR_YELLOW  "\x1b[33m"
-#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_RED "\x1b[31m"
+#define ANSI_COLOR_GREEN "\x1b[32m"
+#define ANSI_COLOR_YELLOW "\x1b[33m"
+#define ANSI_COLOR_BLUE "\x1b[34m"
 #define ANSI_COLOR_MAGENTA "\x1b[35m"
-#define ANSI_COLOR_CYAN    "\x1b[36m"
-#define ANSI_COLOR_RESET   "\x1b[0m"
+#define ANSI_COLOR_CYAN "\x1b[36m"
+#define ANSI_COLOR_RESET "\x1b[0m"
 
 /// @cond IGNORE
 
@@ -62,30 +62,30 @@ struct DefaultOutputHandler
 {
     DefaultOutputHandler()
     {
-        output_handler_ = static_cast<ompl::msg::OutputHandler*>(&std_output_handler_);
+        output_handler_ = static_cast<ompl::msg::OutputHandler *>(&std_output_handler_);
         previous_output_handler_ = output_handler_;
         logLevel_ = ompl::msg::LOG_DEBUG;
     }
 
     ompl::msg::OutputHandlerSTD std_output_handler_;
-    ompl::msg::OutputHandler   *output_handler_;
-    ompl::msg::OutputHandler   *previous_output_handler_;
-    ompl::msg::LogLevel         logLevel_;
-    std::mutex                  lock_; // it is likely the outputhandler does some I/O, so we serialize it
+    ompl::msg::OutputHandler *output_handler_;
+    ompl::msg::OutputHandler *previous_output_handler_;
+    ompl::msg::LogLevel logLevel_;
+    std::mutex lock_;  // it is likely the outputhandler does some I/O, so we serialize it
 };
 
 // we use this function because we want to handle static initialization correctly
 // however, the first run of this function is not thread safe, due to the use of a static
 // variable inside the function. For this reason, we ensure the first call happens during
 // static initialization using a proxy class
-static DefaultOutputHandler* getDOH()
+static DefaultOutputHandler *getDOH()
 {
     static DefaultOutputHandler DOH;
     return &DOH;
 }
 
-#define USE_DOH                                                                \
-    DefaultOutputHandler *doh = getDOH();                                      \
+#define USE_DOH                                                                                                        \
+    DefaultOutputHandler *doh = getDOH();                                                                              \
     std::lock_guard<std::mutex> slock(doh->lock_)
 
 #define MAX_BUFFER_SIZE 1024
@@ -112,7 +112,7 @@ void ompl::msg::useOutputHandler(OutputHandler *oh)
     doh->output_handler_ = oh;
 }
 
-ompl::msg::OutputHandler* ompl::msg::getOutputHandler()
+ompl::msg::OutputHandler *ompl::msg::getOutputHandler()
 {
     return getDOH()->output_handler_;
 }
@@ -146,7 +146,8 @@ ompl::msg::LogLevel ompl::msg::getLogLevel()
 }
 
 static const char *LogLevelString[6] = {"Dev2:    ", "Dev1:    ", "Debug:   ", "Info:    ", "Warning: ", "Error:   "};
-static const char *LogColorString[6] = {ANSI_COLOR_MAGENTA, ANSI_COLOR_GREEN, ANSI_COLOR_BLUE, ANSI_COLOR_CYAN, ANSI_COLOR_YELLOW, ANSI_COLOR_RED};
+static const char *LogColorString[6] = {ANSI_COLOR_MAGENTA, ANSI_COLOR_GREEN,  ANSI_COLOR_BLUE,
+                                        ANSI_COLOR_CYAN,    ANSI_COLOR_YELLOW, ANSI_COLOR_RED};
 
 void ompl::msg::OutputHandlerSTD::log(const std::string &text, LogLevel level, const char *filename, int line)
 {
@@ -192,7 +193,7 @@ void ompl::msg::OutputHandlerFile::log(const std::string &text, LogLevel level, 
     if (file_)
     {
         fprintf(file_, "%s%s\n", LogLevelString[level], text.c_str());
-        if(level >= LOG_WARN)
+        if (level >= LOG_WARN)
             fprintf(file_, "         at line %d in %s\n", line, filename);
         fflush(file_);
     }

@@ -47,35 +47,32 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief State sampler for the R<sup>n</sup> state space */
         class RealVectorStateSampler : public StateSampler
         {
         public:
-
             /** \brief Constructor */
             RealVectorStateSampler(const StateSpace *space) : StateSampler(space)
             {
             }
 
-            virtual void sampleUniform(State *state);
+            void sampleUniform(State *state) override;
             /** \brief Sample a state such that each component state[i] is
                 uniformly sampled from [near[i]-distance, near[i]+distance].
                 If this interval exceeds the state space bounds, the
                 interval is truncated. */
-            virtual void sampleUniformNear(State *state, const State *near, const double distance);
+            void sampleUniformNear(State *state, const State *near, const double distance) override;
             /** \brief Sample a state such that each component state[i] has
                 a Gaussian distribution with mean mean[i] and standard
                 deviation stdDev. If the sampled value exceeds the state
                 space boundary, it is thresholded to the nearest boundary. */
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
         };
 
         /** \brief A state space representing R<sup>n</sup>. The distance function is the L2 norm. */
         class RealVectorStateSpace : public StateSpace
         {
         public:
-
             /** \brief The definition of a state in R<sup>n</sup> */
             class StateType : public State
             {
@@ -93,7 +90,7 @@ namespace ompl
 
                 /** \brief Access element i of values.  This does not
                     check whether the index is within bounds */
-                double& operator[](unsigned int i)
+                double &operator[](unsigned int i)
                 {
                     return values[i];
                 }
@@ -104,21 +101,23 @@ namespace ompl
 
             /** \brief Constructor. The dimension of of the space needs to be specified. A space representing
                 R<sup>dim</sup> will be instantiated */
-            RealVectorStateSpace(unsigned int dim = 0) : StateSpace(), dimension_(dim), bounds_(dim),  stateBytes_(dim * sizeof(double))
+            RealVectorStateSpace(unsigned int dim = 0)
+              : StateSpace(), dimension_(dim), bounds_(dim), stateBytes_(dim * sizeof(double))
             {
                 type_ = STATE_SPACE_REAL_VECTOR;
                 setName("RealVector" + getName());
                 dimensionNames_.resize(dim, "");
             }
 
-            virtual ~RealVectorStateSpace()
-            {
-            }
+            ~RealVectorStateSpace() override = default;
 
-            /** \brief Increase the dimensionality of the state space by 1. Optionally, bounds can be specified for this added dimension. setup() will need to be called after adding dimensions. */
+            /** \brief Increase the dimensionality of the state space by 1. Optionally, bounds can be specified for this
+             * added dimension. setup() will need to be called after adding dimensions. */
             void addDimension(double minBound = 0.0, double maxBound = 0.0);
 
-            /** \brief Increase the dimensionality of the state space by 1 and specify the name of this dimension. Optionally, bounds can be specified for this added dimension. setup() will need to be called after adding dimensions. This function is a wrapper for the previous definition of addDimension(). */
+            /** \brief Increase the dimensionality of the state space by 1 and specify the name of this dimension.
+             * Optionally, bounds can be specified for this added dimension. setup() will need to be called after adding
+             * dimensions. This function is a wrapper for the previous definition of addDimension(). */
             void addDimension(const std::string &name, double minBound = 0.0, double maxBound = 0.0);
 
             /** \brief Set the bounds of this state space. This defines
@@ -130,16 +129,17 @@ namespace ompl
             void setBounds(double low, double high);
 
             /** \brief Get the bounds for this state space */
-            const RealVectorBounds& getBounds() const
+            const RealVectorBounds &getBounds() const
             {
                 return bounds_;
             }
 
-            virtual unsigned int getDimension() const;
+            unsigned int getDimension() const override;
 
-            /** \brief Each dimension can optionally have a name associated to it. If it does, this function returns that name.
+            /** \brief Each dimension can optionally have a name associated to it. If it does, this function returns
+               that name.
                 Return empty string otherwise */
-            const std::string& getDimensionName(unsigned int index) const;
+            const std::string &getDimensionName(unsigned int index) const;
 
             /** \brief Get the index of a specific dimension, by name. Return -1 if name is not found */
             int getDimensionIndex(const std::string &name) const;
@@ -147,63 +147,60 @@ namespace ompl
             /** \brief Set the name of a dimension */
             void setDimensionName(unsigned int index, const std::string &name);
 
-            virtual double getMaximumExtent() const;
+            double getMaximumExtent() const override;
 
-            virtual double getMeasure() const;
+            double getMeasure() const override;
 
-            virtual void enforceBounds(State *state) const;
+            void enforceBounds(State *state) const override;
 
-            virtual bool satisfiesBounds(const State *state) const;
+            bool satisfiesBounds(const State *state) const override;
 
-            virtual void copyState(State *destination, const State *source) const;
+            void copyState(State *destination, const State *source) const override;
 
-            virtual unsigned int getSerializationLength() const;
+            unsigned int getSerializationLength() const override;
 
-            virtual void serialize(void *serialization, const State *state) const;
+            void serialize(void *serialization, const State *state) const override;
 
-            virtual void deserialize(State *state, const void *serialization) const;
+            void deserialize(State *state, const void *serialization) const override;
 
-            virtual double distance(const State *state1, const State *state2) const;
+            double distance(const State *state1, const State *state2) const override;
 
-            virtual bool equalStates(const State *state1, const State *state2) const;
+            bool equalStates(const State *state1, const State *state2) const override;
 
-            virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
+            void interpolate(const State *from, const State *to, const double t, State *state) const override;
 
-            virtual StateSamplerPtr allocDefaultStateSampler() const;
+            StateSamplerPtr allocDefaultStateSampler() const override;
 
-            virtual State* allocState() const;
+            State *allocState() const override;
 
-            virtual void freeState(State *state) const;
+            void freeState(State *state) const override;
 
-            virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
+            double *getValueAddressAtIndex(State *state, const unsigned int index) const override;
 
-            virtual void printState(const State *state, std::ostream &out) const;
+            void printState(const State *state, std::ostream &out) const override;
 
-            virtual void printSettings(std::ostream &out) const;
+            void printSettings(std::ostream &out) const override;
 
-            virtual void registerProjections();
+            void registerProjections() override;
 
-            virtual void setup();
+            void setup() override;
 
         protected:
-
             /** \brief The dimension of the space */
-            unsigned int                        dimension_;
+            unsigned int dimension_;
 
             /** \brief The bounds of the space (used for sampling) */
-            RealVectorBounds                    bounds_;
+            RealVectorBounds bounds_;
 
             /** \brief Optional names for individual dimensions */
-            std::vector<std::string>            dimensionNames_;
+            std::vector<std::string> dimensionNames_;
 
             /** \brief Map from names to index values for dimensions */
             std::map<std::string, unsigned int> dimensionIndex_;
 
         private:
-
             /** \brief The size of a state, in bytes */
-            std::size_t                         stateBytes_;
-
+            std::size_t stateBytes_;
         };
     }
 }

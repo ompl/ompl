@@ -54,15 +54,13 @@ namespace ompl
 {
     namespace tools
     {
-
         class SelfConfig::SelfConfigImpl
         {
             friend class SelfConfig;
 
         public:
-
-            SelfConfigImpl(const base::SpaceInformationPtr &si) :
-                wsi_(si), probabilityOfValidState_(-1.0), averageValidMotionLength_(-1.0)
+            SelfConfigImpl(const base::SpaceInformationPtr &si)
+              : wsi_(si), probabilityOfValidState_(-1.0), averageValidMotionLength_(-1.0)
             {
             }
 
@@ -101,7 +99,8 @@ namespace ompl
                         OMPL_DEBUG("%sPlanner range detected to be %lf", context.c_str(), range);
                     }
                     else
-                        OMPL_ERROR("%sUnable to detect planner range. SpaceInformation instance has expired.", context.c_str());
+                        OMPL_ERROR("%sUnable to detect planner range. SpaceInformation instance has expired.",
+                                   context.c_str());
                 }
             }
 
@@ -138,7 +137,6 @@ namespace ompl
             }
 
         private:
-
             void checkSetup(const base::SpaceInformationPtr &si)
             {
                 if (si)
@@ -159,40 +157,39 @@ namespace ompl
 
             // we store weak pointers so that the SpaceInformation instances are not kept in
             // memory until termination of the program due to the use of a static ConfigMap below
-            std::weak_ptr<base::SpaceInformation>   wsi_;
+            std::weak_ptr<base::SpaceInformation> wsi_;
 
-            double                                  probabilityOfValidState_;
-            double                                  averageValidMotionLength_;
+            double probabilityOfValidState_;
+            double averageValidMotionLength_;
 
-            std::mutex                              lock_;
+            std::mutex lock_;
         };
-
     }
 }
 
 std::mutex ompl::tools::SelfConfig::staticConstructorLock_;
 /// @endcond
 
-ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const std::string &context) :
-    context_(context.empty() ? "" : context + ": ")
+ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const std::string &context)
+  : context_(context.empty() ? "" : context + ": ")
 {
-    typedef std::map<base::SpaceInformation*, std::shared_ptr<SelfConfigImpl> > ConfigMap;
+    using ConfigMap = std::map<base::SpaceInformation *, std::shared_ptr<SelfConfigImpl>>;
 
     std::unique_lock<std::mutex> smLock(staticConstructorLock_);
 
-    static ConfigMap    SMAP;
+    static ConfigMap SMAP;
 
     // clean expired entries from the map
-    ConfigMap::iterator dit = SMAP.begin();
+    auto dit = SMAP.begin();
     while (dit != SMAP.end())
     {
         if (dit->second->expired())
             SMAP.erase(dit++);
         else
-          ++dit;
+            ++dit;
     }
 
-    ConfigMap::const_iterator it = SMAP.find(si.get());
+    const auto it = SMAP.find(si.get());
 
     if (it != SMAP.end())
         impl_ = it->second.get();
@@ -203,9 +200,7 @@ ompl::tools::SelfConfig::SelfConfig(const base::SpaceInformationPtr &si, const s
     }
 }
 
-ompl::tools::SelfConfig::~SelfConfig()
-{
-}
+ompl::tools::SelfConfig::~SelfConfig() = default;
 
 /* ------------------------------------------------------------------------ */
 
@@ -254,14 +249,14 @@ ompl::base::PlannerPtr ompl::tools::SelfConfig::getDefaultPlanner(const base::Go
     base::SpaceInformationPtr si(goal->getSpaceInformation());
     const base::StateSpacePtr &space(si->getStateSpace());
     control::SpaceInformationPtr siC(std::dynamic_pointer_cast<control::SpaceInformation, base::SpaceInformation>(si));
-    if (siC) // kinodynamic planning
+    if (siC)  // kinodynamic planning
     {
         // if we have a default projection
         if (space->hasDefaultProjection())
-            planner = base::PlannerPtr(new control::KPIECE1(siC));
+            planner = std::make_shared<control::KPIECE1>(siC);
         // otherwise use a single-tree planner
         else
-            planner = base::PlannerPtr(new control::RRT(siC));
+            planner = std::make_shared<control::RRT>(siC);
     }
     // if we can sample the goal region and interpolation between states is symmetric,
     // use a bi-directional planner
@@ -269,18 +264,18 @@ ompl::base::PlannerPtr ompl::tools::SelfConfig::getDefaultPlanner(const base::Go
     {
         // if we have a default projection
         if (space->hasDefaultProjection())
-            planner = base::PlannerPtr(new geometric::LBKPIECE1(goal->getSpaceInformation()));
+            planner = std::make_shared<geometric::LBKPIECE1>(goal->getSpaceInformation());
         else
-            planner = base::PlannerPtr(new geometric::RRTConnect(goal->getSpaceInformation()));
+            planner = std::make_shared<geometric::RRTConnect>(goal->getSpaceInformation());
     }
     // otherwise use a single-tree planner
     else
     {
         // if we have a default projection
         if (space->hasDefaultProjection())
-            planner = base::PlannerPtr(new geometric::KPIECE1(goal->getSpaceInformation()));
+            planner = std::make_shared<geometric::KPIECE1>(goal->getSpaceInformation());
         else
-            planner = base::PlannerPtr(new geometric::RRT(goal->getSpaceInformation()));
+            planner = std::make_shared<geometric::RRT>(goal->getSpaceInformation());
     }
 
     if (!planner)

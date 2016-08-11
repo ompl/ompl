@@ -37,6 +37,8 @@
 #ifndef OMPL_CONTROL_SPACE_INFORMATION_
 #define OMPL_CONTROL_SPACE_INFORMATION_
 
+#include <utility>
+
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/control/ControlSpace.h"
 #include "ompl/control/ControlSampler.h"
@@ -47,12 +49,10 @@
 
 namespace ompl
 {
-
     /** \brief This namespace contains sampling based planning
         routines used by planning under differential constraints */
     namespace control
     {
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::SpaceInformation */
         OMPL_CLASS_FORWARD(SpaceInformation);
@@ -61,28 +61,29 @@ namespace ompl
         /** \class ompl::control::SpaceInformationPtr
             \brief A shared pointer wrapper for ompl::control::SpaceInformation */
 
-
         /** \brief A function that achieves state propagation.*/
-        typedef std::function<void(const base::State*, const Control*, const double, base::State*)> StatePropagatorFn;
+        using StatePropagatorFn =
+            std::function<void(const base::State *, const Control *, const double, base::State *)>;
 
-        /** \brief Space information containing necessary information for planning with controls. setup() needs to be called before use. */
+        /** \brief Space information containing necessary information for planning with controls. setup() needs to be
+         * called before use. */
         class SpaceInformation : public base::SpaceInformation
         {
         public:
-
             /** \brief Constructor. Sets the instance of the state and control spaces to plan with. */
-            SpaceInformation(const base::StateSpacePtr &stateSpace, const ControlSpacePtr &controlSpace) :
-                base::SpaceInformation(stateSpace), controlSpace_(controlSpace),
-                minSteps_(0), maxSteps_(0), stepSize_(0.0)
+            SpaceInformation(const base::StateSpacePtr &stateSpace, ControlSpacePtr controlSpace)
+              : base::SpaceInformation(stateSpace)
+              , controlSpace_(std::move(controlSpace))
+              , minSteps_(0)
+              , maxSteps_(0)
+              , stepSize_(0.0)
             {
             }
 
-            virtual ~SpaceInformation()
-            {
-            }
+            ~SpaceInformation() override = default;
 
             /** \brief Get the control space */
-            const ControlSpacePtr& getControlSpace() const
+            const ControlSpacePtr &getControlSpace() const
             {
                 return controlSpace_;
             }
@@ -91,7 +92,7 @@ namespace ompl
                 @{ */
 
             /** \brief Allocate memory for a control */
-            Control* allocControl() const
+            Control *allocControl() const
             {
                 return controlSpace_->allocControl();
             }
@@ -109,7 +110,7 @@ namespace ompl
             }
 
             /** \brief Clone a control */
-            Control* cloneControl(const Control *source) const
+            Control *cloneControl(const Control *source) const
             {
                 Control *copy = controlSpace_->allocControl();
                 controlSpace_->copyControl(copy, source);
@@ -169,7 +170,8 @@ namespace ompl
                 return maxSteps_;
             }
 
-            /** \brief Allocate an instance of the DirectedControlSampler to use. This will be the default (SimpleDirectedControlSampler) unless
+            /** \brief Allocate an instance of the DirectedControlSampler to use. This will be the default
+               (SimpleDirectedControlSampler) unless
                 setDirectedControlSamplerAllocator() was previously called. */
             DirectedControlSamplerPtr allocDirectedControlSampler() const;
 
@@ -185,7 +187,7 @@ namespace ompl
                 @{ */
 
             /** \brief Get the instance of StatePropagator that performs state propagation */
-            const StatePropagatorPtr& getStatePropagator() const
+            const StatePropagatorPtr &getStatePropagator() const
             {
                 return statePropagator_;
             }
@@ -203,7 +205,8 @@ namespace ompl
                 stepSize_ = stepSize;
             }
 
-            /** \brief Propagation is performed at integer multiples of a specified step size. This function returns the value of this step size. */
+            /** \brief Propagation is performed at integer multiples of a specified step size. This function returns the
+             * value of this step size. */
             double getPropagationStepSize() const
             {
                 return stepSize_;
@@ -213,10 +216,12 @@ namespace ompl
             /** @name Primitives for propagating the model of the system
                 @{ */
 
-            /** \brief Propagate the model of the system forward, starting a a given state, with a given control, for a given number of steps.
+            /** \brief Propagate the model of the system forward, starting a a given state, with a given control, for a
+               given number of steps.
                 \param state the state to start at
                 \param control the control to apply
-                \param steps the number of time steps to apply the control for. Each time step is of length getPropagationStepSize()
+                \param steps the number of time steps to apply the control for. Each time step is of length
+               getPropagationStepSize()
                 \param result the state at the end of the propagation */
             void propagate(const base::State *state, const Control *control, int steps, base::State *result) const;
 
@@ -226,71 +231,83 @@ namespace ompl
                 possible, this function will return true (this is the default). */
             bool canPropagateBackward() const;
 
-            /** \brief Propagate the model of the system forward, starting at a given state, with a given control, for a given number of steps.
-                Stop if a collision is found and return the number of steps actually performed without collision. If no collision is found, the returned value is
-                equal to the \e steps argument. If a collision is found after the first step, the return value is 0 and \e result = \e state.
+            /** \brief Propagate the model of the system forward, starting at a given state, with a given control, for a
+               given number of steps.
+                Stop if a collision is found and return the number of steps actually performed without collision. If no
+               collision is found, the returned value is
+                equal to the \e steps argument. If a collision is found after the first step, the return value is 0 and
+               \e result = \e state.
                 \param state the state to start at
                 \param control the control to apply
-                \param steps the maximum number of time steps to apply the control for. Each time step is of length getPropagationStepSize(). If \e steps is negative, backward propagation will be performed.
+                \param steps the maximum number of time steps to apply the control for. Each time step is of length
+               getPropagationStepSize(). If \e steps is negative, backward propagation will be performed.
                 \param result the state at the end of the propagation or the last valid state if a collision is found */
-            unsigned int propagateWhileValid(const base::State *state, const Control *control, int steps, base::State *result) const;
+            unsigned int propagateWhileValid(const base::State *state, const Control *control, int steps,
+                                             base::State *result) const;
 
-            /** \brief Propagate the model of the system forward, starting a a given state, with a given control, for a given number of steps.
+            /** \brief Propagate the model of the system forward, starting a a given state, with a given control, for a
+               given number of steps.
                 \param state the state to start at
                 \param control the control to apply
-                \param steps the number of time steps to apply the control for. Each time step is of length getPropagationStepSize(). If \e steps is negative, backward propagation will be performed.
+                \param steps the number of time steps to apply the control for. Each time step is of length
+               getPropagationStepSize(). If \e steps is negative, backward propagation will be performed.
                 \param result the set of states along the propagated motion
                 \param alloc flag indicating whether memory for the states in \e result should be allocated
 
                 \note Start state \e state is not included in \e result */
-            void propagate(const base::State *state, const Control *control, int steps, std::vector<base::State*> &result, bool alloc) const;
+            void propagate(const base::State *state, const Control *control, int steps,
+                           std::vector<base::State *> &result, bool alloc) const;
 
-            /** \brief Propagate the model of the system forward, starting at a given state, with a given control, for a given number of steps.
-                Stop if a collision is found and return the number of steps actually performed without collision. If no collision is found, the returned value is
-                equal to the \e steps argument.  If a collision is found after the first step, the return value is 0 and no states are added to \e result.
-                If \e alloc is false and \e result cannot store all the generated states, propagation is stopped prematurely (when \e result is full).
-                The starting state (\e state) is not included in \e result. The return value of the function indicates how many states have been written to \e result.
+            /** \brief Propagate the model of the system forward, starting at a given state, with a given control, for a
+               given number of steps.
+                Stop if a collision is found and return the number of steps actually performed without collision. If no
+               collision is found, the returned value is
+                equal to the \e steps argument.  If a collision is found after the first step, the return value is 0 and
+               no states are added to \e result.
+                If \e alloc is false and \e result cannot store all the generated states, propagation is stopped
+               prematurely (when \e result is full).
+                The starting state (\e state) is not included in \e result. The return value of the function indicates
+               how many states have been written to \e result.
 
                 \param state the state to start at
                 \param control the control to apply
-                \param steps the maximum number of time steps to apply the control for. Each time step is of length getPropagationStepSize(). If \e steps is negative, backward propagation will be performed.
+                \param steps the maximum number of time steps to apply the control for. Each time step is of length
+               getPropagationStepSize(). If \e steps is negative, backward propagation will be performed.
                 \param result the set of states along the propagated motion (only valid states included)
                 \param alloc flag indicating whether memory for the states in \e result should be allocated
             */
-            unsigned int propagateWhileValid(const base::State *state, const Control *control, int steps, std::vector<base::State*> &result, bool alloc) const;
+            unsigned int propagateWhileValid(const base::State *state, const Control *control, int steps,
+                                             std::vector<base::State *> &result, bool alloc) const;
 
             /** @} */
 
             /** \brief Print information about the current instance of the state space */
-            virtual void printSettings(std::ostream &out = std::cout) const;
+            void printSettings(std::ostream &out = std::cout) const override;
 
             /** \brief Perform additional setup tasks (run once, before use) */
-            virtual void setup();
+            void setup() override;
 
         protected:
-
             /** \brief The control space describing the space of controls applicable to states in the state space */
-            ControlSpacePtr                 controlSpace_;
+            ControlSpacePtr controlSpace_;
 
             /** \brief The state propagator used to model the motion of the system being planned for */
-            StatePropagatorPtr              statePropagator_;
+            StatePropagatorPtr statePropagator_;
 
             /** \brief The minimum number of steps to apply a control for */
-            unsigned int                    minSteps_;
+            unsigned int minSteps_;
 
             /** \brief The maximum number of steps to apply a control for */
-            unsigned int                    maxSteps_;
+            unsigned int maxSteps_;
 
-            /** \brief Optional allocator for the DirectedControlSampler. If not specified, the default implementation is used */
+            /** \brief Optional allocator for the DirectedControlSampler. If not specified, the default implementation
+             * is used */
             DirectedControlSamplerAllocator dcsa_;
 
             /** \brief The actual duration of each step */
-            double                          stepSize_;
-
+            double stepSize_;
         };
-
     }
-
 }
 
 #endif

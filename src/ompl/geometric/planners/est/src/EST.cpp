@@ -46,7 +46,7 @@ ompl::geometric::EST::EST(const base::SpaceInformationPtr &si) : base::Planner(s
     specs_.directed = true;
     goalBias_ = 0.05;
     maxDistance_ = 0.0;
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 
     Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias, "0.:.05:1.");
@@ -63,12 +63,16 @@ void ompl::geometric::EST::setup()
     tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
 
-    // Make the neighborhood radius smaller than sampling range to keep probabilities relatively high for rejection sampling
+    // Make the neighborhood radius smaller than sampling range to keep probabilities relatively high for rejection
+    // sampling
     nbrhoodRadius_ = maxDistance_ / 3.0;
 
     if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(std::bind(&EST::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
+    nn_->setDistanceFunction([this](const Motion *a, const Motion *b)
+                             {
+                                 return distanceFunction(a, b);
+                             });
 }
 
 void ompl::geometric::EST::clear()
@@ -81,30 +85,30 @@ void ompl::geometric::EST::clear()
 
     motions_.clear();
     pdf_.clear();
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
 }
 
 void ompl::geometric::EST::freeMemory()
 {
-    for(size_t i = 0; i < motions_.size(); ++i)
+    for (auto &motion : motions_)
     {
-        if (motions_[i]->state)
-            si_->freeState(motions_[i]->state);
-        delete motions_[i];
+        if (motion->state)
+            si_->freeState(motion->state);
+        delete motion;
     }
 }
 
 ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                   *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
-    std::vector<Motion*> neighbors;
+    std::vector<Motion *> neighbors;
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state, st);
 
         nn_->nearestR(motion, nbrhoodRadius_, neighbors);
@@ -122,11 +126,11 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), motions_.size());
 
-    Motion *solution  = NULL;
-    Motion *approxsol = NULL;
-    double  approxdif = std::numeric_limits<double>::infinity();
+    Motion *solution = nullptr;
+    Motion *approxsol = nullptr;
+    double approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
-    Motion* xmotion = new Motion();
+    auto *xmotion = new Motion();
 
     while (ptc == false)
     {
@@ -166,7 +170,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
         if (si_->checkMotion(existing->state, xstate))
         {
             // create a motion
-            Motion *motion = new Motion(si_);
+            auto *motion = new Motion(si_);
             si_->copyState(motion->state, xstate);
             motion->parent = existing;
 
@@ -192,29 +196,29 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     bool solved = false;
     bool approximate = false;
-    if (solution == NULL)
+    if (solution == nullptr)
     {
         solution = approxsol;
         approximate = true;
     }
 
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         lastGoalMotion_ = solution;
 
         // construct the solution path
-        std::vector<Motion*> mpath;
-        while (solution != NULL)
+        std::vector<Motion *> mpath;
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;
         }
 
         // set the solution path
-        PathGeometric *path = new PathGeometric(si_);
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        auto path(std::make_shared<PathGeometric>(si_));
+        for (int i = mpath.size() - 1; i >= 0; --i)
             path->append(mpath[i]->state);
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
+        pdef_->addSolutionPath(path, approximate, approxdif, getName());
         solved = true;
     }
 
@@ -226,12 +230,12 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
     return base::PlannerStatus(solved, approximate);
 }
 
-void ompl::geometric::EST::addMotion(Motion *motion, const std::vector<Motion*>& neighbors)
+void ompl::geometric::EST::addMotion(Motion *motion, const std::vector<Motion *> &neighbors)
 {
     // Updating neighborhood size counts
-    for(size_t i = 0; i < neighbors.size(); ++i)
+    for (auto neighbor : neighbors)
     {
-        PDF<Motion*>::Element *elem = neighbors[i]->element;
+        PDF<Motion *>::Element *elem = neighbor->element;
         double w = pdf_.getWeight(elem);
         pdf_.update(elem, w / (w + 1.));
     }
@@ -249,12 +253,11 @@ void ompl::geometric::EST::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (unsigned int i = 0 ; i < motions_.size() ; ++i)
+    for (auto motion : motions_)
     {
-        if (motions_[i]->parent == NULL)
-            data.addStartVertex(base::PlannerDataVertex(motions_[i]->state));
+        if (motion->parent == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(motion->state));
         else
-            data.addEdge(base::PlannerDataVertex(motions_[i]->parent->state),
-                         base::PlannerDataVertex(motions_[i]->state));
+            data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state));
     }
 }

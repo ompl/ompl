@@ -36,6 +36,7 @@
 
 #include "ompl/geometric/PathHybridization.h"
 #include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <utility>
 
 namespace ompl
 {
@@ -46,10 +47,8 @@ namespace ompl
     }
 }
 
-ompl::geometric::PathHybridization::PathHybridization(const base::SpaceInformationPtr &si) :
-    si_(si),
-    stateProperty_(boost::get(vertex_state_t(), g_)),
-    name_("PathHybridization")
+ompl::geometric::PathHybridization::PathHybridization(base::SpaceInformationPtr si)
+  : si_(std::move(si)), stateProperty_(boost::get(vertex_state_t(), g_)), name_("PathHybridization")
 {
     root_ = boost::add_vertex(g_);
     stateProperty_[root_] = nullptr;
@@ -57,9 +56,7 @@ ompl::geometric::PathHybridization::PathHybridization(const base::SpaceInformati
     stateProperty_[goal_] = nullptr;
 }
 
-ompl::geometric::PathHybridization::~PathHybridization()
-{
-}
+ompl::geometric::PathHybridization::~PathHybridization() = default;
 
 void ompl::geometric::PathHybridization::clear()
 {
@@ -77,13 +74,13 @@ void ompl::geometric::PathHybridization::print(std::ostream &out) const
 {
     out << "Path hybridization is aware of " << paths_.size() << " paths" << std::endl;
     int i = 1;
-    for (std::set<PathInfo>::const_iterator it = paths_.begin() ; it != paths_.end() ; ++it, ++i)
+    for (auto it = paths_.begin(); it != paths_.end(); ++it, ++i)
         out << "  path " << i << " of length " << it->length_ << std::endl;
     if (hpath_)
         out << "Hybridized path of length " << hpath_->length() << std::endl;
 }
 
-const std::string& ompl::geometric::PathHybridization::getName() const
+const std::string &ompl::geometric::PathHybridization::getName() const
 {
     return name_;
 }
@@ -94,22 +91,22 @@ void ompl::geometric::PathHybridization::computeHybridPath()
     boost::dijkstra_shortest_paths(g_, root_, boost::predecessor_map(prev));
     if (prev[goal_] != goal_)
     {
-        PathGeometric *h = new PathGeometric(si_);
+        auto h(std::make_shared<PathGeometric>(si_));
         for (Vertex pos = prev[goal_]; prev[pos] != pos; pos = prev[pos])
             h->append(stateProperty_[pos]);
         h->reverse();
-        hpath_.reset(h);
+        hpath_ = h;
     }
 }
 
-const ompl::base::PathPtr& ompl::geometric::PathHybridization::getHybridPath() const
+const ompl::base::PathPtr &ompl::geometric::PathHybridization::getHybridPath() const
 {
     return hpath_;
 }
 
 unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp, bool matchAcrossGaps)
 {
-    PathGeometric *p = dynamic_cast<PathGeometric*>(pp.get());
+    PathGeometric *p = dynamic_cast<PathGeometric *>(pp.get());
     if (!p)
     {
         OMPL_ERROR("Path hybridization only works for geometric paths");
@@ -145,11 +142,11 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
     const HGraph::edge_property_type prop0(0.0);
     boost::add_edge(root_, v0, prop0, g_);
     double length = 0.0;
-    for (std::size_t j = 1 ; j < pi.states_.size() ; ++j)
+    for (std::size_t j = 1; j < pi.states_.size(); ++j)
     {
         Vertex v1 = boost::add_vertex(g_);
         stateProperty_[v1] = pi.states_[j];
-        double weight = si_->distance(pi.states_[j-1], pi.states_[j]);
+        double weight = si_->distance(pi.states_[j - 1], pi.states_[j]);
         const HGraph::edge_property_type properties(weight);
         boost::add_edge(v0, v1, properties, g_);
         length += weight;
@@ -162,11 +159,11 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
     pi.length_ = length;
 
     // find matches with previously added paths
-    for (std::set<PathInfo>::const_iterator it = paths_.begin() ; it != paths_.end() ; ++it)
+    for (const auto &path : paths_)
     {
-        const PathGeometric *q = static_cast<const PathGeometric*>(it->path_.get());
+        const PathGeometric *q = static_cast<const PathGeometric *>(path.path_.get());
         std::vector<int> indexP, indexQ;
-        matchPaths(*p, *q, (pi.length_ + it->length_) / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
+        matchPaths(*p, *q, (pi.length_ + path.length_) / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
 
         if (matchAcrossGaps)
         {
@@ -176,7 +173,7 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
             int gapStartQ = -1;
             bool gapP = false;
             bool gapQ = false;
-            for (std::size_t i = 0 ; i < indexP.size() ; ++i)
+            for (std::size_t i = 0; i < indexP.size(); ++i)
             {
                 // a gap is found in p
                 if (indexP[i] < 0)
@@ -192,9 +189,9 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
                     // check if a gap just ended;
                     // if it did, try to match the endpoint with the elements in q
                     if (gapP)
-                        for (std::size_t j = gapStartP ; j < i ; ++j)
+                        for (std::size_t j = gapStartP; j < i; ++j)
                         {
-                            attemptNewEdge(pi, *it, indexP[i], indexQ[j]);
+                            attemptNewEdge(pi, path, indexP[i], indexQ[j]);
                             ++nattempts;
                         }
                     // remember the last non-negative index in p
@@ -210,9 +207,9 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
                 else
                 {
                     if (gapQ)
-                        for (std::size_t j = gapStartQ ; j < i ; ++j)
+                        for (std::size_t j = gapStartQ; j < i; ++j)
                         {
-                            attemptNewEdge(pi, *it, indexP[j], indexQ[i]);
+                            attemptNewEdge(pi, path, indexP[j], indexQ[i]);
                             ++nattempts;
                         }
                     lastQ = i;
@@ -222,7 +219,7 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
                 // try to match corresponding index values and gep beginnings
                 if (lastP >= 0 && lastQ >= 0)
                 {
-                    attemptNewEdge(pi, *it, indexP[lastP], indexQ[lastQ]);
+                    attemptNewEdge(pi, path, indexP[lastP], indexQ[lastQ]);
                     ++nattempts;
                 }
             }
@@ -230,10 +227,10 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
         else
         {
             // attempt new edge only when states align
-            for (std::size_t i = 0 ; i < indexP.size() ; ++i)
+            for (std::size_t i = 0; i < indexP.size(); ++i)
                 if (indexP[i] >= 0 && indexQ[i] >= 0)
                 {
-                    attemptNewEdge(pi, *it, indexP[i], indexQ[i]);
+                    attemptNewEdge(pi, path, indexP[i], indexQ[i]);
                     ++nattempts;
                 }
         }
@@ -262,36 +259,35 @@ std::size_t ompl::geometric::PathHybridization::pathCount() const
 void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, const PathGeometric &q, double gapCost,
                                                     std::vector<int> &indexP, std::vector<int> &indexQ) const
 {
-    std::vector<std::vector<double> > C(p.getStateCount());
-    std::vector<std::vector<char> >   T(p.getStateCount());
+    std::vector<std::vector<double>> C(p.getStateCount());
+    std::vector<std::vector<char>> T(p.getStateCount());
 
-    for (std::size_t i = 0 ; i < p.getStateCount() ; ++i)
+    for (std::size_t i = 0; i < p.getStateCount(); ++i)
     {
         C[i].resize(q.getStateCount(), 0.0);
         T[i].resize(q.getStateCount(), '\0');
-        for (std::size_t j = 0 ; j < q.getStateCount() ; ++j)
+        for (std::size_t j = 0; j < q.getStateCount(); ++j)
         {
             // as far as I can tell, there is a bug in the algorithm as presented in the paper
             // so I am doing things slightly differently ...
             double match = si_->distance(p.getState(i), q.getState(j)) + ((i > 0 && j > 0) ? C[i - 1][j - 1] : 0.0);
-            double up    = gapCost + (i > 0 ? C[i - 1][j] : 0.0);
-            double left  = gapCost + (j > 0 ? C[i][j - 1] : 0.0);
+            double up = gapCost + (i > 0 ? C[i - 1][j] : 0.0);
+            double left = gapCost + (j > 0 ? C[i][j - 1] : 0.0);
             if (match <= up && match <= left)
             {
                 C[i][j] = match;
                 T[i][j] = 'm';
             }
+            else if (up <= match && up <= left)
+            {
+                C[i][j] = up;
+                T[i][j] = 'u';
+            }
             else
-                if (up <= match && up <= left)
-                {
-                    C[i][j] = up;
-                    T[i][j] = 'u';
-                }
-                else
-                {
-                    C[i][j] = left;
-                    T[i][j] = 'l';
-                }
+            {
+                C[i][j] = left;
+                T[i][j] = 'l';
+            }
         }
     }
     // construct the sequences with gaps (only index positions)
@@ -300,7 +296,7 @@ void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, cons
 
     indexP.clear();
     indexQ.clear();
-    indexP.reserve(std::max(n,m));
+    indexP.reserve(std::max(n, m));
     indexQ.reserve(indexP.size());
 
     while (n >= 0 && m >= 0)
@@ -309,21 +305,21 @@ void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, cons
         {
             indexP.push_back(m);
             indexQ.push_back(n);
-            --m; --n;
+            --m;
+            --n;
+        }
+        else if (T[m][n] == 'u')
+        {
+            indexP.push_back(m);
+            indexQ.push_back(-1);
+            --m;
         }
         else
-            if (T[m][n] == 'u')
-            {
-                indexP.push_back(m);
-                indexQ.push_back(-1);
-                --m;
-            }
-            else
-            {
-                indexP.push_back(-1);
-                indexQ.push_back(n);
-                --n;
-            }
+        {
+            indexP.push_back(-1);
+            indexQ.push_back(n);
+            --n;
+        }
     }
     while (n >= 0)
     {

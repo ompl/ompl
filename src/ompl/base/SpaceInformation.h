@@ -56,7 +56,6 @@
 /** \brief Main namespace. Contains everything in this library */
 namespace ompl
 {
-
     /** \brief This namespace contains sampling based planning
         routines shared by both planning under geometric constraints
         (geometric) and planning under differential constraints
@@ -74,8 +73,7 @@ namespace ompl
         /** \brief If no state validity checking class is specified
             (StateValidityChecker), a std::function can be specified
             instead */
-        typedef std::function<bool(const State*)> StateValidityCheckerFn;
-
+        using StateValidityCheckerFn = std::function<bool(const State *)>;
 
         /** \brief The base class for space information. This contains
             all the information about the space planning is done in.
@@ -84,15 +82,13 @@ namespace ompl
         {
         public:
             // non-copyable
-            SpaceInformation(const SpaceInformation&) = delete;
-            SpaceInformation& operator=(const SpaceInformation&) = delete;
+            SpaceInformation(const SpaceInformation &) = delete;
+            SpaceInformation &operator=(const SpaceInformation &) = delete;
 
             /** \brief Constructor. Sets the instance of the state space to plan with. */
-            SpaceInformation(const StateSpacePtr &space);
+            SpaceInformation(StateSpacePtr space);
 
-            virtual ~SpaceInformation()
-            {
-            }
+            virtual ~SpaceInformation() = default;
 
             /** \brief Check if a given state is valid or not */
             bool isValid(const State *state) const
@@ -101,7 +97,7 @@ namespace ompl
             }
 
             /** \brief Return the instance of the used state space */
-            const StateSpacePtr& getStateSpace() const
+            const StateSpacePtr &getStateSpace() const
             {
                 return stateSpace_;
             }
@@ -161,7 +157,7 @@ namespace ompl
             void setStateValidityChecker(const StateValidityCheckerFn &svc);
 
             /** \brief Return the instance of the used state validity checker */
-            const StateValidityCheckerPtr& getStateValidityChecker() const
+            const StateValidityCheckerPtr &getStateValidityChecker() const
             {
                 return stateValidityChecker_;
             }
@@ -176,7 +172,7 @@ namespace ompl
             }
 
             /** \brief Return the instance of the used state validity checker */
-            const MotionValidatorPtr& getMotionValidator() const
+            const MotionValidatorPtr &getMotionValidator() const
             {
                 return motionValidator_;
             }
@@ -202,7 +198,6 @@ namespace ompl
                 return stateSpace_->getLongestValidSegmentFraction();
             }
 
-
             /** @}*/
 
             /** \brief Return the dimension of the state space */
@@ -221,16 +216,16 @@ namespace ompl
                 @{ */
 
             /** \brief Allocate memory for a state */
-            State* allocState() const
+            State *allocState() const
             {
                 return stateSpace_->allocState();
             }
 
             /** \brief Allocate memory for each element of the array \e states */
-            void allocStates(std::vector<State*> &states) const
+            void allocStates(std::vector<State *> &states) const
             {
-                for (unsigned int i = 0 ; i < states.size() ; ++i)
-                    states[i] = stateSpace_->allocState();
+                for (auto &state : states)
+                    state = stateSpace_->allocState();
             }
 
             /** \brief Free the memory of a state */
@@ -240,10 +235,10 @@ namespace ompl
             }
 
             /** \brief Free the memory of an array of states */
-            void freeStates(std::vector<State*> &states) const
+            void freeStates(std::vector<State *> &states) const
             {
-                for (unsigned int i = 0 ; i < states.size() ; ++i)
-                    stateSpace_->freeState(states[i]);
+                for (auto &state : states)
+                    stateSpace_->freeState(state);
             }
 
             /** \brief Copy a state to another */
@@ -253,13 +248,12 @@ namespace ompl
             }
 
             /** \brief Clone a state */
-            State* cloneState(const State *source) const
+            State *cloneState(const State *source) const
             {
                 return stateSpace_->cloneState(source);
             }
 
             /**  @} */
-
 
             /** @name Sampling of valid states
                 @{ */
@@ -270,16 +264,20 @@ namespace ompl
                 return stateSpace_->allocStateSampler();
             }
 
-            /** \brief Allocate an instance of a valid state sampler for this space. If setValidStateSamplerAllocator() was previously called,
-                the specified allocator is used to produce the state sampler.  Otherwise, a ompl::base::UniformValidStateSampler() is
+            /** \brief Allocate an instance of a valid state sampler for this space. If setValidStateSamplerAllocator()
+               was previously called,
+                the specified allocator is used to produce the state sampler.  Otherwise, a
+               ompl::base::UniformValidStateSampler() is
                 allocated. */
             ValidStateSamplerPtr allocValidStateSampler() const;
 
             /** \brief Set the allocator to use for a valid state sampler. This replaces the default uniform valid state
-                sampler. This call can be made at any time, but it should not be changed while ompl::base::Planner::solve() is executing */
+                sampler. This call can be made at any time, but it should not be changed while
+               ompl::base::Planner::solve() is executing */
             void setValidStateSamplerAllocator(const ValidStateSamplerAllocator &vssa);
 
-            /** \brief Clear the allocator used for the valid state sampler. This will revert to using the uniform valid state sampler (the default). */
+            /** \brief Clear the allocator used for the valid state sampler. This will revert to using the uniform valid
+             * state sampler (the default). */
             void clearValidStateSamplerAllocator();
 
             /** @}*/
@@ -297,43 +295,54 @@ namespace ompl
 
             /** \brief Find a valid state near a given one. If the given state is valid, it will be returned itself.
              *  The two passed state pointers need not point to different memory. Returns true on success.
-             *  \param state the location at which to store the valid state, if one is found. This location may be modified even if no valid state is found.
+             *  \param state the location at which to store the valid state, if one is found. This location may be
+             * modified even if no valid state is found.
              *  \param near a state that may be invalid near which we would like to find a valid state
              *  \param distance the maximum allowed distance between \e state and \e near
-             *  \param attempts the algorithm works by sampling states near state \e near. This parameter defines the maximum number of sampling attempts
+             *  \param attempts the algorithm works by sampling states near state \e near. This parameter defines the
+             * maximum number of sampling attempts
              */
             bool searchValidNearby(State *state, const State *near, double distance, unsigned int attempts) const;
 
             /** \brief Find a valid state near a given one. If the given state is valid, it will be returned itself.
              *  The two passed state pointers need not point to different memory. Returns true on success.
              *  \param sampler the valid state sampler to use when attemting to find a valid sample.
-             *  \param state the location at which to store the valid state, if one is found. This location may be modified even if no valid state is found.
+             *  \param state the location at which to store the valid state, if one is found. This location may be
+             * modified even if no valid state is found.
              *  \param near a state that may be invalid near which we would like to find a valid state
              *  \param distance the maximum allowed distance between \e state and \e near
              */
-            bool searchValidNearby(const ValidStateSamplerPtr &sampler, State *state, const State *near, double distance) const;
+            bool searchValidNearby(const ValidStateSamplerPtr &sampler, State *state, const State *near,
+                                   double distance) const;
 
-            /** \brief Produce a valid motion starting at \e start by randomly bouncing off of invalid states. The start state \e start is not included in the computed motion (\e states). Returns the number of elements written to \e states (less or equal to \e steps).
+            /** \brief Produce a valid motion starting at \e start by randomly bouncing off of invalid states. The start
+             * state \e start is not included in the computed motion (\e states). Returns the number of elements written
+             * to \e states (less or equal to \e steps).
              *  \param sss the state space sampler to use
              *  \param start the state at which to start bouncing
              *  \param steps the number of bouncing steps to take
              *  \param states the location at which generated states will be stored
              *  \param alloc flag indicating whether memory should be allocated for \e states */
-            unsigned int randomBounceMotion(const StateSamplerPtr &sss, const State *start, unsigned int steps, std::vector<State*> &states, bool alloc) const;
+            unsigned int randomBounceMotion(const StateSamplerPtr &sss, const State *start, unsigned int steps,
+                                            std::vector<State *> &states, bool alloc) const;
 
-            /** \brief Incrementally check if the path between two motions is valid. Also compute the last state that was
-                valid and the time of that state. The time is used to parametrize the motion from s1 to s2, s1 being at t =
+            /** \brief Incrementally check if the path between two motions is valid. Also compute the last state that
+               was
+                valid and the time of that state. The time is used to parametrize the motion from s1 to s2, s1 being at
+               t =
                 0 and s2 being at t = 1. This function assumes s1 is valid.
                 \param s1 start state of the motion to be checked (assumed to be valid)
                 \param s2 final state of the motion to be checked
-                \param lastValid first: storage for the last valid state (may be nullptr); this need not be different from \e s1 or \e s2. second: the time (between 0 and 1) of  the last valid state, on the motion from \e s1 to \e s2 */
-            bool checkMotion(const State *s1, const State *s2, std::pair<State*, double> &lastValid) const
+                \param lastValid first: storage for the last valid state (may be nullptr); this need not be different
+               from \e s1 or \e s2. second: the time (between 0 and 1) of  the last valid state, on the motion from \e
+               s1 to \e s2 */
+            bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const
             {
                 return motionValidator_->checkMotion(s1, s2, lastValid);
             }
 
-
-            /** \brief Check if the path between two states (from \e s1 to \e s2) is valid, using the MotionValidator. This function assumes \e s1 is valid. */
+            /** \brief Check if the path between two states (from \e s1 to \e s2) is valid, using the MotionValidator.
+             * This function assumes \e s1 is valid. */
             bool checkMotion(const State *s1, const State *s2) const
             {
                 return motionValidator_->checkMotion(s1, s2);
@@ -343,14 +352,18 @@ namespace ompl
                 checks the first \e count elements and marks the index of the first invalid state
                 \param states the array of states to be checked
                 \param count the number of states to be checked in the array (0 to \e count)
-                \param firstInvalidStateIndex location to store the first invalid state index. Unmodified if the function returns true */
-            bool checkMotion(const std::vector<State*> &states, unsigned int count, unsigned int &firstInvalidStateIndex) const;
+                \param firstInvalidStateIndex location to store the first invalid state index. Unmodified if the
+               function returns true */
+            bool checkMotion(const std::vector<State *> &states, unsigned int count,
+                             unsigned int &firstInvalidStateIndex) const;
 
             /** \brief Check if a sequence of states is valid using subdivision. */
-            bool checkMotion(const std::vector<State*> &states, unsigned int count) const;
+            bool checkMotion(const std::vector<State *> &states, unsigned int count) const;
 
-            /** \brief Get \e count states that make up a motion between \e s1 and \e s2. Returns the number of states that were added to \e states.
-                If \e states.size() >= count or \e alloc is true, the returned value is equal to \e count (or \e count + 2, if \e endpoints is true).
+            /** \brief Get \e count states that make up a motion between \e s1 and \e s2. Returns the number of states
+               that were added to \e states.
+                If \e states.size() >= count or \e alloc is true, the returned value is equal to \e count (or \e count +
+               2, if \e endpoints is true).
                 Otherwise, fewer states can be returned.
                 \param s1 the start state of the considered motion
                 \param s2 the end state of the considered motion
@@ -359,7 +372,8 @@ namespace ompl
                 \param endpoints flag indicating whether \e s1 and \e s2 are to be included in states
                 \param alloc flag indicating whether memory is to be allocated automatically
             */
-            unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State*> &states, unsigned int count, bool endpoints, bool alloc) const;
+            unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State *> &states,
+                                         unsigned int count, bool endpoints, bool alloc) const;
 
             /** \brief Get the total number of motion segments checked by the MotionValidator so far */
             unsigned int getCheckedMotionCount() const
@@ -378,7 +392,8 @@ namespace ompl
             /** \brief Estimate the length of a valid motion. setup() is assumed to have been called.*/
             double averageValidMotionLength(unsigned int attempts) const;
 
-            /** \brief Estimate the number of samples that can be drawn per second, using the sampler returned by allocStateSampler() */
+            /** \brief Estimate the number of samples that can be drawn per second, using the sampler returned by
+             * allocStateSampler() */
             void samplesPerSecond(double &uniform, double &near, double &gaussian, unsigned int attempts) const;
 
             /** \brief Print information about the current instance of the state space */
@@ -388,13 +403,13 @@ namespace ompl
             virtual void printProperties(std::ostream &out = std::cout) const;
 
             /** \brief Get the combined parameters for the classes that the space information manages */
-            ParamSet& params()
+            ParamSet &params()
             {
                 return params_;
             }
 
             /** \brief Get the combined parameters for the classes that the space information manages */
-            const ParamSet& params() const
+            const ParamSet &params() const
             {
                 return params_;
             }
@@ -413,26 +428,26 @@ namespace ompl
             void setDefaultMotionValidator();
 
             /** \brief The state space planning is to be performed in */
-            StateSpacePtr              stateSpace_;
+            StateSpacePtr stateSpace_;
 
-            /** \brief The instance of the state validity checker used for determining the validity of states in the planning process */
-            StateValidityCheckerPtr    stateValidityChecker_;
+            /** \brief The instance of the state validity checker used for determining the validity of states in the
+             * planning process */
+            StateValidityCheckerPtr stateValidityChecker_;
 
-            /** \brief The instance of the motion validator to use when determining the validity of motions in the planning process */
-            MotionValidatorPtr         motionValidator_;
+            /** \brief The instance of the motion validator to use when determining the validity of motions in the
+             * planning process */
+            MotionValidatorPtr motionValidator_;
 
             /** \brief Flag indicating whether setup() has been called on this instance */
-            bool                       setup_;
+            bool setup_;
 
             /** \brief The optional valid state sampler allocator */
             ValidStateSamplerAllocator vssa_;
 
             /** \brief Combined parameters for the contained classes */
-            ParamSet                   params_;
+            ParamSet params_;
         };
-
     }
-
 }
 
 #endif

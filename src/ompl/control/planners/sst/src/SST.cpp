@@ -56,7 +56,8 @@ ompl::control::SST::SST(const SpaceInformationPtr &si) : base::Planner(si, "SST"
     pruningRadius_ = 0.1;
 
     Planner::declareParam<double>("goal_bias", this, &SST::setGoalBias, &SST::getGoalBias, "0.:.05:1.");
-    Planner::declareParam<double>("selection_radius", this, &SST::setSelectionRadius, &SST::getSelectionRadius, "0.:.1:100");
+    Planner::declareParam<double>("selection_radius", this, &SST::setSelectionRadius, &SST::getSelectionRadius, "0.:.1:"
+                                                                                                                "100");
     Planner::declareParam<double>("pruning_radius", this, &SST::setPruningRadius, &SST::getPruningRadius, "0.:.1:100");
 }
 
@@ -69,32 +70,39 @@ void ompl::control::SST::setup()
 {
     base::Planner::setup();
     if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(std::bind(&SST::distanceFunction, this,
-        std::placeholders::_1, std::placeholders::_2));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
+    nn_->setDistanceFunction([this](const Motion *a, const Motion *b)
+                             {
+                                 return distanceFunction(a, b);
+                             });
     if (!witnesses_)
-        witnesses_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    witnesses_->setDistanceFunction(std::bind(&SST::distanceFunction, this,
-        std::placeholders::_1, std::placeholders::_2));
+        witnesses_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
+    witnesses_->setDistanceFunction([this](const Motion *a, const Motion *b)
+                                    {
+                                        return distanceFunction(a, b);
+                                    });
 
     if (pdef_)
     {
         if (pdef_->hasOptimizationObjective())
         {
             opt_ = pdef_->getOptimizationObjective();
-            if (dynamic_cast<base::MaximizeMinClearanceObjective*>(opt_.get()) || dynamic_cast<base::MinimaxObjective*>(opt_.get()))
-                OMPL_WARN("%s: Asymptotic near-optimality has only been proven with Lipschitz continuous cost functions w.r.t. state and control. This optimization objective will result in undefined behavior", getName().c_str());
+            if (dynamic_cast<base::MaximizeMinClearanceObjective *>(opt_.get()) ||
+                dynamic_cast<base::MinimaxObjective *>(opt_.get()))
+                OMPL_WARN("%s: Asymptotic near-optimality has only been proven with Lipschitz continuous cost "
+                          "functions w.r.t. state and control. This optimization objective will result in undefined "
+                          "behavior",
+                          getName().c_str());
         }
         else
         {
             OMPL_WARN("%s: No optimization object set. Using path length", getName().c_str());
-            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
             pdef_->setOptimizationObjective(opt_);
         }
     }
 
     prevSolutionCost_ = opt_->infiniteCost();
-
 }
 
 void ompl::control::SST::clear()
@@ -114,53 +122,53 @@ void ompl::control::SST::freeMemory()
 {
     if (nn_)
     {
-        std::vector<Motion*> motions;
+        std::vector<Motion *> motions;
         nn_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (auto &motion : motions)
         {
-            if (motions[i]->state_)
-                si_->freeState(motions[i]->state_);
-            if (motions[i]->control_)
-                siC_->freeControl(motions[i]->control_);
-            delete motions[i];
+            if (motion->state_)
+                si_->freeState(motion->state_);
+            if (motion->control_)
+                siC_->freeControl(motion->control_);
+            delete motion;
         }
     }
     if (witnesses_)
     {
-        std::vector<Motion*> witnesses;
+        std::vector<Motion *> witnesses;
         witnesses_->list(witnesses);
-        for (unsigned int i = 0 ; i < witnesses.size() ; ++i)
+        for (auto &witness : witnesses)
         {
-            delete witnesses[i];
+            delete witness;
         }
     }
-    for (unsigned int i = 0 ; i < prevSolution_.size() ; ++i)
+    for (auto &i : prevSolution_)
     {
-        if (prevSolution_[i])
-            si_->freeState(prevSolution_[i]);
+        if (i)
+            si_->freeState(i);
     }
     prevSolution_.clear();
-    for (unsigned int i = 0 ; i < prevSolutionControls_.size() ; ++i)
+    for (auto &prevSolutionControl : prevSolutionControls_)
     {
-        if (prevSolutionControls_[i])
-            siC_->freeControl(prevSolutionControls_[i]);
+        if (prevSolutionControl)
+            siC_->freeControl(prevSolutionControl);
     }
     prevSolutionControls_.clear();
     prevSolutionSteps_.clear();
 }
 
-ompl::control::SST::Motion* ompl::control::SST::selectNode(ompl::control::SST::Motion *sample)
+ompl::control::SST::Motion *ompl::control::SST::selectNode(ompl::control::SST::Motion *sample)
 {
-    std::vector<Motion*> ret;
+    std::vector<Motion *> ret;
     Motion *selected = nullptr;
     base::Cost bestCost = opt_->infiniteCost();
     nn_->nearestR(sample, selectionRadius_, ret);
-    for (unsigned int i = 0; i < ret.size(); i++)
+    for (auto &i : ret)
     {
-        if (!ret[i]->inactive_ && opt_->isCostBetterThan(ret[i]->accCost_, bestCost))
+        if (!i->inactive_ && opt_->isCostBetterThan(i->accCost_, bestCost))
         {
-            bestCost = ret[i]->accCost_;
-            selected = ret[i];
+            bestCost = i->accCost_;
+            selected = i;
         }
     }
     if (selected == nullptr)
@@ -169,7 +177,7 @@ ompl::control::SST::Motion* ompl::control::SST::selectNode(ompl::control::SST::M
         while (selected == nullptr)
         {
             nn_->nearestK(sample, k, ret);
-            for (unsigned int i=0; i < ret.size() && selected == nullptr; i++)
+            for (unsigned int i = 0; i < ret.size() && selected == nullptr; i++)
                 if (!ret[i]->inactive_)
                     selected = ret[i];
             k += 5;
@@ -178,12 +186,12 @@ ompl::control::SST::Motion* ompl::control::SST::selectNode(ompl::control::SST::M
     return selected;
 }
 
-ompl::control::SST::Witness* ompl::control::SST::findClosestWitness(ompl::control::SST::Motion *node)
+ompl::control::SST::Witness *ompl::control::SST::findClosestWitness(ompl::control::SST::Motion *node)
 {
-    if(witnesses_->size() > 0)
+    if (witnesses_->size() > 0)
     {
-        Witness* closest = static_cast<Witness*>(witnesses_->nearest(node));
-        if (distanceFunction(closest,node) > pruningRadius_)
+        Witness *closest = static_cast<Witness *>(witnesses_->nearest(node));
+        if (distanceFunction(closest, node) > pruningRadius_)
         {
             closest = new Witness(siC_);
             closest->linkRep(node);
@@ -194,7 +202,7 @@ ompl::control::SST::Witness* ompl::control::SST::findClosestWitness(ompl::contro
     }
     else
     {
-        Witness* closest = new Witness(siC_);
+        auto *closest = new Witness(siC_);
         closest->linkRep(node);
         si_->copyState(closest->state_, node->state_);
         witnesses_->add(closest);
@@ -205,12 +213,12 @@ ompl::control::SST::Witness* ompl::control::SST::findClosestWitness(ompl::contro
 ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                   *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(siC_);
+        auto *motion = new Motion(siC_);
         si_->copyState(motion->state_, st);
         siC_->nullControl(motion->control_);
         nn_->add(motion);
@@ -231,21 +239,20 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure\n", getName().c_str(), nn_->size());
 
-    Motion *solution  = nullptr;
+    Motion *solution = nullptr;
     Motion *approxsol = nullptr;
-    double  approxdif = std::numeric_limits<double>::infinity();
+    double approxdif = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
 
-    Motion      *rmotion = new Motion(siC_);
-    base::State  *rstate = rmotion->state_;
-    Control       *rctrl = rmotion->control_;
-    base::State  *xstate = si_->allocState();
+    auto *rmotion = new Motion(siC_);
+    base::State *rstate = rmotion->state_;
+    Control *rctrl = rmotion->control_;
+    base::State *xstate = si_->allocState();
 
     unsigned iterations = 0;
 
     while (ptc == false)
     {
-
         /* sample random state (with goal biasing) */
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
@@ -255,26 +262,22 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
         /* find closest state in the tree */
         Motion *nmotion = selectNode(rmotion);
 
-
-
         /* sample a random control that attempts to go towards the random state, and also sample a control duration */
         controlSampler_->sample(rctrl);
-        unsigned int cd = rng_.uniformInt(siC_->getMinControlDuration(),siC_->getMaxControlDuration());
-        unsigned int propCd = siC_->propagateWhileValid(nmotion->state_,rctrl,cd,rstate);
-
+        unsigned int cd = rng_.uniformInt(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
+        unsigned int propCd = siC_->propagateWhileValid(nmotion->state_, rctrl, cd, rstate);
 
         if (propCd == cd)
         {
             base::Cost incCost = opt_->motionCost(nmotion->state_, rstate);
             base::Cost cost = opt_->combineCosts(nmotion->accCost_, incCost);
-            Witness* closestWitness = findClosestWitness(rmotion);
+            Witness *closestWitness = findClosestWitness(rmotion);
 
-
-            if (closestWitness->rep_ == rmotion || opt_->isCostBetterThan(cost,closestWitness->rep_->accCost_))
+            if (closestWitness->rep_ == rmotion || opt_->isCostBetterThan(cost, closestWitness->rep_->accCost_))
             {
-                Motion* oldRep = closestWitness->rep_;
+                Motion *oldRep = closestWitness->rep_;
                 /* create a motion */
-                Motion *motion = new Motion(siC_);
+                auto *motion = new Motion(siC_);
                 motion->accCost_ = cost;
                 si_->copyState(motion->state_, rmotion->state_);
                 siC_->copyControl(motion->control_, rctrl);
@@ -286,89 +289,82 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
                 nn_->add(motion);
                 double dist = 0.0;
                 bool solv = goal->isSatisfied(motion->state_, &dist);
-                if (solv && opt_->isCostBetterThan(motion->accCost_,prevSolutionCost_))
+                if (solv && opt_->isCostBetterThan(motion->accCost_, prevSolutionCost_))
                 {
                     approxdif = dist;
                     solution = motion;
 
-                    for (unsigned int i = 0 ; i < prevSolution_.size() ; ++i)
-                        if (prevSolution_[i])
-                            si_->freeState(prevSolution_[i]);
+                    for (auto &i : prevSolution_)
+                        if (i)
+                            si_->freeState(i);
                     prevSolution_.clear();
-                    for (unsigned int i = 0 ; i < prevSolutionControls_.size() ; ++i)
-                        if (prevSolutionControls_[i])
-                            siC_->freeControl(prevSolutionControls_[i]);
+                    for (auto &prevSolutionControl : prevSolutionControls_)
+                        if (prevSolutionControl)
+                            siC_->freeControl(prevSolutionControl);
                     prevSolutionControls_.clear();
                     prevSolutionSteps_.clear();
 
-
-                    Motion* solTrav = solution;
-                    while(solTrav->parent_!=nullptr)
+                    Motion *solTrav = solution;
+                    while (solTrav->parent_ != nullptr)
                     {
-                        prevSolution_.push_back(si_->cloneState(solTrav->state_) );
-                        prevSolutionControls_.push_back(siC_->cloneControl(solTrav->control_) );
-                        prevSolutionSteps_.push_back(solTrav->steps_ );
+                        prevSolution_.push_back(si_->cloneState(solTrav->state_));
+                        prevSolutionControls_.push_back(siC_->cloneControl(solTrav->control_));
+                        prevSolutionSteps_.push_back(solTrav->steps_);
                         solTrav = solTrav->parent_;
                     }
-                    prevSolution_.push_back(si_->cloneState(solTrav->state_) );
+                    prevSolution_.push_back(si_->cloneState(solTrav->state_));
                     prevSolutionCost_ = solution->accCost_;
 
-
-
-
-                    OMPL_INFORM("Found solution with cost %.2f",solution->accCost_.value());
+                    OMPL_INFORM("Found solution with cost %.2f", solution->accCost_.value());
                     sufficientlyShort = opt_->isSatisfied(solution->accCost_);
                     if (sufficientlyShort)
                         break;
                 }
-                if (solution==nullptr && dist < approxdif)
+                if (solution == nullptr && dist < approxdif)
                 {
                     approxdif = dist;
                     approxsol = motion;
 
-
-
-                    for (unsigned int i = 0 ; i < prevSolution_.size() ; ++i)
-                        if (prevSolution_[i])
-                            si_->freeState(prevSolution_[i]);
+                    for (auto &i : prevSolution_)
+                        if (i)
+                            si_->freeState(i);
                     prevSolution_.clear();
-                    for (unsigned int i = 0 ; i < prevSolutionControls_.size() ; ++i)
-                        if (prevSolutionControls_[i])
-                            siC_->freeControl(prevSolutionControls_[i]);
+                    for (auto &prevSolutionControl : prevSolutionControls_)
+                        if (prevSolutionControl)
+                            siC_->freeControl(prevSolutionControl);
                     prevSolutionControls_.clear();
                     prevSolutionSteps_.clear();
 
                     Motion *solTrav = approxsol;
-                    while (solTrav->parent_!=nullptr)
+                    while (solTrav->parent_ != nullptr)
                     {
-                        prevSolution_.push_back(si_->cloneState(solTrav->state_) );
-                        prevSolutionControls_.push_back(siC_->cloneControl(solTrav->control_) );
-                        prevSolutionSteps_.push_back(solTrav->steps_ );
+                        prevSolution_.push_back(si_->cloneState(solTrav->state_));
+                        prevSolutionControls_.push_back(siC_->cloneControl(solTrav->control_));
+                        prevSolutionSteps_.push_back(solTrav->steps_);
                         solTrav = solTrav->parent_;
                     }
-                    prevSolution_.push_back(si_->cloneState(solTrav->state_) );
+                    prevSolution_.push_back(si_->cloneState(solTrav->state_));
                 }
 
                 if (oldRep != rmotion)
                 {
                     oldRep->inactive_ = true;
                     nn_->remove(oldRep);
-                    while (oldRep->inactive_ && oldRep->numChildren_==0)
+                    while (oldRep->inactive_ && oldRep->numChildren_ == 0)
                     {
                         if (oldRep->state_)
                             si_->freeState(oldRep->state_);
                         if (oldRep->control_)
                             siC_->freeControl(oldRep->control_);
 
-                        oldRep->state_=nullptr;
-                        oldRep->control_=nullptr;
+                        oldRep->state_ = nullptr;
+                        oldRep->control_ = nullptr;
                         oldRep->parent_->numChildren_--;
-                        Motion* oldRepParent = oldRep->parent_;
+                        Motion *oldRepParent = oldRep->parent_;
                         delete oldRep;
                         oldRep = oldRepParent;
                     }
                 }
-
             }
         }
         iterations++;
@@ -385,12 +381,13 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
     if (solution != nullptr)
     {
         /* set the solution path */
-        PathControl *path = new PathControl(si_);
-        for (int i = prevSolution_.size() - 1 ; i >= 1 ; --i)
-            path->append(prevSolution_[i], prevSolutionControls_[i-1], prevSolutionSteps_[i-1] * siC_->getPropagationStepSize());
+        auto path(std::make_shared<PathControl>(si_));
+        for (int i = prevSolution_.size() - 1; i >= 1; --i)
+            path->append(prevSolution_[i], prevSolutionControls_[i - 1],
+                         prevSolutionSteps_[i - 1] * siC_->getPropagationStepSize());
         path->append(prevSolution_[0]);
         solved = true;
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
+        pdef_->addSolutionPath(path, approximate, approxdif, getName());
     }
 
     si_->freeState(xstate);
@@ -400,7 +397,7 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
         siC_->freeControl(rmotion->control_);
     delete rmotion;
 
-    OMPL_INFORM("%s: Created %u states in %u iterations", getName().c_str(), nn_->size(),iterations);
+    OMPL_INFORM("%s: Created %u states in %u iterations", getName().c_str(), nn_->size(), iterations);
 
     return base::PlannerStatus(solved, approximate);
 }
@@ -409,21 +406,21 @@ void ompl::control::SST::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    std::vector<Motion*> motions;
-    std::vector<Motion*> allMotions;
+    std::vector<Motion *> motions;
+    std::vector<Motion *> allMotions;
     if (nn_)
         nn_->list(motions);
 
-    for(unsigned i=0;i<motions.size();i++)
+    for (auto &motion : motions)
     {
-        if(motions[i]->numChildren_==0)
+        if (motion->numChildren_ == 0)
         {
-            allMotions.push_back(motions[i]);
+            allMotions.push_back(motion);
         }
     }
-    for(unsigned i=0;i<allMotions.size();i++)
+    for (unsigned i = 0; i < allMotions.size(); i++)
     {
-        if(allMotions[i]->parent_!=nullptr)
+        if (allMotions[i]->parent_ != nullptr)
         {
             allMotions.push_back(allMotions[i]->parent_);
         }
@@ -431,21 +428,18 @@ void ompl::control::SST::getPlannerData(base::PlannerData &data) const
 
     double delta = siC_->getPropagationStepSize();
 
-    if (prevSolution_.size()!=0)
+    if (prevSolution_.size() != 0)
         data.addGoalVertex(base::PlannerDataVertex(prevSolution_[0]));
 
-    for (unsigned int i = 0 ; i < allMotions.size() ; ++i)
+    for (auto m : allMotions)
     {
-        const Motion *m = allMotions[i];
         if (m->parent_)
         {
             if (data.hasControls())
-                data.addEdge(base::PlannerDataVertex(m->parent_->state_),
-                             base::PlannerDataVertex(m->state_),
+                data.addEdge(base::PlannerDataVertex(m->parent_->state_), base::PlannerDataVertex(m->state_),
                              control::PlannerDataEdgeControl(m->control_, m->steps_ * delta));
             else
-                data.addEdge(base::PlannerDataVertex(m->parent_->state_),
-                             base::PlannerDataVertex(m->state_));
+                data.addEdge(base::PlannerDataVertex(m->parent_->state_), base::PlannerDataVertex(m->state_));
         }
         else
             data.addStartVertex(base::PlannerDataVertex(m->state_));

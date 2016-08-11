@@ -41,56 +41,48 @@
 
 namespace ompl
 {
-
     /** \brief Representation of a grid where cells keep track of how many neighbors they have */
     template <typename _T>
     class GridN : public Grid<_T>
     {
     public:
-
         /// Datatype for cell in base class
-        typedef typename Grid<_T>::Cell      BaseCell;
+        using BaseCell = typename Grid<_T>::Cell;
 
         /// Datatype for array of cells in base class
-        typedef typename Grid<_T>::CellArray BaseCellArray;
+        using BaseCellArray = typename Grid<_T>::CellArray;
 
         /// Datatype for cell coordinates
-        typedef typename Grid<_T>::Coord     Coord;
+        using Coord = typename Grid<_T>::Coord;
 
         /// Definition of a cell in this grid
         struct Cell : public BaseCell
         {
             /// The number of neighbors
-            unsigned int        neighbors;
+            unsigned int neighbors;
 
             /// A flag indicating whether this cell is on the border or not
-            bool                border;
+            bool border;
 
             Cell() : BaseCell(), neighbors(0), border(true)
             {
             }
 
-            virtual ~Cell()
-            {
-            }
+            ~Cell() override = default;
         };
 
         /// The datatype for arrays of cells
-        typedef std::vector<Cell*> CellArray;
-
+        using CellArray = std::vector<Cell *>;
 
         /// The constructor takes the dimension of the grid as argument
-        explicit
-        GridN(unsigned int dimension) : Grid<_T>(dimension)
+        explicit GridN(unsigned int dimension) : Grid<_T>(dimension)
         {
             hasBounds_ = false;
             overrideCellNeighborsLimit_ = false;
             setDimension(dimension);
         }
 
-        virtual ~GridN()
-        {
-        }
+        ~GridN() override = default;
 
         /// Update the dimension of the grid; this should not be done
         /// unless the grid is empty
@@ -103,7 +95,6 @@ namespace ompl
                 interiorCellNeighborsLimit_ = Grid<_T>::maxNeighbors_;
         }
 
-
         /// If bounds for the grid need to be considered, we can set them here.
         /// When the number of neighbors are counted, whether the
         /// Space is bounded matters, in the sense that if a cell is on
@@ -114,8 +105,8 @@ namespace ompl
         /// existing.
         void setBounds(const Coord &low, const Coord &up)
         {
-            lowBound_  = low;
-            upBound_   = up;
+            lowBound_ = low;
+            upBound_ = up;
             hasBounds_ = true;
         }
 
@@ -129,33 +120,33 @@ namespace ompl
         }
 
         /// Get the cell at a specified coordinate
-        Cell* getCell(const Coord &coord) const
+        Cell *getCell(const Coord &coord) const
         {
-            return static_cast<Cell*>(Grid<_T>::getCell(coord));
+            return static_cast<Cell *>(Grid<_T>::getCell(coord));
         }
 
         /// Get the list of neighbors for a given cell
-        void    neighbors(const Cell* cell, CellArray& list) const
+        void neighbors(const Cell *cell, CellArray &list) const
         {
             Coord test = cell->coord;
             neighbors(test, list);
         }
 
         /// Get the list of neighbors for a given coordinate
-        void    neighbors(const Coord& coord, CellArray& list) const
+        void neighbors(const Coord &coord, CellArray &list) const
         {
             Coord test = coord;
             neighbors(test, list);
         }
 
         /// Get the list of neighbors for a given coordinate
-        void    neighbors(Coord& coord, CellArray& list) const
+        void neighbors(Coord &coord, CellArray &list) const
         {
             BaseCellArray baselist;
             Grid<_T>::neighbors(coord, baselist);
             list.reserve(list.size() + baselist.size());
-            for (unsigned int i = 0 ;  i < baselist.size() ; ++i)
-                list.push_back(static_cast<Cell*>(baselist[i]));
+            for (unsigned int i = 0; i < baselist.size(); ++i)
+                list.push_back(static_cast<Cell *>(baselist[i]));
         }
 
         /// Instantiate a new cell at given coordinates;
@@ -163,17 +154,17 @@ namespace ompl
         /// this call only creates the cell, but does not add it to
         /// the grid.  It however updates the neighbor count for
         /// neighboring cells
-        virtual BaseCell* createCell(const Coord& coord, BaseCellArray *nbh = nullptr)
+        BaseCell *createCell(const Coord &coord, BaseCellArray *nbh = nullptr) override
         {
-            Cell *cell = new Cell();
+            auto *cell = new Cell();
             cell->coord = coord;
 
             BaseCellArray *list = nbh ? nbh : new BaseCellArray();
             Grid<_T>::neighbors(cell->coord, *list);
 
-            for (typename BaseCellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
+            for (auto cl = list->begin(); cl != list->end(); ++cl)
             {
-                Cell* c = static_cast<Cell*>(*cl);
+                Cell *c = static_cast<Cell *>(*cl);
                 c->neighbors++;
                 if (c->border && c->neighbors >= interiorCellNeighborsLimit_)
                     c->border = false;
@@ -191,21 +182,21 @@ namespace ompl
 
         /// Remove a cell from the grid. If the cell has not been
         /// Added to the grid, only update the neighbor list
-        virtual bool remove(BaseCell *cell)
+        bool remove(BaseCell *cell) override
         {
             if (cell)
             {
-                BaseCellArray *list = new BaseCellArray();
+                auto *list = new BaseCellArray();
                 Grid<_T>::neighbors(cell->coord, *list);
-                for (typename BaseCellArray::iterator cl = list->begin() ; cl != list->end() ; ++cl)
+                for (auto cl = list->begin(); cl != list->end(); ++cl)
                 {
-                    Cell* c = static_cast<Cell*>(*cl);
+                    Cell *c = static_cast<Cell *>(*cl);
                     c->neighbors--;
                     if (!c->border && c->neighbors < interiorCellNeighborsLimit_)
                         c->border = true;
                 }
                 delete list;
-                typename Grid<_T>::CoordHash::iterator pos = Grid<_T>::hash_.find(&cell->coord);
+                auto pos = Grid<_T>::hash_.find(&cell->coord);
                 if (pos != Grid<_T>::hash_.end())
                 {
                     Grid<_T>::hash_.erase(pos);
@@ -218,20 +209,18 @@ namespace ompl
         /// Get the set of instantiated cells in the grid
         void getCells(CellArray &cells) const
         {
-            for (typename Grid<_T>::CoordHash::const_iterator i = Grid<_T>::hash_.begin() ;
-                 i != Grid<_T>::hash_.end() ; ++i)
-                cells.push_back(static_cast<Cell*>(i->second));
+            for (auto i = Grid<_T>::hash_.begin(); i != Grid<_T>::hash_.end(); ++i)
+                cells.push_back(static_cast<Cell *>(i->second));
         }
 
     protected:
-
         /// Compute how many sides of a coordinate touch the boundaries of the grid
         unsigned int numberOfBoundaryDimensions(const Coord &coord) const
         {
             unsigned int result = 0;
             if (hasBounds_)
             {
-                for (unsigned int i = 0 ; i < Grid<_T>::dimension_ ; ++i)
+                for (unsigned int i = 0; i < Grid<_T>::dimension_; ++i)
                     if (coord[i] == lowBound_[i] || coord[i] == upBound_[i])
                         result++;
             }
@@ -239,22 +228,22 @@ namespace ompl
         }
 
         /// Flag indicating whether bounds are in effect for this grid
-        bool             hasBounds_;
+        bool hasBounds_;
 
         /// If bounds are set, this defines the lower corner cell
-        Coord            lowBound_;
+        Coord lowBound_;
 
         /// If bounds are set, this defines the upper corner cell
-        Coord            upBound_;
+        Coord upBound_;
 
         /// By default, cells are considered on the border if 2n
         /// neighbors are created, for a space of dimension n.
         /// this value is overridden and set in this member variable
-        unsigned int     interiorCellNeighborsLimit_;
+        unsigned int interiorCellNeighborsLimit_;
 
         /// Flag indicating whether the neighbor count used to determine whether
         /// a cell is on the border or not
-        bool             overrideCellNeighborsLimit_;
+        bool overrideCellNeighborsLimit_;
     };
 }
 

@@ -45,27 +45,25 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief Definition of a set of goal states */
         class GoalStates : public GoalSampleableRegion
         {
         public:
-
             /** \brief Create a goal representation that is in fact a set of states  */
             GoalStates(const SpaceInformationPtr &si) : GoalSampleableRegion(si), samplePosition_(0)
             {
                 type_ = GOAL_STATES;
             }
 
-            virtual ~GoalStates();
+            ~GoalStates() override;
 
-            virtual void sampleGoal(State *st) const;
+            void sampleGoal(State *st) const override;
 
-            virtual unsigned int maxSampleCount() const;
+            unsigned int maxSampleCount() const override;
 
-            virtual double distanceGoal(const State *st) const;
+            double distanceGoal(const State *st) const override;
 
-            virtual void print(std::ostream &out = std::cout) const;
+            void print(std::ostream &out = std::cout) const override;
 
             /** \brief Add a goal state */
             virtual void addState(const State *st);
@@ -80,26 +78,22 @@ namespace ompl
             virtual bool hasStates() const;
 
             /** \brief Return a pointer to the indexth state in the state list */
-            virtual const State* getState(unsigned int index) const;
+            virtual const State *getState(unsigned int index) const;
 
             /** \brief Return the number of valid goal states */
             virtual std::size_t getStateCount() const;
 
         protected:
-
             /** \brief The goal states. Only ones that are valid are considered by the motion planner. */
-            std::vector<State*> states_;
+            std::vector<State *> states_;
 
         private:
-
             /** \brief The index of the next sample to be returned  */
             mutable unsigned int samplePosition_;
 
             /** \brief Free allocated memory */
             void freeMemory();
-
         };
-
     }
 }
 

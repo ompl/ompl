@@ -45,16 +45,14 @@
 
 namespace ompl
 {
-
     namespace base
     {
-
         class GoalLazySamples;
 
         /** \brief Goal sampling function. Returns false when no further calls should be made to it.
             Fills its second argument (the state) with the sampled goal state. This function need not
             be thread safe. */
-        typedef std::function<bool(const GoalLazySamples*, State*)> GoalSamplingFn;
+        using GoalSamplingFn = std::function<bool(const GoalLazySamples *, State *)>;
 
         /** \brief Definition of a goal region that can be sampled,
          but the sampling process can be slow.  This class allows
@@ -73,11 +71,10 @@ namespace ompl
         class GoalLazySamples : public GoalStates
         {
         public:
-
             /** \brief When new samples are generated and added to the
                 list of possible samples, a callback can be
                 called. This type specifies the signature of that callback */
-            typedef std::function<void(const base::State*)> NewStateCallbackFn;
+            using NewStateCallbackFn = std::function<void(const base::State *)>;
 
             /** \brief Create a goal region that can be sampled in a
                 lazy fashion. A function (\e samplerFunc) that
@@ -102,16 +99,16 @@ namespace ompl
                 different" from previously added states. A state is
                 considered "sufficiently different" if it is at least
                 \e minDist away from previously added states.  */
-            GoalLazySamples(const SpaceInformationPtr &si, const GoalSamplingFn &samplerFunc,
-                            bool autoStart = true, double minDist = std::numeric_limits<double>::epsilon());
+            GoalLazySamples(const SpaceInformationPtr &si, GoalSamplingFn samplerFunc, bool autoStart = true,
+                            double minDist = std::numeric_limits<double>::epsilon());
 
-            virtual ~GoalLazySamples();
+            ~GoalLazySamples() override;
 
-            virtual void sampleGoal(State *st) const;
+            void sampleGoal(State *st) const override;
 
-            virtual double distanceGoal(const State *st) const;
+            double distanceGoal(const State *st) const override;
 
-            virtual void addState(const State *st);
+            void addState(const State *st) override;
 
             /** \brief Start the goal sampling thread */
             void startSampling();
@@ -142,50 +139,51 @@ namespace ompl
                 return samplingAttempts_;
             }
 
-            /** \brief Set the callback function to be called when a new state is added to the list of possible samples. This function
+            /** \brief Set the callback function to be called when a new state is added to the list of possible samples.
+               This function
                 is not required to be thread safe, as calls are made one at a time. */
             void setNewStateCallback(const NewStateCallbackFn &callback);
 
-            /** \brief Add a state \e st if it further away that \e minDistance from previously added states. Return true if the state was added. */
+            /** \brief Add a state \e st if it further away that \e minDistance from previously added states. Return
+             * true if the state was added. */
             bool addStateIfDifferent(const State *st, double minDistance);
 
-            /** \brief Return true if GoalStates::couldSample() is true or if the sampling thread is active, as in this case it is possible a sample can be produced at some point. */
-            virtual bool couldSample() const;
+            /** \brief Return true if GoalStates::couldSample() is true or if the sampling thread is active, as in this
+             * case it is possible a sample can be produced at some point. */
+            bool couldSample() const override;
 
-            virtual bool hasStates() const;
-            virtual const State* getState(unsigned int index) const;
-            virtual std::size_t getStateCount() const;
+            bool hasStates() const override;
+            const State *getState(unsigned int index) const override;
+            std::size_t getStateCount() const override;
 
-            virtual void clear();
+            void clear() override;
 
         protected:
-
             /** \brief The function that samples goals by calling \e samplerFunc_ in a separate thread */
             void goalSamplingThread();
 
             /** \brief Lock for updating the set of states */
-            mutable std::mutex             lock_;
+            mutable std::mutex lock_;
 
             /** \brief Function that produces samples */
-            GoalSamplingFn                 samplerFunc_;
+            GoalSamplingFn samplerFunc_;
 
             /** \brief Flag used to notify the sampling thread to terminate sampling */
-            bool                           terminateSamplingThread_;
+            bool terminateSamplingThread_;
 
             /** \brief Additional thread for sampling goal states */
-            std::thread                   *samplingThread_;
+            std::thread *samplingThread_;
 
             /** \brief The number of times the sampling function was called and it returned true */
-            unsigned int                   samplingAttempts_;
+            unsigned int samplingAttempts_;
 
             /** \brief Samples returned by the sampling thread are added to the list of states only if
                 they are at least minDist_ away from already added samples. */
-            double                         minDist_;
+            double minDist_;
 
             /** \brief If defined, this function is called when a new state is added to the list of possible samples */
-            NewStateCallbackFn             callback_;
+            NewStateCallbackFn callback_;
         };
-
     }
 }
 

@@ -55,33 +55,45 @@ namespace ompl
         class LTLSpaceInformation : public SpaceInformation
         {
         public:
-            LTLSpaceInformation(const SpaceInformationPtr& si, const ProductGraphPtr& prod);
+            LTLSpaceInformation(const SpaceInformationPtr &si, const ProductGraphPtr &prod);
 
-            virtual ~LTLSpaceInformation(void) {}
+            ~LTLSpaceInformation() override = default;
 
-            virtual void setup(void);
+            void setup() override;
 
-            const ProductGraphPtr& getProductGraph(void) const { return prod_; }
+            const ProductGraphPtr &getProductGraph() const
+            {
+                return prod_;
+            }
 
-            const SpaceInformationPtr& getLowSpace() { return lowSpace_; }
+            const SpaceInformationPtr &getLowSpace()
+            {
+                return lowSpace_;
+            }
 
-            void getFullState(const base::State* low, base::State* full);
+            void getFullState(const base::State *low, base::State *full);
 
-            base::State* getLowLevelState(base::State* s);
-            const base::State* getLowLevelState(const base::State* s);
+            base::State *getLowLevelState(base::State *s);
+            const base::State *getLowLevelState(const base::State *s);
 
-            ProductGraph::State* getProdGraphState(const base::State* s) const;
+            ProductGraph::State *getProdGraphState(const base::State *s) const;
 
         protected:
-            enum SpaceIndex { LOW_LEVEL = 0, REGION = 1, COSAFE = 2, SAFE = 3 };
+            enum SpaceIndex
+            {
+                LOW_LEVEL = 0,
+                REGION = 1,
+                COSAFE = 2,
+                SAFE = 3
+            };
             // Creates a new state propagator which uses the user-defined propagator
             // defined in low state space, followed by automaton-defined transition rules
             // for the co-safe and safe automata in prod.
-            void extendPropagator(const SpaceInformationPtr& oldsi);
+            void extendPropagator(const SpaceInformationPtr &oldsi);
 
             // Creates a new state validity checker which uses the user-defined validity checker
             // defined in low state space and also checks for valid states in the automata in prod.
-            void extendValidityChecker(const SpaceInformationPtr& oldsi);
+            void extendValidityChecker(const SpaceInformationPtr &oldsi);
 
             ProductGraphPtr prod_;
             SpaceInformationPtr lowSpace_;

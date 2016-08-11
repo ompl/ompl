@@ -49,9 +49,11 @@ void ompl::control::SyclopRRT::setup()
     // the default regionalNN check from the discretization
     if (!nn_ && !regionalNN_)
     {
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-        nn_->setDistanceFunction(std::bind(&SyclopRRT::distanceFunction, this,
-            std::placeholders::_1, std::placeholders::_2));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
+        nn_->setDistanceFunction([this](Motion *a, const Motion *b)
+                                 {
+                                     return distanceFunction(a, b);
+                                 });
     }
 }
 
@@ -67,34 +69,32 @@ void ompl::control::SyclopRRT::clear()
 void ompl::control::SyclopRRT::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
-    std::vector<Motion*> motions;
+    std::vector<Motion *> motions;
     if (nn_)
         nn_->list(motions);
     double delta = siC_->getPropagationStepSize();
 
     if (lastGoalMotion_)
-        data.addGoalVertex (base::PlannerDataVertex(lastGoalMotion_->state));
+        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (size_t i = 0; i < motions.size(); ++i)
+    for (auto &motion : motions)
     {
-        if (motions[i]->parent)
+        if (motion->parent)
         {
             if (data.hasControls())
-                data.addEdge (base::PlannerDataVertex(motions[i]->parent->state),
-                              base::PlannerDataVertex(motions[i]->state),
-                              control::PlannerDataEdgeControl (motions[i]->control, motions[i]->steps * delta));
+                data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state),
+                             control::PlannerDataEdgeControl(motion->control, motion->steps * delta));
             else
-                data.addEdge (base::PlannerDataVertex(motions[i]->parent->state),
-                              base::PlannerDataVertex(motions[i]->state));
+                data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state));
         }
         else
-            data.addStartVertex (base::PlannerDataVertex(motions[i]->state));
+            data.addStartVertex(base::PlannerDataVertex(motion->state));
     }
 }
 
-ompl::control::Syclop::Motion* ompl::control::SyclopRRT::addRoot(const base::State *s)
+ompl::control::Syclop::Motion *ompl::control::SyclopRRT::addRoot(const base::State *s)
 {
-    Motion *motion = new Motion(siC_);
+    auto *motion = new Motion(siC_);
     si_->copyState(motion->state, s);
     siC_->nullControl(motion->control);
 
@@ -103,9 +103,9 @@ ompl::control::Syclop::Motion* ompl::control::SyclopRRT::addRoot(const base::Sta
     return motion;
 }
 
-void ompl::control::SyclopRRT::selectAndExtend(Region &region, std::vector<Motion*>& newMotions)
+void ompl::control::SyclopRRT::selectAndExtend(Region &region, std::vector<Motion *> &newMotions)
 {
-    Motion *rmotion = new Motion(siC_);
+    auto *rmotion = new Motion(siC_);
     base::StateSamplerPtr sampler(si_->allocStateSampler());
     std::vector<double> coord(decomp_->getDimension());
     decomp_->sampleFromRegion(region.index, rng_, coord);
@@ -120,14 +120,14 @@ void ompl::control::SyclopRRT::selectAndExtend(Region &region, std::vector<Motio
         decomp_->getNeighbors(region.index, searchRegions);
         searchRegions.push_back(region.index);
 
-        std::vector<Motion*> motions;
-        for (std::vector<int>::const_iterator i = searchRegions.begin(); i != searchRegions.end(); ++i)
+        std::vector<Motion *> motions;
+        for (const auto &i : searchRegions)
         {
-            const std::vector<Motion*>& regionMotions = getRegionFromIndex(*i).motions;
+            const std::vector<Motion *> &regionMotions = getRegionFromIndex(i).motions;
             motions.insert(motions.end(), regionMotions.begin(), regionMotions.end());
         }
 
-        std::vector<Motion*>::const_iterator i = motions.begin();
+        std::vector<Motion *>::const_iterator i = motions.begin();
         nmotion = *i;
         double minDistance = distanceFunction(rmotion, nmotion);
         ++i;
@@ -145,11 +145,12 @@ void ompl::control::SyclopRRT::selectAndExtend(Region &region, std::vector<Motio
     }
     else
     {
-        assert (nn_);
+        assert(nn_);
         nmotion = nn_->nearest(rmotion);
     }
 
-    unsigned int duration = controlSampler_->sampleTo(rmotion->control, nmotion->control, nmotion->state, rmotion->state);
+    unsigned int duration =
+        controlSampler_->sampleTo(rmotion->control, nmotion->control, nmotion->state, rmotion->state);
     if (duration >= siC_->getMinControlDuration())
     {
         rmotion->steps = duration;
@@ -171,11 +172,10 @@ void ompl::control::SyclopRRT::freeMemory()
 {
     if (nn_)
     {
-        std::vector<Motion*> motions;
+        std::vector<Motion *> motions;
         nn_->list(motions);
-        for (std::vector<Motion*>::iterator i = motions.begin(); i != motions.end(); ++i)
+        for (auto m : motions)
         {
-            Motion *m = *i;
             if (m->state)
                 si_->freeState(m->state);
             if (m->control)

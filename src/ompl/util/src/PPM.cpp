@@ -49,20 +49,27 @@ void ompl::PPM::loadFile(const char *filename)
         throw Exception("Unable to load '" + std::string(filename) + "'");
     struct AutoClose
     {
-        AutoClose(FILE *f) : f_(f) { }
-        ~AutoClose() { fclose(f_); }
+        AutoClose(FILE *f) : f_(f)
+        {
+        }
+        ~AutoClose()
+        {
+            fclose(f_);
+        }
         FILE *f_;
     };
-    AutoClose _(fp); // close fp when this variable goes out of scope.
+    AutoClose _(fp);  // close fp when this variable goes out of scope.
 
     char p6[2] = {0};
     if (fscanf(fp, "%c", &p6[0]) != 1 || fscanf(fp, "%c", &p6[1]) != 1 || p6[0] != 'P' || p6[1] != '6')
-        throw Exception("Invalid format for file '" + std::string(filename) +
-            "'. PPM is expected to start with the characters 'P6'.");
+        throw Exception("Invalid format for file '" + std::string(filename) + "'. PPM is expected to start with the "
+                                                                              "characters 'P6'.");
     int nc = fgetc(fp);
-    while ((char)nc != '#' && ((char)nc > '9' || (char)nc < '0')) nc = fgetc(fp);
+    while ((char)nc != '#' && ((char)nc > '9' || (char)nc < '0'))
+        nc = fgetc(fp);
     if ((char)nc == '#')
-        while ((char)nc != '\n') nc = fgetc(fp);
+        while ((char)nc != '\n')
+            nc = fgetc(fp);
     else
         ungetc(nc, fp);
     if (fscanf(fp, "%d", &width_) != 1 || fscanf(fp, "%d", &height_) != 1)
@@ -82,15 +89,14 @@ void ompl::PPM::saveFile(const char *filename)
 {
     if (pixels_.size() != width_ * height_)
         throw Exception("Number of pixels is " + std::to_string(pixels_.size()) +
-            " but the set width and height require " +
-                std::to_string(width_ * height_) + " pixels.");
+                        " but the set width and height require " + std::to_string(width_ * height_) + " pixels.");
     FILE *fp;
     fp = fopen(filename, "wb");
     if (!fp)
         throw Exception("Unable to open '" + std::string(filename) + "' for writing");
     fprintf(fp, "P6\n");
     fprintf(fp, "%d %d\n", width_, height_);
-    fprintf(fp, "%d\n", 255); // RGB marker
+    fprintf(fp, "%d\n", 255);  // RGB marker
     fwrite(&pixels_[0], 3 * width_, height_, fp);
     fclose(fp);
 }

@@ -65,10 +65,10 @@ namespace ompl
         public:
             /** \brief Creates a propositional decomposition wrapped around a given decomposition
                 with a given number of propositions. */
-            PropositionalDecomposition(const DecompositionPtr& decomp);
+            PropositionalDecomposition(const DecompositionPtr &decomp);
 
             /** \brief Clears all memory belonging to this propositional decomposition. */
-            virtual ~PropositionalDecomposition(void);
+            ~PropositionalDecomposition() override;
 
             /** \brief Returns the World corresponding to a given region. */
             virtual World worldAtRegion(int rid) = 0;
@@ -78,28 +78,26 @@ namespace ompl
 
             /** \brief Returns the number of regions in this propositional decomposition's
                 underlying decomposition. */
-            virtual int getNumRegions(void) const;
+            int getNumRegions() const override;
 
             /** \brief Returns the number of propositions in this propositional decomposition. */
-            virtual int getNumProps(void) const = 0;
+            virtual int getNumProps() const = 0;
 
             /** \brief Returns the volume of a given region. */
-            virtual double getRegionVolume(int rid);
+            double getRegionVolume(int rid) override;
 
             /** \brief Returns the region of the underlying decomposition that contains
                 a given State. */
-            virtual int locateRegion(const base::State* s) const;
+            int locateRegion(const base::State *s) const override;
 
-            virtual void project(const base::State* s, std::vector<double>& coord) const;
+            void project(const base::State *s, std::vector<double> &coord) const override;
 
-            virtual void getNeighbors(int rid, std::vector<int>& neighbors) const;
+            void getNeighbors(int rid, std::vector<int> &neighbors) const override;
 
-            virtual void sampleFromRegion(int rid, RNG& rng, std::vector<double>& coord) const;
+            void sampleFromRegion(int rid, RNG &rng, std::vector<double> &coord) const override;
 
-            virtual void sampleFullState(
-                const base::StateSamplerPtr& sampler,
-                const std::vector<double>& coord,
-                base::State* s) const;
+            void sampleFullState(const base::StateSamplerPtr &sampler, const std::vector<double> &coord,
+                                 base::State *s) const override;
 
         protected:
             DecompositionPtr decomp_;

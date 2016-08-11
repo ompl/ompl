@@ -63,23 +63,23 @@ bool isStateValid(const ob::State *state)
     return (const void*)rot != (const void*)pos;
 }
 
-void plan(void)
+void plan()
 {
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::SE3StateSpace());
+    auto space(std::make_shared<ob::SE3StateSpace>());
 
     // set the bounds for the R^3 part of SE(3)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
 
-    space->as<ob::SE3StateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
 
     // construct an instance of  space information from this state space
-    ob::SpaceInformationPtr si(new ob::SpaceInformation(space));
+    auto si(std::make_shared<ob::SpaceInformation>(space));
 
     // set state validity checking for this space
-    si->setStateValidityChecker(std::bind(&isStateValid, std::placeholders::_1));
+    si->setStateValidityChecker(isStateValid);
 
     // create a random start state
     ob::ScopedState<> start(space);
@@ -90,13 +90,13 @@ void plan(void)
     goal.random();
 
     // create a problem instance
-    ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
+    auto pdef(std::make_shared<ob::ProblemDefinition>(si));
 
     // set the start and goal states
     pdef->setStartAndGoalStates(start, goal);
 
     // create a planner for the defined space
-    ob::PlannerPtr planner(new og::RRTConnect(si));
+    auto planner(std::make_shared<og::RRTConnect>(si));
 
     // set the problem we are trying to solve for the planner
     planner->setProblemDefinition(pdef);
@@ -112,7 +112,7 @@ void plan(void)
     pdef->print(std::cout);
 
     // attempt to solve the problem within one second of planning time
-    ob::PlannerStatus solved = planner->solve(1.0);
+    ob::PlannerStatus solved = planner->ob::Planner::solve(1.0);
 
     if (solved)
     {
@@ -128,23 +128,23 @@ void plan(void)
         std::cout << "No solution found" << std::endl;
 }
 
-void planWithSimpleSetup(void)
+void planWithSimpleSetup()
 {
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::SE3StateSpace());
+    auto space(std::make_shared<ob::SE3StateSpace>());
 
     // set the bounds for the R^3 part of SE(3)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
 
-    space->as<ob::SE3StateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
 
     // define a simple setup class
     og::SimpleSetup ss(space);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(std::bind(&isStateValid, std::placeholders::_1));
+    ss.setStateValidityChecker([](const ob::State *state) { return isStateValid(state); });
 
     // create a random start state
     ob::ScopedState<> start(space);

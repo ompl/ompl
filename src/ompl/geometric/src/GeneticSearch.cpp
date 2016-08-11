@@ -41,8 +41,15 @@
 #include <algorithm>
 #include <limits>
 
-ompl::geometric::GeneticSearch::GeneticSearch(const base::SpaceInformationPtr &si) : hc_(si), si_(si), poolSize_(100), poolMutation_(20), poolRandom_(30),
-                                                                                     generations_(0), tryImprove_(false), maxDistance_(0.0)
+ompl::geometric::GeneticSearch::GeneticSearch(const base::SpaceInformationPtr &si)
+  : hc_(si)
+  , si_(si)
+  , poolSize_(100)
+  , poolMutation_(20)
+  , poolRandom_(30)
+  , generations_(0)
+  , tryImprove_(false)
+  , maxDistance_(0.0)
 {
     hc_.setMaxImproveSteps(3);
     setValidityCheck(true);
@@ -50,11 +57,12 @@ ompl::geometric::GeneticSearch::GeneticSearch(const base::SpaceInformationPtr &s
 
 ompl::geometric::GeneticSearch::~GeneticSearch()
 {
-    for (unsigned int i = 0 ; i < pool_.size() ; ++i)
-        si_->freeState(pool_[i].state);
+    for (auto &i : pool_)
+        si_->freeState(i.state);
 }
 
-bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalRegion &goal, base::State *result, const std::vector<base::State*> &hint)
+bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalRegion &goal, base::State *result,
+                                           const std::vector<base::State *> &hint)
 {
     if (maxDistance_ < std::numeric_limits<double>::epsilon())
     {
@@ -68,12 +76,12 @@ bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalReg
         return false;
     }
 
-    time::point    endTime = time::now() + time::seconds(solveTime);
+    time::point endTime = time::now() + time::seconds(solveTime);
 
-    unsigned int   maxPoolSize = poolSize_ + poolMutation_ + poolRandom_;
+    unsigned int maxPoolSize = poolSize_ + poolMutation_ + poolRandom_;
     IndividualSort gs;
-    bool           solved = false;
-    int            solution = -1;
+    bool solved = false;
+    int solution = -1;
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
@@ -84,7 +92,7 @@ bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalReg
         pool_.resize(maxPoolSize);
         // add hint states
         unsigned int nh = std::min<unsigned int>(maxPoolSize, hint.size());
-        for (unsigned int i = 0 ; i < nh ; ++i)
+        for (unsigned int i = 0; i < nh; ++i)
         {
             pool_[i].state = si_->cloneState(hint[i]);
             si_->enforceBounds(pool_[i].state);
@@ -103,7 +111,7 @@ bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalReg
         unsigned int nh2 = nh * 2;
         if (nh2 < maxPoolSize)
         {
-            for (unsigned int i = nh ; i < nh2 ; ++i)
+            for (unsigned int i = nh; i < nh2; ++i)
             {
                 pool_[i].state = si_->allocState();
                 sampler_->sampleUniformNear(pool_[i].state, pool_[i % nh].state, maxDistance_);
@@ -121,7 +129,7 @@ bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalReg
         }
 
         // add random states
-        for (unsigned int i = nh ; i < maxPoolSize ; ++i)
+        for (unsigned int i = nh; i < maxPoolSize; ++i)
         {
             pool_[i].state = si_->allocState();
             sampler_->sampleUniform(pool_[i].state);
@@ -140,16 +148,16 @@ bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalReg
     {
         std::size_t initialSize = pool_.size();
         // free extra memory if needed
-        for (std::size_t i = maxPoolSize ; i < initialSize ; ++i)
+        for (std::size_t i = maxPoolSize; i < initialSize; ++i)
             si_->freeState(pool_[i].state);
         pool_.resize(maxPoolSize);
         // alloc extra memory if needed
-        for (std::size_t i = initialSize ; i < pool_.size() ; ++i)
+        for (std::size_t i = initialSize; i < pool_.size(); ++i)
             pool_[i].state = si_->allocState();
 
         // add hint states at the bottom of the pool
         unsigned int nh = std::min<unsigned int>(maxPoolSize, hint.size());
-        for (unsigned int i = 0 ; i < nh ; ++i)
+        for (unsigned int i = 0; i < nh; ++i)
         {
             std::size_t pi = maxPoolSize - i - 1;
             si_->copyState(pool_[pi].state, hint[i]);
@@ -167,7 +175,7 @@ bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalReg
 
         // add random states if needed
         nh = maxPoolSize - nh;
-        for (std::size_t i = initialSize ; i < nh ; ++i)
+        for (std::size_t i = initialSize; i < nh; ++i)
         {
             sampler_->sampleUniform(pool_[i].state);
             pool_[i].valid = valid(pool_[i].state);
@@ -191,7 +199,7 @@ bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalReg
         std::sort(pool_.begin(), pool_.end(), gs);
 
         // add mutations
-        for (unsigned int i = poolSize_ ; i < mutationsSize ; ++i)
+        for (unsigned int i = poolSize_; i < mutationsSize; ++i)
         {
             sampler_->sampleUniformNear(pool_[i].state, pool_[i % poolSize_].state, maxDistance_);
             pool_[i].valid = valid(pool_[i].state);
@@ -208,7 +216,7 @@ bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalReg
 
         // add random states
         if (!solved)
-            for (unsigned int i = mutationsSize ; i < maxPoolSize ; ++i)
+            for (unsigned int i = mutationsSize; i < maxPoolSize; ++i)
             {
                 sampler_->sampleUniform(pool_[i].state);
                 pool_[i].valid = valid(pool_[i].state);
@@ -223,7 +231,6 @@ bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalReg
                 }
             }
     }
-
 
     // fill in solution, if found
     OMPL_INFORM("Ran for %u generations", generations_);
@@ -241,32 +248,31 @@ bool ompl::geometric::GeneticSearch::solve(double solveTime, const base::GoalReg
         if (!valid(result))
             si_->copyState(result, pool_[solution].state);
     }
-    else
-        if (tryImprove_)
+    else if (tryImprove_)
+    {
+        /* one last attempt to find a solution */
+        std::sort(pool_.begin(), pool_.end(), gs);
+        for (unsigned int i = 0; i < 5; ++i)
         {
-            /* one last attempt to find a solution */
-            std::sort(pool_.begin(), pool_.end(), gs);
-            for (unsigned int i = 0 ; i < 5 ; ++i)
+            // get a valid state that is closer to the goal
+            if (pool_[i].valid)
             {
-                // get a valid state that is closer to the goal
-                if (pool_[i].valid)
-                {
-                    // set the solution
+                // set the solution
+                si_->copyState(result, pool_[i].state);
+
+                // try to improve the state
+                tryToImprove(goal, result, pool_[i].distance);
+
+                // if the improvement made the state no longer valid, revert to previous one
+                if (!valid(result))
                     si_->copyState(result, pool_[i].state);
-
-                    // try to improve the state
-                    tryToImprove(goal, result, pool_[i].distance);
-
-                    // if the improvement made the state no longer valid, revert to previous one
-                    if (!valid(result))
-                        si_->copyState(result, pool_[i].state);
-                    else
-                        solved = goal.isSatisfied(result);
-                    if (solved)
-                        break;
-                }
+                else
+                    solved = goal.isSatisfied(result);
+                if (solved)
+                    break;
             }
         }
+    }
 
     return solved;
 }
@@ -279,7 +285,8 @@ void ompl::geometric::GeneticSearch::tryToImprove(const base::GoalRegion &goal, 
     hc_.tryToImprove(goal, state, dist, &distance);
     hc_.tryToImprove(goal, state, dist / 3.0, &distance);
     hc_.tryToImprove(goal, state, dist / 10.0, &distance);
-    OMPL_DEBUG("Improvement took  %u ms", std::chrono::duration_cast<std::chrono::milliseconds>(time::now() - start).count());
+    OMPL_DEBUG("Improvement took  %u ms",
+               std::chrono::duration_cast<std::chrono::milliseconds>(time::now() - start).count());
     OMPL_DEBUG("Distance to goal after improvement: %g", distance);
 }
 

@@ -60,32 +60,31 @@ namespace ompl
         class PathControl : public base::Path
         {
         public:
-
             /** \brief Constructor */
             PathControl(const base::SpaceInformationPtr &si);
 
             /** \brief Copy constructor */
             PathControl(const PathControl &path);
 
-            virtual ~PathControl()
+            ~PathControl() override
             {
                 freeMemory();
             }
 
             /** \brief Assignment operator */
-            PathControl& operator=(const PathControl &other);
+            PathControl &operator=(const PathControl &other);
 
             /** \brief Not yet implemented. */
-            virtual base::Cost cost(const base::OptimizationObjectivePtr& obj) const;
+            base::Cost cost(const base::OptimizationObjectivePtr &obj) const override;
 
             /** \brief The path length (sum of control durations) */
-            virtual double length() const;
+            double length() const override;
 
             /** \brief Check if the path is valid */
-            virtual bool check() const;
+            bool check() const override;
 
             /** \brief Print the path to a stream */
-            virtual void print(std::ostream &out) const;
+            void print(std::ostream &out) const override;
             /** \brief Print the path as a real-valued matrix where the
                 i-th row represents the i-th state along the path, followed
                 by the control and duration needed to reach this state. For
@@ -97,27 +96,34 @@ namespace ompl
                 ompl::control::ControlSpace::getValueAddressAtIndex. */
             virtual void printAsMatrix(std::ostream &out) const;
 
-            /** \brief Convert this path into a geometric path (interpolation is performed and then states are copied) */
+            /** \brief Convert this path into a geometric path (interpolation is performed and then states are copied)
+             */
             geometric::PathGeometric asGeometric() const;
 
             /** @name Path operations
                 @{ */
 
-            /** \brief Append \e state to the end of the path; it is assumed \e state is the first state, so no control is applied.
-                The memory for \e state is copied. There are no checks to make sure the number of controls and states make sense. */
+            /** \brief Append \e state to the end of the path; it is assumed \e state is the first state, so no control
+               is applied.
+                The memory for \e state is copied. There are no checks to make sure the number of controls and states
+               make sense. */
             void append(const base::State *state);
 
-            /** \brief Append \e state to the end of the path and assume \e control is applied for the duration \e duration.
-                The memory for \e state and for \e control is copied. There are no checks to make sure the number of controls and states make sense. */
+            /** \brief Append \e state to the end of the path and assume \e control is applied for the duration \e
+               duration.
+                The memory for \e state and for \e control is copied. There are no checks to make sure the number of
+               controls and states make sense. */
             void append(const base::State *state, const Control *control, double duration);
 
-            /** \brief Make the path such that all controls are applied for a single time step (computes intermediate states) */
+            /** \brief Make the path such that all controls are applied for a single time step (computes intermediate
+             * states) */
             void interpolate();
 
             /** \brief Set this path to a random segment */
             void random();
 
-            /** \brief Set this path to a random valid segment. Sample \e attempts times for valid segments. Returns true on success.*/
+            /** \brief Set this path to a random valid segment. Sample \e attempts times for valid segments. Returns
+             * true on success.*/
             bool randomValid(unsigned int attempts);
 
             /** @} */
@@ -125,44 +131,49 @@ namespace ompl
             /** @name Functionality for accessing states and controls
                 @{ */
 
-            /** \brief Get the states that make up the path (as a reference, so it can be modified, hence the function is not const) */
-            std::vector<base::State*>& getStates()
+            /** \brief Get the states that make up the path (as a reference, so it can be modified, hence the function
+             * is not const) */
+            std::vector<base::State *> &getStates()
             {
                 return states_;
             }
 
-            /** \brief Get the controls that make up the path (as a reference, so it can be modified, hence the function is not const) */
-            std::vector<Control*>& getControls()
+            /** \brief Get the controls that make up the path (as a reference, so it can be modified, hence the function
+             * is not const) */
+            std::vector<Control *> &getControls()
             {
                 return controls_;
             }
 
-            /** \brief Get the control durations used along the path (as a reference, so it can be modified, hence the function is not const) */
-            std::vector<double>& getControlDurations()
+            /** \brief Get the control durations used along the path (as a reference, so it can be modified, hence the
+             * function is not const) */
+            std::vector<double> &getControlDurations()
             {
                 return controlDurations_;
             }
 
             /** \brief Get the state located at \e index along the path */
-            base::State* getState(unsigned int index)
+            base::State *getState(unsigned int index)
             {
                 return states_[index];
             }
 
             /** \brief Get the state located at \e index along the path */
-            const base::State* getState(unsigned int index) const
+            const base::State *getState(unsigned int index) const
             {
                 return states_[index];
             }
 
-            /** \brief Get the control located at \e index along the path. This is the control that gets applied to the state located at \e index */
-            Control* getControl(unsigned int index)
+            /** \brief Get the control located at \e index along the path. This is the control that gets applied to the
+             * state located at \e index */
+            Control *getControl(unsigned int index)
             {
                 return controls_[index];
             }
 
-            /** \brief Get the control located at \e index along the path. This is the control that gets applied to the state located at \e index */
-            const Control* getControl(unsigned int index) const
+            /** \brief Get the control located at \e index along the path. This is the control that gets applied to the
+             * state located at \e index */
+            const Control *getControl(unsigned int index) const
             {
                 return controls_[index];
             }
@@ -179,7 +190,8 @@ namespace ompl
                 return states_.size();
             }
 
-            /** \brief Get the number of controls applied along this path. This should be equal to getStateCount() - 1 unless there are 0 states, in which case the number of controls will also be 0. */
+            /** \brief Get the number of controls applied along this path. This should be equal to getStateCount() - 1
+             * unless there are 0 states, in which case the number of controls will also be 0. */
             std::size_t getControlCount() const
             {
                 return controls_.size();
@@ -188,24 +200,23 @@ namespace ompl
             /** @} */
 
         protected:
-
             /** \brief The list of states that make up the path */
-            std::vector<base::State*>   states_;
+            std::vector<base::State *> states_;
 
-            /** \brief The control applied at each state. This array contains one element less than the list of states */
-            std::vector<Control*>       controls_;
+            /** \brief The control applied at each state. This array contains one element less than the list of states
+             */
+            std::vector<Control *> controls_;
 
-            /** \brief The duration of the control applied at each state. This array contains one element less than the list of states */
-            std::vector<double>         controlDurations_;
+            /** \brief The duration of the control applied at each state. This array contains one element less than the
+             * list of states */
+            std::vector<double> controlDurations_;
 
             /** \brief Free the memory allocated by the path */
             void freeMemory();
 
             /** \brief Copy the content of a path to this one */
             void copyFrom(const PathControl &other);
-
         };
-
     }
 }
 

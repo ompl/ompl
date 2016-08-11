@@ -41,32 +41,32 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief State space sampler for discrete states */
         class PrecomputedStateSampler : public StateSampler
         {
         public:
+            /** \brief Constructor. Takes the state space to be sampled (\e space) and the set of states to draw samples
+             * from (\e states) */
+            PrecomputedStateSampler(const StateSpace *space, const std::vector<const State *> &states);
 
-            /** \brief Constructor. Takes the state space to be sampled (\e space) and the set of states to draw samples from (\e states) */
-            PrecomputedStateSampler(const StateSpace *space, const std::vector<const State*> &states);
+            /** \brief Constructor. Takes the state space to be sampled (\e space), the set of states to draw samples
+             * from (\e states) and a range to sample from: [\e minIndex, \e maxIndex]*/
+            PrecomputedStateSampler(const StateSpace *space, const std::vector<const State *> &states,
+                                    std::size_t minIndex, std::size_t maxIndex);
 
-            /** \brief Constructor. Takes the state space to be sampled (\e space), the set of states to draw samples from (\e states) and a range to sample from: [\e minIndex, \e maxIndex]*/
-            PrecomputedStateSampler(const StateSpace *space, const std::vector<const State*> &states, std::size_t minIndex, std::size_t maxIndex);
-
-            virtual void sampleUniform(State *state);
-            virtual void sampleUniformNear(State *state, const State *near, const double distance);
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+            void sampleUniform(State *state) override;
+            void sampleUniformNear(State *state, const State *near, const double distance) override;
+            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
 
         protected:
-
             /** \brief The states to sample from */
-            const std::vector<const State*> &states_;
+            const std::vector<const State *> &states_;
 
             /** \brief The minimum index to start sampling at */
-            std::size_t                      minStateIndex_;
+            std::size_t minStateIndex_;
 
             /** \brief The maximum index to stop sampling at */
-            std::size_t                      maxStateIndex_;
+            std::size_t maxStateIndex_;
         };
     }
 }

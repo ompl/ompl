@@ -43,10 +43,8 @@
 
 namespace ompl
 {
-
     namespace control
     {
-
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(SpaceInformation);
         /// @endcond
@@ -63,7 +61,6 @@ namespace ompl
         class StatePropagator
         {
         public:
-
             /** \brief Constructor */
             StatePropagator(SpaceInformation *si) : si_(si)
             {
@@ -74,11 +71,10 @@ namespace ompl
             {
             }
 
-            virtual ~StatePropagator()
-            {
-            }
+            virtual ~StatePropagator() = default;
 
-            /** \brief Propagate from a state, given a control, for some specified amount of time (the amount of time can
+            /** \brief Propagate from a state, given a control, for some specified amount of time (the amount of time
+               can
                 also be negative, if canPropagateBackward() returns true)
                 \param state the state to start propagating from
                 \param control the control to apply
@@ -93,9 +89,11 @@ namespace ompl
                 \note The pointer to the starting state and the result
                 state may be the same.
             */
-            virtual void propagate(const base::State *state, const Control *control, const double duration, base::State *result) const = 0;
+            virtual void propagate(const base::State *state, const Control *control, const double duration,
+                                   base::State *result) const = 0;
 
-            /** \brief Some systems can only propagate forward in time (i.e., the \e duration argument for the propagate()
+            /** \brief Some systems can only propagate forward in time (i.e., the \e duration argument for the
+               propagate()
                 function is always positive). If this is the case, this function should return false. Planners that need
                 backward propagation (negative durations) will call this function to check. If backward propagation is
                 possible, this function should return true (this is the default). */
@@ -105,12 +103,14 @@ namespace ompl
             }
 
             /** \brief Compute the control that can take the system from state \e from to state \e to.
-                Store that control in \e result; the duration for which the control should be applied is stored in \e duration;
+                Store that control in \e result; the duration for which the control should be applied is stored in \e
+               duration;
                 return true if the computation was successful; return false otherwise;
 
                 \note If false is returned, the content of \e result and \e duration may have been changed,
                 but it does not represent a solution; */
-            virtual bool steer(const base::State* /*from*/, const base::State* /*to*/, Control* /*result*/, double& /*duration*/) const
+            virtual bool steer(const base::State * /*from*/, const base::State * /*to*/, Control * /*result*/,
+                               double & /*duration*/) const
             {
                 return false;
             }
@@ -122,12 +122,9 @@ namespace ompl
             }
 
         protected:
-
             /** \brief The instance of space information this state propagator operates on */
             SpaceInformation *si_;
-
         };
-
     }
 }
 

@@ -32,13 +32,12 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-
 /** \author Ioan Sucan */
 
 #include "ompl/tools/debug/Profiler.h"
 #include <cmath>
 
-ompl::tools::Profiler& ompl::tools::Profiler::Instance()
+ompl::tools::Profiler &ompl::tools::Profiler::Instance()
 {
     static Profiler p(true, false);
     return p;
@@ -95,7 +94,7 @@ void ompl::tools::Profiler::average(const std::string &name, const double value)
     lock_.lock();
     AvgInfo &a = data_[std::this_thread::get_id()].avg[name];
     a.total += value;
-    a.totalSqr += value*value;
+    a.totalSqr += value * value;
     a.parts++;
     lock_.unlock();
 }
@@ -126,17 +125,20 @@ void ompl::tools::Profiler::status(std::ostream &out, bool merge)
     if (merge)
     {
         PerThread combined;
-        for (std::map<std::thread::id, PerThread>::const_iterator it = data_.begin() ; it != data_.end() ; ++it)
+        for (std::map<std::thread::id, PerThread>::const_iterator it = data_.begin(); it != data_.end(); ++it)
         {
-            for (std::map<std::string, unsigned long int>::const_iterator iev = it->second.events.begin() ; iev != it->second.events.end(); ++iev)
+            for (std::map<std::string, unsigned long int>::const_iterator iev = it->second.events.begin();
+                 iev != it->second.events.end(); ++iev)
                 combined.events[iev->first] += iev->second;
-            for (std::map<std::string, AvgInfo>::const_iterator iavg = it->second.avg.begin() ; iavg != it->second.avg.end(); ++iavg)
+            for (std::map<std::string, AvgInfo>::const_iterator iavg = it->second.avg.begin();
+                 iavg != it->second.avg.end(); ++iavg)
             {
                 combined.avg[iavg->first].total += iavg->second.total;
                 combined.avg[iavg->first].totalSqr += iavg->second.totalSqr;
                 combined.avg[iavg->first].parts += iavg->second.parts;
             }
-            for (std::map<std::string, TimeInfo>::const_iterator itm = it->second.time.begin() ; itm != it->second.time.end(); ++itm)
+            for (std::map<std::string, TimeInfo>::const_iterator itm = it->second.time.begin();
+                 itm != it->second.time.end(); ++itm)
             {
                 TimeInfo &tc = combined.time[itm->first];
                 tc.total = tc.total + itm->second.total;
@@ -150,7 +152,7 @@ void ompl::tools::Profiler::status(std::ostream &out, bool merge)
         printThreadInfo(out, combined);
     }
     else
-        for (std::map<std::thread::id, PerThread>::const_iterator it = data_.begin() ; it != data_.end() ; ++it)
+        for (std::map<std::thread::id, PerThread>::const_iterator it = data_.begin(); it != data_.end(); ++it)
         {
             out << "Thread " << it->first << ":" << std::endl;
             printThreadInfo(out, it->second);
@@ -169,10 +171,9 @@ void ompl::tools::Profiler::console()
 /// @cond IGNORE
 namespace ompl
 {
-
     struct dataIntVal
     {
-        std::string       name;
+        std::string name;
         unsigned long int value;
     };
 
@@ -186,8 +187,8 @@ namespace ompl
 
     struct dataDoubleVal
     {
-        std::string  name;
-        double       value;
+        std::string name;
+        double value;
     };
 
     struct SortDoubleByValue
@@ -205,7 +206,8 @@ void ompl::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread &
     double total = time::seconds(tinfo_.total);
 
     std::vector<dataIntVal> events;
-    for (std::map<std::string, unsigned long int>::const_iterator iev = data.events.begin() ; iev != data.events.end() ; ++iev)
+    for (std::map<std::string, unsigned long int>::const_iterator iev = data.events.begin(); iev != data.events.end();
+         ++iev)
     {
         dataIntVal next = {iev->first, iev->second};
         events.push_back(next);
@@ -213,11 +215,11 @@ void ompl::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread &
     std::sort(events.begin(), events.end(), SortIntByValue());
     if (!events.empty())
         out << "Events:" << std::endl;
-    for (unsigned int i = 0 ; i < events.size() ; ++i)
+    for (unsigned int i = 0; i < events.size(); ++i)
         out << events[i].name << ": " << events[i].value << std::endl;
 
     std::vector<dataDoubleVal> avg;
-    for (std::map<std::string, AvgInfo>::const_iterator ia = data.avg.begin() ; ia != data.avg.end() ; ++ia)
+    for (std::map<std::string, AvgInfo>::const_iterator ia = data.avg.begin(); ia != data.avg.end(); ++ia)
     {
         dataDoubleVal next = {ia->first, ia->second.total / (double)ia->second.parts};
         avg.push_back(next);
@@ -225,16 +227,17 @@ void ompl::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread &
     std::sort(avg.begin(), avg.end(), SortDoubleByValue());
     if (!avg.empty())
         out << "Averages:" << std::endl;
-    for (unsigned int i = 0 ; i < avg.size() ; ++i)
+    for (unsigned int i = 0; i < avg.size(); ++i)
     {
         const AvgInfo &a = data.avg.find(avg[i].name)->second;
-        out << avg[i].name << ": " << avg[i].value << " (stddev = " <<
-          std::sqrt(std::abs(a.totalSqr - (double)a.parts * avg[i].value * avg[i].value) / ((double)a.parts - 1.)) << ")" << std::endl;
+        out << avg[i].name << ": " << avg[i].value << " (stddev = "
+            << std::sqrt(std::abs(a.totalSqr - (double)a.parts * avg[i].value * avg[i].value) / ((double)a.parts - 1.))
+            << ")" << std::endl;
     }
 
     std::vector<dataDoubleVal> time;
 
-    for (std::map<std::string, TimeInfo>::const_iterator itm = data.time.begin() ; itm != data.time.end() ; ++itm)
+    for (std::map<std::string, TimeInfo>::const_iterator itm = data.time.begin(); itm != data.time.end(); ++itm)
     {
         dataDoubleVal next = {itm->first, time::seconds(itm->second.total)};
         time.push_back(next);
@@ -245,14 +248,14 @@ void ompl::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread &
         out << "Blocks of time:" << std::endl;
 
     double unaccounted = total;
-    for (unsigned int i = 0 ; i < time.size() ; ++i)
+    for (unsigned int i = 0; i < time.size(); ++i)
     {
         const TimeInfo &d = data.time.find(time[i].name)->second;
 
         double tS = time::seconds(d.shortest);
         double tL = time::seconds(d.longest);
-        out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value/total) << "%), ["
-            << tS << "s --> " << tL << " s], " << d.parts << " parts";
+        out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value / total) << "%), [" << tS
+            << "s --> " << tL << " s], " << d.parts << " parts";
         if (d.parts > 0)
             out << ", " << (time::seconds(d.total) / (double)d.parts) << " s on average";
         out << std::endl;

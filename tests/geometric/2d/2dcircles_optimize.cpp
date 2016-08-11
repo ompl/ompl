@@ -59,14 +59,12 @@ static const bool VERBOSE = true;
 class TestPlanner
 {
 public:
-    TestPlanner(void)
+    TestPlanner()
     {
         msg::setLogLevel(msg::LOG_ERROR);
     }
 
-    virtual ~TestPlanner(void)
-    {
-    }
+    virtual ~TestPlanner() = default;
 
     virtual base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) = 0;
 
@@ -85,12 +83,12 @@ protected:
                               double solutionTime)
     {
         /* instantiate problem definition */
-        base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
+        auto pdef(std::make_shared<base::ProblemDefinition>(si));
 
         // define an objective that is met the moment the solution is found
-        base::PathLengthOptimizationObjective *opt = new base::PathLengthOptimizationObjective(si);
+        auto opt(std::make_shared<base::PathLengthOptimizationObjective>(si));
         opt->setCostThreshold(opt->infiniteCost());
-        pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
+        pdef->setOptimizationObjective(opt);
 
         /* instantiate motion planner */
         base::PlannerPtr planner = newPlanner(si);
@@ -181,10 +179,10 @@ protected:
                                  double solutionTime)
     {
         /* instantiate problem definition */
-        base::ProblemDefinitionPtr pdef(new base::ProblemDefinition(si));
+        auto pdef(std::make_shared<base::ProblemDefinition>(si));
 
         // define an objective that is met the moment the solution is found
-        base::PathLengthOptimizationObjective *opt = new base::PathLengthOptimizationObjective(si);
+        auto opt(std::make_shared<base::PathLengthOptimizationObjective>(si));
         opt->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
         pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
 
@@ -281,10 +279,10 @@ protected:
         goal2D[0] = q.goalX_;
         goal2D[1] = q.goalY_;
 
-        base::GoalState* goalState = new base::GoalState(si);
+        auto goalState(std::make_shared<base::GoalState>(si));
         goalState->setState(goal2D);
         goalState->setThreshold(1e-3);
-        return base::GoalPtr(goalState);
+        return goalState;
     }
 };
 
@@ -292,10 +290,10 @@ class RRTstarTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::RRTstar *rrt = new geometric::RRTstar(si);
-        return base::PlannerPtr(rrt);
+        auto rrt(std::make_shared<geometric::RRTstar>(si));
+        return rrt;
     }
 };
 
@@ -303,10 +301,10 @@ class PRMstarTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::PRMstar *prm = new geometric::PRMstar(si);
-        return base::PlannerPtr(prm);
+        auto prm(std::make_shared<geometric::PRMstar>(si));
+        return prm;
     }
 };
 
@@ -314,10 +312,10 @@ class PRMTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::PRM *prm = new geometric::PRM(si);
-        return base::PlannerPtr(prm);
+        auto prm(std::make_shared<geometric::PRM>(si));
+        return prm;
     }
 };
 
@@ -325,10 +323,10 @@ class CForestTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si)
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
-        geometric::CForest *cforest = new geometric::CForest(si);
-        return base::PlannerPtr(cforest);
+        auto cforest(std::make_shared<geometric::CForest>(si));
+        return cforest;
     }
 };
 
@@ -352,7 +350,7 @@ public:
     }
 
     template<typename T>
-    void runAllTests(void)
+    void runAllTests()
     {
         TestPlanner *p = new T();
         run2DCirclesTest(p);
@@ -361,7 +359,7 @@ public:
 
 protected:
 
-    PlanTest(void)
+    PlanTest()
     {
         verbose_ = VERBOSE;
         boost::filesystem::path path(TEST_RESOURCES_DIR);

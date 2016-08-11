@@ -47,7 +47,6 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/pending/disjoint_sets.hpp>
-#include <functional>
 #include <mutex>
 #include <iostream>
 #include <fstream>
@@ -59,10 +58,8 @@
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /**
            @anchor gSPARS
            @par Short description
@@ -91,34 +88,39 @@ namespace ompl
                 QUALITY,
             };
 
-            struct vertex_state_t {
-                typedef boost::vertex_property_tag kind;
+            struct vertex_state_t
+            {
+                using kind = boost::vertex_property_tag;
             };
 
-            struct vertex_representative_t {
-                typedef boost::vertex_property_tag kind;
+            struct vertex_representative_t
+            {
+                using kind = boost::vertex_property_tag;
             };
 
-            struct vertex_color_t {
-                typedef boost::vertex_property_tag kind;
+            struct vertex_color_t
+            {
+                using kind = boost::vertex_property_tag;
             };
 
-            struct vertex_list_t {
-                typedef boost::vertex_property_tag kind;
+            struct vertex_list_t
+            {
+                using kind = boost::vertex_property_tag;
             };
 
-            struct vertex_interface_list_t {
-                typedef boost::vertex_property_tag kind;
+            struct vertex_interface_list_t
+            {
+                using kind = boost::vertex_property_tag;
             };
 
             /** \brief The type used internally for representing vertex IDs */
-            typedef unsigned long int VertexIndexType;
+            using VertexIndexType = unsigned long;
 
             /** \brief Hash for storing interface information. */
-            typedef std::unordered_map<VertexIndexType, std::set<VertexIndexType> > InterfaceHash;
+            using InterfaceHash = std::unordered_map<VertexIndexType, std::set<VertexIndexType>>;
 
             /** \brief Internal representation of a dense path */
-            typedef std::deque<base::State*> DensePath;
+            using DensePath = std::deque<base::State *>;
 
             /**
              @brief The constructed roadmap spanner.
@@ -132,25 +134,27 @@ namespace ompl
 
              @par SparseEdges should be undirected and have a weight property.
              */
-            typedef boost::adjacency_list <
+            using SpannerGraph = boost::adjacency_list<
                 boost::vecS, boost::vecS, boost::undirectedS,
-                boost::property < vertex_state_t, base::State*,
-                boost::property < boost::vertex_predecessor_t, VertexIndexType,
-                boost::property < boost::vertex_rank_t, VertexIndexType,
-                boost::property < vertex_color_t, GuardType,
-                boost::property < vertex_list_t, std::set<VertexIndexType>,
-                boost::property < vertex_interface_list_t, InterfaceHash > > > > > >,
-                boost::property < boost::edge_weight_t, base::Cost >
-            > SpannerGraph;
+                boost::property<
+                    vertex_state_t, base::State *,
+                    boost::property<
+                        boost::vertex_predecessor_t, VertexIndexType,
+                        boost::property<boost::vertex_rank_t, VertexIndexType,
+                                        boost::property<vertex_color_t, GuardType,
+                                                        boost::property<vertex_list_t, std::set<VertexIndexType>,
+                                                                        boost::property<vertex_interface_list_t,
+                                                                                        InterfaceHash>>>>>>,
+                boost::property<boost::edge_weight_t, base::Cost>>;
 
             /** \brief A vertex in the sparse roadmap that is constructed */
-            typedef boost::graph_traits<SpannerGraph>::vertex_descriptor SparseVertex;
+            using SparseVertex = boost::graph_traits<SpannerGraph>::vertex_descriptor;
 
             /** \brief An edge in the sparse roadmap that is constructed */
-            typedef boost::graph_traits<SpannerGraph>::edge_descriptor   SparseEdge;
+            using SparseEdge = boost::graph_traits<SpannerGraph>::edge_descriptor;
 
             /** \brief Nearest neighbor structure which works over the SpannerGraph */
-            typedef std::shared_ptr< NearestNeighbors<SparseVertex> > SparseNeighbors;
+            using SparseNeighbors = std::shared_ptr<NearestNeighbors<SparseVertex>>;
 
             /**
              @brief The underlying roadmap graph.
@@ -167,37 +171,38 @@ namespace ompl
 
              @par DenseEdges should be undirected and have a weight property.
              */
-            typedef boost::adjacency_list <
+            using DenseGraph = boost::adjacency_list<
                 boost::vecS, boost::vecS, boost::undirectedS,
-                boost::property < vertex_state_t, base::State*,
-                boost::property < boost::vertex_predecessor_t, VertexIndexType,
-                boost::property < boost::vertex_rank_t, VertexIndexType,
-                boost::property < vertex_representative_t, SparseVertex > > > >,
-                boost::property < boost::edge_weight_t, double >
-            > DenseGraph;
+                boost::property<
+                    vertex_state_t, base::State *,
+                    boost::property<boost::vertex_predecessor_t, VertexIndexType,
+                                    boost::property<boost::vertex_rank_t, VertexIndexType,
+                                                    boost::property<vertex_representative_t, SparseVertex>>>>,
+                boost::property<boost::edge_weight_t, double>>;
 
             /** \brief A vertex in DenseGraph */
-            typedef boost::graph_traits<DenseGraph>::vertex_descriptor DenseVertex;
+            using DenseVertex = boost::graph_traits<DenseGraph>::vertex_descriptor;
 
             /** \brief An edge in DenseGraph */
-            typedef boost::graph_traits<DenseGraph>::edge_descriptor   DenseEdge;
+            using DenseEdge = boost::graph_traits<DenseGraph>::edge_descriptor;
 
             /** \brief Nearest neighbor structure which works over the DenseGraph */
-            typedef std::shared_ptr< NearestNeighbors<DenseVertex> > DenseNeighbors;
+            using DenseNeighbors = std::shared_ptr<NearestNeighbors<DenseVertex>>;
 
             /** \brief Constructor. */
             SPARS(const base::SpaceInformationPtr &si);
             /** \brief Destructor. */
-            virtual ~SPARS();
+            ~SPARS() override;
 
-            virtual void setProblemDefinition(const base::ProblemDefinitionPtr &pdef);
+            void setProblemDefinition(const base::ProblemDefinitionPtr &pdef) override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
             /** \brief While the termination condition permits, construct the spanner graph */
             void constructRoadmap(const base::PlannerTerminationCondition &ptc);
 
-            /** \brief While the termination condition permits, construct the spanner graph. If \e stopOnMaxFail is true,
+            /** \brief While the termination condition permits, construct the spanner graph. If \e stopOnMaxFail is
+               true,
                 the function also terminates when the failure limit set by setMaxFailures() is reached. */
             void constructRoadmap(const base::PlannerTerminationCondition &ptc, bool stopOnMaxFail);
 
@@ -213,7 +218,7 @@ namespace ompl
                 input states should be however cleared, without
                 clearing the roadmap itself. This can be done using
                 the clearQuery() function. */
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
             /** \brief Clear the query previously loaded from the ProblemDefinition.
                 Subsequent calls to solve() will reuse the previously computed roadmap,
@@ -221,18 +226,18 @@ namespace ompl
                 This enables multi-query functionality for PRM. */
             void clearQuery();
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Set a different nearest neighbors datastructure for the roadmap graph.
                 This nearest neighbor structure contains only information on the nodes
                 existing in the underlying dense roadmap.  This structure is used for
                 near-neighbor queries for the construction of that graph as well as for
                 determining which dense samples the sparse roadmap nodes should represent.*/
-            template<template<typename T> class NN>
+            template <template <typename T> class NN>
             void setDenseNeighbors()
             {
-                nn_.reset(new NN<DenseVertex>());
-                connectionStrategy_ = std::function<const std::vector<DenseVertex>&(const DenseVertex)>();
+                nn_ = std::make_shared<NN<DenseVertex>>();
+                connectionStrategy_ = std::function<const std::vector<DenseVertex> &(const DenseVertex)>();
                 if (isSetup())
                     setup();
             }
@@ -241,10 +246,10 @@ namespace ompl
                 This structure is stores only nodes in the roadmap spanner, and is used in
                 the construction of the spanner.  It can also be queried to determine which
                 node in the spanner should represent a given state.*/
-            template<template<typename T> class NN>
+            template <template <typename T> class NN>
             void setSparseNeighbors()
             {
-                snn_.reset(new NN<SparseVertex>());
+                snn_ = std::make_shared<NN<SparseVertex>>();
                 if (isSetup())
                     setup();
             }
@@ -264,7 +269,7 @@ namespace ompl
             void setDenseDeltaFraction(double d)
             {
                 denseDeltaFraction_ = d;
-                if (denseDelta_ > 0.0) // setup was previously called
+                if (denseDelta_ > 0.0)  // setup was previously called
                     denseDelta_ = d * si_->getMaximumExtent();
             }
 
@@ -275,13 +280,15 @@ namespace ompl
             void setSparseDeltaFraction(double d)
             {
                 sparseDeltaFraction_ = d;
-                if (sparseDelta_ > 0.0) // setup was previously called
+                if (sparseDelta_ > 0.0)  // setup was previously called
                     sparseDelta_ = d * si_->getMaximumExtent();
             }
 
-            /** \brief Set the roadmap spanner stretch factor.  This value represents a multiplicative upper bound on path
+            /** \brief Set the roadmap spanner stretch factor.  This value represents a multiplicative upper bound on
+               path
                 quality that should be produced by the roadmap spanner. The produced sparse graph with solutions that
-                are less than \e t times the optimap path length.  It does not make sense to make this parameter more than 3. */
+                are less than \e t times the optimap path length.  It does not make sense to make this parameter more
+               than 3. */
             void setStretchFactor(double t)
             {
                 stretchFactor_ = t;
@@ -311,17 +318,18 @@ namespace ompl
                 return stretchFactor_;
             }
 
-            virtual void setup();
+            void setup() override;
 
-            /** \brief Retrieve the underlying dense graph structure.  This is built as a PRM* and asymptotically approximates best paths through the space. */
-            const DenseGraph& getDenseGraph() const
+            /** \brief Retrieve the underlying dense graph structure.  This is built as a PRM* and asymptotically
+             * approximates best paths through the space. */
+            const DenseGraph &getDenseGraph() const
             {
                 return g_;
             }
 
             /** \brief Retrieve the sparse roadmap structure.  This is the structure which
                 answers given queries, and has the desired property of asymptotic near-optimality.*/
-            const SpannerGraph& getRoadmap() const
+            const SpannerGraph &getRoadmap() const
             {
                 return s_;
             }
@@ -359,7 +367,6 @@ namespace ompl
             }
 
         protected:
-
             /** \brief Attempt to add a single sample to the roadmap. */
             DenseVertex addSample(base::State *workState, const base::PlannerTerminationCondition &ptc);
 
@@ -369,10 +376,12 @@ namespace ompl
             /** \brief Check that two vertices are in the same connected component */
             bool sameComponent(SparseVertex m1, SparseVertex m2);
 
-            /** \brief Construct a milestone for a given state (\e state) and store it in the nearest neighbors data structure */
+            /** \brief Construct a milestone for a given state (\e state) and store it in the nearest neighbors data
+             * structure */
             DenseVertex addMilestone(base::State *state);
 
-            /** \brief Construct a node with the given state (\e state) for the spanner and store it in the nn structure */
+            /** \brief Construct a node with the given state (\e state) for the spanner and store it in the nn structure
+             */
             SparseVertex addGuard(base::State *state, GuardType type);
 
             /** \brief Convenience function for creating an edge in the Spanner Roadmap */
@@ -388,10 +397,11 @@ namespace ompl
             bool checkAddConnectivity(const base::State *lastState, const std::vector<SparseVertex> &neigh);
 
             /** \brief Checks the latest dense sample for bridging an edge-less interface */
-            bool checkAddInterface(const std::vector<DenseVertex>& graphNeighborhood, const std::vector<DenseVertex>& visibleNeighborhood, DenseVertex q);
+            bool checkAddInterface(const std::vector<DenseVertex> &graphNeighborhood,
+                                   const std::vector<DenseVertex> &visibleNeighborhood, DenseVertex q);
 
             /** \brief Checks for adding an entire dense path to the Sparse Roadmap */
-            bool checkAddPath( DenseVertex q, const std::vector<DenseVertex>& neigh );
+            bool checkAddPath(DenseVertex q, const std::vector<DenseVertex> &neigh);
 
             /** \brief Get the first neighbor of q who has representative rep and is within denseDelta_. */
             DenseVertex getInterfaceNeighbor(DenseVertex q, SparseVertex rep);
@@ -403,13 +413,13 @@ namespace ompl
             void updateRepresentatives(SparseVertex v);
 
             /** \brief Calculates the representative for a dense sample */
-            void calculateRepresentative( DenseVertex q );
+            void calculateRepresentative(DenseVertex q);
 
             /** \brief Adds a dense sample to the appropriate lists of its representative */
-            void addToRepresentatives( DenseVertex q, SparseVertex rep, const std::set<SparseVertex>& oreps );
+            void addToRepresentatives(DenseVertex q, SparseVertex rep, const std::set<SparseVertex> &oreps);
 
             /** \brief Removes the node from its representative's lists */
-            void removeFromRepresentatives( DenseVertex q, SparseVertex rep );
+            void removeFromRepresentatives(DenseVertex q, SparseVertex rep);
 
             /** \brief Computes all nodes which qualify as a candidate v" for v and vp */
             void computeVPP(DenseVertex v, DenseVertex vp, std::vector<SparseVertex> &VPPs);
@@ -423,13 +433,18 @@ namespace ompl
             /** Thread that checks for solution */
             void checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution);
 
-            /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is in \e start and the second is in \e goal, and the two milestones are in the same connected component. If a solution is found, the path is saved. */
-            bool haveSolution(const std::vector<DenseVertex> &start, const std::vector<DenseVertex> &goal, base::PathPtr &solution);
+            /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is
+             * in \e start and the second is in \e goal, and the two milestones are in the same connected component. If
+             * a solution is found, the path is saved. */
+            bool haveSolution(const std::vector<DenseVertex> &start, const std::vector<DenseVertex> &goal,
+                              base::PathPtr &solution);
 
-            /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_ or if a solution was added */
+            /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_ or if a solution
+             * was added */
             bool reachedTerminationCriterion() const;
 
-            /** \brief Given two milestones from the same connected component, construct a path connecting them and set it as the solution */
+            /** \brief Given two milestones from the same connected component, construct a path connecting them and set
+             * it as the solution */
             base::PathPtr constructSolution(const SparseVertex start, const SparseVertex goal) const;
 
             /** \brief Constructs the dense path between the start and goal vertices (if connected) */
@@ -439,10 +454,11 @@ namespace ompl
             void freeMemory();
 
             /** \brief Get all nodes in the sparse graph which are within sparseDelta_ of the given state. */
-            void getSparseNeighbors(base::State *inState, std::vector< SparseVertex > &graphNeighborhood);
+            void getSparseNeighbors(base::State *inState, std::vector<SparseVertex> &graphNeighborhood);
 
             /** \brief Get the visible neighbors */
-            void filterVisibleNeighbors(base::State *inState, const std::vector<SparseVertex> &graphNeighborhood, std::vector<SparseVertex> &visibleNeighborhood) const;
+            void filterVisibleNeighbors(base::State *inState, const std::vector<SparseVertex> &graphNeighborhood,
+                                        std::vector<SparseVertex> &visibleNeighborhood) const;
 
             /** \brief Gets the representatives of all interfaces that q supports */
             void getInterfaceNeighborRepresentatives(DenseVertex q, std::set<SparseVertex> &interfaceRepresentatives);
@@ -450,128 +466,127 @@ namespace ompl
             /** \brief Gets the neighbors of q who help it support an interface */
             void getInterfaceNeighborhood(DenseVertex q, std::vector<DenseVertex> &interfaceNeighborhood);
 
-            /** \brief Compute distance between two milestones (this is simply distance between the states of the milestones) */
+            /** \brief Compute distance between two milestones (this is simply distance between the states of the
+             * milestones) */
             double distanceFunction(const DenseVertex a, const DenseVertex b) const
             {
                 return si_->distance(stateProperty_[a], stateProperty_[b]);
             }
 
             /** \brief Compute distance between two nodes in the sparse roadmap spanner. */
-            double sparseDistanceFunction( const SparseVertex a, const SparseVertex b ) const
+            double sparseDistanceFunction(const SparseVertex a, const SparseVertex b) const
             {
-                return si_->distance( sparseStateProperty_[a], sparseStateProperty_[b] );
+                return si_->distance(sparseStateProperty_[a], sparseStateProperty_[b]);
             }
 
             /** \brief Sampler user for generating valid samples in the state space */
-            base::ValidStateSamplerPtr                                          sampler_;
+            base::ValidStateSamplerPtr sampler_;
 
             /** \brief Sampler user for generating random in the state space */
-            base::StateSamplerPtr                                               simpleSampler_;
+            base::StateSamplerPtr simpleSampler_;
 
             /** \brief Nearest neighbors data structure */
-            DenseNeighbors                                                      nn_;
+            DenseNeighbors nn_;
 
             /** \brief Nearest Neighbors structure for the sparse roadmap */
-            SparseNeighbors                                                     snn_;
+            SparseNeighbors snn_;
 
             /** \brief The dense graph, D */
-            DenseGraph                                                          g_;
+            DenseGraph g_;
 
             /** \brief The sparse roadmap, S */
-            SpannerGraph                                                        s_;
+            SpannerGraph s_;
 
             /** \brief Array of start guards */
-            std::vector<SparseVertex>                                           startM_;
+            std::vector<SparseVertex> startM_;
 
             /** \brief Array of goal guards */
-            std::vector<SparseVertex>                                           goalM_;
+            std::vector<SparseVertex> goalM_;
 
             /** \brief DenseVertex for performing nearest neighbor queries on the SPARSE roadmap. */
-            DenseVertex                                                         sparseQueryVertex_;
+            DenseVertex sparseQueryVertex_;
 
             /** \brief Vertex for performing nearest neighbor queries on the DENSE graph. */
-            DenseVertex                                                         queryVertex_;
+            DenseVertex queryVertex_;
 
             /** \brief Geometric Path variable used for smoothing out paths. */
-            PathGeometric                                                       geomPath_;
+            PathGeometric geomPath_;
 
             /** \brief Access to the internal base::state at each DenseVertex */
-            boost::property_map<DenseGraph, vertex_state_t>::type               stateProperty_;
+            boost::property_map<DenseGraph, vertex_state_t>::type stateProperty_;
 
             /** \brief Access to the internal base::State for each SparseVertex of S */
-            boost::property_map<SpannerGraph, vertex_state_t>::type             sparseStateProperty_;
+            boost::property_map<SpannerGraph, vertex_state_t>::type sparseStateProperty_;
 
             /** \brief Access to draw colors for the SparseVertexs of S, to indicate addition type */
-            boost::property_map<SpannerGraph, vertex_color_t>::type             sparseColorProperty_;
+            boost::property_map<SpannerGraph, vertex_color_t>::type sparseColorProperty_;
 
             /** \brief Access to the representatives of the Dense vertices */
-            boost::property_map<DenseGraph, vertex_representative_t>::type      representativesProperty_;
+            boost::property_map<DenseGraph, vertex_representative_t>::type representativesProperty_;
 
             /** \brief Access to all non-interface supporting vertices of the sparse nodes */
-            boost::property_map<SpannerGraph, vertex_list_t>::type              nonInterfaceListsProperty_;
+            boost::property_map<SpannerGraph, vertex_list_t>::type nonInterfaceListsProperty_;
 
             /** \brief Access to the interface-supporting vertice hashes of the sparse nodes */
-            boost::property_map<SpannerGraph, vertex_interface_list_t>::type    interfaceListsProperty_;
+            boost::property_map<SpannerGraph, vertex_interface_list_t>::type interfaceListsProperty_;
 
             /** \brief A path simplifier used to simplify dense paths added to S */
-            PathSimplifierPtr                                                   psimp_;
+            PathSimplifierPtr psimp_;
 
             /** \brief Access to the weights of each DenseEdge */
-            boost::property_map<DenseGraph, boost::edge_weight_t>::type         weightProperty_;
+            boost::property_map<DenseGraph, boost::edge_weight_t>::type weightProperty_;
 
             /** \brief Data structure that maintains the connected components of S */
-            boost::disjoint_sets<
-                boost::property_map<SpannerGraph, boost::vertex_rank_t>::type,
-                boost::property_map<SpannerGraph, boost::vertex_predecessor_t>::type >
-                                                                                sparseDJSets_;
+            boost::disjoint_sets<boost::property_map<SpannerGraph, boost::vertex_rank_t>::type,
+                                 boost::property_map<SpannerGraph, boost::vertex_predecessor_t>::type> sparseDJSets_;
 
             /** \brief Function that returns the milestones to attempt connections with */
-            std::function<const std::vector<DenseVertex>&(const DenseVertex)> connectionStrategy_;
+            std::function<const std::vector<DenseVertex> &(const DenseVertex)> connectionStrategy_;
 
             /** \brief A counter for the number of consecutive failed iterations of the algorithm */
-            unsigned int                                                        consecutiveFailures_;
+            unsigned int consecutiveFailures_;
 
             /** \brief The stretch factor in terms of graph spanners for SPARS to check against */
-            double                                                              stretchFactor_;
+            double stretchFactor_;
 
             /** \brief The maximum number of failures before terminating the algorithm */
-            unsigned int                                                        maxFailures_;
+            unsigned int maxFailures_;
 
             /** \brief A flag indicating that a solution has been added during solve() */
-            bool                                                                addedSolution_;
+            bool addedSolution_;
 
             /** \brief SPARS parameter for dense graph connection distance as a fraction of max. extent */
-            double                                                              denseDeltaFraction_;
+            double denseDeltaFraction_;
 
             /** \brief SPARS parameter for Sparse Roadmap connection distance as a fraction of max. extent */
-            double                                                              sparseDeltaFraction_;
+            double sparseDeltaFraction_;
 
             /** \brief SPARS parameter for dense graph connection distance */
-            double                                                              denseDelta_;
+            double denseDelta_;
 
             /** \brief SPARS parameter for Sparse Roadmap connection distance */
-            double                                                              sparseDelta_;
+            double sparseDelta_;
 
             /** \brief Random number generator */
-            RNG                                                                 rng_;
+            RNG rng_;
 
             /** \brief Mutex to guard access to the graphs */
-            mutable std::mutex                                                  graphMutex_;
+            mutable std::mutex graphMutex_;
 
             /** \brief Objective cost function for PRM graph edges */
-            base::OptimizationObjectivePtr                                      opt_;
+            base::OptimizationObjectivePtr opt_;
 
-            /** \brief Given two vertices, returns a heuristic on the cost of the path connecting them. This method wraps OptimizationObjective::motionCostHeuristic */
+            /** \brief Given two vertices, returns a heuristic on the cost of the path connecting them. This method
+             * wraps OptimizationObjective::motionCostHeuristic */
             base::Cost costHeuristic(SparseVertex u, SparseVertex v) const;
 
             //////////////////////////////
             // Planner progress properties
             /** \brief A counter for the number of iterations of the algorithm */
-            long unsigned int                                                   iterations_;
+            long unsigned int iterations_;
             /** \brief Best cost found so far by algorithm */
-            base::Cost                                                          bestCost_;
+            base::Cost bestCost_;
         };
-
     }
 }
 

@@ -43,7 +43,6 @@
 
 namespace ompl
 {
-
     /** \brief A nearest neighbors datastructure that uses linear
         search.
 
@@ -53,7 +52,7 @@ namespace ompl
         \li Adding an element to the datastructure is O(1).
         \li Removing an element from the datastructure O(n).
     */
-    template<typename _T>
+    template <typename _T>
     class NearestNeighborsLinear : public NearestNeighbors<_T>
     {
     public:
@@ -61,35 +60,33 @@ namespace ompl
         {
         }
 
-        virtual ~NearestNeighborsLinear()
-        {
-        }
+        ~NearestNeighborsLinear() override = default;
 
-        virtual void clear()
+        void clear() override
         {
             data_.clear();
         }
 
-        virtual bool reportsSortedResults() const
+        bool reportsSortedResults() const override
         {
             return true;
         }
 
-        virtual void add(const _T &data)
+        void add(const _T &data) override
         {
             data_.push_back(data);
         }
 
-        virtual void add(const std::vector<_T> &data)
+        void add(const std::vector<_T> &data) override
         {
             data_.reserve(data_.size() + data.size());
             data_.insert(data_.end(), data.begin(), data.end());
         }
 
-        virtual bool remove(const _T &data)
+        bool remove(const _T &data) override
         {
             if (!data_.empty())
-                for (int i = data_.size() - 1 ; i >= 0 ; --i)
+                for (int i = data_.size() - 1; i >= 0; --i)
                     if (data_[i] == data)
                     {
                         data_.erase(data_.begin() + i);
@@ -98,12 +95,12 @@ namespace ompl
             return false;
         }
 
-        virtual _T nearest(const _T &data) const
+        _T nearest(const _T &data) const override
         {
             const std::size_t sz = data_.size();
             std::size_t pos = sz;
             double dmin = 0.0;
-            for (std::size_t i = 0 ; i < sz ; ++i)
+            for (std::size_t i = 0; i < sz; ++i)
             {
                 double distance = NearestNeighbors<_T>::distFun_(data_[i], data);
                 if (pos == sz || dmin > distance)
@@ -119,7 +116,7 @@ namespace ompl
         }
 
         /// Return the k nearest neighbors in sorted order
-        virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const
+        void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const override
         {
             nbh = data_;
             if (nbh.size() > k)
@@ -135,32 +132,30 @@ namespace ompl
         }
 
         /// Return the nearest neighbors within distance \c radius in sorted order
-        virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const
+        void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const override
         {
             nbh.clear();
-            for (std::size_t i = 0 ; i < data_.size() ; ++i)
+            for (std::size_t i = 0; i < data_.size(); ++i)
                 if (NearestNeighbors<_T>::distFun_(data_[i], data) <= radius)
                     nbh.push_back(data_[i]);
             std::sort(nbh.begin(), nbh.end(), ElemSort(data, NearestNeighbors<_T>::distFun_));
         }
 
-        virtual std::size_t size() const
+        std::size_t size() const override
         {
             return data_.size();
         }
 
-        virtual void list(std::vector<_T> &data) const
+        void list(std::vector<_T> &data) const override
         {
             data = data_;
         }
 
     protected:
-
         /** \brief The data elements stored in this structure */
-        std::vector<_T>   data_;
+        std::vector<_T> data_;
 
     private:
-
         struct ElemSort
         {
             ElemSort(const _T &e, const typename NearestNeighbors<_T>::DistanceFunction &df) : e_(e), df_(df)
@@ -172,13 +167,10 @@ namespace ompl
                 return df_(a, e_) < df_(b, e_);
             }
 
-            const _T                                              &e_;
+            const _T &e_;
             const typename NearestNeighbors<_T>::DistanceFunction &df_;
         };
-
     };
-
-
 }
 
 #endif

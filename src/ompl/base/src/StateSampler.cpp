@@ -47,7 +47,7 @@ void ompl::base::CompoundStateSampler::addSampler(const StateSamplerPtr &sampler
 void ompl::base::CompoundStateSampler::sampleUniform(State *state)
 {
     State **comps = state->as<CompoundState>()->components;
-    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
+    for (unsigned int i = 0; i < samplerCount_; ++i)
         samplers_[i]->sampleUniform(comps[i]);
 }
 
@@ -55,23 +55,24 @@ void ompl::base::CompoundStateSampler::sampleUniformNear(State *state, const Sta
 {
     State **comps = state->as<CompoundState>()->components;
     State **nearComps = near->as<CompoundState>()->components;
-    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
+    for (unsigned int i = 0; i < samplerCount_; ++i)
         if (weightImportance_[i] > std::numeric_limits<double>::epsilon())
             samplers_[i]->sampleUniformNear(comps[i], nearComps[i], distance * weightImportance_[i]);
         else
             samplers_[i]->sampleUniform(comps[i]);
-
 }
 
 void ompl::base::CompoundStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
 {
     State **comps = state->as<CompoundState>()->components;
     State **meanComps = mean->as<CompoundState>()->components;
-    for (unsigned int i = 0 ; i < samplerCount_ ; ++i)
+    for (unsigned int i = 0; i < samplerCount_; ++i)
         samplers_[i]->sampleGaussian(comps[i], meanComps[i], stdDev * weightImportance_[i]);
 }
 
-ompl::base::SubspaceStateSampler::SubspaceStateSampler(const StateSpace *space, const StateSpace *subspace, double weight) : StateSampler(space), subspace_(subspace), weight_(weight)
+ompl::base::SubspaceStateSampler::SubspaceStateSampler(const StateSpace *space, const StateSpace *subspace,
+                                                       double weight)
+  : StateSampler(space), subspace_(subspace), weight_(weight)
 {
     work_ = subspace_->allocState();
     work2_ = subspace_->allocState();

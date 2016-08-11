@@ -40,42 +40,42 @@
 #include "ompl/base/StateSpace.h"
 
 #include <mutex>
+#include <utility>
 
 namespace ompl
 {
     namespace base
     {
-
         /** \brief Extended state sampler to use with the CForest planning algorithm. It wraps the user-specified
             state sampler.*/
         class CForestStateSampler : public StateSampler
         {
         public:
-
             /** \brief Constructor */
-            CForestStateSampler(const StateSpace *space, StateSamplerPtr sampler) : StateSampler(space), sampler_(sampler)
+            CForestStateSampler(const StateSpace *space, StateSamplerPtr sampler)
+              : StateSampler(space), sampler_(std::move(sampler))
             {
             }
 
             /** \brief Destructor */
-            ~CForestStateSampler()
+            ~CForestStateSampler() override
             {
                 clear();
             }
 
             /** \brief It will sample the next state of the vector StatesToSample_. If this is empty,
                 it will call the sampleUniform() method of the specified sampler. */
-            virtual void sampleUniform(State *state);
+            void sampleUniform(State *state) override;
 
             /** \brief It will sample the next state of the vector StatesToSample_. If this is empty,
                 it will call the sampleUniformNear() method of the specified sampler. */
-            virtual void sampleUniformNear(State *state, const State *near, const double distance);
+            void sampleUniformNear(State *state, const State *near, const double distance) override;
 
             /** \brief It will sample the next state of the vector StatesToSample_. If this is empty,
                 it will call the sampleGaussian() method of the specified sampler. */
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
 
-            const StateSpace* getStateSpace() const
+            const StateSpace *getStateSpace() const
             {
                 return space_;
             }
@@ -87,12 +87,11 @@ namespace ompl
             void clear();
 
         protected:
-
             /** \brief Extracts the next sample when statesToSample_ is not empty. */
             void getNextSample(State *state);
 
             /** \brief States to be sampled */
-            std::vector<State*> statesToSample_;
+            std::vector<State *> statesToSample_;
 
             /** \brief Underlying, user-specified state sampler. */
             StateSamplerPtr sampler_;
@@ -100,7 +99,6 @@ namespace ompl
             /** \brief Lock to control the access to the statesToSample_ vector. */
             std::mutex statesLock_;
         };
-
     }
 }
 

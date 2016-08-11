@@ -41,39 +41,38 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief The type of a state space */
         enum StateSpaceType
-            {
+        {
 
-                /** \brief Unset type; this is the default type */
-                STATE_SPACE_UNKNOWN     =  0,
+            /** \brief Unset type; this is the default type */
+            STATE_SPACE_UNKNOWN = 0,
 
-                /** \brief ompl::base::RealVectorStateSpace */
-                STATE_SPACE_REAL_VECTOR =  1,
+            /** \brief ompl::base::RealVectorStateSpace */
+            STATE_SPACE_REAL_VECTOR = 1,
 
-                /** \brief ompl::base::SO2StateSpace */
-                STATE_SPACE_SO2         =  2,
+            /** \brief ompl::base::SO2StateSpace */
+            STATE_SPACE_SO2 = 2,
 
-                /** \brief ompl::base::SO3StateSpace */
-                STATE_SPACE_SO3         =  3,
+            /** \brief ompl::base::SO3StateSpace */
+            STATE_SPACE_SO3 = 3,
 
-                /** \brief ompl::base::SE2StateSpace */
-                STATE_SPACE_SE2         =  4,
+            /** \brief ompl::base::SE2StateSpace */
+            STATE_SPACE_SE2 = 4,
 
-                /** \brief ompl::base::SE3StateSpace */
-                STATE_SPACE_SE3         =  5,
+            /** \brief ompl::base::SE3StateSpace */
+            STATE_SPACE_SE3 = 5,
 
-                /** \brief ompl::base::TimeStateSpace */
-                STATE_SPACE_TIME        =  6,
+            /** \brief ompl::base::TimeStateSpace */
+            STATE_SPACE_TIME = 6,
 
-                /** \brief ompl::base::DiscreteStateSpace */
-                STATE_SPACE_DISCRETE    =  7,
+            /** \brief ompl::base::DiscreteStateSpace */
+            STATE_SPACE_DISCRETE = 7,
 
-                /** \brief Number of state space types; To add new types,
-                    use values that are larger than the count*/
-                STATE_SPACE_TYPE_COUNT
-            };
+            /** \brief Number of state space types; To add new types,
+                use values that are larger than the count*/
+            STATE_SPACE_TYPE_COUNT
+        };
     }
 }
 

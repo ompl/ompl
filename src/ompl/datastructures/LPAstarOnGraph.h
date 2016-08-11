@@ -64,15 +64,15 @@ Lifelong Planning A. Artif. Intell. 155(1-2): 93-146 (2004)
 namespace ompl
 {
     // Data is of type std::size_t
-    template <typename Graph, // Boost graph
-    typename Heuristic>       // heuristic to estimate cost
-        class LPAstarOnGraph
+    template <typename Graph,      // Boost graph
+              typename Heuristic>  // heuristic to estimate cost
+    class LPAstarOnGraph
     {
     public:
         LPAstarOnGraph(std::size_t source, std::size_t target, Graph &graph, Heuristic &h)
-            : costEstimator_(h), graph_(graph)
+          : costEstimator_(h), graph_(graph)
         {
-            //initialization
+            // initialization
             double c = std::numeric_limits<double>::infinity();
             source_ = new Node(c, costEstimator_(source), 0, source);
             addNewNode(source_);
@@ -87,8 +87,8 @@ namespace ompl
 
         void insertEdge(std::size_t u, std::size_t v, double c)
         {
-            Node* n_u = getNode(u);
-            Node* n_v = getNode(v);
+            Node *n_u = getNode(u);
+            Node *n_v = getNode(v);
 
             if (n_v->rhs() > n_u->costToCome() + c)
             {
@@ -103,8 +103,8 @@ namespace ompl
         {
             assert(v != source_->getId());
 
-            Node* n_u = getNode(u);
-            Node* n_v = getNode(v);
+            Node *n_u = getNode(u);
+            Node *n_v = getNode(v);
 
             if (n_v->getParent() == n_u)
             {
@@ -113,22 +113,20 @@ namespace ompl
             }
 
             updateVertex(n_v);
-
         }
-        double computeShortestPath(std::list<std::size_t>& path)
+        double computeShortestPath(std::list<std::size_t> &path)
         {
             WeightMap weights = boost::get(boost::edge_weight_t(), graph_);
 
             if (queue_.empty())
                 return std::numeric_limits<double>::infinity();
 
-            while (topHead()->key() < target_->calculateKey() ||
-                target_->rhs() != target_->costToCome())
+            while (topHead()->key() < target_->calculateKey() || target_->rhs() != target_->costToCome())
             {
                 // pop from queue and process
-                Node* u = topHead();
+                Node *u = topHead();
 
-                if (u->costToCome() > u->rhs()) // the node is overconsistent
+                if (u->costToCome() > u->rhs())  // the node is overconsistent
                 {
                     u->setCostToCome(u->rhs());
                     popHead();
@@ -138,18 +136,18 @@ namespace ompl
                     for (boost::tie(ei, ei_end) = boost::out_edges(u->getId(), graph_); ei != ei_end; ++ei)
                     {
                         std::size_t v = boost::target(*ei, graph_);
-                        Node* n_v = getNode(v);
-                        double c = boost::get(weights, *ei); // edge weight from u to v
+                        Node *n_v = getNode(v);
+                        double c = boost::get(weights, *ei);  // edge weight from u to v
 
                         if (n_v->rhs() > u->costToCome() + c)
                         {
                             n_v->setParent(u);
-                            n_v->setRhs( u->costToCome() + c);
+                            n_v->setRhs(u->costToCome() + c);
                             updateVertex(n_v);
                         }
                     }
                 }
-                else // (n->costToCome() < n->rhs()) // the node is underconsistent
+                else  // (n->costToCome() < n->rhs()) // the node is underconsistent
                 {
                     u->setCostToCome(std::numeric_limits<double>::infinity());
                     updateVertex(u);
@@ -159,9 +157,9 @@ namespace ompl
                     for (boost::tie(ei, ei_end) = boost::out_edges(u->getId(), graph_); ei != ei_end; ++ei)
                     {
                         std::size_t v = boost::target(*ei, graph_);
-                        Node* n_v = getNode(v);
+                        Node *n_v = getNode(v);
 
-                        if ( (n_v == source_) || (n_v->getParent() != u) )
+                        if ((n_v == source_) || (n_v->getParent() != u))
                             continue;
 
                         chooseBestIncomingNode(n_v, weights);
@@ -174,7 +172,7 @@ namespace ompl
             }
 
             // now get path
-            Node* res = (target_->costToCome() == std::numeric_limits<double>::infinity() ? nullptr : target_);
+            Node *res = (target_->costToCome() == std::numeric_limits<double>::infinity() ? nullptr : target_);
             while (res != nullptr)
             {
                 path.push_front(res->getId());
@@ -187,7 +185,7 @@ namespace ompl
         /// using LPA* to approximate costToCome
         double operator()(std::size_t u)
         {
-            IdNodeMapIter iter = idNodeMap_.find(u);
+            auto iter = idNodeMap_.find(u);
             if (iter != idNodeMap_.end())
                 return iter->second->costToCome();
             return std::numeric_limits<double>::infinity();
@@ -199,7 +197,7 @@ namespace ompl
             Key(double first_ = -1, double second_ = -1) : first(first_), second(second_)
             {
             }
-            bool operator<(const Key& other)
+            bool operator<(const Key &other)
             {
                 return (first != other.first) ? (first < other.first) : (second < other.second);
             }
@@ -209,13 +207,12 @@ namespace ompl
         class Node
         {
         public:
-            Node (double costToCome, double costToGo, double rhs,
-            std::size_t& dataId, Node* parentNode = nullptr)
-                : g(costToCome), h(costToGo), r(rhs), isInQ(false), parent(parentNode), id(dataId)
+            Node(double costToCome, double costToGo, double rhs, std::size_t &dataId, Node *parentNode = nullptr)
+              : g(costToCome), h(costToGo), r(rhs), isInQ(false), parent(parentNode), id(dataId)
             {
                 calculateKey();
             }
-            //cost accesors
+            // cost accesors
             double costToCome() const
             {
                 return g;
@@ -256,7 +253,7 @@ namespace ompl
                 isInQ = in;
             }
             // parent field
-            Node* getParent() const
+            Node *getParent() const
             {
                 return parent;
             }
@@ -275,14 +272,14 @@ namespace ompl
             }
 
         private:
-            double      g; // cost to come
-            double      h; // cost to go
-            double      r; // rhs
-            Key         k; // key
-            bool        isInQ;
-            Node*       parent;
-            std::size_t id; // unique data associated with node
-        }; // Node
+            double g;  // cost to come
+            double h;  // cost to go
+            double r;  // rhs
+            Key k;     // key
+            bool isInQ;
+            Node *parent;
+            std::size_t id;  // unique data associated with node
+        };                   // Node
 
         struct LessThanNodeK
         {
@@ -290,7 +287,7 @@ namespace ompl
             {
                 return n1->key() < n2->key();
             }
-        }; // LessThanNodeK
+        };  // LessThanNodeK
 
         struct Hash
         {
@@ -299,12 +296,12 @@ namespace ompl
                 return h(id);
             }
             std::hash<std::size_t> h;
-        }; // Hash
+        };  // Hash
 
-        typedef std::multiset<Node*, LessThanNodeK>             Queue;
-        typedef std::unordered_map<std::size_t, Node*, Hash>  IdNodeMap;
-        typedef typename IdNodeMap::iterator                    IdNodeMapIter;
-        typedef typename boost::property_map<Graph, boost::edge_weight_t>::type WeightMap;
+        using Queue = std::multiset<Node *, LessThanNodeK>;
+        using IdNodeMap = std::unordered_map<std::size_t, Node *, Hash>;
+        using IdNodeMapIter = typename IdNodeMap::iterator;
+        using WeightMap = typename boost::property_map<Graph, boost::edge_weight_t>::type;
 
         // LPA* subprocedures
         void updateVertex(Node *n)
@@ -321,20 +318,20 @@ namespace ompl
             return;
         }
         // queue utils
-        Node* popHead()
+        Node *popHead()
         {
-            Node* n = topHead();
+            Node *n = topHead();
             n->inQueue(false);
             queue_.erase(queue_.begin());
 
             return n;
         }
-        Node* topHead()
+        Node *topHead()
         {
             return *queue_.begin();
         }
 
-        void insertQueue(Node* node)
+        void insertQueue(Node *node)
         {
             assert(node->isInQueue() == false);
 
@@ -364,14 +361,14 @@ namespace ompl
         {
             // iterate over all incoming neighbors of the node n_v and get the best parent
             double min = std::numeric_limits<double>::infinity();
-            Node* best = nullptr;
+            Node *best = nullptr;
 
             typename boost::graph_traits<Graph>::in_edge_iterator ei, ei_end;
             for (boost::tie(ei, ei_end) = boost::in_edges(n_v->getId(), graph_); ei != ei_end; ++ei)
             {
                 std::size_t u = boost::source(*ei, graph_);
-                Node* n_u = getNode(u);
-                double c = boost::get(weights, *ei); //edge weight from u to v
+                Node *n_u = getNode(u);
+                double c = boost::get(weights, *ei);  // edge weight from u to v
 
                 double curr = n_u->costToCome() + c;
                 if (curr < min)
@@ -387,17 +384,17 @@ namespace ompl
 
         void addNewNode(Node *n)
         {
-            idNodeMap_[n->getId()]=n;
+            idNodeMap_[n->getId()] = n;
         }
 
-        Node* getNode(std::size_t id)
+        Node *getNode(std::size_t id)
         {
-            IdNodeMapIter iter = idNodeMap_.find(id);
+            auto iter = idNodeMap_.find(id);
             if (iter != idNodeMap_.end())
                 return iter->second;
 
             double c = std::numeric_limits<double>::infinity();
-            Node *n = new Node(c, costEstimator_(id), c, id);
+            auto *n = new Node(c, costEstimator_(id), c, id);
             addNewNode(n);
 
             return n;
@@ -405,21 +402,21 @@ namespace ompl
 
         void clear()
         {
-            for (IdNodeMapIter iter = idNodeMap_.begin(); iter != idNodeMap_.end(); ++iter)
+            for (auto iter = idNodeMap_.begin(); iter != idNodeMap_.end(); ++iter)
             {
-                Node* n= iter->second;
+                Node *n = iter->second;
                 delete n;
             }
         }
 
-        Heuristic          &costEstimator_;
-        Graph              &graph_;
-        Node               *source_;
-        Node               *target_;
-        Queue               queue_;
-        IdNodeMap           idNodeMap_;
+        Heuristic &costEstimator_;
+        Graph &graph_;
+        Node *source_;
+        Node *target_;
+        Queue queue_;
+        IdNodeMap idNodeMap_;
 
-    }; //LPAstarOnGraph
+    };  // LPAstarOnGraph
 }
 
-#endif //OMPL_DATASTRUCTURES_LPA_STAR_ON_G_H
+#endif  // OMPL_DATASTRUCTURES_LPA_STAR_ON_G_H

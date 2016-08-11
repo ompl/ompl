@@ -44,32 +44,23 @@ namespace ompl
 {
     namespace base
     {
-
-
         /** \brief A state sampler that only samples valid states, uniformly. */
         class UniformValidStateSampler : public ValidStateSampler
         {
         public:
-
             /** \brief Constructor */
             UniformValidStateSampler(const SpaceInformation *si);
 
-            virtual ~UniformValidStateSampler()
-            {
-            }
+            ~UniformValidStateSampler() override = default;
 
-            virtual bool sample(State *state);
-            virtual bool sampleNear(State *state, const State *near, const double distance);
+            bool sample(State *state) override;
+            bool sampleNear(State *state, const State *near, const double distance) override;
 
         protected:
-
             /** \brief The sampler to build upon */
             StateSamplerPtr sampler_;
-
         };
-
     }
 }
-
 
 #endif

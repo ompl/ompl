@@ -10,9 +10,15 @@ install_common_dependencies()
     sudo apt-get -y update
     sudo apt-get -y upgrade
     # On Ubuntu 14.04 we need to add a PPA to get a recent compiler (g++-4.8 is too old).
-    # We also need to specify a boost version, since the default Boost is too old.
+    # We also need to specify a Boost version, since the default Boost is too old.
+    #
+    # We explicitly set the C++ compiler to g++, the default GNU g++ compiler. This is
+    # needed because we depend on system-installed libraries built with g++ and linked
+    # against libstdc++. In case `c++` corresponds to `clang++`, code will not build, even
+    # if we would pass the flag `-stdlib=libstdc++` to `clang++`.
     if [ -z $TRUSTY ]; then
         sudo apt-get -y install cmake libboost-all-dev libeigen3-dev libode-dev
+        export CXX=g++
     else
         # needed for the add-apt-repository command, which was not part of early Trusty releases
         sudo apt-get -y install software-properties-common
@@ -28,7 +34,7 @@ install_python_binding_dependencies()
 {
     sudo apt-get -y install python-dev python-pip
     # install additional python dependencies via pip
-    sudo -H pip -v install pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.6.tar.gz
+    sudo -H pip install -vU pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.6.tar.gz
     # install castxml
     if [ -z $TRUSTY ]; then
         sudo apt-get -y install castxml
@@ -48,7 +54,7 @@ install_app_dependencies()
     fi
     sudo apt-get -y install freeglut3-dev libassimp-dev python-opengl python-flask python-celery
     # install additional python dependencies via pip
-    sudo -H pip -v install PyOpenGL-accelerate
+    sudo -H pip install -vU PyOpenGL-accelerate
     # install libccd
     if [ -z $TRUSTY ]; then
         sudo apt-get -y install libccd-dev
@@ -57,8 +63,8 @@ install_app_dependencies()
         cd libccd-2.0; cmake .; sudo -E make install; cd ..
     fi
     # install fcl
-    wget -O - https://github.com/flexible-collision-library/fcl/archive/0.4.0.tar.gz | tar zxf -
-    cd fcl-0.4.0; cmake .; sudo -E make install; cd ..
+    wget -O - https://github.com/flexible-collision-library/fcl/archive/0.5.0.tar.gz | tar zxf -
+    cd fcl-0.5.0; cmake .; sudo -E make install; cd ..
 }
 
 install_ompl()

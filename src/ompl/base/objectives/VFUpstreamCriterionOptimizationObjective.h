@@ -37,6 +37,8 @@
 #ifndef OMPL_BASE_OBJECTIVES_VF_UPSTREAM_CRITERION_OPTIMIZATION_OBJECTIVE_
 #define OMPL_BASE_OBJECTIVES_VF_UPSTREAM_CRITERION_OPTIMIZATION_OBJECTIVE_
 
+#include <utility>
+
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/geometric/planners/rrt/VFRRT.h"
 
@@ -44,48 +46,44 @@ namespace ompl
 {
     namespace base
     {
-
         /**
          * Optimization objective that computes the upstream criterion between two states.
          */
         class VFUpstreamCriterionOptimizationObjective : public ompl::base::OptimizationObjective
         {
-
         public:
-
             /** Constructor. */
             VFUpstreamCriterionOptimizationObjective(const ompl::base::SpaceInformationPtr &si,
-                const geometric::VFRRT::VectorField &vf)
-                : ompl::base::OptimizationObjective(si), vf_(vf)
+                                                     geometric::VFRRT::VectorField vf)
+              : ompl::base::OptimizationObjective(si), vf_(std::move(vf))
             {
                 description_ = "Upstream Criterion";
             }
 
             /** Assume we can always do better. */
-            bool isSatisfied(ompl::base::Cost c) const
+            bool isSatisfied(ompl::base::Cost c) const override
             {
                 return false;
             }
 
             /** \brief Returns a cost with a value of 0. */
-            virtual Cost stateCost(const State *s) const
+            Cost stateCost(const State *s) const override
             {
                 return Cost(0.);
             }
 
             /** Compute upstream criterion between two states. */
-            ompl::base::Cost motionCost(const State *s1, const State *s2) const
+            ompl::base::Cost motionCost(const State *s1, const State *s2) const override
             {
                 const base::StateSpacePtr &space = si_->getStateSpace();
                 // Per equation 1 in the paper, Riemann approximation on the left
                 unsigned int vfdim = space->getValueLocations().size();
                 Eigen::VectorXd qprime(vfdim);
                 unsigned int numSegments = space->validSegmentCount(s1, s2);
-                std::vector<ompl::base::State*> interp;
+                std::vector<ompl::base::State *> interp;
 
                 for (unsigned int i = 0; i < vfdim; i++)
-                    qprime[i] = *space->getValueAddressAtIndex(s2, i)
-                        - *space->getValueAddressAtIndex(s1, i);
+                    qprime[i] = *space->getValueAddressAtIndex(s2, i) - *space->getValueAddressAtIndex(s1, i);
                 qprime.normalize();
                 si_->getMotionStates(s1, s2, interp, numSegments - 1, true, true);
                 double cost = 0;
@@ -95,11 +93,11 @@ namespace ompl
                     cost += si_->distance(interp[i], interp[i + 1]) * (f.norm() - f.dot(qprime));
                     si_->freeState(interp[i]);
                 }
-                si_->freeState(interp[interp.size()-1]);
+                si_->freeState(interp[interp.size() - 1]);
                 return ompl::base::Cost(cost);
             }
 
-            bool isSymmetric(void) const
+            bool isSymmetric() const override
             {
                 return false;
             }
@@ -108,7 +106,6 @@ namespace ompl
             /** VectorField associated with the space. */
             geometric::VFRRT::VectorField vf_;
         };
-
     }
 }
 
