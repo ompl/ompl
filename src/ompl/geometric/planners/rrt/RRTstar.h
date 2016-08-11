@@ -475,6 +475,9 @@ namespace ompl
             /** \brief The ratio of bias towards the beacons */
             double                                         biasingRatio_;
 
+            /** \brief Flag true after first path is found */
+            bool                                            pathFound_;
+
             /** \brief The status of the sample rejection parameter. */
             bool useRejectionSampling_;
 
@@ -508,9 +511,6 @@ namespace ompl
 
             /** \brief States used for intelligent biasing */
             std::vector<base::State*>                       beacons;
-
-            /** \brief Flag true after first path is found */
-            bool                                            pathFound_;
 
             ///////////////////////////////////////
             // Planner progress property functions

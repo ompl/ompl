@@ -577,17 +577,17 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                             solution = solution->parent;
                         }
                         // set the solution path
-                        PathGeometric *geoPath = new PathGeometric(si_);
+                        PathGeometric *path = new PathGeometric(si_);
                         
                         for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-                            geoPath->append(mpath[i]->state);
+                            path->append(mpath[i]->state);
                        
-                        beacons.clear();; 
+                        beacons.clear();
                         
-                        psimp_->reduceVertices(*geoPath);
+                        psimp_->reduceVertices(*path);
 
-                        for (std::size_t i = 0 ; i< geoPath->getStateCount() ; ++i)
-                            beacons.push_back(geoPath->getState(i));
+                        for (std::size_t i = 0 ; i< path->getStateCount() ; ++i)
+                            beacons.push_back(path->getState(i));
 
                         solution = solution_tmp;
                     }
@@ -628,21 +628,17 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
         // set the solution path
         auto path(std::make_shared<PathGeometric>(si_));
-        for (int i = mpath.size() - 1; i >= 0; --i)
-            path->append(mpath[i]->state);
 
         if (useIntelligentSampling_)        // Using beacons to construct the final path
         {
             for (int i = beacons.size() - 1 ; i >= 0 ; --i)
-                geoPath->append(beacons[i]);
+                path->append(beacons[i]);
         }
         else
         {
-            for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-                geoPath->append(mpath[i]->state);            
+            for (int i = mpath.size() - 1; i >= 0; --i)
+                path->append(mpath[i]->state);         
         }
-
-        base::PathPtr path(geoPath);
 
         // Add the solution path.
         base::PlannerSolution psol(path);
