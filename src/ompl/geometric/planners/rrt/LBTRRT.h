@@ -223,8 +223,8 @@ namespace ompl
                 LBTRRT *plannerPtr_;
             };  // IsLessThanLB
 
-            using Lb_queue = std::set<Motion *, IsLessThanLB>;
-            using Lb_queue_iter = Lb_queue::iterator;
+            typedef std::set<Motion *, IsLessThanLB> Lb_queue;
+            typedef Lb_queue::iterator Lb_queue_iter;
 
             /** \brief consider an edge for addition to the roadmap*/
             void considerEdge(Motion *parent, Motion *child, double c);

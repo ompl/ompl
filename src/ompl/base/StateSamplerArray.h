@@ -59,8 +59,8 @@ namespace ompl
         template <>
         struct SamplerSelector<StateSampler>
         {
-            using Sampler = StateSampler;
-            using SamplerPtr = StateSamplerPtr;
+            typedef StateSampler Sampler;
+            typedef StateSamplerPtr SamplerPtr;
 
             SamplerPtr allocStateSampler(const SpaceInformation *si)
             {
@@ -71,8 +71,8 @@ namespace ompl
         template <>
         struct SamplerSelector<ValidStateSampler>
         {
-            using Sampler = ValidStateSampler;
-            using SamplerPtr = ValidStateSamplerPtr;
+            typedef ValidStateSampler Sampler;
+            typedef ValidStateSamplerPtr SamplerPtr;
 
             SamplerPtr allocStateSampler(const SpaceInformation *si)
             {
@@ -88,10 +88,10 @@ namespace ompl
         {
         public:
             /** \brief Pointer to the type of sampler allocated */
-            using SamplerPtr = typename SamplerSelector<T>::SamplerPtr;
+            typedef typename SamplerSelector<T>::SamplerPtr SamplerPtr;
 
             /** \brief The type of sampler allocated */
-            using Sampler = typename SamplerSelector<T>::Sampler;
+            typedef typename SamplerSelector<T>::Sampler Sampler;
 
             /** \brief Constructor */
             StateSamplerArray(const SpaceInformationPtr &si) : si_(si.get())

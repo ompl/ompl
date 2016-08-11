@@ -89,10 +89,10 @@ namespace ompl
             };
 
             /** \brief The type used internally for representing vertex IDs */
-            using VertexIndexType = unsigned long;
+            typedef unsigned long VertexIndexType;
 
             /** \brief Pair of vertices which support an interface. */
-            using VertexPair = std::pair<VertexIndexType, VertexIndexType>;
+            typedef std::pair<VertexIndexType, VertexIndexType> VertexPair;
 
             /** \brief Interface information storage class, which does bookkeeping for criterion four. */
             struct InterfaceData
@@ -176,21 +176,21 @@ namespace ompl
             };
 
             /** \brief the hash which maps pairs of neighbor points to pairs of states */
-            using InterfaceHash = std::unordered_map<VertexPair, InterfaceData>;
+            typedef std::unordered_map<VertexPair, InterfaceData> InterfaceHash;
 
             struct vertex_state_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             struct vertex_color_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             struct vertex_interface_data_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             /**
@@ -208,21 +208,23 @@ namespace ompl
 
              @par Edges should be undirected and have a weight property.
              */
-            using Graph = boost::adjacency_list<
+            typedef boost::adjacency_list<
                 boost::vecS, boost::vecS, boost::undirectedS,
-                boost::property<vertex_state_t, base::State *,
-                                boost::property<boost::vertex_predecessor_t, VertexIndexType,
-                                                boost::property<boost::vertex_rank_t, VertexIndexType,
-                                                                boost::property<vertex_color_t, GuardType,
-                                                                                boost::property<vertex_interface_data_t,
-                                                                                                InterfaceHash>>>>>,
-                boost::property<boost::edge_weight_t, base::Cost>>;
+                boost::property<
+                    vertex_state_t, base::State *,
+                    boost::property<
+                        boost::vertex_predecessor_t, VertexIndexType,
+                        boost::property<boost::vertex_rank_t, VertexIndexType,
+                                        boost::property<vertex_color_t, GuardType,
+                                                        boost::property<vertex_interface_data_t, InterfaceHash>>>>>,
+                boost::property<boost::edge_weight_t, base::Cost>>
+                Graph;
 
             /** \brief Vertex in Graph */
-            using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
+            typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
 
             /** \brief Edge in Graph */
-            using Edge = boost::graph_traits<Graph>::edge_descriptor;
+            typedef boost::graph_traits<Graph>::edge_descriptor Edge;
 
             /** \brief Constructor */
             SPARStwo(const base::SpaceInformationPtr &si);

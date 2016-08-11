@@ -120,7 +120,7 @@ namespace ompl
         class KStarStrategy : public KStrategy<Milestone>
         {
         public:
-            using NumNeighborsFn = std::function<unsigned int()>;
+            typedef std::function<unsigned int()> NumNeighborsFn;
             /**
              * \brief Constructor
              *

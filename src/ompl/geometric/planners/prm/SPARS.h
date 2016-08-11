@@ -90,37 +90,37 @@ namespace ompl
 
             struct vertex_state_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             struct vertex_representative_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             struct vertex_color_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             struct vertex_list_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             struct vertex_interface_list_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             /** \brief The type used internally for representing vertex IDs */
-            using VertexIndexType = unsigned long;
+            typedef unsigned long VertexIndexType;
 
             /** \brief Hash for storing interface information. */
-            using InterfaceHash = std::unordered_map<VertexIndexType, std::set<VertexIndexType>>;
+            typedef std::unordered_map<VertexIndexType, std::set<VertexIndexType>> InterfaceHash;
 
             /** \brief Internal representation of a dense path */
-            using DensePath = std::deque<base::State *>;
+            typedef std::deque<base::State *> DensePath;
 
             /**
              @brief The constructed roadmap spanner.
@@ -134,7 +134,7 @@ namespace ompl
 
              @par SparseEdges should be undirected and have a weight property.
              */
-            using SpannerGraph = boost::adjacency_list<
+            typedef boost::adjacency_list<
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property<
                     vertex_state_t, base::State *,
@@ -145,16 +145,17 @@ namespace ompl
                                                         boost::property<vertex_list_t, std::set<VertexIndexType>,
                                                                         boost::property<vertex_interface_list_t,
                                                                                         InterfaceHash>>>>>>,
-                boost::property<boost::edge_weight_t, base::Cost>>;
+                boost::property<boost::edge_weight_t, base::Cost>>
+                SpannerGraph;
 
             /** \brief A vertex in the sparse roadmap that is constructed */
-            using SparseVertex = boost::graph_traits<SpannerGraph>::vertex_descriptor;
+            typedef boost::graph_traits<SpannerGraph>::vertex_descriptor SparseVertex;
 
             /** \brief An edge in the sparse roadmap that is constructed */
-            using SparseEdge = boost::graph_traits<SpannerGraph>::edge_descriptor;
+            typedef boost::graph_traits<SpannerGraph>::edge_descriptor SparseEdge;
 
             /** \brief Nearest neighbor structure which works over the SpannerGraph */
-            using SparseNeighbors = std::shared_ptr<NearestNeighbors<SparseVertex>>;
+            typedef std::shared_ptr<NearestNeighbors<SparseVertex>> SparseNeighbors;
 
             /**
              @brief The underlying roadmap graph.
@@ -171,23 +172,24 @@ namespace ompl
 
              @par DenseEdges should be undirected and have a weight property.
              */
-            using DenseGraph = boost::adjacency_list<
+            typedef boost::adjacency_list<
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property<
                     vertex_state_t, base::State *,
                     boost::property<boost::vertex_predecessor_t, VertexIndexType,
                                     boost::property<boost::vertex_rank_t, VertexIndexType,
                                                     boost::property<vertex_representative_t, SparseVertex>>>>,
-                boost::property<boost::edge_weight_t, double>>;
+                boost::property<boost::edge_weight_t, double>>
+                DenseGraph;
 
             /** \brief A vertex in DenseGraph */
-            using DenseVertex = boost::graph_traits<DenseGraph>::vertex_descriptor;
+            typedef boost::graph_traits<DenseGraph>::vertex_descriptor DenseVertex;
 
             /** \brief An edge in DenseGraph */
-            using DenseEdge = boost::graph_traits<DenseGraph>::edge_descriptor;
+            typedef boost::graph_traits<DenseGraph>::edge_descriptor DenseEdge;
 
             /** \brief Nearest neighbor structure which works over the DenseGraph */
-            using DenseNeighbors = std::shared_ptr<NearestNeighbors<DenseVertex>>;
+            typedef std::shared_ptr<NearestNeighbors<DenseVertex>> DenseNeighbors;
 
             /** \brief Constructor. */
             SPARS(const base::SpaceInformationPtr &si);

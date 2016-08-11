@@ -118,7 +118,7 @@ namespace ompl
         {
         public:
             /** \brief The definition of a function pointer for querying the current solution cost. */
-            using GetCurrentCostFunc = std::function<Cost()>;
+            typedef std::function<Cost()> GetCurrentCostFunc;
 
             /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less
              * than the cost of the current solution using the default informed sampler for the current optimization

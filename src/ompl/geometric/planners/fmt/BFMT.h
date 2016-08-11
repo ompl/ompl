@@ -312,7 +312,7 @@ namespace ompl
                     currentSet_[REV] = SET_UNVISITED;
                 }
 
-                using BiDirMotionPtrs = std::vector<BiDirMotion *>;
+                typedef std::vector<BiDirMotion *> BiDirMotionPtrs;
 
                 /** \brief The state contained by the motion */
                 base::State *state_;
@@ -450,7 +450,7 @@ namespace ompl
                 }
             };
 
-            using BiDirMotionPtrs = std::vector<BiDirMotion *>;
+            typedef std::vector<BiDirMotion *> BiDirMotionPtrs;
 
         protected:
             /** \brief Comparator used to order motions in a binary heap */
@@ -469,7 +469,7 @@ namespace ompl
                 bool heuristics_;
             };
 
-            using BiDirMotionBinHeap = ompl::BinaryHeap<BiDirMotion *, BiDirMotionCompare>;
+            typedef ompl::BinaryHeap<BiDirMotion *, BiDirMotionCompare> BiDirMotionBinHeap;
 
             /** \brief Change the active tree */
             void swapTrees();

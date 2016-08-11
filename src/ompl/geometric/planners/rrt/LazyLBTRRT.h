@@ -154,13 +154,14 @@ namespace ompl
                 base::State *state_;
             };
 
-            using WeightProperty = boost::property<boost::edge_weight_t, double>;
-            using BoostGraph = boost::adjacency_list<boost::vecS,  // container type for the out edge list
-                                                     boost::vecS,  // container type for the vertex list
-                                                     boost::undirectedS,  // directedS / undirectedS / bidirectionalS.
-                                                     std::size_t,  // vertex properties
-                                                     WeightProperty  // edge properties
-                                                     >;
+            typedef boost::property<boost::edge_weight_t, double> WeightProperty;
+            typedef boost::adjacency_list<boost::vecS,         // container type for the out edge list
+                                          boost::vecS,         // container type for the vertex list
+                                          boost::undirectedS,  // directedS / undirectedS / bidirectionalS.
+                                          std::size_t,         // vertex properties
+                                          WeightProperty       // edge properties
+                                          >
+                BoostGraph;
 
             friend class CostEstimatorApx;  // allow CostEstimatorApx access to private members
             class CostEstimatorApx
@@ -203,8 +204,8 @@ namespace ompl
                 std::vector<Motion *> &idToMotionMap_;
             };  // CostEstimatorLb
 
-            using LPAstarApx = LPAstarOnGraph<BoostGraph, CostEstimatorApx>;
-            using LPAstarLb = LPAstarOnGraph<BoostGraph, CostEstimatorLb>;
+            typedef LPAstarOnGraph<BoostGraph, CostEstimatorApx> LPAstarApx;
+            typedef LPAstarOnGraph<BoostGraph, CostEstimatorLb> LPAstarLb;
 
             /** \brief sample with goal biasing*/
             void sampleBiased(const base::GoalSampleableRegion *goal_s, base::State *rstate);

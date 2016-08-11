@@ -75,27 +75,27 @@ namespace ompl
         public:
             struct vertex_state_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             struct vertex_flags_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             struct vertex_component_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             struct edge_flags_t
             {
-                using kind = boost::edge_property_tag;
+                typedef boost::edge_property_tag kind;
             };
 
             /** @brief The type for a vertex in the roadmap. */
-            using Vertex =
-                boost::adjacency_list_traits<boost::vecS, boost::listS, boost::undirectedS>::vertex_descriptor;
+            typedef boost::adjacency_list_traits<boost::vecS, boost::listS, boost::undirectedS>::vertex_descriptor
+                Vertex;
 
             /**
              @brief The underlying roadmap graph.
@@ -113,7 +113,7 @@ namespace ompl
 
              @par Edges should be undirected and have a weight property.
              */
-            using Graph = boost::adjacency_list<
+            typedef boost::adjacency_list<
                 boost::vecS, boost::listS, boost::undirectedS,
                 boost::property<
                     vertex_state_t, base::State *,
@@ -124,24 +124,25 @@ namespace ompl
                                                         boost::property<boost::vertex_predecessor_t, Vertex,
                                                                         boost::property<boost::vertex_rank_t,
                                                                                         unsigned long int>>>>>>,
-                boost::property<boost::edge_weight_t, base::Cost, boost::property<edge_flags_t, unsigned int>>>;
+                boost::property<boost::edge_weight_t, base::Cost, boost::property<edge_flags_t, unsigned int>>>
+                Graph;
 
             /** @brief The type for an edge in the roadmap. */
-            using Edge = boost::graph_traits<Graph>::edge_descriptor;
+            typedef boost::graph_traits<Graph>::edge_descriptor Edge;
 
             /** @brief A nearest neighbors data structure for roadmap vertices. */
-            using RoadmapNeighbors = std::shared_ptr<NearestNeighbors<Vertex>>;
+            typedef std::shared_ptr<NearestNeighbors<Vertex>> RoadmapNeighbors;
 
             /** @brief A function returning the milestones that should be
              * attempted to connect to. */
-            using ConnectionStrategy = std::function<const std::vector<Vertex> &(const Vertex)>;
+            typedef std::function<const std::vector<Vertex> &(const Vertex)> ConnectionStrategy;
 
             /** @brief A function that can reject connections.
 
              This is called after previous connections from the neighbor list
              have been added to the roadmap.
              */
-            using ConnectionFilter = std::function<bool(const Vertex &, const Vertex &)>;
+            typedef std::function<bool(const Vertex &, const Vertex &)> ConnectionFilter;
 
             /** \brief Constructor */
             LazyPRM(const base::SpaceInformationPtr &si, bool starStrategy = false);

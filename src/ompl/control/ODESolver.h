@@ -70,16 +70,16 @@ namespace ompl
         {
         public:
             /// \brief Portable data type for the state values
-            using StateType = std::vector<double>;
+            typedef std::vector<double> StateType;
 
             /// \brief Callback function that defines the ODE.  Accepts
             /// the current state, input control, and output state.
-            using ODE = std::function<void(const StateType &, const Control *, StateType &)>;
+            typedef std::function<void(const StateType &, const Control *, StateType &)> ODE;
 
             /// \brief Callback function to perform an event at the end of numerical
             /// integration.  This functionality is optional.
-            using PostPropagationEvent =
-                std::function<void(const base::State *, const Control *, const double, base::State *)>;
+            typedef std::function<void(const base::State *, const Control *, const double, base::State *)>
+                PostPropagationEvent;
 
             /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
             /// an ODE to solve, and the integration step size.

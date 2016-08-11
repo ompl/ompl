@@ -82,17 +82,17 @@ namespace ompl
         public:
             struct vertex_state_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             struct vertex_total_connection_attempts_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             struct vertex_successful_connection_attempts_t
             {
-                using kind = boost::vertex_property_tag;
+                typedef boost::vertex_property_tag kind;
             };
 
             /**
@@ -110,7 +110,7 @@ namespace ompl
 
              @par Edges should be undirected and have a weight property.
              */
-            using Graph = boost::adjacency_list<
+            typedef boost::adjacency_list<
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property<
                     vertex_state_t, base::State *,
@@ -119,26 +119,27 @@ namespace ompl
                         boost::property<vertex_successful_connection_attempts_t, unsigned long int,
                                         boost::property<boost::vertex_predecessor_t, unsigned long int,
                                                         boost::property<boost::vertex_rank_t, unsigned long int>>>>>,
-                boost::property<boost::edge_weight_t, base::Cost>>;
+                boost::property<boost::edge_weight_t, base::Cost>>
+                Graph;
 
             /** @brief The type for a vertex in the roadmap. */
-            using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
+            typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
             /** @brief The type for an edge in the roadmap. */
-            using Edge = boost::graph_traits<Graph>::edge_descriptor;
+            typedef boost::graph_traits<Graph>::edge_descriptor Edge;
 
             /** @brief A nearest neighbors data structure for roadmap vertices. */
-            using RoadmapNeighbors = std::shared_ptr<NearestNeighbors<Vertex>>;
+            typedef std::shared_ptr<NearestNeighbors<Vertex>> RoadmapNeighbors;
 
             /** @brief A function returning the milestones that should be
              * attempted to connect to. */
-            using ConnectionStrategy = std::function<const std::vector<Vertex> &(const Vertex)>;
+            typedef std::function<const std::vector<Vertex> &(const Vertex)> ConnectionStrategy;
 
             /** @brief A function that can reject connections.
 
              This is called after previous connections from the neighbor list
              have been added to the roadmap.
              */
-            using ConnectionFilter = std::function<bool(const Vertex &, const Vertex &)>;
+            typedef std::function<bool(const Vertex &, const Vertex &)> ConnectionFilter;
 
             /** \brief Constructor */
             PRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
