@@ -62,9 +62,12 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     pruneThreshold_(0.05),
     usePrunedMeasure_(false),
     useInformedSampling_(false),
+    useIntelligentSampling_(false),
+    biasingRatio_(0.3),
+    pathFound_(false),  
     useRejectionSampling_(false),
     useNewStateRejection_(false),
-    useAdmissibleCostToCome_(true),
+    useAdmissibleCostToCome_(true), 
     numSampleAttempts_ (100u),
     bestCost_(std::numeric_limits<double>::quiet_NaN()),
     prunedCost_(std::numeric_limits<double>::quiet_NaN()),
@@ -75,6 +78,8 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     specs_.optimizingPaths = true;
     specs_.canReportIntermediateSolutions = true;
 
+    psimp_.reset(new PathSimplifier(si_));
+
     Planner::declareParam<double>("range", this, &RRTstar::setRange, &RRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTstar::setGoalBias, &RRTstar::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("rewire_factor", this, &RRTstar::setRewireFactor, &RRTstar::getRewireFactor, "1.0:0.01:2.0");
@@ -84,6 +89,8 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si) :
     Planner::declareParam<double>("prune_threshold", this, &RRTstar::setPruneThreshold, &RRTstar::getPruneThreshold, "0.:.01:1.");
     Planner::declareParam<bool>("pruned_measure", this, &RRTstar::setPrunedMeasure, &RRTstar::getPrunedMeasure, "0,1");
     Planner::declareParam<bool>("informed_sampling", this, &RRTstar::setInformedSampling, &RRTstar::getInformedSampling, "0,1");
+    Planner::declareParam<bool>("intelligent_sampling", this, &RRTstar::setIntelligentSampling, &RRTstar::getIntelligentSampling, "0,1");
+    Planner::declareParam<double>("biasing_ratio", this, &RRTstar::setBiasingRatio, &RRTstar::getBiasingRatio, "0.:.01:1.");
     Planner::declareParam<bool>("sample_rejection", this, &RRTstar::setSampleRejection, &RRTstar::getSampleRejection, "0,1");
     Planner::declareParam<bool>("new_state_rejection", this, &RRTstar::setNewStateRejection, &RRTstar::getNewStateRejection, "0,1");
     Planner::declareParam<bool>("use_admissible_heuristic", this, &RRTstar::setAdmissibleCostToCome, &RRTstar::getAdmissibleCostToCome, "0,1");
@@ -218,6 +225,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     const base::ReportIntermediateSolutionFn intermediateSolutionCallback = pdef_->getIntermediateSolutionCallback();
 
     Motion *solution       = lastGoalMotion_;
+    Motion *solution_tmp       = lastGoalMotion_;  
 
     Motion *approximation  = nullptr;
     double approximatedist = std::numeric_limits<double>::infinity();
@@ -259,8 +267,26 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         else
         {
             // Attempt to generate a sample, if we fail (e.g., too many rejection attempts), skip the remainder of this loop and return to try again
-            if (!sampleUniform(rstate))
-                continue;
+            if (useIntelligentSampling_)    // Biasing the samples towards the beacons
+            {
+                double bias = ((double) rand() / (RAND_MAX));
+                if (bias > biasingRatio_ || !pathFound_ || beacons.size() == 2)
+                {
+                    if (!sampleUniform(rstate))
+                        continue;                
+                }
+                else    //randomly picking a beacon for biasing 
+                {   
+                    int index = rng_.uniformInt(1, beacons.size()-2);  
+                    sampler_->sampleUniformNear(rstate, beacons[index], std::min(maxDistance_, r_rrg_*std::pow(log((double)(nn_->size() + 1u))/((double)(nn_->size() + 1u)), 1/(double)(si_->getStateDimension()))));                
+                }                
+            }
+            else
+            {
+                if (!sampleUniform(rstate))
+                    continue;  
+            }
+
         }
 
         // find closest state in the tree
@@ -511,6 +537,33 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
                         intermediateSolutionCallback(this, spath, bestCost_);
                     }
+                   
+                    if (useIntelligentSampling_)        //Update beacons if better path found
+                    {
+                        pathFound_ = true;
+                        std::vector<Motion*> mpath;
+                        solution_tmp = solution;
+                        while (solution != nullptr)
+                        {
+                            mpath.push_back(solution);
+                            solution = solution->parent;
+                        }
+                        // set the solution path
+                        PathGeometric *geoPath = new PathGeometric(si_);
+                        
+                        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+                            geoPath->append(mpath[i]->state);
+                       
+                        beacons.clear();; 
+                        
+                        psimp_->reduceVertices(*geoPath);
+
+                        for (std::size_t i = 0 ; i< geoPath->getStateCount() ; ++i)
+                            beacons.push_back(geoPath->getState(i));
+
+                        solution = solution_tmp;
+                    }
+
                 }
             }
 
@@ -525,6 +578,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         // terminate if a sufficient solution is found
         if (solution && sufficientlyShort)
             break;
+            
     }
 
     bool approximate = (solution == nullptr);
@@ -547,8 +601,17 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
         // set the solution path
         PathGeometric *geoPath = new PathGeometric(si_);
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-            geoPath->append(mpath[i]->state);
+
+        if (useIntelligentSampling_)        // Using beacons to construct the final path
+        {
+            for (int i = beacons.size() - 1 ; i >= 0 ; --i)
+                geoPath->append(beacons[i]);
+        }
+        else
+        {
+            for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+                geoPath->append(mpath[i]->state);            
+        }
 
         base::PathPtr path(geoPath);
         // Add the solution path.
@@ -976,6 +1039,16 @@ void ompl::geometric::RRTstar::setInformedSampling(bool informedSampling)
             allocSampler();
         }
     }
+}
+
+void ompl::geometric::RRTstar::setIntelligentSampling(bool informedSampling)
+{
+    useIntelligentSampling_ =  true;
+}
+
+void ompl::geometric::RRTstar::setBiasingRatio(double biasingRatio)
+{
+    biasingRatio_ =  biasingRatio;
 }
 
 void ompl::geometric::RRTstar::setSampleRejection(const bool reject)
