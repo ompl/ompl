@@ -94,7 +94,7 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si)
     Planner::declareParam<bool>("use_admissible_heuristic", this, &RRTstar::setAdmissibleCostToCome,
                                 &RRTstar::getAdmissibleCostToCome, "0,1");
     Planner::declareParam<bool>("focus_search", this, &RRTstar::setFocusSearch, &RRTstar::getFocusSearch, "0,1");
-    Planner::declareParam<bool>("number_sampling_attempts", this, &RRTstar::setNumSamplingAttempts,
+    Planner::declareParam<unsigned int>("number_sampling_attempts", this, &RRTstar::setNumSamplingAttempts,
                                 &RRTstar::getNumSamplingAttempts, "10:10:100000");
 
     addPlannerProgressProperty("iterations INTEGER", [this]
