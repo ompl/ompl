@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2014, University of Toronto
+*  Copyright (c) 2016, National University of Sciences and Technology
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without

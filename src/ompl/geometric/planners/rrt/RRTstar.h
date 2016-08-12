@@ -216,13 +216,13 @@ namespace ompl
                 return useInformedSampling_;
             }
 
-            /** \ Use intelligent sampling to bias samples towards the beacons */
-            void setIntelligentSampling(bool intelligentSampling);
+            /** \ Use beacon sampling to bias samples towards the beacons */
+            void setBeaconSampling(bool beaconSampling);
 
-            /** \ Get the state of intelligent sampling */
-            bool getIntelligentSampling() const
+            /** \ Get the state of beacon sampling */
+            bool getBeaconSampling() const
             {
-                return useIntelligentSampling_;
+                return useBeaconSampling_;
             }
 
             /** \ Control the bias towards the beacons */
@@ -469,14 +469,11 @@ namespace ompl
             /** \brief Option to use informed sampling */
             bool useInformedSampling_;
 
-            /** \brief Option to use intelligent sampling */
-            bool                                           useIntelligentSampling_;
+            /** \brief Option to use beacon sampling */
+            bool useBeaconSampling_;
 
             /** \brief The ratio of bias towards the beacons */
-            double                                         biasingRatio_;
-
-            /** \brief Flag true after first path is found */
-            bool                                            pathFound_;
+            double biasingRatio_;
 
             /** \brief The status of the sample rejection parameter. */
             bool useRejectionSampling_;
@@ -507,10 +504,10 @@ namespace ompl
             unsigned int iterations_;
 
             /** \brief To access reduceVertices function to generate beacons */
-            PathSimplifierPtr                               psimp_;
+            PathSimplifierPtr psimp_;
 
-            /** \brief States used for intelligent biasing */
-            std::vector<base::State*>                       beacons;
+            /** \brief States used for beacon biasing */
+            std::vector<base::State *> beacons;
 
             ///////////////////////////////////////
             // Planner progress property functions

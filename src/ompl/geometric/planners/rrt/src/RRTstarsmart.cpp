@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2014, University of Toronto
+*  Copyright (c) 2016, National University of Sciences and Technology
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -43,9 +43,9 @@ ompl::geometric::RRTstarsmart::RRTstarsmart(const base::SpaceInformationPtr &si)
     setName("RRTstarsmart");
 
     //Configure RRTstar to be RRTstarsmart:
-    setIntelligentSampling(true);
+    setBeaconSampling(true);
 
-    params_.remove("intelligent_sampling");
+    params_.remove("beacon_sampling");
 
 
 }
