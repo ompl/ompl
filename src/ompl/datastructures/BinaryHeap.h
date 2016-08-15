@@ -82,6 +82,12 @@ namespace ompl
             eventBeforeRemove_ = nullptr;
         }
 
+        BinaryHeap(const LessThan &lt) : lt_(lt)
+        {
+            eventAfterInsert_ = nullptr;
+            eventBeforeRemove_ = nullptr;
+        }
+
         ~BinaryHeap()
         {
             clear();
