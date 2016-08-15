@@ -61,10 +61,10 @@ namespace ompl
     namespace time
     {
         /** \brief Representation of a point in time */
-        using point = std::chrono::system_clock::time_point;
+        typedef std::chrono::system_clock::time_point point;
 
         /** \brief Representation of a time duration */
-        using duration = std::chrono::system_clock::duration;
+        typedef std::chrono::system_clock::duration duration;
 
         /** \brief Get the current time point */
         inline point now()

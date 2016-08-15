@@ -116,7 +116,7 @@ namespace ompl
 
         private:
             /** \brief A constant pointer to ProlateHyperspheroid */
-            using ProlateHyperspheroidCPtr = std::shared_ptr<const ompl::ProlateHyperspheroid>;
+            typedef std::shared_ptr<const ompl::ProlateHyperspheroid> ProlateHyperspheroidCPtr;
 
             // Helper functions:
             // High level

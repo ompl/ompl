@@ -93,11 +93,11 @@ namespace ompl
                 Additional edge cost factors can be added
                 with the addEdgeCostFactor() function, and Syclop's list of edge cost factors can be cleared using
                clearEdgeCostFactors() . */
-            using EdgeCostFactorFn = std::function<double(int, int)>;
+            typedef std::function<double(int, int)> EdgeCostFactorFn;
 
             /** \brief Leads should consist of a path of adjacent regions in the decomposition that start with the start
              * region and end at the end region.  Default is \f$A^\ast\f$ search. */
-            using LeadComputeFn = std::function<void(int, int, std::vector<int> &)>;
+            typedef std::function<void(int, int, std::vector<int> &)> LeadComputeFn;
 
             /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
             Syclop(const SpaceInformationPtr &si, DecompositionPtr d, const std::string &plannerName)
@@ -453,11 +453,11 @@ namespace ompl
                 const DecompositionPtr &decomp;
             };
 
-            using RegionGraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Region, Adjacency>;
-            using Vertex = boost::graph_traits<RegionGraph>::vertex_descriptor;
-            using VertexIter = boost::graph_traits<RegionGraph>::vertex_iterator;
-            using VertexIndexMap = boost::property_map<RegionGraph, boost::vertex_index_t>::type;
-            using EdgeIter = boost::graph_traits<RegionGraph>::edge_iterator;
+            typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Region, Adjacency> RegionGraph;
+            typedef boost::graph_traits<RegionGraph>::vertex_descriptor Vertex;
+            typedef boost::graph_traits<RegionGraph>::vertex_iterator VertexIter;
+            typedef boost::property_map<RegionGraph, boost::vertex_index_t>::type VertexIndexMap;
+            typedef boost::graph_traits<RegionGraph>::edge_iterator EdgeIter;
 
             /// @cond IGNORE
             friend class DecompositionHeuristic;

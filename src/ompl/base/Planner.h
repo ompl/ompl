@@ -351,11 +351,11 @@ namespace ompl
 
             /** \brief Definition of a function which returns a property about the planner's progress that can be
              * queried by a benchmarking routine */
-            using PlannerProgressProperty = std::function<std::string()>;
+            typedef std::function<std::string()> PlannerProgressProperty;
 
             /** \brief A dictionary which maps the name of a progress property to the function to be used for querying
              * that property */
-            using PlannerProgressProperties = std::map<std::string, PlannerProgressProperty>;
+            typedef std::map<std::string, PlannerProgressProperty> PlannerProgressProperties;
 
             /** \brief Retrieve a planner's planner progress property map */
             const PlannerProgressProperties &getPlannerProgressProperties() const
@@ -439,7 +439,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a planner */
-        using PlannerAllocator = std::function<PlannerPtr(const SpaceInformationPtr &)>;
+        typedef std::function<PlannerPtr(const SpaceInformationPtr &)> PlannerAllocator;
     }
 }
 

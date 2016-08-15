@@ -49,7 +49,7 @@ namespace ompl
     {
     public:
         /** \brief The definition of a distance function */
-        using DistanceFunction = std::function<double(const _T &, const _T &)>;
+        typedef std::function<double(const _T &, const _T &)> DistanceFunction;
 
         NearestNeighbors() = default;
 

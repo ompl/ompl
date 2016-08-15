@@ -103,16 +103,16 @@ namespace ompl
             };
 
             /** \brief The datatype for the maintained grid datastructure */
-            using Grid = GridB<CellData *, OrderCellsByImportance>;
+            typedef GridB<CellData *, OrderCellsByImportance> Grid;
 
             /** \brief The datatype for the maintained grid cells */
-            using Cell = typename Grid::Cell;
+            typedef typename Grid::Cell Cell;
 
             /** \brief The datatype for the maintained grid coordinates */
-            using Coord = typename Grid::Coord;
+            typedef typename Grid::Coord Coord;
 
             /** \brief The signature of a function that frees the memory for a motion */
-            using FreeMotionFn = typename std::function<void(Motion *)>;
+            typedef typename std::function<void(Motion *)> FreeMotionFn;
 
             Discretization(FreeMotionFn freeMotion)
               : grid_(0), size_(0), iteration_(1), recentCell_(nullptr), freeMotion_(std::move(freeMotion))

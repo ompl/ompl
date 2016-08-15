@@ -63,7 +63,7 @@ namespace ompl
 
         public:
             /** \brief The type of the contained state */
-            using StateType = typename T::StateType;
+            typedef typename T::StateType StateType;
 
             /** \brief Given the space that we are working with,
                 allocate a state from the corresponding
@@ -547,7 +547,7 @@ namespace ompl
         }
 
         /** \brief Shared pointer to a ScopedState<> */
-        using ScopedStatePtr = std::shared_ptr<ScopedState<>>;
+        typedef std::shared_ptr<ScopedState<>> ScopedStatePtr;
     }
 }
 

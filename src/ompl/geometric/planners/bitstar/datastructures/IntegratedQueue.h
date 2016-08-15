@@ -98,22 +98,22 @@ namespace ompl
             ////////////////////////////////
             // Data alias declarations:
             /** \brief An alias declaration for a pair of costs, i.e., the edge sorting key */
-            using CostPair = std::pair<ompl::base::Cost, ompl::base::Cost>;
+            typedef std::pair<ompl::base::Cost, ompl::base::Cost> CostPair;
             ////////////////////////////////
 
             ////////////////////////////////
             // Function alias declarations:
             /** \brief A std::function definition of a heuristic function for a vertex. */
-            using VertexHeuristicFunc = std::function<ompl::base::Cost(const VertexConstPtr &)>;
+            typedef std::function<ompl::base::Cost(const VertexConstPtr &)> VertexHeuristicFunc;
 
             /** \brief A std::function definition of a heuristic function for an edge. */
-            using EdgeHeuristicFunc = std::function<ompl::base::Cost(const VertexConstPtrPair &)>;
+            typedef std::function<ompl::base::Cost(const VertexConstPtrPair &)> EdgeHeuristicFunc;
 
             /** \brief A std::function definition for the distance between two vertices. */
-            using DistanceFunc = std::function<double(const VertexConstPtr &, const VertexConstPtr &)>;
+            typedef std::function<double(const VertexConstPtr &, const VertexConstPtr &)> DistanceFunc;
 
             /** \brief A std::function definition for the neighbourhood of a vertex . */
-            using NeighbourhoodFunc = std::function<unsigned int(const VertexPtr &, std::vector<VertexPtr> *)>;
+            typedef std::function<unsigned int(const VertexPtr &, std::vector<VertexPtr> *)> NeighbourhoodFunc;
             ////////////////////////////////
 
             ////////////////////////////////
@@ -291,29 +291,29 @@ namespace ompl
              * over a multiset is that a copy of the key is stored with the value, which guarantees that the ordering
              * remains sane. Even if the inherent key for a value has changed, it will still be sorted under the old key
              * until manually updated and the map will be sorted */
-            using CostToVertexMMap =
-                std::multimap<ompl::base::Cost, VertexPtr,
-                              std::function<bool(const ompl::base::Cost &, const ompl::base::Cost &)>>;
+            typedef std::multimap<ompl::base::Cost, VertexPtr,
+                                  std::function<bool(const ompl::base::Cost &, const ompl::base::Cost &)>>
+                CostToVertexMMap;
 
             /** \brief An alias declaration to the underlying edge queue as a multimap. Multimapped for the same reason
              * as CostToVertexMMap */
-            using CostToVertexPtrPairMMap =
-                std::multimap<CostPair, VertexPtrPair, std::function<bool(const CostPair &, const CostPair &)>>;
+            typedef std::multimap<CostPair, VertexPtrPair, std::function<bool(const CostPair &, const CostPair &)>>
+                CostToVertexPtrPairMMap;
 
             /** \brief An alias declaration for an iterator into the vertex queue multimap */
-            using VertexQueueIter = CostToVertexMMap::iterator;
+            typedef CostToVertexMMap::iterator VertexQueueIter;
 
             /** \brief An alias declaration for an unordered_map of vertex queue iterators indexed on vertex*/
-            using VertexIdToVertexQueueIterUMap = std::unordered_map<BITstar::VertexId, VertexQueueIter>;
+            typedef std::unordered_map<BITstar::VertexId, VertexQueueIter> VertexIdToVertexQueueIterUMap;
 
             /** \brief An alias declaration for an iterator into the edge queue multimap */
-            using EdgeQueueIter = CostToVertexPtrPairMMap::iterator;
+            typedef CostToVertexPtrPairMMap::iterator EdgeQueueIter;
 
             /** \brief An alias declaration for a list of edge queue iterators*/
-            using EdgeQueueIterList = std::list<EdgeQueueIter>;
+            typedef std::list<EdgeQueueIter> EdgeQueueIterList;
 
             /** \brief An alias declaration for an unordered_map of edge queue iterators indexed by vertex*/
-            using VertexIdToEdgeQueueIterListUMap = std::unordered_map<BITstar::VertexId, EdgeQueueIterList>;
+            typedef std::unordered_map<BITstar::VertexId, EdgeQueueIterList> VertexIdToEdgeQueueIterListUMap;
             ////////////////////////////////
 
             ////////////////////////////////

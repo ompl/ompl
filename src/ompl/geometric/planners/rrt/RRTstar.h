@@ -311,7 +311,7 @@ namespace ompl
             public:
                 /** \brief Constructor that allocates memory for the state. This constructor automatically allocates
                  * memory for \e state, \e cost, and \e incCost */
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), inGoal(false)
                 {
                 }
 
@@ -322,6 +322,9 @@ namespace ompl
 
                 /** \brief The parent motion in the exploration tree */
                 Motion *parent;
+
+                /** \brief True if this vertex is in the goal region */
+                bool inGoal;
 
                 /** \brief The cost up to this motion */
                 base::Cost cost;
