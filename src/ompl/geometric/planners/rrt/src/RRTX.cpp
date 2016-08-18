@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2016, Rice University
+*  Copyright (c) 2016, Georgia Institute of Technology
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -46,11 +46,6 @@
 #include <algorithm>
 #include <limits>
 #include <boost/math/constants/constants.hpp>
-#include <boost/make_shared.hpp>
-#include <vector>
-// uncomment to disable assert()
-// #define NDEBUG
-#include <cassert>
 
 ompl::geometric::RRTX::RRTX(const base::SpaceInformationPtr &si) :
     base::Planner(si, "RRTX"),
@@ -60,7 +55,7 @@ ompl::geometric::RRTX::RRTX(const base::SpaceInformationPtr &si) :
     rewireFactor_(1.1),
     k_rrg_(0u),
     r_rrg_(0.0),
-    lastGoalMotion_(NULL),
+    lastGoalMotion_(nullptr),
     bestCost_(std::numeric_limits<double>::quiet_NaN()),
     iterations_(0u),
     mc_(opt_,pdef_),
@@ -168,7 +163,7 @@ void ompl::geometric::RRTX::clear()
     if (nn_)
         nn_->clear();
 
-    lastGoalMotion_ = NULL;
+    lastGoalMotion_ = nullptr;
     goalMotions_.clear();
 
     iterations_ = 0;
@@ -221,7 +216,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
 
     Motion *solution       = lastGoalMotion_;
 
-    Motion *approximation  = NULL;
+    Motion *approximation  = nullptr;
     double approximatedist = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
 
@@ -370,7 +365,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
                 min = q_.top()->data;
                 // Remove element from the queue and NULL the handle so that we know it's not in the queue anymore
                 q_.pop();
-                min->handle=NULL;
+                min->handle=nullptr;
 
                 // Stop cost propagation if it is not in the relevant region
                 if(opt_->isCostBetterThan(bestCost_, mc_.costPlusHeuristic(min))) 
@@ -453,7 +448,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
 
             //empty q and reset handles
             while(!q_.empty()){
-                q_.top()->data->handle = NULL;
+                q_.top()->data->handle = nullptr;
                 q_.pop();
             }
             q_.clear();
@@ -496,7 +491,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
                         Motion *intermediate_solution = solution->parent; // Do not include goal state to simplify code.
 
                         //Push back until we find the start, but not the start itself
-                        while (intermediate_solution->parent != NULL)
+                        while (intermediate_solution->parent != nullptr)
                         {
                             spath.push_back(intermediate_solution->state);
                             intermediate_solution = intermediate_solution->parent;
@@ -520,19 +515,19 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
             break;
     }
 
-    bool approximate = (solution == NULL);
+    bool approximate = (solution == nullptr);
     bool addedSolution = false;
     if (approximate)
         solution = approximation;
     else
         lastGoalMotion_ = solution;
 
-    if (solution != NULL)
+    if (solution != nullptr)
     {
         ptc.terminate();
         // construct the solution path
         std::vector<Motion *> mpath;
-        while (solution != NULL)
+        while (solution != nullptr)
         {
             mpath.push_back(solution);
             solution = solution->parent;
@@ -569,7 +564,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
 void ompl::geometric::RRTX::updateQueue(Motion *x)
 {
     // If x->handle is not NULL, x is already in the queue and needs to be update, otherwise it is inserted
-    if(x->handle != NULL)
+    if(x->handle != nullptr)
     {
         q_.update(x->handle);
     }
@@ -666,7 +661,7 @@ void ompl::geometric::RRTX::getPlannerData(base::PlannerData &data) const
 
     for (std::size_t i = 0 ; i < motions.size() ; ++i)
     {
-        if (motions[i]->parent == NULL)
+        if (motions[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
         else
             data.addEdge(base::PlannerDataVertex(motions[i]->parent->state),

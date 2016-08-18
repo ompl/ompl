@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2016, Rice University
+*  Copyright (c) 2016, Georgia Institute of Technology
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -311,8 +311,8 @@ namespace ompl
                 /** \brief Constructor that allocates memory for the state. This constructor automatically allocates memory for \e state, \e cost, and \e incCost */
                 Motion(const base::SpaceInformationPtr &si) :
                     state(si->allocState()),
-                    parent(NULL),
-                    handle(NULL)
+                    parent(nullptr),
+                    handle(nullptr)
                 {
                 }
 
@@ -453,15 +453,15 @@ namespace ompl
             // Planner progress property functions
             std::string numIterationsProperty() const
             {
-                return boost::lexical_cast<std::string>(numIterations());
+                return std::to_string(numIterations());
             }
             std::string bestCostProperty() const
             {
-                return boost::lexical_cast<std::string>(bestCost());
+                return std::to_string(bestCost().value());
             }
             std::string numMotionsProperty() const
             {
-                return boost::lexical_cast<std::string>(nn_->size());
+                return std::to_string(nn_->size());
             }
         };
     }
