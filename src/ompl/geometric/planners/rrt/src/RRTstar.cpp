@@ -35,18 +35,18 @@
 /* Authors: Alejandro Perez, Sertac Karaman, Ryan Luna, Luis G. Torres, Ioan Sucan, Javier V Gomez, Jonathan Gammell */
 
 #include "ompl/geometric/planners/rrt/RRTstar.h"
-#include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/tools/config/SelfConfig.h"
-#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include <algorithm>
+#include <boost/math/constants/constants.hpp>
+#include <limits>
+#include <vector>
 #include "ompl/base/Goal.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/base/goals/GoalState.h"
-#include "ompl/util/GeometricEquations.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/base/samplers/InformedStateSampler.h"
 #include "ompl/base/samplers/informed/RejectionInfSampler.h"
-#include <algorithm>
-#include <limits>
-#include <boost/math/constants/constants.hpp>
-#include <vector>
+#include "ompl/tools/config/SelfConfig.h"
+#include "ompl/util/GeometricEquations.h"
 
 ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si)
   : base::Planner(si, "RRTstar")
@@ -95,16 +95,10 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si)
                                 &RRTstar::getAdmissibleCostToCome, "0,1");
     Planner::declareParam<bool>("focus_search", this, &RRTstar::setFocusSearch, &RRTstar::getFocusSearch, "0,1");
     Planner::declareParam<unsigned int>("number_sampling_attempts", this, &RRTstar::setNumSamplingAttempts,
-                                &RRTstar::getNumSamplingAttempts, "10:10:100000");
+                                        &RRTstar::getNumSamplingAttempts, "10:10:100000");
 
-    addPlannerProgressProperty("iterations INTEGER", [this]
-                               {
-                                   return numIterationsProperty();
-                               });
-    addPlannerProgressProperty("best cost REAL", [this]
-                               {
-                                   return bestCostProperty();
-                               });
+    addPlannerProgressProperty("iterations INTEGER", [this] { return numIterationsProperty(); });
+    addPlannerProgressProperty("best cost REAL", [this] { return bestCostProperty(); });
 }
 
 ompl::geometric::RRTstar::~RRTstar()
@@ -124,10 +118,7 @@ void ompl::geometric::RRTstar::setup()
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
-    nn_->setDistanceFunction([this](const Motion *a, const Motion *b)
-                             {
-                                 return distanceFunction(a, b);
-                             });
+    nn_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 
     // Setup optimization objective
     //
@@ -368,8 +359,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 for (std::vector<std::size_t>::const_iterator i = sortedCostIndices.begin();
                      i != sortedCostIndices.begin() + nbh.size(); ++i)
                 {
-                    if (nbh[*i] == nmotion || ( ( !useKNearest_ || si_->distance(nbh[*i]->state, motion->state) < maxDistance_) 
-                        			&& si_->checkMotion(nbh[*i]->state, motion->state) ) )
+                    if (nbh[*i] == nmotion ||
+                        ((!useKNearest_ || si_->distance(nbh[*i]->state, motion->state) < maxDistance_) &&
+                         si_->checkMotion(nbh[*i]->state, motion->state)))
                     {
                         motion->incCost = incCosts[*i];
                         motion->cost = costs[*i];
@@ -394,8 +386,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         costs[i] = opt_->combineCosts(nbh[i]->cost, incCosts[i]);
                         if (opt_->isCostBetterThan(costs[i], motion->cost))
                         {
-                            if ((!useKNearest_ || si_->distance(nbh[i]->state, motion->state) < maxDistance_) 
-				&& si_->checkMotion(nbh[i]->state, motion->state) )
+                            if ((!useKNearest_ || si_->distance(nbh[i]->state, motion->state) < maxDistance_) &&
+                                si_->checkMotion(nbh[i]->state, motion->state))
                             {
                                 motion->incCost = incCosts[i];
                                 motion->cost = costs[i];
@@ -452,8 +444,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         bool motionValid;
                         if (valid[i] == 0)
                         {
-                            motionValid = (!useKNearest_ || si_->distance(nbh[i]->state, motion->state) < maxDistance_)
-					  && si_->checkMotion(motion->state, nbh[i]->state) ;
+                            motionValid =
+                                (!useKNearest_ || si_->distance(nbh[i]->state, motion->state) < maxDistance_) &&
+                                si_->checkMotion(motion->state, nbh[i]->state);
                         }
                         else
                         {

@@ -35,38 +35,38 @@
 /* Author: Florian Hauer */
 
 #include "ompl/geometric/planners/rrt/RRTX.h"
-#include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/tools/config/SelfConfig.h"
-#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include <algorithm>
+#include <boost/math/constants/constants.hpp>
+#include <limits>
 #include "ompl/base/Goal.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/base/goals/GoalState.h"
-#include "ompl/util/GeometricEquations.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/base/samplers/InformedStateSampler.h"
 #include "ompl/base/samplers/informed/RejectionInfSampler.h"
-#include <algorithm>
-#include <limits>
-#include <boost/math/constants/constants.hpp>
+#include "ompl/tools/config/SelfConfig.h"
+#include "ompl/util/GeometricEquations.h"
 
-ompl::geometric::RRTX::RRTX(const base::SpaceInformationPtr &si) :
-    base::Planner(si, "RRTX"),
-    goalBias_(0.05),
-    maxDistance_(0.0),
-    useKNearest_(true),
-    rewireFactor_(1.1),
-    k_rrg_(0u),
-    r_rrg_(0.0),
-    lastGoalMotion_(nullptr),
-    bestCost_(std::numeric_limits<double>::quiet_NaN()),
-    iterations_(0u),
-    mc_(opt_,pdef_),
-    q_(mc_),
-    epsilonCost_(0.0),
-    updateChildren_(true),
-    variant_(0),
-    alpha_(1.0),
-    useInformedSampling_(false),
-    useRejectionSampling_(false),
-    numSampleAttempts_(100u)
+ompl::geometric::RRTX::RRTX(const base::SpaceInformationPtr &si)
+  : base::Planner(si, "RRTX")
+  , goalBias_(0.05)
+  , maxDistance_(0.0)
+  , useKNearest_(true)
+  , rewireFactor_(1.1)
+  , k_rrg_(0u)
+  , r_rrg_(0.0)
+  , lastGoalMotion_(nullptr)
+  , bestCost_(std::numeric_limits<double>::quiet_NaN())
+  , iterations_(0u)
+  , mc_(opt_, pdef_)
+  , q_(mc_)
+  , epsilonCost_(0.0)
+  , updateChildren_(true)
+  , variant_(0)
+  , alpha_(1.0)
+  , useInformedSampling_(false)
+  , useRejectionSampling_(false)
+  , numSampleAttempts_(100u)
 {
     specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;
@@ -75,27 +75,21 @@ ompl::geometric::RRTX::RRTX(const base::SpaceInformationPtr &si) :
     Planner::declareParam<double>("range", this, &RRTX::setRange, &RRTX::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTX::setGoalBias, &RRTX::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("epsilon", this, &RRTX::setEpsilon, &RRTX::getEpsilon, "0.:.01:10.");
-    Planner::declareParam<double>("rewire_factor", this, &RRTX::setRewireFactor, &RRTX::getRewireFactor, "1.0:0.01:2.0");
+    Planner::declareParam<double>("rewire_factor", this, &RRTX::setRewireFactor, &RRTX::getRewireFactor, "1.0:0.01:2."
+                                                                                                         "0");
     Planner::declareParam<bool>("use_k_nearest", this, &RRTX::setKNearest, &RRTX::getKNearest, "0,1");
     Planner::declareParam<bool>("update_children", this, &RRTX::setUpdateChildren, &RRTX::getUpdateChildren, "0,1");
     Planner::declareParam<int>("rejection_variant", this, &RRTX::setVariant, &RRTX::getVariant, "0:3");
     Planner::declareParam<double>("rejection_variant_alpha", this, &RRTX::setAlpha, &RRTX::getAlpha, "0.:1.");
-    Planner::declareParam<bool>("informed_sampling", this, &RRTX::setInformedSampling, &RRTX::getInformedSampling, "0,1");
+    Planner::declareParam<bool>("informed_sampling", this, &RRTX::setInformedSampling, &RRTX::getInformedSampling, "0,"
+                                                                                                                   "1");
     Planner::declareParam<bool>("sample_rejection", this, &RRTX::setSampleRejection, &RRTX::getSampleRejection, "0,1");
-    Planner::declareParam<bool>("number_sampling_attempts", this, &RRTX::setNumSamplingAttempts, &RRTX::getNumSamplingAttempts, "10:10:100000");
+    Planner::declareParam<bool>("number_sampling_attempts", this, &RRTX::setNumSamplingAttempts,
+                                &RRTX::getNumSamplingAttempts, "10:10:100000");
 
-    addPlannerProgressProperty("iterations INTEGER", [this]
-                               {
-                                   return numIterationsProperty();
-                               });
-    addPlannerProgressProperty("motions INTEGER", [this]
-                               {
-                                   return numMotionsProperty();
-                               });
-    addPlannerProgressProperty("best cost REAL", [this]
-                               {
-                                   return bestCostProperty();
-                               });
+    addPlannerProgressProperty("iterations INTEGER", [this] { return numIterationsProperty(); });
+    addPlannerProgressProperty("motions INTEGER", [this] { return numMotionsProperty(); });
+    addPlannerProgressProperty("best cost REAL", [this] { return bestCostProperty(); });
 }
 
 ompl::geometric::RRTX::~RRTX()
@@ -115,10 +109,7 @@ void ompl::geometric::RRTX::setup()
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
-    nn_->setDistanceFunction([this](const Motion *a, const Motion *b)
-                             {
-                                 return distanceFunction(a, b);
-                             });
+    nn_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 
     // Setup optimization objective
     //
@@ -131,13 +122,15 @@ void ompl::geometric::RRTX::setup()
             opt_ = pdef_->getOptimizationObjective();
         else
         {
-            OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length for the allowed planning time.", getName().c_str());
+            OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length for the allowed "
+                        "planning time.",
+                        getName().c_str());
             opt_.reset(new base::PathLengthOptimizationObjective(si_));
 
             // Store the new objective in the problem def'n
             pdef_->setOptimizationObjective(opt_);
-        }      
-        mc_ = MotionCompare(opt_,pdef_);
+        }
+        mc_ = MotionCompare(opt_, pdef_);
         q_ = BinaryHeap<Motion *, MotionCompare>(mc_);
     }
     else
@@ -171,10 +164,10 @@ void ompl::geometric::RRTX::clear()
 }
 
 ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTerminationCondition &ptc)
-{   
+{
     checkValidity();
-    base::Goal                  *goal   = pdef_->getGoal().get();
-    base::GoalSampleableRegion  *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     // Check if there are more starts
     if (pis_.haveMoreStartStates() == true)
@@ -199,7 +192,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
         return base::PlannerStatus::INVALID_START;
     }
 
-    //Allocate a sampler if necessary
+    // Allocate a sampler if necessary
     if (!sampler_ && !infSampler_)
     {
         allocSampler();
@@ -208,21 +201,22 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
     if (!si_->getStateSpace()->isMetricSpace())
-        OMPL_WARN("%s: The state space (%s) is not metric and as a result the optimization objective may not satisfy the triangle inequality. "
-                  "You may need to disable rejection."
-                  , getName().c_str(), si_->getStateSpace()->getName().c_str());
+        OMPL_WARN("%s: The state space (%s) is not metric and as a result the optimization objective may not satisfy "
+                  "the triangle inequality. "
+                  "You may need to disable rejection.",
+                  getName().c_str(), si_->getStateSpace()->getName().c_str());
 
     const base::ReportIntermediateSolutionFn intermediateSolutionCallback = pdef_->getIntermediateSolutionCallback();
 
-    Motion *solution       = lastGoalMotion_;
+    Motion *solution = lastGoalMotion_;
 
-    Motion *approximation  = nullptr;
+    Motion *approximation = nullptr;
     double approximatedist = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
 
-    Motion *rmotion        = new Motion(si_);
-    base::State *rstate    = rmotion->state;
-    base::State *xstate    = si_->allocState();
+    Motion *rmotion = new Motion(si_);
+    base::State *rstate = rmotion->state;
+    base::State *xstate = si_->allocState();
     base::State *dstate;
 
     Motion *motion;
@@ -232,18 +226,23 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
     Motion *c;
     bool feas;
 
-    unsigned int               rewireTest = 0;
-    unsigned int               statesGenerated = 0;
+    unsigned int rewireTest = 0;
+    unsigned int statesGenerated = 0;
 
-    base::Cost incCost,cost;
+    base::Cost incCost, cost;
 
     if (solution)
-        OMPL_INFORM("%s: Starting planning with existing solution of cost %.5f", getName().c_str(), solution->cost.value());
+        OMPL_INFORM("%s: Starting planning with existing solution of cost %.5f", getName().c_str(),
+                    solution->cost.value());
 
     if (useKNearest_)
-        OMPL_INFORM("%s: Initial k-nearest value of %u", getName().c_str(), (unsigned int)std::ceil(k_rrg_ * log((double)(nn_->size() + 1u))));
+        OMPL_INFORM("%s: Initial k-nearest value of %u", getName().c_str(),
+                    (unsigned int)std::ceil(k_rrg_ * log((double)(nn_->size() + 1u))));
     else
-        OMPL_INFORM("%s: Initial rewiring radius of %.2f", getName().c_str(), std::min(maxDistance_, r_rrg_*std::pow(log((double)(nn_->size() + 1u))/((double)(nn_->size() + 1u)), 1/(double)(si_->getStateDimension()))));
+        OMPL_INFORM(
+            "%s: Initial rewiring radius of %.2f", getName().c_str(),
+            std::min(maxDistance_, r_rrg_ * std::pow(log((double)(nn_->size() + 1u)) / ((double)(nn_->size() + 1u)),
+                                                     1 / (double)(si_->getStateDimension()))));
 
     while (ptc == false)
     {
@@ -253,12 +252,15 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
         calculateRRG();
 
         // sample random state (with goal biasing)
-        // Goal samples are only sampled until maxSampleCount() goals are in the tree, to prohibit duplicate goal states.
-        if (goal_s && goalMotions_.size() < goal_s->maxSampleCount() && rng_.uniform01() < goalBias_ && goal_s->canSample())
+        // Goal samples are only sampled until maxSampleCount() goals are in the tree, to prohibit duplicate goal
+        // states.
+        if (goal_s && goalMotions_.size() < goal_s->maxSampleCount() && rng_.uniform01() < goalBias_ &&
+            goal_s->canSample())
             goal_s->sampleGoal(rstate);
         else
         {
-            // Attempt to generate a sample, if we fail (e.g., too many rejection attempts), skip the remainder of this loop and return to try again
+            // Attempt to generate a sample, if we fail (e.g., too many rejection attempts), skip the remainder of this
+            // loop and return to try again
             if (!sampleUniform(rstate))
                 continue;
         }
@@ -290,21 +292,22 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
             motion->cost = opt_->combineCosts(nmotion->cost, incCost);
 
             // Find nearby neighbors of the new motion
-            getNeighbors(motion); 
+            getNeighbors(motion);
 
             // find which one we connect the new state to
-            for (std::vector<std::pair<Motion *,bool> >::iterator it = motion->nbh.begin(); it != motion->nbh.end();)
+            for (std::vector<std::pair<Motion *, bool>>::iterator it = motion->nbh.begin(); it != motion->nbh.end();)
             {
                 nb = it->first;
                 feas = it->second;
-                
-                //Compute cost using nb as a parent
+
+                // Compute cost using nb as a parent
                 incCost = opt_->motionCost(nb->state, motion->state);
                 cost = opt_->combineCosts(nb->cost, incCost);
                 if (opt_->isCostBetterThan(cost, motion->cost))
                 {
-                    //Check range and feasibility
-                    if ((!useKNearest_ || distanceFunction(motion,nb) < maxDistance_) && si_->checkMotion(nb->state, motion->state))
+                    // Check range and feasibility
+                    if ((!useKNearest_ || distanceFunction(motion, nb) < maxDistance_) &&
+                        si_->checkMotion(nb->state, motion->state))
                     {
                         // mark than the motino has been checked as valid
                         it->second = true;
@@ -315,7 +318,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
                     }
                     else
                     {
-                        //Remove unfeasible neighbor from the list of neighbors
+                        // Remove unfeasible neighbor from the list of neighbors
                         it = motion->nbh.erase(it);
                     }
                 }
@@ -325,24 +328,25 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
                 }
             }
 
-            //Check if the vertex should included
-            if(!includeVertex(motion))
+            // Check if the vertex should included
+            if (!includeVertex(motion))
             {
                 si_->freeState(motion->state);
                 delete motion;
                 continue;
             }
 
-            //Update neighbor motions neighbor datastructure
-            for (std::vector<std::pair<Motion *,bool> >::iterator it = motion->nbh.begin(); it != motion->nbh.end(); ++it)
+            // Update neighbor motions neighbor datastructure
+            for (std::vector<std::pair<Motion *, bool>>::iterator it = motion->nbh.begin(); it != motion->nbh.end();
+                 ++it)
             {
-                it->first->nbh.push_back(std::make_pair(motion,it->second));
+                it->first->nbh.push_back(std::make_pair(motion, it->second));
             }
 
             // add motion to the tree
             ++statesGenerated;
             nn_->add(motion);
-            if(updateChildren_)
+            if (updateChildren_)
                 motion->parent->children.push_back(motion);
 
             // add the new motion to the queue to propagate the changes
@@ -359,45 +363,45 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
             }
 
             // Process the elements in the queue and rewire the tree until epsilon-optimality
-            while(!q_.empty())
+            while (!q_.empty())
             {
                 // Get element to update
                 min = q_.top()->data;
                 // Remove element from the queue and NULL the handle so that we know it's not in the queue anymore
                 q_.pop();
-                min->handle=nullptr;
+                min->handle = nullptr;
 
                 // Stop cost propagation if it is not in the relevant region
-                if(opt_->isCostBetterThan(bestCost_, mc_.costPlusHeuristic(min))) 
+                if (opt_->isCostBetterThan(bestCost_, mc_.costPlusHeuristic(min)))
                     break;
 
                 // Try min as a parent to optimize each neighbor
-                for (std::vector<std::pair<Motion *,bool> >::iterator it = min->nbh.begin(); it != min->nbh.end();)
+                for (std::vector<std::pair<Motion *, bool>>::iterator it = min->nbh.begin(); it != min->nbh.end();)
                 {
                     nb = it->first;
                     feas = it->second;
 
-                    //Neighbor culling: removes neighbors farther than the neighbor radius 
-                    if((!useKNearest_ || min->nbh.size() > rrg_k_) && distanceFunction(min,nb) > rrg_r_)
+                    // Neighbor culling: removes neighbors farther than the neighbor radius
+                    if ((!useKNearest_ || min->nbh.size() > rrg_k_) && distanceFunction(min, nb) > rrg_r_)
                     {
                         it = min->nbh.erase(it);
                         continue;
                     }
 
-                    //Calculate cost of nb using min as a parent
+                    // Calculate cost of nb using min as a parent
                     incCost = opt_->motionCost(min->state, nb->state);
                     cost = opt_->combineCosts(min->cost, incCost);
-    
-                    //If cost improvement is better than epsilon
-                    if (opt_->isCostBetterThan(opt_->combineCosts(cost,epsilonCost_), nb->cost))
+
+                    // If cost improvement is better than epsilon
+                    if (opt_->isCostBetterThan(opt_->combineCosts(cost, epsilonCost_), nb->cost))
                     {
-                        if(nb->parent != min)
+                        if (nb->parent != min)
                         {
-                            //changing parent, check feasibility
-                            if(!feas)
-                                {
+                            // changing parent, check feasibility
+                            if (!feas)
+                            {
                                 feas = si_->checkMotion(nb->state, min->state);
-                                if(!feas)
+                                if (!feas)
                                 {
                                     // Remove unfeasible neighbor from the list of neighbors
                                     it = min->nbh.erase(it);
@@ -409,7 +413,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
                                     it->second = true;
                                 }
                             }
-                            if(updateChildren_)
+                            if (updateChildren_)
                             {
                                 // Remove this node from its parent list
                                 removeFromParent(nb);
@@ -429,10 +433,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
                     }
                     ++it;
                 }
-                if(updateChildren_)
+                if (updateChildren_)
                 {
                     // Propagatino of the cost to the children
-                    for(std::vector<Motion *>::iterator it = min->children.begin(),end = min->children.end(); it != end; ++it)
+                    for (std::vector<Motion *>::iterator it = min->children.begin(), end = min->children.end();
+                         it != end; ++it)
                     {
                         c = *it;
                         incCost = opt_->motionCost(min->state, c->state);
@@ -446,8 +451,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
                 }
             }
 
-            //empty q and reset handles
-            while(!q_.empty()){
+            // empty q and reset handles
+            while (!q_.empty())
+            {
                 q_.top()->data->handle = nullptr;
                 q_.pop();
             }
@@ -463,7 +469,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
                     {
                         if (opt_->isFinite(bestCost_) == false)
                         {
-                            OMPL_INFORM("%s: Found an initial solution with a cost of %.2f in %u iterations (%u vertices in the graph)", getName().c_str(), goalMotions_[i]->cost.value(), iterations_, nn_->size());
+                            OMPL_INFORM("%s: Found an initial solution with a cost of %.2f in %u iterations (%u "
+                                        "vertices in the graph)",
+                                        getName().c_str(), goalMotions_[i]->cost.value(), iterations_, nn_->size());
                         }
                         bestCost_ = goalMotions_[i]->cost;
                         updatedSolution = true;
@@ -475,8 +483,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
                         solution = goalMotions_[i];
                         break;
                     }
-                    else if (!solution ||
-                         opt_->isCostBetterThan(goalMotions_[i]->cost,solution->cost))
+                    else if (!solution || opt_->isCostBetterThan(goalMotions_[i]->cost, solution->cost))
                     {
                         solution = goalMotions_[i];
                         updatedSolution = true;
@@ -488,9 +495,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
                     if (intermediateSolutionCallback)
                     {
                         std::vector<const base::State *> spath;
-                        Motion *intermediate_solution = solution->parent; // Do not include goal state to simplify code.
+                        Motion *intermediate_solution =
+                            solution->parent;  // Do not include goal state to simplify code.
 
-                        //Push back until we find the start, but not the start itself
+                        // Push back until we find the start, but not the start itself
                         while (intermediate_solution->parent != nullptr)
                         {
                             spath.push_back(intermediate_solution->state);
@@ -535,7 +543,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
 
         // set the solution path
         PathGeometric *geoPath = new PathGeometric(si_);
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1; i >= 0; --i)
             geoPath->append(mpath[i]->state);
 
         base::PathPtr path(geoPath);
@@ -556,7 +564,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
         si_->freeState(rmotion->state);
     delete rmotion;
 
-    OMPL_INFORM("%s: Created %u new states. Checked %u rewire options. %u goal states in tree. Final solution cost %.3f", getName().c_str(), statesGenerated, rewireTest, goalMotions_.size(), bestCost_.value());
+    OMPL_INFORM("%s: Created %u new states. Checked %u rewire options. %u goal states in tree. Final solution cost "
+                "%.3f",
+                getName().c_str(), statesGenerated, rewireTest, goalMotions_.size(), bestCost_.value());
 
     return base::PlannerStatus(addedSolution, approximate);
 }
@@ -564,7 +574,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
 void ompl::geometric::RRTX::updateQueue(Motion *x)
 {
     // If x->handle is not NULL, x is already in the queue and needs to be update, otherwise it is inserted
-    if(x->handle != nullptr)
+    if (x->handle != nullptr)
     {
         q_.update(x->handle);
     }
@@ -576,8 +586,7 @@ void ompl::geometric::RRTX::updateQueue(Motion *x)
 
 void ompl::geometric::RRTX::removeFromParent(Motion *m)
 {
-    for (std::vector<Motion *>::iterator it = m->parent->children.begin ();
-        it != m->parent->children.end (); ++it)
+    for (std::vector<Motion *>::iterator it = m->parent->children.begin(); it != m->parent->children.end(); ++it)
     {
         if (*it == m)
         {
@@ -591,12 +600,14 @@ void ompl::geometric::RRTX::calculateRRG()
 {
     double cardDbl = static_cast<double>(nn_->size() + 1u);
     rrg_k_ = std::ceil(k_rrg_ * log(cardDbl));
-    rrg_r_ = std::min(maxDistance_, r_rrg_ * std::pow(log(cardDbl) / cardDbl, 1 / static_cast<double>(si_->getStateDimension())));
+    rrg_r_ = std::min(maxDistance_,
+                      r_rrg_ * std::pow(log(cardDbl) / cardDbl, 1 / static_cast<double>(si_->getStateDimension())));
 }
 
 void ompl::geometric::RRTX::getNeighbors(Motion *motion) const
 {
-    if(motion->nbh.size()>0){
+    if (motion->nbh.size() > 0)
+    {
         return;
     }
 
@@ -612,23 +623,21 @@ void ompl::geometric::RRTX::getNeighbors(Motion *motion) const
     }
 
     motion->nbh.resize(nbh.size());
-    std::transform(nbh.begin(),nbh.end(),motion->nbh.begin(),[](Motion* m)
-                  {
-                      return std::pair<Motion *,bool>(m,false);
-                  });
+    std::transform(nbh.begin(), nbh.end(), motion->nbh.begin(),
+                   [](Motion *m) { return std::pair<Motion *, bool>(m, false); });
 }
 
 bool ompl::geometric::RRTX::includeVertex(const Motion *x) const
 {
-    switch(variant_)
+    switch (variant_)
     {
         case 1:
-            return opt_->isCostBetterThan(mc_.alphaCostPlusHeuristic(x,alpha_),opt_->infiniteCost()); //Always true?
+            return opt_->isCostBetterThan(mc_.alphaCostPlusHeuristic(x, alpha_), opt_->infiniteCost());  // Always true?
         case 2:
-            return opt_->isCostBetterThan(mc_.alphaCostPlusHeuristic(x->parent,alpha_),bestCost_);
+            return opt_->isCostBetterThan(mc_.alphaCostPlusHeuristic(x->parent, alpha_), bestCost_);
         case 3:
-            return opt_->isCostBetterThan(mc_.alphaCostPlusHeuristic(x,alpha_),bestCost_);
-        default: // no rejection
+            return opt_->isCostBetterThan(mc_.alphaCostPlusHeuristic(x, alpha_), bestCost_);
+        default:  // no rejection
             return true;
     }
 }
@@ -639,7 +648,7 @@ void ompl::geometric::RRTX::freeMemory()
     {
         std::vector<Motion *> motions;
         nn_->list(motions);
-        for (std::size_t i = 0 ; i < motions.size() ; ++i)
+        for (std::size_t i = 0; i < motions.size(); ++i)
         {
             if (motions[i]->state)
                 si_->freeState(motions[i]->state);
@@ -659,7 +668,7 @@ void ompl::geometric::RRTX::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (std::size_t i = 0 ; i < motions.size() ; ++i)
+    for (std::size_t i = 0; i < motions.size(); ++i)
     {
         if (motions[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
@@ -685,7 +694,8 @@ void ompl::geometric::RRTX::setInformedSampling(bool informedSampling)
         OMPL_ERROR("%s: InformedSampling and SampleRejection are mutually exclusive options.", getName().c_str());
     }
 
-    // Check if we're changing the setting of informed sampling. If we are, we will need to create a new sampler, which we only want to do if one is already allocated.
+    // Check if we're changing the setting of informed sampling. If we are, we will need to create a new sampler, which
+    // we only want to do if one is already allocated.
     if (informedSampling != useInformedSampling_)
     {
         // Store the value
@@ -720,7 +730,8 @@ void ompl::geometric::RRTX::setSampleRejection(const bool reject)
         OMPL_ERROR("%s: InformedSampling and SampleRejection are mutually exclusive options.", getName().c_str());
     }
 
-    // Check if we're changing the setting of rejection sampling. If we are, we will need to create a new sampler, which we only want to do if one is already allocated.
+    // Check if we're changing the setting of rejection sampling. If we are, we will need to create a new sampler, which
+    // we only want to do if one is already allocated.
     if (reject != useRejectionSampling_)
     {
         // Store the setting
@@ -790,5 +801,7 @@ void ompl::geometric::RRTX::calculateRewiringLowerBounds()
     k_rrg_ = rewireFactor_ * (boost::math::constants::e<double>() + (boost::math::constants::e<double>() / dimDbl));
 
     // r_rrg > 2*(1+1/d)^(1/d)*(measure/ballvolume)^(1/d)
-    r_rrg_ = rewireFactor_ * 2.0 * std::pow((1.0 + 1.0/dimDbl) * (si_->getSpaceMeasure() / unitNBallMeasure(si_->getStateDimension())), 1.0 / dimDbl);
+    r_rrg_ = rewireFactor_ * 2.0 *
+             std::pow((1.0 + 1.0 / dimDbl) * (si_->getSpaceMeasure() / unitNBallMeasure(si_->getStateDimension())),
+                      1.0 / dimDbl);
 }

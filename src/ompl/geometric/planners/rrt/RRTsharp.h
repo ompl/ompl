@@ -51,12 +51,15 @@ namespace ompl
            but maintains an optimal tree, same as \ref gRRTX "RRTX" with a treshold 0.\n
            The parameters are the same as \ref gRRTX "RRTX" except for the paramtere epsilon.
            @par External documentation
-           -# M. Otte & E. Frazzoli - RRTX : Real-Time Motion Planning/Replanning for Environments with Unpredictable Obstacles,
+           -# M. Otte & E. Frazzoli - RRTX : Real-Time Motion Planning/Replanning for Environments with Unpredictable
+           Obstacles,
            Algorithmic Foundations of Robotics XI,
            Volume 107 of the series Springer Tracts in Advanced Robotics pp 461-478
-           -# O. Arslan, P. Tsiotras - The role of vertex consistency in sampling-based algorithms for optimal motion planning,
+           -# O. Arslan, P. Tsiotras - The role of vertex consistency in sampling-based algorithms for optimal motion
+           planning,
            http://arxiv.org/pdf/1204.6453
-           -# O. Arslan, P. Tsiotras - Dynamic programming guided exploration for sampling-based motion planning algorithms,
+           -# O. Arslan, P. Tsiotras - Dynamic programming guided exploration for sampling-based motion planning
+           algorithms,
            2015 IEEE International Conference on Robotics and Automation (ICRA), pp 4819-4826
         */
 
@@ -64,10 +67,10 @@ namespace ompl
         class RRTsharp : public RRTX
         {
         public:
-
             RRTsharp(const base::SpaceInformationPtr &si);
 
-            /** \brief Overwrite of RRTX setEpsilon. It does nothing but warn the user that this parameter cannot be changed */
+            /** \brief Overwrite of RRTX setEpsilon. It does nothing but warn the user that this parameter cannot be
+             * changed */
             void setEpsilon(double epsilon)
             {
                 OMPL_WARN("The parameter epsilon is 0 for the %s algorithm, it cannot be changed.", getName().c_str());

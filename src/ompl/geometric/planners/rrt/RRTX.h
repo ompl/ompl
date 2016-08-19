@@ -37,17 +37,17 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_RRT_RRTX_
 #define OMPL_GEOMETRIC_PLANNERS_RRT_RRTX_
 
-#include "ompl/geometric/planners/PlannerIncludes.h"
+#include <ompl/datastructures/BinaryHeap.h>
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
-#include <ompl/datastructures/BinaryHeap.h>
+#include "ompl/geometric/planners/PlannerIncludes.h"
 
-#include <limits>
-#include <vector>
-#include <queue>
 #include <deque>
-#include <utility>
+#include <limits>
 #include <list>
+#include <queue>
+#include <utility>
+#include <vector>
 
 namespace ompl
 {
@@ -57,7 +57,7 @@ namespace ompl
            @anchor gRRTX
            @par Short description
            \ref gRRTX "RRTX" is an asymptotically-optimal incremental
-           sampling-based motion planning algorithm. It differs from the \ref gRRTstar "RRT*" 
+           sampling-based motion planning algorithm. It differs from the \ref gRRTstar "RRT*"
            algorithm by maintaining a pseudo-optimal tree.\n
            When adding a new motion, any rewiring improving the cost by more than epsilon is done.
            While each iteration is more costly than one of \ref gRRTstar "RRT*", the convergence
@@ -70,21 +70,27 @@ namespace ompl
            - informed_sampling: direct sampling in the relevant region defined by the heuristic
            - sample_rejection: rejects sampled out of the relevant region defined by the heuristic
            - number_sampling_attempts: number of sampling attempts when using rejection sampling or informed sampling
-           - epsilon: the minimum threshold for cost improvement required to rewire the tree  
-           - update_children: Force propagation of cost to children even if it is less than the threshold epsilon. It improves convergence
+           - epsilon: the minimum threshold for cost improvement required to rewire the tree
+           - update_children: Force propagation of cost to children even if it is less than the threshold epsilon. It
+           improves convergence
              with minimal extra computation.
            - rejection_variant: Variants of the rejection of samples, 0: no rejection, 1-3: variants from reference (3)
-           - rejection_variant_alpha: Parameter alpha used for the rejection sampling, it allows to scale the non-admissible heuristic, see reference (3)
+           - rejection_variant_alpha: Parameter alpha used for the rejection sampling, it allows to scale the
+           non-admissible heuristic, see reference (3)
 
-           The queue is implemented only using a scalar (cost + heuristic) as a key for ordering. With random samples, the set {cost + heuristic = constant}
+           The queue is implemented only using a scalar (cost + heuristic) as a key for ordering. With random samples,
+           the set {cost + heuristic = constant}
            should be of measure 0, so a more complex key is not needed.
            @par External documentation
-           -# M. Otte & E. Frazzoli - RRTX : Real-Time Motion Planning/Replanning for Environments with Unpredictable Obstacles,
+           -# M. Otte & E. Frazzoli - RRTX : Real-Time Motion Planning/Replanning for Environments with Unpredictable
+           Obstacles,
            Algorithmic Foundations of Robotics XI,
            Volume 107 of the series Springer Tracts in Advanced Robotics pp 461-478
-           -# O. Arslan, P. Tsiotras - The role of vertex consistency in sampling-based algorithms for optimal motion planning,
+           -# O. Arslan, P. Tsiotras - The role of vertex consistency in sampling-based algorithms for optimal motion
+           planning,
            http://arxiv.org/pdf/1204.6453
-           -# O. Arslan, P. Tsiotras - Dynamic programming guided exploration for sampling-based motion planning algorithms,
+           -# O. Arslan, P. Tsiotras - Dynamic programming guided exploration for sampling-based motion planning
+           algorithms,
            2015 IEEE International Conference on Robotics and Automation (ICRA), pp 4819-4826
         */
 
@@ -152,12 +158,13 @@ namespace ompl
             /** \brief Get the number of attempts to make while performing rejection or informed sampling */
             unsigned int getNumSamplingAttempts() const
             {
-                return numSampleAttempts_ ;
+                return numSampleAttempts_;
             }
 
             /** \brief Set the threshold epsilon
 
-                While propagating information, the propagation is done only if the cost enhancement is at least epsilon */
+                While propagating information, the propagation is done only if the cost enhancement is at least epsilon
+               */
             virtual void setEpsilon(double epsilon)
             {
                 epsilonCost_ = base::Cost(epsilon);
@@ -185,21 +192,23 @@ namespace ompl
                 return maxDistance_;
             }
 
-            /** \brief Set the rewiring scale factor, s, such that r_rrg = s \times r_rrg* (or k_rrg = s \times k_rrg*) */
+            /** \brief Set the rewiring scale factor, s, such that r_rrg = s \times r_rrg* (or k_rrg = s \times k_rrg*)
+             */
             void setRewireFactor(double rewireFactor)
             {
                 rewireFactor_ = rewireFactor;
                 calculateRewiringLowerBounds();
             }
 
-            /** \brief Set the rewiring scale factor, s, such that r_rrg = s \times r_rrg* > r_rrg* (or k_rrg = s \times k_rrg* > k_rrg*) */
+            /** \brief Set the rewiring scale factor, s, such that r_rrg = s \times r_rrg* > r_rrg* (or k_rrg = s \times
+             * k_rrg* > k_rrg*) */
             double getRewireFactor() const
             {
                 return rewireFactor_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
-            template<template<typename T> class NN>
+            template <template <typename T> class NN>
             void setNearestNeighbors()
             {
                 nn_ = std::make_shared<NN<Motion *>>();
@@ -232,7 +241,7 @@ namespace ompl
             /** \brief Set variant used for rejection sampling */
             void setVariant(const int variant)
             {
-                if(variant < 0 || variant > 3)
+                if (variant < 0 || variant > 3)
                     throw Exception("Variant must be 0 (original RRT#) or in [1, 3]");
                 variant_ = variant;
             }
@@ -270,49 +279,47 @@ namespace ompl
 
             /** \brief Defines the operator to compare motions */
             struct MotionCompare
+            {
+                /** \brief Constructor */
+                MotionCompare(const base::OptimizationObjectivePtr &opt, const base::ProblemDefinitionPtr &pdef)
+                  : opt_(opt), pdef_(pdef)
                 {
-                    /** \brief Constructor */
-                    MotionCompare(const base::OptimizationObjectivePtr &opt, const base::ProblemDefinitionPtr & pdef) 
-                    : opt_(opt),pdef_(pdef) 
-                    {
-                    }
+                }
 
-                    /** \brief Combines the current cost of a motion and the heuritic to the goal */
-                    inline base::Cost costPlusHeuristic(const Motion *m) const
-                    { 
-                        return opt_->combineCosts(m->cost,opt_->costToGo(m->state, pdef_->getGoal().get()));
-                    }
+                /** \brief Combines the current cost of a motion and the heuritic to the goal */
+                inline base::Cost costPlusHeuristic(const Motion *m) const
+                {
+                    return opt_->combineCosts(m->cost, opt_->costToGo(m->state, pdef_->getGoal().get()));
+                }
 
-                    /** \brief Combines the current cost of a motion, weighted by alpha, and the heuritic to the goal */
-                    inline base::Cost alphaCostPlusHeuristic(const Motion *m,double alpha) const 
-                    { 
-                        return opt_->combineCosts(base::Cost(alpha * m->cost.value()),
-                                                  opt_->costToGo(m->state, pdef_->getGoal().get()));
-                    }
+                /** \brief Combines the current cost of a motion, weighted by alpha, and the heuritic to the goal */
+                inline base::Cost alphaCostPlusHeuristic(const Motion *m, double alpha) const
+                {
+                    return opt_->combineCosts(base::Cost(alpha * m->cost.value()),
+                                              opt_->costToGo(m->state, pdef_->getGoal().get()));
+                }
 
-                    /** \brief Ordering of motions */
-                    inline bool operator()(const Motion *m1, const Motion *m2) const 
-                    { 
-                        //we use a max heap, to do a min heap so the operator < returns > in order to make it a min heap
-                        return !opt_->isCostBetterThan(costPlusHeuristic(m1),costPlusHeuristic(m2));
-                    }
+                /** \brief Ordering of motions */
+                inline bool operator()(const Motion *m1, const Motion *m2) const
+                {
+                    // we use a max heap, to do a min heap so the operator < returns > in order to make it a min heap
+                    return !opt_->isCostBetterThan(costPlusHeuristic(m1), costPlusHeuristic(m2));
+                }
 
-                    /** \brief Pointer to the Optimization Objective */
-                    base::OptimizationObjectivePtr opt_;
+                /** \brief Pointer to the Optimization Objective */
+                base::OptimizationObjectivePtr opt_;
 
-                    /** \brief Pointer to the Problem Definition */
-                    base::ProblemDefinitionPtr pdef_;
-                };
+                /** \brief Pointer to the Problem Definition */
+                base::ProblemDefinitionPtr pdef_;
+            };
 
             /** \brief Representation of a motion (node of the tree) */
             class Motion
             {
             public:
-                /** \brief Constructor that allocates memory for the state. This constructor automatically allocates memory for \e state, \e cost, and \e incCost */
-                Motion(const base::SpaceInformationPtr &si) :
-                    state(si->allocState()),
-                    parent(nullptr),
-                    handle(nullptr)
+                /** \brief Constructor that allocates memory for the state. This constructor automatically allocates
+                 * memory for \e state, \e cost, and \e incCost */
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), handle(nullptr)
                 {
                 }
 
@@ -321,19 +328,20 @@ namespace ompl
                 }
 
                 /** \brief The state contained by the motion */
-                base::State       *state;
+                base::State *state;
 
                 /** \brief The parent motion in the exploration tree */
-                Motion            *parent;
+                Motion *parent;
 
                 /** \brief The cost up to this motion */
-                base::Cost        cost;
+                base::Cost cost;
 
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion *> children;
 
-                /** \brief The set of neighbors of this motion with a boolean indicating if the feasibility of edge as been tested */
-                std::vector<std::pair<Motion *,bool> > nbh;
+                /** \brief The set of neighbors of this motion with a boolean indicating if the feasibility of edge as
+                 * been tested */
+                std::vector<std::pair<Motion *, bool>> nbh;
 
                 /** \brief Handle to identify the motion in the queue */
                 BinaryHeap<Motion *, MotionCompare>::Element *handle;
@@ -373,81 +381,83 @@ namespace ompl
             bool includeVertex(const Motion *x) const;
 
             /** \brief State sampler */
-            base::StateSamplerPtr                          sampler_;
+            base::StateSamplerPtr sampler_;
 
             /** \brief An informed sampler */
-            base::InformedSamplerPtr                       infSampler_;
+            base::InformedSamplerPtr infSampler_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
             std::shared_ptr<NearestNeighbors<Motion *>> nn_;
 
-            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
-            double                                         goalBias_;
+            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
+             * available) */
+            double goalBias_;
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double                                         maxDistance_;
+            double maxDistance_;
 
             /** \brief The random number generator */
-            RNG                                            rng_;
+            RNG rng_;
 
             /** \brief Option to use k-nearest search for rewiring */
-            bool                                           useKNearest_;
+            bool useKNearest_;
 
-            /** \brief The rewiring factor, s, so that r_rrg = s \times r_rrg* > r_rrg* (or k_rrg = s \times k_rrg* > k_rrg*) */
-            double                                         rewireFactor_;
+            /** \brief The rewiring factor, s, so that r_rrg = s \times r_rrg* > r_rrg* (or k_rrg = s \times k_rrg* >
+             * k_rrg*) */
+            double rewireFactor_;
 
             /** \brief A constant for k-nearest rewiring calculations */
-            double                                         k_rrg_;
+            double k_rrg_;
             /** \brief A constant for r-disc rewiring calculations */
-            double                                         r_rrg_;
+            double r_rrg_;
 
             /** \brief Objective we're optimizing */
-            base::OptimizationObjectivePtr                 opt_;
+            base::OptimizationObjectivePtr opt_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion                                         *lastGoalMotion_;
+            Motion *lastGoalMotion_;
 
             /** \brief A list of states in the tree that satisfy the goal condition */
-            std::vector<Motion *>                           goalMotions_;
+            std::vector<Motion *> goalMotions_;
 
             /** \brief Best cost found so far by algorithm */
-            base::Cost                                     bestCost_;
+            base::Cost bestCost_;
 
             /** \brief Number of iterations the algorithm performed */
-            unsigned int                                   iterations_;
+            unsigned int iterations_;
 
             /** \brief Comparator of motions, used to order the queue */
-            MotionCompare                                   mc_;
+            MotionCompare mc_;
 
             /** \brief Queue to order the nodes to update */
-            BinaryHeap<Motion *, MotionCompare>             q_;
+            BinaryHeap<Motion *, MotionCompare> q_;
 
             /** \brief Threshold for the propagation of information */
-            base::Cost                                      epsilonCost_;
+            base::Cost epsilonCost_;
 
             /** \brief Whether or not to propagate the cost to children if the update is less than epsilon */
-            bool                                            updateChildren_;
+            bool updateChildren_;
 
             /** \brief Current value of the radius used for the neighbors */
-            double                                          rrg_r_;
+            double rrg_r_;
 
             /** \brief Current value of the number of neighbors used */
-            unsigned int                                    rrg_k_;
+            unsigned int rrg_k_;
 
             /** \brief Variant used for rejection sampling */
-            int                                             variant_;
+            int variant_;
 
             /** \brief Alpha parameter, scaling the rejection sampling tests */
-            double                                          alpha_;
+            double alpha_;
 
             /** \brief Option to use informed sampling */
-            bool                                            useInformedSampling_;
+            bool useInformedSampling_;
 
             /** \brief The status of the sample rejection parameter. */
-            bool                                            useRejectionSampling_;
+            bool useRejectionSampling_;
 
             /** \brief The number of attempts to make at informed sampling */
-            unsigned int                                    numSampleAttempts_;
+            unsigned int numSampleAttempts_;
 
             ///////////////////////////////////////
             // Planner progress property functions
