@@ -368,7 +368,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 for (std::vector<std::size_t>::const_iterator i = sortedCostIndices.begin();
                      i != sortedCostIndices.begin() + nbh.size(); ++i)
                 {
-                    if (nbh[*i] == nmotion || si_->checkMotion(nbh[*i]->state, motion->state))
+                    if (nbh[*i] == nmotion || ( ( !useKNearest_ || si_->distance(nbh[*i]->state, motion->state) < maxDistance_) 
+                        			&& si_->checkMotion(nbh[*i]->state, motion->state) ) )
                     {
                         motion->incCost = incCosts[*i];
                         motion->cost = costs[*i];
@@ -393,7 +394,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         costs[i] = opt_->combineCosts(nbh[i]->cost, incCosts[i]);
                         if (opt_->isCostBetterThan(costs[i], motion->cost))
                         {
-                            if (si_->checkMotion(nbh[i]->state, motion->state))
+                            if ((!useKNearest_ || si_->distance(nbh[i]->state, motion->state) < maxDistance_) 
+				&& si_->checkMotion(nbh[i]->state, motion->state) )
                             {
                                 motion->incCost = incCosts[i];
                                 motion->cost = costs[i];
@@ -450,7 +452,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         bool motionValid;
                         if (valid[i] == 0)
                         {
-                            motionValid = si_->checkMotion(motion->state, nbh[i]->state);
+                            motionValid = (!useKNearest_ || si_->distance(nbh[i]->state, motion->state) < maxDistance_)
+					  && si_->checkMotion(motion->state, nbh[i]->state) ;
                         }
                         else
                         {

@@ -27,3 +27,5 @@ tests/resources/config.h
 _symlinks.sh
 package.xml
 .dir-locals.el
+*~
+install-ompl-ubuntu.sh
