@@ -40,6 +40,7 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/geometric/PathSimplifier.h"
 
 #include <limits>
 #include <vector>
@@ -213,6 +214,24 @@ namespace ompl
             bool getInformedSampling() const
             {
                 return useInformedSampling_;
+            }
+
+            /** \ Use beacon sampling to bias samples towards the beacons */
+            void setBeaconSampling(bool beaconSampling);
+
+            /** \ Get the state of beacon sampling */
+            bool getBeaconSampling() const
+            {
+                return useBeaconSampling_;
+            }
+
+            /** \ Control the bias towards the beacons */
+            void setBiasingRatio(double biasingRatio);
+
+            /** \ Get the state of biasing ratio*/
+            double getBiasingRatio() const
+            {
+                return biasingRatio_;
             }
 
             /** \brief Controls whether heuristic rejection is used on samples (e.g., x_rand) */
@@ -453,6 +472,12 @@ namespace ompl
             /** \brief Option to use informed sampling */
             bool useInformedSampling_;
 
+            /** \brief Option to use beacon sampling */
+            bool useBeaconSampling_;
+
+            /** \brief The ratio of bias towards the beacons */
+            double biasingRatio_;
+
             /** \brief The status of the sample rejection parameter. */
             bool useRejectionSampling_;
 
@@ -480,6 +505,12 @@ namespace ompl
 
             /** \brief Number of iterations the algorithm performed */
             unsigned int iterations_;
+
+            /** \brief To access reduceVertices function to generate beacons */
+            PathSimplifierPtr psimp_;
+
+            /** \brief States used for beacon biasing */
+            std::vector<base::State *> beacons;
 
             ///////////////////////////////////////
             // Planner progress property functions

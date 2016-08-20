@@ -25,6 +25,7 @@ src/ompl/geometric/planners/rrt/RRTX.h
 src/ompl/geometric/planners/rrt/LBTRRT.h
 src/ompl/geometric/planners/rrt/LazyLBTRRT.h
 src/ompl/geometric/planners/rrt/InformedRRTstar.h
+src/ompl/geometric/planners/rrt/RRTstarsmart.h
 src/ompl/geometric/planners/bitstar/BITstar.h
 src/ompl/geometric/planners/bitstar/datastructures/Vertex.h
 src/ompl/geometric/planners/sbl/SBL.h
