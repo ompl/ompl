@@ -2,7 +2,7 @@
 
 This document provides a brief overview of OMPL coding standards. It is meant to assist developers who are contributing code to OMPL.
 
-*Note:* An automatic code formatter is available to automate enforceing the style guide, see below.
+\note An automatic code formatter is available to automate enforcing the style guide, see below.
 
 # Spacing
 
@@ -88,7 +88,7 @@ int SampleObject::NUM_INSTANCES = 0;
 
 # Automatic Code Formatting
 
-An automatic code formatter is available to automate enforceing the style guide, using [clang-format](http://clang.llvm.org/docs/ClangFormat.html). This set of tools can be used standalone via command line or with editor integrations.
+An automatic code formatter is available to automate enforcing the style guide, using [clang-format](http://clang.llvm.org/docs/ClangFormat.html). This set of tools can be used standalone via command line or with editor integrations.
 
 ## Setup
 

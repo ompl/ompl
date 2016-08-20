@@ -49,7 +49,7 @@ namespace ompl
            \ref gRRTsharp "RRT#" is an asymptotically-optimal incremental
            sampling-based motion planning algorithm. It is similar from  \ref gRRTX "RRTX"
            but maintains an optimal tree, same as \ref gRRTX "RRTX" with a treshold 0.\n
-           The parameters are the same as \ref gRRTX "RRTX" except for the paramtere epsilon.
+           The parameters are the same as \ref gRRTX "RRTX" except for the parameter epsilon.
            @par External documentation
            -# M. Otte & E. Frazzoli - RRTX : Real-Time Motion Planning/Replanning for Environments with Unpredictable
            Obstacles,
