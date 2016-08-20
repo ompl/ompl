@@ -125,7 +125,7 @@ void ompl::geometric::RRTX::setup()
             OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length for the allowed "
                         "planning time.",
                         getName().c_str());
-            opt_.reset(new base::PathLengthOptimizationObjective(si_));
+            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
 
             // Store the new objective in the problem def'n
             pdef_->setOptimizationObjective(opt_);
@@ -175,7 +175,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
         // There are, add them
         while (const base::State *st = pis_.nextStart())
         {
-            Motion *motion = new Motion(si_);
+            auto *motion = new Motion(si_);
             si_->copyState(motion->state, st);
             motion->cost = opt_->identityCost();
             nn_->add(motion);
@@ -214,7 +214,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
     double approximatedist = std::numeric_limits<double>::infinity();
     bool sufficientlyShort = false;
 
-    Motion *rmotion = new Motion(si_);
+    auto *rmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
     base::State *dstate;
@@ -295,7 +295,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
             getNeighbors(motion);
 
             // find which one we connect the new state to
-            for (std::vector<std::pair<Motion *, bool>>::iterator it = motion->nbh.begin(); it != motion->nbh.end();)
+            for (auto it = motion->nbh.begin(); it != motion->nbh.end();)
             {
                 nb = it->first;
                 feas = it->second;
@@ -337,8 +337,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
             }
 
             // Update neighbor motions neighbor datastructure
-            for (std::vector<std::pair<Motion *, bool>>::iterator it = motion->nbh.begin(); it != motion->nbh.end();
-                 ++it)
+            for (auto it = motion->nbh.begin(); it != motion->nbh.end(); ++it)
             {
                 it->first->nbh.push_back(std::make_pair(motion, it->second));
             }
@@ -376,7 +375,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
                     break;
 
                 // Try min as a parent to optimize each neighbor
-                for (std::vector<std::pair<Motion *, bool>>::iterator it = min->nbh.begin(); it != min->nbh.end();)
+                for (auto it = min->nbh.begin(); it != min->nbh.end();)
                 {
                     nb = it->first;
                     feas = it->second;
@@ -436,7 +435,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
                 if (updateChildren_)
                 {
                     // Propagatino of the cost to the children
-                    for (std::vector<Motion *>::iterator it = min->children.begin(), end = min->children.end();
+                    for (auto it = min->children.begin(), end = min->children.end();
                          it != end; ++it)
                     {
                         c = *it;
@@ -463,29 +462,29 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
             if (checkForSolution)
             {
                 bool updatedSolution = false;
-                for (size_t i = 0; i < goalMotions_.size(); ++i)
+                for (auto & goalMotion : goalMotions_)
                 {
-                    if (opt_->isCostBetterThan(goalMotions_[i]->cost, bestCost_))
+                    if (opt_->isCostBetterThan(goalMotion->cost, bestCost_))
                     {
                         if (opt_->isFinite(bestCost_) == false)
                         {
                             OMPL_INFORM("%s: Found an initial solution with a cost of %.2f in %u iterations (%u "
                                         "vertices in the graph)",
-                                        getName().c_str(), goalMotions_[i]->cost.value(), iterations_, nn_->size());
+                                        getName().c_str(), goalMotion->cost.value(), iterations_, nn_->size());
                         }
-                        bestCost_ = goalMotions_[i]->cost;
+                        bestCost_ = goalMotion->cost;
                         updatedSolution = true;
                     }
 
-                    sufficientlyShort = opt_->isSatisfied(goalMotions_[i]->cost);
+                    sufficientlyShort = opt_->isSatisfied(goalMotion->cost);
                     if (sufficientlyShort)
                     {
-                        solution = goalMotions_[i];
+                        solution = goalMotion;
                         break;
                     }
-                    else if (!solution || opt_->isCostBetterThan(goalMotions_[i]->cost, solution->cost))
+                    else if (!solution || opt_->isCostBetterThan(goalMotion->cost, solution->cost))
                     {
-                        solution = goalMotions_[i];
+                        solution = goalMotion;
                         updatedSolution = true;
                     }
                 }
@@ -542,11 +541,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
         }
 
         // set the solution path
-        PathGeometric *geoPath = new PathGeometric(si_);
+        auto path = std::make_shared<PathGeometric>(si_);
         for (int i = mpath.size() - 1; i >= 0; --i)
-            geoPath->append(mpath[i]->state);
+            path->append(mpath[i]->state);
 
-        base::PathPtr path(geoPath);
         // Add the solution path.
         base::PlannerSolution psol(path);
         psol.setPlannerName(getName());
@@ -586,7 +584,7 @@ void ompl::geometric::RRTX::updateQueue(Motion *x)
 
 void ompl::geometric::RRTX::removeFromParent(Motion *m)
 {
-    for (std::vector<Motion *>::iterator it = m->parent->children.begin(); it != m->parent->children.end(); ++it)
+    for (auto it = m->parent->children.begin(); it != m->parent->children.end(); ++it)
     {
         if (*it == m)
         {
@@ -648,11 +646,11 @@ void ompl::geometric::RRTX::freeMemory()
     {
         std::vector<Motion *> motions;
         nn_->list(motions);
-        for (std::size_t i = 0; i < motions.size(); ++i)
+        for (auto & motion : motions)
         {
-            if (motions[i]->state)
-                si_->freeState(motions[i]->state);
-            delete motions[i];
+            if (motion->state)
+                si_->freeState(motion->state);
+            delete motion;
         }
     }
 }
@@ -668,13 +666,13 @@ void ompl::geometric::RRTX::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (std::size_t i = 0; i < motions.size(); ++i)
+    for (auto & motion : motions)
     {
-        if (motions[i]->parent == nullptr)
-            data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
+        if (motion->parent == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(motion->state));
         else
-            data.addEdge(base::PlannerDataVertex(motions[i]->parent->state),
-                         base::PlannerDataVertex(motions[i]->state));
+            data.addEdge(base::PlannerDataVertex(motion->parent->state),
+                         base::PlannerDataVertex(motion->state));
     }
 }
 

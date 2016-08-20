@@ -48,11 +48,11 @@
 class ValidityChecker : public ompl::base::StateValidityChecker
 {
 public:
-    ValidityChecker(const ompl::base::SpaceInformationPtr &si) : ompl::base::StateValidityChecker(si.get())
+    ValidityChecker(const ompl::base::SpaceInformationPtr &si) : ompl::base::StateValidityChecker(si)
     {
     }
 
-    bool isValid(const ompl::base::State *state) const
+    bool isValid(const ompl::base::State *state) const override
     {
         const ompl::base::RealVectorStateSpace::StateType *state2D =
             state->as<ompl::base::RealVectorStateSpace::StateType>();
@@ -74,11 +74,12 @@ int main(int argc, char **argv)
     }
     int dim = atoi(argv[1]);
 
-    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(dim));
+    auto space(std::make_shared<ompl::base::RealVectorStateSpace>(dim));
     ompl::geometric::SimpleSetup ss(space);
-    space->as<ompl::base::RealVectorStateSpace>()->setBounds(-1, 1);
+    const ompl::base::SpaceInformationPtr &si = ss.getSpaceInformation();
+    space->setBounds(-1, 1);
 
-    ss.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new ValidityChecker(ss.getSpaceInformation())));
+    ss.setStateValidityChecker(std::make_shared<ValidityChecker>(si));
 
     ompl::base::ScopedState<> start(space), goal(space);
     for (int i = 0; i < dim; ++i)
@@ -97,58 +98,56 @@ int main(int argc, char **argv)
 
     double range = 0.1 * sqrt(dim);
 
-    ompl::base::OptimizationObjectivePtr lengthObj(
-        new ompl::base::PathLengthOptimizationObjective(ss.getSpaceInformation()));
-    ompl::base::OptimizationObjectivePtr oop;
-    oop = (0.5 / sqrt(dim)) * lengthObj;
+    auto lengthObj(std::make_shared<ompl::base::PathLengthOptimizationObjective>(si));
+    ompl::base::OptimizationObjectivePtr oop((0.5 / sqrt(dim)) * lengthObj);
 
     ss.setOptimizationObjective(oop);
 
     bool knn = true;
 
-    ompl::base::PlannerPtr rrtstar(new ompl::geometric::RRTstar(ss.getSpaceInformation()));
-    rrtstar->as<ompl::geometric::RRTstar>()->setName("RRT*");
-    rrtstar->as<ompl::geometric::RRTstar>()->setDelayCC(true);
-    // rrtstar->as<ompl::geometric::RRTstar>()->setFocusSearch(true);
-    rrtstar->as<ompl::geometric::RRTstar>()->setRange(range);
-    rrtstar->as<ompl::geometric::RRTstar>()->setKNearest(knn);
+    auto rrtstar(std::make_shared<ompl::geometric::RRTstar>(si));
+    rrtstar->setName("RRT*");
+    rrtstar->setDelayCC(true);
+    // rrtstar->setFocusSearch(true);
+    rrtstar->setRange(range);
+    rrtstar->setKNearest(knn);
     b.addPlanner(rrtstar);
-    ompl::base::PlannerPtr rrtsh(new ompl::geometric::RRTsharp(ss.getSpaceInformation()));
-    rrtsh->as<ompl::geometric::RRTsharp>()->setRange(range);
-    rrtsh->as<ompl::geometric::RRTsharp>()->setKNearest(knn);
+    auto rrtsh(std::make_shared<ompl::geometric::RRTsharp>(si));
+    rrtsh->setRange(range);
+    rrtsh->setKNearest(knn);
     b.addPlanner(rrtsh);
-    /*ompl::base::PlannerPtr rrtsh3(new ompl::geometric::RRTsharp(ss.getSpaceInformation()));
-    rrtsh3->as<ompl::geometric::RRTsharp>()->setName("RRT#v3");
-    rrtsh3->as<ompl::geometric::RRTsharp>()->setRange(range);
-    rrtsh3->as<ompl::geometric::RRTsharp>()->setKNearest(knn);
-    rrtsh3->as<ompl::geometric::RRTsharp>()->setVariant(3);
+    /*auto rrtsh3(std::make_shared<ompl::geometric::RRTsharp>(si));
+    rrtsh3->setName("RRT#v3");
+    rrtsh3->setRange(range);
+    rrtsh3->setKNearest(knn);
+    rrtsh3->setVariant(3);
     b.addPlanner(rrtsh3);
-    ompl::base::PlannerPtr rrtsh2(new ompl::geometric::RRTsharp(ss.getSpaceInformation()));
-    rrtsh2->as<ompl::geometric::RRTsharp>()->setName("RRT#v2");
-    rrtsh2->as<ompl::geometric::RRTsharp>()->setRange(range);
-    rrtsh2->as<ompl::geometric::RRTsharp>()->setKNearest(knn);
-    rrtsh2->as<ompl::geometric::RRTsharp>()->setVariant(2);
+    auto rrtsh2(std::make_shared<ompl::geometric::RRTsharp>(si));
+    rrtsh2->setName("RRT#v2");
+    rrtsh2->setRange(range);
+    rrtsh2->setKNearest(knn);
+    rrtsh2->setVariant(2);
     b.addPlanner(rrtsh2);*/
-    ompl::base::PlannerPtr rrtX1(new ompl::geometric::RRTX(ss.getSpaceInformation()));
-    rrtX1->as<ompl::geometric::RRTX>()->setName("RRTX0.1");
-    rrtX1->as<ompl::geometric::RRTX>()->setEpsilon(0.1);
-    rrtX1->as<ompl::geometric::RRTX>()->setRange(range);
-    // rrtX1->as<ompl::geometric::RRTX>()->setVariant(3);
-    rrtX1->as<ompl::geometric::RRTX>()->setKNearest(knn);
+    auto rrtX1(std::make_shared<ompl::geometric::RRTX>(si));
+    rrtX1->setName("RRTX0.1");
+    rrtX1->setEpsilon(0.1);
+    rrtX1->setRange(range);
+    // rrtX1->setVariant(3);
+    rrtX1->setKNearest(knn);
     b.addPlanner(rrtX1);
-    ompl::base::PlannerPtr rrtX2(new ompl::geometric::RRTX(ss.getSpaceInformation()));
-    rrtX2->as<ompl::geometric::RRTX>()->setName("RRTX0.01");
-    rrtX2->as<ompl::geometric::RRTX>()->setEpsilon(0.01);
-    rrtX2->as<ompl::geometric::RRTX>()->setRange(range);
-    // rrtX2->as<ompl::geometric::RRTX>()->setVariant(3);
-    rrtX2->as<ompl::geometric::RRTX>()->setKNearest(knn);
+    auto rrtX2(std::make_shared<ompl::geometric::RRTX>(si));
+    rrtX2->setName("RRTX0.01");
+    rrtX2->setEpsilon(0.01);
+    rrtX2->setRange(range);
+    // rrtX2->setVariant(3);
+    rrtX2->setKNearest(knn);
     b.addPlanner(rrtX2);
-    ompl::base::PlannerPtr rrtX3(new ompl::geometric::RRTX(ss.getSpaceInformation()));
-    rrtX3->as<ompl::geometric::RRTX>()->setName("RRTX0.001");
-    rrtX3->as<ompl::geometric::RRTX>()->setEpsilon(0.001);
-    rrtX3->as<ompl::geometric::RRTX>()->setRange(range);
-    // rrtX3->as<ompl::geometric::RRTX>()->setVariant(3);
-    rrtX3->as<ompl::geometric::RRTX>()->setKNearest(knn);
+    auto rrtX3(std::make_shared<ompl::geometric::RRTX>(si));
+    rrtX3->setName("RRTX0.001");
+    rrtX3->setEpsilon(0.001);
+    rrtX3->setRange(range);
+    // rrtX3->setVariant(3);
+    rrtX3->setKNearest(knn);
     b.addPlanner(rrtX3);
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("Diagonal.log")).c_str());
