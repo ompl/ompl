@@ -37,73 +37,25 @@
 // My definition:
 #include "ompl/geometric/planners/bitstar/datastructures/CostHelper.h"
 
+// BIT*:
+// The implicit graph:
+#include "ompl/geometric/planners/bitstar/datastructures/ImplicitGraph.h"
+
 namespace ompl
 {
     namespace geometric
     {
-        /////////////////////////////////////////////////////////////////////////////////////////////
-        // Public functions:
-        BITstar::CostHelper::CostHelper(ompl::base::OptimizationObjectivePtr opt,
-                                        std::shared_ptr<const VertexPtrList> startVertices,
-                                        std::shared_ptr<const VertexPtrList> goalVertices)
-          : opt_(std::move(opt)), startVerticesPtr_(std::move(startVertices)), goalVerticesPtr_(std::move(goalVertices))
+        void BITstar::CostHelper::setup(const ompl::base::OptimizationObjectivePtr &opt, const ImplicitGraphPtr &graph)
         {
+            opt_ = opt;
+            graphPtr_ = graph;
         }
 
-        //////////////////
-        // Heuristic helper functions
-        ompl::base::Cost BITstar::CostHelper::lowerBoundHeuristicVertex(const VertexConstPtr &vertex) const
+        /** \brief Clear the CostHelper, returns to state at construction*/
+        void BITstar::CostHelper::clear()
         {
-            return this->combineCosts(this->costToComeHeuristic(vertex), this->costToGoHeuristic(vertex));
-        }
-
-        ompl::base::Cost BITstar::CostHelper::currentHeuristicVertex(const VertexConstPtr &vertex) const
-        {
-            return this->combineCosts(vertex->getCost(), this->costToGoHeuristic(vertex));
-        }
-
-        ompl::base::Cost BITstar::CostHelper::lowerBoundHeuristicEdge(const VertexConstPtrPair &edgePair) const
-        {
-            return this->combineCosts(this->lowerBoundHeuristicTarget(edgePair),
-                                      this->costToGoHeuristic(edgePair.second));
-        }
-
-        ompl::base::Cost BITstar::CostHelper::currentHeuristicEdge(const VertexConstPtrPair &edgePair) const
-        {
-            return this->combineCosts(this->currentHeuristicTarget(edgePair), this->costToGoHeuristic(edgePair.second));
-        }
-
-        ompl::base::Cost BITstar::CostHelper::lowerBoundHeuristicTarget(const VertexConstPtrPair &edgePair) const
-        {
-            return this->combineCosts(this->costToComeHeuristic(edgePair.first), this->edgeCostHeuristic(edgePair));
-        }
-
-        ompl::base::Cost BITstar::CostHelper::currentHeuristicTarget(const VertexConstPtrPair &edgePair) const
-        {
-            return this->combineCosts(edgePair.first->getCost(), this->edgeCostHeuristic(edgePair));
-        }
-
-        ompl::base::Cost BITstar::CostHelper::costToComeHeuristic(const VertexConstPtr &vertex) const
-        {
-            // Variable
-            // The current best cost to the state, initialize to infinity
-            ompl::base::Cost curBest = this->infiniteCost();
-
-            // Iterate over the list of starts, finding the minimum estimated cost-to-come to the state
-            for (const auto &startVertex : *startVerticesPtr_)
-            {
-                // Update the cost-to-come as the better of the best so far and the new one
-                curBest = this->betterCost(curBest,
-                                           this->motionCostHeuristic(startVertex->stateConst(), vertex->stateConst()));
-            }
-
-            // Return
-            return curBest;
-        }
-
-        ompl::base::Cost BITstar::CostHelper::edgeCostHeuristic(const VertexConstPtrPair &edgePair) const
-        {
-            return this->motionCostHeuristic(edgePair.first->stateConst(), edgePair.second->stateConst());
+            opt_.reset();
+            graphPtr_.reset();
         }
 
         ompl::base::Cost BITstar::CostHelper::costToGoHeuristic(const VertexConstPtr &vertex) const
@@ -112,79 +64,36 @@ namespace ompl
             // The current best cost to a goal from the state, initialize to infinity
             ompl::base::Cost curBest = this->infiniteCost();
 
-            // Iterate over the list of goals, finding the minimum estimated cost-to-go from the state
-            for (const auto &goalVertex : *goalVerticesPtr_)
+            // Iterate over the vector of goals, finding the minimum estimated cost-to-go from the state
+            for (auto goalIter = graphPtr_->goalVerticesBeginConst(); goalIter != graphPtr_->goalVerticesEndConst();
+                 ++goalIter)
             {
                 // Update the cost-to-go as the better of the best so far and the new one
                 curBest = this->betterCost(curBest,
-                                           this->motionCostHeuristic(vertex->stateConst(), goalVertex->stateConst()));
+                                           this->motionCostHeuristic(vertex->stateConst(), (*goalIter)->stateConst()));
             }
 
             // Return
             return curBest;
         }
-        //////////////////
 
-        //////////////////
-        // Cost helper functions
-        bool BITstar::CostHelper::isCostWorseThan(const ompl::base::Cost &a, const ompl::base::Cost &b) const
+        ompl::base::Cost BITstar::CostHelper::costToComeHeuristic(const VertexConstPtr &vertex) const
         {
-            // If b is better than a, then a is worse than b
-            return this->isCostBetterThan(b, a);
-        }
+            // Variable
+            // The current best cost to the state, initialize to infinity
+            ompl::base::Cost curBest = this->infiniteCost();
 
-        bool BITstar::CostHelper::isCostNotEquivalentTo(const ompl::base::Cost &a, const ompl::base::Cost &b) const
-        {
-            // If a is better than b, or b is better than a, then they are not equal
-            return this->isCostBetterThan(a, b) || this->isCostBetterThan(b, a);
-        }
-
-        bool BITstar::CostHelper::isCostBetterThanOrEquivalentTo(const ompl::base::Cost &a,
-                                                                 const ompl::base::Cost &b) const
-        {
-            // If b is not better than a, then a is better than, or equal to, b
-            return !this->isCostBetterThan(b, a);
-        }
-
-        bool BITstar::CostHelper::isCostWorseThanOrEquivalentTo(const ompl::base::Cost &a,
-                                                                const ompl::base::Cost &b) const
-        {
-            // If a is not better than b, than a is worse than, or equal to, b
-            return !this->isCostBetterThan(a, b);
-        }
-
-        ompl::base::Cost BITstar::CostHelper::combineCosts(const ompl::base::Cost &a, const ompl::base::Cost &b,
-                                                           const ompl::base::Cost &c) const
-        {
-            return this->combineCosts(a, this->combineCosts(b, c));
-        }
-
-        ompl::base::Cost BITstar::CostHelper::combineCosts(const ompl::base::Cost &a, const ompl::base::Cost &b,
-                                                           const ompl::base::Cost &c, const ompl::base::Cost &d) const
-        {
-            return this->combineCosts(a, this->combineCosts(b, c, d));
-        }
-
-        double BITstar::CostHelper::fractionalChange(const ompl::base::Cost &newCost,
-                                                     const ompl::base::Cost &oldCost) const
-        {
-            return this->fractionalChange(newCost, oldCost, oldCost);
-        }
-
-        double BITstar::CostHelper::fractionalChange(const ompl::base::Cost &newCost, const ompl::base::Cost &oldCost,
-                                                     const ompl::base::Cost &refCost) const
-        {
-            // If the old cost is not finite, than we call that infinite percent improvement
-            if (this->isFinite(oldCost) == false)
+            // Iterate over the vector of starts, finding the minimum estimated cost-to-come to the state
+            for (auto startIter = graphPtr_->startVerticesBeginConst(); startIter != graphPtr_->startVerticesEndConst();
+                 ++startIter)
             {
-                // Return infinity (but not beyond)
-                return std::numeric_limits<double>::infinity();
+                // Update the cost-to-come as the better of the best so far and the new one
+                curBest = this->betterCost(curBest,
+                                           this->motionCostHeuristic((*startIter)->stateConst(), vertex->stateConst()));
             }
-            else
-            {
-                // Calculate and return
-                return (newCost.value() - oldCost.value()) / refCost.value();
-            }
+
+            // Return
+            return curBest;
         }
     }  // geometric
 }  // ompl

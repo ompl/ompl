@@ -30,7 +30,8 @@ src/ompl/geometric/planners/bitstar/BITstar.h
 src/ompl/geometric/planners/bitstar/datastructures/IdGenerator.h
 src/ompl/geometric/planners/bitstar/datastructures/Vertex.h
 src/ompl/geometric/planners/bitstar/datastructures/CostHelper.h
-src/ompl/geometric/planners/bitstar/datastructures/IntegratedQueue.h
+src/ompl/geometric/planners/bitstar/datastructures/ImplicitGraph.h
+src/ompl/geometric/planners/bitstar/datastructures/SearchQueue.h
 src/ompl/geometric/planners/sbl/SBL.h
 src/ompl/geometric/planners/stride/STRIDE.h
 src/ompl/geometric/planners/fmt/FMT.h
