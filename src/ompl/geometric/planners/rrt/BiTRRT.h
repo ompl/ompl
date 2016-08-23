@@ -170,8 +170,10 @@ namespace ompl
             template <template <typename T> class NN>
             void setNearestNeighbors()
             {
+				clear();
                 tStart_ = std::make_shared<NN<Motion *>>();
                 tGoal_ = std::make_shared<NN<Motion *>>();
+				setup();
             }
 
         protected:

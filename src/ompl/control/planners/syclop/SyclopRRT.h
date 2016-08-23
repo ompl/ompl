@@ -86,8 +86,10 @@ namespace ompl
             template <template <typename T> class NN>
             void setNearestNeighbors()
             {
+				clear();
                 regionalNN_ = false;
                 nn_ = std::make_shared<NN<Motion *>>();
+				setup();
             }
 
         protected:
