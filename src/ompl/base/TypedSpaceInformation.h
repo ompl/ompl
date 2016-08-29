@@ -51,13 +51,13 @@ namespace ompl
             /*--- Type Definitions ---*/
 
             /** The actual type of the state space */
-            using SpaceType_ = SpaceType_;
+            using SpaceType = SpaceType_;
 
             /** The actual type of states in the space. */
             using StateType = typename SpaceType::StateType;
 
             /** The actual type for a Scoped State. */
-            using ScopedState = ScopedState<SpaceType>;
+            using ScopedStateType = ScopedState<SpaceType>;
 
             /** Shared Pointer to the actual type of the space. */
             using SpacePtr = std::shared_ptr<SpaceType>;
