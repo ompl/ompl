@@ -36,7 +36,7 @@
 
 #include "ompl/geometric/planners/rrt/RRTsharp.h"
 
-ompl::geometric::RRTsharp::RRTsharp(const base::SpaceInformationPtr &si) : RRTX(si)
+ompl::geometric::RRTsharp::RRTsharp(const base::SpaceInformationPtr &si) : RRTXstatic(si)
 {
     setName("RRT#");
     params().remove("epsilon");

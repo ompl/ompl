@@ -34,7 +34,7 @@
 
 /* Author: Florian Hauer */
 
-#include "ompl/geometric/planners/rrt/RRTX.h"
+#include "ompl/geometric/planners/rrt/RRTXstatic.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
@@ -47,8 +47,8 @@
 #include <limits>
 #include <boost/math/constants/constants.hpp>
 
-ompl::geometric::RRTX::RRTX(const base::SpaceInformationPtr &si) :
-    base::Planner(si, "RRTX"),
+ompl::geometric::RRTXstatic::RRTXstatic(const base::SpaceInformationPtr &si) :
+    base::Planner(si, "RRTXstatic"),
     goalBias_(0.05),
     maxDistance_(0.0),
     useKNearest_(true),
@@ -72,17 +72,17 @@ ompl::geometric::RRTX::RRTX(const base::SpaceInformationPtr &si) :
     specs_.optimizingPaths = true;
     specs_.canReportIntermediateSolutions = true;
 
-    Planner::declareParam<double>("range", this, &RRTX::setRange, &RRTX::getRange, "0.:1.:10000.");
-    Planner::declareParam<double>("goal_bias", this, &RRTX::setGoalBias, &RRTX::getGoalBias, "0.:.05:1.");
-    Planner::declareParam<double>("epsilon", this, &RRTX::setEpsilon, &RRTX::getEpsilon, "0.:.01:10.");
-    Planner::declareParam<double>("rewire_factor", this, &RRTX::setRewireFactor, &RRTX::getRewireFactor, "1.0:0.01:2.0");
-    Planner::declareParam<bool>("use_k_nearest", this, &RRTX::setKNearest, &RRTX::getKNearest, "0,1");
-    Planner::declareParam<bool>("update_children", this, &RRTX::setUpdateChildren, &RRTX::getUpdateChildren, "0,1");
-    Planner::declareParam<int>("rejection_variant", this, &RRTX::setVariant, &RRTX::getVariant, "0:3");
-    Planner::declareParam<double>("rejection_variant_alpha", this, &RRTX::setAlpha, &RRTX::getAlpha, "0.:1.");
-    Planner::declareParam<bool>("informed_sampling", this, &RRTX::setInformedSampling, &RRTX::getInformedSampling, "0,1");
-    Planner::declareParam<bool>("sample_rejection", this, &RRTX::setSampleRejection, &RRTX::getSampleRejection, "0,1");
-    Planner::declareParam<bool>("number_sampling_attempts", this, &RRTX::setNumSamplingAttempts, &RRTX::getNumSamplingAttempts, "10:10:100000");
+    Planner::declareParam<double>("range", this, &RRTXstatic::setRange, &RRTXstatic::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &RRTXstatic::setGoalBias, &RRTXstatic::getGoalBias, "0.:.05:1.");
+    Planner::declareParam<double>("epsilon", this, &RRTXstatic::setEpsilon, &RRTXstatic::getEpsilon, "0.:.01:10.");
+    Planner::declareParam<double>("rewire_factor", this, &RRTXstatic::setRewireFactor, &RRTXstatic::getRewireFactor, "1.0:0.01:2.0");
+    Planner::declareParam<bool>("use_k_nearest", this, &RRTXstatic::setKNearest, &RRTXstatic::getKNearest, "0,1");
+    Planner::declareParam<bool>("update_children", this, &RRTXstatic::setUpdateChildren, &RRTXstatic::getUpdateChildren, "0,1");
+    Planner::declareParam<int>("rejection_variant", this, &RRTXstatic::setVariant, &RRTXstatic::getVariant, "0:3");
+    Planner::declareParam<double>("rejection_variant_alpha", this, &RRTXstatic::setAlpha, &RRTXstatic::getAlpha, "0.:1.");
+    Planner::declareParam<bool>("informed_sampling", this, &RRTXstatic::setInformedSampling, &RRTXstatic::getInformedSampling, "0,1");
+    Planner::declareParam<bool>("sample_rejection", this, &RRTXstatic::setSampleRejection, &RRTXstatic::getSampleRejection, "0,1");
+    Planner::declareParam<bool>("number_sampling_attempts", this, &RRTXstatic::setNumSamplingAttempts, &RRTXstatic::getNumSamplingAttempts, "10:10:100000");
 
     addPlannerProgressProperty("iterations INTEGER", [this]
                                {
@@ -98,12 +98,12 @@ ompl::geometric::RRTX::RRTX(const base::SpaceInformationPtr &si) :
                                });
 }
 
-ompl::geometric::RRTX::~RRTX()
+ompl::geometric::RRTXstatic::~RRTXstatic()
 {
     freeMemory();
 }
 
-void ompl::geometric::RRTX::setup()
+void ompl::geometric::RRTXstatic::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -153,7 +153,7 @@ void ompl::geometric::RRTX::setup()
     bestCost_ = opt_->infiniteCost();
 }
 
-void ompl::geometric::RRTX::clear()
+void ompl::geometric::RRTXstatic::clear()
 {
     setup_ = false;
     Planner::clear();
@@ -170,7 +170,7 @@ void ompl::geometric::RRTX::clear()
     bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
 }
 
-ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::RRTXstatic::solve(const base::PlannerTerminationCondition &ptc)
 {   
     checkValidity();
     base::Goal                  *goal   = pdef_->getGoal().get();
@@ -561,7 +561,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTX::solve(const base::PlannerTermin
     return base::PlannerStatus(addedSolution, approximate);
 }
 
-void ompl::geometric::RRTX::updateQueue(Motion *x)
+void ompl::geometric::RRTXstatic::updateQueue(Motion *x)
 {
     // If x->handle is not NULL, x is already in the queue and needs to be update, otherwise it is inserted
     if(x->handle != nullptr)
@@ -574,7 +574,7 @@ void ompl::geometric::RRTX::updateQueue(Motion *x)
     }
 }
 
-void ompl::geometric::RRTX::removeFromParent(Motion *m)
+void ompl::geometric::RRTXstatic::removeFromParent(Motion *m)
 {
     for (std::vector<Motion *>::iterator it = m->parent->children.begin ();
         it != m->parent->children.end (); ++it)
@@ -587,14 +587,14 @@ void ompl::geometric::RRTX::removeFromParent(Motion *m)
     }
 }
 
-void ompl::geometric::RRTX::calculateRRG()
+void ompl::geometric::RRTXstatic::calculateRRG()
 {
     double cardDbl = static_cast<double>(nn_->size() + 1u);
     rrg_k_ = std::ceil(k_rrg_ * log(cardDbl));
     rrg_r_ = std::min(maxDistance_, r_rrg_ * std::pow(log(cardDbl) / cardDbl, 1 / static_cast<double>(si_->getStateDimension())));
 }
 
-void ompl::geometric::RRTX::getNeighbors(Motion *motion) const
+void ompl::geometric::RRTXstatic::getNeighbors(Motion *motion) const
 {
     if(motion->nbh.size()>0){
         return;
@@ -618,7 +618,7 @@ void ompl::geometric::RRTX::getNeighbors(Motion *motion) const
                   });
 }
 
-bool ompl::geometric::RRTX::includeVertex(const Motion *x) const
+bool ompl::geometric::RRTXstatic::includeVertex(const Motion *x) const
 {
     switch(variant_)
     {
@@ -633,7 +633,7 @@ bool ompl::geometric::RRTX::includeVertex(const Motion *x) const
     }
 }
 
-void ompl::geometric::RRTX::freeMemory()
+void ompl::geometric::RRTXstatic::freeMemory()
 {
     if (nn_)
     {
@@ -648,7 +648,7 @@ void ompl::geometric::RRTX::freeMemory()
     }
 }
 
-void ompl::geometric::RRTX::getPlannerData(base::PlannerData &data) const
+void ompl::geometric::RRTXstatic::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
@@ -669,7 +669,7 @@ void ompl::geometric::RRTX::getPlannerData(base::PlannerData &data) const
     }
 }
 
-void ompl::geometric::RRTX::setInformedSampling(bool informedSampling)
+void ompl::geometric::RRTXstatic::setInformedSampling(bool informedSampling)
 {
     if (static_cast<bool>(opt_) == true)
     {
@@ -704,7 +704,7 @@ void ompl::geometric::RRTX::setInformedSampling(bool informedSampling)
     }
 }
 
-void ompl::geometric::RRTX::setSampleRejection(const bool reject)
+void ompl::geometric::RRTXstatic::setSampleRejection(const bool reject)
 {
     if (static_cast<bool>(opt_) == true)
     {
@@ -739,7 +739,7 @@ void ompl::geometric::RRTX::setSampleRejection(const bool reject)
     }
 }
 
-void ompl::geometric::RRTX::allocSampler()
+void ompl::geometric::RRTXstatic::allocSampler()
 {
     // Allocate the appropriate type of sampler.
     if (useInformedSampling_)
@@ -761,7 +761,7 @@ void ompl::geometric::RRTX::allocSampler()
     }
 }
 
-bool ompl::geometric::RRTX::sampleUniform(base::State *statePtr)
+bool ompl::geometric::RRTXstatic::sampleUniform(base::State *statePtr)
 {
     // Use the appropriate sampler
     if (useInformedSampling_ || useRejectionSampling_)
@@ -782,7 +782,7 @@ bool ompl::geometric::RRTX::sampleUniform(base::State *statePtr)
     }
 }
 
-void ompl::geometric::RRTX::calculateRewiringLowerBounds()
+void ompl::geometric::RRTXstatic::calculateRewiringLowerBounds()
 {
     double dimDbl = static_cast<double>(si_->getStateDimension());
 
