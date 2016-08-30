@@ -36,7 +36,7 @@
 
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
-#include <ompl/geometric/planners/rrt/RRTX.h>
+#include <ompl/geometric/planners/rrt/RRTXstatic.h>
 #include <ompl/geometric/planners/rrt/RRTsharp.h>
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
@@ -128,27 +128,27 @@ int main(int argc, char **argv)
     rrtsh2->as<ompl::geometric::RRTsharp>()->setKNearest(knn);
     rrtsh2->as<ompl::geometric::RRTsharp>()->setVariant(2);
     b.addPlanner(rrtsh2);*/
-    ompl::base::PlannerPtr rrtX1(new ompl::geometric::RRTX(ss.getSpaceInformation()));
-    rrtX1->as<ompl::geometric::RRTX>()->setName("RRTX0.1");
-    rrtX1->as<ompl::geometric::RRTX>()->setEpsilon(0.1);
-    rrtX1->as<ompl::geometric::RRTX>()->setRange(range);
-    //rrtX1->as<ompl::geometric::RRTX>()->setVariant(3);
-    rrtX1->as<ompl::geometric::RRTX>()->setKNearest(knn);
-    b.addPlanner(rrtX1);
-    ompl::base::PlannerPtr rrtX2(new ompl::geometric::RRTX(ss.getSpaceInformation()));
-    rrtX2->as<ompl::geometric::RRTX>()->setName("RRTX0.01");
-    rrtX2->as<ompl::geometric::RRTX>()->setEpsilon(0.01);
-    rrtX2->as<ompl::geometric::RRTX>()->setRange(range);
-    //rrtX2->as<ompl::geometric::RRTX>()->setVariant(3);
-    rrtX2->as<ompl::geometric::RRTX>()->setKNearest(knn);
-    b.addPlanner(rrtX2);
-    ompl::base::PlannerPtr rrtX3(new ompl::geometric::RRTX(ss.getSpaceInformation()));
-    rrtX3->as<ompl::geometric::RRTX>()->setName("RRTX0.001");
-    rrtX3->as<ompl::geometric::RRTX>()->setEpsilon(0.001);
-    rrtX3->as<ompl::geometric::RRTX>()->setRange(range);
-    //rrtX3->as<ompl::geometric::RRTX>()->setVariant(3);
-    rrtX3->as<ompl::geometric::RRTX>()->setKNearest(knn);
-    b.addPlanner(rrtX3);
+    ompl::base::PlannerPtr RRTXstatic1(new ompl::geometric::RRTXstatic(ss.getSpaceInformation()));
+    RRTXstatic1->as<ompl::geometric::RRTXstatic>()->setName("RRTXstatic0.1");
+    RRTXstatic1->as<ompl::geometric::RRTXstatic>()->setEpsilon(0.1);
+    RRTXstatic1->as<ompl::geometric::RRTXstatic>()->setRange(range);
+    //RRTXstatic1->as<ompl::geometric::RRTXstatic>()->setVariant(3);
+    RRTXstatic1->as<ompl::geometric::RRTXstatic>()->setKNearest(knn);
+    b.addPlanner(RRTXstatic1);
+    ompl::base::PlannerPtr RRTXstatic2(new ompl::geometric::RRTXstatic(ss.getSpaceInformation()));
+    RRTXstatic2->as<ompl::geometric::RRTXstatic>()->setName("RRTXstatic0.01");
+    RRTXstatic2->as<ompl::geometric::RRTXstatic>()->setEpsilon(0.01);
+    RRTXstatic2->as<ompl::geometric::RRTXstatic>()->setRange(range);
+    //RRTXstatic2->as<ompl::geometric::RRTXstatic>()->setVariant(3);
+    RRTXstatic2->as<ompl::geometric::RRTXstatic>()->setKNearest(knn);
+    b.addPlanner(RRTXstatic2);
+    ompl::base::PlannerPtr RRTXstatic3(new ompl::geometric::RRTXstatic(ss.getSpaceInformation()));
+    RRTXstatic3->as<ompl::geometric::RRTXstatic>()->setName("RRTXstatic0.001");
+    RRTXstatic3->as<ompl::geometric::RRTXstatic>()->setEpsilon(0.001);
+    RRTXstatic3->as<ompl::geometric::RRTXstatic>()->setRange(range);
+    //RRTXstatic3->as<ompl::geometric::RRTXstatic>()->setVariant(3);
+    RRTXstatic3->as<ompl::geometric::RRTXstatic>()->setKNearest(knn);
+    b.addPlanner(RRTXstatic3);
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("Diagonal.log")).c_str());
 
