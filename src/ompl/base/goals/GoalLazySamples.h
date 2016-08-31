@@ -158,6 +158,8 @@ namespace ompl
 
             void clear() override;
 
+            unsigned int maxSampleCount() const override;
+
         protected:
             /** \brief The function that samples goals by calling \e samplerFunc_ in a separate thread */
             void goalSamplingThread();

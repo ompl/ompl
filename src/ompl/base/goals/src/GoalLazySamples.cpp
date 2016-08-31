@@ -61,6 +61,7 @@ ompl::base::GoalLazySamples::~GoalLazySamples()
 
 void ompl::base::GoalLazySamples::startSampling()
 {
+    std::lock_guard<std::mutex> slock(lock_);
     if (samplingThread_ == nullptr)
     {
         OMPL_DEBUG("Starting goal sampling thread");
@@ -71,16 +72,17 @@ void ompl::base::GoalLazySamples::startSampling()
 
 void ompl::base::GoalLazySamples::stopSampling()
 {
-    if (isSampling())
+    /* Set termination flag */
     {
-        OMPL_DEBUG("Attempting to stop goal sampling thread...");
-        terminateSamplingThread_ = true;
-        samplingThread_->join();
-        delete samplingThread_;
-        samplingThread_ = nullptr;
+        std::lock_guard<std::mutex> slock(lock_);
+        if( !terminateSamplingThread_ ) {
+            OMPL_DEBUG("Attempting to stop goal sampling thread...");
+            terminateSamplingThread_ = true;
+        }
     }
-    else if (samplingThread_)
-    {  // join a finished thread
+
+    /* Join thread */
+    if( samplingThread_ ) {
         samplingThread_->join();
         delete samplingThread_;
         samplingThread_ = nullptr;
@@ -89,7 +91,13 @@ void ompl::base::GoalLazySamples::stopSampling()
 
 void ompl::base::GoalLazySamples::goalSamplingThread()
 {
-    if (!si_->isSetup())
+    {
+        /* Wait for startSampling() to finish assignment
+         * samplingThread_ */
+        std::lock_guard<std::mutex> slock(lock_);
+    }
+
+    if (!si_->isSetup()) // this looks racy
     {
         OMPL_DEBUG("Waiting for space information to be set up before the sampling thread can begin computation...");
         // wait for everything to be set up before performing computation
@@ -97,27 +105,36 @@ void ompl::base::GoalLazySamples::goalSamplingThread()
             std::this_thread::sleep_for(time::seconds(0.01));
     }
     unsigned int prevsa = samplingAttempts_;
-    if (!terminateSamplingThread_ && samplerFunc_)
+    if (isSampling() && samplerFunc_)
     {
         OMPL_DEBUG("Beginning sampling thread computation");
         ScopedState<> s(si_);
-        while (!terminateSamplingThread_ && samplerFunc_(this, s.get()))
+        while (isSampling() && samplerFunc_(this, s.get()))
         {
             ++samplingAttempts_;
-            if (si_->satisfiesBounds(s.get()) && si_->isValid(s.get()))
+            if (si_->satisfiesBounds(s.get()) && si_->isValid(s.get())) {
+                OMPL_DEBUG("Adding goal state");
                 addStateIfDifferent(s.get(), minDist_);
+            } else {
+                OMPL_DEBUG("Invalid goal candidate");
+            }
         }
     }
     else
         OMPL_WARN("Goal sampling thread never did any work.%s",
                   samplerFunc_ ? (si_->isSetup() ? "" : " Space information not set up.") : " No sampling function "
                                                                                             "set.");
-    terminateSamplingThread_ = true;
+    {
+        std::lock_guard<std::mutex> slock(lock_);
+        terminateSamplingThread_ = true;
+    }
+
     OMPL_DEBUG("Stopped goal sampling thread after %u sampling attempts", samplingAttempts_ - prevsa);
 }
 
 bool ompl::base::GoalLazySamples::isSampling() const
 {
+    std::lock_guard<std::mutex> slock(lock_);
     return terminateSamplingThread_ == false && samplingThread_ != nullptr;
 }
 
@@ -171,6 +188,12 @@ std::size_t ompl::base::GoalLazySamples::getStateCount() const
 {
     std::lock_guard<std::mutex> slock(lock_);
     return GoalStates::getStateCount();
+}
+
+unsigned int ompl::base::GoalLazySamples::maxSampleCount() const
+{
+    std::lock_guard<std::mutex> slock(lock_);
+    return GoalStates::maxSampleCount();
 }
 
 bool ompl::base::GoalLazySamples::addStateIfDifferent(const State *st, double minDistance)
