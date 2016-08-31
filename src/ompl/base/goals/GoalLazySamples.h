@@ -37,11 +37,11 @@
 #ifndef OMPL_BASE_GOALS_GOAL_LAZY_SAMPLES_
 #define OMPL_BASE_GOALS_GOAL_LAZY_SAMPLES_
 
-#include "ompl/base/goals/GoalStates.h"
-#include <thread>
-#include <mutex>
 #include <functional>
 #include <limits>
+#include <mutex>
+#include <thread>
+#include "ompl/base/goals/GoalStates.h"
 
 namespace ompl
 {

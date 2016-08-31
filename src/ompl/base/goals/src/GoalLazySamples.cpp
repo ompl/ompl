@@ -36,8 +36,8 @@
 
 #include <utility>
 
-#include "ompl/base/goals/GoalLazySamples.h"
 #include "ompl/base/ScopedState.h"
+#include "ompl/base/goals/GoalLazySamples.h"
 #include "ompl/util/Time.h"
 
 ompl::base::GoalLazySamples::GoalLazySamples(const SpaceInformationPtr &si, GoalSamplingFn samplerFunc, bool autoStart,
@@ -75,14 +75,16 @@ void ompl::base::GoalLazySamples::stopSampling()
     /* Set termination flag */
     {
         std::lock_guard<std::mutex> slock(lock_);
-        if( !terminateSamplingThread_ ) {
+        if (!terminateSamplingThread_)
+        {
             OMPL_DEBUG("Attempting to stop goal sampling thread...");
             terminateSamplingThread_ = true;
         }
     }
 
     /* Join thread */
-    if( samplingThread_ ) {
+    if (samplingThread_)
+    {
         samplingThread_->join();
         delete samplingThread_;
         samplingThread_ = nullptr;
@@ -97,7 +99,7 @@ void ompl::base::GoalLazySamples::goalSamplingThread()
         std::lock_guard<std::mutex> slock(lock_);
     }
 
-    if (!si_->isSetup()) // this looks racy
+    if (!si_->isSetup())  // this looks racy
     {
         OMPL_DEBUG("Waiting for space information to be set up before the sampling thread can begin computation...");
         // wait for everything to be set up before performing computation
@@ -112,10 +114,13 @@ void ompl::base::GoalLazySamples::goalSamplingThread()
         while (isSampling() && samplerFunc_(this, s.get()))
         {
             ++samplingAttempts_;
-            if (si_->satisfiesBounds(s.get()) && si_->isValid(s.get())) {
+            if (si_->satisfiesBounds(s.get()) && si_->isValid(s.get()))
+            {
                 OMPL_DEBUG("Adding goal state");
                 addStateIfDifferent(s.get(), minDist_);
-            } else {
+            }
+            else
+            {
                 OMPL_DEBUG("Invalid goal candidate");
             }
         }
