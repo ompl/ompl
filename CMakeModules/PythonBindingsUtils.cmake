@@ -58,7 +58,7 @@ function(create_module_code_generation_target module)
     # target for regenerating code. Cmake is run so that the list of
     # sources for the py_ompl_${module} target (see below) is updated.
     add_custom_target(update_${module}_bindings
-        COMMAND time ${PYTHON_EXEC}
+        COMMAND ${PYTHON_EXEC}
         "${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
         "2>&1" | tee "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log"
         COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}
