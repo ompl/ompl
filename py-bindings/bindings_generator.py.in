@@ -119,7 +119,8 @@ class code_generator_t(object):
         xml_generator_config = parser.load_xml_generator_configuration("@CASTXMLCONFIGPATH@")
         self.mb = module_builder.module_builder_t(
             files = [ 'bindings/' + name + '.h' ],
-            cache = '@CMAKE_BINARY_DIR@/pyplusplus_'+name+'.cache',
+            # cache is not used with compilation_mode = parser.COMPILATION_MODE.ALL_AT_ONCE
+            #cache = '@CMAKE_BINARY_DIR@/pyplusplus_'+name+'.cache',
             xml_generator_config = xml_generator_config,
             start_with_declarations = ['ompl::' + name],
             compilation_mode = parser.COMPILATION_MODE.ALL_AT_ONCE,
