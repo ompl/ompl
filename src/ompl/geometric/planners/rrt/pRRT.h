@@ -126,7 +126,9 @@ namespace ompl
             template <template <typename T> class NN>
             void setNearestNeighbors()
             {
+				clear();
                 nn_ = std::make_shared<NN<Motion *>>();
+				setup();
             }
 
             void setup() override;
