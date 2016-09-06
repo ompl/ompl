@@ -92,10 +92,12 @@ namespace ompl
             template <template <typename T> class NN>
             void setNearestNeighbors()
             {
-				clear();
+                if ((tStart_ && tStart_->size() != 0) || (tGoal_ && tGoal_->size() != 0))
+                    OMPL_WARN("Calling setNearestNeighbors will clear all states.");
+                clear();
                 tStart_ = std::make_shared<NN<Motion *>>();
                 tGoal_ = std::make_shared<NN<Motion *>>();
-				setup();
+                setup();
             }
 
             void setup() override;

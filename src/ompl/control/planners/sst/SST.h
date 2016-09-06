@@ -138,10 +138,12 @@ namespace ompl
             template <template <typename T> class NN>
             void setNearestNeighbors()
             {
-				clear();
+                if (nn_ && nn_->size() != 0)
+                    OMPL_WARN("Calling setNearestNeighbors will clear all states.");
+                clear();
                 nn_ = std::make_shared<NN<Motion *>>();
                 witnesses_ = std::make_shared<NN<Motion *>>();
-				setup();
+                setup();
             }
 
         protected:
