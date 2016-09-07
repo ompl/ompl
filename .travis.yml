@@ -29,7 +29,10 @@ addons:
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      brew install boost-python ode eigen python cmake castxml;
+      brew install boost-python ode eigen python cmake;
+      if [ ! -e ${HOME}/castxml ]; then
+        curl https://midas3.kitware.com/midas/download/item/318762/castxml-macosx.tar.gz | tar zxf - -C ${HOME};
+      fi;
     else
       sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
       sudo apt-get -y update;
