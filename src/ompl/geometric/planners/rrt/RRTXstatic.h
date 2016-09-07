@@ -81,6 +81,11 @@ namespace ompl
            The queue is implemented only using a scalar (cost + heuristic) as a key for ordering. With random samples,
            the set {cost + heuristic = constant}
            should be of measure 0, so a more complex key is not needed.
+
+           @par Disclaimer
+           Only the static part of the RRTX algorithm is implemented. Dynamical obstacles and updates of the robot
+           position are not available in this implementation.
+
            @par External documentation
            -# M. Otte & E. Frazzoli - RRTX : Real-Time Motion Planning/Replanning for Environments with Unpredictable
            Obstacles,
