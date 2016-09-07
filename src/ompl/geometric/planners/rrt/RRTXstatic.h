@@ -34,8 +34,8 @@
 
 /* Author: Florian Hauer */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_RRT_RRTX_
-#define OMPL_GEOMETRIC_PLANNERS_RRT_RRTX_
+#ifndef OMPL_GEOMETRIC_PLANNERS_RRT_RRTXSTATIC_
+#define OMPL_GEOMETRIC_PLANNERS_RRT_RRTXSTATIC_
 
 #include <ompl/datastructures/BinaryHeap.h>
 #include "ompl/base/OptimizationObjective.h"
@@ -54,9 +54,9 @@ namespace ompl
     namespace geometric
     {
         /**
-           @anchor gRRTX
+           @anchor gRRTXstatic
            @par Short description
-           \ref gRRTX "RRTX" is an asymptotically-optimal incremental
+           \ref gRRTXstatic "RRTXstatic" is an asymptotically-optimal incremental
            sampling-based motion planning algorithm. It differs from the \ref gRRTstar "RRT*"
            algorithm by maintaining a pseudo-optimal tree.\n
            When adding a new motion, any rewiring improving the cost by more than epsilon is done.
@@ -95,12 +95,12 @@ namespace ompl
         */
 
         /** \brief Optimal Rapidly-exploring Random Trees Maintaining A Pseudo Optimal Tree*/
-        class RRTX : public base::Planner
+        class RRTXstatic : public base::Planner
         {
         public:
-            RRTX(const base::SpaceInformationPtr &si);
+            RRTXstatic(const base::SpaceInformationPtr &si);
 
-            virtual ~RRTX();
+            virtual ~RRTXstatic();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 

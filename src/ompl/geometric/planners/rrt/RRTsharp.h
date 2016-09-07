@@ -37,7 +37,7 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_RRT_RRTsharp_
 #define OMPL_GEOMETRIC_PLANNERS_RRT_RRTsharp_
 
-#include "ompl/geometric/planners/rrt/RRTX.h"
+#include "ompl/geometric/planners/rrt/RRTXstatic.h"
 
 namespace ompl
 {
@@ -47,9 +47,9 @@ namespace ompl
            @anchor gRRTsharp
            @par Short description
            \ref gRRTsharp "RRT#" is an asymptotically-optimal incremental
-           sampling-based motion planning algorithm. It is similar from  \ref gRRTX "RRTX"
-           but maintains an optimal tree, same as \ref gRRTX "RRTX" with a treshold 0.\n
-           The parameters are the same as \ref gRRTX "RRTX" except for the parameter epsilon.
+           sampling-based motion planning algorithm. It is similar from  \ref gRRTXstatic "RRTXstatic"
+           but maintains an optimal tree, same as \ref gRRTXstatic "RRTXstatic" with a treshold 0.\n
+           The parameters are the same as \ref gRRTXstatic "RRTXstatic" except for the parameter epsilon.
            @par External documentation
            -# M. Otte & E. Frazzoli - RRTX : Real-Time Motion Planning/Replanning for Environments with Unpredictable
            Obstacles,
@@ -64,12 +64,13 @@ namespace ompl
         */
 
         /** \brief Optimal Rapidly-exploring Random Trees Maintaining An Optimal Tree*/
-        class RRTsharp : public RRTX
+        class RRTsharp : public RRTXstatic
         {
         public:
             RRTsharp(const base::SpaceInformationPtr &si);
 
-            /** \brief Overwrite of RRTX setEpsilon. It does nothing but warn the user that this parameter cannot be
+            /** \brief Overwrite of RRTXstatic setEpsilon. It does nothing but warn the user that this parameter cannot
+             * be
              * changed */
             void setEpsilon(double epsilon)
             {

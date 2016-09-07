@@ -36,7 +36,7 @@
 
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
-#include <ompl/geometric/planners/rrt/RRTX.h>
+#include <ompl/geometric/planners/rrt/RRTXstatic.h>
 #include <ompl/geometric/planners/rrt/RRTsharp.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/tools/benchmark/Benchmark.h>
@@ -128,21 +128,21 @@ int main(int argc, char **argv)
     rrtsh2->setKNearest(knn);
     rrtsh2->setVariant(2);
     b.addPlanner(rrtsh2);*/
-    auto rrtX1(std::make_shared<ompl::geometric::RRTX>(si));
+    auto rrtX1(std::make_shared<ompl::geometric::RRTXstatic>(si));
     rrtX1->setName("RRTX0.1");
     rrtX1->setEpsilon(0.1);
     rrtX1->setRange(range);
     // rrtX1->setVariant(3);
     rrtX1->setKNearest(knn);
     b.addPlanner(rrtX1);
-    auto rrtX2(std::make_shared<ompl::geometric::RRTX>(si));
+    auto rrtX2(std::make_shared<ompl::geometric::RRTXstatic>(si));
     rrtX2->setName("RRTX0.01");
     rrtX2->setEpsilon(0.01);
     rrtX2->setRange(range);
     // rrtX2->setVariant(3);
     rrtX2->setKNearest(knn);
     b.addPlanner(rrtX2);
-    auto rrtX3(std::make_shared<ompl::geometric::RRTX>(si));
+    auto rrtX3(std::make_shared<ompl::geometric::RRTXstatic>(si));
     rrtX3->setName("RRTX0.001");
     rrtX3->setEpsilon(0.001);
     rrtX3->setRange(range);
