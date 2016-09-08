@@ -177,6 +177,12 @@ namespace ompl
                 return motionValidator_;
             }
 
+            /** \brief Return the non-const instance of the used state validity checker */
+            MotionValidatorPtr& getMotionValidator()
+            {
+                return motionValidator_;
+            }
+
             /** \brief Set the resolution at which state validity
                 needs to be verified in order for a motion between two
                 states to be considered valid. This value is specified
