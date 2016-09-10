@@ -167,7 +167,6 @@ void ompl::geometric::SPARStwo::freeMemory()
 {
     Planner::clear();
     sampler_.reset();
-    simpleSampler_.reset();
 
     foreach (Vertex v, boost::vertices(g_))
     {
@@ -259,8 +258,6 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
         setup();
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
-    if (!simpleSampler_)
-        simpleSampler_ = si_->allocStateSampler();
 
     base::State *qNew = si_->allocState();
     base::State *workState = si_->allocState();
