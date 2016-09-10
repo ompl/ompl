@@ -460,9 +460,6 @@ namespace ompl
             /** \brief Sampler user for generating valid samples in the state space */
             base::ValidStateSamplerPtr sampler_;
 
-            /** \brief Sampler user for generating random in the state space */
-            base::StateSamplerPtr simpleSampler_;
-
             /** \brief Nearest neighbors data structure */
             std::shared_ptr<NearestNeighbors<Vertex>> nn_;
 

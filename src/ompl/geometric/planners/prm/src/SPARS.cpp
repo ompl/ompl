@@ -182,7 +182,6 @@ void ompl::geometric::SPARS::clear()
 {
     Planner::clear();
     sampler_.reset();
-    simpleSampler_.reset();
     freeMemory();
     if (nn_)
         nn_->clear();
@@ -431,8 +430,6 @@ void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCond
         setup();
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
-    if (!simpleSampler_)
-        simpleSampler_ = si_->allocStateSampler();
 
     base::State *workState = si_->allocState();
 
