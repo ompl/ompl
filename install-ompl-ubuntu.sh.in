@@ -34,7 +34,7 @@ install_python_binding_dependencies()
 {
     sudo apt-get -y install python-dev python-pip
     # install additional python dependencies via pip
-    sudo -H pip install -vU pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.7.tar.gz
+    sudo -H pip install -vU pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.7.0.tar.gz
     # install castxml
     if [ -z $TRUSTY ]; then
         sudo apt-get -y install castxml
