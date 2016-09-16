@@ -48,7 +48,6 @@ namespace ompl
 {
     namespace control
     {
-
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(ControlSpace);
         /// @endcond
@@ -70,17 +69,15 @@ namespace ompl
         {
         public:
             // non-copyable
-            ControlSampler(const ControlSampler&) = delete;
-            ControlSampler& operator=(const ControlSampler&) = delete;
+            ControlSampler(const ControlSampler &) = delete;
+            ControlSampler &operator=(const ControlSampler &) = delete;
 
             /** \brief Constructor takes the state space to construct samples for as argument */
             ControlSampler(const ControlSpace *space) : space_(space)
             {
             }
 
-            virtual ~ControlSampler()
-            {
-            }
+            virtual ~ControlSampler() = default;
 
             /** \brief Sample a control. All other control sampling
                 functions default to this one, unless a user-specified
@@ -119,56 +116,48 @@ namespace ompl
             virtual unsigned int sampleStepCount(unsigned int minSteps, unsigned int maxSteps);
 
         protected:
-
             /** \brief The control space this sampler operates on */
-            const ControlSpace    *space_;
+            const ControlSpace *space_;
 
             /** \brief Instance of random number generator */
-            RNG                    rng_;
+            RNG rng_;
         };
 
-        /** \brief Definition of a compound control sampler. This is useful to construct samplers for compound controls. */
+        /** \brief Definition of a compound control sampler. This is useful to construct samplers for compound controls.
+         */
         class CompoundControlSampler : public ControlSampler
         {
         public:
-
             /** \brief Constructor */
             CompoundControlSampler(const ControlSpace *space) : ControlSampler(space)
             {
             }
 
             /** \brief Destructor. This frees the added samplers as well. */
-            virtual ~CompoundControlSampler()
-            {
-            }
+            ~CompoundControlSampler() override = default;
 
             /** \brief Add a sampler as part of the new compound
                 sampler. This sampler is used to sample part of the
                 compound control.  */
             virtual void addSampler(const ControlSamplerPtr &sampler);
 
-
-            virtual void sample(Control *control);
-            virtual void sample(Control *control, const base::State *state);
-            virtual void sampleNext(Control *control, const Control *previous);
-            virtual void sampleNext(Control *control, const Control *previous, const base::State *state);
+            void sample(Control *control) override;
+            void sample(Control *control, const base::State *state) override;
+            void sampleNext(Control *control, const Control *previous) override;
+            void sampleNext(Control *control, const Control *previous, const base::State *state) override;
 
         protected:
-
             /** \brief The instances of samplers used for compound sampler */
             std::vector<ControlSamplerPtr> samplers_;
 
         private:
-
             /** \brief Number of sampler instances */
-            unsigned int                   samplerCount_;
-
+            unsigned int samplerCount_;
         };
 
         /** \brief Definition of a function that can allocate a control sampler */
-        typedef std::function<ControlSamplerPtr(const ControlSpace*)> ControlSamplerAllocator;
+        typedef std::function<ControlSamplerPtr(const ControlSpace *)> ControlSamplerAllocator;
     }
 }
-
 
 #endif

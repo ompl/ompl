@@ -66,23 +66,23 @@ bool isStateValid(const ob::State *state)
     return (const void*)rot != (const void*)pos;
 }
 
-void planWithSimpleSetup(void)
+void planWithSimpleSetup()
 {
     // construct the state space we are planning in
-    ob::StateSpacePtr space(new ob::SE3StateSpace());
+    auto space(std::make_shared<ob::SE3StateSpace>());
 
     // set the bounds for the R^3 part of SE(3)
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-10);
     bounds.setHigh(10);
 
-    space->as<ob::SE3StateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
 
     // define a simple setup class
     og::SimpleSetup ss(space);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(std::bind(&isStateValid, std::placeholders::_1));
+    ss.setStateValidityChecker([](const ob::State *state) { return isStateValid(state); });
 
     // create a random start state
     ob::ScopedState<> start(space);
@@ -130,14 +130,14 @@ ob::Cost distanceHeuristic(ob::PlannerData::Graph::Vertex v1,
     return ob::Cost(obj->costToGo(plannerDataVertices[v1]->getState(), goal));
 }
 
-void readPlannerData(void)
+void readPlannerData()
 {
     std::cout << std::endl;
     std::cout << "Reading PlannerData from './myPlannerData'" << std::endl;
 
     // Recreating the space information from the stored planner data instance
-    ob::StateSpacePtr space(new ob::SE3StateSpace());
-    ob::SpaceInformationPtr si(new ob::SpaceInformation(space));
+    auto space(std::make_shared<ob::SE3StateSpace>());
+    auto si(std::make_shared<ob::SpaceInformation>(space));
 
     ob::PlannerDataStorage dataStorage;
     ob::PlannerData data(si);
@@ -163,7 +163,7 @@ void readPlannerData(void)
         // create a predecessor map to store A* results in
         boost::vector_property_map<ob::PlannerData::Graph::Vertex> prev(data.numVertices());
 
-        // Retieve a property map with the PlannerDataVertex object pointers for quick lookup
+        // Retrieve a property map with the PlannerDataVertex object pointers for quick lookup
         boost::property_map<ob::PlannerData::Graph::Type, vertex_type_t>::type vertices = get(vertex_type_t(), graph);
 
         // Run A* search over our planner data
@@ -171,14 +171,12 @@ void readPlannerData(void)
         goal.setState(data.getGoalVertex(0).getState());
         ob::PlannerData::Graph::Vertex start = boost::vertex(data.getStartIndex(0), graph);
         boost::astar_search(graph, start,
-                            std::bind(&distanceHeuristic, std::placeholders::_1, &goal, &opt, vertices),
-                            boost::predecessor_map(prev).
-                            distance_compare(std::bind(&ob::OptimizationObjective::
-                                                         isCostBetterThan, &opt, std::placeholders::_1, std::placeholders::_2)).
-                            distance_combine(std::bind(&ob::OptimizationObjective::
-                                                         combineCosts, &opt, std::placeholders::_1, std::placeholders::_2)).
-                            distance_inf(opt.infiniteCost()).
-                            distance_zero(opt.identityCost()));
+            [&goal, &opt, &vertices](ob::PlannerData::Graph::Vertex v1) { return distanceHeuristic(v1, &goal, &opt, vertices); },
+            boost::predecessor_map(prev).
+            distance_compare([&opt](ob::Cost c1, ob::Cost c2) { return opt.isCostBetterThan(c1, c2); }).
+            distance_combine([&opt](ob::Cost c1, ob::Cost c2) { return opt.combineCosts(c1, c2); }).
+            distance_inf(opt.infiniteCost()).
+            distance_zero(opt.identityCost()));
 
         // Extracting the path
         og::PathGeometric path(si);

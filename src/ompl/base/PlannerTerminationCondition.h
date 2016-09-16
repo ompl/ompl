@@ -44,10 +44,8 @@
 
 namespace ompl
 {
-
     namespace base
     {
-
         /** \brief Signature for functions that decide whether termination
             conditions have been met for a planner, even if no
             solution is found. This is usually reaching a time or
@@ -56,7 +54,6 @@ namespace ompl
             computation continues while this function returns false,
             until a solution is found. */
         typedef std::function<bool()> PlannerTerminationConditionFn;
-
         /** \brief Encapsulate a termination condition for a motion
             planner. Planners will call operator() to decide whether
             they should terminate before a solution is found or
@@ -66,8 +63,8 @@ namespace ompl
         class PlannerTerminationCondition
         {
         public:
-
-            /** \brief Construct a termination condition. By default, eval() will call the externally specified function \e fn to decide whether
+            /** \brief Construct a termination condition. By default, eval() will call the externally specified function
+               \e fn to decide whether
                 the planner should terminate. */
             PlannerTerminationCondition(const PlannerTerminationConditionFn &fn);
 
@@ -76,9 +73,7 @@ namespace ompl
                 last value computed by the call to \e fn(). */
             PlannerTerminationCondition(const PlannerTerminationConditionFn &fn, double period);
 
-            ~PlannerTerminationCondition()
-            {
-            }
+            ~PlannerTerminationCondition() = default;
 
             /** \brief Return true if the planner should stop its computation */
             bool operator()() const
@@ -100,22 +95,27 @@ namespace ompl
             bool eval() const;
 
         private:
-
             class PlannerTerminationConditionImpl;
             std::shared_ptr<PlannerTerminationConditionImpl> impl_;
         };
 
-        /** \brief Simple termination condition that always returns false. The termination condition will never be met */
+        /** \brief Simple termination condition that always returns false. The termination condition will never be met
+         */
         PlannerTerminationCondition plannerNonTerminatingCondition();
 
-        /** \brief Simple termination condition that always returns true. The termination condition will always be met */
+        /** \brief Simple termination condition that always returns true. The termination condition will always be met
+         */
         PlannerTerminationCondition plannerAlwaysTerminatingCondition();
 
-        /** \brief Combine two termination conditions into one. If either termination condition returns true, this one will return true as well. */
-        PlannerTerminationCondition plannerOrTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2);
+        /** \brief Combine two termination conditions into one. If either termination condition returns true, this one
+         * will return true as well. */
+        PlannerTerminationCondition plannerOrTerminationCondition(const PlannerTerminationCondition &c1,
+                                                                  const PlannerTerminationCondition &c2);
 
-        /** \brief Combine two termination conditions into one. Both termination conditions need to return true for this one to return true. */
-        PlannerTerminationCondition plannerAndTerminationCondition(const PlannerTerminationCondition &c1, const PlannerTerminationCondition &c2);
+        /** \brief Combine two termination conditions into one. Both termination conditions need to return true for this
+         * one to return true. */
+        PlannerTerminationCondition plannerAndTerminationCondition(const PlannerTerminationCondition &c1,
+                                                                   const PlannerTerminationCondition &c2);
 
         /** \brief Return a termination condition that will become true \e duration seconds in the future (wall-time) */
         PlannerTerminationCondition timedPlannerTerminationCondition(double duration);
@@ -123,20 +123,25 @@ namespace ompl
         /** \brief Return a termination condition that will become true \e duration in the future (wall-time) */
         PlannerTerminationCondition timedPlannerTerminationCondition(time::duration duration);
 
-        /** \brief Return a termination condition that will become true \e duration seconds in the future (wall-time), but is checked in a separate thread, every \e interval seconds; \e interval must be less than \e duration */
+        /** \brief Return a termination condition that will become true \e duration seconds in the future (wall-time),
+         * but is checked in a separate thread, every \e interval seconds; \e interval must be less than \e duration */
         PlannerTerminationCondition timedPlannerTerminationCondition(double duration, double interval);
 
-        /** \brief Return a termination condition that will become true as soon as the problem definition has an exact solution */
+        /** \brief Return a termination condition that will become true as soon as the problem definition has an exact
+         * solution */
         PlannerTerminationCondition exactSolnPlannerTerminationCondition(ompl::base::ProblemDefinitionPtr pdef);
 
-        /** \brief A class to run a planner for a specific number of iterations. Casts to a PTC for use with Planner::solve */
+        /** \brief A class to run a planner for a specific number of iterations. Casts to a PTC for use with
+         * Planner::solve */
         class IterationTerminationCondition
         {
         public:
-            /** \brief Construct a termination condition that can be evaluated numIterations times before returning true. */
+            /** \brief Construct a termination condition that can be evaluated numIterations times before returning
+             * true. */
             IterationTerminationCondition(unsigned int numIterations);
 
-            /** \brief Increment the number of times eval has been called and check if the planner should now terminate. */
+            /** \brief Increment the number of times eval has been called and check if the planner should now terminate.
+             */
             bool eval();
 
             /** \brief Reset the number of times the IterationTeriminationCondition has been called. */

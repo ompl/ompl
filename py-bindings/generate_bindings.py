@@ -294,25 +294,25 @@ class ompl_base_generator_t(code_generator_t):
         # make state space list printable
         self.replace_member_function(self.ompl_ns.class_('StateSpace').member_function('List'))
         # add wrappers for std::function types
-        self.add_boost_function('bool(const ompl::base::GoalLazySamples*, ompl::base::State*)',
+        self.add_function_wrapper('bool(const ompl::base::GoalLazySamples*, ompl::base::State*)',
             'GoalSamplingFn', 'Goal sampling function')
-        self.add_boost_function('void(const ompl::base::State*)',
+        self.add_function_wrapper('void(const ompl::base::State*)',
             'NewStateCallbackFn', 'New state callback function')
-        self.add_boost_function('ompl::base::PlannerPtr(const ompl::base::SpaceInformationPtr&)',
+        self.add_function_wrapper('ompl::base::PlannerPtr(const ompl::base::SpaceInformationPtr&)',
             'PlannerAllocator', 'Planner allocator')
-        self.add_boost_function('bool()',
+        self.add_function_wrapper('bool()',
             'PlannerTerminationConditionFn','Planner termination condition function')
-        self.add_boost_function('bool(const ompl::base::State*)',
+        self.add_function_wrapper('bool(const ompl::base::State*)',
             'StateValidityCheckerFn', 'State validity checker function')
-        self.add_boost_function('ompl::base::StateSamplerPtr(const ompl::base::StateSpace*)',
+        self.add_function_wrapper('ompl::base::StateSamplerPtr(const ompl::base::StateSpace*)',
             'StateSamplerAllocator', 'State sampler allocator')
-        self.add_boost_function('ompl::base::ValidStateSamplerPtr(ompl::base::SpaceInformation const*)',
+        self.add_function_wrapper('ompl::base::ValidStateSamplerPtr(ompl::base::SpaceInformation const*)',
             'ValidStateSamplerAllocator', 'Valid state allocator function')
-        self.add_boost_function('double(const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataEdge&)',
+        self.add_function_wrapper('double(const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataVertex&, const ompl::base::PlannerDataEdge&)',
             'EdgeWeightFn', 'Edge weight function')
-        self.add_boost_function('ompl::base::Cost(const ompl::base::State*, const ompl::base::Goal*)',
+        self.add_function_wrapper('ompl::base::Cost(const ompl::base::State*, const ompl::base::Goal*)',
             'CostToGoHeuristic', 'Cost-to-go heuristic for optimizing planners')
-        self.add_boost_function('std::string()', 'PlannerProgressProperty',
+        self.add_function_wrapper('std::string()', 'PlannerProgressProperty',
             'Function that returns stringified value of a property while a planner is running')
 
         # rename SamplerSelectors
@@ -395,7 +395,7 @@ class ompl_control_generator_t(code_generator_t):
         # export ODESolver-derived classes that use Boost.OdeInt
         for odesolver in ['ODEBasicSolver', 'ODEErrorSolver', 'ODEAdaptiveSolver']:
             self.ompl_ns.class_(lambda cls: cls.name.startswith(odesolver)).rename(odesolver)
-        self.add_boost_function('void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
+        self.add_function_wrapper('void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ompl::control::ODESolver::StateType &)',
             'ODE','Ordinary differential equation')
         # workaround for default argument for PostPropagationEvent
         self.replace_member_function(self.ompl_ns.class_('ODESolver').member_function(
@@ -422,18 +422,18 @@ class ompl_control_generator_t(code_generator_t):
         syclop.class_('Defaults').exclude()
 
         # add wrappers for std::function types
-        self.add_boost_function('ompl::control::ControlSamplerPtr(const ompl::control::ControlSpace*)',
+        self.add_function_wrapper('ompl::control::ControlSamplerPtr(const ompl::control::ControlSpace*)',
             'ControlSamplerAllocator', 'Control sampler allocator')
-        self.add_boost_function('ompl::control::DirectedControlSamplerPtr(const ompl::control::SpaceInformation*)',
+        self.add_function_wrapper('ompl::control::DirectedControlSamplerPtr(const ompl::control::SpaceInformation*)',
             'DirectedControlSamplerAllocator','Directed control sampler allocator')
         # same type as StatePropagatorFn, so no need to export this. Instead, we just define a type alias in the python module.
-        #self.add_boost_function('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
+        #self.add_function_wrapper('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
         #    'PostPropagationEvent','Post-propagation event')
-        self.add_boost_function('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
+        self.add_function_wrapper('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
             'StatePropagatorFn','State propagator function')
-        self.add_boost_function('double(int, int)','EdgeCostFactorFn',
+        self.add_function_wrapper('double(int, int)','EdgeCostFactorFn',
             'Syclop edge cost factor function')
-        self.add_boost_function('void(int, int, std::vector<int>&)','LeadComputeFn',
+        self.add_function_wrapper('void(int, int, std::vector<int>&)','LeadComputeFn',
             'Syclop lead compute function')
         # code generation fails to compile, most likely because of a bug in
         # Py++'s generation of exposed_decl.pypp.txt.
@@ -514,11 +514,11 @@ class ompl_geometric_generator_t(code_generator_t):
         # the argument type (Grid::Cell) is protected
         self.ompl_ns.member_functions('computeImportance').exclude()
         # add wrappers for std::function types
-        self.add_boost_function('unsigned int()',
+        self.add_function_wrapper('unsigned int()',
             'NumNeighborsFn', 'Number of neighbors function')
-        # self.add_boost_function('std::vector<ompl::geometric::PRM::Vertex>&(const ompl::geometric::PRM::Vertex)',
+        # self.add_function_wrapper('std::vector<ompl::geometric::PRM::Vertex>&(const ompl::geometric::PRM::Vertex)',
         #     'ConnectionStrategy', 'Connection strategy')
-        self.add_boost_function('bool(const ompl::geometric::PRM::Vertex&, const ompl::geometric::PRM::Vertex&)',
+        self.add_function_wrapper('bool(const ompl::geometric::PRM::Vertex&, const ompl::geometric::PRM::Vertex&)',
             'ConnectionFilter', 'Connection filter')
         # code generation fails to compile, most likely because of a bug in
         # Py++'s generation of exposed_decl.pypp.txt.
@@ -541,7 +541,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT', 'BFMT', 'BITstar','SST']:
+        for planner in ['EST', 'BiEST', 'ProjEST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'RRTX', 'RRTsharp', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT', 'BFMT', 'BITstar', 'SST']:
             try:
                 cls = self.ompl_ns.class_(planner)
             except:
@@ -722,9 +722,9 @@ class ompl_tools_generator_t(code_generator_t):
             'def("setPreRunEvent", &ompl::tools::Benchmark::setPreRunEvent)')
         benchmark_cls.add_registration_code(
             'def("setPostRunEvent", &ompl::tools::Benchmark::setPostRunEvent)')
-        self.add_boost_function('void(const ompl::base::PlannerPtr&)',
+        self.add_function_wrapper('void(const ompl::base::PlannerPtr&)',
             'PreSetupEvent', 'Pre-setup event')
-        self.add_boost_function('void(const ompl::base::PlannerPtr&, ompl::tools::Benchmark::RunProperties&)',
+        self.add_function_wrapper('void(const ompl::base::PlannerPtr&, ompl::tools::Benchmark::RunProperties&)',
             'PostSetupEvent', 'Post-setup event')
         benchmark_cls.class_('Request').no_init = False
 

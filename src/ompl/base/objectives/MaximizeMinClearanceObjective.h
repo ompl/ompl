@@ -49,17 +49,20 @@ namespace ompl
         public:
             MaximizeMinClearanceObjective(const SpaceInformationPtr &si);
 
-            /** \brief Defined as the clearance of the state \e s, which is computed using the StateValidityChecker in this objective's SpaceInformation */
-            virtual Cost stateCost(const State *s) const;
+            /** \brief Defined as the clearance of the state \e s, which is computed using the StateValidityChecker in
+             * this objective's SpaceInformation */
+            Cost stateCost(const State *s) const override;
 
-            /** \brief Since we wish to maximize clearance, and costs are equivalent to path clearance, we return the greater of the two cost values. */
-            virtual bool isCostBetterThan(Cost c1, Cost c2) const;
+            /** \brief Since we wish to maximize clearance, and costs are equivalent to path clearance, we return the
+             * greater of the two cost values. */
+            bool isCostBetterThan(Cost c1, Cost c2) const override;
 
-            /** \brief Returns +infinity, since any cost combined with +infinity under this objective will always return the other cost. */
-            virtual Cost identityCost() const;
+            /** \brief Returns +infinity, since any cost combined with +infinity under this objective will always return
+             * the other cost. */
+            Cost identityCost() const override;
 
             /** \brief Returns -infinity, since no path clearance value can be considered worse than this. */
-            virtual Cost infiniteCost() const;
+            Cost infiniteCost() const override;
         };
     }
 }

@@ -43,6 +43,7 @@
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 #include <map>
 
@@ -50,7 +51,6 @@ namespace ompl
 {
     namespace base
     {
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::GenericParam */
         OMPL_CLASS_FORWARD(GenericParam);
@@ -64,18 +64,15 @@ namespace ompl
         class GenericParam
         {
         public:
-
             /** \brief The constructor of a parameter takes the name of the parameter (\e name) */
-            GenericParam(const std::string &name) : name_(name)
+            GenericParam(std::string name) : name_(std::move(name))
             {
             }
 
-            virtual ~GenericParam()
-            {
-            }
+            virtual ~GenericParam() = default;
 
             /** \brief Get the name of the parameter */
-            const std::string& getName() const
+            const std::string &getName() const
             {
                 return name_;
             }
@@ -86,15 +83,16 @@ namespace ompl
                 name_ = name;
             }
 
-            /** \brief Set the value of the parameter. The value is taken in as a string, but converted to the type of that parameter. */
+            /** \brief Set the value of the parameter. The value is taken in as a string, but converted to the type of
+             * that parameter. */
             virtual bool setValue(const std::string &value) = 0;
 
             /** \brief Retrieve the value of the parameter, as a string. */
             virtual std::string getValue() const = 0;
 
             /** \brief Assignment operator by type. This is just for convenience, as it just calls setValue() */
-            template<typename T>
-            GenericParam& operator=(const T &value)
+            template <typename T>
+            GenericParam &operator=(const T &value)
             {
                 try
                 {
@@ -114,17 +112,16 @@ namespace ompl
             }
 
             /** \brief Get the suggested range of values */
-            const std::string& getRangeSuggestion() const
+            const std::string &getRangeSuggestion() const
             {
                 return rangeSuggestion_;
             }
 
         protected:
-
             /** \brief Bool values such as "false" cannot be converted to bool using lexical_cast. We need to
                 map those to "0" or "1". */
-            template<typename T>
-            const std::string& maybeWrapBool(const std::string &value) const
+            template <typename T>
+            const std::string &maybeWrapBool(const std::string &value) const
             {
                 return boost::is_same<T, bool>::value ? truthValueTo01Str(value) : value;
             }
@@ -147,38 +144,35 @@ namespace ompl
             */
             std::string rangeSuggestion_;
 
-         private:
+        private:
             /** \brief Map "false", "False", "FALSE",  "F", "f", "0" to "0" and everything else to "1". */
-            static const std::string& truthValueTo01Str(const std::string &value);
+            static const std::string &truthValueTo01Str(const std::string &value);
         };
 
-
         /** \brief This is a helper class that instantiates parameters with different data types. */
-        template<typename T>
+        template <typename T>
         class SpecificParam : public GenericParam
         {
         public:
-
             /** \brief The type for the 'setter' function for this parameter */
             typedef std::function<void(T)> SetterFn;
 
             /** \brief The type for the 'getter' function for this parameter */
-            typedef std::function<T()>     GetterFn;
+            typedef std::function<T()> GetterFn;
 
-            /** \brief An explicit instantiation of a parameter \e name requires the \e setter function and optionally the \e
+            /** \brief An explicit instantiation of a parameter \e name requires the \e setter function and optionally
+               the \e
                 getter function. */
-            SpecificParam(const std::string &name, const SetterFn &setter, const GetterFn &getter = GetterFn()) :
-                GenericParam(name), setter_(setter), getter_(getter)
+            SpecificParam(const std::string &name, SetterFn setter, GetterFn getter = GetterFn())
+              : GenericParam(name), setter_(std::move(setter)), getter_(std::move(getter))
             {
                 if (!setter_ && !getter_)
                     OMPL_ERROR("At least one setter or getter function must be specified for parameter");
             }
 
-            virtual ~SpecificParam()
-            {
-            }
+            ~SpecificParam() override = default;
 
-            virtual bool setValue(const std::string &value)
+            bool setValue(const std::string &value) override
             {
                 bool result = true;
                 try
@@ -199,7 +193,7 @@ namespace ompl
                 return result;
             }
 
-            virtual std::string getValue() const
+            std::string getValue() const override
             {
                 if (getter_)
                     try
@@ -216,7 +210,6 @@ namespace ompl
             }
 
         protected:
-
             /** \brief The setter function for this parameter */
             SetterFn setter_;
 
@@ -233,13 +226,13 @@ namespace ompl
         class ParamSet
         {
         public:
-
-            /** \brief This function declares a parameter \e name, and specifies the \e setter and \e getter functions. */
-            template<typename T>
+            /** \brief This function declares a parameter \e name, and specifies the \e setter and \e getter functions.
+             */
+            template <typename T>
             void declareParam(const std::string &name, const typename SpecificParam<T>::SetterFn &setter,
                               const typename SpecificParam<T>::GetterFn &getter = typename SpecificParam<T>::GetterFn())
             {
-                params_[name].reset(new SpecificParam<T>(name, setter, getter));
+                params_[name] = std::make_shared<SpecificParam<T>>(name, setter, getter);
             }
 
             /** \brief Add a parameter to the set */
@@ -248,7 +241,8 @@ namespace ompl
             /** \brief Remove a parameter from the set */
             void remove(const std::string &name);
 
-            /** \brief Include the params of a different ParamSet into this one. Optionally include a prefix for each of the parameters */
+            /** \brief Include the params of a different ParamSet into this one. Optionally include a prefix for each of
+             * the parameters */
             void include(const ParamSet &other, const std::string &prefix = "");
 
             /** \brief Algorithms in OMPL often have parameters that
@@ -266,12 +260,14 @@ namespace ompl
                 parsed and set successfully and false otherwise. */
             bool setParam(const std::string &key, const std::string &value);
 
-            /** \brief Get the value of the parameter named \e key. Store the value as string in \e value and return true if the parameter was found. Return false otherwise. */
+            /** \brief Get the value of the parameter named \e key. Store the value as string in \e value and return
+             * true if the parameter was found. Return false otherwise. */
             bool getParam(const std::string &key, std::string &value) const;
 
             /** \brief Set the values for a set of parameters. The parameter names are the keys in the map \e kv.
                 The corresponding key values in \e kv are set as the parameter values.
-                Return true if all parameters were set successfully. This function simply calls setParam() multiple times.
+                Return true if all parameters were set successfully. This function simply calls setParam() multiple
+               times.
                 If \e ignoreUnknown is true, then no attempt is made to set unknown
                 parameters (and thus no errors are reported) */
             bool setParams(const std::map<std::string, std::string> &kv, bool ignoreUnknown = false);
@@ -286,16 +282,18 @@ namespace ompl
             void getParamValues(std::vector<std::string> &vals) const;
 
             /** \brief Get the map from parameter names to parameter descriptions */
-            const std::map<std::string, GenericParamPtr>& getParams() const;
+            const std::map<std::string, GenericParamPtr> &getParams() const;
 
-            /** \brief Get the parameter that corresponds to a specified name. An empty shared ptr is returned if the parameter does not exist */
-            const GenericParamPtr& getParam(const std::string &key) const;
+            /** \brief Get the parameter that corresponds to a specified name. An empty shared ptr is returned if the
+             * parameter does not exist */
+            const GenericParamPtr &getParam(const std::string &key) const;
 
             /** \brief Check whether this set of parameters includes the parameter named \e key */
             bool hasParam(const std::string &key) const;
 
-            /** \brief Access operator for parameters, by name. If the parameter is not defined, an exception is thrown */
-            GenericParam& operator[](const std::string &key);
+            /** \brief Access operator for parameters, by name. If the parameter is not defined, an exception is thrown
+             */
+            GenericParam &operator[](const std::string &key);
 
             /** \brief Get the number of parameters maintained by this instance */
             std::size_t size() const
@@ -310,7 +308,6 @@ namespace ompl
             void print(std::ostream &out) const;
 
         private:
-
             std::map<std::string, GenericParamPtr> params_;
         };
     }

@@ -43,7 +43,6 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief Defines optimization objectives where path cost can
             be represented as a path integral over a cost function
             defined over the state space. This cost function is
@@ -61,11 +60,10 @@ namespace ompl
                 only the two endpoint states are used for motion cost
                 computation.
             */
-            StateCostIntegralObjective(const SpaceInformationPtr &si,
-                                       bool enableMotionCostInterpolation = false);
+            StateCostIntegralObjective(const SpaceInformationPtr &si, bool enableMotionCostInterpolation = false);
 
             /** \brief Returns a cost with a value of 1. */
-            virtual Cost stateCost(const State *s) const;
+            Cost stateCost(const State *s) const override;
 
             /** \brief Compute the cost of a path segment from \e s1 to \e s2 (including endpoints)
                 \param s1 start state of the motion to be evaluated
@@ -84,7 +82,7 @@ namespace ompl
                 above formula to compute the cost of each of those
                 segments, and adding them up.
             */
-            virtual Cost motionCost(const State *s1, const State *s2) const;
+            Cost motionCost(const State *s1, const State *s2) const override;
 
             /** \brief Returns whether this objective subdivides
                 motions into smaller segments for more accurate motion
@@ -94,7 +92,6 @@ namespace ompl
             bool isMotionCostInterpolationEnabled() const;
 
         protected:
-
             /** \brief If true, then motionCost() will more accurately compute
                 the cost of a motion by taking small steps along the
                 motion and accumulating the cost. This sacrifices speed

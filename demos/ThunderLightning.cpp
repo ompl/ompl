@@ -67,32 +67,32 @@ public:
         }
         if (ok)
         {
-            ob::RealVectorStateSpace *space = new ob::RealVectorStateSpace();
+            auto space(std::make_shared<ob::RealVectorStateSpace>());
             space->addDimension(0.0, ppm_.getWidth());
             space->addDimension(0.0, ppm_.getHeight());
             maxWidth_ = ppm_.getWidth() - 1;
             maxHeight_ = ppm_.getHeight() - 1;
             if (useThunder)
             {
-                expPlanner_.reset(new ot::Thunder(ob::StateSpacePtr(space)));
+                expPlanner_ = std::make_shared<ot::Thunder>(space);
                 expPlanner_->setFilePath("thunder.db");
             }
             else
             {
-                expPlanner_.reset(new ot::Lightning(ob::StateSpacePtr(space)));
+                expPlanner_ = std::make_shared<ot::Lightning>(space);
                 expPlanner_->setFilePath("lightning.db");
             }
             // set state validity checking for this space
-            expPlanner_->setStateValidityChecker(std::bind(&Plane2DEnvironment::isStateValid, this, std::placeholders::_1));
+            expPlanner_->setStateValidityChecker([this](const ob::State *state)
+                { return isStateValid(state); });
             space->setup();
             expPlanner_->getSpaceInformation()->setStateValidityCheckingResolution(1.0 / space->getMaximumExtent());
             vss_ = expPlanner_->getSpaceInformation()->allocValidStateSampler();
 
             // DTC
-            //experience_setup_->setPlanner(ob::PlannerPtr(new og::RRTConnect( si_ )));
+            //experience_setup_->setPlanner(std::make_shared<og::RRTConnect>(si_));
             // Set the repair planner
-            // std::shared_ptr<og::RRTConnect> repair_planner( new og::RRTConnect( si_ ) );
-            // experience_setup_->setRepairPlanner(ob::PlannerPtr( repair_planner ));
+            // experience_setup_->setRepairPlanner(std::make_shared<og::RRTConnect>(si_));
         }
     }
 

@@ -48,7 +48,6 @@ namespace ompl
 {
     namespace base
     {
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::StateStorage */
         OMPL_CLASS_FORWARD(StateStorage);
@@ -56,18 +55,18 @@ namespace ompl
 
         /** \brief Manage loading and storing for a set of states of a specified state space
 
-            \deprecated This class is deprecated and will be removed in the future. Please use the improved PlannerDataStorage.
+            \deprecated This class is deprecated and will be removed in the future. Please use the improved
+           PlannerDataStorage.
          */
         class StateStorage
         {
         public:
-
             /** \brief The state space to store states for is specified as argument */
-            StateStorage(const StateSpacePtr &space);
+            StateStorage(StateSpacePtr space);
             virtual ~StateStorage();
 
             /** \brief Get the state space this class maintains states for */
-            const StateSpacePtr& getStateSpace() const
+            const StateSpacePtr &getStateSpace() const
             {
                 return space_;
             }
@@ -101,26 +100,27 @@ namespace ompl
             }
 
             /** \brief Get the stored states */
-            const std::vector<const State*>& getStates() const
+            const std::vector<const State *> &getStates() const
             {
                 return states_;
             }
 
             /** \brief Get a particular state for non-const access */
-            State* getState(unsigned int index)
+            State *getState(unsigned int index)
             {
                 assert(states_.size() > index);
-                return const_cast<State*>(states_[index]);
+                return const_cast<State *>(states_[index]);
             }
 
             /** \brief Get a particular state */
-            const State* getState(unsigned int index) const
+            const State *getState(unsigned int index) const
             {
                 assert(states_.size() > index);
                 return states_[index];
             }
 
-            /** \brief Return a flag that indicates whether there is metadata associated to the states in this storage */
+            /** \brief Return a flag that indicates whether there is metadata associated to the states in this storage
+             */
             bool hasMetadata() const
             {
                 return hasMetadata_;
@@ -128,21 +128,25 @@ namespace ompl
 
             /** \brief Sort the states according to the less-equal operator \e op. Metadata is NOT sorted;
                 if metadata was added, the index values of the metadata will not match after the sort. */
-            void sort(const std::function<bool(const State*, const State*)> &op);
+            void sort(const std::function<bool(const State *, const State *)> &op);
 
-            /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all sampled
+            /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all
+               sampled
                 states are actually from this storage structure. */
             StateSamplerAllocator getStateSamplerAllocator() const;
 
-            /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all sampled
+            /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all
+               sampled
                 states are actually from this storage structure at an index less than or equal to \e until */
             StateSamplerAllocator getStateSamplerAllocatorRangeUntil(std::size_t until) const;
 
-            /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all sampled
+            /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all
+               sampled
                 states are actually from this storage structure at an index above or equal to \e after */
             StateSamplerAllocator getStateSamplerAllocatorRangeAfter(std::size_t after) const;
 
-            /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all sampled
+            /** \brief Get a sampler allocator to a sampler that can be specified for a StateSpace, such that all
+               sampled
                 states are actually from this storage structure at an index in the range [\e from, \e to] (inclusive) */
             virtual StateSamplerAllocator getStateSamplerAllocatorRange(std::size_t from, std::size_t to) const;
 
@@ -150,26 +154,26 @@ namespace ompl
             virtual void print(std::ostream &out = std::cout) const;
 
         protected:
-
             /** \brief Information stored at the beginning of the archive */
             struct Header
             {
                 /** \brief OMPL specific marker (fixed value) */
-                boost::uint32_t  marker;
+                boost::uint32_t marker;
 
                 /** \brief Number of states stored in the archive */
-                std::size_t      state_count;
+                std::size_t state_count;
 
-                /** \brief Signature of state space that allocated the saved states (see ompl::base::StateSpace::computeSignature()) */
+                /** \brief Signature of state space that allocated the saved states (see
+                 * ompl::base::StateSpace::computeSignature()) */
                 std::vector<int> signature;
 
                 /** \brief boost::serialization routine */
-                template<typename Archive>
-                void serialize(Archive & ar, const unsigned int /*version*/)
+                template <typename Archive>
+                void serialize(Archive &ar, const unsigned int /*version*/)
                 {
-                    ar & marker;
-                    ar & state_count;
-                    ar & signature;
+                    ar &marker;
+                    ar &state_count;
+                    ar &signature;
                 }
             };
 
@@ -195,22 +199,21 @@ namespace ompl
             void freeMemory();
 
             /** \brief State space that corresponds to maintained states */
-            StateSpacePtr             space_;
+            StateSpacePtr space_;
 
             /** \brief The list of maintained states */
-            std::vector<const State*> states_;
+            std::vector<const State *> states_;
 
             /** \brief Flag indicating whether there is metadata associated to the states in this storage */
-            bool                      hasMetadata_;
+            bool hasMetadata_;
         };
 
         /** \brief State storage that allows storing state metadata as well
             \tparam M the datatype for the stored metadata. boost::serialization operation needs to be defined */
-        template<typename M>
+        template <typename M>
         class StateStorageWithMetadata : public StateStorage
         {
         public:
-
             /** \brief the datatype of the metadata */
             typedef M MetadataType;
 
@@ -223,60 +226,60 @@ namespace ompl
             /** \brief Add a state to the set of states maintained by
                 this storage structure. The state is copied to
                 internal storage and metadata with default values is stored as well. */
-            virtual void addState(const State *state)
+            void addState(const State *state) override
             {
                 addState(state, M());
             }
 
             /** \brief Add a state to the set of states maintained by
-                this storage structure. The state is copied to internal storage. Corresponding metadata is stored too. */
-            virtual void addState(const State *state, const M& metadata)
+                this storage structure. The state is copied to internal storage. Corresponding metadata is stored too.
+               */
+            virtual void addState(const State *state, const M &metadata)
             {
                 StateStorage::addState(state);
                 metadata_.push_back(metadata);
             }
 
-            virtual void clear()
+            void clear() override
             {
                 StateStorage::clear();
                 metadata_.clear();
             }
 
             /** \brief Get const access to the metadata of a state at a particular index */
-            const M& getMetadata(unsigned int index) const
+            const M &getMetadata(unsigned int index) const
             {
                 assert(metadata_.size() > index);
                 return metadata_[index];
             }
 
             /** \brief Get write access to the metadata of a state at a particular index */
-            M& getMetadata(unsigned int index)
+            M &getMetadata(unsigned int index)
             {
                 assert(metadata_.size() > index);
                 return metadata_[index];
             }
 
         protected:
-
-            virtual void loadMetadata(const Header& /*h*/, boost::archive::binary_iarchive &ia)
+            void loadMetadata(const Header & /*h*/, boost::archive::binary_iarchive &ia) override
             {
                 // clear default metadata that was added by StateStorage::loadStates()
                 metadata_.clear();
                 ia >> metadata_;
             }
 
-            virtual void storeMetadata(const Header& /*h*/, boost::archive::binary_oarchive &oa)
+            void storeMetadata(const Header & /*h*/, boost::archive::binary_oarchive &oa) override
             {
                 oa << metadata_;
             }
 
             /** \brief The metadata for each state */
             std::vector<M> metadata_;
-
         };
 
-        /** \brief Storage of states where the metadata is a vector of indices. This is is typically used to store a graph */
-        typedef StateStorageWithMetadata<std::vector<std::size_t> > GraphStateStorage;
+        /** \brief Storage of states where the metadata is a vector of indices. This is is typically used to store a
+         * graph */
+        typedef StateStorageWithMetadata<std::vector<std::size_t>> GraphStateStorage;
         typedef std::shared_ptr<GraphStateStorage> GraphStateStoragePtr;
     }
 }

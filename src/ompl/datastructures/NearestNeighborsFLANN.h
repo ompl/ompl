@@ -39,39 +39,39 @@
 
 #include "ompl/config.h"
 #if OMPL_HAVE_FLANN == 0
-#  error FLANN is not available. Please use a different NearestNeighbors data structure.
+#error FLANN is not available. Please use a different NearestNeighbors data structure.
 #else
 
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/base/StateSpace.h"
 
 #include <flann/flann.hpp>
+#include <utility>
 
 namespace ompl
 {
     /** \brief Wrapper class to allow FLANN access to the
         NearestNeighbors::distFun_ callback function
     */
-    template<typename _T>
+    template <typename _T>
     class FLANNDistance
     {
     public:
-        typedef _T ElementType;
-        typedef double ResultType;
+        using ElementType = ompl::base::State *;
+        using ResultType = double;
 
-        FLANNDistance(const typename NearestNeighbors<_T>::DistanceFunction& distFun)
-            : distFun_(distFun)
+        FLANNDistance(const typename NearestNeighbors<_T>::DistanceFunction &distFun) : distFun_(distFun)
         {
         }
 
         template <typename Iterator1, typename Iterator2>
-        ResultType operator()(Iterator1 a, Iterator2 b,
-            size_t /*size*/, ResultType /*worst_dist*/ = -1) const
+        ResultType operator()(Iterator1 a, Iterator2 b, size_t /*size*/, ResultType /*worst_dist*/ = -1) const
         {
             return distFun_(*a, *b);
         }
+
     protected:
-        const typename NearestNeighbors<_T>::DistanceFunction& distFun_;
+        const typename NearestNeighbors<_T>::DistanceFunction &distFun_;
     };
 
     /** \brief Wrapper class for nearest neighbor data structures in the
@@ -83,23 +83,22 @@ namespace ompl
         on Computer Vision Theory and Applications (VISAPP'09), 2009.
         http://people.cs.ubc.ca/~mariusm/index.php/FLANN/FLANN
     */
-    template<typename _T, typename _Dist = FLANNDistance<_T> >
+    template <typename _T, typename _Dist = FLANNDistance<_T>>
     class NearestNeighborsFLANN : public NearestNeighbors<_T>
     {
     public:
-
-        NearestNeighborsFLANN(const std::shared_ptr<flann::IndexParams> &params)
-            : index_(0), params_(params), searchParams_(32, 0., true), dimension_(1)
+        NearestNeighborsFLANN(std::shared_ptr<flann::IndexParams> params)
+          : index_(nullptr), params_(std::move(params)), searchParams_(32, 0., true), dimension_(1)
         {
         }
 
-        virtual ~NearestNeighborsFLANN()
+        ~NearestNeighborsFLANN() override
         {
             if (index_)
                 delete index_;
         }
 
-        virtual void clear()
+        void clear() override
         {
             if (index_)
             {
@@ -109,18 +108,18 @@ namespace ompl
             data_.clear();
         }
 
-        virtual bool reportsSortedResults() const
+        bool reportsSortedResults() const override
         {
             return searchParams_.sorted;
         }
 
-        virtual void setDistanceFunction(const typename NearestNeighbors<_T>::DistanceFunction &distFun)
+        void setDistanceFunction(const typename NearestNeighbors<_T>::DistanceFunction &distFun) override
         {
             NearestNeighbors<_T>::setDistanceFunction(distFun);
             rebuildIndex();
         }
 
-        virtual void add(const _T &data)
+        void add(const _T &data) override
         {
             bool rebuild = index_ && (data_.size() + 1 > data_.capacity());
 
@@ -131,11 +130,11 @@ namespace ompl
             const flann::Matrix<_T> mat(&data_.back(), 1, dimension_);
 
             if (index_)
-                index_->addPoints(mat, std::numeric_limits<float>::max()/size());
+                index_->addPoints(mat, std::numeric_limits<float>::max() / size());
             else
                 createIndex(mat);
         }
-        virtual void add(const std::vector<_T> &data)
+        void add(const std::vector<_T> &data) override
         {
             unsigned int oldSize = data_.size();
             unsigned int newSize = oldSize + data.size();
@@ -148,7 +147,7 @@ namespace ompl
             {
                 std::copy(data.begin(), data.end(), data_.begin() + oldSize);
                 const flann::Matrix<_T> mat(&data_[oldSize], data.size(), dimension_);
-                index_->addPoints(mat, std::numeric_limits<float>::max()/size());
+                index_->addPoints(mat, std::numeric_limits<float>::max() / size());
             }
             else
             {
@@ -157,13 +156,14 @@ namespace ompl
                 createIndex(mat);
             }
         }
-        virtual bool remove(const _T& data)
+        bool remove(const _T &data) override
         {
-            if (!index_) return false;
-            _T& elt = const_cast<_T&>(data);
+            if (!index_)
+                return false;
+            _T &elt = const_cast<_T &>(data);
             const flann::Matrix<_T> query(&elt, 1, dimension_);
-            std::vector<std::vector<size_t> > indices(1);
-            std::vector<std::vector<double> > dists(1);
+            std::vector<std::vector<size_t>> indices(1);
+            std::vector<std::vector<double>> dists(1);
             index_->knnSearch(query, indices, dists, 1, searchParams_);
             if (*index_->getPoint(indices[0][0]) == data)
             {
@@ -173,14 +173,14 @@ namespace ompl
             }
             return false;
         }
-        virtual _T nearest(const _T &data) const
+        _T nearest(const _T &data) const override
         {
             if (size())
             {
-                _T& elt = const_cast<_T&>(data);
+                _T &elt = const_cast<_T &>(data);
                 const flann::Matrix<_T> query(&elt, 1, dimension_);
-                std::vector<std::vector<size_t> > indices(1);
-                std::vector<std::vector<double> > dists(1);
+                std::vector<std::vector<size_t>> indices(1);
+                std::vector<std::vector<double>> dists(1);
                 index_->knnSearch(query, indices, dists, 1, searchParams_);
                 return *index_->getPoint(indices[0][0]);
             }
@@ -188,37 +188,37 @@ namespace ompl
         }
         /// \brief Return the k nearest neighbors in sorted order if
         /// searchParams_.sorted==true (the default)
-        virtual void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const
+        void nearestK(const _T &data, std::size_t k, std::vector<_T> &nbh) const override
         {
-            _T& elt = const_cast<_T&>(data);
+            _T &elt = const_cast<_T &>(data);
             const flann::Matrix<_T> query(&elt, 1, dimension_);
-            std::vector<std::vector<size_t> > indices;
-            std::vector<std::vector<double> > dists;
+            std::vector<std::vector<size_t>> indices;
+            std::vector<std::vector<double>> dists;
             k = index_ ? index_->knnSearch(query, indices, dists, k, searchParams_) : 0;
             nbh.resize(k);
-            for (std::size_t i = 0 ; i < k ; ++i)
+            for (std::size_t i = 0; i < k; ++i)
                 nbh[i] = *index_->getPoint(indices[0][i]);
         }
         /// \brief Return the nearest neighbors within distance \c radius in sorted
         /// order if searchParams_.sorted==true (the default)
-        virtual void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const
+        void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const override
         {
-            _T& elt = const_cast<_T&>(data);
+            _T &elt = const_cast<_T &>(data);
             flann::Matrix<_T> query(&elt, 1, dimension_);
-            std::vector<std::vector<size_t> > indices;
-            std::vector<std::vector<double> > dists;
+            std::vector<std::vector<size_t>> indices;
+            std::vector<std::vector<double>> dists;
             int k = index_ ? index_->radiusSearch(query, indices, dists, radius, searchParams_) : 0;
             nbh.resize(k);
-            for (int i = 0 ; i < k ; ++i)
+            for (int i = 0; i < k; ++i)
                 nbh[i] = *index_->getPoint(indices[0][i]);
         }
 
-        virtual std::size_t size() const
+        std::size_t size() const override
         {
             return index_ ? index_->size() : 0;
         }
 
-        virtual void list(std::vector<_T> &data) const
+        void list(std::vector<_T> &data) const override
         {
             std::size_t sz = size();
             if (sz == 0)
@@ -226,7 +226,7 @@ namespace ompl
                 data.resize(0);
                 return;
             }
-            const _T& dummy = *index_->getPoint(0);
+            const _T &dummy = *index_->getPoint(0);
             int checks = searchParams_.checks;
             searchParams_.checks = size();
             nearestK(dummy, sz, data);
@@ -244,28 +244,28 @@ namespace ompl
         }
 
         /// \brief Get the FLANN parameters used to build the current index.
-        virtual const std::shared_ptr<flann::IndexParams>& getIndexParams() const
+        virtual const std::shared_ptr<flann::IndexParams> &getIndexParams() const
         {
             return params_;
         }
 
         /// \brief Set the FLANN parameters to be used during nearest neighbor
         /// searches
-        virtual void setSearchParams(const flann::SearchParams& searchParams)
+        virtual void setSearchParams(const flann::SearchParams &searchParams)
         {
             searchParams_ = searchParams;
         }
 
         /// \brief Get the FLANN parameters used during nearest neighbor
         /// searches
-        flann::SearchParams& getSearchParams()
+        flann::SearchParams &getSearchParams()
         {
             return searchParams_;
         }
 
         /// \brief Get the FLANN parameters used during nearest neighbor
         /// searches
-        const flann::SearchParams& getSearchParams() const
+        const flann::SearchParams &getSearchParams() const
         {
             return searchParams_;
         }
@@ -276,10 +276,9 @@ namespace ompl
         }
 
     protected:
-
         /// \brief Internal function to construct nearest neighbor
         /// data structure with initial elements stored in mat.
-        void createIndex(const flann::Matrix<_T>& mat)
+        void createIndex(const flann::Matrix<_T> &mat)
         {
             index_ = new flann::Index<_Dist>(mat, *params_, _Dist(NearestNeighbors<_T>::distFun_));
             index_->buildIndex();
@@ -302,56 +301,51 @@ namespace ompl
 
         /// \brief vector of data stored in FLANN's index. FLANN only indexes
         /// references, so we need store the original data.
-        std::vector<_T>                       data_;
+        std::vector<_T> data_;
 
         /// \brief The FLANN index (the actual index type depends on params_).
-        flann::Index<_Dist>*                  index_;
+        flann::Index<_Dist> *index_;
 
         /// \brief The FLANN index parameters. This contains both the type of
         /// index and the parameters for that type.
         std::shared_ptr<flann::IndexParams> params_;
 
         /// \brief The parameters used to seach for nearest neighbors.
-        mutable flann::SearchParams           searchParams_;
+        mutable flann::SearchParams searchParams_;
 
         /// \brief If each element has an array-like structure that is exposed
         /// to FLANN, then the dimension_ needs to be set to the length of
         /// this array.
-        unsigned int                          dimension_;
+        unsigned int dimension_;
     };
 
-    template<>
-    void NearestNeighborsFLANN<double, flann::L2<double> >::createIndex(
-        const flann::Matrix<double>& mat)
+    template <>
+    void NearestNeighborsFLANN<double, flann::L2<double>>::createIndex(const flann::Matrix<double> &mat)
     {
-        index_ = new flann::Index<flann::L2<double> >(mat, *params_);
+        index_ = new flann::Index<flann::L2<double>>(mat, *params_);
         index_->buildIndex();
     }
 
-    template<typename _T, typename _Dist = FLANNDistance<_T> >
+    template <typename _T, typename _Dist = FLANNDistance<_T>>
     class NearestNeighborsFLANNLinear : public NearestNeighborsFLANN<_T, _Dist>
     {
     public:
         NearestNeighborsFLANNLinear()
-            : NearestNeighborsFLANN<_T, _Dist>(
-                std::shared_ptr<flann::LinearIndexParams>(
-                    new flann::LinearIndexParams()))
+          : NearestNeighborsFLANN<_T, _Dist>(std::shared_ptr<flann::LinearIndexParams>(new flann::LinearIndexParams()))
         {
         }
     };
 
-    template<typename _T, typename _Dist = FLANNDistance<_T> >
+    template <typename _T, typename _Dist = FLANNDistance<_T>>
     class NearestNeighborsFLANNHierarchicalClustering : public NearestNeighborsFLANN<_T, _Dist>
     {
     public:
         NearestNeighborsFLANNHierarchicalClustering()
-            : NearestNeighborsFLANN<_T, _Dist>(
-                std::shared_ptr<flann::HierarchicalClusteringIndexParams>(
-                    new flann::HierarchicalClusteringIndexParams()))
+          : NearestNeighborsFLANN<_T, _Dist>(std::shared_ptr<flann::HierarchicalClusteringIndexParams>(
+                new flann::HierarchicalClusteringIndexParams()))
         {
         }
     };
-
 }
 #endif
 

@@ -26,6 +26,11 @@ To report a bug, please click [here](https://bitbucket.org/ompl/ompl/issues?stat
   </div>
   <input type="hidden" name="_next" value="thank-you.html" />
   <input type="hidden" name="_subject" value="OMPL contact form submission" />
+  <input type="hidden" name="IP" id="IP">
+  <script type="application/javascript">
+    window.onload = function () {
+    $.getJSON("https://api.ipify.org?format=jsonp&callback=?",function(json){$("#IP").val(json.ip);});};
+  </script>
   <input type="text" name="_gotcha" style="display:none" />
   <input type="submit" value="Send" name='submit' class="btn btn-primary" />
 </form>

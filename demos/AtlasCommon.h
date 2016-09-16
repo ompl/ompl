@@ -44,8 +44,8 @@
 #include <ompl/geometric/ConstrainedSimpleSetup.h>
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/planners/est/EST.h>
-#include <ompl/geometric/planners/est/RealEST.h>
-#include <ompl/geometric/planners/est/BiRealEST.h>
+#include <ompl/geometric/planners/est/BiEST.h>
+#include <ompl/geometric/planners/est/ProjEST.h>
 #include <ompl/geometric/planners/kpiece/BKPIECE1.h>
 #include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
@@ -870,15 +870,15 @@ ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::
         est->setRange(range);
         return est;
     }
-    else if (std::strcmp(planner, "RealEST") == 0)
+    else if (std::strcmp(planner, "BiEST") == 0)
     {
-        ompl::geometric::RealEST *est = new ompl::geometric::RealEST(si);
+        ompl::geometric::BiEST *est = new ompl::geometric::BiEST(si);
         est->setRange(range);
         return est;
     }
-    else if (std::strcmp(planner, "BiRealEST") == 0)
+    else if (std::strcmp(planner, "ProjEST") == 0)
     {
-        ompl::geometric::BiRealEST *est = new ompl::geometric::BiRealEST(si);
+        ompl::geometric::ProjEST *est = new ompl::geometric::ProjEST(si);
         est->setRange(range);
         return est;
     }

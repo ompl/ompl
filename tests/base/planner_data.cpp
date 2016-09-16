@@ -52,8 +52,8 @@ using namespace ompl;
 
 BOOST_AUTO_TEST_CASE(SimpleConstruction)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    auto space(std::make_shared<base::RealVectorStateSpace>(1));
+    auto si(std::make_shared<base::SpaceInformation>(space));
     base::PlannerData data(si);
     std::vector<base::State*> states;
 
@@ -115,14 +115,14 @@ BOOST_AUTO_TEST_CASE(SimpleConstruction)
         BOOST_CHECK_EQUAL( data.getVertex(i).getTag(), (signed)i );
     }
 
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    for (auto & state : states)
+        space->freeState(state);
 }
 
 BOOST_AUTO_TEST_CASE(AdvancedConstruction)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    auto space(std::make_shared<base::RealVectorStateSpace>(1));
+    auto si(std::make_shared<base::SpaceInformation>(space));
     base::PlannerData data(si);
     std::vector<base::State*> states;
 
@@ -209,8 +209,8 @@ BOOST_AUTO_TEST_CASE(AdvancedConstruction)
         BOOST_CHECK_EQUAL(data.getVertex(i).getTag(), (signed)i);
     }
 
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    for (auto & state : states)
+        space->freeState(state);
 }
 
 class TestEdge : public base::PlannerDataEdge
@@ -218,10 +218,10 @@ class TestEdge : public base::PlannerDataEdge
 public:
     TestEdge (unsigned int _a, unsigned int _b) : base::PlannerDataEdge(), a(_a), b(_b) {}
     TestEdge (const TestEdge &rhs) : base::PlannerDataEdge(), a(rhs.a), b(rhs.b) {}
-    virtual ~TestEdge (void) {}
+    ~TestEdge () override = default;
 
     /// \brief Return a clone of this object, allocated from the heap.
-    virtual PlannerDataEdge* clone () const
+    PlannerDataEdge* clone () const override
     {
         return static_cast<PlannerDataEdge*>(new TestEdge(*this));
     }
@@ -231,8 +231,8 @@ public:
 
 BOOST_AUTO_TEST_CASE(DataIntegrity)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    auto space(std::make_shared<base::RealVectorStateSpace>(1));
+    auto si(std::make_shared<base::SpaceInformation>(space));
     base::PlannerData data(si);
     std::vector<base::State*> states;
 
@@ -282,7 +282,7 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
     // Reset the tag for state #0
     BOOST_CHECK( data.tagState(states[0], 10000) );
     BOOST_CHECK_EQUAL( data.getVertex(0).getTag(), 10000 );
-    BOOST_CHECK_EQUAL( data.tagState(0, 1000), false ); // state doesn't exist
+    BOOST_CHECK_EQUAL( data.tagState(nullptr, 1000), false ); // state doesn't exist
 
     // Reset the edge weight for 0->1
     BOOST_CHECK( data.setEdgeWeight(0, 1, base::Cost(1.234)) );
@@ -296,15 +296,15 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
     BOOST_CHECK_EQUAL( data.setEdgeWeight(0, 5, base::Cost(2.345)), false );
 
     // Try to tag an invalid state
-    BOOST_CHECK_EQUAL( data.tagState(0, 100), false );
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    BOOST_CHECK_EQUAL( data.tagState(nullptr, 100), false );
+    for (auto & state : states)
+        space->freeState(state);
 }
 
 BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    auto space(std::make_shared<base::RealVectorStateSpace>(1));
+    auto si(std::make_shared<base::SpaceInformation>(space));
     base::PlannerData data(si);
     std::vector<base::State*> states;
 
@@ -376,14 +376,14 @@ BOOST_AUTO_TEST_CASE(AddRemoveVerticesAndEdges)
          }
     }
 
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    for (auto & state : states)
+        space->freeState(state);
 }
 
 BOOST_AUTO_TEST_CASE(AddRemoveStartAndGoalStates)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    auto space(std::make_shared<base::RealVectorStateSpace>(1));
+    auto si(std::make_shared<base::SpaceInformation>(space));
     base::PlannerData data(si);
     std::vector<base::State*> states;
 
@@ -449,8 +449,8 @@ BOOST_AUTO_TEST_CASE(AddRemoveStartAndGoalStates)
         }
     }
 
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    for (auto & state : states)
+        space->freeState(state);
 }
 
 class PlannerDataTestVertex : public ompl::base::PlannerDataVertex
@@ -459,7 +459,7 @@ public:
     PlannerDataTestVertex (base::State* st, int tag = 0, int tag2 = 0) : ompl::base::PlannerDataVertex(st, tag), tag2_(tag2) {}
     PlannerDataTestVertex (const PlannerDataTestVertex &rhs) : ompl::base::PlannerDataVertex(rhs.state_, rhs.tag_), tag2_(rhs.tag2_) {}
 
-    virtual ompl::base::PlannerDataVertex* clone (void) const
+    ompl::base::PlannerDataVertex* clone () const override
     {
         return static_cast<ompl::base::PlannerDataVertex*>(new PlannerDataTestVertex(*this));
     }
@@ -467,7 +467,7 @@ public:
     int tag2_;
 
 protected:
-    PlannerDataTestVertex(void) {}
+    PlannerDataTestVertex() {}
 
     friend class boost::serialization::access;
     template <class Archive>
@@ -483,8 +483,8 @@ BOOST_CLASS_EXPORT(PlannerDataTestVertex);
 
 BOOST_AUTO_TEST_CASE(Serialization)
 {
-    base::StateSpacePtr space(new base::RealVectorStateSpace(1));
-    base::SpaceInformationPtr si(new base::SpaceInformation(space));
+    auto space(std::make_shared<base::RealVectorStateSpace>(1));
+    auto si(std::make_shared<base::SpaceInformation>(space));
     base::PlannerData data(si);
     std::vector<base::State*> states;
 
@@ -561,6 +561,6 @@ BOOST_AUTO_TEST_CASE(Serialization)
             BOOST_CHECK_EQUAL( neighbors[j], neighbors2[j] );
     }
 
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    for (auto & state : states)
+        space->freeState(state);
 }

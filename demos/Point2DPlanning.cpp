@@ -67,18 +67,18 @@ public:
         }
         if (ok)
         {
-            ob::RealVectorStateSpace *space = new ob::RealVectorStateSpace();
+            auto space(std::make_shared<ob::RealVectorStateSpace>());
             space->addDimension(0.0, ppm_.getWidth());
             space->addDimension(0.0, ppm_.getHeight());
             maxWidth_ = ppm_.getWidth() - 1;
             maxHeight_ = ppm_.getHeight() - 1;
-            ss_.reset(new og::SimpleSetup(ob::StateSpacePtr(space)));
+            ss_ = std::make_shared<og::SimpleSetup>(space);
 
             // set state validity checking for this space
-            ss_->setStateValidityChecker(std::bind(&Plane2DEnvironment::isStateValid, this, std::placeholders::_1));
+            ss_->setStateValidityChecker([this](const ob::State *state) { return isStateValid(state); });
             space->setup();
             ss_->getSpaceInformation()->setStateValidityCheckingResolution(1.0 / space->getMaximumExtent());
-            //      ss_->setPlanner(ob::PlannerPtr(new og::RRTConnect(ss_->getSpaceInformation())));
+            //      ss_->setPlanner(std::make_shared<og::RRTConnect>(ss_->getSpaceInformation()));
         }
     }
 

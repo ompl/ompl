@@ -317,8 +317,8 @@ int main (int argc, char **argv)
         usage(argv[0]);
     if (std::strcmp(argv[1], "KPIECE1") == 0) {
         planner->as<ompl::geometric::KPIECE1>()->setProjectionEvaluator(ompl::base::ProjectionEvaluatorPtr(new ompl::base::RealVectorRandomLinearProjectionEvaluator(atlas, atlas->getManifoldDimension())));
-    } else if (std::strcmp(argv[1], "EST") == 0) {
-        planner->as<ompl::geometric::EST>()->setProjectionEvaluator(ompl::base::ProjectionEvaluatorPtr(new ompl::base::RealVectorRandomLinearProjectionEvaluator(atlas, atlas->getManifoldDimension())));
+    } else if (std::strcmp(argv[1], "ProjEST") == 0) {
+        planner->as<ompl::geometric::ProjEST>()->setProjectionEvaluator(ompl::base::ProjectionEvaluatorPtr(new ompl::base::RealVectorRandomLinearProjectionEvaluator(atlas, atlas->getManifoldDimension())));
 
     } else if (std::strcmp(argv[1], "STRIDE") == 0) {
         planner->as<ompl::geometric::STRIDE>()->setEstimatedDimension(atlas->getManifoldDimension());

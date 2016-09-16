@@ -50,12 +50,12 @@ class RigidBodyEnvironment : public oc::OpenDEEnvironment
 {
 public:
 
-    RigidBodyEnvironment(void) : oc::OpenDEEnvironment()
+    RigidBodyEnvironment() : oc::OpenDEEnvironment()
     {
         createWorld();
     }
 
-    virtual ~RigidBodyEnvironment(void)
+    ~RigidBodyEnvironment() override
     {
         destroyWorld();
     }
@@ -64,12 +64,12 @@ public:
      * Implementation of functions needed by planning *
      **************************************************/
 
-    virtual unsigned int getControlDimension(void) const
+    unsigned int getControlDimension() const override
     {
         return 3;
     }
 
-    virtual void getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const
+    void getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const override
     {
         static double maxForce = 0.2;
         lower.resize(3);
@@ -83,17 +83,17 @@ public:
         upper[2] = maxForce;
     }
 
-    virtual void applyControl(const double *control) const
+    void applyControl(const double *control) const override
     {
         dBodyAddForce(boxBody, control[0], control[1], control[2]);
     }
 
-    virtual bool isValidCollision(dGeomID /*geom1*/, dGeomID /*geom2*/, const dContact& /*contact*/) const
+    bool isValidCollision(dGeomID /*geom1*/, dGeomID /*geom2*/, const dContact& /*contact*/) const override
     {
         return false;
     }
 
-    virtual void setupContact(dGeomID /*geom1*/, dGeomID /*geom2*/, dContact &contact) const
+    void setupContact(dGeomID /*geom1*/, dGeomID /*geom2*/, dContact &contact) const override
     {
         contact.surface.mode = dContactSoftCFM | dContactApprox1;
         contact.surface.mu = 0.9;
@@ -108,14 +108,14 @@ public:
     // simulation environment. At the end of the function, there is a
     // call to setPlanningParameters(), which configures members of
     // the base class needed by planners.
-    void createWorld(void);
+    void createWorld();
 
     // Clear all OpenDE objects
-    void destroyWorld(void);
+    void destroyWorld();
 
     // Set parameters needed by the base class (such as the bodies
     // that make up to state of the system we are planning for)
-    void setPlanningParameters(void);
+    void setPlanningParameters();
 
     // the simulation world
     dWorldID bodyWorld;
@@ -145,7 +145,7 @@ public:
         threshold_ = 0.5;
     }
 
-    virtual double distanceGoal(const ob::State *st) const
+    double distanceGoal(const ob::State *st) const override
     {
         const double *pos = st->as<oc::OpenDEStateSpace::StateType>()->getBodyPosition(0);
         double dx = fabs(pos[0] - 30);
@@ -166,12 +166,12 @@ public:
     {
     }
 
-    virtual unsigned int getDimension(void) const
+    unsigned int getDimension() const override
     {
         return 3;
     }
 
-    virtual void defaultCellSizes(void)
+    void defaultCellSizes() override
     {
         cellSizes_.resize(3);
         cellSizes_[0] = 1;
@@ -179,7 +179,7 @@ public:
         cellSizes_[2] = 1;
     }
 
-    virtual void project(const ob::State *state, ob::EuclideanProjection &projection) const
+    void project(const ob::State *state, ob::EuclideanProjection &projection) const override
     {
         const double *pos = state->as<oc::OpenDEStateSpace::StateType>()->getBodyPosition(0);
         projection[0] = pos[0];
@@ -198,7 +198,7 @@ public:
     {
     }
 
-    virtual double distance(const ob::State *s1, const ob::State *s2) const
+    double distance(const ob::State *s1, const ob::State *s2) const override
     {
         const double *p1 = s1->as<oc::OpenDEStateSpace::StateType>()->getBodyPosition(0);
         const double *p2 = s2->as<oc::OpenDEStateSpace::StateType>()->getBodyPosition(0);
@@ -208,9 +208,10 @@ public:
         return sqrt(dx * dx + dy * dy + dz * dz);
     }
 
-    virtual void registerProjections(void)
+    void registerProjections() override
     {
-            registerDefaultProjection(ob::ProjectionEvaluatorPtr(new RigidBodyStateProjectionEvaluator(this)));
+        registerDefaultProjection(
+            std::make_shared<RigidBodyStateProjectionEvaluator>(this));
     }
 
 };
@@ -223,17 +224,16 @@ int main(int, char **)
     dInitODE2(0);
 
     // create the OpenDE environment
-    oc::OpenDEEnvironmentPtr env(new RigidBodyEnvironment());
+    oc::OpenDEEnvironmentPtr env(std::make_shared<RigidBodyEnvironment>());
 
     // create the state space and the control space for planning
-    RigidBodyStateSpace *stateSpace = new RigidBodyStateSpace(env);
-    ob::StateSpacePtr stateSpacePtr = ob::StateSpacePtr(stateSpace);
+    auto stateSpace = std::make_shared<RigidBodyStateSpace>(env);
 
     // this will take care of setting a proper collision checker and the starting state for the planner as the initial OpenDE state
-    oc::OpenDESimpleSetup ss(stateSpacePtr);
+    oc::OpenDESimpleSetup ss(stateSpace);
 
     // set the goal we would like to reach
-    ss.setGoal(ob::GoalPtr(new RigidBodyGoal(ss.getSpaceInformation())));
+    ss.setGoal(std::make_shared<RigidBodyGoal>(ss.getSpaceInformation()));
 
     ob::RealVectorBounds bounds(3);
     bounds.setLow(-200);
@@ -269,13 +269,13 @@ int main(int, char **)
  * Member function implementations             *
  ***********************************************/
 
-void RigidBodyEnvironment::createWorld(void)
+void RigidBodyEnvironment::createWorld()
 {
     // BEGIN SETTING UP AN OPENDE ENVIRONMENT
     // ***********************************
 
     bodyWorld = dWorldCreate();
-    space = dHashSpaceCreate(0);
+    space = dHashSpaceCreate(nullptr);
 
     dWorldSetGravity(bodyWorld, 0, 0, -0.981);
 
@@ -296,13 +296,13 @@ void RigidBodyEnvironment::createWorld(void)
     setPlanningParameters();
 }
 
-void RigidBodyEnvironment::destroyWorld(void)
+void RigidBodyEnvironment::destroyWorld()
 {
     dSpaceDestroy(space);
     dWorldDestroy(bodyWorld);
 }
 
-void RigidBodyEnvironment::setPlanningParameters(void)
+void RigidBodyEnvironment::setPlanningParameters()
 {
     // Fill in parameters for OMPL:
     world_ = bodyWorld;

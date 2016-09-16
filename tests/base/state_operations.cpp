@@ -52,8 +52,7 @@ using namespace ompl;
 
 BOOST_AUTO_TEST_CASE(Scoped)
 {
-    base::SE3StateSpace *mSE3 = new base::SE3StateSpace();
-    base::StateSpacePtr pSE3(mSE3);
+    auto mSE3(std::make_shared<base::SE3StateSpace>());
 
     base::RealVectorBounds b(3);
     b.setLow(0);
@@ -61,28 +60,25 @@ BOOST_AUTO_TEST_CASE(Scoped)
     mSE3->setBounds(b);
     mSE3->setup();
 
-    base::CompoundStateSpace *mC0 = new base::CompoundStateSpace();
-    base::StateSpacePtr pC0(mC0);
-    mC0->addSubspace(pSE3, 1.0);
+    auto mC0(std::make_shared<base::CompoundStateSpace>());
+    mC0->addSubspace(mSE3, 1.0);
     mC0->setup();
 
-    base::CompoundStateSpace *mC1 = new base::CompoundStateSpace();
-    base::StateSpacePtr pC1(mC1);
-    mC1->addSubspace(pC0, 1.0);
+    auto mC1(std::make_shared<base::CompoundStateSpace>());
+    mC1->addSubspace(mC0, 1.0);
     mC1->setup();
 
-    base::CompoundStateSpace *mC2 = new base::CompoundStateSpace();
-    base::StateSpacePtr pC2(mC2);
+    auto mC2(std::make_shared<base::CompoundStateSpace>());
     mC2->addSubspace(mSE3->getSubspace(1), 1.0);
     mC2->addSubspace(mSE3->getSubspace(0), 1.0);
     mC2->setup();
 
-    base::ScopedState<base::SE3StateSpace> sSE3(pSE3);
+    base::ScopedState<base::SE3StateSpace> sSE3(mSE3);
     base::ScopedState<base::RealVectorStateSpace> sSE3_R(mSE3->getSubspace(0));
     base::ScopedState<base::SO3StateSpace> sSE3_SO2(mSE3->getSubspace(1));
-    base::ScopedState<base::CompoundStateSpace> sC0(pC0);
-    base::ScopedState<> sC1(pC1);
-    base::ScopedState<> sC2(pC2);
+    base::ScopedState<base::CompoundStateSpace> sC0(mC0);
+    base::ScopedState<> sC1(mC1);
+    base::ScopedState<> sC2(mC2);
 
     sSE3.random();
 
@@ -93,7 +89,7 @@ BOOST_AUTO_TEST_CASE(Scoped)
     BOOST_CHECK_EQUAL(sSE3->rotation().z, sSE3_SO2->z);
     BOOST_CHECK_EQUAL(sSE3->rotation().w, sSE3_SO2->w);
 
-    base::ScopedState<> sSE3_copy(pSE3);
+    base::ScopedState<> sSE3_copy(mSE3);
     sSE3_copy << sSE3;
     BOOST_CHECK_EQUAL(sSE3_copy, sSE3);
     sSE3 >> sSE3_copy;
@@ -125,7 +121,7 @@ BOOST_AUTO_TEST_CASE(Scoped)
 
     (sSE3_R ^ sSE3_SO2) >> sSE3_copy;
     BOOST_CHECK_EQUAL(sSE3_copy, sSE3);
-    BOOST_CHECK_EQUAL(sSE3_copy[pSE3 * sSE3_R.getSpace()], sSE3_R);
+    BOOST_CHECK_EQUAL(sSE3_copy[mSE3 * sSE3_R.getSpace()], sSE3_R);
     BOOST_CHECK_EQUAL(sSE3_copy[sSE3_SO2.getSpace()], sSE3_SO2);
 
     sSE3->setY(1.0);
@@ -142,13 +138,13 @@ BOOST_AUTO_TEST_CASE(Scoped)
     BOOST_CHECK_EQUAL(sSE3_copy, sSE3);
     BOOST_CHECK_EQUAL(sSE3[6], r[6]);
     BOOST_CHECK_EQUAL(sSE3[0], r[0]);
-    BOOST_CHECK_EQUAL(sSE3.getSpace()->getValueAddressAtIndex(sSE3.get(), 7), (double*)NULL);
+    BOOST_CHECK_EQUAL(sSE3.getSpace()->getValueAddressAtIndex(sSE3.get(), 7), (double*)nullptr);
 
     sSE3_R = 0.5;
     BOOST_CHECK_EQUAL(sSE3_R[0], 0.5);
 
     sSE3 << sSE3_R;
-    pSE3->setName("test");
+    mSE3->setName("test");
     BOOST_CHECK_EQUAL(sSE3["test"], 0.5);
     sSE3["test"] = 0.1;
     BOOST_CHECK_EQUAL(sSE3[0], 0.1);
@@ -156,7 +152,7 @@ BOOST_AUTO_TEST_CASE(Scoped)
 
 BOOST_AUTO_TEST_CASE(ScopedRV)
 {
-    base::StateSpacePtr m(new base::RealVectorStateSpace(2));
+    auto m(std::make_shared<base::RealVectorStateSpace>(2));
 
     base::ScopedState<base::RealVectorStateSpace> s1(m);
     s1->values[0] = 1.0;
@@ -187,17 +183,17 @@ BOOST_AUTO_TEST_CASE(ScopedRV)
 
 BOOST_AUTO_TEST_CASE(Allocation)
 {
-    base::StateSpacePtr m(new base::SE3StateSpace());
+    auto m(std::make_shared<base::SE3StateSpace>());
     base::RealVectorBounds b(3);
     b.setLow(0);
     b.setHigh(1);
-    m->as<base::SE3StateSpace>()->setBounds(b);
+    m->setBounds(b);
     base::SpaceInformation si(m);
     si.setup();
 
     const unsigned int N = 30000;
     const unsigned int M = 20;
-    std::vector<base::State*> states(N, NULL);
+    std::vector<base::State*> states(N, nullptr);
 
     ompl::time::point start = ompl::time::now();
     for (unsigned int j = 0 ; j < M ; ++j)
@@ -246,37 +242,37 @@ void randomizedAllocator(const base::SpaceInformation *si)
     RNG r;
     const unsigned int n = 500;
 
-    std::vector<base::State*> states(n + 1, NULL);
+    std::vector<base::State*> states(n + 1, nullptr);
     for (unsigned int i = 0 ; i < n * 1000 ; ++i)
     {
         int j = r.uniformInt(0, n);
-        if (states[j] == NULL)
+        if (states[j] == nullptr)
             states[j] = si->allocState();
         else
         {
             si->freeState(states[j]);
-            states[j] = NULL;
+            states[j] = nullptr;
         }
     }
-    for (unsigned int i = 0 ; i < states.size() ; ++i)
-        if (states[i])
-            si->freeState(states[i]);
+    for (auto & state : states)
+        if (state)
+            si->freeState(state);
 }
 
 BOOST_AUTO_TEST_CASE(AllocationWithThreads)
 {
-    base::StateSpacePtr m(new base::SE3StateSpace());
+    auto m(std::make_shared<base::SE3StateSpace>());
     base::RealVectorBounds b(3);
     b.setLow(0);
     b.setHigh(1);
-    m->as<base::SE3StateSpace>()->setBounds(b);
+    m->setBounds(b);
     base::SpaceInformation si(m);
     si.setup();
     const int NT = 10;
     ompl::time::point start = ompl::time::now();
     std::vector<std::thread*> threads;
     for (int i = 0 ; i < NT ; ++i)
-        threads.push_back(new std::thread(std::bind(&randomizedAllocator, &si)));
+        threads.push_back(new std::thread([&si] { randomizedAllocator(&si); }));
     for (int i = 0 ; i < NT ; ++i)
     {
         threads[i]->join();
@@ -288,16 +284,16 @@ BOOST_AUTO_TEST_CASE(AllocationWithThreads)
 
 BOOST_AUTO_TEST_CASE(PartialCopy)
 {
-    base::StateSpacePtr m(new base::SE3StateSpace());
+    auto m(std::make_shared<base::SE3StateSpace>());
     base::RealVectorBounds b(3);
     b.setLow(0);
     b.setHigh(1);
-    m->as<base::SE3StateSpace>()->setBounds(b);
+    m->setBounds(b);
     m->setup();
-    base::StateSpacePtr r3 = m->as<base::CompoundStateSpace>()->getSubspace(0);
-    base::StateSpacePtr q = m->as<base::CompoundStateSpace>()->getSubspace(1);
-    base::StateSamplerPtr s1 = m->allocSubspaceStateSampler(r3);
-    base::StateSamplerPtr s2 = m->allocSubspaceStateSampler(q);
+    base::StateSpacePtr r3 = m->getSubspace(0);
+    base::StateSpacePtr q = m->getSubspace(1);
+    base::StateSamplerPtr s1 = m->base::StateSpace::allocSubspaceStateSampler(r3);
+    base::StateSamplerPtr s2 = m->base::StateSpace::allocSubspaceStateSampler(q);
     base::ScopedState<base::SE3StateSpace> state(m);
     base::ScopedState<base::SE3StateSpace> tmp(m);
     std::vector<std::string> subspaces;

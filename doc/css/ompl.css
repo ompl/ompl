@@ -75,6 +75,7 @@ div.contents div.textblock { margin-left: 20px; }
 .navbar .nav > li > a { color: #ddd; padding: 10px 10px; }
 .navbar { min-height: 40px; margin-bottom: 10px; }
 .navbar-inverse .navbar-brand { height: 40px; padding: 10px 10px; color: #ddd; }
+.nav-tabs + .tab-content { margin-top: 20px; }
 
 input[type="text"]:focus, select:focus {
   -webkit-box-shadow: none;

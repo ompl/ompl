@@ -46,7 +46,9 @@
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 #include "ompl/datastructures/PDF.h"
 #include "ompl/util/Hash.h"
+#include <functional>
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace ompl
@@ -72,7 +74,8 @@ namespace ompl
         {
         public:
             /** \brief Each edge weight between two adjacent regions in the Decomposition is defined
-                as a product of edge cost factors. By default, given adjacent regions \f$r\f$ and \f$s\f$, Syclop uses the sole edge cost factor
+                as a product of edge cost factors. By default, given adjacent regions \f$r\f$ and \f$s\f$, Syclop uses
+               the sole edge cost factor
                 \f[
                     \frac{1 + \mbox{sel}^2(r,s)}{1 + \mbox{conn}^2(r,s)} \alpha(r) \alpha(s),
                 \f]
@@ -80,148 +83,159 @@ namespace ompl
                 \f[
                     \alpha(t) = \frac{1}{\left(1 + \mbox{cov}(t)\right) \mbox{freeVol}^4(t)},
                 \f]
-                \f$\mbox{sel}(r,s)\f$ is the number of times \f$r\f$ and \f$s\f$ have been part of a lead or selected for exploration,
-                \f$\mbox{conn}(r,s)\f$ estimates the progress made by the low-level planner in extending the tree from \f$r\f$ to \f$s\f$,
-                \f$\mbox{cov}(t)\f$ estimates the tree coverage of the region \f$t\f$, and \f$\mbox{freeVol}(t)\f$ estimates the free volume
+                \f$\mbox{sel}(r,s)\f$ is the number of times \f$r\f$ and \f$s\f$ have been part of a lead or selected
+               for exploration,
+                \f$\mbox{conn}(r,s)\f$ estimates the progress made by the low-level planner in extending the tree from
+               \f$r\f$ to \f$s\f$,
+                \f$\mbox{cov}(t)\f$ estimates the tree coverage of the region \f$t\f$, and \f$\mbox{freeVol}(t)\f$
+               estimates the free volume
                 of \f$t\f$.
                 Additional edge cost factors can be added
-                with the addEdgeCostFactor() function, and Syclop's list of edge cost factors can be cleared using clearEdgeCostFactors() . */
+                with the addEdgeCostFactor() function, and Syclop's list of edge cost factors can be cleared using
+               clearEdgeCostFactors() . */
             typedef std::function<double(int, int)> EdgeCostFactorFn;
 
-            /** \brief Leads should consist of a path of adjacent regions in the decomposition that start with the start region and end at the end region.  Default is \f$A^\ast\f$ search. */
-            typedef std::function<void(int, int, std::vector<int>&)> LeadComputeFn;
+            /** \brief Leads should consist of a path of adjacent regions in the decomposition that start with the start
+             * region and end at the end region.  Default is \f$A^\ast\f$ search. */
+            typedef std::function<void(int, int, std::vector<int> &)> LeadComputeFn;
 
             /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
-            Syclop(const SpaceInformationPtr& si, const DecompositionPtr &d, const std::string& plannerName) : ompl::base::Planner(si, plannerName),
-                numFreeVolSamples_(Defaults::NUM_FREEVOL_SAMPLES),
-                probShortestPath_(Defaults::PROB_SHORTEST_PATH),
-                probKeepAddingToAvail_(Defaults::PROB_KEEP_ADDING_TO_AVAIL),
-                numRegionExpansions_(Defaults::NUM_REGION_EXPANSIONS),
-                numTreeSelections_(Defaults::NUM_TREE_SELECTIONS),
-                probAbandonLeadEarly_(Defaults::PROB_ABANDON_LEAD_EARLY),
-                siC_(si.get()),
-                decomp_(d),
-                covGrid_(Defaults::COVGRID_LENGTH, decomp_),
-                graphReady_(false),
-                numMotions_(0)
+            Syclop(const SpaceInformationPtr &si, DecompositionPtr d, const std::string &plannerName)
+              : ompl::base::Planner(si, plannerName)
+              , numFreeVolSamples_(Defaults::NUM_FREEVOL_SAMPLES)
+              , probShortestPath_(Defaults::PROB_SHORTEST_PATH)
+              , probKeepAddingToAvail_(Defaults::PROB_KEEP_ADDING_TO_AVAIL)
+              , numRegionExpansions_(Defaults::NUM_REGION_EXPANSIONS)
+              , numTreeSelections_(Defaults::NUM_TREE_SELECTIONS)
+              , probAbandonLeadEarly_(Defaults::PROB_ABANDON_LEAD_EARLY)
+              , siC_(si.get())
+              , decomp_(std::move(d))
+              , covGrid_(Defaults::COVGRID_LENGTH, decomp_)
+              , graphReady_(false)
+              , numMotions_(0)
             {
                 specs_.approximateSolutions = true;
 
-                Planner::declareParam<int>   ("free_volume_samples", this, &Syclop::setNumFreeVolumeSamples, &Syclop::getNumFreeVolumeSamples, "10000:10000:500000");
-                Planner::declareParam<int>   ("num_region_expansions", this, &Syclop::setNumRegionExpansions, &Syclop::getNumRegionExpansions, "10:10:500");
-                Planner::declareParam<int>   ("num_tree_expansions", this, &Syclop::setNumTreeExpansions, &Syclop::getNumTreeExpansions, "0:1:100");
-                Planner::declareParam<double>("prob_abandon_lead_early", this, &Syclop::setProbAbandonLeadEarly, &Syclop::getProbAbandonLeadEarly, "0.:.05:1.");
-                Planner::declareParam<double>("prob_add_available_regions", this, &Syclop::setProbAddingToAvailableRegions, &Syclop::getProbAddingToAvailableRegions, "0.:.05:1.");
-                Planner::declareParam<double>("prob_shortest_path_lead", this, &Syclop::setProbShortestPathLead, &Syclop::getProbShortestPathLead, "0.:.05:1.");
+                Planner::declareParam<int>("free_volume_samples", this, &Syclop::setNumFreeVolumeSamples,
+                                           &Syclop::getNumFreeVolumeSamples, "10000:10000:500000");
+                Planner::declareParam<int>("num_region_expansions", this, &Syclop::setNumRegionExpansions,
+                                           &Syclop::getNumRegionExpansions, "10:10:500");
+                Planner::declareParam<int>("num_tree_expansions", this, &Syclop::setNumTreeExpansions,
+                                           &Syclop::getNumTreeExpansions, "0:1:100");
+                Planner::declareParam<double>("prob_abandon_lead_early", this, &Syclop::setProbAbandonLeadEarly,
+                                              &Syclop::getProbAbandonLeadEarly, "0.:.05:1.");
+                Planner::declareParam<double>("prob_add_available_regions", this,
+                                              &Syclop::setProbAddingToAvailableRegions,
+                                              &Syclop::getProbAddingToAvailableRegions, "0.:.05:1.");
+                Planner::declareParam<double>("prob_shortest_path_lead", this, &Syclop::setProbShortestPathLead,
+                                              &Syclop::getProbShortestPathLead, "0.:.05:1.");
             }
 
-            virtual ~Syclop()
-            {
-            }
+            ~Syclop() override = default;
 
             /// @name ompl::base::Planner Interface
             /// @{
 
-            virtual void setup();
+            void setup() override;
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Continues solving until a solution is found or a given planner termination condition is met.
                 Returns true if solution was found. */
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
             /// @}
 
             /// @name Tunable parameters
             /// @{
 
             /** \brief Allows the user to override the lead computation function. */
-            void setLeadComputeFn(const LeadComputeFn& compute);
+            void setLeadComputeFn(const LeadComputeFn &compute);
 
             /** \brief Adds an edge cost factor to be used for edge weights between adjacent regions. */
-            void addEdgeCostFactor(const EdgeCostFactorFn& factor);
+            void addEdgeCostFactor(const EdgeCostFactorFn &factor);
 
             /** \brief Clears all edge cost factors, making all edge weights equivalent to 1. */
             void clearEdgeCostFactors();
 
             /// \brief Get the number of states to sample when estimating free volume in the Decomposition.
-            int getNumFreeVolumeSamples () const
+            int getNumFreeVolumeSamples() const
             {
                 return numFreeVolSamples_;
             }
 
             /// \brief Set the number of states to sample when estimating free
             ///  volume in the Decomposition.
-            void setNumFreeVolumeSamples (int numSamples)
+            void setNumFreeVolumeSamples(int numSamples)
             {
                 numFreeVolSamples_ = numSamples;
             }
 
             /// \brief Get the probability [0,1] that a lead will be computed as
             ///  a shortest-path instead of a random-DFS.
-            double getProbShortestPathLead () const
+            double getProbShortestPathLead() const
             {
                 return probShortestPath_;
             }
 
             /// \brief Set the probability [0,1] that a lead will be computed as
             ///  a shortest-path instead of a random-DFS.
-            void setProbShortestPathLead (double probability)
+            void setProbShortestPathLead(double probability)
             {
                 probShortestPath_ = probability;
             }
 
             /// \brief Get the probability [0,1] that the set of available
             ///  regions will be augmented.
-            double getProbAddingToAvailableRegions () const
+            double getProbAddingToAvailableRegions() const
             {
                 return probKeepAddingToAvail_;
             }
 
             /// \brief Set the probability [0,1] that the set of available
             ///  regions will be augmented.
-            void setProbAddingToAvailableRegions (double probability)
+            void setProbAddingToAvailableRegions(double probability)
             {
                 probKeepAddingToAvail_ = probability;
             }
 
             /// \brief Get the number of times a new region will be chosen and
             ///  promoted for expansion from a given lead.
-            int getNumRegionExpansions () const
+            int getNumRegionExpansions() const
             {
                 return numRegionExpansions_;
             }
 
             /// \brief Set the number of times a new region will be chosen and
             ///  promoted for expansion from a given lead.
-            void setNumRegionExpansions (int regionExpansions)
+            void setNumRegionExpansions(int regionExpansions)
             {
                 numRegionExpansions_ = regionExpansions;
             }
 
             /// \brief Get the number of calls to selectAndExtend() in the
             ///  low-level tree planner for a given lead and region.
-            int getNumTreeExpansions () const
+            int getNumTreeExpansions() const
             {
                 return numTreeSelections_;
             }
 
             /// \brief Set the number of calls to selectAndExtend() in the
             ///  low-level tree planner for a given lead and region.
-            void setNumTreeExpansions (int treeExpansions)
+            void setNumTreeExpansions(int treeExpansions)
             {
                 numTreeSelections_ = treeExpansions;
             }
 
             /// \brief Get the probability [0,1] that a lead will be abandoned
             ///  early, before a new region is chosen for expansion.
-            double getProbAbandonLeadEarly () const
+            double getProbAbandonLeadEarly() const
             {
                 return probAbandonLeadEarly_;
             }
 
             /// \brief The probability that a lead will be abandoned early,
             ///  before a new region is chosen for expansion.
-            void setProbAbandonLeadEarly (double probability)
+            void setProbAbandonLeadEarly(double probability)
             {
                 probAbandonLeadEarly_ = probability;
             }
@@ -230,25 +244,24 @@ namespace ompl
             /** \brief Contains default values for Syclop parameters. */
             struct Defaults
             {
-                static const int    NUM_FREEVOL_SAMPLES         = 100000;
-                static const int    COVGRID_LENGTH              = 128;
-                static const int    NUM_REGION_EXPANSIONS       = 100;
-                static const int    NUM_TREE_SELECTIONS         = 1;
+                static const int NUM_FREEVOL_SAMPLES = 100000;
+                static const int COVGRID_LENGTH = 128;
+                static const int NUM_REGION_EXPANSIONS = 100;
+                static const int NUM_TREE_SELECTIONS = 1;
                 // C++ standard prohibits non-integral static const member initialization
                 // These constants are set in Syclop.cpp.  C++11 standard changes this
                 // with the constexpr keyword, but for compatibility this is not done.
-                static const double PROB_ABANDON_LEAD_EARLY     /*= 0.25*/;
-                static const double PROB_KEEP_ADDING_TO_AVAIL   /*= 0.50*/;
-                static const double PROB_SHORTEST_PATH          /*= 0.95*/;
+                static const double PROB_ABANDON_LEAD_EARLY /*= 0.25*/;
+                static const double PROB_KEEP_ADDING_TO_AVAIL /*= 0.50*/;
+                static const double PROB_SHORTEST_PATH /*= 0.95*/;
             };
 
         protected:
-
-            #pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
-            /** \brief Representation of a motion
-
-                A motion contains pointers to its state, its parent motion, and the control
-                that was applied to get from its parent to its state. */
+#pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
+                       /** \brief Representation of a motion
+           
+                           A motion contains pointers to its state, its parent motion, and the control
+                           that was applied to get from its parent to its state. */
             class Motion
             {
             public:
@@ -256,12 +269,11 @@ namespace ompl
                 {
                 }
                 /** \brief Constructor that allocates memory for the state and the control */
-                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl()), parent(nullptr), steps(0)
+                Motion(const SpaceInformation *si)
+                  : state(si->allocState()), control(si->allocControl()), parent(nullptr), steps(0)
                 {
                 }
-                virtual ~Motion()
-                {
-                }
+                virtual ~Motion() = default;
                 /** \brief The state contained by the motion */
                 base::State *state;
                 /** \brief The control contained by the motion */
@@ -271,9 +283,9 @@ namespace ompl
                 /** \brief The number of steps for which the control is applied */
                 unsigned int steps;
             };
-            #pragma pack (pop)  // Restoring default byte alignment
+#pragma pack(pop)  // Restoring default byte alignment
 
-            #pragma pack(push, 4) // push default byte alignment to stack and align the following structure to 4 byte boundary
+#pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
             /** \brief Representation of a region in the Decomposition assigned to Syclop. */
             class Region
             {
@@ -281,15 +293,13 @@ namespace ompl
                 Region()
                 {
                 }
-                virtual ~Region()
-                {
-                }
+                virtual ~Region() = default;
 
 #if __cplusplus >= 201103L
-                Region(const Region&) = default;
-                Region& operator=(const Region&) = default;
-                Region(Region&&) = default;
-                Region& operator=(Region&&) = default;
+                Region(const Region &) = default;
+                Region &operator=(const Region &) = default;
+                Region(Region &&) = default;
+                Region &operator=(Region &&) = default;
 #endif
 
                 /** \brief Clears motions and coverage information from this region. */
@@ -303,7 +313,7 @@ namespace ompl
                 /** \brief The cells of the underlying coverage grid that contain tree motions from this region */
                 std::set<int> covGridCells;
                 /** \brief The tree motions contained in this region */
-                std::vector<Motion*> motions;
+                std::vector<Motion *> motions;
                 /** \brief The volume of this region */
                 double volume;
                 /** \brief The free volume of this region */
@@ -321,20 +331,18 @@ namespace ompl
                 /** \brief The Element corresponding to this region in the PDF of available regions. */
                 PDF<int>::Element *pdfElem;
             };
-            #pragma pack (pop)  // Restoring default byte alignment
+#pragma pack(pop)  // Restoring default byte alignment
 
-            #pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
-            /** \brief Representation of an adjacency (a directed edge) between two regions
-                in the Decomposition assigned to Syclop. */
+#pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
+                       /** \brief Representation of an adjacency (a directed edge) between two regions
+                           in the Decomposition assigned to Syclop. */
             class Adjacency
             {
             public:
                 Adjacency()
                 {
                 }
-                virtual ~Adjacency()
-                {
-                }
+                virtual ~Adjacency() = default;
                 /** \brief Clears coverage information from this adjacency. */
                 void clear()
                 {
@@ -354,22 +362,23 @@ namespace ompl
                 /** \brief The number of times the low-level tree planner has selected motions from the source region
                     when attempting to extend the tree toward the target region. */
                 int numSelections;
-                /** \brief This value is true if and only if this adjacency's source and target regions both contain zero tree motions. */
+                /** \brief This value is true if and only if this adjacency's source and target regions both contain
+                 * zero tree motions. */
                 bool empty;
             };
-            #pragma pack (pop) // Restoring default byte alignment
+#pragma pack(pop)  // Restoring default byte alignment
 
             /** \brief Add State s as a new root in the low-level tree, and return the Motion corresponding to s. */
-            virtual Motion* addRoot(const base::State *s) = 0;
+            virtual Motion *addRoot(const base::State *s) = 0;
 
             /** \brief Select a Motion from the given Region, and extend the tree from the Motion.
                 Add any new motions created to newMotions. */
-            virtual void selectAndExtend(Region &region, std::vector<Motion*>& newMotions) = 0;
+            virtual void selectAndExtend(Region &region, std::vector<Motion *> &newMotions) = 0;
 
             /** \brief Returns a reference to the Region object with the given index. Assumes the index is valid. */
-            inline const Region& getRegionFromIndex(const int rid) const
+            inline const Region &getRegionFromIndex(const int rid) const
             {
-                return graph_[boost::vertex(rid,graph_)];
+                return graph_[boost::vertex(rid, graph_)];
             }
 
             /** \brief The number of states to sample to estimate free volume in the Decomposition. */
@@ -384,10 +393,12 @@ namespace ompl
             /** \brief The number of times a new region will be chosen and promoted for expansion from a given lead. */
             int numRegionExpansions_;
 
-            /** \brief The number of calls to selectAndExtend() in the low-level tree planner for a given lead and region. */
+            /** \brief The number of calls to selectAndExtend() in the low-level tree planner for a given lead and
+             * region. */
             int numTreeSelections_;
 
-            /** \brief The probability that a lead will be abandoned early, before a new region is chosen for expansion. */
+            /** \brief The probability that a lead will be abandoned early, before a new region is chosen for expansion.
+             */
             double probAbandonLeadEarly_;
 
             /** \brief Handle to the control::SpaceInformation object */
@@ -404,7 +415,7 @@ namespace ompl
             /** \brief Hash function for std::pair<int,int> to be used in std::unordered_map */
             struct HashRegionPair
             {
-                size_t operator()(const std::pair<int,int> &p) const
+                size_t operator()(const std::pair<int, int> &p) const
                 {
                     std::size_t hash = std::hash<int>()(p.first);
                     hash_combine(hash, p.second);
@@ -413,34 +424,33 @@ namespace ompl
             };
             /// @endcond
 
-
             /** \brief Syclop uses a CoverageGrid to estimate coverage in its assigned Decomposition.
                 The CoverageGrid should have finer resolution than the Decomposition. */
             class CoverageGrid : public GridDecomposition
             {
             public:
-                CoverageGrid(const int len, const DecompositionPtr& d) : GridDecomposition(len, d->getDimension(), d->getBounds()), decomp(d)
+                CoverageGrid(const int len, const DecompositionPtr &d)
+                  : GridDecomposition(len, d->getDimension(), d->getBounds()), decomp(d)
                 {
                 }
 
-                virtual ~CoverageGrid()
-                {
-                }
+                ~CoverageGrid() override = default;
 
                 /** \brief Since the CoverageGrid is defined in the same space as the Decomposition,
                     it uses the Decomposition's projection function. */
-                virtual void project(const base::State *s, std::vector<double>& coord) const
+                void project(const base::State *s, std::vector<double> &coord) const override
                 {
                     decomp->project(s, coord);
                 }
 
                 /** \brief Syclop will not sample from the CoverageGrid. */
-                virtual void sampleFullState(const base::StateSamplerPtr& /*sampler*/, const std::vector<double>& /*coord*/, base::State* /*s*/) const
+                void sampleFullState(const base::StateSamplerPtr & /*sampler*/, const std::vector<double> & /*coord*/,
+                                     base::State * /*s*/) const override
                 {
                 }
 
             protected:
-                const DecompositionPtr& decomp;
+                const DecompositionPtr &decomp;
             };
 
             typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Region, Adjacency> RegionGraph;
@@ -462,14 +472,17 @@ namespace ompl
                 double operator()(Vertex v)
                 {
                     const Region &region = syclop->getRegionFromIndex(v);
-                    return region.alpha*goalRegion.alpha;
+                    return region.alpha * goalRegion.alpha;
                 }
+
             private:
                 const Syclop *syclop;
                 const Region &goalRegion;
             };
 
-            struct found_goal {};
+            struct found_goal
+            {
+            };
 
             class GoalVisitor : public boost::default_astar_visitor
             {
@@ -477,11 +490,12 @@ namespace ompl
                 GoalVisitor(const int goal) : goalRegion(goal)
                 {
                 }
-                void examine_vertex(Vertex v, const RegionGraph& /*g*/)
+                void examine_vertex(Vertex v, const RegionGraph & /*g*/)
                 {
                     if (static_cast<int>(v) == goalRegion)
                         throw found_goal();
                 }
+
             private:
                 const int goalRegion;
             };
@@ -504,7 +518,7 @@ namespace ompl
                     else
                     {
                         PDF<int>::Element *elem = regToElem[r];
-                        regions.update(elem, regions.getWeight(elem)+1);
+                        regions.update(elem, regions.getWeight(elem) + 1);
                     }
                 }
                 void clear()
@@ -520,10 +534,11 @@ namespace ompl
                 {
                     return regions.empty();
                 }
+
             private:
                 RNG rng;
                 PDF<int> regions;
-                std::unordered_map<int, PDF<int>::Element*> regToElem;
+                std::unordered_map<int, PDF<int>::Element *> regToElem;
             };
             /// @endcond
 
@@ -566,8 +581,9 @@ namespace ompl
             /** \brief Compute the set of Regions available for selection. */
             void computeAvailableRegions();
 
-            /** \brief Default lead computation. A lead is a sequence of adjacent Regions from start to goal in the Decomposition. */
-            void defaultComputeLead(int startRegion, int goalRegion, std::vector<int>& lead);
+            /** \brief Default lead computation. A lead is a sequence of adjacent Regions from start to goal in the
+             * Decomposition. */
+            void defaultComputeLead(int startRegion, int goalRegion, std::vector<int> &lead);
 
             /** \brief Default edge cost factor, which is used by Syclop for edge weights between adjacent Regions. */
             double defaultEdgeCost(int r, int s);
@@ -582,12 +598,13 @@ namespace ompl
             std::vector<EdgeCostFactorFn> edgeCostFactors_;
             /** \brief An underlying grid used to estimate coverage */
             CoverageGrid covGrid_;
-            /** \brief A graph structure whose nodes and edges correspond to regions and adjacencies in the given Decomposition */
+            /** \brief A graph structure whose nodes and edges correspond to regions and adjacencies in the given
+             * Decomposition */
             RegionGraph graph_;
             /** \brief This value stores whether the graph structure has been built */
             bool graphReady_;
             /** \brief Maps pairs of regions to adjacency objects */
-            std::unordered_map<std::pair<int,int>, Adjacency*, HashRegionPair> regionsToEdge_;
+            std::unordered_map<std::pair<int, int>, Adjacency *, HashRegionPair> regionsToEdge_;
             /** \brief The total number of motions in the low-level tree */
             unsigned int numMotions_;
             /** \brief The set of all regions that contain start states */

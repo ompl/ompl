@@ -42,17 +42,17 @@
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /**
            @anchor gRRTC
            @par Short description
            The basic idea is to grow two RRTs, one from the start and
            one from the goal, and attempt to connect them.
            @par External documentation
-           J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc. 2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI: [10.1109/ROBOT.2000.844730](http://dx.doi.org/10.1109/ROBOT.2000.844730)<br>
+           J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc.
+           2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI:
+           [10.1109/ROBOT.2000.844730](http://dx.doi.org/10.1109/ROBOT.2000.844730)<br>
            [[PDF]](http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246)
            [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
         */
@@ -61,17 +61,16 @@ namespace ompl
         class RRTConnect : public base::Planner
         {
         public:
-
             /** \brief Constructor */
             RRTConnect(const base::SpaceInformationPtr &si, bool addIntermediateStates = false);
 
-            virtual ~RRTConnect();
+            ~RRTConnect() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Return true if the intermediate states generated along motions are to be added to the tree itself */
             bool getIntermediateStates() const
@@ -102,63 +101,62 @@ namespace ompl
             }
 
             /** \brief Set a different nearest neighbors datastructure */
-            template<template<typename T> class NN>
+            template <template <typename T> class NN>
             void setNearestNeighbors()
             {
-                tStart_.reset(new NN<Motion*>());
-                tGoal_.reset(new NN<Motion*>());
+                if ((tStart_ && tStart_->size() != 0) || (tGoal_ && tGoal_->size() != 0))
+                    OMPL_WARN("Calling setNearestNeighbors will clear all states.");
+                clear();
+                tStart_ = std::make_shared<NN<Motion *>>();
+                tGoal_ = std::make_shared<NN<Motion *>>();
+                setup();
             }
 
-            virtual void setup();
+            void setup() override;
 
         protected:
-
             /** \brief Representation of a motion */
             class Motion
             {
             public:
-
                 Motion() : root(nullptr), state(nullptr), parent(nullptr)
                 {
                     parent = nullptr;
-                    state  = nullptr;
+                    state = nullptr;
                 }
 
                 Motion(const base::SpaceInformationPtr &si) : root(nullptr), state(si->allocState()), parent(nullptr)
                 {
                 }
 
-                ~Motion()
-                {
-                }
+                ~Motion() = default;
 
                 const base::State *root;
-                base::State       *state;
-                Motion            *parent;
-
+                base::State *state;
+                Motion *parent;
             };
 
             /** \brief A nearest-neighbor datastructure representing a tree of motions */
-            typedef std::shared_ptr< NearestNeighbors<Motion*> > TreeData;
+            typedef std::shared_ptr<NearestNeighbors<Motion *>> TreeData;
 
             /** \brief Information attached to growing a tree of motions (used internally) */
             struct TreeGrowingInfo
             {
-                base::State         *xstate;
-                Motion              *xmotion;
-                bool                 start;
+                base::State *xstate;
+                Motion *xmotion;
+                bool start;
             };
 
             /** \brief The state of the tree after an attempt to extend it */
             enum GrowState
-                {
-                    /// no progress has been made
-                    TRAPPED,
-                    /// progress has been made towards the randomly sampled state
-                    ADVANCED,
-                    /// the randomly sampled state was reached
-                    REACHED
-                };
+            {
+                /// no progress has been made
+                TRAPPED,
+                /// progress has been made towards the randomly sampled state
+                ADVANCED,
+                /// the randomly sampled state was reached
+                REACHED
+            };
 
             /** \brief Free the memory allocated by this planner */
             void freeMemory();
@@ -173,30 +171,29 @@ namespace ompl
             GrowState growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion);
 
             /** \brief State sampler */
-            base::StateSamplerPtr         sampler_;
+            base::StateSamplerPtr sampler_;
 
             /** \brief The start tree */
-            TreeData                      tStart_;
+            TreeData tStart_;
 
             /** \brief The goal tree */
-            TreeData                      tGoal_;
+            TreeData tGoal_;
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double                        maxDistance_;
+            double maxDistance_;
 
             /** \brief Flag indicating whether intermediate states are added to the built tree of motions */
             bool                                           addIntermediateStates_;
             
             /** \brief The random number generator */
-            RNG                           rng_;
+            RNG rng_;
 
             /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
-            std::pair<base::State*, base::State*>      connectionPoint_;
+            std::pair<base::State *, base::State *> connectionPoint_;
 
             /** \brief Distance between the nearest pair of start tree and goal tree nodes. */
-            double                        distanceBetweenTrees_;
+            double distanceBetweenTrees_;
         };
-
     }
 }
 

@@ -43,20 +43,18 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief State space sampler for time */
         class TimeStateSampler : public StateSampler
         {
         public:
-
             /** \brief Constructor */
             TimeStateSampler(const StateSpace *space) : StateSampler(space)
             {
             }
 
-            virtual void sampleUniform(State *state);
-            virtual void sampleUniformNear(State *state, const State *near, const double distance);
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+            void sampleUniform(State *state) override;
+            void sampleUniformNear(State *state, const State *near, const double distance) override;
+            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
         };
 
         /** \brief A state space representing time. The time can be
@@ -71,12 +69,10 @@ namespace ompl
         class TimeStateSpace : public StateSpace
         {
         public:
-
             /** \brief The definition of a time state */
             class StateType : public State
             {
             public:
-
                 /** \brief The position in time */
                 double position;
             };
@@ -87,15 +83,13 @@ namespace ompl
                 type_ = STATE_SPACE_TIME;
             }
 
-            virtual ~TimeStateSpace()
-            {
-            }
+            ~TimeStateSpace() override = default;
 
-            virtual unsigned int getDimension() const;
+            unsigned int getDimension() const override;
 
-            virtual double getMaximumExtent() const;
+            double getMaximumExtent() const override;
 
-            virtual double getMeasure() const;
+            double getMeasure() const override;
 
             /** \brief Set the minimum and maximum time bounds. This
                 will make the state space switch into bounded time
@@ -105,13 +99,15 @@ namespace ompl
                 getMaximumExtent() returns 1. */
             void setBounds(double minTime, double maxTime);
 
-            /** \brief Get the minimum allowed value of \e position in a state. The function returns 0 if time is not bounded. */
+            /** \brief Get the minimum allowed value of \e position in a state. The function returns 0 if time is not
+             * bounded. */
             double getMinTimeBound() const
             {
                 return minTime_;
             }
 
-            /** \brief Get the maximum allowed value of \e position in a state. The function returns 0 if time is not bounded. */
+            /** \brief Get the maximum allowed value of \e position in a state. The function returns 0 if time is not
+             * bounded. */
             double getMaxTimeBound() const
             {
                 return maxTime_;
@@ -123,49 +119,47 @@ namespace ompl
                 return bounded_;
             }
 
-            virtual void enforceBounds(State *state) const;
+            void enforceBounds(State *state) const override;
 
-            virtual bool satisfiesBounds(const State *state) const;
+            bool satisfiesBounds(const State *state) const override;
 
-            virtual void copyState(State *destination, const State *source) const;
+            void copyState(State *destination, const State *source) const override;
 
-            virtual unsigned int getSerializationLength() const;
+            unsigned int getSerializationLength() const override;
 
-            virtual void serialize(void *serialization, const State *state) const;
+            void serialize(void *serialization, const State *state) const override;
 
-            virtual void deserialize(State *state, const void *serialization) const;
+            void deserialize(State *state, const void *serialization) const override;
 
-            virtual double distance(const State *state1, const State *state2) const;
+            double distance(const State *state1, const State *state2) const override;
 
-            virtual bool equalStates(const State *state1, const State *state2) const;
+            bool equalStates(const State *state1, const State *state2) const override;
 
-            virtual void interpolate(const State *from, const State *to, const double t, State *state) const;
+            void interpolate(const State *from, const State *to, const double t, State *state) const override;
 
-            virtual StateSamplerPtr allocDefaultStateSampler() const;
+            StateSamplerPtr allocDefaultStateSampler() const override;
 
-            virtual State* allocState() const;
+            State *allocState() const override;
 
-            virtual void freeState(State *state) const;
+            void freeState(State *state) const override;
 
-            virtual double* getValueAddressAtIndex(State *state, const unsigned int index) const;
+            double *getValueAddressAtIndex(State *state, const unsigned int index) const override;
 
-            virtual void printState(const State *state, std::ostream &out) const;
+            void printState(const State *state, std::ostream &out) const override;
 
-            virtual void printSettings(std::ostream &out) const;
+            void printSettings(std::ostream &out) const override;
 
-            virtual void registerProjections();
+            void registerProjections() override;
 
         protected:
-
             /** \brief Flag indicating whether the state space is considering bounds or not */
-            bool   bounded_;
+            bool bounded_;
 
             /** \brief The minimum point in time considered by the state space (if bounds are used) */
             double minTime_;
 
             /** \brief The maximum point in time considered by the state space (if bounds are used) */
             double maxTime_;
-
         };
     }
 }

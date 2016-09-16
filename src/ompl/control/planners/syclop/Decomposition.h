@@ -49,7 +49,6 @@ namespace ompl
 {
     namespace control
     {
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::control::Decomposition */
         OMPL_CLASS_FORWARD(Decomposition);
@@ -58,11 +57,11 @@ namespace ompl
         /** \class ompl::control::DecompositionPtr
             \brief A shared pointer wrapper for ompl::control::Decomposition */
 
-        /** \brief A Decomposition is a partition of a bounded Euclidean space into a fixed number of regions which are denoted by integers. */
+        /** \brief A Decomposition is a partition of a bounded Euclidean space into a fixed number of regions which are
+         * denoted by integers. */
         class Decomposition
         {
         public:
-
             /** \brief Constructor. Creates a Decomposition with a given dimension
                 and a given set of bounds. Accepts as an optional argument a given
                 number of regions. */
@@ -71,12 +70,11 @@ namespace ompl
                 if (dim > static_cast<int>(b.low.size()))
                     throw Exception("Decomposition", "argument 'dim' exceeds dimension of given bounds");
                 else if (dim < static_cast<int>(b.low.size()))
-                    OMPL_WARN("Decomposition: dimension of given bounds exceeds argument 'dim'. Using the first 'dim' values of bounds");
+                    OMPL_WARN("Decomposition: dimension of given bounds exceeds argument 'dim'. Using the first 'dim' "
+                              "values of bounds");
             }
 
-            virtual ~Decomposition()
-            {
-            }
+            virtual ~Decomposition() = default;
 
             /** \brief Returns the number of regions in this Decomposition. */
             virtual int getNumRegions() const = 0;
@@ -88,7 +86,7 @@ namespace ompl
             }
 
             /** \brief Returns the bounds of this Decomposition. */
-            virtual const base::RealVectorBounds& getBounds() const
+            virtual const base::RealVectorBounds &getBounds() const
             {
                 return bounds_;
             }
@@ -101,17 +99,19 @@ namespace ompl
              * Returns -1 if no region contains the State. */
             virtual int locateRegion(const base::State *s) const = 0;
 
-            /** \brief Project a given State to a set of coordinates in R^k, where k is the dimension of this Decomposition. */
-            virtual void project(const base::State *s, std::vector<double>& coord) const = 0;
+            /** \brief Project a given State to a set of coordinates in R^k, where k is the dimension of this
+             * Decomposition. */
+            virtual void project(const base::State *s, std::vector<double> &coord) const = 0;
 
             /** \brief Stores a given region's neighbors into a given vector. */
-            virtual void getNeighbors(int rid, std::vector<int>& neighbors) const = 0;
+            virtual void getNeighbors(int rid, std::vector<int> &neighbors) const = 0;
 
             /** \brief Samples a projected coordinate from a given region. */
-            virtual void sampleFromRegion(int rid, RNG &rng, std::vector<double>& coord) const = 0;
+            virtual void sampleFromRegion(int rid, RNG &rng, std::vector<double> &coord) const = 0;
 
             /** \brief Samples a State using a projected coordinate and a StateSampler. */
-            virtual void sampleFullState(const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State *s) const = 0;
+            virtual void sampleFullState(const base::StateSamplerPtr &sampler, const std::vector<double> &coord,
+                                         base::State *s) const = 0;
 
         protected:
             int dimension_;

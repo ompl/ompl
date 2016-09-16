@@ -79,7 +79,7 @@ void KoulesControlSampler::steer(oc::Control *control, const ob::State *state, d
 
 KoulesControlSpace::KoulesControlSpace(unsigned int numKoules)
     : ompl::control::RealVectorControlSpace(
-        ompl::base::StateSpacePtr(new KoulesStateSpace(numKoules)), 2)
+        std::make_shared<KoulesStateSpace>(numKoules), 2)
 {
     bounds_.setLow(shipVmin);
     bounds_.setHigh(shipVmax);

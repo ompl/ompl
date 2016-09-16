@@ -42,10 +42,10 @@
 void ompl::control::RealVectorControlUniformSampler::sample(Control *control)
 {
     const unsigned int dim = space_->getDimension();
-    const base::RealVectorBounds &bounds = static_cast<const RealVectorControlSpace*>(space_)->getBounds();
+    const base::RealVectorBounds &bounds = static_cast<const RealVectorControlSpace *>(space_)->getBounds();
 
-    RealVectorControlSpace::ControlType *rcontrol = static_cast<RealVectorControlSpace::ControlType*>(control);
-    for (unsigned int i = 0 ; i < dim ; ++i)
+    RealVectorControlSpace::ControlType *rcontrol = static_cast<RealVectorControlSpace::ControlType *>(control);
+    for (unsigned int i = 0; i < dim; ++i)
         rcontrol->values[i] = rng_.uniformReal(bounds.low[i], bounds.high[i]);
 }
 
@@ -60,8 +60,7 @@ void ompl::control::RealVectorControlSpace::setBounds(const base::RealVectorBoun
     bounds.check();
     if (bounds.low.size() != dimension_)
         throw Exception("Bounds do not match dimension of control space: expected dimension " +
-                        std::to_string(dimension_) + " but got dimension " +
-                        std::to_string(bounds.low.size()));
+                        std::to_string(dimension_) + " but got dimension " + std::to_string(bounds.low.size()));
     bounds_ = bounds;
 }
 
@@ -72,15 +71,15 @@ unsigned int ompl::control::RealVectorControlSpace::getDimension() const
 
 void ompl::control::RealVectorControlSpace::copyControl(Control *destination, const Control *source) const
 {
-    memcpy(static_cast<ControlType*>(destination)->values,
-           static_cast<const ControlType*>(source)->values, controlBytes_);
+    memcpy(static_cast<ControlType *>(destination)->values, static_cast<const ControlType *>(source)->values,
+           controlBytes_);
 }
 
 bool ompl::control::RealVectorControlSpace::equalControls(const Control *control1, const Control *control2) const
 {
-    const double *s1 = static_cast<const ControlType*>(control1)->values;
-    const double *s2 = static_cast<const ControlType*>(control2)->values;
-    for (unsigned int i = 0 ; i < dimension_ ; ++i)
+    const double *s1 = static_cast<const ControlType *>(control1)->values;
+    const double *s2 = static_cast<const ControlType *>(control2)->values;
+    for (unsigned int i = 0; i < dimension_; ++i)
     {
         double diff = (*s1++) - (*s2++);
         if (fabs(diff) > std::numeric_limits<double>::epsilon() * 2.0)
@@ -91,27 +90,27 @@ bool ompl::control::RealVectorControlSpace::equalControls(const Control *control
 
 ompl::control::ControlSamplerPtr ompl::control::RealVectorControlSpace::allocDefaultControlSampler() const
 {
-    return ControlSamplerPtr(new RealVectorControlUniformSampler(this));
+    return std::make_shared<RealVectorControlUniformSampler>(this);
 }
 
-ompl::control::Control* ompl::control::RealVectorControlSpace::allocControl() const
+ompl::control::Control *ompl::control::RealVectorControlSpace::allocControl() const
 {
-    ControlType *rcontrol = new ControlType();
+    auto *rcontrol = new ControlType();
     rcontrol->values = new double[dimension_];
     return rcontrol;
 }
 
 void ompl::control::RealVectorControlSpace::freeControl(Control *control) const
 {
-    ControlType *rcontrol = static_cast<ControlType*>(control);
+    ControlType *rcontrol = static_cast<ControlType *>(control);
     delete[] rcontrol->values;
     delete rcontrol;
 }
 
 void ompl::control::RealVectorControlSpace::nullControl(Control *control) const
 {
-    ControlType *rcontrol = static_cast<ControlType*>(control);
-    for (unsigned int i = 0 ; i < dimension_ ; ++i)
+    ControlType *rcontrol = static_cast<ControlType *>(control);
+    for (unsigned int i = 0; i < dimension_; ++i)
     {
         if (bounds_.low[i] <= 0.0 && bounds_.high[i] >= 0.0)
             rcontrol->values[i] = 0.0;
@@ -120,9 +119,9 @@ void ompl::control::RealVectorControlSpace::nullControl(Control *control) const
     }
 }
 
-double* ompl::control::RealVectorControlSpace::getValueAddressAtIndex(Control *control, const unsigned int index) const
+double *ompl::control::RealVectorControlSpace::getValueAddressAtIndex(Control *control, const unsigned int index) const
 {
-    return index < dimension_ ? static_cast<ControlType*>(control)->values + index : nullptr;
+    return index < dimension_ ? static_cast<ControlType *>(control)->values + index : nullptr;
 }
 
 void ompl::control::RealVectorControlSpace::printControl(const Control *control, std::ostream &out) const
@@ -130,8 +129,8 @@ void ompl::control::RealVectorControlSpace::printControl(const Control *control,
     out << "RealVectorControl [";
     if (control)
     {
-        const ControlType *rcontrol = static_cast<const ControlType*>(control);
-        for (unsigned int i = 0 ; i < dimension_ ; ++i)
+        const ControlType *rcontrol = static_cast<const ControlType *>(control);
+        for (unsigned int i = 0; i < dimension_; ++i)
         {
             out << rcontrol->values[i];
             if (i + 1 < dimension_)
@@ -147,11 +146,11 @@ void ompl::control::RealVectorControlSpace::printSettings(std::ostream &out) con
 {
     out << "Real vector control space '" << getName() << "' with bounds: " << std::endl;
     out << "  - min: ";
-    for (unsigned int i = 0 ; i < dimension_ ; ++i)
+    for (unsigned int i = 0; i < dimension_; ++i)
         out << bounds_.low[i] << " ";
     out << std::endl;
     out << "  - max: ";
-    for (unsigned int i = 0 ; i < dimension_ ; ++i)
+    for (unsigned int i = 0; i < dimension_; ++i)
         out << bounds_.high[i] << " ";
     out << std::endl;
 }

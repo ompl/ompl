@@ -37,8 +37,8 @@
 #include "ompl/base/samplers/ObstacleBasedValidStateSampler.h"
 #include "ompl/base/SpaceInformation.h"
 
-ompl::base::ObstacleBasedValidStateSampler::ObstacleBasedValidStateSampler(const SpaceInformation *si) :
-    ValidStateSampler(si), sampler_(si->allocStateSampler())
+ompl::base::ObstacleBasedValidStateSampler::ObstacleBasedValidStateSampler(const SpaceInformation *si)
+  : ValidStateSampler(si), sampler_(si->allocStateSampler())
 {
     name_ = "obstacle_based";
 }
@@ -67,11 +67,10 @@ bool ompl::base::ObstacleBasedValidStateSampler::sample(State *state)
         ++attempts;
     } while (!valid && attempts < attempts_);
 
-
     // keep the last valid state, before collision
     if (valid)
     {
-        std::pair<State*, double> fail(state, 0.0);
+        std::pair<State *, double> fail(state, 0.0);
         si_->checkMotion(temp, state, fail);
     }
 
@@ -104,11 +103,10 @@ bool ompl::base::ObstacleBasedValidStateSampler::sampleNear(State *state, const 
         ++attempts;
     } while (!valid && attempts < attempts_);
 
-
     // keep the last valid state, before collision
     if (valid)
     {
-        std::pair<State*, double> fail(state, 0.0);
+        std::pair<State *, double> fail(state, 0.0);
         si_->checkMotion(temp, state, fail);
     }
 

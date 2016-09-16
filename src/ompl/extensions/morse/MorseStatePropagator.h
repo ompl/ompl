@@ -42,10 +42,8 @@
 
 namespace ompl
 {
-
     namespace control
     {
-
         /** \brief State propagation with MORSE. Only forward
             propagation is possible.
 
@@ -55,7 +53,6 @@ namespace ompl
         class MorseStatePropagator : public StatePropagator
         {
         public:
-
             /** \brief Construct representation of a MORSE state propagator.
                 If \e si->getStateSpace() does not cast to a
                 MorseStateSpace, an exception is thrown. */
@@ -66,7 +63,7 @@ namespace ompl
             }
 
             /** \brief Get the MORSE environment this state propagator operates on */
-            const base::MorseEnvironmentPtr& getEnvironment() const
+            const base::MorseEnvironmentPtr &getEnvironment() const
             {
                 return env_;
             }
@@ -75,13 +72,12 @@ namespace ompl
             virtual bool canPropagateBackward() const;
 
             /** \brief Propagate from a state, under a given control, for some specified amount of time */
-            virtual void propagate(const base::State *state, const Control *control, const double duration, base::State *result) const;
+            virtual void propagate(const base::State *state, const Control *control, const double duration,
+                                   base::State *result) const;
 
         protected:
-
             /** \brief The MORSE environment this state propagator operates on */
             base::MorseEnvironmentPtr env_;
-
         };
     }
 }

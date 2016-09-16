@@ -58,7 +58,6 @@ namespace ompl
     class RNG
     {
     public:
-
         /** \brief Constructor. Always sets a different random seed */
         RNG();
 
@@ -104,7 +103,8 @@ namespace ompl
         }
 
         /** \brief Generate a random real using a half-normal distribution. The value is within specified bounds [\e
-            r_min, \e r_max], but with a bias towards \e r_max. The function is implemended using a Gaussian distribution with
+            r_min, \e r_max], but with a bias towards \e r_max. The function is implemended using a Gaussian
+           distribution with
             mean at \e r_max - \e r_min. The distribution is 'folded' around \e r_max axis towards \e r_min.
             The variance of the distribution is (\e r_max - \e r_min) / \e focus. The higher the focus,
             the more probable it is that generated numbers are close to \e r_max. */
@@ -113,13 +113,15 @@ namespace ompl
         /** \brief Generate a random integer using a half-normal
             distribution. The value is within specified bounds ([\e r_min, \e r_max]), but
             with a bias towards \e r_max. The function is implemented on top of halfNormalReal() */
-        int    halfNormalInt(int r_min, int r_max, double focus = 3.0);
+        int halfNormalInt(int r_min, int r_max, double focus = 3.0);
 
-        /** \brief Uniform random unit quaternion sampling. The computed value has the order (x,y,z,w). The return variable \e value is expected to already exist. */
-        void   quaternion(double value[4]);
+        /** \brief Uniform random unit quaternion sampling. The computed value has the order (x,y,z,w). The return
+         * variable \e value is expected to already exist. */
+        void quaternion(double value[4]);
 
-        /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range (-pi, pi]. The computed value has the order (roll, pitch, yaw).  The return variable \e value is expected to already exist. */
-        void   eulerRPY(double value[3]);
+        /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range (-pi, pi]. The computed
+         * value has the order (roll, pitch, yaw).  The return variable \e value is expected to already exist. */
+        void eulerRPY(double value[3]);
 
         /** \brief Set the seed used to generate the seeds of each RNG instance. Use this
             function to ensure the same sequence of random numbers is generated across multiple instances of RNG. */
@@ -143,10 +145,13 @@ namespace ompl
             return localSeed_;
         }
 
-        /** \brief Uniform random sampling of a unit-length vector. I.e., the surface of an n-ball. The return variable \e value is expected to already exist. */
+        /** \brief Uniform random sampling of a unit-length vector. I.e., the surface of an n-ball. The return variable
+         * \e value is expected to already exist. */
         void uniformNormalVector(unsigned int n, double value[]);
 
-        /** \brief Uniform random sampling of the content of an n-ball, with a radius appropriately distributed between [0,r) so that the distribution is uniform in a Cartesian coordinate system. The return variable \e value is expected to already exist. */
+        /** \brief Uniform random sampling of the content of an n-ball, with a radius appropriately distributed between
+         * [0,r) so that the distribution is uniform in a Cartesian coordinate system. The return variable \e value is
+         * expected to already exist. */
         void uniformInBall(double r, unsigned int n, double value[]);
 
 #if OMPL_HAVE_EIGEN3
@@ -159,7 +164,8 @@ namespace ompl
         DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
         <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
-        void uniformProlateHyperspheroidSurface(const std::shared_ptr<const ProlateHyperspheroid> &phsPtr, double value[]);
+        void uniformProlateHyperspheroidSurface(const std::shared_ptr<const ProlateHyperspheroid> &phsPtr,
+                                                double value[]);
 
         /** \brief Uniform random sampling of a prolate hyperspheroid, a special symmetric type of
         n-dimensional ellipse. The return variable \e value is expected to already exist.
@@ -174,17 +180,18 @@ namespace ompl
 #endif
 
     private:
-        /** \brief A forward declaration to a data structure class holding data for spherical distributions of various dimension. */
+        /** \brief A forward declaration to a data structure class holding data for spherical distributions of various
+         * dimension. */
         class SphericalData;
 
         /** \brief The seed used for the instance of a RNG */
-        std::uint_fast32_t               localSeed_;
-        std::mt19937                     generator_;
+        std::uint_fast32_t localSeed_;
+        std::mt19937 generator_;
         std::uniform_real_distribution<> uniDist_;
-        std::normal_distribution<>       normalDist_;
-        //A structure holding boost::uniform_on_sphere distributions and the associated boost::variate_generators for various dimension
-        std::shared_ptr<SphericalData>   sphericalDataPtr_;
-
+        std::normal_distribution<> normalDist_;
+        // A structure holding boost::uniform_on_sphere distributions and the associated boost::variate_generators for
+        // various dimension
+        std::shared_ptr<SphericalData> sphericalDataPtr_;
     };
 }
 

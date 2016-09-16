@@ -36,29 +36,28 @@
 
 #include "ompl/geometric/planners/rrt/InformedRRTstar.h"
 
-ompl::geometric::InformedRRTstar::InformedRRTstar(const base::SpaceInformationPtr &si)
-    : RRTstar(si)
+ompl::geometric::InformedRRTstar::InformedRRTstar(const base::SpaceInformationPtr &si) : RRTstar(si)
 {
-    //Set my name:
+    // Set my name:
     setName("InformedRRTstar");
 
-    //Configure RRTstar to be InformedRRT*:
+    // Configure RRTstar to be InformedRRT*:
     setAdmissibleCostToCome(true);
     setInformedSampling(true);
     setTreePruning(true);
     setPrunedMeasure(true);
 
-    //Disable conflicting options
+    // Disable conflicting options
     setSampleRejection(false);
     setNewStateRejection(false);
 
-    //Remove those parameters:
+    // Remove those parameters:
     params_.remove("use_admissible_heuristic");
     params_.remove("informed_sampling");
     params_.remove("pruned_measure");
     params_.remove("tree_pruning");
 
-    //Remove conflicting parameters:
+    // Remove conflicting parameters:
     params_.remove("sample_rejection");
     params_.remove("new_state_rejection");
     params_.remove("focus_search");

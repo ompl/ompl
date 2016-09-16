@@ -48,11 +48,6 @@ namespace og = ompl::geometric;
 namespace ot = ompl::tools;
 namespace po = boost::program_options;
 
-ompl::base::OptimizationObjectivePtr getPathLengthObjective(const ompl::base::SpaceInformationPtr& si)
-{
-    return ompl::base::OptimizationObjectivePtr(new ompl::base::PathLengthOptimizationObjective(si));
-}
-
 bool isStateValid(double radiusSquared, const ob::State *state)
 {
     const ob::SE2StateSpace::StateType *s = state->as<ob::SE2StateSpace::StateType>();
@@ -69,7 +64,7 @@ int main(int argc, char **argv)
     int distance, gridLimit, runCount;
     double obstacleRadius, turningRadius, runtimeLimit;
 
-    ob::StateSpacePtr space(new ob::SE2StateSpace());
+    auto space(std::make_shared<ob::SE2StateSpace>());
 
     po::options_description desc("Options");
 
@@ -97,23 +92,28 @@ int main(int argc, char **argv)
     }
 
     if (vm.count("dubins"))
-        space = ob::StateSpacePtr(new ob::DubinsStateSpace(turningRadius));
+        space = std::make_shared<ob::DubinsStateSpace>(turningRadius);
     if (vm.count("dubinssym"))
-        space = ob::StateSpacePtr(new ob::DubinsStateSpace(turningRadius, true));
+        space = std::make_shared<ob::DubinsStateSpace>(turningRadius, true);
     if (vm.count("reedsshepp"))
-        space = ob::StateSpacePtr(new ob::ReedsSheppStateSpace(turningRadius));
+        space = std::make_shared<ob::ReedsSheppStateSpace>(turningRadius);
 
     // set the bounds for the R^2 part of SE(2)
     ob::RealVectorBounds bounds(2);
     bounds.setLow(-.5 * gridLimit);
     bounds.setHigh(.5 * gridLimit);
-    space->as<ob::SE2StateSpace>()->setBounds(bounds);
+    space->setBounds(bounds);
 
     // define a simple setup class
     og::SimpleSetup ss(space);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(std::bind(&isStateValid, obstacleRadius*obstacleRadius, std::placeholders::_1));
+    double radiusSquared = obstacleRadius * obstacleRadius;
+    ss.setStateValidityChecker(
+        [radiusSquared](const ob::State *state)
+        {
+            return isStateValid(radiusSquared, state);
+        });
 
     // define start & goal states
     ob::ScopedState<ob::SE2StateSpace> start(space), goal(space);
@@ -125,15 +125,16 @@ int main(int argc, char **argv)
 
     // setting collision checking resolution to 0.05 (absolute)
     ss.getSpaceInformation()->setStateValidityCheckingResolution(0.05 / gridLimit);
-    ss.getProblemDefinition()->setOptimizationObjective(getPathLengthObjective(ss.getSpaceInformation()));
+    ss.getProblemDefinition()->setOptimizationObjective(
+        std::make_shared<ompl::base::PathLengthOptimizationObjective>(ss.getSpaceInformation()));
 
     // by default, use the Benchmark class
     double memoryLimit = 4096;
     ot::Benchmark::Request request(runtimeLimit, memoryLimit, runCount);
     ot::Benchmark b(ss, "CircleGrid");
 
-    b.addPlanner(ob::PlannerPtr(new og::RRTstar(ss.getSpaceInformation())));
-    b.addPlanner(ob::PlannerPtr(new og::CForest(ss.getSpaceInformation())));
+    b.addPlanner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
+    b.addPlanner(std::make_shared<og::CForest>(ss.getSpaceInformation()));
     b.benchmark(request);
     b.saveResultsToFile("circleGrid.log");
 

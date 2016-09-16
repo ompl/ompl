@@ -19,6 +19,9 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_grid datastructures/grid.cpp)
     add_ompl_test(test_gridb datastructures/gridb.cpp)
     add_ompl_test(test_nearestneighbors datastructures/nearestneighbors.cpp)
+    if(FLANN_FOUND)
+        target_link_libraries(test_nearestneighbors ${FLANN_LIBRARIES})
+    endif()
     add_ompl_test(test_pdf datastructures/pdf.cpp)
 
     # Test utilities
@@ -52,7 +55,7 @@ add_ompl_test(test_PositionOrientation geometric/TestPositionOrientationConstrai
 add_ompl_test(test_Kinematics geometric/TestKinematicConstraint.cpp)
 
     # Python unit tests
-    if(PYTHON_FOUND AND OMPL_BUILD_PYTESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../py-bindings/bindings")
+    if(PYTHON_FOUND AND OMPL_BUILD_PYTESTS AND EXISTS "${CMAKE_CURRENT_BINARY_DIR}/../py-bindings/bindings")
         add_ompl_python_test(util/test_util.py)
         add_ompl_python_test(base/test_base.py)
         add_ompl_python_test(geometric/test_geometric.py)

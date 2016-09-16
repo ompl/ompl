@@ -43,7 +43,6 @@ namespace ompl
 {
     namespace tools
     {
-
         /** \brief Run one or more motion planners repeatedly (using a
             specified number of threads), and hybridize solutions, trying
             to optimize solutions. */
@@ -55,9 +54,7 @@ namespace ompl
             {
             }
 
-            virtual ~OptimizePlan()
-            {
-            }
+            virtual ~OptimizePlan() = default;
 
             /** \brief Add a planner to use. */
             void addPlanner(const base::PlannerPtr &planner);
@@ -69,24 +66,23 @@ namespace ompl
             void clearPlanners();
 
             /** \brief Get the problem definition used */
-            const base::ProblemDefinitionPtr& getProblemDefinition() const
+            const base::ProblemDefinitionPtr &getProblemDefinition() const
             {
                 return pp_.getProblemDefinition();
             }
 
-            /** \brief Try to solve the specified problem within a \e solveTime seconds, using at most \e nthreads threads. If
+            /** \brief Try to solve the specified problem within a \e solveTime seconds, using at most \e nthreads
+               threads. If
                 more than \e maxSol solutions are generated, stop generating more. */
             base::PlannerStatus solve(double solveTime, unsigned int maxSol = 10, unsigned int nthreads = 1);
 
         protected:
-
             /** \brief Instance of parallel planning to use for computing solutions in parallel */
-            ParallelPlan                    pp_;
+            ParallelPlan pp_;
 
             /** \brief The set of planners to be used */
-            std::vector<base::PlannerPtr>   planners_;
+            std::vector<base::PlannerPtr> planners_;
         };
-
     }
 }
 #endif

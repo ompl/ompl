@@ -58,8 +58,8 @@ namespace ompl
         class PropositionalTriangularDecomposition : public PropositionalDecomposition
         {
         public:
-            typedef TriangularDecomposition::Polygon Polygon;
-            typedef TriangularDecomposition::Vertex Vertex;
+            using Polygon = TriangularDecomposition::Polygon;
+            using Vertex = TriangularDecomposition::Vertex;
 
             /** \brief Creates a PropositionalTriangularDecomposition over the given bounds,
                 which must be 2-dimensional.
@@ -67,33 +67,31 @@ namespace ompl
                 The triangulation will ignore any obstacles, given as a list of polygons.
                 The triangulation will respect the boundaries of any propositional regions
                 of interest, given as a list of polygons. */
-            PropositionalTriangularDecomposition(
-                const base::RealVectorBounds& bounds,
-                const std::vector<Polygon>& holes = std::vector<Polygon>(),
-                const std::vector<Polygon>& props = std::vector<Polygon>()
-            );
+            PropositionalTriangularDecomposition(const base::RealVectorBounds &bounds,
+                                                 const std::vector<Polygon> &holes = std::vector<Polygon>(),
+                                                 const std::vector<Polygon> &props = std::vector<Polygon>());
 
-            virtual ~PropositionalTriangularDecomposition(void) {}
+            ~PropositionalTriangularDecomposition() override = default;
 
-            virtual int getNumProps(void) const;
+            int getNumProps() const override;
 
-            virtual World worldAtRegion(int triID);
+            World worldAtRegion(int triID) override;
 
-            void setup(void);
+            void setup();
 
-            void addHole(const Polygon& hole);
+            void addHole(const Polygon &hole);
 
-            void addProposition(const Polygon& prop);
+            void addProposition(const Polygon &prop);
 
-            const std::vector<Polygon>& getHoles(void) const;
+            const std::vector<Polygon> &getHoles() const;
 
-            const std::vector<Polygon>& getPropositions(void) const;
+            const std::vector<Polygon> &getPropositions() const;
 
-            //Debug method: prints this decomposition as a list of polygons
-            void print(std::ostream& out) const;
+            // Debug method: prints this decomposition as a list of polygons
+            void print(std::ostream &out) const;
 
         protected:
-            TriangularDecomposition* triDecomp_;
+            TriangularDecomposition *triDecomp_;
         };
     }
 }

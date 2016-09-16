@@ -2,6 +2,7 @@
 
 This document provides a brief overview of OMPL coding standards. It is meant to assist developers who are contributing code to OMPL.
 
+\note An automatic code formatter is available to automate enforcing the style guide, see below.
 
 # Spacing
 
@@ -82,5 +83,62 @@ int SampleObject::NUM_INSTANCES = 0;
 - When passing objects as arguments to functions, the following convention should be used:
    - if possible, pass a _const reference_ to the type; this means that a pointer to the object passed in will not be maintained and no changes need to be made to the object.
    - if changes need to be made to the object passed in, pass it by _reference_ (non const).
-   - if a pointer to the object needs to be maintained for later use, pass the the _Ptr_ type as _const T Ptr &_. This maintains a shared pointer to the passed in object. However, this can create a dependency cycle (e.g., StateValidityChecker storing a shared pointer to SpaceInformation, which already stores a shared pointer to StateValidityChecker). 
+   - if a pointer to the object needs to be maintained for later use, pass the the _Ptr_ type as _const T Ptr &_. This maintains a shared pointer to the passed in object. However, this can create a dependency cycle (e.g., StateValidityChecker storing a shared pointer to SpaceInformation, which already stores a shared pointer to StateValidityChecker).
    - when a dependency cyle would be created, and often access to the pointer is needed, use a _raw pointer_. Use a const raw pointer if possible. If access to the pointer is not often required, using a _weak pointer_ is good.
+
+# Automatic Code Formatting
+
+An automatic code formatter is available to automate enforcing the style guide, using [clang-format](http://clang.llvm.org/docs/ClangFormat.html). This set of tools can be used standalone via command line or with editor integrations.
+
+## Setup
+
+ * Install **clang_format**. For Ubuntu:
+
+   ``sudo apt-get install -y clang-format-3.6``
+
+## Usage
+
+A configuration file is available at the base of the OMPL repository that will be automatically picked up by the following commands. You can run **clang_format** in several ways:
+
+### Command Line
+
+Format single file:
+
+    clang-format-3.6 --i -style=file MY_OMPL_FILE.cpp
+
+Format entire directory recursively including subfolders:
+
+    find . -name '*.h' -or -name '*.hpp' -or -name '*.cpp' | xargs clang-format-3.6 --i -style=file $1
+
+### Emacs Editor Configuration
+
+In your ``~/.emacs`` config file, add the following:
+
+Format your source code if its in some directory such as the ``ompl`` (feel free to change keywords ompl):
+
+```
+(defun run-ompl-clang-format ()
+  "Runs clang-format on cpp,h files in ompl/ and reverts buffer."
+  (interactive)
+  (and
+   (string-match "/ompl/.*\\.\\(h\\|cpp\\)$" buffer-file-name)
+   (save-some-buffers 'no-confirm)
+   (shell-command (concat "clang-format-3.6 -style=file -i " buffer-file-name))
+   (message (concat "Saved and ran clang-format on " buffer-file-name))
+   (revert-buffer t t t)
+))
+```
+
+Set a keyboard shortcut to run, such as F12
+
+    (global-set-key [f12] 'run-ompl-clang-format)
+
+### Atom Editor Configuration
+
+Install the [clang-format](https://atom.io/packages/clang-format) package via the Atom package manager or ``apm install clang-format``.
+
+In the package settings set ``clang-format-3.6`` as your executable and point 'Style' to your ``.clang_format`` file.
+
+### Other Editors
+
+Please contribute instructions here.

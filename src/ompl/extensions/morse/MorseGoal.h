@@ -44,16 +44,13 @@
 
 namespace ompl
 {
-
     namespace base
     {
-
         /** \brief This is a goal class that is more amenable to Python  */
         class MorseGoal : public Goal
         {
         public:
-            MorseGoal(SpaceInformationPtr si)
-                : Goal(si), distance_(std::numeric_limits<double>::max())
+            MorseGoal(SpaceInformationPtr si) : Goal(si), distance_(std::numeric_limits<double>::max())
             {
             }
 
@@ -74,5 +71,3 @@ namespace ompl
 }
 
 #endif
-
-

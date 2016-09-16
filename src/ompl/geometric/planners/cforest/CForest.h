@@ -37,7 +37,6 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_CFOREST_CFOREST_
 #define OMPL_GEOMETRIC_PLANNERS_CFOREST_CFOREST_
 
-
 #include "ompl/geometric/planners/cforest/CForestStateSpaceWrapper.h"
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/tools/config/SelfConfig.h"
@@ -48,10 +47,8 @@
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /**
            @anchor gCForest
            @par Short description
@@ -78,26 +75,24 @@ namespace ompl
         class CForest : public base::Planner
         {
         public:
-
             CForest(const base::SpaceInformationPtr &si);
 
-            virtual ~CForest();
+            ~CForest() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
-            virtual void clear();
+            void clear() override;
 
             /** \brief Add an specific planner instance. */
             template <class T>
             void addPlannerInstance()
             {
-                base::CForestStateSpaceWrapper *cfspace = new base::CForestStateSpaceWrapper(this, si_->getStateSpace().get());
-                base::StateSpacePtr space(cfspace);
-                base::SpaceInformationPtr si(new base::SpaceInformation(space));
+                auto space(std::make_shared<base::CForestStateSpaceWrapper>(this, si_->getStateSpace().get()));
+                auto si(std::make_shared<base::SpaceInformation>(space));
                 si->setStateValidityChecker(si_->getStateValidityChecker());
                 si->setMotionValidator(si_->getMotionValidator());
-                base::PlannerPtr planner(new T(si));
-                cfspace->setPlanner(planner.get());
+                auto planner(std::make_shared<T>(si));
+                space->setPlanner(planner.get());
                 addPlannerInstanceInternal(planner);
             }
 
@@ -108,7 +103,7 @@ namespace ompl
             void addPlannerInstances(std::size_t num = 2)
             {
                 planners_.reserve(planners_.size() + num);
-                for (std::size_t i = 0 ; i < num; ++i)
+                for (std::size_t i = 0; i < num; ++i)
                 {
                     addPlannerInstance<T>();
                 }
@@ -120,16 +115,16 @@ namespace ompl
                 planners_.clear();
             }
             /** \brief Return an specific planner instance. */
-            base::PlannerPtr& getPlannerInstance(const std::size_t idx)
+            base::PlannerPtr &getPlannerInstance(const std::size_t idx)
             {
                 return planners_[idx];
             }
 
-            virtual void setup();
+            void setup() override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            void addSampler(base::StateSamplerPtr sampler)
+            void addSampler(const base::StateSamplerPtr &sampler)
             {
                 addSamplerMutex_.lock();
                 samplers_.push_back(sampler);
@@ -151,7 +146,8 @@ namespace ompl
             /** \brief Set default number of threads to use when no planner instances are specified by the user. */
             void setNumThreads(unsigned int numThreads = 0);
 
-            /** \brief Get default number of threads used by CForest when no planner instances are specified by the user. */
+            /** \brief Get default number of threads used by CForest when no planner instances are specified by the
+             * user. */
             unsigned int getNumThreads()
             {
                 return numThreads_;
@@ -167,50 +163,49 @@ namespace ompl
             std::string getNumStatesShared() const;
 
         private:
-
             /** \brief Helper function to add a planner instance. */
             void addPlannerInstanceInternal(const base::PlannerPtr &planner);
 
             /** \brief Callback to be called everytime a new, better solution is found by a planner. */
-            void newSolutionFound(const base::Planner *planner, const std::vector<const base::State *> &states, const base::Cost cost);
+            void newSolutionFound(const base::Planner *planner, const std::vector<const base::State *> &states,
+                                  const base::Cost cost);
 
         protected:
-
             /** \brief Manages the call to solve() for each individual planner. */
             void solve(base::Planner *planner, const base::PlannerTerminationCondition &ptc);
 
             /** \brief Optimization objective taken into account when planning. */
-            base::OptimizationObjectivePtr               opt_;
+            base::OptimizationObjectivePtr opt_;
 
             /** \brief The set of planners to be used. */
-            std::vector<base::PlannerPtr>                planners_;
+            std::vector<base::PlannerPtr> planners_;
 
             /** \brief The set of sampler allocated by the planners */
-            std::vector<base::StateSamplerPtr>           samplers_;
+            std::vector<base::StateSamplerPtr> samplers_;
 
             /** \brief Stores the states already shared to check if a specific state has been shared. */
-            std::unordered_set<const base::State *>      statesShared_;
+            std::unordered_set<const base::State *> statesShared_;
 
             /** \brief Cost of the best path found so far among planners. */
-            base::Cost                                   bestCost_;
+            base::Cost bestCost_;
 
             /** \brief Number of paths shared among threads. */
-            unsigned int                                 numPathsShared_;
+            unsigned int numPathsShared_;
 
             /** \brief Number of states shared among threads. */
-            unsigned int                                 numStatesShared_;
+            unsigned int numStatesShared_;
 
             /** \brief Mutex to control the access to the newSolutionFound() method. */
-            std::mutex                                   newSolutionFoundMutex_;
+            std::mutex newSolutionFoundMutex_;
 
             /** \brief Mutex to control the access to samplers_ */
-            std::mutex                                   addSamplerMutex_;
+            std::mutex addSamplerMutex_;
 
             /** \brief Flag to control whether the search is focused. */
-            bool                                         focusSearch_;
+            bool focusSearch_;
 
             /** \brief Default number of threads to use when no planner instances are specified by the user */
-            unsigned int                                 numThreads_;
+            unsigned int numThreads_;
         };
     }
 }

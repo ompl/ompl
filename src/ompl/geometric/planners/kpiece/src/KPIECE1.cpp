@@ -40,8 +40,12 @@
 #include <limits>
 #include <cassert>
 
-ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::Planner(si, "KPIECE1"),
-                                                                         disc_(std::bind(&KPIECE1::freeMotion, this, std::placeholders::_1))
+ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si)
+  : base::Planner(si, "KPIECE1")
+  , disc_([this](Motion *m)
+          {
+              freeMotion(m);
+          })
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;
@@ -54,14 +58,15 @@ ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si) : base::P
 
     Planner::declareParam<double>("range", this, &KPIECE1::setRange, &KPIECE1::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias, "0.:.05:1.");
-    Planner::declareParam<double>("border_fraction", this, &KPIECE1::setBorderFraction, &KPIECE1::getBorderFraction, "0.:0.05:1.");
-    Planner::declareParam<double>("failed_expansion_score_factor", this, &KPIECE1::setFailedExpansionCellScoreFactor, &KPIECE1::getFailedExpansionCellScoreFactor);
-    Planner::declareParam<double>("min_valid_path_fraction", this, &KPIECE1::setMinValidPathFraction, &KPIECE1::getMinValidPathFraction);
+    Planner::declareParam<double>("border_fraction", this, &KPIECE1::setBorderFraction, &KPIECE1::getBorderFraction,
+                                  "0.:0.05:1.");
+    Planner::declareParam<double>("failed_expansion_score_factor", this, &KPIECE1::setFailedExpansionCellScoreFactor,
+                                  &KPIECE1::getFailedExpansionCellScoreFactor);
+    Planner::declareParam<double>("min_valid_path_fraction", this, &KPIECE1::setMinValidPathFraction,
+                                  &KPIECE1::getMinValidPathFraction);
 }
 
-ompl::geometric::KPIECE1::~KPIECE1()
-{
-}
+ompl::geometric::KPIECE1::~KPIECE1() = default;
 
 void ompl::geometric::KPIECE1::setup()
 {
@@ -96,14 +101,14 @@ void ompl::geometric::KPIECE1::freeMotion(Motion *motion)
 ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                   *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     Discretization<Motion>::Coord xcoord;
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        auto *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         projectionEvaluator_->computeCoordinates(motion->state, xcoord);
         disc_.addMotion(motion, xcoord, 1.0);
@@ -118,11 +123,12 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), disc_.getMotionCount());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(),
+                disc_.getMotionCount());
 
-    Motion *solution    = nullptr;
-    Motion *approxsol   = nullptr;
-    double  approxdif   = std::numeric_limits<double>::infinity();
+    Motion *solution = nullptr;
+    Motion *approxsol = nullptr;
+    double approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
 
     while (ptc == false)
@@ -130,8 +136,8 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
         disc_.countIteration();
 
         /* Decide on a state to expand from */
-        Motion                       *existing = nullptr;
-        Discretization<Motion>::Cell *ecell    = nullptr;
+        Motion *existing = nullptr;
+        Discretization<Motion>::Cell *ecell = nullptr;
         disc_.selectMotion(existing, ecell);
         assert(existing);
 
@@ -141,7 +147,7 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
         else
             sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
 
-        std::pair<base::State*, double> fail(xstate, 0.0);
+        std::pair<base::State *, double> fail(xstate, 0.0);
         bool keep = si_->checkMotion(existing->state, xstate, fail);
         if (!keep && fail.second > minValidPathFraction_)
             keep = true;
@@ -149,14 +155,15 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
         if (keep)
         {
             /* create a motion */
-            Motion *motion = new Motion(si_);
+            auto *motion = new Motion(si_);
             si_->copyState(motion->state, xstate);
             motion->parent = existing;
 
             double dist = 0.0;
             bool solv = goal->isSatisfied(motion->state, &dist);
             projectionEvaluator_->computeCoordinates(motion->state, xcoord);
-            disc_.addMotion(motion, xcoord, dist); // this will also update the discretization heaps as needed, so no call to updateCell() is needed
+            disc_.addMotion(motion, xcoord, dist);  // this will also update the discretization heaps as needed, so no
+                                                    // call to updateCell() is needed
 
             if (solv)
             {
@@ -188,7 +195,7 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
         lastGoalMotion_ = solution;
 
         /* construct the solution path */
-        std::vector<Motion*> mpath;
+        std::vector<Motion *> mpath;
         while (solution != nullptr)
         {
             mpath.push_back(solution);
@@ -196,19 +203,18 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
         }
 
         /* set the solution path */
-        PathGeometric *path = new PathGeometric(si_);
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        auto path(std::make_shared<PathGeometric>(si_));
+        for (int i = mpath.size() - 1; i >= 0; --i)
             path->append(mpath[i]->state);
-        pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
+        pdef_->addSolutionPath(path, approximate, approxdif, getName());
         solved = true;
     }
 
     si_->freeState(xstate);
 
-    OMPL_INFORM("%s: Created %u states in %u cells (%u internal + %u external)",
-                getName().c_str(),
-                disc_.getMotionCount(), disc_.getCellCount(),
-                disc_.getGrid().countInternal(), disc_.getGrid().countExternal());
+    OMPL_INFORM("%s: Created %u states in %u cells (%u internal + %u external)", getName().c_str(),
+                disc_.getMotionCount(), disc_.getCellCount(), disc_.getGrid().countInternal(),
+                disc_.getGrid().countExternal());
 
     return base::PlannerStatus(solved, approximate);
 }

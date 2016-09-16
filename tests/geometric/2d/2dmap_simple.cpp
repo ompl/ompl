@@ -49,16 +49,14 @@ static const double SOLUTION_TIME = 2.0;
 class TestPlanner
 {
 public:
-    TestPlanner(void)
+    TestPlanner()
     {
         msg::setLogLevel(msg::LOG_ERROR);
     }
 
-    virtual ~TestPlanner(void)
-    {
-    }
+    virtual ~TestPlanner() = default;
 
-    virtual bool execute(Environment2D &env, bool show = false, double *time = NULL, double *pathLength = NULL)
+    virtual bool execute(Environment2D &env, bool show = false, double *time = nullptr, double *pathLength = nullptr)
     {
         bool result = true;
 
@@ -131,7 +129,7 @@ class PlanTest
 {
 public:
 
-    PlanTest(void)
+    PlanTest()
     {
         verbose = true;
         boost::filesystem::path path(TEST_RESOURCES_DIR);
@@ -144,9 +142,7 @@ public:
         }
     }
 
-    ~PlanTest(void)
-    {
-    }
+    ~PlanTest() = default;
 
     void runPlanTest(TestPlanner *p, double *success, double *avgruntime, double *avglength)
     {

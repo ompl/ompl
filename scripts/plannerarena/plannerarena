@@ -1,10 +1,10 @@
 #!/usr/bin/env Rscript
 
-packages <- c('shiny', 'shinyjs', 'V8', 'ggplot2', 'Hmisc', 'RSQLite', 'markdown')
+packages <- c('shiny', 'shinyjs', 'V8', 'dplyr', 'tidyr', 'ggplot2', 'Hmisc', 'RSQLite', 'markdown')
 missing.packages <- setdiff(packages, rownames(installed.packages()))
 if (length(missing.packages) > 0) {
     cat(c('The following packages will be installed:\n\t', missing.packages, '\n'))
-  install.packages(missing.packages, repos="http://cran.r-project.org")
+    install.packages(missing.packages, repos="http://cran.r-project.org")
 }
 
 library(methods)
@@ -51,8 +51,8 @@ if (file.exists(paste0(script.dir,"/app.R"))) {
 cfg <- parse.cfg(cfg.file)
 options(shiny.maxRequestSize = strtoi(cfg$plannerarena$max_upload_size),
     shiny.port = strtoi(cfg$plannerarena$plannerarena_port),
-    warn=-1)
+    warn = -1)
 
 # open plannerarena in the browser
 launch.browser <- strtoi(cfg$plannerarena$launch_browser)
-runApp(appDir, launch.browser=launch.browser)
+runApp(appDir, launch.browser = launch.browser)

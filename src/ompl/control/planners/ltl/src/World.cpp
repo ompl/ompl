@@ -46,13 +46,13 @@ ompl::control::World::World(unsigned int np) : numProps_(np)
 
 bool ompl::control::World::operator[](unsigned int i) const
 {
-    std::unordered_map<unsigned int, bool>::const_iterator p = props_.find(i);
+    auto p = props_.find(i);
     if (p == props_.end())
         OMPL_ERROR("Proposition %u is not set in world", i);
     return p->second;
 }
 
-bool& ompl::control::World::operator[](unsigned int i)
+bool &ompl::control::World::operator[](unsigned int i)
 {
     return props_[i];
 }
@@ -62,7 +62,7 @@ unsigned int ompl::control::World::numProps() const
     return numProps_;
 }
 
-bool ompl::control::World::satisfies(const World& w) const
+bool ompl::control::World::satisfies(const World &w) const
 {
     std::unordered_map<unsigned int, bool>::const_iterator p, q;
     for (p = w.props_.begin(); p != w.props_.end(); ++p)
@@ -74,11 +74,11 @@ bool ompl::control::World::satisfies(const World& w) const
     return true;
 }
 
-std::string ompl::control::World::formula(void) const
+std::string ompl::control::World::formula() const
 {
     if (props_.empty())
         return "true";
-    std::unordered_map<unsigned int, bool>::const_iterator p = props_.begin();
+    auto p = props_.begin();
     std::string f = std::string(p->second ? "p" : "!p") + std::to_string(p->first);
     ++p;
     for (; p != props_.end(); ++p)
@@ -86,17 +86,17 @@ std::string ompl::control::World::formula(void) const
     return f;
 }
 
-const std::unordered_map<unsigned int, bool>& ompl::control::World::props(void) const
+const std::unordered_map<unsigned int, bool> &ompl::control::World::props() const
 {
     return props_;
 }
 
-bool ompl::control::World::operator==(const World& w) const
+bool ompl::control::World::operator==(const World &w) const
 {
     return numProps_ == w.numProps_ && props_ == w.props_;
 }
 
-void ompl::control::World::clear(void)
+void ompl::control::World::clear()
 {
     props_.clear();
 }
@@ -104,8 +104,7 @@ void ompl::control::World::clear(void)
 size_t std::hash<ompl::control::World>::operator()(const ompl::control::World &w) const
 {
     std::size_t hash = 0;
-    std::unordered_map<unsigned int, bool>::const_iterator p;
-    for (p = w.props_.begin(); p != w.props_.end(); ++p)
-        ompl::hash_combine(hash, *p);
+    for (const auto &p : w.props_)
+        ompl::hash_combine(hash, p);
     return hash;
 }

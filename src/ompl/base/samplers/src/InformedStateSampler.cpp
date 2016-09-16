@@ -45,24 +45,22 @@ namespace ompl
     namespace base
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
-        //InformedSampler
+        // InformedSampler
         InformedSampler::InformedSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls)
-          : probDefn_(probDefn),
-            space_(probDefn->getSpaceInformation()->getStateSpace()),
-            numIters_(maxNumberCalls)
+          : probDefn_(probDefn), space_(probDefn->getSpaceInformation()->getStateSpace()), numIters_(maxNumberCalls)
         {
             // Sanity check the problem.
             // Check that there is an optimization objective
             if (probDefn_->hasOptimizationObjective() == false)
             {
-                throw Exception ("InformedSampler: An optimization objective must be specified at construction.");
+                throw Exception("InformedSampler: An optimization objective must be specified at construction.");
             }
             // No else
 
             // Make sure we have at least one start and warn if we have more than one
             if (probDefn_->getStartStateCount() == 0u)
             {
-                throw Exception ("InformedSampler: At least one start state must be specified at construction.");
+                throw Exception("InformedSampler: At least one start state must be specified at construction.");
             }
             // No else
 
@@ -78,13 +76,15 @@ namespace ompl
 
         Cost InformedSampler::heuristicSolnCost(const State *statePtr) const
         {
-            // Return the best heuristic estimate of the cost-to-come and cost-to-go from the state considering all starts.
+            // Return the best heuristic estimate of the cost-to-come and cost-to-go from the state considering all
+            // starts.
 
             // If there's only one start, be simple:
             if (probDefn_->getStartStateCount() == 1u)
             {
                 // Calculate and from the one and only start
-                return opt_->combineCosts(opt_->motionCostHeuristic(probDefn_->getStartState(0u), statePtr), opt_->costToGo(statePtr, probDefn_->getGoal().get()));
+                return opt_->combineCosts(opt_->motionCostHeuristic(probDefn_->getStartState(0u), statePtr),
+                                          opt_->costToGo(statePtr, probDefn_->getGoal().get()));
             }
             else
             {
@@ -98,7 +98,9 @@ namespace ompl
                 for (unsigned int i = 0u; i < probDefn_->getStartStateCount(); ++i)
                 {
                     // Store the best
-                    bestCost = opt_->betterCost(bestCost, opt_->combineCosts(opt_->motionCostHeuristic(probDefn_->getStartState(i), statePtr), opt_->costToGo(statePtr, probDefn_->getGoal().get())));
+                    bestCost = opt_->betterCost(
+                        bestCost, opt_->combineCosts(opt_->motionCostHeuristic(probDefn_->getStartState(i), statePtr),
+                                                     opt_->costToGo(statePtr, probDefn_->getGoal().get())));
                 }
 
                 // Return the best
@@ -107,28 +109,28 @@ namespace ompl
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
         /////////////////////////////////////////////////////////////////////////////////////////////
-        //InformedStateSampler
-        InformedStateSampler::InformedStateSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls, const GetCurrentCostFunc &costFunc)
+        // InformedStateSampler
+        InformedStateSampler::InformedStateSampler(const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls,
+                                                   const GetCurrentCostFunc &costFunc)
           : StateSampler(probDefn->getSpaceInformation()->getStateSpace().get())
         {
             // Call the common constructor with the default informed sampler
-            commonConstructor(costFunc, probDefn->getOptimizationObjective()->allocInformedStateSampler(probDefn, maxNumberCalls));
+            commonConstructor(
+                costFunc, probDefn->getOptimizationObjective()->allocInformedStateSampler(probDefn, maxNumberCalls));
         }
 
-        InformedStateSampler::InformedStateSampler(const ProblemDefinitionPtr &probDefn, const GetCurrentCostFunc &costFunc, const InformedSamplerPtr &infSampler)
+        InformedStateSampler::InformedStateSampler(const ProblemDefinitionPtr &probDefn,
+                                                   const GetCurrentCostFunc &costFunc,
+                                                   const InformedSamplerPtr &infSampler)
           : StateSampler(probDefn->getSpaceInformation()->getStateSpace().get())
         {
             // Call the common constructor with the given informed sampler
             commonConstructor(costFunc, infSampler);
         }
 
-        void InformedStateSampler::commonConstructor(const GetCurrentCostFunc &costFunc, const InformedSamplerPtr &infSampler)
+        void InformedStateSampler::commonConstructor(const GetCurrentCostFunc &costFunc,
+                                                     const InformedSamplerPtr &infSampler)
         {
             // Store the cost function
             bestCostFunc_ = costFunc;
@@ -159,17 +161,17 @@ namespace ompl
 
         void InformedStateSampler::sampleUniformNear(State *statePtr, const State *near, const double distance)
         {
-            //Warn:
+            // Warn:
             OMPL_WARN("sampleUniformNear is not informed.");
             return baseSampler_->sampleUniformNear(statePtr, near, distance);
         }
 
         void InformedStateSampler::sampleGaussian(State *statePtr, const State *mean, const double stdDev)
         {
-            //Warn:
+            // Warn:
             OMPL_WARN("sampleGaussian is not informed.");
             return baseSampler_->sampleGaussian(statePtr, mean, stdDev);
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
-    }; // base
-};  // ompl
+    };  // base
+};      // ompl

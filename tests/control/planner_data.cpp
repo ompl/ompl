@@ -53,8 +53,8 @@ using namespace ompl;
 
 // Define the state and control spaces used throughout the testing
 #define SETUP_STATE_CONTROL_SPACES \
-base::StateSpacePtr space(new base::RealVectorStateSpace(1)); \
-control::ControlSpacePtr cspace (new control::RealVectorControlSpace(space, 2)); \
+base::StateSpacePtr space(std::make_shared<base::RealVectorStateSpace>(1)); \
+control::ControlSpacePtr cspace(std::make_shared<control::RealVectorControlSpace>(space, 2)); \
 base::RealVectorBounds spacebounds(1); \
 spacebounds.setLow(-10); \
 spacebounds.setHigh(10); \
@@ -63,7 +63,7 @@ ctrlbounds.setLow(-1); \
 ctrlbounds.setHigh(1); \
 space->as<base::RealVectorStateSpace>()->setBounds(spacebounds); \
 cspace->as<control::RealVectorControlSpace>()->setBounds(ctrlbounds); \
-control::SpaceInformationPtr si(new control::SpaceInformation(space, cspace)); \
+control::SpaceInformationPtr si(std::make_shared<control::SpaceInformation>(space, cspace)); \
 si->setStateValidityChecker(isValid); \
 si->setStatePropagator(propagate); \
 si->setMinMaxControlDuration(1, 10); \
@@ -77,7 +77,7 @@ public:
     PlannerDataTestVertex (base::State* st, int tag = 0, int tag2 = 0) : ompl::base::PlannerDataVertex(st, tag), tag2_(tag2) {}
     PlannerDataTestVertex (const PlannerDataTestVertex &rhs) : ompl::base::PlannerDataVertex(rhs.state_, rhs.tag_), tag2_(rhs.tag2_) {}
 
-    virtual ompl::base::PlannerDataVertex* clone (void) const
+    ompl::base::PlannerDataVertex* clone () const override
     {
         return static_cast<ompl::base::PlannerDataVertex*>(new PlannerDataTestVertex(*this));
     }
@@ -85,7 +85,7 @@ public:
     int tag2_;
 
 protected:
-    PlannerDataTestVertex(void) {}
+    PlannerDataTestVertex() {}
 
     friend class boost::serialization::access;
     template <class Archive>
@@ -103,14 +103,14 @@ public:
 
     PlannerDataTestEdge (const PlannerDataTestEdge &rhs) : PlannerDataEdgeControl(rhs.c_, rhs.duration_), id_(rhs.id_)  {}
 
-    virtual ~PlannerDataTestEdge (void) {}
+    ~PlannerDataTestEdge () override = default;
 
-    virtual ompl::base::PlannerDataEdge* clone () const
+    ompl::base::PlannerDataEdge* clone () const override
     {
         return static_cast<base::PlannerDataEdge*>(new PlannerDataTestEdge(*this));
     }
 
-    virtual bool operator == (const ompl::base::PlannerDataEdge &rhs) const
+    bool operator == (const ompl::base::PlannerDataEdge &rhs) const override
     {
         const PlannerDataTestEdge *rhst = static_cast<const PlannerDataTestEdge*> (&rhs);
         if (rhst)
@@ -384,13 +384,13 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
         BOOST_REQUIRE_NE ( &edge, &base::PlannerData::NO_EDGE );
         BOOST_CHECK_EQUAL( edge.getControl(), controls[i] );
         BOOST_OMPL_EXPECT_NEAR ( edge.getDuration(), i, 1e-9 );
-        BOOST_CHECK_EQUAL ( edge.id_, i+1 );
+        BOOST_CHECK_EQUAL ( (unsigned int)edge.id_, i+1 );
     }
 
     // Reset the tag for state #0
     BOOST_CHECK( data.tagState(states[0], 10000) );
     BOOST_CHECK_EQUAL( data.getVertex(0).getTag(), 10000 );
-    BOOST_CHECK_EQUAL( data.tagState(0, 1000), false ); // state doesn't exist
+    BOOST_CHECK_EQUAL( data.tagState(nullptr, 1000), false ); // state doesn't exist
 
     // Reset the edge weight for 0->1
     BOOST_CHECK( data.setEdgeWeight(0, 1, base::Cost(1.234)) );
@@ -403,7 +403,7 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
     BOOST_CHECK_EQUAL( data.setEdgeWeight(0, 5, base::Cost(2.345)), false );
 
     // Try to tag an invalid state
-    BOOST_CHECK_EQUAL( data.tagState(0, 100), false );
+    BOOST_CHECK_EQUAL( data.tagState(nullptr, 100), false );
 
     for (size_t i = 0; i < states.size(); ++i)
     {
@@ -581,9 +581,9 @@ BOOST_AUTO_TEST_CASE(Serialization)
         }
     }
 
-    for (size_t i = 0; i < states.size(); ++i)
-        space->freeState(states[i]);
+    for (auto & state : states)
+        space->freeState(state);
 
-    for (size_t i = 0; i < controls.size(); ++i)
-        cspace->freeControl(controls[i]);
+    for (auto & control : controls)
+        cspace->freeControl(control);
 }

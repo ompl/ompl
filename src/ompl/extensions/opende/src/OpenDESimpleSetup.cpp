@@ -40,19 +40,19 @@
 
 ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const ControlSpacePtr &space) : SimpleSetup(space)
 {
-    if (!dynamic_cast<OpenDEControlSpace*>(space.get()))
+    if (!dynamic_cast<OpenDEControlSpace *>(space.get()))
         throw Exception("OpenDE Control Space needed for OpenDE Simple Setup");
     useEnvParams();
 }
 
-ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const base::StateSpacePtr &space) :
-    SimpleSetup(ControlSpacePtr(new OpenDEControlSpace(space)))
+ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const base::StateSpacePtr &space)
+  : SimpleSetup(std::make_shared<OpenDEControlSpace>(space))
 {
     useEnvParams();
 }
 
-ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const OpenDEEnvironmentPtr &env) :
-    SimpleSetup(ControlSpacePtr(new OpenDEControlSpace(base::StateSpacePtr(new OpenDEStateSpace(env)))))
+ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const OpenDEEnvironmentPtr &env)
+  : SimpleSetup(std::make_shared<OpenDEControlSpace>(std::make_shared<OpenDEStateSpace>(env)))
 {
     useEnvParams();
 }
@@ -62,7 +62,7 @@ void ompl::control::OpenDESimpleSetup::useEnvParams()
     si_->setPropagationStepSize(getStateSpace()->as<OpenDEStateSpace>()->getEnvironment()->stepSize_);
     si_->setMinMaxControlDuration(getStateSpace()->as<OpenDEStateSpace>()->getEnvironment()->minControlSteps_,
                                   getStateSpace()->as<OpenDEStateSpace>()->getEnvironment()->maxControlSteps_);
-    si_->setStatePropagator(StatePropagatorPtr(new OpenDEStatePropagator(si_)));
+    si_->setStatePropagator(std::make_shared<OpenDEStatePropagator>(si_));
 }
 
 ompl::base::ScopedState<ompl::control::OpenDEStateSpace> ompl::control::OpenDESimpleSetup::getCurrentState() const
@@ -87,7 +87,7 @@ void ompl::control::OpenDESimpleSetup::setup()
     if (!si_->getStateValidityChecker())
     {
         OMPL_INFORM("Using default state validity checker for OpenDE");
-        si_->setStateValidityChecker(base::StateValidityCheckerPtr(new OpenDEStateValidityChecker(si_)));
+        si_->setStateValidityChecker(std::make_shared<OpenDEStateValidityChecker>(si_));
     }
     if (pdef_->getStartStateCount() == 0)
     {
@@ -106,14 +106,13 @@ void ompl::control::OpenDESimpleSetup::playSolutionPath(double timeFactor) const
 void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, double timeFactor) const
 {
     bool ctl = false;
-    if (dynamic_cast<PathControl*>(path.get()))
+    if (dynamic_cast<PathControl *>(path.get()))
         ctl = true;
-    else
-        if (!dynamic_cast<geometric::PathGeometric*>(path.get()))
-            throw Exception("Unknown type of path");
+    else if (!dynamic_cast<geometric::PathGeometric *>(path.get()))
+        throw Exception("Unknown type of path");
 
-    const geometric::PathGeometric &pg = ctl ?
-        static_cast<PathControl*>(path.get())->asGeometric() : *static_cast<geometric::PathGeometric*>(path.get());
+    const geometric::PathGeometric &pg = ctl ? static_cast<PathControl *>(path.get())->asGeometric() :
+                                               *static_cast<geometric::PathGeometric *>(path.get());
 
     if (pg.getStateCount() > 0)
     {
@@ -121,7 +120,7 @@ void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, doubl
                    timeFactor * si_->getPropagationStepSize() * (double)(pg.getStateCount() - 1));
         time::duration d = time::seconds(timeFactor * si_->getPropagationStepSize());
         getStateSpace()->as<OpenDEStateSpace>()->writeState(pg.getState(0));
-        for (unsigned int i = 1 ; i < pg.getStateCount() ; ++i)
+        for (unsigned int i = 1; i < pg.getStateCount(); ++i)
         {
             std::this_thread::sleep_for(d);
             getStateSpace()->as<OpenDEStateSpace>()->writeState(pg.getState(i));
@@ -132,7 +131,8 @@ void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, doubl
 ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const double *control, unsigned int steps) const
 {
     Control *c = si_->allocControl();
-    memcpy(c->as<OpenDEControlSpace::ControlType>()->values, control, sizeof(double) * getControlSpace()->getDimension());
+    memcpy(c->as<OpenDEControlSpace::ControlType>()->values, control,
+           sizeof(double) * getControlSpace()->getDimension());
     base::PathPtr path = simulateControl(c, steps);
     si_->freeControl(c);
     return path;
@@ -140,7 +140,7 @@ ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const doub
 
 ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const Control *control, unsigned int steps) const
 {
-    PathControl *p = new PathControl(si_);
+    auto p(std::make_shared<PathControl>(si_));
 
     base::State *s0 = si_->allocState();
     getStateSpace()->as<OpenDEStateSpace>()->readState(s0);
@@ -152,7 +152,7 @@ ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulateControl(const Cont
 
     p->getControls().push_back(si_->cloneControl(control));
     p->getControlDurations().push_back(steps);
-    return base::PathPtr(p);
+    return p;
 }
 
 ompl::base::PathPtr ompl::control::OpenDESimpleSetup::simulate(unsigned int steps) const

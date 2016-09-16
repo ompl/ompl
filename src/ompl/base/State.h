@@ -43,97 +43,85 @@ namespace ompl
 {
     namespace base
     {
-
         /** \brief Definition of an abstract state.
 
             See \ref stateAlloc and \ref stateOps. */
         class State
         {
         private:
-
             /** \brief Disable copy-constructor */
-            State(const State&);
+            State(const State &);
 
             /** \brief Disable copy operator */
-            const State& operator=(const State&);
+            const State &operator=(const State &);
 
         protected:
+            State() = default;
 
-            State()
-            {
-            }
-
-            virtual ~State()
-            {
-            }
+            virtual ~State() = default;
 
         public:
-
             /** \brief Cast this instance to a desired type. */
-            template<class T>
-            const T* as() const
+            template <class T>
+            const T *as() const
             {
                 /** \brief Make sure the type we are allocating is indeed a state */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, State*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, State *>));
 
-                return static_cast<const T*>(this);
+                return static_cast<const T *>(this);
             }
 
             /** \brief Cast this instance to a desired type. */
-            template<class T>
-            T* as()
+            template <class T>
+            T *as()
             {
                 /** \brief Make sure the type we are allocating is indeed a state */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, State*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, State *>));
 
-                return static_cast<T*>(this);
+                return static_cast<T *>(this);
             }
-
         };
 
         /** \brief Definition of a compound state */
         class CompoundState : public State
         {
         public:
-
             CompoundState() : State(), components(nullptr)
             {
             }
 
-            virtual ~CompoundState()
+            ~CompoundState() override = default;
+
+            /** \brief Cast a component of this instance to a desired type. */
+            template <class T>
+            const T *as(const unsigned int index) const
             {
+                /** \brief Make sure the type we are allocating is indeed a state */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, State *>));
+
+                return static_cast<const T *>(components[index]);
             }
 
             /** \brief Cast a component of this instance to a desired type. */
-            template<class T>
-            const T* as(const unsigned int index) const
+            template <class T>
+            T *as(const unsigned int index)
             {
                 /** \brief Make sure the type we are allocating is indeed a state */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, State*>));
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, State *>));
 
-                return static_cast<const T*>(components[index]);
-            }
-
-            /** \brief Cast a component of this instance to a desired type. */
-            template<class T>
-            T* as(const unsigned int index)
-            {
-                /** \brief Make sure the type we are allocating is indeed a state */
-                BOOST_CONCEPT_ASSERT((boost::Convertible<T*, State*>));
-
-                return static_cast<T*>(components[index]);
+                return static_cast<T *>(components[index]);
             }
 
             /** \brief Access const element i<sup>th</sup> component. This
                 does not check whether the index is within bounds. */
-            const State* operator[](unsigned int i) const
+            const State *operator[](unsigned int i) const
             {
                 return components[i];
             }
 
             /** \brief Access element i<sup>th</sup> component. This
                 does not check whether the index is within bounds. */
-            State* operator[](unsigned int i)
+            State *operator[](unsigned int i)
             {
                 return components[i];
             }
@@ -141,7 +129,6 @@ namespace ompl
             /** \brief The components that make up a compound state */
             State **components;
         };
-
     }
 }
 

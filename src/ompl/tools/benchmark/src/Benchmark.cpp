@@ -51,13 +51,15 @@ namespace ompl
 {
     namespace tools
     {
-        /** \brief Propose a name for a file in which results should be saved, based on the date and hostname of the experiment */
+        /** \brief Propose a name for a file in which results should be saved, based on the date and hostname of the
+         * experiment */
         static std::string getResultsFilename(const Benchmark::CompleteExperiment &exp)
         {
             return "ompl_" + exp.host + "_" + time::as_string(exp.startTime) + ".log";
         }
 
-        /** \brief Propose a name for a file in which console output should be saved, based on the date and hostname of the experiment */
+        /** \brief Propose a name for a file in which console output should be saved, based on the date and hostname of
+         * the experiment */
         static std::string getConsoleFilename(const Benchmark::CompleteExperiment &exp)
         {
             return "ompl_" + exp.host + "_" + time::as_string(exp.startTime) + ".console";
@@ -73,21 +75,25 @@ namespace ompl
         class RunPlanner
         {
         public:
-
             RunPlanner(const Benchmark *benchmark, bool useThreads)
-                : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), useThreads_(useThreads)
+              : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), useThreads_(useThreads)
             {
             }
 
-            void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart, const machine::MemUsage_t maxMem, const double maxTime, const double timeBetweenUpdates)
+            void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart,
+                     const machine::MemUsage_t maxMem, const double maxTime, const double timeBetweenUpdates)
             {
                 // if (!useThreads_)
                 // {
-                    runThread(planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates));
+                runThread(planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates));
                 //     return;
                 // }
 
-                // std::thread t(std::bind(&RunPlanner::runThread, this, planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates)));
+                // std::thread t([planner, memStart, maxMem, maxTime, timeBetweenUpdates]
+                //      {
+                //          runThread(planner, memStart + maxMem, time::seconds(maxTime),
+                //          time::seconds(timeBetweenUpdates)); });
+                //      }
 
                 // allow 25% more time than originally specified, in order to detect planner termination
                 // if (!t.try_join_for(time::seconds(maxTime * 1.25)))
@@ -95,8 +101,10 @@ namespace ompl
                 //     status_ = base::PlannerStatus::CRASH;
                 //
                 //     std::stringstream es;
-                //     es << "Planner " << benchmark_->getStatus().activePlanner << " did not complete run " << benchmark_->getStatus().activeRun
-                //        << " within the specified amount of time (possible crash). Attempting to force termination of planning thread ..." << std::endl;
+                //     es << "Planner " << benchmark_->getStatus().activePlanner << " did not complete run " <<
+                //     benchmark_->getStatus().activeRun
+                //        << " within the specified amount of time (possible crash). Attempting to force termination of
+                //        planning thread ..." << std::endl;
                 //     std::cerr << es.str();
                 //     OMPL_ERROR(es.str().c_str());
                 //
@@ -129,20 +137,24 @@ namespace ompl
                 return status_;
             }
 
-            const Benchmark::RunProgressData& getRunProgressData() const
+            const Benchmark::RunProgressData &getRunProgressData() const
             {
                 return runProgressData_;
             }
 
         private:
-
-            void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem, const time::duration &maxDuration, const time::duration &timeBetweenUpdates)
+            void runThread(const base::PlannerPtr &planner, const machine::MemUsage_t maxMem,
+                           const time::duration &maxDuration, const time::duration &timeBetweenUpdates)
             {
                 time::point timeStart = time::now();
 
                 try
                 {
-                    base::PlannerTerminationConditionFn ptc = std::bind(&terminationCondition, maxMem, time::now() + maxDuration);
+                    const time::point endtime = time::now() + maxDuration;
+                    base::PlannerTerminationConditionFn ptc([maxMem, endtime]
+                                                            {
+                                                                return terminationCondition(maxMem, endtime);
+                                                            });
                     solved_ = false;
                     // Only launch the planner progress property
                     // collector if there is any data for it to report
@@ -153,21 +165,24 @@ namespace ompl
                     // collector begins sampling
                     boost::scoped_ptr<std::thread> t;
                     if (planner->getPlannerProgressProperties().size() > 0)
-                        t.reset(new std::thread(std::bind(&RunPlanner::collectProgressProperties,                                                               this,
-                                                              planner->getPlannerProgressProperties(),
-                                                              timeBetweenUpdates)));
+                        t.reset(new std::thread([this, &planner, timeBetweenUpdates]
+                                                {
+                                                    collectProgressProperties(planner->getPlannerProgressProperties(),
+                                                                              timeBetweenUpdates);
+                                                }));
                     status_ = planner->solve(ptc, 0.1);
                     solvedFlag_.lock();
                     solved_ = true;
                     solvedCondition_.notify_all();
                     solvedFlag_.unlock();
                     if (t)
-                        t->join(); // maybe look into interrupting even if planner throws an exception
+                        t->join();  // maybe look into interrupting even if planner throws an exception
                 }
-                catch(std::runtime_error &e)
+                catch (std::runtime_error &e)
                 {
                     std::stringstream es;
-                    es << "There was an error executing planner " << benchmark_->getStatus().activePlanner <<  ", run = " << benchmark_->getStatus().activeRun << std::endl;
+                    es << "There was an error executing planner " << benchmark_->getStatus().activePlanner
+                       << ", run = " << benchmark_->getStatus().activeRun << std::endl;
                     es << "*** " << e.what() << std::endl;
                     std::cerr << es.str();
                     OMPL_ERROR(es.str().c_str());
@@ -177,7 +192,7 @@ namespace ompl
                 memUsed_ = machine::getProcessMemoryUsage();
             }
 
-            void collectProgressProperties(const base::Planner::PlannerProgressProperties& properties,
+            void collectProgressProperties(const base::Planner::PlannerProgressProperties &properties,
                                            const time::duration &timePerUpdate)
             {
                 time::point timeStart = time::now();
@@ -193,22 +208,20 @@ namespace ompl
                         std::string timeStamp = std::to_string(timeInSeconds);
                         std::map<std::string, std::string> data;
                         data["time REAL"] = timeStamp;
-                        for (base::Planner::PlannerProgressProperties::const_iterator item = properties.begin();
-                             item != properties.end();
-                             ++item)
+                        for (const auto &property : properties)
                         {
-                            data[item->first] = item->second();
+                            data[property.first] = property.second();
                         }
                         runProgressData_.push_back(data);
                     }
                 }
             }
 
-            const Benchmark    *benchmark_;
-            double              timeUsed_;
+            const Benchmark *benchmark_;
+            double timeUsed_;
             machine::MemUsage_t memUsed_;
             base::PlannerStatus status_;
-            bool                useThreads_;
+            bool useThreads_;
             Benchmark::RunProgressData runProgressData_;
 
             // variables needed for progress property collection
@@ -216,7 +229,6 @@ namespace ompl
             std::mutex solvedFlag_;
             std::condition_variable solvedCondition_;
         };
-
     }
 }
 /// @endcond
@@ -266,13 +278,15 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
     out << "Experiment " << (exp_.name.empty() ? "NO_NAME" : exp_.name) << std::endl;
 
     out << exp_.parameters.size() << " experiment properties" << std::endl;
-    for(std::map<std::string, std::string>::const_iterator it = exp_.parameters.begin(); it != exp_.parameters.end(); ++it)
-        out << it->first << " = " << it->second << std::endl;
+    for (const auto &parameter : exp_.parameters)
+        out << parameter.first << " = " << parameter.second << std::endl;
 
     out << "Running on " << (exp_.host.empty() ? "UNKNOWN" : exp_.host) << std::endl;
     out << "Starting at " << time::as_string(exp_.startTime) << std::endl;
-    out << "<<<|" << std::endl << exp_.setupInfo << "|>>>" << std::endl;
-    out << "<<<|" << std::endl << exp_.cpuInfo << "|>>>" << std::endl;
+    out << "<<<|" << std::endl
+        << exp_.setupInfo << "|>>>" << std::endl;
+    out << "<<<|" << std::endl
+        << exp_.cpuInfo << "|>>>" << std::endl;
 
     out << exp_.seed << " is the random seed" << std::endl;
     out << exp_.maxTime << " seconds per run" << std::endl;
@@ -283,57 +297,55 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
     // change this if more enum types are added
     out << "1 enum type" << std::endl;
     out << "status";
-    for (unsigned int i = 0 ; i < base::PlannerStatus::TYPE_COUNT ; ++i)
+    for (unsigned int i = 0; i < base::PlannerStatus::TYPE_COUNT; ++i)
         out << '|' << base::PlannerStatus(static_cast<base::PlannerStatus::StatusType>(i)).asString();
     out << std::endl;
 
     out << exp_.planners.size() << " planners" << std::endl;
 
-    for (unsigned int i = 0 ; i < exp_.planners.size() ; ++i)
+    for (const auto &planner : exp_.planners)
     {
-        out << exp_.planners[i].name << std::endl;
+        out << planner.name << std::endl;
 
         // get names of common properties
         std::vector<std::string> properties;
-        for (std::map<std::string, std::string>::const_iterator mit = exp_.planners[i].common.begin() ;
-             mit != exp_.planners[i].common.end() ; ++mit)
-            properties.push_back(mit->first);
+        for (auto &property : planner.common)
+            properties.push_back(property.first);
         std::sort(properties.begin(), properties.end());
 
         // print names & values of common properties
         out << properties.size() << " common properties" << std::endl;
-        for (unsigned int k = 0 ; k < properties.size() ; ++k)
+        for (auto &property : properties)
         {
-            std::map<std::string, std::string>::const_iterator it = exp_.planners[i].common.find(properties[k]);
+            auto it = planner.common.find(property);
             out << it->first << " = " << it->second << std::endl;
         }
 
         // construct the list of all possible properties for all runs
         std::map<std::string, bool> propSeen;
-        for (unsigned int j = 0 ; j < exp_.planners[i].runs.size() ; ++j)
-            for (std::map<std::string, std::string>::const_iterator mit = exp_.planners[i].runs[j].begin() ;
-                 mit != exp_.planners[i].runs[j].end() ; ++mit)
-                propSeen[mit->first] = true;
+        for (auto &run : planner.runs)
+            for (auto &property : run)
+                propSeen[property.first] = true;
 
         properties.clear();
 
-        for (std::map<std::string, bool>::iterator it = propSeen.begin() ; it != propSeen.end() ; ++it)
-            properties.push_back(it->first);
+        for (auto &it : propSeen)
+            properties.push_back(it.first);
         std::sort(properties.begin(), properties.end());
 
         // print the property names
         out << properties.size() << " properties for each run" << std::endl;
-        for (unsigned int j = 0 ; j < properties.size() ; ++j)
-            out << properties[j] << std::endl;
+        for (auto &propertie : properties)
+            out << propertie << std::endl;
 
         // print the data for each run
-        out << exp_.planners[i].runs.size() << " runs" << std::endl;
-        for (unsigned int j = 0 ; j < exp_.planners[i].runs.size() ; ++j)
+        out << planner.runs.size() << " runs" << std::endl;
+        for (auto &run : planner.runs)
         {
-            for (unsigned int k = 0 ; k < properties.size() ; ++k)
+            for (auto &property : properties)
             {
-                std::map<std::string, std::string>::const_iterator it = exp_.planners[i].runs[j].find(properties[k]);
-                if (it != exp_.planners[i].runs[j].end())
+                auto it = run.find(property);
+                if (it != run.end())
                     out << it->second;
                 out << "; ";
             }
@@ -341,32 +353,26 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
         }
 
         // print the run progress data if it was reported
-        if (exp_.planners[i].runsProgressData.size() > 0)
+        if (planner.runsProgressData.size() > 0)
         {
             // Print number of progress properties
-            out << exp_.planners[i].progressPropertyNames.size() << " progress properties for each run" << std::endl;
+            out << planner.progressPropertyNames.size() << " progress properties for each run" << std::endl;
             // Print progress property names
-            for (std::vector<std::string>::const_iterator iter =
-                     exp_.planners[i].progressPropertyNames.begin();
-                 iter != exp_.planners[i].progressPropertyNames.end();
-                 ++iter)
+            for (const auto &progPropName : planner.progressPropertyNames)
             {
-                out << *iter << std::endl;
+                out << progPropName << std::endl;
             }
             // Print progress properties for each run
-            out << exp_.planners[i].runsProgressData.size() << " runs" << std::endl;
-            for (std::size_t r = 0; r < exp_.planners[i].runsProgressData.size(); ++r)
+            out << planner.runsProgressData.size() << " runs" << std::endl;
+            for (const auto &r : planner.runsProgressData)
             {
                 // For each time point
-                for (std::size_t t = 0; t < exp_.planners[i].runsProgressData[r].size(); ++t)
+                for (const auto &t : r)
                 {
                     // Print each of the properties at that time point
-                    for (std::map<std::string, std::string>::const_iterator iter =
-                             exp_.planners[i].runsProgressData[r][t].begin();
-                         iter != exp_.planners[i].runsProgressData[r][t].end();
-                         ++iter)
+                    for (const auto &iter : t)
                     {
-                        out << iter->second << ",";
+                        out << iter.second << ",";
                     }
 
                     // Separate time points by semicolons
@@ -426,9 +432,10 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     exp_.planners.clear();
     exp_.planners.resize(planners_.size());
 
-    const base::ProblemDefinitionPtr &pdef = gsetup_ ? gsetup_->getProblemDefinition() : csetup_->getProblemDefinition();
+    const base::ProblemDefinitionPtr &pdef =
+        gsetup_ ? gsetup_->getProblemDefinition() : csetup_->getProblemDefinition();
     // set up all the planners
-    for (unsigned int i = 0 ; i < planners_.size() ; ++i)
+    for (unsigned int i = 0; i < planners_.size(); ++i)
     {
         // configure the planner
         planners_[i]->setProblemDefinition(pdef);
@@ -446,9 +453,10 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         gsetup_->print(setupInfo);
     else
         csetup_->print(setupInfo);
-    setupInfo << std::endl << "Properties of benchmarked planners:" << std::endl;
-    for (unsigned int i = 0 ; i < planners_.size() ; ++i)
-        planners_[i]->printProperties(setupInfo);
+    setupInfo << std::endl
+              << "Properties of benchmarked planners:" << std::endl;
+    for (auto &planner : planners_)
+        planner->printProperties(setupInfo);
 
     exp_.setupInfo = setupInfo.str();
 
@@ -470,15 +478,15 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     if (req.displayProgress)
     {
         std::cout << "Running experiment " << exp_.name << "." << std::endl;
-        std::cout << "Each planner will be executed " << req.runCount << " times for at most " << req.maxTime << " seconds. Memory is limited at "
-                  << req.maxMem << "MB." << std::endl;
+        std::cout << "Each planner will be executed " << req.runCount << " times for at most " << req.maxTime
+                  << " seconds. Memory is limited at " << req.maxMem << "MB." << std::endl;
         progress.reset(new boost::progress_display(100, std::cout));
     }
 
     machine::MemUsage_t memStart = machine::getProcessMemoryUsage();
     machine::MemUsage_t maxMemBytes = (machine::MemUsage_t)(req.maxMem * 1024 * 1024);
 
-    for (unsigned int i = 0 ; i < planners_.size() ; ++i)
+    for (unsigned int i = 0; i < planners_.size(); ++i)
     {
         status_.activePlanner = exp_.planners[i].name;
         // execute planner switch event, if set
@@ -491,10 +499,11 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 OMPL_INFORM("Completed execution of planner-switch event");
             }
         }
-        catch(std::runtime_error &e)
+        catch (std::runtime_error &e)
         {
             std::stringstream es;
-            es << "There was an error executing the planner-switch event for planner " << status_.activePlanner << std::endl;
+            es << "There was an error executing the planner-switch event for planner " << status_.activePlanner
+               << std::endl;
             es << "*** " << e.what() << std::endl;
             std::cerr << es.str();
             OMPL_ERROR(es.str().c_str());
@@ -510,19 +519,18 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         exp_.planners[i].progressPropertyNames.push_back("time REAL");
         base::Planner::PlannerProgressProperties::const_iterator iter;
         for (iter = planners_[i]->getPlannerProgressProperties().begin();
-             iter != planners_[i]->getPlannerProgressProperties().end();
-             ++iter)
+             iter != planners_[i]->getPlannerProgressProperties().end(); ++iter)
         {
             exp_.planners[i].progressPropertyNames.push_back(iter->first);
         }
-        std::sort(exp_.planners[i].progressPropertyNames.begin(),
-                  exp_.planners[i].progressPropertyNames.end());
+        std::sort(exp_.planners[i].progressPropertyNames.begin(), exp_.planners[i].progressPropertyNames.end());
 
         // run the planner
-        for (unsigned int j = 0 ; j < req.runCount ; ++j)
+        for (unsigned int j = 0; j < req.runCount; ++j)
         {
             status_.activeRun = j;
-            status_.progressPercentage = (double)(100 * (req.runCount * i + j)) / (double)(planners_.size() * req.runCount);
+            status_.progressPercentage =
+                (double)(100 * (req.runCount * i + j)) / (double)(planners_.size() * req.runCount);
 
             if (req.displayProgress)
                 while (status_.progressPercentage > progress->count())
@@ -545,10 +553,11 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                     csetup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
                 }
             }
-            catch(std::runtime_error &e)
+            catch (std::runtime_error &e)
             {
                 std::stringstream es;
-                es << "There was an error while preparing for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
+                es << "There was an error while preparing for run " << status_.activeRun << " of planner "
+                   << status_.activePlanner << std::endl;
                 es << "*** " << e.what() << std::endl;
                 std::cerr << es.str();
                 OMPL_ERROR(es.str().c_str());
@@ -559,15 +568,17 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             {
                 if (preRun_)
                 {
-                    OMPL_INFORM("Executing pre-run event for run %d of planner %s ...", status_.activeRun, status_.activePlanner.c_str());
+                    OMPL_INFORM("Executing pre-run event for run %d of planner %s ...", status_.activeRun,
+                                status_.activePlanner.c_str());
                     preRun_(planners_[i]);
                     OMPL_INFORM("Completed execution of pre-run event");
                 }
             }
-            catch(std::runtime_error &e)
+            catch (std::runtime_error &e)
             {
                 std::stringstream es;
-                es << "There was an error executing the pre-run event for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
+                es << "There was an error executing the pre-run event for run " << status_.activeRun << " of planner "
+                   << status_.activePlanner << std::endl;
                 es << "*** " << e.what() << std::endl;
                 std::cerr << es.str();
                 OMPL_ERROR(es.str().c_str());
@@ -588,24 +599,29 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 if (gsetup_)
                 {
                     run["solved BOOLEAN"] = std::to_string(gsetup_->haveExactSolutionPath());
-                    run["valid segment fraction REAL"] = std::to_string(gsetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
+                    run["valid segment fraction REAL"] =
+                        std::to_string(gsetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
                 }
                 else
                 {
                     run["solved BOOLEAN"] = std::to_string(csetup_->haveExactSolutionPath());
-                    run["valid segment fraction REAL"] = std::to_string(csetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
+                    run["valid segment fraction REAL"] =
+                        std::to_string(csetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
                 }
 
                 if (solved)
                 {
                     if (gsetup_)
                     {
-                        run["approximate solution BOOLEAN"] = std::to_string(gsetup_->getProblemDefinition()->hasApproximateSolution());
-                        run["solution difference REAL"] = std::to_string(gsetup_->getProblemDefinition()->getSolutionDifference());
+                        run["approximate solution BOOLEAN"] =
+                            std::to_string(gsetup_->getProblemDefinition()->hasApproximateSolution());
+                        run["solution difference REAL"] =
+                            std::to_string(gsetup_->getProblemDefinition()->getSolutionDifference());
                         run["solution length REAL"] = std::to_string(gsetup_->getSolutionPath().length());
                         run["solution smoothness REAL"] = std::to_string(gsetup_->getSolutionPath().smoothness());
                         run["solution clearance REAL"] = std::to_string(gsetup_->getSolutionPath().clearance());
-                        run["solution segments INTEGER"] = std::to_string(gsetup_->getSolutionPath().getStateCount() - 1);
+                        run["solution segments INTEGER"] =
+                            std::to_string(gsetup_->getSolutionPath().getStateCount() - 1);
                         run["correct solution BOOLEAN"] = std::to_string(gsetup_->getSolutionPath().check());
 
                         unsigned int factor = gsetup_->getStateSpace()->getValidSegmentCountFactor();
@@ -620,33 +636,43 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                             gsetup_->simplifySolution();
                             double timeUsed = time::seconds(time::now() - timeStart);
                             run["simplification time REAL"] = std::to_string(timeUsed);
-                            run["simplified solution length REAL"] = std::to_string(gsetup_->getSolutionPath().length());
-                            run["simplified solution smoothness REAL"] = std::to_string(gsetup_->getSolutionPath().smoothness());
-                            run["simplified solution clearance REAL"] = std::to_string(gsetup_->getSolutionPath().clearance());
-                            run["simplified solution segments INTEGER"] = std::to_string(gsetup_->getSolutionPath().getStateCount() - 1);
-                            run["simplified correct solution BOOLEAN"] = std::to_string(gsetup_->getSolutionPath().check());
+                            run["simplified solution length REAL"] =
+                                std::to_string(gsetup_->getSolutionPath().length());
+                            run["simplified solution smoothness REAL"] =
+                                std::to_string(gsetup_->getSolutionPath().smoothness());
+                            run["simplified solution clearance REAL"] =
+                                std::to_string(gsetup_->getSolutionPath().clearance());
+                            run["simplified solution segments INTEGER"] =
+                                std::to_string(gsetup_->getSolutionPath().getStateCount() - 1);
+                            run["simplified correct solution BOOLEAN"] =
+                                std::to_string(gsetup_->getSolutionPath().check());
                             gsetup_->getStateSpace()->setValidSegmentCountFactor(factor * 4);
-                            run["simplified correct solution strict BOOLEAN"] = std::to_string(gsetup_->getSolutionPath().check());
+                            run["simplified correct solution strict BOOLEAN"] =
+                                std::to_string(gsetup_->getSolutionPath().check());
                             gsetup_->getStateSpace()->setValidSegmentCountFactor(factor);
                         }
                     }
                     else
                     {
-                        run["approximate solution BOOLEAN"] = std::to_string(csetup_->getProblemDefinition()->hasApproximateSolution());
-                        run["solution difference REAL"] = std::to_string(csetup_->getProblemDefinition()->getSolutionDifference());
+                        run["approximate solution BOOLEAN"] =
+                            std::to_string(csetup_->getProblemDefinition()->hasApproximateSolution());
+                        run["solution difference REAL"] =
+                            std::to_string(csetup_->getProblemDefinition()->getSolutionDifference());
                         run["solution length REAL"] = std::to_string(csetup_->getSolutionPath().length());
-                        run["solution clearance REAL"] = std::to_string(csetup_->getSolutionPath().asGeometric().clearance());
+                        run["solution clearance REAL"] =
+                            std::to_string(csetup_->getSolutionPath().asGeometric().clearance());
                         run["solution segments INTEGER"] = std::to_string(csetup_->getSolutionPath().getControlCount());
                         run["correct solution BOOLEAN"] = std::to_string(csetup_->getSolutionPath().check());
                     }
                 }
 
-                base::PlannerData pd (gsetup_ ? gsetup_->getSpaceInformation() : csetup_->getSpaceInformation());
+                base::PlannerData pd(gsetup_ ? gsetup_->getSpaceInformation() : csetup_->getSpaceInformation());
                 planners_[i]->getPlannerData(pd);
                 run["graph states INTEGER"] = std::to_string(pd.numVertices());
                 run["graph motions INTEGER"] = std::to_string(pd.numEdges());
 
-                for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin() ; it != pd.properties.end() ; ++it)
+                for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin();
+                     it != pd.properties.end(); ++it)
                     run[it->first] = it->second;
 
                 // execute post-run event, if set
@@ -654,15 +680,17 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 {
                     if (postRun_)
                     {
-                        OMPL_INFORM("Executing post-run event for run %d of planner %s ...", status_.activeRun, status_.activePlanner.c_str());
+                        OMPL_INFORM("Executing post-run event for run %d of planner %s ...", status_.activeRun,
+                                    status_.activePlanner.c_str());
                         postRun_(planners_[i], run);
                         OMPL_INFORM("Completed execution of post-run event");
                     }
                 }
-                catch(std::runtime_error &e)
+                catch (std::runtime_error &e)
                 {
                     std::stringstream es;
-                    es << "There was an error in the execution of the post-run event for run " << status_.activeRun << " of planner " << status_.activePlanner << std::endl;
+                    es << "There was an error in the execution of the post-run event for run " << status_.activeRun
+                       << " of planner " << status_.activePlanner << std::endl;
                     es << "*** " << e.what() << std::endl;
                     std::cerr << es.str();
                     OMPL_ERROR(es.str().c_str());
@@ -677,10 +705,11 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                     exp_.planners[i].runsProgressData.push_back(rp.getRunProgressData());
                 }
             }
-            catch(std::runtime_error &e)
+            catch (std::runtime_error &e)
             {
                 std::stringstream es;
-                es << "There was an error in the extraction of planner results: planner = " << status_.activePlanner << ", run = " << status_.activePlanner << std::endl;
+                es << "There was an error in the extraction of planner results: planner = " << status_.activePlanner
+                   << ", run = " << status_.activePlanner << std::endl;
                 es << "*** " << e.what() << std::endl;
                 std::cerr << es.str();
                 OMPL_ERROR(es.str().c_str());

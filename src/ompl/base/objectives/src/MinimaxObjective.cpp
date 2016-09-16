@@ -36,8 +36,7 @@
 
 #include "ompl/base/objectives/MinimaxObjective.h"
 
-ompl::base::MinimaxObjective::MinimaxObjective(const SpaceInformationPtr &si) :
-    OptimizationObjective(si)
+ompl::base::MinimaxObjective::MinimaxObjective(const SpaceInformationPtr &si) : OptimizationObjective(si)
 {
 }
 
@@ -57,7 +56,7 @@ ompl::base::Cost ompl::base::MinimaxObjective::motionCost(const State *s1, const
         State *test = si_->allocState();
         for (int j = 1; j < nd; ++j)
         {
-            si_->getStateSpace()->interpolate(s1, s2, (double) j / (double) nd, test);
+            si_->getStateSpace()->interpolate(s1, s2, (double)j / (double)nd, test);
             Cost testStateCost = this->stateCost(test);
             if (this->isCostBetterThan(worstCost, testStateCost))
                 worstCost = testStateCost;

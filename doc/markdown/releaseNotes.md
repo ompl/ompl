@@ -1,9 +1,22 @@
 # Release Notes
 
 
-# OMPL 1.2.0 (???)
+# OMPL 1.2.1 (July 1, 2016)
 
-- Minimum Boost version is now 1.54
+- New simplified installation instructions. There is now also a [installation script](http://ompl.kavrakilab.org/install-ompl-ubuntu.sh) that will download and install OMPL and all its dependencies on Ubuntu 14.04, 15.10, and 16.04.
+- Fixed python bindings for gcc5. Python bindings still take a [very long time](https://github.com/gccxml/pygccxml/issues/56) to generate.
+- Misc. small bug fixes.
+
+
+# OMPL 1.2.0 (June 20, 2016)
+
+- C++11 is now **required**. A lot of Boost usage in older versions of OMPL has been replaced with C++11 STL equivalents.
+- Added several new planners and improved existing planners:
+  - Stable Sparse RRT, both a [geometric](\ref gSST) and a [control-based](\ref cSST) version. SST is an asymptotically near-optimal incremental version of RRT.
+  - [Vector Field RRT](\ref gVFRRT), a tree-based motion planner that tries to minimize the so-called upstream cost of a path. The upstream cost is defined by an integral over a user-defined vector field.
+  - [A bidirectional version of FMT](\ref gBFMT), small fixes in FMT.
+  - A new version of [Expansive Space Trees](\ref gEST) that does not rely on projections to estimate sampling density. Instead, it estimates density directly in the configuration space. This is closer to the original paper and actually works really well! There is now also a [bidirectional version of EST](\ref gBiEST). The previous implementation of EST has been renamed to [ProjEST](\ref gProjEST).
+- Minimum Boost version is now 1.54.
 
 
 # OMPL 1.1.0 (October 28, 2015)

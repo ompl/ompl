@@ -154,6 +154,10 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ompl.conf"
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
   COMPONENT ompl)
 
+# script to install ompl on Ubuntu
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/install-ompl-ubuntu.sh.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/install-ompl-ubuntu.sh" @ONLY)
+
 # uninstall target
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"

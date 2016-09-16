@@ -48,7 +48,7 @@ using namespace ompl;
 
 struct SetSeedTo1
 {
-    SetSeedTo1(void)
+    SetSeedTo1()
     {
         ompl::RNG::setSeed(1);
     }
@@ -102,8 +102,8 @@ BOOST_AUTO_TEST_CASE(ValidRangeInts)
         c[v]++;
     }
 
-    for (unsigned int i = 0 ; i < c.size() ; ++i)
-        BOOST_CHECK(c[i] > V/N/3);
+    for (int i : c)
+        BOOST_CHECK(i > V/N/3);
 }
 
 static const double NUM_INT_SAMPLES =  1000000;

@@ -51,7 +51,6 @@ namespace ompl
 
     namespace geometric
     {
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ThunderRetrieveRepair */
         OMPL_CLASS_FORWARD(ThunderRetrieveRepair);
@@ -66,8 +65,10 @@ namespace ompl
            Thunder is an experience-based planning framework that learns to reduce computation time
            required to solve high-dimensional planning problems in varying environments.
            @par External documentation
-           Berenson, Dmitry, Pieter Abbeel, and Ken Goldberg: A robot path planning framework that learns from experience, in <em>Robotics and Automation (ICRA), 2012 IEEE International Conference on. IEEE</em>, 2012.
-           David Coleman, Ioan A. Sucan, Mark Moll, Kei Okada, Nikolaus Correll, "Experience-Based Planning with Sparse Roadmap Spanners"
+           Berenson, Dmitry, Pieter Abbeel, and Ken Goldberg: A robot path planning framework that learns from
+           experience, in <em>Robotics and Automation (ICRA), 2012 IEEE International Conference on. IEEE</em>, 2012.
+           David Coleman, Ioan A. Sucan, Mark Moll, Kei Okada, Nikolaus Correll, "Experience-Based Planning with Sparse
+           Roadmap Spanners"
            <a href="http://arxiv.org/pdf/1410.1950.pdf">[PDF]</a>
         */
 
@@ -75,20 +76,20 @@ namespace ompl
         class ThunderRetrieveRepair : public base::Planner
         {
         public:
-
             /** \brief Constructor */
-            ThunderRetrieveRepair(const base::SpaceInformationPtr &si, const tools::ThunderDBPtr &experienceDB);
+            ThunderRetrieveRepair(const base::SpaceInformationPtr &si, tools::ThunderDBPtr experienceDB);
 
-            virtual ~ThunderRetrieveRepair(void);
+            ~ThunderRetrieveRepair() override;
 
-            /** \brief Get information about the exploration data structure the planning from scratch motion planner used. */
-            virtual void getPlannerData(base::PlannerData &data) const;
+            /** \brief Get information about the exploration data structure the planning from scratch motion planner
+             * used. */
+            void getPlannerData(base::PlannerData &data) const override;
 
             /**
              *  \brief Get debug information about the top recalled paths that were chosen for further filtering
              *  \return data - vector of PlannerData objects that each hold a single path
              */
-            const std::vector<PathGeometric>& getLastRecalledNearestPaths() const;
+            const std::vector<PathGeometric> &getLastRecalledNearestPaths() const;
 
             /**
              *  \brief Get debug information about the top recalled paths that were chosen for further filtering
@@ -100,14 +101,14 @@ namespace ompl
              * \brief Get the chosen path used from database for repair
              * \return PlannerData of chosen path
              */
-            const PathGeometric& getChosenRecallPath() const;
+            const PathGeometric &getChosenRecallPath() const;
 
             /** \brief Get information about the exploration data structure the repair motion planner used each call. */
             void getRepairPlannerDatas(std::vector<base::PlannerDataPtr> &data) const;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear(void);
+            void clear() override;
 
             /**
              * \brief Pass a pointer of the database from the thunder framework
@@ -117,7 +118,7 @@ namespace ompl
             /** \brief Set the planner that will be used for repairing invalid paths recalled from experience */
             void setRepairPlanner(const base::PlannerPtr &planner);
 
-            virtual void setup(void);
+            void setup() override;
 
             /**
              * \brief Repairs a path to be valid in the current planning environment
@@ -133,70 +134,69 @@ namespace ompl
              * \param newPathSegment - the solution
              * \return true if path found
              */
-            bool replan(const base::State* start, const base::State* goal,
-                        PathGeometric &newPathSegment,
+            bool replan(const base::State *start, const base::State *goal, PathGeometric &newPathSegment,
                         const base::PlannerTerminationCondition &ptc);
 
             /** \brief Getter for number of 'k' close solutions to choose from database for further filtering */
             int getNearestK() const
             {
-              return nearestK_;
+                return nearestK_;
             }
 
             /** \brief Setter for number of 'k' close solutions to choose from database for further filtering */
             void setNearestK(int nearestK)
             {
-              nearestK_ = nearestK;
+                nearestK_ = nearestK;
             }
 
             /** \brief Optionally smooth retrieved and repaired paths from database */
             void enableSmoothing(bool enable)
             {
-                smoothingEnabled_ =  enable;
+                smoothingEnabled_ = enable;
             }
 
         protected:
-
             /**
              * \brief Count the number of states along the discretized path that are in collision
-             *        Note: This is kind of an ill-defined score though. It depends on the resolution of collision checking.
+             *        Note: This is kind of an ill-defined score though. It depends on the resolution of collision
+             * checking.
              *        I am more inclined to try to compute the percent of the length of the motion that is valid.
              *        That could go in SpaceInformation, as a utility function.
              */
             std::size_t checkMotionScore(const base::State *s1, const base::State *s2) const;
 
             /** \brief Free the memory allocated by this planner */
-            void freeMemory(void);
+            void freeMemory();
 
             /** \brief The database of motions to search through */
-            tools::ThunderDBPtr                          experienceDB_;
+            tools::ThunderDBPtr experienceDB_;
 
             /** \brief Recall the nearest paths and store this in planner data for introspection later */
-            std::vector<PathGeometric>                   nearestPaths_;
+            std::vector<PathGeometric> nearestPaths_;
 
             /** \brief the ID within nearestPaths_ of the path that was chosen for repair */
-            std::size_t                                  nearestPathsChosenID_;
+            std::size_t nearestPathsChosenID_;
 
             /** \brief A secondary planner for replanning */
-            base::PlannerPtr                             repairPlanner_;
+            base::PlannerPtr repairPlanner_;
 
             /** \brief A secondary problem definition for the repair planner to use */
-            base::ProblemDefinitionPtr                   repairProblemDef_;
+            base::ProblemDefinitionPtr repairProblemDef_;
 
             /** \brief Debug the repair planner by saving its planner data each time it is used */
-            std::vector<base::PlannerDataPtr>            repairPlannerDatas_;
+            std::vector<base::PlannerDataPtr> repairPlannerDatas_;
 
             /** \brief The instance of the path simplifier */
-            PathSimplifierPtr                            path_simplifier_;
+            PathSimplifierPtr path_simplifier_;
 
             /** \brief Number of 'k' close solutions to choose from database for further filtering */
-            int                                          nearestK_;
+            int nearestK_;
 
             /** \brief Optionally smooth retrieved and repaired paths from database */
-            bool                                         smoothingEnabled_;
+            bool smoothingEnabled_;
         };
 
-    } // namespace geometric
-} // namespace ompl
+    }  // namespace geometric
+}  // namespace ompl
 
 #endif

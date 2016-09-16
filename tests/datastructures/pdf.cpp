@@ -47,7 +47,7 @@
 
 BOOST_AUTO_TEST_CASE(Simple)
 {
-    typedef ompl::PDF<int>::Element Element;
+    using Element = ompl::PDF<int>::Element;
     ompl::PDF<int> p;
     BOOST_CHECK(p.empty());
     p.add(0, 1.0);
@@ -141,19 +141,18 @@ BOOST_AUTO_TEST_CASE(Statistical)
     const double STDERR_WIDENING_FACTOR = 2.5;
 
     std::vector<std::pair<int,double> > values;
-    values.push_back(std::pair<int,double>(0, 30.0));
-    values.push_back(std::pair<int,double>(1, 10.0));
-    values.push_back(std::pair<int,double>(2, 25.0));
-    values.push_back(std::pair<int,double>(3, 15.0));
-    values.push_back(std::pair<int,double>(4, 20.0));
+    values.emplace_back(0, 30.0);
+    values.emplace_back(1, 10.0);
+    values.emplace_back(2, 25.0);
+    values.emplace_back(3, 15.0);
+    values.emplace_back(4, 20.0);
 
     ompl::PDF<int> p;
     double mean = 0.0;
     double sumWeights = 0.0;
     /* Calculate weighted mean of discrete uniform distribution as we add elements to PDF. */
-    for (std::vector<std::pair<int,double> >::const_iterator i = values.begin(); i != values.end(); ++i)
+    for (const auto & elem : values)
     {
-        const std::pair<int,double>& elem = *i;
         p.add(elem.first, elem.second);
         mean += elem.first*elem.second;
         sumWeights += elem.second;
@@ -163,10 +162,9 @@ BOOST_AUTO_TEST_CASE(Statistical)
     /* Calculate weighted variance of discrete uniform distribution, which is defined as
      * sum(w[i]*(x[i]-mean)^2)/sumWeights. */
     double variance = 0.0;
-    for (std::vector<std::pair<int,double> >::const_iterator i = values.begin(); i != values.end(); ++i)
+    for (const auto elem : values)
     {
-        const std::pair<int,double>& elem = *i;
-        variance += elem.second*(elem.first-mean)*(elem.first-mean);
+        variance += elem.second * (elem.first - mean) * (elem.first - mean);
     }
     variance /= sumWeights;
     double standerr = sqrt(variance/NUM_SAMPLES);
