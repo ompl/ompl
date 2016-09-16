@@ -43,12 +43,12 @@
 #include <ompl/base/spaces/AtlasStateSpace.h>
 #include <ompl/geometric/ConstrainedSimpleSetup.h>
 #include <ompl/geometric/PathGeometric.h>
-#include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/est/BiEST.h>
+#include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/est/ProjEST.h>
 #include <ompl/geometric/planners/kpiece/BKPIECE1.h>
-#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
+#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/geometric/planners/pdst/PDST.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
@@ -56,8 +56,8 @@
 #include <ompl/geometric/planners/prm/SPARStwo.h>
 #include <ompl/geometric/planners/rrt/CBiRRT2.h>
 #include <ompl/geometric/planners/rrt/ConstrainedRRT.h>
-#include <ompl/geometric/planners/rrt/LazyRRT.h>
 #include <ompl/geometric/planners/rrt/LBTRRT.h>
+#include <ompl/geometric/planners/rrt/LazyRRT.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
@@ -75,18 +75,16 @@
 class SphereManifold : public ompl::base::AtlasStateSpace
 {
 public:
-    
-    SphereManifold ()
-    : ompl::base::AtlasStateSpace(3, 2)
+    SphereManifold() : ompl::base::AtlasStateSpace(3, 2)
     {
     }
-    
-    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+
+    void constraintFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         out[0] = x.norm() - 1;
     }
 
-    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    void jacobianFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         out = x.transpose().normalized();
     }
@@ -96,22 +94,20 @@ public:
 class PlaneManifold : public ompl::base::AtlasStateSpace
 {
 public:
-    
-    PlaneManifold ()
-    : ompl::base::AtlasStateSpace(3, 2)
+    PlaneManifold() : ompl::base::AtlasStateSpace(3, 2)
     {
     }
-        
-    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+
+    void constraintFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         out[0] = x[2];
     }
 
-    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    void jacobianFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
-        out(0,0) = 0;
-        out(0,1) = 0;
-        out(0,2) = 1;
+        out(0, 0) = 0;
+        out(0, 1) = 0;
+        out(0, 2) = 1;
     }
 };
 
@@ -119,30 +115,28 @@ public:
 class KleinManifold : public ompl::base::AtlasStateSpace
 {
 public:
-    
-    KleinManifold ()
-    : ompl::base::AtlasStateSpace(3, 2)
+    KleinManifold() : ompl::base::AtlasStateSpace(3, 2)
     {
-    }
-        
-    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
-    {
-        const double p = x.squaredNorm() + 2*x[1] - 1;
-        const double n = x.squaredNorm() - 2*x[1] - 1;
-        const double u = n*n - 8*x[2]*x[2];
-        
-        out[0] = p*u + 16*x[0]*x[1]*n;
     }
 
-    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    void constraintFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
-        const double p = x.squaredNorm() + 2*x[1] - 1;
-        const double n = x.squaredNorm() - 2*x[1] - 1;
-        const double u = n*n - 8*x[2]*x[2];
-        
-        out(0,0) = 32*x[0]*x[0]*x[1] + 16*x[1]*n + 4*x[0]*n*p + 2*x[0]*u;
-        out(0,1) = 32*x[0]*x[1]*(x[1]-1) + 16*x[0]*n + 4*(x[1]-1)*n*p + 2*(x[1]+1)*u;
-        out(0,2) = 2*x[2]*(16*x[0]*x[1] + 2*p*(n-4) + u);
+        const double p = x.squaredNorm() + 2 * x[1] - 1;
+        const double n = x.squaredNorm() - 2 * x[1] - 1;
+        const double u = n * n - 8 * x[2] * x[2];
+
+        out[0] = p * u + 16 * x[0] * x[1] * n;
+    }
+
+    void jacobianFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    {
+        const double p = x.squaredNorm() + 2 * x[1] - 1;
+        const double n = x.squaredNorm() - 2 * x[1] - 1;
+        const double u = n * n - 8 * x[2] * x[2];
+
+        out(0, 0) = 32 * x[0] * x[0] * x[1] + 16 * x[1] * n + 4 * x[0] * n * p + 2 * x[0] * u;
+        out(0, 1) = 32 * x[0] * x[1] * (x[1] - 1) + 16 * x[0] * n + 4 * (x[1] - 1) * n * p + 2 * (x[1] + 1) * u;
+        out(0, 2) = 2 * x[2] * (16 * x[0] * x[1] + 2 * p * (n - 4) + u);
     }
 };
 
@@ -150,43 +144,41 @@ public:
 class TorusManifold : public ompl::base::AtlasStateSpace
 {
 public:
-    
     const double R1;
     const double R2;
-    
-    TorusManifold (double r1, double r2)
-    : ompl::base::AtlasStateSpace(3, 2), R1(r1), R2(r2)
+
+    TorusManifold(double r1, double r2) : ompl::base::AtlasStateSpace(3, 2), R1(r1), R2(r2)
     {
     }
-    
-    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+
+    void constraintFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
-        Eigen::VectorXd c(3); c << x[0], x[1], 0;
+        Eigen::VectorXd c(3);
+        c << x[0], x[1], 0;
         out[0] = (x - R1 * c.normalized()).norm() - R2;
     }
 
-    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    void jacobianFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
-        const double xySquaredNorm = x[0]*x[0] + x[1]*x[1];
+        const double xySquaredNorm = x[0] * x[0] + x[1] * x[1];
         const double xyNorm = std::sqrt(xySquaredNorm);
-        const double denom = std::sqrt(x[2]*x[2] + (xyNorm - R1)*(xyNorm - R1));
-        const double c = (xyNorm - R1) * (xyNorm*xySquaredNorm) / (xySquaredNorm * xySquaredNorm * denom);
-        out(0,0) = x[0] * c;
-        out(0,1) = x[1] * c;
-        out(0,2) = x[2] / denom;
+        const double denom = std::sqrt(x[2] * x[2] + (xyNorm - R1) * (xyNorm - R1));
+        const double c = (xyNorm - R1) * (xyNorm * xySquaredNorm) / (xySquaredNorm * xySquaredNorm * denom);
+        out(0, 0) = x[0] * c;
+        out(0, 1) = x[1] * c;
+        out(0, 2) = x[2] / denom;
     }
 };
 
-bool sphereValid_helper (const Eigen::VectorXd &);
+bool sphereValid_helper(const Eigen::VectorXd &);
 
 /** Kinematic chain manifold. */
 class ChainManifold : public ompl::base::AtlasStateSpace
 {
 public:
-
-    const unsigned int workspaceDim;     // Workspace dimension.
-    const unsigned int nLinks;   // Number of chain links.
-    const double linkLength;    // Length of one link.
+    const unsigned int workspaceDim;  // Workspace dimension.
+    const unsigned int nLinks;        // Number of chain links.
+    const double linkLength;          // Length of one link.
     // Radius of the sphere that the end effector is constrained to.
     const double sphereRadius;
     // Joints are cubes, and the collision checker makes sure they don't
@@ -200,24 +192,26 @@ public:
     // 5: joints 0 and 4 have same y value
     const unsigned int extraConstraints;
 
-    ChainManifold (unsigned int dim, unsigned int links,
-                   unsigned int extraConstraints = 1)
-        : ompl::base::AtlasStateSpace(dim*links, (dim-1)*links - extraConstraints),
-          workspaceDim(dim), nLinks(links), linkLength(1.0),
-          sphereRadius(3.0), jointSize(0.2),
-          extraConstraints(extraConstraints)
+    ChainManifold(unsigned int dim, unsigned int links, unsigned int extraConstraints = 1)
+      : ompl::base::AtlasStateSpace(dim * links, (dim - 1) * links - extraConstraints)
+      , workspaceDim(dim)
+      , nLinks(links)
+      , linkLength(1.0)
+      , sphereRadius(3.0)
+      , jointSize(0.2)
+      , extraConstraints(extraConstraints)
     {
         std::cout << "Ambient dimension: " << getAmbientDimension() << "\n";
         std::cout << "Manifold dimension: " << getManifoldDimension() << "\n";
     }
 
-    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    void constraintFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         // Consecutive joints must be a fixed distance apart.
         Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(workspaceDim);
         for (unsigned int i = 0; i < nLinks; i++)
         {
-            const Eigen::VectorXd joint2 = x.segment(workspaceDim*i, workspaceDim);
+            const Eigen::VectorXd joint2 = x.segment(workspaceDim * i, workspaceDim);
             out[i] = (joint1 - joint2).norm() - linkLength;
             joint1 = joint2;
         }
@@ -227,62 +221,74 @@ public:
             out[nLinks] = x.tail(workspaceDim).norm() - sphereRadius;
         // Joints 0 and 1 must have same z-value.
         if (extraConstraints >= 2)
-            out[nLinks+1] = x[0*workspaceDim + 2] - x[1*workspaceDim + 2];
+            out[nLinks + 1] = x[0 * workspaceDim + 2] - x[1 * workspaceDim + 2];
         // Joints 1 and 2 must have same x-value.
         if (extraConstraints >= 3)
-            out[nLinks+2] = x[1*workspaceDim + 0] - x[2*workspaceDim + 0];
+            out[nLinks + 2] = x[1 * workspaceDim + 0] - x[2 * workspaceDim + 0];
         // Joints 2 and 3 must have the same y-value.
         if (extraConstraints >= 4)
-            out[nLinks+3] = x[2*workspaceDim + 1] - x[3*workspaceDim + 1];
+            out[nLinks + 3] = x[2 * workspaceDim + 1] - x[3 * workspaceDim + 1];
         // Joints 0 and 4 joints have same y-value.
         if (extraConstraints >= 5)
-            out[nLinks+4] = x[0*workspaceDim + 1] - x[4*workspaceDim + 1];
+            out[nLinks + 4] = x[0 * workspaceDim + 1] - x[4 * workspaceDim + 1];
     }
 
-    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    void jacobianFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         out.setZero();
-        Eigen::VectorXd plus(workspaceDim*(nLinks+1)); plus.head(workspaceDim*nLinks) = x; plus.tail(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim);
-        Eigen::VectorXd minus(workspaceDim*(nLinks+1)); minus.head(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim); minus.tail(workspaceDim*nLinks) = x;
+        Eigen::VectorXd plus(workspaceDim * (nLinks + 1));
+        plus.head(workspaceDim * nLinks) = x;
+        plus.tail(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim);
+        Eigen::VectorXd minus(workspaceDim * (nLinks + 1));
+        minus.head(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim);
+        minus.tail(workspaceDim * nLinks) = x;
         const Eigen::VectorXd diagonal = plus - minus;
         for (unsigned int i = 0; i < nLinks; i++)
-            out.row(i).segment(workspaceDim*i, workspaceDim) = diagonal.segment(workspaceDim*i, workspaceDim).normalized();
-        out.block(1, 0, nLinks, workspaceDim*(nLinks-1)) -= out.block(1, workspaceDim, nLinks, workspaceDim*(nLinks-1));
+            out.row(i).segment(workspaceDim * i, workspaceDim) =
+                diagonal.segment(workspaceDim * i, workspaceDim).normalized();
+        out.block(1, 0, nLinks, workspaceDim * (nLinks - 1)) -=
+            out.block(1, workspaceDim, nLinks, workspaceDim * (nLinks - 1));
 
         if (extraConstraints >= 1)
             out.row(nLinks).tail(workspaceDim) = -diagonal.tail(workspaceDim).normalized().transpose();
-        if (extraConstraints >= 2) {
-            out(nLinks+1, 0*workspaceDim + 2) =  1;
-            out(nLinks+1, 1*workspaceDim + 2) = -1;
+        if (extraConstraints >= 2)
+        {
+            out(nLinks + 1, 0 * workspaceDim + 2) = 1;
+            out(nLinks + 1, 1 * workspaceDim + 2) = -1;
         }
-        if (extraConstraints >= 3) {
-		    out(nLinks+2, 1*workspaceDim + 0) =  1;
-		    out(nLinks+2, 2*workspaceDim + 0) = -1;
+        if (extraConstraints >= 3)
+        {
+            out(nLinks + 2, 1 * workspaceDim + 0) = 1;
+            out(nLinks + 2, 2 * workspaceDim + 0) = -1;
         }
-        if (extraConstraints >= 4) {
-            out(nLinks+3, 2*workspaceDim + 1) =  1;
-            out(nLinks+3, 3*workspaceDim + 1) = -1;
+        if (extraConstraints >= 4)
+        {
+            out(nLinks + 3, 2 * workspaceDim + 1) = 1;
+            out(nLinks + 3, 3 * workspaceDim + 1) = -1;
         }
-        if (extraConstraints >= 5) {
-            out(nLinks+4, 0*workspaceDim + 1) =  1;
-            out(nLinks+4, 4*workspaceDim + 1) = -1;
+        if (extraConstraints >= 5)
+        {
+            out(nLinks + 4, 0 * workspaceDim + 1) = 1;
+            out(nLinks + 4, 4 * workspaceDim + 1) = -1;
         }
     }
 
     /** Joints may not get touch each other. If \a tough == true, then the end
     * effector may not occupy states on the sphere similar to the sphereValid()
     * obstacles. */
-    bool isValid (double sleep, const ompl::base::State *state, const bool tough = false)
+    bool isValid(double sleep, const ompl::base::State *state, const bool tough = false)
     {
         std::this_thread::sleep_for(ompl::time::seconds(sleep));
         Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
-        for (unsigned int i = 0; i < nLinks-1; i++)
+        for (unsigned int i = 0; i < nLinks - 1; i++)
         {
-            if (x.segment(workspaceDim*i, workspaceDim).cwiseAbs().maxCoeff() < jointSize)
+            if (x.segment(workspaceDim * i, workspaceDim).cwiseAbs().maxCoeff() < jointSize)
                 return false;
-            for (unsigned int j = i+1; j < nLinks; j++)
+            for (unsigned int j = i + 1; j < nLinks; j++)
             {
-                if ((x.segment(workspaceDim*i, workspaceDim) - x.segment(workspaceDim*j, workspaceDim)).cwiseAbs().maxCoeff() < jointSize)
+                if ((x.segment(workspaceDim * i, workspaceDim) - x.segment(workspaceDim * j, workspaceDim))
+                        .cwiseAbs()
+                        .maxCoeff() < jointSize)
                     return false;
             }
         }
@@ -290,92 +296,99 @@ public:
         if (!tough)
             return true;
 
-        Eigen::VectorXd end = x.tail(workspaceDim)/sphereRadius;
+        Eigen::VectorXd end = x.tail(workspaceDim) / sphereRadius;
         const double tmp = end[0];
         end[0] = end[2];
         end[2] = tmp;
         return sphereValid_helper(end);
     }
-
 };
 
 #if OMPL_HAVE_PNGXX
 /** Kinematic chain solving the torus maze. */
 class ChainTorusManifold : public ompl::base::AtlasStateSpace
 {
-    inline double poly (const double &A, const double &B, const double &C, const double &D,
-                        const double &E, const double &t) const
+    inline double poly(const double &A, const double &B, const double &C, const double &D, const double &E,
+                       const double &t) const
     {
-        return (t == 0) ? E : (((A*t + B)*t + C)*t + D)*t + E;
+        return (t == 0) ? E : (((A * t + B) * t + C) * t + D) * t + E;
     }
 
 public:
-    
     const double R1;
     const double R2;
     const unsigned int workspaceDim;
     const unsigned int nLinks;
     const std::vector<double> linkLength;
     const double jointSize;
-    
+
     const png::image<png::index_pixel_1> maze;
 
-    ChainTorusManifold (unsigned int links, std::vector<double> linklength, double r1, double r2)
-        : ompl::base::AtlasStateSpace(3*links, (3-1)*links - 1), R1(r1), R2(r2), workspaceDim(3),
-          nLinks(links), linkLength(linklength), jointSize(0.2),
-          maze("../../demos/atlas/maze-wide.png", png::require_color_space<png::index_pixel_1>())
+    ChainTorusManifold(unsigned int links, std::vector<double> linklength, double r1, double r2)
+      : ompl::base::AtlasStateSpace(3 * links, (3 - 1) * links - 1)
+      , R1(r1)
+      , R2(r2)
+      , workspaceDim(3)
+      , nLinks(links)
+      , linkLength(linklength)
+      , jointSize(0.2)
+      , maze("../../demos/atlas/maze-wide.png", png::require_color_space<png::index_pixel_1>())
     {
     }
-    
-    void constraintFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+
+    void constraintFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         // Consecutive joints must be a fixed distance apart
         Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(workspaceDim);
         for (unsigned int i = 0; i < nLinks; i++)
         {
-            const Eigen::VectorXd joint2 = x.segment(workspaceDim*i, workspaceDim);
+            const Eigen::VectorXd joint2 = x.segment(workspaceDim * i, workspaceDim);
             out[i] = (joint1 - joint2).norm() - linkLength[i];
             joint1 = joint2;
         }
-        
+
         // End effector must lie on the torus
         Eigen::VectorXd c = x.tail(workspaceDim);
         c[2] = 0;
         out[nLinks] = (x.tail(workspaceDim) - R1 * c.normalized()).norm() - R2;
     }
 
-    void jacobianFunction (const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    void jacobianFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         out.setZero();
-        Eigen::VectorXd plus(workspaceDim*(nLinks+1));
-        plus.head(workspaceDim*nLinks) = x; plus.tail(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim);
-        Eigen::VectorXd minus(workspaceDim*(nLinks+1));
-        minus.head(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim); minus.tail(workspaceDim*nLinks) = x;
+        Eigen::VectorXd plus(workspaceDim * (nLinks + 1));
+        plus.head(workspaceDim * nLinks) = x;
+        plus.tail(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim);
+        Eigen::VectorXd minus(workspaceDim * (nLinks + 1));
+        minus.head(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim);
+        minus.tail(workspaceDim * nLinks) = x;
         const Eigen::VectorXd diagonal = plus - minus;
         for (unsigned int i = 0; i < nLinks; i++)
-            out.row(i).segment(workspaceDim*i, workspaceDim) = diagonal.segment(workspaceDim*i, workspaceDim).normalized();
-        out.block(1, 0, nLinks, workspaceDim*(nLinks-1)) -= out.block(1, workspaceDim, nLinks, workspaceDim*(nLinks-1));
-        
+            out.row(i).segment(workspaceDim * i, workspaceDim) =
+                diagonal.segment(workspaceDim * i, workspaceDim).normalized();
+        out.block(1, 0, nLinks, workspaceDim * (nLinks - 1)) -=
+            out.block(1, workspaceDim, nLinks, workspaceDim * (nLinks - 1));
+
         // Torus part
         Eigen::VectorXd end = x.tail(workspaceDim);
-        const double xySquaredNorm = end[0]*end[0] + end[1]*end[1];
+        const double xySquaredNorm = end[0] * end[0] + end[1] * end[1];
         const double xyNorm = std::sqrt(xySquaredNorm);
-        const double denom = std::sqrt(end[2]*end[2] + (xyNorm - R1)*(xyNorm - R1));
-        const double c = (xyNorm - R1) * (xyNorm*xySquaredNorm) /
-            (xySquaredNorm * xySquaredNorm * denom);
-        end[0] *= c; end[1] *= c; end[2] /= denom;
+        const double denom = std::sqrt(end[2] * end[2] + (xyNorm - R1) * (xyNorm - R1));
+        const double c = (xyNorm - R1) * (xyNorm * xySquaredNorm) / (xySquaredNorm * xySquaredNorm * denom);
+        end[0] *= c;
+        end[1] *= c;
+        end[2] /= denom;
         out.row(nLinks).tail(workspaceDim) = end;
     }
-    
-    /** 
+
+    /**
      * Joints may not get too close to each other. The end effector must not touch the walls of the
      * maze.
      */
-    bool isValid (double sleep, const ompl::base::State *state)
+    bool isValid(double sleep, const ompl::base::State *state)
     {
         std::this_thread::sleep_for(ompl::time::seconds(sleep));
-        Eigen::Ref<const Eigen::VectorXd> x =
-          state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
+        Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
         // Check link lengths.
         for (unsigned int i = 0; i < nLinks; i++)
         {
@@ -383,9 +396,9 @@ public:
             if (i == 0)
                 joint1 = Eigen::VectorXd::Zero(workspaceDim);
             else
-                joint1 = x.segment(workspaceDim*(i-1), workspaceDim);
+                joint1 = x.segment(workspaceDim * (i - 1), workspaceDim);
 
-            Eigen::VectorXd joint2(x.segment(workspaceDim*i, workspaceDim));
+            Eigen::VectorXd joint2(x.segment(workspaceDim * i, workspaceDim));
             if (std::abs((joint1 - joint2).norm() - linkLength[i]) > 0.1)
                 return false;
         }
@@ -396,13 +409,13 @@ public:
                 return false;
             for (unsigned int j = i+1; j < nLinks; j++)
             {
-                if ((x.segment(workspaceDim*i, workspaceDim) - x.segment(workspaceDim*j, workspaceDim)).cwiseAbs().maxCoeff()
+                if ((x.segment(workspaceDim*i, workspaceDim) - x.segment(workspaceDim*j,
+        workspaceDim)).cwiseAbs().maxCoeff()
                   < jointSize)
                     return false;
             }
         }
         */
-        
 
         // Check links and torus
         for (unsigned int i = 0; i < nLinks; i++)
@@ -411,61 +424,62 @@ public:
             if (i == 0)
                 P0 = Eigen::VectorXd::Zero(workspaceDim);
             else
-                P0 = x.segment(workspaceDim*(i-1), workspaceDim);
-            P1 = x.segment(workspaceDim*i, workspaceDim) - P0;
+                P0 = x.segment(workspaceDim * (i - 1), workspaceDim);
+            P1 = x.segment(workspaceDim * i, workspaceDim) - P0;
 
             // Does the line segment P0 + tP1 intersect the torus with 0 <= t <= 1?
-            
+
             // Compute polynomial At^4 + Bt^3 + Ct^2 + Dt + E, whose roots are the intersections.
             double a, b, c, d, e, f, g;
             a = f = P1.dot(P1);
-            a -= P1[2]*P1[2];
-            b = e = 2*P0.dot(P1);
-            b -= 2*P0[2]*P1[2];
+            a -= P1[2] * P1[2];
+            b = e = 2 * P0.dot(P1);
+            b -= 2 * P0[2] * P1[2];
             c = d = P0.dot(P0);
-            c -= P0[2]*P0[2];
-            d += R1*R1 - R2*R2;
-            g = -4*R1*R1;
-            const double A = f*f;
-            const double B = 2*f*e;
-            const double C = 2*f*d + e*e + g*a;
-            const double D = 2*e*d + g*b;
-            const double E = d*d + g*c;
+            c -= P0[2] * P0[2];
+            d += R1 * R1 - R2 * R2;
+            g = -4 * R1 * R1;
+            const double A = f * f;
+            const double B = 2 * f * e;
+            const double C = 2 * f * d + e * e + g * a;
+            const double D = 2 * e * d + g * b;
+            const double E = d * d + g * c;
 
             // Rather than compute t, we only need to know if 0 <= t <= 1. So instead we'll check
             // the signs of the critical points, which involves finding the roots of the derivative.
-            const double A2 = 4*A;
-            const double B2 = 3*B;
-            const double C2 = 2*C;
+            const double A2 = 4 * A;
+            const double B2 = 3 * B;
+            const double C2 = 2 * C;
             const double D2 = D;
 
             // Explicit formula for roots of cubic polynomial.
-            const double discr0 = B2*B2 - 3*A2*C2;
-            const double discr1 = 2*B2*B2*B2 - 9*A2*(B2*C2 - 3*A2*D2);
+            const double discr0 = B2 * B2 - 3 * A2 * C2;
+            const double discr1 = 2 * B2 * B2 * B2 - 9 * A2 * (B2 * C2 - 3 * A2 * D2);
             const double sign = (discr1 > 0) ? 1 : -1;
-            std::complex<double> z1 = discr1*discr1 - 4*discr0*discr0*discr0;
-            z1 = std::pow((discr1 + sign * std::sqrt(z1))/2.0, 1.0/3);
+            std::complex<double> z1 = discr1 * discr1 - 4 * discr0 * discr0 * discr0;
+            z1 = std::pow((discr1 + sign * std::sqrt(z1)) / 2.0, 1.0 / 3);
 
             Eigen::VectorXd crit(5);
-            crit[0] = 0; crit[4] = 1;
+            crit[0] = 0;
+            crit[4] = 1;
             if (std::abs(z1) < 1e-6)
             {
                 // Special case, ignoring redundant roots.
-                crit[3] = -B2/(3*A2);
+                crit[3] = -B2 / (3 * A2);
                 crit[1] = crit[2] = 0;
             }
             else
             {
                 // General case, ignoring imaginary roots.
-                std::complex<double> z2 = (-1.0/(3*A2)) * (B2 + z1 + discr0/z1);
+                std::complex<double> z2 = (-1.0 / (3 * A2)) * (B2 + z1 + discr0 / z1);
                 crit[1] = (std::abs(std::imag(z2)) < 1e-6) ? std::real(z2) : 0;
 
-                std::complex<double> u(-1.0/2, std::sqrt(3.0)/2);
-                z2 = (-1.0/(3*A2)) * (B2 + z1*u + discr0/(z1*u));
+                std::complex<double> u(-1.0 / 2, std::sqrt(3.0) / 2);
+                z2 = (-1.0 / (3 * A2)) * (B2 + z1 * u + discr0 / (z1 * u));
                 crit[2] = (std::abs(std::imag(z2)) < 1e-6) ? std::real(z2) : 0;
 
                 u = std::conj(u);
-                z2 = (-1.0/(3*A2)) * (B2 + z1*u + discr0/(z1*u));
+                z2 = (-1.0 / (3 * A2)) * (B2 + z1 * u + discr0 / (z1 * u));
                 crit[3] = (std::abs(std::imag(z2)) < 1e-6) ? std::real(z2) : 0;
 
                 // Sort the roots.
@@ -477,34 +491,34 @@ public:
                     std::swap(crit[1], crit[2]);
             }
             // Cut off all values at [0+e,1-e].
-            const double wiggleroom = jointSize/2;
-            crit = crit.cwiseMax(wiggleroom).cwiseMin(1-wiggleroom);
+            const double wiggleroom = jointSize / 2;
+            crit = crit.cwiseMax(wiggleroom).cwiseMin(1 - wiggleroom);
 
             // Intersection occurs if the polynomial changes sign between any pair of crits.
-            crit[0] = poly(A,B,C,D,E, crit[0]);
+            crit[0] = poly(A, B, C, D, E, crit[0]);
             for (int j = 0; j < 4; j++)
             {
-                crit[j+1] = poly(A,B,C,D,E, crit[j+1]);
-                if (crit[j] * crit[j+1] <= 0)
+                crit[j + 1] = poly(A, B, C, D, E, crit[j + 1]);
+                if (crit[j] * crit[j + 1] <= 0)
                     return false;
             }
         }
-            
 
         // Check maze
         Eigen::Ref<const Eigen::VectorXd> p = x.tail(workspaceDim);
         Eigen::VectorXd vec(2);
-        Eigen::VectorXd c(3); c << p[0], p[1], 0;
-        vec[0] = std::atan2(p[2], c.norm()-R1)/(2*M_PI);
+        Eigen::VectorXd c(3);
+        c << p[0], p[1], 0;
+        vec[0] = std::atan2(p[2], c.norm() - R1) / (2 * M_PI);
         vec[0] += (vec[0] < 0);
         vec[0] *= maze.get_height();
-        vec[1] = std::atan2(p[1], p[0])/(2*M_PI);
+        vec[1] = std::atan2(p[1], p[0]) / (2 * M_PI);
         vec[1] += (vec[1] < 0);
         vec[1] *= maze.get_width();
         // I don't think this should ever happen...
         if (vec[0] < 0 || vec[0] >= maze.get_width() || vec[1] < 0 || vec[1] >= maze.get_height())
             return false;
-        return !maze.get_pixel(vec[0], vec[1]).operator png::byte ();
+        return !maze.get_pixel(vec[0], vec[1]).operator png::byte();
     }
 };
 #endif
@@ -514,7 +528,7 @@ public:
  */
 
 /** 3 ring-shaped obstacles on latitudinal lines, with a small gap in each. */
-bool sphereValid_helper (const Eigen::VectorXd &x)
+bool sphereValid_helper(const Eigen::VectorXd &x)
 {
     if (-0.75 < x[2] && x[2] < -0.60)
     {
@@ -538,14 +552,14 @@ bool sphereValid_helper (const Eigen::VectorXd &x)
 }
 
 /** Correct path on the sphere must snake around. */
-bool sphereValid (double sleep, const ompl::base::State *state)
+bool sphereValid(double sleep, const ompl::base::State *state)
 {
     std::this_thread::sleep_for(ompl::time::seconds(sleep));
     return sphereValid_helper(state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView());
 }
 
 /** Every state is valid. */
-bool always (double sleep, const ompl::base::State *)
+bool always(double sleep, const ompl::base::State *)
 {
     std::this_thread::sleep_for(ompl::time::seconds(sleep));
     return true;
@@ -553,44 +567,46 @@ bool always (double sleep, const ompl::base::State *)
 
 /** States surrounding the goal are invalid, making it unreachable. We can use this to build up an atlas
  * until time runs out, so we can see the big picture. */
-bool unreachable (double sleep, const ompl::base::State *state, const Eigen::VectorXd &goal, const double radius)
+bool unreachable(double sleep, const ompl::base::State *state, const Eigen::VectorXd &goal, const double radius)
 {
     std::this_thread::sleep_for(ompl::time::seconds(sleep));
-    return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView() - goal).norm() - radius) > radius-0.01;
+    return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView() - goal).norm() - radius) >
+           radius - 0.01;
 }
 
 #if OMPL_HAVE_PNGXX
 /** Maze-like obstacle in the xy plane. */
-bool mazePlaneValid (double sleep, png::image<png::index_pixel_1> &maze, const ompl::base::State *state)
+bool mazePlaneValid(double sleep, png::image<png::index_pixel_1> &maze, const ompl::base::State *state)
 {
     std::this_thread::sleep_for(ompl::time::seconds(sleep));
     const ompl::base::AtlasStateSpace::StateType *astate = state->as<ompl::base::AtlasStateSpace::StateType>();
     Eigen::VectorXd vec = astate->constVectorView();
     // The factor of 1/7 is to preserve approximate length of the solution with the torus maze
-    vec[0] *= maze.get_width()/7;
-    vec[1] *= maze.get_height()/7;
+    vec[0] *= maze.get_width() / 7;
+    vec[1] *= maze.get_height() / 7;
     if (vec[0] < 0 || vec[0] >= maze.get_width() || vec[1] < 0 || vec[1] >= maze.get_height())
         return false;
-    return !maze.get_pixel(vec[0], vec[1]).operator png::byte ();
+    return !maze.get_pixel(vec[0], vec[1]).operator png::byte();
 }
 
 /** Maze-like obstacle on a torus plane. */
-bool mazeTorusValid (double sleep, png::image<png::index_pixel_1> &maze, const ompl::base::State *state, double r1)
+bool mazeTorusValid(double sleep, png::image<png::index_pixel_1> &maze, const ompl::base::State *state, double r1)
 {
     std::this_thread::sleep_for(ompl::time::seconds(sleep));
     const ompl::base::AtlasStateSpace::StateType *astate = state->as<ompl::base::AtlasStateSpace::StateType>();
     Eigen::Ref<const Eigen::VectorXd> p = astate->constVectorView();
     Eigen::VectorXd vec(2);
-    Eigen::VectorXd c(3); c << p[0], p[1], 0;
-    vec[0] = std::atan2(p[2], c.norm()-r1)/(2*M_PI);
+    Eigen::VectorXd c(3);
+    c << p[0], p[1], 0;
+    vec[0] = std::atan2(p[2], c.norm() - r1) / (2 * M_PI);
     vec[0] += (vec[0] < 0);
     vec[0] *= maze.get_height();
-    vec[1] = std::atan2(p[1], p[0])/(2*M_PI);
+    vec[1] = std::atan2(p[1], p[0]) / (2 * M_PI);
     vec[1] += (vec[1] < 0);
     vec[1] *= maze.get_width();
     if (vec[0] < 0 || vec[0] >= maze.get_width() || vec[1] < 0 || vec[1] >= maze.get_height())
         return false;
-    return !maze.get_pixel(vec[0], vec[1]).operator png::byte ();
+    return !maze.get_pixel(vec[0], vec[1]).operator png::byte();
 }
 #endif
 
@@ -599,12 +615,15 @@ bool mazeTorusValid (double sleep, png::image<png::index_pixel_1> &maze, const o
  * and the validity checker \a isValid.
  */
 
-ompl::base::AtlasStateSpace *initPlaneProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, double sleep)
+ompl::base::AtlasStateSpace *initPlaneProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                              ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
 
-    x = Eigen::VectorXd(dim); x << 4, 4, 0;
-    y = Eigen::VectorXd(dim); y << -4, -4, 0;
+    x = Eigen::VectorXd(dim);
+    x << 4, 4, 0;
+    y = Eigen::VectorXd(dim);
+    y << -4, -4, 0;
 
     isValid = std::bind(&always, sleep, std::placeholders::_1);
 
@@ -612,60 +631,74 @@ ompl::base::AtlasStateSpace *initPlaneProblem (Eigen::VectorXd &x, Eigen::Vector
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initSphereProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, double sleep)
+ompl::base::AtlasStateSpace *initSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                               ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
-    
+
     // Start and goal points
-    x = Eigen::VectorXd(dim); x << 0, 0, -1;
-    y = Eigen::VectorXd(dim); y << 0, 0,  1;
-    
+    x = Eigen::VectorXd(dim);
+    x << 0, 0, -1;
+    y = Eigen::VectorXd(dim);
+    y << 0, 0, 1;
+
     // Validity checker
     isValid = std::bind(&sphereValid, sleep, std::placeholders::_1);
-    
-    // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is faster)
+
+    // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is
+    // faster)
     return new SphereManifold();
 }
 
 /** Initialize the atlas for the torus problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initTorusProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, double sleep)
+ompl::base::AtlasStateSpace *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                              ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
-    
+
     // Start and goal points
-    x = Eigen::VectorXd(dim); x << -3, 0, -1;
-    y = Eigen::VectorXd(dim); y <<  3, 0,  1;
-    
+    x = Eigen::VectorXd(dim);
+    x << -3, 0, -1;
+    y = Eigen::VectorXd(dim);
+    y << 3, 0, 1;
+
     // Validity checker
     isValid = std::bind(&always, sleep, std::placeholders::_1);
-    
+
     return new TorusManifold(3, 1);
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initKleinBottleProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, double sleep)
+ompl::base::AtlasStateSpace *initKleinBottleProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                                    ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
-    
+
     // Start and goal points
-    x = Eigen::VectorXd(dim); x << -0.5, -0.25, 0.1892222244330081;
-    y = Eigen::VectorXd(dim); y <<  2.5, -1.5,  1.0221854181962458;
-    
+    x = Eigen::VectorXd(dim);
+    x << -0.5, -0.25, 0.1892222244330081;
+    y = Eigen::VectorXd(dim);
+    y << 2.5, -1.5, 1.0221854181962458;
+
     // Validity checker
     isValid = std::bind(&always, sleep, std::placeholders::_1);
-    
+
     return new KleinManifold();
 }
 
 /** Initialize the atlas for the kinematic chain problem. */
-ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const bool tough, double sleep)
+ompl::base::AtlasStateSpace *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                              ompl::base::StateValidityCheckerFn &isValid, const bool tough,
+                                              double sleep)
 {
-    const std::size_t dim = 3*5;
-    
+    const std::size_t dim = 3 * 5;
+
     // Start and goal points (each triple is the 3D location of a joint)
-    x = Eigen::VectorXd(dim); x << 1,  0, 0,  2,  0, 0,  2, -1, 0,  3, -1, 0,  3, 0, 0;
-    y = Eigen::VectorXd(dim); y << 0, -1, 0, -1, -1, 0, -1,  0, 0, -2,  0, 0, -3, 0, 0;
-    
+    x = Eigen::VectorXd(dim);
+    x << 1, 0, 0, 2, 0, 0, 2, -1, 0, 3, -1, 0, 3, 0, 0;
+    y = Eigen::VectorXd(dim);
+    y << 0, -1, 0, -1, -1, 0, -1, 0, 0, -2, 0, 0, -3, 0, 0;
+
     ChainManifold *atlas = new ChainManifold(3, 5);
     isValid = std::bind(&ChainManifold::isValid, atlas, sleep, std::placeholders::_1, tough);
     return atlas;
@@ -673,112 +706,129 @@ ompl::base::AtlasStateSpace *initChainProblem (Eigen::VectorXd &x, Eigen::Vector
 
 #if OMPL_HAVE_PNGXX
 /** Initialize the atlas for the planar maze problem. */
-ompl::base::AtlasStateSpace *initPlanarMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const char *filename, double sleep)
+ompl::base::AtlasStateSpace *initPlanarMazeProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                                   ompl::base::StateValidityCheckerFn &isValid, const char *filename,
+                                                   double sleep)
 {
     const std::size_t dim = 3;
-    
+
     // Start and goal points
-    x = Eigen::VectorXd(dim); x << 0.45, 0.02, 0;
-    y = Eigen::VectorXd(dim); y << 0.98, 0.89, 0;
-    x *= 7; y *= 7;
-    
+    x = Eigen::VectorXd(dim);
+    x << 0.45, 0.02, 0;
+    y = Eigen::VectorXd(dim);
+    y << 0.98, 0.89, 0;
+    x *= 7;
+    y *= 7;
+
     // Load maze (memory leak!)
-    png::image<png::index_pixel_1> *img = new png::image<png::index_pixel_1>(filename, png::require_color_space<png::index_pixel_1>());
-    
+    png::image<png::index_pixel_1> *img =
+        new png::image<png::index_pixel_1>(filename, png::require_color_space<png::index_pixel_1>());
+
     // Validity checker
     isValid = std::bind(&mazePlaneValid, sleep, *img, std::placeholders::_1);
-    
+
     return new PlaneManifold();
 }
 
 /** Initialize the atlas for the torus maze problem. */
-ompl::base::AtlasStateSpace *initTorusMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y, ompl::base::StateValidityCheckerFn &isValid, const char *filename, double sleep)
+ompl::base::AtlasStateSpace *initTorusMazeProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                                  ompl::base::StateValidityCheckerFn &isValid, const char *filename,
+                                                  double sleep)
 {
     const std::size_t dim = 3;
     const double r1 = 2;
     const double r2 = 1;
-    
+
     // Start and goal points
     x = Eigen::VectorXd(dim);
     y = Eigen::VectorXd(dim);
-    Eigen::VectorXd xA(2); xA << 0.45, 0.02;
-    Eigen::VectorXd yA(2); yA << 0.98, 0.89;
+    Eigen::VectorXd xA(2);
+    xA << 0.45, 0.02;
+    Eigen::VectorXd yA(2);
+    yA << 0.98, 0.89;
     Eigen::VectorXd xB(3);
     Eigen::VectorXd yB(3);
-    xA *= 2*M_PI;
-    yA *= 2*M_PI;
+    xA *= 2 * M_PI;
+    yA *= 2 * M_PI;
     xB << std::cos(xA[0]), 0, std::sin(xA[0]);
     yB << std::cos(yA[0]), 0, std::sin(yA[0]);
     xB *= r2;
     yB *= r2;
     xB[0] += r1;
     yB[0] += r1;
-    double nX = std::sqrt(xB[0]*xB[0] + xB[1]*xB[1]);
-    double nY = std::sqrt(yB[0]*yB[0] + yB[1]*yB[1]);
+    double nX = std::sqrt(xB[0] * xB[0] + xB[1] * xB[1]);
+    double nY = std::sqrt(yB[0] * yB[0] + yB[1] * yB[1]);
     x << std::cos(xA[1]), std::sin(xA[1]), 0;
     y << std::cos(yA[1]), std::sin(yA[1]), 0;
     x *= nX;
     y *= nY;
     x[2] = xB[2];
     y[2] = yB[2];
-    
+
     // Load maze (memory leak!)
-    png::image<png::index_pixel_1> *img = new png::image<png::index_pixel_1>(filename, png::require_color_space<png::index_pixel_1>());
-    
+    png::image<png::index_pixel_1> *img =
+        new png::image<png::index_pixel_1>(filename, png::require_color_space<png::index_pixel_1>());
+
     // Validity checker
     isValid = std::bind(&mazeTorusValid, sleep, *img, std::placeholders::_1, r1);
-    
+
     ompl::base::AtlasStateSpace *atlas = new TorusManifold(r1, r2);
     return atlas;
 }
 #endif
 
 /** Maps maze coordinates from [0,1]x[0,1] to 3D space on the torus. */
-void mazeToTorusCoords (double a, double b, Eigen::Ref<Eigen::VectorXd> x, double r1, double r2)
+void mazeToTorusCoords(double a, double b, Eigen::Ref<Eigen::VectorXd> x, double r1, double r2)
 {
-    Eigen::VectorXd xA(2); xA << a, b;
+    Eigen::VectorXd xA(2);
+    xA << a, b;
     Eigen::VectorXd xB(3);
-    xA *= 2*M_PI;
+    xA *= 2 * M_PI;
     xB << std::cos(xA[0]), 0, std::sin(xA[0]);
     xB *= r2;
     xB[0] += r1;
-    x[0] = std::cos(xA[1]); x[1] = std::sin(xA[1]); x[2] = 0;
-    x *= std::sqrt(xB[0]*xB[0] + xB[1]*xB[1]);;
+    x[0] = std::cos(xA[1]);
+    x[1] = std::sin(xA[1]);
+    x[2] = 0;
+    x *= std::sqrt(xB[0] * xB[0] + xB[1] * xB[1]);
+    ;
     x[2] = xB[2];
 }
 
 /** Find valid configurations for points x1, x2, given x3. */
-void threeLinkSolve (Eigen::Ref<Eigen::VectorXd> x1, Eigen::Ref<Eigen::VectorXd> x2,
-                     Eigen::Ref<const Eigen::VectorXd> x3, std::vector<double> linklength)
+void threeLinkSolve(Eigen::Ref<Eigen::VectorXd> x1, Eigen::Ref<Eigen::VectorXd> x2,
+                    Eigen::Ref<const Eigen::VectorXd> x3, std::vector<double> linklength)
 {
     // The first one has to have norm linklength[0]. We'll put it facing straight down.
-    //x1 = linklength[0] * x3.normalized();
-    x1[0] = 0; x1[1] = 0; x1[2] = -linklength[0];
+    // x1 = linklength[0] * x3.normalized();
+    x1[0] = 0;
+    x1[1] = 0;
+    x1[2] = -linklength[0];
 
     // The second one must be at appropriate distance from the first and from the end point.
     // Compute s, the altitude of the triangle x1, x3, x2, with base x1, x3.
-    const double base = (x3-x1).norm();
-    const double halfp = (base + linklength[1] + linklength[2])/2;
-    const double s = (2.0/base)*std::sqrt(
-        halfp*(halfp-base)*(halfp-linklength[1])*(halfp-linklength[2]));
+    const double base = (x3 - x1).norm();
+    const double halfp = (base + linklength[1] + linklength[2]) / 2;
+    const double s =
+        (2.0 / base) * std::sqrt(halfp * (halfp - base) * (halfp - linklength[1]) * (halfp - linklength[2]));
     // Compute t, the distance between x1 and the altitude line.
-    const double t = std::sqrt(linklength[1]*linklength[1]-s*s);
-    x2 = x1 + t*((x3-x1).normalized());
+    const double t = std::sqrt(linklength[1] * linklength[1] - s * s);
+    x2 = x1 + t * ((x3 - x1).normalized());
     // Add a vector v, of length s, to bring it to the third vertex of the triangle.
     // Fix all but one coefficient at -1, and solve for the final one.
     Eigen::VectorXd v = -Eigen::VectorXd::Ones(x2.size());
     int i;
-    Eigen::VectorXd w = x3-x1;
+    Eigen::VectorXd w = x3 - x1;
     w.array().abs().maxCoeff(&i);
     v[i] = 0;
-    v[i] = - (v.dot(w)) / w[i];
-    x2 += s*v.normalized();
+    v[i] = -(v.dot(w)) / w[i];
+    x2 += s * v.normalized();
 }
 
 #if OMPL_HAVE_PNGXX
 /** Initialize the atlas for the chain torus maze problem. */
-ompl::base::AtlasStateSpace *initChainTorusMazeProblem (Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                                        ompl::base::StateValidityCheckerFn &isValid, double sleep)
+ompl::base::AtlasStateSpace *initChainTorusMazeProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                                       ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
     const std::size_t links = 3;
@@ -788,10 +838,10 @@ ompl::base::AtlasStateSpace *initChainTorusMazeProblem (Eigen::VectorXd &x, Eige
     linklength.push_back(2);
     const double r1 = 2;
     const double r2 = 1;
-    
+
     // Start and goal locations for the end effector
-    x.resize(dim*links);
-    y.resize(dim*links);
+    x.resize(dim * links);
+    y.resize(dim * links);
     Eigen::Ref<Eigen::VectorXd> x3(x.tail(dim));
     Eigen::Ref<Eigen::VectorXd> y3(y.tail(dim));
     mazeToTorusCoords(0.45, 0.02, x3, r1, r2);
@@ -811,20 +861,20 @@ ompl::base::AtlasStateSpace *initChainTorusMazeProblem (Eigen::VectorXd &x, Eige
 #endif
 
 /** Allocator function for a sampler for the atlas that only returns valid points. */
-ompl::base::ValidStateSamplerPtr vssa (const ompl::base::SpaceInformation *si)
+ompl::base::ValidStateSamplerPtr vssa(const ompl::base::SpaceInformation *si)
 {
     return ompl::base::ValidStateSamplerPtr(new ompl::base::AtlasValidStateSampler(si));
 }
 
 /** Print usage information. */
-void printProblems (void)
+void printProblems(void)
 {
     std::cout << "Available problems:\n";
     std::cout << "    plane sphere torus klein chain chain_tough planar_maze torus_maze chain_torus_maze\n";
 }
 
 /** Print usage information. */
-void printPlanners (void)
+void printPlanners(void)
 {
     std::cout << "Available planners:\n";
     std::cout << "    EST RealEST BiRealEST SBL STRIDE\n";
@@ -834,8 +884,8 @@ void printPlanners (void)
 }
 
 /** Initialize the problem specified in the string. */
-ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                           ompl::base::StateValidityCheckerFn &isValid, double sleep = 0)
+ompl::base::AtlasStateSpace *parseProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                          ompl::base::StateValidityCheckerFn &isValid, double sleep = 0)
 {
     if (std::strcmp(problem, "plane") == 0)
         return initPlaneProblem(x, y, isValid, sleep);
@@ -862,7 +912,8 @@ ompl::base::AtlasStateSpace *parseProblem (const char *const problem, Eigen::Vec
 }
 
 /** Initialize the planner specified in the string. */
-ompl::base::Planner *parsePlanner (const char *const planner, const ompl::base::SpaceInformationPtr &si, const double range)
+ompl::base::Planner *parsePlanner(const char *const planner, const ompl::base::SpaceInformationPtr &si,
+                                  const double range)
 {
     if (std::strcmp(planner, "EST") == 0)
     {

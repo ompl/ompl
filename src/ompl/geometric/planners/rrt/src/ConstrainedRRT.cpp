@@ -35,11 +35,12 @@
 /* Author: Ryan Luna */
 
 #include "ompl/geometric/planners/rrt/ConstrainedRRT.h"
+#include <limits>
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
-#include <limits>
 
-ompl::geometric::ConstrainedRRT::ConstrainedRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "ConstrainedRRT")
+ompl::geometric::ConstrainedRRT::ConstrainedRRT(const base::SpaceInformationPtr &si)
+  : base::Planner(si, "ConstrainedRRT")
 {
     specs_.approximateSolutions = false;
     specs_.directed = true;
@@ -48,14 +49,15 @@ ompl::geometric::ConstrainedRRT::ConstrainedRRT(const base::SpaceInformationPtr 
     maxDistance_ = 0.0;
     lastGoalMotion_ = nullptr;
 
-    const base::ConstrainedSpaceInformationPtr& csi = std::dynamic_pointer_cast<base::ConstrainedSpaceInformation>(si);
+    const base::ConstrainedSpaceInformationPtr &csi = std::dynamic_pointer_cast<base::ConstrainedSpaceInformation>(si);
     if (!csi)
         OMPL_ERROR("%s: Failed to cast SpaceInformation to ConstrainedSpaceInformation", getName().c_str());
     else
         ci_ = csi->getConstraintInformation();
 
     Planner::declareParam<double>("range", this, &ConstrainedRRT::setRange, &ConstrainedRRT::getRange, "0.:1.:10000.");
-    Planner::declareParam<double>("goal_bias", this, &ConstrainedRRT::setGoalBias, &ConstrainedRRT::getGoalBias, "0.:.05:1.");
+    Planner::declareParam<double>("goal_bias", this, &ConstrainedRRT::setGoalBias, &ConstrainedRRT::getGoalBias,
+                                  "0.:.05:1.");
 }
 
 ompl::geometric::ConstrainedRRT::~ConstrainedRRT(void)
@@ -80,19 +82,18 @@ void ompl::geometric::ConstrainedRRT::setup(void)
     sc.configurePlannerRange(maxDistance_);
 
     if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(std::bind(
-                                 &ConstrainedRRT::distanceFunction, this,
-                                 std::placeholders::_1, std::placeholders::_2));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
+    nn_->setDistanceFunction(
+        std::bind(&ConstrainedRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void ompl::geometric::ConstrainedRRT::freeMemory(void)
 {
     if (nn_)
     {
-        std::vector<Motion*> motions;
+        std::vector<Motion *> motions;
         nn_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (unsigned int i = 0; i < motions.size(); ++i)
         {
             if (motions[i]->state)
                 si_->freeState(motions[i]->state);
@@ -101,8 +102,8 @@ void ompl::geometric::ConstrainedRRT::freeMemory(void)
     }
 }
 
-bool ompl::geometric::ConstrainedRRT::constrainedExtend(const base::State* a, const base::State* b,
-                                                        std::vector<base::State*>& result) const
+bool ompl::geometric::ConstrainedRRT::constrainedExtend(const base::State *a, const base::State *b,
+                                                        std::vector<base::State *> &result) const
 {
     // Assuming a is valid and on constraint manifold
     base::StateSpacePtr ss = si_->getStateSpace();
@@ -110,11 +111,11 @@ bool ompl::geometric::ConstrainedRRT::constrainedExtend(const base::State* a, co
     int n = ss->validSegmentCount(a, b);  // number of steps between a and b in the state space
     double step = 1;
 
-    double prevDist = std::numeric_limits<double>::max();   // TODO shouldn't this be disdtance(a,b) at first?
+    double prevDist = std::numeric_limits<double>::max();  // TODO shouldn't this be disdtance(a,b) at first?
     while (true)
     {
-        base::State* scratchState = ss->allocState();
-        ss->interpolate(a, b, step++/n, scratchState);
+        base::State *scratchState = ss->allocState();
+        ss->interpolate(a, b, step++ / n, scratchState);
 
         // Project new state onto constraint manifold
         if (!ci_->project(scratchState) || !si_->isValid(scratchState))
@@ -153,8 +154,8 @@ ompl::base::PlannerStatus ompl::geometric::ConstrainedRRT::solve(const base::Pla
         return base::PlannerStatus::INVALID_START;
     }
 
-    base::Goal                 *goal   = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -179,13 +180,13 @@ ompl::base::PlannerStatus ompl::geometric::ConstrainedRRT::solve(const base::Pla
 
     OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nn_->size());
 
-    Motion *solution  = nullptr;
-    Motion *rmotion   = new Motion(si_);
+    Motion *solution = nullptr;
+    Motion *rmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
     base::StateSpacePtr ss = si_->getStateSpace();
-    std::vector<base::State*> extension;
+    std::vector<base::State *> extension;
     bool sat = false;
 
     while (ptc == false && !sat)
@@ -211,10 +212,10 @@ ompl::base::PlannerStatus ompl::geometric::ConstrainedRRT::solve(const base::Pla
         extension.clear();
         if (constrainedExtend(nmotion->state, dstate, extension))
         {
-            Motion* parent = nmotion;
+            Motion *parent = nmotion;
 
             // Create a new motion for the sequence of states in the extension
-            for(size_t i = 0; i < extension.size(); ++i)
+            for (size_t i = 0; i < extension.size(); ++i)
             {
                 Motion *motion = new Motion(extension[i], parent);
                 parent = motion;
@@ -227,7 +228,7 @@ ompl::base::PlannerStatus ompl::geometric::ConstrainedRRT::solve(const base::Pla
                     solution = motion;
 
                     // Free remaining states in list, then break
-                    for (size_t j = i+1; j < extension.size(); ++j)
+                    for (size_t j = i + 1; j < extension.size(); ++j)
                         ss->freeState(extension[j]);
                     break;
                 }
@@ -263,7 +264,7 @@ ompl::base::PlannerStatus ompl::geometric::ConstrainedRRT::solve(const base::Pla
         lastGoalMotion_ = solution;
 
         // Construct the solution path by working backward from solution
-        std::vector<Motion*> mpath;
+        std::vector<Motion *> mpath;
         while (solution != nullptr)
         {
             mpath.push_back(solution);
@@ -272,13 +273,10 @@ ompl::base::PlannerStatus ompl::geometric::ConstrainedRRT::solve(const base::Pla
 
         // Store the solution path
         PathGeometric *path = new PathGeometric(si_);
-           for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1; i >= 0; --i)
             path->append(mpath[i]->state);
         pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
     }
-
-
-
 
     /*bool solved = false;
     bool approximate = false;
@@ -322,14 +320,14 @@ void ompl::geometric::ConstrainedRRT::getPlannerData(base::PlannerData &data) co
 {
     Planner::getPlannerData(data);
 
-    std::vector<Motion*> motions;
+    std::vector<Motion *> motions;
     if (nn_)
         nn_->list(motions);
 
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+    for (unsigned int i = 0; i < motions.size(); ++i)
     {
         if (motions[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state));

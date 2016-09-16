@@ -37,15 +37,15 @@
 #ifndef OMPL_GEOMETRIC_CONSTRAINTS_ORIENTATION_CONSTRAINT_
 #define OMPL_GEOMETRIC_CONSTRAINTS_ORIENTATION_CONSTRAINT_
 
-#include "ompl/base/spaces/SO3StateSpace.h"
 #include "ompl/base/Constraint.h"
+#include "ompl/base/spaces/SO3StateSpace.h"
 #include "ompl/util/RandomNumbers.h"
 
 #include <boost/math/constants/constants.hpp>
 #include <eigen3/Eigen/Dense>
 
-#include <limits>
 #include <cmath>
+#include <limits>
 
 namespace ompl
 {
@@ -67,17 +67,17 @@ namespace ompl
             /// \brief Definition of an orientation constraint defined by
             /// a quaternion (orientation) and tolerances about each coordinate
             /// axis.
-            OrientationConstraint(const base::StateSpacePtr& space,
-                                  const base::StateSpace::SubstateLocation& loc,
-                                  const base::State* orientation,
-                                  double tolX = 0, double tolY = 0, double tolZ = 0) : base::Constraint(space), loc_(loc)
+            OrientationConstraint(const base::StateSpacePtr &space, const base::StateSpace::SubstateLocation &loc,
+                                  const base::State *orientation, double tolX = 0, double tolY = 0, double tolZ = 0)
+              : base::Constraint(space), loc_(loc)
             {
-                const base::SO3StateSpace::StateType* quat = space_->getSubstateAtLocation(orientation, loc_)->as<base::SO3StateSpace::StateType>();
+                const base::SO3StateSpace::StateType *quat =
+                    space_->getSubstateAtLocation(orientation, loc_)->as<base::SO3StateSpace::StateType>();
 
                 quat_ = Eigen::Quaterniond(quat->w, quat->x, quat->y, quat->z);
                 quat_.normalize();
                 desired_matrix_ = quat_.toRotationMatrix();
-                rpy_ = desired_matrix_.eulerAngles(0,1,2); // rpy, in that order
+                rpy_ = desired_matrix_.eulerAngles(0, 1, 2);  // rpy, in that order
 
                 // Adding a numerical wiggle factor to tolerances
                 double tol = 1e-6;
@@ -89,18 +89,19 @@ namespace ompl
 
             /// \brief Definition of an orientation constraint defined by
             /// Euler angles and tolerances about each coordinate axis.
-            OrientationConstraint(const base::StateSpacePtr& space,
-                                  const base::StateSpace::SubstateLocation& loc,
-                                  double roll, double pitch, double yaw,
-                                  double tolX = 0, double tolY = 0, double tolZ = 0) : base::Constraint(space), loc_(loc)
+            OrientationConstraint(const base::StateSpacePtr &space, const base::StateSpace::SubstateLocation &loc,
+                                  double roll, double pitch, double yaw, double tolX = 0, double tolY = 0,
+                                  double tolZ = 0)
+              : base::Constraint(space), loc_(loc)
             {
                 desired_matrix_ = Eigen::Affine3d(Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitX()) *
                                                   Eigen::AngleAxisd(pitch, Eigen::Vector3d::UnitY()) *
-                                                  Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ())).rotation();
+                                                  Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ()))
+                                      .rotation();
 
                 quat_ = Eigen::Quaterniond(desired_matrix_);
                 quat_.normalize();
-                rpy_ = desired_matrix_.eulerAngles(0,1,2); // rpy, in that order
+                rpy_ = desired_matrix_.eulerAngles(0, 1, 2);  // rpy, in that order
 
                 // Adding a numerical wiggle factor to tolerances
                 double tol = 1e-6;
@@ -116,13 +117,14 @@ namespace ompl
 
             /// \brief Check whether this state satisfies the constraints
             /// Very important to ensure that the input quaternion is normalized.
-            virtual bool isSatisfied(const base::State* state) const
+            virtual bool isSatisfied(const base::State *state) const
             {
-                const base::SO3StateSpace::StateType* substate = space_->getSubstateAtLocation(state, loc_)->as<base::SO3StateSpace::StateType>();
+                const base::SO3StateSpace::StateType *substate =
+                    space_->getSubstateAtLocation(state, loc_)->as<base::SO3StateSpace::StateType>();
                 Eigen::Quaterniond q = Eigen::Quaterniond(substate->w, substate->x, substate->y, substate->z);
 
                 Eigen::Vector3d rpy;
-                rpy = q.toRotationMatrix().eulerAngles(0,1,2); // assuming input state is normalized quaternion
+                rpy = q.toRotationMatrix().eulerAngles(0, 1, 2);  // assuming input state is normalized quaternion
 
                 bool result = true;
                 result &= fabs(rpy_(0) - rpy(0)) < tolX_ + std::numeric_limits<double>::epsilon();
@@ -132,7 +134,7 @@ namespace ompl
                 return result;
             }
 
-            virtual bool isSatisfied(const double* rpy) const
+            virtual bool isSatisfied(const double *rpy) const
             {
                 bool result = true;
                 result &= fabs(rpy_(0) - rpy[0]) < tolX_ + std::numeric_limits<double>::epsilon();
@@ -145,14 +147,14 @@ namespace ompl
             /// \brief Return the distance from satisfaction of a state
             /// A state that satisfies the constraint should have distance 0.
             /// This is not implemented
-            virtual double distance(const base::State* /*state*/) const
+            virtual double distance(const base::State * /*state*/) const
             {
                 return std::numeric_limits<double>::max();
             }
 
             /// \brief Sample a state given the constraints.  If a state cannot
             /// be sampled, this method will return false.
-            virtual bool sample(base::State* state)
+            virtual bool sample(base::State *state)
             {
                 // Sample a rotation matrix within the tolerances
                 double ax = 2.0 * (rng_.uniform01() - 0.5) * tolX_;
@@ -168,7 +170,8 @@ namespace ompl
                 Eigen::Quaterniond q(sample.rotation());
 
                 // Copy the elements of q into the state
-                base::SO3StateSpace::StateType* substate = space_->getSubstateAtLocation(state, loc_)->as<base::SO3StateSpace::StateType>();
+                base::SO3StateSpace::StateType *substate =
+                    space_->getSubstateAtLocation(state, loc_)->as<base::SO3StateSpace::StateType>();
                 substate->w = q.w();
                 substate->x = q.x();
                 substate->y = q.y();
@@ -179,7 +182,7 @@ namespace ompl
 
             /// \brief Project a state given the constraints.  If a valid
             /// projection cannot be found, this method will return false.
-            virtual bool project(base::State* state)
+            virtual bool project(base::State *state)
             {
                 // TODO: Should we first check for isSatisfied?
                 if (!isSatisfied(state))
@@ -189,21 +192,22 @@ namespace ompl
 
             /// \brief Return the internal roll, pitch, and yaw angles used
             /// to check whether a state satisfies this orientation constraint
-            const Eigen::Vector3d& getDesiredRPY() const
+            const Eigen::Vector3d &getDesiredRPY() const
             {
                 return rpy_;
             }
 
             /// \brief Set the desired orientation using a quaternion.  \e state
             /// should be of type SO3StateSpace::StateType.
-            void setDesiredOrientation(const base::State* state)
+            void setDesiredOrientation(const base::State *state)
             {
-                const base::SO3StateSpace::StateType* quat = space_->getSubstateAtLocation(state, loc_)->as<base::SO3StateSpace::StateType>();
+                const base::SO3StateSpace::StateType *quat =
+                    space_->getSubstateAtLocation(state, loc_)->as<base::SO3StateSpace::StateType>();
 
                 quat_ = Eigen::Quaterniond(quat->w, quat->x, quat->y, quat->z);
                 quat_.normalize();
                 desired_matrix_ = quat_.toRotationMatrix();
-                rpy_ = desired_matrix_.eulerAngles(0,1,2); // rpy, in that order
+                rpy_ = desired_matrix_.eulerAngles(0, 1, 2);  // rpy, in that order
             }
 
             /// \brief Set the desired orientation using Euler angles.
@@ -211,11 +215,12 @@ namespace ompl
             {
                 desired_matrix_ = Eigen::Affine3d(Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitX()) *
                                                   Eigen::AngleAxisd(pitch, Eigen::Vector3d::UnitY()) *
-                                                  Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ())).rotation();
+                                                  Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ()))
+                                      .rotation();
 
                 quat_ = Eigen::Quaterniond(desired_matrix_);
                 quat_.normalize();
-                rpy_ = desired_matrix_.eulerAngles(0,1,2); // rpy, in that order
+                rpy_ = desired_matrix_.eulerAngles(0, 1, 2);  // rpy, in that order
             }
 
             /// \brief Set the tolerances allowed about each axis to the
@@ -238,19 +243,19 @@ namespace ompl
             }
 
         protected:
-            base::StateSpace::SubstateLocation        loc_;
-            RNG                                       rng_;
+            base::StateSpace::SubstateLocation loc_;
+            RNG rng_;
 
             /// \brief The rotation matrix induced by the desired orientation
-            Eigen::Matrix3d                           desired_matrix_;
+            Eigen::Matrix3d desired_matrix_;
             /// \brief The quaternion induced by the desired orientation
-            Eigen::Quaterniond                        quat_;
+            Eigen::Quaterniond quat_;
             /// \brief The roll, pitch, and yaw for the nominal orientation
             /// (rotations about X, Y, then Z)
-            Eigen::Vector3d                           rpy_;
+            Eigen::Vector3d rpy_;
 
             /// \brief The tolerance allowed from the nominal orientation about each axis.
-            double                                    tolX_, tolY_, tolZ_;
+            double tolX_, tolY_, tolZ_;
         };
     }
 }

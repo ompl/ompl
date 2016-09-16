@@ -37,22 +37,19 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_RRT_CONSTRAINEDRRT_
 #define OMPL_GEOMETRIC_PLANNERS_RRT_CONSTRAINEDRRT_
 
-#include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/geometric/planners/PlannerIncludes.h"
 
 #include "ompl/base/ConstrainedSpaceInformation.h"
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /// \brief An RRT that respects constraints in the state space
         class ConstrainedRRT : public base::Planner
         {
         public:
-
             /** \brief Constructor */
             ConstrainedRRT(const base::SpaceInformationPtr &si);
 
@@ -101,17 +98,15 @@ namespace ompl
             }
 
             /** \brief Set a different nearest neighbors datastructure */
-            template<template<typename T> class NN>
+            template <template <typename T> class NN>
             void setNearestNeighbors(void)
             {
-                nn_.reset(new NN<Motion*>());
+                nn_.reset(new NN<Motion *>());
             }
 
             virtual void setup(void);
 
         protected:
-
-
             /** \brief Representation of a motion
 
                 This only contains pointers to parent motions as we
@@ -119,7 +114,6 @@ namespace ompl
             class Motion
             {
             public:
-
                 Motion(void) : state(nullptr), parent(nullptr)
                 {
                 }
@@ -130,7 +124,7 @@ namespace ompl
                 }
 
                 /// \brief Constructor that assumes memory for a state and takes a parent pointer
-                Motion(base::State* st, Motion* p) : state(st), parent(p)
+                Motion(base::State *st, Motion *p) : state(st), parent(p)
                 {
                 }
 
@@ -139,49 +133,48 @@ namespace ompl
                 }
 
                 /** \brief The state contained by the motion */
-                base::State       *state;
+                base::State *state;
 
                 /** \brief The parent motion in the exploration tree */
-                Motion            *parent;
-
+                Motion *parent;
             };
 
             /** \brief Free the memory allocated by this planner */
             void freeMemory(void);
 
             /** \brief Compute distance between motions (actually distance between contained states) */
-            double distanceFunction(const Motion* a, const Motion* b) const
+            double distanceFunction(const Motion *a, const Motion *b) const
             {
                 return si_->distance(a->state, b->state);
             }
 
             /// \brief Starting at a, interpolate toward b along the constraint manifold.
             /// Store the resulting states in result.
-            bool constrainedExtend(const base::State* a, const base::State* b,
-                                   std::vector<base::State*>& result) const;
+            bool constrainedExtend(const base::State *a, const base::State *b,
+                                   std::vector<base::State *> &result) const;
 
             /** \brief State sampler */
-            base::StateSamplerPtr                          sampler_;
+            base::StateSamplerPtr sampler_;
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
-            std::shared_ptr< NearestNeighbors<Motion*> > nn_;
+            std::shared_ptr<NearestNeighbors<Motion *>> nn_;
 
-            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
-            double                                         goalBias_;
+            /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
+             * available) */
+            double goalBias_;
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double                                         maxDistance_;
+            double maxDistance_;
 
             /** \brief The random number generator */
-            RNG                                            rng_;
+            RNG rng_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion                                         *lastGoalMotion_;
+            Motion *lastGoalMotion_;
 
             /// \brief A pointer to the constraint information object that this planner uses
-            base::ConstraintInformationPtr                 ci_;
+            base::ConstraintInformationPtr ci_;
         };
-
     }
 }
 

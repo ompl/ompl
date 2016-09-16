@@ -35,9 +35,9 @@
 /* Author: Ryan Luna */
 
 #include "ompl/geometric/planners/rrt/CBiRRT2.h"
+#include <limits>
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
-#include <limits>
 
 ompl::geometric::CBiRRT2::CBiRRT2(const base::SpaceInformationPtr &si) : base::Planner(si, "CBiRRT2")
 {
@@ -45,9 +45,9 @@ ompl::geometric::CBiRRT2::CBiRRT2(const base::SpaceInformationPtr &si) : base::P
     specs_.directed = true;
 
     maxDistance_ = 0.0;
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
+    connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
 
-    const base::ConstrainedSpaceInformationPtr& csi = std::dynamic_pointer_cast<base::ConstrainedSpaceInformation>(si);
+    const base::ConstrainedSpaceInformationPtr &csi = std::dynamic_pointer_cast<base::ConstrainedSpaceInformation>(si);
     if (!csi)
         OMPL_ERROR("%s: Failed to cast SpaceInformation to ConstrainedSpaceInformation", getName().c_str());
     else
@@ -71,7 +71,7 @@ void ompl::geometric::CBiRRT2::clear(void)
         tStart_->clear();
     if (tGoal_)
         tGoal_->clear();
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
+    connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
 }
 
@@ -82,24 +82,22 @@ void ompl::geometric::CBiRRT2::setup(void)
     sc.configurePlannerRange(maxDistance_);
 
     if (!tStart_)
-        tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
+        tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
     if (!tGoal_)
-        tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    tStart_->setDistanceFunction(std::bind(
-                                     &CBiRRT2::distanceFunction, this,
-                                     std::placeholders::_1, std::placeholders::_2));
-    tGoal_->setDistanceFunction(std::bind(
-                                    &CBiRRT2::distanceFunction, this,
-                                    std::placeholders::_1, std::placeholders::_2));
+        tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
+    tStart_->setDistanceFunction(
+        std::bind(&CBiRRT2::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    tGoal_->setDistanceFunction(
+        std::bind(&CBiRRT2::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void ompl::geometric::CBiRRT2::freeMemory(void)
 {
-    std::vector<Motion*> motions;
+    std::vector<Motion *> motions;
     if (tStart_)
     {
         tStart_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (unsigned int i = 0; i < motions.size(); ++i)
         {
             if (motions[i]->state)
                 si_->freeState(motions[i]->state);
@@ -110,7 +108,7 @@ void ompl::geometric::CBiRRT2::freeMemory(void)
     if (tGoal_)
     {
         tGoal_->list(motions);
-        for (unsigned int i = 0 ; i < motions.size() ; ++i)
+        for (unsigned int i = 0; i < motions.size(); ++i)
         {
             if (motions[i]->state)
                 si_->freeState(motions[i]->state);
@@ -140,10 +138,10 @@ ompl::geometric::CBiRRT2::GrowState ompl::geometric::CBiRRT2::growTree(TreeData 
             return TRAPPED;
 
         dstate = tgi.xstate;
-        reach = false; // rmotion is too far away from nmotion
+        reach = false;  // rmotion is too far away from nmotion
     }
 
-    std::vector<base::State*> extension;
+    std::vector<base::State *> extension;
 
     ///////////////////////////////////////
     // A somewhat major assumption here:
@@ -157,9 +155,9 @@ ompl::geometric::CBiRRT2::GrowState ompl::geometric::CBiRRT2::growTree(TreeData 
 
     if (extension.size() > 0)
     {
-        const Motion* parent = nmotion;
+        const Motion *parent = nmotion;
         // Create a new motion for the sequence of states in the extension
-        for(size_t i = 0; i < extension.size(); ++i)
+        for (size_t i = 0; i < extension.size(); ++i)
         {
             Motion *motion = new Motion(extension[i]);
             motion->parent = parent;
@@ -176,8 +174,8 @@ ompl::geometric::CBiRRT2::GrowState ompl::geometric::CBiRRT2::growTree(TreeData 
     return TRAPPED;
 }
 
-bool ompl::geometric::CBiRRT2::constrainedExtend(const base::State* a, const base::State* b,
-                                                 std::vector<base::State*>& result) const
+bool ompl::geometric::CBiRRT2::constrainedExtend(const base::State *a, const base::State *b,
+                                                 std::vector<base::State *> &result) const
 {
     // A semi-faithful implementation from the paper
     // Instead of using vector operations, this implementation
@@ -186,16 +184,16 @@ bool ompl::geometric::CBiRRT2::constrainedExtend(const base::State* a, const bas
 
     // Assuming a and b are both valid and on constraint manifold
     base::StateSpacePtr ss = si_->getStateSpace();
-    const base::State* previous = a;
+    const base::State *previous = a;
 
     // number of discrete steps between a and b in the state space
     int n = ss->validSegmentCount(a, b);
 
-    if (n == 0) // don't divide by zero
+    if (n == 0)  // don't divide by zero
         return true;
 
     double dist = ss->distance(a, b);
-    double delta = dist / n; // This is the step size that we will take during extension
+    double delta = dist / n;  // This is the step size that we will take during extension
 
     while (true)
     {
@@ -209,14 +207,13 @@ bool ompl::geometric::CBiRRT2::constrainedExtend(const base::State* a, const bas
         // Compute the parametrization for interpolation
         double t = delta / dist;
 
-        base::State* scratchState = ss->allocState();
+        base::State *scratchState = ss->allocState();
         ss->interpolate(previous, b, t, scratchState);
 
         // Project new state onto constraint manifold.  Make sure the new state is valid
         // and that it has not deviated too far from where we started
-        if (!ci_->project(scratchState) ||
-            !si_->isValid(scratchState) ||
-            ss->distance(previous, scratchState) > 2.0*delta)
+        if (!ci_->project(scratchState) || !si_->isValid(scratchState) ||
+            ss->distance(previous, scratchState) > 2.0 * delta)
         {
             ss->freeState(scratchState);
             break;
@@ -243,7 +240,7 @@ bool ompl::geometric::CBiRRT2::constrainedExtend(const base::State* a, const bas
 ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
+    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
     if (!goal)
     {
@@ -286,9 +283,9 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
     TreeGrowingInfo tgi;
     tgi.xstate = si_->allocState();
 
-    Motion   *rmotion   = new Motion(si_);
+    Motion *rmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
-    bool solved         = false;
+    bool solved = false;
 
     TreeData tree = tStart_;
     TreeData otherTree = tGoal_;
@@ -304,7 +301,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
             {
                 if (ci_->isSatisfied(st))
                 {
-                    Motion* motion = new Motion(si_);
+                    Motion *motion = new Motion(si_);
                     si_->copyState(motion->state, st);
                     motion->root = motion->state;
                     tGoal_->add(motion);
@@ -330,7 +327,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
             continue;
 
         // Remember the state added to the tree
-        const Motion* startMotion = tgi.xmotion;
+        const Motion *startMotion = tgi.xmotion;
         Motion *addedMotion = tgi.xmotion;
 
         // Now growing the other tree
@@ -348,7 +345,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
         if (newDist < distanceBetweenTrees_)
         {
             distanceBetweenTrees_ = newDist;
-            //OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
+            // OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
         }
 
         // Did not connect to initial tree
@@ -363,9 +360,9 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
         // in a valid way (start and goal pair is valid), we are done
         // First, make sure the motion named startMotion is in the start tree,
         // else swap with goalMotion
-        const Motion* goalMotion = tgi.xmotion;
+        const Motion *goalMotion = tgi.xmotion;
 
-        if (tgi.start) // at this point, this means start was attempted after goal tree this iteration
+        if (tgi.start)  // at this point, this means start was attempted after goal tree this iteration
             std::swap(startMotion, goalMotion);
 
         if (goal->isStartGoalPairValid(startMotion->root, goalMotion->root))
@@ -385,7 +382,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
             // Constructing the solution path
             // Get the portion of the path in the start tree
             const Motion *solution = startMotion;
-            std::vector<const Motion*> mpath1;
+            std::vector<const Motion *> mpath1;
             while (solution != nullptr)
             {
                 mpath1.push_back(solution);
@@ -394,7 +391,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
 
             // Get the portion of the path in the goal tree
             solution = goalMotion;
-            std::vector<const Motion*> mpath2;
+            std::vector<const Motion *> mpath2;
             while (solution != nullptr)
             {
                 mpath2.push_back(solution);
@@ -404,9 +401,9 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
             // Concatenating the start and goal paths
             PathGeometric *path = new PathGeometric(si_);
             path->getStates().reserve(mpath1.size() + mpath2.size());
-            for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
+            for (int i = mpath1.size() - 1; i >= 0; --i)
                 path->append(mpath1[i]->state);
-            for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
+            for (unsigned int i = 0; i < mpath2.size(); ++i)
                 path->append(mpath2[i]->state);
 
             shortcutPath(path, ptc);
@@ -420,62 +417,63 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
     si_->freeState(rstate);
     delete rmotion;
 
-    OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
+    OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_->size() + tGoal_->size(),
+                tStart_->size(), tGoal_->size());
 
     return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 bool ompl::geometric::CBiRRT2::shortcutPath(PathGeometric *path, const base::PlannerTerminationCondition &ptc)
 {
-    std::vector<base::State*>& states = path->getStates();
+    std::vector<base::State *> &states = path->getStates();
 
     unsigned int count = 0;
     unsigned int maxCount = 10;
 
-    while(!ptc && count < maxCount && states.size() > 2)
+    while (!ptc && count < maxCount && states.size() > 2)
     {
-        int i = rng_.uniformInt(0, states.size()-2);
+        int i = rng_.uniformInt(0, states.size() - 2);
         int j;
         do
         {
-            j = rng_.uniformInt(0, states.size()-1);
-        } while (abs(i-j) < 2); // make sure the difference between i and j is at least two
+            j = rng_.uniformInt(0, states.size() - 1);
+        } while (abs(i - j) < 2);  // make sure the difference between i and j is at least two
 
         if (i > j)
             std::swap(i, j);
 
-        base::State* a = states[i];
-        base::State* b = states[j];
-        std::vector<base::State*> shortcut;
+        base::State *a = states[i];
+        base::State *b = states[j];
+        std::vector<base::State *> shortcut;
 
         bool foundShortcut = false;
         if (constrainedExtend(a, b, shortcut) && shortcut.size() > 1)
         {
             // see if shortcut is actually shorter
             double shortcutDist = 0.0;
-            for(size_t k = 1; k < shortcut.size(); ++k)
-                shortcutDist += si_->distance(shortcut[k-1], shortcut[k]);
+            for (size_t k = 1; k < shortcut.size(); ++k)
+                shortcutDist += si_->distance(shortcut[k - 1], shortcut[k]);
 
             double pathDist = 0.0;
-            for(int k = i+1; k < j; ++k)
-                pathDist += si_->distance(states[k-1], states[k]);
+            for (int k = i + 1; k < j; ++k)
+                pathDist += si_->distance(states[k - 1], states[k]);
 
             if (shortcutDist < pathDist)
             {
                 // Delete states between [i+1, j]
-                for(int k = i+1; k < j+1; ++k)
+                for (int k = i + 1; k < j + 1; ++k)
                     si_->freeState(states[k]);
-                states.erase(states.begin() + i+1, states.begin() + j+1);
+                states.erase(states.begin() + i + 1, states.begin() + j + 1);
 
                 // Inserting new shortcut
-                states.insert(states.begin() + i+1, shortcut.begin(), shortcut.end());
+                states.insert(states.begin() + i + 1, shortcut.begin(), shortcut.end());
                 foundShortcut = true;
             }
         }
 
         if (!foundShortcut)
         {
-            for(size_t k = 0; k < shortcut.size(); ++k)
+            for (size_t k = 0; k < shortcut.size(); ++k)
                 si_->freeState(shortcut[k]);
             count++;
         }
@@ -490,11 +488,11 @@ void ompl::geometric::CBiRRT2::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    std::vector<Motion*> motions;
+    std::vector<Motion *> motions;
     if (tStart_)
         tStart_->list(motions);
 
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+    for (unsigned int i = 0; i < motions.size(); ++i)
     {
         if (motions[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions[i]->state, 1));
@@ -509,7 +507,7 @@ void ompl::geometric::CBiRRT2::getPlannerData(base::PlannerData &data) const
     if (tGoal_)
         tGoal_->list(motions);
 
-    for (unsigned int i = 0 ; i < motions.size() ; ++i)
+    for (unsigned int i = 0; i < motions.size(); ++i)
     {
         if (motions[i]->parent == nullptr)
             data.addGoalVertex(base::PlannerDataVertex(motions[i]->state, 2));

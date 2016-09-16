@@ -37,16 +37,16 @@
 #include "ompl/base/ConstrainedSpaceInformation.h"
 
 ompl::base::ConstrainedSpaceInformation::ConstrainedSpaceInformation(const StateSpacePtr &space)
-    : ompl::base::SpaceInformation(space)
+  : ompl::base::SpaceInformation(space)
 {
 }
 
-void ompl::base::ConstrainedSpaceInformation::setConstraintInformation(const ConstraintInformationPtr& ci)
+void ompl::base::ConstrainedSpaceInformation::setConstraintInformation(const ConstraintInformationPtr &ci)
 {
     ci_ = ci;
 }
 
-const ompl::base::ConstraintInformationPtr& ompl::base::ConstrainedSpaceInformation::getConstraintInformation() const
+const ompl::base::ConstraintInformationPtr &ompl::base::ConstrainedSpaceInformation::getConstraintInformation() const
 {
     return ci_;
 }

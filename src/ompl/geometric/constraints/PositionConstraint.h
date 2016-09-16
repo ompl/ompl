@@ -60,9 +60,9 @@ namespace ompl
         class PositionConstraint : public base::Constraint
         {
         public:
-            PositionConstraint(const base::StateSpacePtr& space,
-                               const base::StateSpace::SubstateLocation& loc,
-                               const base::RealVectorBounds& bounds) : base::Constraint(space), loc_(loc), bounds_(bounds)
+            PositionConstraint(const base::StateSpacePtr &space, const base::StateSpace::SubstateLocation &loc,
+                               const base::RealVectorBounds &bounds)
+              : base::Constraint(space), loc_(loc), bounds_(bounds)
             {
                 dim_ = bounds_.low.size();
 
@@ -75,19 +75,22 @@ namespace ompl
             }
 
             /// \brief Check whether this state satisfies the constraints
-            virtual bool isSatisfied(const base::State* state) const
+            virtual bool isSatisfied(const base::State *state) const
             {
-                const base::RealVectorStateSpace::StateType* substate = space_->getSubstateAtLocation(state, loc_)->as<base::RealVectorStateSpace::StateType>();
+                const base::RealVectorStateSpace::StateType *substate =
+                    space_->getSubstateAtLocation(state, loc_)->as<base::RealVectorStateSpace::StateType>();
 
                 for (unsigned int i = 0; i < dim_; ++i)
                 {
-                    if(substate->values[i] < bounds_.low[i] || substate->values[i] > bounds_.high[i])
+                    if (substate->values[i] < bounds_.low[i] || substate->values[i] > bounds_.high[i])
                     {
                         /// Make sure that if the value is REALLY close to the bounds, we say "good enough"
-                        double tol = 1e-6; // within tol of the bound is acceptable
-                        if (fabs(bounds_.low[i] - substate->values[i]) > tol && fabs(bounds_.high[i] - substate->values[i]) > tol)
+                        double tol = 1e-6;  // within tol of the bound is acceptable
+                        if (fabs(bounds_.low[i] - substate->values[i]) > tol &&
+                            fabs(bounds_.high[i] - substate->values[i]) > tol)
                         {
-                            //std::cerr << "POSITION FAILED.  " << substate->values[i] << " should be between [" << bounds_.low[i] << " and " << bounds_.high[i] << "]" << std::endl;
+                            // std::cerr << "POSITION FAILED.  " << substate->values[i] << " should be between [" <<
+                            // bounds_.low[i] << " and " << bounds_.high[i] << "]" << std::endl;
                             return false;
                         }
                     }
@@ -96,17 +99,18 @@ namespace ompl
                 return true;
             }
 
-            virtual bool isSatisfied(const double* values) const
+            virtual bool isSatisfied(const double *values) const
             {
                 for (unsigned int i = 0; i < dim_; ++i)
                 {
-                    if(values[i] < bounds_.low[i] || values[i] > bounds_.high[i])
+                    if (values[i] < bounds_.low[i] || values[i] > bounds_.high[i])
                     {
                         /// Make sure that if the value is REALLY close to the bounds, we say "good enough"
-                        double tol = 1e-6; // within tol of the bound is acceptable
+                        double tol = 1e-6;  // within tol of the bound is acceptable
                         if (fabs(bounds_.low[i] - values[i]) > tol && fabs(bounds_.high[i] - values[i]) > tol)
                         {
-                            //std::cerr << "POSITION FAILED.  " << substate->values[i] << " should be between [" << bounds_.low[i] << " and " << bounds_.high[i] << "]" << std::endl;
+                            // std::cerr << "POSITION FAILED.  " << substate->values[i] << " should be between [" <<
+                            // bounds_.low[i] << " and " << bounds_.high[i] << "]" << std::endl;
                             return false;
                         }
                     }
@@ -118,22 +122,23 @@ namespace ompl
             /// \brief Return the distance from satisfaction of a state
             /// A state that satisfies the constraint should have distance 0.
             /// Returns the Euclidean norm from constraint boundary
-            virtual double distance(const base::State* state) const
+            virtual double distance(const base::State *state) const
             {
                 double dist = 0.0;
-                const base::RealVectorStateSpace::StateType* substate = space_->getSubstateAtLocation(state, loc_)->as<base::RealVectorStateSpace::StateType>();
+                const base::RealVectorStateSpace::StateType *substate =
+                    space_->getSubstateAtLocation(state, loc_)->as<base::RealVectorStateSpace::StateType>();
                 for (unsigned int i = 0; i < dim_; ++i)
                 {
-                    if(substate->values[i] < bounds_.low[i])
+                    if (substate->values[i] < bounds_.low[i])
                     {
                         double d = substate->values[i] - bounds_.low[i];
-                        dist += (d*d);
+                        dist += (d * d);
                     }
 
-                    if(substate->values[i] > bounds_.high[i])
+                    if (substate->values[i] > bounds_.high[i])
                     {
                         double d = substate->values[i] - bounds_.high[i];
-                        dist += (d*d);
+                        dist += (d * d);
                     }
                 }
 
@@ -142,11 +147,12 @@ namespace ompl
 
             /// \brief Sample a state given the constraints.  If a state cannot
             /// be sampled, this method will return false.
-            virtual bool sample(base::State* state)
+            virtual bool sample(base::State *state)
             {
-                base::RealVectorStateSpace::StateType* substate = space_->getSubstateAtLocation(state, loc_)->as<base::RealVectorStateSpace::StateType>();
+                base::RealVectorStateSpace::StateType *substate =
+                    space_->getSubstateAtLocation(state, loc_)->as<base::RealVectorStateSpace::StateType>();
 
-                for (unsigned int i = 0 ; i < dim_; ++i)
+                for (unsigned int i = 0; i < dim_; ++i)
                     substate->values[i] = rng_.uniformReal(bounds_.low[i], bounds_.high[i]);
 
                 return true;
@@ -154,36 +160,37 @@ namespace ompl
 
             /// \brief Project a state given the constraints.  If a valid
             /// projection cannot be found, this method will return false.
-            virtual bool project(base::State* state)
+            virtual bool project(base::State *state)
             {
-                const base::RealVectorStateSpace::StateType* substate = space_->getSubstateAtLocation(state, loc_)->as<base::RealVectorStateSpace::StateType>();
+                const base::RealVectorStateSpace::StateType *substate =
+                    space_->getSubstateAtLocation(state, loc_)->as<base::RealVectorStateSpace::StateType>();
 
                 for (unsigned int i = 0; i < dim_; ++i)
                 {
-                    if(substate->values[i] < bounds_.low[i])
+                    if (substate->values[i] < bounds_.low[i])
                         substate->values[i] = bounds_.low[i];
-                    if(substate->values[i] > bounds_.high[i])
+                    if (substate->values[i] > bounds_.high[i])
                         substate->values[i] = bounds_.high[i];
                 }
 
                 return true;
             }
 
-            const base::RealVectorBounds& getConstraintBounds() const
+            const base::RealVectorBounds &getConstraintBounds() const
             {
                 return bounds_;
             }
 
-            void setConstraintBounds(const base::RealVectorBounds& bounds)
+            void setConstraintBounds(const base::RealVectorBounds &bounds)
             {
                 bounds_ = bounds;
             }
 
         protected:
             base::StateSpace::SubstateLocation loc_;
-            base::RealVectorBounds             bounds_;
-            unsigned int                       dim_;
-            RNG                                rng_;
+            base::RealVectorBounds bounds_;
+            unsigned int dim_;
+            RNG rng_;
         };
     }
 }

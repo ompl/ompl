@@ -35,10 +35,10 @@
 /* Author: Ryan Luna */
 
 #include "ompl/geometric/planners/est/RealEST.h"
+#include <cassert>
+#include <limits>
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
-#include <limits>
-#include <cassert>
 
 ompl::geometric::RealEST::RealEST(const base::SpaceInformationPtr &si) : base::Planner(si, "RealEST")
 {
@@ -63,14 +63,13 @@ void ompl::geometric::RealEST::setup()
     tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
 
-    // Make the neighborhood radius smaller than sampling range to keep probabilities relatively high for rejection sampling
+    // Make the neighborhood radius smaller than sampling range to keep probabilities relatively high for rejection
+    // sampling
     nbrhoodRadius_ = maxDistance_ / 3.0;
 
     if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nn_->setDistanceFunction(std::bind(
-                                 &RealEST::distanceFunction, this,
-                                 std::placeholders::_1, std::placeholders::_2));
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
+    nn_->setDistanceFunction(std::bind(&RealEST::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void ompl::geometric::RealEST::clear()
@@ -88,7 +87,7 @@ void ompl::geometric::RealEST::clear()
 
 void ompl::geometric::RealEST::freeMemory()
 {
-    for(size_t i = 0; i < motions_.size(); ++i)
+    for (size_t i = 0; i < motions_.size(); ++i)
     {
         if (motions_[i]->state)
             si_->freeState(motions_[i]->state);
@@ -99,10 +98,10 @@ void ompl::geometric::RealEST::freeMemory()
 ompl::base::PlannerStatus ompl::geometric::RealEST::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal                   *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
+    base::Goal *goal = pdef_->getGoal().get();
+    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
-    std::vector<Motion*> neighbors;
+    std::vector<Motion *> neighbors;
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -124,11 +123,11 @@ ompl::base::PlannerStatus ompl::geometric::RealEST::solve(const base::PlannerTer
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), motions_.size());
 
-    Motion *solution  = nullptr;
+    Motion *solution = nullptr;
     Motion *approxsol = nullptr;
-    double  approxdif = std::numeric_limits<double>::infinity();
+    double approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
-    Motion* xmotion = new Motion();
+    Motion *xmotion = new Motion();
 
     while (ptc == false)
     {
@@ -205,7 +204,7 @@ ompl::base::PlannerStatus ompl::geometric::RealEST::solve(const base::PlannerTer
         lastGoalMotion_ = solution;
 
         // construct the solution path
-        std::vector<Motion*> mpath;
+        std::vector<Motion *> mpath;
         while (solution != nullptr)
         {
             mpath.push_back(solution);
@@ -214,7 +213,7 @@ ompl::base::PlannerStatus ompl::geometric::RealEST::solve(const base::PlannerTer
 
         // set the solution path
         PathGeometric *path = new PathGeometric(si_);
-        for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+        for (int i = mpath.size() - 1; i >= 0; --i)
             path->append(mpath[i]->state);
         pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
         solved = true;
@@ -228,12 +227,12 @@ ompl::base::PlannerStatus ompl::geometric::RealEST::solve(const base::PlannerTer
     return base::PlannerStatus(solved, approximate);
 }
 
-void ompl::geometric::RealEST::addMotion(Motion *motion, const std::vector<Motion*>& neighbors)
+void ompl::geometric::RealEST::addMotion(Motion *motion, const std::vector<Motion *> &neighbors)
 {
     // Updating neighborhood size counts
-    for(size_t i = 0; i < neighbors.size(); ++i)
+    for (size_t i = 0; i < neighbors.size(); ++i)
     {
-        PDF<Motion*>::Element *elem = neighbors[i]->element;
+        PDF<Motion *>::Element *elem = neighbors[i]->element;
         double w = pdf_.getWeight(elem);
         pdf_.update(elem, w / (w + 1.));
     }
@@ -251,7 +250,7 @@ void ompl::geometric::RealEST::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (unsigned int i = 0 ; i < motions_.size() ; ++i)
+    for (unsigned int i = 0; i < motions_.size(); ++i)
     {
         if (motions_[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motions_[i]->state));

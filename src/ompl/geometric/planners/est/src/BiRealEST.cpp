@@ -35,17 +35,17 @@
 /* Author: Ryan Luna */
 
 #include "ompl/geometric/planners/est/BiRealEST.h"
+#include <cassert>
+#include <limits>
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
-#include <limits>
-#include <cassert>
 
 ompl::geometric::BiRealEST::BiRealEST(const base::SpaceInformationPtr &si) : base::Planner(si, "BiRealEST")
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.directed = true;
     maxDistance_ = 0.0;
-    connectionPoint_ = std::make_pair<ompl::base::State*, ompl::base::State*>(nullptr, nullptr);
+    connectionPoint_ = std::make_pair<ompl::base::State *, ompl::base::State *>(nullptr, nullptr);
 
     Planner::declareParam<double>("range", this, &BiRealEST::setRange, &BiRealEST::getRange, "0.:1.:10000.");
 }
@@ -70,15 +70,13 @@ void ompl::geometric::BiRealEST::setup()
     }
 
     if (!nnStart_)
-        nnStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
+        nnStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
     if (!nnGoal_)
-        nnGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-    nnStart_->setDistanceFunction(std::bind(
-                                      &BiRealEST::distanceFunction, this,
-                                      std::placeholders::_1, std::placeholders::_2));
-    nnGoal_->setDistanceFunction(std::bind(
-                                     &BiRealEST::distanceFunction, this,
-                                     std::placeholders::_1, std::placeholders::_2));
+        nnGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
+    nnStart_->setDistanceFunction(
+        std::bind(&BiRealEST::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+    nnGoal_->setDistanceFunction(
+        std::bind(&BiRealEST::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void ompl::geometric::BiRealEST::clear()
@@ -97,19 +95,19 @@ void ompl::geometric::BiRealEST::clear()
     goalMotions_.clear();
     goalPdf_.clear();
 
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
+    connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
 }
 
 void ompl::geometric::BiRealEST::freeMemory()
 {
-    for(size_t i = 0; i < startMotions_.size(); ++i)
+    for (size_t i = 0; i < startMotions_.size(); ++i)
     {
         if (startMotions_[i]->state)
             si_->freeState(startMotions_[i]->state);
         delete startMotions_[i];
     }
 
-    for(size_t i = 0; i < goalMotions_.size(); ++i)
+    for (size_t i = 0; i < goalMotions_.size(); ++i)
     {
         if (goalMotions_[i]->state)
             si_->freeState(goalMotions_[i]->state);
@@ -120,7 +118,7 @@ void ompl::geometric::BiRealEST::freeMemory()
 ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
+    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
     if (!goal)
     {
@@ -128,7 +126,7 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
-    std::vector<Motion*> neighbors;
+    std::vector<Motion *> neighbors;
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -155,10 +153,11 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
     if (!sampler_)
         sampler_ = si_->allocValidStateSampler();
 
-    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), startMotions_.size() + goalMotions_.size());
+    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(),
+                startMotions_.size() + goalMotions_.size());
 
     base::State *xstate = si_->allocState();
-    Motion* xmotion = new Motion();
+    Motion *xmotion = new Motion();
 
     bool startTree = true;
     bool solved = false;
@@ -187,9 +186,9 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
         }
 
         // Pointers to the tree structure we are expanding
-        std::vector<Motion*>& motions                       = startTree ? startMotions_ : goalMotions_;
-        PDF<Motion*>& pdf                                   = startTree ? startPdf_     : goalPdf_;
-        std::shared_ptr< NearestNeighbors<Motion*> > nn   = startTree ? nnStart_      : nnGoal_;
+        std::vector<Motion *> &motions = startTree ? startMotions_ : goalMotions_;
+        PDF<Motion *> &pdf = startTree ? startPdf_ : goalPdf_;
+        std::shared_ptr<NearestNeighbors<Motion *>> nn = startTree ? nnStart_ : nnGoal_;
 
         // Select a state to expand from
         Motion *existing = pdf.sample(rng_.uniform01());
@@ -225,21 +224,22 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
 
             // try to connect this state to the other tree
             // Get all states in the other tree within a maxDistance_ ball (bigger than "neighborhood" ball)
-            startTree ? nnGoal_->nearestR(motion, maxDistance_, neighbors) : nnStart_->nearestR(motion, maxDistance_, neighbors);
+            startTree ? nnGoal_->nearestR(motion, maxDistance_, neighbors) :
+                        nnStart_->nearestR(motion, maxDistance_, neighbors);
             if (neighbors.size() == 0)
                 neighbors.push_back((startTree ? nnGoal_ : nnStart_)->nearest(motion));
-            for(size_t i = 0; i < neighbors.size() && !solved; ++i)
+            for (size_t i = 0; i < neighbors.size() && !solved; ++i)
             {
                 if (goal->isStartGoalPairValid(motion->root, neighbors[i]->root) &&
-                    si_->checkMotion(motion->state, neighbors[i]->state)) // win!  solution found.
+                    si_->checkMotion(motion->state, neighbors[i]->state))  // win!  solution found.
                 {
                     connectionPoint_ = std::make_pair(motion->state, neighbors[i]->state);
 
-                    Motion* startMotion = startTree ? motion : neighbors[i];
-                    Motion* goalMotion  = startTree ? neighbors[i] : motion;
+                    Motion *startMotion = startTree ? motion : neighbors[i];
+                    Motion *goalMotion = startTree ? neighbors[i] : motion;
 
                     Motion *solution = startMotion;
-                    std::vector<Motion*> mpath1;
+                    std::vector<Motion *> mpath1;
                     while (solution != nullptr)
                     {
                         mpath1.push_back(solution);
@@ -247,7 +247,7 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
                     }
 
                     solution = goalMotion;
-                    std::vector<Motion*> mpath2;
+                    std::vector<Motion *> mpath2;
                     while (solution != nullptr)
                     {
                         mpath2.push_back(solution);
@@ -256,9 +256,9 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
 
                     PathGeometric *path = new PathGeometric(si_);
                     path->getStates().reserve(mpath1.size() + mpath2.size());
-                    for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
+                    for (int i = mpath1.size() - 1; i >= 0; --i)
                         path->append(mpath1[i]->state);
-                    for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
+                    for (unsigned int i = 0; i < mpath2.size(); ++i)
                         path->append(mpath2[i]->state);
 
                     pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
@@ -274,18 +274,19 @@ ompl::base::PlannerStatus ompl::geometric::BiRealEST::solve(const base::PlannerT
     si_->freeState(xstate);
     delete xmotion;
 
-    OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), startMotions_.size() + goalMotions_.size(), startMotions_.size(), goalMotions_.size());
+    OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(),
+                startMotions_.size() + goalMotions_.size(), startMotions_.size(), goalMotions_.size());
     return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
-void ompl::geometric::BiRealEST::addMotion(Motion* motion, std::vector<Motion*>& motions,
-                                           PDF<Motion*>& pdf, std::shared_ptr< NearestNeighbors<Motion*> > nn,
-                                           const std::vector<Motion*>& neighbors)
+void ompl::geometric::BiRealEST::addMotion(Motion *motion, std::vector<Motion *> &motions, PDF<Motion *> &pdf,
+                                           std::shared_ptr<NearestNeighbors<Motion *>> nn,
+                                           const std::vector<Motion *> &neighbors)
 {
     // Updating neighborhood size counts
-    for(size_t i = 0; i < neighbors.size(); ++i)
+    for (size_t i = 0; i < neighbors.size(); ++i)
     {
-        PDF<Motion*>::Element *elem = neighbors[i]->element;
+        PDF<Motion *>::Element *elem = neighbors[i]->element;
         double w = pdf.getWeight(elem);
         pdf.update(elem, w / (w + 1.));
     }
@@ -299,7 +300,7 @@ void ompl::geometric::BiRealEST::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    for (unsigned int i = 0 ; i < startMotions_.size() ; ++i)
+    for (unsigned int i = 0; i < startMotions_.size(); ++i)
     {
         if (startMotions_[i]->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(startMotions_[i]->state, 1));
@@ -308,7 +309,7 @@ void ompl::geometric::BiRealEST::getPlannerData(base::PlannerData &data) const
                          base::PlannerDataVertex(startMotions_[i]->state, 1));
     }
 
-    for (unsigned int i = 0 ; i < goalMotions_.size() ; ++i)
+    for (unsigned int i = 0; i < goalMotions_.size(); ++i)
     {
         if (goalMotions_[i]->parent == nullptr)
             data.addGoalVertex(base::PlannerDataVertex(goalMotions_[i]->state, 2));

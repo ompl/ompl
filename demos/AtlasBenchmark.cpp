@@ -39,7 +39,7 @@
 #include "AtlasCommon.h"
 
 /** Print usage information. Does not return. */
-void usage (const char *const progname)
+void usage(const char *const progname)
 {
     std::cout << "Usage: " << progname << " <problem> <timelimit> <runcount>\n";
     printProblems();
@@ -49,7 +49,7 @@ void usage (const char *const progname)
 /** To be called between planner runs to clear all charts out of the atlas.
  * Also makes the atlas behave just like RealVectorStateSpace for the two
  * non-atlas planners. */
-void resetStateSpace (const ompl::base::PlannerPtr &planner)
+void resetStateSpace(const ompl::base::PlannerPtr &planner)
 {
     static std::string currentPlanner = "";
     static unsigned int run = 0;
@@ -63,25 +63,25 @@ void resetStateSpace (const ompl::base::PlannerPtr &planner)
     ompl::base::AtlasStateSpace *atlas =
         planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>();
     atlas->clear();
-    if (std::strcmp(currentPlanner.c_str(), "ConstrainedRRT") == 0
-        || std::strcmp(currentPlanner.c_str(), "CBiRRT2") == 0)
+    if (std::strcmp(currentPlanner.c_str(), "ConstrainedRRT") == 0 ||
+        std::strcmp(currentPlanner.c_str(), "CBiRRT2") == 0)
         atlas->setMode(ompl::base::AtlasStateSpace::REALVECTOR);
     else
         atlas->setMode(ompl::base::AtlasStateSpace::ATLAS);
 }
 
-int main (int argc, char **argv)
+int main(int argc, char **argv)
 {
     if (argc != 4)
         usage(argv[0]);
-    
+
     // Initialize the atlas
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
     ompl::base::AtlasStateSpacePtr atlas(parseProblem(argv[1], x, y, isValid));
     if (!atlas)
         usage(argv[0]);
-    
+
     // All the 'Constrained' classes are loose wrappers for the normal
     // classes. No effect except on the two special planners.
     ompl::geometric::ConstrainedSimpleSetup ss(atlas);
@@ -97,12 +97,12 @@ int main (int argc, char **argv)
         ci->addConstraint(c);
         si->setConstraintInformation(ci);
     }
-    
+
     // Change some default atlas parameters.
     atlas->setRho(0.5);         // default is 0.1
-    atlas->setAlpha(M_PI/8);    // default is pi/16
+    atlas->setAlpha(M_PI / 8);  // default is pi/16
     atlas->setEpsilon(0.2);     // default is 0.2
-    
+
     // The atlas needs some place to start sampling from, so we manually seed
     // charts at the start and goal.
     {
@@ -114,14 +114,14 @@ int main (int argc, char **argv)
         goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
         ss.setStartAndGoalStates(start, goal);
     }
-    
+
     // Bounds
     ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());
     bounds.setLow(-10);
     bounds.setHigh(10);
     atlas->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
     atlas->setup();
-    
+
     // Set up the benchmark for all the planners
     ompl::tools::Benchmark bench(ss, "Atlas");
     const double runtime_limit = std::atof(argv[2]);
@@ -135,18 +135,16 @@ int main (int argc, char **argv)
     const bool progress = false;
     const bool save_output = false;
     const bool use_threads = true;
-    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit,
-                                                  run_count, update_interval,
-                                                  progress, save_output, use_threads);
-    const char *planners[] = {"CBiRRT2", "EST", "PRM", "RRT",
-                              "RRTintermediate", "RRTConnect", "KPIECE1"};
-    for (std::size_t i = 0; i < sizeof(planners)/sizeof(char *); i++)
+    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
+                                                  save_output, use_threads);
+    const char *planners[] = {"CBiRRT2", "EST", "PRM", "RRT", "RRTintermediate", "RRTConnect", "KPIECE1"};
+    for (std::size_t i = 0; i < sizeof(planners) / sizeof(char *); i++)
         bench.addPlanner(ompl::base::PlannerPtr(parsePlanner(planners[i], si, atlas->getRho_s())));
     bench.setPreRunEvent(&resetStateSpace);
-    
+
     // Execute
     bench.benchmark(request);
     bench.saveResultsToFile("atlas.log");
-    
+
     return 0;
 }

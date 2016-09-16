@@ -37,17 +37,15 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_EST_BIREALEST_
 #define OMPL_GEOMETRIC_PLANNERS_EST_BIREALEST_
 
-#include "ompl/geometric/planners/PlannerIncludes.h"
+#include <vector>
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/datastructures/PDF.h"
-#include <vector>
+#include "ompl/geometric/planners/PlannerIncludes.h"
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /**
            @anchor gBiRealEST
            @par Short description
@@ -58,7 +56,8 @@ namespace ompl
            @par External documentation
            D. Hsu, J.-C. Latombe, and R. Motwani, Path planning in expansive configuration spaces,
            <em>Intl. J. Computational Geometry and Applications</em>,
-           vol. 9, no. 4-5, pp. 495–512, 1999. DOI: [10.1142/S0218195999000285](http://dx.doi.org/10.1142/S0218195999000285)<br>
+           vol. 9, no. 4-5, pp. 495–512, 1999. DOI:
+           [10.1142/S0218195999000285](http://dx.doi.org/10.1142/S0218195999000285)<br>
            [[PDF]](http://bigbird.comp.nus.edu.sg/pmwiki/farm/motion/uploads/Site/ijcga96.pdf)
         */
 
@@ -66,7 +65,6 @@ namespace ompl
         class BiRealEST : public base::Planner
         {
         public:
-
             /** \brief Constructor */
             BiRealEST(const base::SpaceInformationPtr &si);
 
@@ -101,18 +99,17 @@ namespace ompl
             virtual void getPlannerData(base::PlannerData &data) const;
 
         protected:
-
             /// \brief The definition of a motion
             class Motion
             {
             public:
-
                 Motion() : state(nullptr), parent(nullptr), element(nullptr), root(nullptr)
                 {
                 }
 
                 /// \brief Constructor that allocates memory for the state
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), element(nullptr), root(nullptr)
+                Motion(const base::SpaceInformationPtr &si)
+                  : state(si->allocState()), parent(nullptr), element(nullptr), root(nullptr)
                 {
                 }
 
@@ -121,16 +118,16 @@ namespace ompl
                 }
 
                 /// \brief The state contained by the motion
-                base::State           *state;
+                base::State *state;
 
                 /// \brief The parent motion in the exploration tree
-                Motion                *parent;
+                Motion *parent;
 
                 /// \brief A pointer to the corresponding element in the probability distribution function
-                PDF<Motion*>::Element *element;
+                PDF<Motion *>::Element *element;
 
                 /// \brief The root node of the tree this motion is in
-                const base::State     *root;
+                const base::State *root;
             };
 
             /// \brief Compute distance between motions (actually distance between contained states)
@@ -140,41 +137,39 @@ namespace ompl
             }
 
             /// \brief A nearest-neighbors datastructure containing the tree of motions
-            std::shared_ptr< NearestNeighbors<Motion*> > nnStart_;
-            std::shared_ptr< NearestNeighbors<Motion*> > nnGoal_;
+            std::shared_ptr<NearestNeighbors<Motion *>> nnStart_;
+            std::shared_ptr<NearestNeighbors<Motion *>> nnGoal_;
 
             /// \brief The set of all states in the start tree
-            std::vector<Motion*> startMotions_;
-            std::vector<Motion*> goalMotions_;
+            std::vector<Motion *> startMotions_;
+            std::vector<Motion *> goalMotions_;
 
             /// \brief The probability distribution function over states in each tree
-            PDF<Motion*> startPdf_;
-            PDF<Motion*> goalPdf_;
+            PDF<Motion *> startPdf_;
+            PDF<Motion *> goalPdf_;
 
             ///\brief Free the memory allocated by this planner
             void freeMemory();
 
             /// \brief Add a motion to the exploration tree
-            void addMotion(Motion* motion, std::vector<Motion*>& motions,
-                           PDF<Motion*>& pdf, std::shared_ptr< NearestNeighbors<Motion*> > nn,
-                           const std::vector<Motion*>& neighbors);
+            void addMotion(Motion *motion, std::vector<Motion *> &motions, PDF<Motion *> &pdf,
+                           std::shared_ptr<NearestNeighbors<Motion *>> nn, const std::vector<Motion *> &neighbors);
 
             /// \brief Valid state sampler
-            base::ValidStateSamplerPtr   sampler_;
+            base::ValidStateSamplerPtr sampler_;
 
             /// \brief The maximum length of a motion to be added to a tree
-            double                       maxDistance_;
+            double maxDistance_;
 
             /// \brief The radius considered for neighborhood
-            double                       nbrhoodRadius_;
+            double nbrhoodRadius_;
 
             /// \brief The random number generator
-            RNG                          rng_;
+            RNG rng_;
 
             /// \brief The pair of states in each tree connected during planning.  Used for PlannerData computation
-            std::pair<base::State*, base::State*>      connectionPoint_;
+            std::pair<base::State *, base::State *> connectionPoint_;
         };
-
     }
 }
 

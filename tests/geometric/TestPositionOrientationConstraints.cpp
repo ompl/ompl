@@ -35,15 +35,15 @@
 /* Author: Ryan Luna */
 
 #define BOOST_TEST_MODULE "PositionOrientationConstraints"
-#include <boost/test/unit_test.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <boost/test/unit_test.hpp>
 
-#include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/RealVectorBounds.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
 
-#include <ompl/geometric/constraints/PositionConstraint.h>
 #include <ompl/geometric/constraints/OrientationConstraint.h>
+#include <ompl/geometric/constraints/PositionConstraint.h>
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
@@ -73,12 +73,12 @@ BOOST_AUTO_TEST_CASE(PositionConstraint)
 
     // Will sample this many states and project onto constraint if necessary
     unsigned int samples = 1000;
-    ob::State* sampleState = space->allocState();
-    ob::RealVectorStateSpace::StateType* rvState = sampleState->as<ob::RealVectorStateSpace::StateType>();
+    ob::State *sampleState = space->allocState();
+    ob::RealVectorStateSpace::StateType *rvState = sampleState->as<ob::RealVectorStateSpace::StateType>();
 
-    ob::State* cloneState = space->allocState();
+    ob::State *cloneState = space->allocState();
     ob::StateSamplerPtr stateSampler = space->allocStateSampler();
-    for(unsigned int i = 0; i < samples; ++i)
+    for (unsigned int i = 0; i < samples; ++i)
     {
         stateSampler->sampleUniform(sampleState);
         bool satisfied = posConstraint.isSatisfied(sampleState);
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(PositionConstraint)
         {
             // Make sure one of the values is actually unsatisfied first
             bool sat = true;
-            for(unsigned int j = 0; j < dim; ++j)
+            for (unsigned int j = 0; j < dim; ++j)
                 sat &= (rvState->values[j] >= 0.25 && rvState->values[j] <= 0.75);
 
             BOOST_CHECK(!sat);
@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(PositionConstraint)
         }
 
         // Make sure the values are actually satisfied
-        for(unsigned int j = 0; j < dim; ++j)
+        for (unsigned int j = 0; j < dim; ++j)
         {
             BOOST_CHECK(rvState->values[j] >= 0.25);
             BOOST_CHECK(rvState->values[j] <= 0.75);
@@ -118,13 +118,13 @@ BOOST_AUTO_TEST_CASE(PositionConstraint)
     }
 
     // Sample states directly from constraint
-    for(unsigned int i = 0; i < samples; ++i)
+    for (unsigned int i = 0; i < samples; ++i)
     {
         posConstraint.sample(sampleState);
         BOOST_CHECK(posConstraint.isSatisfied(sampleState));
 
         // Make sure the values are actually satisfied
-        for(unsigned int j = 0; j < dim; ++j)
+        for (unsigned int j = 0; j < dim; ++j)
         {
             BOOST_CHECK(rvState->values[j] >= 0.25);
             BOOST_CHECK(rvState->values[j] <= 0.75);
@@ -146,22 +146,21 @@ BOOST_AUTO_TEST_CASE(OrientationConstraint)
     loc.chain.clear();
     loc.space = space.get();
 
-    ob::State* nominalOrientation = space->allocState();
+    ob::State *nominalOrientation = space->allocState();
     nominalOrientation->as<ob::SO3StateSpace::StateType>()->setIdentity();
 
-    double tolerance = 30.0; // tolerance of 30 degrees
+    double tolerance = 30.0;  // tolerance of 30 degrees
     double TORAD = boost::math::constants::pi<double>() / 2.0;
     double tolRad = tolerance * TORAD;
 
-    og::OrientationConstraint ornConstraint(space, loc, nominalOrientation,
-                                            tolRad, tolRad, tolRad);
+    og::OrientationConstraint ornConstraint(space, loc, nominalOrientation, tolRad, tolRad, tolRad);
 
     // Will sample this many states and project onto constraint if necessary
     unsigned int samples = 1000;
-    ob::State* sampleState = space->allocState();
-    ob::State* cloneState = space->allocState();
+    ob::State *sampleState = space->allocState();
+    ob::State *cloneState = space->allocState();
     ob::StateSamplerPtr stateSampler = space->allocStateSampler();
-    for(unsigned int i = 0; i < samples; ++i)
+    for (unsigned int i = 0; i < samples; ++i)
     {
         stateSampler->sampleUniform(sampleState);
         bool satisfied = ornConstraint.isSatisfied(sampleState);
@@ -184,7 +183,7 @@ BOOST_AUTO_TEST_CASE(OrientationConstraint)
     }
 
     // Sample states directly from constraint
-    for(unsigned int i = 0; i < samples; ++i)
+    for (unsigned int i = 0; i < samples; ++i)
     {
         ornConstraint.sample(sampleState);
         BOOST_CHECK(ornConstraint.isSatisfied(sampleState));

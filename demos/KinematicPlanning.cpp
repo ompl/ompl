@@ -36,39 +36,39 @@
 
 #include <fstream>
 
-#include <boost/math/constants/constants.hpp>
 #include <boost/bind.hpp>
+#include <boost/math/constants/constants.hpp>
 
-#include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/RealVectorBounds.h>
-#include <ompl/base/spaces/SO3StateSpace.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
+#include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/geometric/ConstrainedSimpleSetup.h>
 
 #include <ompl/base/goals/GoalLazySamples.h>
 
-#include <ompl/geometric/constraints/EndEffectorConstraint.h>
 #include <ompl/base/ConstraintInformation.h>
-#include <ompl/geometric/planners/rrt/ConstrainedRRT.h>
+#include <ompl/geometric/constraints/EndEffectorConstraint.h>
 #include <ompl/geometric/planners/rrt/CBiRRT2.h>
+#include <ompl/geometric/planners/rrt/ConstrainedRRT.h>
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-bool isValid(const ob::State* state)
+bool isValid(const ob::State *state)
 {
     return true;
 }
 
 // Forward kinematics for n-link planar manipulator with uniformly spaced joints
 // Returns global reference frame for each link AND the end effector
-void forwardKinematics(const ob::State* state, std::vector<Eigen::Affine3d>& frames, unsigned int numLinks,
+void forwardKinematics(const ob::State *state, std::vector<Eigen::Affine3d> &frames, unsigned int numLinks,
                        unsigned int linkLength, std::pair<double, double> origin)
 {
     // Getting all joint angles
-    const ob::CompoundStateSpace::StateType* cstate = state->as<ob::CompoundStateSpace::StateType>();
+    const ob::CompoundStateSpace::StateType *cstate = state->as<ob::CompoundStateSpace::StateType>();
     std::vector<double> angles;
-    for(unsigned int i = 0; i < numLinks; ++i)
+    for (unsigned int i = 0; i < numLinks; ++i)
         angles.push_back(cstate->as<ob::SO2StateSpace::StateType>(i)->value);
 
     // Transform to take us to the next link wrt previous link frame
@@ -78,7 +78,7 @@ void forwardKinematics(const ob::State* state, std::vector<Eigen::Affine3d>& fra
     Eigen::Affine3d frame(Eigen::Translation3d(origin.first, origin.second, 0.0));
     frames.push_back(frame);
 
-    for(unsigned int i = 0; i < numLinks; ++i)
+    for (unsigned int i = 0; i < numLinks; ++i)
     {
         // Apply the joint angle rotation to the previous frame
         Eigen::Affine3d rotation(Eigen::AngleAxisd(0, Eigen::Vector3d::UnitX()) *
@@ -96,36 +96,35 @@ static double normalizeAngle(double angle)
     double v = fmod(angle, 2.0 * boost::math::constants::pi<double>());
     if (v <= -boost::math::constants::pi<double>())
         v += 2.0 * boost::math::constants::pi<double>();
-    else
-        if (v > boost::math::constants::pi<double>())
-            v -= 2.0 * boost::math::constants::pi<double>();
+    else if (v > boost::math::constants::pi<double>())
+        v -= 2.0 * boost::math::constants::pi<double>();
 
     return v;
 }
 
 // Set the compound SO2 state given a list of joint angles
-static void setState(ob::State* state, const std::vector<double> angles)
+static void setState(ob::State *state, const std::vector<double> angles)
 {
-    ob::CompoundState* cstate = state->as<ob::CompoundStateSpace::StateType>();
-    for(size_t i = 0; i < angles.size(); ++i)
+    ob::CompoundState *cstate = state->as<ob::CompoundStateSpace::StateType>();
+    for (size_t i = 0; i < angles.size(); ++i)
     {
         cstate->as<ob::SO2StateSpace::StateType>(i)->value = normalizeAngle(angles[i]);
     }
 }
 
 // Inverse kinematics for 3-link planar manipulator with uniformly spaced joints
-bool inverseKinematics(ob::State* state, const Eigen::Affine3d& pose, unsigned int numLinks, double linkLength)
+bool inverseKinematics(ob::State *state, const Eigen::Affine3d &pose, unsigned int numLinks, double linkLength)
 {
     if (numLinks != 3)
         throw ompl::Exception("IK solution only works for 3 link manipulator");
 
     // This is the orientation for the end effector
-    double angle = acos(pose.matrix()(0,0));
+    double angle = acos(pose.matrix()(0, 0));
     // Due to numerical instability, sometimes acos will return nan if
     // the value is slightly larger than one.  Check for this and try the
     // asin of the next value
-    if (angle != angle) // a nan is never equal to itself
-        angle = asin(pose.matrix()(0,1));
+    if (angle != angle)  // a nan is never equal to itself
+        angle = asin(pose.matrix()(0, 1));
 
     // If still nan, return false
     if (angle != angle)
@@ -137,7 +136,7 @@ bool inverseKinematics(ob::State* state, const Eigen::Affine3d& pose, unsigned i
                              Eigen::AngleAxisd(0, Eigen::Vector3d::UnitY()) *
                              Eigen::AngleAxisd(angle, Eigen::Vector3d::UnitZ()));
 
-    Eigen::Affine3d eeFrame = translation*rotation;
+    Eigen::Affine3d eeFrame = translation * rotation;
     Eigen::Affine3d eeTransform(Eigen::Translation3d(1, 0, 0));
     Eigen::Affine3d frameOrigin = eeFrame * (eeTransform.inverse());
 
@@ -145,12 +144,12 @@ bool inverseKinematics(ob::State* state, const Eigen::Affine3d& pose, unsigned i
     double Wx = frameOrigin.translation()[0];
     double Wy = frameOrigin.translation()[1];
 
-    std::vector<double> angles(numLinks, 0.0); // where we store the IK solution
+    std::vector<double> angles(numLinks, 0.0);  // where we store the IK solution
 
-    double l2 = linkLength*linkLength;
+    double l2 = linkLength * linkLength;
 
-    double c2 = (Wx*Wx + Wy*Wy - l2 - l2) / (2.0 * l2);
-    double s2 = sqrt(1.0 - c2*c2);  // there is a +/- to play with here
+    double c2 = (Wx * Wx + Wy * Wy - l2 - l2) / (2.0 * l2);
+    double s2 = sqrt(1.0 - c2 * c2);  // there is a +/- to play with here
 
     angles[1] = atan2(s2, c2);
 
@@ -159,8 +158,8 @@ bool inverseKinematics(ob::State* state, const Eigen::Affine3d& pose, unsigned i
         return false;
 
     double k1 = linkLength + linkLength * c2;
-    double k2 =              linkLength * s2;
-    angles[0] = atan2(Wy,Wx) - atan2(k2,k1);
+    double k2 = linkLength * s2;
+    angles[0] = atan2(Wy, Wx) - atan2(k2, k1);
     angles[2] = angle - angles[0] - angles[1];
 
     // Setting the solution into state
@@ -175,10 +174,9 @@ bool inverseKinematics(ob::State* state, const Eigen::Affine3d& pose, unsigned i
 class EndEffectorGoal : public ob::GoalLazySamples
 {
 public:
-    EndEffectorGoal(const ob::SpaceInformationPtr& si,
-                    const ob::GoalSamplingFn& sampler,
-                    const og::EndEffectorConstraintPtr& ee) :
-                    ob::GoalLazySamples(si, sampler), ee_(ee)
+    EndEffectorGoal(const ob::SpaceInformationPtr &si, const ob::GoalSamplingFn &sampler,
+                    const og::EndEffectorConstraintPtr &ee)
+      : ob::GoalLazySamples(si, sampler), ee_(ee)
     {
     }
 
@@ -190,21 +188,22 @@ public:
         ee_.reset();
     }
 
-    virtual bool isSatisfied(const ob::State* state) const
+    virtual bool isSatisfied(const ob::State *state) const
     {
         return ee_->isSatisfied(state);
     }
 
-    virtual double distanceGoal(const ob::State* state) const
+    virtual double distanceGoal(const ob::State *state) const
     {
         OMPL_WARN("%s: NOT IMPLEMENTED", __FUNCTION__);
         return std::numeric_limits<double>::max();
     }
 
-    static bool goalStateSampler(const ob::GoalLazySamples* gls, ob::State* state)
+    static bool goalStateSampler(const ob::GoalLazySamples *gls, ob::State *state)
     {
-        const EndEffectorGoal* thisObj = static_cast<const EndEffectorGoal*>(gls);
-        while(thisObj->ee_ && !thisObj->ee_->sample(state));
+        const EndEffectorGoal *thisObj = static_cast<const EndEffectorGoal *>(gls);
+        while (thisObj->ee_ && !thisObj->ee_->sample(state))
+            ;
         return true;
     }
 
@@ -212,7 +211,7 @@ protected:
     og::EndEffectorConstraintPtr ee_;
 };
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     // Planar kinematic chain with 3 links.  Equidistant joints.
     unsigned int numLinks = 3;
@@ -232,9 +231,9 @@ int main(int argc, char** argv)
     ob::StateSpace::SubstateLocation loc;
     loc.chain.clear();
     loc.space = space.get();
-    og::EndEffectorConstraintPtr eeGoalConstraint(new og::EndEffectorConstraint(space, loc,
-                                                                                boost::bind(forwardKinematics, _1, _2, numLinks, linkLength, origin),
-                                                                                boost::bind(inverseKinematics, _1, _2, numLinks, linkLength)));
+    og::EndEffectorConstraintPtr eeGoalConstraint(
+        new og::EndEffectorConstraint(space, loc, boost::bind(forwardKinematics, _1, _2, numLinks, linkLength, origin),
+                                      boost::bind(inverseKinematics, _1, _2, numLinks, linkLength)));
 
     // Goal is to bring end effector +/- 0.01 from the origin
     eeGoalConstraint->setPosition(origin.first, origin.second, 0.0);
@@ -245,13 +244,14 @@ int main(int argc, char** argv)
                                               boost::math::constants::two_pi<double>(),
                                               boost::math::constants::two_pi<double>());
 
-    ob::GoalPtr goal(new EndEffectorGoal(ss.getSpaceInformation(), EndEffectorGoal::goalStateSampler, eeGoalConstraint));
+    ob::GoalPtr goal(
+        new EndEffectorGoal(ss.getSpaceInformation(), EndEffectorGoal::goalStateSampler, eeGoalConstraint));
     ss.setGoal(goal);
 
     // Constrain end effector +/- 1.0 from the origin for the entire trajectory
-    og::EndEffectorConstraintPtr eeConstraint(new og::EndEffectorConstraint(space, loc,
-                                                                            boost::bind(forwardKinematics, _1, _2, numLinks, linkLength, origin),
-                                                                            boost::bind(inverseKinematics, _1, _2, numLinks, linkLength)));
+    og::EndEffectorConstraintPtr eeConstraint(
+        new og::EndEffectorConstraint(space, loc, boost::bind(forwardKinematics, _1, _2, numLinks, linkLength, origin),
+                                      boost::bind(inverseKinematics, _1, _2, numLinks, linkLength)));
 
     eeConstraint->setPosition(origin.first, origin.second, 0.0);
     eeConstraint->setPositionTolerance(1.0, 1.0, 0.0);
@@ -280,12 +280,12 @@ int main(int argc, char** argv)
     } while (!gotStart);
     ss.setStartState(start);
 
-    //ob::PlannerPtr planner(new og::ConstrainedRRT(ss.getSpaceInformation()));
+    // ob::PlannerPtr planner(new og::ConstrainedRRT(ss.getSpaceInformation()));
     ob::PlannerPtr planner(new og::CBiRRT2(ss.getSpaceInformation()));
     ss.setPlanner(planner);
 
     ss.setup();
-    //ss.print();
+    // ss.print();
 
     // Finding a path
     if (ss.solve(1))
@@ -294,11 +294,11 @@ int main(int argc, char** argv)
         // goal destructor by explicitly stopping goal sampling here
         goal->as<EndEffectorGoal>()->stopSampling();
 
-        og::PathGeometric& pgeo = ss.getSolutionPath();
+        og::PathGeometric &pgeo = ss.getSolutionPath();
         bool good = true;
         std::cout << "Path has " << pgeo.getStateCount() << " states in it.  Verifying..." << std::endl;
 
-        //for(size_t i = 0; i < pgeo.getStateCount(); ++i)
+        // for(size_t i = 0; i < pgeo.getStateCount(); ++i)
         //{
         //    std::vector<Eigen::Affine3d> frames;
         //    forwardKinematics(pgeo.getState(i), frames, numLinks, linkLength, origin);
@@ -310,14 +310,14 @@ int main(int argc, char** argv)
         //    std::cout << std::endl;
         //}
 
-        for(size_t i = 0; i < pgeo.getStateCount() && good; ++i)
+        for (size_t i = 0; i < pgeo.getStateCount() && good; ++i)
         {
             good = ci->isSatisfied(pgeo.getState(i));
             if (!good)
                 std::cerr << "[ERROR] State " << i << " does not satisfy constraints" << std::endl;
         }
 
-        if (good && !eeGoalConstraint->isSatisfied(pgeo.getState(pgeo.getStateCount()-1)))
+        if (good && !eeGoalConstraint->isSatisfied(pgeo.getState(pgeo.getStateCount() - 1)))
         {
             good = false;
             std::cerr << "[ERROR] Final state does not satisfy goal constraint!" << std::endl;
@@ -326,16 +326,14 @@ int main(int argc, char** argv)
         if (good)
         {
             std::cout << "Path satisfies all kinematic constraints!" << std::endl;
-            //std::ofstream fout;
-            //fout.open("path.txt");
-            //pgeo.printAsMatrix(fout);
-            //fout.close();
+            // std::ofstream fout;
+            // fout.open("path.txt");
+            // pgeo.printAsMatrix(fout);
+            // fout.close();
         }
     }
     else
         std::cout << "NO SOLUTION FOUND" << std::endl;
 
-
     return 0;
-
 }

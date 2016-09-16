@@ -37,22 +37,19 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_RRT_CBIRRT2_
 #define OMPL_GEOMETRIC_PLANNERS_RRT_CBIRRT2_
 
-#include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/geometric/planners/PlannerIncludes.h"
 
 #include "ompl/base/ConstrainedSpaceInformation.h"
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /// \brief An Bi-directional RRT that respects constraints in the state space
         class CBiRRT2 : public base::Planner
         {
         public:
-
             /** \brief Constructor */
             CBiRRT2(const base::SpaceInformationPtr &si);
 
@@ -81,17 +78,16 @@ namespace ompl
             }
 
             /** \brief Set a different nearest neighbors datastructure */
-            template<template<typename T> class NN>
+            template <template <typename T> class NN>
             void setNearestNeighbors(void)
             {
-                tStart_.reset(new NN<Motion*>());
-                tGoal_.reset(new NN<Motion*>());
+                tStart_.reset(new NN<Motion *>());
+                tGoal_.reset(new NN<Motion *>());
             }
 
             virtual void setup(void);
 
         protected:
-
             /** \brief Representation of a motion
 
                 This only contains pointers to parent motions as we
@@ -99,7 +95,6 @@ namespace ompl
             class Motion
             {
             public:
-
                 Motion(void) : root(nullptr), state(nullptr), parent(nullptr)
                 {
                 }
@@ -108,7 +103,7 @@ namespace ompl
                 {
                 }
 
-                Motion(base::State* st) : root(nullptr), state(st), parent(nullptr)
+                Motion(base::State *st) : root(nullptr), state(st), parent(nullptr)
                 {
                 }
 
@@ -117,20 +112,19 @@ namespace ompl
                 }
 
                 const base::State *root;
-                base::State       *state;
-                const Motion      *parent;
-
+                base::State *state;
+                const Motion *parent;
             };
 
             /** \brief A nearest-neighbor datastructure representing a tree of motions */
-            typedef std::shared_ptr< NearestNeighbors<Motion*> > TreeData;
+            typedef std::shared_ptr<NearestNeighbors<Motion *>> TreeData;
 
             /** \brief Information attached to growing a tree of motions (used internally) */
             struct TreeGrowingInfo
             {
-                base::State         *xstate;
-                Motion              *xmotion;
-                bool                 start;
+                base::State *xstate;
+                Motion *xmotion;
+                bool start;
             };
 
             /** \brief The state of the tree after an attempt to extend it */
@@ -148,46 +142,46 @@ namespace ompl
             void freeMemory(void);
 
             /** \brief Compute distance between motions (actually distance between contained states) */
-            double distanceFunction(const Motion* a, const Motion* b) const
+            double distanceFunction(const Motion *a, const Motion *b) const
             {
                 return si_->distance(a->state, b->state);
             }
 
             /** \brief Grow a tree from nearMotion towards randMotion */
-            GrowState growTree(TreeData &tree, TreeGrowingInfo &tgi, const Motion *randMotion, const Motion *nearMotion);
+            GrowState growTree(TreeData &tree, TreeGrowingInfo &tgi, const Motion *randMotion,
+                               const Motion *nearMotion);
 
             /// \brief Starting at a, interpolate toward b along the constraint manifold.
             /// Store the resulting states in result.
-            bool constrainedExtend(const base::State* a, const base::State* b,
-                                   std::vector<base::State*>& result) const;
+            bool constrainedExtend(const base::State *a, const base::State *b,
+                                   std::vector<base::State *> &result) const;
 
             bool shortcutPath(PathGeometric *path, const base::PlannerTerminationCondition &ptc);
 
             /** \brief State sampler */
-            base::StateSamplerPtr                          sampler_;
+            base::StateSamplerPtr sampler_;
 
             /** \brief The start tree */
-            TreeData                                       tStart_;
+            TreeData tStart_;
 
             /** \brief The goal tree */
-            TreeData                                       tGoal_;
+            TreeData tGoal_;
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double                                         maxDistance_;
+            double maxDistance_;
 
             /** \brief The random number generator */
-            RNG                                            rng_;
+            RNG rng_;
 
             /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
-            std::pair<base::State*, base::State*>          connectionPoint_;
+            std::pair<base::State *, base::State *> connectionPoint_;
 
             /// \brief A pointer to the constraint information object that this planner uses
-            base::ConstraintInformationPtr                 ci_;
+            base::ConstraintInformationPtr ci_;
 
             /** \brief Distance between the nearest pair of start tree and goal tree nodes. */
-            double                        distanceBetweenTrees_;
+            double distanceBetweenTrees_;
         };
-
     }
 }
 

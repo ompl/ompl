@@ -59,26 +59,29 @@ namespace ompl
         class Constraint
         {
         public:
-
             /// \brief Constructor.  Takes a pointer to the StateSpace being
             /// constrained.
-            Constraint(const StateSpacePtr& space) : space_(space) {}
-            virtual ~Constraint() {}
+            Constraint(const StateSpacePtr &space) : space_(space)
+            {
+            }
+            virtual ~Constraint()
+            {
+            }
 
             /// \brief Check whether this state satisfies the constraints
-            virtual bool isSatisfied(const State* state) const = 0;
+            virtual bool isSatisfied(const State *state) const = 0;
 
             /// \brief Return the distance from satisfaction of a state
             /// A state that satisfies the constraint should have distance 0.
-            virtual double distance(const State* state) const = 0;
+            virtual double distance(const State *state) const = 0;
 
             /// \brief Sample a state given the constraints.  If a state cannot
             /// be sampled, this method will return false.
-            virtual bool sample(State* state) = 0;
+            virtual bool sample(State *state) = 0;
 
             /// \brief Project a state given the constraints.  If a valid
             /// projection cannot be found, this method will return false.
-            virtual bool project(State* state) = 0;
+            virtual bool project(State *state) = 0;
 
         protected:
             StateSpacePtr space_;

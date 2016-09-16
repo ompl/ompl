@@ -37,8 +37,8 @@
 #ifndef OMPL_BASE_CONSTRAINED_SPACE_INFORMATION_
 #define OMPL_BASE_CONSTRAINED_SPACE_INFORMATION_
 
-#include "ompl/base/SpaceInformation.h"
 #include "ompl/base/ConstraintInformation.h"
+#include "ompl/base/SpaceInformation.h"
 
 namespace ompl
 {
@@ -52,23 +52,20 @@ namespace ompl
         class ConstrainedSpaceInformation : public SpaceInformation
         {
         public:
-
             ConstrainedSpaceInformation(const StateSpacePtr &space);
 
             virtual ~ConstrainedSpaceInformation(void)
             {
             }
 
-            void setConstraintInformation(const ConstraintInformationPtr& ci);
+            void setConstraintInformation(const ConstraintInformationPtr &ci);
 
-            const ConstraintInformationPtr& getConstraintInformation() const;
+            const ConstraintInformationPtr &getConstraintInformation() const;
 
         protected:
             ConstraintInformationPtr ci_;
         };
-
     }
-
 }
 
 #endif

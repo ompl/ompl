@@ -34,7 +34,6 @@
 
 /* Author: Ryan Luna */
 
-
 #ifndef OMPL_BASE_CONSTRAINT_INFORMATION_
 #define OMPL_BASE_CONSTRAINT_INFORMATION_
 
@@ -60,7 +59,7 @@ namespace ompl
             /// \brief Add a new constraint to be evaluated.  This constraint
             /// should not affect any portion of the state space that is
             /// already impacted by another constraint
-            virtual void addConstraint(const ConstraintPtr& constraint);
+            virtual void addConstraint(const ConstraintPtr &constraint);
 
             /// \brief Retrieve the number of constraints being evaluated
             unsigned int numConstraints() const;
@@ -69,14 +68,13 @@ namespace ompl
             ConstraintPtr getConstraint(unsigned int idx) const;
 
             /// \brief Check if the given state satisfies the set of constraints
-            virtual bool isSatisfied(const State* state) const;
+            virtual bool isSatisfied(const State *state) const;
 
             /// \brief Sample a state from the set of constraints
-            virtual bool sample(State* state) const;
+            virtual bool sample(State *state) const;
 
             /// \brief Project a state given the set of constraints
-            virtual bool project(State* state) const;
-
+            virtual bool project(State *state) const;
 
         protected:
             std::vector<ConstraintPtr> constraints_;

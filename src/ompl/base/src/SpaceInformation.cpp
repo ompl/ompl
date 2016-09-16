@@ -35,17 +35,17 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/base/samplers/UniformValidStateSampler.h"
+#include <cassert>
+#include <queue>
+#include <utility>
 #include "ompl/base/DiscreteMotionValidator.h"
-#include "ompl/base/spaces/ReedsSheppStateSpace.h"
-#include "ompl/base/spaces/DubinsStateSpace.h"
+#include "ompl/base/samplers/UniformValidStateSampler.h"
 #include "ompl/base/spaces/AtlasStateSpace.h"
+#include "ompl/base/spaces/DubinsStateSpace.h"
+#include "ompl/base/spaces/ReedsSheppStateSpace.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Time.h"
-#include "ompl/tools/config/MagicConstants.h"
-#include <queue>
-#include <cassert>
-#include <utility>
 
 ompl::base::SpaceInformation::SpaceInformation(StateSpacePtr space) : stateSpace_(std::move(space)), setup_(false)
 {
@@ -112,8 +112,8 @@ void ompl::base::SpaceInformation::setDefaultMotionValidator()
         motionValidator_ = std::make_shared<ReedsSheppMotionValidator>(this);
     else if (dynamic_cast<DubinsStateSpace *>(stateSpace_.get()))
         motionValidator_ = std::make_shared<DubinsMotionValidator>(this);
-     else if (dynamic_cast<AtlasStateSpace*>(stateSpace_.get()))
-         motionValidator_ = std::make_shared<AtlasMotionValidator>(this);
+    else if (dynamic_cast<AtlasStateSpace *>(stateSpace_.get()))
+        motionValidator_ = std::make_shared<AtlasMotionValidator>(this);
     else
         motionValidator_ = std::make_shared<DiscreteMotionValidator>(this);
 }
@@ -208,14 +208,16 @@ unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, cons
     {
         assert(alloc && endpoints);
         std::vector<AtlasStateSpace::StateType *> stateList;
-        atlas->traverseManifold(s1->as<AtlasStateSpace::StateType>(), s2->as<AtlasStateSpace::StateType>(), false, &stateList);
+        atlas->traverseManifold(s1->as<AtlasStateSpace::StateType>(), s2->as<AtlasStateSpace::StateType>(), false,
+                                &stateList);
         states.resize(stateList.size());
         for (unsigned int j = 0; j < stateList.size(); j++)
             states[j] = stateList[j];
         return states.size();
     }
 
-    // add 1 to the number of states we want to add between s1 & s2. This gives us the number of segments to split the motion into
+    // add 1 to the number of states we want to add between s1 & s2. This gives us the number of segments to split the
+    // motion into
     count++;
 
     if (count < 2)
@@ -262,7 +264,7 @@ unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, cons
         copyState(states[0], s1);
         added++;
     }
-        
+
     /* find the states in between */
     for (unsigned int j = 1; j < count && added < states.size(); ++j)
     {
@@ -271,7 +273,7 @@ unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, cons
         stateSpace_->interpolate(s1, s2, (double)j / (double)count, states[added]);
         added++;
     }
-    
+
     if (added < states.size() && endpoints)
     {
         if (alloc)
@@ -446,8 +448,7 @@ void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
     out << "  - valid segment count factor: " << stateSpace_->getValidSegmentCountFactor() << std::endl;
     out << "  - state space:" << std::endl;
     stateSpace_->printSettings(out);
-    out << std::endl
-        << "Declared parameters:" << std::endl;
+    out << std::endl << "Declared parameters:" << std::endl;
     params_.print(out);
     ValidStateSamplerPtr vss = allocValidStateSampler();
     out << "Valid state sampler named " << vss->getName() << " with parameters:" << std::endl;

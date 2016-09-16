@@ -44,7 +44,7 @@ ompl::base::ConstraintInformation::~ConstraintInformation()
 {
 }
 
-void ompl::base::ConstraintInformation::addConstraint(const ConstraintPtr& constraint)
+void ompl::base::ConstraintInformation::addConstraint(const ConstraintPtr &constraint)
 {
     constraints_.push_back(constraint);
 }
@@ -60,7 +60,7 @@ ompl::base::ConstraintPtr ompl::base::ConstraintInformation::getConstraint(unsig
     return constraints_[idx];
 }
 
-bool ompl::base::ConstraintInformation::isSatisfied(const State* state) const
+bool ompl::base::ConstraintInformation::isSatisfied(const State *state) const
 {
     bool valid = true;
     for (size_t i = 0; i < constraints_.size() && valid; ++i)
@@ -68,7 +68,7 @@ bool ompl::base::ConstraintInformation::isSatisfied(const State* state) const
     return valid;
 }
 
-bool ompl::base::ConstraintInformation::sample(State* state) const
+bool ompl::base::ConstraintInformation::sample(State *state) const
 {
     bool valid = true;
     for (size_t i = 0; i < constraints_.size() && valid; ++i)
@@ -76,7 +76,7 @@ bool ompl::base::ConstraintInformation::sample(State* state) const
     return valid;
 }
 
-bool ompl::base::ConstraintInformation::project(State* state) const
+bool ompl::base::ConstraintInformation::project(State *state) const
 {
     bool valid = true;
     for (size_t i = 0; i < constraints_.size() && valid; ++i)

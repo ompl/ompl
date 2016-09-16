@@ -48,32 +48,30 @@ namespace ompl
         class AtlasConstraint : public Constraint
         {
         public:
-            
             /** \brief Constructor. */
-            AtlasConstraint (AtlasStateSpacePtr &atlas);
-            
+            AtlasConstraint(AtlasStateSpacePtr &atlas);
+
             /** \brief Does \a state lie within a tolerance of the constraints? */
-            bool isSatisfied (const State *state) const;
-            
+            bool isSatisfied(const State *state) const;
+
             /** \brief How far is \a state from satisfying the constraints? */
-            double distance (const State *state) const;
-            
+            double distance(const State *state) const;
+
             /** \brief This just projects a uniform sample. Returns false if
              * the projection failed. */
-            bool sample (State *state);
-            
+            bool sample(State *state);
+
             /** \brief Project state to nearest point on the manifold. Return false
              * if projection fails. */
-            bool project (State *state);
-            
+            bool project(State *state);
+
             /** \brief View RealVectorState as Eigen vector. */
-            Eigen::Map<Eigen::VectorXd> vectorView (const State *state) const;
-                        
+            Eigen::Map<Eigen::VectorXd> vectorView(const State *state) const;
+
         private:
-            
             /** \brief Atlas the constraints belong to. */
             const AtlasStateSpace &atlas_;
-            
+
             /** \brief Internal sampler. */
             mutable RealVectorStateSampler sampler_;
         };

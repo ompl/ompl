@@ -37,12 +37,12 @@
 #ifndef OMPL_GEOMETRIC_CONSTRAINTS_POSE_CONSTRAINT_
 #define OMPL_GEOMETRIC_CONSTRAINTS_POSE_CONSTRAINT_
 
-#include <ompl/util/RandomNumbers.h>
 #include <ompl/util/Exception.h>
+#include <ompl/util/RandomNumbers.h>
 
 #include "ompl/base/Constraint.h"
-#include "ompl/geometric/constraints/PositionConstraint.h"
 #include "ompl/geometric/constraints/OrientationConstraint.h"
+#include "ompl/geometric/constraints/PositionConstraint.h"
 
 namespace ompl
 {
@@ -54,20 +54,18 @@ namespace ompl
 
         /// \brief Definition of a pose function.  Given a state, return the pose that is to
         /// be constrained (position and orientation - Euler angles).
-        typedef boost::function<void(const base::State*, Eigen::Vector3d& position, Eigen::Vector3d& rpy)> PoseFn;
+        typedef boost::function<void(const base::State *, Eigen::Vector3d &position, Eigen::Vector3d &rpy)> PoseFn;
 
         class PoseConstraint : public base::Constraint
         {
         public:
-
             /// \brief Definition of a 3D pose constraint on the system.  PoseFn
             /// is used to compute the pose for this constraint in order to
             /// evaluate whether or not the pose is achieved.  This constraint
             /// is abstract, and it is not possible to sample or project a state
             /// onto this constraint directly.  Derive a constraint from this class
             /// to perform sampling or projection.
-            PoseConstraint(const base::StateSpacePtr& space,
-                           PoseFn poseFn) : base::Constraint(space)
+            PoseConstraint(const base::StateSpacePtr &space, PoseFn poseFn) : base::Constraint(space)
             {
                 // Identity pose, with no tolerances
                 pos_ = Eigen::Vector3d(0, 0, 0);
@@ -133,46 +131,47 @@ namespace ompl
             }
 
             /// \brief Check whether this state satisfies the constraints
-            virtual bool isSatisfied(const base::State* state) const
+            virtual bool isSatisfied(const base::State *state) const
             {
-                //return position_->isSatisfied(state) && orientation_->isSatisfied(state);
+                // return position_->isSatisfied(state) && orientation_->isSatisfied(state);
                 Eigen::Vector3d position, orientation;
                 poseFn_(state, position, orientation);
                 return isPositionSatisfied(&position[0]) && isOrientationSatisfied(&orientation[0]);
             }
 
             /// \brief Check whether this pose satisfies the constraints
-            virtual bool isSatisfied(const Eigen::Affine3d& pose) const
+            virtual bool isSatisfied(const Eigen::Affine3d &pose) const
             {
                 Eigen::Vector3d pos = pose.translation();
 
                 Eigen::Vector3d rpy;
-                rpy = pose.rotation().eulerAngles(0,1,2);
+                rpy = pose.rotation().eulerAngles(0, 1, 2);
                 return isPositionSatisfied(&pos[0]) && isOrientationSatisfied(&rpy[0]);
             }
 
             /// \brief Return the distance from satisfaction of a state
-            virtual double distance(const base::State* state) const
+            virtual double distance(const base::State *state) const
             {
-                //eturn position_->distance(state) + orientation_->distance(state);
+                // eturn position_->distance(state) + orientation_->distance(state);
                 return std::numeric_limits<double>::max();
             }
 
             /// \brief Sample a state given the constraints.  If a state cannot
             /// be sampled, this method will return false.
-            virtual bool sample(base::State* state)
+            virtual bool sample(base::State *state)
             {
                 OMPL_WARN("PoseConstraint::sample is NOT implemented");
                 return false;
             }
 
             /// \brief Sample a pose given the constraints
-            virtual bool sample(Eigen::Affine3d& pose)
+            virtual bool sample(Eigen::Affine3d &pose)
             {
                 // Due to numerical precision errors, only sampling within 90% of tolerance range
                 Eigen::Affine3d translation = Eigen::Affine3d::Identity();
-                for (unsigned int i = 0 ; i < 3; ++i)
-                    translation.translation()[i] = rng_.uniformReal(pos_[i] - (posTol_[i]*0.90), pos_[i] + (posTol_[i]*0.90));
+                for (unsigned int i = 0; i < 3; ++i)
+                    translation.translation()[i] =
+                        rng_.uniformReal(pos_[i] - (posTol_[i] * 0.90), pos_[i] + (posTol_[i] * 0.90));
 
                 Eigen::Matrix3d rotation(Eigen::AngleAxisd(rpy_[0], Eigen::Vector3d::UnitX()) *
                                          Eigen::AngleAxisd(rpy_[1], Eigen::Vector3d::UnitY()) *
@@ -192,14 +191,14 @@ namespace ompl
 
             /// \brief Project a state given the constraints.  If a valid
             /// projection cannot be found, this method will return false.
-            virtual bool project(base::State* state)
+            virtual bool project(base::State *state)
             {
                 OMPL_WARN("PoseConstraint::project is NOT implemented");
                 return false;
             }
 
         protected:
-            bool isPositionSatisfied(const double* values) const
+            bool isPositionSatisfied(const double *values) const
             {
                 for (unsigned int i = 0; i < 3; ++i)
                 {
@@ -209,7 +208,7 @@ namespace ompl
                 return true;
             }
 
-            bool isOrientationSatisfied(const double* rpy) const
+            bool isOrientationSatisfied(const double *rpy) const
             {
                 bool valid = true;
                 for (size_t i = 0; i < 3 && valid; ++i)
@@ -217,9 +216,8 @@ namespace ompl
                 return valid;
             }
 
-
-            RNG             rng_;
-             // The nominal pose
+            RNG rng_;
+            // The nominal pose
             Eigen::Vector3d pos_;
             Eigen::Vector3d rpy_;
 
@@ -227,8 +225,7 @@ namespace ompl
             Eigen::Vector3d posTol_;
             Eigen::Vector3d rpyTol_;
 
-            PoseFn          poseFn_;
-
+            PoseFn poseFn_;
         };
     }
 }

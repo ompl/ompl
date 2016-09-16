@@ -38,8 +38,8 @@
 
 #include <ompl/base/spaces/RealVectorStateProjections.h>
 #include <ompl/tools/benchmark/Benchmark.h>
-#include <boost/program_options.hpp>
 #include <boost/format.hpp>
+#include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
 
 namespace po = boost::program_options;
@@ -51,30 +51,31 @@ const double RANGE = 0.5;
 void resetStateSpace(const ompl::base::PlannerPtr &planner)
 {
     std::string name = planner->getName();
-    ompl::base::AtlasStateSpace *atlas = planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>();
+    ompl::base::AtlasStateSpace *atlas =
+        planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>();
     atlas->clear();
-    if (name == "ConstrainedRRT" ||  name == "CBiRRT2")
+    if (name == "ConstrainedRRT" || name == "CBiRRT2")
         atlas->setMode(ompl::base::AtlasStateSpace::REALVECTOR);
     else
         atlas->setMode(ompl::base::AtlasStateSpace::ATLAS);
 }
 
-ompl::geometric::ConstrainedSimpleSetupPtr createChainSetup(std::size_t dimension, std::size_t links, double sleep, unsigned int extras)
+ompl::geometric::ConstrainedSimpleSetupPtr createChainSetup(std::size_t dimension, std::size_t links, double sleep,
+                                                            unsigned int extras)
 {
     Eigen::VectorXd x = Eigen::VectorXd::Zero(dimension * links);
     Eigen::VectorXd y = Eigen::VectorXd::Zero(dimension * links);
-    const std::size_t kink = links-3;   // Need kink >= 1 && kink <= links-3.
+    const std::size_t kink = links - 3;  // Need kink >= 1 && kink <= links-3.
     for (std::size_t i = 0; i < links; i++)
     {
-        x[dimension * i] = i+1 - (i >= kink) - (i > kink+1);
+        x[dimension * i] = i + 1 - (i >= kink) - (i > kink + 1);
         y[dimension * i] = -x[dimension * i];
-        x[dimension * i + 1] = (i >= kink && i <= kink+1);
-        y[dimension * i + 2] = (i >= kink && i <= kink+1);
+        x[dimension * i + 1] = (i >= kink && i <= kink + 1);
+        y[dimension * i + 2] = (i >= kink && i <= kink + 1);
     }
     ompl::base::AtlasStateSpacePtr atlas(new ChainManifold(dimension, links, extras));
     ompl::base::StateValidityCheckerFn isValid =
-        std::bind(&ChainManifold::isValid, (ChainManifold*) atlas.get(), sleep,
-                  std::placeholders::_1, false);
+        std::bind(&ChainManifold::isValid, (ChainManifold *)atlas.get(), sleep, std::placeholders::_1, false);
 
     // All the 'Constrained' classes are loose wrappers for the normal classes. No effect except on
     // the two special planners.
@@ -91,7 +92,7 @@ ompl::geometric::ConstrainedSimpleSetupPtr createChainSetup(std::size_t dimensio
     // Atlas parameters
     atlas->setExploration(0.5);
     atlas->setRho(RANGE);
-    atlas->setAlpha(M_PI/8);
+    atlas->setAlpha(M_PI / 8);
     atlas->setEpsilon(0.2);
     atlas->setDelta(0.02);
     atlas->setMaxChartsPerExtension(200);
@@ -133,18 +134,19 @@ void saveSolutionPath(const ompl::geometric::ConstrainedSimpleSetupPtr &ss, bool
     {
         std::ofstream animFile("anim.txt");
         for (std::size_t i = 0; i < waypoints.size(); i++)
-            animFile << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose() << "\n";
+            animFile << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose()
+                     << "\n";
         animFile.close();
     }
     else
     {
         std::ofstream animFile("anim.txt");
-        for (std::size_t i = 0; i < waypoints.size()-1; i++)
+        for (std::size_t i = 0; i < waypoints.size() - 1; i++)
         {
             // Denote that we are switching to the next saved state
             ompl::base::AtlasStateSpace::StateType *from, *to;
             from = waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>();
-            to = waypoints[i+1]->as<ompl::base::AtlasStateSpace::StateType>();
+            to = waypoints[i + 1]->as<ompl::base::AtlasStateSpace::StateType>();
 
             // Traverse the manifold
             std::vector<ompl::base::AtlasStateSpace::StateType *> stateList;
@@ -189,27 +191,24 @@ void saveSolutionPath(const ompl::geometric::ConstrainedSimpleSetupPtr &ss, bool
     }
 }
 
-int main (int argc, char **argv)
+int main(int argc, char **argv)
 {
     unsigned int numDimensions, numConstraints, runCount;
     double maxTime;
     std::string plannerList;
     bool savePath;
     po::options_description desc("Options");
-    desc.add_options()
-        ("help", "show help message")
-        ("numdim,d", po::value<unsigned int>(&numDimensions)->default_value(3),
-            "number of dimensions")
-        ("numconstraints,c", po::value<unsigned int>(&numConstraints)->default_value(6),
-            "number of constraints (should be between 6 and 10)")
-        ("runcount,n", po::value<unsigned int>(&runCount)->default_value(100),
-            "number of runs per planner")
-        ("maxtime,t", po::value<double>(&maxTime)->default_value(60.),
-            "maximum time for each run")
-        ("plannerlist,p", po::value<std::string>(&plannerList)->default_value("CBiRRT2,EST,PRM,RRT,RRTintermediate,RRTConnectIntermediate,RRTConnect,KPIECE1,STRIDE,RealEST,BiRealEST"),
-            "comma-separated list of planners")
-        ("savepath,s", po::bool_switch(&savePath)->default_value(false), "save path of last run")
-    ;
+    desc.add_options()("help", "show help message")(
+        "numdim,d", po::value<unsigned int>(&numDimensions)->default_value(3),
+        "number of dimensions")("numconstraints,c", po::value<unsigned int>(&numConstraints)->default_value(6),
+                                "number of constraints (should be between 6 and 10)")(
+        "runcount,n", po::value<unsigned int>(&runCount)->default_value(100), "number of runs per planner")(
+        "maxtime,t", po::value<double>(&maxTime)->default_value(60.), "maximum time for each run")(
+        "plannerlist,p", po::value<std::string>(&plannerList)->default_value("CBiRRT2,EST,PRM,RRT,RRTintermediate,"
+                                                                             "RRTConnectIntermediate,RRTConnect,"
+                                                                             "KPIECE1,STRIDE,RealEST,BiRealEST"),
+        "comma-separated list of planners")("savepath,s", po::bool_switch(&savePath)->default_value(false),
+                                            "save path of last run");
 
     po::variables_map vm;
     // po::store(po::parse_command_line(argc, argv, desc,
@@ -235,7 +234,7 @@ int main (int argc, char **argv)
     request.simplify = false;
 
     boost::tokenizer<> tok(plannerList);
-    for(boost::tokenizer<>::iterator planner=tok.begin(); planner!=tok.end(); ++planner)
+    for (boost::tokenizer<>::iterator planner = tok.begin(); planner != tok.end(); ++planner)
         bench.addPlanner(ompl::base::PlannerPtr(parsePlanner(planner->c_str(), si, RANGE)));
 
     bench.setPreRunEvent(&resetStateSpace);

@@ -37,15 +37,13 @@
 #ifndef OMPL_GEOMETRIC_CONSTRAINED_SIMPLE_SETUP_
 #define OMPL_GEOMETRIC_CONSTRAINED_SIMPLE_SETUP_
 
-#include "ompl/geometric/SimpleSetup.h"
 #include "ompl/base/ConstrainedSpaceInformation.h"
+#include "ompl/geometric/SimpleSetup.h"
 
 namespace ompl
 {
-
     namespace geometric
     {
-
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(ConstrainedSimpleSetup);
         /// @endcond
@@ -58,17 +56,15 @@ namespace ompl
         class ConstrainedSimpleSetup : public SimpleSetup
         {
         public:
-
             /** \brief Constructor needs the state space used for planning. */
-            explicit
-            ConstrainedSimpleSetup(const base::StateSpacePtr &space) : SimpleSetup(space)
+            explicit ConstrainedSimpleSetup(const base::StateSpacePtr &space) : SimpleSetup(space)
             {
                 csi_.reset(new base::ConstrainedSpaceInformation(space));
-                //si_ = boost::static_pointer_cast<base::SpaceInformation>(csi_);
+                // si_ = boost::static_pointer_cast<base::SpaceInformation>(csi_);
                 si_ = csi_;
                 pdef_.reset(new base::ProblemDefinition(si_));
                 psk_.reset(new PathSimplifier(si_));
-                //params_.include(si_->params());
+                // params_.include(si_->params());
             }
 
             virtual ~ConstrainedSimpleSetup(void)
@@ -76,17 +72,15 @@ namespace ompl
             }
 
             /** \brief Get the current instance of the constrained space information */
-            const base::ConstrainedSpaceInformationPtr& getConstrainedSpaceInformation(void) const
+            const base::ConstrainedSpaceInformationPtr &getConstrainedSpaceInformation(void) const
             {
                 return csi_;
             }
 
         protected:
-
             /// The created constrained space information
-            base::ConstrainedSpaceInformationPtr     csi_;
+            base::ConstrainedSpaceInformationPtr csi_;
         };
     }
-
 }
 #endif

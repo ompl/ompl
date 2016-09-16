@@ -38,38 +38,38 @@
 
 #include <eigen3/Eigen/Dense>
 
-ompl::base::AtlasConstraint::AtlasConstraint (AtlasStateSpacePtr &atlas)
-: Constraint(std::dynamic_pointer_cast<StateSpace>(atlas)), atlas_(*atlas), sampler_(&atlas_)
+ompl::base::AtlasConstraint::AtlasConstraint(AtlasStateSpacePtr &atlas)
+  : Constraint(std::dynamic_pointer_cast<StateSpace>(atlas)), atlas_(*atlas), sampler_(&atlas_)
 {
 }
 
-bool ompl::base::AtlasConstraint::isSatisfied (const State *state) const
+bool ompl::base::AtlasConstraint::isSatisfied(const State *state) const
 {
     return distance(state) <= atlas_.getProjectionTolerance();
 }
 
-double ompl::base::AtlasConstraint::distance (const State *state) const
+double ompl::base::AtlasConstraint::distance(const State *state) const
 {
     Eigen::VectorXd f(atlas_.getAmbientDimension() - atlas_.getManifoldDimension());
     atlas_.constraintFunction(vectorView(state), f);
     return f.norm();
 }
 
-bool ompl::base::AtlasConstraint::sample (State *state)
+bool ompl::base::AtlasConstraint::sample(State *state)
 {
     sampler_.sampleUniform(state->as<ompl::base::RealVectorStateSpace::StateType>());
     return project(state);
 }
 
-bool ompl::base::AtlasConstraint::project (State *state)
+bool ompl::base::AtlasConstraint::project(State *state)
 {
     atlas_.project(vectorView(state));
-    
+
     return isSatisfied(state);
 }
 
 Eigen::Map<Eigen::VectorXd> ompl::base::AtlasConstraint::vectorView(const State *state) const
 {
-    return Eigen::Map<Eigen::VectorXd>(state->as<RealVectorStateSpace::StateType>()->values, atlas_.getAmbientDimension());
+    return Eigen::Map<Eigen::VectorXd>(state->as<RealVectorStateSpace::StateType>()->values,
+                                       atlas_.getAmbientDimension());
 }
-

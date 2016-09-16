@@ -37,10 +37,10 @@
 #ifndef OMPL_GEOMETRIC_CONSTRAINTS_END_EFFECTOR_CONSTRAINT_
 #define OMPL_GEOMETRIC_CONSTRAINTS_END_EFFECTOR_CONSTRAINT_
 
-#include <vector>
-#include <limits>
 #include <boost/function.hpp>
 #include <eigen3/Eigen/Dense>
+#include <limits>
+#include <vector>
 
 #include "ompl/base/Constraint.h"
 #include "ompl/util/RandomNumbers.h"
@@ -57,12 +57,12 @@ namespace ompl
         /// compute the global reference frame of each link in the kinematic chain
         /// Assumed that the number of frames returned will be # links + 1
         /// (origin and end effector frames are included).
-        typedef boost::function<void(const base::State*, std::vector<Eigen::Affine3d>&)> EEForwardKinematicsFn;
+        typedef boost::function<void(const base::State *, std::vector<Eigen::Affine3d> &)> EEForwardKinematicsFn;
 
         /// \brief A function definition for inverse kinematics.  For the given pose,
         /// compute the joint positions for the kinematic chain that will achieve the
         /// pose.  If this computation fails, this function should return false.
-        typedef boost::function<bool(base::State*, const Eigen::Affine3d&)> EEInverseKinematicsFn;
+        typedef boost::function<bool(base::State *, const Eigen::Affine3d &)> EEInverseKinematicsFn;
 
         /// Representation of a pose constraint on the end effector of a kinematic
         /// chain.  This constraint is highly abstract and relies on callback
@@ -73,10 +73,9 @@ namespace ompl
             /// \brief Constructor.  Takes (entire) state space and the location
             /// of the (sub)space that is being constrained.  Function pointers
             /// to forward and inverse kinematics routines are also required.
-            EndEffectorConstraint(const base::StateSpacePtr& space,
-                                  const base::StateSpace::SubstateLocation& loc,
-                                  EEForwardKinematicsFn fk,
-                                  EEInverseKinematicsFn ik) : base::Constraint(space)
+            EndEffectorConstraint(const base::StateSpacePtr &space, const base::StateSpace::SubstateLocation &loc,
+                                  EEForwardKinematicsFn fk, EEInverseKinematicsFn ik)
+              : base::Constraint(space)
             {
                 loc_ = loc;
                 fk_ = fk;
@@ -143,11 +142,11 @@ namespace ompl
             }
 
             /// \brief Check whether this state satisfies the constraints
-            virtual bool isSatisfied(const base::State* state) const
+            virtual bool isSatisfied(const base::State *state) const
             {
                 // Get a pointer to the portion of the state space
                 // that this constraint refers to
-                const base::State* substate = space_->getSubstateAtLocation(state, loc_);
+                const base::State *substate = space_->getSubstateAtLocation(state, loc_);
 
                 // Compute global reference frames using FK
                 std::vector<Eigen::Affine3d> frames;
@@ -160,7 +159,7 @@ namespace ompl
 
                 // Checking orientation of last frame (end effector)
                 Eigen::Vector3d rpy;
-                rpy = frames.back().rotation().eulerAngles(0,1,2);
+                rpy = frames.back().rotation().eulerAngles(0, 1, 2);
                 for (size_t i = 0; i < 3 && valid; ++i)
                     valid = (fabs(rpy_(i) - rpy(i)) < rpyTol_(i));
 
@@ -168,7 +167,7 @@ namespace ompl
             }
 
             /// \brief Return the distance from satisfaction of a state
-            virtual double distance(const base::State* state) const
+            virtual double distance(const base::State *state) const
             {
                 // TODO: It is possible to take a distance.  See Berenson et.al. Task Space Region paper.
                 return std::numeric_limits<double>::max();
@@ -176,17 +175,17 @@ namespace ompl
 
             /// \brief Sample a state given the constraints.  If a state cannot
             /// be sampled, this method will return false.
-            virtual bool sample(base::State* state)
+            virtual bool sample(base::State *state)
             {
                 // Sampling a position within the tolerances
                 Eigen::Vector3d offset;
-                for(size_t i = 0; i < 3; ++i)
+                for (size_t i = 0; i < 3; ++i)
                     offset(i) = rng_.uniform01() * posTol_(i) * (rng_.uniform01() < 0.50 ? -1.0 : 1.0);
 
-                Eigen::Translation3d posSample (pos_ + offset);
+                Eigen::Translation3d posSample(pos_ + offset);
 
                 // Sampling an orientation within the tolerances
-                for(size_t i = 0; i < 3; ++i)
+                for (size_t i = 0; i < 3; ++i)
                     offset(i) = 2.0 * (rng_.uniform01() - 0.5) * rpyTol_(i);
 
                 Eigen::Affine3d desired(Eigen::AngleAxisd(rpy_(0), Eigen::Vector3d::UnitX()) *
@@ -206,7 +205,7 @@ namespace ompl
 
             /// \brief Project a state given the constraints.  If a valid
             /// projection cannot be found, this method will return false.
-            virtual bool project(base::State* state)
+            virtual bool project(base::State *state)
             {
                 // TODO: Should we first check for isSatisfied?
                 if (!isSatisfied(state))
@@ -214,11 +213,10 @@ namespace ompl
                 return true;
             }
 
-
         protected:
             base::StateSpace::SubstateLocation loc_;
-            EEForwardKinematicsFn              fk_;
-            EEInverseKinematicsFn              ik_;
+            EEForwardKinematicsFn fk_;
+            EEInverseKinematicsFn ik_;
 
             // The nominal pose for the end effector
             Eigen::Vector3d pos_;

@@ -38,7 +38,8 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
-ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, bool addIntermediateStates) : base::Planner(si, addIntermediateStates ? "RRTConnectIntermediate" : "RRTConnect")
+ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, bool addIntermediateStates)
+  : base::Planner(si, addIntermediateStates ? "RRTConnectIntermediate" : "RRTConnect")
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.directed = true;
@@ -47,7 +48,7 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, boo
     maxDistance_ = 0.0;
 
     Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange, "0.:1.:10000.");
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
+    connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
 }
 
@@ -66,14 +67,8 @@ void ompl::geometric::RRTConnect::setup()
         tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
     if (!tGoal_)
         tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
-    tStart_->setDistanceFunction([this](const Motion *a, const Motion *b)
-                                 {
-                                     return distanceFunction(a, b);
-                                 });
-    tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b)
-                                {
-                                    return distanceFunction(a, b);
-                                });
+    tStart_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
+    tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 }
 
 void ompl::geometric::RRTConnect::freeMemory()
@@ -112,7 +107,7 @@ void ompl::geometric::RRTConnect::clear()
         tStart_->clear();
     if (tGoal_)
         tGoal_->clear();
-    connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
+    connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
 }
 
@@ -141,12 +136,14 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
     if (addIntermediateStates_)
     {
         std::vector<base::State *> states;
-        const unsigned int count = 1 + si_->distance(nmotion->state, dstate) / si_->getStateValidityCheckingResolution();
+        const unsigned int count =
+            1 + si_->distance(nmotion->state, dstate) / si_->getStateValidityCheckingResolution();
         ompl::base::State *nstate = nmotion->state;
         if (tgi.start)
             si_->getMotionStates(nstate, dstate, states, count, true, true);
         else
-            si_->getStateValidityChecker()->isValid(dstate) && si_->getMotionStates(dstate, nstate, states, count, true, true);
+            si_->getStateValidityChecker()->isValid(dstate) &&
+                si_->getMotionStates(dstate, nstate, states, count, true, true);
         if (states.empty())
             return TRAPPED;
         bool adv = si_->distance(states.back(), tgi.start ? dstate : nstate) <= 0.01;
@@ -178,7 +175,9 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
     }
     else
     {
-        bool validMotion = tgi.start ? si_->checkMotion(nmotion->state, dstate) : si_->getStateValidityChecker()->isValid(dstate) && si_->checkMotion(dstate, nmotion->state);
+        bool validMotion =
+            tgi.start ? si_->checkMotion(nmotion->state, dstate) :
+                        si_->getStateValidityChecker()->isValid(dstate) && si_->checkMotion(dstate, nmotion->state);
 
         if (validMotion)
         {
@@ -296,7 +295,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
             if (newDist < distanceBetweenTrees_)
             {
                 distanceBetweenTrees_ = newDist;
-                //OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
+                // OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
             }
 
             Motion *startMotion = startTree ? tgi.xmotion : addedMotion;
