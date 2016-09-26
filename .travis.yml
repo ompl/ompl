@@ -1,39 +1,62 @@
-cache:
-  apt: true
-  directories:
-    - ${HOME}/castxml
-    - /usr/local
 language: cpp
 
 matrix:
   include:
+    # On Linux, exclude test_machine_specs; started to fail when we switched to g++-5
     - os: linux
       dist: trusty
       sudo: required
       compiler: gcc
-      env: PYTHONPATH=/usr/local/lib/python2.7/dist-packages PATH=${PATH}:${HOME}/castxml/bin
+      env: PYTHONPATH=/usr/local/lib/python2.7/dist-packages PATH=${PATH}:${HOME}/castxml/bin JOBS=4 TEST_EXCLUDE='test_machine_spec'
+      addons:
+        apt:
+          packages:
+            - libboost1.55-all-dev
+            - python-dev
+            - libode-dev
+            - libeigen3-dev
+            - python-pip
+      cache:
+        apt: true
+        directories:
+          - ${HOME}/castxml
+    # On OS X, exclude test_machine_specs; fails due to "lazy" memory freeing in Release mode
+    # (test passes in Debug builds).
+    # On OS X, exclude test_random; fails due to bug in Boost.Random in 1.56.
     - os: osx
       osx_image: xcode7.2
       compiler: clang
+      env: JOBS=2 TEST_EXCLUDE='test_(machine_specs|random)'
+      cache:
+        apt: true
+        directories:
+          - ${HOME}/castxml
+          - /usr/local
+    - os: linux
+      sudo: required
+      services:
+        - docker
+      env: DOCKERFILE="debian-jessie" JOBS=4
+    - os: linux
+      sudo: required
+      services:
+        - docker
+      env: DOCKERFILE="ubuntu-xenial" JOBS=4 TEST_EXCLUDE='test_(machine_specs|random)'
   allow_failures:
     - os: osx
 
-addons:
-  apt:
-    packages:
-      - libboost1.55-all-dev
-      - python-dev
-      - libode-dev
-      - libeigen3-dev
-      - python-pip
 
 install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+  - if [ -n "$DOCKERFILE" ]; then
+      docker build -t "$DOCKERFILE" -f "scripts/docker/$DOCKERFILE" .;
+    fi
+  - if [ -z "$DOCKERFILE" -a "$TRAVIS_OS_NAME" = "osx" ]; then
       brew install boost-python ode eigen python cmake;
       if [ ! -e ${HOME}/castxml ]; then
         curl https://midas3.kitware.com/midas/download/item/318762/castxml-macosx.tar.gz | tar zxf - -C ${HOME};
       fi;
-    else
+    fi
+  - if [ -z "$DOCKERFILE" -a "$TRAVIS_OS_NAME" = "linux" ]; then
       sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
       sudo apt-get -y update;
       sudo apt-get -y install g++-5;
@@ -46,26 +69,16 @@ install:
 
 
 script:
-  # Create build directory
-  - mkdir -p build
-  - cd build
-
-  # Configure
-  - cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp ..
-
-  # TIMES OUT BECAUSE IT DOES NOT PRODUCE OUTPUT FOR MORE THAN 10 MINUTES
-  # generate python bindings
-  #- make -j4 update_bindings
-
-  # Build
-  - make -j4
-
-  # Run unit tests
-  # On OS X, exclude test_machine_specs; fails due to "lazy" memory freeing in Release mode (test passes in Debug builds).
-  # On OS X, exclude test_random; fails due to bug in Boost.Random in 1.56.
-  # On Linux, exclude test_machine_specs; started to fail when we switched to g++-5
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      ctest -E 'test_(machine_specs|random)';
+  - if [ -n "$DOCKERFILE" ]; then
+      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j $JOBS && ctest -E '$TEST_EXCLUDE'";
     else
-      ctest -E 'test_machine_specs';
+      mkdir -p build &&
+      cd build &&
+      cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. &&
+      make -j $JOBS &&
+      ctest -E "$TEST_EXCLUDE";
     fi
+
+# TIMES OUT BECAUSE IT DOES NOT PRODUCE OUTPUT FOR MORE THAN 10 MINUTES
+# generate python bindings
+# make -j $JOBS update_bindings
