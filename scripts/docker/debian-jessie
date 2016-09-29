@@ -1,7 +1,8 @@
 FROM debian:jessie
 
-RUN apt-get -y update && \
-    apt-get install -y \
+COPY . /root/ompl
+
+RUN /root/ompl/scripts/docker/apt-retry.sh \
        build-essential  \
        cmake \
        libboost-all-dev \
@@ -12,7 +13,6 @@ RUN apt-get -y update && \
        python-pip
 
 
-COPY . /root/ompl
 
 
 # Local Variables:
