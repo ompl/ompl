@@ -316,7 +316,7 @@ const ompl::base::State *ompl::base::PlannerInputStates::nextGoal(const PlannerT
                                   bounds ? "state" : "bounds");
                         std::stringstream ss;
                         si_->printState(tempState_, ss);
-                        OMPL_DEBUG("%s: Discarded goal state %s",
+                        OMPL_DEBUG("%s: Discarded goal state:\n%s",
                                    planner_ ? planner_->getName().c_str() : "PlannerInputStates", ss.str().c_str());
                     }
                 } while (!ptc && sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample());
