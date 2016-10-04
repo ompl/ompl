@@ -424,14 +424,15 @@ namespace ompl
             /** \brief Option to use k-nearest search for rewiring */
             bool useKNearest_;
 
-            /** \brief The rewiring factor, s, so that r_rrg = s \times r_rrg* > r_rrg* (or k_rrg = s \times k_rrg* >
-             * k_rrg*) */
+            /** \brief The rewiring factor, s, so that r_rrt = s \times r_rrt* > r_rrt* (or k_rrt = s \times k_rrt* >
+             * k_rrt*) */
             double rewireFactor_;
 
             /** \brief A constant for k-nearest rewiring calculations */
-            double k_rrg_;
+            double k_rrt_;
+            
             /** \brief A constant for r-disc rewiring calculations */
-            double r_rrg_;
+            double r_rrt_;
 
             /** \brief Option to delay and reduce collision checking within iterations */
             bool delayCC_;

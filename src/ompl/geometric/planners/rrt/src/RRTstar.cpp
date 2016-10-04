@@ -54,8 +54,8 @@ ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si)
   , maxDistance_(0.0)
   , useKNearest_(true)
   , rewireFactor_(1.1)
-  , k_rrg_(0u)
-  , r_rrg_(0.0)
+  , k_rrt_(0u)
+  , r_rrt_(0.0)
   , delayCC_(true)
   , lastGoalMotion_(nullptr)
   , useTreePruning_(false)
@@ -251,11 +251,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     if (useKNearest_)
         OMPL_INFORM("%s: Initial k-nearest value of %u", getName().c_str(),
-                    (unsigned int)std::ceil(k_rrg_ * log((double)(nn_->size() + 1u))));
+                    (unsigned int)std::ceil(k_rrt_ * log((double)(nn_->size() + 1u))));
     else
         OMPL_INFORM(
             "%s: Initial rewiring radius of %.2f", getName().c_str(),
-            std::min(maxDistance_, r_rrg_ * std::pow(log((double)(nn_->size() + 1u)) / ((double)(nn_->size() + 1u)),
+            std::min(maxDistance_, r_rrt_ * std::pow(log((double)(nn_->size() + 1u)) / ((double)(nn_->size() + 1u)),
                                                      1 / (double)(si_->getStateDimension()))));
 
     // our functor for sorting nearest neighbors
@@ -604,13 +604,13 @@ void ompl::geometric::RRTstar::getNeighbors(Motion *motion, std::vector<Motion *
     if (useKNearest_)
     {
         //- k-nearest RRT*
-        unsigned int k = std::ceil(k_rrg_ * log(cardDbl));
+        unsigned int k = std::ceil(k_rrt_ * log(cardDbl));
         nn_->nearestK(motion, k, nbh);
     }
     else
     {
         double r = std::min(
-            maxDistance_, r_rrg_ * std::pow(log(cardDbl) / cardDbl, 1 / static_cast<double>(si_->getStateDimension())));
+            maxDistance_, r_rrt_ * std::pow(log(cardDbl) / cardDbl, 1 / static_cast<double>(si_->getStateDimension())));
         nn_->nearestR(motion, r, nbh);
     }
 }
@@ -1101,14 +1101,14 @@ bool ompl::geometric::RRTstar::sampleUniform(base::State *statePtr)
 
 void ompl::geometric::RRTstar::calculateRewiringLowerBounds()
 {
-    double dimDbl = static_cast<double>(si_->getStateDimension());
+    const double dimDbl = static_cast<double>(si_->getStateDimension());
+    
+    // k_rrt > 2^(d + 1) * e * (1 + 1 / d).  K-nearest RRT*
+    k_rrt_ = rewireFactor_ * (std::pow(2, dimDbl + 1) * boost::math::constants::e<double>() * (1.0 + 1.0 / dimDbl));
 
-    // k_rrg > e+e/d.  K-nearest RRT*
-    k_rrg_ = rewireFactor_ * (boost::math::constants::e<double>() + (boost::math::constants::e<double>() / dimDbl));
-
-    // r_rrg > 2*(1+1/d)^(1/d)*(measure/ballvolume)^(1/d)
+    // r_rrt > (2*(1+1/d))^(1/d)*(measure/ballvolume)^(1/d)
     // If we're not using the informed measure, prunedMeasure_ will be set to si_->getSpaceMeasure();
-    r_rrg_ =
-        rewireFactor_ * 2.0 *
-        std::pow((1.0 + 1.0 / dimDbl) * (prunedMeasure_ / unitNBallMeasure(si_->getStateDimension())), 1.0 / dimDbl);
+    r_rrt_ =
+        rewireFactor_ * 
+        std::pow(2 * (1.0 + 1.0 / dimDbl) * (prunedMeasure_ / unitNBallMeasure(si_->getStateDimension())), 1.0 / dimDbl);
 }
