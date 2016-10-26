@@ -92,6 +92,26 @@ namespace ompl
 
             ~CompoundState() override = default;
 
+            /** \brief Cast this instance to a desired type. */
+            template <class T>
+            T *as()
+            {
+                /** \brief Make sure the type we are casting to is indeed a state space */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, State *>));
+
+                return static_cast<T *>(this);
+            }
+
+            /** \brief Cast this instance to a desired type. */
+            template <class T>
+            const T *as() const
+            {
+                /** \brief Make sure the type we are casting to is indeed a state space */
+                BOOST_CONCEPT_ASSERT((boost::Convertible<T *, State *>));
+
+                return static_cast<const T *>(this);
+            }
+
             /** \brief Cast a component of this instance to a desired type. */
             template <class T>
             const T *as(const unsigned int index) const
