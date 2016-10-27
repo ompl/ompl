@@ -416,9 +416,9 @@ namespace ompl
             double rewireFactor_;
 
             /** \brief A constant for k-nearest rewiring calculations */
-            double k_rrg_;
+            double k_rrt_;
             /** \brief A constant for r-disc rewiring calculations */
-            double r_rrg_;
+            double r_rrt_;
 
             /** \brief Objective we're optimizing */
             base::OptimizationObjectivePtr opt_;
