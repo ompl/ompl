@@ -525,3 +525,9 @@ int ompl::geometric::PathGeometric::getClosestIndex(const base::State *state) co
     }
     return index;
 }
+
+void ompl::geometric::PathGeometric::clear()
+{
+    freeMemory();
+    states_.clear();
+}
