@@ -102,13 +102,13 @@ namespace ompl
             }
 
             /** \brief Get the current planner */
-            const base::PlannerPtr &getPlanner() const
+            virtual const base::PlannerPtr &getPlanner() const
             {
                 return planner_;
             }
 
             /** \brief Get the planner allocator */
-            const base::PlannerAllocator &getPlannerAllocator() const
+            virtual const base::PlannerAllocator &getPlannerAllocator() const
             {
                 return pa_;
             }
@@ -149,7 +149,7 @@ namespace ompl
             PathGeometric &getSolutionPath() const;
 
             /** \brief Get information about the exploration data structure the motion planner used. */
-            void getPlannerData(base::PlannerData &pd) const;
+            virtual void getPlannerData(base::PlannerData &pd) const;
 
             /** \brief Set the state validity checker to use */
             void setStateValidityChecker(const base::StateValidityCheckerPtr &svc)
@@ -205,7 +205,7 @@ namespace ompl
                 set, an attempt is made to use the planner
                 allocator. If no planner allocator is available
                 either, a default planner is set. */
-            void setPlanner(const base::PlannerPtr &planner)
+            virtual void setPlanner(const base::PlannerPtr &planner)
             {
                 if (planner && planner->getSpaceInformation().get() != si_.get())
                     throw Exception("Planner instance does not match space information");
@@ -216,7 +216,7 @@ namespace ompl
             /** \brief Set the planner allocator to use. This is only
                 used if no planner has been set. This is optional -- a default
                 planner will be used if no planner is otherwise specified. */
-            void setPlannerAllocator(const base::PlannerAllocator &pa)
+            virtual void setPlannerAllocator(const base::PlannerAllocator &pa)
             {
                 pa_ = pa;
                 planner_.reset();
