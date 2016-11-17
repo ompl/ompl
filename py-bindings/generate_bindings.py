@@ -155,6 +155,9 @@ class ompl_base_generator_t(code_generator_t):
         self.std_ns.class_('map< std::string, std::shared_ptr<ompl::base::GenericParam> >').rename('mapStringToGenericParam')
         self.std_ns.class_('map< std::string, ompl::base::StateSpace::SubstateLocation >').rename('mapStringToSubstateLocation')
         self.std_ns.class_('vector<ompl::base::PlannerSolution>').rename('vectorPlannerSolution')
+        pairStateDouble = self.std_ns.class_('pair<ompl::base::State *, double>')
+        pairStateDouble.rename('pairStateDouble')
+        pairStateDouble.include()
         self.ompl_ns.member_functions('maybeWrapBool').exclude()
         # rename some templated types
         self.ompl_ns.class_('SpecificParam< bool >').rename('SpecificParamBool')
