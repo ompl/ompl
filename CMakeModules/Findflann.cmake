@@ -11,4 +11,4 @@ if (FLANN_INCLUDE_DIR)
     endif()
 endif()
 
-find_package_handle_standard_args(flann DEFAULT_MSG FLANN_INCLUDE_DIRS)
+find_package_handle_standard_args(flann DEFAULT_MSG FLANN_LIBRARY FLANN_INCLUDE_DIRS)
