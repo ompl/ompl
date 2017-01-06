@@ -107,6 +107,16 @@ namespace ompl
                 return bestCost;
             }
         }
+
+        ProblemDefinitionPtr InformedSampler::getProblemDefn() const
+        {
+            return probDefn_;
+        }
+
+        unsigned int InformedSampler::getMaxNumberOfIters() const
+        {
+            return numIters_;
+        }
         /////////////////////////////////////////////////////////////////////////////////////////////
 
         /////////////////////////////////////////////////////////////////////////////////////////////
