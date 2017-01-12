@@ -52,7 +52,7 @@ set(OMPL_DEMO_INSTALL_DIR "share/ompl${OMPL_INSTALL_SUFFIX}/demos"
 # This is a hack that replaces boost::shared_ptr related code with std::shared_ptr.
 # Proper support for std::shared_ptr was added in Boost 1.63.
 if(Boost_VERSION VERSION_LESS "106300")
-    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ompl/src/external")
+    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/external")
 endif()
 
 include_directories("${OMPL_INCLUDE_DIR}")
