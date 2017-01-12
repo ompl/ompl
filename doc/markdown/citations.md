@@ -34,7 +34,7 @@ If you use the OMPL [benchmarking facilities](benchmark.html) or [Planner Arena]
   <a class="btn btn-default" href="http://dx.doi.org/10.1109/MRA.2015.2448276"> publisher </a>
   <button class="btn btn-default" type="button" data-toggle="modal" data-target="#moll2015benchmarking"> bibtex </button>
 </div>
-<div class="modal fade" tabindex="-1" id="moll2015benchmarking"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><h4 class="modal-title">BibTeX</h4></div><div class="modal-body"><pre>@article{sucan2012the-open-motion-planning-library,
+<div class="modal fade" tabindex="-1" id="moll2015benchmarking"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><h4 class="modal-title">BibTeX</h4></div><div class="modal-body"><pre>@article{moll2015benchmarking-motion-planning-algorithms,
     Author = {Mark Moll and Ioan A. {\c{S}}ucan and Lydia E. Kavraki},
     Doi = {10.1109/MRA.2015.2448276},
     Journal = {{IEEE} Robotics \& Automation Magazine},
