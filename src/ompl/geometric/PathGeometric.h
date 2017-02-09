@@ -251,6 +251,9 @@ namespace ompl
                 return states_.size();
             }
 
+            /** \brief Remove all states and clear memory */
+            void clear();
+
             /** @} */
 
         protected:

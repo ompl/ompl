@@ -1,0 +1,20 @@
+FROM ubuntu:xenial
+
+RUN apt-get -y update && \
+    apt-get install -y \
+       build-essential  \
+       cmake \
+       libboost-all-dev \
+       libflann-dev \
+       python-dev \
+       libode-dev \
+       libeigen3-dev \
+       python-pip
+
+
+COPY . /root/ompl
+
+
+# Local Variables:
+# mode: dockerfile
+# End:

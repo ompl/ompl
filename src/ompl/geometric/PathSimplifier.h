@@ -135,7 +135,7 @@ namespace ompl
 
                 \param rangeRatio the maximum distance between states
                 a connection is attempted, as a fraction relative to
-                the total number of states (between 0 and 1).
+                the total length of the path (between 0 and 1).
 
                 \param snapToVertex While sampling random points on
                 the path, sometimes the points may be close to

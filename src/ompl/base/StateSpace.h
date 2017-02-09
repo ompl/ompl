@@ -443,7 +443,7 @@ namespace ompl
                 @{ */
 
             /** \brief Print a state to a stream */
-            virtual void printState(const State *state, std::ostream &out) const;
+            virtual void printState(const State *state, std::ostream &out = std::cout) const;
 
             /** \brief Print the settings for this state space to a stream */
             virtual void printSettings(std::ostream &out) const;

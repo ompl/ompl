@@ -102,6 +102,12 @@ namespace ompl
             /** \todo With the future invention of a heuristic class, this should move.  */
             virtual Cost heuristicSolnCost(const State *statePtr) const;
 
+            /** Helper for the OrderedInfSampler wrapper */
+            ProblemDefinitionPtr getProblemDefn() const;
+
+            /** Helper for the OrderedInfSampler wrapper */
+            unsigned int getMaxNumberOfIters() const;
+
         protected:
             /** \brief A copy of the problem definition */
             ProblemDefinitionPtr probDefn_;

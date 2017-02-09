@@ -89,7 +89,8 @@ namespace ompl
         inline int dummySTLContainerSize()
         {
             return sizeof(std::vector<ompl::base::PlannerSolution>)
-                + sizeof(std::map<unsigned int, ompl::base::PlannerDataEdge const *>);
+                + sizeof(std::map<unsigned int, ompl::base::PlannerDataEdge const *>)
+                + sizeof(std::pair<ompl::base::State*, double>);
         }
     }
 }

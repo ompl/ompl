@@ -254,6 +254,28 @@ namespace ompl
                 return useAdmissibleCostToCome_;
             }
 
+            /** \brief Controls whether samples are returned in ordered by the heuristic. This is accomplished by
+             * generating a batch at a time. */
+            void setOrderedSampling(bool orderSamples);
+
+            /** \brief Get the state of sample ordering. */
+            bool getOrderedSampling() const
+            {
+                return useOrderedSampling_;
+            }
+
+            /** \brief Set the batch size used for sample ordering*/
+            void setBatchSize(unsigned int batchSize)
+            {
+                batchSize_ = batchSize;
+            }
+
+            /** \brief Get the batch size used for sample ordering*/
+            unsigned int getBatchSize() const
+            {
+                return batchSize_;
+            }
+
             /** \brief A \e meta parameter to focusing the search to improving the current solution. This is the
             parameter set by CFOREST.
             For RRT*, search focusing consists of pruning the existing search and limiting future search.
@@ -327,7 +349,7 @@ namespace ompl
                 /** \brief The parent motion in the exploration tree */
                 Motion *parent;
 
-                /** \brief True if this vertex is in the goal region */
+                /** \brief Set to true if this vertex is in the goal region */
                 bool inGoal;
 
                 /** \brief The cost up to this motion */
@@ -424,14 +446,15 @@ namespace ompl
             /** \brief Option to use k-nearest search for rewiring */
             bool useKNearest_;
 
-            /** \brief The rewiring factor, s, so that r_rrg = s \times r_rrg* > r_rrg* (or k_rrg = s \times k_rrg* >
-             * k_rrg*) */
+            /** \brief The rewiring factor, s, so that r_rrt = s \times r_rrt* > r_rrt* (or k_rrt = s \times k_rrt* >
+             * k_rrt*) */
             double rewireFactor_;
 
             /** \brief A constant for k-nearest rewiring calculations */
-            double k_rrg_;
+            double k_rrt_;
+            
             /** \brief A constant for r-disc rewiring calculations */
-            double r_rrg_;
+            double r_rrt_;
 
             /** \brief Option to delay and reduce collision checking within iterations */
             bool delayCC_;
@@ -468,6 +491,12 @@ namespace ompl
 
             /** \brief The number of attempts to make at informed sampling */
             unsigned int numSampleAttempts_;
+
+            /** \brief Option to create batches of samples and order them. */
+            bool useOrderedSampling_;
+
+            /** \brief The size of the batches. */
+            unsigned int batchSize_;
 
             /** \brief Stores the start states as Motions. */
             std::vector<Motion *> startMotions_;
