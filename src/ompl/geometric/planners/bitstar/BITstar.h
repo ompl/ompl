@@ -149,6 +149,9 @@ namespace ompl
             /** \brief An search queue shared pointer. */
             typedef std::shared_ptr<SearchQueue> SearchQueuePtr;
 
+            /** \brief A utility functor for ImplicitGraph and SearchQueue */
+            typedef std::function<std::string()> NameFunc;
+
             /** \brief Construct! */
             BITstar(const base::SpaceInformationPtr &si, const std::string &name = "BITstar");
 

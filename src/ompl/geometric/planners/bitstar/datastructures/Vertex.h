@@ -181,12 +181,6 @@ namespace ompl
             /** \brief Mark the vertex as unpruned. */
             void markUnpruned();
 
-            /** \brief Mark the given vertex as a \e failed connection from this vertex */
-            void markAsFailedChild(const VertexConstPtr &failedChild);
-
-            /** \brief Check if the given vertex has previously been marked as a failed child of this vertex */
-            bool hasAlreadyFailed(const VertexConstPtr &potentialChild) const;
-
         protected:
             /** \brief Calculates the updated cost and depth of the current state, as well as calling all children's
              * updateCostAndDepth() functions and thus updating everything down-stream (if desired).*/

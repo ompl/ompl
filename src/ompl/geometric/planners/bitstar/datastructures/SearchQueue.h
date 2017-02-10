@@ -112,7 +112,7 @@ namespace ompl
             //////////////////
             // Public functions:
             /** \brief Construct a search queue. It must be setup before use. */
-            SearchQueue(std::function<std::string()> nameFunc);
+            SearchQueue(NameFunc nameFunc);
 
             virtual ~SearchQueue() = default;
 
@@ -169,9 +169,6 @@ namespace ompl
             // Queue maintenance
             /** \brief Mark that a solution has been found */
             void hasSolution(const ompl::base::Cost &solnCost);
-
-            /** \brief Get the threshold of the queue */
-            ompl::base::Cost getThreshold() const;
 
             /** \brief Erase all edges in the edge queue that lead to the given vertex */
             void removeEdgesTo(const VertexPtr &cVertex);
@@ -416,7 +413,7 @@ namespace ompl
             ////////////////////////////////
             // Variables -- Make sure every one is configured in setup() and reset in clear():
             /** \brief A function pointer to the planner name, for better OMPL_INFO, etc. output */
-            std::function<std::string()> nameFunc_;
+            NameFunc nameFunc_;
 
             /** \brief Whether the class is setup */
             bool isSetup_;

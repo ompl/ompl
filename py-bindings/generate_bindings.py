@@ -531,8 +531,7 @@ class ompl_geometric_generator_t(code_generator_t):
             'def("setPlannerAllocator", &ompl::geometric::SimpleSetup::setPlannerAllocator)')
         self.ompl_ns.namespace('geometric').class_('SimpleSetup').add_registration_code(
             'def("getPlannerAllocator", &ompl::geometric::SimpleSetup::getPlannerAllocator, bp::return_value_policy< bp::copy_const_reference >())')
-        # rename to something simpler
-        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >').rename('vectorBITstarVertexPtr')
+        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >').exclude()
         self.std_ns.class_('vector<const ompl::base::State *>').exclude()
 
         # Py++ seems to get confused by some methods declared in one module
