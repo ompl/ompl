@@ -60,12 +60,12 @@ ompl::geometric::ConstrainedRRT::ConstrainedRRT(const base::SpaceInformationPtr 
                                   "0.:.05:1.");
 }
 
-ompl::geometric::ConstrainedRRT::~ConstrainedRRT(void)
+ompl::geometric::ConstrainedRRT::~ConstrainedRRT()
 {
     freeMemory();
 }
 
-void ompl::geometric::ConstrainedRRT::clear(void)
+void ompl::geometric::ConstrainedRRT::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -75,7 +75,7 @@ void ompl::geometric::ConstrainedRRT::clear(void)
     lastGoalMotion_ = nullptr;
 }
 
-void ompl::geometric::ConstrainedRRT::setup(void)
+void ompl::geometric::ConstrainedRRT::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -87,17 +87,17 @@ void ompl::geometric::ConstrainedRRT::setup(void)
         std::bind(&ConstrainedRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-void ompl::geometric::ConstrainedRRT::freeMemory(void)
+void ompl::geometric::ConstrainedRRT::freeMemory()
 {
     if (nn_)
     {
         std::vector<Motion *> motions;
         nn_->list(motions);
-        for (unsigned int i = 0; i < motions.size(); ++i)
+        for (auto & motion : motions)
         {
-            if (motions[i]->state)
-                si_->freeState(motions[i]->state);
-            delete motions[i];
+            if (motion->state)
+                si_->freeState(motion->state);
+            delete motion;
         }
     }
 }
@@ -159,7 +159,7 @@ ompl::base::PlannerStatus ompl::geometric::ConstrainedRRT::solve(const base::Pla
 
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        auto motion = new Motion(si_);
         si_->copyState(motion->state, st);
         nn_->add(motion);
     }
@@ -181,7 +181,7 @@ ompl::base::PlannerStatus ompl::geometric::ConstrainedRRT::solve(const base::Pla
     OMPL_INFORM("%s: Starting with %u states", getName().c_str(), nn_->size());
 
     Motion *solution = nullptr;
-    Motion *rmotion = new Motion(si_);
+    auto rmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
@@ -217,7 +217,7 @@ ompl::base::PlannerStatus ompl::geometric::ConstrainedRRT::solve(const base::Pla
             // Create a new motion for the sequence of states in the extension
             for (size_t i = 0; i < extension.size(); ++i)
             {
-                Motion *motion = new Motion(extension[i], parent);
+                auto motion = new Motion(extension[i], parent);
                 parent = motion;
 
                 nn_->add(motion);
@@ -272,7 +272,7 @@ ompl::base::PlannerStatus ompl::geometric::ConstrainedRRT::solve(const base::Pla
         }
 
         // Store the solution path
-        PathGeometric *path = new PathGeometric(si_);
+        auto path = new PathGeometric(si_);
         for (int i = mpath.size() - 1; i >= 0; --i)
             path->append(mpath[i]->state);
         pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
@@ -327,12 +327,12 @@ void ompl::geometric::ConstrainedRRT::getPlannerData(base::PlannerData &data) co
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-    for (unsigned int i = 0; i < motions.size(); ++i)
+    for (auto & motion : motions)
     {
-        if (motions[i]->parent == nullptr)
-            data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
+        if (motion->parent == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(motion->state));
         else
-            data.addEdge(base::PlannerDataVertex(motions[i]->parent->state),
-                         base::PlannerDataVertex(motions[i]->state));
+            data.addEdge(base::PlannerDataVertex(motion->parent->state),
+                         base::PlannerDataVertex(motion->state));
     }
 }

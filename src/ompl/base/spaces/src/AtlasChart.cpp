@@ -57,12 +57,12 @@ void ompl::base::AtlasChart::Halfspace::setComplement(Halfspace *complement)
     complement_ = complement;
 }
 
-ompl::base::AtlasChart::Halfspace *ompl::base::AtlasChart::Halfspace::getComplement(void) const
+ompl::base::AtlasChart::Halfspace *ompl::base::AtlasChart::Halfspace::getComplement() const
 {
     return complement_;
 }
 
-const ompl::base::AtlasChart &ompl::base::AtlasChart::Halfspace::getOwner(void) const
+const ompl::base::AtlasChart &ompl::base::AtlasChart::Halfspace::getOwner() const
 {
     return owner_;
 }
@@ -180,29 +180,29 @@ ompl::base::AtlasChart::AtlasChart(const AtlasStateSpace &atlas, Eigen::Ref<cons
     bigPhi_ = nullDecomp.householderQ() * Eigen::MatrixXd::Identity(n_, k_);
 }
 
-ompl::base::AtlasChart::~AtlasChart(void)
+ompl::base::AtlasChart::~AtlasChart()
 {
     clear();
 }
 
-void ompl::base::AtlasChart::clear(void)
+void ompl::base::AtlasChart::clear()
 {
     for (Halfspace *h : polytope_)
         delete h;
     polytope_.clear();
 }
 
-bool ompl::base::AtlasChart::isAnchor(void) const
+bool ompl::base::AtlasChart::isAnchor() const
 {
     return isAnchor_;
 }
 
-void ompl::base::AtlasChart::makeAnchor(void)
+void ompl::base::AtlasChart::makeAnchor()
 {
     isAnchor_ = true;
 }
 
-const Eigen::VectorXd &ompl::base::AtlasChart::getXorigin(void) const
+const Eigen::VectorXd &ompl::base::AtlasChart::getXorigin() const
 {
     return xorigin_;
 }
@@ -294,7 +294,7 @@ void ompl::base::AtlasChart::setID(unsigned int id)
     id_ = id;
 }
 
-unsigned int ompl::base::AtlasChart::getID(void) const
+unsigned int ompl::base::AtlasChart::getID() const
 {
     return id_;
 }

@@ -108,7 +108,7 @@ bool inverseKinematics(ob::State *state, const std::map<unsigned int, Eigen::Aff
         throw ompl::Exception("IK solution only works for 3 link manipulator");
 
     // Only computing IK for end effector
-    std::map<unsigned int, Eigen::Affine3d>::const_iterator pose_it = poses.find(numLinks);
+    auto pose_it = poses.find(numLinks);
     if (pose_it == poses.end())
         throw ompl::Exception("No pose for end effector specified");
 
@@ -209,9 +209,9 @@ BOOST_AUTO_TEST_CASE(ForwardKinematics)
 
         // Checking Orientations
         // All should be zero
-        for (size_t i = 0; i < frames.size(); ++i)
+        for (auto & frame : frames)
         {
-            Eigen::Vector3d rpy = frames[i].rotation().eulerAngles(0, 1, 2);  // rpy, in that order
+            Eigen::Vector3d rpy = frame.rotation().eulerAngles(0, 1, 2);  // rpy, in that order
             for (unsigned int j = 0; j < 3; ++j)
                 BOOST_CHECK(fabs(rpy(j)) < 1e-6);
         }

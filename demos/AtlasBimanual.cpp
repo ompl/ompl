@@ -199,7 +199,7 @@ public:
     }
 
     // We will let jacobianFunction be computed numerically instead of writing it out.
-    void constraintFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    void constraintFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const override
     {
         // Compute left and right object positions.
         Eigen::VectorXd left(3), right(3);
@@ -368,11 +368,11 @@ int main(int argc, char **argv)
         if (cons)
         {
             std::ofstream animFile("anim.txt");
-            for (std::size_t i = 0; i < waypoints.size(); i++)
+            for (auto waypoint : waypoints)
             {
                 // std::cout << "[" <<
                 // waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose() << "]\n";
-                animFile << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose()
+                animFile << waypoint->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose()
                          << "\n";
             }
             animFile.close();
@@ -411,8 +411,8 @@ int main(int argc, char **argv)
                 }
 
                 // Delete the intermediate states
-                for (std::size_t i = 0; i < stateList.size(); i++)
-                    atlas->freeState(stateList[i]);
+                for (auto & i : stateList)
+                    atlas->freeState(i);
             }
             animFile.close();
             // std::cout << "-----\n";

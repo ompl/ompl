@@ -57,12 +57,12 @@ ompl::geometric::CBiRRT2::CBiRRT2(const base::SpaceInformationPtr &si) : base::P
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
 }
 
-ompl::geometric::CBiRRT2::~CBiRRT2(void)
+ompl::geometric::CBiRRT2::~CBiRRT2()
 {
     freeMemory();
 }
 
-void ompl::geometric::CBiRRT2::clear(void)
+void ompl::geometric::CBiRRT2::clear()
 {
     Planner::clear();
     sampler_.reset();
@@ -75,7 +75,7 @@ void ompl::geometric::CBiRRT2::clear(void)
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
 }
 
-void ompl::geometric::CBiRRT2::setup(void)
+void ompl::geometric::CBiRRT2::setup()
 {
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
@@ -91,28 +91,28 @@ void ompl::geometric::CBiRRT2::setup(void)
         std::bind(&CBiRRT2::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-void ompl::geometric::CBiRRT2::freeMemory(void)
+void ompl::geometric::CBiRRT2::freeMemory()
 {
     std::vector<Motion *> motions;
     if (tStart_)
     {
         tStart_->list(motions);
-        for (unsigned int i = 0; i < motions.size(); ++i)
+        for (auto & motion : motions)
         {
-            if (motions[i]->state)
-                si_->freeState(motions[i]->state);
-            delete motions[i];
+            if (motion->state)
+                si_->freeState(motion->state);
+            delete motion;
         }
     }
 
     if (tGoal_)
     {
         tGoal_->list(motions);
-        for (unsigned int i = 0; i < motions.size(); ++i)
+        for (auto & motion : motions)
         {
-            if (motions[i]->state)
-                si_->freeState(motions[i]->state);
-            delete motions[i];
+            if (motion->state)
+                si_->freeState(motion->state);
+            delete motion;
         }
     }
 }
@@ -157,9 +157,9 @@ ompl::geometric::CBiRRT2::GrowState ompl::geometric::CBiRRT2::growTree(TreeData 
     {
         const Motion *parent = nmotion;
         // Create a new motion for the sequence of states in the extension
-        for (size_t i = 0; i < extension.size(); ++i)
+        for (auto & i : extension)
         {
-            Motion *motion = new Motion(extension[i]);
+            auto motion = new Motion(i);
             motion->parent = parent;
             motion->root = parent->root;
             tree->add(motion);
@@ -257,7 +257,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
     // Get a start state and root the start tree with it
     while (const base::State *st = pis_.nextStart())
     {
-        Motion *motion = new Motion(si_);
+        auto motion = new Motion(si_);
         si_->copyState(motion->state, st);
         motion->root = motion->state;
         tStart_->add(motion);
@@ -283,7 +283,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
     TreeGrowingInfo tgi;
     tgi.xstate = si_->allocState();
 
-    Motion *rmotion = new Motion(si_);
+    auto rmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
     bool solved = false;
 
@@ -301,7 +301,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
             {
                 if (ci_->isSatisfied(st))
                 {
-                    Motion *motion = new Motion(si_);
+                    auto motion = new Motion(si_);
                     si_->copyState(motion->state, st);
                     motion->root = motion->state;
                     tGoal_->add(motion);
@@ -399,12 +399,12 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT2::solve(const base::PlannerTer
             }
 
             // Concatenating the start and goal paths
-            PathGeometric *path = new PathGeometric(si_);
+            auto path = new PathGeometric(si_);
             path->getStates().reserve(mpath1.size() + mpath2.size());
             for (int i = mpath1.size() - 1; i >= 0; --i)
                 path->append(mpath1[i]->state);
-            for (unsigned int i = 0; i < mpath2.size(); ++i)
-                path->append(mpath2[i]->state);
+            for (auto & i : mpath2)
+                path->append(i->state);
 
             shortcutPath(path, ptc);
             pdef_->addSolutionPath(base::PathPtr(path), false, 0.0);
@@ -473,8 +473,8 @@ bool ompl::geometric::CBiRRT2::shortcutPath(PathGeometric *path, const base::Pla
 
         if (!foundShortcut)
         {
-            for (size_t k = 0; k < shortcut.size(); ++k)
-                si_->freeState(shortcut[k]);
+            for (auto & k : shortcut)
+                si_->freeState(k);
             count++;
         }
         else
@@ -492,14 +492,14 @@ void ompl::geometric::CBiRRT2::getPlannerData(base::PlannerData &data) const
     if (tStart_)
         tStart_->list(motions);
 
-    for (unsigned int i = 0; i < motions.size(); ++i)
+    for (auto & motion : motions)
     {
-        if (motions[i]->parent == nullptr)
-            data.addStartVertex(base::PlannerDataVertex(motions[i]->state, 1));
+        if (motion->parent == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(motion->state, 1));
         else
         {
-            data.addEdge(base::PlannerDataVertex(motions[i]->parent->state, 1),
-                         base::PlannerDataVertex(motions[i]->state, 1));
+            data.addEdge(base::PlannerDataVertex(motion->parent->state, 1),
+                         base::PlannerDataVertex(motion->state, 1));
         }
     }
 
@@ -507,15 +507,15 @@ void ompl::geometric::CBiRRT2::getPlannerData(base::PlannerData &data) const
     if (tGoal_)
         tGoal_->list(motions);
 
-    for (unsigned int i = 0; i < motions.size(); ++i)
+    for (auto & motion : motions)
     {
-        if (motions[i]->parent == nullptr)
-            data.addGoalVertex(base::PlannerDataVertex(motions[i]->state, 2));
+        if (motion->parent == nullptr)
+            data.addGoalVertex(base::PlannerDataVertex(motion->state, 2));
         else
         {
             // The edges in the goal tree are reversed to be consistent with start tree
-            data.addEdge(base::PlannerDataVertex(motions[i]->state, 2),
-                         base::PlannerDataVertex(motions[i]->parent->state, 2));
+            data.addEdge(base::PlannerDataVertex(motion->state, 2),
+                         base::PlannerDataVertex(motion->parent->state, 2));
         }
     }
 

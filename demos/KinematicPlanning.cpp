@@ -175,12 +175,12 @@ class EndEffectorGoal : public ob::GoalLazySamples
 {
 public:
     EndEffectorGoal(const ob::SpaceInformationPtr &si, const ob::GoalSamplingFn &sampler,
-                    const og::EndEffectorConstraintPtr &ee)
-      : ob::GoalLazySamples(si, sampler), ee_(ee)
+                    og::EndEffectorConstraintPtr ee)
+      : ob::GoalLazySamples(si, sampler), ee_(std::move(ee))
     {
     }
 
-    virtual ~EndEffectorGoal()
+    ~EndEffectorGoal() override
     {
         // Very important.  Goal sampling thread may be running when
         // this object gets destroyed, causing a seg fault when accessing
@@ -188,12 +188,12 @@ public:
         ee_.reset();
     }
 
-    virtual bool isSatisfied(const ob::State *state) const
+    bool isSatisfied(const ob::State *state) const override
     {
         return ee_->isSatisfied(state);
     }
 
-    virtual double distanceGoal(const ob::State *state) const
+    double distanceGoal(const ob::State *state) const override
     {
         OMPL_WARN("%s: NOT IMPLEMENTED", __FUNCTION__);
         return std::numeric_limits<double>::max();

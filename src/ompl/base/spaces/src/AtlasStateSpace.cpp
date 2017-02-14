@@ -325,7 +325,7 @@ ompl::base::AtlasStateSpace::StateType::StateType(const unsigned int &dimension)
     values = new double[dimension_];
 }
 
-ompl::base::AtlasStateSpace::StateType::~StateType(void)
+ompl::base::AtlasStateSpace::StateType::~StateType()
 {
     // Do what RealVectorStateSpace::freeState() would have done.
     delete[] values;
@@ -346,17 +346,17 @@ void ompl::base::AtlasStateSpace::StateType::setRealState(const Eigen::VectorXd 
     chart_ = c;
 }
 
-Eigen::Map<Eigen::VectorXd> ompl::base::AtlasStateSpace::StateType::vectorView(void) const
+Eigen::Map<Eigen::VectorXd> ompl::base::AtlasStateSpace::StateType::vectorView() const
 {
     return Eigen::Map<Eigen::VectorXd>(values, dimension_);
 }
 
-Eigen::Map<const Eigen::VectorXd> ompl::base::AtlasStateSpace::StateType::constVectorView(void) const
+Eigen::Map<const Eigen::VectorXd> ompl::base::AtlasStateSpace::StateType::constVectorView() const
 {
     return Eigen::Map<const Eigen::VectorXd>(values, dimension_);
 }
 
-ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart(void) const
+ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart() const
 {
     return chart_;
 }
@@ -392,7 +392,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const unsigned int ambientDimension
     chartNN_.setDistanceFunction(&chartNNDistanceFunction);
 }
 
-ompl::base::AtlasStateSpace::~AtlasStateSpace(void)
+ompl::base::AtlasStateSpace::~AtlasStateSpace()
 {
     for (AtlasChart *c : charts_)
         delete c;
@@ -440,7 +440,7 @@ void ompl::base::AtlasStateSpace::setMode(const Mode mode)
     mode_ = mode;
 }
 
-void ompl::base::AtlasStateSpace::setup(void)
+void ompl::base::AtlasStateSpace::setup()
 {
     if (setup_)
         return;
@@ -464,7 +464,7 @@ void ompl::base::AtlasStateSpace::checkSpace(const SpaceInformation *si)
                               "si needs to use an AtlasStateSpace!");
 }
 
-void ompl::base::AtlasStateSpace::clear(void)
+void ompl::base::AtlasStateSpace::clear()
 {
     // Delete the non-anchor charts
     std::vector<AtlasChart *> anchorCharts;
@@ -587,62 +587,62 @@ void ompl::base::AtlasStateSpace::setMaxChartsPerExtension(const unsigned int ch
     maxChartsPerExtension_ = charts;
 }
 
-double ompl::base::AtlasStateSpace::getDelta(void) const
+double ompl::base::AtlasStateSpace::getDelta() const
 {
     return delta_;
 }
 
-double ompl::base::AtlasStateSpace::getEpsilon(void) const
+double ompl::base::AtlasStateSpace::getEpsilon() const
 {
     return epsilon_;
 }
 
-double ompl::base::AtlasStateSpace::getRho(void) const
+double ompl::base::AtlasStateSpace::getRho() const
 {
     return rho_;
 }
 
-double ompl::base::AtlasStateSpace::getAlpha(void) const
+double ompl::base::AtlasStateSpace::getAlpha() const
 {
     return std::acos(cos_alpha_);
 }
 
-double ompl::base::AtlasStateSpace::getExploration(void) const
+double ompl::base::AtlasStateSpace::getExploration() const
 {
     return exploration_;
 }
 
-double ompl::base::AtlasStateSpace::getLambda(void) const
+double ompl::base::AtlasStateSpace::getLambda() const
 {
     return lambda_;
 }
 
-double ompl::base::AtlasStateSpace::getRho_s(void) const
+double ompl::base::AtlasStateSpace::getRho_s() const
 {
     return rho_s_;
 }
 
-double ompl::base::AtlasStateSpace::getProjectionTolerance(void) const
+double ompl::base::AtlasStateSpace::getProjectionTolerance() const
 {
     return projectionTolerance_;
 }
 
-unsigned int ompl::base::AtlasStateSpace::getProjectionMaxIterations(void) const
+unsigned int ompl::base::AtlasStateSpace::getProjectionMaxIterations() const
 {
     return projectionMaxIterations_;
 }
 
-unsigned int ompl::base::AtlasStateSpace::getMaxChartsPerExtension(void) const
+unsigned int ompl::base::AtlasStateSpace::getMaxChartsPerExtension() const
 {
     return maxChartsPerExtension_;
 }
 
-unsigned int ompl::base::AtlasStateSpace::getAmbientDimension(void) const
+unsigned int ompl::base::AtlasStateSpace::getAmbientDimension() const
 {
     return n_;
 }
 
-unsigned int ompl::base::AtlasStateSpace::getManifoldDimension(void) const
+unsigned int ompl::base::AtlasStateSpace::getManifoldDimension() const
 {
     return k_;
 }
@@ -688,7 +688,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Vecto
     return addedC;
 }
 
-ompl::base::AtlasChart *ompl::base::AtlasStateSpace::sampleChart(void) const
+ompl::base::AtlasChart *ompl::base::AtlasStateSpace::sampleChart() const
 {
     if (charts_.empty())
         throw ompl::Exception("ompl::base::AtlasStateSpace::sampleChart(): "
@@ -722,7 +722,7 @@ double ompl::base::AtlasStateSpace::chartNNDistanceFunction(const NNElement &e1,
     return (*e1.first - *e2.first).norm();
 }
 
-std::size_t ompl::base::AtlasStateSpace::getChartCount(void) const
+std::size_t ompl::base::AtlasStateSpace::getChartCount() const
 {
     return charts_.size();
 }
@@ -901,7 +901,7 @@ void ompl::base::AtlasStateSpace::piecewiseInterpolate(const std::vector<StateTy
                                                        State *state) const
 {
     std::size_t n = stateList.size();
-    double *d = new double[n];
+    auto d = new double[n];
 
     // Compute partial sums of distances between intermediate states.
     d[0] = 0;
@@ -947,7 +947,7 @@ void ompl::base::AtlasStateSpace::piecewiseInterpolate(const std::vector<StateTy
     }
 }
 
-bool ompl::base::AtlasStateSpace::hasSymmetricInterpolate(void) const
+bool ompl::base::AtlasStateSpace::hasSymmetricInterpolate() const
 {
     return true;
 }
@@ -959,14 +959,14 @@ void ompl::base::AtlasStateSpace::copyState(State *destination, const State *sou
     adest->copyFrom(asrc);
 }
 
-ompl::base::StateSamplerPtr ompl::base::AtlasStateSpace::allocDefaultStateSampler(void) const
+ompl::base::StateSamplerPtr ompl::base::AtlasStateSpace::allocDefaultStateSampler() const
 {
     if (mode_ == REALVECTOR)
         return RealVectorStateSpace::allocDefaultStateSampler();
     return StateSamplerPtr(new AtlasStateSampler(*this));
 }
 
-ompl::base::State *ompl::base::AtlasStateSpace::allocState(void) const
+ompl::base::State *ompl::base::AtlasStateSpace::allocState() const
 {
     return new StateType(n_);
 }

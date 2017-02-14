@@ -41,8 +41,7 @@ ompl::base::ConstraintInformation::ConstraintInformation()
 }
 
 ompl::base::ConstraintInformation::~ConstraintInformation()
-{
-}
+= default;
 
 void ompl::base::ConstraintInformation::addConstraint(const ConstraintPtr &constraint)
 {

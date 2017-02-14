@@ -133,8 +133,8 @@ void saveSolutionPath(const ompl::geometric::ConstrainedSimpleSetupPtr &ss, bool
     if (cons)
     {
         std::ofstream animFile("anim.txt");
-        for (std::size_t i = 0; i < waypoints.size(); i++)
-            animFile << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose()
+        for (auto waypoint : waypoints)
+            animFile << waypoint->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose()
                      << "\n";
         animFile.close();
     }
@@ -159,8 +159,8 @@ void saveSolutionPath(const ompl::geometric::ConstrainedSimpleSetupPtr &ss, bool
                     animFile << stateList[i]->constVectorView().transpose() << "\n";
 
             // Delete the intermediate states
-            for (std::size_t i = 0; i < stateList.size(); i++)
-                atlas->freeState(stateList[i]);
+            for (auto & i : stateList)
+                atlas->freeState(i);
         }
         animFile.close();
     }

@@ -143,11 +143,11 @@ int main(int argc, char **argv)
         if (cons)
         {
             std::ofstream animFile("anim.txt");
-            for (std::size_t i = 0; i < waypoints.size(); i++)
+            for (auto waypoint : waypoints)
             {
                 // std::cout << "[" <<
                 // waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose() << "]\n";
-                animFile << waypoints[i]->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose()
+                animFile << waypoint->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose()
                          << "\n";
             }
             animFile.close();
@@ -186,8 +186,8 @@ int main(int argc, char **argv)
                 }
 
                 // Delete the intermediate states
-                for (std::size_t i = 0; i < stateList.size(); i++)
-                    atlas->freeState(stateList[i]);
+                for (auto & i : stateList)
+                    atlas->freeState(i);
             }
             animFile.close();
             // std::cout << "-----\n";
