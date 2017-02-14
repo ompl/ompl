@@ -186,8 +186,7 @@ ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTer
         OMPL_WARN("Cannot use previously set intermediate solution callback with %s", getName().c_str());
 
     pdef_->setIntermediateSolutionCallback(
-        [this](const base::Planner *planner, const std::vector<const base::State *> &states, const base::Cost cost)
-        {
+        [this](const base::Planner *planner, const std::vector<const base::State *> &states, const base::Cost cost) {
             return newSolutionFound(planner, states, cost);
         });
     bestCost_ = opt_->infiniteCost();

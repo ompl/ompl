@@ -1504,15 +1504,13 @@ namespace ompl
             // Assert there is something to delete:
             if (vertexQueue_.empty() == true)
             {
-                std::cout << std::endl
-                          << "vId: " << vertexToDelete->getId() << std::endl;
+                std::cout << std::endl << "vId: " << vertexToDelete->getId() << std::endl;
                 throw ompl::Exception("Removing a nonexistent vertex. Something went wrong.");
             }
             // Assert that it was found
             if (lookupIter == vertexIterLookup_.end())
             {
-                std::cout << std::endl
-                          << "vId: " << vertexToDelete->getId() << std::endl;
+                std::cout << std::endl << "vId: " << vertexToDelete->getId() << std::endl;
                 throw ompl::Exception("Deleted vertex is not found in lookup. Something went wrong.");
             }
 #endif  // BITSTAR_DEBUG
