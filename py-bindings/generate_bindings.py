@@ -618,8 +618,11 @@ class ompl_geometric_generator_t(code_generator_t):
             }}
             """.format(planner))
 
-        # used in SPARS
-        self.std_ns.class_('deque<ompl::base::State *>').rename('dequeState')
+        # exclude methods that use problematic types
+        cls = self.ompl_ns.class_('SPARS')
+        cls.member_function('addPathToSpanner').exclude()
+        cls.member_function('computeDensePath').exclude()
+        self.ompl_ns.class_('SPARStwo').member_function('findCloseRepresentatives').exclude()
 
         # needed to able to set connection strategy for PRM
         # the PRM::Vertex type is typedef-ed to boost::graph_traits<Graph>::vertex_descriptor. This can
@@ -630,16 +633,12 @@ class ompl_geometric_generator_t(code_generator_t):
             self.ompl_ns.class_('NearestNeighborsLinear<unsigned long>').rename('NearestNeighborsLinear')
             self.ompl_ns.class_('KStrategy<unsigned long>').rename('KStrategy')
             self.ompl_ns.class_('KStarStrategy<unsigned long>').rename('KStarStrategy')
-            # used in SPARStwo
-            self.std_ns.class_('map<unsigned long, ompl::base::State *>').rename('mapVertexToState')
         except:
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').include()
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').rename('NearestNeighbors')
             self.ompl_ns.class_('NearestNeighborsLinear<unsigned int>').rename('NearestNeighborsLinear')
             self.ompl_ns.class_('KStrategy<unsigned int>').rename('KStrategy')
             self.ompl_ns.class_('KStarStrategy<unsigned int>').rename('KStarStrategy')
-            # used in SPARStwo
-            self.std_ns.class_('map<unsigned int, ompl::base::State *>').rename('mapVertexToState')
 
         try:
             # Exclude some functions from BIT* that cause some Py++ compilation problems:
