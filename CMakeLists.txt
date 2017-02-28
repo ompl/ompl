@@ -128,6 +128,7 @@ find_package(flann 1.8.3 QUIET)
 if (FLANN_FOUND)
     set(OMPL_HAVE_FLANN 1)
     include_directories(SYSTEM "${FLANN_INCLUDE_DIRS}")
+    link_directories(${FLANN_LIBRARY_DIRS})
 endif()
 
 # R is needed for running Planner Arena locally
