@@ -300,11 +300,14 @@ The benchmark log files have a pretty simple structure. Below we have included t
 
 ~~~
 logfile               ::= preamble planners_data;
-preamble              ::= [version] experiment hostname date setup [cpuinfo]
+preamble              ::= [version] experiment [exp_property_count exp_properties] hostname date setup [cpuinfo]
                           random_seed time_limit memory_limit [num_runs]
                           total_time [num_enums enums] num_planners;
 version               ::= library_name " version " version_number EOL;
 experiment            ::= "Experiment " experiment_name EOL;
+exp_property_count    ::= int " experiment properties";
+exp_properties        ::= exp_property | exp_property exp_properties;
+exp_property          ::= name property_type "=" num;
 hostname              ::= "Running on " host EOL;
 date                  ::= "Starting at " date_string EOL;
 setup                 ::= multi_line_string;
