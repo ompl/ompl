@@ -1,6 +1,17 @@
 # Release Notes
 
 
+# OMPL 1.3.0 (March 1, 2017)
+
+- Added new planners:
+    - [RRT#](\ref gRRTsharp), a variant of [RRT*](gRRTstar) with an improved convergence rate.
+    - [RRTX](\ref gRRTX), a variant of [RRT*](gRRTstar) with an improved convergence rate. Only the static part of the RRTX algorithm is implemented. Dynamical obstacles and updates of the robot position are not available in this implementation.
+    - [SORRT*](gSORRTstar), a variant of [Informed RRT*](\ref gInformedRRTstar) that orders states in the subproblem that could provide a better solution by their potential solution cost.
+- New refactored versions of [BIT*](\ref gBITstar) and [Informed RRT*](\ref gInformedRRTstar).
+- Various changes throughout to follow standard C++11 practices that improve efficiency, safety, or legibility.
+- Fixes for Boost 1.63 and pygccxml 1.8.5.
+
+
 # OMPL 1.2.1 (July 1, 2016)
 
 - New simplified installation instructions. There is now also a [installation script](http://ompl.kavrakilab.org/install-ompl-ubuntu.sh) that will download and install OMPL and all its dependencies on Ubuntu 14.04, 15.10, and 16.04.

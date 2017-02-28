@@ -305,14 +305,14 @@ preamble              ::= [version] experiment [exp_property_count exp_propertie
                           total_time [num_enums enums] num_planners;
 version               ::= library_name " version " version_number EOL;
 experiment            ::= "Experiment " experiment_name EOL;
-exp_property_count    ::= int " experiment properties";
+exp_property_count    ::= int " experiment properties" EOL;
 exp_properties        ::= exp_property | exp_property exp_properties;
-exp_property          ::= name property_type "=" num;
+exp_property          ::= name property_type "=" num EOL;
 hostname              ::= "Running on " host EOL;
 date                  ::= "Starting at " date_string EOL;
 setup                 ::= multi_line_string;
 cpuinfo               ::= multi_line_string;
-multi_line_string     ::= "<<<|" EOL strings "|>>>" EOL
+multi_line_string     ::= "<<<|" EOL strings "|>>>" EOL;
 strings               ::= string EOL | string EOL strings
 random_seed           ::= int " is the random seed" EOL;
 time_limit            ::= float " seconds per run" EOL;
