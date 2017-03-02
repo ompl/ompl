@@ -290,7 +290,6 @@ bool ompl::base::AtlasMotionValidator::checkMotion(const State *s1, const State 
     }
 
     double distanceTraveled = 0;
-    double approxDistanceRemaining = 0;
     for (std::size_t i = 0; i < stateList.size() - 1; i++)
     {
         if (!reached)
@@ -306,7 +305,7 @@ bool ompl::base::AtlasMotionValidator::checkMotion(const State *s1, const State 
         // Compute the interpolation parameter of the last valid
         // state. (Although if you then interpolate, you probably won't get this
         // exact state back.)
-        approxDistanceRemaining = atlas_.distance(lastValid.first, as2);
+        double approxDistanceRemaining = atlas_.distance(lastValid.first, as2);
         lastValid.second = distanceTraveled / (distanceTraveled + approxDistanceRemaining);
     }
 
@@ -372,6 +371,7 @@ void ompl::base::AtlasStateSpace::StateType::setChart(AtlasChart *c) const
 
 ompl::base::AtlasStateSpace::AtlasStateSpace(const unsigned int ambientDimension, const unsigned int manifoldDimension)
   : RealVectorStateSpace(ambientDimension)
+  , si_(nullptr)
   , n_(ambientDimension)
   , k_(manifoldDimension)
   , delta_(0.02)
