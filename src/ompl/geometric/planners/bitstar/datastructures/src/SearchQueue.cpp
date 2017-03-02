@@ -62,7 +62,7 @@ namespace ompl
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
         // Public functions:
-        BITstar::SearchQueue::SearchQueue(std::function<std::string()> nameFunc)
+        BITstar::SearchQueue::SearchQueue(NameFunc nameFunc)
           : nameFunc_(std::move(nameFunc))
           , isSetup_(false)
           , costHelpPtr_()

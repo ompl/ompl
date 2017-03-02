@@ -73,7 +73,7 @@ namespace ompl
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
         // Public functions:
-        BITstar::ImplicitGraph::ImplicitGraph(std::function<std::string()> nameFunc)
+        BITstar::ImplicitGraph::ImplicitGraph(NameFunc nameFunc)
           : nameFunc_(std::move(nameFunc))
           , isSetup_(false)
           , si_(nullptr)

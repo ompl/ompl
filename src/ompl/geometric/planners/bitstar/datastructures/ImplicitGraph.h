@@ -68,7 +68,7 @@ namespace ompl
             // Public functions:
             // Construction and initialization
             /** \brief Construct an implicit graph. */
-            ImplicitGraph(std::function<std::string()> nameFunc);
+            ImplicitGraph(NameFunc nameFunc);
 
             virtual ~ImplicitGraph() = default;
 
@@ -186,12 +186,6 @@ namespace ompl
             /** \brief Get whether a k-nearest search is being used.*/
             bool getUseKNearest() const;
 
-            /** \brief Set the number of samplers per batch. */
-            void setSamplesPerBatch(unsigned int n);
-
-            /** \brief Get the number of samplers per batch. */
-            unsigned int getSamplesPerBatch() const;
-
             /** Enable sampling "just-in-time", i.e., only when necessary for a nearest-neighbour search. */
             void setJustInTimeSampling(bool useJit);
 
@@ -306,7 +300,7 @@ namespace ompl
             ////////////////////////////////
             // Variables -- Make sure every one is configured in setup() and reset in clear():
             /** \brief A function pointer to the planner name, for better OMPL_INFO, etc. output */
-            std::function<std::string()> nameFunc_;
+            NameFunc nameFunc_;
 
             /** \brief Whether the class is setup */
             bool isSetup_;

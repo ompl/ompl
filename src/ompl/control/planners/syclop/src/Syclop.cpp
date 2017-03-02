@@ -510,7 +510,7 @@ double ompl::control::Syclop::defaultEdgeCost(int r, int s)
     const Adjacency &a = *regionsToEdge_[std::pair<int, int>(r, s)];
     double factor = 1.0;
     const int nsel = (a.empty ? a.numLeadInclusions : a.numSelections);
-    factor = (double)(1 + nsel * nsel) / (double)(1 + a.covGridCells.size() * a.covGridCells.size());
+    factor = (1.0 + (double)nsel * nsel) / (1.0 + (double)a.covGridCells.size() * a.covGridCells.size());
     factor *= (a.source->alpha * a.target->alpha);
     return factor;
 }

@@ -54,11 +54,10 @@ public:
 
     bool isValid(const ompl::base::State *state) const override
     {
-        const ompl::base::RealVectorStateSpace::StateType *state2D =
-            state->as<ompl::base::RealVectorStateSpace::StateType>();
+        const auto *state2D = state->as<ompl::base::RealVectorStateSpace::StateType>();
 
         double sum = 0;
-        for (unsigned i = 0; i < si_->getStateSpace()->as<ompl::base::RealVectorStateSpace>()->getDimension(); ++i)
+        for (unsigned i = 0; i < si_->getStateSpace()->getDimension(); ++i)
             sum += state2D->values[i] * state2D->values[i];
 
         return sqrt(sum) > 0.1;

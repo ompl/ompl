@@ -531,8 +531,7 @@ class ompl_geometric_generator_t(code_generator_t):
             'def("setPlannerAllocator", &ompl::geometric::SimpleSetup::setPlannerAllocator)')
         self.ompl_ns.namespace('geometric').class_('SimpleSetup').add_registration_code(
             'def("getPlannerAllocator", &ompl::geometric::SimpleSetup::getPlannerAllocator, bp::return_value_policy< bp::copy_const_reference >())')
-        # rename to something simpler
-        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >').rename('vectorBITstarVertexPtr')
+        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >').exclude()
         self.std_ns.class_('vector<const ompl::base::State *>').exclude()
 
         # Py++ seems to get confused by some methods declared in one module
@@ -544,7 +543,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # solution.
 
         # do this for all planners
-        for planner in ['EST', 'BiEST', 'ProjEST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'RRTX', 'RRTsharp','LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT', 'BFMT', 'InformedRRTstar', 'SORRTstar', 'BITstar', 'SST']:
+        for planner in ['EST', 'BiEST', 'ProjEST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM', 'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT', 'RRTstar', 'RRTXstatic', 'RRTsharp','LBTRRT', 'SBL', 'SPARS', 'SPARStwo', 'STRIDE', 'FMT', 'BFMT', 'InformedRRTstar', 'SORRTstar', 'BITstar', 'SST']:
             try:
                 cls = self.ompl_ns.class_(planner)
             except:
@@ -619,8 +618,11 @@ class ompl_geometric_generator_t(code_generator_t):
             }}
             """.format(planner))
 
-        # used in SPARS
-        self.std_ns.class_('deque<ompl::base::State *>').rename('dequeState')
+        # exclude methods that use problematic types
+        cls = self.ompl_ns.class_('SPARS')
+        cls.member_function('addPathToSpanner').exclude()
+        cls.member_function('computeDensePath').exclude()
+        self.ompl_ns.class_('SPARStwo').member_function('findCloseRepresentatives').exclude()
 
         # needed to able to set connection strategy for PRM
         # the PRM::Vertex type is typedef-ed to boost::graph_traits<Graph>::vertex_descriptor. This can
@@ -631,16 +633,12 @@ class ompl_geometric_generator_t(code_generator_t):
             self.ompl_ns.class_('NearestNeighborsLinear<unsigned long>').rename('NearestNeighborsLinear')
             self.ompl_ns.class_('KStrategy<unsigned long>').rename('KStrategy')
             self.ompl_ns.class_('KStarStrategy<unsigned long>').rename('KStarStrategy')
-            # used in SPARStwo
-            self.std_ns.class_('map<unsigned long, ompl::base::State *>').rename('mapVertexToState')
         except:
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').include()
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').rename('NearestNeighbors')
             self.ompl_ns.class_('NearestNeighborsLinear<unsigned int>').rename('NearestNeighborsLinear')
             self.ompl_ns.class_('KStrategy<unsigned int>').rename('KStrategy')
             self.ompl_ns.class_('KStarStrategy<unsigned int>').rename('KStarStrategy')
-            # used in SPARStwo
-            self.std_ns.class_('map<unsigned int, ompl::base::State *>').rename('mapVertexToState')
 
         try:
             # Exclude some functions from BIT* that cause some Py++ compilation problems:
