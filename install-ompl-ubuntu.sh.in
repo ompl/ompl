@@ -108,7 +108,7 @@ esac
 done
 
 
-if [ ! -z $PYTHON && ! -z $TRUSTY && `uname -m`=="i386" ]; then
+if [[ ! -z $PYTHON && ! -z $TRUSTY && `uname -m` == "i386" ]]; then
     echo "There is no pre-built binary of CastXML available for 32-bit Ubuntu 14.04"
     echo "To generate the Python bindings, you first need to compile CastXML from source."
     echo "Alternatively, you could change your OS to either a newer version of Ubuntu or 64-bit Ubuntu 14.04."
