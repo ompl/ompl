@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ryan Luna */
+/* Author: Zachary Kingston, Ryan Luna */
 
 #ifndef OMPL_GEOMETRIC_CONSTRAINTS_CONSTRAINT_
 #define OMPL_GEOMETRIC_CONSTRAINTS_CONSTRAINT_
@@ -40,51 +40,85 @@
 #include "ompl/base/StateSpace.h"
 #include "ompl/util/ClassForward.h"
 
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
+
 namespace ompl
 {
     namespace base
     {
         /// @cond IGNORE
-        OMPL_CLASS_FORWARD(StateSpace);
-        /// @endcond
-
-        /// @cond IGNORE
         OMPL_CLASS_FORWARD(Constraint);
         /// @endcond
 
-        /// \brief Definition of a constraint on (a portion of) the state
-        /// space.  Derived classes must implement the isSatisfied, sample,
-        /// and project methods.  Distance is an optionally implemented value
-        /// that some methods may take advantage of.
+        /** \brief Definition of a constraint on (a portion of) the state space. */
         class Constraint
         {
         public:
-            /// \brief Constructor.  Takes a pointer to the StateSpace being
-            /// constrained.
-            Constraint(const StateSpacePtr &space) : space_(space)
+            /** \brief Constructor.  Takes a pointer to the StateSpace being
+             * constrained. */
+            Constraint(const unsigned int ambientDimension, const unsigned int manifoldDimension)
+              : n_(ambientDimension)
+              , k_(manifoldDimension)
+              , projectionTolerance_(1e-6)
+              , projectionMaxIterations_(50)
             {
             }
             virtual ~Constraint()
             {
             }
 
-            /// \brief Check whether this state satisfies the constraints
-            virtual bool isSatisfied(const State *state) const = 0;
+            /** \brief Check whether this state satisfies the constraints */
+            virtual bool isSatisfied(const Eigen::VectorXd &x) const;
+            bool isSatisfied(const State *state) const;
 
-            /// \brief Return the distance from satisfaction of a state
-            /// A state that satisfies the constraint should have distance 0.
-            virtual double distance(const State *state) const = 0;
+            virtual double distance(const Eigen::VectorXd &x) const;
+            double distance(const State *state) const;
 
-            /// \brief Sample a state given the constraints.  If a state cannot
-            /// be sampled, this method will return false.
-            virtual bool sample(State *state) = 0;
+            /** \brief Compute the constraint function at \a state. Result is returned
+             * in \a out, which should be allocated to size n_. */
+            virtual void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const = 0;
+            void function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const;
 
-            /// \brief Project a state given the constraints.  If a valid
-            /// projection cannot be found, this method will return false.
-            virtual bool project(State *state) = 0;
+            /** \brief Compute the Jacobian of the constraint function at \a
+             * state. Result is returned in \a out, which should be allocated to
+             * size (n_-k_) by n_. Default implementation performs the
+             * differentiation numerically, which may be slower and/or more
+             * inaccurate than an explicit formula. */
+            virtual void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const;
+            void jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const;
+
+            /** \brief Project a state given the constraints.  If a valid
+             * projection cannot be found, this method will return false. */
+            virtual bool project(Eigen::Ref<Eigen::VectorXd> x) const = 0;
+            bool project(State *state) const;
+
+            Eigen::Map<Eigen::VectorXd> toVector(const State *state) const;
+
+            /** \brief Returns the dimension of the ambient space. */
+            unsigned int getAmbientDimension() const;
+
+            /** \brief Returns the dimension of the manifold. */
+            unsigned int getManifoldDimension() const;
+
+            /** \brief Returns the dimension of the ambient space. */
+            double getProjectionTolerance() const;
+
+            /** \brief Returns the dimension of the manifold. */
+            unsigned int getProjectionMaxIterations() const;
 
         protected:
-            StateSpacePtr space_;
+            /** \brief Ambient space dimension. */
+            const unsigned int n_;
+
+            /** \brief Manifold dimension. */
+            const unsigned int k_;
+
+            /** \brief Tolerance for Newton method used in projection onto manifold. */
+            double projectionTolerance_;
+
+            /** \brief Maximum number of iterations for Newton method used in projection onto manifold. */
+            unsigned int projectionMaxIterations_;
         };
     }
 }

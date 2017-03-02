@@ -90,8 +90,8 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
 
         // Project. Will need to try again if this fails.
         c->psi(ru, rx);
-        atlas_.constraintFunction(rx, f);
-    } while (tries > 0 && (!rx.allFinite() || f.norm() > atlas_.getProjectionTolerance()));
+        atlas_.getConstraint()->function(rx, f);
+    } while (tries > 0 && (!rx.allFinite() || f.norm() > atlas_.getConstraint()->getProjectionTolerance()));
 
     if (tries == 0)
     {
@@ -144,7 +144,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
             uoffset[i] = rng_.gaussian01();
         uoffset *= distance * std::pow(rng_.uniform01(), 1.0 / uoffset.size()) / uoffset.norm();
         c->phi(ru + uoffset, rx);
-    } while (tries > 0 && !atlas_.project(rx));  // Try again if we can't project.
+    } while (tries > 0 && !atlas_.getConstraint()->project(rx));  // Try again if we can't project.
 
     if (tries == 0)
     {
@@ -197,7 +197,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
         for (std::size_t i = 0; i < k; i++)
             rand[i] = rng_.gaussian(0, s);
         c->phi(ru + rand, rx);
-    } while (tries > 0 && !atlas_.project(rx));  // Try again if we can't project.
+    } while (tries > 0 && !atlas_.getConstraint()->project(rx));  // Try again if we can't project.
 
     if (tries == 0)
     {
@@ -369,20 +369,19 @@ void ompl::base::AtlasStateSpace::StateType::setChart(AtlasChart *c) const
 
 /// Public
 
-ompl::base::AtlasStateSpace::AtlasStateSpace(const unsigned int ambientDimension, const unsigned int manifoldDimension)
-  : RealVectorStateSpace(ambientDimension)
+ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr space, const ConstraintPtr constraint)
+  : RealVectorStateSpace(space->getDimension())
   , si_(nullptr)
-  , n_(ambientDimension)
-  , k_(manifoldDimension)
+  , ss_(space)
+  , constraint_(constraint)
+  , n_(space->getDimension())
+  , k_(constraint_->getManifoldDimension())
   , delta_(0.02)
   , epsilon_(0.1)
   , exploration_(0.5)
   , lambda_(2)
-  , projectionTolerance_(1e-8)
-  , projectionMaxIterations_(50)
   , maxChartsPerExtension_(200)
   , setup_(false)
-  , mode_(ATLAS)
 {
     setName("Atlas" + RealVectorStateSpace::getName());
 
@@ -396,48 +395,6 @@ ompl::base::AtlasStateSpace::~AtlasStateSpace()
 {
     for (AtlasChart *c : charts_)
         delete c;
-}
-
-void ompl::base::AtlasStateSpace::jacobianFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
-{
-    Eigen::VectorXd y1 = x;
-    Eigen::VectorXd y2 = x;
-    Eigen::VectorXd t1(n_ - k_);
-    Eigen::VectorXd t2(n_ - k_);
-
-    // Use a 7-point central difference stencil on each column.
-    for (std::size_t j = 0; j < n_; j++)
-    {
-        // Make step size as small as possible while still giving usable accuracy.
-        const double h = std::sqrt(std::numeric_limits<double>::epsilon()) * (x[j] >= 1 ? x[j] : 1);
-
-        // Can't assume y1[j]-y2[j] == 2*h because of precision errors.
-        y1[j] += h;
-        y2[j] -= h;
-        constraintFunction(y1, t1);
-        constraintFunction(y2, t2);
-        const Eigen::VectorXd m1 = (t1 - t2) / (y1[j] - y2[j]);
-        y1[j] += h;
-        y2[j] -= h;
-        constraintFunction(y1, t1);
-        constraintFunction(y2, t2);
-        const Eigen::VectorXd m2 = (t1 - t2) / (y1[j] - y2[j]);
-        y1[j] += h;
-        y2[j] -= h;
-        constraintFunction(y1, t1);
-        constraintFunction(y2, t2);
-        const Eigen::VectorXd m3 = (t1 - t2) / (y1[j] - y2[j]);
-
-        out.col(j) = 1.5 * m1 - 0.6 * m2 + 0.1 * m3;
-
-        // Reset for next iteration.
-        y1[j] = y2[j] = x[j];
-    }
-}
-
-void ompl::base::AtlasStateSpace::setMode(const Mode mode)
-{
-    mode_ = mode;
 }
 
 void ompl::base::AtlasStateSpace::setup()
@@ -566,22 +523,6 @@ void ompl::base::AtlasStateSpace::setLambda(const double lambda)
     lambda_ = lambda;
 }
 
-void ompl::base::AtlasStateSpace::setProjectionTolerance(const double tolerance)
-{
-    if (tolerance <= 0)
-        throw ompl::Exception("ompl::base::AtlasStateSpace::setProjectionTolerance(): "
-                              "tolerance must be positive.");
-    projectionTolerance_ = tolerance;
-}
-
-void ompl::base::AtlasStateSpace::setProjectionMaxIterations(const unsigned int iterations)
-{
-    if (iterations == 0)
-        throw ompl::Exception("ompl::base::AtlasStateSpace::setProjectionMaxIterations(): "
-                              "iterations must be positive.");
-    projectionMaxIterations_ = iterations;
-}
-
 void ompl::base::AtlasStateSpace::setMaxChartsPerExtension(const unsigned int charts)
 {
     maxChartsPerExtension_ = charts;
@@ -622,16 +563,6 @@ double ompl::base::AtlasStateSpace::getRho_s() const
     return rho_s_;
 }
 
-double ompl::base::AtlasStateSpace::getProjectionTolerance() const
-{
-    return projectionTolerance_;
-}
-
-unsigned int ompl::base::AtlasStateSpace::getProjectionMaxIterations() const
-{
-    return projectionMaxIterations_;
-}
-
 unsigned int ompl::base::AtlasStateSpace::getMaxChartsPerExtension() const
 {
     return maxChartsPerExtension_;
@@ -645,6 +576,11 @@ unsigned int ompl::base::AtlasStateSpace::getAmbientDimension() const
 unsigned int ompl::base::AtlasStateSpace::getManifoldDimension() const
 {
     return k_;
+}
+
+ompl::base::ConstraintPtr ompl::base::AtlasStateSpace::getConstraint() const
+{
+    return constraint_;
 }
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const Eigen::VectorXd &xorigin) const
@@ -665,7 +601,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Vecto
     AtlasChart *addedC;
     try
     {
-        addedC = new AtlasChart(*this, xorigin);
+        addedC = new AtlasChart(constraint_, rho_, epsilon_, xorigin);
     }
     catch (ompl::Exception &e)
     {
@@ -850,43 +786,8 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const StateType *from, const 
     return reached;
 }
 
-bool ompl::base::AtlasStateSpace::project(Eigen::Ref<Eigen::VectorXd> x) const
-{
-    // Newton's method
-    unsigned int iter = 0;
-    Eigen::VectorXd f(n_ - k_);
-    Eigen::MatrixXd j(n_ - k_, n_);
-    constraintFunction(x, f);
-    while (f.norm() > projectionTolerance_ && iter++ < projectionMaxIterations_)
-    {
-        // Compute pseudoinverse of Jacobian
-        jacobianFunction(x, j);
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-        const double tolerance = std::numeric_limits<double>::epsilon() * getAmbientDimension() *
-                                 svd.singularValues().array().abs().maxCoeff();
-        x -= svd.matrixV() *
-             Eigen::MatrixXd(
-                 (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0))
-                 .asDiagonal() *
-             svd.matrixU().adjoint() * f;
-        constraintFunction(x, f);
-    }
-
-    if (iter > projectionMaxIterations_)
-        return false;
-
-    return true;
-}
-
 void ompl::base::AtlasStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
-    if (mode_ == REALVECTOR)
-    {
-        // Interpolate like a real vector space.
-        RealVectorStateSpace::interpolate(from, to, t, state);
-        return;
-    }
-
     // Get the list of intermediate states along the manifold.
     std::vector<StateType *> stateList;
     bool succeeded = traverseManifold(from->as<StateType>(), to->as<StateType>(), true, &stateList);
@@ -961,8 +862,6 @@ void ompl::base::AtlasStateSpace::copyState(State *destination, const State *sou
 
 ompl::base::StateSamplerPtr ompl::base::AtlasStateSpace::allocDefaultStateSampler() const
 {
-    if (mode_ == REALVECTOR)
-        return RealVectorStateSpace::allocDefaultStateSampler();
     return StateSamplerPtr(new AtlasStateSampler(*this));
 }
 

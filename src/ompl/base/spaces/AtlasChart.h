@@ -134,7 +134,7 @@ namespace ompl
             /** \brief Create a tangent space chart for \a atlas with center at
              * ambient space point \a xorigin.
              * \throws ompl::Exception when manifold seems degenerate here. */
-            AtlasChart(const AtlasStateSpace &atlas, Eigen::Ref<const Eigen::VectorXd> xorigin);
+            AtlasChart(const ConstraintPtr &constraint, double rho, double epsilon, Eigen::Ref<const Eigen::VectorXd> xorigin);
 
             /** \brief Destructor. */
             virtual ~AtlasChart(void);
@@ -220,7 +220,7 @@ namespace ompl
 
         protected:
             /** \brief Atlas to which this chart belongs. */
-            const AtlasStateSpace &atlas_;
+            const ConstraintPtr constraint_;
 
             /** \brief Set of halfsaces defining the polytope boundary. */
             std::vector<Halfspace *> polytope_;
@@ -243,6 +243,9 @@ namespace ompl
 
             /** \brief Maximum valid radius of this chart. */
             double radius_;
+
+            /** \brief Maximum valid distance to manifold from this chart. */
+            double epsilon_;
 
             /** \brief Whether this chart is an anchor chart in the atlas. */
             bool isAnchor_ = false;

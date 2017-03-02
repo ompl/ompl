@@ -41,6 +41,7 @@
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/ValidStateSampler.h"
+#include "ompl/base/Constraint.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/geometric/PathGeometric.h"
@@ -192,30 +193,13 @@ namespace ompl
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
 
             /** \brief Construct an atlas with the specified dimensions. */
-            AtlasStateSpace(const unsigned int ambientDimension, const unsigned int manifoldDimension);
+            AtlasStateSpace(const StateSpacePtr space, const ConstraintPtr constraint);
 
             /** \brief Destructor. */
             virtual ~AtlasStateSpace(void);
 
             /** @name Setup and tuning of atlas parameters
              * @{ */
-
-            /** \brief Compute the constraint function at \a x. Result is
-             * returned in \a out, which should be allocated to size n_. */
-            virtual void constraintFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const = 0;
-
-            /** \brief Compute the Jacobian of the constraint function at \a
-             * x. Result is returned in \a out, which should be allocated to
-             * size (n_-k_) by n_. Default implementation performs the
-             * differentiation numerically, which may be slower and/or
-             * more inaccurate than an explicit formula. */
-            virtual void jacobianFunction(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const;
-
-            /** \brief \a ATLAS mode enables all atlas functionality and is the
-             * normal operation mode. \a REALVECTOR mode is functionally
-             * equivalent to the underlying RealVectorStateSpace. */
-            typedef enum { ATLAS, REALVECTOR } Mode;
-            void setMode(const Mode mode);
 
             /** \brief Final setup for the space. */
             void setup(void);
@@ -296,20 +280,16 @@ namespace ompl
             /** \brief Get the sampling radius. */
             double getRho_s(void) const;
 
-            /** \brief Get the projection tolerance. */
-            double getProjectionTolerance(void) const;
-
-            /** \brief Get the maximum number of projection iterations. */
-            unsigned int getProjectionMaxIterations(void) const;
-
             /** \brief Get the maximum number of charts to create in one pass. */
             unsigned int getMaxChartsPerExtension(void) const;
 
-            /** \brief Get the dimension of the ambient space. */
-            unsigned int getAmbientDimension(void) const;
+            /** \brief Returns the dimension of the ambient space. */
+            unsigned int getAmbientDimension() const;
 
-            /** \brief Get the dimension of the constraint manifold. */
-            unsigned int getManifoldDimension(void) const;
+            /** \brief Returns the dimension of the manifold. */
+            unsigned int getManifoldDimension() const;
+
+            ConstraintPtr getConstraint() const;
 
             /** @} */
 
@@ -354,11 +334,6 @@ namespace ompl
 
             /** @name Interpolation and state management
              * @{ */
-
-            /** \brief Try to project the vector \a x onto the manifold, without
-             * using charts. Result returned in \a x. Returns whether the
-             * projection succeeded. */
-            bool project(Eigen::Ref<Eigen::VectorXd> x) const;
 
             /** \brief Find the state between \a from and \a to at time \a t,
              * where \a t = 0 is \a from, and \a t = 1 is the final state
@@ -421,6 +396,12 @@ namespace ompl
             /** \brief SpaceInformation associated with this space. */
             SpaceInformation *si_;
 
+            /** \brief Ambient state space associated with this space. */
+            StateSpacePtr ss_;
+
+            /** \brief Constraint function that defines the manifold. */
+            ConstraintPtr constraint_;
+
             /** \brief Set of charts, sampleable by weight. */
             mutable std::vector<AtlasChart *> charts_;
 
@@ -457,20 +438,11 @@ namespace ompl
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
             mutable double rho_s_;
 
-            /** \brief Tolerance for Newton method used in projection onto manifold. */
-            double projectionTolerance_;
-
-            /** \brief Maximum number of iterations for Newton method used in projection onto manifold. */
-            unsigned int projectionMaxIterations_;
-
             /** \brief Maximum number of charts that can be created in one manifold traversal. */
             unsigned int maxChartsPerExtension_;
 
             /** \brief Whether setup() has been called. */
             bool setup_;
-
-            /** \brief Whether we are actually acting like an atlas. */
-            Mode mode_;
 
             /** \brief Random number generator. */
             mutable RNG rng_;

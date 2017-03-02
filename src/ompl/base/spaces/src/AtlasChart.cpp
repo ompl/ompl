@@ -86,7 +86,7 @@ void ompl::base::AtlasChart::Halfspace::checkNear(Eigen::Ref<const Eigen::Vector
 bool ompl::base::AtlasChart::Halfspace::circleIntersect(const double r, Eigen::Ref<Eigen::VectorXd> v1,
                                                         Eigen::Ref<Eigen::VectorXd> v2) const
 {
-    if (owner_.atlas_.getManifoldDimension() != 2)
+    if (owner_.constraint_->getManifoldDimension() != 2)
         throw ompl::Exception("ompl::base::AtlasChart::Halfspace::circleIntersect() "
                               "Only works on 2D manifolds.");
 
@@ -115,7 +115,7 @@ void ompl::base::AtlasChart::Halfspace::intersect(const Halfspace &l1, const Hal
 {
     if (&l1.owner_ != &l2.owner_)
         throw ompl::Exception("Cannot intersect linear inequalities on different charts.");
-    if (l1.owner_.atlas_.getManifoldDimension() != 2)
+    if (l1.owner_.constraint_->getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::Halfspace::intersect() only works on 2D manifolds.");
 
     // Computer the intersection point of these lines.
@@ -158,16 +158,17 @@ void ompl::base::AtlasChart::Halfspace::expandToInclude(Eigen::Ref<const Eigen::
 
 /// Public
 
-ompl::base::AtlasChart::AtlasChart(const AtlasStateSpace &atlas, Eigen::Ref<const Eigen::VectorXd> xorigin)
-  : atlas_(atlas)
-  , n_(atlas_.getAmbientDimension())
-  , k_(atlas_.getManifoldDimension())
+ompl::base::AtlasChart::AtlasChart(const ConstraintPtr &constraint, double rho, double epsilon, Eigen::Ref<const Eigen::VectorXd> xorigin)
+  : constraint_(constraint)
+  , n_(constraint_->getAmbientDimension())
+  , k_(constraint_->getManifoldDimension())
   , xorigin_(xorigin)
-  , radius_(atlas_.getRho())
+  , radius_(rho)
+  , epsilon_(epsilon)
 {
     // Decompose the Jacobian at xorigin.
     Eigen::MatrixXd j(n_ - k_, n_);
-    atlas_.jacobianFunction(xorigin_, j);
+    constraint_->jacobian(xorigin_, j);
     Eigen::FullPivLU<Eigen::MatrixXd> decomp = j.fullPivLu();
     if (!decomp.isSurjective())
     {
@@ -228,22 +229,22 @@ void ompl::base::AtlasChart::psiFromAmbient(Eigen::Ref<const Eigen::VectorXd> x0
     // b holds info about constraint satisfaction and orthogonality of the
     // projection to the chart.
     Eigen::VectorXd b(n_);
-    atlas_.constraintFunction(out, b.head(n_ - k_));
+    constraint_->function(out, b.head(n_ - k_));
     b.tail(k_).setZero();
     // A is the derivative used in Newton's method.
     Eigen::MatrixXd A(n_, n_);
     A.block(n_ - k_, 0, k_, n_) = bigPhi_.transpose();  // This part is constant.
-    while (b.norm() > atlas_.getProjectionTolerance() && iter++ < atlas_.getProjectionMaxIterations())
+    while (b.norm() > constraint_->getProjectionTolerance() && iter++ < constraint_->getProjectionMaxIterations())
     {
         // Recompute the Jacobian at the new guess.
-        atlas_.jacobianFunction(out, A.block(0, 0, n_ - k_, n_));
+        constraint_->jacobian(out, A.block(0, 0, n_ - k_, n_));
 
         // Move in the direction that decreases F(out) and is perpendicular to
         // the chart.
         out += A.householderQr().solve(-b);
 
         // Recompute b with new guess.
-        atlas_.constraintFunction(out, b.head(n_ - k_));
+        constraint_->function(out, b.head(n_ - k_));
         b.tail(k_) = bigPhi_.transpose() * (out - x0);
     }
 }
@@ -282,7 +283,7 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor(Eigen::Ref<
         c.psiInverse(x, proju);
         c.phi(proju, projx);
         // Check if it's within the validity region and polytope boundary.
-        if ((projx - x).norm() < atlas_.getEpsilon() && proju.norm() < atlas_.getRho() && c.inPolytope(proju))
+        if ((projx - x).norm() < epsilon_ && proju.norm() < radius_ && c.inPolytope(proju))
             return &c;
     }
 
@@ -301,7 +302,7 @@ unsigned int ompl::base::AtlasChart::getID() const
 
 bool ompl::base::AtlasChart::toPolygon(std::vector<Eigen::VectorXd> &vertices) const
 {
-    if (atlas_.getManifoldDimension() != 2)
+    if (k_ != 2)
         throw ompl::Exception("AtlasChart::toPolygon() only works on 2D manifold/charts.");
 
     // Compile a list of all the vertices in P and all the times the border
@@ -370,7 +371,7 @@ bool ompl::base::AtlasChart::toPolygon(std::vector<Eigen::VectorXd> &vertices) c
 bool ompl::base::AtlasChart::estimateIsFrontier() const
 {
     RNG rng;
-    Eigen::VectorXd ru(atlas_.getManifoldDimension());
+    Eigen::VectorXd ru(n_);
     for (int k = 0; k < 1000; k++)
     {
         for (int i = 0; i < ru.size(); i++)
@@ -386,9 +387,6 @@ bool ompl::base::AtlasChart::estimateIsFrontier() const
 
 void ompl::base::AtlasChart::generateHalfspace(AtlasChart *c1, AtlasChart *c2)
 {
-    if (&c1->atlas_ != &c2->atlas_)
-        throw ompl::Exception("ompl::base::AtlasChart::generateHalfspace(): "
-                              "Must be called on charts in the same atlas.");
     if (c1 == c2)
         throw ompl::Exception("ompl::base::AtlasChart::generateHalfspace(): "
                               "Must use two different charts.");
