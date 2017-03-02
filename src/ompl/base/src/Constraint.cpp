@@ -35,10 +35,11 @@
 /* Author: Zachary Kingston */
 
 #include "ompl/base/Constraint.h"
+#include "ompl/base/spaces/RealVectorStateSpace.h"
 
 bool ompl::base::Constraint::isSatisfied(const Eigen::VectorXd &x) const
 {
-    return distance(x) <= projectionTolerance_();
+    return distance(x) <= projectionTolerance_;
 }
 
 bool ompl::base::Constraint::isSatisfied(const State *state) const
@@ -87,18 +88,18 @@ void ompl::base::Constraint::jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen
         // Can't assume y1[j]-y2[j] == 2*h because of precision errors.
         y1[j] += h;
         y2[j] -= h;
-        constraintFunction(y1, t1);
-        constraintFunction(y2, t2);
+        function(y1, t1);
+        function(y2, t2);
         const Eigen::VectorXd m1 = (t1 - t2) / (y1[j] - y2[j]);
         y1[j] += h;
         y2[j] -= h;
-        constraintFunction(y1, t1);
-        constraintFunction(y2, t2);
+        function(y1, t1);
+        function(y2, t2);
         const Eigen::VectorXd m2 = (t1 - t2) / (y1[j] - y2[j]);
         y1[j] += h;
         y2[j] -= h;
-        constraintFunction(y1, t1);
-        constraintFunction(y2, t2);
+        function(y1, t1);
+        function(y2, t2);
         const Eigen::VectorXd m3 = (t1 - t2) / (y1[j] - y2[j]);
 
         out.col(j) = 1.5 * m1 - 0.6 * m2 + 0.1 * m3;
