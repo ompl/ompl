@@ -90,7 +90,7 @@ namespace ompl
 
             /** \brief Project a state given the constraints.  If a valid
              * projection cannot be found, this method will return false. */
-            virtual bool project(Eigen::Ref<Eigen::VectorXd> x) const = 0;
+            virtual bool project(Eigen::Ref<Eigen::VectorXd> x) const;
             bool project(State *state) const;
 
             Eigen::Map<Eigen::VectorXd> toVector(const State *state) const;
