@@ -186,6 +186,8 @@ namespace ompl
 
             ConstraintPtr getConstraint() const;
 
+            StateSpacePtr getAmbientStateSpace() const;
+
             /** \brief Traverse the manifold from \a from toward \a to. Returns
              * true if we reached \a to, and false if we stopped early for any
              * reason, such as a collision or traveling too far. No collision
@@ -214,7 +216,6 @@ namespace ompl
             /** \brief Whether interpolation is symmetric. (Yes.) */
             bool hasSymmetricInterpolate(void) const;
 
-
             /** \brief Return an instance of the AtlasStateSampler. */
             StateSamplerPtr allocDefaultStateSampler(void) const;
 
@@ -222,11 +223,6 @@ namespace ompl
 
             /** @name Visualization and debug
              * @{ */
-
-            /** \brief Write a mesh of the planner graph to a stream. Insert
-             * additional vertices to project the edges along the manifold if \a
-             * asIs == true. */
-            void dumpGraph(const PlannerData::Graph &graph, std::ostream &out, const bool asIs = false) const;
 
             /** \brief Write a mesh of a path on the atlas to stream. Insert
              * additional vertices to project the edges along the manifold if \a

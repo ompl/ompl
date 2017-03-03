@@ -52,13 +52,13 @@
 ompl::base::ProjectedStateSampler::ProjectedStateSampler(const SpaceInformation *si)
   : StateSampler(si->getStateSpace().get())
   , ss_(*si->getStateSpace()->as<ProjectedStateSpace>())
-  , sampler_(ss_.allocStateSampler())
+  , sampler_(ss_.getAmbientStateSpace()->allocStateSampler())
 {
     ProjectedStateSpace::checkSpace(si);
 }
 
 ompl::base::ProjectedStateSampler::ProjectedStateSampler(const ProjectedStateSpace &ss)
-  : StateSampler(&ss), ss_(ss), sampler_(ss_.allocStateSampler())
+    : StateSampler(&ss), ss_(ss), sampler_(ss_.getAmbientStateSpace()->allocStateSampler())
 {
 }
 
@@ -274,6 +274,11 @@ ompl::base::ConstraintPtr ompl::base::ProjectedStateSpace::getConstraint() const
     return constraint_;
 }
 
+ompl::base::StateSpacePtr ompl::base::ProjectedStateSpace::getAmbientStateSpace() const
+{
+    return ss_;
+}
+
 bool ompl::base::ProjectedStateSpace::traverseManifold(const StateType *from, const StateType *to, const bool interpolate,
                       std::vector<StateType *> *stateList) const
 {
@@ -314,7 +319,7 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const StateType *from, co
                 return false;
         }
 
-        // Compute the parametrization for interpolation
+        // Compute the parameterization for interpolation
         double t = delta_ / dist;
         ss_->interpolate(previous, to, t, scratchState);
 
@@ -402,3 +407,61 @@ ompl::base::StateSamplerPtr ompl::base::ProjectedStateSpace::allocDefaultStateSa
     return StateSamplerPtr(new ProjectedStateSampler(*this));
 }
 
+void ompl::base::ProjectedStateSpace::dumpPath(ompl::geometric::PathGeometric &path, std::ostream &out,
+                                            const bool asIs) const
+{
+    std::stringstream v, f;
+    std::size_t vcount = 0;
+    std::size_t fcount = 0;
+
+    const std::vector<State *> &waypoints = path.getStates();
+    for (std::size_t i = 0; i < waypoints.size() - 1; i++)
+    {
+        std::vector<StateType *> stateList;
+        const State *const source = waypoints[i];
+        const State *const target = waypoints[i + 1];
+
+        if (!asIs)
+            traverseManifold(source->as<StateType>(), target->as<StateType>(), true, &stateList);
+        if (asIs || stateList.size() == 1)
+        {
+            v << constraint_->toVector(source).transpose() << "\n";
+            v << constraint_->toVector(target).transpose() << "\n";
+            v << constraint_->toVector(source).transpose() << "\n";
+            vcount += 3;
+            f << 3 << " " << vcount - 3 << " " << vcount - 2 << " " << vcount - 1 << "\n";
+            fcount++;
+            for (StateType *state : stateList)
+                freeState(state);
+            continue;
+        }
+        StateType *to, *from = stateList[0];
+        v << constraint_->toVector(from).transpose() << "\n";
+        vcount++;
+        bool reset = true;
+        for (std::size_t i = 1; i < stateList.size(); i++)
+        {
+            to = stateList[i];
+            from = stateList[i - 1];
+            v << constraint_->toVector(to).transpose() << "\n";
+            v << constraint_->toVector(from).transpose() << "\n";
+            vcount += 2;
+            f << 3 << " " << (reset ? vcount - 3 : vcount - 4) << " " << vcount - 2 << " " << vcount - 1 << "\n";
+            fcount++;
+            freeState(stateList[i - 1]);
+            reset = false;
+        }
+        freeState(stateList.back());
+    }
+
+    out << "ply\n";
+    out << "format ascii 1.0\n";
+    out << "element vertex " << vcount << "\n";
+    out << "property float x\n";
+    out << "property float y\n";
+    out << "property float z\n";
+    out << "element face " << fcount << "\n";
+    out << "property list uint uint vertex_index\n";
+    out << "end_header\n";
+    out << v.str() << f.str();
+}

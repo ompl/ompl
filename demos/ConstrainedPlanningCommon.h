@@ -139,7 +139,7 @@ public:
  */
 
 /** 3 ring-shaped obstacles on latitudinal lines, with a small gap in each. */
-bool sphereValid_helper(const Eigen::VectorXd &x)
+bool sphereValid_helper(double *x)
 {
     if (-0.75 < x[2] && x[2] < -0.60)
     {
@@ -166,7 +166,7 @@ bool sphereValid_helper(const Eigen::VectorXd &x)
 bool sphereValid(double sleep, const ompl::base::State *state)
 {
     std::this_thread::sleep_for(ompl::time::seconds(sleep));
-    return sphereValid_helper(state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView());
+    return sphereValid_helper(state->as<ompl::base::RealVectorStateSpace::StateType>()->values);
 }
 
 /** Every state is valid. */
@@ -190,7 +190,77 @@ bool unreachable(double sleep, const ompl::base::State *state, const Eigen::Vect
  * and the validity checker \a isValid.
  */
 
-ompl::base::AtlasStateSpace *initPlaneProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+ompl::base::ProjectedStateSpace *initProjectedPlaneProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                              ompl::base::StateValidityCheckerFn &isValid, double sleep)
+{
+    const std::size_t dim = 3;
+
+    x = Eigen::VectorXd(dim);
+    x << 4, 4, 0;
+    y = Eigen::VectorXd(dim);
+    y << -4, -4, 0;
+
+    isValid = std::bind(&always, sleep, std::placeholders::_1);
+
+    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
+    ompl::base::ConstraintPtr constraint(new PlaneConstraint());
+
+    std::ofstream problemFile("problem.txt");
+    problemFile << "plane 0 0 1" << std::endl;
+    problemFile.close();
+
+    return new ompl::base::ProjectedStateSpace(space, constraint);
+}
+
+/** Initialize the atlas for the sphere problem and store the start and goal vectors. */
+ompl::base::ProjectedStateSpace *initProjectedSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                               ompl::base::StateValidityCheckerFn &isValid, double sleep)
+{
+    const std::size_t dim = 3;
+
+    // Start and goal points
+    x = Eigen::VectorXd(dim);
+    x << 0, 0, -1;
+    y = Eigen::VectorXd(dim);
+    y << 0, 0, 1;
+
+    // Validity checker
+    isValid = std::bind(&sphereValid, sleep, std::placeholders::_1);
+
+    // Projected initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is
+    // faster)
+    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
+    ompl::base::ConstraintPtr constraint(new SphereConstraint());
+
+    std::ofstream problemFile("problem.txt");
+    problemFile << "sphere 1" << std::endl;
+    problemFile.close();
+
+    return new ompl::base::ProjectedStateSpace(space, constraint);
+}
+
+/** Initialize the atlas for the torus problem and store the start and goal vectors. */
+ompl::base::ProjectedStateSpace *initProjectedTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                              ompl::base::StateValidityCheckerFn &isValid, double sleep)
+{
+    const std::size_t dim = 3;
+
+    // Start and goal points
+    x = Eigen::VectorXd(dim);
+    x << -3, 0, -1;
+    y = Eigen::VectorXd(dim);
+    y << 3, 0, 1;
+
+    // Validity checker
+    isValid = std::bind(&always, sleep, std::placeholders::_1);
+
+    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
+    ompl::base::ConstraintPtr constraint(new TorusConstraint(3, 1));
+    return new ompl::base::ProjectedStateSpace(space, constraint);
+}
+
+
+ompl::base::AtlasStateSpace *initAtlasPlaneProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
                                               ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
@@ -213,7 +283,7 @@ ompl::base::AtlasStateSpace *initPlaneProblem(Eigen::VectorXd &x, Eigen::VectorX
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+ompl::base::AtlasStateSpace *initAtlasSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
                                                ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
@@ -240,7 +310,7 @@ ompl::base::AtlasStateSpace *initSphereProblem(Eigen::VectorXd &x, Eigen::Vector
 }
 
 /** Initialize the atlas for the torus problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+ompl::base::AtlasStateSpace *initAtlasTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
                                               ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
@@ -283,15 +353,28 @@ void printPlanners(void)
 }
 
 /** Initialize the problem specified in the string. */
-ompl::base::AtlasStateSpace *parseProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
+ompl::base::AtlasStateSpace *parseAtlasProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
                                           ompl::base::StateValidityCheckerFn &isValid, double sleep = 0)
 {
     if (std::strcmp(problem, "plane") == 0)
-        return initPlaneProblem(x, y, isValid, sleep);
+        return initAtlasPlaneProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "sphere") == 0)
-        return initSphereProblem(x, y, isValid, sleep);
+        return initAtlasSphereProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "torus") == 0)
-        return initTorusProblem(x, y, isValid, sleep);
+        return initAtlasTorusProblem(x, y, isValid, sleep);
+    else
+        return NULL;
+}
+
+ompl::base::ProjectedStateSpace *parseProjectedProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                             ompl::base::StateValidityCheckerFn &isValid, double sleep = 0)
+{
+    if (std::strcmp(problem, "plane") == 0)
+        return initProjectedPlaneProblem(x, y, isValid, sleep);
+    else if (std::strcmp(problem, "sphere") == 0)
+        return initProjectedSphereProblem(x, y, isValid, sleep);
+    else if (std::strcmp(problem, "torus") == 0)
+        return initProjectedTorusProblem(x, y, isValid, sleep);
     else
         return NULL;
 }
