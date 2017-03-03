@@ -40,8 +40,8 @@
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/Constraint.h>
 #include <ompl/base/spaces/AtlasChart.h>
-#include <ompl/base/spaces/AtlasConstraint.h>
 #include <ompl/base/spaces/AtlasStateSpace.h>
+#include <ompl/base/spaces/ProjectedStateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/planners/est/BiEST.h>
@@ -149,14 +149,14 @@ bool sphereValid_helper(const Eigen::VectorXd &x)
     }
     else if (-0.1 < x[2] && x[2] < 0.1)
     {
-        if (-0.05 < x[1] && x[1] < 0.05)
-            return x[0] < 0;
+        if (-0.05 < x[0] && x[0] < 0.05)
+            return x[1] < 0;
         return false;
     }
     else if (0.60 < x[2] && x[2] < 0.75)
     {
-        if (-0.05 < x[0] && x[0] < 0.05)
-            return x[1] > 0;
+        if (-0.05 < x[1] && x[1] < 0.05)
+            return x[0] > 0;
         return false;
     }
     return true;
@@ -204,6 +204,11 @@ ompl::base::AtlasStateSpace *initPlaneProblem(Eigen::VectorXd &x, Eigen::VectorX
 
     ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
     ompl::base::ConstraintPtr constraint(new PlaneConstraint());
+
+    std::ofstream problemFile("problem.txt");
+    problemFile << "plane 0 0 1" << std::endl;
+    problemFile.close();
+
     return new ompl::base::AtlasStateSpace(space, constraint);
 }
 
@@ -226,6 +231,11 @@ ompl::base::AtlasStateSpace *initSphereProblem(Eigen::VectorXd &x, Eigen::Vector
     // faster)
     ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
     ompl::base::ConstraintPtr constraint(new SphereConstraint());
+
+    std::ofstream problemFile("problem.txt");
+    problemFile << "sphere 1" << std::endl;
+    problemFile.close();
+
     return new ompl::base::AtlasStateSpace(space, constraint);
 }
 

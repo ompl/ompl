@@ -417,7 +417,7 @@ void ompl::base::AtlasStateSpace::setup()
 void ompl::base::AtlasStateSpace::checkSpace(const SpaceInformation *si)
 {
     if (!dynamic_cast<AtlasStateSpace *>(si->getStateSpace().get()))
-        throw ompl::Exception("ompl::base::AtlasMotionValidator(): "
+        throw ompl::Exception("ompl::base::AtlasStateSpace(): "
                               "si needs to use an AtlasStateSpace!");
 }
 
@@ -458,7 +458,7 @@ void ompl::base::AtlasStateSpace::setSpaceInformation(const SpaceInformationPtr 
                               "si is nullptr.");
     if (si->getStateSpace().get() != this)
         throw ompl::Exception("ompl::base::AtlasStateSpace::setSpaceInformation(): "
-                              "si for AtlasStateSpace must be constructed from the same sta space object.");
+                              "si for AtlasStateSpace must be constructed from the same state space object.");
 
     // Save only a raw pointer to prevent a cycle
     si_ = si.get();
