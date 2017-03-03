@@ -158,7 +158,8 @@ void ompl::base::AtlasChart::Halfspace::expandToInclude(Eigen::Ref<const Eigen::
 
 /// Public
 
-ompl::base::AtlasChart::AtlasChart(const ConstraintPtr &constraint, double rho, double epsilon, Eigen::Ref<const Eigen::VectorXd> xorigin)
+ompl::base::AtlasChart::AtlasChart(const ConstraintPtr &constraint, double rho, double epsilon,
+                                   Eigen::Ref<const Eigen::VectorXd> xorigin)
   : constraint_(constraint)
   , n_(constraint_->getAmbientDimension())
   , k_(constraint_->getManifoldDimension())
@@ -371,7 +372,7 @@ bool ompl::base::AtlasChart::toPolygon(std::vector<Eigen::VectorXd> &vertices) c
 bool ompl::base::AtlasChart::estimateIsFrontier() const
 {
     RNG rng;
-    Eigen::VectorXd ru(n_);
+    Eigen::VectorXd ru(k_);
     for (int k = 0; k < 1000; k++)
     {
         for (int i = 0; i < ru.size(); i++)
