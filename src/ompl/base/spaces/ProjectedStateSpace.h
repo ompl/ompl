@@ -143,9 +143,9 @@ namespace ompl
             const ProjectedStateSpace &ss_;
         };
 
-        /** \brief State space encapsulating a planner-agnostic atlas algorithm
-         * for planning on a constraint manifold. */
-        class ProjectedStateSpace : public RealVectorStateSpace
+        /** \brief State space encapsulating a planner-agnostic algorithm for
+         * planning on a constraint manifold. */
+        class ProjectedStateSpace : public StateSpace
         {
         public:
             /** \brief Construct an atlas with the specified dimensions. */
@@ -228,6 +228,17 @@ namespace ompl
              * additional vertices to project the edges along the manifold if \a
              * asIs == true. */
             void dumpPath(ompl::geometric::PathGeometric &path, std::ostream &out, const bool asIs = false) const;
+
+            unsigned int getDimension() const;
+            double getMaximumExtent() const;
+            double getMeasure() const;
+            void enforceBounds(State *state) const;
+            bool satisfiesBounds(const State *state) const;
+            void copyState(State *destination, const State *source) const;
+            double distance(const State *state1, const State *state2) const;
+            bool equalStates(const State *state1, const State *state2) const;
+            State *allocState() const;
+            void freeState(State *state) const;
 
             /** @} */
 

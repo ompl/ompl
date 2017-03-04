@@ -200,7 +200,7 @@ int main(int argc, char **argv)
             std::ofstream graphFile("graph.ply");
             ompl::base::PlannerData pd(si);
             planner->getPlannerData(pd);
-            atlas->dumpGraph(pd.toBoostGraph(), graphFile, /*cons*/ true);
+            atlas->dumpGraph(pd.toBoostGraph(), graphFile, false);
             graphFile.close();
         }
 
@@ -225,13 +225,13 @@ int main(int argc, char **argv)
         ompl::base::ScopedState<> goal(proj);
         for (int i = 0; i < x.size(); ++i)
         {
-            start->as<ompl::base::ProjectedStateSpace::StateType>()->values[i] = x[i];
-            goal->as<ompl::base::ProjectedStateSpace::StateType>()->values[i] = y[i];
+            start->as<ompl::base::RealVectorStateSpace::StateType>()->values[i] = x[i];
+            goal->as<ompl::base::RealVectorStateSpace::StateType>()->values[i] = y[i];
         }
         ss.setStartAndGoalStates(start, goal);
 
         // Bounds
-        ompl::base::RealVectorBounds bounds(proj->getAmbientDimension());
+        ompl::base::RealVectorBounds bounds(proj->getDimension());
         bounds.setLow(-10);
         bounds.setHigh(10);
         proj->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);

@@ -183,8 +183,7 @@ bool ompl::base::ProjectedMotionValidator::checkMotion(const State *s1, const St
 /// Public
 
 ompl::base::ProjectedStateSpace::ProjectedStateSpace(const StateSpacePtr space, const ConstraintPtr constraint)
-  : RealVectorStateSpace(space->getDimension())
-  , si_(nullptr)
+  : si_(nullptr)
   , ss_(space)
   , constraint_(constraint)
   , n_(space->getDimension())
@@ -211,7 +210,7 @@ void ompl::base::ProjectedStateSpace::setup(void)
     setup_ = true;
     setDelta(delta_);  // This makes some setup-related calls
 
-    RealVectorStateSpace::setup();
+    ss_->setup(); // Setup underlying space.
 }
 
 void ompl::base::ProjectedStateSpace::checkSpace(const SpaceInformation *si)
@@ -237,7 +236,6 @@ void ompl::base::ProjectedStateSpace::setSpaceInformation(const SpaceInformation
 
     // Save only a raw pointer to prevent a cycle
     si_ = si.get();
-
     si_->setStateValidityCheckingResolution(delta_);
 }
 
@@ -292,7 +290,7 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const StateType *from, co
 
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
 
-    double dist = ss_->distance(from, to);
+    double dist = distance(from, to);
 
     // Save a copy of the from state.
     if (stateList)
@@ -365,6 +363,56 @@ void ompl::base::ProjectedStateSpace::interpolate(const State *from, const State
         freeState(state);
 }
 
+unsigned int ompl::base::ProjectedStateSpace::getDimension() const
+{
+    return ss_->getDimension();
+}
+
+double ompl::base::ProjectedStateSpace::getMaximumExtent() const
+{
+    return ss_->getMaximumExtent();
+}
+
+double ompl::base::ProjectedStateSpace::getMeasure() const
+{
+    return constraint_->getManifoldDimension();
+}
+
+void ompl::base::ProjectedStateSpace::enforceBounds(State *state) const
+{
+    ss_->enforceBounds(state);
+}
+
+bool ompl::base::ProjectedStateSpace::satisfiesBounds(const State *state) const
+{
+    return ss_->satisfiesBounds(state);
+}
+
+void ompl::base::ProjectedStateSpace::copyState(State *destination, const State *source) const
+{
+    ss_->copyState(destination, source);
+}
+
+double ompl::base::ProjectedStateSpace::distance(const State *state1, const State *state2) const
+{
+    return ss_->distance(state1, state2);
+}
+
+bool ompl::base::ProjectedStateSpace::equalStates(const State *state1, const State *state2) const
+{
+    return ss_->equalStates(state1, state2);
+}
+
+ompl::base::State *ompl::base::ProjectedStateSpace::allocState() const
+{
+    return ss_->allocState();
+}
+
+void ompl::base::ProjectedStateSpace::freeState(State *state) const
+{
+    ss_->freeState(state);
+}
+
 void ompl::base::ProjectedStateSpace::piecewiseInterpolate(const std::vector<StateType *> &stateList, const double t, State *state) const
 {
     std::size_t n = stateList.size();
@@ -392,7 +440,7 @@ void ompl::base::ProjectedStateSpace::piecewiseInterpolate(const std::vector<Sta
     }
 
     // Linearly interpolate between these two states.
-    RealVectorStateSpace::interpolate(stateList[i > 0 ? i - 1 : 0], stateList[i], tt, state);
+    ss_->interpolate(stateList[i > 0 ? i - 1 : 0], stateList[i], tt, state);
     delete[] d;
 
 }
