@@ -56,16 +56,12 @@ install:
         curl https://midas3.kitware.com/midas/download/item/318762/castxml-macosx.tar.gz | tar zxf - -C ${HOME};
       fi;
     fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-      if [ -z "$DOCKERFILE" ]; then
-        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
-        sudo apt-get -y update;
-        sudo apt-get -y install g++-5;
-        export CXX=g++-5;
-      fi;
-      if [ ! -e ${HOME}/castxml/bin/castxml ]; then
-        wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf - -C ${HOME};
-      fi;
+  - if [ -z "$DOCKERFILE" -a "$TRAVIS_OS_NAME" = "linux" ]; then
+      sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
+      sudo apt-get -y update;
+      sudo apt-get -y install g++-5;
+      export CXX=g++-5;
+      wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf - -C ${HOME};
     fi
   - if [ -z "$DOCKERFILE" ]; then
       sudo -H pip -v install pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.7.0.tar.gz;
@@ -74,7 +70,7 @@ install:
 
 script:
   - if [ -n "$DOCKERFILE" ]; then
-      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DCASTXML=${HOME}/castxml/bin/castxml .. && make -j $JOBS update_bindings && make -j $JOBS && ctest -E '$TEST_EXCLUDE'";
+      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j $JOBS update_bindings && make -j $JOBS && ctest -E '$TEST_EXCLUDE'";
     else
       mkdir -p build &&
       cd build &&
