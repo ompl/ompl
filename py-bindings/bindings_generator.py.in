@@ -45,6 +45,7 @@ import subprocess
 from sys import platform
 from pygccxml import declarations, parser
 from pygccxml.utils import xml_generator
+from pygccxml.utils import loggers as pygccxml_loggers
 from pyplusplus import module_builder, messages
 from pyplusplus.module_builder import call_policies
 from pyplusplus.decl_wrappers import print_declarations
@@ -108,6 +109,10 @@ def returns_reference(decl):
     c = decl.return_type.decl_string[-1]
     return c=='&' or c=='*'
 
+class msgFilter(logging.Filter):
+    def filter(self, record):
+        return 'execution - done' in record.msg
+
 class code_generator_t(object):
     """The base class code generator."""
 
@@ -116,6 +121,11 @@ class code_generator_t(object):
         @name name of the python module
         @dep name of another module this module depends on"""
         module_builder.set_logger_level( logging.INFO )
+        # make binding generation more verbose to show build bots that the
+        # build is not stuck:
+        pygccxml_loggers.queries_engine.setLevel( logging.DEBUG )
+        # but not *too* verbose:
+        pygccxml_loggers.queries_engine.addFilter(msgFilter())
         xml_generator_config = parser.load_xml_generator_configuration("@CASTXMLCONFIGPATH@")
         self.mb = module_builder.module_builder_t(
             files = [ 'bindings/' + name + '.h' ],
