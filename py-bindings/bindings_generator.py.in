@@ -47,6 +47,7 @@ from sys import platform
 from pygccxml import declarations, parser
 from pygccxml.utils import xml_generator
 from pygccxml.utils import loggers as pygccxml_loggers
+from pyplusplus._logging_ import loggers as pyplusplus_loggers
 from pyplusplus import module_builder, messages
 from pyplusplus.module_builder import call_policies
 from pyplusplus.decl_wrappers import print_declarations
@@ -112,14 +113,15 @@ def returns_reference(decl):
 
 class msgFilter(logging.Filter):
     def __init__(self):
-        self.time = time.time()
+        self.start = time.time()
+        self.time = self.start
     def filter(self, record):
         if 'execution - done' not in record.msg:
             return False
         t = time.time()
-        if t - self.time > 300:
+        if t - self.time > 60:
             self.time = t
-            record.msg = 'still alive!'
+            record.msg = 'still alive after %g seconds!' % (t - self.start)
             return True
         else:
             return False
@@ -131,12 +133,12 @@ class code_generator_t(object):
         """Constructor.
         @name name of the python module
         @dep name of another module this module depends on"""
-        module_builder.set_logger_level( logging.INFO )
         # make binding generation more verbose to show build bots that the
-        # build is not stuck:
-        pygccxml_loggers.queries_engine.setLevel( logging.DEBUG )
-        # but not *too* verbose:
-        pygccxml_loggers.queries_engine.addFilter(msgFilter())
+        # build is not stuck, but not *too* verbose:
+        for loggers in [pyplusplus_loggers.all, pygccxml_loggers.all_loggers]:
+            for logger in loggers:
+                logger.setLevel( logging.DEBUG )
+                logger.addFilter(msgFilter())
         xml_generator_config = parser.load_xml_generator_configuration("@CASTXMLCONFIGPATH@")
         self.mb = module_builder.module_builder_t(
             files = [ 'bindings/' + name + '.h' ],
