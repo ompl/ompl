@@ -127,7 +127,8 @@ class code_generator_t(object):
         @dep name of another module this module depends on"""
         # create a separate thread that prints out a message every 60 seconds
         # to let build bots know the build is not stuck.
-        self.heartbeat = threading.Thread(target = Heartbeat(60), daemon = True)
+        self.heartbeat = threading.Thread(target = Heartbeat(60))
+        self.heartbeat.daemon = True
         self.heartbeat.start()
         xml_generator_config = parser.load_xml_generator_configuration("@CASTXMLCONFIGPATH@")
         self.mb = module_builder.module_builder_t(
