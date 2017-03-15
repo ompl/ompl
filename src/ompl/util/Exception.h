@@ -57,7 +57,7 @@ namespace ompl
         {
         }
 
-        ~Exception() throw() override = default;
+        ~Exception() override = default;
     };
 }
 
