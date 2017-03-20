@@ -41,7 +41,6 @@
 #include <ompl/base/Constraint.h>
 #include <ompl/base/StateSpace.h>
 #include <ompl/base/spaces/AtlasChart.h>
-#include <ompl/base/spaces/AtlasConstraint.h>
 #include <ompl/base/spaces/AtlasStateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/PathGeometric.h>

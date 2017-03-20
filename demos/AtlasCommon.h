@@ -39,7 +39,6 @@
 
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/spaces/AtlasChart.h>
-#include <ompl/base/spaces/AtlasConstraint.h>
 #include <ompl/base/spaces/AtlasStateSpace.h>
 #include <ompl/geometric/ConstrainedSimpleSetup.h>
 #include <ompl/geometric/PathGeometric.h>

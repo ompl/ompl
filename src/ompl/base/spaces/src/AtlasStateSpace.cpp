@@ -51,12 +51,15 @@
 /// Public
 
 ompl::base::AtlasStateSampler::AtlasStateSampler(const SpaceInformation *si)
-  : StateSampler(si->getStateSpace().get()), atlas_(*si->getStateSpace()->as<AtlasStateSpace>())
+  : StateSampler(si->getStateSpace().get())
+  , atlas_(*si->getStateSpace()->as<AtlasStateSpace>())
 {
     AtlasStateSpace::checkSpace(si);
 }
 
-ompl::base::AtlasStateSampler::AtlasStateSampler(const AtlasStateSpace &atlas) : StateSampler(&atlas), atlas_(atlas)
+ompl::base::AtlasStateSampler::AtlasStateSampler(const AtlasStateSpace &atlas)
+    : StateSampler(&atlas)
+    , atlas_(atlas)
 {
 }
 

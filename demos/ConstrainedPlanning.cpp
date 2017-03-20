@@ -119,12 +119,12 @@ int main(int argc, char **argv)
         const double time = ((double)(std::clock() - tstart)) / CLOCKS_PER_SEC;
 
         ompl::geometric::PathGeometric &path = ss.getSolutionPath();
-        if (x.size() == 3)
-        {
-            std::ofstream pathFile("path.ply");
-            atlas->dumpPath(path, pathFile, false);
-            pathFile.close();
-        }
+        // if (x.size() == 3)
+        // {
+        //     std::ofstream pathFile("path.ply");
+        //     atlas->dumpPath(path, pathFile, false);
+        //     pathFile.close();
+        // }
 
         // Extract the full solution path by re-interpolating between the saved states (except for the special planners)
         const std::vector<ompl::base::State *> &waypoints = path.getStates();
@@ -183,18 +183,18 @@ int main(int argc, char **argv)
 
     std::cout << "Atlas created " << atlas->getChartCount() << " charts.\n";
 
-    if (x.size() == 3)
-    {
-        std::ofstream atlasFile("atlas.ply");
-        atlas->dumpMesh(atlasFile);
-        atlasFile.close();
+    // if (x.size() == 3)
+    // {
+    //     std::ofstream atlasFile("atlas.ply");
+    //     atlas->dumpMesh(atlasFile);
+    //     atlasFile.close();
 
-        std::ofstream graphFile("graph.ply");
-        ompl::base::PlannerData pd(si);
-        planner->getPlannerData(pd);
-        atlas->dumpGraph(pd.toBoostGraph(), graphFile, /*cons*/ true);
-        graphFile.close();
-    }
+    //     std::ofstream graphFile("graph.ply");
+    //     ompl::base::PlannerData pd(si);
+    //     planner->getPlannerData(pd);
+    //     atlas->dumpGraph(pd.toBoostGraph(), graphFile, /*cons*/ true);
+    //     graphFile.close();
+    // }
 
     std::cout << atlas->estimateFrontierPercent() << "% open.\n";
 

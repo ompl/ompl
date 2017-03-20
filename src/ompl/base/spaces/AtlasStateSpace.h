@@ -371,6 +371,12 @@ namespace ompl
                 return constraint_;
             }
 
+            /** \brief Returns the constraint that defines the underlying manifold. */
+            const StateSpace *getAmbientSpace() const
+            {
+                return ss_;
+            }
+
             /** @} */
 
             /** @name Manifold and chart operations
