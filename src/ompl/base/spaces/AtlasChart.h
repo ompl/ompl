@@ -49,7 +49,7 @@ namespace ompl
     {
         /** \brief Tangent space and bounding polytope approximating some patch
          * of the manifold. */
-        class AtlasChart : private boost::noncopyable
+        class AtlasChart
         {
             /** \brief Halfspace equation on a chart.
              * \note Use AtlasChart::generateHalfspace to create new halfspace
@@ -58,20 +58,14 @@ namespace ompl
             class Halfspace
             {
             public:
+                // non-copyable
+                Halfspace(const Halfspace &) = delete;
+                Halfspace &operator=(const Halfspace &) = delete;
+
                 /** \brief Create a halfspace equitably separating charts \a
                  * owner and \a neighbor. This halfspace will coincide with
                  * chart \a owner. */
                 Halfspace(const AtlasChart *owner, const AtlasChart *neighbor);
-
-                /** \brief Inform this halfspace about the "complementary"
-                 * halfspace which coincides with the neighboring chart. */
-                void setComplement(Halfspace *complement);
-
-                /** \brief Get the complementary halfspace. */
-                Halfspace *getComplement(void) const;
-
-                /** \brief Get the chart to which this halfspace belongs. */
-                const AtlasChart &getOwner(void) const;
 
                 /** \brief Return whether point \a v on the owning chart
                  * lies within the halfspace. */
@@ -98,11 +92,30 @@ namespace ompl
                  * \a out, which should be allocated to a size of 2. */
                 static void intersect(const Halfspace &l1, const Halfspace &l2, Eigen::Ref<Eigen::VectorXd> out);
 
+                /** \brief Inform this halfspace about the "complementary"
+                 * halfspace which coincides with the neighboring chart. */
+                void setComplement(Halfspace *complement)
+                {
+                    complement_ = complement;
+                }
+
+                /** \brief Get the complementary halfspace. */
+                Halfspace *getComplement() const
+                {
+                    return complement_;
+                }
+
+                /** \brief Get the chart to which this halfspace belongs. */
+                const AtlasChart *getOwner() const
+                {
+                    return owner_;
+                }
+
                 /// @endcond
 
             private:
                 /** \brief Chart to which this halfspace belongs. */
-                const AtlasChart &owner_;
+                const AtlasChart *owner_;
 
                 /** \brief Halfspace complementary to this one, but on the
                  * neighboring chart. */
@@ -131,29 +144,68 @@ namespace ompl
             };
 
         public:
+            // non-copyable
+            AtlasChart(const AtlasChart &) = delete;
+            AtlasChart &operator=(const AtlasChart &) = delete;
+
             /** \brief Create a tangent space chart for \a atlas with center at
              * ambient space point \a xorigin.
              * \throws ompl::Exception when manifold seems degenerate here. */
-            AtlasChart(const ConstraintPtr &constraint, double rho, double epsilon, Eigen::Ref<const Eigen::VectorXd> xorigin);
+            AtlasChart(const AtlasStateSpace *atlas, Eigen::Ref<const Eigen::VectorXd> xorigin);
 
             /** \brief Destructor. */
-            virtual ~AtlasChart(void);
+            virtual ~AtlasChart();
 
             /** \brief Forget all acquired information such as the halfspace
              * boundary. */
-            void clear(void);
+            void clear();
 
             /* Specify that this is a special chart (e.g. start or goal is on
              * it) that should persist through a call to
              * AtlasStateSpace::clear(). */
-            void makeAnchor(void);
+            void makeAnchor()
+            {
+                isAnchor_ = true;
+            }
 
             /** \brief Is this chart marked as an anchor chart for the atlas? */
-            bool isAnchor(void) const;
+            bool isAnchor() const
+            {
+                return isAnchor_;
+            }
 
             /** \brief Returns phi(0), the center of the chart in ambient
              * space. */
-            const Eigen::VectorXd &getXorigin(void) const;
+            const Eigen::VectorXd &getXorigin() const
+            {
+                return xorigin_;
+            }
+
+            /** \brief Set this chart's unique identifier in its atlas. Should
+             * be its index in the atlas's vector of charts. */
+            void setID(unsigned int id)
+            {
+                id_ = id;
+            }
+
+            /** \brief Get this chart's unique identifier in its atlas. This is
+             * its index in the atlas's vector of charts. */
+            unsigned int getID() const
+            {
+                return id_;
+            }
+
+            /** \brief Returns the dimension of the ambient space. */
+            unsigned int getAmbientDimension() const
+            {
+                return n_;
+            }
+
+            /** \brief Returns the dimension of the manifold. */
+            unsigned int getManifoldDimension() const
+            {
+                return k_;
+            }
 
             /** \brief Rewrite a chart point \a u in ambient space coordinates
              * and store the result in \a out, which should be allocated to size
@@ -190,14 +242,6 @@ namespace ompl
              * neighbors of this chart. Returns nullptr if none found.*/
             const AtlasChart *owningNeighbor(Eigen::Ref<const Eigen::VectorXd> x) const;
 
-            /** \brief Set this chart's unique identifier in its atlas. Should
-             * be its index in the atlas's vector of charts. */
-            void setID(unsigned int);
-
-            /** \brief Get this chart's unique identifier in its atlas. This is
-             * its index in the atlas's vector of charts. */
-            unsigned int getID(void) const;
-
             /// @cond IGNORE
             /** \brief For manifolds of dimension 2, return in order in \a
              * vertices the polygon boundary of this chart, including an
@@ -220,7 +264,10 @@ namespace ompl
 
         protected:
             /** \brief Atlas to which this chart belongs. */
-            const ConstraintPtr constraint_;
+            const AtlasStateSpace *atlas_;
+
+            /** \brief The constraint function that defines the manifold. */
+            const Constraint *constraint_;
 
             /** \brief Set of halfsaces defining the polytope boundary. */
             std::vector<Halfspace *> polytope_;

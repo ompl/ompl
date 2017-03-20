@@ -58,7 +58,6 @@ ompl::base::AtlasStateSampler::AtlasStateSampler(const SpaceInformation *si)
 
 ompl::base::AtlasStateSampler::AtlasStateSampler(const AtlasStateSpace &atlas) : StateSampler(&atlas), atlas_(atlas)
 {
-    // TODO (cav2): inline some small things.
 }
 
 void ompl::base::AtlasStateSampler::sampleUniform(State *state)
@@ -355,26 +354,16 @@ Eigen::Map<const Eigen::VectorXd> ompl::base::AtlasStateSpace::StateType::constV
     return Eigen::Map<const Eigen::VectorXd>(values, dimension_);
 }
 
-ompl::base::AtlasChart *ompl::base::AtlasStateSpace::StateType::getChart() const
-{
-    return chart_;
-}
-
-void ompl::base::AtlasStateSpace::StateType::setChart(AtlasChart *c) const
-{
-    chart_ = c;
-}
-
 /// AtlasStateSpace
 
 /// Public
 
-ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr space, const ConstraintPtr constraint)
-  : RealVectorStateSpace(space->getDimension())
+ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpace *ambientSpace, const Constraint *constraint)
+  : RealVectorStateSpace(ambientSpace->getDimension())
   , si_(nullptr)
-  , ss_(space)
+  , ss_(ambientSpace)
   , constraint_(constraint)
-  , n_(space->getDimension())
+  , n_(ambientSpace->getDimension())
   , k_(constraint_->getManifoldDimension())
   , delta_(0.02)
   , epsilon_(0.1)
@@ -383,7 +372,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr space, const Co
   , maxChartsPerExtension_(200)
   , setup_(false)
 {
-    setName("Atlas" + RealVectorStateSpace::getName());
+    setName("Atlas" + ss_->getName());
 
     setRho(0.1);
     setAlpha(M_PI / 16);
@@ -466,123 +455,6 @@ void ompl::base::AtlasStateSpace::setSpaceInformation(const SpaceInformationPtr 
     si_->setStateValidityCheckingResolution(delta_);
 }
 
-void ompl::base::AtlasStateSpace::setDelta(const double delta)
-{
-    if (delta <= 0)
-        throw ompl::Exception("ompl::base::AtlasStateSpace::setDelta(): "
-                              "delta must be positive.");
-    delta_ = delta;
-
-    if (setup_)
-    {
-        setLongestValidSegmentFraction(delta_ / getMaximumExtent());
-    }
-}
-
-void ompl::base::AtlasStateSpace::setEpsilon(const double epsilon)
-{
-    if (epsilon <= 0)
-        throw ompl::Exception("ompl::base::AtlasStateSpace::setEpsilon(): "
-                              "epsilon must be positive.");
-    epsilon_ = epsilon;
-}
-
-void ompl::base::AtlasStateSpace::setRho(const double rho)
-{
-    if (rho <= 0)
-        throw ompl::Exception("ompl::base::AtlasStateSpace::setRho(): "
-                              "rho must be positive.");
-    rho_ = rho;
-    rho_s_ = rho_ / std::pow(1 - exploration_, 1.0 / k_);
-}
-
-void ompl::base::AtlasStateSpace::setAlpha(const double alpha)
-{
-    if (alpha <= 0 || alpha >= M_PI_2)
-        throw ompl::Exception("ompl::base::AtlasStateSpace::setAlpha(): "
-                              "alpha must be in (0, pi/2).");
-    cos_alpha_ = std::cos(alpha);
-}
-
-void ompl::base::AtlasStateSpace::setExploration(const double exploration)
-{
-    if (exploration >= 1)
-        throw ompl::Exception("ompl::base::AtlasStateSpace::setExploration(): "
-                              "exploration must be in [0, 1).");
-    exploration_ = exploration;
-
-    // Update sampling radius
-    setRho(rho_);
-}
-
-void ompl::base::AtlasStateSpace::setLambda(const double lambda)
-{
-    if (lambda <= 1)
-        throw ompl::Exception("ompl::base::AtlasStateSpace::setLambda(): "
-                              "lambda must be > 1.");
-    lambda_ = lambda;
-}
-
-void ompl::base::AtlasStateSpace::setMaxChartsPerExtension(const unsigned int charts)
-{
-    maxChartsPerExtension_ = charts;
-}
-
-double ompl::base::AtlasStateSpace::getDelta() const
-{
-    return delta_;
-}
-
-double ompl::base::AtlasStateSpace::getEpsilon() const
-{
-    return epsilon_;
-}
-
-double ompl::base::AtlasStateSpace::getRho() const
-{
-    return rho_;
-}
-
-double ompl::base::AtlasStateSpace::getAlpha() const
-{
-    return std::acos(cos_alpha_);
-}
-
-double ompl::base::AtlasStateSpace::getExploration() const
-{
-    return exploration_;
-}
-
-double ompl::base::AtlasStateSpace::getLambda() const
-{
-    return lambda_;
-}
-
-double ompl::base::AtlasStateSpace::getRho_s() const
-{
-    return rho_s_;
-}
-
-unsigned int ompl::base::AtlasStateSpace::getMaxChartsPerExtension() const
-{
-    return maxChartsPerExtension_;
-}
-
-unsigned int ompl::base::AtlasStateSpace::getAmbientDimension() const
-{
-    return n_;
-}
-
-unsigned int ompl::base::AtlasStateSpace::getManifoldDimension() const
-{
-    return k_;
-}
-
-ompl::base::ConstraintPtr ompl::base::AtlasStateSpace::getConstraint() const
-{
-    return constraint_;
-}
-
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const Eigen::VectorXd &xorigin) const
 {
     // This could fail with an exception. We cannot recover if that happens.
@@ -601,7 +473,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Vecto
     AtlasChart *addedC;
     try
     {
-        addedC = new AtlasChart(constraint_, rho_, epsilon_, xorigin);
+        addedC = new AtlasChart(this, xorigin);
     }
     catch (ompl::Exception &e)
     {
@@ -846,11 +718,6 @@ void ompl::base::AtlasStateSpace::piecewiseInterpolate(const std::vector<StateTy
             c = newChart(x);
         astate->setChart(c);
     }
-}
-
-bool ompl::base::AtlasStateSpace::hasSymmetricInterpolate() const
-{
-    return true;
 }
 
 void ompl::base::AtlasStateSpace::copyState(State *destination, const State *source) const
