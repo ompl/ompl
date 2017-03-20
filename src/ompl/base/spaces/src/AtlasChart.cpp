@@ -98,7 +98,7 @@ bool ompl::base::AtlasChart::Halfspace::circleIntersect(const double r, Eigen::R
 void ompl::base::AtlasChart::Halfspace::intersect(const Halfspace &l1, const Halfspace &l2,
                                                   Eigen::Ref<Eigen::VectorXd> out)
 {
-    if (&l1.owner_ != &l2.owner_)
+    if (l1.owner_ != l2.owner_)
         throw ompl::Exception("Cannot intersect linear inequalities on different charts.");
     if (l1.owner_->getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::Halfspace::intersect() only works on 2D manifolds.");

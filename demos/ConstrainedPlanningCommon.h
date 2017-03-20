@@ -39,6 +39,7 @@
 
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/Constraint.h>
+#include <ompl/base/StateSpace.h>
 #include <ompl/base/spaces/AtlasChart.h>
 #include <ompl/base/spaces/AtlasConstraint.h>
 #include <ompl/base/spaces/AtlasStateSpace.h>
@@ -68,7 +69,7 @@
 class SphereConstraint : public ompl::base::Constraint
 {
 public:
-    SphereConstraint() : ompl::base::Constraint(3, 2)
+    SphereConstraint(const ompl::base::StateSpace *space) : ompl::base::Constraint(space, 2)
     {
     }
 
@@ -87,7 +88,7 @@ public:
 class PlaneConstraint : public ompl::base::Constraint
 {
 public:
-    PlaneConstraint() : ompl::base::Constraint(3, 2)
+    PlaneConstraint(const ompl::base::StateSpace *space) : ompl::base::Constraint(space, 2)
     {
     }
 
@@ -111,7 +112,7 @@ public:
     const double R1;
     const double R2;
 
-    TorusConstraint(double r1, double r2) : ompl::base::Constraint(3, 2), R1(r1), R2(r2)
+    TorusConstraint(const ompl::base::StateSpace *space, const double r1, const double r2) : ompl::base::Constraint(space, 2), R1(r1), R2(r2)
     {
     }
 
@@ -202,8 +203,8 @@ ompl::base::AtlasStateSpace *initPlaneProblem(Eigen::VectorXd &x, Eigen::VectorX
 
     isValid = std::bind(&always, sleep, std::placeholders::_1);
 
-    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
-    ompl::base::ConstraintPtr constraint(new PlaneConstraint());
+    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
+    ompl::base::Constraint *constraint = new PlaneConstraint(space);
     return new ompl::base::AtlasStateSpace(space, constraint);
 }
 
@@ -224,8 +225,8 @@ ompl::base::AtlasStateSpace *initSphereProblem(Eigen::VectorXd &x, Eigen::Vector
 
     // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is
     // faster)
-    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
-    ompl::base::ConstraintPtr constraint(new SphereConstraint());
+    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
+    ompl::base::Constraint *constraint = new SphereConstraint(space);
     return new ompl::base::AtlasStateSpace(space, constraint);
 }
 
@@ -244,8 +245,8 @@ ompl::base::AtlasStateSpace *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorX
     // Validity checker
     isValid = std::bind(&always, sleep, std::placeholders::_1);
 
-    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
-    ompl::base::ConstraintPtr constraint(new TorusConstraint(3, 1));
+    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
+    ompl::base::Constraint *constraint = new TorusConstraint(space, 3, 1);
     return new ompl::base::AtlasStateSpace(space, constraint);
 }
 

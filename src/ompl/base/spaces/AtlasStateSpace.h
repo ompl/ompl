@@ -53,7 +53,9 @@ namespace ompl
     namespace base
     {
         /// @cond IGNORE
-        /** \brief Forward declaration of ompl::base::AtlasStateSpace. */
+        /** \brief Forward declaration of ompl::base::AtlasChart and
+         * ompl::base::AtlasStateSpace. */
+        class AtlasChart;
         OMPL_CLASS_FORWARD(AtlasStateSpace);
         /// @endcond
 

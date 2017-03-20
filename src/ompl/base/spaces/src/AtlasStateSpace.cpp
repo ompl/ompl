@@ -68,7 +68,6 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
     AtlasChart *c;
 
     // Sampling a point on the manifold.
-    Eigen::VectorXd f(atlas_.getAmbientDimension() - atlas_.getManifoldDimension());
     int tries = 100;
     do
     {
@@ -89,8 +88,8 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
 
         // Project. Will need to try again if this fails.
         c->psi(ru, rx);
-        atlas_.getConstraint()->function(rx, f);
-    } while (tries > 0 && (!rx.allFinite() || f.norm() > atlas_.getConstraint()->getProjectionTolerance()));
+    } while (tries > 0 && !atlas_.getConstraint()->isSatisfied(rx));
+
 
     if (tries == 0)
     {
@@ -133,7 +132,6 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     // Sample a point from the starting chart.
     c->psiInverse(n, ru);
     int tries = 100;
-    Eigen::VectorXd f(atlas_.getAmbientDimension() - atlas_.getManifoldDimension());
     do
     {
         tries--;

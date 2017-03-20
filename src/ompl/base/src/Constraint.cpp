@@ -156,5 +156,5 @@ double ompl::base::Constraint::distance(const Eigen::VectorXd &x) const
 
 bool ompl::base::Constraint::isSatisfied(const Eigen::VectorXd &x) const
 {
-    return distance(x) <= projectionTolerance_;
+    return x.allFinite() && distance(x) <= projectionTolerance_;
 }
