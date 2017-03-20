@@ -35,24 +35,23 @@
 /* Author: Zachary Kingston */
 
 #include "ompl/base/Constraint.h"
-#include "ompl/base/spaces/RealVectorStateSpace.h"
 
-bool ompl::base::Constraint::isSatisfied(const Eigen::VectorXd &x) const
+void ompl::base::Constraint::function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const
 {
-    return distance(x) <= projectionTolerance_;
+    function(toVector(state), out);
 }
 
-bool ompl::base::Constraint::isSatisfied(const State *state) const
+void ompl::base::Constraint::jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const
+{
+    jacobian(toVector(state), out);
+}
+
+bool ompl::base::Constraint::project(State *state) const
 {
     Eigen::VectorXd x = toVector(state);
-    return isSatisfied(x);
-}
-
-double ompl::base::Constraint::distance(const Eigen::VectorXd &x) const
-{
-    Eigen::VectorXd f(n_ - k_);
-    function(x, f);
-    return f.norm();
+    bool ret = project(x);
+    fromVector(state, x);
+    return ret;
 }
 
 double ompl::base::Constraint::distance(const State *state) const
@@ -60,16 +59,24 @@ double ompl::base::Constraint::distance(const State *state) const
     return distance(toVector(state));
 }
 
-void ompl::base::Constraint::function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const
+bool ompl::base::Constraint::isSatisfied(const State *state) const
 {
-    Eigen::VectorXd x = toVector(state);
-    function(x, out);
+    return isSatisfied(toVector(state));
 }
 
-void ompl::base::Constraint::jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const
+Eigen::VectorXd ompl::base::Constraint::toVector(const State *state) const
 {
-    Eigen::VectorXd x = toVector(state);
-    jacobian(x, out);
+    Eigen::VectorXd x(n_);
+    for (unsigned int i = 0; i < n_; ++i)
+        x[i] = *ambientSpace_->getValueAddressAtIndex(state, i);
+
+    return x;
+}
+
+void ompl::base::Constraint::fromVector(State *state, const Eigen::VectorXd &x) const
+{
+    for (unsigned int i = 0; i < n_; ++i)
+        *ambientSpace_->getValueAddressAtIndex(state, i) = x[i];
 }
 
 void ompl::base::Constraint::jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
@@ -109,12 +116,6 @@ void ompl::base::Constraint::jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen
     }
 }
 
-bool ompl::base::Constraint::project(State *state) const
-{
-    Eigen::VectorXd x = toVector(state);
-    return project(x);
-}
-
 bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
 {
     // Newton's method
@@ -146,43 +147,14 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
     return true;
 }
 
-Eigen::Map<Eigen::VectorXd> ompl::base::Constraint::toVector(const State *state) const
+double ompl::base::Constraint::distance(const Eigen::VectorXd &x) const
 {
-    return Eigen::Map<Eigen::VectorXd>(state->as<RealVectorStateSpace::StateType>()->values, n_);
+    Eigen::VectorXd f(n_ - k_);
+    function(x, f);
+    return f.norm();
 }
 
-unsigned int ompl::base::Constraint::getAmbientDimension() const
+bool ompl::base::Constraint::isSatisfied(const Eigen::VectorXd &x) const
 {
-    return n_;
+    return distance(x) <= projectionTolerance_;
 }
-
-unsigned int ompl::base::Constraint::getManifoldDimension() const
-{
-    return k_;
-}
-
-double ompl::base::Constraint::getProjectionTolerance() const
-{
-    return projectionTolerance_;
-}
-
-unsigned int ompl::base::Constraint::getProjectionMaxIterations() const
-{
-    return projectionMaxIterations_;
-}
-
-// void ompl::base::AtlasStateSpace::setProjectionTolerance(const double tolerance)
-// {
-//     if (tolerance <= 0)
-//         throw ompl::Exception("ompl::base::AtlasStateSpace::setProjectionTolerance(): "
-//                              "tolerance must be positive.");
-//     projectionTolerance_ = tolerance;
-// }
-
-// void ompl::base::AtlasStateSpace::setProjectionMaxIterations(const unsigned int iterations)
-// {
-//     if (iterations == 0)
-//         throw ompl::Exception("ompl::base::AtlasStateSpace::setProjectionMaxIterations(): "
-//                              "iterations must be positive.");
-//     projectionMaxIterations_ = iterations;
-// }
