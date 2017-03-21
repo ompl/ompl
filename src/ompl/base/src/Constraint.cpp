@@ -48,7 +48,7 @@ void ompl::base::Constraint::jacobian(const State *state, Eigen::Ref<Eigen::Matr
 
 bool ompl::base::Constraint::project(State *state) const
 {
-    Eigen::VectorXd &x = toVector(state);
+    Eigen::Ref<Eigen::VectorXd> x = toVector(state);
     bool ret = project(x);
     fromVector(state, x);
     return ret;
@@ -64,7 +64,7 @@ bool ompl::base::Constraint::isSatisfied(const State *state) const
     return isSatisfied(toVector(state));
 }
 
-Eigen::VectorXd& ompl::base::Constraint::toVector(const State *state) const
+Eigen::Ref<Eigen::VectorXd> ompl::base::Constraint::toVector(const State *state) const
 {
     for (unsigned int i = 0; i < n_; ++i)
         vector_[i] = *ambientSpace_->getValueAddressAtIndex(state, i);
@@ -127,15 +127,17 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
     {
         // Compute pseudoinverse of Jacobian
         jacobian(x, j);
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-        const double tolerance =
-            std::numeric_limits<double>::epsilon() * n_ * svd.singularValues().array().abs().maxCoeff();
 
-        x -= svd.matrixV() *
-             Eigen::MatrixXd(
-                 (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0))
-                 .asDiagonal() *
-             svd.matrixU().adjoint() * f;
+        // Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+
+        // const double tolerance =
+        //     std::numeric_limits<double>::epsilon() * n_ * svd.singularValues().array().abs().maxCoeff();
+
+        // sigma = Eigen::MatrixXd((svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0)).asDiagonal();
+        // x -= svd.matrixV() * sigma * svd.matrixU().adjoint() * f;
+
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+        x -= svd.solve(f);
 
         function(x, f);
     }

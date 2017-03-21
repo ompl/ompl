@@ -160,7 +160,7 @@ namespace ompl
             }
 
             /** \brief Translates a state from the ambient space into an Eigen vector. */
-            Eigen::VectorXd& toVector(const State *state) const;
+            Eigen::Ref<Eigen::VectorXd> toVector(const State *state) const;
 
             /** \brief Translates an Eigen vector into a generic state from the ambient space. */
             void fromVector(State *state, const Eigen::VectorXd &x) const;
