@@ -524,8 +524,7 @@ namespace ompl
 #ifdef BITSTAR_DEBUG
             if (isPruned_ == true)
             {
-                std::cout << std::endl
-                          << "vId: " << vId_ << std::endl;
+                std::cout << std::endl << "vId: " << vId_ << std::endl;
                 throw ompl::Exception("Attempting to access a pruned vertex.");
             }
 #endif  // BITSTAR_DEBUG

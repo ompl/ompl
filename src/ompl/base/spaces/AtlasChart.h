@@ -1,0 +1,262 @@
+/*********************************************************************
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2014, Rice University
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Rice University nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
+
+/* Author: Caleb Voss */
+
+#ifndef OMPL_BASE_SPACES_ATLAS_CHART_
+#define OMPL_BASE_SPACES_ATLAS_CHART_
+
+#include "ompl/base/spaces/AtlasStateSpace.h"
+
+#include <vector>
+
+#include <eigen3/Eigen/LU>
+
+namespace ompl
+{
+    namespace base
+    {
+        /** \brief Tangent space and bounding polytope approximating some patch
+         * of the manifold. */
+        class AtlasChart : private boost::noncopyable
+        {
+            /** \brief Halfspace equation on a chart.
+             * \note Use AtlasChart::generateHalfspace to create new halfspace
+             * objects. Since each halfspace is associated to exactly one chart,
+             * we let the chart be responsible for deleting it. */
+            class Halfspace
+            {
+            public:
+                /** \brief Create a halfspace equitably separating charts \a
+                 * owner and \a neighbor. This halfspace will coincide with
+                 * chart \a owner. */
+                Halfspace(const AtlasChart *owner, const AtlasChart *neighbor);
+
+                /** \brief Inform this halfspace about the "complementary"
+                 * halfspace which coincides with the neighboring chart. */
+                void setComplement(Halfspace *complement);
+
+                /** \brief Get the complementary halfspace. */
+                Halfspace *getComplement(void) const;
+
+                /** \brief Get the chart to which this halfspace belongs. */
+                const AtlasChart &getOwner(void) const;
+
+                /** \brief Return whether point \a v on the owning chart
+                 * lies within the halfspace. */
+                bool contains(Eigen::Ref<const Eigen::VectorXd> v) const;
+
+                /** \brief If point \a v on the owning chart is very close to
+                 * the halfspace boundary, the "complementary" halfspace will
+                 * extend its boundary so that it also contains \a v when \a v
+                 * is projected onto the neighboring chart. */
+                void checkNear(Eigen::Ref<const Eigen::VectorXd> v) const;
+
+                /// @cond IGNORE
+
+                /** \brief Compute up to two vertices of intersection with a
+                 * circle of radius \a r.  If one vertex is found, it is stored
+                 * to both \a v1 and \a v2; if two are found, they are stored to
+                 * \a v1 and \a v2. If no vertex is found, returns false;
+                 * otherwise returns true. */
+                bool circleIntersect(const double r, Eigen::Ref<Eigen::VectorXd> v1,
+                                     Eigen::Ref<Eigen::VectorXd> v2) const;
+
+                /** \brief Compute the vertex of intersection of two
+                 * 1-dimensional inequalities \a l1 and \a l2.  Result stored in
+                 * \a out, which should be allocated to a size of 2. */
+                static void intersect(const Halfspace &l1, const Halfspace &l2, Eigen::Ref<Eigen::VectorXd> out);
+
+                /// @endcond
+
+            private:
+                /** \brief Chart to which this halfspace belongs. */
+                const AtlasChart &owner_;
+
+                /** \brief Halfspace complementary to this one, but on the
+                 * neighboring chart. */
+                Halfspace *complement_ = nullptr;
+
+                /** \brief Center of the neighboring chart projected onto our
+                 * chart. */
+                Eigen::VectorXd u_;
+
+                /** \brief Precomputed right-hand side of the inequality. */
+                double rhs_;
+
+                /** \brief Generate the linear inequality. We will divide the
+                 * space in half between \a u and 0, and 0 will lie inside. */
+                void setU(const Eigen::VectorXd &u);
+
+                /** \brief Compute the distance between a point \a v on our
+                 * chart and the halfspace boundary as a scalar factor of
+                 * \a u_. That is, \a result * \a u_ lies on the halfspace
+                 * boundary, and \a v, \a u_, \a result * \a u_ are colinear. */
+                double distanceToPoint(Eigen::Ref<const Eigen::VectorXd> v) const;
+
+                /** \brief Expand the halfspace to include ambient point \a x
+                 * when it is projected onto our chart. */
+                void expandToInclude(Eigen::Ref<const Eigen::VectorXd> x);
+            };
+
+        public:
+            /** \brief Create a tangent space chart for \a atlas with center at
+             * ambient space point \a xorigin.
+             * \throws ompl::Exception when manifold seems degenerate here. */
+            AtlasChart(const ConstraintPtr &constraint, double rho, double epsilon, Eigen::Ref<const Eigen::VectorXd> xorigin);
+
+            /** \brief Destructor. */
+            virtual ~AtlasChart(void);
+
+            /** \brief Forget all acquired information such as the halfspace
+             * boundary. */
+            void clear(void);
+
+            /* Specify that this is a special chart (e.g. start or goal is on
+             * it) that should persist through a call to
+             * AtlasStateSpace::clear(). */
+            void makeAnchor(void);
+
+            /** \brief Is this chart marked as an anchor chart for the atlas? */
+            bool isAnchor(void) const;
+
+            /** \brief Returns phi(0), the center of the chart in ambient
+             * space. */
+            const Eigen::VectorXd &getXorigin(void) const;
+
+            /** \brief Rewrite a chart point \a u in ambient space coordinates
+             * and store the result in \a out, which should be allocated to size
+             * n_.
+             */
+            void phi(Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
+
+            /** \brief Exponential mapping. Project chart point \a u onto the
+             * manifold and store the result in \a out, which should be
+             * allocated to size n_. */
+            void psi(Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
+
+            /** \brief Same as AtlasChart::psi(), except it starts from an
+             * ambient space point \a x0. */
+            void psiFromAmbient(Eigen::Ref<const Eigen::VectorXd> x0, Eigen::Ref<Eigen::VectorXd> out) const;
+
+            /** \brief Logarithmic mapping. Project ambient point \a x onto the
+             * chart and store the result in \a out, which should be allocated
+             * to size k_. */
+            void psiInverse(Eigen::Ref<const Eigen::VectorXd> x, Eigen::Ref<Eigen::VectorXd> out) const;
+
+            /** \brief Check if a point \a u on the chart lies within its
+             * polytope boundary. Can ignore up to 2 of the halfspaces if
+             * specified in \a ignore1 and \a ignore2. */
+            bool inPolytope(Eigen::Ref<const Eigen::VectorXd> u, const Halfspace *const ignore1 = nullptr,
+                            const Halfspace *const ignore2 = nullptr) const;
+
+            /** \brief Check if chart point \a v lies very close to any part of
+             * the boundary. Wherever it does, expand the neighboring chart's
+             * boundary to include. */
+            void borderCheck(Eigen::Ref<const Eigen::VectorXd> v) const;
+
+            /** \brief Try to find an owner for ambient point \x from among the
+             * neighbors of this chart. Returns nullptr if none found.*/
+            const AtlasChart *owningNeighbor(Eigen::Ref<const Eigen::VectorXd> x) const;
+
+            /** \brief Set this chart's unique identifier in its atlas. Should
+             * be its index in the atlas's vector of charts. */
+            void setID(unsigned int);
+
+            /** \brief Get this chart's unique identifier in its atlas. This is
+             * its index in the atlas's vector of charts. */
+            unsigned int getID(void) const;
+
+            /// @cond IGNORE
+            /** \brief For manifolds of dimension 2, return in order in \a
+             * vertices the polygon boundary of this chart, including an
+             * approximation of the circular boundary where the polygon exceeds
+             * radius \a rho_. Returns true if a circular portion is
+             * included. */
+            bool toPolygon(std::vector<Eigen::VectorXd> &vertices) const;
+
+            /** \brief Use sampling to make a quick estimate as to whether this
+             * chart's polytope boundary is completely defined by its
+             * halfspaces. */
+            bool estimateIsFrontier() const;
+            /// @cond IGNORE
+
+            /** \brief Create two complementary halfspaces dividing the space
+             * between charts \a c1 and \a c2, and add them to the charts'
+             * polytopes boundaries.
+             * \note Charts must be different charts from the same atlas. */
+            static void generateHalfspace(AtlasChart *c1, AtlasChart *c2);
+
+        protected:
+            /** \brief Atlas to which this chart belongs. */
+            const ConstraintPtr constraint_;
+
+            /** \brief Set of halfsaces defining the polytope boundary. */
+            std::vector<Halfspace *> polytope_;
+
+            /** \brief Introduce a new \a halfspace to the chart's bounding
+             * polytope. This chart assumes responsibility for deleting \a
+             * halfspace. */
+            void addBoundary(Halfspace *halfspace);
+
+        private:
+            /** \brief Dimension of the ambient space. */
+            const unsigned int n_;
+
+            /** \brief Dimension of the chart, which is the dimension of the
+             * manifold. */
+            const unsigned int k_;
+
+            /** \brief Origin of the chart in ambient space coordinates. */
+            const Eigen::VectorXd xorigin_;
+
+            /** \brief Maximum valid radius of this chart. */
+            double radius_;
+
+            /** \brief Maximum valid distance to manifold from this chart. */
+            double epsilon_;
+
+            /** \brief Whether this chart is an anchor chart in the atlas. */
+            bool isAnchor_ = false;
+
+            /** \brief Unique ID in the atlas. Must be manually set. */
+            unsigned int id_ = 0;
+
+            /** \brief Basis for the chart space. */
+            Eigen::MatrixXd bigPhi_;
+        };
+    }
+}
+
+#endif

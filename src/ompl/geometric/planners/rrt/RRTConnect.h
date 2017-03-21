@@ -37,8 +37,8 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_RRT_RRT_CONNECT_
 #define OMPL_GEOMETRIC_PLANNERS_RRT_RRT_CONNECT_
 
-#include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/geometric/planners/PlannerIncludes.h"
 
 namespace ompl
 {
@@ -62,7 +62,7 @@ namespace ompl
         {
         public:
             /** \brief Constructor */
-            RRTConnect(const base::SpaceInformationPtr &si);
+            RRTConnect(const base::SpaceInformationPtr &si, bool addIntermediateStates = false);
 
             ~RRTConnect() override;
 
@@ -71,6 +71,20 @@ namespace ompl
             base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
             void clear() override;
+
+            /** \brief Return true if the intermediate states generated along motions are to be added to the tree itself
+             */
+            bool getIntermediateStates() const
+            {
+                return addIntermediateStates_;
+            }
+
+            /** \brief Specify whether the intermediate states generated along motions are to be added to the tree
+             * itself */
+            void setIntermediateStates(bool addIntermediateStates)
+            {
+                addIntermediateStates_ = addIntermediateStates;
+            }
 
             /** \brief Set the range the planner is supposed to use.
 
@@ -170,11 +184,17 @@ namespace ompl
             /** \brief The maximum length of a motion to be added to a tree */
             double maxDistance_;
 
+            /** \brief Flag indicating whether intermediate states are added to the built tree of motions */
+            bool addIntermediateStates_;
+
             /** \brief The random number generator */
             RNG rng_;
 
             /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
             std::pair<base::State *, base::State *> connectionPoint_;
+
+            /** \brief Distance between the nearest pair of start tree and goal tree nodes. */
+            double distanceBetweenTrees_;
         };
     }
 }

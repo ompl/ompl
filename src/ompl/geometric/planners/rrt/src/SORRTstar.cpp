@@ -36,16 +36,15 @@
 
 #include "ompl/geometric/planners/rrt/SORRTstar.h"
 
-ompl::geometric::SORRTstar::SORRTstar(const base::SpaceInformationPtr &si)
-    : InformedRRTstar(si)
+ompl::geometric::SORRTstar::SORRTstar(const base::SpaceInformationPtr &si) : InformedRRTstar(si)
 {
-    //Set my name:
+    // Set my name:
     setName("SORRTstar");
 
-    //Configure InformedRRT* to be SORRT*:
+    // Configure InformedRRT* to be SORRT*:
     setOrderedSampling(true);
     setBatchSize(100u);
 
-    //Remove those parameters:
+    // Remove those parameters:
     params_.remove("use_ordered_sampling");
 }

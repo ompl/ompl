@@ -7,8 +7,9 @@ AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: None
+AllowShortFunctionsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false 
 AlwaysBreakTemplateDeclarations: true
 AlwaysBreakBeforeMultilineStrings: false
 BreakBeforeBinaryOperators: false
@@ -33,6 +34,7 @@ PenaltyReturnTypeOnItsOwnLine: 90
 PointerBindsToType: false
 SpacesBeforeTrailingComments: 2
 Cpp11BracedListStyle: true
+Language:        Cpp
 Standard:        Cpp11
 IndentWidth:     4
 TabWidth:        4
@@ -46,4 +48,5 @@ SpacesInCStyleCastParentheses: false
 SpaceAfterControlStatementKeyword: true
 SpaceBeforeAssignmentOperators: true
 ContinuationIndentWidth: 4
+SortIncludes: false
 ...

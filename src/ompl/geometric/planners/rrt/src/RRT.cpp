@@ -35,16 +35,18 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/planners/rrt/RRT.h"
+#include <limits>
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
-#include <limits>
 
-ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si) : base::Planner(si, "RRT")
+ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, bool addIntermediateStates)
+  : base::Planner(si, addIntermediateStates ? "RRTintermediate" : "RRT")
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;
 
     goalBias_ = 0.05;
+    addIntermediateStates_ = addIntermediateStates;
     maxDistance_ = 0.0;
     lastGoalMotion_ = nullptr;
 
@@ -75,10 +77,7 @@ void ompl::geometric::RRT::setup()
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
-    nn_->setDistanceFunction([this](const Motion *a, const Motion *b)
-                             {
-                                 return distanceFunction(a, b);
-                             });
+    nn_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 }
 
 void ompl::geometric::RRT::freeMemory()
@@ -147,26 +146,62 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
             dstate = xstate;
         }
 
-        if (si_->checkMotion(nmotion->state, dstate))
+        if (addIntermediateStates_)
         {
-            /* create a motion */
-            auto *motion = new Motion(si_);
-            si_->copyState(motion->state, dstate);
-            motion->parent = nmotion;
+            std::vector<base::State *> states;
+            const unsigned int count =
+                1 + si_->distance(nmotion->state, dstate) / si_->getStateValidityCheckingResolution();
+            si_->getMotionStates(nmotion->state, dstate, states, count, true, true);
+            Motion *motion;
+            si_->freeState(states[0]);
+            for (std::size_t i = 1; i < states.size(); i++)
+            {
+                /* create a motion */
+                motion = new Motion;
+                motion->state = states[i];
+                motion->parent = nmotion;
 
-            nn_->add(motion);
+                nn_->add(motion);
+                nmotion = motion;
+            }
+
             double dist = 0.0;
-            bool sat = goal->isSatisfied(motion->state, &dist);
+            bool sat = goal->isSatisfied(nmotion->state, &dist);
             if (sat)
             {
                 approxdif = dist;
-                solution = motion;
+                solution = nmotion;
                 break;
             }
             if (dist < approxdif)
             {
                 approxdif = dist;
-                approxsol = motion;
+                approxsol = nmotion;
+            }
+        }
+        else
+        {
+            if (si_->checkMotion(nmotion->state, dstate))
+            {
+                /* create a motion */
+                Motion *motion = new Motion(si_);
+                si_->copyState(motion->state, dstate);
+                motion->parent = nmotion;
+
+                nn_->add(motion);
+                double dist = 0.0;
+                bool sat = goal->isSatisfied(motion->state, &dist);
+                if (sat)
+                {
+                    approxdif = dist;
+                    solution = motion;
+                    break;
+                }
+                if (dist < approxdif)
+                {
+                    approxdif = dist;
+                    approxsol = motion;
+                }
             }
         }
     }

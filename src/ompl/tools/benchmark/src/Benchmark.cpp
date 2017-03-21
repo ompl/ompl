@@ -283,10 +283,8 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
 
     out << "Running on " << (exp_.host.empty() ? "UNKNOWN" : exp_.host) << std::endl;
     out << "Starting at " << time::as_string(exp_.startTime) << std::endl;
-    out << "<<<|" << std::endl
-        << exp_.setupInfo << "|>>>" << std::endl;
-    out << "<<<|" << std::endl
-        << exp_.cpuInfo << "|>>>" << std::endl;
+    out << "<<<|" << std::endl << exp_.setupInfo << "|>>>" << std::endl;
+    out << "<<<|" << std::endl << exp_.cpuInfo << "|>>>" << std::endl;
 
     out << exp_.seed << " is the random seed" << std::endl;
     out << exp_.maxTime << " seconds per run" << std::endl;
@@ -453,8 +451,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         gsetup_->print(setupInfo);
     else
         csetup_->print(setupInfo);
-    setupInfo << std::endl
-              << "Properties of benchmarked planners:" << std::endl;
+    setupInfo << std::endl << "Properties of benchmarked planners:" << std::endl;
     for (auto &planner : planners_)
         planner->printProperties(setupInfo);
 
