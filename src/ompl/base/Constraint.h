@@ -46,6 +46,15 @@
 
 namespace ompl
 {
+    namespace magic
+    {
+        /** \brief Default projection tolerance of a constraint unless otherwise specified. */
+        static const double CONSTRAINT_PROJECTION_TOLERANCE = 1e-3;
+
+        /** \brief Maximum number of iterations in projection routine until giving up. */
+        static const unsigned int CONSTRAINT_PROJECTION_MAX_ITERATIONS = 50;
+    }
+
     namespace base
     {
         /// @cond IGNORE
@@ -62,18 +71,19 @@ namespace ompl
 
             /** \brief Constructor. */
             Constraint(const StateSpace *ambientSpace, const unsigned int manifoldDimension)
-                : ambientSpace_(ambientSpace)
-                , n_(ambientSpace_->getDimension())
-                , k_(manifoldDimension)
-                , projectionTolerance_(1e-6)
-                , projectionMaxIterations_(50)
+              : ambientSpace_(ambientSpace)
+              , n_(ambientSpace_->getDimension())
+              , k_(manifoldDimension)
+              , projectionTolerance_(magic::CONSTRAINT_PROJECTION_TOLERANCE)
+              , projectionMaxIterations_(magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS)
+              , vector_(n_)
             {
                 if (n_ <= 0 || k_ <= 0)
                     throw ompl::Exception("ompl::base::Constraint(): "
-                                         "Ambient and manifold dimensions must be positive.");
+                                          "Ambient and manifold dimensions must be positive.");
                 if (n_ <= k_)
                     throw ompl::Exception("ompl::base::Constraint(): "
-                                         "Manifold dimension must be less than ambient dimension.");
+                                          "Manifold dimension must be less than ambient dimension.");
             }
 
             virtual ~Constraint()
@@ -136,7 +146,7 @@ namespace ompl
             {
                 if (tolerance <= 0)
                     throw ompl::Exception("ompl::base::Constraint::setProjectionTolerance(): "
-                                         "tolerance must be positive.");
+                                          "tolerance must be positive.");
                 projectionTolerance_ = tolerance;
             }
 
@@ -145,12 +155,12 @@ namespace ompl
             {
                 if (iterations == 0)
                     throw ompl::Exception("ompl::base::Constraint::setProjectionMaxIterations(): "
-                                         "iterations must be positive.");
+                                          "iterations must be positive.");
                 projectionMaxIterations_ = iterations;
             }
 
             /** \brief Translates a state from the ambient space into an Eigen vector. */
-            Eigen::VectorXd toVector(const State *state) const;
+            Eigen::VectorXd& toVector(const State *state) const;
 
             /** \brief Translates an Eigen vector into a generic state from the ambient space. */
             void fromVector(State *state, const Eigen::VectorXd &x) const;
@@ -191,7 +201,10 @@ namespace ompl
 
             /** \brief Maximum number of iterations for Newton method used in projection onto manifold. */
             unsigned int projectionMaxIterations_;
-        };
+
+            /** \brief Preallocated vector. */
+            mutable Eigen::VectorXd vector_;
+       };
     }
 }
 

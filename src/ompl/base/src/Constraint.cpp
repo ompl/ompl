@@ -48,7 +48,7 @@ void ompl::base::Constraint::jacobian(const State *state, Eigen::Ref<Eigen::Matr
 
 bool ompl::base::Constraint::project(State *state) const
 {
-    Eigen::VectorXd x = toVector(state);
+    Eigen::VectorXd &x = toVector(state);
     bool ret = project(x);
     fromVector(state, x);
     return ret;
@@ -64,13 +64,12 @@ bool ompl::base::Constraint::isSatisfied(const State *state) const
     return isSatisfied(toVector(state));
 }
 
-Eigen::VectorXd ompl::base::Constraint::toVector(const State *state) const
+Eigen::VectorXd& ompl::base::Constraint::toVector(const State *state) const
 {
-    Eigen::VectorXd x(n_);
     for (unsigned int i = 0; i < n_; ++i)
-        x[i] = *ambientSpace_->getValueAddressAtIndex(state, i);
+        vector_[i] = *ambientSpace_->getValueAddressAtIndex(state, i);
 
-    return x;
+    return vector_;
 }
 
 void ompl::base::Constraint::fromVector(State *state, const Eigen::VectorXd &x) const
