@@ -39,7 +39,7 @@
 /** Print usage information. Does not return. */
 void usage(const char *const progname)
 {
-    std::cout << "Usage: " << progname << " <problem> <planner> <timelimit>\n";
+    std::cout << "Usage: " << progname << " <problem> <planner> <timelimit> <-c?>\n";
     printProblems();
     printPlanners();
     exit(0);
@@ -47,7 +47,7 @@ void usage(const char *const progname)
 
 int main(int argc, char **argv)
 {
-    if (argc != 5 && argc != 4 && argc != 7)
+    if (argc != 5 && argc != 7)
         usage(argv[0]);
 
     // Detect artifical validity checking delay.
@@ -59,29 +59,31 @@ int main(int argc, char **argv)
         sleep = std::atof(argv[6]);
     }
 
-    bool doAtlas = true;
-    if (argc == 5 && strcmp("-c", argv[4]) == 0)
-        doAtlas = false;
+    int mode = 0;
+    if (strcmp("a", argv[4]) == 0)
+        mode = 1;
+    else if (strcmp("p", argv[4]) == 0)
+        mode = 2;
 
     // Initialize the atlas for the problem's manifold
 
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
+    ompl::base::Constraint *constraint = parseProblem(argv[1], x, y, isValid, sleep);
 
-    if (doAtlas)
+    if (mode == 1)
     {
-        ompl::base::AtlasStateSpacePtr atlas(parseAtlasProblem(argv[1], x, y, isValid, sleep));
+        ompl::base::AtlasStateSpacePtr atlas(new ompl::base::AtlasStateSpace(constraint->getAmbientSpace(), constraint));
         if (!atlas)
             usage(argv[0]);
 
-
-        // All the 'Constrained' classes are loose wrappers for the normal classes. No effect except on
-        // the two special planners.
+        // All the 'Constrained' classes are loose wrappers for the normal
+        // classes. No effect except on the two special planners.
         ompl::geometric::SimpleSetup ss(atlas);
         ompl::base::SpaceInformationPtr si = ss.getSpaceInformation();
         atlas->setSpaceInformation(si);
         ss.setStateValidityChecker(isValid);
-        si->setValidStateSamplerAllocator(vssa);
+        si->setValidStateSamplerAllocator(avssa);
 
         // Atlas parameters
         atlas->setExploration(0.5);
@@ -118,8 +120,9 @@ int main(int argc, char **argv)
         if (runtime_limit <= 0)
             usage(argv[0]);
 
-        // Plan. For 3D problems, we save the chart mesh, planner graph, and solution path in the .ply format.
-        // Regardless of dimension, we write the doubles in the path states to a .txt file.
+        // Plan. For 3D problems, we save the chart mesh, planner graph, and
+        // solution path in the .ply format. Regardless of dimension, we write
+        // the doubles in the path states to a .txt file.
         std::clock_t tstart = std::clock();
         ompl::base::PlannerStatus stat = planner->solve(runtime_limit);
         if (stat)
@@ -134,7 +137,8 @@ int main(int argc, char **argv)
                 pathFile.close();
             }
 
-            // Extract the full solution path by re-interpolating between the saved states (except for the special planners)
+            // Extract the full solution path by re-interpolating between the
+            // saved states (except for the special planners)
             const std::vector<ompl::base::State *> &waypoints = path.getStates();
             double length = 0;
 
@@ -148,13 +152,13 @@ int main(int argc, char **argv)
                 to = waypoints[i + 1]->as<ompl::base::AtlasStateSpace::StateType>();
 
                 // Traverse the manifold
-                std::vector<ompl::base::AtlasStateSpace::StateType *> stateList;
+                std::vector<ompl::base::State *> stateList;
                 atlas->traverseManifold(from, to, true, &stateList);
                 if (atlas->equalStates(stateList.front(), stateList.back()))
                 {
                     // std::cout << "[" << stateList.front()->constVectorView().transpose() << "]  " <<
                     // stateList.front()->getChart()->getID() << "\n";
-                    animFile << stateList.front()->constVectorView().transpose() << "\n";
+                    animFile << stateList.front()->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose() << "\n";
                 }
                 else
                 {
@@ -163,14 +167,14 @@ int main(int argc, char **argv)
                     {
                         // std::cout << "[" << stateList[i]->constVectorView().transpose() << "]  " <<
                         // stateList[i]->getChart()->getID() << "\n";
-                        animFile << stateList[i]->constVectorView().transpose() << "\n";
+                        animFile << stateList[i]->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView().transpose() << "\n";
                         length += atlas->distance(stateList[i - 1], stateList[i]);
                     }
                 }
 
                 // Delete the intermediate states
-                for (auto & i : stateList)
-                    atlas->freeState(i);
+                for (auto &state : stateList)
+                    atlas->freeState(state);
             }
             animFile.close();
 
@@ -187,7 +191,8 @@ int main(int argc, char **argv)
         ompl::base::PlannerData data(si);
         planner->getPlannerData(data);
         if (data.properties.find("approx goal distance REAL") != data.properties.end())
-            std::cout << "Approx goal distance: " << data.properties["approx goal distance REAL"] << "\n";
+            std::cout << "Approx goal distance: "
+                     << data.properties["approx goal distance REAL"] << "\n";
 
         std::cout << "Atlas created " << atlas->getChartCount() << " charts.\n";
 
@@ -206,55 +211,54 @@ int main(int argc, char **argv)
 
         std::cout << atlas->estimateFrontierPercent() << "% open.\n";
     }
-    else
+
+    else if (mode == 2)
     {
-        ompl::base::ProjectedStateSpacePtr proj(parseProjectedProblem(argv[1], x, y, isValid, sleep));
+        ompl::base::ProjectedStateSpacePtr proj(
+            new ompl::base::ProjectedStateSpace(constraint->getAmbientSpace(), constraint));
         if (!proj)
             usage(argv[0]);
 
-        // All the 'Constrained' classes are loose wrappers for the normal classes. No effect except on
-        // the two special planners.
+        // All the 'Constrained' classes are loose wrappers for the normal
+        // classes. No effect except on the two special planners.
         ompl::geometric::SimpleSetup ss(proj);
         ompl::base::SpaceInformationPtr si = ss.getSpaceInformation();
         proj->setSpaceInformation(si);
         ss.setStateValidityChecker(isValid);
-        si->setValidStateSamplerAllocator(vssa);
+        si->setValidStateSamplerAllocator(pvssa);
 
-        // The atlas needs some place to start sampling from. We will make start and goal charts.
+        proj->setDelta(0.02);
+
+        // The proj needs some place to start sampling from. We will make start
+        // and goal charts.
         ompl::base::ScopedState<> start(proj);
         ompl::base::ScopedState<> goal(proj);
-        for (int i = 0; i < x.size(); ++i)
-        {
-            start->as<ompl::base::RealVectorStateSpace::StateType>()->values[i] = x[i];
-            goal->as<ompl::base::RealVectorStateSpace::StateType>()->values[i] = y[i];
-        }
+
+        constraint->fromVector(start->as<ompl::base::RealVectorStateSpace::StateType>(), x);
+        constraint->fromVector(goal->as<ompl::base::RealVectorStateSpace::StateType>(), y);
         ss.setStartAndGoalStates(start, goal);
 
         // Bounds
-        ompl::base::RealVectorBounds bounds(proj->getDimension());
+        ompl::base::RealVectorBounds bounds(proj->getAmbientDimension());
         bounds.setLow(-10);
         bounds.setHigh(10);
         proj->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
 
         // Choose the planner.
-        ompl::base::PlannerPtr planner(parsePlanner(argv[2], si, 0.5));
+        ompl::base::PlannerPtr planner(parsePlanner(argv[2], si, 0.1));
         if (!planner)
             usage(argv[0]);
-        std::cout << "Here we go!" << std::endl;
-
         ss.setPlanner(planner);
-        std::cout << "Here we go!" << std::endl;
         ss.setup();
-
-        std::cout << "Here we go!" << std::endl;
 
         // Set the time limit
         const double runtime_limit = std::atof(argv[3]);
         if (runtime_limit <= 0)
             usage(argv[0]);
 
-        // Plan. For 3D problems, we save the chart mesh, planner graph, and solution path in the .ply format.
-        // Regardless of dimension, we write the doubles in the path states to a .txt file.
+        // Plan. For 3D problems, we save the chart mesh, planner graph, and
+        // solution path in the .ply format. Regardless of dimension, we write
+        // the doubles in the path states to a .txt file.
         std::clock_t tstart = std::clock();
         ompl::base::PlannerStatus stat = planner->solve(runtime_limit);
         if (stat)
@@ -269,7 +273,40 @@ int main(int argc, char **argv)
                 pathFile.close();
             }
 
+            // Extract the full solution path by re-interpolating between the
+            // saved states (except for the special planners)
+            const std::vector<ompl::base::State *> &waypoints = path.getStates();
             double length = 0;
+
+            std::ofstream animFile("anim.txt");
+            for (std::size_t i = 0; i < waypoints.size() - 1; i++)
+            {
+                // Denote that we are switching to the next saved state
+                // std::cout << "-----\n";
+                ompl::base::ProjectedStateSpace::StateType *from, *to;
+                from = waypoints[i]->as<ompl::base::ProjectedStateSpace::StateType>();
+                to = waypoints[i + 1]->as<ompl::base::ProjectedStateSpace::StateType>();
+
+                // Traverse the manifold
+                std::vector<ompl::base::State *> stateList;
+                proj->traverseManifold(from, to, true, &stateList);
+                if (proj->equalStates(stateList.front(), stateList.back()))
+                    animFile << stateList.front()->as<ompl::base::ProjectedStateSpace::StateType>()->constVectorView().transpose() << "\n";
+                else
+                {
+                    // Print the intermediate states
+                    for (std::size_t i = 1; i < stateList.size(); i++)
+                    {
+                        animFile << stateList[i]->as<ompl::base::ProjectedStateSpace::StateType>()->constVectorView().transpose() << "\n";
+                        length += proj->distance(stateList[i - 1], stateList[i]);
+                    }
+                }
+
+                // Delete the intermediate states
+                for (auto &state : stateList)
+                    proj->freeState(state);
+            }
+            animFile.close();
 
             if (stat == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
                 std::cout << "Solution is approximate.\n";
@@ -284,8 +321,17 @@ int main(int argc, char **argv)
         ompl::base::PlannerData data(si);
         planner->getPlannerData(data);
         if (data.properties.find("approx goal distance REAL") != data.properties.end())
-            std::cout << "Approx goal distance: " << data.properties["approx goal distance REAL"] << "\n";
+            std::cout << "Approx goal distance: "
+                     << data.properties["approx goal distance REAL"] << "\n";
 
+        if (x.size() == 3)
+        {
+            std::ofstream graphFile("graph.ply");
+            ompl::base::PlannerData pd(si);
+            planner->getPlannerData(pd);
+            proj->dumpGraph(pd.toBoostGraph(), graphFile, false);
+            graphFile.close();
+        }
     }
 
     return 0;

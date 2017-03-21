@@ -42,29 +42,14 @@
 
 /// Public
 
-ompl::base::AtlasChart::Halfspace::Halfspace(const AtlasChart *owner, const AtlasChart *neighbor) : owner_(*owner)
+ompl::base::AtlasChart::Halfspace::Halfspace(const AtlasChart *owner, const AtlasChart *neighbor) : owner_(owner)
 {
     // Project neighbor's chart center onto our chart.
-    Eigen::VectorXd u(owner_.k_);
-    owner_.psiInverse(neighbor->getXorigin(), u);
+    Eigen::VectorXd u(owner_->k_);
+    owner_->psiInverse(neighbor->getXorigin(), u);
     // Compute the halfspace equation, which is the perpendicular bisector
     // between 0 and u (plus 5% to reduce cracks, see Jaillet et al.).
     setU(1.05 * u);
-}
-
-void ompl::base::AtlasChart::Halfspace::setComplement(Halfspace *complement)
-{
-    complement_ = complement;
-}
-
-ompl::base::AtlasChart::Halfspace *ompl::base::AtlasChart::Halfspace::getComplement() const
-{
-    return complement_;
-}
-
-const ompl::base::AtlasChart &ompl::base::AtlasChart::Halfspace::getOwner() const
-{
-    return owner_;
 }
 
 bool ompl::base::AtlasChart::Halfspace::contains(Eigen::Ref<const Eigen::VectorXd> v) const
@@ -77,8 +62,8 @@ void ompl::base::AtlasChart::Halfspace::checkNear(Eigen::Ref<const Eigen::Vector
     // Threshold is 10% of the distance from the boundary to the origin.
     if (distanceToPoint(v) < 1.0 / 20)
     {
-        Eigen::VectorXd x(owner_.n_);
-        owner_.psi(v, x);
+        Eigen::VectorXd x(owner_->n_);
+        owner_->psi(v, x);
         complement_->expandToInclude(x);
     }
 }
@@ -86,7 +71,7 @@ void ompl::base::AtlasChart::Halfspace::checkNear(Eigen::Ref<const Eigen::Vector
 bool ompl::base::AtlasChart::Halfspace::circleIntersect(const double r, Eigen::Ref<Eigen::VectorXd> v1,
                                                         Eigen::Ref<Eigen::VectorXd> v2) const
 {
-    if (owner_.constraint_->getManifoldDimension() != 2)
+    if (owner_->getManifoldDimension() != 2)
         throw ompl::Exception("ompl::base::AtlasChart::Halfspace::circleIntersect() "
                               "Only works on 2D manifolds.");
 
@@ -113,9 +98,9 @@ bool ompl::base::AtlasChart::Halfspace::circleIntersect(const double r, Eigen::R
 void ompl::base::AtlasChart::Halfspace::intersect(const Halfspace &l1, const Halfspace &l2,
                                                   Eigen::Ref<Eigen::VectorXd> out)
 {
-    if (&l1.owner_ != &l2.owner_)
+    if (l1.owner_ != l2.owner_)
         throw ompl::Exception("Cannot intersect linear inequalities on different charts.");
-    if (l1.owner_.constraint_->getManifoldDimension() != 2)
+    if (l1.owner_->getManifoldDimension() != 2)
         throw ompl::Exception("AtlasChart::Halfspace::intersect() only works on 2D manifolds.");
 
     // Computer the intersection point of these lines.
@@ -145,8 +130,8 @@ double ompl::base::AtlasChart::Halfspace::distanceToPoint(Eigen::Ref<const Eigen
 void ompl::base::AtlasChart::Halfspace::expandToInclude(Eigen::Ref<const Eigen::VectorXd> x)
 {
     // Compute how far v = psiInverse(x) lies past the boundary, if at all.
-    Eigen::VectorXd v(owner_.k_);
-    owner_.psiInverse(x, v);
+    Eigen::VectorXd v(owner_->k_);
+    owner_->psiInverse(x, v);
     const double t = -distanceToPoint(v);
 
     // Move u_ further out by twice that much.
@@ -158,14 +143,14 @@ void ompl::base::AtlasChart::Halfspace::expandToInclude(Eigen::Ref<const Eigen::
 
 /// Public
 
-ompl::base::AtlasChart::AtlasChart(const ConstraintPtr &constraint, double rho, double epsilon,
-                                   Eigen::Ref<const Eigen::VectorXd> xorigin)
-  : constraint_(constraint)
-  , n_(constraint_->getAmbientDimension())
-  , k_(constraint_->getManifoldDimension())
+ompl::base::AtlasChart::AtlasChart(const AtlasStateSpace *atlas, Eigen::Ref<const Eigen::VectorXd> xorigin)
+  : atlas_(atlas)
+  , constraint_(atlas->getConstraint())
+  , n_(atlas_->getAmbientDimension())
+  , k_(atlas_->getManifoldDimension())
   , xorigin_(xorigin)
-  , radius_(rho)
-  , epsilon_(epsilon)
+  , radius_(atlas->getRho_s())
+  , epsilon_(atlas->getEpsilon())
 {
     // Decompose the Jacobian at xorigin.
     Eigen::MatrixXd j(n_ - k_, n_);
@@ -192,21 +177,6 @@ void ompl::base::AtlasChart::clear()
     for (Halfspace *h : polytope_)
         delete h;
     polytope_.clear();
-}
-
-bool ompl::base::AtlasChart::isAnchor() const
-{
-    return isAnchor_;
-}
-
-void ompl::base::AtlasChart::makeAnchor()
-{
-    isAnchor_ = true;
-}
-
-const Eigen::VectorXd &ompl::base::AtlasChart::getXorigin() const
-{
-    return xorigin_;
 }
 
 void ompl::base::AtlasChart::phi(Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const
@@ -280,25 +250,15 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor(Eigen::Ref<
     for (Halfspace *h : polytope_)
     {
         // Project onto the neighboring chart.
-        const AtlasChart &c = h->getComplement()->getOwner();
-        c.psiInverse(x, proju);
-        c.phi(proju, projx);
+        const AtlasChart *c = h->getComplement()->getOwner();
+        c->psiInverse(x, proju);
+        c->phi(proju, projx);
         // Check if it's within the validity region and polytope boundary.
-        if ((projx - x).norm() < epsilon_ && proju.norm() < radius_ && c.inPolytope(proju))
-            return &c;
+        if ((projx - x).norm() < epsilon_ && proju.norm() < radius_ && c->inPolytope(proju))
+            return c;
     }
 
     return nullptr;
-}
-
-void ompl::base::AtlasChart::setID(unsigned int id)
-{
-    id_ = id;
-}
-
-unsigned int ompl::base::AtlasChart::getID() const
-{
-    return id_;
 }
 
 bool ompl::base::AtlasChart::toPolygon(std::vector<Eigen::VectorXd> &vertices) const
@@ -388,6 +348,10 @@ bool ompl::base::AtlasChart::estimateIsFrontier() const
 
 void ompl::base::AtlasChart::generateHalfspace(AtlasChart *c1, AtlasChart *c2)
 {
+    if (c1->atlas_ != c2->atlas_)
+        throw ompl::Exception("ompl::base::AtlasChart::generateHalfspace(): "
+                              "Charts must belong to the same atlas.");
+
     if (c1 == c2)
         throw ompl::Exception("ompl::base::AtlasChart::generateHalfspace(): "
                               "Must use two different charts.");

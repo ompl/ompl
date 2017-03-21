@@ -39,6 +39,7 @@
 
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/Constraint.h>
+#include <ompl/base/StateSpace.h>
 #include <ompl/base/spaces/AtlasChart.h>
 #include <ompl/base/spaces/AtlasStateSpace.h>
 #include <ompl/base/spaces/ProjectedStateSpace.h>
@@ -68,7 +69,7 @@
 class SphereConstraint : public ompl::base::Constraint
 {
 public:
-    SphereConstraint() : ompl::base::Constraint(3, 2)
+    SphereConstraint(const ompl::base::StateSpace *space) : ompl::base::Constraint(space, 2)
     {
     }
 
@@ -87,7 +88,7 @@ public:
 class PlaneConstraint : public ompl::base::Constraint
 {
 public:
-    PlaneConstraint() : ompl::base::Constraint(3, 2)
+    PlaneConstraint(const ompl::base::StateSpace *space) : ompl::base::Constraint(space, 2)
     {
     }
 
@@ -111,7 +112,7 @@ public:
     const double R1;
     const double R2;
 
-    TorusConstraint(double r1, double r2) : ompl::base::Constraint(3, 2), R1(r1), R2(r2)
+    TorusConstraint(const ompl::base::StateSpace *space, const double r1, const double r2) : ompl::base::Constraint(space, 2), R1(r1), R2(r2)
     {
     }
 
@@ -139,7 +140,7 @@ public:
  */
 
 /** 3 ring-shaped obstacles on latitudinal lines, with a small gap in each. */
-bool sphereValid_helper(double *x)
+bool sphereValid_helper(const double *x)
 {
     if (-0.75 < x[2] && x[2] < -0.60)
     {
@@ -178,20 +179,20 @@ bool always(double sleep, const ompl::base::State *)
 
 /** States surrounding the goal are invalid, making it unreachable. We can use this to build up an atlas
  * until time runs out, so we can see the big picture. */
-bool unreachable(double sleep, const ompl::base::State *state, const Eigen::VectorXd &goal, const double radius)
-{
-    std::this_thread::sleep_for(ompl::time::seconds(sleep));
-    return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView() - goal).norm() - radius) >
-           radius - 0.01;
-}
+// bool unreachable(double sleep, const ompl::base::State *state, const Eigen::VectorXd &goal, const double radius)
+// {
+//     std::this_thread::sleep_for(ompl::time::seconds(sleep));
+//     return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView() - goal).norm() - radius) >
+//            radius - 0.01;
+// }
 
 /**
  * Problem initialization functions set the dimension, the manifold, start and goal points \a x and \a y,
  * and the validity checker \a isValid.
  */
 
-ompl::base::ProjectedStateSpace *initProjectedPlaneProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                              ompl::base::StateValidityCheckerFn &isValid, double sleep)
+ompl::base::Constraint *initPlaneProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                         ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
 
@@ -202,89 +203,13 @@ ompl::base::ProjectedStateSpace *initProjectedPlaneProblem(Eigen::VectorXd &x, E
 
     isValid = std::bind(&always, sleep, std::placeholders::_1);
 
-    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
-    ompl::base::ConstraintPtr constraint(new PlaneConstraint());
-
-    std::ofstream problemFile("problem.txt");
-    problemFile << "plane 0 0 1" << std::endl;
-    problemFile.close();
-
-    return new ompl::base::ProjectedStateSpace(space, constraint);
+    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
+    return new PlaneConstraint(space);
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::ProjectedStateSpace *initProjectedSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                               ompl::base::StateValidityCheckerFn &isValid, double sleep)
-{
-    const std::size_t dim = 3;
-
-    // Start and goal points
-    x = Eigen::VectorXd(dim);
-    x << 0, 0, -1;
-    y = Eigen::VectorXd(dim);
-    y << 0, 0, 1;
-
-    // Validity checker
-    isValid = std::bind(&sphereValid, sleep, std::placeholders::_1);
-
-    // Projected initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is
-    // faster)
-    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
-    ompl::base::ConstraintPtr constraint(new SphereConstraint());
-
-    std::ofstream problemFile("problem.txt");
-    problemFile << "sphere 1" << std::endl;
-    problemFile.close();
-
-    return new ompl::base::ProjectedStateSpace(space, constraint);
-}
-
-/** Initialize the atlas for the torus problem and store the start and goal vectors. */
-ompl::base::ProjectedStateSpace *initProjectedTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                              ompl::base::StateValidityCheckerFn &isValid, double sleep)
-{
-    const std::size_t dim = 3;
-
-    // Start and goal points
-    x = Eigen::VectorXd(dim);
-    x << -3, 0, -1;
-    y = Eigen::VectorXd(dim);
-    y << 3, 0, 1;
-
-    // Validity checker
-    isValid = std::bind(&always, sleep, std::placeholders::_1);
-
-    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
-    ompl::base::ConstraintPtr constraint(new TorusConstraint(3, 1));
-    return new ompl::base::ProjectedStateSpace(space, constraint);
-}
-
-
-ompl::base::AtlasStateSpace *initAtlasPlaneProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                              ompl::base::StateValidityCheckerFn &isValid, double sleep)
-{
-    const std::size_t dim = 3;
-
-    x = Eigen::VectorXd(dim);
-    x << 4, 4, 0;
-    y = Eigen::VectorXd(dim);
-    y << -4, -4, 0;
-
-    isValid = std::bind(&always, sleep, std::placeholders::_1);
-
-    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
-    ompl::base::ConstraintPtr constraint(new PlaneConstraint());
-
-    std::ofstream problemFile("problem.txt");
-    problemFile << "plane 0 0 1" << std::endl;
-    problemFile.close();
-
-    return new ompl::base::AtlasStateSpace(space, constraint);
-}
-
-/** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initAtlasSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                               ompl::base::StateValidityCheckerFn &isValid, double sleep)
+ompl::base::Constraint *initSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                          ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
 
@@ -299,19 +224,13 @@ ompl::base::AtlasStateSpace *initAtlasSphereProblem(Eigen::VectorXd &x, Eigen::V
 
     // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is
     // faster)
-    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
-    ompl::base::ConstraintPtr constraint(new SphereConstraint());
-
-    std::ofstream problemFile("problem.txt");
-    problemFile << "sphere 1" << std::endl;
-    problemFile.close();
-
-    return new ompl::base::AtlasStateSpace(space, constraint);
+    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
+    return new SphereConstraint(space);
 }
 
 /** Initialize the atlas for the torus problem and store the start and goal vectors. */
-ompl::base::AtlasStateSpace *initAtlasTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                              ompl::base::StateValidityCheckerFn &isValid, double sleep)
+ompl::base::Constraint *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                         ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
 
@@ -324,15 +243,20 @@ ompl::base::AtlasStateSpace *initAtlasTorusProblem(Eigen::VectorXd &x, Eigen::Ve
     // Validity checker
     isValid = std::bind(&always, sleep, std::placeholders::_1);
 
-    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(3));
-    ompl::base::ConstraintPtr constraint(new TorusConstraint(3, 1));
-    return new ompl::base::AtlasStateSpace(space, constraint);
+    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
+    return new TorusConstraint(space, 3, 1);
 }
 
 /** Allocator function for a sampler for the atlas that only returns valid points. */
-ompl::base::ValidStateSamplerPtr vssa(const ompl::base::SpaceInformation *si)
+ompl::base::ValidStateSamplerPtr avssa(const ompl::base::SpaceInformation *si)
 {
     return ompl::base::ValidStateSamplerPtr(new ompl::base::AtlasValidStateSampler(si));
+}
+
+/** Allocator function for a sampler for the atlas that only returns valid points. */
+ompl::base::ValidStateSamplerPtr pvssa(const ompl::base::SpaceInformation *si)
+{
+    return ompl::base::ValidStateSamplerPtr(new ompl::base::ProjectedValidStateSampler(si));
 }
 
 /** Print usage information. */
@@ -353,8 +277,8 @@ void printPlanners(void)
 }
 
 /** Initialize the problem specified in the string. */
-ompl::base::AtlasStateSpace *parseAtlasProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                          ompl::base::StateValidityCheckerFn &isValid, double sleep = 0)
+ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                     ompl::base::StateValidityCheckerFn &isValid, double sleep = 0)
 {
     if (std::strcmp(problem, "plane") == 0)
         return initAtlasPlaneProblem(x, y, isValid, sleep);

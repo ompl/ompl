@@ -112,8 +112,8 @@ void ompl::base::SpaceInformation::setDefaultMotionValidator()
         motionValidator_ = std::make_shared<ReedsSheppMotionValidator>(this);
     else if (dynamic_cast<DubinsStateSpace *>(stateSpace_.get()))
         motionValidator_ = std::make_shared<DubinsMotionValidator>(this);
-    else if (dynamic_cast<AtlasStateSpace *>(stateSpace_.get()))
-        motionValidator_ = std::make_shared<AtlasMotionValidator>(this);
+    else if (dynamic_cast<ConstrainedStateSpace *>(stateSpace_.get()))
+        motionValidator_ = std::make_shared<ConstrainedMotionValidator>(this);
     else
         motionValidator_ = std::make_shared<DiscreteMotionValidator>(this);
 }
@@ -203,13 +203,12 @@ unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, cons
                                                            bool endpoints, bool alloc) const
 {
     // HACK for use by Atlas + X.
-    AtlasStateSpace *atlas = dynamic_cast<AtlasStateSpace *>(stateSpace_.get());
-    if (atlas)
+    ConstrainedStateSpace *cons = dynamic_cast<ConstrainedStateSpace *>(stateSpace_.get());
+    if (cons)
     {
         assert(alloc && endpoints);
-        std::vector<AtlasStateSpace::StateType *> stateList;
-        atlas->traverseManifold(s1->as<AtlasStateSpace::StateType>(), s2->as<AtlasStateSpace::StateType>(), false,
-                                &stateList);
+        std::vector<ompl::base::State *> stateList;
+        cons->traverseManifold(s1->as<ConstrainedStateSpace::StateType>(), s2->as<ConstrainedStateSpace::StateType>(), false, &stateList);
         states.resize(stateList.size());
         for (unsigned int j = 0; j < stateList.size(); j++)
             states[j] = stateList[j];

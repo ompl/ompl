@@ -46,6 +46,8 @@
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/geometric/PathGeometric.h"
 
+#include "ompl/base/ConstrainedStateSpace.h"
+
 #include <eigen3/Eigen/Core>
 
 namespace ompl
@@ -117,74 +119,50 @@ namespace ompl
             AtlasStateSampler sampler_;
         };
 
-        /** \brief Atlas-specific implementation of checkMotion(). */
-        class AtlasMotionValidator : public MotionValidator
-        {
-        public:
-            /** \brief Constructor. */
-            AtlasMotionValidator(SpaceInformation *si);
-
-            /** \brief Constructor. */
-            AtlasMotionValidator(const SpaceInformationPtr &si);
-
-            /** \brief Return whether we can step from \a s1 to \a s2 along the
-             * manifold without collision. */
-            bool checkMotion(const State *s1, const State *s2) const;
-
-            /** \brief Return whether we can step from \a s1 to \a s2 along the
-             * manifold without collision. If not, return the last valid state
-             * and its interpolation parameter in \a lastValid.
-             * \note The interpolation parameter will not likely reproduce the
-             * last valid state if used in interpolation since the distance
-             * between the last valid state and \a s2 is estimated using the
-             * ambient metric. */
-            bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const;
-
-        private:
-            /** \brief Atlas on which we check motion. */
-            const AtlasStateSpace &atlas_;
-        };
-
         /** \brief State space encapsulating a planner-agnostic atlas algorithm
          * for planning on a constraint manifold. */
-        class AtlasStateSpace : public RealVectorStateSpace
+        class AtlasStateSpace : public ConstrainedStateSpace
         {
         public:
             /** \brief A state in an atlas represented as a real vector in
              * ambient space and a chart that it belongs to. */
-            class StateType : public RealVectorStateSpace::StateType
+            class StateType : public ConstrainedStateSpace::StateType
             {
             public:
-                /** \brief Construct state of size \a dimension. */
-                StateType(const unsigned int &dimension);
-
-                /** \brief Destructor. */
-                virtual ~StateType(void);
+                /** \brief Construct state of size \a n. */
+                StateType(const unsigned int &n) : ConstrainedStateSpace::StateType(n)
+                {
+                }
 
                 /** \brief Set this state to be identical to \a source.
                  * \note Assumes source has the same size as this state. */
-                void copyFrom(const StateType *source);
+                void copyFrom(const StateType *source)
+                {
+                    ConstrainedStateSpace::StateType::copyFrom(source);
+                    chart_ = source->chart_;
+                }
 
                 /** \brief Set this state to \a x and make it belong to \a c.
                  * \note Assumes \a x has the same size as the state. */
-                void setRealState(const Eigen::VectorXd &x, AtlasChart *c);
-
-                /** \brief View this state as a vector. */
-                Eigen::Map<Eigen::VectorXd> vectorView(void) const;
-
-                /** \brief View this state as a const vector. */
-                Eigen::Map<const Eigen::VectorXd> constVectorView(void) const;
+                void setRealState(const Eigen::VectorXd &x, AtlasChart *c)
+                {
+                    ConstrainedStateSpace::StateType::setRealState(x);
+                    chart_ = c;
+                }
 
                 /** \brief Get the chart this state is on. */
-                AtlasChart *getChart(void) const;
+                AtlasChart *getChart(void) const
+                {
+                    return chart_;
+                }
 
                 /** \brief Set the chart \a c for the state. */
-                void setChart(AtlasChart *c) const;
+                void setChart(AtlasChart *c) const
+                {
+                    chart_ = c;
+                }
 
             private:
-                /** \brief Dimension of the real vector. */
-                const unsigned int &dimension_;
-
                 /** \brief Chart owning the real vector. */
                 mutable AtlasChart *chart_ = nullptr;
             };
@@ -193,7 +171,7 @@ namespace ompl
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
 
             /** \brief Construct an atlas with the specified dimensions. */
-            AtlasStateSpace(const StateSpacePtr space, const ConstraintPtr constraint);
+            AtlasStateSpace(const StateSpace *ambientSpace, const Constraint *constraint);
 
             /** \brief Destructor. */
             virtual ~AtlasStateSpace(void);
@@ -201,96 +179,123 @@ namespace ompl
             /** @name Setup and tuning of atlas parameters
              * @{ */
 
-            /** \brief Final setup for the space. */
-            void setup(void);
-
             /** \brief Check that the space referred to by the space information
              * \a si is, in fact, an AtlasStateSpace. */
             static void checkSpace(const SpaceInformation *si);
 
             /** \brief Reset the space (except for anchor charts). */
-            void clear(void);
-
-            /** \brief Associate \a si with this space. Requires that \a si was
-             * constructed from this AtlasStateSpace. */
-            void setSpaceInformation(const SpaceInformationPtr &si);
-
-            /** \brief Set \a delta, the step size for traversing the manifold
-             * and collision checking. Default 0.02. */
-            void setDelta(const double delta);
+            void clear();
 
             /** \brief Set \a epsilon, the maximum permissible distance between
              * a point in the validity region of a chart and its projection onto
              * the manifold. Default 0.1. */
-            void setEpsilon(const double epsilon);
+            void setEpsilon(const double epsilon)
+            {
+                if (epsilon <= 0)
+                    throw ompl::Exception("ompl::base::AtlasStateSpace::setEpsilon(): "
+                                          "epsilon must be positive.");
+                epsilon_ = epsilon;
+            }
 
             /** \brief Set \a rho, the maximum radius for which a chart is
              * valid. Default 0.1. */
-            void setRho(const double rho);
+            void setRho(const double rho)
+            {
+                if (rho <= 0)
+                    throw ompl::Exception("ompl::base::AtlasStateSpace::setRho(): "
+                                          "rho must be positive.");
+                rho_ = rho;
+                rho_s_ = rho_ / std::pow(1 - exploration_, 1.0 / k_);
+            }
 
             /** \brief Set \a alpha, the maximum permissible angle between the
              * chart and the manifold inside the validity region of the
              * chart. Must be within the range (0, pi/2). Default pi/16. */
-            void setAlpha(const double alpha);
+            void setAlpha(const double alpha)
+            {
+                if (alpha <= 0 || alpha >= M_PI_2)
+                    throw ompl::Exception("ompl::base::AtlasStateSpace::setAlpha(): "
+                                          "alpha must be in (0, pi/2).");
+                cos_alpha_ = std::cos(alpha);
+            }
 
             /** \brief Set the \a exploration parameter, which tunes the balance
              * of refinement (sampling within known regions) and exploration
              * (sampling on the frontier). Valid values are in the range [0,1),
              * where 0 is all refinement, and 1 is all exploration. Default
              * 0.5. */
-            void setExploration(const double exploration);
+            void setExploration(const double exploration)
+            {
+                if (exploration >= 1)
+                    throw ompl::Exception("ompl::base::AtlasStateSpace::setExploration(): "
+                                          "exploration must be in [0, 1).");
+                exploration_ = exploration;
+
+                // Update sampling radius
+                setRho(rho_);
+            }
 
             /** \brief Set \a lambda, where lambda * ||x-y|| is the maximum
              * distance that can be accumulated while traversing the manifold
              * from x to y before the algorithm stops. Must be greater than 1.
              * Default 2. */
-            void setLambda(const double lambda);
-
-            /** \brief Projection from a chart to the manifold will stop if the
-             * norm of the error is less than \a tolerance. Default 1e-8. */
-            void setProjectionTolerance(const double tolerance);
-
-            /** \brief Projection from a chart to the manifold will stop after
-             * at most \a iterations iterations. Default 50. */
-            void setProjectionMaxIterations(const unsigned int iterations);
+            void setLambda(const double lambda)
+            {
+                if (lambda <= 1)
+                    throw ompl::Exception("ompl::base::AtlasStateSpace::setLambda(): "
+                                          "lambda must be > 1.");
+                lambda_ = lambda;
+            }
 
             /** \brief Sometimes manifold traversal creates many charts. This
              * parameter limits the number of charts that can be created during
              * one traversal. Default 200. */
-            void setMaxChartsPerExtension(const unsigned int charts);
-
-            /** \brief Get delta. */
-            double getDelta(void) const;
+            void setMaxChartsPerExtension(const unsigned int charts)
+            {
+                maxChartsPerExtension_ = charts;
+            }
 
             /** \brief Get epsilon. */
-            double getEpsilon(void) const;
+            double getEpsilon() const
+            {
+                return epsilon_;
+            }
 
             /** \brief Get rho. */
-            double getRho(void) const;
+            double getRho() const
+            {
+                return rho_;
+            }
 
             /** \brief Get alpha. */
-            double getAlpha(void) const;
+            double getAlpha() const
+            {
+                return std::acos(cos_alpha_);
+            }
 
             /** \brief Get the exploration parameter. */
-            double getExploration(void) const;
+            double getExploration() const
+            {
+                return exploration_;
+            }
 
             /** \brief Get lambda. */
-            double getLambda(void) const;
+            double getLambda() const
+            {
+                return lambda_;
+            }
 
             /** \brief Get the sampling radius. */
-            double getRho_s(void) const;
+            double getRho_s() const
+            {
+                return rho_s_;
+            }
 
             /** \brief Get the maximum number of charts to create in one pass. */
-            unsigned int getMaxChartsPerExtension(void) const;
-
-            /** \brief Returns the dimension of the ambient space. */
-            unsigned int getAmbientDimension() const;
-
-            /** \brief Returns the dimension of the manifold. */
-            unsigned int getManifoldDimension() const;
-
-            ConstraintPtr getConstraint() const;
-
+            unsigned int getMaxChartsPerExtension() const
+            {
+                return maxChartsPerExtension_;
+            }
             /** @} */
 
             /** @name Manifold and chart operations
@@ -327,19 +332,13 @@ namespace ompl
              * including a copy of \a from, as well as the final state, which is
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. */
-            bool traverseManifold(const StateType *from, const StateType *to, const bool interpolate = false,
-                                  std::vector<StateType *> *stateList = nullptr) const;
+            bool traverseManifold(const State *from, const State*to, const bool interpolate = false,
+                                  std::vector<State *> *stateList = nullptr) const;
 
             /** @} */
 
             /** @name Interpolation and state management
              * @{ */
-
-            /** \brief Find the state between \a from and \a to at time \a t,
-             * where \a t = 0 is \a from, and \a t = 1 is the final state
-             * reached by followManifold(\a from, \a to, true, ...), which may
-             * not be \a to. State returned in \a state. */
-            void interpolate(const State *from, const State *to, const double t, State *state) const;
 
             /** \brief Like interpolate(...), but uses the information about
              * intermediate states already supplied in \a stateList from a
@@ -347,25 +346,31 @@ namespace ompl
              * 'from' and 'to' states are the first and last elements \a
              * stateList. Assumes \a stateList contains at least two
              * elements. */
-            void piecewiseInterpolate(const std::vector<StateType *> &stateList, const double t, State *state) const;
-
-            /** \brief Whether interpolation is symmetric. (Yes.) */
-            bool hasSymmetricInterpolate(void) const;
-
-            /** \brief Copy \a source to \a destination. The memory for
-             * these two states should not overlap. Assumes they are of type
-             * AtlasStateSpace::StateType. */
-            void copyState(State *destination, const State *source) const;
+            unsigned int piecewiseInterpolate(const std::vector<State *> &stateList, const double t, State *state) const;
 
             /** \brief Return an instance of the AtlasStateSampler. */
             StateSamplerPtr allocDefaultStateSampler(void) const;
 
+            void copyState(State *destination, const State *source) const
+            {
+                StateType *adest = destination->as<StateType>();
+                const StateType *asrc = source->as<StateType>();
+                adest->copyFrom(asrc);
+            }
+
             /** \brief Allocate a new state in this space. */
-            State *allocState(void) const;
+            State *allocState() const
+            {
+                return new StateType(n_);
+            }
 
             /** \brief Free \a state. Assumes \a state is of type
-             * AtlasStateSpace::StateType.  state. */
-            void freeState(State *state) const;
+             * AtlasStateSpace::StateType. state. */
+            void freeState(State *state) const
+            {
+                StateType *const astate = state->as<StateType>();
+                delete astate;
+            }
 
             /** @} */
 
@@ -380,27 +385,9 @@ namespace ompl
             /** \brief Write a mesh representation of the atlas to a stream. */
             void dumpMesh(std::ostream &out) const;
 
-            /** \brief Write a mesh of the planner graph to a stream. Insert
-             * additional vertices to project the edges along the manifold if \a
-             * asIs == true. */
-            void dumpGraph(const PlannerData::Graph &graph, std::ostream &out, const bool asIs = false) const;
-
-            /** \brief Write a mesh of a path on the atlas to stream. Insert
-             * additional vertices to project the edges along the manifold if \a
-             * asIs == true. */
-            void dumpPath(ompl::geometric::PathGeometric &path, std::ostream &out, const bool asIs = false) const;
-
             /** @} */
 
         protected:
-            /** \brief SpaceInformation associated with this space. */
-            SpaceInformation *si_;
-
-            /** \brief Ambient state space associated with this space. */
-            StateSpacePtr ss_;
-
-            /** \brief Constraint function that defines the manifold. */
-            ConstraintPtr constraint_;
 
             /** \brief Set of charts, sampleable by weight. */
             mutable std::vector<AtlasChart *> charts_;
@@ -410,15 +397,6 @@ namespace ompl
             mutable NearestNeighborsGNAT<NNElement> chartNN_;
 
         private:
-            /** \brief Ambient space dimension. */
-            const unsigned int n_;
-
-            /** \brief Manifold dimension. */
-            const unsigned int k_;
-
-            /** \brief Step size when traversing the manifold and collision checking. */
-            double delta_;
-
             /** \brief Maximum distance between a chart and the manifold inside its validity region. */
             double epsilon_;
 
@@ -440,9 +418,6 @@ namespace ompl
 
             /** \brief Maximum number of charts that can be created in one manifold traversal. */
             unsigned int maxChartsPerExtension_;
-
-            /** \brief Whether setup() has been called. */
-            bool setup_;
 
             /** \brief Random number generator. */
             mutable RNG rng_;

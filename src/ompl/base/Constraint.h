@@ -39,12 +39,22 @@
 
 #include "ompl/base/StateSpace.h"
 #include "ompl/util/ClassForward.h"
+#include "ompl/util/Exception.h"
 
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
 
 namespace ompl
 {
+    namespace magic
+    {
+        /** \brief Default projection tolerance of a constraint unless otherwise specified. */
+        static const double CONSTRAINT_PROJECTION_TOLERANCE = 1e-3;
+
+        /** \brief Maximum number of iterations in projection routine until giving up. */
+        static const unsigned int CONSTRAINT_PROJECTION_MAX_ITERATIONS = 50;
+    }
+
     namespace base
     {
         /// @cond IGNORE
@@ -55,59 +65,131 @@ namespace ompl
         class Constraint
         {
         public:
-            /** \brief Constructor.  Takes a pointer to the StateSpace being
-             * constrained. */
-            Constraint(const unsigned int ambientDimension, const unsigned int manifoldDimension)
-              : n_(ambientDimension)
+            // non-copyable
+            Constraint(const Constraint &) = delete;
+            Constraint &operator=(const Constraint &) = delete;
+
+            /** \brief Constructor. */
+            Constraint(const StateSpace *ambientSpace, const unsigned int manifoldDimension)
+              : ambientSpace_(ambientSpace)
+              , n_(ambientSpace_->getDimension())
               , k_(manifoldDimension)
-              , projectionTolerance_(1e-6)
-              , projectionMaxIterations_(50)
+              , projectionTolerance_(magic::CONSTRAINT_PROJECTION_TOLERANCE)
+              , projectionMaxIterations_(magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS)
+              , vector_(n_)
             {
+                if (n_ <= 0 || k_ <= 0)
+                    throw ompl::Exception("ompl::base::Constraint(): "
+                                          "Ambient and manifold dimensions must be positive.");
+                if (n_ <= k_)
+                    throw ompl::Exception("ompl::base::Constraint(): "
+                                          "Manifold dimension must be less than ambient dimension.");
             }
+
             virtual ~Constraint()
             {
             }
 
-            /** \brief Check whether this state satisfies the constraints */
-            virtual bool isSatisfied(const Eigen::VectorXd &x) const;
-            bool isSatisfied(const State *state) const;
-
-            virtual double distance(const Eigen::VectorXd &x) const;
-            double distance(const State *state) const;
-
-            /** \brief Compute the constraint function at \a state. Result is returned
-             * in \a out, which should be allocated to size n_. */
-            virtual void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const = 0;
+            /** \brief Compute the constraint function at \a state. Result is
+             * returned in \a out, which should be allocated to size n_. */
             void function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const;
 
             /** \brief Compute the Jacobian of the constraint function at \a
              * state. Result is returned in \a out, which should be allocated to
-             * size (n_-k_) by n_. Default implementation performs the
+             * size (n_ - k_) by n_. Default implementation performs the
+             * differentiation numerically, which may be slower and/or more
+             * inaccurate than an explicit formula. */
+            void jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const;
+
+            /** \brief Project a state \a state given the constraints. If a valid
+             * projection cannot be found, this method will return false. */
+            bool project(State *state) const;
+
+            /** \brief Returns the distance of \a state to the constraint manifold. */
+            double distance(const State *state) const;
+
+            /** \brief Check whether a state \a state satisfies the constraints */
+            bool isSatisfied(const State *state) const;
+
+            /** \brief Returns the dimension of the ambient space. */
+            unsigned int getAmbientDimension() const
+            {
+                return n_;
+            }
+
+            /** \brief Returns the dimension of the manifold. */
+            unsigned int getManifoldDimension() const
+            {
+                return k_;
+            }
+
+            /** \brief Returns the tolerance of the projection routine. */
+            double getProjectionTolerance() const
+            {
+                return projectionTolerance_;
+            }
+
+            /** \brief Returns the maximum number of allowed iterations in the projection routine. */
+            unsigned int getProjectionMaxIterations() const
+            {
+                return projectionMaxIterations_;
+            }
+
+            /** \brief Returns the maximum number of allowed iterations in the projection routine. */
+            const StateSpace *getAmbientSpace() const
+            {
+                return ambientSpace_;
+            }
+
+            /** \brief Sets the projection tolerance. */
+            void setProjectionTolerance(const double tolerance)
+            {
+                if (tolerance <= 0)
+                    throw ompl::Exception("ompl::base::Constraint::setProjectionTolerance(): "
+                                          "tolerance must be positive.");
+                projectionTolerance_ = tolerance;
+            }
+
+            /** \brief Sets the maximum number of iterations in the projection routine. */
+            void setProjectionMaxIterations(const unsigned int iterations)
+            {
+                if (iterations == 0)
+                    throw ompl::Exception("ompl::base::Constraint::setProjectionMaxIterations(): "
+                                          "iterations must be positive.");
+                projectionMaxIterations_ = iterations;
+            }
+
+            /** \brief Translates a state from the ambient space into an Eigen vector. */
+            Eigen::Ref<Eigen::VectorXd> toVector(const State *state) const;
+
+            /** \brief Translates an Eigen vector into a generic state from the ambient space. */
+            void fromVector(State *state, const Eigen::VectorXd &x) const;
+
+            /** \brief Compute the constraint function at \a x. Result is returned
+             * in \a out, which should be allocated to size n_. */
+            virtual void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const = 0;
+
+            /** \brief Compute the Jacobian of the constraint function at \a x.
+             * Result is returned in \a out, which should be allocated to size
+             * (n_ - k_) by n_. Default implementation performs the
              * differentiation numerically, which may be slower and/or more
              * inaccurate than an explicit formula. */
             virtual void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const;
-            void jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const;
 
-            /** \brief Project a state given the constraints.  If a valid
+            /** \brief Project a state \a x given the constraints. If a valid
              * projection cannot be found, this method will return false. */
             virtual bool project(Eigen::Ref<Eigen::VectorXd> x) const;
-            bool project(State *state) const;
 
-            Eigen::Map<Eigen::VectorXd> toVector(const State *state) const;
+            /** \brief Returns the distance of \a x to the constraint manifold. */
+            virtual double distance(const Eigen::VectorXd &x) const;
 
-            /** \brief Returns the dimension of the ambient space. */
-            unsigned int getAmbientDimension() const;
-
-            /** \brief Returns the dimension of the manifold. */
-            unsigned int getManifoldDimension() const;
-
-            /** \brief Returns the dimension of the ambient space. */
-            double getProjectionTolerance() const;
-
-            /** \brief Returns the dimension of the manifold. */
-            unsigned int getProjectionMaxIterations() const;
+            /** \brief Check whether a state \a x satisfies the constraints */
+            virtual bool isSatisfied(const Eigen::VectorXd &x) const;
 
         protected:
+            /** \brief Ambient state space of constraint function. */
+            const StateSpace *ambientSpace_;
+
             /** \brief Ambient space dimension. */
             const unsigned int n_;
 
@@ -119,7 +201,10 @@ namespace ompl
 
             /** \brief Maximum number of iterations for Newton method used in projection onto manifold. */
             unsigned int projectionMaxIterations_;
-        };
+
+            /** \brief Preallocated vector. */
+            mutable Eigen::VectorXd vector_;
+       };
     }
 }
 
