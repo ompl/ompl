@@ -281,24 +281,11 @@ ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd 
                                      ompl::base::StateValidityCheckerFn &isValid, double sleep = 0)
 {
     if (std::strcmp(problem, "plane") == 0)
-        return initAtlasPlaneProblem(x, y, isValid, sleep);
+        return initPlaneProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "sphere") == 0)
-        return initAtlasSphereProblem(x, y, isValid, sleep);
+        return initSphereProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "torus") == 0)
-        return initAtlasTorusProblem(x, y, isValid, sleep);
-    else
-        return NULL;
-}
-
-ompl::base::ProjectedStateSpace *parseProjectedProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                             ompl::base::StateValidityCheckerFn &isValid, double sleep = 0)
-{
-    if (std::strcmp(problem, "plane") == 0)
-        return initProjectedPlaneProblem(x, y, isValid, sleep);
-    else if (std::strcmp(problem, "sphere") == 0)
-        return initProjectedSphereProblem(x, y, isValid, sleep);
-    else if (std::strcmp(problem, "torus") == 0)
-        return initProjectedTorusProblem(x, y, isValid, sleep);
+        return initTorusProblem(x, y, isValid, sleep);
     else
         return NULL;
 }
