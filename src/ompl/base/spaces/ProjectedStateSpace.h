@@ -61,7 +61,7 @@ namespace ompl
          * ompl::base::ProjectedStateSpace. */
 
         /** \brief StateSampler for use on an atlas. */
-        class ProjectedStateSampler : public StateSampler
+        class ProjectedStateSampler : public RealVectorStateSampler
         {
         public:
             /** \brief Create a sampler for the specified space information.
@@ -87,9 +87,6 @@ namespace ompl
         private:
             /** \brief Space on which to sample. */
             const ProjectedStateSpace &ss_;
-
-            /** \brief Underlying space's sampler. */
-            const StateSamplerPtr sampler_;
         };
 
         /** \brief ValidStateSampler for use on an atlas. */
@@ -260,6 +257,11 @@ namespace ompl
 
             /** @name Visualization and debug
              * @{ */
+
+            /** \brief Write a mesh of the planner graph to a stream. Insert
+             * additional vertices to project the edges along the manifold if \a
+             * asIs == true. */
+            void dumpGraph(const PlannerData::Graph &graph, std::ostream &out, const bool asIs = false) const;
 
             /** \brief Write a mesh of a path on the atlas to stream. Insert
              * additional vertices to project the edges along the manifold if \a

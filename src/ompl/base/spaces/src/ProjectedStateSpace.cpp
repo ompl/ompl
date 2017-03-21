@@ -50,35 +50,33 @@
 /// Public
 
 ompl::base::ProjectedStateSampler::ProjectedStateSampler(const SpaceInformation *si)
-  : StateSampler(si->getStateSpace().get())
+  : RealVectorStateSampler(si->getStateSpace().get())
   , ss_(*si->getStateSpace()->as<ProjectedStateSpace>())
-  , sampler_(ss_.getAmbientSpace()->allocStateSampler())
 {
     ProjectedStateSpace::checkSpace(si);
 }
 
 ompl::base::ProjectedStateSampler::ProjectedStateSampler(const ProjectedStateSpace &ss)
-    : StateSampler(&ss)
+    : RealVectorStateSampler(&ss)
     , ss_(ss)
-    , sampler_(ss_.getAmbientSpace()->allocStateSampler())
 {
 }
 
 void ompl::base::ProjectedStateSampler::sampleUniform(State *state)
 {
-    sampler_->sampleUniform(state);
+    RealVectorStateSampler::sampleUniform(state);
     ss_.getConstraint()->project(state);
 }
 
 void ompl::base::ProjectedStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
-    sampler_->sampleUniformNear(state, near, distance);
+    RealVectorStateSampler::sampleUniformNear(state, near, distance);
     ss_.getConstraint()->project(state);
 }
 
 void ompl::base::ProjectedStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
 {
-    sampler_->sampleGaussian(state, mean, stdDev);
+    RealVectorStateSampler::sampleGaussian(state, mean, stdDev);
     ss_.getConstraint()->project(state);
 }
 
@@ -206,8 +204,8 @@ void ompl::base::ProjectedStateSpace::setup(void)
         return;
 
     if (!si_)
-        throw ompl::Exception("ompl::base::AtlasStateSpace::setup(): "
-                             "Must associate a SpaceInformation object to the AtlasStateSpace via "
+        throw ompl::Exception("ompl::base::ProjectedStateSpace::setup(): "
+                             "Must associate a SpaceInformation object to the ProjectedStateSpace via "
                              "setStateInformation() before use.");
 
     setup_ = true;
@@ -284,7 +282,7 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const StateType *from, co
 
         // Compute the parameterization for interpolation
         double t = delta_ / dist;
-        ss_->interpolate(previous, to, t, scratchState);
+        RealVectorStateSpace::interpolate(previous, to, t, scratchState);
 
         // Project new state onto constraint manifold.  Make sure the new state is valid
         // and that it has not deviated too far from where we started
@@ -355,7 +353,7 @@ void ompl::base::ProjectedStateSpace::piecewiseInterpolate(const std::vector<Sta
     }
 
     // Linearly interpolate between these two states.
-    ss_->interpolate(stateList[i > 0 ? i - 1 : 0], stateList[i], tt, state);
+    RealVectorStateSpace::interpolate(stateList[i > 0 ? i - 1 : 0], stateList[i], tt, state);
     delete[] d;
 
 }
@@ -367,12 +365,69 @@ ompl::base::StateSamplerPtr ompl::base::ProjectedStateSpace::allocDefaultStateSa
 
 ompl::base::State *ompl::base::ProjectedStateSpace::allocState() const
 {
-    return ss_->allocState();
+    return RealVectorStateSpace::allocState();
 }
 
 void ompl::base::ProjectedStateSpace::freeState(State *state) const
 {
-    ss_->freeState(state);
+    RealVectorStateSpace::freeState(state);
+}
+
+void ompl::base::ProjectedStateSpace::dumpGraph(const PlannerData::Graph &graph, std::ostream &out, const bool asIs) const
+{
+    std::stringstream v, f;
+    std::size_t vcount = 0;
+    std::size_t fcount = 0;
+
+    BGL_FORALL_EDGES(edge, graph, PlannerData::Graph)
+    {
+        std::vector<StateType *> stateList;
+        const State *const source = boost::get(vertex_type, graph, boost::source(edge, graph))->getState();
+        const State *const target = boost::get(vertex_type, graph, boost::target(edge, graph))->getState();
+
+        if (!asIs)
+            traverseManifold(source->as<StateType>(), target->as<StateType>(), true, &stateList);
+        if (asIs || stateList.size() == 1)
+        {
+            v << constraint_->toVector(source).transpose() << "\n";
+            v << constraint_->toVector(target).transpose() << "\n";
+            v << constraint_->toVector(source).transpose() << "\n";
+            vcount += 3;
+            f << 3 << " " << vcount - 3 << " " << vcount - 2 << " " << vcount - 1 << "\n";
+            fcount++;
+            for (StateType *state : stateList)
+                freeState(state);
+            continue;
+        }
+        StateType *to, *from = stateList[0];
+        v << constraint_->toVector(from).transpose() << "\n";
+        vcount++;
+        bool reset = true;
+        for (std::size_t i = 1; i < stateList.size(); i++)
+        {
+            to = stateList[i];
+            from = stateList[i - 1];
+            v << constraint_->toVector(to).transpose() << "\n";
+            v << constraint_->toVector(from).transpose() << "\n";
+            vcount += 2;
+            f << 3 << " " << (reset ? vcount - 3 : vcount - 4) << " " << vcount - 2 << " " << vcount - 1 << "\n";
+            fcount++;
+            freeState(stateList[i - 1]);
+            reset = false;
+        }
+        freeState(stateList.back());
+    }
+
+    out << "ply\n";
+    out << "format ascii 1.0\n";
+    out << "element vertex " << vcount << "\n";
+    out << "property float x\n";
+    out << "property float y\n";
+    out << "property float z\n";
+    out << "element face " << fcount << "\n";
+    out << "property list uint uint vertex_index\n";
+    out << "end_header\n";
+    out << v.str() << f.str();
 }
 
 void ompl::base::ProjectedStateSpace::dumpPath(ompl::geometric::PathGeometric &path, std::ostream &out,

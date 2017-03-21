@@ -125,11 +125,17 @@ namespace ompl
                 return projectionMaxIterations_;
             }
 
+            /** \brief Returns the maximum number of allowed iterations in the projection routine. */
+            const StateSpace *getAmbientSpace() const
+            {
+                return ambientSpace_;
+            }
+
             /** \brief Sets the projection tolerance. */
             void setProjectionTolerance(const double tolerance)
             {
                 if (tolerance <= 0)
-                    throw ompl::Exception("ompl::base::AtlasStateSpace::setProjectionTolerance(): "
+                    throw ompl::Exception("ompl::base::Constraint::setProjectionTolerance(): "
                                          "tolerance must be positive.");
                 projectionTolerance_ = tolerance;
             }
@@ -138,7 +144,7 @@ namespace ompl
             void setProjectionMaxIterations(const unsigned int iterations)
             {
                 if (iterations == 0)
-                    throw ompl::Exception("ompl::base::AtlasStateSpace::setProjectionMaxIterations(): "
+                    throw ompl::Exception("ompl::base::Constraint::setProjectionMaxIterations(): "
                                          "iterations must be positive.");
                 projectionMaxIterations_ = iterations;
             }
