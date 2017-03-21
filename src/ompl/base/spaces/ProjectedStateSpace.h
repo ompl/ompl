@@ -97,6 +97,9 @@ namespace ompl
              * information \a si. */
             ProjectedValidStateSampler(const SpaceInformation *si);
 
+            /** \brief Destructor. */
+            ~ProjectedValidStateSampler();
+
             /** \brief Sample a valid state uniformly from the charted regions
              * of the manifold. Return sample in \a state. */
             virtual bool sample(State *state);
@@ -109,6 +112,12 @@ namespace ompl
         private:
             /** \brief Underlying ordinary atlas state sampler. */
             ProjectedStateSampler sampler_;
+
+            /** \brief Constraint function. */
+            const Constraint *constraint_;
+
+            /** \brief Scratch state used in sampling. */
+            State *scratch_;
         };
 
         /** \brief Atlas-specific implementation of checkMotion(). */
@@ -173,7 +182,7 @@ namespace ompl
             {
                 if (delta <= 0)
                     throw ompl::Exception("ompl::base::ProjectedStateSpace::setDelta(): "
-                                         "delta must be positive.");
+                                          "delta must be positive.");
                 delta_ = delta;
 
                 if (setup_)
