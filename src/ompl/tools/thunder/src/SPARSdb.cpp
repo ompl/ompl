@@ -1779,7 +1779,7 @@ void ompl::geometric::SPARSdb::getPlannerData(base::PlannerData &data) const
         if (boost::out_degree(n, g_) == 0)
             data.addVertex(base::PlannerDataVertex(stateProperty_[n], (int)colorProperty_[n]));
 
-    data.properties["iterations INTEGER"] = boost::lexical_cast<std::string>(iterations_);
+    data.properties["iterations INTEGER"] = std::to_string(iterations_);
 }
 
 void ompl::geometric::SPARSdb::setPlannerData(const base::PlannerData &data)

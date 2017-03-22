@@ -361,7 +361,7 @@ namespace ompl
             // Planner progress property functions
             std::string getIterationCount() const
             {
-                return boost::lexical_cast<std::string>(iterations_);
+                return std::to_string(iterations_);
             }
             std::string getBestCost() const
             {
