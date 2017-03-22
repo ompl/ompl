@@ -135,6 +135,35 @@ public:
     }
 };
 
+
+class KleinConstraint : public ompl::base::Constraint
+{
+public:
+    KleinConstraint(const ompl::base::StateSpace *space) : ompl::base::Constraint(space, 2)
+    {
+    }
+
+    void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    {
+        const double p = x.squaredNorm() + 2 * x[1] - 1;
+        const double n = x.squaredNorm() - 2 * x[1] - 1;
+        const double u = n * n - 8 * x[2] * x[2];
+
+        out[0] = p * u + 16 * x[0] * x[1] * n;
+    }
+
+    void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    {
+        const double p = x.squaredNorm() + 2 * x[1] - 1;
+        const double n = x.squaredNorm() - 2 * x[1] - 1;
+        const double u = n * n - 8 * x[2] * x[2];
+
+        out(0, 0) = 32 * x[0] * x[0] * x[1] + 16 * x[1] * n + 4 * x[0] * n * p + 2 * x[0] * u;
+        out(0, 1) = 32 * x[0] * x[1] * (x[1] - 1) + 16 * x[0] * n + 4 * (x[1] - 1) * n * p + 2 * (x[1] + 1) * u;
+        out(0, 2) = 2 * x[2] * (16 * x[0] * x[1] + 2 * p * (n - 4) + u);
+    }
+};
+
 /**
  * State validity checking functions implicitly define the free space where they return true.
  */
@@ -247,6 +276,25 @@ ompl::base::Constraint *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
     return new TorusConstraint(space, 3, 1);
 }
 
+/** Initialize the atlas for the sphere problem and store the start and goal vectors. */
+ompl::base::Constraint *initKleinProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                             ompl::base::StateValidityCheckerFn &isValid, double sleep)
+{
+    const std::size_t dim = 3;
+
+    // Start and goal points
+    x = Eigen::VectorXd(dim);
+    x << -0.5, -0.25, 0.1892222244330081;
+    y = Eigen::VectorXd(dim);
+    y << 2.5, -1.5, 1.0221854181962458;
+
+    // Validity checker
+    isValid = std::bind(&always, sleep, std::placeholders::_1);
+
+    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
+    return new KleinConstraint(space);
+}
+
 /** Allocator function for a sampler for the atlas that only returns valid points. */
 ompl::base::ValidStateSamplerPtr avssa(const ompl::base::SpaceInformation *si)
 {
@@ -263,7 +311,7 @@ ompl::base::ValidStateSamplerPtr pvssa(const ompl::base::SpaceInformation *si)
 void printProblems(void)
 {
     std::cout << "Available problems:\n";
-    std::cout << "    plane sphere torus\n";
+    std::cout << "    plane sphere torus klein\n";
 }
 
 /** Print usage information. */
@@ -286,6 +334,8 @@ ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd 
         return initSphereProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "torus") == 0)
         return initTorusProblem(x, y, isValid, sleep);
+    else if (std::strcmp(problem, "klein") == 0)
+        return initKleinProblem(x, y, isValid, sleep);
     else
         return NULL;
 }

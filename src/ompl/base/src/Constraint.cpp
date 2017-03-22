@@ -136,8 +136,11 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
         // sigma = Eigen::MatrixXd((svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0)).asDiagonal();
         // x -= svd.matrixV() * sigma * svd.matrixU().adjoint() * f;
 
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-        x -= svd.solve(f);
+        // Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+        // x -= svd.solve(f);
+
+        Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr = j.colPivHouseholderQr();
+        x -= qr.solve(f);
 
         function(x, f);
     }
