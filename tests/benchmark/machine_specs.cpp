@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(Simple)
 
     const unsigned int mb = 39;
     machine::MemUsage_t size = mb * 1024 * 1024 / sizeof(char);
-    char *data = (char*)malloc(size);
+    auto *data = (char*)malloc(size);
     memset(data, 0, size);
 
     machine::MemUsage_t u = machine::getProcessMemoryUsage() - start;

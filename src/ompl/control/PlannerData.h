@@ -90,7 +90,7 @@ namespace ompl
 
             bool operator==(const PlannerDataEdge &rhs) const override
             {
-                const PlannerDataEdgeControl *rhsc = static_cast<const PlannerDataEdgeControl *>(&rhs);
+                const auto *rhsc = static_cast<const PlannerDataEdgeControl *>(&rhs);
                 if (c_ == rhsc->c_)
                     return static_cast<const PlannerDataEdge>(*this) == rhs;
                 else

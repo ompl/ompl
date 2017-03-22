@@ -104,8 +104,8 @@ public:
             /* display the solution */
             for (unsigned int i = 0 ; i < path.getStateCount() ; ++i)
             {
-                int x = (int)path.getState(i)->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(0)->values[0];
-                int y = (int)path.getState(i)->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1)->values[0];
+                auto x = (int)path.getState(i)->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(0)->values[0];
+                auto y = (int)path.getState(i)->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1)->values[0];
                 if (temp.grid[x][y] == T_FREE || temp.grid[x][y] == T_PATH)
                     temp.grid[x][y] = T_PATH;
                 else

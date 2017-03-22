@@ -102,7 +102,7 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     Discretization<Motion>::Coord xcoord;
 

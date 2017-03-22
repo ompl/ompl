@@ -74,7 +74,7 @@ public:
     void sampleFullState(const ob::StateSamplerPtr& sampler, const std::vector<double>& coord, ob::State* s) const override
     {
        sampler->sampleUniform(s);
-       ob::SE2StateSpace::StateType* ws = s->as<ob::SE2StateSpace::StateType>();
+       auto* ws = s->as<ob::SE2StateSpace::StateType>();
        ws->setXY(coord[0], coord[1]);
     }
 };
@@ -129,7 +129,7 @@ bool isStateValid(
 {
     if (!si->satisfiesBounds(state))
         return false;
-    const ob::SE2StateSpace::StateType* se2 = state->as<ob::SE2StateSpace::StateType>();
+    const auto* se2 = state->as<ob::SE2StateSpace::StateType>();
 
     double x = se2->getX();
     double y = se2->getY();
@@ -145,18 +145,18 @@ bool isStateValid(
 
 void propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result)
 {
-    const ob::SE2StateSpace::StateType* se2 = start->as<ob::SE2StateSpace::StateType>();
-    const oc::RealVectorControlSpace::ControlType* rctrl = control->as<oc::RealVectorControlSpace::ControlType>();
+    const auto* se2 = start->as<ob::SE2StateSpace::StateType>();
+    const auto* rctrl = control->as<oc::RealVectorControlSpace::ControlType>();
 
     double xout = se2->getX() + rctrl->values[0]*duration*cos(se2->getYaw());
     double yout = se2->getY() + rctrl->values[0]*duration*sin(se2->getYaw());
     double yawout = se2->getYaw() + rctrl->values[1];
 
-    ob::SE2StateSpace::StateType* se2out = result->as<ob::SE2StateSpace::StateType>();
+    auto* se2out = result->as<ob::SE2StateSpace::StateType>();
     se2out->setXY(xout, yout);
     se2out->setYaw(yawout);
 
-    ob::SO2StateSpace::StateType* so2out = se2out->as<ob::SO2StateSpace::StateType>(1);
+    auto* so2out = se2out->as<ob::SO2StateSpace::StateType>(1);
     ob::SO2StateSpace SO2;
     SO2.enforceBounds (so2out);
 }

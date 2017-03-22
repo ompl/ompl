@@ -90,6 +90,6 @@ void KoulesStateSpace::registerProjections()
 
 bool KoulesStateSpace::isDead(const ompl::base::State* state, unsigned int i) const
 {
-    const StateType* s = static_cast<const StateType*>(state);
+    const auto* s = static_cast<const StateType*>(state);
     return s->values[i ? 4 * i + 1 : 0] == -2. * kouleRadius;
 }

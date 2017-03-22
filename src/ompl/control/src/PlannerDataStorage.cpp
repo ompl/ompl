@@ -61,7 +61,7 @@ void ompl::control::PlannerDataStorage::load(std::istream &in, base::PlannerData
         return;
     }
 
-    control::PlannerData *pdc = static_cast<control::PlannerData *>(&pd);
+    auto *pdc = static_cast<control::PlannerData *>(&pd);
     pdc->clear();
 
     const SpaceInformationPtr &si = pdc->getSpaceInformation();
@@ -126,7 +126,7 @@ void ompl::control::PlannerDataStorage::store(const base::PlannerData &pd, const
 
 void ompl::control::PlannerDataStorage::store(const base::PlannerData &pd, std::ostream &out)
 {
-    const control::PlannerData *pdc = static_cast<const control::PlannerData *>(&pd);
+    const auto *pdc = static_cast<const control::PlannerData *>(&pd);
     if (!pdc)
     {
         OMPL_WARN("Failed to cast PlannerData to control::PlannerData.  Invoking base::PlannerDataStorage::store");

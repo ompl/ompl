@@ -115,7 +115,7 @@ public:
     {
         // We know we're working with a RealVectorStateSpace in this
         // example, so we downcast state into the specific type.
-        const ob::RealVectorStateSpace::StateType* state2D =
+        const auto* state2D =
             state->as<ob::RealVectorStateSpace::StateType>();
 
         // Extract the robot's (x,y) position from its state

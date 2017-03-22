@@ -484,7 +484,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     }
 
     machine::MemUsage_t memStart = machine::getProcessMemoryUsage();
-    machine::MemUsage_t maxMemBytes = (machine::MemUsage_t)(req.maxMem * 1024 * 1024);
+    auto maxMemBytes = (machine::MemUsage_t)(req.maxMem * 1024 * 1024);
 
     for (unsigned int i = 0; i < planners_.size(); ++i)
     {

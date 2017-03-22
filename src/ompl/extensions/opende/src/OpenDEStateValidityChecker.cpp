@@ -47,7 +47,7 @@ ompl::control::OpenDEStateValidityChecker::OpenDEStateValidityChecker(const Spac
 
 bool ompl::control::OpenDEStateValidityChecker::isValid(const base::State *state) const
 {
-    const OpenDEStateSpace::StateType *s = state->as<OpenDEStateSpace::StateType>();
+    const auto *s = state->as<OpenDEStateSpace::StateType>();
 
     // if we know the value of the validity flag for this state, we return it
     if (s->collision & (1 << OpenDEStateSpace::STATE_VALIDITY_KNOWN_BIT))

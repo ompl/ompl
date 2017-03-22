@@ -42,7 +42,7 @@
 
 ompl::control::OpenDEStatePropagator::OpenDEStatePropagator(const SpaceInformationPtr &si) : StatePropagator(si)
 {
-    if (OpenDEStateSpace *oss = dynamic_cast<OpenDEStateSpace *>(si->getStateSpace().get()))
+    if (auto *oss = dynamic_cast<OpenDEStateSpace *>(si->getStateSpace().get()))
         env_ = oss->getEnvironment();
     else
         throw Exception("OpenDE State Space needed for OpenDEStatePropagator");
@@ -65,7 +65,7 @@ namespace ompl
         if (b1 && b2 && dAreConnectedExcluding(b1, b2, dJointTypeContact))
             return;
 
-        CallbackParam *cp = reinterpret_cast<CallbackParam *>(data);
+        auto *cp = reinterpret_cast<CallbackParam *>(data);
 
         const unsigned int maxContacts = cp->env->getMaxContacts(o1, o2);
         if (maxContacts <= 0)

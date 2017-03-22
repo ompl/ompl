@@ -132,7 +132,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
     checkValidity();
     // update goal and check validity
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     if (!goal)
     {

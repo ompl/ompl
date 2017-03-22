@@ -101,7 +101,7 @@ ompl::machine::MemUsage_t getProcessMemoryUsageAux()
     kern_return_t rval = 0;
     mach_port_t task = mach_task_self();
     mach_msg_type_number_t tcnt = TASK_BASIC_INFO_COUNT;
-    task_info_t tptr = (task_info_t)&info;
+    auto tptr = (task_info_t)&info;
 
     memset(&info, 0, sizeof(info));
 

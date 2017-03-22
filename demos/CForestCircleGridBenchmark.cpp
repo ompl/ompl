@@ -50,7 +50,7 @@ namespace po = boost::program_options;
 
 bool isStateValid(double radiusSquared, const ob::State *state)
 {
-    const ob::SE2StateSpace::StateType *s = state->as<ob::SE2StateSpace::StateType>();
+    const auto *s = state->as<ob::SE2StateSpace::StateType>();
     double x=s->getX(), y=s->getY();
     x = std::abs(x - std::floor(x));
     y = std::abs(y - std::floor(y));

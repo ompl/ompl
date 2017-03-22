@@ -190,7 +190,7 @@ ompl::control::SST::Witness *ompl::control::SST::findClosestWitness(ompl::contro
 {
     if (witnesses_->size() > 0)
     {
-        Witness *closest = static_cast<Witness *>(witnesses_->nearest(node));
+        auto *closest = static_cast<Witness *>(witnesses_->nearest(node));
         if (distanceFunction(closest, node) > pruningRadius_)
         {
             closest = new Witness(siC_);
@@ -214,7 +214,7 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     while (const base::State *st = pis_.nextStart())
     {

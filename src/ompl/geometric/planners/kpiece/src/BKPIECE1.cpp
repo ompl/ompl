@@ -87,7 +87,7 @@ void ompl::geometric::BKPIECE1::setup()
 ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
     if (!goal)
     {

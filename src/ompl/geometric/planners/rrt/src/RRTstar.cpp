@@ -188,7 +188,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     bool symCost = opt_->isSymmetric();
 
@@ -608,7 +608,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
 void ompl::geometric::RRTstar::getNeighbors(Motion *motion, std::vector<Motion *> &nbh) const
 {
-    double cardDbl = static_cast<double>(nn_->size() + 1u);
+    auto cardDbl = static_cast<double>(nn_->size() + 1u);
     if (useKNearest_)
     {
         //- k-nearest RRT*
@@ -1144,7 +1144,7 @@ bool ompl::geometric::RRTstar::sampleUniform(base::State *statePtr)
 
 void ompl::geometric::RRTstar::calculateRewiringLowerBounds()
 {
-    const double dimDbl = static_cast<double>(si_->getStateDimension());
+    const auto dimDbl = static_cast<double>(si_->getStateDimension());
 
     // k_rrt > 2^(d + 1) * e * (1 + 1 / d).  K-nearest RRT*
     k_rrt_ = rewireFactor_ * (std::pow(2, dimDbl + 1) * boost::math::constants::e<double>() * (1.0 + 1.0 / dimDbl));

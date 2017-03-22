@@ -139,13 +139,13 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 {
     //    ob::ScopedState<ob::SE2StateSpace>
     /// cast the abstract state type to the type we expect
-    const ob::SE2StateSpace::StateType *se2state = state->as<ob::SE2StateSpace::StateType>();
+    const auto *se2state = state->as<ob::SE2StateSpace::StateType>();
 
     /// extract the first component of the state and cast it to what we expect
-    const ob::RealVectorStateSpace::StateType *pos = se2state->as<ob::RealVectorStateSpace::StateType>(0);
+    const auto *pos = se2state->as<ob::RealVectorStateSpace::StateType>(0);
 
     /// extract the second component of the state and cast it to what we expect
-    const ob::SO2StateSpace::StateType *rot = se2state->as<ob::SO2StateSpace::StateType>(1);
+    const auto *rot = se2state->as<ob::SO2StateSpace::StateType>(1);
 
     /// check validity of state defined by pos & rot
 

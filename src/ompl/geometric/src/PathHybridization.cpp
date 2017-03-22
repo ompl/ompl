@@ -106,7 +106,7 @@ const ompl::base::PathPtr &ompl::geometric::PathHybridization::getHybridPath() c
 
 unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp, bool matchAcrossGaps)
 {
-    PathGeometric *p = dynamic_cast<PathGeometric *>(pp.get());
+    auto *p = dynamic_cast<PathGeometric *>(pp.get());
     if (!p)
     {
         OMPL_ERROR("Path hybridization only works for geometric paths");
@@ -161,7 +161,7 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
     // find matches with previously added paths
     for (const auto &path : paths_)
     {
-        const PathGeometric *q = static_cast<const PathGeometric *>(path.path_.get());
+        const auto *q = static_cast<const PathGeometric *>(path.path_.get());
         std::vector<int> indexP, indexQ;
         matchPaths(*p, *q, (pi.length_ + path.length_) / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
 

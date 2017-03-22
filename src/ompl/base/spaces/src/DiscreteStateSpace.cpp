@@ -47,7 +47,7 @@ void ompl::base::DiscreteStateSampler::sampleUniform(State *state)
 
 void ompl::base::DiscreteStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
-    const int d = (int)floor(distance + 0.5);
+    const auto d = (int)floor(distance + 0.5);
     state->as<DiscreteStateSpace::StateType>()->value = rng_.uniformInt(
         near->as<DiscreteStateSpace::StateType>()->value - d, near->as<DiscreteStateSpace::StateType>()->value + d);
     space_->enforceBounds(state);

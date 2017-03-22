@@ -549,7 +549,7 @@ void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const Stat
 void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const ReedsSheppPath &path, double t,
                                                    State *state) const
 {
-    StateType *s = allocState()->as<StateType>();
+    auto *s = allocState()->as<StateType>();
     double seg = t * path.length(), phi, v;
 
     s->setXY(0., 0.);
@@ -594,8 +594,8 @@ void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const Reed
 ompl::base::ReedsSheppStateSpace::ReedsSheppPath ompl::base::ReedsSheppStateSpace::reedsShepp(const State *state1,
                                                                                               const State *state2) const
 {
-    const StateType *s1 = static_cast<const StateType *>(state1);
-    const StateType *s2 = static_cast<const StateType *>(state2);
+    const auto *s1 = static_cast<const StateType *>(state1);
+    const auto *s2 = static_cast<const StateType *>(state2);
     double x1 = s1->getX(), y1 = s1->getY(), th1 = s1->getYaw();
     double x2 = s2->getX(), y2 = s2->getY(), th2 = s2->getYaw();
     double dx = x2 - x1, dy = y2 - y1, c = cos(th1), s = sin(th1);

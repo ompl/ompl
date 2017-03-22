@@ -254,7 +254,7 @@ ompl::geometric::LazyPRM::Vertex ompl::geometric::LazyPRM::addMilestone(base::St
 ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
     if (!goal)
     {

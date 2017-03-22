@@ -401,7 +401,7 @@ int ompl::control::TriangularDecomposition::createTriangles()
 
         if (in.numberofregions > 0)
         {
-            int attribute = (int)out.triangleattributelist[i];
+            auto attribute = (int)out.triangleattributelist[i];
             /* Shift the region-of-interest ID's down to start from zero. */
             intRegInfo_[i] = (attribute > 0 ? attribute - 1 : -1);
         }

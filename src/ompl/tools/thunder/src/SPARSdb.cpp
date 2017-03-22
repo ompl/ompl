@@ -1809,7 +1809,7 @@ void ompl::geometric::SPARSdb::setPlannerData(const base::PlannerData &data)
         base::State *state = si_->cloneState(oldState);
 
         // Get the tag, which in this application represents the vertex type
-        GuardType type = static_cast<GuardType>(data.getVertex(vertexID).getTag());
+        auto type = static_cast<GuardType>(data.getVertex(vertexID).getTag());
 
         // ADD GUARD
         idToVertex.push_back(addGuard(state, type));

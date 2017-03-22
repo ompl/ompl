@@ -276,7 +276,7 @@ double ompl::RNG::halfNormalReal(double r_min, double r_max, double focus)
 
 int ompl::RNG::halfNormalInt(int r_min, int r_max, double focus)
 {
-    int r = (int)floor(halfNormalReal((double)r_min, (double)(r_max) + 1.0, focus));
+    auto r = (int)floor(halfNormalReal((double)r_min, (double)(r_max) + 1.0, focus));
     return (r > r_max) ? r_max : r;
 }
 

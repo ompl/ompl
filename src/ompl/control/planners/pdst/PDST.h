@@ -230,7 +230,7 @@ namespace ompl
                 /// Locates the cell that this motion begins in
                 Cell *stab(const base::EuclideanProjection &projection) const
                 {
-                    Cell *containingCell = const_cast<Cell *>(this);
+                    auto *containingCell = const_cast<Cell *>(this);
                     while (containingCell->left_ != nullptr)
                     {
                         if (projection[containingCell->splitDimension_] <= containingCell->splitValue_)

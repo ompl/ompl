@@ -344,7 +344,7 @@ ompl::base::PlannerStatus ompl::geometric::BiTRRT::solve(const base::PlannerTerm
 
     // Goal information
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *gsr = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *gsr = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     if (!gsr)
     {

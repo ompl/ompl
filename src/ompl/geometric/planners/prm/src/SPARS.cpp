@@ -235,7 +235,7 @@ ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addSample(base::Stat
 
 void ompl::geometric::SPARS::checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution)
 {
-    base::GoalSampleableRegion *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
     while (!ptc && !addedSolution_)
     {
         // Check for any new goal states
@@ -330,7 +330,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     checkValidity();
     checkQueryStateInitialization();
 
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
     if (!goal)
     {

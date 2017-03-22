@@ -80,7 +80,7 @@ namespace ompl
         /** \brief Generate a random integer within given bounds: [\e lower_bound, \e upper_bound] */
         int uniformInt(int lower_bound, int upper_bound)
         {
-            int r = (int)floor(uniformReal((double)lower_bound, (double)(upper_bound) + 1.0));
+            auto r = (int)floor(uniformReal((double)lower_bound, (double)(upper_bound) + 1.0));
             return (r > upper_bound) ? upper_bound : r;
         }
 

@@ -172,7 +172,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTXstatic::solve(const base::Planner
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     // Check if there are more starts
     if (pis_.haveMoreStartStates() == true)
@@ -600,7 +600,7 @@ void ompl::geometric::RRTXstatic::removeFromParent(Motion *m)
 
 void ompl::geometric::RRTXstatic::calculateRRG()
 {
-    double cardDbl = static_cast<double>(nn_->size() + 1u);
+    auto cardDbl = static_cast<double>(nn_->size() + 1u);
     rrg_k_ = std::ceil(k_rrt_ * log(cardDbl));
     rrg_r_ = std::min(maxDistance_,
                       r_rrt_ * std::pow(log(cardDbl) / cardDbl, 1 / static_cast<double>(si_->getStateDimension())));
@@ -796,7 +796,7 @@ bool ompl::geometric::RRTXstatic::sampleUniform(base::State *statePtr)
 
 void ompl::geometric::RRTXstatic::calculateRewiringLowerBounds()
 {
-    double dimDbl = static_cast<double>(si_->getStateDimension());
+    auto dimDbl = static_cast<double>(si_->getStateDimension());
 
     // k_rrt > 2^(d + 1) * e * (1 + 1 / d).  K-nearest RRT*
     k_rrt_ = rewireFactor_ * (std::pow(2, dimDbl + 1) * boost::math::constants::e<double>() * (1.0 + 1.0 / dimDbl));

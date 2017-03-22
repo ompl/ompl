@@ -1225,9 +1225,9 @@ namespace ompl
         {
             // Variables
             // The dimension cast as a double for readibility;
-            double dimDbl = static_cast<double>(si_->getStateDimension());
+            auto dimDbl = static_cast<double>(si_->getStateDimension());
             // The size of the graph
-            double cardDbl = static_cast<double>(N);
+            auto cardDbl = static_cast<double>(N);
 
             // Calculate the term and return
             return rewireFactor_ * this->minimumRggR() * std::pow(std::log(cardDbl) / cardDbl, 1 / dimDbl);
@@ -1243,7 +1243,7 @@ namespace ompl
         {
             // Variables
             // The dimension cast as a double for readibility;
-            double dimDbl = static_cast<double>(si_->getStateDimension());
+            auto dimDbl = static_cast<double>(si_->getStateDimension());
 
             // Calculate the term and return
             return 2.0 *
@@ -1262,7 +1262,7 @@ namespace ompl
         {
             // Variables
             // The dimension cast as a double for readibility;
-            double dimDbl = static_cast<double>(si_->getStateDimension());
+            auto dimDbl = static_cast<double>(si_->getStateDimension());
 
             // Calculate the term and return
             return boost::math::constants::e<double>() +

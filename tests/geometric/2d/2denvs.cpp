@@ -218,8 +218,8 @@ public:
             /* display the solution */
             for (unsigned int i = 0 ; i < path->getStateCount() ; ++i)
             {
-                int x = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[0]);
-                int y = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[1]);
+                auto x = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[0]);
+                auto y = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[1]);
                 if (temp.grid[x][y] == T_FREE || temp.grid[x][y] == T_PATH)
                     temp.grid[x][y] = T_PATH;
                 else

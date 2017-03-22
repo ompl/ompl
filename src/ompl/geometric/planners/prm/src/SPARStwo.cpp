@@ -322,7 +322,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
     checkValidity();
     checkQueryStateInitialization();
 
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
     if (!goal)
     {
@@ -391,7 +391,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
 
 void ompl::geometric::SPARStwo::checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution)
 {
-    base::GoalSampleableRegion *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
     while (!ptc && !addedSolution_)
     {
         // Check for any new goal states

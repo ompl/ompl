@@ -174,7 +174,7 @@ namespace ompl
                 }
                 Motion *ancestor() const
                 {
-                    Motion *m = const_cast<Motion *>(this);
+                    auto *m = const_cast<Motion *>(this);
                     while (m->parent_ && m->parent_->endState_ == m->startState_)
                         m = m->parent_;
                     return m;
@@ -225,7 +225,7 @@ namespace ompl
                 /// Locates the cell that this motion begins in
                 Cell *stab(const ompl::base::EuclideanProjection &projection) const
                 {
-                    Cell *containingCell = const_cast<Cell *>(this);
+                    auto *containingCell = const_cast<Cell *>(this);
                     while (containingCell->left_ != nullptr)
                     {
                         if (projection[containingCell->splitDimension_] <= containingCell->splitValue_)

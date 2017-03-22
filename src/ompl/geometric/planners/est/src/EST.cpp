@@ -102,7 +102,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     std::vector<Motion *> neighbors;
 

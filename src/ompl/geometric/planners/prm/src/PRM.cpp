@@ -344,7 +344,7 @@ void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &
 
 void ompl::geometric::PRM::checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution)
 {
-    base::GoalSampleableRegion *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
     while (!ptc && !addedNewSolution_)
     {
         // Check for any new goal states
@@ -412,7 +412,7 @@ bool ompl::geometric::PRM::addedNewSolution() const
 ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
     if (!goal)
     {

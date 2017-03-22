@@ -321,7 +321,7 @@ ompl::base::StateSamplerPtr ompl::control::OpenDEStateSpace::allocStateSampler()
 
 void ompl::control::OpenDEStateSpace::readState(base::State *state) const
 {
-    StateType *s = state->as<StateType>();
+    auto *s = state->as<StateType>();
     for (int i = (int)env_->stateBodies_.size() - 1; i >= 0; --i)
     {
         unsigned int _i4 = i * 4;
@@ -356,7 +356,7 @@ void ompl::control::OpenDEStateSpace::readState(base::State *state) const
 
 void ompl::control::OpenDEStateSpace::writeState(const base::State *state) const
 {
-    const StateType *s = state->as<StateType>();
+    const auto *s = state->as<StateType>();
     for (int i = (int)env_->stateBodies_.size() - 1; i >= 0; --i)
     {
         unsigned int _i4 = i * 4;

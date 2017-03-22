@@ -45,7 +45,7 @@ namespace oc = ompl::control;
 void KoulesControlSampler::sample(oc::Control *control)
 {
     const ob::RealVectorBounds &bounds = space_->as<oc::RealVectorControlSpace>()->getBounds();
-    oc::RealVectorControlSpace::ControlType *rcontrol =
+    auto *rcontrol =
         control->as<oc::RealVectorControlSpace::ControlType>();
     double r = rng_.uniformReal(bounds.low[0], bounds.high[0]);
     double theta = rng_.uniformReal(0., 2. * boost::math::constants::pi<double>());
@@ -68,7 +68,7 @@ void KoulesControlSampler::steer(oc::Control *control, const ob::State *state, d
     {
         const ob::RealVectorBounds &bounds = space_->as<oc::RealVectorControlSpace>()->getBounds();
         double v = rng_.uniformReal(bounds.low[0], bounds.high[0]) / sqrt(xNrm2);
-        oc::RealVectorControlSpace::ControlType *rcontrol =
+        auto *rcontrol =
             control->as<oc::RealVectorControlSpace::ControlType>();
         rcontrol->values[0] = v * dx;
         rcontrol->values[1] = v * dy;

@@ -159,7 +159,7 @@ ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminati
             const base::PathPtr &hsol = phybrid.getHybridPath();
             if (hsol)
             {
-                geometric::PathGeometric *pg = static_cast<geometric::PathGeometric *>(hsol.get());
+                auto *pg = static_cast<geometric::PathGeometric *>(hsol.get());
                 double difference = 0.0;
                 bool approximate = !goal->isSatisfied(pg->getStates().back(), &difference);
                 pdef_->addSolutionPath(hsol, approximate, difference);

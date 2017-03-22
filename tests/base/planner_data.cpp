@@ -273,7 +273,7 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
     // Ensure edge data integrity
     for (unsigned int i = 1; i < states.size(); ++i)
     {
-        TestEdge& edge = static_cast<TestEdge&>(data.getEdge(i-1, i));
+        auto& edge = static_cast<TestEdge&>(data.getEdge(i-1, i));
         BOOST_REQUIRE_NE ( &edge, &base::PlannerData::NO_EDGE );
         BOOST_CHECK_EQUAL( edge.a, i-1 );
         BOOST_CHECK_EQUAL( edge.b, i );

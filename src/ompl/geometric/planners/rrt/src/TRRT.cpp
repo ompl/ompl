@@ -160,7 +160,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
 
     // Goal information
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goalRegion = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goalRegion = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     // Input States ---------------------------------------------------------------------------------
 

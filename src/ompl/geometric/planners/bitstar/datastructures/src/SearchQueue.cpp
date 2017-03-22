@@ -1492,7 +1492,7 @@ namespace ompl
             // this function is given an element of the maintained set as the argument)
             VertexPtr vertexToDelete(oldVertex);
             // The iterator into the lookup:
-            VertexIdToVertexQueueIterUMap::iterator lookupIter = vertexIterLookup_.find(vertexToDelete->getId());
+            auto lookupIter = vertexIterLookup_.find(vertexToDelete->getId());
 
 #ifdef BITSTAR_DEBUG
             // Check that the vertex is not connected to a parent:

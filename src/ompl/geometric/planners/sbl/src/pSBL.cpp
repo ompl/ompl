@@ -191,7 +191,7 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
 {
     checkValidity();
 
-    base::GoalState *goal = dynamic_cast<base::GoalState *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalState *>(pdef_->getGoal().get());
 
     if (!goal)
     {

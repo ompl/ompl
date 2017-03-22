@@ -260,8 +260,8 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner,
 
     for (auto &i : samplers_)
     {
-        base::CForestStateSampler *sampler = static_cast<base::CForestStateSampler *>(i.get());
-        const base::CForestStateSpaceWrapper *space =
+        auto *sampler = static_cast<base::CForestStateSampler *>(i.get());
+        const auto *space =
             static_cast<const base::CForestStateSpaceWrapper *>(sampler->getStateSpace());
         const base::Planner *cfplanner = space->getPlanner();
         if (cfplanner != planner)

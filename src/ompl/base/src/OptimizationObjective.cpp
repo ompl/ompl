@@ -179,7 +179,7 @@ void ompl::base::OptimizationObjective::print(std::ostream &out) const
 
 ompl::base::Cost ompl::base::goalRegionCostToGo(const State *state, const Goal *goal)
 {
-    const GoalRegion *goalRegion = goal->as<GoalRegion>();
+    const auto *goalRegion = goal->as<GoalRegion>();
 
     // Ensures that all states within the goal region's threshold to
     // have a cost-to-go of exactly zero.
@@ -274,7 +274,7 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
 
     if (a)
     {
-        if (MultiOptimizationObjective *mult = dynamic_cast<MultiOptimizationObjective *>(a.get()))
+        if (auto *mult = dynamic_cast<MultiOptimizationObjective *>(a.get()))
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {
@@ -288,7 +288,7 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
 
     if (b)
     {
-        if (MultiOptimizationObjective *mult = dynamic_cast<MultiOptimizationObjective *>(b.get()))
+        if (auto *mult = dynamic_cast<MultiOptimizationObjective *>(b.get()))
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {
@@ -313,7 +313,7 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator*(double weight, const 
 
     if (a)
     {
-        if (MultiOptimizationObjective *mult = dynamic_cast<MultiOptimizationObjective *>(a.get()))
+        if (auto *mult = dynamic_cast<MultiOptimizationObjective *>(a.get()))
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {

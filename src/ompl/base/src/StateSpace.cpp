@@ -1023,14 +1023,14 @@ double ompl::base::CompoundStateSpace::getMeasure() const
 
 void ompl::base::CompoundStateSpace::enforceBounds(State *state) const
 {
-    CompoundState *cstate = static_cast<CompoundState *>(state);
+    auto *cstate = static_cast<CompoundState *>(state);
     for (unsigned int i = 0; i < componentCount_; ++i)
         components_[i]->enforceBounds(cstate->components[i]);
 }
 
 bool ompl::base::CompoundStateSpace::satisfiesBounds(const State *state) const
 {
-    const CompoundState *cstate = static_cast<const CompoundState *>(state);
+    const auto *cstate = static_cast<const CompoundState *>(state);
     for (unsigned int i = 0; i < componentCount_; ++i)
         if (!components_[i]->satisfiesBounds(cstate->components[i]))
             return false;
@@ -1039,8 +1039,8 @@ bool ompl::base::CompoundStateSpace::satisfiesBounds(const State *state) const
 
 void ompl::base::CompoundStateSpace::copyState(State *destination, const State *source) const
 {
-    CompoundState *cdest = static_cast<CompoundState *>(destination);
-    const CompoundState *csrc = static_cast<const CompoundState *>(source);
+    auto *cdest = static_cast<CompoundState *>(destination);
+    const auto *csrc = static_cast<const CompoundState *>(source);
     for (unsigned int i = 0; i < componentCount_; ++i)
         components_[i]->copyState(cdest->components[i], csrc->components[i]);
 }
@@ -1055,7 +1055,7 @@ unsigned int ompl::base::CompoundStateSpace::getSerializationLength() const
 
 void ompl::base::CompoundStateSpace::serialize(void *serialization, const State *state) const
 {
-    const CompoundState *cstate = static_cast<const CompoundState *>(state);
+    const auto *cstate = static_cast<const CompoundState *>(state);
     unsigned int l = 0;
     for (unsigned int i = 0; i < componentCount_; ++i)
     {
@@ -1066,7 +1066,7 @@ void ompl::base::CompoundStateSpace::serialize(void *serialization, const State 
 
 void ompl::base::CompoundStateSpace::deserialize(State *state, const void *serialization) const
 {
-    CompoundState *cstate = static_cast<CompoundState *>(state);
+    auto *cstate = static_cast<CompoundState *>(state);
     unsigned int l = 0;
     for (unsigned int i = 0; i < componentCount_; ++i)
     {
@@ -1077,8 +1077,8 @@ void ompl::base::CompoundStateSpace::deserialize(State *state, const void *seria
 
 double ompl::base::CompoundStateSpace::distance(const State *state1, const State *state2) const
 {
-    const CompoundState *cstate1 = static_cast<const CompoundState *>(state1);
-    const CompoundState *cstate2 = static_cast<const CompoundState *>(state2);
+    const auto *cstate1 = static_cast<const CompoundState *>(state1);
+    const auto *cstate2 = static_cast<const CompoundState *>(state2);
     double dist = 0.0;
     for (unsigned int i = 0; i < componentCount_; ++i)
         dist += weights_[i] * components_[i]->distance(cstate1->components[i], cstate2->components[i]);
@@ -1094,8 +1094,8 @@ void ompl::base::CompoundStateSpace::setLongestValidSegmentFraction(double segme
 
 unsigned int ompl::base::CompoundStateSpace::validSegmentCount(const State *state1, const State *state2) const
 {
-    const CompoundState *cstate1 = static_cast<const CompoundState *>(state1);
-    const CompoundState *cstate2 = static_cast<const CompoundState *>(state2);
+    const auto *cstate1 = static_cast<const CompoundState *>(state1);
+    const auto *cstate2 = static_cast<const CompoundState *>(state2);
     unsigned int sc = 0;
     for (unsigned int i = 0; i < componentCount_; ++i)
     {
@@ -1108,8 +1108,8 @@ unsigned int ompl::base::CompoundStateSpace::validSegmentCount(const State *stat
 
 bool ompl::base::CompoundStateSpace::equalStates(const State *state1, const State *state2) const
 {
-    const CompoundState *cstate1 = static_cast<const CompoundState *>(state1);
-    const CompoundState *cstate2 = static_cast<const CompoundState *>(state2);
+    const auto *cstate1 = static_cast<const CompoundState *>(state1);
+    const auto *cstate2 = static_cast<const CompoundState *>(state2);
     for (unsigned int i = 0; i < componentCount_; ++i)
         if (!components_[i]->equalStates(cstate1->components[i], cstate2->components[i]))
             return false;
@@ -1118,9 +1118,9 @@ bool ompl::base::CompoundStateSpace::equalStates(const State *state1, const Stat
 
 void ompl::base::CompoundStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
-    const CompoundState *cfrom = static_cast<const CompoundState *>(from);
-    const CompoundState *cto = static_cast<const CompoundState *>(to);
-    CompoundState *cstate = static_cast<CompoundState *>(state);
+    const auto *cfrom = static_cast<const CompoundState *>(from);
+    const auto *cto = static_cast<const CompoundState *>(to);
+    auto *cstate = static_cast<CompoundState *>(state);
     for (unsigned int i = 0; i < componentCount_; ++i)
         components_[i]->interpolate(cfrom->components[i], cto->components[i], t, cstate->components[i]);
 }
@@ -1163,7 +1163,7 @@ void ompl::base::CompoundStateSpace::allocStateComponents(CompoundState *state) 
 
 void ompl::base::CompoundStateSpace::freeState(State *state) const
 {
-    CompoundState *cstate = static_cast<CompoundState *>(state);
+    auto *cstate = static_cast<CompoundState *>(state);
     for (unsigned int i = 0; i < componentCount_; ++i)
         components_[i]->freeState(cstate->components[i]);
     delete[] cstate->components;
@@ -1182,7 +1182,7 @@ bool ompl::base::CompoundStateSpace::isLocked() const
 
 double *ompl::base::CompoundStateSpace::getValueAddressAtIndex(State *state, const unsigned int index) const
 {
-    CompoundState *cstate = static_cast<CompoundState *>(state);
+    auto *cstate = static_cast<CompoundState *>(state);
     unsigned int idx = 0;
 
     for (unsigned int i = 0; i < componentCount_; ++i)
@@ -1205,7 +1205,7 @@ double *ompl::base::CompoundStateSpace::getValueAddressAtIndex(State *state, con
 void ompl::base::CompoundStateSpace::printState(const State *state, std::ostream &out) const
 {
     out << "Compound state [" << std::endl;
-    const CompoundState *cstate = static_cast<const CompoundState *>(state);
+    const auto *cstate = static_cast<const CompoundState *>(state);
     for (unsigned int i = 0; i < componentCount_; ++i)
         components_[i]->printState(cstate->components[i], out);
     out << "]" << std::endl;
@@ -1265,8 +1265,8 @@ namespace ompl
             // if "to" state is compound
             if (destS->isCompound())
             {
-                const CompoundStateSpace *compoundDestS = destS->as<CompoundStateSpace>();
-                CompoundState *compoundDest = dest->as<CompoundState>();
+                const auto *compoundDestS = destS->as<CompoundStateSpace>();
+                auto *compoundDest = dest->as<CompoundState>();
 
                 // if there is a subspace in "to" that corresponds to "from", set the data and return
                 for (unsigned int i = 0; i < compoundDestS->getSubspaceCount(); ++i)
@@ -1297,8 +1297,8 @@ namespace ompl
             // it could be the case "from" is from a compound space as well, so we can copy parts of "from", as needed
             if (sourceS->isCompound())
             {
-                const CompoundStateSpace *compoundSourceS = sourceS->as<CompoundStateSpace>();
-                const CompoundState *compoundSource = source->as<CompoundState>();
+                const auto *compoundSourceS = sourceS->as<CompoundStateSpace>();
+                const auto *compoundSource = source->as<CompoundState>();
 
                 unsigned int copiedComponents = 0;
 
@@ -1387,7 +1387,7 @@ namespace ompl
             if (a)
             {
                 bool used = false;
-                if (CompoundStateSpace *csm_a = dynamic_cast<CompoundStateSpace *>(a.get()))
+                if (auto *csm_a = dynamic_cast<CompoundStateSpace *>(a.get()))
                     if (!csm_a->isLocked())
                     {
                         used = true;
@@ -1409,7 +1409,7 @@ namespace ompl
                 bool used = false;
                 unsigned int size = components.size();
 
-                if (CompoundStateSpace *csm_b = dynamic_cast<CompoundStateSpace *>(b.get()))
+                if (auto *csm_b = dynamic_cast<CompoundStateSpace *>(b.get()))
                     if (!csm_b->isLocked())
                     {
                         used = true;
@@ -1469,7 +1469,7 @@ namespace ompl
             if (a)
             {
                 bool used = false;
-                if (CompoundStateSpace *csm_a = dynamic_cast<CompoundStateSpace *>(a.get()))
+                if (auto *csm_a = dynamic_cast<CompoundStateSpace *>(a.get()))
                     if (!csm_a->isLocked())
                     {
                         used = true;
@@ -1490,7 +1490,7 @@ namespace ompl
             if (b)
             {
                 bool used = false;
-                if (CompoundStateSpace *csm_b = dynamic_cast<CompoundStateSpace *>(b.get()))
+                if (auto *csm_b = dynamic_cast<CompoundStateSpace *>(b.get()))
                     if (!csm_b->isLocked())
                     {
                         used = true;
@@ -1530,7 +1530,7 @@ namespace ompl
             if (a)
             {
                 bool used = false;
-                if (CompoundStateSpace *csm_a = dynamic_cast<CompoundStateSpace *>(a.get()))
+                if (auto *csm_a = dynamic_cast<CompoundStateSpace *>(a.get()))
                     if (!csm_a->isLocked())
                     {
                         used = true;
@@ -1577,7 +1577,7 @@ namespace ompl
             if (a)
             {
                 bool used = false;
-                if (CompoundStateSpace *csm_a = dynamic_cast<CompoundStateSpace *>(a.get()))
+                if (auto *csm_a = dynamic_cast<CompoundStateSpace *>(a.get()))
                     if (!csm_a->isLocked())
                     {
                         used = true;
@@ -1598,7 +1598,7 @@ namespace ompl
             if (b)
             {
                 bool used = false;
-                if (CompoundStateSpace *csm_b = dynamic_cast<CompoundStateSpace *>(b.get()))
+                if (auto *csm_b = dynamic_cast<CompoundStateSpace *>(b.get()))
                     if (!csm_b->isLocked())
                     {
                         used = true;

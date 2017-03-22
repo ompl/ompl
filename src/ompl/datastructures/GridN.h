@@ -164,7 +164,7 @@ namespace ompl
 
             for (auto cl = list->begin(); cl != list->end(); ++cl)
             {
-                Cell *c = static_cast<Cell *>(*cl);
+                auto *c = static_cast<Cell *>(*cl);
                 c->neighbors++;
                 if (c->border && c->neighbors >= interiorCellNeighborsLimit_)
                     c->border = false;
@@ -190,7 +190,7 @@ namespace ompl
                 Grid<_T>::neighbors(cell->coord, *list);
                 for (auto cl = list->begin(); cl != list->end(); ++cl)
                 {
-                    Cell *c = static_cast<Cell *>(*cl);
+                    auto *c = static_cast<Cell *>(*cl);
                     c->neighbors--;
                     if (!c->border && c->neighbors < interiorCellNeighborsLimit_)
                         c->border = true;
