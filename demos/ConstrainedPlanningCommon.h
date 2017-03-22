@@ -208,6 +208,22 @@ public:
             out[i] = (joint1 - joint2).norm() - linkLength;
             joint1 = joint2;
         }
+
+        // End effector must lie on a sphere.
+        if (extraConstraints >= 1)
+            out[nLinks] = x.tail(workspaceDim).norm() - sphereRadius;
+        // Joints 0 and 1 must have same z-value.
+        if (extraConstraints >= 2)
+            out[nLinks + 1] = x[0 * workspaceDim + 2] - x[1 * workspaceDim + 2];
+        // Joints 1 and 2 must have same x-value.
+        if (extraConstraints >= 3)
+            out[nLinks + 2] = x[1 * workspaceDim + 0] - x[2 * workspaceDim + 0];
+        // Joints 2 and 3 must have the same y-value.
+        if (extraConstraints >= 4)
+            out[nLinks + 3] = x[2 * workspaceDim + 1] - x[3 * workspaceDim + 1];
+        // Joints 0 and 4 joints have same y-value.
+        if (extraConstraints >= 5)
+            out[nLinks + 4] = x[0 * workspaceDim + 1] - x[4 * workspaceDim + 1];
     }
 
     void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
@@ -225,6 +241,29 @@ public:
                 diagonal.segment(workspaceDim * i, workspaceDim).normalized();
         out.block(1, 0, nLinks, workspaceDim * (nLinks - 1)) -=
             out.block(1, workspaceDim, nLinks, workspaceDim * (nLinks - 1));
+
+        if (extraConstraints >= 1)
+            out.row(nLinks).tail(workspaceDim) = -diagonal.tail(workspaceDim).normalized().transpose();
+        if (extraConstraints >= 2)
+        {
+            out(nLinks + 1, 0 * workspaceDim + 2) = 1;
+            out(nLinks + 1, 1 * workspaceDim + 2) = -1;
+        }
+        if (extraConstraints >= 3)
+        {
+            out(nLinks + 2, 1 * workspaceDim + 0) = 1;
+            out(nLinks + 2, 2 * workspaceDim + 0) = -1;
+        }
+        if (extraConstraints >= 4)
+        {
+            out(nLinks + 3, 2 * workspaceDim + 1) = 1;
+            out(nLinks + 3, 3 * workspaceDim + 1) = -1;
+        }
+        if (extraConstraints >= 5)
+        {
+            out(nLinks + 4, 0 * workspaceDim + 1) = 1;
+            out(nLinks + 4, 4 * workspaceDim + 1) = -1;
+        }
     }
 
     /** Joints may not get touch each other. If \a tough == true, then the end
@@ -233,7 +272,7 @@ public:
     bool isValid(double sleep, const ompl::base::State *state)
     {
         std::this_thread::sleep_for(ompl::time::seconds(sleep));
-        Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
+        Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
         for (unsigned int i = 0; i < nLinks - 1; i++)
         {
             if (x.segment(workspaceDim * i, workspaceDim).cwiseAbs().maxCoeff() < jointSize)
