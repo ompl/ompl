@@ -290,8 +290,8 @@ namespace ompl
             struct MotionCompare
             {
                 /** \brief Constructor */
-                MotionCompare(const base::OptimizationObjectivePtr &opt, const base::ProblemDefinitionPtr &pdef)
-                  : opt_(opt), pdef_(pdef)
+                MotionCompare(base::OptimizationObjectivePtr opt, base::ProblemDefinitionPtr pdef)
+                  : opt_(std::move(opt)), pdef_(std::move(pdef))
                 {
                 }
 
