@@ -40,6 +40,7 @@ if (OMPL_BUILD_DEMOS)
   # add_ompl_demo(demo_AtlasChain AtlasChain.cpp)
   # add_ompl_demo(demo_AtlasBimanual AtlasBimanual.cpp)
   add_ompl_demo(demo_ConstrainedPlanning ConstrainedPlanning.cpp)
+  add_ompl_demo(demo_ConstrainedBenchmark ConstrainedBenchmark.cpp)
 
   add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
   add_ompl_demo(demo_PlannerProgressProperties PlannerProgressProperties.cpp)

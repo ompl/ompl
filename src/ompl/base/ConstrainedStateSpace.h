@@ -175,6 +175,10 @@ namespace ompl
                 RealVectorStateSpace::setup();
             }
 
+            void clear()
+            {
+            }
+
             /** \brief Set \a delta, the step size for traversing the manifold
              * and collision checking. Default 0.02. */
             void setDelta(const double delta)

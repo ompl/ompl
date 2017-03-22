@@ -431,7 +431,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     if (stateList)
     {
         stateList->clear();
-        stateList->push_back(si_->cloneState(from)->as<State>());
+        stateList->push_back(si_->cloneState(from));
     }
 
     Eigen::VectorXd u_j(k_), u_b(k_);
@@ -492,7 +492,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
 
         // Keep the state in a list, if requested.
         if (stateList)
-            stateList->push_back(si_->cloneState(currentState)->as<State>());
+            stateList->push_back(si_->cloneState(currentState));
     }
 
     if (chartsCreated > maxChartsPerExtension_)
@@ -507,10 +507,10 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     // Append a copy of the target state, since we're within delta, but didn't hit it exactly.
     if (reached && stateList)
     {
-        StateType *scratch = si_->cloneState(to)->as<StateType>();
-        stateList->push_back(scratch->as<State>());
+        State *scratch = si_->cloneState(to);
         if (!toT->getChart())
-            scratch->setChart(c);
+            scratch->as<StateType>()->setChart(c);
+        stateList->push_back(scratch);
     }
 
     freeState(currentState);

@@ -233,9 +233,8 @@ int main(int argc, char **argv)
         // and goal charts.
         ompl::base::ScopedState<> start(proj);
         ompl::base::ScopedState<> goal(proj);
-
-        constraint->fromVector(start->as<ompl::base::RealVectorStateSpace::StateType>(), x);
-        constraint->fromVector(goal->as<ompl::base::RealVectorStateSpace::StateType>(), y);
+        start->as<ompl::base::ProjectedStateSpace::StateType>()->setRealState(x);
+        goal->as<ompl::base::ProjectedStateSpace::StateType>()->setRealState(y);
         ss.setStartAndGoalStates(start, goal);
 
         // Bounds
@@ -245,7 +244,7 @@ int main(int argc, char **argv)
         proj->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
 
         // Choose the planner.
-        ompl::base::PlannerPtr planner(parsePlanner(argv[2], si, 0.1));
+        ompl::base::PlannerPtr planner(parsePlanner(argv[2], si, 0.7));
         if (!planner)
             usage(argv[0]);
         ss.setPlanner(planner);

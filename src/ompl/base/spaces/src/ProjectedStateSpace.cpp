@@ -154,7 +154,12 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
         return true;
 
     if (!constraint_->isSatisfied(from))
+    {
+        // This happens too many times so just ignore it
+        // OMPL_DEBUG("ompl::base::ProjectedStateSpace::traverseManifold(): "
+        //            "'from' state not valid!");
         return false;
+    }
 
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
     double dist = distance(from, to);
