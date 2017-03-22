@@ -112,7 +112,8 @@ public:
     const double R1;
     const double R2;
 
-    TorusConstraint(const ompl::base::StateSpace *space, const double r1, const double r2) : ompl::base::Constraint(space, 2), R1(r1), R2(r2)
+    TorusConstraint(const ompl::base::StateSpace *space, const double r1, const double r2)
+      : ompl::base::Constraint(space, 2), R1(r1), R2(r2)
     {
     }
 
@@ -134,7 +135,6 @@ public:
         out(0, 2) = x[2] / denom;
     }
 };
-
 
 class KleinConstraint : public ompl::base::Constraint
 {
@@ -161,6 +161,93 @@ public:
         out(0, 0) = 32 * x[0] * x[0] * x[1] + 16 * x[1] * n + 4 * x[0] * n * p + 2 * x[0] * u;
         out(0, 1) = 32 * x[0] * x[1] * (x[1] - 1) + 16 * x[0] * n + 4 * (x[1] - 1) * n * p + 2 * (x[1] + 1) * u;
         out(0, 2) = 2 * x[2] * (16 * x[0] * x[1] + 2 * p * (n - 4) + u);
+    }
+};
+
+/** Kinematic chain manifold. */
+class ChainConstraint : public ompl::base::Constraint
+{
+public:
+    const unsigned int workspaceDim;  // Workspace dimension.
+    const unsigned int nLinks;        // Number of chain links.
+    const double linkLength;          // Length of one link.
+    // Radius of the sphere that the end effector is constrained to.
+    const double sphereRadius;
+    // Joints are cubes, and the collision checker makes sure they don't
+    // intersect. This controls how big they are.
+    const double jointSize;
+    // Number of additional constraints to apply.
+    // 1: end effector sphere
+    // 2: joints 0 and 1 have same z-value
+    // 3: joints 1 and 2 have same x-value
+    // 4: joints 2 and 3 have same y-value
+    // 5: joints 0 and 4 have same y value
+    const unsigned int extraConstraints;
+
+    ChainConstraint(ompl::base::StateSpace *space, unsigned int dim, unsigned int links,
+                    unsigned int extraConstraints = 1)
+      : ompl::base::Constraint(space, (dim - 1) * links - extraConstraints)
+      , workspaceDim(dim)
+      , nLinks(links)
+      , linkLength(1.0)
+      , sphereRadius(3.0)
+      , jointSize(0.2)
+      , extraConstraints(extraConstraints)
+    {
+        std::cout << "Ambient dimension: " << getAmbientDimension() << "\n";
+        std::cout << "Manifold dimension: " << getManifoldDimension() << "\n";
+    }
+
+    void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    {
+        // Consecutive joints must be a fixed distance apart.
+        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(workspaceDim);
+        for (unsigned int i = 0; i < nLinks; i++)
+        {
+            const Eigen::VectorXd joint2 = x.segment(workspaceDim * i, workspaceDim);
+            out[i] = (joint1 - joint2).norm() - linkLength;
+            joint1 = joint2;
+        }
+    }
+
+    void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    {
+        out.setZero();
+        Eigen::VectorXd plus(workspaceDim * (nLinks + 1));
+        plus.head(workspaceDim * nLinks) = x;
+        plus.tail(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim);
+        Eigen::VectorXd minus(workspaceDim * (nLinks + 1));
+        minus.head(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim);
+        minus.tail(workspaceDim * nLinks) = x;
+        const Eigen::VectorXd diagonal = plus - minus;
+        for (unsigned int i = 0; i < nLinks; i++)
+            out.row(i).segment(workspaceDim * i, workspaceDim) =
+                diagonal.segment(workspaceDim * i, workspaceDim).normalized();
+        out.block(1, 0, nLinks, workspaceDim * (nLinks - 1)) -=
+            out.block(1, workspaceDim, nLinks, workspaceDim * (nLinks - 1));
+    }
+
+    /** Joints may not get touch each other. If \a tough == true, then the end
+    * effector may not occupy states on the sphere similar to the sphereValid()
+    * obstacles. */
+    bool isValid(double sleep, const ompl::base::State *state)
+    {
+        std::this_thread::sleep_for(ompl::time::seconds(sleep));
+        Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
+        for (unsigned int i = 0; i < nLinks - 1; i++)
+        {
+            if (x.segment(workspaceDim * i, workspaceDim).cwiseAbs().maxCoeff() < jointSize)
+                return false;
+            for (unsigned int j = i + 1; j < nLinks; j++)
+            {
+                if ((x.segment(workspaceDim * i, workspaceDim) - x.segment(workspaceDim * j, workspaceDim))
+                        .cwiseAbs()
+                        .maxCoeff() < jointSize)
+                    return false;
+            }
+        }
+
+        return true;
     }
 };
 
@@ -211,7 +298,8 @@ bool always(double sleep, const ompl::base::State *)
 // bool unreachable(double sleep, const ompl::base::State *state, const Eigen::VectorXd &goal, const double radius)
 // {
 //     std::this_thread::sleep_for(ompl::time::seconds(sleep));
-//     return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView() - goal).norm() - radius) >
+//     return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView() - goal).norm() - radius)
+//     >
 //            radius - 0.01;
 // }
 
@@ -278,7 +366,7 @@ ompl::base::Constraint *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
 ompl::base::Constraint *initKleinProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                             ompl::base::StateValidityCheckerFn &isValid, double sleep)
+                                         ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
 
@@ -293,6 +381,24 @@ ompl::base::Constraint *initKleinProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
 
     ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
     return new KleinConstraint(space);
+}
+
+/** Initialize the atlas for the kinematic chain problem. */
+ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                         ompl::base::StateValidityCheckerFn &isValid, double sleep)
+{
+    const std::size_t dim = 3 * 5;
+
+    // Start and goal points (each triple is the 3D location of a joint)
+    x = Eigen::VectorXd(dim);
+    x << 1, 0, 0, 2, 0, 0, 2, -1, 0, 3, -1, 0, 3, 0, 0;
+    y = Eigen::VectorXd(dim);
+    y << 0, -1, 0, -1, -1, 0, -1, 0, 0, -2, 0, 0, -3, 0, 0;
+
+    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(dim);
+    ChainConstraint *atlas = new ChainConstraint(space, 3, 5);
+    isValid = std::bind(&ChainConstraint::isValid, atlas, sleep, std::placeholders::_1);
+    return atlas;
 }
 
 /** Allocator function for a sampler for the atlas that only returns valid points. */
@@ -311,7 +417,7 @@ ompl::base::ValidStateSamplerPtr pvssa(const ompl::base::SpaceInformation *si)
 void printProblems(void)
 {
     std::cout << "Available problems:\n";
-    std::cout << "    plane sphere torus klein\n";
+    std::cout << "    plane sphere torus klein chain\n";
 }
 
 /** Print usage information. */
@@ -336,6 +442,8 @@ ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd 
         return initTorusProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "klein") == 0)
         return initKleinProblem(x, y, isValid, sleep);
+    else if (std::strcmp(problem, "chain") == 0)
+        return initChainProblem(x, y, isValid, sleep);
     else
         return NULL;
 }
