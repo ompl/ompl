@@ -48,10 +48,10 @@ namespace ompl
         {
         private:
             /** \brief Disable copy-constructor */
-            Control(const Control &);
+            Control(const Control &) = delete;
 
             /** \brief Disable copy operator */
-            const Control &operator=(const Control &);
+            const Control &operator=(const Control &) = delete;
 
         protected:
             Control() = default;

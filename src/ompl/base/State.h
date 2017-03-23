@@ -50,10 +50,10 @@ namespace ompl
         {
         private:
             /** \brief Disable copy-constructor */
-            State(const State &);
+            State(const State &) = delete;
 
             /** \brief Disable copy operator */
-            const State &operator=(const State &);
+            const State &operator=(const State &) = delete;
 
         protected:
             State() = default;
