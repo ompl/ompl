@@ -197,7 +197,7 @@ private:
         while (dim >= dimVector_.size())
         {
             // Create a pair of empty pointers:
-            dimVector_.push_back(dist_gen_pair_t());
+            dimVector_.emplace_back();
         }
     };
 

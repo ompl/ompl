@@ -516,7 +516,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         planners_[i]->getSpaceInformation()->params().getParams(exp_.planners[i].common);
 
         // Add planner progress property names to struct
-        exp_.planners[i].progressPropertyNames.push_back("time REAL");
+        exp_.planners[i].progressPropertyNames.emplace_back("time REAL");
         base::Planner::PlannerProgressProperties::const_iterator iter;
         for (iter = planners_[i]->getPlannerProgressProperties().begin();
              iter != planners_[i]->getPlannerProgressProperties().end(); ++iter)

@@ -203,7 +203,7 @@ void ompl::base::MultiOptimizationObjective::addObjective(const OptimizationObje
         throw Exception("This optimization objective is locked. No further objectives can be added.");
     }
     else
-        components_.push_back(Component(objective, weight));
+        components_.emplace_back(objective, weight);
 }
 
 std::size_t ompl::base::MultiOptimizationObjective::getObjectiveCount() const
@@ -278,12 +278,11 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {
-                components.push_back(
-                    MultiOptimizationObjective::Component(mult->getObjective(i), mult->getObjectiveWeight(i)));
+                components.emplace_back(mult->getObjective(i), mult->getObjectiveWeight(i));
             }
         }
         else
-            components.push_back(MultiOptimizationObjective::Component(a, 1.0));
+            components.emplace_back(a, 1.0);
     }
 
     if (b)
@@ -292,12 +291,11 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {
-                components.push_back(
-                    MultiOptimizationObjective::Component(mult->getObjective(i), mult->getObjectiveWeight(i)));
+                components.emplace_back(mult->getObjective(i), mult->getObjectiveWeight(i));
             }
         }
         else
-            components.push_back(MultiOptimizationObjective::Component(b, 1.0));
+            components.emplace_back(b, 1.0);
     }
 
     auto multObj(std::make_shared<MultiOptimizationObjective>(a->getSpaceInformation()));
@@ -317,12 +315,11 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator*(double weight, const 
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {
-                components.push_back(
-                    MultiOptimizationObjective::Component(mult->getObjective(i), weight * mult->getObjectiveWeight(i)));
+                components.emplace_back(mult->getObjective(i), weight * mult->getObjectiveWeight(i));
             }
         }
         else
-            components.push_back(MultiOptimizationObjective::Component(a, weight));
+            components.emplace_back(a, weight);
     }
 
     auto multObj(std::make_shared<MultiOptimizationObjective>(a->getSpaceInformation()));
