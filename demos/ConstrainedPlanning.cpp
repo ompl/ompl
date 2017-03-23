@@ -131,6 +131,8 @@ int main(int argc, char **argv)
         {
             const double time = ((double)(std::clock() - tstart)) / CLOCKS_PER_SEC;
 
+            ss.simplifySolution();
+
             ompl::geometric::PathGeometric &path = ss.getSolutionPath();
             if (x.size() == 3 && verbose)
             {
@@ -265,6 +267,8 @@ int main(int argc, char **argv)
         if (stat)
         {
             const double time = ((double)(std::clock() - tstart)) / CLOCKS_PER_SEC;
+
+            ss.simplifySolution();
 
             ompl::geometric::PathGeometric &path = ss.getSolutionPath();
             if (x.size() == 3 && verbose)

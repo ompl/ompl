@@ -108,19 +108,19 @@ void atlasBench(int argc, char **argv)
     const bool progress = true;
     const bool save_output = false;
     const bool use_threads = true;
-    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress, save_output, use_threads, false);
-    for (auto & planner : planners)
+    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
+                                                  save_output, use_threads, false);
+    for (auto &planner : planners)
     {
         ompl::base::PlannerPtr pptr(parsePlanner(planner, si, atlas->getRho_s()));
-        pptr->setName(pptr->getName() +"+A");
+        pptr->setName(pptr->getName() + "+A");
         bench.addPlanner(pptr);
     }
-    bench.setPreRunEvent([](const ompl::base::PlannerPtr &planner)
-                         {
-                             ompl::base::AtlasStateSpace *ss =
-                                 planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>();
-                             ss->clear();
-                         });
+    bench.setPreRunEvent([](const ompl::base::PlannerPtr &planner) {
+        ompl::base::AtlasStateSpace *ss =
+            planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>();
+        ss->clear();
+    });
     // Execute
     bench.benchmark(request);
     bench.saveResultsToFile("atlas.log");
@@ -133,7 +133,8 @@ void projBench(int argc, char **argv)
     ompl::base::StateValidityCheckerFn isValid;
 
     ompl::base::Constraint *constraint = parseProblem(argv[1], x, y, isValid);
-    ompl::base::ProjectedStateSpacePtr proj(new ompl::base::ProjectedStateSpace(constraint->getAmbientSpace(), constraint));
+    ompl::base::ProjectedStateSpacePtr proj(
+        new ompl::base::ProjectedStateSpace(constraint->getAmbientSpace(), constraint));
     if (!proj)
         usage(argv[0]);
 
@@ -175,19 +176,19 @@ void projBench(int argc, char **argv)
     const bool progress = true;
     const bool save_output = false;
     const bool use_threads = true;
-    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress, save_output, use_threads, false);
-    for (auto & planner : planners)
+    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
+                                                  save_output, use_threads, false);
+    for (auto &planner : planners)
     {
         ompl::base::PlannerPtr pptr(parsePlanner(planner, si, 0.707));
-        pptr->setName(pptr->getName() +"+P");
+        pptr->setName(pptr->getName() + "+P");
         bench.addPlanner(pptr);
     }
-    bench.setPreRunEvent([](const ompl::base::PlannerPtr &planner)
-                         {
-                             ompl::base::ProjectedStateSpace *ss =
-                                 planner->getSpaceInformation()->getStateSpace()->as<ompl::base::ProjectedStateSpace>();
-                             ss->clear();
-                         });
+    bench.setPreRunEvent([](const ompl::base::PlannerPtr &planner) {
+        ompl::base::ProjectedStateSpace *ss =
+            planner->getSpaceInformation()->getStateSpace()->as<ompl::base::ProjectedStateSpace>();
+        ss->clear();
+    });
 
     // Execute
     bench.benchmark(request);
@@ -202,7 +203,8 @@ void projectedChainBench(int links, double sleep)
 
     ompl::base::Constraint *constraint = initChainProblem(x, y, isValid, sleep, links);
 
-    ompl::base::ProjectedStateSpacePtr projected(new ompl::base::ProjectedStateSpace(constraint->getAmbientSpace(), constraint));
+    ompl::base::ProjectedStateSpacePtr projected(
+        new ompl::base::ProjectedStateSpace(constraint->getAmbientSpace(), constraint));
 
     // All the 'Constrained' classes are loose wrappers for the normal
     // classes. No effect except on the two special planners.
@@ -249,9 +251,10 @@ void projectedChainBench(int links, double sleep)
     const bool progress = true;
     const bool save_output = false;
     const bool use_threads = true;
-    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress, save_output, use_threads, false);
+    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
+                                                  save_output, use_threads, false);
 
-    for (auto & planner : planners)
+    for (auto &planner : planners)
     {
         ompl::base::PlannerPtr pptr(parsePlanner(planner, si, 0.707));
         pptr->setName(pptr->getName() + "+P");
@@ -259,10 +262,10 @@ void projectedChainBench(int links, double sleep)
     }
 
     bench.setPreRunEvent([](const ompl::base::PlannerPtr &planner) {
-            ompl::base::ProjectedStateSpace *ss =
-                planner->getSpaceInformation()->getStateSpace()->as<ompl::base::ProjectedStateSpace>();
-            ss->clear();
-        });
+        ompl::base::ProjectedStateSpace *ss =
+            planner->getSpaceInformation()->getStateSpace()->as<ompl::base::ProjectedStateSpace>();
+        ss->clear();
+    });
 
     // Execute
     bench.benchmark(request);
@@ -332,9 +335,10 @@ void atlasChainBench(int links, double sleep)
     const bool progress = true;
     const bool save_output = false;
     const bool use_threads = true;
-    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress, save_output, use_threads, false);
+    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
+                                                  save_output, use_threads, false);
 
-    for (auto & planner : planners)
+    for (auto &planner : planners)
     {
         ompl::base::PlannerPtr pptr(parsePlanner(planner, si, atlas->getRho_s()));
         pptr->setName(pptr->getName() + "+A");
@@ -342,10 +346,10 @@ void atlasChainBench(int links, double sleep)
     }
 
     bench.setPreRunEvent([](const ompl::base::PlannerPtr &planner) {
-            ompl::base::AtlasStateSpace *ss =
-                planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>();
-            ss->clear();
-        });
+        ompl::base::AtlasStateSpace *ss =
+            planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>();
+        ss->clear();
+    });
 
     // Execute
     bench.benchmark(request);
@@ -355,24 +359,8 @@ void atlasChainBench(int links, double sleep)
 
 int main(int argc, char **argv)
 {
-    std::thread t[4];
-
-    for (int i = 1; i < 5; ++i)
-    {
-        t[i - 1] = std::thread([&](){
-                for (int links = 4 * i; links < 4 * (i + 1); ++links)
-                {
-                    for (double sleep = 0.0; sleep < 0.6; sleep += 0.1)
-                    {
-                        projectedChainBench(links, sleep);
-                        atlasChainBench(links, sleep);
-                    }
-                }
-            });
-    }
-
-    for (int i = 0; i < 4; ++i)
-    {
-        t[i].join();
-    }
+    int links = atoi(argv[1]);
+    double sleep = atof(argv[2]);
+    projectedChainBench(links, sleep);
+    atlasChainBench(links, sleep);
 }

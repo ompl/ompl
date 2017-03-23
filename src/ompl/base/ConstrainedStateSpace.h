@@ -158,6 +158,11 @@ namespace ompl
 
             void setSpaceInformation(const SpaceInformationPtr &si);
 
+            bool isMetricSpace() const override
+            {
+                return false;
+            }
+
             /** \brief Final setup for the space. */
             void setup()
             {
