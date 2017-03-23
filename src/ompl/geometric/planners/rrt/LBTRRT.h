@@ -162,20 +162,18 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state_(nullptr), parentApx_(nullptr), costApx_(0.0)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state */
                 Motion(const base::SpaceInformationPtr &si)
-                  : state_(si->allocState()), parentApx_(nullptr), costApx_(0.0)
+                  : state_(si->allocState())
                 {
                 }
 
                 ~Motion() = default;
 
                 /** \brief The state contained by the motion */
-                base::State *state_;
+                base::State *state_{nullptr};
                 /** \brief unique id of the motion */
                 std::size_t id_;
                 /** \brief The lower bound cost of the motion
@@ -185,9 +183,9 @@ namespace ompl
                 */
                 double costLb_;
                 /** \brief The parent motion in the approximation tree */
-                Motion *parentApx_;
+                Motion *parentApx_{nullptr};
                 /** \brief The approximation cost */
-                double costApx_;
+                double costApx_{0.0};
                 /** \brief The children in the approximation tree */
                 std::vector<Motion *> childrenApx_;
             };

@@ -139,18 +139,16 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state(nullptr), parent(nullptr)
-                {
-                }
+                Motion() = default;
 
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState())
                 {
                 }
 
                 ~Motion() = default;
 
-                base::State *state;
-                Motion *parent;
+                base::State *state{nullptr};
+                Motion *parent{nullptr};
             };
 
             struct SolutionInfo

@@ -98,25 +98,18 @@ namespace ompl
             struct InterfaceData
             {
                 /** \brief States which lie inside the visibility region of a vertex and support an interface. */
-                base::State *pointA_;
-                base::State *pointB_;
+                base::State *pointA_{nullptr};
+                base::State *pointB_{nullptr};
 
                 /** \brief States which lie just outside the visibility region of a vertex and support an interface. */
-                base::State *sigmaA_;
-                base::State *sigmaB_;
+                base::State *sigmaA_{nullptr};
+                base::State *sigmaB_{nullptr};
 
                 /** \brief Last known distance between the two interfaces supported by points_ and sigmas. */
-                double d_;
+                double d_{std::numeric_limits<double>::infinity()};
 
                 /** \brief Constructor */
-                InterfaceData()
-                  : pointA_(nullptr)
-                  , pointB_(nullptr)
-                  , sigmaA_(nullptr)
-                  , sigmaB_(nullptr)
-                  , d_(std::numeric_limits<double>::infinity())
-                {
-                }
+                InterfaceData() = default;
 
                 /** \brief Clears the given interface data. */
                 void clear(const base::SpaceInformationPtr &si)

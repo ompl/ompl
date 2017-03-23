@@ -144,22 +144,20 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state(nullptr), parent(nullptr)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState())
                 {
                 }
 
                 ~Motion() = default;
 
                 /** \brief The state contained by the motion */
-                base::State *state;
+                base::State *state{nullptr};
 
                 /** \brief The parent motion in the exploration tree */
-                Motion *parent;
+                Motion *parent{nullptr};
             };
 
             struct MotionInfo;
@@ -200,15 +198,13 @@ namespace ompl
             /** \brief The data contained by a tree of exploration */
             struct TreeData
             {
-                TreeData() : grid(0), size(0)
-                {
-                }
+                TreeData() = default;
 
                 /** \brief A grid where each cell contains an array of motions */
-                Grid<MotionInfo> grid;
+                Grid<MotionInfo> grid{0};
 
                 /** \brief The total number of motions in the grid */
-                unsigned int size;
+                unsigned int size{0};
             };
 
             /** \brief Free the memory allocated by this planner */

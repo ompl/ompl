@@ -199,37 +199,33 @@ namespace ompl
             /** \brief Representation of a motion for this algorithm */
             struct Motion
             {
-                Motion() : state(nullptr), control(nullptr), steps(0), parent(nullptr)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state and the control */
                 Motion(const SpaceInformation *si)
-                  : state(si->allocState()), control(si->allocControl()), steps(0), parent(nullptr)
+                  : state(si->allocState()), control(si->allocControl())
                 {
                 }
 
                 ~Motion() = default;
 
                 /** \brief The state contained by this motion */
-                base::State *state;
+                base::State *state{nullptr};
 
                 /** \brief The control contained by this motion */
-                Control *control;
+                Control *control{nullptr};
 
                 /** \brief The number of steps the control is applied for */
-                unsigned int steps;
+                unsigned int steps{0};
 
                 /** \brief The parent motion in the exploration tree */
-                Motion *parent;
+                Motion *parent{nullptr};
             };
 
             /** \brief The data held by a cell in the grid of motions */
             struct CellData
             {
-                CellData() : coverage(0.0), selections(1), score(1.0), iteration(0), importance(0.0)
-                {
-                }
+                CellData() = default;
 
                 ~CellData() = default;
 
@@ -239,22 +235,22 @@ namespace ompl
                 /** \brief A measure of coverage for this cell. For
                     this implementation, this is the sum of motion
                     durations */
-                double coverage;
+                double coverage{0.0};
 
                 /** \brief The number of times this cell has been
                     selected for expansion */
-                unsigned int selections;
+                unsigned int selections{1};
 
                 /** \brief A heuristic score computed based on
                     distance to goal (if available), successes and
                     failures at expanding from this cell. */
-                double score;
+                double score{1.0};
 
                 /** \brief The iteration at which this cell was created */
-                unsigned int iteration;
+                unsigned int iteration{0};
 
                 /** \brief The computed importance (based on other class members) */
-                double importance;
+                double importance{0.0};
             };
 
             /** \brief Definintion of an operator passed to the Grid
@@ -333,20 +329,18 @@ namespace ompl
             /** \brief The data defining a tree of motions for this algorithm */
             struct TreeData
             {
-                TreeData() : grid(0), size(0), iteration(1)
-                {
-                }
+                TreeData() = default;
 
                 /** \brief A grid containing motions, imposed on a
                     projection of the state space */
-                Grid grid;
+                Grid grid{0};
 
                 /** \brief The total number of motions (there can be
                     multiple per cell) in the grid */
-                unsigned int size;
+                unsigned int size{0};
 
                 /** \brief The number of iterations performed on this tree */
-                unsigned int iteration;
+                unsigned int iteration{1};
             };
 
             /** \brief This function is provided as a calback to the

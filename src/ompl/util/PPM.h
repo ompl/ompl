@@ -57,7 +57,7 @@ namespace ompl
             }
         };
 
-        PPM();
+        PPM() = default;
 
         /** \brief Load a .ppm file. Throw an exception in case of an error. */
         void loadFile(const char *filename);
@@ -119,8 +119,8 @@ namespace ompl
 
     private:
         std::vector<Color> pixels_;
-        unsigned int width_;
-        unsigned int height_;
+        unsigned int width_{0};
+        unsigned int height_{0};
     };
 }
 

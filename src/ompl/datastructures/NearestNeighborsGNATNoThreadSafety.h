@@ -95,12 +95,10 @@ namespace ompl
 #endif
                                            )
           : NearestNeighbors<_T>()
-          , tree_(nullptr)
           , degree_(degree)
           , minDegree_(std::min(degree, minDegree))
           , maxDegree_(std::max(maxDegree, degree))
           , maxNumPtsPerLeaf_(maxNumPtsPerLeaf)
-          , size_(0)
           , rebuildSize_(rebalancing ? maxNumPtsPerLeaf * degree : std::numeric_limits<std::size_t>::max())
           , removedCacheSize_(removedCacheSize)
           , permutation_(maxDegree_)
@@ -769,7 +767,7 @@ namespace ompl
         /// \endcond
 
         /// \brief The data structure containing the elements stored in this structure.
-        Node *tree_;
+        Node *tree_{nullptr};
         /// The desired degree of each node.
         unsigned int degree_;
         /// \brief After splitting a Node, each child Node has degree equal to
@@ -786,7 +784,7 @@ namespace ompl
         /// it needs to be split into several nodes.
         unsigned int maxNumPtsPerLeaf_;
         /// \brief Number of elements stored in the tree.
-        std::size_t size_;
+        std::size_t size_{0};
         /// \brief If size_ exceeds rebuildSize_, the tree will be rebuilt (and
         /// automatically rebalanced), and rebuildSize_ will be doubled.
         std::size_t rebuildSize_;

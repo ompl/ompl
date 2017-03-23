@@ -38,10 +38,6 @@
 #include "ompl/util/Exception.h"
 #include <cstdio>
 
-ompl::PPM::PPM() : width_(0), height_(0)
-{
-}
-
 void ompl::PPM::loadFile(const char *filename)
 {
     FILE *fp = fopen(filename, "r");

@@ -140,9 +140,7 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state_(nullptr)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state */
                 Motion(const base::SpaceInformationPtr &si) : state_(si->allocState())
@@ -155,7 +153,7 @@ namespace ompl
                 std::size_t id_;
 
                 /** \brief The state contained by the motion */
-                base::State *state_;
+                base::State *state_{nullptr};
             };
 
             typedef boost::property<boost::edge_weight_t, double> WeightProperty;

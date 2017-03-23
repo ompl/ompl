@@ -184,29 +184,27 @@ namespace ompl
             {
             public:
                 /// \brief Default constructor
-                Motion() : state(nullptr), parent(nullptr), root(nullptr)
-                {
-                }
+                Motion() = default;
 
                 /// \brief Constructor that allocates memory for the state
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), root(nullptr)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState())
                 {
                 }
 
                 ~Motion() = default;
 
                 /// \brief The state contained by the motion
-                base::State *state;
+                base::State *state{nullptr};
 
                 /// \brief The parent motion in the exploration tree
-                Motion *parent;
+                Motion *parent{nullptr};
 
                 /// \brief Cost of the state
                 base::Cost cost;
 
                 /// \brief Pointer to the root of the tree this motion is
                 /// contained in.
-                const base::State *root;
+                const base::State *root{nullptr};
             };
 
             /// \brief Free all memory allocated during planning

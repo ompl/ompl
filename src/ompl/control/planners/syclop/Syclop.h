@@ -265,23 +265,22 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state(nullptr), control(nullptr), parent(nullptr), steps(0)
-                {
-                }
+                Motion() = default;
+
                 /** \brief Constructor that allocates memory for the state and the control */
                 Motion(const SpaceInformation *si)
-                  : state(si->allocState()), control(si->allocControl()), parent(nullptr), steps(0)
+                  : state(si->allocState()), control(si->allocControl())
                 {
                 }
                 virtual ~Motion() = default;
                 /** \brief The state contained by the motion */
-                base::State *state;
+                base::State *state{nullptr};
                 /** \brief The control contained by the motion */
-                Control *control;
+                Control *control{nullptr};
                 /** \brief The parent motion in the tree */
-                const Motion *parent;
+                const Motion *parent{nullptr};
                 /** \brief The number of steps for which the control is applied */
-                unsigned int steps;
+                unsigned int steps{0};
             };
 #pragma pack(pop)  // Restoring default byte alignment
 

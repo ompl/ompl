@@ -166,29 +166,27 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : root(nullptr), state(nullptr), parent(nullptr), valid(false)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state */
                 Motion(const base::SpaceInformationPtr &si)
-                  : root(nullptr), state(si->allocState()), parent(nullptr), valid(false)
+                  : state(si->allocState())
                 {
                 }
 
                 ~Motion() = default;
 
                 /** \brief The root state (start state) that leads to this motion */
-                const base::State *root;
+                const base::State *root{nullptr};
 
                 /** \brief The state contained by this motion */
-                base::State *state;
+                base::State *state{nullptr};
 
                 /** \brief The parent motion in the exploration tree */
-                Motion *parent;
+                Motion *parent{nullptr};
 
                 /** \brief Flag indicating whether this motion has been checked for validity. */
-                bool valid;
+                bool valid{false};
 
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion *> children;

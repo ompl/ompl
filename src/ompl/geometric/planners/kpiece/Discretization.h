@@ -61,9 +61,7 @@ namespace ompl
             /** \brief The data held by a cell in the grid of motions */
             struct CellData
             {
-                CellData() : coverage(0.0), selections(1), score(1.0), iteration(0), importance(0.0)
-                {
-                }
+                CellData() = default;
 
                 ~CellData() = default;
 
@@ -73,22 +71,22 @@ namespace ompl
                 /** \brief A measure of coverage for this cell. For
                     this implementation, this is the sum of motion
                     lengths */
-                double coverage;
+                double coverage{0.0};
 
                 /** \brief The number of times this cell has been
                     selected for expansion */
-                unsigned int selections;
+                unsigned int selections{1};
 
                 /** \brief A heuristic score computed based on
                     distance to goal (if available), successes and
                     failures at expanding from this cell. */
-                double score;
+                double score{1.0};
 
                 /** \brief The iteration at which this cell was created */
-                unsigned int iteration;
+                unsigned int iteration{0};
 
                 /** \brief The computed importance (based on other class members) */
-                double importance;
+                double importance{0.0};
             };
 
             /** \brief Definintion of an operator passed to the Grid

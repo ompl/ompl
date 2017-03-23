@@ -228,13 +228,11 @@ namespace ompl
                     SET_UNVISITED
                 };
 
-                Motion() : state_(nullptr), parent_(nullptr), cost_(0.0), currentSet_(SET_UNVISITED)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state */
                 Motion(const base::SpaceInformationPtr &si)
-                  : state_(si->allocState()), parent_(nullptr), cost_(0.0), currentSet_(SET_UNVISITED)
+                  : state_(si->allocState())
                 {
                 }
 
@@ -323,19 +321,19 @@ namespace ompl
 
             protected:
                 /** \brief The state contained by the motion */
-                base::State *state_;
+                base::State *state_{nullptr};
 
                 /** \brief The parent motion in the exploration tree */
-                Motion *parent_;
+                Motion *parent_{nullptr};
 
                 /** \brief The cost of this motion */
-                base::Cost cost_;
+                base::Cost cost_{0.};
 
                 /** \brief The minimum cost to go of this motion (heuristically computed) */
-                base::Cost hcost_;
+                base::Cost hcost_{0.};
 
                 /** \brief The flag indicating which set a motion belongs to */
-                SetType currentSet_;
+                SetType currentSet_{SET_UNVISITED};
 
                 /** \brief Contains the connections attempted FROM this node */
                 std::set<Motion *> collChecksDone_;
@@ -347,9 +345,7 @@ namespace ompl
             /** \brief Comparator used to order motions in a binary heap */
             struct MotionCompare
             {
-                MotionCompare() : opt_(nullptr), heuristics_(false)
-                {
-                }
+                MotionCompare() = default;
 
                 /* Returns true if m1 is lower cost than m2. m1 and m2 must
                    have been instantiated with the same optimization objective */
@@ -362,8 +358,8 @@ namespace ompl
                         return opt_->isCostBetterThan(m1->getCost(), m2->getCost());
                 }
 
-                base::OptimizationObjective *opt_;
-                bool heuristics_;
+                base::OptimizationObjective *opt_{nullptr};
+                bool heuristics_{false};
             };
 
             /** \brief Compute the distance between two motions as the cost

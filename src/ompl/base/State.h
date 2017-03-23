@@ -86,9 +86,7 @@ namespace ompl
         class CompoundState : public State
         {
         public:
-            CompoundState() : State(), components(nullptr)
-            {
-            }
+            CompoundState() = default;
 
             ~CompoundState() override = default;
 
@@ -127,7 +125,7 @@ namespace ompl
             }
 
             /** \brief The components that make up a compound state */
-            State **components;
+            State **components{nullptr};
         };
     }
 }

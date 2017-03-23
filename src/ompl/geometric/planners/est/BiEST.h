@@ -103,29 +103,27 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state(nullptr), parent(nullptr), element(nullptr), root(nullptr)
-                {
-                }
+                Motion() = default;
 
                 /// \brief Constructor that allocates memory for the state
                 Motion(const base::SpaceInformationPtr &si)
-                  : state(si->allocState()), parent(nullptr), element(nullptr), root(nullptr)
+                  : state(si->allocState())
                 {
                 }
 
                 ~Motion() = default;
 
                 /// \brief The state contained by the motion
-                base::State *state;
+                base::State *state{nullptr};
 
                 /// \brief The parent motion in the exploration tree
-                Motion *parent;
+                Motion *parent{nullptr};
 
                 /// \brief A pointer to the corresponding element in the probability distribution function
-                PDF<Motion *>::Element *element;
+                PDF<Motion *>::Element *element{nullptr};
 
                 /// \brief The root node of the tree this motion is in
-                const base::State *root;
+                const base::State *root{nullptr};
             };
 
             /// \brief Compute distance between motions (actually distance between contained states)

@@ -102,7 +102,7 @@ namespace ompl
             friend class PlannerDataStorage;
             friend class PlannerData;
 
-            PlannerDataEdgeControl() : PlannerDataEdge(), c_(nullptr){};
+            PlannerDataEdgeControl() = default;
 
             template <class Archive>
             void serialize(Archive &ar, const unsigned int /*version*/)
@@ -112,7 +112,7 @@ namespace ompl
                 // Serializing the control is handled by control::PlannerDataStorage
             }
 
-            const Control *c_;
+            const Control *c_{nullptr};
             double duration_;
         };
 

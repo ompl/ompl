@@ -56,12 +56,10 @@ namespace ompl
         {
             struct AllocatedSpaces
             {
-                AllocatedSpaces() : counter_(0)
-                {
-                }
+                AllocatedSpaces() = default;
                 std::list<StateSpace *> list_;
                 std::mutex lock_;
-                unsigned int counter_;
+                unsigned int counter_{0};
             };
 
             static boost::scoped_ptr<AllocatedSpaces> g_allocatedSpaces;
@@ -862,7 +860,7 @@ unsigned int ompl::base::StateSpace::validSegmentCount(const State *state1, cons
     return longestValidSegmentCountFactor_ * (unsigned int)ceil(distance(state1, state2) / longestValidSegment_);
 }
 
-ompl::base::CompoundStateSpace::CompoundStateSpace() : StateSpace(), componentCount_(0), weightSum_(0.0), locked_(false)
+ompl::base::CompoundStateSpace::CompoundStateSpace()
 {
     setName("Compound" + getName());
 }

@@ -77,7 +77,7 @@ namespace ompl
                 double position;
             };
 
-            TimeStateSpace() : StateSpace(), bounded_(false), minTime_(0.0), maxTime_(0.0)
+            TimeStateSpace()
             {
                 setName("Time" + getName());
                 type_ = STATE_SPACE_TIME;
@@ -153,13 +153,13 @@ namespace ompl
 
         protected:
             /** \brief Flag indicating whether the state space is considering bounds or not */
-            bool bounded_;
+            bool bounded_{false};
 
             /** \brief The minimum point in time considered by the state space (if bounds are used) */
-            double minTime_;
+            double minTime_{0.0};
 
             /** \brief The maximum point in time considered by the state space (if bounds are used) */
-            double maxTime_;
+            double maxTime_{0.0};
         };
     }
 }

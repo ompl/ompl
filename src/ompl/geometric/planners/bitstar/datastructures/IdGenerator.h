@@ -58,9 +58,7 @@ namespace ompl
         class BITstar::IdGenerator
         {
         public:
-            IdGenerator() : nextId_(0u)
-            {
-            }
+            IdGenerator() = default;
 
             /** \brief Generator a new id and increment the global/static counter of IDs. */
             BITstar::VertexId getNewId()
@@ -75,7 +73,7 @@ namespace ompl
         private:
             // Variables:
             // The next ID to be returned:
-            BITstar::VertexId nextId_;
+            BITstar::VertexId nextId_{0u};
             // The mutex
             std::mutex idMutex_;
         };

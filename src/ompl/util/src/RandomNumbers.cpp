@@ -59,8 +59,7 @@ namespace
     {
     public:
         RNGSeedGenerator()
-          : someSeedsGenerated_(false)
-          , firstSeed_(std::chrono::duration_cast<std::chrono::microseconds>(
+          : firstSeed_(std::chrono::duration_cast<std::chrono::microseconds>(
                            std::chrono::system_clock::now() - std::chrono::system_clock::time_point::min()).count())
           , sGen_(firstSeed_)
           , sDist_(1, 1000000000)
@@ -113,7 +112,7 @@ namespace
         }
 
     private:
-        bool someSeedsGenerated_;
+        bool someSeedsGenerated_{false};
         std::uint_fast32_t firstSeed_;
         std::mutex rngMutex_;
         std::ranlux24_base sGen_;

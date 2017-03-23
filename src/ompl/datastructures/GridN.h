@@ -59,14 +59,12 @@ namespace ompl
         struct Cell : public BaseCell
         {
             /// The number of neighbors
-            unsigned int neighbors;
+            unsigned int neighbors{0};
 
             /// A flag indicating whether this cell is on the border or not
-            bool border;
+            bool border{true};
 
-            Cell() : BaseCell(), neighbors(0), border(true)
-            {
-            }
+            Cell() = default;
 
             ~Cell() override = default;
         };

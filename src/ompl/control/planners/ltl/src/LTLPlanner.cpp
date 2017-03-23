@@ -166,20 +166,13 @@ ompl::control::LTLPlanner::getHighLevelPath(const std::vector<base::State *> &pa
     return hlPath;
 }
 
-ompl::control::LTLPlanner::Motion::Motion() : state(nullptr), control(nullptr), parent(nullptr), steps(0)
-{
-}
-
 ompl::control::LTLPlanner::Motion::Motion(const SpaceInformation *si)
-  : state(si->allocState()), control(si->allocControl()), parent(nullptr), steps(0)
+  : state(si->allocState()), control(si->allocControl())
 {
 }
 
 ompl::control::LTLPlanner::Motion::~Motion() = default;
 
-ompl::control::LTLPlanner::ProductGraphStateInfo::ProductGraphStateInfo() : numSel(0), pdfElem(nullptr)
-{
-}
 
 void ompl::control::LTLPlanner::ProductGraphStateInfo::addMotion(Motion *m)
 {

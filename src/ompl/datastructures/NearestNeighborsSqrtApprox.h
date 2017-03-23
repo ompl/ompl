@@ -57,9 +57,7 @@ namespace ompl
     class NearestNeighborsSqrtApprox : public NearestNeighborsLinear<_T>
     {
     public:
-        NearestNeighborsSqrtApprox() : NearestNeighborsLinear<_T>(), checks_(0), offset_(0)
-        {
-        }
+        NearestNeighborsSqrtApprox() = default;
 
         ~NearestNeighborsSqrtApprox() override = default;
 
@@ -125,10 +123,10 @@ namespace ompl
         }
 
         /** \brief The number of checks to be performed when looking for a nearest neighbor */
-        std::size_t checks_;
+        std::size_t checks_{0};
 
         /** \brief The offset to start checking at (between 0 and \e checks_) */
-        mutable std::size_t offset_;
+        mutable std::size_t offset_{0};
     };
 }
 
