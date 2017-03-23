@@ -416,14 +416,14 @@ namespace ompl
             NameFunc nameFunc_;
 
             /** \brief Whether the class is setup */
-            bool isSetup_;
+            bool isSetup_{false};
 
             /** \brief A cost/heuristic helper class. As I am a copy of the version owned by BITstar.cpp, I can be reset
              * in a clear().*/
-            CostHelperPtr costHelpPtr_;
+            CostHelperPtr costHelpPtr_{nullptr};
 
             /** \brief The samples represented as an edge-implicit graph */
-            ImplicitGraphPtr graphPtr_;
+            ImplicitGraphPtr graphPtr_{nullptr};
 
             /** \brief The underlying queue of vertices. Sorted by vertexQueueComparison. */
             QValueToVertexMMap vertexQueue_;
@@ -447,30 +447,30 @@ namespace ompl
             VertexPtrVector resortVertices_;
 
             /** \brief The maximum heuristic value allowed for vertices/edges in the queue.*/
-            ompl::base::Cost costThreshold_;
+            ompl::base::Cost costThreshold_{std::numeric_limits<double>::infinity()};
 
             /** \brief Whether the problem has a solution */
-            bool hasExactSolution_;
+            bool hasExactSolution_{false};
             ////////////////////////////////
 
             ////////////////////////////////
             // Informational variables - Make sure initialized in setup and reset in clear
             /** \brief The number of edges processed, in one way or other, from the queue. Accessible via numEdgesPopped
              */
-            unsigned int numEdgesPopped_;
+            unsigned int numEdgesPopped_{0u};
             ////////////////////////////////
 
             ////////////////////////////////
             // Parameters - Set defaults in construction/setup and DO NOT reset in clear.
             /** \brief Whether to use a strict-queue ordering (param) */
-            bool useStrictQueueOrdering_;
+            bool useStrictQueueOrdering_{false};
 
             /** \brief Whether to delay rewiring until an initial solution is found or not */
-            bool delayRewiring_;
+            bool delayRewiring_{true};
 
             /** \brief Whether we are allowed to prune during resorts. Generally speaking this is whether or not we're
              * using pruning in general.*/
-            bool pruneDuringResort_;
+            bool pruneDuringResort_{true};
             ////////////////////////////////
         };  // class: SearchQueue
     }       // geometric

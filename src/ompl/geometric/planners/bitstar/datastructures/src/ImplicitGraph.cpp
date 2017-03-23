@@ -75,47 +75,6 @@ namespace ompl
         // Public functions:
         BITstar::ImplicitGraph::ImplicitGraph(NameFunc nameFunc)
           : nameFunc_(std::move(nameFunc))
-          , isSetup_(false)
-          , si_(nullptr)
-          , pdef_(nullptr)
-          , costHelpPtr_(nullptr)
-          , queuePtr_(nullptr)
-          , rng_()
-          , sampler_(nullptr)
-          , startVertices_()
-          , goalVertices_()
-          , prunedStartVertices_()
-          , prunedGoalVertices_()
-          , newSamples_()
-          , recycledSamples_()
-          , freeStateNN_(nullptr)
-          , vertexNN_(nullptr)
-          , samplesInThisBatch_(0u)
-          , numUniformStates_(0u)
-          , r_(0.0)                     // Purposeful Gibberish
-          , k_rgg_(0.0)                 // Purposeful Gibberish
-          , k_(0u)                      // Purposeful Gibberish
-          , approximationMeasure_(0.0)  // Gets set in setup with the proper call to si_->getSpaceMeasure()
-          , minCost_(std::numeric_limits<double>::infinity())      // Gets set in setup to the proper calls from
-                                                                   // OptimizationObjective
-          , maxCost_(std::numeric_limits<double>::infinity())      // Gets set in setup to the proper calls from
-                                                                   // OptimizationObjective
-          , costSampled_(std::numeric_limits<double>::infinity())  // Gets set in setup to the proper calls from
-                                                                   // OptimizationObjective
-          , hasExactSolution_(false)
-          , closestVertexToGoal_(nullptr)
-          , closestDistToGoal_(std::numeric_limits<double>::infinity())
-          , numSamples_(0u)
-          , numVertices_(0u)
-          , numFreeStatesPruned_(0u)
-          , numVerticesDisconnected_(0u)
-          , numNearestNeighbours_(0u)
-          , numStateCollisionChecks_(0u)
-          , rewireFactor_(1.1)
-          , useKNearest_(true)
-          , useJustInTimeSampling_(false)
-          , dropSamplesOnPrune_(false)
-          , findApprox_(false)
         {
         }
 
@@ -765,18 +724,14 @@ namespace ompl
         {
             this->confirmSetup();
 
-            // Variable:
-            // Create a copy of the vertex pointer so we don't delete it out from under ourselves.
-            VertexPtr sampleToDelete(oldSample);
-
             // Increment our counter
             ++numFreeStatesPruned_;
 
             // Remove from the set of samples
-            freeStateNN_->remove(sampleToDelete);
+            freeStateNN_->remove(oldSample);
 
             // Mark the sample as pruned
-            sampleToDelete->markPruned();
+            oldSample->markPruned();
         }
 
         void BITstar::ImplicitGraph::addVertex(const VertexPtr &newVertex, bool removeFromFree)
@@ -812,27 +767,22 @@ namespace ompl
             }
         }
 
-        unsigned int BITstar::ImplicitGraph::removeVertex(const VertexPtr &oldVertex, bool moveToFree)
+        unsigned int BITstar::ImplicitGraph::removeVertex(const VertexPtr &oldSample, bool moveToFree)
         {
             this->confirmSetup();
-
-            // Variable:
-            // A copy of the vertex pointer to be removed so we can't delete it out from under ourselves (occurs when
-            // this function is given an element of the maintained set as the argument)
-            VertexPtr vertexToDelete(oldVertex);
 
             // Increment our counter
             ++numVerticesDisconnected_;
 
             // Remove from the nearest-neighbour structure
-            vertexNN_->remove(vertexToDelete);
+            vertexNN_->remove(oldSample);
 
             // Add back as sample, if that would be beneficial
-            if (moveToFree == true && queuePtr_->samplePruneCondition(vertexToDelete) == false)
+            if (moveToFree == true && queuePtr_->samplePruneCondition(oldSample) == false)
             {
                 // Yes, the vertex is still useful as a sample. Track as recycled so they are reused as samples in the
                 // next batch.
-                recycledSamples_.push_back(vertexToDelete);
+                recycledSamples_.push_back(oldSample);
 
                 // Return that the vertex was recycled
                 return 0u;
@@ -841,7 +791,7 @@ namespace ompl
             {
                 // No, the vertex is not useful anymore. Mark as pruned. This functions as a lock to prevent accessing
                 // anything about the vertex.
-                vertexToDelete->markPruned();
+                oldSample->markPruned();
 
                 // Return that the vertex was completely pruned
                 return 1u;

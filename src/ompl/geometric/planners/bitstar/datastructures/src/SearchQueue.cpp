@@ -64,9 +64,6 @@ namespace ompl
         // Public functions:
         BITstar::SearchQueue::SearchQueue(NameFunc nameFunc)
           : nameFunc_(std::move(nameFunc))
-          , isSetup_(false)
-          , costHelpPtr_()
-          , graphPtr_()
           , vertexQueue_([this](const CostDouble &lhs, const CostDouble &rhs)
                          {
                              return queueComparison(lhs, rhs);
@@ -76,16 +73,6 @@ namespace ompl
                        {
                            return queueComparison(lhs, rhs);
                        })  // This tells the edgeQueue_ to use the queueComparison for sorting
-          , vertexIterLookup_()
-          , outgoingEdges_()
-          , incomingEdges_()
-          , resortVertices_()
-          , costThreshold_(std::numeric_limits<double>::infinity())  // Purposeful gibberish
-          , hasExactSolution_(false)
-          , numEdgesPopped_(0u)
-          , useStrictQueueOrdering_(false)
-          , delayRewiring_(true)
-          , pruneDuringResort_(true)
         {
         }
 
@@ -1490,7 +1477,7 @@ namespace ompl
             unsigned int deleted = 0u;
             // A copy of the vertex pointer to be removed so we can't delete it out from under ourselves (occurs when
             // this function is given an element of the maintained set as the argument)
-            VertexPtr vertexToDelete(oldVertex);
+            const VertexPtr& vertexToDelete(oldVertex);
             // The iterator into the lookup:
             auto lookupIter = vertexIterLookup_.find(vertexToDelete->getId());
 
@@ -1654,14 +1641,14 @@ namespace ompl
         BITstar::SearchQueue::CostDouble BITstar::SearchQueue::vertexQueueValue(const VertexPtr &vertex) const
         {
             // Construct and return an array
-            return CostDouble{costHelpPtr_->currentHeuristicVertex(vertex), vertex->getCost()};
+            return {{costHelpPtr_->currentHeuristicVertex(vertex), vertex->getCost()}};
         }
 
         BITstar::SearchQueue::CostTriple BITstar::SearchQueue::edgeQueueValue(const VertexPtrPair &edge) const
         {
             // Construct and return an array
-            return CostTriple{costHelpPtr_->currentHeuristicEdge(edge), costHelpPtr_->currentHeuristicTarget(edge),
-                              edge.first->getCost()};
+            return {{costHelpPtr_->currentHeuristicEdge(edge), costHelpPtr_->currentHeuristicTarget(edge),
+                              edge.first->getCost()}};
         }
 
         template <std::size_t SIZE>

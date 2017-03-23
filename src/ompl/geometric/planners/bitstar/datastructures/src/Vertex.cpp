@@ -58,15 +58,8 @@ namespace ompl
           , opt_(std::move(opt))
           , state_(si_->allocState())
           , isRoot_(root)
-          , isNew_(true)
-          , hasBeenExpandedToSamples_(false)
-          , hasBeenExpandedToVertices_(false)
-          , isPruned_(false)
-          , depth_(0u)
-          , parentSPtr_(VertexPtr())
           , edgeCost_(opt_->infiniteCost())
           , cost_(opt_->infiniteCost())
-          , childWPtrs_()
         {
             if (this->isRoot() == true)
             {
@@ -300,8 +293,6 @@ namespace ompl
             // Variables
             // Whether the child has been found (and then deleted);
             bool foundChild;
-            // A copy of the child to assure that we don't delete the last copy
-            VertexPtr childToDelete(oldChild);
 
             // Iterate over the vector of children pointers until the child is found. Iterators make erase easier
             foundChild = false;
@@ -318,7 +309,7 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
                 // Check if this is the child we're looking for
-                if (childIter->lock()->getId() == childToDelete->getId())
+                if (childIter->lock()->getId() == oldChild->getId())
                 {
                     // It is, mark as found
                     foundChild = true;
@@ -339,7 +330,7 @@ namespace ompl
             // Update the child cost if appropriate
             if (updateChildCosts == true)
             {
-                childToDelete->updateCostAndDepth(true);
+                oldChild->updateCostAndDepth(true);
             }
 // No else, leave the costs out of date.
 
