@@ -238,7 +238,7 @@ ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondi
 }
 
 ompl::base::PlannerTerminationCondition
-ompl::base::exactSolnPlannerTerminationCondition(ompl::base::ProblemDefinitionPtr pdef)
+ompl::base::exactSolnPlannerTerminationCondition(const ompl::base::ProblemDefinitionPtr& pdef)
 {
     return PlannerTerminationCondition([pdef]
                                        {

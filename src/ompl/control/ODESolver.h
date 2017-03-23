@@ -126,7 +126,7 @@ namespace ompl
                 class ODESolverStatePropagator : public StatePropagator
                 {
                 public:
-                    ODESolverStatePropagator(ODESolverPtr solver, PostPropagationEvent pe)
+                    ODESolverStatePropagator(const ODESolverPtr& solver, PostPropagationEvent pe)
                       : StatePropagator(solver->si_), solver_(solver), postEvent_(std::move(pe))
                     {
                         if (!solver.get())
