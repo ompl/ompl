@@ -467,7 +467,7 @@ public:
     int tag2_;
 
 protected:
-    PlannerDataTestVertex() {}
+    PlannerDataTestVertex() = default;
 
     friend class boost::serialization::access;
     template <class Archive>

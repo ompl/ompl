@@ -55,8 +55,7 @@ namespace ompl
         {
         public:
             PlannerSolutionSet()
-            {
-            }
+            = default;
 
             void add(const PlannerSolution &s)
             {

@@ -289,9 +289,7 @@ namespace ompl
             class Region
             {
             public:
-                Region()
-                {
-                }
+                Region() = default;
                 virtual ~Region() = default;
 
 #if __cplusplus >= 201103L
@@ -338,9 +336,7 @@ namespace ompl
             class Adjacency
             {
             public:
-                Adjacency()
-                {
-                }
+                Adjacency() = default;
                 virtual ~Adjacency() = default;
                 /** \brief Clears coverage information from this adjacency. */
                 void clear()
