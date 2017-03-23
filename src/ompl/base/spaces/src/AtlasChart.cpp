@@ -212,7 +212,7 @@ void ompl::base::AtlasChart::psiFromAmbient(Eigen::Ref<const Eigen::VectorXd> x0
 
         // Move in the direction that decreases F(out) and is perpendicular to
         // the chart.
-        out += A.householderQr().solve(-b);
+        out -= A.householderQr().solve(b);
 
         // Recompute b with new guess.
         constraint_->function(out, b.head(n_ - k_));
@@ -232,6 +232,7 @@ bool ompl::base::AtlasChart::inPolytope(Eigen::Ref<const Eigen::VectorXd> u, con
     {
         if (h == ignore1 || h == ignore2)
             continue;
+
         if (!h->contains(u))
             return false;
     }

@@ -35,47 +35,31 @@
 /* Author: Zachary Kingston */
 
 #include "ompl/base/Constraint.h"
+#include "ompl/base/ConstrainedStateSpace.h"
 
 void ompl::base::Constraint::function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const
 {
-    function(toVector(state), out);
+    function(state->as<ConstrainedStateSpace::StateType>()->constVectorView(), out);
 }
 
 void ompl::base::Constraint::jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const
 {
-    jacobian(toVector(state), out);
+    jacobian(state->as<ConstrainedStateSpace::StateType>()->constVectorView(), out);
 }
 
 bool ompl::base::Constraint::project(State *state) const
 {
-    Eigen::Ref<Eigen::VectorXd> x = toVector(state);
-    bool ret = project(x);
-    fromVector(state, x);
-    return ret;
+    return project(state->as<ConstrainedStateSpace::StateType>()->vectorView());
 }
 
 double ompl::base::Constraint::distance(const State *state) const
 {
-    return distance(toVector(state));
+    return distance(state->as<ConstrainedStateSpace::StateType>()->constVectorView());
 }
 
 bool ompl::base::Constraint::isSatisfied(const State *state) const
 {
-    return isSatisfied(toVector(state));
-}
-
-Eigen::Ref<Eigen::VectorXd> ompl::base::Constraint::toVector(const State *state) const
-{
-    for (unsigned int i = 0; i < n_; ++i)
-        vector_[i] = *ambientSpace_->getValueAddressAtIndex(state, i);
-
-    return vector_;
-}
-
-void ompl::base::Constraint::fromVector(State *state, const Eigen::VectorXd &x) const
-{
-    for (unsigned int i = 0; i < n_; ++i)
-        *ambientSpace_->getValueAddressAtIndex(state, i) = x[i];
+    return isSatisfied(state->as<ConstrainedStateSpace::StateType>()->constVectorView());
 }
 
 void ompl::base::Constraint::jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
@@ -127,21 +111,7 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
     {
         // Compute pseudoinverse of Jacobian
         jacobian(x, j);
-
-        // Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-
-        // const double tolerance =
-        //     std::numeric_limits<double>::epsilon() * n_ * svd.singularValues().array().abs().maxCoeff();
-
-        // sigma = Eigen::MatrixXd((svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0)).asDiagonal();
-        // x -= svd.matrixV() * sigma * svd.matrixU().adjoint() * f;
-
-        // Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-        // x -= svd.solve(f);
-
-        Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr = j.colPivHouseholderQr();
-        x -= qr.solve(f);
-
+        x -= j.colPivHouseholderQr().solve(f);
         function(x, f);
     }
 

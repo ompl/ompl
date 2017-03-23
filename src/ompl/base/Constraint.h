@@ -76,7 +76,6 @@ namespace ompl
               , k_(manifoldDimension)
               , projectionTolerance_(magic::CONSTRAINT_PROJECTION_TOLERANCE)
               , projectionMaxIterations_(magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS)
-              , vector_(n_)
             {
                 if (n_ <= 0 || k_ <= 0)
                     throw ompl::Exception("ompl::base::Constraint(): "
@@ -84,10 +83,6 @@ namespace ompl
                 if (n_ <= k_)
                     throw ompl::Exception("ompl::base::Constraint(): "
                                           "Manifold dimension must be less than ambient dimension.");
-            }
-
-            virtual ~Constraint()
-            {
             }
 
             /** \brief Compute the constraint function at \a state. Result is
@@ -159,11 +154,11 @@ namespace ompl
                 projectionMaxIterations_ = iterations;
             }
 
-            /** \brief Translates a state from the ambient space into an Eigen vector. */
-            Eigen::Ref<Eigen::VectorXd> toVector(const State *state) const;
+            // /** \brief Translates a state from the ambient space into an Eigen vector. */
+            // Eigen::Ref<Eigen::VectorXd> toVector(const State *state) const;
 
-            /** \brief Translates an Eigen vector into a generic state from the ambient space. */
-            void fromVector(State *state, const Eigen::VectorXd &x) const;
+            // /** \brief Translates an Eigen vector into a generic state from the ambient space. */
+            // void fromVector(State *state, const Eigen::VectorXd &x) const;
 
             /** \brief Compute the constraint function at \a x. Result is returned
              * in \a out, which should be allocated to size n_. */
@@ -201,9 +196,6 @@ namespace ompl
 
             /** \brief Maximum number of iterations for Newton method used in projection onto manifold. */
             unsigned int projectionMaxIterations_;
-
-            /** \brief Preallocated vector. */
-            mutable Eigen::VectorXd vector_;
        };
     }
 }
