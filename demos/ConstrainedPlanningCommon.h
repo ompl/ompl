@@ -168,31 +168,13 @@ public:
 class ChainConstraint : public ompl::base::Constraint
 {
 public:
-    const unsigned int workspaceDim;  // Workspace dimension.
-    const unsigned int nLinks;        // Number of chain links.
-    const double linkLength;          // Length of one link.
-    // Radius of the sphere that the end effector is constrained to.
-    const double sphereRadius;
-    // Joints are cubes, and the collision checker makes sure they don't
-    // intersect. This controls how big they are.
-    const double jointSize;
-    // Number of additional constraints to apply.
-    // 1: end effector sphere
-    // 2: joints 0 and 1 have same z-value
-    // 3: joints 1 and 2 have same x-value
-    // 4: joints 2 and 3 have same y-value
-    // 5: joints 0 and 4 have same y value
-    const unsigned int extraConstraints;
-
-    ChainConstraint(ompl::base::StateSpace *space, unsigned int dim, unsigned int links,
-                    unsigned int extraConstraints = 1)
-      : ompl::base::Constraint(space, (dim - 1) * links - extraConstraints)
-      , workspaceDim(dim)
-      , nLinks(links)
-      , linkLength(1.0)
-      , sphereRadius(3.0)
-      , jointSize(0.2)
-      , extraConstraints(extraConstraints)
+    ChainConstraint(ompl::base::StateSpace *space, unsigned int dim, unsigned int links)
+      : ompl::base::Constraint(space, (dim - 1) * links - 1)
+      , dim_(dim)
+      , links_(links)
+      , length_(1.0)
+      , radius_((links - 4) + 2)
+      , jointSize_(0.2)
     {
         std::cout << "Ambient dimension: " << getAmbientDimension() << "\n";
         std::cout << "Manifold dimension: " << getManifoldDimension() << "\n";
@@ -201,69 +183,36 @@ public:
     void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
         // Consecutive joints must be a fixed distance apart.
-        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(workspaceDim);
-        for (unsigned int i = 0; i < nLinks; i++)
+        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(dim_);
+        for (unsigned int i = 0; i < links_; i++)
         {
-            const Eigen::VectorXd joint2 = x.segment(workspaceDim * i, workspaceDim);
-            out[i] = (joint1 - joint2).norm() - linkLength;
+            const Eigen::VectorXd joint2 = x.segment(dim_ * i, dim_);
+            out[i] = (joint1 - joint2).norm() - length_;
             joint1 = joint2;
         }
 
-        // End effector must lie on a sphere.
-        if (extraConstraints >= 1)
-            out[nLinks] = x.tail(workspaceDim).norm() - sphereRadius;
-        // Joints 0 and 1 must have same z-value.
-        if (extraConstraints >= 2)
-            out[nLinks + 1] = x[0 * workspaceDim + 2] - x[1 * workspaceDim + 2];
-        // Joints 1 and 2 must have same x-value.
-        if (extraConstraints >= 3)
-            out[nLinks + 2] = x[1 * workspaceDim + 0] - x[2 * workspaceDim + 0];
-        // Joints 2 and 3 must have the same y-value.
-        if (extraConstraints >= 4)
-            out[nLinks + 3] = x[2 * workspaceDim + 1] - x[3 * workspaceDim + 1];
-        // Joints 0 and 4 joints have same y-value.
-        if (extraConstraints >= 5)
-            out[nLinks + 4] = x[0 * workspaceDim + 1] - x[4 * workspaceDim + 1];
+        out[links_] = x.tail(dim_).norm() - radius_;
     }
 
     void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         out.setZero();
-        Eigen::VectorXd plus(workspaceDim * (nLinks + 1));
-        plus.head(workspaceDim * nLinks) = x;
-        plus.tail(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim);
-        Eigen::VectorXd minus(workspaceDim * (nLinks + 1));
-        minus.head(workspaceDim) = Eigen::VectorXd::Zero(workspaceDim);
-        minus.tail(workspaceDim * nLinks) = x;
-        const Eigen::VectorXd diagonal = plus - minus;
-        for (unsigned int i = 0; i < nLinks; i++)
-            out.row(i).segment(workspaceDim * i, workspaceDim) =
-                diagonal.segment(workspaceDim * i, workspaceDim).normalized();
-        out.block(1, 0, nLinks, workspaceDim * (nLinks - 1)) -=
-            out.block(1, workspaceDim, nLinks, workspaceDim * (nLinks - 1));
+        Eigen::VectorXd plus(dim_ * (links_ + 1));
+        plus.head(dim_ * links_) = x;
+        plus.tail(dim_) = Eigen::VectorXd::Zero(dim_);
 
-        if (extraConstraints >= 1)
-            out.row(nLinks).tail(workspaceDim) = -diagonal.tail(workspaceDim).normalized().transpose();
-        if (extraConstraints >= 2)
-        {
-            out(nLinks + 1, 0 * workspaceDim + 2) = 1;
-            out(nLinks + 1, 1 * workspaceDim + 2) = -1;
-        }
-        if (extraConstraints >= 3)
-        {
-            out(nLinks + 2, 1 * workspaceDim + 0) = 1;
-            out(nLinks + 2, 2 * workspaceDim + 0) = -1;
-        }
-        if (extraConstraints >= 4)
-        {
-            out(nLinks + 3, 2 * workspaceDim + 1) = 1;
-            out(nLinks + 3, 3 * workspaceDim + 1) = -1;
-        }
-        if (extraConstraints >= 5)
-        {
-            out(nLinks + 4, 0 * workspaceDim + 1) = 1;
-            out(nLinks + 4, 4 * workspaceDim + 1) = -1;
-        }
+        Eigen::VectorXd minus(dim_ * (links_ + 1));
+        minus.head(dim_) = Eigen::VectorXd::Zero(dim_);
+        minus.tail(dim_ * links_) = x;
+
+        const Eigen::VectorXd diagonal = plus - minus;
+
+        for (unsigned int i = 0; i < links_; i++)
+            out.row(i).segment(dim_ * i, dim_) = diagonal.segment(dim_ * i, dim_).normalized();
+
+        out.block(1, 0, links_, dim_ * (links_ - 1)) -= out.block(1, dim_, links_, dim_ * (links_ - 1));
+
+        out.row(links_).tail(dim_) = -diagonal.tail(dim_).normalized().transpose();
     }
 
     /** Joints may not get touch each other. If \a tough == true, then the end
@@ -272,22 +221,29 @@ public:
     bool isValid(double sleep, const ompl::base::State *state)
     {
         std::this_thread::sleep_for(ompl::time::seconds(sleep));
-        Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView();
-        for (unsigned int i = 0; i < nLinks - 1; i++)
+
+        Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
+        for (unsigned int i = 0; i < links_ - 1; i++)
         {
-            if (x.segment(workspaceDim * i, workspaceDim).cwiseAbs().maxCoeff() < jointSize)
+            if (x.segment(dim_ * i, dim_).cwiseAbs().maxCoeff() < jointSize_)
                 return false;
-            for (unsigned int j = i + 1; j < nLinks; j++)
+
+            for (unsigned int j = i + 1; j < links_; j++)
             {
-                if ((x.segment(workspaceDim * i, workspaceDim) - x.segment(workspaceDim * j, workspaceDim))
-                        .cwiseAbs()
-                        .maxCoeff() < jointSize)
+                if ((x.segment(dim_ * i, dim_) - x.segment(dim_ * j, dim_)).cwiseAbs().maxCoeff() < jointSize_)
                     return false;
             }
         }
 
         return true;
     }
+
+private:
+    const unsigned int dim_;    // Workspace dimension.
+    const unsigned int links_;  // Number of chain links.
+    const double length_;       // Length of one link.
+    const double radius_;       // Radius of the sphere that the end effector is constrained to.
+    const double jointSize_;    // Size of joints
 };
 
 /**
@@ -424,18 +380,58 @@ ompl::base::Constraint *initKleinProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
 
 /** Initialize the atlas for the kinematic chain problem. */
 ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                         ompl::base::StateValidityCheckerFn &isValid, double sleep)
+                                         ompl::base::StateValidityCheckerFn &isValid, double sleep,
+                                         int links = 12)
 {
-    const std::size_t dim = 3 * 5;
+    const std::size_t dim = 3 * links;
 
     // Start and goal points (each triple is the 3D location of a joint)
+
     x = Eigen::VectorXd(dim);
-    x << 1, 0, 0, 2, 0, 0, 2, -1, 0, 3, -1, 0, 3, 0, 0;
     y = Eigen::VectorXd(dim);
-    y << 0, -1, 0, -1, -1, 0, -1, 0, 0, -2, 0, 0, -3, 0, 0;
+
+    int i = 0;
+    for (; i < links - 3; ++i)
+    {
+        x[3 * i    ] = i + 1;
+        x[3 * i + 1] = 0;
+        x[3 * i + 2] = 0;
+
+        y[3 * i    ] = -(i + 1);
+        y[3 * i + 1] = 0;
+        y[3 * i + 2] = 0;
+    }
+
+    x[3 * i    ] = i;
+    x[3 * i + 1] = -1;
+    x[3 * i + 2] = 0;
+
+    y[3 * i    ] = -i;
+    y[3 * i + 1] = 1;
+    y[3 * i + 2] = 0;
+
+    i++;
+
+    x[3 * i    ] = i;
+    x[3 * i + 1] = -1;
+    x[3 * i + 2] = 0;
+
+    y[3 * i    ] = -i;
+    y[3 * i + 1] = 1;
+    y[3 * i + 2] = 0;
+
+    i++;
+
+    x[3 * i    ] = i - 1;
+    x[3 * i + 1] = 0;
+    x[3 * i + 2] = 0;
+
+    y[3 * i    ] = -(i - 1);
+    y[3 * i + 1] = 0;
+    y[3 * i + 2] = 0;
 
     ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(dim);
-    ChainConstraint *atlas = new ChainConstraint(space, 3, 5);
+    ChainConstraint *atlas = new ChainConstraint(space, 3, links);
     isValid = std::bind(&ChainConstraint::isValid, atlas, sleep, std::placeholders::_1);
     return atlas;
 }

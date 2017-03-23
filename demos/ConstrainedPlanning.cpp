@@ -47,22 +47,24 @@ void usage(const char *const progname)
 
 int main(int argc, char **argv)
 {
-    if (argc != 5 && argc != 7)
+    if (argc != 5 && argc != 6)
         usage(argv[0]);
 
-    // Detect artifical validity checking delay.
     double sleep = 0;
-    if (argc == 7)
+
+    // Detect artifical validity checking delay.
+    int verbose = 0;
+    if (argc == 6)
     {
-        if (strcmp(argv[5], "-s") != 0)
+        if (strcmp(argv[5], "-v") != 0)
             usage(argv[0]);
-        sleep = std::atof(argv[6]);
+        verbose = 1;
     }
 
     int mode = 0;
-    if (strcmp("a", argv[4]) == 0)
+    if (strcmp("-a", argv[4]) == 0)
         mode = 1;
-    else if (strcmp("p", argv[4]) == 0)
+    else if (strcmp("-p", argv[4]) == 0)
         mode = 2;
 
     // Initialize the atlas for the problem's manifold
@@ -130,7 +132,7 @@ int main(int argc, char **argv)
             const double time = ((double)(std::clock() - tstart)) / CLOCKS_PER_SEC;
 
             ompl::geometric::PathGeometric &path = ss.getSolutionPath();
-            if (x.size() == 3)
+            if (x.size() == 3 && verbose)
             {
                 std::ofstream pathFile("path.ply");
                 atlas->dumpPath(path, pathFile, false);
@@ -196,7 +198,7 @@ int main(int argc, char **argv)
 
         std::cout << "Atlas created " << atlas->getChartCount() << " charts.\n";
 
-        if (x.size() == 3)
+        if (x.size() == 3 && verbose)
         {
             std::ofstream atlasFile("atlas.ply");
             atlas->dumpMesh(atlasFile);
@@ -207,9 +209,9 @@ int main(int argc, char **argv)
             planner->getPlannerData(pd);
             atlas->dumpGraph(pd.toBoostGraph(), graphFile, false);
             graphFile.close();
-        }
 
-        std::cout << atlas->estimateFrontierPercent() << "% open.\n";
+            std::cout << atlas->estimateFrontierPercent() << "% open.\n";
+        }
     }
 
     else if (mode == 2)
@@ -265,7 +267,7 @@ int main(int argc, char **argv)
             const double time = ((double)(std::clock() - tstart)) / CLOCKS_PER_SEC;
 
             ompl::geometric::PathGeometric &path = ss.getSolutionPath();
-            if (x.size() == 3)
+            if (x.size() == 3 && verbose)
             {
                 std::ofstream pathFile("path.ply");
                 proj->dumpPath(path, pathFile, false);
@@ -323,7 +325,7 @@ int main(int argc, char **argv)
             std::cout << "Approx goal distance: "
                      << data.properties["approx goal distance REAL"] << "\n";
 
-        if (x.size() == 3)
+        if (x.size() == 3 && verbose)
         {
             std::ofstream graphFile("graph.ply");
             ompl::base::PlannerData pd(si);
