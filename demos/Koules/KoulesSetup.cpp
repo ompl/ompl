@@ -151,7 +151,7 @@ ob::PlannerPtr KoulesSetup::getConfiguredPlannerInstance(const std::string& plan
         rrtplanner->setIntermediateStates(true);
         return rrtplanner;
     }
-    else if (plannerName == "est")
+    if (plannerName == "est")
         return std::make_shared<oc::EST>(si_);
     else if (plannerName == "kpiece")
         return std::make_shared<oc::KPIECE1>(si_);

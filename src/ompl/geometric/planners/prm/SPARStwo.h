@@ -114,22 +114,22 @@ namespace ompl
                 /** \brief Clears the given interface data. */
                 void clear(const base::SpaceInformationPtr &si)
                 {
-                    if (pointA_)
+                    if (pointA_ != nullptr)
                     {
                         si->freeState(pointA_);
                         pointA_ = nullptr;
                     }
-                    if (pointB_)
+                    if (pointB_ != nullptr)
                     {
                         si->freeState(pointB_);
                         pointB_ = nullptr;
                     }
-                    if (sigmaA_)
+                    if (sigmaA_ != nullptr)
                     {
                         si->freeState(sigmaA_);
                         sigmaA_ = nullptr;
                     }
-                    if (sigmaB_)
+                    if (sigmaB_ != nullptr)
                     {
                         si->freeState(sigmaB_);
                         sigmaB_ = nullptr;
@@ -140,30 +140,30 @@ namespace ompl
                 /** \brief Sets information for the first interface (i.e. interface with smaller index vertex). */
                 void setFirst(const base::State *p, const base::State *s, const base::SpaceInformationPtr &si)
                 {
-                    if (pointA_)
+                    if (pointA_ != nullptr)
                         si->copyState(pointA_, p);
                     else
                         pointA_ = si->cloneState(p);
-                    if (sigmaA_)
+                    if (sigmaA_ != nullptr)
                         si->copyState(sigmaA_, s);
                     else
                         sigmaA_ = si->cloneState(s);
-                    if (pointB_)
+                    if (pointB_ != nullptr)
                         d_ = si->distance(pointA_, pointB_);
                 }
 
                 /** \brief Sets information for the second interface (i.e. interface with larger index vertex). */
                 void setSecond(const base::State *p, const base::State *s, const base::SpaceInformationPtr &si)
                 {
-                    if (pointB_)
+                    if (pointB_ != nullptr)
                         si->copyState(pointB_, p);
                     else
                         pointB_ = si->cloneState(p);
-                    if (sigmaB_)
+                    if (sigmaB_ != nullptr)
                         si->copyState(sigmaB_, s);
                     else
                         sigmaB_ = si->cloneState(s);
-                    if (pointA_)
+                    if (pointA_ != nullptr)
                         d_ = si->distance(pointA_, pointB_);
                 }
             };
@@ -422,7 +422,7 @@ namespace ompl
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is
              * in \e start and the second is in \e goal, and the two milestones are in the same connected component. If
              * a solution is found, the path is saved. */
-            bool haveSolution(const std::vector<Vertex> &start, const std::vector<Vertex> &goal,
+            bool haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals,
                               base::PathPtr &solution);
 
             /** Thread that checks for solution */
@@ -437,7 +437,7 @@ namespace ompl
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set
              * it as the solution */
-            base::PathPtr constructSolution(const Vertex start, const Vertex goal) const;
+            base::PathPtr constructSolution(Vertex start, Vertex goal) const;
 
             /** \brief Check if two milestones (\e m1 and \e m2) are part of the same connected component. This is not a
              * const function since we use incremental connected components from boost */

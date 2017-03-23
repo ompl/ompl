@@ -53,9 +53,9 @@ namespace ompl
         {
         public:
             /// \brief Default constructor
-            PlannerDataStorage();
+            PlannerDataStorage() = default;
             /// \brief Destructor
-            ~PlannerDataStorage() override;
+            ~PlannerDataStorage() override = default;
 
             /// \brief Load the PlannerData structure from the given filename.
             void load(const char *filename, base::PlannerData &pd) override;

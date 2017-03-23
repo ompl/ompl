@@ -254,7 +254,7 @@ namespace ompl
             {
                 if (planner &&
                     planner->getSpaceInformation().get() !=
-                        (gsetup_ ? gsetup_->getSpaceInformation().get() : csetup_->getSpaceInformation().get()))
+                        (gsetup_ != nullptr ? gsetup_->getSpaceInformation().get() : csetup_->getSpaceInformation().get()))
                     throw Exception("Planner instance does not match space information");
                 planners_.push_back(planner);
             }
@@ -262,7 +262,7 @@ namespace ompl
             /** \brief Add a planner allocator to use. */
             void addPlannerAllocator(const base::PlannerAllocator &pa)
             {
-                planners_.push_back(pa(gsetup_ ? gsetup_->getSpaceInformation() : csetup_->getSpaceInformation()));
+                planners_.push_back(pa(gsetup_ != nullptr ? gsetup_->getSpaceInformation() : csetup_->getSpaceInformation()));
             }
 
             /** \brief Clear the set of planners to be benchmarked */

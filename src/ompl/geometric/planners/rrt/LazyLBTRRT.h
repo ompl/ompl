@@ -275,7 +275,6 @@ namespace ompl
                 boost::remove_edge(a->id_, b->id_, graphLb_);
                 LPAstarLb_->removeEdge(a->id_, b->id_);
                 LPAstarLb_->removeEdge(b->id_, a->id_);
-                return;
             }
             std::tuple<Motion *, base::State *, double> rrtExtend(const base::GoalSampleableRegion *goal_s,
                                                                   base::State *xstate, Motion *rmotion,

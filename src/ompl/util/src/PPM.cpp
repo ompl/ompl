@@ -41,7 +41,7 @@
 void ompl::PPM::loadFile(const char *filename)
 {
     FILE *fp = fopen(filename, "r");
-    if (!fp)
+    if (fp == nullptr)
         throw Exception("Unable to load '" + std::string(filename) + "'");
     struct AutoClose
     {
@@ -88,7 +88,7 @@ void ompl::PPM::saveFile(const char *filename)
                         " but the set width and height require " + std::to_string(width_ * height_) + " pixels.");
     FILE *fp;
     fp = fopen(filename, "wb");
-    if (!fp)
+    if (fp == nullptr)
         throw Exception("Unable to open '" + std::string(filename) + "' for writing");
     fprintf(fp, "P6\n");
     fprintf(fp, "%d %d\n", width_, height_);

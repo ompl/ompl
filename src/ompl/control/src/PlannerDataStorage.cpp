@@ -41,12 +41,6 @@
 static const boost::uint32_t OMPL_PLANNER_DATA_CONTROL_ARCHIVE_MARKER = 0x5044434D;  // this spells PDCM
 /// \endcond
 
-ompl::control::PlannerDataStorage::PlannerDataStorage() : base::PlannerDataStorage()
-{
-}
-
-ompl::control::PlannerDataStorage::~PlannerDataStorage() = default;
-
 void ompl::control::PlannerDataStorage::load(const char *filename, base::PlannerData &pd)
 {
     base::PlannerDataStorage::load(filename, pd);
@@ -127,7 +121,7 @@ void ompl::control::PlannerDataStorage::store(const base::PlannerData &pd, const
 void ompl::control::PlannerDataStorage::store(const base::PlannerData &pd, std::ostream &out)
 {
     const auto *pdc = static_cast<const control::PlannerData *>(&pd);
-    if (!pdc)
+    if (pdc == nullptr)
     {
         OMPL_WARN("Failed to cast PlannerData to control::PlannerData.  Invoking base::PlannerDataStorage::store");
         base::PlannerDataStorage::store(pd, out);

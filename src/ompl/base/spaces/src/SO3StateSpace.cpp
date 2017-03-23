@@ -256,8 +256,7 @@ namespace ompl
             double dq = fabs(qs1->x * qs2->x + qs1->y * qs2->y + qs1->z * qs2->z + qs1->w * qs2->w);
             if (dq > 1.0 - MAX_QUATERNION_NORM_ERROR)
                 return 0.0;
-            else
-                return acos(dq);
+            return acos(dq);
         }
     }
 }
@@ -372,7 +371,7 @@ double *ompl::base::SO3StateSpace::getValueAddressAtIndex(State *state, const un
 void ompl::base::SO3StateSpace::printState(const State *state, std::ostream &out) const
 {
     out << "SO3State [";
-    if (state)
+    if (state != nullptr)
     {
         const auto *qstate = static_cast<const StateType *>(state);
         out << qstate->x << " " << qstate->y << " " << qstate->z << " " << qstate->w;

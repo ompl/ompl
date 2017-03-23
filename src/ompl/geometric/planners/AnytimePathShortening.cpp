@@ -117,7 +117,7 @@ ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminati
     }
     else
     {
-        if (!dynamic_cast<base::PathLengthOptimizationObjective *>(opt.get()))
+        if (dynamic_cast<base::PathLengthOptimizationObjective *>(opt.get()) == nullptr)
             OMPL_WARN("The optimization objective is not set for path length.  The specified optimization criteria may "
                       "not be optimized over.");
     }
@@ -128,7 +128,7 @@ ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminati
     while (!ptc())
     {
         // We have found a solution that is good enough
-        if (bestSln && opt->isSatisfied(base::Cost(bestSln->length())))
+        if ((bestSln != nullptr) && opt->isSatisfied(base::Cost(bestSln->length())))
             break;
 
         // Clear any previous planning data for the set of planners
@@ -172,7 +172,7 @@ ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminati
     }
     msg::setLogLevel(currentLogLevel);
 
-    if (bestSln)
+    if (bestSln != nullptr)
     {
         if (goal->isSatisfied(static_cast<geometric::PathGeometric *>(bestSln)->getStates().back()))
             return base::PlannerStatus::EXACT_SOLUTION;
@@ -211,7 +211,7 @@ void ompl::geometric::AnytimePathShortening::clear()
 
 void ompl::geometric::AnytimePathShortening::getPlannerData(ompl::base::PlannerData &data) const
 {
-    if (planners_.size() == 0)
+    if (planners_.empty())
         return;
 
     OMPL_WARN("Returning planner data for planner #0");
@@ -229,7 +229,7 @@ void ompl::geometric::AnytimePathShortening::setup()
 {
     Planner::setup();
 
-    if (planners_.size() == 0)
+    if (planners_.empty())
     {
         planners_.reserve(defaultNumPlanners_);
         for (unsigned int i = 0; i < defaultNumPlanners_; ++i)

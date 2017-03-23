@@ -61,7 +61,7 @@ namespace ompl
           , edgeCost_(opt_->infiniteCost())
           , cost_(opt_->infiniteCost())
         {
-            if (this->isRoot() == true)
+            if (this->isRoot())
             {
                 cost_ = opt_->identityCost();
             }
@@ -279,7 +279,7 @@ namespace ompl
             // Push back the shared_ptr into the vector of weak_ptrs, this makes a weak_ptr copy
             childWPtrs_.push_back(newChild);
 
-            if (updateChildCosts == true)
+            if (updateChildCosts)
             {
                 newChild->updateCostAndDepth(true);
             }
@@ -296,7 +296,7 @@ namespace ompl
 
             // Iterate over the vector of children pointers until the child is found. Iterators make erase easier
             foundChild = false;
-            for (auto childIter = childWPtrs_.begin(); childIter != childWPtrs_.end() && foundChild == false;
+            for (auto childIter = childWPtrs_.begin(); childIter != childWPtrs_.end() && !foundChild;
                  ++childIter)
             {
 #ifdef BITSTAR_DEBUG
@@ -328,7 +328,7 @@ namespace ompl
             }
 
             // Update the child cost if appropriate
-            if (updateChildCosts == true)
+            if (updateChildCosts)
             {
                 oldChild->updateCostAndDepth(true);
             }
@@ -452,13 +452,13 @@ namespace ompl
         {
             this->assertNotPruned();
 
-            if (this->isRoot() == true)
+            if (this->isRoot())
             {
                 // Am I root? -- I don't really know how this would ever be called, but ok.
                 cost_ = opt_->identityCost();
                 depth_ = 0u;
             }
-            else if (this->hasParent() == false)
+            else if (!this->hasParent())
             {
                 // Am I disconnected?
                 cost_ = opt_->infiniteCost();
@@ -486,7 +486,7 @@ namespace ompl
             }
 
             // Am I updating my children?
-            if (cascadeUpdates == true)
+            if (cascadeUpdates)
             {
                 // Now, iterate over my vector of children and tell each one to update its own damn cost:
                 for (auto &childWPtr : childWPtrs_)

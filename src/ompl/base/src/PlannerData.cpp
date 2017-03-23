@@ -271,7 +271,7 @@ namespace
         s = *get(vertex_type_t(), g)[v]->getState();
         std::vector<double> coords(s.reals());
         std::ostringstream sstream;
-        if (coords.size() > 0)
+        if (!coords.empty())
         {
             sstream << coords[0];
             for (std::size_t i = 1; i < coords.size(); ++i)

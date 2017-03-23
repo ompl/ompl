@@ -61,12 +61,12 @@ namespace ompl
                 uniformly sampled from [near[i]-distance, near[i]+distance].
                 If this interval exceeds the state space bounds, the
                 interval is truncated. */
-            void sampleUniformNear(State *state, const State *near, const double distance) override;
+            void sampleUniformNear(State *state, const State *near, double distance) override;
             /** \brief Sample a state such that each component state[i] has
                 a Gaussian distribution with mean mean[i] and standard
                 deviation stdDev. If the sampled value exceeds the state
                 space boundary, it is thresholded to the nearest boundary. */
-            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
+            void sampleGaussian(State *state, const State *mean, double stdDev) override;
         };
 
         /** \brief A state space representing R<sup>n</sup>. The distance function is the L2 norm. */
@@ -77,9 +77,7 @@ namespace ompl
             class StateType : public State
             {
             public:
-                StateType() : State()
-                {
-                }
+                StateType() = default;
 
                 /** \brief Access element i of values.  This does not
                     check whether the index is within bounds */
@@ -102,7 +100,7 @@ namespace ompl
             /** \brief Constructor. The dimension of of the space needs to be specified. A space representing
                 R<sup>dim</sup> will be instantiated */
             RealVectorStateSpace(unsigned int dim = 0)
-              : StateSpace(), dimension_(dim), bounds_(dim), stateBytes_(dim * sizeof(double))
+              : dimension_(dim), bounds_(dim), stateBytes_(dim * sizeof(double))
             {
                 type_ = STATE_SPACE_REAL_VECTOR;
                 setName("RealVector" + getName());
@@ -167,7 +165,7 @@ namespace ompl
 
             bool equalStates(const State *state1, const State *state2) const override;
 
-            void interpolate(const State *from, const State *to, const double t, State *state) const override;
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
 
             StateSamplerPtr allocDefaultStateSampler() const override;
 
@@ -175,7 +173,7 @@ namespace ompl
 
             void freeState(State *state) const override;
 
-            double *getValueAddressAtIndex(State *state, const unsigned int index) const override;
+            double *getValueAddressAtIndex(State *state, unsigned int index) const override;
 
             void printState(const State *state, std::ostream &out) const override;
 

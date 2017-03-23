@@ -85,17 +85,17 @@ int main(int argc, char **argv)
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
 
-    if (vm.count("help"))
+    if (vm.count("help") != 0u)
     {
         std::cout << desc << "\n";
         return 1;
     }
 
-    if (vm.count("dubins"))
+    if (vm.count("dubins") != 0u)
         space = std::make_shared<ob::DubinsStateSpace>(turningRadius);
-    if (vm.count("dubinssym"))
+    if (vm.count("dubinssym") != 0u)
         space = std::make_shared<ob::DubinsStateSpace>(turningRadius, true);
-    if (vm.count("reedsshepp"))
+    if (vm.count("reedsshepp") != 0u)
         space = std::make_shared<ob::ReedsSheppStateSpace>(turningRadius);
 
     // set the bounds for the R^2 part of SE(2)

@@ -547,7 +547,7 @@ namespace ompl
             void updateRegion(Region &r);
 
             /** \brief Initializes a given Adjacency between a source Region and a destination Region. */
-            void initEdge(Adjacency &a, const Region *source, const Region *target);
+            void initEdge(Adjacency &adj, const Region *source, const Region *target);
 
             /** \brief Initializes default values for each Adjacency. */
             void setupEdgeEstimates();

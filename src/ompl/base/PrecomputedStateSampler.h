@@ -52,11 +52,11 @@ namespace ompl
             /** \brief Constructor. Takes the state space to be sampled (\e space), the set of states to draw samples
              * from (\e states) and a range to sample from: [\e minIndex, \e maxIndex]*/
             PrecomputedStateSampler(const StateSpace *space, const std::vector<const State *> &states,
-                                    std::size_t minIndex, std::size_t maxIndex);
+                                    std::size_t minStateIndex, std::size_t maxStateIndex);
 
             void sampleUniform(State *state) override;
-            void sampleUniformNear(State *state, const State *near, const double distance) override;
-            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
+            void sampleUniformNear(State *state, const State *near, double distance) override;
+            void sampleGaussian(State *state, const State *mean, double stdDev) override;
 
         protected:
             /** \brief The states to sample from */

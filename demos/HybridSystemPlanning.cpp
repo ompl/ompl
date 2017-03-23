@@ -91,7 +91,7 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 }
 
 
-int main(int, char**)
+int main(int /*argc*/, char** /*argv*/)
 {
     // plan for hybrid car in SE(2) with discrete gears
     auto SE2(std::make_shared<ob::SE2StateSpace>());

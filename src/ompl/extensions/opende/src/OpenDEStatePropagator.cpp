@@ -62,7 +62,7 @@ namespace ompl
         dBodyID b1 = dGeomGetBody(o1);
         dBodyID b2 = dGeomGetBody(o2);
 
-        if (b1 && b2 && dAreConnectedExcluding(b1, b2, dJointTypeContact))
+        if ((b1 != nullptr) && (b2 != nullptr) && (dAreConnectedExcluding(b1, b2, dJointTypeContact) != 0))
             return;
 
         auto *cp = reinterpret_cast<CallbackParam *>(data);
@@ -126,7 +126,7 @@ void ompl::control::OpenDEStatePropagator::propagate(const base::State *state, c
     env_->mutex_.unlock();
 
     // update the collision flag for the start state, if needed
-    if (!(state->as<OpenDEStateSpace::StateType>()->collision & (1 << OpenDEStateSpace::STATE_COLLISION_KNOWN_BIT)))
+    if ((state->as<OpenDEStateSpace::StateType>()->collision & (1 << OpenDEStateSpace::STATE_COLLISION_KNOWN_BIT)) == 0)
     {
         if (cp.collision)
             state->as<OpenDEStateSpace::StateType>()->collision &= (1 << OpenDEStateSpace::STATE_COLLISION_VALUE_BIT);

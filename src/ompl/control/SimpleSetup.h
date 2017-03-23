@@ -133,7 +133,7 @@ namespace ompl
              * solution may be approximate. */
             bool haveSolutionPath() const
             {
-                return pdef_->getSolutionPath().get();
+                return pdef_->getSolutionPath() != nullptr;
             }
 
             /** \brief Get the solution path. Throw an exception if no solution is available */

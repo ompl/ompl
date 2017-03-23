@@ -61,12 +61,12 @@ namespace ompl
         {
         public:
             /// \brief Constructor.  Accepts a control pointer and a duration.
-            PlannerDataEdgeControl(const Control *c, double duration) : PlannerDataEdge(), c_(c), duration_(duration)
+            PlannerDataEdgeControl(const Control *c, double duration) : c_(c), duration_(duration)
             {
             }
             /// \brief Copy constructor.
             PlannerDataEdgeControl(const PlannerDataEdgeControl &rhs)
-              : PlannerDataEdge(), c_(rhs.c_), duration_(rhs.duration_)
+              : c_(rhs.c_), duration_(rhs.duration_)
             {
             }
 
@@ -93,8 +93,7 @@ namespace ompl
                 const auto *rhsc = static_cast<const PlannerDataEdgeControl *>(&rhs);
                 if (c_ == rhsc->c_)
                     return static_cast<const PlannerDataEdge>(*this) == rhs;
-                else
-                    return false;
+                return false;
             }
 
         protected:

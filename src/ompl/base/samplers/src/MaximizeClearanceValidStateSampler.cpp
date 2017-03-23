@@ -87,8 +87,7 @@ bool ompl::base::MaximizeClearanceValidStateSampler::sample(State *state)
         }
         return true;
     }
-    else
-        return false;
+    return false;
 }
 
 bool ompl::base::MaximizeClearanceValidStateSampler::sampleNear(State *state, const State *near, const double distance)
@@ -121,6 +120,5 @@ bool ompl::base::MaximizeClearanceValidStateSampler::sampleNear(State *state, co
         }
         return true;
     }
-    else
-        return false;
+    return false;
 }

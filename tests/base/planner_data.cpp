@@ -216,8 +216,8 @@ BOOST_AUTO_TEST_CASE(AdvancedConstruction)
 class TestEdge : public base::PlannerDataEdge
 {
 public:
-    TestEdge (unsigned int _a, unsigned int _b) : base::PlannerDataEdge(), a(_a), b(_b) {}
-    TestEdge (const TestEdge &rhs) : base::PlannerDataEdge(), a(rhs.a), b(rhs.b) {}
+    TestEdge (unsigned int _a, unsigned int _b) : a(_a), b(_b) {}
+    TestEdge (const TestEdge &rhs) : a(rhs.a), b(rhs.b) {}
     ~TestEdge () override = default;
 
     /// \brief Return a clone of this object, allocated from the heap.

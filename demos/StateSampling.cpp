@@ -93,7 +93,7 @@ public:
         return true;
     }
     // We don't need this in the example below.
-    bool sampleNear(ob::State*, const ob::State*, const double) override
+    bool sampleNear(ob::State* /*state*/, const ob::State* /*near*/, const double /*distance*/) override
     {
         throw ompl::Exception("MyValidStateSampler::sampleNear", "not implemented");
         return false;
@@ -187,7 +187,7 @@ void plan(int samplerIndex)
         std::cout << "No solution found" << std::endl;
 }
 
-int main(int, char **)
+int main(int /*argc*/, char ** /*argv*/)
 {
     std::cout << "Using default uniform sampler:" << std::endl;
     plan(0);

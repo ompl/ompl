@@ -160,7 +160,7 @@ namespace ompl
             this->confirmSetup();
 
             // Disconnect from parent if necessary, cascading cost updates:
-            if (oldVertex->hasParent() == true)
+            if (oldVertex->hasParent())
             {
                 this->disconnectParent(oldVertex, true);
             }
@@ -291,7 +291,7 @@ namespace ompl
         {
             this->confirmSetup();
 
-            if (edgeQueue_.empty() == false)
+            if (!edgeQueue_.empty())
             {
                 // Variable:
                 // The iterator to the vector of edges to the child:
@@ -323,7 +323,7 @@ namespace ompl
         {
             this->confirmSetup();
 
-            if (edgeQueue_.empty() == false)
+            if (!edgeQueue_.empty())
             {
                 // Variable:
                 // The iterator to the vector of edges from the parent:
@@ -355,7 +355,7 @@ namespace ompl
         {
             this->confirmSetup();
 
-            if (edgeQueue_.empty() == false)
+            if (!edgeQueue_.empty())
             {
                 // Variable:
                 // The iterator to the key,value of the child-lookup map, i.e., an iterator to a pair whose second is a
@@ -378,7 +378,7 @@ namespace ompl
                          ++costAndEdgePairAsQueueIter)
                     {
                         // Check if it would have been inserted
-                        if (this->edgeInsertCondition((*costAndEdgePairAsQueueIter)->second) == false)
+                        if (!this->edgeInsertCondition((*costAndEdgePairAsQueueIter)->second))
                         {
                             // It would not, delete
                             edgeQueueItersToDelete.push_back(costAndEdgePairAsQueueIter);
@@ -413,7 +413,7 @@ namespace ompl
         {
             this->confirmSetup();
 
-            if (edgeQueue_.empty() == false)
+            if (!edgeQueue_.empty())
             {
                 // Variable:
                 // The iterator to the key, value of the parent-lookup map, i.e., an iterator to a pair whose second is
@@ -436,7 +436,7 @@ namespace ompl
                          ++costAndEdgePairAsQueueIter)
                     {
                         // Check if it would have been inserted
-                        if (this->edgeInsertCondition((*costAndEdgePairAsQueueIter)->second) == false)
+                        if (!this->edgeInsertCondition((*costAndEdgePairAsQueueIter)->second))
                         {
                             // It would not, delete
                             edgeQueueItersToDelete.push_back(costAndEdgePairAsQueueIter);
@@ -522,7 +522,7 @@ namespace ompl
             while (queueIter != vertexQueue_.end())
             {
                 // Check if it should be pruned (value) or has lost its parent.
-                if (this->vertexPruneCondition(queueIter->second) == true)
+                if (this->vertexPruneCondition(queueIter->second))
                 {
                     // The vertex should be pruned.
                     // Variables
@@ -553,7 +553,7 @@ namespace ompl
             this->confirmSetup();
 
             // Iterate through every vertex marked for resorting:
-            if (resortVertices_.empty() == false)
+            if (!resortVertices_.empty())
             {
                 // Variable:
                 // The container ordered on vertex depth:
@@ -585,15 +585,15 @@ namespace ompl
                     for (auto &vIdAndPtrPair : depthAndVertexMapPair.second)
                     {
                         // Make sure it has not already been pruned:
-                        if (vIdAndPtrPair.second->isPruned() == false)
+                        if (!vIdAndPtrPair.second->isPruned())
                         {
                             // Make sure it has not already been returned to the set of samples:
-                            if (vIdAndPtrPair.second->isInTree() == true)
+                            if (vIdAndPtrPair.second->isInTree())
                             {
                                 // If this was a new vertex, would we *not* insert it in the queue (and do we have
                                 // "permission" not to do so)?
-                                if (pruneDuringResort_ == true &&
-                                    this->vertexInsertCondition(vIdAndPtrPair.second) == false)
+                                if (pruneDuringResort_ &&
+                                    !this->vertexInsertCondition(vIdAndPtrPair.second))
                                 {
                                     // The vertex should just be pruned and forgotten about.
                                     // Prune the branch:
@@ -603,7 +603,7 @@ namespace ompl
                                 {
                                     // The vertex is going to be kept.
                                     // Does it have any children?
-                                    if (vIdAndPtrPair.second->hasChildren() == true)
+                                    if (vIdAndPtrPair.second->hasChildren())
                                     {
                                         // Variables:
                                         // The vector of children:
@@ -655,7 +655,7 @@ namespace ompl
             this->confirmSetup();
 
             // Is there anything to resort before we're marked as finished?
-            if (resortVertices_.empty() == false)
+            if (!resortVertices_.empty())
             {
                 OMPL_DEBUG("%s (SearchQueue): Resorting an unsorted queue instead of marking it as finished.",
                            nameFunc_().c_str());
@@ -726,7 +726,7 @@ namespace ompl
 
             // If the child is connected already, we need to check if we could do better than it's current connection.
             // But only if we're inserting the edge
-            if (edge.second->hasParent() == true && rval == true)
+            if (edge.second->hasParent() && rval)
             {
                 // Can it ever be a better path to the vertex? Less-than-equal to just in case we're using an edge that
                 // is exactly optimally connected
@@ -775,7 +775,7 @@ namespace ompl
 
             // If the child is connected already, we need to check if we could do better than it's current connection.
             // But only if we're not pruning based on the first check
-            if (edge.second->hasParent() == true && rval == false)
+            if (edge.second->hasParent() && !rval)
             {
                 // Can it ever be a better path to the vertex in the current graph? Greater-than to just in case we're
                 // using an edge that is exactly optimally connected
@@ -834,7 +834,7 @@ namespace ompl
             unsigned int rval = 0u;
 
             // Is there anything to count?
-            if (edgeQueue_.empty() == false)
+            if (!edgeQueue_.empty())
             {
                 // Variable:
                 // The iterator to the vector of edges to the child:
@@ -868,7 +868,7 @@ namespace ompl
             unsigned int rval = 0u;
 
             // Is there anything to count?
-            if (edgeQueue_.empty() == false)
+            if (!edgeQueue_.empty())
             {
                 // Variable:
                 // The iterator to the vector of edges from the parent:
@@ -953,13 +953,11 @@ namespace ompl
                 // If the token is at the end of the queue, obviously the vertex is expanded:
                 return true;
             }
-            else
-            {
-                // By virtue of the vertex expansion rules, the token will always sit at the front of a group of
-                // equivalent cost vertices (that is to say, all vertices with the same cost get expanded at the same
-                // time). Therefore, the vertex is expanded if it's cost is strictly better than the token.
-                return this->queueComparison(lkupIter->second->first, vertexToExpand_->first);
-            }
+
+            // By virtue of the vertex expansion rules, the token will always sit at the front of a group of
+            // equivalent cost vertices (that is to say, all vertices with the same cost get expanded at the same
+            // time). Therefore, the vertex is expanded if it's cost is strictly better than the token.
+            return this->queueComparison(lkupIter->second->first, vertexToExpand_->first);
         }
 
         void BITstar::SearchQueue::getVertices(VertexConstPtrVector *vertexQueue)
@@ -1003,7 +1001,7 @@ namespace ompl
         void BITstar::SearchQueue::updateQueue()
         {
             // If we are using strict queue ordering, we must resort the queue before we update it.
-            if (useStrictQueueOrdering_ == true)
+            if (useStrictQueueOrdering_)
             {
                 // Resort and vertices that have been rewired.
                 this->resort();
@@ -1014,13 +1012,13 @@ namespace ompl
             bool expand;
 
             expand = true;
-            while (expand == true)
+            while (expand)
             {
                 // Check if there are any vertices to expand:
                 if (vertexToExpand_ != vertexQueue_.end())
                 {
                     // Expand a vertex if the edge queue is empty, or the vertex could place a better edge into it:
-                    if (edgeQueue_.empty() == true)
+                    if (edgeQueue_.empty())
                     {
                         // The edge queue is empty, any edge is better than this!
                         this->expandNextVertex();
@@ -1028,7 +1026,7 @@ namespace ompl
                     // This is isCostBetterThanOrEquivalentTo because of the second ordering criteria. The vertex
                     // expanded could match the edge in queue on total cost, but have less cost-to-come.
                     else if (costHelpPtr_->isCostBetterThanOrEquivalentTo(vertexToExpand_->first.at(0u),
-                                                                          edgeQueue_.cbegin()->first.at(0u)) == true)
+                                                                          edgeQueue_.cbegin()->first.at(0u)))
                     {
                         // The vertex *could* give a better edge than our current best edge:
                         this->expandNextVertex();
@@ -1050,7 +1048,7 @@ namespace ompl
         void BITstar::SearchQueue::expandNextVertex()
         {
             // Should we expand the next vertex?
-            if (this->vertexInsertCondition(vertexToExpand_->second) == true)
+            if (this->vertexInsertCondition(vertexToExpand_->second))
             {
                 // Expand the vertex in the front:
                 this->expandVertex(vertexToExpand_->second);
@@ -1068,7 +1066,7 @@ namespace ompl
         void BITstar::SearchQueue::expandVertex(const VertexPtr &vertex)
         {
             // Should we expand this vertex?
-            if (this->vertexInsertCondition(vertex) == true)
+            if (this->vertexInsertCondition(vertex))
             {
                 // Variables:
                 // The vector of nearby samples (either within r or the k-nearest)
@@ -1081,7 +1079,7 @@ namespace ompl
 
                 // If we're usjng k-nearest, we technically need to be doing to combined k-nearest.
                 // So get the nearestVertices and do some post-processing
-                if (graphPtr_->getUseKNearest() == true)
+                if (graphPtr_->getUseKNearest())
                 {
                     // Get the set of nearby vertices
                     graphPtr_->nearestVertices(vertex, &neighbourVertices);
@@ -1093,7 +1091,7 @@ namespace ompl
 
                 // Add edges to unconnected targets who could ever provide a better solution:
                 // Has the vertex been expanded into edges towards unconnected samples before?
-                if (vertex->hasBeenExpandedToSamples() == false)
+                if (!vertex->hasBeenExpandedToSamples())
                 {
                     // It has not, that means none of its outgoing edges have been considered. Add them all
                     for (auto &targetSample : neighbourSamples)
@@ -1112,7 +1110,7 @@ namespace ompl
                     for (auto &targetSample : neighbourSamples)
                     {
                         // Is the target new?
-                        if (targetSample->isNew() == true)
+                        if (targetSample->isNew())
                         {
                             // It is, attempt to queue the edge.
                             this->enqueueEdgeConditionally(vertex, targetSample);
@@ -1123,11 +1121,11 @@ namespace ompl
 
                 // If the vertex has never been expanded into possible rewiring edges *and* either we're not delaying
                 // rewiring or we have a solution, we add those rewiring candidates:
-                if (vertex->hasBeenExpandedToVertices() == false &&
-                    (delayRewiring_ == false || hasExactSolution_ == true))
+                if (!vertex->hasBeenExpandedToVertices() &&
+                    (!delayRewiring_ || hasExactSolution_))
                 {
                     // If we're using an r-disc RGG, we will not have gotten the neighbour vertices yet, get them now
-                    if (graphPtr_->getUseKNearest() == false)
+                    if (!graphPtr_->getUseKNearest())
                     {
                         // Get the set of nearby vertices
                         graphPtr_->nearestVertices(vertex, &neighbourVertices);
@@ -1139,13 +1137,13 @@ namespace ompl
                     for (auto &targetVertex : neighbourVertices)
                     {
                         // Make sure it is not the root or myself.
-                        if (targetVertex->isRoot() == false && targetVertex->getId() != vertex->getId())
+                        if (!targetVertex->isRoot() && targetVertex->getId() != vertex->getId())
                         {
                             // Make sure I am not already the parent
                             if (targetVertex->getParent()->getId() != vertex->getId())
                             {
                                 // Make sure the neighbour vertex is not already my parent:
-                                if (vertex->isRoot() == true)
+                                if (vertex->isRoot())
                                 {
                                     // I am root, I have no parent, so attempt to queue the edge:
                                     this->enqueueEdgeConditionally(vertex, targetVertex);
@@ -1180,7 +1178,7 @@ namespace ompl
             newEdge = std::make_pair(parent, child);
 
             // Should this edge be in the queue?
-            if (this->edgeInsertCondition(newEdge) == true)
+            if (this->edgeInsertCondition(newEdge))
             {
                 this->enqueueEdge(newEdge);
             }
@@ -1260,7 +1258,7 @@ namespace ompl
                 // The token is at the end, therefore this vertex is in front of it:
                 alreadyExpanded = true;
             }
-            else if (this->queueComparison(myLookup->second->first, vertexToExpand_->first) == true)
+            else if (this->queueComparison(myLookup->second->first, vertexToExpand_->first))
             {
                 // This vertex was entered into the queue with a cost that is in front of the current token:
                 alreadyExpanded = true;
@@ -1276,7 +1274,7 @@ namespace ompl
 
             // Reinsert myself, expanding if I cross the token if I am not already expanded but not removing/adding to
             // either NN struct
-            this->vertexInsertHelper(unorderedVertex, alreadyExpanded == false, false, false);
+            this->vertexInsertHelper(unorderedVertex, !alreadyExpanded, false, false);
 
             // Iterate over my outgoing edges and reinsert them in the queue:
             // Get my vector of outgoing edges
@@ -1300,7 +1298,7 @@ namespace ompl
                 for (auto &costAndEdgePairAsQueueIter : edgeQueueItersToResort)
                 {
                     // Check if the edge should be reinserted
-                    if (this->edgeInsertCondition(costAndEdgePairAsQueueIter->second) == true)
+                    if (this->edgeInsertCondition(costAndEdgePairAsQueueIter->second))
                     {
                         // Call helper to reinsert. Looks after lookups, hint at the location it's coming out of
                         this->edgeInsertHelper(costAndEdgePairAsQueueIter->second, costAndEdgePairAsQueueIter);
@@ -1366,7 +1364,7 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
             // Check if my parent has already been pruned. This can occur if we're cascading vertex disconnections.
-            if (oldVertex->getParent()->isPruned() == false)
+            if (!oldVertex->getParent()->isPruned())
             {
                 // If not, remove myself from my parent's vector of children, not updating down-stream costs
                 oldVertex->getParent()->removeChild(oldVertex, false);
@@ -1384,7 +1382,7 @@ namespace ompl
             VertexQueueIter vertexIter;
 
             // Add the vertex to the graph
-            if (addToNNStruct == true)
+            if (addToNNStruct)
             {
                 graphPtr_->addVertex(newVertex, removeFromFree);
             }
@@ -1402,7 +1400,7 @@ namespace ompl
                 // and don't even think of expanding anything:
                 vertexToExpand_ = vertexQueue_.begin();
             }
-            else if (expandIfBeforeToken == true)
+            else if (expandIfBeforeToken)
             {
                 /*
                 There are 3ish cases:
@@ -1459,7 +1457,7 @@ namespace ompl
                     {
                         // The token is not at the end. That means we can safely dereference it:
                         // Are we in front of it (2b)?
-                        if (this->queueComparison(this->vertexQueueValue(newVertex), vertexToExpand_->first) == true)
+                        if (this->queueComparison(this->vertexQueueValue(newVertex), vertexToExpand_->first))
                         {
                             // We're before it, so expand it:
                             this->expandVertex(newVertex);
@@ -1516,7 +1514,7 @@ namespace ompl
             vertexQueue_.erase(lookupIter->second);
 
             // Remove from lookups map as requested
-            if (fullyRemove == true)
+            if (fullyRemove)
             {
                 vertexIterLookup_.erase(lookupIter);
                 this->removeEdgesFrom(vertexToDelete);
@@ -1561,14 +1559,14 @@ namespace ompl
                                                     bool rmOutgoingLookup)
         {
             // Erase the lookup tables:
-            if (rmIncomingLookup == true)
+            if (rmIncomingLookup)
             {
                 // Erase the entry in the outgoing lookup table:
                 this->rmEdgeLookupHelper(incomingEdges_, oldEdgeIter->second.second->getId(), oldEdgeIter);
             }
             // No else
 
-            if (rmOutgoingLookup == true)
+            if (rmOutgoingLookup)
             {
                 // Erase  the entry in the ingoing lookup table:
                 this->rmEdgeLookupHelper(outgoingEdges_, oldEdgeIter->second.first->getId(), oldEdgeIter);
@@ -1605,7 +1603,7 @@ namespace ompl
             iterToVector = iterToVertexVectorPair->second.begin();
 
             // Iterate through the vector and find mmapIterToRm
-            while (found == false && iterToVector != iterToVertexVectorPair->second.end())
+            while (!found && iterToVector != iterToVertexVectorPair->second.end())
             {
                 // Compare the value in the vector to the target:
                 if (*iterToVector == mmapIterToRm)

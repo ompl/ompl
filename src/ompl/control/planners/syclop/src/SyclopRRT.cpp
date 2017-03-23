@@ -74,12 +74,12 @@ void ompl::control::SyclopRRT::getPlannerData(base::PlannerData &data) const
         nn_->list(motions);
     double delta = siC_->getPropagationStepSize();
 
-    if (lastGoalMotion_)
+    if (lastGoalMotion_ != nullptr)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
     for (auto &motion : motions)
     {
-        if (motion->parent)
+        if (motion->parent != nullptr)
         {
             if (data.hasControls())
                 data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state),
@@ -176,9 +176,9 @@ void ompl::control::SyclopRRT::freeMemory()
         nn_->list(motions);
         for (auto m : motions)
         {
-            if (m->state)
+            if (m->state != nullptr)
                 si_->freeState(m->state);
-            if (m->control)
+            if (m->control != nullptr)
                 siC_->freeControl(m->control);
             delete m;
         }

@@ -258,7 +258,7 @@ void plan()
         std::cout << "No solution found" << std::endl;
 }
 
-int main(int, char **)
+int main(int /*argc*/, char ** /*argv*/)
 {
     plan();
     return 0;

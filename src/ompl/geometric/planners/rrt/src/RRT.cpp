@@ -89,7 +89,7 @@ void ompl::geometric::RRT::freeMemory()
         nn_->list(motions);
         for (auto &motion : motions)
         {
-            if (motion->state)
+            if (motion->state != nullptr)
                 si_->freeState(motion->state);
             delete motion;
         }
@@ -127,10 +127,10 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
-    while (ptc == false)
+    while (!ptc)
     {
         /* sample random state (with goal biasing) */
-        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+        if ((goal_s != nullptr) && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
         else
             sampler_->sampleUniform(rstate);
@@ -200,7 +200,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
     }
 
     si_->freeState(xstate);
-    if (rmotion->state)
+    if (rmotion->state != nullptr)
         si_->freeState(rmotion->state);
     delete rmotion;
 
@@ -217,7 +217,7 @@ void ompl::geometric::RRT::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
-    if (lastGoalMotion_)
+    if (lastGoalMotion_ != nullptr)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
     for (auto &motion : motions)

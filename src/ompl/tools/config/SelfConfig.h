@@ -102,11 +102,9 @@ namespace ompl
                 {
                     if (specs.multithreaded)
                         return new NearestNeighborsGNAT<_T>();
-                    else
-                        return new NearestNeighborsGNATNoThreadSafety<_T>();
+                    return new NearestNeighborsGNATNoThreadSafety<_T>();
                 }
-                else
-                    return new NearestNeighborsSqrtApprox<_T>();
+                return new NearestNeighborsSqrtApprox<_T>();
             }
 
             /** \brief Given a goal specification, decide on a planner for that goal */

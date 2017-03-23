@@ -81,7 +81,7 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
 
         return totalCost;
     }
-    else
+    
         return this->trapezoid(this->stateCost(s1), this->stateCost(s2), si_->distance(s1, s2));
 }
 

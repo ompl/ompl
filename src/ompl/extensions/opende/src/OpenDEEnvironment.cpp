@@ -62,8 +62,7 @@ std::string ompl::control::OpenDEEnvironment::getGeomName(dGeomID geom) const
     auto it = geomNames_.find(geom);
     if (it == geomNames_.end())
         return std::to_string(reinterpret_cast<unsigned long>(geom));
-    else
-        return it->second;
+    return it->second;
 }
 
 void ompl::control::OpenDEEnvironment::setGeomName(dGeomID geom, const std::string &name)

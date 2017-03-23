@@ -70,7 +70,7 @@ ompl::geometric::CForest::~CForest() = default;
 
 void ompl::geometric::CForest::setNumThreads(unsigned int numThreads)
 {
-    numThreads_ = numThreads ? numThreads : std::max(std::thread::hardware_concurrency(), 2u);
+    numThreads_ = numThreads != 0u ? numThreads : std::max(std::thread::hardware_concurrency(), 2u);
 }
 
 void ompl::geometric::CForest::addPlannerInstanceInternal(const base::PlannerPtr &planner)

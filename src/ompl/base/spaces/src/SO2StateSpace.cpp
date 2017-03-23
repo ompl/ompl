@@ -209,7 +209,7 @@ double *ompl::base::SO2StateSpace::getValueAddressAtIndex(State *state, const un
 void ompl::base::SO2StateSpace::printState(const State *state, std::ostream &out) const
 {
     out << "SO2State [";
-    if (state)
+    if (state != nullptr)
         out << state->as<StateType>()->value;
     else
         out << "nullptr";

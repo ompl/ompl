@@ -113,11 +113,11 @@ void ompl::geometric::LazyLBTRRT::setup()
 
 void ompl::geometric::LazyLBTRRT::freeMemory()
 {
-    if (idToMotionMap_.size() > 0)
+    if (!idToMotionMap_.empty())
     {
         for (auto &i : idToMotionMap_)
         {
-            if (i->state_)
+            if (i->state_ != nullptr)
                 si_->freeState(i->state_);
             delete i;
         }
@@ -134,7 +134,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
     base::Goal *goal = pdef_->getGoal().get();
     auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
-    if (!goal)
+    if (goal == nullptr)
     {
         OMPL_ERROR("%s: Goal undefined", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
@@ -178,7 +178,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
     ////////////////////////////////////////////
     bestCost_ = std::numeric_limits<double>::infinity();
     rrt(ptc, goal_s, xstate, rmotion, approxdif);
-    if (ptc() == false)
+    if (!ptc())
     {
         solved = true;
 
@@ -203,7 +203,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
     ////////////////////////////////////////////
     // step (3) - anytime planning
     ////////////////////////////////////////////
-    while (ptc() == false)
+    while (!ptc())
     {
         std::tuple<Motion *, base::State *, double> res = rrtExtend(goal_s, xstate, rmotion, approxdif);
         Motion *nmotion = std::get<0>(res);
@@ -255,7 +255,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
     }
 
     si_->freeState(xstate);
-    if (rmotion->state_)
+    if (rmotion->state_ != nullptr)
         si_->freeState(rmotion->state_);
     delete rmotion;
 
@@ -282,7 +282,7 @@ std::tuple<ompl::geometric::LazyLBTRRT::Motion *, ompl::base::State *, double> o
         d = maxDistance_;
     }
 
-    if (checkMotion(nmotion->state_, dstate) == false)
+    if (!checkMotion(nmotion->state_, dstate))
         return std::make_tuple((Motion *)nullptr, (base::State *)nullptr, 0.0);
 
     // motion is valid
@@ -303,7 +303,7 @@ std::tuple<ompl::geometric::LazyLBTRRT::Motion *, ompl::base::State *, double> o
 void ompl::geometric::LazyLBTRRT::rrt(const base::PlannerTerminationCondition &ptc, base::GoalSampleableRegion *goal_s,
                                       base::State *xstate, Motion *rmotion, double &approxdif)
 {
-    while (ptc() == false)
+    while (!ptc())
     {
         std::tuple<Motion *, base::State *, double> res = rrtExtend(goal_s, xstate, rmotion, approxdif);
         Motion *nmotion = std::get<0>(res);
@@ -327,7 +327,7 @@ void ompl::geometric::LazyLBTRRT::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    if (lastGoalMotion_)
+    if (lastGoalMotion_ != nullptr)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state_));
 
     for (unsigned int i = 0; i < idToMotionMap_.size(); ++i)
@@ -352,11 +352,10 @@ void ompl::geometric::LazyLBTRRT::getPlannerData(base::PlannerData &data) const
 void ompl::geometric::LazyLBTRRT::sampleBiased(const base::GoalSampleableRegion *goal_s, base::State *rstate)
 {
     /* sample random state (with goal biasing) */
-    if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+    if ((goal_s != nullptr) && rng_.uniform01() < goalBias_ && goal_s->canSample())
         goal_s->sampleGoal(rstate);
     else
         sampler_->sampleUniform(rstate);
-    return;
 };
 
 ompl::geometric::LazyLBTRRT::Motion *ompl::geometric::LazyLBTRRT::createMotion(const base::GoalSampleableRegion *goal_s,

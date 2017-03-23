@@ -222,11 +222,8 @@ namespace ompl
                     // Return infinity (but not beyond)
                     return std::numeric_limits<double>::infinity();
                 }
-                else
-                {
-                    // Calculate and return
-                    return (newCost.value() - oldCost.value()) / refCost.value();
-                }
+                // Calculate and return
+                return (newCost.value() - oldCost.value()) / refCost.value();
             };
             ////////////////////////////////
 

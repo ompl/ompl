@@ -264,7 +264,7 @@ public:
         if (planner->solve(SOLUTION_TIME))
         {
             ompl::time::duration elapsed = ompl::time::now() - startTime;
-            if (time)
+            if (time != nullptr)
                 *time += ompl::time::seconds(elapsed);
             if (show)
                 printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
@@ -277,10 +277,10 @@ public:
 
             elapsed = ompl::time::now() - startTime;
 
-            if (time)
+            if (time != nullptr)
                 *time += ompl::time::seconds(elapsed);
 
-            if (pathLength)
+            if (pathLength != nullptr)
                 *pathLength += path->length();
 
             if (show)

@@ -83,7 +83,7 @@ namespace ompl
             /** \brief Start the thread evaluating termination conditions if not already started */
             void startEvalThread()
             {
-                if (!thread_)
+                if (thread_ == nullptr)
                 {
                     signalThreadStop_ = false;
                     evalValue_ = false;
@@ -98,7 +98,7 @@ namespace ompl
             void stopEvalThread()
             {
                 signalThreadStop_ = true;
-                if (thread_)
+                if (thread_ != nullptr)
                 {
                     thread_->join();
                     delete thread_;

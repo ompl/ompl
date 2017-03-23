@@ -226,7 +226,7 @@ void ompl::control::GridDecomposition::coordToGridCoord(const std::vector<double
 const ompl::base::RealVectorBounds &ompl::control::GridDecomposition::getRegionBounds(int rid) const
 {
     if (regToBounds_.count(rid) > 0)
-        return *regToBounds_[rid].get();
+        return *regToBounds_[rid];
     auto regionBounds(std::make_shared<ompl::base::RealVectorBounds>(dimension_));
     std::vector<int> rc(dimension_);
     regionToGridCoord(rid, rc);
@@ -237,7 +237,7 @@ const ompl::base::RealVectorBounds &ompl::control::GridDecomposition::getRegionB
         regionBounds->high[i] = regionBounds->low[i] + length;
     }
     regToBounds_[rid] = regionBounds;
-    return *regToBounds_[rid].get();
+    return *regToBounds_[rid];
 }
 
 namespace

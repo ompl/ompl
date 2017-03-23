@@ -57,7 +57,7 @@ namespace
 
             return num;
         }
-        else if (dynamic_cast<const ompl::control::DiscreteControlSpace *>(cs))
+        if (dynamic_cast<const ompl::control::DiscreteControlSpace *>(cs) != nullptr)
             return 1;
         return 0;
     }
@@ -72,14 +72,14 @@ namespace
                 printDiscreteControls(out, ccs->getSubspace(i).get(),
                                       c->as<ompl::control::CompoundControl>()->components[i]);
         }
-        else if (dynamic_cast<const ompl::control::DiscreteControlSpace *>(cs))
+        else if (dynamic_cast<const ompl::control::DiscreteControlSpace *>(cs) != nullptr)
             out << c->as<ompl::control::DiscreteControlSpace::ControlType>()->value << ' ';
     }
 }
 
 ompl::control::PathControl::PathControl(const base::SpaceInformationPtr &si) : base::Path(si)
 {
-    if (!dynamic_cast<const SpaceInformation *>(si_.get()))
+    if (dynamic_cast<const SpaceInformation *>(si_.get()) == nullptr)
         throw Exception("Cannot create a path with controls from a space that does not support controls");
 }
 
@@ -166,7 +166,7 @@ void ompl::control::PathControl::printAsMatrix(std::ostream &out) const
     const ControlSpace *cs = static_cast<const SpaceInformation *>(si_.get())->getControlSpace().get();
     unsigned int n = 0, m = getNumberOfDiscreteControls(cs);
     double *val;
-    while ((val = cspace->getValueAddressAtIndex(controls_[0], n)))
+    while ((val = cspace->getValueAddressAtIndex(controls_[0], n)) != nullptr)
         ++n;
     for (unsigned int i = 0; i < n + m; ++i)
         out << "0 ";
@@ -240,8 +240,7 @@ bool ompl::control::PathControl::check() const
     {
         if (states_.size() == 1)
             return si_->isValid(states_[0]);
-        else
-            return false;
+        return false;
     }
 
     bool valid = true;

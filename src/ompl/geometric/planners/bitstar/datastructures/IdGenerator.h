@@ -85,9 +85,9 @@ namespace
 {
     // Global variables:
     // The initialization flag stating that the ID generator has been created:
-    static std::once_flag g_IdInited;
+    std::once_flag g_IdInited;
     // A pointer to the actual ID generator
-    static boost::scoped_ptr<ompl::geometric::BITstar::IdGenerator> g_IdGenerator;
+    boost::scoped_ptr<ompl::geometric::BITstar::IdGenerator> g_IdGenerator;
 
     // A function to initialize the ID generator pointer:
     void initIdGenerator()

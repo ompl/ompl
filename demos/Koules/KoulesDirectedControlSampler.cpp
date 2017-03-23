@@ -55,7 +55,7 @@ unsigned int KoulesDirectedControlSampler::sampleTo(oc::Control *control, const 
     if (goal_->isSatisfied(dest))
         return 1;
     // if we found a valid state after one step, we can go on
-    else if (si_->isValid(dest))
+    if (si_->isValid(dest))
     {
         ob::State *temp1 = dest, *temp2 = si_->allocState(), *toDelete = temp2;
         unsigned int r = steps;
@@ -68,7 +68,7 @@ unsigned int KoulesDirectedControlSampler::sampleTo(oc::Control *control, const 
                 si_->freeState(toDelete);
                 return i + 1;
             }
-            else if (si_->isValid(temp2))
+            if (si_->isValid(temp2))
                 std::swap(temp1, temp2);
             else
             {

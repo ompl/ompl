@@ -255,7 +255,7 @@ void ompl::geometric::PRM::expandRoadmap(const base::PlannerTerminationCondition
     if (pdf.empty())
         return;
 
-    while (ptc == false)
+    while (!ptc)
     {
         iterations_++;
         Vertex v = pdf.sample(rng_.uniform01());
@@ -322,12 +322,12 @@ void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &
 void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &ptc, base::State *workState)
 {
     /* grow roadmap in the regular fashion -- sample valid states, add them to the roadmap, add valid connections */
-    while (ptc == false)
+    while (!ptc)
     {
         iterations_++;
         // search for a valid state
         bool found = false;
-        while (!found && ptc == false)
+        while (!found && !ptc)
         {
             unsigned int attempts = 0;
             do
@@ -351,7 +351,7 @@ void ompl::geometric::PRM::checkForSolution(const base::PlannerTerminationCondit
         if (goal->maxSampleCount() > goalM_.size())
         {
             const base::State *st = pis_.nextGoal();
-            if (st)
+            if (st != nullptr)
                 goalM_.push_back(addMilestone(si_->cloneState(st)));
         }
 
@@ -391,7 +391,7 @@ bool ompl::geometric::PRM::maybeConstructSolution(const std::vector<Vertex> &sta
                         solution = p;
                         return true;
                     }
-                    else if (opt_->isCostBetterThan(pathCost, sol_cost))
+                    if (opt_->isCostBetterThan(pathCost, sol_cost))
                     {
                         solution = p;
                         sol_cost = pathCost;
@@ -414,7 +414,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     checkValidity();
     auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
-    if (!goal)
+    if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
@@ -424,7 +424,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     while (const base::State *st = pis_.nextStart())
         startM_.push_back(addMilestone(si_->cloneState(st)));
 
-    if (startM_.size() == 0)
+    if (startM_.empty())
     {
         OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
@@ -440,7 +440,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     if (goal->maxSampleCount() > goalM_.size() || goalM_.empty())
     {
         const base::State *st = goalM_.empty() ? pis_.nextGoal(ptc) : pis_.nextGoal();
-        if (st)
+        if (st != nullptr)
             goalM_.push_back(addMilestone(si_->cloneState(st)));
 
         if (goalM_.empty())
@@ -500,7 +500,7 @@ void ompl::geometric::PRM::constructRoadmap(const base::PlannerTerminationCondit
     bool grow = true;
 
     bestCost_ = opt_->infiniteCost();
-    while (ptc() == false)
+    while (!ptc())
     {
         // maintain a 2:1 ratio for growing/expansion of roadmap
         // call growRoadmap() twice as long for every call of expandRoadmap()

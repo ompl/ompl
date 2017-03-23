@@ -84,9 +84,7 @@ namespace ompl
         class CompoundControl : public Control
         {
         public:
-            CompoundControl() : Control()
-            {
-            }
+            CompoundControl() = default;
 
             ~CompoundControl() override = default;
 

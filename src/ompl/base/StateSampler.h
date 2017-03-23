@@ -88,7 +88,7 @@ namespace ompl
             uniformly distributed using L_inf distance, while the default
             distance function is L_2 distance.
             */
-            virtual void sampleUniformNear(State *state, const State *near, const double distance) = 0;
+            virtual void sampleUniformNear(State *state, const State *near, double distance) = 0;
 
             /** \brief Sample a state using a Gaussian distribution with given \e mean and standard deviation (\e
             stdDev).
@@ -97,7 +97,7 @@ namespace ompl
             specific to the derived class and few assumptions can be made
             about the distance between `state` and `mean`.
             */
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev) = 0;
+            virtual void sampleGaussian(State *state, const State *mean, double stdDev) = 0;
 
         protected:
             /** \brief The state space this sampler samples */
@@ -131,11 +131,11 @@ namespace ompl
 
             /** \brief Call sampleUniformNear for each of the subspace states
                 with distance scaled by the corresponding subspace weight. */
-            void sampleUniformNear(State *state, const State *near, const double distance) override;
+            void sampleUniformNear(State *state, const State *near, double distance) override;
 
             /** \brief Call sampleGaussian for each of the subspace states
                 with stdDev scaled by the corresponding subspace weight. */
-            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
+            void sampleGaussian(State *state, const State *mean, double stdDev) override;
 
         protected:
             /** \brief The samplers that are composed */
@@ -161,9 +161,9 @@ namespace ompl
 
             void sampleUniform(State *state) override;
 
-            void sampleUniformNear(State *state, const State *near, const double distance) override;
+            void sampleUniformNear(State *state, const State *near, double distance) override;
 
-            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
+            void sampleGaussian(State *state, const State *mean, double stdDev) override;
 
         protected:
             /** \brief The subspace to sample */

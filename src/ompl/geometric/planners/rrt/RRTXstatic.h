@@ -146,7 +146,7 @@ namespace ompl
             }
 
             /** \brief Controls whether heuristic rejection is used on samples (e.g., x_rand) */
-            void setSampleRejection(const bool reject);
+            void setSampleRejection(bool reject);
 
             /** \brief Get the state of the sample rejection option */
             bool getSampleRejection() const

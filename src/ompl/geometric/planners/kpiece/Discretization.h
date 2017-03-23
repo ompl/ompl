@@ -321,7 +321,7 @@ namespace ompl
             /** \brief This function is provided as a callback to the
                 grid datastructure to update the importance of a
                 cell */
-            static void computeImportance(Cell *cell, void *)
+            static void computeImportance(Cell *cell, void * /*unused*/)
             {
                 CellData &cd = *(cell->data);
                 cd.importance = cd.score / ((cell->neighbors + 1) * cd.coverage * cd.selections);

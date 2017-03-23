@@ -93,7 +93,7 @@ void ompl::geometric::KPIECE1::clear()
 
 void ompl::geometric::KPIECE1::freeMotion(Motion *motion)
 {
-    if (motion->state)
+    if (motion->state != nullptr)
         si_->freeState(motion->state);
     delete motion;
 }
@@ -131,7 +131,7 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
     double approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
 
-    while (ptc == false)
+    while (!ptc)
     {
         disc_.countIteration();
 
@@ -142,7 +142,7 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
         assert(existing);
 
         /* sample random state (with goal biasing) */
-        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+        if ((goal_s != nullptr) && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(xstate);
         else
             sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);

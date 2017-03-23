@@ -40,7 +40,7 @@ double KoulesGoal::distanceGoal(const ompl::base::State *st) const
 {
     double minX, minY;
     const double* v = st->as<KoulesStateSpace::StateType>()->values;
-    const KoulesStateSpace* space = si_->getStateSpace().get()->as<KoulesStateSpace>();
+    auto space = si_->getStateSpace()->as<KoulesStateSpace>();
     std::size_t numKoules = (space->getDimension() - 5) / 4, liveKoules = numKoules;
     double minDist = sideLength;
 

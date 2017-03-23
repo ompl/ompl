@@ -127,7 +127,7 @@ double *ompl::control::RealVectorControlSpace::getValueAddressAtIndex(Control *c
 void ompl::control::RealVectorControlSpace::printControl(const Control *control, std::ostream &out) const
 {
     out << "RealVectorControl [";
-    if (control)
+    if (control != nullptr)
     {
         const auto *rcontrol = static_cast<const ControlType *>(control);
         for (unsigned int i = 0; i < dimension_; ++i)

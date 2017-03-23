@@ -63,7 +63,7 @@ namespace ompl
 
             bool sample(State *state) override;
 
-            bool sampleNear(State *state, const State *near, const double distance) override;
+            bool sampleNear(State *state, const State *near, double distance) override;
 
             /** \brief Set the minimum required distance of sample from nearest obstacle to be considered valid */
             void setMinimumObstacleClearance(double clearance)

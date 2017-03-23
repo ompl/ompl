@@ -169,7 +169,7 @@ namespace ompl
 
             /** \brief Remove a vertex from the tree, can optionally be allowed to move it to the set of unconnected
              * samples if may still be useful. */
-            unsigned int removeVertex(const VertexPtr &oldVertex, bool moveToFree);
+            unsigned int removeVertex(const VertexPtr &oldSample, bool moveToFree);
             ////////////////////////////////
 
             //////////////////

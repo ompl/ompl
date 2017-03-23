@@ -285,7 +285,7 @@ namespace ompl
         void *eventCellUpdateData_;
 
         /// Default no-op update routine for a cell
-        static void noCellUpdate(Cell *, void *)
+        static void noCellUpdate(Cell * /*unused*/, void * /*unused*/)
         {
         }
 
@@ -336,13 +336,13 @@ namespace ompl
         using externalBHeap = BinaryHeap<CellX *, LessThanExternalCell>;
 
         /// Routine used internally for keeping track of binary heap elements for internal cells
-        static void setHeapElementI(typename internalBHeap::Element *element, void *)
+        static void setHeapElementI(typename internalBHeap::Element *element, void * /*unused*/)
         {
             element->data->heapElement = reinterpret_cast<void *>(element);
         }
 
         /// Routine used internally for keeping track of binary heap elements for external cells
-        static void setHeapElementE(typename externalBHeap::Element *element, void *)
+        static void setHeapElementE(typename externalBHeap::Element *element, void * /*unused*/)
         {
             element->data->heapElement = reinterpret_cast<void *>(element);
         }

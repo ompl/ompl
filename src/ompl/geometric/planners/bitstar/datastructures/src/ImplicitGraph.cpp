@@ -96,13 +96,13 @@ namespace ompl
             // Configure the nearest-neighbour constructs.
             // Only allocate if they are empty (as they can be set to a specific version by a call to
             // setNearestNeighbors)
-            if (static_cast<bool>(freeStateNN_) == false)
+            if (!static_cast<bool>(freeStateNN_))
             {
                 freeStateNN_.reset(ompl::tools::SelfConfig::getDefaultNearestNeighbors<VertexPtr>(plannerPtr));
             }
             // No else, already allocated (by a call to setNearestNeighbors())
 
-            if (static_cast<bool>(vertexNN_) == false)
+            if (!static_cast<bool>(vertexNN_))
             {
                 vertexNN_.reset(ompl::tools::SelfConfig::getDefaultNearestNeighbors<VertexPtr>(plannerPtr));
             }
@@ -129,7 +129,7 @@ namespace ompl
             approximationMeasure_ = si_->getSpaceMeasure();
 
             // Does the problem have finite boundaries?
-            if (std::isfinite(approximationMeasure_) == false)
+            if (!std::isfinite(approximationMeasure_))
             {
                 // It does not, so let's estimate a measure of the planning problem.
                 // A not horrible place to start would be hypercube proportional to the distance between the start and
@@ -137,7 +137,7 @@ namespace ompl
 
                 // First, some asserts.
                 // Check that JIT sampling is on, which is required for infinite problems
-                if (useJustInTimeSampling_ == false)
+                if (!useJustInTimeSampling_)
                 {
                     throw ompl::Exception("For unbounded planning problems, just-in-time sampling must be enabled "
                                           "before calling setup.");
@@ -145,7 +145,7 @@ namespace ompl
                 // No else
 
                 // Check that we have a start and goal
-                if (startVertices_.empty() == true || goalVertices_.empty() == true)
+                if (startVertices_.empty() || goalVertices_.empty())
                 {
                     throw ompl::Exception("For unbounded planning problems, at least one start and one goal must exist "
                                           "before calling setup.");
@@ -212,7 +212,7 @@ namespace ompl
             recycledSamples_.clear();
 
             // The set of samples
-            if (static_cast<bool>(freeStateNN_) == true)
+            if (static_cast<bool>(freeStateNN_))
             {
                 freeStateNN_->clear();
                 freeStateNN_.reset();
@@ -220,7 +220,7 @@ namespace ompl
             // No else, not allocated
 
             // The set of vertices
-            if (static_cast<bool>(vertexNN_) == true)
+            if (static_cast<bool>(vertexNN_))
             {
                 vertexNN_->clear();
                 vertexNN_.reset();
@@ -289,7 +289,7 @@ namespace ompl
             // Increment our counter:
             ++numNearestNeighbours_;
 
-            if (useKNearest_ == true)
+            if (useKNearest_)
             {
                 freeStateNN_->nearestK(vertex, k_, *neighbourSamples);
             }
@@ -306,7 +306,7 @@ namespace ompl
             // Increment our counter:
             ++numNearestNeighbours_;
 
-            if (useKNearest_ == true)
+            if (useKNearest_)
             {
                 vertexNN_->nearestK(vertex, k_, *neighbourVertices);
             }
@@ -321,7 +321,7 @@ namespace ompl
             this->confirmSetup();
 
             // Add samples
-            if (static_cast<bool>(freeStateNN_) == true)
+            if (static_cast<bool>(freeStateNN_))
             {
                 // Variables:
                 // The vector of unused samples:
@@ -340,7 +340,7 @@ namespace ompl
             // No else.
 
             // Add vertices
-            if (static_cast<bool>(vertexNN_) == true)
+            if (static_cast<bool>(vertexNN_))
             {
                 // Variables:
                 // The vector of vertices in the graph:
@@ -353,7 +353,7 @@ namespace ompl
                 for (const auto &vertex : vertices)
                 {
                     // Is the vertex the start?
-                    if (vertex->isRoot() == true)
+                    if (vertex->isRoot())
                     {
                         // Yes, add as a start vertex:
                         data.addStartVertex(ompl::base::PlannerDataVertex(vertex->stateConst()));
@@ -414,11 +414,11 @@ namespace ompl
                 const ompl::base::State *newGoal = pis.nextGoal(ptc);
 
                 // Check if it's valid
-                if (static_cast<bool>(newGoal) == true)
+                if (static_cast<bool>(newGoal))
                 {
                     // It is valid and we are adding a goal, we will need to rebuild the queue if any starts have
                     // previously been added as their (and any descendents') heuristic cost-to-go may change:
-                    rebuildQueue = (startVertices_.empty() == false);
+                    rebuildQueue = (!startVertices_.empty());
 
                     // Allocate the vertex pointer
                     goalVertices_.push_back(std::make_shared<Vertex>(si_, costHelpPtr_->getOptObj()));
@@ -433,14 +433,14 @@ namespace ompl
                     addedGoal = true;
                 }
                 // No else, there was no goal.
-            } while (pis.haveMoreGoalStates() == true);
+            } while (pis.haveMoreGoalStates());
 
             // And then do the for starts. We do this last as the starts are added to the queue, which uses a cost-to-go
             // heuristic in it's ordering, and for that we want all the goals updated.
             // As there is no way to wait for new *start* states, this loop can be cleaner
             // There is no need to rebuild the queue when we add start vertices, as the queue is ordered on current
             // cost-to-come, and adding a start doesn't change that.
-            while (pis.haveMoreStartStates() == true)
+            while (pis.haveMoreStartStates())
             {
                 // Variable
                 // A new start pointer
@@ -460,7 +460,7 @@ namespace ompl
             }
 
             // Now, if we added a new start and have previously pruned goals, we may want to readd them.
-            if (addedStart == true && prunedGoalVertices_.empty() == false)
+            if (addedStart && !prunedGoalVertices_.empty())
             {
                 // Variable
                 // An iterator to the vector of pruned goals
@@ -476,7 +476,7 @@ namespace ompl
                     (*prunedGoalIter)->markUnpruned();
 
                     // Check if it should be readded (i.e., would it be pruned *now*?)
-                    if (queuePtr_->vertexPruneCondition(*prunedGoalIter) == true)
+                    if (queuePtr_->vertexPruneCondition(*prunedGoalIter))
                     {
                         // It would be pruned, so remark as pruned
                         (*prunedGoalIter)->markPruned();
@@ -524,7 +524,7 @@ namespace ompl
             }
 
             // Similarly, if we added a goal and have previously pruned starts, we will have to do the same on those
-            if (addedGoal == true && prunedStartVertices_.empty() == false)
+            if (addedGoal && !prunedStartVertices_.empty())
             {
                 // Variable
                 // An iterator to the vector of pruned starts
@@ -540,7 +540,7 @@ namespace ompl
                     (*prunedStartIter)->markUnpruned();
 
                     // Check if it should be readded (i.e., would it be pruned *now*?)
-                    if (queuePtr_->vertexPruneCondition(*prunedStartIter) == true)
+                    if (queuePtr_->vertexPruneCondition(*prunedStartIter))
                     {
                         // It would be pruned, so remark as pruned
                         (*prunedStartIter)->markPruned();
@@ -584,7 +584,7 @@ namespace ompl
             }
 
             // If we've added anything, we have some updating to do.
-            if (addedGoal == true || addedStart == true)
+            if (addedGoal || addedStart)
             {
                 // Update the minimum cost
                 for (const auto &startVertex : startVertices_)
@@ -594,7 +594,7 @@ namespace ompl
                 }
 
                 // If we have at least one start and goal, allocate a sampler
-                if (startVertices_.size() > 0u && goalVertices_.size() > 0u)
+                if (!startVertices_.empty() && !goalVertices_.empty())
                 {
                     // There is a start and goal, allocate
                     sampler_ = costHelpPtr_->getOptObj()->allocInformedStateSampler(
@@ -603,7 +603,7 @@ namespace ompl
                 // No else, this will get allocated when we get the updated start/goal.
 
                 // Was there an existing queue that needs to be rebuilt?
-                if (rebuildQueue == true)
+                if (rebuildQueue)
                 {
                     // There was, inform
                     OMPL_INFORM("%s: Added new starts and/or goals to the problem. Rebuilding the queue.",
@@ -621,7 +621,7 @@ namespace ompl
                 // No else
 
                 // Iterate through the existing vertices and find the current best approximate solution (if enabled)
-                if (hasExactSolution_ == false && findApprox_ == true)
+                if (!hasExactSolution_ && findApprox_)
                 {
                     this->findVertexClosestToGoal();
                 }
@@ -629,7 +629,7 @@ namespace ompl
             // No else, why were we called?
 
             // Make sure that if we have a goal, we also have a start, since there's no way to wait for more *starts*
-            if (goalVertices_.empty() == false && startVertices_.empty() == true)
+            if (!goalVertices_.empty() && startVertices_.empty())
             {
                 OMPL_WARN("%s (ImplicitGraph): The problem has a goal but not a start. Since PlannerInputStates "
                           "provides no method to "
@@ -656,7 +656,7 @@ namespace ompl
             for (auto &freeSample : newSamples_)
             {
                 // If the sample still exists, mark as old. It can get pruned during a resort.
-                if (freeSample->isPruned() == false)
+                if (!freeSample->isPruned())
                 {
                     freeSample->markOld();
                 }
@@ -751,7 +751,7 @@ namespace ompl
             ++numVertices_;
 
             // Remove the vertex from the set of samples (if it even existed)
-            if (removeFromFree == true)
+            if (removeFromFree)
             {
                 freeStateNN_->remove(newVertex);
             }
@@ -761,7 +761,7 @@ namespace ompl
             vertexNN_->add(newVertex);
 
             // Update the nearest vertex to the goal (if tracking)
-            if (hasExactSolution_ == false && findApprox_ == true)
+            if (!hasExactSolution_ && findApprox_)
             {
                 this->testClosestToGoal(newVertex);
             }
@@ -778,7 +778,7 @@ namespace ompl
             vertexNN_->remove(oldSample);
 
             // Add back as sample, if that would be beneficial
-            if (moveToFree == true && queuePtr_->samplePruneCondition(oldSample) == false)
+            if (moveToFree && !queuePtr_->samplePruneCondition(oldSample))
             {
                 // Yes, the vertex is still useful as a sample. Track as recycled so they are reused as samples in the
                 // next batch.
@@ -787,15 +787,12 @@ namespace ompl
                 // Return that the vertex was recycled
                 return 0u;
             }
-            else
-            {
-                // No, the vertex is not useful anymore. Mark as pruned. This functions as a lock to prevent accessing
-                // anything about the vertex.
-                oldSample->markPruned();
+            // No, the vertex is not useful anymore. Mark as pruned. This functions as a lock to prevent accessing
+            // anything about the vertex.
+            oldSample->markPruned();
 
-                // Return that the vertex was completely pruned
-                return 1u;
-            }
+            // Return that the vertex was completely pruned
+            return 1u;
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -815,7 +812,7 @@ namespace ompl
                 unsigned int totalReqdSamples;
 
                 // Get the measure of what we're sampling
-                if (useJustInTimeSampling_ == true)
+                if (useJustInTimeSampling_)
                 {
                     // Variables
                     // The sample density for this slice of the problem.
@@ -859,7 +856,7 @@ namespace ompl
 
                     // If the state is collision free, add it to the set of free states
                     ++numStateCollisionChecks_;
-                    if (si_->isValid(newState->stateConst()) == true)
+                    if (si_->isValid(newState->stateConst()))
                     {
                         // Add the new state as a sample
                         this->addSample(newState);
@@ -881,7 +878,7 @@ namespace ompl
 
         void BITstar::ImplicitGraph::findVertexClosestToGoal()
         {
-            if (static_cast<bool>(vertexNN_) == true)
+            if (static_cast<bool>(vertexNN_))
             {
                 // Variable
                 // The vertices in the graph
@@ -921,7 +918,7 @@ namespace ompl
                 while (startIter != startEnd)
                 {
                     // Check if this start has met the criteria to be pruned
-                    if (queuePtr_->vertexPruneCondition(*startIter) == true)
+                    if (queuePtr_->vertexPruneCondition(*startIter))
                     {
                         // It has, remove the start vertex DO NOT consider it as a sample. It is marked as a root node,
                         // so having it as a sample would cause all kinds of problems, also it shouldn't be possible for
@@ -982,11 +979,11 @@ namespace ompl
                 while (goalIter != goalEnd)
                 {
                     // Check if this start has met the criteria to be pruned
-                    if (queuePtr_->vertexPruneCondition(*goalIter) == true)
+                    if (queuePtr_->vertexPruneCondition(*goalIter))
                     {
                         // It has, remove the goal vertex completely
                         // Check if this vertex is in the tree
-                        if ((*goalIter)->isInTree() == true)
+                        if ((*goalIter)->isInTree())
                         {
                             // It is, remove it from the queue
                             queuePtr_->unqueueVertex(*goalIter);
@@ -1052,7 +1049,7 @@ namespace ompl
             unsigned int numPruned = 0u;
 
             // Are we dropping samples anytime we prune?
-            if (dropSamplesOnPrune_ == true)
+            if (dropSamplesOnPrune_)
             {
                 // We are, store the number pruned
                 numPruned = freeStateNN_->size();
@@ -1079,7 +1076,7 @@ namespace ompl
                 for (const auto &freeSample : samples)
                 {
                     // Check if this state should be pruned:
-                    if (queuePtr_->samplePruneCondition(freeSample) == true)
+                    if (queuePtr_->samplePruneCondition(freeSample))
                     {
                         // Yes, remove it
                         this->removeSample(freeSample);
@@ -1116,7 +1113,7 @@ namespace ompl
         ompl::base::Cost BITstar::ImplicitGraph::neighbourhoodCost(const VertexConstPtr &vertex) const
         {
             // Are we using JIT sampling?
-            if (useJustInTimeSampling_ == true)
+            if (useJustInTimeSampling_)
             {
                 // We are, return the maximum heuristic cost that represents a sample in the neighbourhood of the given
                 // vertex.
@@ -1126,11 +1123,9 @@ namespace ompl
                     maxCost_, costHelpPtr_->combineCosts(costHelpPtr_->lowerBoundHeuristicVertex(vertex),
                                                          ompl::base::Cost(2.0 * r_)));
             }
-            else
-            {
-                // We are not, return the maximum cost we'd ever want to sample
-                return maxCost_;
-            }
+
+            // We are not, return the maximum cost we'd ever want to sample
+            return maxCost_;
         }
 
         void BITstar::ImplicitGraph::updateNearestTerms()
@@ -1140,7 +1135,7 @@ namespace ompl
             unsigned int N;
 
             // Calculate N, are we dropping samples?
-            if (dropSamplesOnPrune_ == true)
+            if (dropSamplesOnPrune_)
             {
                 // We are, so we've been tracking the number of uniform states, just use that
                 N = numUniformStates_;
@@ -1161,7 +1156,7 @@ namespace ompl
             }
 
             // Now update the appropriate term
-            if (useKNearest_ == true)
+            if (useKNearest_)
             {
                 k_ = this->calculateK(N);
             }
@@ -1234,7 +1229,7 @@ namespace ompl
         // Boring sets/gets (Public):
         bool BITstar::ImplicitGraph::hasAGoal() const
         {
-            return (goalVertices_.empty() == false);
+            return (!goalVertices_.empty());
         }
 
         BITstar::VertexPtrVector::const_iterator BITstar::ImplicitGraph::startVerticesBeginConst() const
@@ -1322,7 +1317,7 @@ namespace ompl
             rewireFactor_ = rewireFactor;
 
             // Check if there's things to update
-            if (isSetup_ == true)
+            if (isSetup_)
             {
                 // Reinitialize the terms:
                 this->updateNearestTerms();
@@ -1337,7 +1332,7 @@ namespace ompl
         void BITstar::ImplicitGraph::setUseKNearest(bool useKNearest)
         {
             // Assure that we're not trying to enable k-nearest with JIT sampling already on
-            if (useKNearest == true && useJustInTimeSampling_ == true)
+            if (useKNearest && useJustInTimeSampling_)
             {
                 OMPL_WARN("%s (ImplicitGraph): The k-nearest variant of BIT* cannot be used with JIT sampling, "
                           "continuing to use the r-disc variant.",
@@ -1349,7 +1344,7 @@ namespace ompl
                 useKNearest_ = useKNearest;
 
                 // Check if there's things to update
-                if (isSetup_ == true)
+                if (isSetup_)
                 {
                     // Calculate the current term:
                     this->updateNearestTerms();
@@ -1365,7 +1360,7 @@ namespace ompl
         void BITstar::ImplicitGraph::setJustInTimeSampling(bool useJit)
         {
             // Assure that we're not trying to enable k-nearest with JIT sampling already on
-            if (useKNearest_ == true && useJit == true)
+            if (useKNearest_ && useJit)
             {
                 OMPL_WARN("%s (ImplicitGraph): Just-in-time sampling cannot be used with the k-nearest variant of "
                           "BIT*, continuing to use regular sampling.",
@@ -1377,7 +1372,7 @@ namespace ompl
                 useJustInTimeSampling_ = useJit;
 
                 // Announce limitation:
-                if (useJit == true)
+                if (useJit)
                 {
                     OMPL_INFORM("%s (ImplicitGraph): Just-in-time sampling is currently only implemented for problems "
                                 "seeking to minimize path-length.",
@@ -1395,7 +1390,7 @@ namespace ompl
         void BITstar::ImplicitGraph::setDropSamplesOnPrune(bool dropSamples)
         {
             // Make sure we're not already setup
-            if (isSetup_ == true)
+            if (isSetup_)
             {
                 OMPL_WARN("%s (ImplicitGraph): Periodic sample removal cannot be changed once BIT* is setup. "
                           "Continuing to use the previous setting.",
@@ -1422,7 +1417,7 @@ namespace ompl
                 findApprox_ = findApproximate;
 
                 // Check if we are enabling or disabling approximate solution support
-                if (findApprox_ == false)
+                if (!findApprox_)
                 {
                     // We're turning it off, clear the approximate solution variables:
                     closestDistToGoal_ = std::numeric_limits<double>::infinity();
@@ -1431,7 +1426,7 @@ namespace ompl
                 else
                 {
                     // We are turning it on, do we have an exact solution?
-                    if (hasExactSolution_ == false)
+                    if (!hasExactSolution_)
                     {
                         // We don't, find our current best approximate solution:
                         this->findVertexClosestToGoal();
@@ -1452,7 +1447,7 @@ namespace ompl
         {
             // Check if the problem is already setup, if so, the NN structs have data in them and you can't really
             // change them:
-            if (isSetup_ == true)
+            if (isSetup_)
             {
                 OMPL_WARN("%s (ImplicitGraph): The nearest neighbour datastructures cannot be changed once the problem "
                           "is setup. Continuing to use the existing containers.",

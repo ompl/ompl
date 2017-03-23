@@ -217,7 +217,7 @@ namespace ompl
 
                 ~Cell()
                 {
-                    if (left_)
+                    if (left_ != nullptr)
                     {
                         delete left_;
                         delete right_;
@@ -251,7 +251,7 @@ namespace ompl
                 unsigned int size() const
                 {
                     unsigned int sz = 1;
-                    if (left_)
+                    if (left_ != nullptr)
                         sz += left_->size() + right_->size();
                     return sz;
                 }
@@ -279,7 +279,7 @@ namespace ompl
             /// \brief Either update heap after motion's priority has changed or insert motion into heap.
             void updateHeapElement(Motion *motion)
             {
-                if (motion->heapElement_)
+                if (motion->heapElement_ != nullptr)
                     priorityQueue_.update(motion->heapElement_);
                 else
                     motion->heapElement_ = priorityQueue_.insert(motion);

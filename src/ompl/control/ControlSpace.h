@@ -152,7 +152,7 @@ namespace ompl
                 is returned for \e index = 0. If \e index is too large (does not point to any double values in the
                control),
                 the return value is nullptr. */
-            virtual double *getValueAddressAtIndex(Control *control, const unsigned int index) const;
+            virtual double *getValueAddressAtIndex(Control *control, unsigned int index) const;
 
             /** \brief Print a control to a stream */
             virtual void printControl(const Control *control, std::ostream &out) const;
@@ -226,7 +226,7 @@ namespace ompl
             unsigned int getSubspaceCount() const;
 
             /** \brief Get a specific subspace from the compound control space */
-            const ControlSpacePtr &getSubspace(const unsigned int index) const;
+            const ControlSpacePtr &getSubspace(unsigned int index) const;
 
             /** \brief Get a specific subspace from the compound control space */
             const ControlSpacePtr &getSubspace(const std::string &name) const;
@@ -245,7 +245,7 @@ namespace ompl
 
             ControlSamplerPtr allocDefaultControlSampler() const override;
 
-            double *getValueAddressAtIndex(Control *control, const unsigned int index) const override;
+            double *getValueAddressAtIndex(Control *control, unsigned int index) const override;
 
             void printControl(const Control *control, std::ostream &out = std::cout) const override;
 

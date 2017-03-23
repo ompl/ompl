@@ -123,7 +123,7 @@ void ompl::geometric::SPARStwo::setup()
         if (pdef_->hasOptimizationObjective())
         {
             opt_ = pdef_->getOptimizationObjective();
-            if (!dynamic_cast<base::PathLengthOptimizationObjective *>(opt_.get()))
+            if (dynamic_cast<base::PathLengthOptimizationObjective *>(opt_.get()) == nullptr)
                 OMPL_WARN("%s: Asymptotic optimality has only been proven with path length optimizaton; convergence "
                           "for other optimizaton objectives is not guaranteed.",
                           getName().c_str());
@@ -209,7 +209,7 @@ bool ompl::geometric::SPARStwo::haveSolution(const std::vector<Vertex> &starts, 
                         solution = p;
                         return true;
                     }
-                    else if (opt_->isCostBetterThan(pathCost, sol_cost))
+                    if (opt_->isCostBetterThan(pathCost, sol_cost))
                     {
                         solution = p;
                         sol_cost = pathCost;
@@ -268,7 +268,7 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
     std::vector<Vertex> visibleNeighborhood;
 
     bestCost_ = opt_->infiniteCost();
-    while (ptc == false)
+    while (!ptc)
     {
         ++iterations_;
         ++consecutiveFailures_;
@@ -283,7 +283,7 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
             if (!checkAddConnectivity(qNew, visibleNeighborhood))
                 if (!checkAddInterface(qNew, graphNeighborhood, visibleNeighborhood))
                 {
-                    if (visibleNeighborhood.size() > 0)
+                    if (!visibleNeighborhood.empty())
                     {
                         std::map<Vertex, base::State *> closeRepresentatives;
                         findCloseRepresentatives(workState, qNew, visibleNeighborhood[0], closeRepresentatives, ptc);
@@ -324,7 +324,7 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
 
     auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
-    if (!goal)
+    if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
@@ -398,7 +398,7 @@ void ompl::geometric::SPARStwo::checkForSolution(const base::PlannerTerminationC
         if (goal->maxSampleCount() > goalM_.size())
         {
             const base::State *st = pis_.nextGoal();
-            if (st)
+            if (st != nullptr)
                 goalM_.push_back(addGuard(si_->cloneState(st), GOAL));
         }
 
@@ -412,7 +412,7 @@ void ompl::geometric::SPARStwo::checkForSolution(const base::PlannerTerminationC
 
 bool ompl::geometric::SPARStwo::checkAddCoverage(const base::State *qNew, std::vector<Vertex> &visibleNeighborhood)
 {
-    if (visibleNeighborhood.size() > 0)
+    if (!visibleNeighborhood.empty())
         return false;
     // No free paths means we add for coverage
     addGuard(si_->cloneState(qNew), COVERAGE);
@@ -435,7 +435,7 @@ bool ompl::geometric::SPARStwo::checkAddConnectivity(const base::State *qNew, st
                     links.push_back(visibleNeighborhood[j]);
                 }
 
-        if (links.size() > 0)
+        if (!links.empty())
         {
             // Add the node
             Vertex g = addGuard(si_->cloneState(qNew), CONNECTIVITY);
@@ -471,15 +471,13 @@ bool ompl::geometric::SPARStwo::checkAddInterface(const base::State *qNew, std::
                     // Report success
                     return true;
                 }
-                else
-                {
-                    // Add the new node to the graph, to bridge the interface
-                    Vertex v = addGuard(si_->cloneState(qNew), INTERFACE);
-                    connectGuards(v, visibleNeighborhood[0]);
-                    connectGuards(v, visibleNeighborhood[1]);
-                    // Report success
-                    return true;
-                }
+
+                // Add the new node to the graph, to bridge the interface
+                Vertex v = addGuard(si_->cloneState(qNew), INTERFACE);
+                connectGuards(v, visibleNeighborhood[0]);
+                connectGuards(v, visibleNeighborhood[1]);
+                // Report success
+                return true;
             }
     return false;
 }
@@ -641,10 +639,10 @@ void ompl::geometric::SPARStwo::findCloseRepresentatives(base::State *workArea, 
             sampler_->sampleNear(workArea, qNew, denseDelta_);
         } while ((!si_->isValid(workArea) || si_->distance(qNew, workArea) > denseDelta_ ||
                   !si_->checkMotion(qNew, workArea)) &&
-                 ptc == false);
+                 !ptc);
 
         // if we were not successful at sampling a desirable state, we are out of time
-        if (ptc == true)
+        if (ptc)
             break;
 
         // Compute who his graph neighbors are
@@ -703,7 +701,7 @@ void ompl::geometric::SPARStwo::computeX(Vertex v, Vertex vp, Vertex vpp, std::v
         if (boost::edge(cx, v, g_).second && !boost::edge(cx, vp, g_).second)
         {
             InterfaceData &d = getData(v, vpp, cx);
-            if ((vpp < cx && d.pointA_) || (cx < vpp && d.pointB_))
+            if ((vpp < cx && (d.pointA_ != nullptr)) || (cx < vpp && (d.pointB_ != nullptr)))
                 Xs.push_back(cx);
         }
     Xs.push_back(vpp);
@@ -713,7 +711,7 @@ ompl::geometric::SPARStwo::VertexPair ompl::geometric::SPARStwo::index(Vertex vp
 {
     if (vp < vpp)
         return VertexPair(vp, vpp);
-    else if (vpp < vp)
+    if (vpp < vp)
         return VertexPair(vpp, vp);
     else
         throw Exception(name_, "Trying to get an index where the pairs are the same point!");

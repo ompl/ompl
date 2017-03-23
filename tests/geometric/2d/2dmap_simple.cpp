@@ -69,7 +69,7 @@ public:
         if (setup.solve(SOLUTION_TIME))
         {
             ompl::time::duration elapsed = ompl::time::now() - startTime;
-            if (time)
+            if (time != nullptr)
                 *time += ompl::time::seconds(elapsed);
             if (show)
                 printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
@@ -82,7 +82,7 @@ public:
             setup.getPathSimplifier()->reduceVertices(path);
             elapsed = ompl::time::now() - startTime;
 
-            if (time)
+            if (time != nullptr)
                 *time += ompl::time::seconds(elapsed);
 
             if (show)
@@ -91,7 +91,7 @@ public:
             /* fill in values that were linearly interpolated */
             path.interpolate(path.getStateCount() * 2);
 
-            if (pathLength)
+            if (pathLength != nullptr)
                 *pathLength += path.length();
 
             if (show)

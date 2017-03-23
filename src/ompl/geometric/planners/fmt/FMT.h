@@ -290,9 +290,7 @@ namespace ompl
                     tested and failed because of a collision */
                 bool alreadyCC(Motion *m)
                 {
-                    if (collChecksDone_.find(m) == collChecksDone_.end())
-                        return false;
-                    return true;
+                    return !(collChecksDone_.find(m) == collChecksDone_.end());
                 }
 
                 /** \brief Caches a failed collision check to m */
@@ -354,8 +352,7 @@ namespace ompl
                     if (heuristics_)
                         return opt_->isCostBetterThan(opt_->combineCosts(m1->getCost(), m1->getHeuristicCost()),
                                                       opt_->combineCosts(m2->getCost(), m2->getHeuristicCost()));
-                    else
-                        return opt_->isCostBetterThan(m1->getCost(), m2->getCost());
+                    return opt_->isCostBetterThan(m1->getCost(), m2->getCost());
                 }
 
                 base::OptimizationObjective *opt_{nullptr};
@@ -387,7 +384,7 @@ namespace ompl
             void assureGoalIsSampled(const ompl::base::GoalSampleableRegion *goal);
 
             /** \brief Compute the volume of the unit ball in a given dimension */
-            double calculateUnitBallVolume(const unsigned int dimension) const;
+            double calculateUnitBallVolume(unsigned int dimension) const;
 
             /** \brief Calculate the radius to use for nearest neighbor searches,
                 using the bound given in [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast
@@ -417,7 +414,7 @@ namespace ompl
             /** \brief For a motion m, updates the stored neighborhoods of all its neighbors by
                 by inserting m (maintaining the cost-based sorting). Computes the nearest neighbors
                 if there is no stored neighborhood. */
-            void updateNeighborhood(Motion *m, const std::vector<Motion *> nbh);
+            void updateNeighborhood(Motion *m, std::vector<Motion *> nbh);
 
             /** \brief Returns the best parent and the connection cost in the neighborhood of a motion m. */
             Motion *getBestParent(Motion *m, std::vector<Motion *> &neighbors, base::Cost &cMin);

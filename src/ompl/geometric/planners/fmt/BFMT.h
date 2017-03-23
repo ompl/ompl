@@ -426,9 +426,7 @@ namespace ompl
                     tested and failed because of a collision */
                 bool alreadyCC(BiDirMotion *m)
                 {
-                    if (collChecksDone_.find(m) == collChecksDone_.end())
-                        return false;
-                    return true;
+                    return !(collChecksDone_.find(m) == collChecksDone_.end());
                 }
 
                 /** \brief Caches a failed collision check to m */
@@ -461,8 +459,7 @@ namespace ompl
                     if (heuristics_)
                         return (opt_->combineCosts(p1->getCost(), p1->getHeuristicCost()).value() <
                                 opt_->combineCosts(p2->getCost(), p2->getHeuristicCost()).value());
-                    else
-                        return (p1->getCost().value() < p2->getCost().value());
+                    return (p1->getCost().value() < p2->getCost().value());
                 }
 
                 base::OptimizationObjective *opt_;
@@ -496,7 +493,7 @@ namespace ompl
             }
 
             /** \brief Compute the volume of the unit ball in a given dimension */
-            double calculateUnitBallVolume(const unsigned int dimension) const;
+            double calculateUnitBallVolume(unsigned int dimension) const;
 
             /** \brief Calculate the radius to use for nearest neighbor searches,
                  using the bound given in [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast
@@ -531,7 +528,7 @@ namespace ompl
             void expandTreeFromNode(BiDirMotion *&z, BiDirMotion *&connection_point);
 
             /** \brief Executes the actual planning algorithm, swapping and expanding the trees */
-            bool plan(BiDirMotion *x_init, BiDirMotion *x_goal, BiDirMotion *&z,
+            bool plan(BiDirMotion *x_init, BiDirMotion *x_goal, BiDirMotion *&connection_point,
                       const base::PlannerTerminationCondition &ptc);
 
             /** \brief Checks if the termination condition is met */
@@ -546,7 +543,7 @@ namespace ompl
 
             /** \brief For a motion m, updates the stored neighborhoods of all its neighbors by
                 by inserting m (maintaining the cost-based sorting) */
-            void updateNeighborhood(BiDirMotion *m, const std::vector<BiDirMotion *> nbh);
+            void updateNeighborhood(BiDirMotion *m, std::vector<BiDirMotion *> nbh);
 
             /** \brief Extended FMT strategy: inserts a new motion in open if the heap is empty */
             void insertNewSampleInOpen(const base::PlannerTerminationCondition &ptc);

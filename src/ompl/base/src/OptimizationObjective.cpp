@@ -149,8 +149,8 @@ ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State *state,
 {
     if (hasCostToGoHeuristic())
         return costToGoFn_(state, goal);
-    else
-        return identityCost();  // assumes that identity < all costs
+
+    return identityCost();  // assumes that identity < all costs
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const State *s1, const State *s2) const
@@ -215,16 +215,14 @@ const ompl::base::OptimizationObjectivePtr &ompl::base::MultiOptimizationObjecti
 {
     if (components_.size() > idx)
         return components_[idx].objective;
-    else
-        throw Exception("Objective index does not exist.");
+    throw Exception("Objective index does not exist.");
 }
 
 double ompl::base::MultiOptimizationObjective::getObjectiveWeight(unsigned int idx) const
 {
     if (components_.size() > idx)
         return components_[idx].weight;
-    else
-        throw Exception("Objective index does not exist.");
+    throw Exception("Objective index does not exist.");
 }
 
 void ompl::base::MultiOptimizationObjective::setObjectiveWeight(unsigned int idx, double weight)

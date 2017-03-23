@@ -88,7 +88,7 @@ class KinematicChainSpace : public ompl::base::CompoundStateSpace
 {
 public:
     KinematicChainSpace(unsigned int numLinks, double linkLength, Environment *env = nullptr)
-        : ompl::base::CompoundStateSpace(), linkLength_(linkLength), environment_(env)
+        : linkLength_(linkLength), environment_(env)
     {
         for (unsigned int i = 0; i < numLinks; ++i)
             addSubspace(std::make_shared<ompl::base::SO2StateSpace>(), 1.);

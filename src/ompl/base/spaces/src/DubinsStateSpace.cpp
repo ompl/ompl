@@ -213,8 +213,7 @@ double ompl::base::DubinsStateSpace::distance(const State *state1, const State *
 {
     if (isSymmetric_)
         return rho_ * std::min(dubins(state1, state2).length(), dubins(state2, state1).length());
-    else
-        return rho_ * dubins(state1, state2).length();
+    return rho_ * dubins(state1, state2).length();
 }
 
 void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
@@ -332,7 +331,7 @@ ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(co
 void ompl::base::DubinsMotionValidator::defaultSettings()
 {
     stateSpace_ = dynamic_cast<DubinsStateSpace *>(si_->getStateSpace().get());
-    if (!stateSpace_)
+    if (stateSpace_ == nullptr)
         throw Exception("No state space for motion validator");
 }
 
@@ -356,7 +355,7 @@ bool ompl::base::DubinsMotionValidator::checkMotion(const State *s1, const State
             if (!si_->isValid(test))
             {
                 lastValid.second = (double)(j - 1) / (double)nd;
-                if (lastValid.first)
+                if (lastValid.first != nullptr)
                     stateSpace_->interpolate(s1, s2, lastValid.second, firstTime, path, lastValid.first);
                 result = false;
                 break;
@@ -369,7 +368,7 @@ bool ompl::base::DubinsMotionValidator::checkMotion(const State *s1, const State
         if (!si_->isValid(s2))
         {
             lastValid.second = (double)(nd - 1) / (double)nd;
-            if (lastValid.first)
+            if (lastValid.first != nullptr)
                 stateSpace_->interpolate(s1, s2, lastValid.second, firstTime, path, lastValid.first);
             result = false;
         }

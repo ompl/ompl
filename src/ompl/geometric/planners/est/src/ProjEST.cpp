@@ -84,7 +84,7 @@ void ompl::geometric::ProjEST::freeMemory()
     {
         for (auto &motion : it.second->data.motions_)
         {
-            if (motion->state)
+            if (motion->state != nullptr)
                 si_->freeState(motion->state);
             delete motion;
         }
@@ -104,7 +104,7 @@ ompl::base::PlannerStatus ompl::geometric::ProjEST::solve(const base::PlannerTer
         addMotion(motion);
     }
 
-    if (tree_.grid.size() == 0)
+    if (tree_.grid.empty())
     {
         OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
@@ -120,14 +120,14 @@ ompl::base::PlannerStatus ompl::geometric::ProjEST::solve(const base::PlannerTer
     double approxdif = std::numeric_limits<double>::infinity();
     base::State *xstate = si_->allocState();
 
-    while (ptc == false)
+    while (!ptc)
     {
         /* Decide on a state to expand from */
         Motion *existing = selectMotion();
         assert(existing);
 
         /* sample random state (with goal biasing) */
-        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+        if ((goal_s != nullptr) && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(xstate);
         else if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
             continue;
@@ -194,7 +194,7 @@ ompl::base::PlannerStatus ompl::geometric::ProjEST::solve(const base::PlannerTer
 ompl::geometric::ProjEST::Motion *ompl::geometric::ProjEST::selectMotion()
 {
     GridCell *cell = pdf_.sample(rng_.uniform01());
-    return cell && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : nullptr;
+    return (cell != nullptr) && !cell->data.empty() ? cell->data[rng_.uniformInt(0, cell->data.size() - 1)] : nullptr;
 }
 
 void ompl::geometric::ProjEST::addMotion(Motion *motion)
@@ -202,7 +202,7 @@ void ompl::geometric::ProjEST::addMotion(Motion *motion)
     Grid<MotionInfo>::Coord coord;
     projectionEvaluator_->computeCoordinates(motion->state, coord);
     GridCell *cell = tree_.grid.getCell(coord);
-    if (cell)
+    if (cell != nullptr)
     {
         cell->data.push_back(motion);
         pdf_.update(cell->data.elem_, 1.0 / cell->data.size());
@@ -224,7 +224,7 @@ void ompl::geometric::ProjEST::getPlannerData(base::PlannerData &data) const
     std::vector<MotionInfo> motionInfo;
     tree_.grid.getContent(motionInfo);
 
-    if (lastGoalMotion_)
+    if (lastGoalMotion_ != nullptr)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
     for (auto &m : motionInfo)

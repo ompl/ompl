@@ -43,7 +43,7 @@ namespace ompl
 {
     const control::OpenDEEnvironmentPtr &getOpenDEStateSpaceEnvironmentWithCheck(const base::StateSpacePtr &space)
     {
-        if (!dynamic_cast<control::OpenDEStateSpace *>(space.get()))
+        if (dynamic_cast<control::OpenDEStateSpace *>(space.get()) == nullptr)
             throw Exception("OpenDE State Space needed for creating OpenDE Control Space");
         return space->as<control::OpenDEStateSpace>()->getEnvironment();
     }

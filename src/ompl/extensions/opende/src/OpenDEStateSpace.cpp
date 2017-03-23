@@ -42,7 +42,7 @@
 
 ompl::control::OpenDEStateSpace::OpenDEStateSpace(OpenDEEnvironmentPtr env, double positionWeight, double linVelWeight,
                                                   double angVelWeight, double orientationWeight)
-  : base::CompoundStateSpace(), env_(std::move(env))
+  : env_(std::move(env))
 {
     setName("OpenDE" + getName());
     type_ = base::STATE_SPACE_TYPE_COUNT + 1;
@@ -95,7 +95,7 @@ void ompl::control::OpenDEStateSpace::setDefaultBounds()
         for (int j = 0; j < n; ++j)
         {
             dGeomID geom = dSpaceGetGeom(space, j);
-            if (dGeomIsSpace(geom))
+            if (dGeomIsSpace(geom) != 0)
                 spaces.push((dSpaceID)geom);
             else
             {
@@ -171,18 +171,18 @@ namespace ompl
     static void nearCallback(void *data, dGeomID o1, dGeomID o2)
     {
         // if a collision has not already been detected
-        if (reinterpret_cast<CallbackParam *>(data)->collision == false)
+        if (!reinterpret_cast<CallbackParam *>(data)->collision)
         {
             dBodyID b1 = dGeomGetBody(o1);
             dBodyID b2 = dGeomGetBody(o2);
-            if (b1 && b2 && dAreConnectedExcluding(b1, b2, dJointTypeContact))
+            if ((b1 != nullptr) && (b2 != nullptr) && (dAreConnectedExcluding(b1, b2, dJointTypeContact) != 0))
                 return;
 
             dContact contact[1];  // one contact is sufficient
             int numc = dCollide(o1, o2, 1, &contact[0].geom, sizeof(dContact));
 
             // check if there is really a collision
-            if (numc)
+            if (numc != 0)
             {
                 // check if the collision is allowed
                 bool valid = reinterpret_cast<CallbackParam *>(data)->env->isValidCollision(o1, o2, contact[0]);
@@ -201,12 +201,12 @@ namespace ompl
 
 bool ompl::control::OpenDEStateSpace::evaluateCollision(const base::State *state) const
 {
-    if (state->as<StateType>()->collision & (1 << STATE_COLLISION_KNOWN_BIT))
-        return state->as<StateType>()->collision & (1 << STATE_COLLISION_VALUE_BIT);
+    if ((state->as<StateType>()->collision & (1 << STATE_COLLISION_KNOWN_BIT)) != 0)
+        return (state->as<StateType>()->collision & (1 << STATE_COLLISION_VALUE_BIT)) != 0;
     env_->mutex_.lock();
     writeState(state);
     CallbackParam cp = {env_.get(), false};
-    for (unsigned int i = 0; cp.collision == false && i < env_->collisionSpaces_.size(); ++i)
+    for (unsigned int i = 0; !cp.collision && i < env_->collisionSpaces_.size(); ++i)
         dSpaceCollide(env_->collisionSpaces_[i], &cp, &nearCallback);
     env_->mutex_.unlock();
     if (cp.collision)
@@ -313,10 +313,9 @@ ompl::base::StateSamplerPtr ompl::control::OpenDEStateSpace::allocDefaultStateSa
 ompl::base::StateSamplerPtr ompl::control::OpenDEStateSpace::allocStateSampler() const
 {
     base::StateSamplerPtr sampler = base::CompoundStateSpace::allocStateSampler();
-    if (dynamic_cast<WrapperForOpenDESampler *>(sampler.get()))
+    if (dynamic_cast<WrapperForOpenDESampler *>(sampler.get()) != nullptr)
         return sampler;
-    else
-        return std::make_shared<WrapperForOpenDESampler>(this, sampler);
+    return std::make_shared<WrapperForOpenDESampler>(this, sampler);
 }
 
 void ompl::control::OpenDEStateSpace::readState(base::State *state) const

@@ -293,7 +293,7 @@ namespace ompl
                 std::vector<_T> data;
                 list(data);
                 clear();
-                if (capacity)
+                if (capacity != 0u)
                     data_.reserve(capacity);
                 add(data);
             }

@@ -109,7 +109,7 @@ namespace ompl
 
             virtual ~OpenDEEnvironment()
             {
-                if (contactGroup_)
+                if (contactGroup_ != nullptr)
                     dJointGroupDestroy(contactGroup_);
             }
 

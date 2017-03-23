@@ -158,7 +158,7 @@ void planWithIK()
 }
 /// @endcond
 
-int main(int, char **)
+int main(int /*argc*/, char ** /*argv*/)
 {
     std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 

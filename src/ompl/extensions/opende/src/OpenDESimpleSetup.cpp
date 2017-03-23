@@ -40,7 +40,7 @@
 
 ompl::control::OpenDESimpleSetup::OpenDESimpleSetup(const ControlSpacePtr &space) : SimpleSetup(space)
 {
-    if (!dynamic_cast<OpenDEControlSpace *>(space.get()))
+    if (dynamic_cast<OpenDEControlSpace *>(space.get()) == nullptr)
         throw Exception("OpenDE Control Space needed for OpenDE Simple Setup");
     useEnvParams();
 }
@@ -106,9 +106,9 @@ void ompl::control::OpenDESimpleSetup::playSolutionPath(double timeFactor) const
 void ompl::control::OpenDESimpleSetup::playPath(const base::PathPtr &path, double timeFactor) const
 {
     bool ctl = false;
-    if (dynamic_cast<PathControl *>(path.get()))
+    if (dynamic_cast<PathControl *>(path.get()) != nullptr)
         ctl = true;
-    else if (!dynamic_cast<geometric::PathGeometric *>(path.get()))
+    else if (dynamic_cast<geometric::PathGeometric *>(path.get()) == nullptr)
         throw Exception("Unknown type of path");
 
     const geometric::PathGeometric &pg = ctl ? static_cast<PathControl *>(path.get())->asGeometric() :

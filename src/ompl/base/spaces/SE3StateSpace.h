@@ -53,9 +53,7 @@ namespace ompl
             class StateType : public CompoundStateSpace::StateType
             {
             public:
-                StateType() : CompoundStateSpace::StateType()
-                {
-                }
+                StateType() = default;
 
                 /** \brief Get the X component of the state */
                 double getX() const
@@ -114,7 +112,7 @@ namespace ompl
                 }
             };
 
-            SE3StateSpace() : CompoundStateSpace()
+            SE3StateSpace()
             {
                 setName("SE3" + getName());
                 type_ = STATE_SPACE_SE3;

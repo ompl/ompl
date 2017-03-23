@@ -211,7 +211,7 @@ namespace ompl
             base::State *allocState() const override;
             void freeState(base::State *state) const override;
             void copyState(base::State *destination, const base::State *source) const override;
-            void interpolate(const base::State *from, const base::State *to, const double t,
+            void interpolate(const base::State *from, const base::State *to, double t,
                              base::State *state) const override;
 
             base::StateSamplerPtr allocDefaultStateSampler() const override;
@@ -220,7 +220,7 @@ namespace ompl
             /** \brief Fill the OpenDEStateSpace::STATE_COLLISION_VALUE_BIT of StateType::collision member of a state,
                if unspecified.
                 Return the value value of that bit. */
-            virtual bool evaluateCollision(const base::State *source) const;
+            virtual bool evaluateCollision(const base::State *state) const;
 
         protected:
             /** \brief Representation of the OpenDE parameters OMPL needs to plan */

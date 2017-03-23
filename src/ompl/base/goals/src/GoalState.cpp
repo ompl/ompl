@@ -39,7 +39,7 @@
 
 ompl::base::GoalState::~GoalState()
 {
-    if (state_)
+    if (state_ != nullptr)
         si_->freeState(state_);
 }
 
@@ -66,7 +66,7 @@ unsigned int ompl::base::GoalState::maxSampleCount() const
 
 void ompl::base::GoalState::setState(const State *st)
 {
-    if (state_)
+    if (state_ != nullptr)
         si_->freeState(state_);
     state_ = si_->cloneState(st);
 }

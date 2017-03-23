@@ -260,25 +260,20 @@ namespace ompl
             bool locked_;
 
             // Friend functions for operator overloads for easy multiobjective creation
+
+            /** \brief Given two optimization objectives, returns a MultiOptimizationObjective that combines the two
+              * objectives with both weights equal to 1.0. */
             friend OptimizationObjectivePtr operator+(const OptimizationObjectivePtr &a,
                                                       const OptimizationObjectivePtr &b);
 
-            friend OptimizationObjectivePtr operator*(double w, const OptimizationObjectivePtr &a);
+            /** \brief Given a weighing factor and an optimization objective, returns a MultiOptimizationObjective
+              * containing only this objective weighted by the given weight */
+            friend OptimizationObjectivePtr operator*(double weight, const OptimizationObjectivePtr &a);
 
-            friend OptimizationObjectivePtr operator*(const OptimizationObjectivePtr &a, double w);
+            /** \brief Given a weighing factor and an optimization objective, returns a MultiOptimizationObjective
+             * containing only this objective weighted by the given weight */
+            friend OptimizationObjectivePtr operator*(const OptimizationObjectivePtr &a, double weight);
         };
-
-        /** \brief Given two optimization objectives, returns a MultiOptimizationObjective that combines the two
-         * objectives with both weights equal to 1.0. */
-        OptimizationObjectivePtr operator+(const OptimizationObjectivePtr &a, const OptimizationObjectivePtr &b);
-
-        /** \brief Given a weighing factor and an optimization objective, returns a MultiOptimizationObjective
-         * containing only this objective weighted by the given weight */
-        OptimizationObjectivePtr operator*(double w, const OptimizationObjectivePtr &a);
-
-        /** \brief Given a weighing factor and an optimization objective, returns a MultiOptimizationObjective
-         * containing only this objective weighted by the given weight */
-        OptimizationObjectivePtr operator*(const OptimizationObjectivePtr &a, double w);
     }
 }
 

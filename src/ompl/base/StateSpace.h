@@ -330,7 +330,7 @@ namespace ompl
                @e to state.
                 The memory location of @e state is not required to be different from the memory of either
                 @e from or @e to. */
-            virtual void interpolate(const State *from, const State *to, const double t, State *state) const = 0;
+            virtual void interpolate(const State *from, const State *to, double t, State *state) const = 0;
 
             /** \brief Allocate an instance of the default uniform state sampler for this space */
             virtual StateSamplerPtr allocDefaultStateSampler() const = 0;
@@ -373,10 +373,10 @@ namespace ompl
                 implementation of planners. Ideally, state values should not be accessed by index. If accessing of
                individual state elements
                 is however needed, getValueAddressAtLocation() provides a faster implementation. */
-            virtual double *getValueAddressAtIndex(State *state, const unsigned int index) const;
+            virtual double *getValueAddressAtIndex(State *state, unsigned int index) const;
 
             /** \brief Const variant of the same function as above; */
-            const double *getValueAddressAtIndex(const State *state, const unsigned int index) const;
+            const double *getValueAddressAtIndex(const State *state, unsigned int index) const;
 
             /** \brief Get the locations of values of type double contained in a state from this space. The order of the
                values is
@@ -621,7 +621,7 @@ namespace ompl
             unsigned int getSubspaceCount() const;
 
             /** \brief Get a specific subspace from the compound state space */
-            const StateSpacePtr &getSubspace(const unsigned int index) const;
+            const StateSpacePtr &getSubspace(unsigned int index) const;
 
             /** \brief Get a specific subspace from the compound state space */
             const StateSpacePtr &getSubspace(const std::string &name) const;
@@ -633,13 +633,13 @@ namespace ompl
             bool hasSubspace(const std::string &name) const;
 
             /** \brief Get the weight of a subspace from the compound state space (used in distance computation) */
-            double getSubspaceWeight(const unsigned int index) const;
+            double getSubspaceWeight(unsigned int index) const;
 
             /** \brief Get the weight of a subspace from the compound state space (used in distance computation) */
             double getSubspaceWeight(const std::string &name) const;
 
             /** \brief Set the weight of a subspace in the compound state space (used in distance computation) */
-            void setSubspaceWeight(const unsigned int index, double weight);
+            void setSubspaceWeight(unsigned int index, double weight);
 
             /** \brief Set the weight of a subspace in the compound state space (used in distance computation) */
             void setSubspaceWeight(const std::string &name, double weight);
@@ -707,7 +707,7 @@ namespace ompl
 
             bool equalStates(const State *state1, const State *state2) const override;
 
-            void interpolate(const State *from, const State *to, const double t, State *state) const override;
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
 
             StateSamplerPtr allocDefaultStateSampler() const override;
 
@@ -715,7 +715,7 @@ namespace ompl
 
             void freeState(State *state) const override;
 
-            double *getValueAddressAtIndex(State *state, const unsigned int index) const override;
+            double *getValueAddressAtIndex(State *state, unsigned int index) const override;
 
             /** @} */
 

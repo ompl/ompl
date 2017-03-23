@@ -255,7 +255,7 @@ void randomizedAllocator(const base::SpaceInformation *si)
         }
     }
     for (auto & state : states)
-        if (state)
+        if (state != nullptr)
             si->freeState(state);
 }
 
@@ -301,7 +301,7 @@ BOOST_AUTO_TEST_CASE(PartialCopy)
     BOOST_CHECK(subspaces.size() == 1);
     BOOST_CHECK(subspaces[0] == m->getName());
     q->getCommonSubspaces(r3, subspaces);
-    BOOST_CHECK(subspaces.size() == 0);
+    BOOST_CHECK(subspaces.empty());
     m->getCommonSubspaces(q, subspaces);
     BOOST_CHECK(subspaces.size() == 1);
     base::ScopedState<> dummy(q);

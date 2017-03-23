@@ -128,7 +128,7 @@ std::string problemName(PlannerType plannerType)
 {
     if (plannerType == VFRRT)
         return std::string("vfrrt-conservative.path");
-    else if (plannerType == TRRT)
+    if (plannerType == TRRT)
         return std::string("trrt-conservative.path");
     else if (plannerType == RRTSTAR)
         return std::string("rrtstar-conservative.path");

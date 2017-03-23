@@ -57,7 +57,7 @@ namespace ompl
         {
         public:
             /** \brief Construct an ordering wrapper around the provided informed sampler. */
-            OrderedInfSampler(const InformedSamplerPtr &infSampler, unsigned int batchSize);
+            OrderedInfSampler(const InformedSamplerPtr &infSamplerPtr, unsigned int batchSize);
             ~OrderedInfSampler() override = default;
 
             /** \brief Sample uniformly in the subset of the state space whose heuristic solution estimates are less

@@ -82,7 +82,7 @@ namespace ompl
                 Each element is sampled with a Gaussian distribution
                 with mean 0 and variance 1 and the matrix rows are
                 made orthonormal. */
-            static Matrix ComputeRandom(const unsigned int from, const unsigned int to,
+            static Matrix ComputeRandom(unsigned int from, unsigned int to,
                                         const std::vector<double> &scale);
 
             /** \brief Compute a random projection matrix with \e from
@@ -94,13 +94,13 @@ namespace ompl
                 Each element is sampled with a Gaussian distribution
                 with mean 0 and variance 1 and the matrix rows are
                 made orthonormal. */
-            static Matrix ComputeRandom(const unsigned int from, const unsigned int to);
+            static Matrix ComputeRandom(unsigned int from, unsigned int to);
 
             /** \brief Wrapper for ComputeRandom(from, to, scale) */
-            void computeRandom(const unsigned int from, const unsigned int to, const std::vector<double> &scale);
+            void computeRandom(unsigned int from, unsigned int to, const std::vector<double> &scale);
 
             /** \brief Wrapper for ComputeRandom(from, to) */
-            void computeRandom(const unsigned int from, const unsigned int to);
+            void computeRandom(unsigned int from, unsigned int to);
 
             /** \brief Multiply the vector \e from by the contained projection matrix to obtain the vector \e to. */
             void project(const double *from, EuclideanProjection &to) const;

@@ -129,7 +129,7 @@ namespace ompl
                     ODESolverStatePropagator(const ODESolverPtr& solver, PostPropagationEvent pe)
                       : StatePropagator(solver->si_), solver_(solver), postEvent_(std::move(pe))
                     {
-                        if (!solver.get())
+                        if (solver.get() == nullptr)
                             OMPL_ERROR("ODESolverPtr does not reference a valid ODESolver object");
                     }
 
@@ -154,7 +154,7 @@ namespace ompl
 
         protected:
             /// \brief Solve the ODE given the initial state, and a control to apply for some duration.
-            virtual void solve(StateType &state, const Control *control, const double duration) const = 0;
+            virtual void solve(StateType &state, const Control *control, double duration) const = 0;
 
             /// \brief The SpaceInformation that this ODESolver operates in.
             const SpaceInformationPtr si_;

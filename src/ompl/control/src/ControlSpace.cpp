@@ -87,8 +87,7 @@ ompl::control::ControlSamplerPtr ompl::control::ControlSpace::allocControlSample
 {
     if (csa_)
         return csa_(this);
-    else
-        return allocDefaultControlSampler();
+    return allocDefaultControlSampler();
 }
 
 void ompl::control::ControlSpace::setControlSamplerAllocator(const ControlSamplerAllocator &csa)
@@ -159,8 +158,7 @@ const ompl::control::ControlSpacePtr &ompl::control::CompoundControlSpace::getSu
 {
     if (componentCount_ > index)
         return components_[index];
-    else
-        throw Exception("Subspace index does not exist");
+    throw Exception("Subspace index does not exist");
 }
 
 const ompl::control::ControlSpacePtr &ompl::control::CompoundControlSpace::getSubspace(const std::string &name) const
@@ -244,12 +242,11 @@ double *ompl::control::CompoundControlSpace::getValueAddressAtIndex(Control *con
         for (unsigned int j = 0; j <= index; ++j)
         {
             double *va = components_[i]->getValueAddressAtIndex(ccontrol->components[i], j);
-            if (va)
+            if (va != nullptr)
             {
                 if (idx == index)
                     return va;
-                else
-                    idx++;
+                idx++;
             }
             else
                 break;

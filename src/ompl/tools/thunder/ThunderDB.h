@@ -152,7 +152,7 @@ namespace ompl
              */
             bool isEmpty()
             {
-                return !spars_->getNumVertices();
+                return spars_->getNumVertices() == 0u;
             }
 
         protected:

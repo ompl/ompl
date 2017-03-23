@@ -89,7 +89,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
     checkValidity();
     auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
-    if (!goal)
+    if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
@@ -129,7 +129,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
     bool startTree = true;
     bool solved = false;
 
-    while (ptc == false)
+    while (!ptc)
     {
         Discretization<Motion> &disc = startTree ? dStart_ : dGoal_;
         startTree = !startTree;
@@ -140,7 +140,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
         if (dGoal_.getMotionCount() == 0 || pis_.getSampledGoalsCount() < dGoal_.getMotionCount() / 2)
         {
             const base::State *st = dGoal_.getMotionCount() == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
-            if (st)
+            if (st != nullptr)
             {
                 auto *motion = new Motion(si_);
                 si_->copyState(motion->state, st);
@@ -179,7 +179,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
 
                 Discretization<Motion>::Cell *cellC = otherDisc.getGrid().getCell(xcoord);
 
-                if (cellC && !cellC->data->motions.empty())
+                if ((cellC != nullptr) && !cellC->data->motions.empty())
                 {
                     Motion *connectOther = cellC->data->motions[rng_.uniformInt(0, cellC->data->motions.size() - 1)];
 
@@ -245,7 +245,7 @@ ompl::base::PlannerStatus ompl::geometric::BKPIECE1::solve(const base::PlannerTe
 
 void ompl::geometric::BKPIECE1::freeMotion(Motion *motion)
 {
-    if (motion->state)
+    if (motion->state != nullptr)
         si_->freeState(motion->state);
     delete motion;
 }

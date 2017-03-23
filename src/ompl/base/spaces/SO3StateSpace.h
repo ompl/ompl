@@ -61,7 +61,7 @@ namespace ompl
                 around the identity quaternion within given distance. We
                 pre-multiply this quaternion with the quaternion near
                 to center the distribution around near. */
-            void sampleUniformNear(State *state, const State *near, const double distance) override;
+            void sampleUniformNear(State *state, const State *near, double distance) override;
             /** \brief Sample a state such that the expected distance between
                 mean and state is stdDev.
 
@@ -72,7 +72,7 @@ namespace ompl
                 around S^3 to obtain a Gaussian quaternion with zero mean.
                 We pre-multiply this quaternion with the quaternion mean
                 to get the desired mean. */
-            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
+            void sampleGaussian(State *state, const State *mean, double stdDev) override;
         };
 
         /** \brief A state space representing SO(3). The internal
@@ -109,7 +109,7 @@ namespace ompl
                 double w;
             };
 
-            SO3StateSpace() : StateSpace()
+            SO3StateSpace()
             {
                 setName("SO3" + getName());
                 type_ = STATE_SPACE_SO3;
@@ -142,7 +142,7 @@ namespace ompl
 
             bool equalStates(const State *state1, const State *state2) const override;
 
-            void interpolate(const State *from, const State *to, const double t, State *state) const override;
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
 
             StateSamplerPtr allocDefaultStateSampler() const override;
 
@@ -150,7 +150,7 @@ namespace ompl
 
             void freeState(State *state) const override;
 
-            double *getValueAddressAtIndex(State *state, const unsigned int index) const override;
+            double *getValueAddressAtIndex(State *state, unsigned int index) const override;
 
             void printState(const State *state, std::ostream &out) const override;
 

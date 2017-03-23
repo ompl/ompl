@@ -147,11 +147,11 @@ namespace ompl
 
             /** \brief By default sampleUniformNear throws. This can be overloaded by a specific informed sampler if
              * desired. */
-            void sampleUniformNear(State *statePtr, const State *near, const double distance) override;
+            void sampleUniformNear(State *statePtr, const State *near, double distance) override;
 
             /** \brief By default sampleGaussian throws. This can be overloaded by a specific informed sampler if
              * desired. */
-            void sampleGaussian(State *statePtr, const State *mean, const double stdDev) override;
+            void sampleGaussian(State *statePtr, const State *mean, double stdDev) override;
 
         private:
             /** \brief A helper function for construction */

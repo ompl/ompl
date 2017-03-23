@@ -50,7 +50,7 @@ class RigidBodyEnvironment : public oc::OpenDEEnvironment
 {
 public:
 
-    RigidBodyEnvironment() : oc::OpenDEEnvironment()
+    RigidBodyEnvironment()
     {
         createWorld();
     }
@@ -218,7 +218,7 @@ public:
 
 /// @endcond
 
-int main(int, char **)
+int main(int /*argc*/, char ** /*argv*/)
 {
     // initialize OpenDE
     dInitODE2(0);

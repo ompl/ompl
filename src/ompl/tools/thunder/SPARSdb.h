@@ -127,22 +127,22 @@ namespace ompl
                 /** \brief Clears the given interface data. */
                 void clear(const base::SpaceInformationPtr &si)
                 {
-                    if (pointA_)
+                    if (pointA_ != nullptr)
                     {
                         si->freeState(pointA_);
                         pointA_ = nullptr;
                     }
-                    if (pointB_)
+                    if (pointB_ != nullptr)
                     {
                         si->freeState(pointB_);
                         pointB_ = nullptr;
                     }
-                    if (sigmaA_)
+                    if (sigmaA_ != nullptr)
                     {
                         si->freeState(sigmaA_);
                         sigmaA_ = nullptr;
                     }
-                    if (sigmaB_)
+                    if (sigmaB_ != nullptr)
                     {
                         si->freeState(sigmaB_);
                         sigmaB_ = nullptr;
@@ -153,30 +153,30 @@ namespace ompl
                 /** \brief Sets information for the first interface (i.e. interface with smaller index vertex). */
                 void setFirst(const base::State *p, const base::State *s, const base::SpaceInformationPtr &si)
                 {
-                    if (pointA_)
+                    if (pointA_ != nullptr)
                         si->copyState(pointA_, p);
                     else
                         pointA_ = si->cloneState(p);
-                    if (sigmaA_)
+                    if (sigmaA_ != nullptr)
                         si->copyState(sigmaA_, s);
                     else
                         sigmaA_ = si->cloneState(s);
-                    if (pointB_)
+                    if (pointB_ != nullptr)
                         d_ = si->distance(pointA_, pointB_);
                 }
 
                 /** \brief Sets information for the second interface (i.e. interface with larger index vertex). */
                 void setSecond(const base::State *p, const base::State *s, const base::SpaceInformationPtr &si)
                 {
-                    if (pointB_)
+                    if (pointB_ != nullptr)
                         si->copyState(pointB_, p);
                     else
                         pointB_ = si->cloneState(p);
-                    if (sigmaB_)
+                    if (sigmaB_ != nullptr)
                         si->copyState(sigmaB_, s);
                     else
                         sigmaB_ = si->cloneState(s);
-                    if (pointA_)
+                    if (pointA_ != nullptr)
                         d_ = si->distance(pointA_, pointB_);
                 }
             };
@@ -436,7 +436,7 @@ namespace ompl
                 return stretchFactor_;
             }
 
-            bool getGuardSpacingFactor(const double pathLength, double &numGuards, double &spacingFactor);
+            bool getGuardSpacingFactor(double pathLength, double &numGuards, double &spacingFactor);
 
             /**
              * \brief Calculate the distance that should be used in inserting nodes into the db
@@ -445,7 +445,7 @@ namespace ompl
              * \param spacing factor - what fraction of the sparsedelta should be used in placing guards
              * \return
              */
-            bool getGuardSpacingFactor(const double pathLength, int &numGuards, double &spacingFactor);
+            bool getGuardSpacingFactor(double pathLength, int &numGuards, double &spacingFactor);
 
             bool addPathToRoadmap(const base::PlannerTerminationCondition &ptc,
                                   ompl::geometric::PathGeometric &solutionPath);
@@ -523,7 +523,7 @@ namespace ompl
             unsigned int getNumConnectedComponents() const
             {
                 // Make sure graph is populated
-                if (!getNumVertices())
+                if (getNumVertices() == 0u)
                     return 0;
 
                 std::vector<int> components(boost::num_vertices(g_));
@@ -686,7 +686,7 @@ namespace ompl
              *  \param vertexPath
              *  \return true if candidate solution found
              */
-            bool constructSolution(const Vertex start, const Vertex goal, std::vector<Vertex> &vertexPath) const;
+            bool constructSolution(Vertex start, Vertex goal, std::vector<Vertex> &vertexPath) const;
 
             /** \brief Check if two milestones (\e m1 and \e m2) are part of the same connected component. This is not a
              * const function since we use incremental connected components from boost */

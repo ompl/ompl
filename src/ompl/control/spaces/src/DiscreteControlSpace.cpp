@@ -81,7 +81,7 @@ void ompl::control::DiscreteControlSpace::nullControl(Control *control) const
 void ompl::control::DiscreteControlSpace::printControl(const Control *control, std::ostream &out) const
 {
     out << "DiscreteControl [";
-    if (control)
+    if (control != nullptr)
         out << control->as<ControlType>()->value;
     else
         out << "nullptr";

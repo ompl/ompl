@@ -119,7 +119,7 @@ namespace ompl
             unsigned int getNumPlanners() const;
 
             /// \brief Retrieve a pointer to the ith planner instance
-            base::PlannerPtr getPlanner(unsigned int i) const;
+            base::PlannerPtr getPlanner(unsigned int idx) const;
 
             /// \brief Return whether the anytime planner will perform shortcutting on paths
             bool isShortcutting() const;

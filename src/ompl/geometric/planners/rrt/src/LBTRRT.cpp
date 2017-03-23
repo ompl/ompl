@@ -101,11 +101,11 @@ void ompl::geometric::LBTRRT::setup()
 
 void ompl::geometric::LBTRRT::freeMemory()
 {
-    if (idToMotionMap_.size() > 0)
+    if (!idToMotionMap_.empty())
     {
         for (auto &i : idToMotionMap_)
         {
-            if (i->state_)
+            if (i->state_ != nullptr)
                 si_->freeState(i->state_);
             delete i;
         }
@@ -119,7 +119,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     base::Goal *goal = pdef_->getGoal().get();
     auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
-    if (!goal)
+    if (goal == nullptr)
     {
         OMPL_ERROR("%s: Goal undefined", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
@@ -165,12 +165,12 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     base::State *xstate = si_->allocState();
     unsigned int statesGenerated = 0;
 
-    bestCost_ = lastGoalMotion_ ? lastGoalMotion_->costApx_ : std::numeric_limits<double>::infinity();
-    while (ptc() == false)
+    bestCost_ = lastGoalMotion_ != nullptr ? lastGoalMotion_->costApx_ : std::numeric_limits<double>::infinity();
+    while (!ptc())
     {
         iterations_++;
         /* sample random state (with goal biasing) */
-        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+        if ((goal_s != nullptr) && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
         else
             sampler_->sampleUniform(rstate);
@@ -298,7 +298,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     }
 
     si_->freeState(xstate);
-    if (rmotion->state_)
+    if (rmotion->state_ != nullptr)
         si_->freeState(rmotion->state_);
     delete rmotion;
 
@@ -337,7 +337,7 @@ void ompl::geometric::LBTRRT::considerEdge(Motion *parent, Motion *child, double
             queue.insert(m);
     }
 
-    while (queue.empty() == false)
+    while (!queue.empty())
     {
         Motion *motion = *(queue.begin());
         queue.erase(queue.begin());
@@ -383,8 +383,7 @@ void ompl::geometric::LBTRRT::considerEdge(Motion *parent, Motion *child, double
         }
     }
 
-    return;
-}
+    }
 
 void ompl::geometric::LBTRRT::getPlannerData(base::PlannerData &data) const
 {
@@ -394,7 +393,7 @@ void ompl::geometric::LBTRRT::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
-    if (lastGoalMotion_)
+    if (lastGoalMotion_ != nullptr)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state_));
 
     for (auto &motion : motions)

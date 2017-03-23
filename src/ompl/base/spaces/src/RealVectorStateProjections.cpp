@@ -47,7 +47,7 @@ namespace ompl
     {
         static inline void checkSpaceType(const StateSpace *m)
         {
-            if (!dynamic_cast<const RealVectorStateSpace *>(m))
+            if (dynamic_cast<const RealVectorStateSpace *>(m) == nullptr)
                 throw Exception("Expected real vector state space for projection");
         }
     }

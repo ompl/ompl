@@ -54,7 +54,7 @@ namespace ompl
             ~GaussianValidStateSampler() override = default;
 
             bool sample(State *state) override;
-            bool sampleNear(State *state, const State *near, const double distance) override;
+            bool sampleNear(State *state, const State *near, double distance) override;
 
             /** \brief Get the standard deviation used when sampling */
             double getStdDev() const

@@ -409,7 +409,7 @@ namespace ompl
             DenseVertex getInterfaceNeighbor(DenseVertex q, SparseVertex rep);
 
             /** \brief Method for actually adding a dense path to the Roadmap Spanner, S. */
-            bool addPathToSpanner(const DensePath &p, SparseVertex vp, SparseVertex vpp);
+            bool addPathToSpanner(const DensePath &dense_path, SparseVertex vp, SparseVertex vpp);
 
             /** \brief Automatically updates the representatives of all dense samplse within sparseDelta_ of v */
             void updateRepresentatives(SparseVertex v);
@@ -438,7 +438,7 @@ namespace ompl
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is
              * in \e start and the second is in \e goal, and the two milestones are in the same connected component. If
              * a solution is found, the path is saved. */
-            bool haveSolution(const std::vector<DenseVertex> &start, const std::vector<DenseVertex> &goal,
+            bool haveSolution(const std::vector<DenseVertex> &starts, const std::vector<DenseVertex> &goals,
                               base::PathPtr &solution);
 
             /** \brief Returns true if we have reached the iteration failures limit, \e maxFailures_ or if a solution
@@ -447,10 +447,10 @@ namespace ompl
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set
              * it as the solution */
-            base::PathPtr constructSolution(const SparseVertex start, const SparseVertex goal) const;
+            base::PathPtr constructSolution(SparseVertex start, SparseVertex goal) const;
 
             /** \brief Constructs the dense path between the start and goal vertices (if connected) */
-            void computeDensePath(const DenseVertex start, const DenseVertex goal, DensePath &path) const;
+            void computeDensePath(DenseVertex start, DenseVertex goal, DensePath &path) const;
 
             /** \brief Free all the memory allocated by the planner */
             void freeMemory();

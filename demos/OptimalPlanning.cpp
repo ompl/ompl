@@ -90,7 +90,7 @@ enum planningObjective
 };
 
 // Parse the command-line arguments
-bool argParse(int argc, char** argv, double *runTime, optimalPlanner *plannerPtr, planningObjective *objectivePtr, std::string *outputFilePtr);
+bool argParse(int argc, char** argv, double *runTimePtr, optimalPlanner *plannerPtr, planningObjective *objectivePtr, std::string *outputFilePtr);
 
 // Our "collision checker". For this demo, our robot's state space
 // lies in [0,1]x[0,1], with a circular obstacle of radius 0.25
@@ -307,11 +307,8 @@ int main(int argc, char** argv)
         // Return with success
         return 0;
     }
-    else
-    {
-        // Return with error
-        return -1;
-    }
+    // Return with error
+    return -1;
 }
 
 /** Returns a structure representing the optimization objective to use
@@ -434,7 +431,7 @@ bool argParse(int argc, char** argv, double* runTimePtr, optimalPlanner *planner
     bpo::notify(vm);
 
     // Check if the help flag has been given:
-    if (vm.count("help"))
+    if (vm.count("help") != 0u)
     {
         std::cout << desc << std::endl;
         return false;

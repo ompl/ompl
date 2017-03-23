@@ -119,7 +119,7 @@ namespace ompl
 
             void printControl(const Control *control, std::ostream &out) const override;
 
-            double *getValueAddressAtIndex(Control *control, const unsigned int index) const override;
+            double *getValueAddressAtIndex(Control *control, unsigned int index) const override;
 
             void printSettings(std::ostream &out) const override;
 

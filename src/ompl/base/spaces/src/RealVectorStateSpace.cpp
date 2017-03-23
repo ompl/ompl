@@ -291,7 +291,7 @@ double *ompl::base::RealVectorStateSpace::getValueAddressAtIndex(State *state, c
 void ompl::base::RealVectorStateSpace::printState(const State *state, std::ostream &out) const
 {
     out << "RealVectorState [";
-    if (state)
+    if (state != nullptr)
     {
         const auto *rstate = static_cast<const StateType *>(state);
         for (unsigned int i = 0; i < dimension_; ++i)

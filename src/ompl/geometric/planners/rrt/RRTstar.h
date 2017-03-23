@@ -175,7 +175,7 @@ namespace ompl
                 Considering the descendents of a vertex prevents removing a descendent
                 that may actually be capable of later providing a better solution once
                 its incoming path passes through a different vertex (e.g., a change in homotopy class). */
-            void setTreePruning(const bool prune);
+            void setTreePruning(bool prune);
 
             /** \brief Get the state of the pruning option. */
             bool getTreePruning() const
@@ -220,7 +220,7 @@ namespace ompl
             }
 
             /** \brief Controls whether heuristic rejection is used on samples (e.g., x_rand) */
-            void setSampleRejection(const bool reject);
+            void setSampleRejection(bool reject);
 
             /** \brief Get the state of the sample rejection option */
             bool getSampleRejection() const

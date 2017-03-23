@@ -195,7 +195,7 @@ void readPlannerData()
     }
 }
 
-int main(int, char **)
+int main(int /*argc*/, char ** /*argv*/)
 {
     // Plan and save all of the planner data to disk
     planWithSimpleSetup();

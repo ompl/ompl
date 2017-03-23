@@ -606,7 +606,7 @@ ompl::base::ReedsSheppStateSpace::ReedsSheppPath ompl::base::ReedsSheppStateSpac
 void ompl::base::ReedsSheppMotionValidator::defaultSettings()
 {
     stateSpace_ = dynamic_cast<ReedsSheppStateSpace *>(si_->getStateSpace().get());
-    if (!stateSpace_)
+    if (stateSpace_ == nullptr)
         throw Exception("No state space for motion validator");
 }
 
@@ -630,7 +630,7 @@ bool ompl::base::ReedsSheppMotionValidator::checkMotion(const State *s1, const S
             if (!si_->isValid(test))
             {
                 lastValid.second = (double)(j - 1) / (double)nd;
-                if (lastValid.first)
+                if (lastValid.first != nullptr)
                     stateSpace_->interpolate(s1, s2, lastValid.second, firstTime, path, lastValid.first);
                 result = false;
                 break;
@@ -643,7 +643,7 @@ bool ompl::base::ReedsSheppMotionValidator::checkMotion(const State *s1, const S
         if (!si_->isValid(s2))
         {
             lastValid.second = (double)(nd - 1) / (double)nd;
-            if (lastValid.first)
+            if (lastValid.first != nullptr)
                 stateSpace_->interpolate(s1, s2, lastValid.second, firstTime, path, lastValid.first);
             result = false;
         }

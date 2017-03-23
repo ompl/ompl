@@ -95,11 +95,8 @@ namespace
                     OMPL_WARN("Random generator seed cannot be 0. Ignoring seed.");
                     return;
                 }
-                else
-                {
-                    OMPL_WARN("Random generator seed cannot be 0. Using 1 instead.");
-                    seed = 1;
-                }
+                OMPL_WARN("Random generator seed cannot be 0. Using 1 instead.");
+                seed = 1;
             }
             sGen_.seed(seed);
         }
@@ -119,8 +116,8 @@ namespace
         std::uniform_int_distribution<> sDist_;
     };
 
-    static std::once_flag g_once;
-    static boost::scoped_ptr<RNGSeedGenerator> g_RNGSeedGenerator;
+    std::once_flag g_once;
+    boost::scoped_ptr<RNGSeedGenerator> g_RNGSeedGenerator;
 
     void initRNGSeedGenerator()
     {
@@ -171,7 +168,7 @@ public:
         for (auto &i : dimVector_)
         {
             // Check if the variate_generator is allocated
-            if (bool(i.first) == true)
+            if (bool(i.first))
             {
                 // It is, reset THE DATA (not the pointer)
                 i.first->reset();

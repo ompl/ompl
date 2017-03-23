@@ -241,7 +241,7 @@ namespace ompl
 
             /// \brief Extend \e tree toward the state in \e rmotion.
             /// Store the result of the extension, if any, in result
-            GrowResult extendTree(Motion *rmotion, TreeData &tree, Motion *&xmotion);
+            GrowResult extendTree(Motion *toMotion, TreeData &tree, Motion *&result);
 
             /// \brief Extend \e tree from \e nearest toward \e toMotion.
             /// Store the result of the extension, if any, in result

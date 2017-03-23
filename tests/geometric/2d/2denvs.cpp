@@ -125,7 +125,7 @@ public:
             {
                 ompl::time::duration elapsed = ompl::time::now() - startTime;
                 good++;
-                if (time)
+                if (time != nullptr)
                     *time += ompl::time::seconds(elapsed);
                 if (show)
                     printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
@@ -138,16 +138,16 @@ public:
                 startTime = ompl::time::now();
                 sm->simplify(*path, SOLUTION_TIME);
                 elapsed = ompl::time::now() - startTime;
-                if (pathLength)
+                if (pathLength != nullptr)
                     *pathLength += path->length();
-                if (time)
+                if (time != nullptr)
                     *time += ompl::time::seconds(elapsed);
             }
         }
 
-        if (pathLength)
+        if (pathLength != nullptr)
             *pathLength /= (double)circles.getQueryCount();
-        if (time)
+        if (time != nullptr)
             *time /= (double)circles.getQueryCount();
 
         return (double)good / (double)circles.getQueryCount();
@@ -181,7 +181,7 @@ public:
         if (planner->solve(SOLUTION_TIME))
         {
             ompl::time::duration elapsed = ompl::time::now() - startTime;
-            if (time)
+            if (time != nullptr)
                 *time += ompl::time::seconds(elapsed);
             if (show)
                 printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
@@ -196,7 +196,7 @@ public:
             sm->reduceVertices(*path);
             elapsed = ompl::time::now() - startTime;
 
-            if (time)
+            if (time != nullptr)
                 *time += ompl::time::seconds(elapsed);
 
             if (show)
@@ -205,7 +205,7 @@ public:
             /* fill in values that were linearly interpolated */
             path->interpolate(path->getStateCount() * 2);
 
-            if (pathLength)
+            if (pathLength != nullptr)
                 *pathLength += path->length();
 
             if (show)

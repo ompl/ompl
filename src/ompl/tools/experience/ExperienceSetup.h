@@ -65,7 +65,7 @@ namespace ompl
 
                 double getAveragePlanningTime() const
                 {
-                    if (!numProblems_)
+                    if (numProblems_ == 0.0)
                         return 0.0;
 
                     return totalPlanningTime_ / numProblems_;
@@ -73,15 +73,14 @@ namespace ompl
 
                 double getAverageInsertionTime() const
                 {
-                    if (!numProblems_)
+                    if (numProblems_ == 0.0)
                         return 0.0;
 
                     // Clean up output
                     double time = totalInsertionTime_ / numProblems_;
                     if (time < 1e-8)
                         return 0.0;
-                    else
-                        return totalInsertionTime_ / numProblems_;
+                    return totalInsertionTime_ / numProblems_;
                 }
 
                 double numSolutionsFromRecall_{0.};

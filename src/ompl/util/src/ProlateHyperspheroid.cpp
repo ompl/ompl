@@ -129,7 +129,7 @@ void ompl::ProlateHyperspheroid::setTransverseDiameter(double transverseDiameter
 
 void ompl::ProlateHyperspheroid::transform(const double sphere[], double phs[]) const
 {
-    if (dataPtr_->isTransformUpToDate_ == false)
+    if (!dataPtr_->isTransformUpToDate_)
     {
         throw Exception("The transformation is not up to date in the PHS class. Has the transverse diameter been set?");
     }
@@ -142,7 +142,7 @@ void ompl::ProlateHyperspheroid::transform(const double sphere[], double phs[]) 
 
 bool ompl::ProlateHyperspheroid::isInPhs(const double point[]) const
 {
-    if (dataPtr_->isTransformUpToDate_ == false)
+    if (!dataPtr_->isTransformUpToDate_)
     {
         // The transform is not up to date until the transverse diameter has been set
         throw Exception("The transverse diameter has not been set");
@@ -153,7 +153,7 @@ bool ompl::ProlateHyperspheroid::isInPhs(const double point[]) const
 
 bool ompl::ProlateHyperspheroid::isOnPhs(const double point[]) const
 {
-    if (dataPtr_->isTransformUpToDate_ == false)
+    if (!dataPtr_->isTransformUpToDate_)
     {
         // The transform is not up to date until the transverse diameter has been set
         throw Exception("The transverse diameter has not been set");
@@ -169,17 +169,15 @@ unsigned int ompl::ProlateHyperspheroid::getPhsDimension() const
 
 double ompl::ProlateHyperspheroid::getPhsMeasure() const
 {
-    if (dataPtr_->isTransformUpToDate_ == false)
+    if (!dataPtr_->isTransformUpToDate_)
     {
         // The transform is not up to date until the transverse diameter has been set, therefore we have no transverse
         // diameter and we have infinite measure
         return std::numeric_limits<double>::infinity();
     }
-    else
-    {
-        // Calculate and return:
-        return dataPtr_->phsMeasure_;
-    }
+
+    // Calculate and return:
+    return dataPtr_->phsMeasure_;
 }
 
 double ompl::ProlateHyperspheroid::getPhsMeasure(double tranDiam) const

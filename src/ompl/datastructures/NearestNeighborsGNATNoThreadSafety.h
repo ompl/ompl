@@ -159,7 +159,7 @@ namespace ompl
         {
             if (tree_)
                 NearestNeighbors<_T>::add(data);
-            else if (data.size() > 0)
+            else if (!data.empty())
             {
                 tree_ = new Node(degree_, maxNumPtsPerLeaf_, data[0]);
 #ifdef GNAT_SAMPLER
@@ -187,7 +187,7 @@ namespace ompl
         /// be removed.
         bool remove(const _T &data) override
         {
-            if (!size_)
+            if (size_ == 0u)
                 return false;
             // find data in tree
             bool isPivot = nearestKInternal(data, 1);
@@ -209,7 +209,7 @@ namespace ompl
             if (size_)
             {
                 nearestKInternal(data, 1);
-                if (nearQueue_.size())
+                if (!nearQueue_.empty())
                 {
                     _T result = *nearQueue_.top().first;
                     nearQueue_.pop();
@@ -342,7 +342,7 @@ namespace ompl
             tree_->distToPivot_ = NearestNeighbors<_T>::distFun_(data, tree_->pivot_);
             isPivot = tree_->insertNeighborK(nearQueue_, k, tree_->pivot_, data, tree_->distToPivot_);
             tree_->nearestK(*this, data, k, isPivot);
-            while (nodeQueue_.size() > 0)
+            while (!nodeQueue_.empty())
             {
                 dist = nearQueue_.top().second;  // note the difference with nearestRInternal
                 node = nodeQueue_.top();
@@ -363,7 +363,7 @@ namespace ompl
             tree_->insertNeighborR(nearQueue_, radius, tree_->pivot_,
                                    NearestNeighbors<_T>::distFun_(data, tree_->pivot_));
             tree_->nearestR(*this, data, radius);
-            while (nodeQueue_.size() > 0)
+            while (!nodeQueue_.empty())
             {
                 node = nodeQueue_.top();
                 nodeQueue_.pop();
@@ -445,13 +445,13 @@ namespace ompl
 #ifdef GNAT_SAMPLER
                 subtreeSize_++;
 #endif
-                if (children_.size() == 0)
+                if (children_.empty())
                 {
                     data_.push_back(data);
                     gnat.size_++;
                     if (needToSplit(gnat))
                     {
-                        if (gnat.removed_.size() > 0)
+                        if (!gnat.removed_.empty())
                             gnat.rebuildDataStructure();
                         else if (gnat.size_ >= gnat.rebuildSize_)
                         {
@@ -546,7 +546,7 @@ namespace ompl
                     nbh.push(std::make_pair(&data, dist));
                     return true;
                 }
-                else if (dist < nbh.top().second || (dist < std::numeric_limits<double>::epsilon() && data == key))
+                if (dist < nbh.top().second || (dist < std::numeric_limits<double>::epsilon() && data == key))
                 {
                     nbh.pop();
                     nbh.push(std::make_pair(&data, dist));
@@ -568,7 +568,7 @@ namespace ompl
                         if (insertNeighborK(nbh, k, data_[i], data, gnat.distFun_(data, data_[i])))
                             isPivot = false;
                     }
-                if (children_.size() > 0)
+                if (!children_.empty())
                 {
                     double dist;
                     Node *child;
@@ -619,7 +619,7 @@ namespace ompl
                 for (unsigned int i = 0; i < data_.size(); ++i)
                     if (!gnat.isRemoved(data_[i]))
                         insertNeighborR(nbh, r, data_[i], gnat.distFun_(data, data_[i]));
-                if (children_.size() > 0)
+                if (!children_.empty())
                 {
                     Node *child;
                     Permutation &permutation = gnat.permutation_;

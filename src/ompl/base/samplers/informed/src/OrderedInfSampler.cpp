@@ -60,10 +60,10 @@ namespace ompl
             bool found = false;
 
             // Repeat until a valid pointer is found
-            while (found == false)
+            while (!found)
             {
                 // Check if the batch is empty
-                if (orderedSamples_.empty() == true)
+                if (orderedSamples_.empty())
                 {
                     // It is, recreate:
                     createBatch(maxCost);
@@ -72,7 +72,7 @@ namespace ompl
                 // Does the front of the priority queue meet our requirement (as the requirement may have changed since
                 // the batch was generated)
                 if (InformedSampler::opt_->isCostBetterThan(InformedSampler::heuristicSolnCost(orderedSamples_.top()),
-                                                            maxCost) == true)
+                                                            maxCost))
                 {
                     // Copy the front of the priority queue.
                     InformedSampler::space_->copyState(statePtr, orderedSamples_.top());
@@ -143,7 +143,7 @@ namespace ompl
         void OrderedInfSampler::clearBatch()
         {
             // Iterate through the entire queue, removing the element and freeing it.
-            while (orderedSamples_.empty() == false)
+            while (!orderedSamples_.empty())
             {
                 // Free the front state
                 InformedSampler::space_->freeState(orderedSamples_.top());

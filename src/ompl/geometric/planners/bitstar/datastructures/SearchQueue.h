@@ -191,7 +191,7 @@ namespace ompl
              * threshold. Descendents of pruned vertices that are not pruned themselves are returned to the set of free
              * states. Returns the number of vertices removed, and the number of said vertices that are completely
              * thrown away (i.e., are not even useful as a sample) */
-            std::pair<unsigned int, unsigned int> prune(const VertexConstPtr &pruneStartPtr);
+            std::pair<unsigned int, unsigned int> prune(const VertexConstPtr &goalVertexPtr);
 
             /** \brief Resort the queue around the marked unsorted vertices. If allowed, will simply remove any vertices
              * that need to be resorted but will later be pruned. */
@@ -212,7 +212,7 @@ namespace ompl
             // Queue info:
             /** \brief The condition used to insert vertices into the queue. Compares lowerBoundHeuristicVertex to the
              * given threshold. Returns true if the vertex's best cost is lower than the internally set threshold.*/
-            bool vertexInsertCondition(const VertexPtr &vertex) const;
+            bool vertexInsertCondition(const VertexPtr &state) const;
 
             /** \brief The condition used to insert edges into the queue. Compares lowerBoundHeuristicEdge to the given
              * threshold. Returns true if the edge's best cost is lower than the internally set threshold.*/
@@ -220,12 +220,12 @@ namespace ompl
 
             /** \brief The condition used to prune vertices out of the queue. Compares currentHeuristicVertex to the
              * given threshold. Returns true if the vertex's best cost is greater than the internally set threshold.*/
-            bool vertexPruneCondition(const VertexPtr &vertex) const;
+            bool vertexPruneCondition(const VertexPtr &state) const;
 
             /** \brief The condition used to prune disconnected samples from the free set. Compares
              * lowerBoundHeuristicVertex to the given threshold. Returns true if the vertex's best cost is greater than
              * or equal to the internally set threshold.*/
-            bool samplePruneCondition(const VertexPtr &vertex) const;
+            bool samplePruneCondition(const VertexPtr &state) const;
 
             /** \brief The condition used to prune edge (i.e., vertex-pair) out of the queue. Compares
              * currentHeuristicEdge to the given threshold. Returns true if the edge's best cost is greater than the

@@ -124,7 +124,7 @@ namespace ompl
              * \param ptc - when to stop attempting repair
              * \return true if no error
              */
-            bool repairPath(const base::PlannerTerminationCondition &ptc, geometric::PathGeometric &path);
+            bool repairPath(const base::PlannerTerminationCondition &ptc, geometric::PathGeometric &primaryPath);
 
             /**
              * \brief Use our secondary planner to find a valid path between start and goal, and return that path

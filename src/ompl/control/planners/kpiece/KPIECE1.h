@@ -316,7 +316,7 @@ namespace ompl
                 /** \brief Return true if samples can be selected from this set */
                 bool canSample() const
                 {
-                    return samples.size() > 0;
+                    return !samples.empty();
                 }
 
                 /** \brief Maximum number of samples to maintain */
@@ -346,7 +346,7 @@ namespace ompl
             /** \brief This function is provided as a calback to the
                 grid datastructure to update the importance of a
                 cell */
-            static void computeImportance(Grid::Cell *cell, void *)
+            static void computeImportance(Grid::Cell *cell, void * /*unused*/)
             {
                 CellData &cd = *(cell->data);
                 cd.importance = cd.score / ((cell->neighbors + 1) * cd.coverage * cd.selections);

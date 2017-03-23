@@ -168,7 +168,7 @@ namespace ompl
 
             /** \brief Callback to be called everytime a new, better solution is found by a planner. */
             void newSolutionFound(const base::Planner *planner, const std::vector<const base::State *> &states,
-                                  const base::Cost cost);
+                                  base::Cost cost);
 
         protected:
             /** \brief Manages the call to solve() for each individual planner. */

@@ -53,8 +53,8 @@ namespace ompl
             }
 
             void sampleUniform(State *state) override;
-            void sampleUniformNear(State *state, const State *near, const double distance) override;
-            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
+            void sampleUniformNear(State *state, const State *near, double distance) override;
+            void sampleGaussian(State *state, const State *mean, double stdDev) override;
         };
 
         /** \brief A state space representing SO(2). The distance
@@ -77,7 +77,7 @@ namespace ompl
                 double value;
             };
 
-            SO2StateSpace() : StateSpace()
+            SO2StateSpace()
             {
                 setName("SO2" + getName());
                 type_ = STATE_SPACE_SO2;
@@ -109,7 +109,7 @@ namespace ompl
 
             bool equalStates(const State *state1, const State *state2) const override;
 
-            void interpolate(const State *from, const State *to, const double t, State *state) const override;
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
 
             StateSamplerPtr allocDefaultStateSampler() const override;
 
@@ -117,7 +117,7 @@ namespace ompl
 
             void freeState(State *state) const override;
 
-            double *getValueAddressAtIndex(State *state, const unsigned int index) const override;
+            double *getValueAddressAtIndex(State *state, unsigned int index) const override;
 
             void printState(const State *state, std::ostream &out) const override;
 
