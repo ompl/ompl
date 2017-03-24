@@ -45,6 +45,86 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 
+/// ProjectedStateSampler
+
+/// Public
+
+ompl::base::ConstrainedStateSampler::ConstrainedStateSampler(const SpaceInformation *si)
+  : RealVectorStateSampler(si->getStateSpace().get()), ss_(*si->getStateSpace()->as<ConstrainedStateSpace>())
+{
+    ConstrainedStateSpace::checkSpace(si);
+}
+
+ompl::base::ConstrainedStateSampler::ConstrainedStateSampler(const ConstrainedStateSpace &ss)
+  : RealVectorStateSampler(&ss), ss_(ss)
+{
+}
+
+void ompl::base::ConstrainedStateSampler::sampleUniform(State *state)
+{
+    RealVectorStateSampler::sampleUniform(state);
+    ss_.getConstraint()->project(state);
+}
+
+void ompl::base::ConstrainedStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
+{
+    RealVectorStateSampler::sampleUniformNear(state, near, distance);
+    ss_.getConstraint()->project(state);
+}
+
+void ompl::base::ConstrainedStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
+{
+    RealVectorStateSampler::sampleGaussian(state, mean, stdDev);
+    ss_.getConstraint()->project(state);
+}
+
+/// ConstrainedValidStateSampler
+
+/// Public
+
+ompl::base::ConstrainedValidStateSampler::ConstrainedValidStateSampler(const SpaceInformation *si)
+  : ValidStateSampler(si)
+  , sampler_(si)
+  , constraint_(si->getStateSpace()->as<ompl::base::ConstrainedStateSpace>()->getConstraint())
+  , scratch_(si->allocState())
+{
+    ConstrainedStateSpace::checkSpace(si);
+}
+
+ompl::base::ConstrainedValidStateSampler::~ConstrainedValidStateSampler()
+{
+    si_->freeState(scratch_);
+}
+
+bool ompl::base::ConstrainedValidStateSampler::sample(State *state)
+{
+    // Rejection sample for at most attempts_ tries.
+    unsigned int tries = 0;
+    bool valid;
+    si_->copyState(scratch_, state);
+    double dist = si_->getSpaceMeasure();
+
+    do
+    {
+        sampler_.sampleUniformNear(state, scratch_, dist);
+        dist *= 0.9;
+    } while (!(valid = si_->isValid(state) && constraint_->isSatisfied(state)) && ++tries < attempts_);
+
+    return valid;
+}
+
+bool ompl::base::ConstrainedValidStateSampler::sampleNear(State *state, const State *near, const double distance)
+{
+    // Rejection sample for at most attempts_ tries.
+    unsigned int tries = 0;
+    bool valid;
+    do
+        sampler_.sampleUniformNear(state, near, distance);
+    while (!(valid = si_->isValid(state) && constraint_->isSatisfied(state)) && ++tries < attempts_);
+
+    return valid;
+}
+
 /// ConstrainedMotionValidator
 
 /// Public

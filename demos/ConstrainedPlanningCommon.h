@@ -290,13 +290,12 @@ bool always(double sleep, const ompl::base::State *)
 
 /** States surrounding the goal are invalid, making it unreachable. We can use this to build up an atlas
  * until time runs out, so we can see the big picture. */
-// bool unreachable(double sleep, const ompl::base::State *state, const Eigen::VectorXd &goal, const double radius)
-// {
-//     std::this_thread::sleep_for(ompl::time::seconds(sleep));
-//     return std::abs((state->as<ompl::base::AtlasStateSpace::StateType>()->constVectorView() - goal).norm() - radius)
-//     >
-//            radius - 0.01;
-// }
+bool unreachable(double sleep, const ompl::base::State *state, const Eigen::VectorXd &goal, const double radius)
+{
+    std::this_thread::sleep_for(ompl::time::seconds(sleep));
+    return std::abs((state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView() - goal).norm() -
+                    radius) > radius - 0.01;
+}
 
 /**
  * Problem initialization functions set the dimension, the manifold, start and goal points \a x and \a y,
@@ -445,7 +444,7 @@ ompl::base::ValidStateSamplerPtr avssa(const ompl::base::SpaceInformation *si)
 /** Allocator function for a sampler for the atlas that only returns valid points. */
 ompl::base::ValidStateSamplerPtr pvssa(const ompl::base::SpaceInformation *si)
 {
-    return ompl::base::ValidStateSamplerPtr(new ompl::base::ProjectedValidStateSampler(si));
+    return ompl::base::ValidStateSamplerPtr(new ompl::base::ConstrainedValidStateSampler(si));
 }
 
 /** Print usage information. */

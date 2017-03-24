@@ -61,65 +61,6 @@ namespace ompl
          * \brief A boost shared pointer wrapper for
          * ompl::base::ProjectedStateSpace. */
 
-        /** \brief StateSampler for use on an atlas. */
-        class ProjectedStateSampler : public RealVectorStateSampler
-        {
-        public:
-            /** \brief Create a sampler for the specified space information.
-             * \note The underlying state space must be an AtlasStateSpace. */
-            ProjectedStateSampler(const SpaceInformation *si);
-
-            /** \brief Create a sampler for the specified \a atlas space. */
-            ProjectedStateSampler(const ProjectedStateSpace &ss);
-
-            /** \brief Sample a state uniformly from the charted regions of the
-             * manifold. Return sample in \a state. */
-            virtual void sampleUniform(State *state);
-
-            /** \brief Sample a state uniformly from the ball with center \a
-             * near and radius \a distance. Return sample in \a state.
-             * \note rho_s_ is a good choice for \a distance. */
-            virtual void sampleUniformNear(State *state, const State *near, const double distance);
-
-            /** \brief Sample a state uniformly from a normal distribution with
-                given \a mean and \a stdDev. Return sample in \a state. */
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
-
-        private:
-            /** \brief Space on which to sample. */
-            const ProjectedStateSpace &ss_;
-        };
-
-        /** \brief ValidStateSampler for use on an atlas. */
-        class ProjectedValidStateSampler : public ValidStateSampler
-        {
-        public:
-            /** \brief Create a valid state sampler for the specifed space
-             * information \a si. */
-            ProjectedValidStateSampler(const SpaceInformation *si);
-
-            /** \brief Destructor. */
-            ~ProjectedValidStateSampler();
-
-            /** \brief Sample a valid state uniformly from the charted regions
-             * of the manifold. Return sample in \a state. */
-            virtual bool sample(State *state);
-
-            /** \brief Sample a valid state uniformly from the ball with center
-             * \a near and radius \a distance. Return sample in \a state.
-             * \note rho_s_ is a good choice for \a distance. */
-            virtual bool sampleNear(State *state, const State *near, const double distance);
-
-        private:
-            /** \brief Underlying ordinary atlas state sampler. */
-            ProjectedStateSampler sampler_;
-
-            /** \brief Constraint function. */
-            const Constraint *constraint_;
-
-            /** \brief Scratch state used in sampling. */
-            State *scratch_;
-        };
 
         /** \brief State space encapsulating a planner-agnostic algorithm for
          * planning on a constraint manifold. */
@@ -149,9 +90,6 @@ namespace ompl
              * freeing states returned in \a stateList. */
             bool traverseManifold(const State *from, const State *to, const bool interpolate = false,
                                   std::vector<State*> *stateList = nullptr) const;
-
-            /** \brief Return an instance of the AtlasStateSampler. */
-            StateSamplerPtr allocDefaultStateSampler() const;
         };
     }
 }

@@ -55,6 +55,66 @@ namespace ompl
         /** \brief Forward declaration of ompl::base::ConstrainedStateSpace. */
         OMPL_CLASS_FORWARD(ConstrainedStateSpace);
 
+        /** \brief StateSampler for use on an atlas. */
+        class ConstrainedStateSampler : public RealVectorStateSampler
+        {
+        public:
+            /** \brief Create a sampler for the specified space information.
+             * \note The underlying state space must be an AtlasStateSpace. */
+            ConstrainedStateSampler(const SpaceInformation *si);
+
+            /** \brief Create a sampler for the specified \a atlas space. */
+            ConstrainedStateSampler(const ConstrainedStateSpace &ss);
+
+            /** \brief Sample a state uniformly from the charted regions of the
+             * manifold. Return sample in \a state. */
+            virtual void sampleUniform(State *state);
+
+            /** \brief Sample a state uniformly from the ball with center \a
+             * near and radius \a distance. Return sample in \a state.
+             * \note rho_s_ is a good choice for \a distance. */
+            virtual void sampleUniformNear(State *state, const State *near, const double distance);
+
+            /** \brief Sample a state uniformly from a normal distribution with
+                given \a mean and \a stdDev. Return sample in \a state. */
+            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+
+        private:
+            /** \brief Space on which to sample. */
+            const ConstrainedStateSpace &ss_;
+        };
+
+        /** \brief ValidStateSampler for use on an atlas. */
+        class ConstrainedValidStateSampler : public ValidStateSampler
+        {
+        public:
+            /** \brief Create a valid state sampler for the specifed space
+             * information \a si. */
+            ConstrainedValidStateSampler(const SpaceInformation *si);
+
+            /** \brief Destructor. */
+            ~ConstrainedValidStateSampler();
+
+            /** \brief Sample a valid state uniformly from the charted regions
+             * of the manifold. Return sample in \a state. */
+            virtual bool sample(State *state);
+
+            /** \brief Sample a valid state uniformly from the ball with center
+             * \a near and radius \a distance. Return sample in \a state.
+             * \note rho_s_ is a good choice for \a distance. */
+            virtual bool sampleNear(State *state, const State *near, const double distance);
+
+        private:
+            /** \brief Underlying ordinary atlas state sampler. */
+            ConstrainedStateSampler sampler_;
+
+            /** \brief Constraint function. */
+            const Constraint *constraint_;
+
+            /** \brief Scratch state used in sampling. */
+            State *scratch_;
+        };
+
         /** \brief Atlas-specific implementation of checkMotion(). */
         class ConstrainedMotionValidator : public MotionValidator
         {
@@ -253,6 +313,11 @@ namespace ompl
              * stateList. Assumes \a stateList contains at least two
              * elements. */
             unsigned int piecewiseInterpolate(const std::vector<State *> &stateList, const double t, State *state) const;
+
+            StateSamplerPtr allocDefaultStateSampler() const
+            {
+                return StateSamplerPtr(new ConstrainedStateSampler(*this));
+            }
 
             /** \brief Whether interpolation is symmetric. (Yes.) */
             bool hasSymmetricInterpolate() const
