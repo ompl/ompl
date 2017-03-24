@@ -541,9 +541,12 @@ void ompl::geometric::PathGeometric::dumpPath(std::ostream &out, const bool asIs
     auto stateString = [&](const ompl::base::State *state) {
         std::string out = "";
         for (unsigned int i = 0; i < si_->getStateDimension(); ++i)
-            out += std::to_string(*si_->getStateSpace()->getValueAddressAtIndex(state, i)) + " ";
+        {
+            if (i != 0)
+                out += " ";
 
-        out += "\n";
+            out += std::to_string(*si_->getStateSpace()->getValueAddressAtIndex(state, i));
+        }
         return out;
     };
 

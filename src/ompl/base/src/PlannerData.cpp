@@ -803,8 +803,6 @@ void ompl::base::PlannerData::dumpGraph(std::ostream &out, const bool asIs) cons
 
             out += std::to_string(*si_->getStateSpace()->getValueAddressAtIndex(state, i));
         }
-
-        out += "\n";
         return out;
     };
 
