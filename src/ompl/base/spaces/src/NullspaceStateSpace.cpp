@@ -78,6 +78,7 @@ bool ompl::base::NullspaceStateSpace::traverseManifold(const State *from, const 
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
     double dist = distance(from, to);
 
+    Eigen::VectorXd f(n_ - k_);
     Eigen::MatrixXd j(n_ - k_, n_);
 
     Eigen::VectorXd toV = to->as<StateType>()->constVectorView();
@@ -89,8 +90,11 @@ bool ompl::base::NullspaceStateSpace::traverseManifold(const State *from, const 
         // Compute the parameterization for interpolation
         double t = delta_ / dist;
 
+        constraint_->function(scratch->constVectorView(), f);
         constraint_->jacobian(scratch->constVectorView(), j);
-        scratch->vectorView() += j.fullPivLu().kernel().rowwise().reverse() * (toV - scratch->constVectorView()) * t;
+
+        Eigen::FullPivLU<Eigen::MatrixXd> lu = j.fullPivLu();
+        scratch->vectorView() += lu.solve(-f) + (lu.kernel().rowwise().reverse() * (toV - scratch->constVectorView())) * t;
 
         // Make sure the new state is valid, or we don't care as we are simply interpolating
         if (!(interpolate || svc->isValid(scratch)))
@@ -103,14 +107,14 @@ bool ompl::base::NullspaceStateSpace::traverseManifold(const State *from, const 
         // Check for divergence. Divergence is declared if we are no closer than
         // before projection
         double newDist = distance(scratch, to);
-        if (newDist >= dist || (dist - newDist) < delta_ * 0.1)
+        if (newDist >= dist)
             break;
 
         dist = newDist;
     }
 
     if (there && stateList)
-        stateList->push_back(si_->cloneState(to)->as<State>());
+        stateList->push_back(si_->cloneState(to));
 
     freeState(scratch);
     return there;
