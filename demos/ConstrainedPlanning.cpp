@@ -48,7 +48,8 @@ void usage(const char *const progname)
 enum SPACE
 {
     ATLAS,
-    PROJECTED
+    PROJECTED,
+    NULLSPACE
 };
 
 int main(int argc, char **argv)
@@ -110,6 +111,8 @@ int main(int argc, char **argv)
         spaceType = ATLAS;
     else if (std::strcmp("projected", space) == 0)
         spaceType = PROJECTED;
+    else if (std::strcmp("null", space) == 0)
+        spaceType = NULLSPACE;
     else
     {
         std::cout << "Invalid constrained state space." << std::endl;
@@ -141,7 +144,8 @@ int main(int argc, char **argv)
     {
         case ATLAS:
         {
-            ompl::base::AtlasStateSpacePtr atlas(new ompl::base::AtlasStateSpace(constraint->getAmbientSpace(), constraint));
+            ompl::base::AtlasStateSpacePtr atlas(
+                new ompl::base::AtlasStateSpace(constraint->getAmbientSpace(), constraint));
 
             atlas->setExploration(0.5);
             atlas->setRho(0.5);  // 0.2
@@ -195,8 +199,33 @@ int main(int argc, char **argv)
             ss->setStartAndGoalStates(start, goal);
 
             css = proj;
+            break;
         }
-        break;
+
+        case NULLSPACE:
+        {
+            ompl::base::NullspaceStateSpacePtr proj(
+                new ompl::base::NullspaceStateSpace(constraint->getAmbientSpace(), constraint));
+
+            proj->setDelta(0.02);
+
+            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(proj));
+            si = ss->getSpaceInformation();
+            si->setValidStateSamplerAllocator(pvssa);
+
+            proj->setSpaceInformation(si);
+
+            // The proj needs some place to start sampling from. We will make start
+            // and goal charts.
+            ompl::base::ScopedState<> start(proj);
+            ompl::base::ScopedState<> goal(proj);
+            start->as<ompl::base::NullspaceStateSpace::StateType>()->setRealState(x);
+            goal->as<ompl::base::NullspaceStateSpace::StateType>()->setRealState(y);
+            ss->setStartAndGoalStates(start, goal);
+
+            css = proj;
+            break;
+        }
     }
 
     ss->setStateValidityChecker(isValid);

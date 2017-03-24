@@ -43,6 +43,7 @@
 #include <ompl/base/spaces/AtlasChart.h>
 #include <ompl/base/spaces/AtlasStateSpace.h>
 #include <ompl/base/spaces/ProjectedStateSpace.h>
+#include <ompl/base/spaces/NullspaceStateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/planners/est/BiEST.h>
