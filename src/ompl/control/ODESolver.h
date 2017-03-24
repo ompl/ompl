@@ -129,7 +129,7 @@ namespace ompl
                     ODESolverStatePropagator(const ODESolverPtr& solver, PostPropagationEvent pe)
                       : StatePropagator(solver->si_), solver_(solver), postEvent_(std::move(pe))
                     {
-                        if (solver.get() == nullptr)
+                        if (solver == nullptr)
                             OMPL_ERROR("ODESolverPtr does not reference a valid ODESolver object");
                     }
 

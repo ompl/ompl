@@ -92,7 +92,7 @@ namespace ompl
 
             /** \brief Cast a component of this instance to a desired type. */
             template <class T>
-            const T *as(const unsigned int index) const
+            const T *as(unsigned int index) const
             {
                 /** \brief Make sure the type we are allocating is indeed a state */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T *, State *>));
