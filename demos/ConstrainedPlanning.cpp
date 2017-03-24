@@ -151,7 +151,6 @@ int main(int argc, char **argv)
             atlas->setRho(0.5);  // 0.2
             atlas->setAlpha(M_PI / 8);
             atlas->setEpsilon(0.2);  // 0.1
-            atlas->setDelta(0.02);
             atlas->setMaxChartsPerExtension(200);
 
             range = atlas->getRho_s();
@@ -181,9 +180,6 @@ int main(int argc, char **argv)
         {
             ompl::base::ProjectedStateSpacePtr proj(
                 new ompl::base::ProjectedStateSpace(constraint->getAmbientSpace(), constraint));
-
-            proj->setDelta(0.02);
-
             ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(proj));
             si = ss->getSpaceInformation();
             si->setValidStateSamplerAllocator(pvssa);
@@ -206,8 +202,6 @@ int main(int argc, char **argv)
         {
             ompl::base::NullspaceStateSpacePtr proj(
                 new ompl::base::NullspaceStateSpace(constraint->getAmbientSpace(), constraint));
-
-            proj->setDelta(0.02);
 
             ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(proj));
             si = ss->getSpaceInformation();
@@ -250,6 +244,8 @@ int main(int argc, char **argv)
     ss->setPlanner(planner);
     ss->setup();
 
+    css->setDelta(css->getMaximumExtent() / 1000);
+
     std::clock_t tstart = std::clock();
     ompl::base::PlannerStatus stat = planner->solve(planningTime);
     if (stat)
@@ -262,7 +258,7 @@ int main(int argc, char **argv)
         if (x.size() == 3 && output)
         {
             std::ofstream pathFile("path.ply");
-            css->dumpPath(path, pathFile, false);
+            path.dumpPath(pathFile, true);
             pathFile.close();
         }
 
@@ -272,6 +268,8 @@ int main(int argc, char **argv)
         double length = 0;
 
         std::ofstream animFile("anim.txt");
+
+        css->setDelta(0.02);
         for (std::size_t i = 0; i < waypoints.size() - 1; i++)
         {
             // Denote that we are switching to the next saved state
@@ -336,12 +334,14 @@ int main(int argc, char **argv)
         std::cout << css->as<ompl::base::AtlasStateSpace>()->estimateFrontierPercent() << "% open.\n";
     }
 
+
     if (x.size() == 3 && output)
     {
+        css->setDelta(0.5);
         std::ofstream graphFile("graph.ply");
         ompl::base::PlannerData pd(si);
         planner->getPlannerData(pd);
-        css->dumpGraph(pd.toBoostGraph(), graphFile, false);
+        pd.dumpGraph(graphFile, true);
         graphFile.close();
 
         if (spaceType == ATLAS)
