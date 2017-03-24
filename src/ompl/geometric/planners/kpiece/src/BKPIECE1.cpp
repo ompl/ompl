@@ -52,11 +52,6 @@ ompl::geometric::BKPIECE1::BKPIECE1(const base::SpaceInformationPtr &si)
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 
-    minValidPathFraction_ = 0.5;
-    failedExpansionScoreFactor_ = 0.5;
-    maxDistance_ = 0.0;
-    connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
-
     Planner::declareParam<double>("range", this, &BKPIECE1::setRange, &BKPIECE1::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("border_fraction", this, &BKPIECE1::setBorderFraction, &BKPIECE1::getBorderFraction,
                                   "0.:.05:1.");

@@ -215,23 +215,23 @@ namespace ompl
             /** \brief When extending a motion from a cell, the
                 extension can fail. If it is, the score of the cell is
                 multiplied by this factor. */
-            double failedExpansionScoreFactor_;
+            double failedExpansionScoreFactor_{.5};
 
             /** \brief When extending a motion, the planner can decide
                 to keep the first valid part of it, even if invalid
                 states are found, as long as the valid part represents
                 a sufficiently large fraction from the original
                 motion */
-            double minValidPathFraction_;
+            double minValidPathFraction_{.5};
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /** \brief The random number generator */
             RNG rng_;
 
             /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
-            std::pair<base::State *, base::State *> connectionPoint_;
+            std::pair<base::State *, base::State *> connectionPoint_{nullptr, nullptr};
         };
     }
 }

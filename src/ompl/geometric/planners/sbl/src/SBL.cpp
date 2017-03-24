@@ -43,8 +43,6 @@
 ompl::geometric::SBL::SBL(const base::SpaceInformationPtr &si) : base::Planner(si, "SBL")
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
-    maxDistance_ = 0.0;
-    connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
 
     Planner::declareParam<double>("range", this, &SBL::setRange, &SBL::getRange, "0.:1.:10000.");
 }

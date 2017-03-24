@@ -543,28 +543,28 @@ namespace ompl
             std::function<const std::vector<DenseVertex> &(const DenseVertex)> connectionStrategy_;
 
             /** \brief A counter for the number of consecutive failed iterations of the algorithm */
-            unsigned int consecutiveFailures_;
+            unsigned int consecutiveFailures_{0u};
 
             /** \brief The stretch factor in terms of graph spanners for SPARS to check against */
-            double stretchFactor_;
+            double stretchFactor_{3.};
 
             /** \brief The maximum number of failures before terminating the algorithm */
-            unsigned int maxFailures_;
+            unsigned int maxFailures_{1000u};
 
             /** \brief A flag indicating that a solution has been added during solve() */
-            bool addedSolution_;
+            bool addedSolution_{false};
 
             /** \brief SPARS parameter for dense graph connection distance as a fraction of max. extent */
-            double denseDeltaFraction_;
+            double denseDeltaFraction_{.001};
 
             /** \brief SPARS parameter for Sparse Roadmap connection distance as a fraction of max. extent */
-            double sparseDeltaFraction_;
+            double sparseDeltaFraction_{.25};
 
             /** \brief SPARS parameter for dense graph connection distance */
-            double denseDelta_;
+            double denseDelta_{0.};
 
             /** \brief SPARS parameter for Sparse Roadmap connection distance */
-            double sparseDelta_;
+            double sparseDelta_{0.};
 
             /** \brief Random number generator */
             RNG rng_;
@@ -582,9 +582,9 @@ namespace ompl
             //////////////////////////////
             // Planner progress properties
             /** \brief A counter for the number of iterations of the algorithm */
-            long unsigned int iterations_;
+            long unsigned int iterations_{0ul};
             /** \brief Best cost found so far by algorithm */
-            base::Cost bestCost_;
+            base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
         };
     }
 }

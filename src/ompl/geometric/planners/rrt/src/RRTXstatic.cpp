@@ -49,24 +49,8 @@
 
 ompl::geometric::RRTXstatic::RRTXstatic(const base::SpaceInformationPtr &si)
   : base::Planner(si, "RRTXstatic")
-  , goalBias_(0.05)
-  , maxDistance_(0.0)
-  , useKNearest_(true)
-  , rewireFactor_(1.1)
-  , k_rrt_(0u)
-  , r_rrt_(0.0)
-  , lastGoalMotion_(nullptr)
-  , bestCost_(std::numeric_limits<double>::quiet_NaN())
-  , iterations_(0u)
   , mc_(opt_, pdef_)
   , q_(mc_)
-  , epsilonCost_(0.0)
-  , updateChildren_(true)
-  , variant_(0)
-  , alpha_(1.0)
-  , useInformedSampling_(false)
-  , useRejectionSampling_(false)
-  , numSampleAttempts_(100u)
 {
     specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;

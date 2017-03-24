@@ -549,7 +549,7 @@ namespace ompl
             void insertNewSampleInOpen(const base::PlannerTerminationCondition &ptc);
 
             /** \brief The number of samples to use when planning */
-            unsigned int numSamples_;
+            unsigned int numSamples_{1000u};
 
             /** \brief This planner uses a nearest neighbor search radius
                 proportional to the lower bound for optimality derived for FMT*
@@ -560,35 +560,35 @@ namespace ompl
                 convergence, the user should choose a multiplier for the search
                 radius that is greater than one. The default value is 1.1.
                 In general, a radius between 0.9 and 5 appears to perform the best */
-            double radiusMultiplier_;
+            double radiusMultiplier_{1.};
 
             /** \brief The volume of numSathe free configuration space, computed
                 as an upper bound with 95% confidence */
             double freeSpaceVolume_;
 
             /** \brief Number of collision checks performed by the algorithm */
-            unsigned int collisionChecks_;
+            unsigned int collisionChecks_{0u};
 
             /** \brief Flag to activate the K nearest neighbors strategy */
-            bool nearestK_;
+            bool nearestK_{true};
 
             /** \brief Radius employed in the nearestR strategy. */
-            double NNr_;
+            double NNr_{0.};
 
             /** \brief K used in the nearestK strategy */
-            unsigned int NNk_;
+            unsigned int NNk_{0};
 
             /** \brief Active tree */
-            TreeType tree_;
+            TreeType tree_{FWD};
 
             /** \brief Exploration strategy used */
-            ExploreType exploration_;
+            ExploreType exploration_{SWAP_EVERY_TIME};
 
             /** \brief Termination strategy used */
-            TerminateType termination_;
+            TerminateType termination_{OPTIMALITY};
 
             /** \brief If true all the nearest neighbors maps are precomputed before solving. */
-            bool precomputeNN_;
+            bool precomputeNN_{false};
 
             /** \brief A nearest-neighbor datastructure containing the set of all motions */
             std::shared_ptr<NearestNeighbors<BiDirMotion *>> nn_;
@@ -613,16 +613,16 @@ namespace ompl
             base::OptimizationObjectivePtr opt_;
 
             /** \brief Flag to activate the cost to go heuristics */
-            bool heuristics_;
+            bool heuristics_{true};
 
             /** \brief Goal state caching to accelerate cost to go heuristic computation */
             base::State *heurGoalState_[2];
 
             /** \brief Flag to activate the collision check caching */
-            bool cacheCC_;
+            bool cacheCC_{true};
 
             /** \brief Add new samples if the tree was not able to find a solution. */
-            bool extendedFMT_;
+            bool extendedFMT_{true};
 
             // For sorting a list of costs and getting only their sorted indices
             struct CostIndexCompare

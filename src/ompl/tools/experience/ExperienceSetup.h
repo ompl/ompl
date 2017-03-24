@@ -193,10 +193,10 @@ namespace ompl
 
         protected:
             /// Flag indicating whether recalled plans should be used to find solutions. Enabled by default.
-            bool recallEnabled_;
+            bool recallEnabled_{true};
 
             /// Flag indicating whether planning from scratch should be used to find solutions. Enabled by default.
-            bool scratchEnabled_;
+            bool scratchEnabled_{true};
 
             /** \brief File location of database */
             std::string filePath_;

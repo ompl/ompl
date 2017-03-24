@@ -43,11 +43,6 @@
 
 ompl::geometric::LBTRRT::LBTRRT(const base::SpaceInformationPtr &si)
   : base::Planner(si, "LBTRRT")
-  , goalBias_(0.05)
-  , maxDistance_(0.0)
-  , epsilon_(0.4)
-  , lastGoalMotion_(nullptr)
-  , iterations_(0)
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;

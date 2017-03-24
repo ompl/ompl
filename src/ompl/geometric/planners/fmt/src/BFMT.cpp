@@ -17,22 +17,9 @@ namespace ompl
     {
         BFMT::BFMT(const base::SpaceInformationPtr &si)
           : base::Planner(si, "BFMT")
-          , numSamples_(1000)
-          , radiusMultiplier_(1.0)
           , freeSpaceVolume_(si_->getStateSpace()->getMeasure())  // An upper bound on the free space volume is the
                                                                   // total space volume; the free fraction is estimated
                                                                   // in sampleFree
-          , collisionChecks_(0)
-          , nearestK_(true)
-          , NNr_(0)
-          , NNk_(0)
-          , tree_(FWD)
-          , exploration_(SWAP_EVERY_TIME)
-          , termination_(OPTIMALITY)
-          , precomputeNN_(false)
-          , heuristics_(true)
-          , cacheCC_(true)
-          , extendedFMT_(true)
         {
             specs_.approximateSolutions = false;
             specs_.directed = false;

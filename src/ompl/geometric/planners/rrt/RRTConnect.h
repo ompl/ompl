@@ -164,7 +164,7 @@ namespace ompl
             TreeData tGoal_;
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /** \brief The random number generator */
             RNG rng_;

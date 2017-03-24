@@ -162,10 +162,10 @@ namespace ompl
 
             /// \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
             /// available)
-            double goalBias_;
+            double goalBias_{0.5};
 
             /// \brief The maximum length of a motion to be added to a tree
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /// \brief The radius considered for neighborhood
             double nbrhoodRadius_;
@@ -174,7 +174,7 @@ namespace ompl
             RNG rng_;
 
             /// \brief The most recent goal motion.  Used for PlannerData computation
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
         };
     }
 }

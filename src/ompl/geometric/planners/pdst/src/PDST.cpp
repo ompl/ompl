@@ -39,11 +39,6 @@
 
 ompl::geometric::PDST::PDST(const base::SpaceInformationPtr &si)
   : base::Planner(si, "PDST")
-  , bsp_(nullptr)
-  , goalBias_(0.05)
-  , goalSampler_(nullptr)
-  , iteration_(1)
-  , lastGoalMotion_(nullptr)
 {
     Planner::declareParam<double>("goal_bias", this, &PDST::setGoalBias, &PDST::getGoalBias, "0.:.05:1.");
 }

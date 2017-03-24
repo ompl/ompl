@@ -97,32 +97,17 @@ void ompl::geometric::SPARSdb::CustomVisitor::examine_vertex(Vertex u, const Gra
 
 ompl::geometric::SPARSdb::SPARSdb(const base::SpaceInformationPtr &si)
   : base::Planner(si, "SPARSdb")
-  ,
   // Numeric variables
-  stretchFactor_(3.)
-  , sparseDeltaFraction_(.25)
-  , denseDeltaFraction_(.001)
-  , maxFailures_(5000)
-  , numPathInsertionFailures_(0)
   , nearSamplePoints_((2 * si_->getStateDimension()))
-  ,
   // Property accessors of edges
-  edgeWeightProperty_(boost::get(boost::edge_weight, g_))
+  , edgeWeightProperty_(boost::get(boost::edge_weight, g_))
   , edgeCollisionStateProperty_(boost::get(edge_collision_state_t(), g_))
-  ,
   // Property accessors of vertices
-  stateProperty_(boost::get(vertex_state_t(), g_))
+  , stateProperty_(boost::get(vertex_state_t(), g_))
   , colorProperty_(boost::get(vertex_color_t(), g_))
   , interfaceDataProperty_(boost::get(vertex_interface_data_t(), g_))
-  ,
   // Disjoint set accessors
-  disjointSets_(boost::get(boost::vertex_rank, g_), boost::get(boost::vertex_predecessor, g_))
-  , addedSolution_(false)
-  , consecutiveFailures_(0)
-  , iterations_(0)
-  , sparseDelta_(0.)
-  , denseDelta_(0.)
-  , verbose_(false)
+  , disjointSets_(boost::get(boost::vertex_rank, g_), boost::get(boost::vertex_predecessor, g_))
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;

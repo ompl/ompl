@@ -48,11 +48,6 @@ ompl::geometric::SST::SST(const base::SpaceInformationPtr &si) : base::Planner(s
     specs_.directed = true;
     prevSolution_.clear();
 
-    goalBias_ = 0.05;
-    selectionRadius_ = 5.0;
-    pruningRadius_ = 3.0;
-    maxDistance_ = 5.0;
-
     Planner::declareParam<double>("range", this, &SST::setRange, &SST::getRange, ".1:.1:100");
     Planner::declareParam<double>("goal_bias", this, &SST::setGoalBias, &SST::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("selection_radius", this, &SST::setSelectionRadius, &SST::getSelectionRadius, "0.:.1:"

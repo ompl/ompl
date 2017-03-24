@@ -50,12 +50,6 @@ ompl::geometric::KPIECE1::KPIECE1(const base::SpaceInformationPtr &si)
     specs_.approximateSolutions = true;
     specs_.directed = true;
 
-    goalBias_ = 0.05;
-    failedExpansionScoreFactor_ = 0.5;
-    minValidPathFraction_ = 0.2;
-    maxDistance_ = 0.0;
-    lastGoalMotion_ = nullptr;
-
     Planner::declareParam<double>("range", this, &KPIECE1::setRange, &KPIECE1::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &KPIECE1::setGoalBias, &KPIECE1::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("border_fraction", this, &KPIECE1::setBorderFraction, &KPIECE1::getBorderFraction,

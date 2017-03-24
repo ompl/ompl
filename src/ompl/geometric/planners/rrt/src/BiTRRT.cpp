@@ -47,17 +47,10 @@ ompl::geometric::BiTRRT::BiTRRT(const base::SpaceInformationPtr &si) : base::Pla
     specs_.approximateSolutions = false;
     specs_.directed = true;
 
-    maxDistance_ = 0.0;  // set in setup()
-    connectionPoint_ = std::make_pair<Motion *, Motion *>(nullptr, nullptr);
-
     Planner::declareParam<double>("range", this, &BiTRRT::setRange, &BiTRRT::getRange, "0.:1.:10000.");
 
     // BiTRRT Specific Variables
-    frontierThreshold_ = 0.0;  // set in setup()
     setTempChangeFactor(0.1);  // how much to increase the temp each time
-    costThreshold_ = base::Cost(std::numeric_limits<double>::infinity());
-    initTemperature_ = 100;    // where the temperature starts out
-    frontierNodeRatio_ = 0.1;  // 1/10, or 1 non-frontier for every 10 frontier
 
     Planner::declareParam<double>("temp_change_factor", this, &BiTRRT::setTempChangeFactor,
                                   &BiTRRT::getTempChangeFactor, "0.:.1:1.");

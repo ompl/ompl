@@ -165,7 +165,7 @@ namespace ompl
             ompl::base::PlannerDataPtr nnSearchKey_;
 
             // Track unsaved paths to determine if a save is required
-            int numUnsavedPaths_;
+            int numUnsavedPaths_{0};
 
         };  // end of class LightningDB
 

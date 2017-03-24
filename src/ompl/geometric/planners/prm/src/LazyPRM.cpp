@@ -67,17 +67,12 @@ namespace ompl
 ompl::geometric::LazyPRM::LazyPRM(const base::SpaceInformationPtr &si, bool starStrategy)
   : base::Planner(si, "LazyPRM")
   , starStrategy_(starStrategy)
-  , userSetConnectionStrategy_(false)
-  , maxDistance_(0.0)
   , indexProperty_(boost::get(boost::vertex_index_t(), g_))
   , stateProperty_(boost::get(vertex_state_t(), g_))
   , weightProperty_(boost::get(boost::edge_weight, g_))
   , vertexComponentProperty_(boost::get(vertex_component_t(), g_))
   , vertexValidityProperty_(boost::get(vertex_flags_t(), g_))
   , edgeValidityProperty_(boost::get(edge_flags_t(), g_))
-  , componentCount_(0)
-  , bestCost_(std::numeric_limits<double>::quiet_NaN())
-  , iterations_(0)
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;

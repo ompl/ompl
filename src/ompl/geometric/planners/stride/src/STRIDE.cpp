@@ -47,15 +47,12 @@ ompl::geometric::STRIDE::STRIDE(const base::SpaceInformationPtr &si, bool usePro
                                 unsigned int minDegree, unsigned int maxDegree, unsigned int maxNumPtsPerLeaf,
                                 double estimatedDimension)
   : base::Planner(si, "STRIDE")
-  , goalBias_(0.05)
-  , maxDistance_(0.)
   , useProjectedDistance_(useProjectedDistance)
   , degree_(degree)
   , minDegree_(minDegree)
   , maxDegree_(maxDegree)
   , maxNumPtsPerLeaf_(maxNumPtsPerLeaf)
   , estimatedDimension_(estimatedDimension)
-  , minValidPathFraction_(0.2)
 {
     specs_.approximateSolutions = true;
 

@@ -53,7 +53,6 @@ ompl::control::LTLPlanner::LTLPlanner(const LTLSpaceInformationPtr &ltlsi, Produ
   : ompl::base::Planner(ltlsi, "LTLPlanner")
   , ltlsi_(ltlsi.get())
   , abstraction_(std::move(a))
-  , prodStart_(nullptr)
   , exploreTime_(exploreTime)
 {
     specs_.approximateSolutions = true;

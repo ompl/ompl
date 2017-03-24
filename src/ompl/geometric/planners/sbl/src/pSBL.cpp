@@ -44,9 +44,7 @@ ompl::geometric::pSBL::pSBL(const base::SpaceInformationPtr &si) : base::Planner
 {
     specs_.recognizedGoal = base::GOAL_STATE;
     specs_.multithreaded = true;
-    maxDistance_ = 0.0;
     setThreadCount(2);
-    connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
 
     Planner::declareParam<double>("range", this, &pSBL::setRange, &pSBL::getRange, "0.:1.:10000.");
     Planner::declareParam<unsigned int>("thread_count", this, &pSBL::setThreadCount, &pSBL::getThreadCount, "1:64");

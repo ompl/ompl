@@ -187,8 +187,8 @@ namespace ompl
         /** \brief The seed used for the instance of a RNG */
         std::uint_fast32_t localSeed_;
         std::mt19937 generator_;
-        std::uniform_real_distribution<> uniDist_;
-        std::normal_distribution<> normalDist_;
+        std::uniform_real_distribution<> uniDist_{0,1};
+        std::normal_distribution<> normalDist_{0,1};
         // A structure holding boost::uniform_on_sphere distributions and the associated boost::variate_generators for
         // various dimension
         std::shared_ptr<SphericalData> sphericalDataPtr_;

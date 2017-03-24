@@ -300,32 +300,32 @@ namespace ompl
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
              * available) */
-            double goalBias_;
+            double goalBias_{0.05};
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /** \brief The random number generator */
             RNG rng_;
 
             /** \brief approximation factor*/
-            double epsilon_;
+            double epsilon_{.4};
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
 
             BoostGraph graphLb_;
             BoostGraph graphApx_;
             Motion *startMotion_;
-            Motion *goalMotion_;  // root of LPAstarApx_
-            LPAstarApx *LPAstarApx_;  // rooted at target
-            LPAstarLb *LPAstarLb_;  // rooted at source
+            Motion *goalMotion_{nullptr};  // root of LPAstarApx_
+            LPAstarApx *LPAstarApx_{nullptr};  // rooted at target
+            LPAstarLb *LPAstarLb_{nullptr};  // rooted at source
             std::vector<Motion *> idToMotionMap_;
 
             //////////////////////////////
             // Planner progress properties
             /** \brief Number of iterations the algorithm performed */
-            unsigned int iterations_;
+            unsigned int iterations_{0};
             /** \brief Best cost found so far by algorithm */
             double bestCost_;
         };

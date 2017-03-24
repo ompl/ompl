@@ -53,9 +53,6 @@ ompl::tools::Lightning::Lightning(const base::StateSpacePtr &space) : ompl::tool
 
 void ompl::tools::Lightning::initialize()
 {
-    recallEnabled_ = true;
-    scratchEnabled_ = true;
-
     // Load dynamic time warp
     dtw_ = std::make_shared<ot::DynamicTimeWarp>(si_);
 

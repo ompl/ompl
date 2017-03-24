@@ -434,19 +434,19 @@ namespace ompl
             std::map<Motion *, std::vector<Motion *>> neighborhoods_;
 
             /** \brief The number of samples to use when planning */
-            unsigned int numSamples_;
+            unsigned int numSamples_{1000u};
 
             /** \brief Number of collision checks performed by the algorithm */
-            unsigned int collisionChecks_;
+            unsigned int collisionChecks_{0u};
 
             /** \brief Flag to activate the K nearest neighbors strategy */
-            bool nearestK_;
+            bool nearestK_{true};
 
             /** \brief Flag to activate the collision check caching */
-            bool cacheCC_;
+            bool cacheCC_{true};
 
             /** \brief Flag to activate the cost to go heuristics */
-            bool heuristics_;
+            bool heuristics_{false};
 
             /** \brief Radius employed in the nearestR strategy. */
             double NNr_;
@@ -468,7 +468,7 @@ namespace ompl
                 radius that is greater than one. The default value is 1.1.
                 In general, a radius between 0.9 and 5 appears to perform the best
              */
-            double radiusMultiplier_;
+            double radiusMultiplier_{1.1};
 
             /** \brief A nearest-neighbor datastructure containing the set of all motions */
             std::shared_ptr<NearestNeighbors<Motion *>> nn_;
@@ -486,7 +486,7 @@ namespace ompl
             base::State *goalState_;
 
             /** \brief Add new samples if the tree was not able to find a solution. */
-            bool extendedFMT_;
+            bool extendedFMT_{true};
 
             // For sorting a list of costs and getting only their sorted indices
             struct CostIndexCompare

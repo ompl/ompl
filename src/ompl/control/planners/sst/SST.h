@@ -252,13 +252,13 @@ namespace ompl
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
              * available) */
-            double goalBias_;
+            double goalBias_{0.05};
 
             /** \brief The radius for determining the node selected for extension. */
-            double selectionRadius_;
+            double selectionRadius_{0.2};
 
             /** \brief The radius for determining the size of the pruning region. */
-            double pruningRadius_;
+            double pruningRadius_{0.1};
 
             /** \brief The random number generator */
             RNG rng_;

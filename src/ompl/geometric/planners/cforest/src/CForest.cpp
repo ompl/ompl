@@ -44,10 +44,6 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
     specs_.optimizingPaths = true;
     specs_.multithreaded = true;
 
-    numPathsShared_ = 0;
-    numStatesShared_ = 0;
-    focusSearch_ = true;
-
     numThreads_ = std::max(std::thread::hardware_concurrency(), 2u);
     Planner::declareParam<bool>("focus_search", this, &CForest::setFocusSearch, &CForest::getFocusSearch, "0,1");
     Planner::declareParam<unsigned int>("num_threads", this, &CForest::setNumThreads, &CForest::getNumThreads, "0:64");

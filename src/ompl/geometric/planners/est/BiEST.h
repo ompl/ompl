@@ -156,7 +156,7 @@ namespace ompl
             base::ValidStateSamplerPtr sampler_;
 
             /// \brief The maximum length of a motion to be added to a tree
-            double maxDistance_;
+            double maxDistance_{0.0};
 
             /// \brief The radius considered for neighborhood
             double nbrhoodRadius_;
@@ -165,7 +165,7 @@ namespace ompl
             RNG rng_;
 
             /// \brief The pair of states in each tree connected during planning.  Used for PlannerData computation
-            std::pair<base::State *, base::State *> connectionPoint_;
+            std::pair<base::State *, base::State *> connectionPoint_{nullptr,nullptr};
         };
     }
 }

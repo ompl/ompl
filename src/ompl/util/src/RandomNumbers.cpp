@@ -228,8 +228,6 @@ void ompl::RNG::setSeed(std::uint_fast32_t seed)
 ompl::RNG::RNG()
   : localSeed_(getRNGSeedGenerator().nextSeed())
   , generator_(localSeed_)
-  , uniDist_(0, 1)
-  , normalDist_(0, 1)
   , sphericalDataPtr_(std::make_shared<SphericalData>(&generator_))
 {
 }
@@ -237,8 +235,6 @@ ompl::RNG::RNG()
 ompl::RNG::RNG(std::uint_fast32_t localSeed)
   : localSeed_(localSeed)
   , generator_(localSeed_)
-  , uniDist_(0, 1)
-  , normalDist_(0, 1)
   , sphericalDataPtr_(std::make_shared<SphericalData>(&generator_))
 {
 }

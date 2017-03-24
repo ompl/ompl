@@ -435,84 +435,84 @@ namespace ompl
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
              * available) */
-            double goalBias_;
+            double goalBias_{.05};
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /** \brief The random number generator */
             RNG rng_;
 
             /** \brief Option to use k-nearest search for rewiring */
-            bool useKNearest_;
+            bool useKNearest_{true};
 
             /** \brief The rewiring factor, s, so that r_rrt = s \times r_rrt* > r_rrt* (or k_rrt = s \times k_rrt* >
              * k_rrt*) */
-            double rewireFactor_;
+            double rewireFactor_{1.1};
 
             /** \brief A constant for k-nearest rewiring calculations */
-            double k_rrt_;
-            
+            double k_rrt_{0u};
+
             /** \brief A constant for r-disc rewiring calculations */
-            double r_rrt_;
+            double r_rrt_{0.};
 
             /** \brief Option to delay and reduce collision checking within iterations */
-            bool delayCC_;
+            bool delayCC_{true};
 
             /** \brief Objective we're optimizing */
             base::OptimizationObjectivePtr opt_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
 
             /** \brief A list of states in the tree that satisfy the goal condition */
             std::vector<Motion *> goalMotions_;
 
             /** \brief The status of the tree pruning option. */
-            bool useTreePruning_;
+            bool useTreePruning_{false};
 
             /** \brief The tree is pruned when the change in solution cost is greater than this fraction. */
-            double pruneThreshold_;
+            double pruneThreshold_{.05};
 
             /** \brief Option to use the informed measure */
-            bool usePrunedMeasure_;
+            bool usePrunedMeasure_{false};
 
             /** \brief Option to use informed sampling */
-            bool useInformedSampling_;
+            bool useInformedSampling_{false};
 
             /** \brief The status of the sample rejection parameter. */
-            bool useRejectionSampling_;
+            bool useRejectionSampling_{false};
 
             /** \brief The status of the new-state rejection parameter. */
-            bool useNewStateRejection_;
+            bool useNewStateRejection_{false};
 
             /** \brief The admissibility of the new-state rejection heuristic. */
-            bool useAdmissibleCostToCome_;
+            bool useAdmissibleCostToCome_{true};
 
             /** \brief The number of attempts to make at informed sampling */
-            unsigned int numSampleAttempts_;
+            unsigned int numSampleAttempts_{100u};
 
             /** \brief Option to create batches of samples and order them. */
-            bool useOrderedSampling_;
+            bool useOrderedSampling_{false};
 
             /** \brief The size of the batches. */
-            unsigned int batchSize_;
+            unsigned int batchSize_{1u};
 
             /** \brief Stores the start states as Motions. */
             std::vector<Motion *> startMotions_;
 
             /** \brief Best cost found so far by algorithm */
-            base::Cost bestCost_;
+            base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
 
             /** \brief The cost at which the graph was last pruned */
-            base::Cost prunedCost_;
+            base::Cost prunedCost_{std::numeric_limits<double>::quiet_NaN()};
 
             /** \brief The measure of the problem when we pruned it (if this isn't in use, it will be set to
              * si_->getSpaceMeasure())*/
-            double prunedMeasure_;
+            double prunedMeasure_{0.};
 
             /** \brief Number of iterations the algorithm performed */
-            unsigned int iterations_;
+            unsigned int iterations_{0u};
 
             ///////////////////////////////////////
             // Planner progress property functions

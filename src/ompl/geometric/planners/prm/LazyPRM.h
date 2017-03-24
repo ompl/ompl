@@ -310,10 +310,10 @@ namespace ompl
 
             /** \brief Flag indicating whether the employed connection strategy was set by the user (or defaults are
              * assumed) */
-            bool userSetConnectionStrategy_;
+            bool userSetConnectionStrategy_{false};
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /** \brief Sampler user for generating random in the state space */
             base::StateSamplerPtr sampler_;
@@ -350,7 +350,7 @@ namespace ompl
 
             /** \brief Number of connected components created so far. This is used as an ID only,
                 does not represent the actual number of components currently in the graph. */
-            unsigned long int componentCount_;
+            unsigned long int componentCount_{0};
 
             /** \brief The number of elements in each component in the LazyPRM roadmap. */
             std::map<unsigned long int, unsigned long int> componentSize_;
@@ -358,9 +358,9 @@ namespace ompl
             /** \brief Objective cost function for PRM graph edges */
             base::OptimizationObjectivePtr opt_;
 
-            base::Cost bestCost_;
+            base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
 
-            unsigned long int iterations_;
+            unsigned long int iterations_{0};
         };
     }
 }

@@ -52,22 +52,12 @@
 
 ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si)
   : base::Planner(si, "SPARStwo")
-  , stretchFactor_(3.)
-  , sparseDeltaFraction_(.25)
-  , denseDeltaFraction_(.001)
-  , maxFailures_(5000)
   , nearSamplePoints_((2 * si_->getStateDimension()))
   , stateProperty_(boost::get(vertex_state_t(), g_))
   , weightProperty_(boost::get(boost::edge_weight, g_))
   , colorProperty_(boost::get(vertex_color_t(), g_))
   , interfaceDataProperty_(boost::get(vertex_interface_data_t(), g_))
   , disjointSets_(boost::get(boost::vertex_rank, g_), boost::get(boost::vertex_predecessor, g_))
-  , addedSolution_(false)
-  , consecutiveFailures_(0)
-  , sparseDelta_(0.)
-  , denseDelta_(0.)
-  , iterations_(0)
-  , bestCost_(std::numeric_limits<double>::quiet_NaN())
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;

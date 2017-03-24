@@ -43,10 +43,6 @@ ompl::control::RRT::RRT(const SpaceInformationPtr &si) : base::Planner(si, "RRT"
 {
     specs_.approximateSolutions = true;
     siC_ = si.get();
-    addIntermediateStates_ = false;
-    lastGoalMotion_ = nullptr;
-
-    goalBias_ = 0.05;
 
     Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias, "0.:.05:1.");
     Planner::declareParam<bool>("intermediate_states", this, &RRT::setIntermediateStates, &RRT::getIntermediateStates);

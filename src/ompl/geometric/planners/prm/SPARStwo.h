@@ -469,17 +469,17 @@ namespace ompl
             Vertex queryVertex_;
 
             /** \brief Stretch Factor as per graph spanner literature (multiplicative bound on path quality) */
-            double stretchFactor_;
+            double stretchFactor_{3.};
 
             /** \brief Maximum visibility range for nodes in the graph as a fraction of maximum extent. */
-            double sparseDeltaFraction_;
+            double sparseDeltaFraction_{.25};
 
             /** \brief Maximum range for allowing two samples to support an interface as a fraction of maximum extent.
              */
-            double denseDeltaFraction_;
+            double denseDeltaFraction_{.001};
 
             /** \brief The number of consecutive failures to add to the graph before termination */
-            unsigned int maxFailures_;
+            unsigned int maxFailures_{5000};
 
             /** \brief Number of sample points to use when trying to detect interfaces. */
             unsigned int nearSamplePoints_;
@@ -506,16 +506,16 @@ namespace ompl
             RNG rng_;
 
             /** \brief A flag indicating that a solution has been added during solve() */
-            bool addedSolution_;
+            bool addedSolution_{false};
 
             /** \brief A counter for the number of consecutive failed iterations of the algorithm */
-            unsigned int consecutiveFailures_;
+            unsigned int consecutiveFailures_{0};
 
             /** \brief Maximum visibility range for nodes in the graph */
-            double sparseDelta_;
+            double sparseDelta_{0.};
 
             /** \brief Maximum range for allowing two samples to support an interface */
-            double denseDelta_;
+            double denseDelta_{0.};
 
             /** \brief Mutex to guard access to the Graph member (g_) */
             mutable std::mutex graphMutex_;
@@ -530,9 +530,9 @@ namespace ompl
             //////////////////////////////
             // Planner progress properties
             /** \brief A counter for the number of iterations of the algorithm */
-            long unsigned int iterations_;
+            long unsigned int iterations_{0ul};
             /** \brief Best cost found so far by algorithm */
-            base::Cost bestCost_;
+            base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
         };
     }
 }

@@ -294,17 +294,17 @@ namespace ompl
             /// Priority queue of motions
             ompl::BinaryHeap<Motion *, MotionCompare> priorityQueue_;
             /// Binary Space Partition
-            Cell *bsp_;
+            Cell *bsp_{nullptr};
             /// Projection evaluator for the problem
             ompl::base::ProjectionEvaluatorPtr projectionEvaluator_;
             /// Number between 0 and 1 specifying the probability with which the goal should be sampled
-            double goalBias_;
+            double goalBias_{0.05};
             /// Objected used to sample the goal
-            ompl::base::GoalSampleableRegion *goalSampler_;
+            ompl::base::GoalSampleableRegion *goalSampler_{nullptr};
             /// Iteration number and priority of the next Motion that will be generated
-            unsigned int iteration_;
+            unsigned int iteration_{1};
             /// Closest motion to the goal
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
         };
     }
 }

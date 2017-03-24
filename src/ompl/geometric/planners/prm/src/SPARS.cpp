@@ -62,16 +62,6 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si)
   , interfaceListsProperty_(boost::get(vertex_interface_list_t(), s_))
   , weightProperty_(boost::get(boost::edge_weight, g_))
   , sparseDJSets_(boost::get(boost::vertex_rank, s_), boost::get(boost::vertex_predecessor, s_))
-  , consecutiveFailures_(0)
-  , stretchFactor_(3.)
-  , maxFailures_(1000)
-  , addedSolution_(false)
-  , denseDeltaFraction_(.001)
-  , sparseDeltaFraction_(.25)
-  , denseDelta_(0.)
-  , sparseDelta_(0.)
-  , iterations_(0)
-  , bestCost_(std::numeric_limits<double>::quiet_NaN())
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;

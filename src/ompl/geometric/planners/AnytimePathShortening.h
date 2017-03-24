@@ -157,14 +157,14 @@ namespace ompl
             std::vector<base::PlannerPtr> planners_;
 
             /// \brief Flag indicating whether to shortcut paths
-            bool shortcut_;
+            bool shortcut_{true};
 
             /// \brief Flag indicating whether to hybridize the set of solution paths
-            bool hybridize_;
+            bool hybridize_{true};
 
             /// \brief The maximum number of paths that will be hybridized.  This
             /// prohibits hybridization of a very large path set, which may take significant time.
-            unsigned int maxHybridPaths_;
+            unsigned int maxHybridPaths_{24};
 
             /// \brief The number of planners to use if none are specified. This defaults to the number of cores.
             /// This parameter has no effect if planners have already been added.

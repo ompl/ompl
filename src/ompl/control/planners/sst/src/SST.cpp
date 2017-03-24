@@ -51,10 +51,6 @@ ompl::control::SST::SST(const SpaceInformationPtr &si) : base::Planner(si, "SST"
     prevSolutionControls_.clear();
     prevSolutionSteps_.clear();
 
-    goalBias_ = 0.05;
-    selectionRadius_ = 0.2;
-    pruningRadius_ = 0.1;
-
     Planner::declareParam<double>("goal_bias", this, &SST::setGoalBias, &SST::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("selection_radius", this, &SST::setSelectionRadius, &SST::getSelectionRadius, "0.:.1:"
                                                                                                                 "100");

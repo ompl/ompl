@@ -401,31 +401,31 @@ namespace ompl
             /** \brief When extending a motion from a cell, the
                 extension can be successful. If it is, the score of the
                 cell is multiplied by this factor. */
-            double goodScoreFactor_;
+            double goodScoreFactor_{0.9};
 
             /** \brief When extending a motion from a cell, the
                 extension can fail. If it is, the score of the cell is
                 multiplied by this factor. */
-            double badScoreFactor_;
+            double badScoreFactor_{0.45};
 
             /** \brief When motions reach close to the goal, they are stored in a separate queue
                 to allow biasing towards the goal. This variable specifies the maximum number of samples
                 to keep in that queue. */
-            unsigned int nCloseSamples_;
+            unsigned int nCloseSamples_{30};
 
             /** \brief The fraction of time to focus exploration on
                 the border of the grid. */
-            double selectBorderFraction_;
+            double selectBorderFraction_{0.8};
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
              * available) */
-            double goalBias_;
+            double goalBias_{0.05};
 
             /** \brief The random number generator */
             RNG rng_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
         };
     }
 }

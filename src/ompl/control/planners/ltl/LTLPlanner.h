@@ -192,7 +192,7 @@ namespace ompl
             std::vector<Motion *> motions_;
 
             /** \brief Start state in product graph. */
-            ProductGraph::State *prodStart_;
+            ProductGraph::State *prodStart_{nullptr};
 
             /** \brief Time to spend exploring each lead. */
             double exploreTime_;

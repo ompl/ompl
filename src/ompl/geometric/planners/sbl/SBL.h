@@ -261,13 +261,13 @@ namespace ompl
             TreeData tGoal_;
 
             /** \brief The maximum length of a motion to be added in the tree */
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /** \brief The random number generator to be used */
             RNG rng_;
 
             /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
-            std::pair<base::State *, base::State *> connectionPoint_;
+            std::pair<base::State *, base::State *> connectionPoint_{nullptr, nullptr};
         };
     }
 }

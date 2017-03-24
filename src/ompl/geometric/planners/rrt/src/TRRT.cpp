@@ -47,10 +47,6 @@ ompl::geometric::TRRT::TRRT(const base::SpaceInformationPtr &si) : base::Planner
     specs_.approximateSolutions = true;
     specs_.directed = true;
 
-    goalBias_ = 0.05;
-    maxDistance_ = 0.0;  // set in setup()
-    lastGoalMotion_ = nullptr;
-
     Planner::declareParam<double>("range", this, &TRRT::setRange, &TRRT::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &TRRT::setGoalBias, &TRRT::getGoalBias, "0.:.05:1.");
 

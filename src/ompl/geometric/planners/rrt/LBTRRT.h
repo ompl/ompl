@@ -280,24 +280,24 @@ namespace ompl
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
              * available) */
-            double goalBias_;
+            double goalBias_{.05};
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /** \brief approximation factor*/
-            double epsilon_;
+            double epsilon_{.4};
 
             /** \brief The random number generator */
             RNG rng_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
 
             //////////////////////////////
             // Planner progress properties
             /** \brief Number of iterations the algorithm performed */
-            unsigned int iterations_;
+            unsigned int iterations_{0u};
             /** \brief Best cost found so far by algorithm */
             double bestCost_;
         };

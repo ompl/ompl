@@ -44,9 +44,6 @@
 
 ompl::geometric::AnytimePathShortening::AnytimePathShortening(const ompl::base::SpaceInformationPtr &si)
   : ompl::base::Planner(si, "APS")
-  , shortcut_(true)
-  , hybridize_(true)
-  , maxHybridPaths_(24)
   , defaultNumPlanners_(std::max(1u, std::thread::hardware_concurrency()))
 {
     specs_.approximateSolutions = true;

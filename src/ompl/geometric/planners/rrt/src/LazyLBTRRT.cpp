@@ -50,14 +50,6 @@ namespace
 
 ompl::geometric::LazyLBTRRT::LazyLBTRRT(const base::SpaceInformationPtr &si)
   : base::Planner(si, "LazyLBTRRT")
-  , goalBias_(0.05)
-  , maxDistance_(0.0)
-  , epsilon_(0.4)
-  , lastGoalMotion_(nullptr)
-  , goalMotion_(nullptr)
-  , LPAstarApx_(nullptr)
-  , LPAstarLb_(nullptr)
-  , iterations_(0)
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;

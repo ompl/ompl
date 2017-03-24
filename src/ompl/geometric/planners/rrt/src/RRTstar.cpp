@@ -51,28 +51,6 @@
 
 ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si)
   : base::Planner(si, "RRTstar")
-  , goalBias_(0.05)
-  , maxDistance_(0.0)
-  , useKNearest_(true)
-  , rewireFactor_(1.1)
-  , k_rrt_(0u)
-  , r_rrt_(0.0)
-  , delayCC_(true)
-  , lastGoalMotion_(nullptr)
-  , useTreePruning_(false)
-  , pruneThreshold_(0.05)
-  , usePrunedMeasure_(false)
-  , useInformedSampling_(false)
-  , useRejectionSampling_(false)
-  , useNewStateRejection_(false)
-  , useAdmissibleCostToCome_(true)
-  , numSampleAttempts_(100u)
-  , useOrderedSampling_(false)
-  , batchSize_(1u)
-  , bestCost_(std::numeric_limits<double>::quiet_NaN())
-  , prunedCost_(std::numeric_limits<double>::quiet_NaN())
-  , prunedMeasure_(0.0)
-  , iterations_(0u)
 {
     specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;

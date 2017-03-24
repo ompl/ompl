@@ -258,7 +258,7 @@ namespace ompl
             }
 
             /// \brief The maximum length of a motion to be added to a tree
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /// \brief The factor by which the temperature is increased after
             /// a failed transition test.
@@ -271,17 +271,17 @@ namespace ompl
             base::Cost worstCost_;
 
             /// \brief All motion costs must be better than this cost (default is infinity)
-            base::Cost costThreshold_;
+            base::Cost costThreshold_{std::numeric_limits<double>::infinity()};
 
             /// \brief The temperature that planning begins at.
-            double initTemperature_;
+            double initTemperature_{100.};
 
             /// \brief The distance between an existing state and a new state
             /// that qualifies it as a frontier state.
-            double frontierThreshold_;
+            double frontierThreshold_{0.};
 
             /// \brief The target ratio of non-frontier nodes to frontier nodes.
-            double frontierNodeRatio_;
+            double frontierNodeRatio_{.1};
 
             /// \brief The current temperature
             double temp_;
@@ -298,7 +298,7 @@ namespace ompl
 
             /// \brief The most recent connection point for the two trees.
             /// Used for PlannerData computation.
-            std::pair<Motion *, Motion *> connectionPoint_;
+            std::pair<Motion *, Motion *> connectionPoint_{nullptr, nullptr};
 
             /// \brief The start tree
             TreeData tStart_;

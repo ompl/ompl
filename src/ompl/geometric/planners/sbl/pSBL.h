@@ -261,12 +261,12 @@ namespace ompl
             std::mutex loopLockCounter_;
             unsigned int loopCounter_;
 
-            double maxDistance_;
+            double maxDistance_{0.};
 
             unsigned int threadCount_;
 
             /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
-            std::pair<base::State *, base::State *> connectionPoint_;
+            std::pair<base::State *, base::State *> connectionPoint_{nullptr, nullptr};
         };
     }
 }

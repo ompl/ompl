@@ -44,8 +44,6 @@ ompl::geometric::BiEST::BiEST(const base::SpaceInformationPtr &si) : base::Plann
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.directed = true;
-    maxDistance_ = 0.0;
-    connectionPoint_ = std::make_pair<ompl::base::State *, ompl::base::State *>(nullptr, nullptr);
 
     Planner::declareParam<double>("range", this, &BiEST::setRange, &BiEST::getRange, "0.:1.:10000.");
 }

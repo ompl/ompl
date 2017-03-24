@@ -76,10 +76,6 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
   , successfulConnectionAttemptsProperty_(boost::get(vertex_successful_connection_attempts_t(), g_))
   , weightProperty_(boost::get(boost::edge_weight, g_))
   , disjointSets_(boost::get(boost::vertex_rank, g_), boost::get(boost::vertex_predecessor, g_))
-  , userSetConnectionStrategy_(false)
-  , addedNewSolution_(false)
-  , iterations_(0)
-  , bestCost_(std::numeric_limits<double>::quiet_NaN())
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;

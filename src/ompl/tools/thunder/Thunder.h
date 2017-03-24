@@ -186,7 +186,7 @@ namespace ompl
             base::PlannerPtr planner2_;
 
             /**  Flag indicating whether dual thread scratch planning is enabled */
-            bool dualThreadScratchEnabled_;
+            bool dualThreadScratchEnabled_{true};
 
             /** \brief Instance of parallel planning to use for computing solutions in parallel */
             ompl::tools::ParallelPlanPtr pp_;

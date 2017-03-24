@@ -173,11 +173,11 @@ namespace ompl
 
             unsigned int threadCount_;
 
-            double goalBias_;
-            double maxDistance_;
+            double goalBias_{.05};
+            double maxDistance_{0.};
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
         };
     }
 }

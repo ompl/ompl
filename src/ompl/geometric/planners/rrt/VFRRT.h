@@ -123,13 +123,13 @@ namespace ompl
             const VectorField vf_;
 
             /** Number of efficient nodes. */
-            unsigned int efficientCount_;
+            unsigned int efficientCount_{0u};
 
             /** Number of inefficient nodes. */
-            unsigned int inefficientCount_;
+            unsigned int inefficientCount_{0u};
 
             /** Current inefficiency. */
-            double explorationInefficiency_;
+            double explorationInefficiency_{0.};
 
             /** User-specified exploration parameter. */
             double explorationSetting_;
@@ -141,13 +141,13 @@ namespace ompl
             unsigned int nth_step_;
 
             /** Current number of steps since lambda was updated/initialized. */
-            unsigned int step_;
+            unsigned int step_{0u};
 
             /** Average norm of vectors in the field. */
-            double meanNorm_;
+            double meanNorm_{0.};
 
             /** Dimensionality of vector field */
-            unsigned int vfdim_;
+            unsigned int vfdim_{0u};
         };
     }
 }

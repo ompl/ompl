@@ -44,9 +44,6 @@ ompl::geometric::EST::EST(const base::SpaceInformationPtr &si) : base::Planner(s
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;
-    goalBias_ = 0.05;
-    maxDistance_ = 0.0;
-    lastGoalMotion_ = nullptr;
 
     Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias, "0.:.05:1.");
