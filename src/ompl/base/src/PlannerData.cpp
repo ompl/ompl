@@ -785,3 +785,76 @@ bool ompl::base::PlannerData::hasControls() const
 {
     return false;
 }
+
+void ompl::base::PlannerData::dumpGraph(std::ostream &out, const bool asIs) const
+{
+    std::stringstream v, f;
+    std::size_t vcount = 0;
+    std::size_t fcount = 0;
+
+    const Graph &graph = toBoostGraph();
+
+    auto stateString = [&](const State *state) {
+        std::string out = "";
+        for (unsigned int i = 0; i < si_->getStateDimension(); ++i)
+        {
+            if (i != 0)
+                out += " ";
+
+            out += std::to_string(*si_->getStateSpace()->getValueAddressAtIndex(state, i));
+        }
+
+        out += "\n";
+        return out;
+    };
+
+    BGL_FORALL_EDGES(edge, graph, PlannerData::Graph)
+    {
+        std::vector<State *> stateList;
+        const State *source = boost::get(vertex_type, graph, boost::source(edge, graph))->getState();
+        const State *target = boost::get(vertex_type, graph, boost::target(edge, graph))->getState();
+
+        // if (!asIs)
+        //     traverseManifold(source, target, true, &stateList);
+        if (asIs || stateList.size() == 1)
+        {
+            v << stateString(source) << "\n";
+            v << stateString(target) << "\n";
+            v << stateString(source) << "\n";
+            vcount += 3;
+            f << 3 << " " << vcount - 3 << " " << vcount - 2 << " " << vcount - 1 << "\n";
+            fcount++;
+            for (State *state : stateList)
+                si_->freeState(state);
+            continue;
+        }
+        const State *to, *from = stateList[0];
+        v << stateString(from) << "\n";
+        vcount++;
+        bool reset = true;
+        for (std::size_t i = 1; i < stateList.size(); i++)
+        {
+            to = stateList[i];
+            from = stateList[i - 1];
+            v << stateString(to) << "\n";
+            v << stateString(from) << "\n";
+            vcount += 2;
+            f << 3 << " " << (reset ? vcount - 3 : vcount - 4) << " " << vcount - 2 << " " << vcount - 1 << "\n";
+            fcount++;
+            si_->freeState(stateList[i - 1]);
+            reset = false;
+        }
+        si_->freeState(stateList.back());
+    }
+
+    out << "ply\n";
+    out << "format ascii 1.0\n";
+    out << "element vertex " << vcount << "\n";
+    out << "property float x\n";
+    out << "property float y\n";
+    out << "property float z\n";
+    out << "element face " << fcount << "\n";
+    out << "property list uint uint vertex_index\n";
+    out << "end_header\n";
+    out << v.str() << f.str();
+}

@@ -254,6 +254,10 @@ namespace ompl
             /** \brief Remove all states and clear memory */
             void clear();
 
+            /** \brief Write a mesh of a path on the atlas to stream. Insert
+             * additional vertices if \a asIs == true. */
+            void dumpPath(std::ostream &out, const bool asIs = false) const;
+
             /** @} */
 
         protected:

@@ -393,6 +393,10 @@ namespace ompl
             /// will result in undefined behavior with this class.
             const Graph &toBoostGraph() const;
 
+            /** \brief Write a mesh of the planner graph to a stream. Insert
+             * additional vertices if \a asIs == true. */
+            void dumpGraph(std::ostream &out, const bool asIs = false) const;
+
             /// \}
 
             /// \brief Return the instance of SpaceInformation used in this PlannerData

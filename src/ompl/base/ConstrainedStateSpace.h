@@ -351,16 +351,6 @@ namespace ompl
             /** @name Visualization and debug
              * @{ */
 
-            /** \brief Write a mesh of the planner graph to a stream. Insert
-             * additional vertices to project the edges along the manifold if \a
-             * asIs == true. */
-            void dumpGraph(const PlannerData::Graph &graph, std::ostream &out, const bool asIs = false) const;
-
-            /** \brief Write a mesh of a path on the atlas to stream. Insert
-             * additional vertices to project the edges along the manifold if \a
-             * asIs == true. */
-            void dumpPath(ompl::geometric::PathGeometric &path, std::ostream &out, const bool asIs = false) const;
-
             /** @} */
 
         protected:

@@ -531,3 +531,69 @@ void ompl::geometric::PathGeometric::clear()
     freeMemory();
     states_.clear();
 }
+
+void ompl::geometric::PathGeometric::dumpPath(std::ostream &out, const bool asIs) const
+{
+    std::stringstream v, f;
+    std::size_t vcount = 0;
+    std::size_t fcount = 0;
+
+    auto stateString = [&](const ompl::base::State *state) {
+        std::string out = "";
+        for (unsigned int i = 0; i < si_->getStateDimension(); ++i)
+            out += std::to_string(*si_->getStateSpace()->getValueAddressAtIndex(state, i)) + " ";
+
+        out += "\n";
+        return out;
+    };
+
+    for (std::size_t i = 0; i < states_.size() - 1; i++)
+    {
+        std::vector<ompl::base::State *> stateList;
+        const ompl::base::State *const source = states_[i];
+        const ompl::base::State *const target = states_[i + 1];
+
+        // if (!asIs)
+        //     traverseManifold(source, target, true, &stateList);
+        if (asIs || stateList.size() == 1)
+        {
+            v << stateString(source) << "\n";
+            v << stateString(target) << "\n";
+            v << stateString(source) << "\n";
+            vcount += 3;
+            f << 3 << " " << vcount - 3 << " " << vcount - 2 << " " << vcount - 1 << "\n";
+            fcount++;
+            for (ompl::base::State *state : stateList)
+                si_->freeState(state);
+            continue;
+        }
+        ompl::base::State *to, *from = stateList[0];
+        v << stateString(from) << "\n";
+        vcount++;
+        bool reset = true;
+        for (std::size_t i = 1; i < stateList.size(); i++)
+        {
+            to = stateList[i];
+            from = stateList[i - 1];
+            v << stateString(to) << "\n";
+            v << stateString(from) << "\n";
+            vcount += 2;
+            f << 3 << " " << (reset ? vcount - 3 : vcount - 4) << " " << vcount - 2 << " " << vcount - 1 << "\n";
+            fcount++;
+            si_->freeState(stateList[i - 1]);
+            reset = false;
+        }
+        si_->freeState(stateList.back());
+    }
+
+    out << "ply\n";
+    out << "format ascii 1.0\n";
+    out << "element vertex " << vcount << "\n";
+    out << "property float x\n";
+    out << "property float y\n";
+    out << "property float z\n";
+    out << "element face " << fcount << "\n";
+    out << "property list uint uint vertex_index\n";
+    out << "end_header\n";
+    out << v.str() << f.str();
+}
