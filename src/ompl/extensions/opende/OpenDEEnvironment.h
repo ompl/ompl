@@ -67,7 +67,7 @@ namespace ompl
         {
         public:
             /** \brief The OpenDE world where the simulation is performed */
-            dWorldID world_;
+            dWorldID world_{nullptr};
 
             /** \brief The set of spaces where contacts need to be evaluated before simulation takes place */
             std::vector<dSpaceID> collisionSpaces_;
@@ -82,40 +82,34 @@ namespace ompl
 
             /** \brief Issue debug messages when contacts are found. Default is false. This should only be used for
              * debugging */
-            bool verboseContacts_;
+            bool verboseContacts_{false};
 
             /** \brief The group of joints where contacts are created */
             dJointGroupID contactGroup_;
 
             /** \brief The maximum number of contacts to create between two bodies when a collision occurs */
-            unsigned int maxContacts_;
+            unsigned int maxContacts_{3};
 
             /** \brief The simulation step size */
-            double stepSize_;
+            double stepSize_{0.05};
 
             /** \brief The maximum number of times a control is applies in sequence */
-            unsigned int maxControlSteps_;
+            unsigned int maxControlSteps_{100};
 
             /** \brief The minimum number of times a control is applies in sequence */
-            unsigned int minControlSteps_;
+            unsigned int minControlSteps_{5};
 
             /** \brief Lock to use when performing simulations in the world. (OpenDE simulations are NOT thread safe) */
             mutable std::mutex mutex_;
 
             OpenDEEnvironment()
-              : world_(nullptr)
-              , verboseContacts_(false)
-              , maxContacts_(3)
-              , stepSize_(0.05)
-              , maxControlSteps_(100)
-              , minControlSteps_(5)
             {
                 contactGroup_ = dJointGroupCreate(0);
             }
 
             virtual ~OpenDEEnvironment()
             {
-                if (contactGroup_)
+                if (contactGroup_ != nullptr)
                     dJointGroupDestroy(contactGroup_);
             }
 

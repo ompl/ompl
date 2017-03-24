@@ -154,7 +154,7 @@ void ompl::geometric::SimpleSetup::simplifySolution(const base::PlannerTerminati
         if (p)
         {
             time::point start = time::now();
-            PathGeometric &path = static_cast<PathGeometric &>(*p);
+            auto &path = static_cast<PathGeometric &>(*p);
             std::size_t numStates = path.getStateCount();
             psk_->simplify(path, ptc);
             simplifyTime_ = time::seconds(time::now() - start);
@@ -174,7 +174,7 @@ void ompl::geometric::SimpleSetup::simplifySolution(double duration)
         if (p)
         {
             time::point start = time::now();
-            PathGeometric &path = static_cast<PathGeometric &>(*p);
+            auto &path = static_cast<PathGeometric &>(*p);
             std::size_t numStates = path.getStateCount();
             if (duration < std::numeric_limits<double>::epsilon())
                 psk_->simplifyMax(static_cast<PathGeometric &>(*p));

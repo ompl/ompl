@@ -55,7 +55,7 @@ namespace ompl
 
             bool sample(State *state) override;
 
-            bool sampleNear(State *state, const State *near, const double distance) override;
+            bool sampleNear(State *state, const State *near, double distance) override;
 
             /** \brief The number of attempts at improving the clearance of the sampled state. */
             void setNrImproveAttempts(unsigned int attempts)

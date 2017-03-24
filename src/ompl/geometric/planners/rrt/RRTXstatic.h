@@ -146,7 +146,7 @@ namespace ompl
             }
 
             /** \brief Controls whether heuristic rejection is used on samples (e.g., x_rand) */
-            void setSampleRejection(const bool reject);
+            void setSampleRejection(bool reject);
 
             /** \brief Get the state of the sample rejection option */
             bool getSampleRejection() const
@@ -290,8 +290,8 @@ namespace ompl
             struct MotionCompare
             {
                 /** \brief Constructor */
-                MotionCompare(const base::OptimizationObjectivePtr &opt, const base::ProblemDefinitionPtr &pdef)
-                  : opt_(opt), pdef_(pdef)
+                MotionCompare(base::OptimizationObjectivePtr opt, base::ProblemDefinitionPtr pdef)
+                  : opt_(std::move(opt)), pdef_(std::move(pdef))
                 {
                 }
 
@@ -332,9 +332,7 @@ namespace ompl
                 {
                 }
 
-                ~Motion()
-                {
-                }
+                ~Motion() = default;
 
                 /** \brief The state contained by the motion */
                 base::State *state;
@@ -400,40 +398,40 @@ namespace ompl
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
              * available) */
-            double goalBias_;
+            double goalBias_{.05};
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /** \brief The random number generator */
             RNG rng_;
 
             /** \brief Option to use k-nearest search for rewiring */
-            bool useKNearest_;
+            bool useKNearest_{true};
 
             /** \brief The rewiring factor, s, so that r_rrg = s \times r_rrg* > r_rrg* (or k_rrg = s \times k_rrg* >
              * k_rrg*) */
-            double rewireFactor_;
+            double rewireFactor_{1.1};
 
             /** \brief A constant for k-nearest rewiring calculations */
-            double k_rrt_;
+            double k_rrt_{0u};
             /** \brief A constant for r-disc rewiring calculations */
-            double r_rrt_;
+            double r_rrt_{0.};
 
             /** \brief Objective we're optimizing */
             base::OptimizationObjectivePtr opt_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
 
             /** \brief A list of states in the tree that satisfy the goal condition */
             std::vector<Motion *> goalMotions_;
 
             /** \brief Best cost found so far by algorithm */
-            base::Cost bestCost_;
+            base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
 
             /** \brief Number of iterations the algorithm performed */
-            unsigned int iterations_;
+            unsigned int iterations_{0u};
 
             /** \brief Comparator of motions, used to order the queue */
             MotionCompare mc_;
@@ -442,10 +440,10 @@ namespace ompl
             BinaryHeap<Motion *, MotionCompare> q_;
 
             /** \brief Threshold for the propagation of information */
-            base::Cost epsilonCost_;
+            base::Cost epsilonCost_{0.};
 
             /** \brief Whether or not to propagate the cost to children if the update is less than epsilon */
-            bool updateChildren_;
+            bool updateChildren_{true};
 
             /** \brief Current value of the radius used for the neighbors */
             double rrg_r_;
@@ -454,19 +452,19 @@ namespace ompl
             unsigned int rrg_k_;
 
             /** \brief Variant used for rejection sampling */
-            int variant_;
+            int variant_{0};
 
             /** \brief Alpha parameter, scaling the rejection sampling tests */
-            double alpha_;
+            double alpha_{1.};
 
             /** \brief Option to use informed sampling */
-            bool useInformedSampling_;
+            bool useInformedSampling_{false};
 
             /** \brief The status of the sample rejection parameter. */
-            bool useRejectionSampling_;
+            bool useRejectionSampling_{false};
 
             /** \brief The number of attempts to make at informed sampling */
-            unsigned int numSampleAttempts_;
+            unsigned int numSampleAttempts_{100u};
 
             ///////////////////////////////////////
             // Planner progress property functions

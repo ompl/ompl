@@ -210,7 +210,7 @@ namespace ompl
                 base::State *toState = primaryPath.getState(toID);
 
                 // Check if our planner is out of time
-                if (ptc == true)
+                if (ptc)
                 {
                     OMPL_DEBUG("Repair path function interrupted because termination condition is true.");
                     return false;

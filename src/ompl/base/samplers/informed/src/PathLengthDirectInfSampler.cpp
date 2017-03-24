@@ -69,7 +69,7 @@ namespace ompl
             std::vector<const State *> startStates;
             std::vector<State *> goalStates;
 
-            if (probDefn_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION) == false)
+            if (!probDefn_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION))
             {
                 throw Exception("PathLengthDirectInfSampler: The direct path-length informed sampler currently only "
                                 "supports goals that can be cast to a sampleable goal region (i.e., are countable "
@@ -92,7 +92,7 @@ namespace ompl
 
             // Check that the provided statespace is compatible and extract the necessary indices.
             // The statespace must either be R^n or SE(2) or SE(3)
-            if (InformedSampler::space_->isCompound() == false)
+            if (!InformedSampler::space_->isCompound())
             {
                 if (InformedSampler::space_->getType() == STATE_SPACE_REAL_VECTOR)
                 {
@@ -104,7 +104,7 @@ namespace ompl
                     throw Exception("PathLengthDirectInfSampler only supports RealVector, SE2 and SE3 StateSpaces.");
                 }
             }
-            else if (InformedSampler::space_->isCompound() == true)
+            else if (InformedSampler::space_->isCompound())
             {
                 // Check that it is SE2 or SE3
                 if (InformedSampler::space_->getType() == STATE_SPACE_SE2 ||
@@ -157,7 +157,7 @@ namespace ompl
             baseSampler_ = InformedSampler::space_->allocDefaultStateSampler();
 
             // Check if the space is compound
-            if (InformedSampler::space_->isCompound() == false)
+            if (!InformedSampler::space_->isCompound())
             {
                 // It is not.
 
@@ -258,13 +258,13 @@ namespace ompl
             bool foundSample = false;
 
             // Spend numIters_ iterations trying to find an informed sample:
-            for (unsigned int i = 0u; i < InformedSampler::numIters_ && foundSample == false; ++i)
+            for (unsigned int i = 0u; i < InformedSampler::numIters_ && !foundSample; ++i)
             {
                 // Call the helper function for the larger PHS. It will move our iteration counter:
                 foundSample = sampleUniform(statePtr, maxCost, &i);
 
                 // Did we find a sample?
-                if (foundSample == true)
+                if (foundSample)
                 {
                     // We did, but it only satisfied the upper bound. Check that it meets the lower bound.
 
@@ -307,7 +307,7 @@ namespace ompl
             }
 
             // And if the space is compound, further multiplied by the measure of the uniformed subspace
-            if (InformedSampler::space_->isCompound() == true)
+            if (InformedSampler::space_->isCompound())
             {
                 informedMeasure = informedMeasure * uninformedSubSpace_->getMeasure();
             }
@@ -346,7 +346,7 @@ namespace ompl
 
             // Whether we successfully returnes
             // Check if a solution path has been found
-            if (InformedSampler::opt_->isFinite(maxCost) == false)
+            if (!InformedSampler::opt_->isFinite(maxCost))
             {
                 // We don't have a solution yet, we sample from our basic sampler instead...
                 baseSampler_->sampleUniform(statePtr);
@@ -391,7 +391,7 @@ namespace ompl
             bool foundSample = false;
 
             // Spend numIters_ iterations trying to find an informed sample:
-            while (foundSample == false && *iters < InformedSampler::numIters_)
+            while (!foundSample && *iters < InformedSampler::numIters_)
             {
                 // Generate a random sample
                 baseSampler_->sampleUniform(statePtr);
@@ -418,7 +418,7 @@ namespace ompl
 
             // Due to the possibility of overlap between multiple PHSs, we keep a sample with a probability of 1/K,
             // where K is the number of PHSs the sample is in.
-            while (foundSample == false && *iters < InformedSampler::numIters_)
+            while (!foundSample && *iters < InformedSampler::numIters_)
             {
                 // Variables
                 // The informed subset of the sample as a vector
@@ -433,7 +433,7 @@ namespace ompl
                 foundSample = keepSample(informedVector);
 
                 // If we're keeping it, then check if the state is in the problem domain:
-                if (foundSample == true)
+                if (foundSample)
                 {
                     // Turn into a state of our full space
                     createFullState(statePtr, informedVector);
@@ -455,7 +455,7 @@ namespace ompl
             std::vector<double> rawData(informedSubSpace_->getDimension());
 
             // Get the raw data
-            if (InformedSampler::space_->isCompound() == false)
+            if (!InformedSampler::space_->isCompound())
             {
                 informedSubSpace_->copyToReals(rawData, statePtr);
             }
@@ -471,7 +471,7 @@ namespace ompl
         {
             // If there is an extra "uninformed" subspace, we need to add that to the state before converting the raw
             // vector representation into a state....
-            if (InformedSampler::space_->isCompound() == false)
+            if (!InformedSampler::space_->isCompound())
             {
                 // No, space_ == informedSubSpace_
                 // Copy into the state pointer
@@ -577,7 +577,7 @@ namespace ompl
                 // The probability of using each PHS is weighted by it's measure. Therefore, if we iterate up the list
                 // of PHSs, the first one who's relative measure is greater than the PHS randomly selected
                 for (std::list<ompl::ProlateHyperspheroidPtr>::const_iterator phsIter = listPhsPtrs_.begin();
-                     phsIter != listPhsPtrs_.end() && static_cast<bool>(rval) == false; ++phsIter)
+                     phsIter != listPhsPtrs_.end() && !static_cast<bool>(rval); ++phsIter)
                 {
                     // Update the running measure
                     runningRelativeMeasure = runningRelativeMeasure + (*phsIter)->getPhsMeasure() / summedMeasure_;
@@ -628,7 +628,7 @@ namespace ompl
             bool inPhs = false;
 
             // Iterate over the list, stopping as soon as we get our first true
-            for (auto phsIter = listPhsPtrs_.begin(); phsIter != listPhsPtrs_.end() && inPhs == false; ++phsIter)
+            for (auto phsIter = listPhsPtrs_.begin(); phsIter != listPhsPtrs_.end() && !inPhs; ++phsIter)
             {
                 inPhs = isInPhs(*phsIter, informedVector);
             }
@@ -652,7 +652,7 @@ namespace ompl
             for (const auto &phsPtr : listPhsPtrs_)
             {
                 // Conditionally increment
-                if (phsPtr->isInPhs(&informedVector[0]) == true)
+                if (phsPtr->isInPhs(&informedVector[0]))
                 {
                     ++numInclusions;
                 }

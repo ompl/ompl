@@ -204,7 +204,7 @@ ompl::base::PlannerStatus ompl::control::Syclop::solve(const base::PlannerTermin
         }
         auto path(std::make_shared<PathControl>(si_));
         for (int i = mpath.size() - 1; i >= 0; --i)
-            if (mpath[i]->parent)
+            if (mpath[i]->parent != nullptr)
                 path->append(mpath[i]->state, mpath[i]->control, mpath[i]->steps * siC_->getPropagationStepSize());
             else
                 path->append(mpath[i]->state);
@@ -406,7 +406,7 @@ void ompl::control::Syclop::defaultComputeLead(int startRegion, int goalRegion, 
         return;
     }
 
-    else if (rng_.uniform01() < probShortestPath_)
+    if (rng_.uniform01() < probShortestPath_)
     {
         std::vector<RegionGraph::vertex_descriptor> parents(decomp_->getNumRegions());
         std::vector<double> distances(decomp_->getNumRegions());

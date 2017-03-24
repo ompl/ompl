@@ -73,17 +73,15 @@ namespace ompl
                 BOUNDED_APPROXIMATE,
             };
 
-            StateValidityCheckerSpecs() : clearanceComputationType(NONE), hasValidDirectionComputation(false)
-            {
-            }
+            StateValidityCheckerSpecs() = default;
 
             /** \brief Value indicating the kind of clearance computation this
                 StateValidityChecker can compute (if any). */
-            ClearanceComputationType clearanceComputationType;
+            ClearanceComputationType clearanceComputationType{NONE};
 
             /** \brief Flag indicating that this state validity checker can return
                 a direction that moves a state away from being invalid. */
-            bool hasValidDirectionComputation;
+            bool hasValidDirectionComputation{false};
         };
 
         /** \brief Abstract definition for a class checking the

@@ -74,8 +74,8 @@ public:
     bool isValid(const base::State *state) const override
     {
         /* planning is done in a continuous space, but our collision space representation is discrete */
-        int x = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[0]);
-        int y = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[1]);
+        auto x = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[0]);
+        auto y = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[1]);
 
         if (x < 0 || y < 0 || x >= w_ || y >= h_)
             return false;
@@ -108,11 +108,11 @@ public:
     double distance(const base::State *state1, const base::State *state2) const override
     {
         /* planning is done in a continuous space, but our collision space representation is discrete */
-        int x1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[0]);
-        int y1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[1]);
+        auto x1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[0]);
+        auto y1 = (int)(state1->as<base::RealVectorStateSpace::StateType>()->values[1]);
 
-        int x2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[0]);
-        int y2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[1]);
+        auto x2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[0]);
+        auto y2 = (int)(state2->as<base::RealVectorStateSpace::StateType>()->values[1]);
 
         return abs(x1 - x2) + abs(y1 - y2);
     }
@@ -264,7 +264,7 @@ public:
         if (planner->solve(SOLUTION_TIME))
         {
             ompl::time::duration elapsed = ompl::time::now() - startTime;
-            if (time)
+            if (time != nullptr)
                 *time += ompl::time::seconds(elapsed);
             if (show)
                 printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
@@ -277,10 +277,10 @@ public:
 
             elapsed = ompl::time::now() - startTime;
 
-            if (time)
+            if (time != nullptr)
                 *time += ompl::time::seconds(elapsed);
 
-            if (pathLength)
+            if (pathLength != nullptr)
                 *pathLength += path->length();
 
             if (show)
@@ -293,8 +293,8 @@ public:
             /* display the solution */
             for (unsigned int i = 0 ; i < path->getStateCount() ; ++i)
             {
-                int x = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[0]);
-                int y = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[1]);
+                auto x = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[0]);
+                auto y = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[1]);
                 if (temp.grid[x][y] == T_FREE || temp.grid[x][y] == T_PATH)
                     temp.grid[x][y] = T_PATH;
                 else

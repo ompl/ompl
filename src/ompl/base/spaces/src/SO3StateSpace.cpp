@@ -108,7 +108,7 @@ void ompl::base::SO3StateSampler::sampleUniformNear(State *state, const State *n
     }
     double d = rng_.uniform01();
     SO3StateSpace::StateType q, *qs = static_cast<SO3StateSpace::StateType *>(state);
-    const SO3StateSpace::StateType *qnear = static_cast<const SO3StateSpace::StateType *>(near);
+    const auto *qnear = static_cast<const SO3StateSpace::StateType *>(near);
     computeAxisAngle(q, rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(),
                      2. * pow(d, boost::math::constants::third<double>()) * distance);
     quaternionProduct(*qs, *qnear, q);
@@ -145,7 +145,7 @@ void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State *mean
     else
     {
         SO3StateSpace::StateType q, *qs = static_cast<SO3StateSpace::StateType *>(state);
-        const SO3StateSpace::StateType *qmu = static_cast<const SO3StateSpace::StateType *>(mean);
+        const auto *qmu = static_cast<const SO3StateSpace::StateType *>(mean);
         double half_theta = theta / 2.0;
         double s = sin(half_theta) / theta;
         q.w = cos(half_theta);
@@ -181,7 +181,7 @@ double ompl::base::SO3StateSpace::norm(const StateType *state) const
 void ompl::base::SO3StateSpace::enforceBounds(State *state) const
 {
     // see http://stackoverflow.com/questions/11667783/quaternion-and-normalization/12934750#12934750
-    StateType *qstate = static_cast<StateType *>(state);
+    auto *qstate = static_cast<StateType *>(state);
     double nrmsq = quaternionNormSquared(*qstate);
     double error = std::abs(1.0 - nrmsq);
     const double epsilon = 2.107342e-08;
@@ -215,8 +215,8 @@ bool ompl::base::SO3StateSpace::satisfiesBounds(const State *state) const
 
 void ompl::base::SO3StateSpace::copyState(State *destination, const State *source) const
 {
-    const StateType *qsource = static_cast<const StateType *>(source);
-    StateType *qdestination = static_cast<StateType *>(destination);
+    const auto *qsource = static_cast<const StateType *>(source);
+    auto *qdestination = static_cast<StateType *>(destination);
     qdestination->x = qsource->x;
     qdestination->y = qsource->y;
     qdestination->z = qsource->z;
@@ -251,13 +251,12 @@ namespace ompl
     {
         static inline double arcLength(const State *state1, const State *state2)
         {
-            const SO3StateSpace::StateType *qs1 = static_cast<const SO3StateSpace::StateType *>(state1);
-            const SO3StateSpace::StateType *qs2 = static_cast<const SO3StateSpace::StateType *>(state2);
+            const auto *qs1 = static_cast<const SO3StateSpace::StateType *>(state1);
+            const auto *qs2 = static_cast<const SO3StateSpace::StateType *>(state2);
             double dq = fabs(qs1->x * qs2->x + qs1->y * qs2->y + qs1->z * qs2->z + qs1->w * qs2->w);
             if (dq > 1.0 - MAX_QUATERNION_NORM_ERROR)
                 return 0.0;
-            else
-                return acos(dq);
+            return acos(dq);
         }
     }
 }
@@ -294,9 +293,9 @@ void ompl::base::SO3StateSpace::interpolate(const State *from, const State *to, 
         double s0 = sin((1.0 - t) * theta);
         double s1 = sin(t * theta);
 
-        const StateType *qs1 = static_cast<const StateType *>(from);
-        const StateType *qs2 = static_cast<const StateType *>(to);
-        StateType *qr = static_cast<StateType *>(state);
+        const auto *qs1 = static_cast<const StateType *>(from);
+        const auto *qs2 = static_cast<const StateType *>(to);
+        auto *qr = static_cast<StateType *>(state);
         double dq = qs1->x * qs2->x + qs1->y * qs2->y + qs1->z * qs2->z + qs1->w * qs2->w;
         if (dq < 0)  // Take care of long angle case see http://en.wikipedia.org/wiki/Slerp
             s1 = -s1;
@@ -372,9 +371,9 @@ double *ompl::base::SO3StateSpace::getValueAddressAtIndex(State *state, const un
 void ompl::base::SO3StateSpace::printState(const State *state, std::ostream &out) const
 {
     out << "SO3State [";
-    if (state)
+    if (state != nullptr)
     {
-        const StateType *qstate = static_cast<const StateType *>(state);
+        const auto *qstate = static_cast<const StateType *>(state);
         out << qstate->x << " " << qstate->y << " " << qstate->z << " " << qstate->w;
     }
     else

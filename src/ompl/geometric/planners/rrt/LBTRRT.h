@@ -162,20 +162,18 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state_(nullptr), parentApx_(nullptr), costApx_(0.0)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state */
                 Motion(const base::SpaceInformationPtr &si)
-                  : state_(si->allocState()), parentApx_(nullptr), costApx_(0.0)
+                  : state_(si->allocState())
                 {
                 }
 
                 ~Motion() = default;
 
                 /** \brief The state contained by the motion */
-                base::State *state_;
+                base::State *state_{nullptr};
                 /** \brief unique id of the motion */
                 std::size_t id_;
                 /** \brief The lower bound cost of the motion
@@ -185,9 +183,9 @@ namespace ompl
                 */
                 double costLb_;
                 /** \brief The parent motion in the approximation tree */
-                Motion *parentApx_;
+                Motion *parentApx_{nullptr};
                 /** \brief The approximation cost */
-                double costApx_;
+                double costApx_{0.0};
                 /** \brief The children in the approximation tree */
                 std::vector<Motion *> childrenApx_;
             };
@@ -282,24 +280,24 @@ namespace ompl
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
              * available) */
-            double goalBias_;
+            double goalBias_{.05};
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /** \brief approximation factor*/
-            double epsilon_;
+            double epsilon_{.4};
 
             /** \brief The random number generator */
             RNG rng_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
 
             //////////////////////////////
             // Planner progress properties
             /** \brief Number of iterations the algorithm performed */
-            unsigned int iterations_;
+            unsigned int iterations_{0u};
             /** \brief Best cost found so far by algorithm */
             double bestCost_;
         };

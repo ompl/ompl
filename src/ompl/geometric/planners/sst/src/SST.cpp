@@ -48,11 +48,6 @@ ompl::geometric::SST::SST(const base::SpaceInformationPtr &si) : base::Planner(s
     specs_.directed = true;
     prevSolution_.clear();
 
-    goalBias_ = 0.05;
-    selectionRadius_ = 5.0;
-    pruningRadius_ = 3.0;
-    maxDistance_ = 5.0;
-
     Planner::declareParam<double>("range", this, &SST::setRange, &SST::getRange, ".1:.1:100");
     Planner::declareParam<double>("goal_bias", this, &SST::setGoalBias, &SST::getGoalBias, "0.:.05:1.");
     Planner::declareParam<double>("selection_radius", this, &SST::setSelectionRadius, &SST::getSelectionRadius, "0.:.1:"
@@ -182,7 +177,7 @@ ompl::geometric::SST::Witness *ompl::geometric::SST::findClosestWitness(ompl::ge
 {
     if (witnesses_->size() > 0)
     {
-        Witness *closest = static_cast<Witness *>(witnesses_->nearest(node));
+        auto *closest = static_cast<Witness *>(witnesses_->nearest(node));
         if (distanceFunction(closest, node) > pruningRadius_)
         {
             closest = new Witness(si_);
@@ -222,7 +217,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     while (const base::State *st = pis_.nextStart())
     {

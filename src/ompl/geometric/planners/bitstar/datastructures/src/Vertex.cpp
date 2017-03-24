@@ -58,17 +58,10 @@ namespace ompl
           , opt_(std::move(opt))
           , state_(si_->allocState())
           , isRoot_(root)
-          , isNew_(true)
-          , hasBeenExpandedToSamples_(false)
-          , hasBeenExpandedToVertices_(false)
-          , isPruned_(false)
-          , depth_(0u)
-          , parentSPtr_(VertexPtr())
           , edgeCost_(opt_->infiniteCost())
           , cost_(opt_->infiniteCost())
-          , childWPtrs_()
         {
-            if (this->isRoot() == true)
+            if (this->isRoot())
             {
                 cost_ = opt_->identityCost();
             }
@@ -286,7 +279,7 @@ namespace ompl
             // Push back the shared_ptr into the vector of weak_ptrs, this makes a weak_ptr copy
             childWPtrs_.push_back(newChild);
 
-            if (updateChildCosts == true)
+            if (updateChildCosts)
             {
                 newChild->updateCostAndDepth(true);
             }
@@ -300,12 +293,10 @@ namespace ompl
             // Variables
             // Whether the child has been found (and then deleted);
             bool foundChild;
-            // A copy of the child to assure that we don't delete the last copy
-            VertexPtr childToDelete(oldChild);
 
             // Iterate over the vector of children pointers until the child is found. Iterators make erase easier
             foundChild = false;
-            for (auto childIter = childWPtrs_.begin(); childIter != childWPtrs_.end() && foundChild == false;
+            for (auto childIter = childWPtrs_.begin(); childIter != childWPtrs_.end() && !foundChild;
                  ++childIter)
             {
 #ifdef BITSTAR_DEBUG
@@ -318,7 +309,7 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
                 // Check if this is the child we're looking for
-                if (childIter->lock()->getId() == childToDelete->getId())
+                if (childIter->lock()->getId() == oldChild->getId())
                 {
                     // It is, mark as found
                     foundChild = true;
@@ -337,9 +328,9 @@ namespace ompl
             }
 
             // Update the child cost if appropriate
-            if (updateChildCosts == true)
+            if (updateChildCosts)
             {
-                childToDelete->updateCostAndDepth(true);
+                oldChild->updateCostAndDepth(true);
             }
 // No else, leave the costs out of date.
 
@@ -461,13 +452,13 @@ namespace ompl
         {
             this->assertNotPruned();
 
-            if (this->isRoot() == true)
+            if (this->isRoot())
             {
                 // Am I root? -- I don't really know how this would ever be called, but ok.
                 cost_ = opt_->identityCost();
                 depth_ = 0u;
             }
-            else if (this->hasParent() == false)
+            else if (!this->hasParent())
             {
                 // Am I disconnected?
                 cost_ = opt_->infiniteCost();
@@ -495,7 +486,7 @@ namespace ompl
             }
 
             // Am I updating my children?
-            if (cascadeUpdates == true)
+            if (cascadeUpdates)
             {
                 // Now, iterate over my vector of children and tell each one to update its own damn cost:
                 for (auto &childWPtr : childWPtrs_)

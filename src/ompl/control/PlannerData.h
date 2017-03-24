@@ -61,12 +61,12 @@ namespace ompl
         {
         public:
             /// \brief Constructor.  Accepts a control pointer and a duration.
-            PlannerDataEdgeControl(const Control *c, double duration) : PlannerDataEdge(), c_(c), duration_(duration)
+            PlannerDataEdgeControl(const Control *c, double duration) : c_(c), duration_(duration)
             {
             }
             /// \brief Copy constructor.
             PlannerDataEdgeControl(const PlannerDataEdgeControl &rhs)
-              : PlannerDataEdge(), c_(rhs.c_), duration_(rhs.duration_)
+              : c_(rhs.c_), duration_(rhs.duration_)
             {
             }
 
@@ -90,11 +90,10 @@ namespace ompl
 
             bool operator==(const PlannerDataEdge &rhs) const override
             {
-                const PlannerDataEdgeControl *rhsc = static_cast<const PlannerDataEdgeControl *>(&rhs);
+                const auto *rhsc = static_cast<const PlannerDataEdgeControl *>(&rhs);
                 if (c_ == rhsc->c_)
                     return static_cast<const PlannerDataEdge>(*this) == rhs;
-                else
-                    return false;
+                return false;
             }
 
         protected:
@@ -102,7 +101,7 @@ namespace ompl
             friend class PlannerDataStorage;
             friend class PlannerData;
 
-            PlannerDataEdgeControl() : PlannerDataEdge(), c_(nullptr){};
+            PlannerDataEdgeControl() = default;
 
             template <class Archive>
             void serialize(Archive &ar, const unsigned int /*version*/)
@@ -112,7 +111,7 @@ namespace ompl
                 // Serializing the control is handled by control::PlannerDataStorage
             }
 
-            const Control *c_;
+            const Control *c_{nullptr};
             double duration_;
         };
 

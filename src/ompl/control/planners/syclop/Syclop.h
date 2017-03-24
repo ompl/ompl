@@ -102,17 +102,9 @@ namespace ompl
             /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */
             Syclop(const SpaceInformationPtr &si, DecompositionPtr d, const std::string &plannerName)
               : ompl::base::Planner(si, plannerName)
-              , numFreeVolSamples_(Defaults::NUM_FREEVOL_SAMPLES)
-              , probShortestPath_(Defaults::PROB_SHORTEST_PATH)
-              , probKeepAddingToAvail_(Defaults::PROB_KEEP_ADDING_TO_AVAIL)
-              , numRegionExpansions_(Defaults::NUM_REGION_EXPANSIONS)
-              , numTreeSelections_(Defaults::NUM_TREE_SELECTIONS)
-              , probAbandonLeadEarly_(Defaults::PROB_ABANDON_LEAD_EARLY)
               , siC_(si.get())
               , decomp_(std::move(d))
               , covGrid_(Defaults::COVGRID_LENGTH, decomp_)
-              , graphReady_(false)
-              , numMotions_(0)
             {
                 specs_.approximateSolutions = true;
 
@@ -265,23 +257,22 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state(nullptr), control(nullptr), parent(nullptr), steps(0)
-                {
-                }
+                Motion() = default;
+
                 /** \brief Constructor that allocates memory for the state and the control */
                 Motion(const SpaceInformation *si)
-                  : state(si->allocState()), control(si->allocControl()), parent(nullptr), steps(0)
+                  : state(si->allocState()), control(si->allocControl())
                 {
                 }
                 virtual ~Motion() = default;
                 /** \brief The state contained by the motion */
-                base::State *state;
+                base::State *state{nullptr};
                 /** \brief The control contained by the motion */
-                Control *control;
+                Control *control{nullptr};
                 /** \brief The parent motion in the tree */
-                const Motion *parent;
+                const Motion *parent{nullptr};
                 /** \brief The number of steps for which the control is applied */
-                unsigned int steps;
+                unsigned int steps{0};
             };
 #pragma pack(pop)  // Restoring default byte alignment
 
@@ -290,9 +281,7 @@ namespace ompl
             class Region
             {
             public:
-                Region()
-                {
-                }
+                Region() = default;
                 virtual ~Region() = default;
 
 #if __cplusplus >= 201103L
@@ -339,9 +328,7 @@ namespace ompl
             class Adjacency
             {
             public:
-                Adjacency()
-                {
-                }
+                Adjacency() = default;
                 virtual ~Adjacency() = default;
                 /** \brief Clears coverage information from this adjacency. */
                 void clear()
@@ -382,24 +369,24 @@ namespace ompl
             }
 
             /** \brief The number of states to sample to estimate free volume in the Decomposition. */
-            int numFreeVolSamples_;
+            int numFreeVolSamples_{Defaults::NUM_FREEVOL_SAMPLES};
 
             /** \brief The probability that a lead will be computed as a shortest-path instead of a random-DFS. */
-            double probShortestPath_;
+            double probShortestPath_{Defaults::PROB_SHORTEST_PATH};
 
             /** \brief The probability that the set of available regions will be augmented. */
-            double probKeepAddingToAvail_;
+            double probKeepAddingToAvail_{Defaults::PROB_KEEP_ADDING_TO_AVAIL};
 
             /** \brief The number of times a new region will be chosen and promoted for expansion from a given lead. */
-            int numRegionExpansions_;
+            int numRegionExpansions_{Defaults::NUM_REGION_EXPANSIONS};
 
             /** \brief The number of calls to selectAndExtend() in the low-level tree planner for a given lead and
              * region. */
-            int numTreeSelections_;
+            int numTreeSelections_{Defaults::NUM_TREE_SELECTIONS};
 
             /** \brief The probability that a lead will be abandoned early, before a new region is chosen for expansion.
              */
-            double probAbandonLeadEarly_;
+            double probAbandonLeadEarly_{Defaults::PROB_ABANDON_LEAD_EARLY};
 
             /** \brief Handle to the control::SpaceInformation object */
             const SpaceInformation *siC_;
@@ -552,7 +539,7 @@ namespace ompl
             void updateRegion(Region &r);
 
             /** \brief Initializes a given Adjacency between a source Region and a destination Region. */
-            void initEdge(Adjacency &a, const Region *source, const Region *target);
+            void initEdge(Adjacency &adj, const Region *source, const Region *target);
 
             /** \brief Initializes default values for each Adjacency. */
             void setupEdgeEstimates();
@@ -602,11 +589,11 @@ namespace ompl
              * Decomposition */
             RegionGraph graph_;
             /** \brief This value stores whether the graph structure has been built */
-            bool graphReady_;
+            bool graphReady_{false};
             /** \brief Maps pairs of regions to adjacency objects */
             std::unordered_map<std::pair<int, int>, Adjacency *, HashRegionPair> regionsToEdge_;
             /** \brief The total number of motions in the low-level tree */
-            unsigned int numMotions_;
+            unsigned int numMotions_{0};
             /** \brief The set of all regions that contain start states */
             RegionSet startRegions_;
             /** \brief The set of all regions that contain goal states */

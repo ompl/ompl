@@ -95,7 +95,7 @@ namespace ompl
             /** \brief Default constructor. No work is performed. A
                 call to use() needs to be made, before making any
                 calls to nextStart() or nextGoal(). */
-            PlannerInputStates() : planner_(nullptr)
+            PlannerInputStates()
             {
                 tempState_ = nullptr;
                 clear();
@@ -178,7 +178,7 @@ namespace ompl
             }
 
         private:
-            const Planner *planner_;
+            const Planner *planner_{nullptr};
 
             unsigned int addedStartStates_;
             unsigned int sampledGoalsCount_;
@@ -191,41 +191,32 @@ namespace ompl
         /** \brief Properties that planners may have */
         struct PlannerSpecs
         {
-            PlannerSpecs()
-              : recognizedGoal(GOAL_ANY)
-              , multithreaded(false)
-              , approximateSolutions(false)
-              , optimizingPaths(false)
-              , directed(false)
-              , provingSolutionNonExistence(false)
-              , canReportIntermediateSolutions(false)
-            {
-            }
+            PlannerSpecs() = default;
 
             /** \brief The type of goal specification the planner can use */
-            GoalType recognizedGoal;
+            GoalType recognizedGoal{GOAL_ANY};
 
             /** \brief Flag indicating whether multiple threads are used in the computation of the planner */
-            bool multithreaded;
+            bool multithreaded{false};
 
             /** \brief Flag indicating whether the planner is able to compute approximate solutions */
-            bool approximateSolutions;
+            bool approximateSolutions{false};
 
             /** \brief Flag indicating whether the planner attempts to optimize the path and reduce its length until the
                 maximum path length specified by the goal representation is satisfied */
-            bool optimizingPaths;
+            bool optimizingPaths{false};
 
             /** \brief Flag indicating whether the planner is able to account for the fact that the validity of a motion
                from A to B may not be the same as the validity of a motion from B to A.
                 If this flag is true, the planner will return solutions that do not make this assumption. Usually
                roadmap-based planners make this assumption and tree-based planners do not. */
-            bool directed;
+            bool directed{false};
 
             /** \brief Flag indicating whether the planner is able to prove that no solution path exists. */
-            bool provingSolutionNonExistence;
+            bool provingSolutionNonExistence{false};
 
             /** \brief Flag indicating whether the planner is able to report the computation of intermediate paths. */
-            bool canReportIntermediateSolutions;
+            bool canReportIntermediateSolutions{false};
         };
 
         /** \brief Base class for a planner */

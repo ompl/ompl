@@ -125,7 +125,7 @@ namespace ompl
              * \param oldPath - from experience
              * \return true if no error
              */
-            bool repairPath(const base::PlannerTerminationCondition &ptc, PathGeometric &path);
+            bool repairPath(const base::PlannerTerminationCondition &ptc, PathGeometric &primaryPath);
 
             /**
              * \brief Use our secondary planner to find a valid path between start and goal, and return that path

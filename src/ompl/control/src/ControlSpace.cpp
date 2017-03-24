@@ -87,8 +87,7 @@ ompl::control::ControlSamplerPtr ompl::control::ControlSpace::allocControlSample
 {
     if (csa_)
         return csa_(this);
-    else
-        return allocDefaultControlSampler();
+    return allocDefaultControlSampler();
 }
 
 void ompl::control::ControlSpace::setControlSamplerAllocator(const ControlSamplerAllocator &csa)
@@ -159,8 +158,7 @@ const ompl::control::ControlSpacePtr &ompl::control::CompoundControlSpace::getSu
 {
     if (componentCount_ > index)
         return components_[index];
-    else
-        throw Exception("Subspace index does not exist");
+    throw Exception("Subspace index does not exist");
 }
 
 const ompl::control::ControlSpacePtr &ompl::control::CompoundControlSpace::getSubspace(const std::string &name) const
@@ -190,7 +188,7 @@ ompl::control::Control *ompl::control::CompoundControlSpace::allocControl() cons
 
 void ompl::control::CompoundControlSpace::freeControl(Control *control) const
 {
-    CompoundControl *ccontrol = static_cast<CompoundControl *>(control);
+    auto *ccontrol = static_cast<CompoundControl *>(control);
     for (unsigned int i = 0; i < componentCount_; ++i)
         components_[i]->freeControl(ccontrol->components[i]);
     delete[] ccontrol->components;
@@ -199,16 +197,16 @@ void ompl::control::CompoundControlSpace::freeControl(Control *control) const
 
 void ompl::control::CompoundControlSpace::copyControl(Control *destination, const Control *source) const
 {
-    CompoundControl *cdest = static_cast<CompoundControl *>(destination);
-    const CompoundControl *csrc = static_cast<const CompoundControl *>(source);
+    auto *cdest = static_cast<CompoundControl *>(destination);
+    const auto *csrc = static_cast<const CompoundControl *>(source);
     for (unsigned int i = 0; i < componentCount_; ++i)
         components_[i]->copyControl(cdest->components[i], csrc->components[i]);
 }
 
 bool ompl::control::CompoundControlSpace::equalControls(const Control *control1, const Control *control2) const
 {
-    const CompoundControl *ccontrol1 = static_cast<const CompoundControl *>(control1);
-    const CompoundControl *ccontrol2 = static_cast<const CompoundControl *>(control2);
+    const auto *ccontrol1 = static_cast<const CompoundControl *>(control1);
+    const auto *ccontrol2 = static_cast<const CompoundControl *>(control2);
     for (unsigned int i = 0; i < componentCount_; ++i)
         if (!components_[i]->equalControls(ccontrol1->components[i], ccontrol2->components[i]))
             return false;
@@ -217,7 +215,7 @@ bool ompl::control::CompoundControlSpace::equalControls(const Control *control1,
 
 void ompl::control::CompoundControlSpace::nullControl(Control *control) const
 {
-    CompoundControl *ccontrol = static_cast<CompoundControl *>(control);
+    auto *ccontrol = static_cast<CompoundControl *>(control);
     for (unsigned int i = 0; i < componentCount_; ++i)
         components_[i]->nullControl(ccontrol->components[i]);
 }
@@ -237,19 +235,18 @@ void ompl::control::CompoundControlSpace::lock()
 
 double *ompl::control::CompoundControlSpace::getValueAddressAtIndex(Control *control, const unsigned int index) const
 {
-    CompoundControl *ccontrol = static_cast<CompoundControl *>(control);
+    auto *ccontrol = static_cast<CompoundControl *>(control);
     unsigned int idx = 0;
 
     for (unsigned int i = 0; i < componentCount_; ++i)
         for (unsigned int j = 0; j <= index; ++j)
         {
             double *va = components_[i]->getValueAddressAtIndex(ccontrol->components[i], j);
-            if (va)
+            if (va != nullptr)
             {
                 if (idx == index)
                     return va;
-                else
-                    idx++;
+                idx++;
             }
             else
                 break;
@@ -260,7 +257,7 @@ double *ompl::control::CompoundControlSpace::getValueAddressAtIndex(Control *con
 void ompl::control::CompoundControlSpace::printControl(const Control *control, std::ostream &out) const
 {
     out << "Compound control [" << std::endl;
-    const CompoundControl *ccontrol = static_cast<const CompoundControl *>(control);
+    const auto *ccontrol = static_cast<const CompoundControl *>(control);
     for (unsigned int i = 0; i < componentCount_; ++i)
         components_[i]->printControl(ccontrol->components[i], out);
     out << "]" << std::endl;
@@ -291,7 +288,7 @@ unsigned int ompl::control::CompoundControlSpace::getSerializationLength() const
 
 void ompl::control::CompoundControlSpace::serialize(void *serialization, const Control *ctrl) const
 {
-    const CompoundControl *compctrl = static_cast<const CompoundControl *>(ctrl);
+    const auto *compctrl = static_cast<const CompoundControl *>(ctrl);
     unsigned int l = 0;
     for (unsigned int i = 0; i < componentCount_; ++i)
     {
@@ -302,7 +299,7 @@ void ompl::control::CompoundControlSpace::serialize(void *serialization, const C
 
 void ompl::control::CompoundControlSpace::deserialize(Control *ctrl, const void *serialization) const
 {
-    CompoundControl *compctrl = static_cast<CompoundControl *>(ctrl);
+    auto *compctrl = static_cast<CompoundControl *>(ctrl);
     unsigned int l = 0;
     for (unsigned int i = 0; i < componentCount_; ++i)
     {

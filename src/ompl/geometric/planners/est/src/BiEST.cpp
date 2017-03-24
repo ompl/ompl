@@ -44,8 +44,6 @@ ompl::geometric::BiEST::BiEST(const base::SpaceInformationPtr &si) : base::Plann
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.directed = true;
-    maxDistance_ = 0.0;
-    connectionPoint_ = std::make_pair<ompl::base::State *, ompl::base::State *>(nullptr, nullptr);
 
     Planner::declareParam<double>("range", this, &BiEST::setRange, &BiEST::getRange, "0.:1.:10000.");
 }
@@ -106,14 +104,14 @@ void ompl::geometric::BiEST::freeMemory()
 {
     for (auto &startMotion : startMotions_)
     {
-        if (startMotion->state)
+        if (startMotion->state != nullptr)
             si_->freeState(startMotion->state);
         delete startMotion;
     }
 
     for (auto &goalMotion : goalMotions_)
     {
-        if (goalMotion->state)
+        if (goalMotion->state != nullptr)
             si_->freeState(goalMotion->state);
         delete goalMotion;
     }
@@ -122,9 +120,9 @@ void ompl::geometric::BiEST::freeMemory()
 ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
-    if (!goal)
+    if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
@@ -142,7 +140,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
         addMotion(motion, startMotions_, startPdf_, nnStart_, neighbors);
     }
 
-    if (startMotions_.size() == 0)
+    if (startMotions_.empty())
     {
         OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
@@ -166,13 +164,13 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
     bool startTree = true;
     bool solved = false;
 
-    while (ptc == false && !solved)
+    while (!ptc && !solved)
     {
         // Make sure goal tree has at least one state.
-        if (goalMotions_.size() == 0 || pis_.getSampledGoalsCount() < goalMotions_.size() / 2)
+        if (goalMotions_.empty() || pis_.getSampledGoalsCount() < goalMotions_.size() / 2)
         {
-            const base::State *st = goalMotions_.size() == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
-            if (st)
+            const base::State *st = goalMotions_.empty() ? pis_.nextGoal(ptc) : pis_.nextGoal();
+            if (st != nullptr)
             {
                 auto *motion = new Motion(si_);
                 si_->copyState(motion->state, st);
@@ -182,7 +180,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
                 addMotion(motion, goalMotions_, goalPdf_, nnGoal_, neighbors);
             }
 
-            if (goalMotions_.size() == 0)
+            if (goalMotions_.empty())
             {
                 OMPL_ERROR("%s: Unable to sample any valid states for goal tree", getName().c_str());
                 break;
@@ -207,7 +205,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
         nn->nearestR(xmotion, nbrhoodRadius_, neighbors);
 
         // reject state with probability proportional to neighborhood density
-        if (neighbors.size())
+        if (!neighbors.empty() )
         {
             double p = 1.0 - (1.0 / neighbors.size());
             if (rng_.uniform01() < p)

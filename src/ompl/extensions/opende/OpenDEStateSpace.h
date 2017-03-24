@@ -79,9 +79,7 @@ namespace ompl
             class StateType : public base::CompoundStateSpace::StateType
             {
             public:
-                StateType() : base::CompoundStateSpace::StateType(), collision(0)
-                {
-                }
+                StateType() = default;
 
                 /** \brief Get the position (x, y, z) of the body at index \e body */
                 const double *getBodyPosition(unsigned int body) const
@@ -137,7 +135,7 @@ namespace ompl
                     - BIT 1: (OpenDEStateSpace::STATE_COLLISION_VALUE_BIT)
                     - BIT 2: (OpenDEStateSpace::STATE_VALIDITY_KNOWN_BIT)
                     - BIT 3: (OpenDEStateSpace::STATE_VALIDITY_VALUE_BIT) */
-                mutable int collision;
+                mutable int collision{0};
             };
 
             /** \brief Construct a state space representing OpenDE states.
@@ -213,7 +211,7 @@ namespace ompl
             base::State *allocState() const override;
             void freeState(base::State *state) const override;
             void copyState(base::State *destination, const base::State *source) const override;
-            void interpolate(const base::State *from, const base::State *to, const double t,
+            void interpolate(const base::State *from, const base::State *to, double t,
                              base::State *state) const override;
 
             base::StateSamplerPtr allocDefaultStateSampler() const override;
@@ -222,7 +220,7 @@ namespace ompl
             /** \brief Fill the OpenDEStateSpace::STATE_COLLISION_VALUE_BIT of StateType::collision member of a state,
                if unspecified.
                 Return the value value of that bit. */
-            virtual bool evaluateCollision(const base::State *source) const;
+            virtual bool evaluateCollision(const base::State *state) const;
 
         protected:
             /** \brief Representation of the OpenDE parameters OMPL needs to plan */

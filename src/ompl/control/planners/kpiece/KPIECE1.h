@@ -199,37 +199,33 @@ namespace ompl
             /** \brief Representation of a motion for this algorithm */
             struct Motion
             {
-                Motion() : state(nullptr), control(nullptr), steps(0), parent(nullptr)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state and the control */
                 Motion(const SpaceInformation *si)
-                  : state(si->allocState()), control(si->allocControl()), steps(0), parent(nullptr)
+                  : state(si->allocState()), control(si->allocControl())
                 {
                 }
 
                 ~Motion() = default;
 
                 /** \brief The state contained by this motion */
-                base::State *state;
+                base::State *state{nullptr};
 
                 /** \brief The control contained by this motion */
-                Control *control;
+                Control *control{nullptr};
 
                 /** \brief The number of steps the control is applied for */
-                unsigned int steps;
+                unsigned int steps{0};
 
                 /** \brief The parent motion in the exploration tree */
-                Motion *parent;
+                Motion *parent{nullptr};
             };
 
             /** \brief The data held by a cell in the grid of motions */
             struct CellData
             {
-                CellData() : coverage(0.0), selections(1), score(1.0), iteration(0), importance(0.0)
-                {
-                }
+                CellData() = default;
 
                 ~CellData() = default;
 
@@ -239,22 +235,22 @@ namespace ompl
                 /** \brief A measure of coverage for this cell. For
                     this implementation, this is the sum of motion
                     durations */
-                double coverage;
+                double coverage{0.0};
 
                 /** \brief The number of times this cell has been
                     selected for expansion */
-                unsigned int selections;
+                unsigned int selections{1};
 
                 /** \brief A heuristic score computed based on
                     distance to goal (if available), successes and
                     failures at expanding from this cell. */
-                double score;
+                double score{1.0};
 
                 /** \brief The iteration at which this cell was created */
-                unsigned int iteration;
+                unsigned int iteration{0};
 
                 /** \brief The computed importance (based on other class members) */
-                double importance;
+                double importance{0.0};
             };
 
             /** \brief Definintion of an operator passed to the Grid
@@ -320,7 +316,7 @@ namespace ompl
                 /** \brief Return true if samples can be selected from this set */
                 bool canSample() const
                 {
-                    return samples.size() > 0;
+                    return !samples.empty();
                 }
 
                 /** \brief Maximum number of samples to maintain */
@@ -333,26 +329,24 @@ namespace ompl
             /** \brief The data defining a tree of motions for this algorithm */
             struct TreeData
             {
-                TreeData() : grid(0), size(0), iteration(1)
-                {
-                }
+                TreeData() = default;
 
                 /** \brief A grid containing motions, imposed on a
                     projection of the state space */
-                Grid grid;
+                Grid grid{0};
 
                 /** \brief The total number of motions (there can be
                     multiple per cell) in the grid */
-                unsigned int size;
+                unsigned int size{0};
 
                 /** \brief The number of iterations performed on this tree */
-                unsigned int iteration;
+                unsigned int iteration{1};
             };
 
             /** \brief This function is provided as a calback to the
                 grid datastructure to update the importance of a
                 cell */
-            static void computeImportance(Grid::Cell *cell, void *)
+            static void computeImportance(Grid::Cell *cell, void * /*unused*/)
             {
                 CellData &cd = *(cell->data);
                 cd.importance = cd.score / ((cell->neighbors + 1) * cd.coverage * cd.selections);
@@ -407,31 +401,31 @@ namespace ompl
             /** \brief When extending a motion from a cell, the
                 extension can be successful. If it is, the score of the
                 cell is multiplied by this factor. */
-            double goodScoreFactor_;
+            double goodScoreFactor_{0.9};
 
             /** \brief When extending a motion from a cell, the
                 extension can fail. If it is, the score of the cell is
                 multiplied by this factor. */
-            double badScoreFactor_;
+            double badScoreFactor_{0.45};
 
             /** \brief When motions reach close to the goal, they are stored in a separate queue
                 to allow biasing towards the goal. This variable specifies the maximum number of samples
                 to keep in that queue. */
-            unsigned int nCloseSamples_;
+            unsigned int nCloseSamples_{30};
 
             /** \brief The fraction of time to focus exploration on
                 the border of the grid. */
-            double selectBorderFraction_;
+            double selectBorderFraction_{0.8};
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
              * available) */
-            double goalBias_;
+            double goalBias_{0.05};
 
             /** \brief The random number generator */
             RNG rng_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
         };
     }
 }

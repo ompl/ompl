@@ -52,13 +52,6 @@
 
 ompl::geometric::FMT::FMT(const base::SpaceInformationPtr &si)
   : base::Planner(si, "FMT")
-  , numSamples_(1000)
-  , collisionChecks_(0)
-  , nearestK_(true)
-  , cacheCC_(true)
-  , heuristics_(false)
-  , radiusMultiplier_(1.1)
-  , extendedFMT_(true)
 {
     // An upper bound on the free space volume is the total space volume; the free fraction is estimated in sampleFree
     freeSpaceVolume_ = si_->getStateSpace()->getMeasure();
@@ -159,7 +152,7 @@ void ompl::geometric::FMT::getPlannerData(base::PlannerData &data) const
     std::vector<Motion *> motions;
     nn_->list(motions);
 
-    if (lastGoalMotion_)
+    if (lastGoalMotion_ != nullptr)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->getState()));
 
     unsigned int size = motions.size();
@@ -202,7 +195,7 @@ double ompl::geometric::FMT::calculateUnitBallVolume(const unsigned int dimensio
 {
     if (dimension == 0)
         return 1.0;
-    else if (dimension == 1)
+    if (dimension == 1)
         return 2.0;
     return 2.0 * boost::math::constants::pi<double>() / dimension * calculateUnitBallVolume(dimension - 2);
 }
@@ -282,24 +275,24 @@ void ompl::geometric::FMT::assureGoalIsSampled(const ompl::base::GoalSampleableR
 
 ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTerminationCondition &ptc)
 {
-    if (lastGoalMotion_)
+    if (lastGoalMotion_ != nullptr)
     {
         OMPL_INFORM("solve() called before clear(); returning previous solution");
         traceSolutionPathThroughTree(lastGoalMotion_);
         OMPL_DEBUG("Final path cost: %f", lastGoalMotion_->getCost().value());
         return base::PlannerStatus(true, false);
     }
-    else if (Open_.size() > 0)
+    if (!Open_.empty())
     {
         OMPL_INFORM("solve() called before clear(); no previous solution so starting afresh");
         clear();
     }
 
     checkValidity();
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
     Motion *initMotion = nullptr;
 
-    if (!goal)
+    if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
@@ -316,7 +309,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
         nn_->add(initMotion);  // V <-- {x_init}
     }
 
-    if (!initMotion)
+    if (initMotion == nullptr)
     {
         OMPL_ERROR("Start state undefined");
         return base::PlannerStatus::INVALID_START;
@@ -359,7 +352,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
 
         if (!extendedFMT_ && !successfulExpansion)
             break;
-        else if (extendedFMT_ && !successfulExpansion)
+        if (extendedFMT_ && !successfulExpansion)
         {
             // Apply RRT*-like connections: sample and connect samples to tree
             std::vector<Motion *> nbh;
@@ -400,8 +393,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
 
                             if (opt_->isCostBetterThan(worstCost, connCost))
                                 continue;
-                            else
-                                yNear.push_back(j);
+                            yNear.push_back(j);
                         }
                         else
                             yNear.push_back(j);
@@ -478,11 +470,9 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
 
         return base::PlannerStatus(true, false);
     }  // if plannerSuccess
-    else
-    {
-        // Planner terminated without accomplishing goal
-        return base::PlannerStatus(false, false);
-    }
+
+    // Planner terminated without accomplishing goal
+    return base::PlannerStatus(false, false);
 }
 
 void ompl::geometric::FMT::traceSolutionPathThroughTree(Motion *goalMotion)
@@ -529,8 +519,7 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion **z)
 
                 if (opt_->isCostBetterThan(worstCost, connCost))
                     continue;
-                else
-                    xNear.push_back(x);
+                xNear.push_back(x);
             }
             else
                 xNear.push_back(x);
@@ -658,19 +647,17 @@ void ompl::geometric::FMT::updateNeighborhood(Motion *m, const std::vector<Motio
 
             if (opt_->isCostBetterThan(worstCost, connCost))
                 continue;
-            else
+
+            // Insert the neighbor in the vector in the correct order
+            std::vector<Motion *> &nbhToUpdate = neighborhoods_[i];
+            for (std::size_t j = 0; j < nbhToUpdate.size(); ++j)
             {
-                // Insert the neighbor in the vector in the correct order
-                std::vector<Motion *> &nbhToUpdate = neighborhoods_[i];
-                for (std::size_t j = 0; j < nbhToUpdate.size(); ++j)
+                // If connection to the new state is better than the current neighbor tested, insert.
+                const base::Cost cost = opt_->motionCost(i->getState(), nbhToUpdate[j]->getState());
+                if (opt_->isCostBetterThan(connCost, cost))
                 {
-                    // If connection to the new state is better than the current neighbor tested, insert.
-                    const base::Cost cost = opt_->motionCost(i->getState(), nbhToUpdate[j]->getState());
-                    if (opt_->isCostBetterThan(connCost, cost))
-                    {
-                        nbhToUpdate.insert(nbhToUpdate.begin() + j, m);
-                        break;
-                    }
+                    nbhToUpdate.insert(nbhToUpdate.begin() + j, m);
+                    break;
                 }
             }
         }

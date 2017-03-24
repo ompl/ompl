@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(GridN_Simple)
     coord[0] = 1;
     coord[1] = 0;
     BOOST_CHECK_EQUAL(g.has(coord), false);
-    GridN<int>::Cell *cell1 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
+    auto *cell1 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
     BOOST_CHECK(cell1 != nullptr);
     BOOST_CHECK(cell1->neighbors == 0);
     cell1->data = 1;
@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(GridN_Simple)
 
     coord[1] = 1;
     BOOST_CHECK_EQUAL(g.has(coord), false);
-    GridN<int>::Cell *cell2 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
+    auto *cell2 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
     BOOST_CHECK(cell1->neighbors == 1);
     BOOST_CHECK(cell2->neighbors == 1);
     BOOST_CHECK(cell2 != nullptr);
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(GridN_Simple)
     BOOST_CHECK_EQUAL((unsigned int)1, ca.size());
     BOOST_CHECK_EQUAL(ca[0], cell2);
 
-    GridN<int>::Cell *cell3 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
+    auto *cell3 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
     BOOST_CHECK(cell3 != nullptr);
     BOOST_CHECK(cell1->neighbors == 1);
     BOOST_CHECK(cell2->neighbors == 2);
@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(GridN_Simple)
     BOOST_CHECK_EQUAL(6, sum);
 
     coord[0] = 2;
-    GridN<int>::Cell *cell4 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
+    auto *cell4 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
     BOOST_CHECK(cell4 != nullptr);
     cell4->data = 4;
     g.add(cell4);
@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE(GridN_Simple)
 
     coord[0] = 1;
     coord[1] = 2;
-    GridN<int>::Cell *cell5 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
+    auto *cell5 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
     BOOST_CHECK(cell5 != nullptr);
     cell5->data = 5;
     g.add(cell5);
@@ -193,7 +193,7 @@ BOOST_AUTO_TEST_CASE(GridN_Simple)
 
     coord[0] = 10;
     coord[1] = 2;
-    GridN<int>::Cell *cell6 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
+    auto *cell6 = dynamic_cast<GridN<int>::Cell*>(g.createCell(coord));
     g.add(cell6);
     BOOST_CHECK_EQUAL((unsigned int)2, g.components().size());
     BOOST_CHECK_EQUAL(g.components()[0].size() + g.components()[1].size(), g.size());

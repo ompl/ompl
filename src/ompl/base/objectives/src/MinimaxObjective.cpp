@@ -74,8 +74,5 @@ ompl::base::Cost ompl::base::MinimaxObjective::motionCost(const State *s1, const
 
 ompl::base::Cost ompl::base::MinimaxObjective::combineCosts(Cost c1, Cost c2) const
 {
-    if (this->isCostBetterThan(c1, c2))
-        return c2;
-    else
-        return c1;
+    return this->isCostBetterThan(c1, c2) ? c2 : c1;
 }

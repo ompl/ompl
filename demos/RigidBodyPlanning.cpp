@@ -48,13 +48,13 @@ namespace og = ompl::geometric;
 bool isStateValid(const ob::State *state)
 {
     // cast the abstract state type to the type we expect
-    const ob::SE3StateSpace::StateType *se3state = state->as<ob::SE3StateSpace::StateType>();
+    const auto *se3state = state->as<ob::SE3StateSpace::StateType>();
 
     // extract the first component of the state and cast it to what we expect
-    const ob::RealVectorStateSpace::StateType *pos = se3state->as<ob::RealVectorStateSpace::StateType>(0);
+    const auto *pos = se3state->as<ob::RealVectorStateSpace::StateType>(0);
 
     // extract the second component of the state and cast it to what we expect
-    const ob::SO3StateSpace::StateType *rot = se3state->as<ob::SO3StateSpace::StateType>(1);
+    const auto *rot = se3state->as<ob::SO3StateSpace::StateType>(1);
 
     // check validity of state defined by pos & rot
 
@@ -175,7 +175,7 @@ void planWithSimpleSetup()
         std::cout << "No solution found" << std::endl;
 }
 
-int main(int, char **)
+int main(int /*argc*/, char ** /*argv*/)
 {
     std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 

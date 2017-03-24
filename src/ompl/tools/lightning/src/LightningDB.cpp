@@ -44,7 +44,7 @@
 // Boost
 #include <boost/filesystem.hpp>
 
-ompl::tools::LightningDB::LightningDB(const base::StateSpacePtr &space) : numUnsavedPaths_(0)
+ompl::tools::LightningDB::LightningDB(const base::StateSpacePtr &space)
 {
     si_ = std::make_shared<base::SpaceInformation>(space);
 

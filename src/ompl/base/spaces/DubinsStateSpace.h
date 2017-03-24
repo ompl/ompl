@@ -79,7 +79,7 @@ namespace ompl
             public:
                 DubinsPath(const DubinsPathSegmentType *type = dubinsPathType[0], double t = 0.,
                            double p = std::numeric_limits<double>::max(), double q = 0.)
-                  : type_(type), reverse_(false)
+                  : type_(type)
                 {
                     length_[0] = t;
                     length_[1] = p;
@@ -98,11 +98,11 @@ namespace ompl
                 /** Path segment lengths */
                 double length_[3];
                 /** Whether the path should be followed "in reverse" */
-                bool reverse_;
+                bool reverse_{false};
             };
 
             DubinsStateSpace(double turningRadius = 1.0, bool isSymmetric = false)
-              : SE2StateSpace(), rho_(turningRadius), isSymmetric_(isSymmetric)
+              : rho_(turningRadius), isSymmetric_(isSymmetric)
             {
             }
 
@@ -113,8 +113,8 @@ namespace ompl
 
             double distance(const State *state1, const State *state2) const override;
 
-            void interpolate(const State *from, const State *to, const double t, State *state) const override;
-            virtual void interpolate(const State *from, const State *to, const double t, bool &firstTime,
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
+            virtual void interpolate(const State *from, const State *to, double t, bool &firstTime,
                                      DubinsPath &path, State *state) const;
 
             bool hasSymmetricDistance() const override
@@ -141,7 +141,7 @@ namespace ompl
             DubinsPath dubins(const State *state1, const State *state2) const;
 
         protected:
-            virtual void interpolate(const State *from, const DubinsPath &path, const double t, State *state) const;
+            virtual void interpolate(const State *from, const DubinsPath &path, double t, State *state) const;
 
             /** \brief Turning radius */
             double rho_;

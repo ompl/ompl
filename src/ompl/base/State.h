@@ -50,10 +50,10 @@ namespace ompl
         {
         private:
             /** \brief Disable copy-constructor */
-            State(const State &);
+            State(const State &) = delete;
 
             /** \brief Disable copy operator */
-            const State &operator=(const State &);
+            const State &operator=(const State &) = delete;
 
         protected:
             State() = default;
@@ -86,15 +86,13 @@ namespace ompl
         class CompoundState : public State
         {
         public:
-            CompoundState() : State(), components(nullptr)
-            {
-            }
+            CompoundState() = default;
 
             ~CompoundState() override = default;
 
             /** \brief Cast a component of this instance to a desired type. */
             template <class T>
-            const T *as(const unsigned int index) const
+            const T *as(unsigned int index) const
             {
                 /** \brief Make sure the type we are allocating is indeed a state */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T *, State *>));
@@ -127,7 +125,7 @@ namespace ompl
             }
 
             /** \brief The components that make up a compound state */
-            State **components;
+            State **components{nullptr};
         };
     }
 }

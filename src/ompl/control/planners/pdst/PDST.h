@@ -217,7 +217,7 @@ namespace ompl
 
                 ~Cell()
                 {
-                    if (left_)
+                    if (left_ != nullptr)
                     {
                         delete left_;
                         delete right_;
@@ -230,7 +230,7 @@ namespace ompl
                 /// Locates the cell that this motion begins in
                 Cell *stab(const base::EuclideanProjection &projection) const
                 {
-                    Cell *containingCell = const_cast<Cell *>(this);
+                    auto *containingCell = const_cast<Cell *>(this);
                     while (containingCell->left_ != nullptr)
                     {
                         if (projection[containingCell->splitDimension_] <= containingCell->splitValue_)
@@ -251,7 +251,7 @@ namespace ompl
                 unsigned int size() const
                 {
                     unsigned int sz = 1;
-                    if (left_)
+                    if (left_ != nullptr)
                         sz += left_->size() + right_->size();
                     return sz;
                 }
@@ -279,7 +279,7 @@ namespace ompl
             /// \brief Either update heap after motion's priority has changed or insert motion into heap.
             void updateHeapElement(Motion *motion)
             {
-                if (motion->heapElement_)
+                if (motion->heapElement_ != nullptr)
                     priorityQueue_.update(motion->heapElement_);
                 else
                     motion->heapElement_ = priorityQueue_.insert(motion);
@@ -313,17 +313,17 @@ namespace ompl
             /// Priority queue of motions
             BinaryHeap<Motion *, MotionCompare> priorityQueue_;
             /// Binary Space Partition
-            Cell *bsp_;
+            Cell *bsp_{nullptr};
             /// Projection evaluator for the problem
             base::ProjectionEvaluatorPtr projectionEvaluator_;
             /// Number between 0 and 1 specifying the probability with which the goal should be sampled
-            double goalBias_;
+            double goalBias_{0.05};
             /// Objected used to sample the goal
-            base::GoalSampleableRegion *goalSampler_;
+            base::GoalSampleableRegion *goalSampler_{nullptr};
             /// Iteration number and priority of the next Motion that will be generated
-            unsigned int iteration_;
+            unsigned int iteration_{1};
             /// Closest motion to the goal
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
         };
     }
 }

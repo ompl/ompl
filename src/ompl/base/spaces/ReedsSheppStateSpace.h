@@ -93,14 +93,14 @@ namespace ompl
                 double totalLength_;
             };
 
-            ReedsSheppStateSpace(double turningRadius = 1.0) : SE2StateSpace(), rho_(turningRadius)
+            ReedsSheppStateSpace(double turningRadius = 1.0) : rho_(turningRadius)
             {
             }
 
             double distance(const State *state1, const State *state2) const override;
 
-            void interpolate(const State *from, const State *to, const double t, State *state) const override;
-            virtual void interpolate(const State *from, const State *to, const double t, bool &firstTime,
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
+            virtual void interpolate(const State *from, const State *to, double t, bool &firstTime,
                                      ReedsSheppPath &path, State *state) const;
 
             void sanityChecks() const override
@@ -114,7 +114,7 @@ namespace ompl
             ReedsSheppPath reedsShepp(const State *state1, const State *state2) const;
 
         protected:
-            virtual void interpolate(const State *from, const ReedsSheppPath &path, const double t, State *state) const;
+            virtual void interpolate(const State *from, const ReedsSheppPath &path, double t, State *state) const;
 
             /** \brief Turning radius */
             double rho_;

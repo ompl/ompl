@@ -88,7 +88,7 @@ namespace ompl
 
             /** \brief Sample a state near another, within specified distance. Return false, in case of failure.
                 \note The memory for \e near must be disjoint from the memory for \e state */
-            virtual bool sampleNear(State *state, const State *near, const double distance) = 0;
+            virtual bool sampleNear(State *state, const State *near, double distance) = 0;
 
             /** \brief Finding a valid sample usually requires
                 performing multiple attempts. This call allows setting

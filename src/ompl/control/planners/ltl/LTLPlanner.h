@@ -100,7 +100,7 @@ namespace ompl
             {
             public:
                 /** \brief Default constructor for Motion. */
-                Motion();
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state and the control,
                     given a space. */
@@ -111,19 +111,19 @@ namespace ompl
                 virtual ~Motion();
 
                 /** \brief The state contained by the motion */
-                base::State *state;
+                base::State *state{nullptr};
 
                 /** \brief The control contained by the motion */
-                Control *control;
+                Control *control{nullptr};
 
                 /** \brief The parent motion in the tree */
-                Motion *parent;
+                Motion *parent{nullptr};
 
                 /** \brief The number of steps for which the control is applied */
-                unsigned int steps;
+                unsigned int steps{0};
 
                 /** \brief The high-level state to which this motion belongs */
-                ProductGraph::State *abstractState;
+                ProductGraph::State *abstractState{nullptr};
             };
 
             /** \brief A structure to hold measurement information for a high-level state,
@@ -132,20 +132,20 @@ namespace ompl
             struct ProductGraphStateInfo
             {
                 /** \brief Creates an info object with no measurements and no tree motions. */
-                ProductGraphStateInfo();
+                ProductGraphStateInfo() = default;
 
                 /** \brief Adds a tree motion to an info object.
                     This method is called whenever a new tree motion is created
                     in the high-level state corresponding to this info object. */
                 void addMotion(Motion *m);
 
-                double weight;
+                double weight{0.};
                 PDF<Motion *> motions;
                 std::unordered_map<Motion *, PDF<Motion *>::Element *> motionElems;
-                double volume;
-                double autWeight;
-                unsigned int numSel;
-                PDF<ProductGraph::State *>::Element *pdfElem;
+                double volume{0.};
+                double autWeight{0.};
+                unsigned int numSel{0};
+                PDF<ProductGraph::State *>::Element *pdfElem{nullptr};
             };
 
             /** \brief Updates and returns the weight of an abstraction state. */
@@ -192,7 +192,7 @@ namespace ompl
             std::vector<Motion *> motions_;
 
             /** \brief Start state in product graph. */
-            ProductGraph::State *prodStart_;
+            ProductGraph::State *prodStart_{nullptr};
 
             /** \brief Time to spend exploring each lead. */
             double exploreTime_;

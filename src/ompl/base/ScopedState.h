@@ -271,7 +271,7 @@ namespace ompl
             double &operator[](const unsigned int index)
             {
                 double *val = space_->getValueAddressAtIndex(state_, index);
-                if (!val)
+                if (val == nullptr)
                     throw Exception("Index out of bounds");
                 return *val;
             }
@@ -280,7 +280,7 @@ namespace ompl
             double operator[](const unsigned int index) const
             {
                 const double *val = space_->getValueAddressAtIndex(state_, index);
-                if (!val)
+                if (val == nullptr)
                     throw Exception("Index out of bounds");
                 return *val;
             }
@@ -293,7 +293,7 @@ namespace ompl
                 if (it != vm.end())
                 {
                     double *val = space_->getValueAddressAtLocation(state_, it->second);
-                    if (val)
+                    if (val != nullptr)
                         return *val;
                 }
                 throw Exception("Name '" + name + "' not known");
@@ -307,7 +307,7 @@ namespace ompl
                 if (it != vm.end())
                 {
                     const double *val = space_->getValueAddressAtLocation(state_, it->second);
-                    if (val)
+                    if (val != nullptr)
                         return *val;
                 }
                 throw Exception("Name '" + name + "' not known");

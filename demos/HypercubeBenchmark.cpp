@@ -55,7 +55,7 @@ const double edgeWidth = 0.1;
 // s[i]>=1-edgewidth.
 bool isStateValid(const ompl::base::State *state)
 {
-    const ompl::base::RealVectorStateSpace::StateType *s
+    const auto *s
         = static_cast<const ompl::base::RealVectorStateSpace::StateType*>(state);
     bool foundMaxDim = false;
 

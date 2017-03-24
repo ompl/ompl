@@ -75,8 +75,8 @@ namespace ompl
         /** \brief Return the time duration representing a given number of seconds */
         inline duration seconds(double sec)
         {
-            long s = (long)sec;
-            long us = (long)((sec - (double)s) * 1000000);
+            auto s = (long)sec;
+            auto us = (long)((sec - (double)s) * 1000000);
             return std::chrono::seconds(s) + std::chrono::microseconds(us);
         }
 

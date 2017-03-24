@@ -59,12 +59,12 @@ void ompl::control::SyclopEST::getPlannerData(base::PlannerData &data) const
 
     double delta = siC_->getPropagationStepSize();
 
-    if (lastGoalMotion_)
+    if (lastGoalMotion_ != nullptr)
         data.addGoalVertex(lastGoalMotion_->state);
 
     for (auto motion : motions_)
     {
-        if (motion->parent)
+        if (motion->parent != nullptr)
         {
             if (data.hasControls())
                 data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state),
@@ -118,9 +118,9 @@ void ompl::control::SyclopEST::freeMemory()
 {
     for (auto m : motions_)
     {
-        if (m->state)
+        if (m->state != nullptr)
             si_->freeState(m->state);
-        if (m->control)
+        if (m->control != nullptr)
             siC_->freeControl(m->control);
         delete m;
     }

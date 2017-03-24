@@ -59,8 +59,7 @@ namespace
     {
     public:
         RNGSeedGenerator()
-          : someSeedsGenerated_(false)
-          , firstSeed_(std::chrono::duration_cast<std::chrono::microseconds>(
+          : firstSeed_(std::chrono::duration_cast<std::chrono::microseconds>(
                            std::chrono::system_clock::now() - std::chrono::system_clock::time_point::min()).count())
           , sGen_(firstSeed_)
           , sDist_(1, 1000000000)
@@ -96,11 +95,8 @@ namespace
                     OMPL_WARN("Random generator seed cannot be 0. Ignoring seed.");
                     return;
                 }
-                else
-                {
-                    OMPL_WARN("Random generator seed cannot be 0. Using 1 instead.");
-                    seed = 1;
-                }
+                OMPL_WARN("Random generator seed cannot be 0. Using 1 instead.");
+                seed = 1;
             }
             sGen_.seed(seed);
         }
@@ -113,15 +109,15 @@ namespace
         }
 
     private:
-        bool someSeedsGenerated_;
+        bool someSeedsGenerated_{false};
         std::uint_fast32_t firstSeed_;
         std::mutex rngMutex_;
         std::ranlux24_base sGen_;
         std::uniform_int_distribution<> sDist_;
     };
 
-    static std::once_flag g_once;
-    static boost::scoped_ptr<RNGSeedGenerator> g_RNGSeedGenerator;
+    std::once_flag g_once;
+    boost::scoped_ptr<RNGSeedGenerator> g_RNGSeedGenerator;
 
     void initRNGSeedGenerator()
     {
@@ -172,7 +168,7 @@ public:
         for (auto &i : dimVector_)
         {
             // Check if the variate_generator is allocated
-            if (bool(i.first) == true)
+            if (bool(i.first))
             {
                 // It is, reset THE DATA (not the pointer)
                 i.first->reset();
@@ -198,7 +194,7 @@ private:
         while (dim >= dimVector_.size())
         {
             // Create a pair of empty pointers:
-            dimVector_.push_back(dist_gen_pair_t());
+            dimVector_.emplace_back();
         }
     };
 
@@ -232,8 +228,6 @@ void ompl::RNG::setSeed(std::uint_fast32_t seed)
 ompl::RNG::RNG()
   : localSeed_(getRNGSeedGenerator().nextSeed())
   , generator_(localSeed_)
-  , uniDist_(0, 1)
-  , normalDist_(0, 1)
   , sphericalDataPtr_(std::make_shared<SphericalData>(&generator_))
 {
 }
@@ -241,8 +235,6 @@ ompl::RNG::RNG()
 ompl::RNG::RNG(std::uint_fast32_t localSeed)
   : localSeed_(localSeed)
   , generator_(localSeed_)
-  , uniDist_(0, 1)
-  , normalDist_(0, 1)
   , sphericalDataPtr_(std::make_shared<SphericalData>(&generator_))
 {
 }
@@ -276,7 +268,7 @@ double ompl::RNG::halfNormalReal(double r_min, double r_max, double focus)
 
 int ompl::RNG::halfNormalInt(int r_min, int r_max, double focus)
 {
-    int r = (int)floor(halfNormalReal((double)r_min, (double)(r_max) + 1.0, focus));
+    auto r = (int)floor(halfNormalReal((double)r_min, (double)(r_max) + 1.0, focus));
     return (r > r_max) ? r_max : r;
 }
 

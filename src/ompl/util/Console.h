@@ -116,9 +116,7 @@ namespace ompl
         class OutputHandlerSTD : public OutputHandler
         {
         public:
-            OutputHandlerSTD() : OutputHandler()
-            {
-            }
+            OutputHandlerSTD() = default;
 
             void log(const std::string &text, LogLevel level, const char *filename, int line) override;
         };

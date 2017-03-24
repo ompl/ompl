@@ -249,11 +249,11 @@ namespace ompl
                 addStartState(), creates an instance of
                 ompl::base::GoalState and calls setGoal() on it. */
             void setStartAndGoalStates(const State *start, const State *goal,
-                                       const double threshold = std::numeric_limits<double>::epsilon());
+                                       double threshold = std::numeric_limits<double>::epsilon());
 
             /** \brief A simple form of setting the goal. This is called by setStartAndGoalStates(). A more general form
              * is setGoal() */
-            void setGoalState(const State *goal, const double threshold = std::numeric_limits<double>::epsilon());
+            void setGoalState(const State *goal, double threshold = std::numeric_limits<double>::epsilon());
 
             /** \copydoc setStartAndGoalStates() */
             void setStartAndGoalStates(const ScopedState<> &start, const ScopedState<> &goal,
@@ -272,7 +272,7 @@ namespace ompl
             /** \brief Check if an optimization objective was defined for planning  */
             bool hasOptimizationObjective() const
             {
-                return optimizationObjective_.get();
+                return optimizationObjective_ != nullptr;
             }
 
             /** \brief Get the optimization objective to be considered during planning */

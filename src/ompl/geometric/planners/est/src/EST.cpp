@@ -44,9 +44,6 @@ ompl::geometric::EST::EST(const base::SpaceInformationPtr &si) : base::Planner(s
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;
-    goalBias_ = 0.05;
-    maxDistance_ = 0.0;
-    lastGoalMotion_ = nullptr;
 
     Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias, "0.:.05:1.");
@@ -92,7 +89,7 @@ void ompl::geometric::EST::freeMemory()
 {
     for (auto &motion : motions_)
     {
-        if (motion->state)
+        if (motion->state != nullptr)
             si_->freeState(motion->state);
         delete motion;
     }
@@ -102,7 +99,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     std::vector<Motion *> neighbors;
 
@@ -115,7 +112,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
         addMotion(motion, neighbors);
     }
 
-    if (motions_.size() == 0)
+    if (motions_.empty())
     {
         OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
@@ -132,14 +129,14 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
     base::State *xstate = si_->allocState();
     auto *xmotion = new Motion();
 
-    while (ptc == false)
+    while (!ptc)
     {
         // Select a state to expand from
         Motion *existing = pdf_.sample(rng_.uniform01());
         assert(existing);
 
         // Sample random state in the neighborhood (with goal biasing)
-        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+        if ((goal_s != nullptr) && rng_.uniform01() < goalBias_ && goal_s->canSample())
         {
             goal_s->sampleGoal(xstate);
 
@@ -158,7 +155,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
             nn_->nearestR(xmotion, nbrhoodRadius_, neighbors);
 
             // reject state with probability proportional to neighborhood density
-            if (neighbors.size())
+            if (!neighbors.empty() )
             {
                 double p = 1.0 - (1.0 / neighbors.size());
                 if (rng_.uniform01() < p)
@@ -250,7 +247,7 @@ void ompl::geometric::EST::getPlannerData(base::PlannerData &data) const
 {
     Planner::getPlannerData(data);
 
-    if (lastGoalMotion_)
+    if (lastGoalMotion_ != nullptr)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
     for (auto motion : motions_)

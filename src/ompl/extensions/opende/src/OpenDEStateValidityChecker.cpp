@@ -40,18 +40,18 @@
 ompl::control::OpenDEStateValidityChecker::OpenDEStateValidityChecker(const SpaceInformationPtr &si)
   : base::StateValidityChecker(si)
 {
-    if (!dynamic_cast<OpenDEStateSpace *>(si->getStateSpace().get()))
+    if (dynamic_cast<OpenDEStateSpace *>(si->getStateSpace().get()) == nullptr)
         throw Exception("Cannot create state validity checking for OpenDE without OpenDE state space");
     osm_ = si->getStateSpace()->as<OpenDEStateSpace>();
 }
 
 bool ompl::control::OpenDEStateValidityChecker::isValid(const base::State *state) const
 {
-    const OpenDEStateSpace::StateType *s = state->as<OpenDEStateSpace::StateType>();
+    const auto *s = state->as<OpenDEStateSpace::StateType>();
 
     // if we know the value of the validity flag for this state, we return it
-    if (s->collision & (1 << OpenDEStateSpace::STATE_VALIDITY_KNOWN_BIT))
-        return s->collision & (1 << OpenDEStateSpace::STATE_VALIDITY_VALUE_BIT);
+    if ((s->collision & (1 << OpenDEStateSpace::STATE_VALIDITY_KNOWN_BIT)) != 0)
+        return (s->collision & (1 << OpenDEStateSpace::STATE_VALIDITY_VALUE_BIT)) != 0;
 
     // if not, we compute it:
     bool valid = false;

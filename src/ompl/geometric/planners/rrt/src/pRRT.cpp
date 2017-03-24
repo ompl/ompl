@@ -46,9 +46,6 @@ ompl::geometric::pRRT::pRRT(const base::SpaceInformationPtr &si) : base::Planner
     specs_.directed = true;
 
     setThreadCount(2);
-    goalBias_ = 0.05;
-    maxDistance_ = 0.0;
-    lastGoalMotion_ = nullptr;
 
     Planner::declareParam<double>("range", this, &pRRT::setRange, &pRRT::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &pRRT::setGoalBias, &pRRT::getGoalBias, "0.:.05:1.");
@@ -103,7 +100,7 @@ void ompl::geometric::pRRT::threadSolve(unsigned int tid, const base::PlannerTer
                                         SolutionInfo *sol)
 {
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
     RNG rng;
 
     auto *rmotion = new Motion(si_);
@@ -176,7 +173,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
 {
     checkValidity();
 
-    base::GoalRegion *goal = dynamic_cast<base::GoalRegion *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalRegion *>(pdef_->getGoal().get());
 
     if (!goal)
     {

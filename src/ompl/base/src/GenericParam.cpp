@@ -52,11 +52,9 @@ bool ompl::base::ParamSet::setParam(const std::string &key, const std::string &v
     std::map<std::string, GenericParamPtr>::const_iterator it = params_.find(key);
     if (it != params_.end())
         return it->second->setValue(value);
-    else
-    {
-        OMPL_ERROR("Parameter '%s' was not found", key.c_str());
-        return false;
-    }
+
+    OMPL_ERROR("Parameter '%s' was not found", key.c_str());
+    return false;
 }
 
 bool ompl::base::ParamSet::setParams(const std::map<std::string, std::string> &kv, bool ignoreUnknown)
@@ -112,8 +110,7 @@ const ompl::base::GenericParamPtr &ompl::base::ParamSet::getParam(const std::str
     auto it = params_.find(key);
     if (it != params_.end())
         return it->second;
-    else
-        return empty;
+    return empty;
 }
 
 void ompl::base::ParamSet::getParams(std::map<std::string, std::string> &params) const
@@ -130,7 +127,7 @@ bool ompl::base::ParamSet::hasParam(const std::string &key) const
 ompl::base::GenericParam &ompl::base::ParamSet::operator[](const std::string &key)
 {
     if (!hasParam(key))
-        throw Exception("Parameter '%s' is not defined", key.c_str());
+        throw Exception("Parameter '%s' is not defined", key);
     return *getParam(key);
 }
 

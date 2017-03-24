@@ -216,8 +216,8 @@ BOOST_AUTO_TEST_CASE(AdvancedConstruction)
 class TestEdge : public base::PlannerDataEdge
 {
 public:
-    TestEdge (unsigned int _a, unsigned int _b) : base::PlannerDataEdge(), a(_a), b(_b) {}
-    TestEdge (const TestEdge &rhs) : base::PlannerDataEdge(), a(rhs.a), b(rhs.b) {}
+    TestEdge (unsigned int _a, unsigned int _b) : a(_a), b(_b) {}
+    TestEdge (const TestEdge &rhs) : a(rhs.a), b(rhs.b) {}
     ~TestEdge () override = default;
 
     /// \brief Return a clone of this object, allocated from the heap.
@@ -273,7 +273,7 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
     // Ensure edge data integrity
     for (unsigned int i = 1; i < states.size(); ++i)
     {
-        TestEdge& edge = static_cast<TestEdge&>(data.getEdge(i-1, i));
+        auto& edge = static_cast<TestEdge&>(data.getEdge(i-1, i));
         BOOST_REQUIRE_NE ( &edge, &base::PlannerData::NO_EDGE );
         BOOST_CHECK_EQUAL( edge.a, i-1 );
         BOOST_CHECK_EQUAL( edge.b, i );
@@ -467,7 +467,7 @@ public:
     int tag2_;
 
 protected:
-    PlannerDataTestVertex() {}
+    PlannerDataTestVertex() = default;
 
     friend class boost::serialization::access;
     template <class Archive>

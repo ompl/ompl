@@ -69,11 +69,11 @@ namespace ompl
 
             /** \brief It will sample the next state of the vector StatesToSample_. If this is empty,
                 it will call the sampleUniformNear() method of the specified sampler. */
-            void sampleUniformNear(State *state, const State *near, const double distance) override;
+            void sampleUniformNear(State *state, const State *near, double distance) override;
 
             /** \brief It will sample the next state of the vector StatesToSample_. If this is empty,
                 it will call the sampleGaussian() method of the specified sampler. */
-            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
+            void sampleGaussian(State *state, const State *mean, double stdDev) override;
 
             const StateSpace *getStateSpace() const
             {

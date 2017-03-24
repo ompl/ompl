@@ -139,18 +139,16 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state(nullptr), parent(nullptr)
-                {
-                }
+                Motion() = default;
 
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState())
                 {
                 }
 
                 ~Motion() = default;
 
-                base::State *state;
-                Motion *parent;
+                base::State *state{nullptr};
+                Motion *parent{nullptr};
             };
 
             struct SolutionInfo
@@ -175,11 +173,11 @@ namespace ompl
 
             unsigned int threadCount_;
 
-            double goalBias_;
-            double maxDistance_;
+            double goalBias_{.05};
+            double maxDistance_{0.};
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
         };
     }
 }

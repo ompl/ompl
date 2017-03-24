@@ -173,22 +173,22 @@ int main(int argc, char **argv)
         po::notify(vm);
 
         KoulesSetup ks(numKoules, plannerName, kouleVel);
-        if (vm.count("help") || argc == 1)
+        if ((vm.count("help") != 0u) || argc == 1)
         {
             std::cout << "Solve the games of Koules.\nSelect one of these two options:\n"
                       << "\"--plan\", or \"--benchmark\"\n\n" << desc << "\n";
             return 1;
         }
 
-        if (outputFile.size() == 0)
+        if (outputFile.empty())
         {
-            std::string prefix(vm.count("plan") ? "koules_" : "koulesBenchmark_");
+            std::string prefix(vm.count("plan") != 0u ? "koules_" : "koulesBenchmark_");
             outputFile = boost::str(boost::format("%1%%2%_%3%_%4%.dat")
                 % prefix % numKoules % plannerName % maxTime);
         }
-        if (vm.count("plan"))
+        if (vm.count("plan") != 0u)
             plan(ks, maxTime, outputFile);
-        else if (vm.count("benchmark"))
+        else if (vm.count("benchmark") != 0u)
             benchmark(ks, ot::Benchmark::Request(maxTime, 10000.0, numRuns),
                 plannerName, outputFile);
     }

@@ -70,7 +70,6 @@ namespace ompl
             distance_.push_back((id == 0) ? 0 : std::numeric_limits<double>::infinity());
             parent_.push_back(NO_ID);
             boost::add_vertex(id, *graph_);
-            return;
         }
 
         // we assume that no two paths have the same cost,
@@ -136,8 +135,6 @@ namespace ompl
                     }
                 }
             }
-
-            return;
         }
 
         void removeEdge(std::size_t v, std::size_t w, bool collectVertices, std::list<std::size_t> &affectedVertices)
@@ -230,8 +227,6 @@ namespace ompl
                     }
                 }
             }
-
-            return;
         }
 
         double getShortestPathCost(std::size_t u) const

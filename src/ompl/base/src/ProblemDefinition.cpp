@@ -55,8 +55,7 @@ namespace ompl
         {
         public:
             PlannerSolutionSet()
-            {
-            }
+            = default;
 
             void add(const PlannerSolution &s)
             {
@@ -240,7 +239,7 @@ bool ompl::base::ProblemDefinition::fixInvalidInputStates(double distStart, doub
             result = false;
 
     // fix goal state
-    GoalState *goal = dynamic_cast<GoalState *>(goal_.get());
+    auto *goal = dynamic_cast<GoalState *>(goal_.get());
     if (goal)
     {
         if (!fixInvalidInputState(const_cast<State *>(goal->getState()), distGoal, false, attempts))
@@ -248,7 +247,7 @@ bool ompl::base::ProblemDefinition::fixInvalidInputStates(double distStart, doub
     }
 
     // fix goal state
-    GoalStates *goals = dynamic_cast<GoalStates *>(goal_.get());
+    auto *goals = dynamic_cast<GoalStates *>(goal_.get());
     if (goals)
     {
         for (unsigned int i = 0; i < goals->getStateCount(); ++i)
@@ -265,11 +264,11 @@ void ompl::base::ProblemDefinition::getInputStates(std::vector<const State *> &s
     for (auto startState : startStates_)
         states.push_back(startState);
 
-    GoalState *goal = dynamic_cast<GoalState *>(goal_.get());
+    auto *goal = dynamic_cast<GoalState *>(goal_.get());
     if (goal)
         states.push_back(goal->getState());
 
-    GoalStates *goals = dynamic_cast<GoalStates *>(goal_.get());
+    auto *goals = dynamic_cast<GoalStates *>(goal_.get());
     if (goals)
         for (unsigned int i = 0; i < goals->getStateCount(); ++i)
             states.push_back(goals->getState(i));
@@ -327,11 +326,11 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() con
     else
     {
         std::vector<const State *> states;
-        GoalState *goal = dynamic_cast<GoalState *>(goal_.get());
+        auto *goal = dynamic_cast<GoalState *>(goal_.get());
         if (goal)
             if (si_->isValid(goal->getState()) && si_->satisfiesBounds(goal->getState()))
                 states.push_back(goal->getState());
-        GoalStates *goals = dynamic_cast<GoalStates *>(goal_.get());
+        auto *goals = dynamic_cast<GoalStates *>(goal_.get());
         if (goals)
             for (unsigned int i = 0; i < goals->getStateCount(); ++i)
                 if (si_->isValid(goals->getState(i)) && si_->satisfiesBounds(goals->getState(i)))

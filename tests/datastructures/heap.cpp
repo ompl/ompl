@@ -44,7 +44,7 @@ using namespace ompl;
 BOOST_AUTO_TEST_CASE(Simple)
 {
     BinaryHeap<int> h;
-    BOOST_CHECK(h.size() == 0);
+    BOOST_CHECK(h.empty());
     h.insert(2);
     BOOST_CHECK(h.size() == 1);
     BinaryHeap<int>::Element *e2 = h.insert(3);
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(Simple)
     BOOST_CHECK_EQUAL(5, s[3]);
     BOOST_CHECK_EQUAL(9, s[4]);
     h.clear();
-    BOOST_CHECK(h.size() == 0);
+    BOOST_CHECK(h.empty());
     BOOST_CHECK(h.empty());
     h.insert(2);
     BinaryHeap<int>::Element *eY = h.insert(2);

@@ -80,7 +80,7 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 {
     //    ob::ScopedState<ob::SE2StateSpace>
     // cast the abstract state type to the type we expect
-    const ob::SE2StateSpace::StateType *se2state = state->as<ob::SE2StateSpace::StateType>();
+    const auto *se2state = state->as<ob::SE2StateSpace::StateType>();
 
     // check validity of state defined by pos & rot
     double x = se2state->getX();
@@ -92,10 +92,10 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 
 void propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result)
 {
-    const ob::SE2StateSpace::StateType *se2state = start->as<ob::SE2StateSpace::StateType>();
-    const ob::RealVectorStateSpace::StateType *pos = se2state->as<ob::RealVectorStateSpace::StateType>(0);
-    const ob::SO2StateSpace::StateType *rot = se2state->as<ob::SO2StateSpace::StateType>(1);
-    const oc::RealVectorControlSpace::ControlType *rctrl = control->as<oc::RealVectorControlSpace::ControlType>();
+    const auto *se2state = start->as<ob::SE2StateSpace::StateType>();
+    const auto *pos = se2state->as<ob::RealVectorStateSpace::StateType>(0);
+    const auto *rot = se2state->as<ob::SO2StateSpace::StateType>(1);
+    const auto *rctrl = control->as<oc::RealVectorControlSpace::ControlType>();
 
     result->as<ob::SE2StateSpace::StateType>()->as<ob::RealVectorStateSpace::StateType>(0)->values[0] =
         (*pos)[0] + (*rctrl)[0] * duration * cos(rot->value);
@@ -176,7 +176,7 @@ void planWithSimpleSetup()
         std::cout << "No solution found" << std::endl;
 }
 
-int main(int, char **)
+int main(int /*argc*/, char ** /*argv*/)
 {
     std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
     planWithSimpleSetup();

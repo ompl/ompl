@@ -184,29 +184,27 @@ namespace ompl
             {
             public:
                 /// \brief Default constructor
-                Motion() : state(nullptr), parent(nullptr), root(nullptr)
-                {
-                }
+                Motion() = default;
 
                 /// \brief Constructor that allocates memory for the state
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), root(nullptr)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState())
                 {
                 }
 
                 ~Motion() = default;
 
                 /// \brief The state contained by the motion
-                base::State *state;
+                base::State *state{nullptr};
 
                 /// \brief The parent motion in the exploration tree
-                Motion *parent;
+                Motion *parent{nullptr};
 
                 /// \brief Cost of the state
                 base::Cost cost;
 
                 /// \brief Pointer to the root of the tree this motion is
                 /// contained in.
-                const base::State *root;
+                const base::State *root{nullptr};
             };
 
             /// \brief Free all memory allocated during planning
@@ -243,7 +241,7 @@ namespace ompl
 
             /// \brief Extend \e tree toward the state in \e rmotion.
             /// Store the result of the extension, if any, in result
-            GrowResult extendTree(Motion *rmotion, TreeData &tree, Motion *&xmotion);
+            GrowResult extendTree(Motion *toMotion, TreeData &tree, Motion *&result);
 
             /// \brief Extend \e tree from \e nearest toward \e toMotion.
             /// Store the result of the extension, if any, in result
@@ -260,7 +258,7 @@ namespace ompl
             }
 
             /// \brief The maximum length of a motion to be added to a tree
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /// \brief The factor by which the temperature is increased after
             /// a failed transition test.
@@ -273,17 +271,17 @@ namespace ompl
             base::Cost worstCost_;
 
             /// \brief All motion costs must be better than this cost (default is infinity)
-            base::Cost costThreshold_;
+            base::Cost costThreshold_{std::numeric_limits<double>::infinity()};
 
             /// \brief The temperature that planning begins at.
-            double initTemperature_;
+            double initTemperature_{100.};
 
             /// \brief The distance between an existing state and a new state
             /// that qualifies it as a frontier state.
-            double frontierThreshold_;
+            double frontierThreshold_{0.};
 
             /// \brief The target ratio of non-frontier nodes to frontier nodes.
-            double frontierNodeRatio_;
+            double frontierNodeRatio_{.1};
 
             /// \brief The current temperature
             double temp_;
@@ -300,7 +298,7 @@ namespace ompl
 
             /// \brief The most recent connection point for the two trees.
             /// Used for PlannerData computation.
-            std::pair<Motion *, Motion *> connectionPoint_;
+            std::pair<Motion *, Motion *> connectionPoint_{nullptr, nullptr};
 
             /// \brief The start tree
             TreeData tStart_;

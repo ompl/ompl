@@ -156,21 +156,19 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : root(nullptr), state(nullptr), parent(nullptr), valid(false)
-                {
-                }
+                Motion() = default;
 
                 Motion(const base::SpaceInformationPtr &si)
-                  : root(nullptr), state(si->allocState()), parent(nullptr), valid(false)
+                  : state(si->allocState())
                 {
                 }
 
                 ~Motion() = default;
 
-                const base::State *root;
-                base::State *state;
-                Motion *parent;
-                bool valid;
+                const base::State *root{nullptr};
+                base::State *state{nullptr};
+                Motion *parent{nullptr};
+                bool valid{false};
                 std::vector<Motion *> children;
                 std::mutex lock;
             };
@@ -208,12 +206,10 @@ namespace ompl
 
             struct TreeData
             {
-                TreeData() : grid(0), size(0)
-                {
-                }
+                TreeData() = default;
 
-                Grid<MotionInfo> grid;
-                unsigned int size;
+                Grid<MotionInfo> grid{0};
+                unsigned int size{0};
                 CellPDF pdf;
                 std::mutex lock;
             };
@@ -265,12 +261,12 @@ namespace ompl
             std::mutex loopLockCounter_;
             unsigned int loopCounter_;
 
-            double maxDistance_;
+            double maxDistance_{0.};
 
             unsigned int threadCount_;
 
             /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
-            std::pair<base::State *, base::State *> connectionPoint_;
+            std::pair<base::State *, base::State *> connectionPoint_{nullptr, nullptr};
         };
     }
 }

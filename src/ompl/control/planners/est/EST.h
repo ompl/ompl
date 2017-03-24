@@ -148,29 +148,27 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state(nullptr), control(nullptr), steps(0), parent(nullptr)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state and the control */
                 Motion(const SpaceInformation *si)
-                  : state(si->allocState()), control(si->allocControl()), steps(0), parent(nullptr)
+                  : state(si->allocState()), control(si->allocControl())
                 {
                 }
 
                 ~Motion() = default;
 
                 /** \brief The state contained by the motion */
-                base::State *state;
+                base::State *state{nullptr};
 
                 /** \brief The control contained by the motion */
-                Control *control;
+                Control *control{nullptr};
 
                 /** \brief The number of steps the control is applied for */
-                unsigned int steps;
+                unsigned int steps{0};
 
                 /** \brief The parent motion in the exploration tree */
-                Motion *parent;
+                Motion *parent{nullptr};
             };
 
             struct MotionInfo;
@@ -211,15 +209,13 @@ namespace ompl
             /** \brief The data contained by a tree of exploration */
             struct TreeData
             {
-                TreeData() : grid(0), size(0)
-                {
-                }
+                TreeData() = default;
 
                 /** \brief A grid where each cell contains an array of motions */
-                Grid<MotionInfo> grid;
+                Grid<MotionInfo> grid{0};
 
                 /** \brief The total number of motions in the grid */
-                unsigned int size;
+                unsigned int size{0};
             };
 
             /** \brief Free the memory allocated by this planner */
@@ -249,10 +245,10 @@ namespace ompl
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
              * available) */
-            double goalBias_;
+            double goalBias_{0.05};
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /** \brief The random number generator */
             RNG rng_;
@@ -261,7 +257,7 @@ namespace ompl
             CellPDF pdf_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
         };
     }
 }

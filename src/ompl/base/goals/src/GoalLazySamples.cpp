@@ -83,7 +83,7 @@ void ompl::base::GoalLazySamples::stopSampling()
     }
 
     /* Join thread */
-    if (samplingThread_)
+    if (samplingThread_ != nullptr)
     {
         samplingThread_->join();
         delete samplingThread_;
@@ -140,7 +140,7 @@ void ompl::base::GoalLazySamples::goalSamplingThread()
 bool ompl::base::GoalLazySamples::isSampling() const
 {
     std::lock_guard<std::mutex> slock(lock_);
-    return terminateSamplingThread_ == false && samplingThread_ != nullptr;
+    return !terminateSamplingThread_ && samplingThread_ != nullptr;
 }
 
 bool ompl::base::GoalLazySamples::couldSample() const
@@ -217,7 +217,7 @@ bool ompl::base::GoalLazySamples::addStateIfDifferent(const State *st, double mi
     }
 
     // the lock is released at this; if needed, issue a call to the callback
-    if (newState)
+    if (newState != nullptr)
         callback_(newState);
     return added;
 }

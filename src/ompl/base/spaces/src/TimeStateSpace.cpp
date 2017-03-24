@@ -202,7 +202,7 @@ double *ompl::base::TimeStateSpace::getValueAddressAtIndex(State *state, const u
 void ompl::base::TimeStateSpace::printState(const State *state, std::ostream &out) const
 {
     out << "TimeState [";
-    if (state)
+    if (state != nullptr)
         out << state->as<StateType>()->position;
     else
         out << "nullptr";

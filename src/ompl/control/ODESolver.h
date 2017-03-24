@@ -78,7 +78,7 @@ namespace ompl
 
             /// \brief Callback function to perform an event at the end of numerical
             /// integration.  This functionality is optional.
-            typedef std::function<void(const base::State *, const Control *, const double, base::State *)>
+            typedef std::function<void(const base::State *, const Control *, double, base::State *)>
                 PostPropagationEvent;
 
             /// \brief Parameterized constructor.  Takes a reference to SpaceInformation,
@@ -126,14 +126,14 @@ namespace ompl
                 class ODESolverStatePropagator : public StatePropagator
                 {
                 public:
-                    ODESolverStatePropagator(ODESolverPtr solver, PostPropagationEvent pe)
+                    ODESolverStatePropagator(const ODESolverPtr& solver, PostPropagationEvent pe)
                       : StatePropagator(solver->si_), solver_(solver), postEvent_(std::move(pe))
                     {
-                        if (!solver.get())
+                        if (solver == nullptr)
                             OMPL_ERROR("ODESolverPtr does not reference a valid ODESolver object");
                     }
 
-                    void propagate(const base::State *state, const Control *control, const double duration,
+                    void propagate(const base::State *state, const Control *control, double duration,
                                    base::State *result) const override
                     {
                         ODESolver::StateType reals;
@@ -154,7 +154,7 @@ namespace ompl
 
         protected:
             /// \brief Solve the ODE given the initial state, and a control to apply for some duration.
-            virtual void solve(StateType &state, const Control *control, const double duration) const = 0;
+            virtual void solve(StateType &state, const Control *control, double duration) const = 0;
 
             /// \brief The SpaceInformation that this ODESolver operates in.
             const SpaceInformationPtr si_;
@@ -204,7 +204,7 @@ namespace ompl
 
         protected:
             /// \brief Solve the ODE using boost::numeric::odeint.
-            void solve(StateType &state, const Control *control, const double duration) const override
+            void solve(StateType &state, const Control *control, double duration) const override
             {
                 Solver solver;
                 ODESolver::ODEFunctor odefunc(ode_, control);
@@ -237,7 +237,7 @@ namespace ompl
 
         protected:
             /// \brief Solve the ODE using boost::numeric::odeint.  Save the resulting error values into error_.
-            void solve(StateType &state, const Control *control, const double duration) const override
+            void solve(StateType &state, const Control *control, double duration) const override
             {
                 ODESolver::ODEFunctor odefunc(ode_, control);
 
@@ -305,7 +305,7 @@ namespace ompl
             /// of the system, a control to apply to the system, and the duration to
             /// apply the control.  The value of \e state will contain the final
             /// values for the system after integration.
-            void solve(StateType &state, const Control *control, const double duration) const override
+            void solve(StateType &state, const Control *control, double duration) const override
             {
                 ODESolver::ODEFunctor odefunc(ode_, control);
 

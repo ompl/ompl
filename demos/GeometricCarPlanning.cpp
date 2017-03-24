@@ -51,7 +51,7 @@ namespace po = boost::program_options;
 
 bool isStateValidEasy(const ob::SpaceInformation *si, const ob::State *state)
 {
-    const ob::SE2StateSpace::StateType *s = state->as<ob::SE2StateSpace::StateType>();
+    const auto *s = state->as<ob::SE2StateSpace::StateType>();
     double x=s->getX(), y=s->getY();
     return si->satisfiesBounds(s) && (x<5 || x>13 || (y>8.5 && y<9.5));
 }
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
             po::command_line_style::unix_style ^ po::command_line_style::allow_short), vm);
         po::notify(vm);
 
-        if (vm.count("help") || argc==1)
+        if ((vm.count("help") != 0u) || argc==1)
         {
             std::cout << desc << "\n";
             return 1;
@@ -201,17 +201,17 @@ int main(int argc, char* argv[])
 
         ob::StateSpacePtr space(std::make_shared<ob::ReedsSheppStateSpace>());
 
-        if (vm.count("dubins"))
+        if (vm.count("dubins") != 0u)
             space = std::make_shared<ob::DubinsStateSpace>();
-        if (vm.count("dubinssym"))
+        if (vm.count("dubinssym") != 0u)
             space = std::make_shared<ob::DubinsStateSpace>(1., true);
-        if (vm.count("easyplan"))
+        if (vm.count("easyplan") != 0u)
             plan(space, true);
-        if (vm.count("hardplan"))
+        if (vm.count("hardplan") != 0u)
             plan(space, false);
-        if (vm.count("trajectory"))
+        if (vm.count("trajectory") != 0u)
             printTrajectory(space, vm["trajectory"].as<std::vector<double> >());
-        if (vm.count("distance"))
+        if (vm.count("distance") != 0u)
             printDistanceGrid(space);
     }
     catch(std::exception& e) {

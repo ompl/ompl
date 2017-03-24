@@ -115,12 +115,12 @@ namespace ompl
             queuePtr_->setPruneDuringResort(usePruning_);
 
             // Make sure the default name reflects the default k-nearest setting
-            if (graphPtr_->getUseKNearest() == true && Planner::getName() == "BITstar")
+            if (graphPtr_->getUseKNearest() && Planner::getName() == "BITstar")
             {
                 // It's the current default r-disc BIT* name, but we're using k-nearest, so change
                 Planner::setName("kBITstar");
             }
-            else if (graphPtr_->getUseKNearest() == false && Planner::getName() == "kBITstar")
+            else if (!graphPtr_->getUseKNearest() && Planner::getName() == "kBITstar")
             {
                 // It's the current default k-nearest BIT* name, but we're using r-disc, so change
                 Planner::setName("BITstar");
@@ -245,7 +245,7 @@ namespace ompl
 
             // Do some sanity checks
             // Make sure we have a problem definition
-            if (static_cast<bool>(Planner::pdef_) == false)
+            if (!static_cast<bool>(Planner::pdef_))
             {
                 OMPL_ERROR("%s::setup() was called without a problem definition.", Planner::getName().c_str());
                 Planner::setup_ = false;
@@ -253,7 +253,7 @@ namespace ompl
             }
 
             // Make sure we have an optimization objective
-            if (Planner::pdef_->hasOptimizationObjective() == false)
+            if (!Planner::pdef_->hasOptimizationObjective())
             {
                 OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length.",
                             Planner::getName().c_str());
@@ -262,9 +262,9 @@ namespace ompl
             }
 
             // If the problem definition *has* a goal, make sure it is of appropriate type
-            if (static_cast<bool>(Planner::pdef_->getGoal()) == true)
+            if (static_cast<bool>(Planner::pdef_->getGoal()))
             {
-                if (Planner::pdef_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION) == false)
+                if (!Planner::pdef_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION))
                 {
                     OMPL_ERROR("%s::setup() BIT* currently only supports goals that can be cast to a sampleable goal "
                                "region.",
@@ -341,7 +341,7 @@ namespace ompl
 
             // If we don't have a goal yet, recall updateStartAndGoalStates, but wait for the first goal (or until the
             // PTC comes true and we give up):
-            if (graphPtr_->hasAGoal() == false)
+            if (!graphPtr_->hasAGoal())
             {
                 graphPtr_->updateStartAndGoalStates(Planner::pis_, ptc);
             }
@@ -355,15 +355,15 @@ namespace ompl
                 - There is are start/goal states we've yet to consider (pis_.haveMoreStartStates() == true ||
               pis_.haveMoreGoalStates() == true)
             */
-            while (ptc == false && stopLoop_ == false && costHelpPtr_->isSatisfied(bestCost_) == false &&
-                   (costHelpPtr_->isCostBetterThan(graphPtr_->minCost(), bestCost_) == true ||
-                    Planner::pis_.haveMoreStartStates() == true || Planner::pis_.haveMoreGoalStates() == true))
+            while (!ptc && !stopLoop_ && !costHelpPtr_->isSatisfied(bestCost_) &&
+                   (costHelpPtr_->isCostBetterThan(graphPtr_->minCost(), bestCost_) ||
+                    Planner::pis_.haveMoreStartStates() || Planner::pis_.haveMoreGoalStates()))
             {
                 this->iterate();
             }
 
             // Announce
-            if (hasExactSolution_ == true)
+            if (hasExactSolution_)
             {
                 this->endSuccessMessage();
             }
@@ -373,7 +373,7 @@ namespace ompl
             }
 
             // Publish
-            if (hasExactSolution_ == true || graphPtr_->getTrackApproximateSolutions() == true)
+            if (hasExactSolution_ || graphPtr_->getTrackApproximateSolutions())
             {
                 // Any solution
                 this->publishSolution();
@@ -398,12 +398,12 @@ namespace ompl
             graphPtr_->getGraphAsPlannerData(data);
 
             // Did we find a solution?
-            if (hasExactSolution_ == true)
+            if (hasExactSolution_)
             {
                 // Exact solution
                 data.markGoalState(curGoalVertex_->stateConst());
             }
-            else if (hasExactSolution_ == false && graphPtr_->getTrackApproximateSolutions() == true)
+            else if (!hasExactSolution_ && graphPtr_->getTrackApproximateSolutions())
             {
                 // Approximate solution
                 data.markGoalState(graphPtr_->closestVertexToGoal()->stateConst());
@@ -417,7 +417,7 @@ namespace ompl
             // The next edge as a basic pair of states
             std::pair<ompl::base::State const *, ompl::base::State const *> nextEdge;
 
-            if (queuePtr_->isEmpty() == false)
+            if (!queuePtr_->isEmpty())
             {
                 // Variable
                 // The edge in the front of the queue
@@ -441,7 +441,7 @@ namespace ompl
             // The cost of the next edge
             ompl::base::Cost nextCost;
 
-            if (queuePtr_->isEmpty() == false)
+            if (!queuePtr_->isEmpty())
             {
                 // The next cost in the queue:
                 nextCost = queuePtr_->frontEdgeValue().at(0u);
@@ -489,7 +489,7 @@ namespace ompl
             ++numIterations_;
 
             // Is the edge queue empty
-            if (queuePtr_->isEmpty() == true)
+            if (queuePtr_->isEmpty())
             {
                 // Yes, we must have just finished a batch. Increase the resolution of the graph and restart the queue.
                 this->newBatch();
@@ -507,12 +507,12 @@ namespace ompl
 
                 // In the best case, can this edge improve our solution given the current graph?
                 // g_t(v) + c_hat(v,x) + h_hat(x) < g_t(x_g)?
-                if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicEdge(bestEdge), bestCost_) == true)
+                if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicEdge(bestEdge), bestCost_))
                 {
                     // What about improving the current graph?
                     // g_t(v) + c_hat(v,x)  < g_t(x)?
                     if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicTarget(bestEdge),
-                                                       bestEdge.second->getCost()) == true)
+                                                       bestEdge.second->getCost()))
                     {
                         // Ok, so it *could* be a useful edge. Do the work of calculating its cost for real
 
@@ -529,16 +529,16 @@ namespace ompl
                                 costHelpPtr_->combineCosts(costHelpPtr_->costToComeHeuristic(bestEdge.first),
                                                            trueEdgeCost,
                                                            costHelpPtr_->costToGoHeuristic(bestEdge.second)),
-                                bestCost_) == true)
+                                bestCost_))
                         {
                             // Does this edge have a collision?
-                            if (this->checkEdge(bestEdge) == true)
+                            if (this->checkEdge(bestEdge))
                             {
                                 // Does the current edge improve our graph?
                                 // g_t(v) + c(v,x) < g_t(x)?
                                 if (costHelpPtr_->isCostBetterThan(
                                         costHelpPtr_->combineCosts(bestEdge.first->getCost(), trueEdgeCost),
-                                        bestEdge.second->getCost()) == true)
+                                        bestEdge.second->getCost()))
                                 {
                                     // YAAAAH. Add the edge! Allowing for the sample to be removed from free if it is
                                     // not currently connected and otherwise propagate cost updates to descendants.
@@ -583,7 +583,7 @@ namespace ompl
             queuePtr_->reset();
 
             // Do we need to update our starts or goals?
-            if (Planner::pis_.haveMoreStartStates() == true || Planner::pis_.haveMoreGoalStates() == true)
+            if (Planner::pis_.haveMoreStartStates() || Planner::pis_.haveMoreGoalStates())
             {
                 // There are new starts/goals to get.
                 graphPtr_->updateStartAndGoalStates(Planner::pis_, ompl::base::plannerAlwaysTerminatingCondition());
@@ -604,7 +604,7 @@ namespace ompl
               - Do we have an exact solution?
               - Has the solution changed more than the specified pruning threshold?
             */
-            if ((usePruning_ == true) && (hasExactSolution_ == true) &&
+            if ((usePruning_) && (hasExactSolution_) &&
                 (std::abs(costHelpPtr_->fractionalChange(bestCost_, prunedCost_)) > pruneFraction_))
             {
                 // Variables:
@@ -620,9 +620,9 @@ namespace ompl
                   - Has its measured changed more than the specified pruning threshold?
                   - If an informed measure is not available, we'll assume yes
                  */
-                if ((graphPtr_->hasInformedMeasure() == true && informedMeasure < Planner::si_->getSpaceMeasure() &&
+                if ((graphPtr_->hasInformedMeasure() && informedMeasure < Planner::si_->getSpaceMeasure() &&
                      relativeMeasure > pruneFraction_) ||
-                    (graphPtr_->hasInformedMeasure() == false))
+                    (!graphPtr_->hasInformedMeasure()))
                 {
                     OMPL_INFORM("%s: Pruning the planning problem from a solution of %.4f to %.4f, changing the "
                                 "problem size from %.4f to %.4f.",
@@ -676,7 +676,7 @@ namespace ompl
             soln.setPlannerName(Planner::getName());
 
             // Mark as approximate if not exact:
-            if (hasExactSolution_ == false && graphPtr_->getTrackApproximateSolutions() == true)
+            if (!hasExactSolution_ && graphPtr_->getTrackApproximateSolutions())
             {
                 soln.setApproximate(graphPtr_->smallestDistanceToGoal());
             }
@@ -697,12 +697,12 @@ namespace ompl
             VertexConstPtr curVertex;
 
             // Iterate up the chain from the goal, creating a backwards vector:
-            if (hasExactSolution_ == true)
+            if (hasExactSolution_)
             {
                 // Start at vertex in the goal
                 curVertex = curGoalVertex_;
             }
-            else if (hasExactSolution_ == false && graphPtr_->getTrackApproximateSolutions() == true)
+            else if (!hasExactSolution_ && graphPtr_->getTrackApproximateSolutions())
             {
                 // Start at the vertex closest to the goal
                 curVertex = graphPtr_->closestVertexToGoal();
@@ -719,7 +719,7 @@ namespace ompl
             // *parent* of the iterator into the vector until the vertex has no parent.
             // This will allows us to add the start (as the parent of the first child) and then stop when we get to the
             // start itself, avoiding trying to find its nonexistent child
-            for (/*Already allocated & initialized*/; curVertex->isRoot() == false;
+            for (/*Already allocated & initialized*/; !curVertex->isRoot();
                  curVertex = curVertex->getParentConst())
             {
 #ifdef BITSTAR_DEBUG
@@ -761,7 +761,7 @@ namespace ompl
             bool isRewiring = newEdge.second->hasParent();
 
             // Perform a rewiring?
-            if (isRewiring == true)
+            if (isRewiring)
             {
                 // Replace the edge
                 this->replaceParent(newEdge, edgeCost);
@@ -832,17 +832,17 @@ namespace ompl
                  ++goalIter)
             {
                 // First, is this goal even in the tree?
-                if ((*goalIter)->isInTree() == true)
+                if ((*goalIter)->isInTree())
                 {
                     // Next, is there currently a solution?
-                    if (static_cast<bool>(newBestGoal) == true)
+                    if (static_cast<bool>(newBestGoal))
                     {
                         // There is already a solution, is it to this goal?
                         if ((*goalIter)->getId() == newBestGoal->getId())
                         {
                             // Ah-ha, We meet again! Are we doing any better? We check the length as sometimes the path
                             // length changes with minimal change in cost.
-                            if (costHelpPtr_->isCostEquivalentTo((*goalIter)->getCost(), newCost) == false ||
+                            if (!costHelpPtr_->isCostEquivalentTo((*goalIter)->getCost(), newCost) ||
                                 ((*goalIter)->getDepth() + 1u) != bestLength_)
                             {
                                 // The path to the current best goal has changed, so we need to update it.
@@ -856,7 +856,7 @@ namespace ompl
                         {
                             // It is not to this goal, we have a second solution! What an easy problem... but is it
                             // better?
-                            if (costHelpPtr_->isCostBetterThan((*goalIter)->getCost(), newCost) == true)
+                            if (costHelpPtr_->isCostBetterThan((*goalIter)->getCost(), newCost))
                             {
                                 // It is! Save this as a better goal:
                                 goalUpdated = true;
@@ -878,7 +878,7 @@ namespace ompl
             }
 
             // Did we update the goal?
-            if (goalUpdated == true)
+            if (goalUpdated)
             {
                 // Mark that we have a solution
                 hasExactSolution_ = true;
@@ -903,7 +903,7 @@ namespace ompl
                 this->goalMessage();
 
                 // If enabled, pass the intermediate solution back through the call back:
-                if (static_cast<bool>(Planner::pdef_->getIntermediateSolutionCallback()) == true)
+                if (static_cast<bool>(Planner::pdef_->getIntermediateSolutionCallback()))
                 {
                     // The form of path passed to the intermediate solution callback is not well documented, but it
                     // *appears* that it's not supposed
@@ -939,7 +939,7 @@ namespace ompl
 
         void BITstar::endFailureMessage() const
         {
-            if (graphPtr_->getTrackApproximateSolutions() == true)
+            if (graphPtr_->getTrackApproximateSolutions())
             {
                 OMPL_INFORM("%s (%u iters): Did not find an exact solution from %u samples after processing %u edges "
                             "(%u collision checked) to create %u vertices and perform %u rewirings. The final graph "
@@ -1059,12 +1059,12 @@ namespace ompl
             graphPtr_->setUseKNearest(useKNearest);
 
             // If the planner is default named, we change it:
-            if (graphPtr_->getUseKNearest() == true && Planner::getName() == "kBITstar")
+            if (graphPtr_->getUseKNearest() && Planner::getName() == "kBITstar")
             {
                 // It's current the default k-nearest BIT* name, and we're toggling, so set to the default r-disc
                 Planner::setName("BITstar");
             }
-            else if (graphPtr_->getUseKNearest() == false && Planner::getName() == "BITstar")
+            else if (!graphPtr_->getUseKNearest() && Planner::getName() == "BITstar")
             {
                 // It's current the default r-disc BIT* name, and we're toggling, so set to the default k-nearest
                 Planner::setName("kBITstar");
@@ -1089,7 +1089,7 @@ namespace ompl
 
         void BITstar::setPruning(bool prune)
         {
-            if (prune == false)
+            if (!prune)
             {
                 OMPL_WARN("%s: Turning pruning off has never really been tested.", Planner::getName().c_str());
             }
@@ -1180,7 +1180,7 @@ namespace ompl
         {
             // Check if the problem is already setup, if so, the NN structs have data in them and you can't really
             // change them:
-            if (Planner::setup_ == true)
+            if (Planner::setup_)
             {
                 OMPL_WARN("%s: The nearest neighbour datastructures cannot be changed once the planner is setup. "
                           "Continuing to use the existing containers.",

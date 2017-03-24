@@ -52,15 +52,9 @@ ompl::geometric::VFRRT::VFRRT(const base::SpaceInformationPtr &si, VectorField v
                               double initial_lambda, unsigned int update_freq)
   : RRT(si)
   , vf_(std::move(vf))
-  , efficientCount_(0)
-  , inefficientCount_(0)
-  , explorationInefficiency_(0.)
   , explorationSetting_(exploration)
   , lambda_(initial_lambda)
   , nth_step_(update_freq)
-  , step_(0)
-  , meanNorm_(0.)
-  , vfdim_(0)
 {
     setName("VFRRT");
     maxDistance_ = si->getStateValidityCheckingResolution();
@@ -201,7 +195,7 @@ ompl::base::PlannerStatus ompl::geometric::VFRRT::solve(const base::PlannerTermi
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();

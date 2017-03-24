@@ -170,13 +170,11 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : accCost_(0), state_(nullptr), parent_(nullptr), numChildren_(0), inactive_(false)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state and the control */
                 Motion(const base::SpaceInformationPtr &si)
-                  : accCost_(0), state_(si->allocState()), parent_(nullptr), numChildren_(0), inactive_(false)
+                  : state_(si->allocState())
                 {
                 }
 
@@ -190,29 +188,27 @@ namespace ompl
                 {
                     return parent_;
                 }
-                base::Cost accCost_;
+                base::Cost accCost_{0.};
 
                 /** \brief The state contained by the motion */
-                base::State *state_;
+                base::State *state_{nullptr};
 
                 /** \brief The parent motion in the exploration tree */
-                Motion *parent_;
+                Motion *parent_{nullptr};
 
                 /** \brief Number of children */
-                unsigned numChildren_;
+                unsigned numChildren_{0};
 
                 /** \brief If inactive, this node is not considered for selection.*/
-                bool inactive_;
+                bool inactive_{false};
             };
 
             class Witness : public Motion
             {
             public:
-                Witness() : Motion(), rep_(nullptr)
-                {
-                }
+                Witness() = default;
 
-                Witness(const base::SpaceInformationPtr &si) : Motion(si), rep_(nullptr)
+                Witness(const base::SpaceInformationPtr &si) : Motion(si)
                 {
                 }
                 base::State *getState() const override
@@ -230,7 +226,7 @@ namespace ompl
                 }
 
                 /** \brief The node in the tree that is within the pruning radius.*/
-                Motion *rep_;
+                Motion *rep_{nullptr};
             };
 
             /** \brief Finds the best node in the tree withing the selection radius around a random sample.*/
@@ -262,16 +258,16 @@ namespace ompl
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
              * available) */
-            double goalBias_;
+            double goalBias_{.05};
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double maxDistance_;
+            double maxDistance_{5.};
 
             /** \brief The radius for determining the node selected for extension. */
-            double selectionRadius_;
+            double selectionRadius_{5.};
 
             /** \brief The radius for determining the size of the pruning region. */
-            double pruningRadius_;
+            double pruningRadius_{3.};
 
             /** \brief The random number generator */
             RNG rng_;

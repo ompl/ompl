@@ -271,7 +271,7 @@ namespace
         s = *get(vertex_type_t(), g)[v]->getState();
         std::vector<double> coords(s.reals());
         std::ostringstream sstream;
-        if (coords.size() > 0)
+        if (!coords.empty())
         {
             sstream << coords[0];
             for (std::size_t i = 1; i < coords.size(); ++i)
@@ -520,7 +520,7 @@ bool ompl::base::PlannerData::removeVertex(unsigned int vIndex)
             goalVertexIndex--;
 
     // If the state attached to this vertex was decoupled, free it here
-    State *vtxState = const_cast<State *>(getVertex(vIndex).getState());
+    auto *vtxState = const_cast<State *>(getVertex(vIndex).getState());
     if (decoupledStates_.find(vtxState) != decoupledStates_.end())
     {
         decoupledStates_.erase(vtxState);
@@ -743,13 +743,13 @@ ompl::base::StateStoragePtr ompl::base::PlannerData::extractStateStorage() const
 
 ompl::base::PlannerData::Graph &ompl::base::PlannerData::toBoostGraph()
 {
-    ompl::base::PlannerData::Graph *boostgraph = reinterpret_cast<ompl::base::PlannerData::Graph *>(graphRaw_);
+    auto *boostgraph = reinterpret_cast<ompl::base::PlannerData::Graph *>(graphRaw_);
     return *boostgraph;
 }
 
 const ompl::base::PlannerData::Graph &ompl::base::PlannerData::toBoostGraph() const
 {
-    const ompl::base::PlannerData::Graph *boostgraph =
+    const auto *boostgraph =
         reinterpret_cast<const ompl::base::PlannerData::Graph *>(graphRaw_);
     return *boostgraph;
 }

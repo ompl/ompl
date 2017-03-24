@@ -98,45 +98,38 @@ namespace ompl
             struct InterfaceData
             {
                 /** \brief States which lie inside the visibility region of a vertex and support an interface. */
-                base::State *pointA_;
-                base::State *pointB_;
+                base::State *pointA_{nullptr};
+                base::State *pointB_{nullptr};
 
                 /** \brief States which lie just outside the visibility region of a vertex and support an interface. */
-                base::State *sigmaA_;
-                base::State *sigmaB_;
+                base::State *sigmaA_{nullptr};
+                base::State *sigmaB_{nullptr};
 
                 /** \brief Last known distance between the two interfaces supported by points_ and sigmas. */
-                double d_;
+                double d_{std::numeric_limits<double>::infinity()};
 
                 /** \brief Constructor */
-                InterfaceData()
-                  : pointA_(nullptr)
-                  , pointB_(nullptr)
-                  , sigmaA_(nullptr)
-                  , sigmaB_(nullptr)
-                  , d_(std::numeric_limits<double>::infinity())
-                {
-                }
+                InterfaceData() = default;
 
                 /** \brief Clears the given interface data. */
                 void clear(const base::SpaceInformationPtr &si)
                 {
-                    if (pointA_)
+                    if (pointA_ != nullptr)
                     {
                         si->freeState(pointA_);
                         pointA_ = nullptr;
                     }
-                    if (pointB_)
+                    if (pointB_ != nullptr)
                     {
                         si->freeState(pointB_);
                         pointB_ = nullptr;
                     }
-                    if (sigmaA_)
+                    if (sigmaA_ != nullptr)
                     {
                         si->freeState(sigmaA_);
                         sigmaA_ = nullptr;
                     }
-                    if (sigmaB_)
+                    if (sigmaB_ != nullptr)
                     {
                         si->freeState(sigmaB_);
                         sigmaB_ = nullptr;
@@ -147,30 +140,30 @@ namespace ompl
                 /** \brief Sets information for the first interface (i.e. interface with smaller index vertex). */
                 void setFirst(const base::State *p, const base::State *s, const base::SpaceInformationPtr &si)
                 {
-                    if (pointA_)
+                    if (pointA_ != nullptr)
                         si->copyState(pointA_, p);
                     else
                         pointA_ = si->cloneState(p);
-                    if (sigmaA_)
+                    if (sigmaA_ != nullptr)
                         si->copyState(sigmaA_, s);
                     else
                         sigmaA_ = si->cloneState(s);
-                    if (pointB_)
+                    if (pointB_ != nullptr)
                         d_ = si->distance(pointA_, pointB_);
                 }
 
                 /** \brief Sets information for the second interface (i.e. interface with larger index vertex). */
                 void setSecond(const base::State *p, const base::State *s, const base::SpaceInformationPtr &si)
                 {
-                    if (pointB_)
+                    if (pointB_ != nullptr)
                         si->copyState(pointB_, p);
                     else
                         pointB_ = si->cloneState(p);
-                    if (sigmaB_)
+                    if (sigmaB_ != nullptr)
                         si->copyState(sigmaB_, s);
                     else
                         sigmaB_ = si->cloneState(s);
-                    if (pointA_)
+                    if (pointA_ != nullptr)
                         d_ = si->distance(pointA_, pointB_);
                 }
             };
@@ -351,7 +344,7 @@ namespace ompl
             // Planner progress property functions
             std::string getIterationCount() const
             {
-                return boost::lexical_cast<std::string>(iterations_);
+                return std::to_string(iterations_);
             }
             std::string getBestCost() const
             {
@@ -429,7 +422,7 @@ namespace ompl
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is
              * in \e start and the second is in \e goal, and the two milestones are in the same connected component. If
              * a solution is found, the path is saved. */
-            bool haveSolution(const std::vector<Vertex> &start, const std::vector<Vertex> &goal,
+            bool haveSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals,
                               base::PathPtr &solution);
 
             /** Thread that checks for solution */
@@ -444,7 +437,7 @@ namespace ompl
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set
              * it as the solution */
-            base::PathPtr constructSolution(const Vertex start, const Vertex goal) const;
+            base::PathPtr constructSolution(Vertex start, Vertex goal) const;
 
             /** \brief Check if two milestones (\e m1 and \e m2) are part of the same connected component. This is not a
              * const function since we use incremental connected components from boost */
@@ -476,17 +469,17 @@ namespace ompl
             Vertex queryVertex_;
 
             /** \brief Stretch Factor as per graph spanner literature (multiplicative bound on path quality) */
-            double stretchFactor_;
+            double stretchFactor_{3.};
 
             /** \brief Maximum visibility range for nodes in the graph as a fraction of maximum extent. */
-            double sparseDeltaFraction_;
+            double sparseDeltaFraction_{.25};
 
             /** \brief Maximum range for allowing two samples to support an interface as a fraction of maximum extent.
              */
-            double denseDeltaFraction_;
+            double denseDeltaFraction_{.001};
 
             /** \brief The number of consecutive failures to add to the graph before termination */
-            unsigned int maxFailures_;
+            unsigned int maxFailures_{5000};
 
             /** \brief Number of sample points to use when trying to detect interfaces. */
             unsigned int nearSamplePoints_;
@@ -513,16 +506,16 @@ namespace ompl
             RNG rng_;
 
             /** \brief A flag indicating that a solution has been added during solve() */
-            bool addedSolution_;
+            bool addedSolution_{false};
 
             /** \brief A counter for the number of consecutive failed iterations of the algorithm */
-            unsigned int consecutiveFailures_;
+            unsigned int consecutiveFailures_{0};
 
             /** \brief Maximum visibility range for nodes in the graph */
-            double sparseDelta_;
+            double sparseDelta_{0.};
 
             /** \brief Maximum range for allowing two samples to support an interface */
-            double denseDelta_;
+            double denseDelta_{0.};
 
             /** \brief Mutex to guard access to the Graph member (g_) */
             mutable std::mutex graphMutex_;
@@ -537,9 +530,9 @@ namespace ompl
             //////////////////////////////
             // Planner progress properties
             /** \brief A counter for the number of iterations of the algorithm */
-            long unsigned int iterations_;
+            long unsigned int iterations_{0ul};
             /** \brief Best cost found so far by algorithm */
-            base::Cost bestCost_;
+            base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
         };
     }
 }

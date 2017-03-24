@@ -17,22 +17,9 @@ namespace ompl
     {
         BFMT::BFMT(const base::SpaceInformationPtr &si)
           : base::Planner(si, "BFMT")
-          , numSamples_(1000)
-          , radiusMultiplier_(1.0)
           , freeSpaceVolume_(si_->getStateSpace()->getMeasure())  // An upper bound on the free space volume is the
                                                                   // total space volume; the free fraction is estimated
                                                                   // in sampleFree
-          , collisionChecks_(0)
-          , nearestK_(true)
-          , NNr_(0)
-          , NNk_(0)
-          , tree_(FWD)
-          , exploration_(SWAP_EVERY_TIME)
-          , termination_(OPTIMALITY)
-          , precomputeNN_(false)
-          , heuristics_(true)
-          , cacheCC_(true)
-          , extendedFMT_(true)
         {
             specs_.approximateSolutions = false;
             specs_.directed = false;
@@ -257,7 +244,7 @@ namespace ompl
         {
             if (dimension == 0)
                 return 1.0;
-            else if (dimension == 1)
+            if (dimension == 1)
                 return 2.0;
             return 2.0 * boost::math::constants::pi<double>() / dimension * calculateUnitBallVolume(dimension - 2);
         }
@@ -285,7 +272,7 @@ namespace ompl
         {
             base::GoalSampleableRegion *goal_s;
             initializeProblem(goal_s);
-            if (!goal_s)
+            if (goal_s == nullptr)
             {
                 OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
                 return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
@@ -314,7 +301,7 @@ namespace ompl
                 }
             }
 
-            if (!initMotion || !valid_initMotion)
+            if ((initMotion == nullptr) || !valid_initMotion)
             {
                 OMPL_ERROR("Start state undefined or invalid.");
                 return base::PlannerStatus::INVALID_START;
@@ -360,7 +347,7 @@ namespace ompl
                 }
             }
 
-            if (!goalMotion || !valid_goalMotion)
+            if ((goalMotion == nullptr) || !valid_goalMotion)
             {
                 OMPL_ERROR("Goal state undefined or invalid.");
                 return base::PlannerStatus::INVALID_GOAL;
@@ -452,11 +439,9 @@ namespace ompl
                 OMPL_DEBUG("Total path cost: %f\n", fwd_cost.value() + rev_cost.value());
                 return base::PlannerStatus(true, false);
             }
-            else
-            {
-                // Planner terminated without accomplishing goal
-                return base::PlannerStatus(false, false);
-            }
+
+            // Planner terminated without accomplishing goal
+            return base::PlannerStatus(false, false);
         }
 
         void BFMT::expandTreeFromNode(BiDirMotion *&z, BiDirMotion *&connection_point)
@@ -706,8 +691,7 @@ namespace ompl
 
                             if (opt_->isCostBetterThan(worstCost, connCost))
                                 continue;
-                            else
-                                yNear.push_back(j);
+                            yNear.push_back(j);
                         }
                         else
                             yNear.push_back(j);
@@ -866,38 +850,33 @@ namespace ompl
                 // the corresponding place of the neighborhood of the neighbor of m.
                 if (i->getCurrentSet() == BiDirMotion::SET_CLOSED)
                     continue;
-                else
+
+                auto it = neighborhoods_.find(i);
+                if (it != neighborhoods_.end())
                 {
-                    auto it = neighborhoods_.find(i);
-                    if (it != neighborhoods_.end())
+                    if (it->second.empty())
+                        continue;
+
+                    const base::Cost connCost = opt_->motionCost(i->getState(), m->getState());
+                    const base::Cost worstCost = opt_->motionCost(it->second.back()->getState(), i->getState());
+
+                    if (opt_->isCostBetterThan(worstCost, connCost))
+                        continue;
+
+                    // insert the neighbor in the vector in the correct order
+                    std::vector<BiDirMotion *> &nbhToUpdate = it->second;
+                    for (std::size_t j = 0; j < nbhToUpdate.size(); ++j)
                     {
-                        if (!it->second.size())
-                            continue;
-
-                        const base::Cost connCost = opt_->motionCost(i->getState(), m->getState());
-                        const base::Cost worstCost = opt_->motionCost(it->second.back()->getState(), i->getState());
-
-                        if (opt_->isCostBetterThan(worstCost, connCost))
-                            continue;
-                        else
+                        // If connection to the new state is better than the current neighbor tested, insert.
+                        const base::Cost cost = opt_->motionCost(i->getState(), nbhToUpdate[j]->getState());
+                        if (opt_->isCostBetterThan(connCost, cost))
                         {
-                            // insert the neighbor in the vector in the correct order
-                            std::vector<BiDirMotion *> &nbhToUpdate = it->second;
-                            for (std::size_t j = 0; j < nbhToUpdate.size(); ++j)
-                            {
-                                // If connection to the new state is better than the current neighbor tested, insert.
-                                const base::Cost cost = opt_->motionCost(i->getState(), nbhToUpdate[j]->getState());
-                                if (opt_->isCostBetterThan(connCost, cost))
-                                {
-                                    nbhToUpdate.insert(nbhToUpdate.begin() + j, m);
-                                    break;
-                                }
-                            }
+                            nbhToUpdate.insert(nbhToUpdate.begin() + j, m);
+                            break;
                         }
                     }
                 }
             }
         }
-
     }  // End "geometric" namespace
 }  // End "ompl" namespace

@@ -87,9 +87,7 @@ namespace ompl
             public:
                 /** \brief Creates a State without any assigned PropositionalDecomposition
                     region or Automaton states. All of these values are initialized to -1. */
-                State() : decompRegion(-1), cosafeState(-1), safeState(-1)
-                {
-                }
+                State() = default;
 
                 /** \brief Basic copy constructor for State. */
                 State(const State &s) = default;
@@ -119,9 +117,9 @@ namespace ompl
                 int getSafeState() const;
 
             private:
-                int decompRegion;
-                int cosafeState;
-                int safeState;
+                int decompRegion{-1};
+                int cosafeState{-1};
+                int safeState{-1};
             };
 
             /** \brief Initializes a ProductGraph with a given PropositionalDecomposition,

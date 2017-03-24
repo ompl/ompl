@@ -62,16 +62,6 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si)
   , interfaceListsProperty_(boost::get(vertex_interface_list_t(), s_))
   , weightProperty_(boost::get(boost::edge_weight, g_))
   , sparseDJSets_(boost::get(boost::vertex_rank, s_), boost::get(boost::vertex_predecessor, s_))
-  , consecutiveFailures_(0)
-  , stretchFactor_(3.)
-  , maxFailures_(1000)
-  , addedSolution_(false)
-  , denseDeltaFraction_(.001)
-  , sparseDeltaFraction_(.25)
-  , denseDelta_(0.)
-  , sparseDelta_(0.)
-  , iterations_(0)
-  , bestCost_(std::numeric_limits<double>::quiet_NaN())
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
@@ -141,7 +131,7 @@ void ompl::geometric::SPARS::setup()
         if (pdef_->hasOptimizationObjective())
         {
             opt_ = pdef_->getOptimizationObjective();
-            if (!dynamic_cast<base::PathLengthOptimizationObjective *>(opt_.get()))
+            if (dynamic_cast<base::PathLengthOptimizationObjective *>(opt_.get()) == nullptr)
                 OMPL_WARN("%s: Asymptotic optimality has only been proven with path length optimizaton; convergence "
                           "for other optimizaton objectives is not guaranteed.",
                           getName().c_str());
@@ -218,7 +208,7 @@ ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addSample(base::Stat
 
     // search for a valid state
     bool found = false;
-    while (!found && ptc == false)
+    while (!found && !ptc)
     {
         unsigned int attempts = 0;
         do
@@ -235,14 +225,14 @@ ompl::geometric::SPARS::DenseVertex ompl::geometric::SPARS::addSample(base::Stat
 
 void ompl::geometric::SPARS::checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution)
 {
-    base::GoalSampleableRegion *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
     while (!ptc && !addedSolution_)
     {
         // Check for any new goal states
         if (goal->maxSampleCount() > goalM_.size())
         {
             const base::State *st = pis_.nextGoal();
-            if (st)
+            if (st != nullptr)
             {
                 addMilestone(si_->cloneState(st));
                 goalM_.push_back(addGuard(si_->cloneState(st), GOAL));
@@ -285,7 +275,7 @@ bool ompl::geometric::SPARS::haveSolution(const std::vector<DenseVertex> &starts
                         solution = p;
                         return true;
                     }
-                    else if (opt_->isCostBetterThan(pathCost, sol_cost))
+                    if (opt_->isCostBetterThan(pathCost, sol_cost))
                     {
                         solution = p;
                         sol_cost = pathCost;
@@ -330,9 +320,9 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
     checkValidity();
     checkQueryStateInitialization();
 
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
-    if (!goal)
+    if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
@@ -443,7 +433,7 @@ void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCond
     std::vector<DenseVertex> interfaceNeighborhood;
 
     bestCost_ = opt_->infiniteCost();
-    while (ptc == false)
+    while (!ptc)
     {
         iterations_++;
 
@@ -465,7 +455,7 @@ void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCond
                 {
                     // Then check to see if it's on an interface
                     getInterfaceNeighborhood(q, interfaceNeighborhood);
-                    if (interfaceNeighborhood.size() > 0)
+                    if (!interfaceNeighborhood.empty())
                     {
                         // Check for addition for spanner prop
                         if (!checkAddPath(q, interfaceNeighborhood))
@@ -585,7 +575,7 @@ bool ompl::geometric::SPARS::checkAddConnectivity(const base::State *lastState, 
                     links.push_back(neigh[j]);
                 }
 
-    if (links.size() != 0)
+    if (!links.empty())
     {
         // Add the node
         SparseVertex g = addGuard(si_->cloneState(lastState), CONNECTIVITY);
@@ -622,15 +612,13 @@ bool ompl::geometric::SPARS::checkAddInterface(const std::vector<SparseVertex> &
                     // Report success
                     return true;
                 }
-                else
-                {
-                    // Add the new node to the graph, to bridge the interface
-                    SparseVertex v = addGuard(si_->cloneState(stateProperty_[q]), INTERFACE);
-                    connectSparsePoints(v, visibleNeighborhood[0]);
-                    connectSparsePoints(v, visibleNeighborhood[1]);
-                    // Report success
-                    return true;
-                }
+
+                // Add the new node to the graph, to bridge the interface
+                SparseVertex v = addGuard(si_->cloneState(stateProperty_[q]), INTERFACE);
+                connectSparsePoints(v, visibleNeighborhood[0]);
+                connectSparsePoints(v, visibleNeighborhood[1]);
+                // Report success
+                return true;
             }
     return false;
 }
@@ -698,7 +686,7 @@ bool ompl::geometric::SPARS::checkAddPath(DenseVertex q, const std::vector<Dense
                         // Compute/Retain MINimum distance path on D through q, q"
                         DensePath dPath;
                         computeDensePath(q, qpp, dPath);
-                        if (dPath.size() > 0)
+                        if (!dPath.empty())
                         {
                             // compute path length
                             double length = 0.0;
@@ -895,7 +883,7 @@ void ompl::geometric::SPARS::calculateRepresentative(DenseVertex q)
 void ompl::geometric::SPARS::addToRepresentatives(DenseVertex q, SparseVertex rep, const std::set<SparseVertex> &oreps)
 {
     // If this node supports no interfaces
-    if (oreps.size() == 0)
+    if (oreps.empty())
     {
         // Add it to the pool of non-interface nodes
         bool new_insert = nonInterfaceListsProperty_[rep].insert(q).second;
@@ -943,7 +931,7 @@ void ompl::geometric::SPARS::computeX(SparseVertex v, SparseVertex vp, SparseVer
     Xs.clear();
     foreach (SparseVertex cx, boost::adjacent_vertices(vpp, s_))
         if (boost::edge(cx, v, s_).second && !boost::edge(cx, vp, s_).second)
-            if (interfaceListsProperty_[vpp][cx].size() > 0)
+            if (!interfaceListsProperty_[vpp][cx].empty())
                 Xs.push_back(cx);
     Xs.push_back(vpp);
 }

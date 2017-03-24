@@ -52,10 +52,6 @@ ompl::geometric::LBKPIECE1::LBKPIECE1(const base::SpaceInformationPtr &si)
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 
-    minValidPathFraction_ = 0.5;
-    maxDistance_ = 0.0;
-    connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
-
     Planner::declareParam<double>("range", this, &LBKPIECE1::setRange, &LBKPIECE1::getRange, "0.:1.:10000");
     Planner::declareParam<double>("border_fraction", this, &LBKPIECE1::setBorderFraction, &LBKPIECE1::getBorderFraction,
                                   "0.:.05:1.");
@@ -82,9 +78,9 @@ void ompl::geometric::LBKPIECE1::setup()
 ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
-    if (!goal)
+    if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
@@ -124,7 +120,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
     bool startTree = true;
     bool solved = false;
 
-    while (ptc == false)
+    while (!ptc)
     {
         Discretization<Motion> &disc = startTree ? dStart_ : dGoal_;
         startTree = !startTree;
@@ -135,7 +131,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
         if (dGoal_.getMotionCount() == 0 || pis_.getSampledGoalsCount() < dGoal_.getMotionCount() / 2)
         {
             const base::State *st = dGoal_.getMotionCount() == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
-            if (st)
+            if (st != nullptr)
             {
                 auto *motion = new Motion(si_);
                 si_->copyState(motion->state, st);
@@ -168,7 +164,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
 
         /* attempt to connect trees */
         Discretization<Motion>::Cell *ocell = otherDisc.getGrid().getCell(xcoord);
-        if (ocell && !ocell->data->motions.empty())
+        if ((ocell != nullptr) && !ocell->data->motions.empty())
         {
             Motion *connectOther = ocell->data->motions[rng_.uniformInt(0, ocell->data->motions.size() - 1)];
 
@@ -290,7 +286,7 @@ void ompl::geometric::LBKPIECE1::removeMotion(Discretization<Motion> &disc, Moti
 
     /* remove self from parent list */
 
-    if (motion->parent)
+    if (motion->parent != nullptr)
     {
         for (unsigned int i = 0; i < motion->parent->children.size(); ++i)
             if (motion->parent->children[i] == motion)
@@ -312,7 +308,7 @@ void ompl::geometric::LBKPIECE1::removeMotion(Discretization<Motion> &disc, Moti
 
 void ompl::geometric::LBKPIECE1::freeMotion(Motion *motion)
 {
-    if (motion->state)
+    if (motion->state != nullptr)
         si_->freeState(motion->state);
     delete motion;
 }

@@ -60,7 +60,7 @@ namespace
 
         // G is the graph type
         template <typename G>
-        void examine_vertex(const V &u, const G &)
+        void examine_vertex(const V &u, const G & /*unused*/)
         {
             if (u == goal_)
                 throw AStarFoundGoal();

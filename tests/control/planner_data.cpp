@@ -85,7 +85,7 @@ public:
     int tag2_;
 
 protected:
-    PlannerDataTestVertex() {}
+    PlannerDataTestVertex() = default;
 
     friend class boost::serialization::access;
     template <class Archive>
@@ -112,8 +112,8 @@ public:
 
     bool operator == (const ompl::base::PlannerDataEdge &rhs) const override
     {
-        const PlannerDataTestEdge *rhst = static_cast<const PlannerDataTestEdge*> (&rhs);
-        if (rhst)
+        const auto *rhst = static_cast<const PlannerDataTestEdge*> (&rhs);
+        if (rhst != nullptr)
         {
             if (id_ == rhst->id_)
                 return static_cast<const ompl::control::PlannerDataEdgeControl>(*this) == rhs;
@@ -125,7 +125,7 @@ public:
     int id_;
 
 protected:
-    PlannerDataTestEdge() : PlannerDataEdgeControl() {};
+    PlannerDataTestEdge() = default;
     friend class boost::serialization::access;
 
     template <class Archive>
@@ -140,8 +140,8 @@ protected:
 BOOST_CLASS_EXPORT(PlannerDataTestVertex);
 BOOST_CLASS_EXPORT(PlannerDataTestEdge);
 
-void propagate(const base::State *, const control::Control *, const double, base::State *){}
-bool isValid (const base::State*){ return true; }
+void propagate(const base::State * /*unused*/, const control::Control * /*unused*/, const double /*unused*/, base::State * /*unused*/){}
+bool isValid (const base::State* /*unused*/){ return true; }
 
 BOOST_AUTO_TEST_CASE(SimpleConstruction)
 {
@@ -380,7 +380,7 @@ BOOST_AUTO_TEST_CASE(DataIntegrity)
     for (unsigned int i = 1; i < states.size(); ++i)
     {
         //TestEdge& edge = static_cast<TestEdge&>(data.getEdge(i-1, i));
-        PlannerDataTestEdge &edge = static_cast<PlannerDataTestEdge&>(data.getEdge(i-1, i));
+        auto &edge = static_cast<PlannerDataTestEdge&>(data.getEdge(i-1, i));
         BOOST_REQUIRE_NE ( &edge, &base::PlannerData::NO_EDGE );
         BOOST_CHECK_EQUAL( edge.getControl(), controls[i] );
         BOOST_OMPL_EXPECT_NEAR ( edge.getDuration(), i, 1e-9 );
@@ -573,8 +573,8 @@ BOOST_AUTO_TEST_CASE(Serialization)
         {
             BOOST_CHECK_EQUAL( neighbors[j], neighbors2[j] );
 
-            PlannerDataTestEdge &edge  = static_cast<PlannerDataTestEdge&>(data.getEdge(i, neighbors[j]));
-            PlannerDataTestEdge &edge2 = static_cast<PlannerDataTestEdge&>(data2.getEdge(i, neighbors[j]));
+            auto &edge  = static_cast<PlannerDataTestEdge&>(data.getEdge(i, neighbors[j]));
+            auto &edge2 = static_cast<PlannerDataTestEdge&>(data2.getEdge(i, neighbors[j]));
             BOOST_CHECK ( cspace->equalControls (edge.getControl(), edge2.getControl()) );
             BOOST_CHECK ( fabs(edge.getDuration() - edge2.getDuration()) < std::numeric_limits<double>::epsilon());
             BOOST_CHECK ( edge.id_ == edge2.id_ );

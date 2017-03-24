@@ -139,7 +139,7 @@ namespace ompl
              * solution may be approximate. */
             bool haveSolutionPath() const
             {
-                return pdef_->getSolutionPath().get();
+                return pdef_->getSolutionPath() != nullptr;
             }
 
             /** \brief Get the best solution's planer name. Throw an exception if no solution is available */
@@ -171,7 +171,7 @@ namespace ompl
 
             /** \brief Set the start and goal states to use. */
             void setStartAndGoalStates(const base::ScopedState<> &start, const base::ScopedState<> &goal,
-                                       const double threshold = std::numeric_limits<double>::epsilon());
+                                       double threshold = std::numeric_limits<double>::epsilon());
 
             /** \brief Add a starting state for planning. This call is not
                 needed if setStartAndGoalStates() has been called. */
@@ -195,7 +195,7 @@ namespace ompl
 
             /** \brief A simple form of setGoal(). The goal will be an instance of ompl::base::GoalState */
             void setGoalState(const base::ScopedState<> &goal,
-                              const double threshold = std::numeric_limits<double>::epsilon());
+                              double threshold = std::numeric_limits<double>::epsilon());
 
             /** \brief Set the goal for planning. This call is not
                 needed if setStartAndGoalStates() has been called. */

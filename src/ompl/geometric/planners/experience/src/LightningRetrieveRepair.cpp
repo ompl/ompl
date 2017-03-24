@@ -114,7 +114,7 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     bool solved = false;
 
     // Check if the database is empty
-    if (!experienceDB_->getExperiencesCount())
+    if (experienceDB_->getExperiencesCount() == 0u)
     {
         OMPL_INFORM("LightningRetrieveRepair: Experience database is empty so unable to run LightningRetrieveRepair "
                     "algorithm.");
@@ -129,7 +129,7 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     const base::State *goalState = pis_.nextGoal(ptc);
 
     // Error check start/goal states
-    if (!startState || !goalState)
+    if ((startState == nullptr) || (goalState == nullptr))
     {
         OMPL_ERROR("LightningRetrieveRepair: Start or goal states are null");
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
@@ -320,7 +320,7 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
         OMPL_ERROR("LightningRetrieveRepair: No best path found from k filtered paths");
         return false;
     }
-    else if (!bestPath->numVertices() || bestPath->numVertices() == 1)
+    if ((bestPath->numVertices() == 0u) || bestPath->numVertices() == 1)
     {
         OMPL_ERROR("LightningRetrieveRepair: Only %d verticies found in PlannerData loaded from file. This is a bug.",
                    bestPath->numVertices());
@@ -372,7 +372,7 @@ bool ompl::geometric::LightningRetrieveRepair::repairPath(const base::PlannerTer
         ompl::base::State *toState = primaryPath.getState(toID);
 
         // Check if our planner is out of time
-        if (ptc == true)
+        if (ptc)
         {
             OMPL_DEBUG("LightningRetrieveRepair: Repair path function interrupted because termination condition is "
                        "true.");

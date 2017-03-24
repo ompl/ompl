@@ -169,7 +169,7 @@ namespace ompl
 
             /** \brief Remove a vertex from the tree, can optionally be allowed to move it to the set of unconnected
              * samples if may still be useful. */
-            unsigned int removeVertex(const VertexPtr &oldVertex, bool moveToFree);
+            unsigned int removeVertex(const VertexPtr &oldSample, bool moveToFree);
             ////////////////////////////////
 
             //////////////////
@@ -303,27 +303,27 @@ namespace ompl
             NameFunc nameFunc_;
 
             /** \brief Whether the class is setup */
-            bool isSetup_;
+            bool isSetup_{false};
 
             /** \brief The state space used by the planner */
-            ompl::base::SpaceInformationPtr si_;
+            ompl::base::SpaceInformationPtr si_{nullptr};
 
             /** \brief The problem definition */
-            ompl::base::ProblemDefinitionPtr pdef_;
+            ompl::base::ProblemDefinitionPtr pdef_{nullptr};
 
             /** \brief A cost/heuristic helper class. As this is a copy of the version owned by BITstar.cpp it can be
              * reset in a clear(). */
-            CostHelperPtr costHelpPtr_;
+            CostHelperPtr costHelpPtr_{nullptr};
 
             /** \brief The queue class. As this is a copy of the version owned by BITstar.cpp it can be reset in a
              * clear(). */
-            SearchQueuePtr queuePtr_;
+            SearchQueuePtr queuePtr_{nullptr};
 
             /** \brief An instance of a random number generator */
             ompl::RNG rng_;
 
             /** \brief State sampler */
-            ompl::base::InformedSamplerPtr sampler_;
+            ompl::base::InformedSamplerPtr sampler_{nullptr};
 
             /** \brief The start states of the problem as vertices. Constructed as a shared_ptr to give easy access to
              * helper classes */
@@ -347,91 +347,91 @@ namespace ompl
 
             /** \brief The samples as a nearest-neighbours datastructure. Sorted by nnDistance. Size accessible via
              * numFreeSamples */
-            VertexPtrNNPtr freeStateNN_;
+            VertexPtrNNPtr freeStateNN_{nullptr};
 
             /** \brief The vertices as a nearest-neighbours data structure. Sorted by nnDistance. Size accessible via
              * numConnectedVertices */
-            VertexPtrNNPtr vertexNN_;
+            VertexPtrNNPtr vertexNN_{nullptr};
 
             /** \brief The number of samples in this batch */
-            unsigned int samplesInThisBatch_;
+            unsigned int samplesInThisBatch_{0u};
 
             /** \brief The number of states (vertices or samples) that were generated from a uniform distribution. Only
              * valid when refreshSamplesOnPrune_ is true, in which case it's used to calculate the RGG term of the
              * uniform subgraph.*/
-            unsigned int numUniformStates_;
+            unsigned int numUniformStates_{0u};
 
             /** \brief The current r-disc RGG connection radius */
-            double r_;
+            double r_{0.};
 
             /** \brief The minimum k-nearest RGG connection term. Only a function of state dimension, so can be
              * calculated once. Left as a double for later accuracy in calculate k */
-            double k_rgg_;
+            double k_rgg_{0.};
 
             /** \brief The current k-nearest RGG connection number */
-            unsigned int k_;
+            unsigned int k_{0u};
 
             /** \brief The measure of the continuous problem domain which we are approximating with samples. This is
              * initially the problem domain but can shrink as we focus the search. */
-            double approximationMeasure_;
+            double approximationMeasure_{0.};
 
             /** \brief The minimum possible solution cost. I.e., the heuristic value of the start. */
-            ompl::base::Cost minCost_;
+            ompl::base::Cost minCost_{std::numeric_limits<double>::infinity()};
 
             /** \brief The maximum heuristic cost to sample (i.e., the best solution found to date). */
-            ompl::base::Cost maxCost_;
+            ompl::base::Cost maxCost_{std::numeric_limits<double>::infinity()};
 
             /** \brief The total-heuristic cost up to which we've sampled */
-            ompl::base::Cost costSampled_;
+            ompl::base::Cost costSampled_{std::numeric_limits<double>::infinity()};
 
             /** \brief If we've found an exact solution yet */
-            bool hasExactSolution_;
+            bool hasExactSolution_{false};
 
             /** \brief IF BEING TRACKED, the vertex closest to the goal (this represents an "approximate" solution) */
-            VertexConstPtr closestVertexToGoal_;
+            VertexConstPtr closestVertexToGoal_{nullptr};
 
             /** \brief IF BEING TRACKED, the smallest distance of vertices in the tree to a goal (this represents
              * tolerance of an "approximate" solution) */
-            double closestDistToGoal_;
+            double closestDistToGoal_{std::numeric_limits<double>::infinity()};
             ///////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////
             // Informational variables - Make sure initialized in setup and reset in clear
             /** \brief The number of states generated through sampling. Accessible via numStatesGenerated */
-            unsigned int numSamples_;
+            unsigned int numSamples_{0u};
 
             /** \brief The number of vertices ever added to the tree. Accessible via numVerticesConnected */
-            unsigned int numVertices_;
+            unsigned int numVertices_{0u};
 
             /** \brief The number of free states that have been pruned. Accessible via numStatesPruned */
-            unsigned int numFreeStatesPruned_;
+            unsigned int numFreeStatesPruned_{0u};
 
             /** \brief The number of graph vertices that get disconnected. Accessible via numVerticesDisconnected */
-            unsigned int numVerticesDisconnected_;
+            unsigned int numVerticesDisconnected_{0u};
 
             /** \brief The number of nearest neighbour calls. Accessible via numNearestLookups */
-            unsigned int numNearestNeighbours_;
+            unsigned int numNearestNeighbours_{0u};
 
             /** \brief The number of state collision checks. Accessible via numStateCollisionChecks */
-            unsigned int numStateCollisionChecks_;
+            unsigned int numStateCollisionChecks_{0u};
             ///////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////
             // Parameters - Set defaults in construction/setup and DO NOT reset in clear.
             /** \brief The rewiring factor, s, so that r_rgg = s \times r_rgg* > r_rgg* (param) */
-            double rewireFactor_;
+            double rewireFactor_{1.1};
 
             /** \brief Option to use k-nearest search for rewiring (param) */
-            bool useKNearest_;
+            bool useKNearest_{true};
 
             /** \brief Whether to use just-in-time sampling (param) */
-            bool useJustInTimeSampling_;
+            bool useJustInTimeSampling_{false};
 
             /** \brief Whether to refresh (i.e., forget) unconnected samples on pruning (param) */
-            bool dropSamplesOnPrune_;
+            bool dropSamplesOnPrune_{false};
 
             /** \brief Whether to consider approximate solutions (param) */
-            bool findApprox_;
+            bool findApprox_{false};
             ///////////////////////////////////////////////////////////////////
         };  // class: ImplicitGraph
     }       // geometric

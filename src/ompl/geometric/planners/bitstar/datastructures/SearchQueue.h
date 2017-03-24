@@ -191,7 +191,7 @@ namespace ompl
              * threshold. Descendents of pruned vertices that are not pruned themselves are returned to the set of free
              * states. Returns the number of vertices removed, and the number of said vertices that are completely
              * thrown away (i.e., are not even useful as a sample) */
-            std::pair<unsigned int, unsigned int> prune(const VertexConstPtr &pruneStartPtr);
+            std::pair<unsigned int, unsigned int> prune(const VertexConstPtr &goalVertexPtr);
 
             /** \brief Resort the queue around the marked unsorted vertices. If allowed, will simply remove any vertices
              * that need to be resorted but will later be pruned. */
@@ -212,7 +212,7 @@ namespace ompl
             // Queue info:
             /** \brief The condition used to insert vertices into the queue. Compares lowerBoundHeuristicVertex to the
              * given threshold. Returns true if the vertex's best cost is lower than the internally set threshold.*/
-            bool vertexInsertCondition(const VertexPtr &vertex) const;
+            bool vertexInsertCondition(const VertexPtr &state) const;
 
             /** \brief The condition used to insert edges into the queue. Compares lowerBoundHeuristicEdge to the given
              * threshold. Returns true if the edge's best cost is lower than the internally set threshold.*/
@@ -220,12 +220,12 @@ namespace ompl
 
             /** \brief The condition used to prune vertices out of the queue. Compares currentHeuristicVertex to the
              * given threshold. Returns true if the vertex's best cost is greater than the internally set threshold.*/
-            bool vertexPruneCondition(const VertexPtr &vertex) const;
+            bool vertexPruneCondition(const VertexPtr &state) const;
 
             /** \brief The condition used to prune disconnected samples from the free set. Compares
              * lowerBoundHeuristicVertex to the given threshold. Returns true if the vertex's best cost is greater than
              * or equal to the internally set threshold.*/
-            bool samplePruneCondition(const VertexPtr &vertex) const;
+            bool samplePruneCondition(const VertexPtr &state) const;
 
             /** \brief The condition used to prune edge (i.e., vertex-pair) out of the queue. Compares
              * currentHeuristicEdge to the given threshold. Returns true if the edge's best cost is greater than the
@@ -416,14 +416,14 @@ namespace ompl
             NameFunc nameFunc_;
 
             /** \brief Whether the class is setup */
-            bool isSetup_;
+            bool isSetup_{false};
 
             /** \brief A cost/heuristic helper class. As I am a copy of the version owned by BITstar.cpp, I can be reset
              * in a clear().*/
-            CostHelperPtr costHelpPtr_;
+            CostHelperPtr costHelpPtr_{nullptr};
 
             /** \brief The samples represented as an edge-implicit graph */
-            ImplicitGraphPtr graphPtr_;
+            ImplicitGraphPtr graphPtr_{nullptr};
 
             /** \brief The underlying queue of vertices. Sorted by vertexQueueComparison. */
             QValueToVertexMMap vertexQueue_;
@@ -447,30 +447,30 @@ namespace ompl
             VertexPtrVector resortVertices_;
 
             /** \brief The maximum heuristic value allowed for vertices/edges in the queue.*/
-            ompl::base::Cost costThreshold_;
+            ompl::base::Cost costThreshold_{std::numeric_limits<double>::infinity()};
 
             /** \brief Whether the problem has a solution */
-            bool hasExactSolution_;
+            bool hasExactSolution_{false};
             ////////////////////////////////
 
             ////////////////////////////////
             // Informational variables - Make sure initialized in setup and reset in clear
             /** \brief The number of edges processed, in one way or other, from the queue. Accessible via numEdgesPopped
              */
-            unsigned int numEdgesPopped_;
+            unsigned int numEdgesPopped_{0u};
             ////////////////////////////////
 
             ////////////////////////////////
             // Parameters - Set defaults in construction/setup and DO NOT reset in clear.
             /** \brief Whether to use a strict-queue ordering (param) */
-            bool useStrictQueueOrdering_;
+            bool useStrictQueueOrdering_{false};
 
             /** \brief Whether to delay rewiring until an initial solution is found or not */
-            bool delayRewiring_;
+            bool delayRewiring_{true};
 
             /** \brief Whether we are allowed to prune during resorts. Generally speaking this is whether or not we're
              * using pruning in general.*/
-            bool pruneDuringResort_;
+            bool pruneDuringResort_{true};
             ////////////////////////////////
         };  // class: SearchQueue
     }       // geometric

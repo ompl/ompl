@@ -44,10 +44,6 @@ ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::P
     specs_.optimizingPaths = true;
     specs_.multithreaded = true;
 
-    numPathsShared_ = 0;
-    numStatesShared_ = 0;
-    focusSearch_ = true;
-
     numThreads_ = std::max(std::thread::hardware_concurrency(), 2u);
     Planner::declareParam<bool>("focus_search", this, &CForest::setFocusSearch, &CForest::getFocusSearch, "0,1");
     Planner::declareParam<unsigned int>("num_threads", this, &CForest::setNumThreads, &CForest::getNumThreads, "0:64");
@@ -70,7 +66,7 @@ ompl::geometric::CForest::~CForest() = default;
 
 void ompl::geometric::CForest::setNumThreads(unsigned int numThreads)
 {
-    numThreads_ = numThreads ? numThreads : std::max(std::thread::hardware_concurrency(), 2u);
+    numThreads_ = numThreads != 0u ? numThreads : std::max(std::thread::hardware_concurrency(), 2u);
 }
 
 void ompl::geometric::CForest::addPlannerInstanceInternal(const base::PlannerPtr &planner)
@@ -259,8 +255,8 @@ void ompl::geometric::CForest::newSolutionFound(const base::Planner *planner,
 
     for (auto &i : samplers_)
     {
-        base::CForestStateSampler *sampler = static_cast<base::CForestStateSampler *>(i.get());
-        const base::CForestStateSpaceWrapper *space =
+        auto *sampler = static_cast<base::CForestStateSampler *>(i.get());
+        const auto *space =
             static_cast<const base::CForestStateSpaceWrapper *>(sampler->getStateSpace());
         const base::Planner *cfplanner = space->getPlanner();
         if (cfplanner != planner)

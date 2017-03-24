@@ -53,8 +53,8 @@ namespace ompl
             }
 
             void sampleUniform(State *state) override;
-            void sampleUniformNear(State *state, const State *near, const double distance) override;
-            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
+            void sampleUniformNear(State *state, const State *near, double distance) override;
+            void sampleGaussian(State *state, const State *mean, double stdDev) override;
         };
 
         /** \brief A space representing discrete states; i.e. there
@@ -78,7 +78,7 @@ namespace ompl
             /** \brief Construct a discrete space in wich states can take values in the set [\e lowerBound, \e
              * upperBound] */
             DiscreteStateSpace(int lowerBound, int upperBound)
-              : StateSpace(), lowerBound_(lowerBound), upperBound_(upperBound)
+              : lowerBound_(lowerBound), upperBound_(upperBound)
             {
                 setName("Discrete" + getName());
                 type_ = STATE_SPACE_DISCRETE;
@@ -110,7 +110,7 @@ namespace ompl
 
             bool equalStates(const State *state1, const State *state2) const override;
 
-            void interpolate(const State *from, const State *to, const double t, State *state) const override;
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
 
             StateSamplerPtr allocDefaultStateSampler() const override;
 

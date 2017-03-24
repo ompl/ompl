@@ -174,8 +174,8 @@ namespace ompl
                 }
                 Motion *ancestor() const
                 {
-                    Motion *m = const_cast<Motion *>(this);
-                    while (m->parent_ && m->parent_->endState_ == m->startState_)
+                    auto *m = const_cast<Motion *>(this);
+                    while ((m->parent_ != nullptr) && m->parent_->endState_ == m->startState_)
                         m = m->parent_;
                     return m;
                 }
@@ -212,7 +212,7 @@ namespace ompl
 
                 ~Cell()
                 {
-                    if (left_)
+                    if (left_ != nullptr)
                     {
                         delete left_;
                         delete right_;
@@ -225,7 +225,7 @@ namespace ompl
                 /// Locates the cell that this motion begins in
                 Cell *stab(const ompl::base::EuclideanProjection &projection) const
                 {
-                    Cell *containingCell = const_cast<Cell *>(this);
+                    auto *containingCell = const_cast<Cell *>(this);
                     while (containingCell->left_ != nullptr)
                     {
                         if (projection[containingCell->splitDimension_] <= containingCell->splitValue_)
@@ -246,7 +246,7 @@ namespace ompl
                 unsigned int size() const
                 {
                     unsigned int sz = 1;
-                    if (left_)
+                    if (left_ != nullptr)
                         sz += left_->size() + right_->size();
                     return sz;
                 }
@@ -268,11 +268,11 @@ namespace ompl
             };
 
             /// Inserts the motion into the appropriate cell
-            void addMotion(Motion *motion, Cell *cell, base::State *, base::EuclideanProjection &);
+            void addMotion(Motion *motion, Cell *bsp, base::State * /*state*/, base::EuclideanProjection & /*proj*/);
             /// \brief Either update heap after motion's priority has changed or insert motion into heap.
             void updateHeapElement(Motion *motion)
             {
-                if (motion->heapElement_)
+                if (motion->heapElement_ != nullptr)
                     priorityQueue_.update(motion->heapElement_);
                 else
                     motion->heapElement_ = priorityQueue_.insert(motion);
@@ -280,7 +280,7 @@ namespace ompl
             /// \brief Select a state along motion and propagate a new motion from there.
             /// Return nullptr if no valid motion could be generated starting at the
             /// selected state.
-            Motion *propagateFrom(Motion *motion, base::State *, base::State *);
+            Motion *propagateFrom(Motion *motion, base::State * /*start*/, base::State * /*rnd*/);
 
             void freeMemory();
 
@@ -294,17 +294,17 @@ namespace ompl
             /// Priority queue of motions
             ompl::BinaryHeap<Motion *, MotionCompare> priorityQueue_;
             /// Binary Space Partition
-            Cell *bsp_;
+            Cell *bsp_{nullptr};
             /// Projection evaluator for the problem
             ompl::base::ProjectionEvaluatorPtr projectionEvaluator_;
             /// Number between 0 and 1 specifying the probability with which the goal should be sampled
-            double goalBias_;
+            double goalBias_{0.05};
             /// Objected used to sample the goal
-            ompl::base::GoalSampleableRegion *goalSampler_;
+            ompl::base::GoalSampleableRegion *goalSampler_{nullptr};
             /// Iteration number and priority of the next Motion that will be generated
-            unsigned int iteration_;
+            unsigned int iteration_{1};
             /// Closest motion to the goal
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
         };
     }
 }

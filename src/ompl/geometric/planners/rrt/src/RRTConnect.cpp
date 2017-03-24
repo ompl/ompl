@@ -44,9 +44,6 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, boo
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.directed = true;
 
-    addIntermediateStates_ = addIntermediateStates;
-    maxDistance_ = 0.0;
-
     Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange, "0.:1.:10000.");
     connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
@@ -80,7 +77,7 @@ void ompl::geometric::RRTConnect::freeMemory()
         tStart_->list(motions);
         for (auto &motion : motions)
         {
-            if (motion->state)
+            if (motion->state != nullptr)
                 si_->freeState(motion->state);
             delete motion;
         }
@@ -91,7 +88,7 @@ void ompl::geometric::RRTConnect::freeMemory()
         tGoal_->list(motions);
         for (auto &motion : motions)
         {
-            if (motion->state)
+            if (motion->state != nullptr)
                 si_->freeState(motion->state);
             delete motion;
         }
@@ -202,9 +199,9 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
 ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
-    if (!goal)
+    if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
@@ -244,7 +241,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
     bool startTree = true;
     bool solved = false;
 
-    while (ptc == false)
+    while (!ptc)
     {
         TreeData &tree = startTree ? tStart_ : tGoal_;
         tgi.start = startTree;
@@ -254,7 +251,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
         if (tGoal_->size() == 0 || pis_.getSampledGoalsCount() < tGoal_->size() / 2)
         {
             const base::State *st = tGoal_->size() == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
-            if (st)
+            if (st != nullptr)
             {
                 auto *motion = new Motion(si_);
                 si_->copyState(motion->state, st);
@@ -307,7 +304,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
                 // it must be the case that either the start tree or the goal tree has made some progress
                 // so one of the parents is not nullptr. We go one step 'back' to avoid having a duplicate state
                 // on the solution path
-                if (startMotion->parent)
+                if (startMotion->parent != nullptr)
                     startMotion = startMotion->parent;
                 else
                     goalMotion = goalMotion->parent;

@@ -120,7 +120,7 @@ ompl::msg::OutputHandler *ompl::msg::getOutputHandler()
 void ompl::msg::log(const char *file, int line, LogLevel level, const char *m, ...)
 {
     USE_DOH;
-    if (doh->output_handler_ && level >= doh->logLevel_)
+    if ((doh->output_handler_ != nullptr) && level >= doh->logLevel_)
     {
         va_list __ap;
         va_start(__ap, m);
@@ -153,7 +153,7 @@ void ompl::msg::OutputHandlerSTD::log(const std::string &text, LogLevel level, c
 {
     if (level >= LOG_WARN)
     {
-        bool isTTY(isatty(fileno(stderr)));
+        bool isTTY(isatty(fileno(stderr)) != 0);
         if (isTTY)
             std::cerr << LogColorString[level + 2];
         std::cerr << LogLevelString[level + 2] << text << std::endl;
@@ -164,7 +164,7 @@ void ompl::msg::OutputHandlerSTD::log(const std::string &text, LogLevel level, c
     }
     else
     {
-        bool isTTY(isatty(fileno(stdout)));
+        bool isTTY(isatty(fileno(stdout)) != 0);
         if (isTTY)
             std::cout << LogColorString[level + 2];
         std::cout << LogLevelString[level + 2] << text << std::endl;
@@ -174,23 +174,23 @@ void ompl::msg::OutputHandlerSTD::log(const std::string &text, LogLevel level, c
     }
 }
 
-ompl::msg::OutputHandlerFile::OutputHandlerFile(const char *filename) : OutputHandler()
+ompl::msg::OutputHandlerFile::OutputHandlerFile(const char *filename)
 {
     file_ = fopen(filename, "a");
-    if (!file_)
+    if (file_ == nullptr)
         std::cerr << "Unable to open log file: '" << filename << "'" << std::endl;
 }
 
 ompl::msg::OutputHandlerFile::~OutputHandlerFile()
 {
-    if (file_)
+    if (file_ != nullptr)
         if (fclose(file_) != 0)
             std::cerr << "Error closing logfile" << std::endl;
 }
 
 void ompl::msg::OutputHandlerFile::log(const std::string &text, LogLevel level, const char *filename, int line)
 {
-    if (file_)
+    if (file_ != nullptr)
     {
         fprintf(file_, "%s%s\n", LogLevelString[level], text.c_str());
         if (level >= LOG_WARN)

@@ -58,9 +58,7 @@ namespace ompl
         class BITstar::IdGenerator
         {
         public:
-            IdGenerator() : nextId_(0u)
-            {
-            }
+            IdGenerator() = default;
 
             /** \brief Generator a new id and increment the global/static counter of IDs. */
             BITstar::VertexId getNewId()
@@ -75,7 +73,7 @@ namespace ompl
         private:
             // Variables:
             // The next ID to be returned:
-            BITstar::VertexId nextId_;
+            BITstar::VertexId nextId_{0u};
             // The mutex
             std::mutex idMutex_;
         };
@@ -87,9 +85,9 @@ namespace
 {
     // Global variables:
     // The initialization flag stating that the ID generator has been created:
-    static std::once_flag g_IdInited;
+    std::once_flag g_IdInited;
     // A pointer to the actual ID generator
-    static boost::scoped_ptr<ompl::geometric::BITstar::IdGenerator> g_IdGenerator;
+    boost::scoped_ptr<ompl::geometric::BITstar::IdGenerator> g_IdGenerator;
 
     // A function to initialize the ID generator pointer:
     void initIdGenerator()

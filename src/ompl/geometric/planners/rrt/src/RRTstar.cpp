@@ -51,28 +51,6 @@
 
 ompl::geometric::RRTstar::RRTstar(const base::SpaceInformationPtr &si)
   : base::Planner(si, "RRTstar")
-  , goalBias_(0.05)
-  , maxDistance_(0.0)
-  , useKNearest_(true)
-  , rewireFactor_(1.1)
-  , k_rrt_(0u)
-  , r_rrt_(0.0)
-  , delayCC_(true)
-  , lastGoalMotion_(nullptr)
-  , useTreePruning_(false)
-  , pruneThreshold_(0.05)
-  , usePrunedMeasure_(false)
-  , useInformedSampling_(false)
-  , useRejectionSampling_(false)
-  , useNewStateRejection_(false)
-  , useAdmissibleCostToCome_(true)
-  , numSampleAttempts_(100u)
-  , useOrderedSampling_(false)
-  , batchSize_(1u)
-  , bestCost_(std::numeric_limits<double>::quiet_NaN())
-  , prunedCost_(std::numeric_limits<double>::quiet_NaN())
-  , prunedMeasure_(0.0)
-  , iterations_(0u)
 {
     specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;
@@ -188,7 +166,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     bool symCost = opt_->isSymmetric();
 
@@ -608,7 +586,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
 void ompl::geometric::RRTstar::getNeighbors(Motion *motion, std::vector<Motion *> &nbh) const
 {
-    double cardDbl = static_cast<double>(nn_->size() + 1u);
+    auto cardDbl = static_cast<double>(nn_->size() + 1u);
     if (useKNearest_)
     {
         //- k-nearest RRT*
@@ -1144,7 +1122,7 @@ bool ompl::geometric::RRTstar::sampleUniform(base::State *statePtr)
 
 void ompl::geometric::RRTstar::calculateRewiringLowerBounds()
 {
-    const double dimDbl = static_cast<double>(si_->getStateDimension());
+    const auto dimDbl = static_cast<double>(si_->getStateDimension());
 
     // k_rrt > 2^(d + 1) * e * (1 + 1 / d).  K-nearest RRT*
     k_rrt_ = rewireFactor_ * (std::pow(2, dimDbl + 1) * boost::math::constants::e<double>() * (1.0 + 1.0 / dimDbl));

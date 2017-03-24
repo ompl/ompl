@@ -42,9 +42,6 @@
 ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "LazyRRT")
 {
     specs_.directed = true;
-    goalBias_ = 0.05;
-    maxDistance_ = 0.0;
-    lastGoalMotion_ = nullptr;
 
     Planner::declareParam<double>("range", this, &LazyRRT::setRange, &LazyRRT::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &LazyRRT::setGoalBias, &LazyRRT::getGoalBias, "0.:.05:1.");
@@ -87,7 +84,7 @@ void ompl::geometric::LazyRRT::freeMemory()
         nn_->list(motions);
         for (auto &motion : motions)
         {
-            if (motion->state)
+            if (motion->state != nullptr)
                 si_->freeState(motion->state);
             delete motion;
         }
@@ -98,7 +95,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -127,10 +124,10 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 
     bool solutionFound = false;
 
-    while (ptc == false && !solutionFound)
+    while (!ptc && !solutionFound)
     {
         /* sample random state (with goal biasing) */
-        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+        if ((goal_s != nullptr) && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
         else
             sampler_->sampleUniform(rstate);
@@ -213,7 +210,7 @@ void ompl::geometric::LazyRRT::removeMotion(Motion *motion)
 
     /* remove self from parent list */
 
-    if (motion->parent)
+    if (motion->parent != nullptr)
     {
         for (unsigned int i = 0; i < motion->parent->children.size(); ++i)
             if (motion->parent->children[i] == motion)
@@ -230,7 +227,7 @@ void ompl::geometric::LazyRRT::removeMotion(Motion *motion)
         removeMotion(i);
     }
 
-    if (motion->state)
+    if (motion->state != nullptr)
         si_->freeState(motion->state);
     delete motion;
 }
@@ -243,7 +240,7 @@ void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
-    if (lastGoalMotion_)
+    if (lastGoalMotion_ != nullptr)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state, 1));
 
     for (auto &motion : motions)
@@ -251,7 +248,7 @@ void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
         if (motion->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motion->state));
         else
-            data.addEdge(base::PlannerDataVertex(motion->parent ? motion->parent->state : nullptr),
+            data.addEdge(base::PlannerDataVertex(motion->parent != nullptr ? motion->parent->state : nullptr),
                          base::PlannerDataVertex(motion->state));
 
         data.tagState(motion->state, motion->valid ? 1 : 0);

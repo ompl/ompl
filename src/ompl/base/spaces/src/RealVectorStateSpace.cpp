@@ -47,7 +47,7 @@ void ompl::base::RealVectorStateSampler::sampleUniform(State *state)
     const unsigned int dim = space_->getDimension();
     const RealVectorBounds &bounds = static_cast<const RealVectorStateSpace *>(space_)->getBounds();
 
-    RealVectorStateSpace::StateType *rstate = static_cast<RealVectorStateSpace::StateType *>(state);
+    auto *rstate = static_cast<RealVectorStateSpace::StateType *>(state);
     for (unsigned int i = 0; i < dim; ++i)
         rstate->values[i] = rng_.uniformReal(bounds.low[i], bounds.high[i]);
 }
@@ -57,8 +57,8 @@ void ompl::base::RealVectorStateSampler::sampleUniformNear(State *state, const S
     const unsigned int dim = space_->getDimension();
     const RealVectorBounds &bounds = static_cast<const RealVectorStateSpace *>(space_)->getBounds();
 
-    RealVectorStateSpace::StateType *rstate = static_cast<RealVectorStateSpace::StateType *>(state);
-    const RealVectorStateSpace::StateType *rnear = static_cast<const RealVectorStateSpace::StateType *>(near);
+    auto *rstate = static_cast<RealVectorStateSpace::StateType *>(state);
+    const auto *rnear = static_cast<const RealVectorStateSpace::StateType *>(near);
     for (unsigned int i = 0; i < dim; ++i)
         rstate->values[i] = rng_.uniformReal(std::max(bounds.low[i], rnear->values[i] - distance),
                                              std::min(bounds.high[i], rnear->values[i] + distance));
@@ -69,8 +69,8 @@ void ompl::base::RealVectorStateSampler::sampleGaussian(State *state, const Stat
     const unsigned int dim = space_->getDimension();
     const RealVectorBounds &bounds = static_cast<const RealVectorStateSpace *>(space_)->getBounds();
 
-    RealVectorStateSpace::StateType *rstate = static_cast<RealVectorStateSpace::StateType *>(state);
-    const RealVectorStateSpace::StateType *rmean = static_cast<const RealVectorStateSpace::StateType *>(mean);
+    auto *rstate = static_cast<RealVectorStateSpace::StateType *>(state);
+    const auto *rmean = static_cast<const RealVectorStateSpace::StateType *>(mean);
     for (unsigned int i = 0; i < dim; ++i)
     {
         double v = rng_.gaussian(rmean->values[i], stdDev);
@@ -187,7 +187,7 @@ double ompl::base::RealVectorStateSpace::getMeasure() const
 
 void ompl::base::RealVectorStateSpace::enforceBounds(State *state) const
 {
-    StateType *rstate = static_cast<StateType *>(state);
+    auto *rstate = static_cast<StateType *>(state);
     for (unsigned int i = 0; i < dimension_; ++i)
     {
         if (rstate->values[i] > bounds_.high[i])
@@ -199,7 +199,7 @@ void ompl::base::RealVectorStateSpace::enforceBounds(State *state) const
 
 bool ompl::base::RealVectorStateSpace::satisfiesBounds(const State *state) const
 {
-    const StateType *rstate = static_cast<const StateType *>(state);
+    const auto *rstate = static_cast<const StateType *>(state);
     for (unsigned int i = 0; i < dimension_; ++i)
         if (rstate->values[i] - std::numeric_limits<double>::epsilon() > bounds_.high[i] ||
             rstate->values[i] + std::numeric_limits<double>::epsilon() < bounds_.low[i])
@@ -257,8 +257,8 @@ bool ompl::base::RealVectorStateSpace::equalStates(const State *state1, const St
 void ompl::base::RealVectorStateSpace::interpolate(const State *from, const State *to, const double t,
                                                    State *state) const
 {
-    const StateType *rfrom = static_cast<const StateType *>(from);
-    const StateType *rto = static_cast<const StateType *>(to);
+    const auto *rfrom = static_cast<const StateType *>(from);
+    const auto *rto = static_cast<const StateType *>(to);
     const StateType *rstate = static_cast<StateType *>(state);
     for (unsigned int i = 0; i < dimension_; ++i)
         rstate->values[i] = rfrom->values[i] + (rto->values[i] - rfrom->values[i]) * t;
@@ -278,7 +278,7 @@ ompl::base::State *ompl::base::RealVectorStateSpace::allocState() const
 
 void ompl::base::RealVectorStateSpace::freeState(State *state) const
 {
-    StateType *rstate = static_cast<StateType *>(state);
+    auto *rstate = static_cast<StateType *>(state);
     delete[] rstate->values;
     delete rstate;
 }
@@ -291,9 +291,9 @@ double *ompl::base::RealVectorStateSpace::getValueAddressAtIndex(State *state, c
 void ompl::base::RealVectorStateSpace::printState(const State *state, std::ostream &out) const
 {
     out << "RealVectorState [";
-    if (state)
+    if (state != nullptr)
     {
-        const StateType *rstate = static_cast<const StateType *>(state);
+        const auto *rstate = static_cast<const StateType *>(state);
         for (unsigned int i = 0; i < dimension_; ++i)
         {
             out << rstate->values[i];

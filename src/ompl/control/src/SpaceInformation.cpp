@@ -75,7 +75,7 @@ ompl::control::DirectedControlSamplerPtr ompl::control::SpaceInformation::allocD
 {
     if (dcsa_)
         return dcsa_(this);
-    else if (statePropagator_->canSteer())
+    if (statePropagator_->canSteer())
         return std::make_shared<SteeredControlSampler>(this);
     else
         return std::make_shared<SimpleDirectedControlSampler>(this);
@@ -194,12 +194,9 @@ unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::St
     }
     // if the first propagation step produced an invalid step, return 0 steps
     // the last valid state is the starting one (assumed to be valid)
-    else
-    {
-        if (result != state)
-            copyState(result, state);
-        return 0;
-    }
+    if (result != state)
+        copyState(result, state);
+    return 0;
 }
 
 void ompl::control::SpaceInformation::propagate(const base::State *state, const Control *control, int steps,
@@ -278,8 +275,7 @@ unsigned int ompl::control::SpaceInformation::propagateWhileValid(const base::St
                     }
                     break;
                 }
-                else
-                    ++st;
+                ++st;
             }
         }
         else

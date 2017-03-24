@@ -146,25 +146,23 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state(nullptr), parent(nullptr), valid(false)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr), valid(false)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState())
                 {
                 }
 
                 ~Motion() = default;
 
                 /** \brief The state contained by the motion */
-                base::State *state;
+                base::State *state{nullptr};
 
                 /** \brief The parent motion in the exploration tree */
-                Motion *parent;
+                Motion *parent{nullptr};
 
                 /** \brief Flag indicating whether this motion has been validated */
-                bool valid;
+                bool valid{false};
 
                 /** \brief The set of motions that descend from this one */
                 std::vector<Motion *> children;
@@ -190,16 +188,16 @@ namespace ompl
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
              * available) */
-            double goalBias_;
+            double goalBias_{.05};
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /** \brief The random number generator */
             RNG rng_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{nullptr};
         };
     }
 }

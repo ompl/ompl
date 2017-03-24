@@ -175,7 +175,7 @@ namespace ompl
         protected:
             unsigned int numProps_;
             unsigned int numStates_;
-            int startState_;
+            int startState_{-1};
             std::vector<bool> accepting_;
             std::vector<TransitionMap> transitions_;
             mutable std::vector<unsigned int> distances_;

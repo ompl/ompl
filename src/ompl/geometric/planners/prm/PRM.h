@@ -396,13 +396,13 @@ namespace ompl
 
             /** \brief Flag indicating whether the employed connection strategy was set by the user (or defaults are
              * assumed) */
-            bool userSetConnectionStrategy_;
+            bool userSetConnectionStrategy_{false};
 
             /** \brief Random number generator */
             RNG rng_;
 
             /** \brief A flag indicating that a solution has been added during solve() */
-            bool addedNewSolution_;
+            bool addedNewSolution_{false};
 
             /** \brief Mutex to guard access to the Graph member (g_) */
             mutable std::mutex graphMutex_;
@@ -413,9 +413,9 @@ namespace ompl
             //////////////////////////////
             // Planner progress properties
             /** \brief Number of iterations the algorithm performed */
-            unsigned long int iterations_;
+            unsigned long int iterations_{0};
             /** \brief Best cost found so far by algorithm */
-            base::Cost bestCost_;
+            base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
         };
     }
 }

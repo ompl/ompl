@@ -53,8 +53,8 @@ namespace ompl
             }
 
             void sampleUniform(State *state) override;
-            void sampleUniformNear(State *state, const State *near, const double distance) override;
-            void sampleGaussian(State *state, const State *mean, const double stdDev) override;
+            void sampleUniformNear(State *state, const State *near, double distance) override;
+            void sampleGaussian(State *state, const State *mean, double stdDev) override;
         };
 
         /** \brief A state space representing time. The time can be
@@ -77,7 +77,7 @@ namespace ompl
                 double position;
             };
 
-            TimeStateSpace() : StateSpace(), bounded_(false), minTime_(0.0), maxTime_(0.0)
+            TimeStateSpace()
             {
                 setName("Time" + getName());
                 type_ = STATE_SPACE_TIME;
@@ -135,7 +135,7 @@ namespace ompl
 
             bool equalStates(const State *state1, const State *state2) const override;
 
-            void interpolate(const State *from, const State *to, const double t, State *state) const override;
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
 
             StateSamplerPtr allocDefaultStateSampler() const override;
 
@@ -143,7 +143,7 @@ namespace ompl
 
             void freeState(State *state) const override;
 
-            double *getValueAddressAtIndex(State *state, const unsigned int index) const override;
+            double *getValueAddressAtIndex(State *state, unsigned int index) const override;
 
             void printState(const State *state, std::ostream &out) const override;
 
@@ -153,13 +153,13 @@ namespace ompl
 
         protected:
             /** \brief Flag indicating whether the state space is considering bounds or not */
-            bool bounded_;
+            bool bounded_{false};
 
             /** \brief The minimum point in time considered by the state space (if bounds are used) */
-            double minTime_;
+            double minTime_{0.0};
 
             /** \brief The maximum point in time considered by the state space (if bounds are used) */
-            double maxTime_;
+            double maxTime_{0.0};
         };
     }
 }

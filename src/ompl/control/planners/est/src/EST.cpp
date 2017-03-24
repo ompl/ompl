@@ -43,10 +43,7 @@
 ompl::control::EST::EST(const SpaceInformationPtr &si) : base::Planner(si, "EST")
 {
     specs_.approximateSolutions = true;
-    goalBias_ = 0.05;
-    maxDistance_ = 0.0;
     siC_ = si.get();
-    lastGoalMotion_ = nullptr;
 
     Planner::declareParam<double>("range", this, &EST::setRange, &EST::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &EST::setGoalBias, &EST::getGoalBias, "0.:.05:1.");
@@ -98,7 +95,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     // Initializing tree with start state(s)
     while (const base::State *st = pis_.nextStart())

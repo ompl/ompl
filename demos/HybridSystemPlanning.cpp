@@ -85,13 +85,13 @@ void propagate(const oc::SpaceInformation *si, const ob::State *state,
 // To make the turn, the car will have to downshift.
 bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 {
-  const ob::SE2StateSpace::StateType *se2 =
+  const auto *se2 =
       state->as<ob::CompoundState>()->as<ob::SE2StateSpace::StateType>(0);
   return si->satisfiesBounds(state) && (se2->getX() < -80. || se2->getY() > 80.);
 }
 
 
-int main(int, char**)
+int main(int /*argc*/, char** /*argv*/)
 {
     // plan for hybrid car in SE(2) with discrete gears
     auto SE2(std::make_shared<ob::SE2StateSpace>());
@@ -168,11 +168,11 @@ int main(int, char**)
         for(unsigned int i=0; i<path.getStateCount(); ++i)
         {
             const ob::State* state = path.getState(i);
-            const ob::SE2StateSpace::StateType *se2 =
+            const auto *se2 =
                 state->as<ob::CompoundState>()->as<ob::SE2StateSpace::StateType>(0);
-            const ob::RealVectorStateSpace::StateType *velocity =
+            const auto *velocity =
                 state->as<ob::CompoundState>()->as<ob::RealVectorStateSpace::StateType>(1);
-            const ob::DiscreteStateSpace::StateType *gear =
+            const auto *gear =
                 state->as<ob::CompoundState>()->as<ob::DiscreteStateSpace::StateType>(2);
             std::cout << se2->getX() << ' ' << se2->getY() << ' ' << se2->getYaw()
                 << ' ' << velocity->values[0] << ' ' << gear->value << ' ';

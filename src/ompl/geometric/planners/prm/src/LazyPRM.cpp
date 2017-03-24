@@ -67,17 +67,12 @@ namespace ompl
 ompl::geometric::LazyPRM::LazyPRM(const base::SpaceInformationPtr &si, bool starStrategy)
   : base::Planner(si, "LazyPRM")
   , starStrategy_(starStrategy)
-  , userSetConnectionStrategy_(false)
-  , maxDistance_(0.0)
   , indexProperty_(boost::get(boost::vertex_index_t(), g_))
   , stateProperty_(boost::get(vertex_state_t(), g_))
   , weightProperty_(boost::get(boost::edge_weight, g_))
   , vertexComponentProperty_(boost::get(vertex_component_t(), g_))
   , vertexValidityProperty_(boost::get(vertex_flags_t(), g_))
   , edgeValidityProperty_(boost::get(edge_flags_t(), g_))
-  , componentCount_(0)
-  , bestCost_(std::numeric_limits<double>::quiet_NaN())
-  , iterations_(0)
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
@@ -254,9 +249,9 @@ ompl::geometric::LazyPRM::Vertex ompl::geometric::LazyPRM::addMilestone(base::St
 ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
-    if (!goal)
+    if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
@@ -266,7 +261,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
     while (const base::State *st = pis_.nextStart())
         startM_.push_back(addMilestone(si_->cloneState(st)));
 
-    if (startM_.size() == 0)
+    if (startM_.empty())
     {
         OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
@@ -282,7 +277,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
     if (goal->maxSampleCount() > goalM_.size() || goalM_.empty())
     {
         const base::State *st = goalM_.empty() ? pis_.nextGoal(ptc) : pis_.nextGoal();
-        if (st)
+        if (st != nullptr)
             goalM_.push_back(addMilestone(si_->cloneState(st)));
 
         if (goalM_.empty())
@@ -304,7 +299,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
     unsigned int optimizingComponentSegments = 0;
 
     // Grow roadmap in lazy fashion -- add vertices and edges without checking validity
-    while (ptc == false)
+    while (!ptc)
     {
         ++iterations_;
         sampler_->sampleUniform(workState);
@@ -345,13 +340,10 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
                     bestCost_ = c;
                     break;
                 }
-                else
+                if (opt_->isCostBetterThan(c, bestCost_))
                 {
-                    if (opt_->isCostBetterThan(c, bestCost_))
-                    {
-                        bestSolution = solution;
-                        bestCost_ = c;
-                    }
+                    bestSolution = solution;
+                    bestCost_ = c;
                 }
             }
         }

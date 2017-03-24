@@ -52,7 +52,7 @@ bool ompl::base::GoalRegion::isSatisfied(const State *st) const
 bool ompl::base::GoalRegion::isSatisfied(const State *st, double *distance) const
 {
     double d2g = distanceGoal(st);
-    if (distance)
+    if (distance != nullptr)
         *distance = d2g;
     return d2g < threshold_;
 }

@@ -147,27 +147,25 @@ namespace ompl
             {
             public:
                 /** \brief Default constructor. Allocates no memory */
-                Motion() : root(nullptr), state(nullptr), parent(nullptr), valid(false)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates storage for a state */
                 Motion(const base::SpaceInformationPtr &si)
-                  : root(nullptr), state(si->allocState()), parent(nullptr), valid(false)
+                  : state(si->allocState())
                 {
                 }
 
                 /** \brief The root of the tree this motion would get to, if we were to follow parent pointers */
-                const base::State *root;
+                const base::State *root{nullptr};
 
                 /** \brief The state this motion leads to */
-                base::State *state;
+                base::State *state{nullptr};
 
                 /** \brief The parent motion -- it contains the state this motion originates at */
-                Motion *parent;
+                Motion *parent{nullptr};
 
                 /** \brief Flag indicating whether this motion has been checked for validity. */
-                bool valid;
+                bool valid{false};
 
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion *> children;
@@ -208,15 +206,13 @@ namespace ompl
             /** \brief Representation of a search tree. Two instances will be used. One for start and one for goal */
             struct TreeData
             {
-                TreeData() : grid(0), size(0)
-                {
-                }
+                TreeData() = default;
 
                 /** \brief The grid of motions corresponding to this tree */
-                Grid<MotionInfo> grid;
+                Grid<MotionInfo> grid{0};
 
                 /** \brief The number of motions (in total) from the tree */
-                unsigned int size;
+                unsigned int size{0};
 
                 /** \brief The PDF used for selecting a cell from which to sample a motion */
                 CellPDF pdf;
@@ -265,13 +261,13 @@ namespace ompl
             TreeData tGoal_;
 
             /** \brief The maximum length of a motion to be added in the tree */
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /** \brief The random number generator to be used */
             RNG rng_;
 
             /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
-            std::pair<base::State *, base::State *> connectionPoint_;
+            std::pair<base::State *, base::State *> connectionPoint_{nullptr, nullptr};
         };
     }
 }

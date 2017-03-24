@@ -49,7 +49,7 @@ namespace ompl
             baseSampler_ = InformedSampler::space_->allocDefaultStateSampler();
 
             // Warn if a cost-to-go heuristic is not defined
-            if (InformedSampler::opt_->hasCostToGoHeuristic() == false)
+            if (!InformedSampler::opt_->hasCostToGoHeuristic())
             {
                 OMPL_WARN("RejectionInfSampler: The optimization objective does not have a cost-to-go heuristic "
                           "defined. Informed sampling will likely have little to no effect.");
@@ -74,13 +74,13 @@ namespace ompl
             bool foundSample = false;
 
             // Spend numIters_ iterations trying to find an informed sample:
-            for (unsigned int i = 0u; i < InformedSampler::numIters_ && foundSample == false; ++i)
+            for (unsigned int i = 0u; i < InformedSampler::numIters_ && !foundSample; ++i)
             {
                 // Call the helper function for the larger cost. It will move our iteration counter:
                 foundSample = sampleUniform(statePtr, maxCost, &i);
 
                 // Did we find a sample?
-                if (foundSample == true)
+                if (foundSample)
                 {
                     // We did, but it only satisfied the upper bound. Check that it meets the lower bound.
 
@@ -122,7 +122,7 @@ namespace ompl
 
             // Make numIters_ attempts at finding a sample whose heuristic estimate of solution cost through the sample
             // is better than maxCost by sampling the entire planning domain
-            for (/* Provided iteration counter */; *iterPtr < InformedSampler::numIters_ && foundSample == false;
+            for (/* Provided iteration counter */; *iterPtr < InformedSampler::numIters_ && !foundSample;
                  ++(*iterPtr))
             {
                 // Get a sample:

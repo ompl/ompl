@@ -203,20 +203,20 @@ namespace ompl
             bool isRoot_;
 
             /** \brief Whether the vertex is new. */
-            bool isNew_;
+            bool isNew_{true};
 
             /** \brief Whether the vertex had been expanded to samples. */
-            bool hasBeenExpandedToSamples_;
+            bool hasBeenExpandedToSamples_{false};
 
             /** \brief Whether the vertex has been expanded to vertices. */
-            bool hasBeenExpandedToVertices_;
+            bool hasBeenExpandedToVertices_{false};
 
             /** \brief Whether the vertex is pruned. Vertices throw if any member function other than isPruned() is
              * access after they are pruned. */
-            bool isPruned_;
+            bool isPruned_{false};
 
             /** \brief The depth of the state  */
-            unsigned int depth_;
+            unsigned int depth_{0u};
 
             /** \brief The parent state as a shared pointer such that the parent will not be deleted until all the
              * children are. */

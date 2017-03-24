@@ -60,7 +60,7 @@ unsigned int ompl::control::SimpleDirectedControlSampler::getBestControl(Control
                                                                          base::State *dest, const Control *previous)
 {
     // Sample the first control
-    if (previous)
+    if (previous != nullptr)
         cs_->sampleNext(control, previous, source);
     else
         cs_->sample(control, source);
@@ -83,7 +83,7 @@ unsigned int ompl::control::SimpleDirectedControlSampler::getBestControl(Control
         for (unsigned int i = 1; i < numControlSamples_; ++i)
         {
             unsigned int sampleSteps = cs_->sampleStepCount(minDuration, maxDuration);
-            if (previous)
+            if (previous != nullptr)
                 cs_->sampleNext(tempControl, previous, source);
             else
                 cs_->sample(tempControl, source);

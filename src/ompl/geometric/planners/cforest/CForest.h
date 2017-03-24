@@ -168,7 +168,7 @@ namespace ompl
 
             /** \brief Callback to be called everytime a new, better solution is found by a planner. */
             void newSolutionFound(const base::Planner *planner, const std::vector<const base::State *> &states,
-                                  const base::Cost cost);
+                                  base::Cost cost);
 
         protected:
             /** \brief Manages the call to solve() for each individual planner. */
@@ -190,10 +190,10 @@ namespace ompl
             base::Cost bestCost_;
 
             /** \brief Number of paths shared among threads. */
-            unsigned int numPathsShared_;
+            unsigned int numPathsShared_{0u};
 
             /** \brief Number of states shared among threads. */
-            unsigned int numStatesShared_;
+            unsigned int numStatesShared_{0u};
 
             /** \brief Mutex to control the access to the newSolutionFound() method. */
             std::mutex newSolutionFoundMutex_;
@@ -202,7 +202,7 @@ namespace ompl
             std::mutex addSamplerMutex_;
 
             /** \brief Flag to control whether the search is focused. */
-            bool focusSearch_;
+            bool focusSearch_{true};
 
             /** \brief Default number of threads to use when no planner instances are specified by the user */
             unsigned int numThreads_;

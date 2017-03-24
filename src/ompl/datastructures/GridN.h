@@ -59,14 +59,12 @@ namespace ompl
         struct Cell : public BaseCell
         {
             /// The number of neighbors
-            unsigned int neighbors;
+            unsigned int neighbors{0};
 
             /// A flag indicating whether this cell is on the border or not
-            bool border;
+            bool border{true};
 
-            Cell() : BaseCell(), neighbors(0), border(true)
-            {
-            }
+            Cell() = default;
 
             ~Cell() override = default;
         };
@@ -164,7 +162,7 @@ namespace ompl
 
             for (auto cl = list->begin(); cl != list->end(); ++cl)
             {
-                Cell *c = static_cast<Cell *>(*cl);
+                auto *c = static_cast<Cell *>(*cl);
                 c->neighbors++;
                 if (c->border && c->neighbors >= interiorCellNeighborsLimit_)
                     c->border = false;
@@ -190,7 +188,7 @@ namespace ompl
                 Grid<_T>::neighbors(cell->coord, *list);
                 for (auto cl = list->begin(); cl != list->end(); ++cl)
                 {
-                    Cell *c = static_cast<Cell *>(*cl);
+                    auto *c = static_cast<Cell *>(*cl);
                     c->neighbors--;
                     if (!c->border && c->neighbors < interiorCellNeighborsLimit_)
                         c->border = true;

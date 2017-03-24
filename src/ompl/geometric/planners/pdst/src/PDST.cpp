@@ -39,11 +39,6 @@
 
 ompl::geometric::PDST::PDST(const base::SpaceInformationPtr &si)
   : base::Planner(si, "PDST")
-  , bsp_(nullptr)
-  , goalBias_(0.05)
-  , goalSampler_(nullptr)
-  , iteration_(1)
-  , lastGoalMotion_(nullptr)
 {
     Planner::declareParam<double>("goal_bias", this, &PDST::setGoalBias, &PDST::getGoalBias, "0.:.05:1.");
 }
@@ -61,7 +56,7 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
     // exception if this is not the case.
     checkValidity();
 
-    if (!bsp_)
+    if (bsp_ == nullptr)
         throw Exception("PDST was not set up.");
 
     // depending on how the planning problem is set up, this may be necessary
@@ -124,7 +119,7 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
             isApproximate = false;
             break;
         }
-        else if (distanceToGoal < closestDistanceToGoal)
+        if (distanceToGoal < closestDistanceToGoal)
         {
             closestDistanceToGoal = distanceToGoal;
             lastGoalMotion_ = newMotion;
@@ -152,7 +147,7 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
         // Compute the path by going up the tree of motions.
         std::vector<base::State *> spath(1, lastGoalMotion_->endState_);
         Motion *m = lastGoalMotion_;
-        while (m)
+        while (m != nullptr)
         {
             m = m->ancestor();
             spath.push_back(m->startState_);
@@ -179,7 +174,7 @@ ompl::geometric::PDST::Motion *ompl::geometric::PDST::propagateFrom(Motion *moti
     // sample a point along the trajectory given by motion
     si_->getStateSpace()->interpolate(motion->startState_, motion->endState_, rng_.uniform01(), start);
     // generate a random state
-    if (goalSampler_ && rng_.uniform01() < goalBias_ && goalSampler_->canSample())
+    if ((goalSampler_ != nullptr) && rng_.uniform01() < goalBias_ && goalSampler_->canSample())
         goalSampler_->sampleGoal(rnd);
     else
         sampler_->sampleUniform(rnd);
@@ -197,7 +192,7 @@ void ompl::geometric::PDST::addMotion(Motion *motion, Cell *bsp, base::State *st
 
     // If the motion corresponds to a start state, then it cannot be split across cell
     // bounds. So we're done.
-    if (!motion->parent_)
+    if (motion->parent_ == nullptr)
         return;
 
     // Otherwise, split into smaller segments s.t. endpoints project into same cell
@@ -278,7 +273,7 @@ void ompl::geometric::PDST::setup()
         projectionEvaluator_->inferBounds();
     if (!projectionEvaluator_->hasBounds())
         throw Exception("PDST requires a projection evaluator that specifies bounds for the projected space");
-    if (bsp_)
+    if (bsp_ != nullptr)
         delete bsp_;
     bsp_ = new Cell(1., projectionEvaluator_->getBounds(), 0);
     lastGoalMotion_ = nullptr;
@@ -299,13 +294,13 @@ void ompl::geometric::PDST::getPlannerData(ompl::base::PlannerData &data) const
         if (!(*it)->isSplit_)
         {
             Motion *cur = *it, *ancestor = cur->ancestor();
-            if (!cur->parent_)
+            if (cur->parent_ == nullptr)
                 data.addStartVertex(base::PlannerDataVertex(cur->endState_));
             else
             {
                 data.addEdge(base::PlannerDataVertex(ancestor->startState_), base::PlannerDataVertex(cur->endState_));
                 // add edge connecting start state of ancestor's parent to start state of ancestor
-                if (ancestor->parent_)
+                if (ancestor->parent_ != nullptr)
                     data.addEdge(base::PlannerDataVertex(ancestor->parent_->ancestor()->startState_),
                                  base::PlannerDataVertex(ancestor->startState_));
             }

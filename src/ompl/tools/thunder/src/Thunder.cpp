@@ -57,12 +57,7 @@ void ompl::tools::Thunder::initialize()
 {
     OMPL_INFORM("Initializing Thunder Framework");
 
-    recallEnabled_ = true;
-    scratchEnabled_ = true;
     filePath_ = "unloaded";
-
-    // How many threads to plan with scratch (1 or 2)
-    dualThreadScratchEnabled_ = true;
 
     // Load the experience database
     experienceDB_ = std::make_shared<ompl::tools::ThunderDB>(si_->getStateSpace());

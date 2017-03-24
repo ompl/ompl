@@ -66,7 +66,6 @@ int ompl::control::Automaton::TransitionMap::eval(const World &w) const
 ompl::control::Automaton::Automaton(unsigned int numProps, unsigned int numStates)
   : numProps_(numProps)
   , numStates_(numStates)
-  , startState_(-1)
   , accepting_(numStates_, false)
   , transitions_(numStates_)
   , distances_(numStates_, std::numeric_limits<unsigned int>::max())

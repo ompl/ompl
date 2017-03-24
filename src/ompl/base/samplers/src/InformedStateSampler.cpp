@@ -51,7 +51,7 @@ namespace ompl
         {
             // Sanity check the problem.
             // Check that there is an optimization objective
-            if (probDefn_->hasOptimizationObjective() == false)
+            if (!probDefn_->hasOptimizationObjective())
             {
                 throw Exception("InformedSampler: An optimization objective must be specified at construction.");
             }
@@ -86,26 +86,25 @@ namespace ompl
                 return opt_->combineCosts(opt_->motionCostHeuristic(probDefn_->getStartState(0u), statePtr),
                                           opt_->costToGo(statePtr, probDefn_->getGoal().get()));
             }
-            else
+
+
+            // Calculate and return the best
+
+            // Variable
+            // The best cost so far
+            Cost bestCost = opt_->infiniteCost();
+
+            // Iterate over each start and store the best
+            for (unsigned int i = 0u; i < probDefn_->getStartStateCount(); ++i)
             {
-                // Calculate and return the best
-
-                // Variable
-                // The best cost so far
-                Cost bestCost = opt_->infiniteCost();
-
-                // Iterate over each start and store the best
-                for (unsigned int i = 0u; i < probDefn_->getStartStateCount(); ++i)
-                {
-                    // Store the best
-                    bestCost = opt_->betterCost(
-                        bestCost, opt_->combineCosts(opt_->motionCostHeuristic(probDefn_->getStartState(i), statePtr),
-                                                     opt_->costToGo(statePtr, probDefn_->getGoal().get())));
-                }
-
-                // Return the best
-                return bestCost;
+                // Store the best
+                bestCost = opt_->betterCost(
+                    bestCost, opt_->combineCosts(opt_->motionCostHeuristic(probDefn_->getStartState(i), statePtr),
+                                                 opt_->costToGo(statePtr, probDefn_->getGoal().get())));
             }
+
+            // Return the best
+            return bestCost;
         }
 
         ProblemDefinitionPtr InformedSampler::getProblemDefn() const
@@ -162,7 +161,7 @@ namespace ompl
             informedSuccess = infSampler_->sampleUniform(statePtr, bestCostFunc_());
 
             // If we were unsuccessful, return a regular sample
-            if (informedSuccess == false)
+            if (!informedSuccess)
             {
                 baseSampler_->sampleUniform(statePtr);
             }

@@ -149,8 +149,8 @@ ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State *state,
 {
     if (hasCostToGoHeuristic())
         return costToGoFn_(state, goal);
-    else
-        return identityCost();  // assumes that identity < all costs
+
+    return identityCost();  // assumes that identity < all costs
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const State *s1, const State *s2) const
@@ -179,7 +179,7 @@ void ompl::base::OptimizationObjective::print(std::ostream &out) const
 
 ompl::base::Cost ompl::base::goalRegionCostToGo(const State *state, const Goal *goal)
 {
-    const GoalRegion *goalRegion = goal->as<GoalRegion>();
+    const auto *goalRegion = goal->as<GoalRegion>();
 
     // Ensures that all states within the goal region's threshold to
     // have a cost-to-go of exactly zero.
@@ -203,7 +203,7 @@ void ompl::base::MultiOptimizationObjective::addObjective(const OptimizationObje
         throw Exception("This optimization objective is locked. No further objectives can be added.");
     }
     else
-        components_.push_back(Component(objective, weight));
+        components_.emplace_back(objective, weight);
 }
 
 std::size_t ompl::base::MultiOptimizationObjective::getObjectiveCount() const
@@ -215,16 +215,14 @@ const ompl::base::OptimizationObjectivePtr &ompl::base::MultiOptimizationObjecti
 {
     if (components_.size() > idx)
         return components_[idx].objective;
-    else
-        throw Exception("Objective index does not exist.");
+    throw Exception("Objective index does not exist.");
 }
 
 double ompl::base::MultiOptimizationObjective::getObjectiveWeight(unsigned int idx) const
 {
     if (components_.size() > idx)
         return components_[idx].weight;
-    else
-        throw Exception("Objective index does not exist.");
+    throw Exception("Objective index does not exist.");
 }
 
 void ompl::base::MultiOptimizationObjective::setObjectiveWeight(unsigned int idx, double weight)
@@ -274,30 +272,28 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator+(const OptimizationObj
 
     if (a)
     {
-        if (MultiOptimizationObjective *mult = dynamic_cast<MultiOptimizationObjective *>(a.get()))
+        if (auto *mult = dynamic_cast<MultiOptimizationObjective *>(a.get()))
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {
-                components.push_back(
-                    MultiOptimizationObjective::Component(mult->getObjective(i), mult->getObjectiveWeight(i)));
+                components.emplace_back(mult->getObjective(i), mult->getObjectiveWeight(i));
             }
         }
         else
-            components.push_back(MultiOptimizationObjective::Component(a, 1.0));
+            components.emplace_back(a, 1.0);
     }
 
     if (b)
     {
-        if (MultiOptimizationObjective *mult = dynamic_cast<MultiOptimizationObjective *>(b.get()))
+        if (auto *mult = dynamic_cast<MultiOptimizationObjective *>(b.get()))
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {
-                components.push_back(
-                    MultiOptimizationObjective::Component(mult->getObjective(i), mult->getObjectiveWeight(i)));
+                components.emplace_back(mult->getObjective(i), mult->getObjectiveWeight(i));
             }
         }
         else
-            components.push_back(MultiOptimizationObjective::Component(b, 1.0));
+            components.emplace_back(b, 1.0);
     }
 
     auto multObj(std::make_shared<MultiOptimizationObjective>(a->getSpaceInformation()));
@@ -313,16 +309,15 @@ ompl::base::OptimizationObjectivePtr ompl::base::operator*(double weight, const 
 
     if (a)
     {
-        if (MultiOptimizationObjective *mult = dynamic_cast<MultiOptimizationObjective *>(a.get()))
+        if (auto *mult = dynamic_cast<MultiOptimizationObjective *>(a.get()))
         {
             for (std::size_t i = 0; i < mult->getObjectiveCount(); ++i)
             {
-                components.push_back(
-                    MultiOptimizationObjective::Component(mult->getObjective(i), weight * mult->getObjectiveWeight(i)));
+                components.emplace_back(mult->getObjective(i), weight * mult->getObjectiveWeight(i));
             }
         }
         else
-            components.push_back(MultiOptimizationObjective::Component(a, weight));
+            components.emplace_back(a, weight);
     }
 
     auto multObj(std::make_shared<MultiOptimizationObjective>(a->getSpaceInformation()));

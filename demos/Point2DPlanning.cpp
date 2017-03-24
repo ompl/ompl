@@ -110,7 +110,7 @@ public:
             ss_->getPathSimplifier()->smoothBSpline(p);
             return true;
         }
-        else
+        
             return false;
     }
 
@@ -156,7 +156,7 @@ private:
 
 };
 
-int main(int, char **)
+int main(int /*argc*/, char ** /*argv*/)
 {
     std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 

@@ -481,7 +481,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     }
 
     machine::MemUsage_t memStart = machine::getProcessMemoryUsage();
-    machine::MemUsage_t maxMemBytes = (machine::MemUsage_t)(req.maxMem * 1024 * 1024);
+    auto maxMemBytes = (machine::MemUsage_t)(req.maxMem * 1024 * 1024);
 
     for (unsigned int i = 0; i < planners_.size(); ++i)
     {
@@ -513,7 +513,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         planners_[i]->getSpaceInformation()->params().getParams(exp_.planners[i].common);
 
         // Add planner progress property names to struct
-        exp_.planners[i].progressPropertyNames.push_back("time REAL");
+        exp_.planners[i].progressPropertyNames.emplace_back("time REAL");
         base::Planner::PlannerProgressProperties::const_iterator iter;
         for (iter = planners_[i]->getPlannerProgressProperties().begin();
              iter != planners_[i]->getPlannerProgressProperties().end(); ++iter)

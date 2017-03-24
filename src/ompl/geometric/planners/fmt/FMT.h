@@ -228,13 +228,11 @@ namespace ompl
                     SET_UNVISITED
                 };
 
-                Motion() : state_(nullptr), parent_(nullptr), cost_(0.0), currentSet_(SET_UNVISITED)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state */
                 Motion(const base::SpaceInformationPtr &si)
-                  : state_(si->allocState()), parent_(nullptr), cost_(0.0), currentSet_(SET_UNVISITED)
+                  : state_(si->allocState())
                 {
                 }
 
@@ -292,9 +290,7 @@ namespace ompl
                     tested and failed because of a collision */
                 bool alreadyCC(Motion *m)
                 {
-                    if (collChecksDone_.find(m) == collChecksDone_.end())
-                        return false;
-                    return true;
+                    return !(collChecksDone_.find(m) == collChecksDone_.end());
                 }
 
                 /** \brief Caches a failed collision check to m */
@@ -323,19 +319,19 @@ namespace ompl
 
             protected:
                 /** \brief The state contained by the motion */
-                base::State *state_;
+                base::State *state_{nullptr};
 
                 /** \brief The parent motion in the exploration tree */
-                Motion *parent_;
+                Motion *parent_{nullptr};
 
                 /** \brief The cost of this motion */
-                base::Cost cost_;
+                base::Cost cost_{0.};
 
                 /** \brief The minimum cost to go of this motion (heuristically computed) */
-                base::Cost hcost_;
+                base::Cost hcost_{0.};
 
                 /** \brief The flag indicating which set a motion belongs to */
-                SetType currentSet_;
+                SetType currentSet_{SET_UNVISITED};
 
                 /** \brief Contains the connections attempted FROM this node */
                 std::set<Motion *> collChecksDone_;
@@ -347,9 +343,7 @@ namespace ompl
             /** \brief Comparator used to order motions in a binary heap */
             struct MotionCompare
             {
-                MotionCompare() : opt_(nullptr), heuristics_(false)
-                {
-                }
+                MotionCompare() = default;
 
                 /* Returns true if m1 is lower cost than m2. m1 and m2 must
                    have been instantiated with the same optimization objective */
@@ -358,12 +352,11 @@ namespace ompl
                     if (heuristics_)
                         return opt_->isCostBetterThan(opt_->combineCosts(m1->getCost(), m1->getHeuristicCost()),
                                                       opt_->combineCosts(m2->getCost(), m2->getHeuristicCost()));
-                    else
-                        return opt_->isCostBetterThan(m1->getCost(), m2->getCost());
+                    return opt_->isCostBetterThan(m1->getCost(), m2->getCost());
                 }
 
-                base::OptimizationObjective *opt_;
-                bool heuristics_;
+                base::OptimizationObjective *opt_{nullptr};
+                bool heuristics_{false};
             };
 
             /** \brief Compute the distance between two motions as the cost
@@ -391,7 +384,7 @@ namespace ompl
             void assureGoalIsSampled(const ompl::base::GoalSampleableRegion *goal);
 
             /** \brief Compute the volume of the unit ball in a given dimension */
-            double calculateUnitBallVolume(const unsigned int dimension) const;
+            double calculateUnitBallVolume(unsigned int dimension) const;
 
             /** \brief Calculate the radius to use for nearest neighbor searches,
                 using the bound given in [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast
@@ -421,7 +414,7 @@ namespace ompl
             /** \brief For a motion m, updates the stored neighborhoods of all its neighbors by
                 by inserting m (maintaining the cost-based sorting). Computes the nearest neighbors
                 if there is no stored neighborhood. */
-            void updateNeighborhood(Motion *m, const std::vector<Motion *> nbh);
+            void updateNeighborhood(Motion *m, std::vector<Motion *> nbh);
 
             /** \brief Returns the best parent and the connection cost in the neighborhood of a motion m. */
             Motion *getBestParent(Motion *m, std::vector<Motion *> &neighbors, base::Cost &cMin);
@@ -441,19 +434,19 @@ namespace ompl
             std::map<Motion *, std::vector<Motion *>> neighborhoods_;
 
             /** \brief The number of samples to use when planning */
-            unsigned int numSamples_;
+            unsigned int numSamples_{1000u};
 
             /** \brief Number of collision checks performed by the algorithm */
-            unsigned int collisionChecks_;
+            unsigned int collisionChecks_{0u};
 
             /** \brief Flag to activate the K nearest neighbors strategy */
-            bool nearestK_;
+            bool nearestK_{true};
 
             /** \brief Flag to activate the collision check caching */
-            bool cacheCC_;
+            bool cacheCC_{true};
 
             /** \brief Flag to activate the cost to go heuristics */
-            bool heuristics_;
+            bool heuristics_{false};
 
             /** \brief Radius employed in the nearestR strategy. */
             double NNr_;
@@ -475,7 +468,7 @@ namespace ompl
                 radius that is greater than one. The default value is 1.1.
                 In general, a radius between 0.9 and 5 appears to perform the best
              */
-            double radiusMultiplier_;
+            double radiusMultiplier_{1.1};
 
             /** \brief A nearest-neighbor datastructure containing the set of all motions */
             std::shared_ptr<NearestNeighbors<Motion *>> nn_;
@@ -493,7 +486,7 @@ namespace ompl
             base::State *goalState_;
 
             /** \brief Add new samples if the tree was not able to find a solution. */
-            bool extendedFMT_;
+            bool extendedFMT_{true};
 
             // For sorting a list of costs and getting only their sorted indices
             struct CostIndexCompare

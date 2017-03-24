@@ -67,20 +67,20 @@ namespace
             v[1] = 0.;
         }
     }
-    inline double dot2(double* v, double* w)
+    inline double dot2(const double* v, const double* w)
     {
         return v[0] * w[0] + v[1] * w[1];
     }
-    inline void vadd2(double* v, double s, double* w)
+    inline void vadd2(double* v, double s, const double* w)
     {
         v[0] += s * w[0];
         v[1] += s * w[1];
     }
     inline unsigned int ind(unsigned int i)
     {
-        return i ? 4 * i + 1 : 0;
+        return i != 0u ? 4 * i + 1 : 0;
     }
-    inline void ode(double* y, double* dydx)
+    inline void ode(const double* y, double* dydx)
     {
         dydx[0] = y[2];
         dydx[1] = y[3];
@@ -200,7 +200,7 @@ double KoulesSimulator::wallCollideEvent(unsigned int i, int dim)
     unsigned int ii = ind(i);
     if (qcur_[ii + 2 + dim] > 0.)
         return std::max(0., (sideLength - r - qcur_[ii + dim]) / qcur_[ii + 2 + dim]);
-    else if (qcur_[ii + 2 + dim] < 0.)
+    if (qcur_[ii + 2 + dim] < 0.)
         return std::max(0., (r - qcur_[ii + dim]) / qcur_[ii + 2 + dim]);
     else
         return -1.;
@@ -319,7 +319,7 @@ void KoulesSimulator::step(const ob::State *start, const oc::Control* control,
         dead_[i] = qcur_[ii] == -2. * kouleRadius;
         if (!dead_[i])
         {
-            if (i)
+            if (i != 0u)
                 rungeKutta4(&qcur_[ii], t, &qnext_[ii]);
             qcur_[ii + 2] = (qnext_[ii    ] - qcur_[ii    ]) / t;
             qcur_[ii + 3] = (qnext_[ii + 1] - qcur_[ii + 1]) / t;

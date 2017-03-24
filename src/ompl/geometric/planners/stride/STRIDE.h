@@ -238,22 +238,20 @@ namespace ompl
             class Motion
             {
             public:
-                Motion() : state(nullptr), parent(nullptr)
-                {
-                }
+                Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state */
-                Motion(const base::SpaceInformationPtr &si) : state(si->allocState()), parent(nullptr)
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState())
                 {
                 }
 
                 ~Motion() = default;
 
                 /** \brief The state contained by the motion */
-                base::State *state;
+                base::State *state{nullptr};
 
                 /** \brief The parent motion in the exploration tree */
-                Motion *parent;
+                Motion *parent{nullptr};
             };
 
             /** \brief Free the memory allocated by this planner */
@@ -295,10 +293,10 @@ namespace ompl
 
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is
              * available) */
-            double goalBias_;
+            double goalBias_{.05};
 
             /** \brief The maximum length of a motion to be added to a tree */
-            double maxDistance_;
+            double maxDistance_{0.};
 
             /** \brief Whether to use distance in the projection (instead of distance in the state space) for the GNAT
              */
@@ -318,7 +316,7 @@ namespace ompl
                  states are found, as long as the valid part represents
                  a sufficiently large fraction from the original
                  motion. This is used only when extendWhileValid_ is true. */
-            double minValidPathFraction_;
+            double minValidPathFraction_{.2};
 
             /** \brief The random number generator */
             RNG rng_;

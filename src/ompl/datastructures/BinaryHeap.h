@@ -38,6 +38,7 @@
 #define OMPL_DATASTRUCTURES_BINARY_HEAP_
 
 #include <functional>
+#include <utility>
 #include <vector>
 #include <cassert>
 
@@ -82,7 +83,7 @@ namespace ompl
             eventBeforeRemove_ = nullptr;
         }
 
-        BinaryHeap(const LessThan &lt) : lt_(lt)
+        BinaryHeap(LessThan lt) : lt_(std::move(lt))
         {
             eventAfterInsert_ = nullptr;
             eventBeforeRemove_ = nullptr;
