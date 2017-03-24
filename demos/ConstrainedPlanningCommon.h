@@ -268,7 +268,7 @@ bool sphereValid_helper(const double *x)
     else if (0.60 < x[2] && x[2] < 0.75)
     {
         if (-0.05 < x[1] && x[1] < 0.05)
-            return x[0] > 0;
+            return x[0] < 0;
         return false;
     }
     return true;
@@ -381,7 +381,7 @@ ompl::base::Constraint *initKleinProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
 /** Initialize the atlas for the kinematic chain problem. */
 ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
                                          ompl::base::StateValidityCheckerFn &isValid, double sleep,
-                                         int links = 5)
+                                         int links = 20)
 {
     const std::size_t dim = 3 * links;
 
@@ -467,7 +467,7 @@ void printPlanners(void)
 
 /** Initialize the problem specified in the string. */
 ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                     ompl::base::StateValidityCheckerFn &isValid, double sleep = 0)
+                                   ompl::base::StateValidityCheckerFn &isValid, double sleep = 0, unsigned int links = 5)
 {
     if (std::strcmp(problem, "plane") == 0)
         return initPlaneProblem(x, y, isValid, sleep);
@@ -478,7 +478,7 @@ ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd 
     else if (std::strcmp(problem, "klein") == 0)
         return initKleinProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "chain") == 0)
-        return initChainProblem(x, y, isValid, sleep);
+        return initChainProblem(x, y, isValid, sleep, links);
     else
         return NULL;
 }
