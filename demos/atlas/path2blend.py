@@ -32,11 +32,33 @@ def run ():
     mat1 = bpy.data.materials.get("Node")
     mat2 = bpy.data.materials.get("Link")
     mat3 = bpy.data.materials.get("Shell")
+    mat4 = bpy.data.materials.get("Box")
     
     bpy.ops.mesh.primitive_uv_sphere_add(location = origin, segments = 64, ring_count = 32)
     bpy.ops.transform.resize(value=(links - 2, links - 2, links - 2))
     bpy.context.object.data.materials.append(mat3)
     
+    bpy.ops.mesh.primitive_cube_add(location = (0, 0, -0.2))
+    bpy.ops.transform.resize(value=(links, links, 0.1))
+    bpy.context.object.data.materials.append(mat4)
+    
+    bpy.ops.mesh.primitive_cube_add(location = (0, links, 0))
+    bpy.ops.transform.resize(value=(links, 0.1, links))
+    bpy.context.object.data.materials.append(mat4)
+    
+    bpy.ops.mesh.primitive_cube_add(location = (links, 0, 0))
+    bpy.ops.transform.resize(value=(0.1, links, links))
+    bpy.context.object.data.materials.append(mat4)
+    
+    bpy.ops.mesh.primitive_cube_add(location = (-links, 0, 0))
+    bpy.ops.transform.resize(value=(0.1, links, links))
+    bpy.context.object.data.materials.append(mat4)
+    
+    scene = bpy.data.scenes["Scene"]
+    scene.camera.location.x = 0
+    scene.camera.location.y = -2 * (links + 1)
+    scene.camera.location.z = links + 1
+        
     for i in range(links + 1):
         bpy.ops.mesh.primitive_uv_sphere_add(location = origin)
         bpy.ops.transform.resize(value=(0.1, 0.1, 0.1))
@@ -62,20 +84,17 @@ def run ():
         ttc = bar.constraints.new(type='CHILD_OF')
         ttc.target = obj1
         
-            
-        
     # Insert keyframe for every state
-    f = 1.0
+    f = 10.0
     i = 0
     for i in range(len(path)):
         if i % 2:
-            continue
-        line = path[i]
-        for i in range(1, links + 1):
-            obj = bpy.data.objects["Node%d" % i]
-            obj.location = tuple(line[3 * (i - 1) : 3 * i])
-            obj.keyframe_insert(data_path = 'location', frame = f)
-        f += 1
+            line = path[i]
+            for i in range(1, links + 1):
+                obj = bpy.data.objects["Node%d" % i]
+                obj.location = tuple(line[3 * (i - 1) : 3 * i])
+                obj.keyframe_insert(data_path = 'location', frame = f)
+            f += 0.5
 
     # Set the framerate for rendering
     bpy.context.scene.frame_end = f + 30

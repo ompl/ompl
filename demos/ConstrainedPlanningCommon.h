@@ -224,6 +224,13 @@ public:
         std::this_thread::sleep_for(ompl::time::seconds(sleep));
 
         Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
+
+        for (unsigned int i = 0; i < links_; i++)
+        {
+            if (x.segment(dim_ * i, dim_)[2] < 0)
+                return false;
+        }
+
         for (unsigned int i = 0; i < links_ - 1; i++)
         {
             if (x.segment(dim_ * i, dim_).cwiseAbs().maxCoeff() < jointSize_)
