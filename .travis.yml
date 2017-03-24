@@ -75,8 +75,9 @@ script:
       mkdir -p build &&
       cd build &&
       cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DCASTXML=${HOME}/castxml/bin/castxml .. &&
-      # disabled because this takes several hours to complete:
-      #make -j $JOBS update_bindings &&
       make -j $JOBS &&
       ctest -E "$TEST_EXCLUDE";
     fi
+
+# disabled because this takes several hours to complete:
+#make -j $JOBS update_bindings &&
