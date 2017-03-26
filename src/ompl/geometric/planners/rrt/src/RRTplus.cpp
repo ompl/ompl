@@ -38,6 +38,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
+// do we need to #include <vector>? or include it in the header file?
 
 ompl::geometric::RRTPlus::RRTPlus(const base::SpaceInformationPtr &si) : base::Planner(si, "RRT+")
 {
@@ -50,8 +51,10 @@ ompl::geometric::RRTPlus::RRTPlus(const base::SpaceInformationPtr &si) : base::P
 
     Planner::declareParam<double>("range", this, &RRTPlus::setRange, &RRTPlus::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTPlus::setGoalBias, &RRTPlus::getGoalBias, "0.:.05:1.");
+    // The paper describes that this parameter was specified by indicating the total desired time for the subsearch
+    // instead of the max number of samples...
+    // also the getter/setter and the protected field should be defined in the header file
     Planner::declareParam<int>("max_samples", this, &RRTPlus::setMaxSamples, &RRTPlus::getMaxSamples, "");
-    // TODO does RRT+ need any extra parameters?
 }
 
 ompl::geometric::RRTPlus::~RRTPlus()
@@ -103,7 +106,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
 {
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
-    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    // don't need goal biasing for v1.0
+//    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -118,25 +122,31 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
         return base::PlannerStatus::INVALID_START;
     }
 
-    if (!sampler_)
-        sampler_ = si_->allocStateSampler();
+//    if (!sampler_)
+//        sampler_ = si_->allocStateSampler();
+    this.getSpaceInformation()->setStateSamplerAllocator(allocConstrainedSubspaceStateSampler);
+    sampler_ = si_->allocConstrainedSubspaceStateSampler();
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
     Motion *solution = nullptr;
     Motion *approxsol = nullptr;
-    double approxdif = std::numeric_limits<double>::infinity();
-    auto *rmotion = new Motion(si_);
+    double approxdif = std::numeric_limits<double>::infinity(); // what is this for?
+    auto *rmotion = new Motion(si_); // how to get the inital state to be along the line btwn q_init and q_goal?
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
-    while (ptc == false)
+    while (ptc == false) // look into the planner termination condition for limiting # of samples for each subsearch
     {
-        /* sample random state (with goal biasing) */
-        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
-            goal_s->sampleGoal(rstate);
-        else
-            sampler_->sampleUniform(rstate);
+        // don't need goal biasing for v1.0
+//        /* sample random state (with goal biasing) */
+//        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+//            goal_s->sampleGoal(rstate);
+//        else
+//            sampler_->sampleUniform(rstate);
+
+        // prioritized sampling
+        sampler_->sampleUniform(rstate);
 
         /* find closest state in the tree */
         Motion *nmotion = nn_->nearest(rmotion);
@@ -230,4 +240,62 @@ void ompl::geometric::RRTPlus::getPlannerData(base::PlannerData &data) const
         else
             data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state));
     }
+}
+
+// This is a problem-specific state sampler that only samples the unconstrained
+// components of a CompoundStateSpace.
+class ConstrainedSubspaceStateSampler : public ompl::base::CompoundStateSampler
+{
+public:
+    ConstrainedSubspaceStateSampler(const ompl::base::SpaceInformation *si) : CompoundStateSampler(si)
+    {
+        name_ = "Constrained Subspace State Sampler";
+    }
+
+    bool sampleUniform(ompl::base::State *state) override
+    {
+        // adapted from code in StateSampler.cpp
+        State **comps = state->as<CompoundState>()->components;
+        for (unsigned int i = 0; i < samplers_.size(); ++i) // samplerCount_ is private to CompoundStateSampler
+            if (unconstrainedComponents_[i])
+                samplers_[i]->sampleUniform(comps[i]);
+    }
+
+    // We don't need these for RRT+.
+    bool sampleUniformNear(ompl::base::State*, const ompl::base::State*, const double) override
+    {
+        throw ompl::Exception("ConstrainedSubspaceStateSampler::sampleUniformNear", "not implemented");
+        return false;
+    }
+
+    bool sampleGaussian(ompl::base::State*, const ompl::base::State*, const double) override
+    {
+        throw ompl::Exception("ConstrainedSubspaceStateSampler::sampleGaussian", "not implemented");
+        return false;
+    }
+
+    // sets all components as constrained
+    void constrainAllComponents()
+    {
+        unconstrainedComponents_.clear();
+        for (unsigned int i = 0; i < samplers_.size(); ++i)
+            unconstrainedComponents_.push_back(false);
+        assert(unconstrainedComponents_.size() == samplers_.size());
+    }
+
+    // unconstrains the specified component
+    void unconstrainComponent(unsigned int i)
+    {
+        assert(i >= 0 && i < samplers_.size());
+        unconstrainedComponents_[i] = true;
+    }
+protected:
+    ompl::RNG rng_;
+    std::vector<bool> unconstrainedComponents_(samplers_.size(), false); // initialize vector to have all false values
+};
+
+// do we need this?
+ompl::base::StateSamplerPtr allocConstrainedSubspaceStateSampler(const ompl::base::SpaceInformation *si)
+{
+    return std::make_shared<ConstrainedSubspaceStateSampler>(si);
 }
