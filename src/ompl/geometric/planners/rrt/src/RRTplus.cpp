@@ -124,8 +124,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
 
 //    if (!sampler_)
 //        sampler_ = si_->allocStateSampler();
-    this.getSpaceInformation()->setStateSamplerAllocator(allocConstrainedSubspaceStateSampler);
-    sampler_ = si_->allocConstrainedSubspaceStateSampler();
+    si_->getStateSpace()->setStateSamplerAllocator(ConstrainedSubspaceStateSampler::allocConstrainedSubspaceStateSampler);
+    sampler_ = si_->getStateSpace()->allocStateSampler();
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
@@ -240,62 +240,4 @@ void ompl::geometric::RRTPlus::getPlannerData(base::PlannerData &data) const
         else
             data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state));
     }
-}
-
-// This is a problem-specific state sampler that only samples the unconstrained
-// components of a CompoundStateSpace.
-class ConstrainedSubspaceStateSampler : public ompl::base::CompoundStateSampler
-{
-public:
-    ConstrainedSubspaceStateSampler(const ompl::base::SpaceInformation *si) : CompoundStateSampler(si)
-    {
-        name_ = "Constrained Subspace State Sampler";
-    }
-
-    bool sampleUniform(ompl::base::State *state) override
-    {
-        // adapted from code in StateSampler.cpp
-        State **comps = state->as<CompoundState>()->components;
-        for (unsigned int i = 0; i < samplers_.size(); ++i) // samplerCount_ is private to CompoundStateSampler
-            if (unconstrainedComponents_[i])
-                samplers_[i]->sampleUniform(comps[i]);
-    }
-
-    // We don't need these for RRT+.
-    bool sampleUniformNear(ompl::base::State*, const ompl::base::State*, const double) override
-    {
-        throw ompl::Exception("ConstrainedSubspaceStateSampler::sampleUniformNear", "not implemented");
-        return false;
-    }
-
-    bool sampleGaussian(ompl::base::State*, const ompl::base::State*, const double) override
-    {
-        throw ompl::Exception("ConstrainedSubspaceStateSampler::sampleGaussian", "not implemented");
-        return false;
-    }
-
-    // sets all components as constrained
-    void constrainAllComponents()
-    {
-        unconstrainedComponents_.clear();
-        for (unsigned int i = 0; i < samplers_.size(); ++i)
-            unconstrainedComponents_.push_back(false);
-        assert(unconstrainedComponents_.size() == samplers_.size());
-    }
-
-    // unconstrains the specified component
-    void unconstrainComponent(unsigned int i)
-    {
-        assert(i >= 0 && i < samplers_.size());
-        unconstrainedComponents_[i] = true;
-    }
-protected:
-    ompl::RNG rng_;
-    std::vector<bool> unconstrainedComponents_(samplers_.size(), false); // initialize vector to have all false values
-};
-
-// do we need this?
-ompl::base::StateSamplerPtr allocConstrainedSubspaceStateSampler(const ompl::base::SpaceInformation *si)
-{
-    return std::make_shared<ConstrainedSubspaceStateSampler>(si);
 }

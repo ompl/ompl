@@ -39,6 +39,7 @@
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include <vector>
 
 namespace ompl
 {
@@ -102,6 +103,21 @@ namespace ompl
                 return maxDistance_;
             }
 
+            /** \brief Set the maximum number of samples in each subsearch.
+
+                This parameter greatly influences the runtime of the
+                algorithm. */
+            void setMaxSamples(int maxSamples)
+            {
+                maxSamples_ = maxSamples;
+            }
+
+            /** \brief Get the maximum number of samples in each subsearch */
+            double getMaxSamples() const
+            {
+                return maxSamples_;
+            }
+
             /** \brief Set a different nearest neighbors datastructure */
             template <template <typename T> class NN>
             void setNearestNeighbors()
@@ -153,6 +169,64 @@ namespace ompl
             /** \brief State sampler */
             base::StateSamplerPtr sampler_;
 
+            // This is a problem-specific state sampler that only samples the unconstrained
+            // components of a CompoundStateSpace.
+            class ConstrainedSubspaceStateSampler : public base::CompoundStateSampler
+            {
+            public:
+                ConstrainedSubspaceStateSampler(const base::StateSpace *ss) : CompoundStateSampler(ss)
+                {
+                    name_ = "Constrained Subspace State Sampler";
+                    this->constrainAllComponents(); // initialize vector to have all false values
+                }
+
+                void sampleUniform(base::State *state) override
+                {
+                    // adapted from code in StateSampler.cpp
+                    base::State **comps = state->as<base::CompoundState>()->components;
+                    for (unsigned int i = 0; i < samplers_.size(); ++i) // samplerCount_ is private to CompoundStateSampler
+                        if (unconstrainedComponents_[i])
+                            samplers_[i]->sampleUniform(comps[i]);
+                }
+
+                // We don't need these for RRT+.
+                void sampleUniformNear(base::State*, const base::State*, const double) override
+                {
+                    throw Exception("ConstrainedSubspaceStateSampler::sampleUniformNear", "not implemented");
+                }
+
+                void sampleGaussian(base::State*, const base::State*, const double) override
+                {
+                    throw Exception("ConstrainedSubspaceStateSampler::sampleGaussian", "not implemented");
+                }
+
+                // sets all components as constrained
+                void constrainAllComponents()
+                {
+                    unconstrainedComponents_.clear();
+                    for (unsigned int i = 0; i < samplers_.size(); ++i)
+                        unconstrainedComponents_.push_back(false);
+                    assert(unconstrainedComponents_.size() == samplers_.size());
+                }
+
+                // unconstrains the specified component
+                void unconstrainComponent(unsigned int i)
+                {
+                    assert(i >= 0 && i < samplers_.size());
+                    unconstrainedComponents_[i] = true;
+                }
+
+                // should this be static? should it be here or as a protected method of RRTPlus?
+                static base::StateSamplerPtr allocConstrainedSubspaceStateSampler(const base::StateSpace *ss)
+                {
+                    return std::make_shared<ConstrainedSubspaceStateSampler>(ss);
+                }
+            protected:
+                std::string name_;
+                RNG rng_;
+                std::vector<bool> unconstrainedComponents_;
+            };
+
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
             std::shared_ptr<NearestNeighbors<Motion *>> nn_;
 
@@ -162,6 +236,9 @@ namespace ompl
 
             /** \brief The maximum length of a motion to be added to a tree */
             double maxDistance_;
+
+            /** \brief The maximum number of samples in each subsearch */
+            int maxSamples_;
 
             /** \brief The random number generator */
             RNG rng_;
