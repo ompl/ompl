@@ -532,7 +532,7 @@ void ompl::geometric::PathGeometric::clear()
     states_.clear();
 }
 
-void ompl::geometric::PathGeometric::dumpPath(std::ostream &out, const bool asIs) const
+void ompl::geometric::PathGeometric::dumpPath(std::ostream &out) const
 {
     std::stringstream v, f;
     std::size_t vcount = 0;
@@ -556,9 +556,7 @@ void ompl::geometric::PathGeometric::dumpPath(std::ostream &out, const bool asIs
         const ompl::base::State *const source = states_[i];
         const ompl::base::State *const target = states_[i + 1];
 
-        // if (!asIs)
-        //     traverseManifold(source, target, true, &stateList);
-        if (asIs || stateList.size() == 1)
+        if (stateList.size() == 1)
         {
             v << stateString(source) << "\n";
             v << stateString(target) << "\n";

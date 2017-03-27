@@ -256,7 +256,7 @@ namespace ompl
 
             /** \brief Write a mesh of a path on the atlas to stream. Insert
              * additional vertices if \a asIs == true. */
-            void dumpPath(std::ostream &out, const bool asIs = false) const;
+            void dumpPath(std::ostream &out) const;
 
             /** @} */
 

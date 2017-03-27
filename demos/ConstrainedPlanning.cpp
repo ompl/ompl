@@ -255,10 +255,12 @@ int main(int argc, char **argv)
         ss->simplifySolution();
 
         ompl::geometric::PathGeometric &path = ss->getSolutionPath();
+        path.interpolate();
+
         if (x.size() == 3 && output)
         {
             std::ofstream pathFile("path.ply");
-            path.dumpPath(pathFile, true);
+            path.dumpPath(pathFile);
             pathFile.close();
         }
 
@@ -272,44 +274,11 @@ int main(int argc, char **argv)
         css->setDelta(0.02);
         for (std::size_t i = 0; i < waypoints.size() - 1; i++)
         {
-            // Denote that we are switching to the next saved state
-            // std::cout << "-----\n";
-            ompl::base::ConstrainedStateSpace::StateType *from, *to;
-            from = waypoints[i]->as<ompl::base::ConstrainedStateSpace::StateType>();
-            to = waypoints[i + 1]->as<ompl::base::ConstrainedStateSpace::StateType>();
+            animFile << waypoints[i]->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView().transpose()
+                     << "\n";
 
-            // Traverse the manifold
-            std::vector<ompl::base::State *> stateList;
-            css->traverseManifold(from, to, true, &stateList);
-            if (css->equalStates(stateList.front(), stateList.back()))
-            {
-                // std::cout << "[" << stateList.front()->constVectorView().transpose() << "]  " <<
-                // stateList.front()->getChart()->getID() << "\n";
-                animFile << stateList.front()
-                                ->as<ompl::base::ConstrainedStateSpace::StateType>()
-                                ->constVectorView()
-                                .transpose()
-                         << "\n";
-            }
-            else
-            {
-                // Print the intermediate states
-                for (std::size_t i = 1; i < stateList.size(); i++)
-                {
-                    // std::cout << "[" << stateList[i]->constVectorView().transpose() << "]  " <<
-                    // stateList[i]->getChart()->getID() << "\n";
-                    animFile << stateList[i]
-                                    ->as<ompl::base::ConstrainedStateSpace::StateType>()
-                                    ->constVectorView()
-                                    .transpose()
-                             << "\n";
-                    length += css->distance(stateList[i - 1], stateList[i]);
-                }
-            }
-
-            // Delete the intermediate states
-            for (auto &state : stateList)
-                css->freeState(state);
+            if (i > 0)
+                length += css->distance(waypoints[i - 1], waypoints[i]);
         }
         animFile.close();
 
