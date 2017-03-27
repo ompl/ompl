@@ -38,7 +38,6 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <limits>
-// do we need to #include <vector>? or include it in the header file?
 
 ompl::geometric::RRTPlus::RRTPlus(const base::SpaceInformationPtr &si) : base::Planner(si, "RRT+")
 {
@@ -122,8 +121,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
         return base::PlannerStatus::INVALID_START;
     }
 
-//    if (!sampler_)
-//        sampler_ = si_->allocStateSampler();
     si_->getStateSpace()->setStateSamplerAllocator(ConstrainedSubspaceStateSampler::allocConstrainedSubspaceStateSampler);
     sampler_ = si_->getStateSpace()->allocStateSampler();
 
@@ -136,8 +133,11 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
-    while (ptc == false) // look into the planner termination condition for limiting # of samples for each subsearch
+    while (ptc == false)
     {
+        // TODO implement subsearch loop
+        // TODO look into the planner termination condition for limiting # of samples for each subsearch
+
         // don't need goal biasing for v1.0
 //        /* sample random state (with goal biasing) */
 //        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
@@ -145,7 +145,13 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
 //        else
 //            sampler_->sampleUniform(rstate);
 
-        // prioritized sampling
+        // TODO for prioritized sampling, we need an initial state on the line between q_init and q_goal
+
+        // TODO for prioritized sampling, only need to cast the sampled state to a CompoundState
+        // e.g. for a ompl::base::State *state
+        // state-><ompl::base::CompoundStateSpace::StateType>as()
+        // but this is implemented with a static_cast, which doesn't check at run-time.
+
         sampler_->sampleUniform(rstate);
 
         /* find closest state in the tree */
