@@ -169,22 +169,22 @@ namespace ompl
             /** \brief State sampler */
             base::StateSamplerPtr sampler_;
 
-            // This is a problem-specific state sampler that only samples the unconstrained
-            // components of a CompoundStateSpace.
+            /** \brief This is a problem-specific state sampler that only samples unconstrained
+                components of a CompoundStateSpace. */
             class ConstrainedSubspaceStateSampler : public base::CompoundStateSampler
             {
             public:
                 ConstrainedSubspaceStateSampler(const base::StateSpace *ss) : CompoundStateSampler(ss)
                 {
                     name_ = "Constrained Subspace State Sampler";
-                    this->constrainAllComponents(); // initialize vector to have all false values
+                    this->constrainAllComponents();
+                    samplerCount_ = samplers_.size();
                 }
 
                 void sampleUniform(base::State *state) override
                 {
-                    // adapted from code in StateSampler.cpp
                     base::State **comps = state->as<base::CompoundState>()->components;
-                    for (unsigned int i = 0; i < samplers_.size(); ++i) // samplerCount_ is private to CompoundStateSampler
+                    for (unsigned int i = 0; i < samplerCount_; ++i)
                         if (unconstrainedComponents_[i])
                             samplers_[i]->sampleUniform(comps[i]);
                 }
@@ -200,19 +200,21 @@ namespace ompl
                     throw Exception("ConstrainedSubspaceStateSampler::sampleGaussian", "not implemented");
                 }
 
-                // sets all components as constrained
+                /** \brief Constrains all components
+
+                    Used to initialize the vector of unconstrained components. */
                 void constrainAllComponents()
                 {
                     unconstrainedComponents_.clear();
-                    for (unsigned int i = 0; i < samplers_.size(); ++i)
+                    for (unsigned int i = 0; i < samplerCount_; ++i)
                         unconstrainedComponents_.push_back(false);
-                    assert(unconstrainedComponents_.size() == samplers_.size());
+                    assert(unconstrainedComponents_.size() == samplerCount_);
                 }
 
-                // unconstrains the specified component
+                /** \brief Unconstrains the specified component */
                 void unconstrainComponent(unsigned int i)
                 {
-                    assert(i >= 0 && i < samplers_.size());
+                    assert(i >= 0 && i < samplerCount_);
                     unconstrainedComponents_[i] = true;
                 }
 
@@ -224,7 +226,12 @@ namespace ompl
             protected:
                 std::string name_;
                 RNG rng_;
+
+                /** \brief Tracks which components of the compound state space are unconstrained */
                 std::vector<bool> unconstrainedComponents_;
+            private:
+                /** \brief The number of samplers that are composed */
+                unsigned int samplerCount_;
             };
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
