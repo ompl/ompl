@@ -535,56 +535,25 @@ void ompl::geometric::PathGeometric::clear()
 void ompl::geometric::PathGeometric::dumpPath(std::ostream &out) const
 {
     std::stringstream v, f;
-    std::size_t vcount = 0;
+    std::size_t vcount = 1;
     std::size_t fcount = 0;
 
-    auto stateString = [&](const ompl::base::State *state) {
+    auto stateToString = [&](const ompl::base::State *state) {
         std::string out = "";
         for (unsigned int i = 0; i < si_->getStateDimension(); ++i)
-        {
-            if (i != 0)
-                out += " ";
+            out += (i ? " " : "") + std::to_string(*si_->getStateSpace()->getValueAddressAtIndex(state, i));
 
-            out += std::to_string(*si_->getStateSpace()->getValueAddressAtIndex(state, i));
-        }
         return out;
     };
 
-    for (std::size_t i = 0; i < states_.size() - 1; i++)
+    v << stateToString(states_[0]) << "\n";
+    for (std::size_t i = 1; i < states_.size(); i++)
     {
-        std::vector<ompl::base::State *> stateList;
-        const ompl::base::State *const source = states_[i];
-        const ompl::base::State *const target = states_[i + 1];
-
-        if (stateList.size() == 1)
-        {
-            v << stateString(source) << "\n";
-            v << stateString(target) << "\n";
-            v << stateString(source) << "\n";
-            vcount += 3;
-            f << 3 << " " << vcount - 3 << " " << vcount - 2 << " " << vcount - 1 << "\n";
-            fcount++;
-            for (ompl::base::State *state : stateList)
-                si_->freeState(state);
-            continue;
-        }
-        ompl::base::State *to, *from = stateList[0];
-        v << stateString(from) << "\n";
-        vcount++;
-        bool reset = true;
-        for (std::size_t i = 1; i < stateList.size(); i++)
-        {
-            to = stateList[i];
-            from = stateList[i - 1];
-            v << stateString(to) << "\n";
-            v << stateString(from) << "\n";
-            vcount += 2;
-            f << 3 << " " << (reset ? vcount - 3 : vcount - 4) << " " << vcount - 2 << " " << vcount - 1 << "\n";
-            fcount++;
-            si_->freeState(stateList[i - 1]);
-            reset = false;
-        }
-        si_->freeState(stateList.back());
+        v << stateToString(states_[i]) << "\n";
+        v << stateToString(states_[i - 1]) << "\n";
+        vcount += 2;
+        f << 3 << " " << vcount - 3 << " " << vcount - 2 << " " << vcount - 1 << "\n";
+        fcount++;
     }
 
     out << "ply\n";

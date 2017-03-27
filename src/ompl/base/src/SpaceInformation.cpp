@@ -202,19 +202,6 @@ unsigned int ompl::base::SpaceInformation::getMotionStates(const State *s1, cons
                                                            std::vector<State *> &states, unsigned int count,
                                                            bool endpoints, bool alloc) const
 {
-    // HACK for use by Atlas + X.
-    ConstrainedStateSpace *cons = dynamic_cast<ConstrainedStateSpace *>(stateSpace_.get());
-    if (cons)
-    {
-        assert(alloc && endpoints);
-        std::vector<ompl::base::State *> stateList;
-        cons->traverseManifold(s1->as<ConstrainedStateSpace::StateType>(), s2->as<ConstrainedStateSpace::StateType>(), false, &stateList);
-        states.resize(stateList.size());
-        for (unsigned int j = 0; j < stateList.size(); j++)
-            states[j] = stateList[j];
-        return states.size();
-    }
-
     // add 1 to the number of states we want to add between s1 & s2. This gives us the number of segments to split the
     // motion into
     count++;

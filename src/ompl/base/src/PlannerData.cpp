@@ -794,48 +794,47 @@ void ompl::base::PlannerData::dumpGraph(std::ostream &out, const bool asIs) cons
 
     const Graph &graph = toBoostGraph();
 
-    auto stateString = [&](const State *state) {
+    auto stateToString = [&](const ompl::base::State *state) {
         std::string out = "";
         for (unsigned int i = 0; i < si_->getStateDimension(); ++i)
-        {
-            if (i != 0)
-                out += " ";
+            out += (i ? " " : "") + std::to_string(*si_->getStateSpace()->getValueAddressAtIndex(state, i));
 
-            out += std::to_string(*si_->getStateSpace()->getValueAddressAtIndex(state, i));
-        }
         return out;
     };
 
     BGL_FORALL_EDGES(edge, graph, PlannerData::Graph)
     {
-        std::vector<State *> stateList;
+        std::vector<ompl::base::State *> stateList;
         const State *source = boost::get(vertex_type, graph, boost::source(edge, graph))->getState();
         const State *target = boost::get(vertex_type, graph, boost::target(edge, graph))->getState();
 
-        // if (!asIs)
-        //     traverseManifold(source, target, true, &stateList);
+        if (!asIs)
+        {
+            unsigned int n = si_->getStateSpace()->validSegmentCount(source, target);
+            si_->getMotionStates(source, target, stateList, n, true, true);
+        }
+
         if (asIs || stateList.size() == 1)
         {
-            v << stateString(source) << "\n";
-            v << stateString(target) << "\n";
-            v << stateString(source) << "\n";
+            v << stateToString(source) << "\n";
+            v << stateToString(target) << "\n";
+            v << stateToString(source) << "\n";
             vcount += 3;
             f << 3 << " " << vcount - 3 << " " << vcount - 2 << " " << vcount - 1 << "\n";
             fcount++;
-            for (State *state : stateList)
-                si_->freeState(state);
+            si_->freeState(stateList[0]);
             continue;
         }
         const State *to, *from = stateList[0];
-        v << stateString(from) << "\n";
+        v << stateToString(from) << "\n";
         vcount++;
         bool reset = true;
         for (std::size_t i = 1; i < stateList.size(); i++)
         {
             to = stateList[i];
             from = stateList[i - 1];
-            v << stateString(to) << "\n";
-            v << stateString(from) << "\n";
+            v << stateToString(to) << "\n";
+            v << stateToString(from) << "\n";
             vcount += 2;
             f << 3 << " " << (reset ? vcount - 3 : vcount - 4) << " " << vcount - 2 << " " << vcount - 1 << "\n";
             fcount++;
