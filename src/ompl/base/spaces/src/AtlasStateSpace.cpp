@@ -257,6 +257,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpace *ambientSpace, con
   , epsilon_(0.1)
   , exploration_(0.5)
   , lambda_(2)
+  , separate_(true)
   , maxChartsPerExtension_(200)
 {
     setName("Atlas" + ss_->getName());
@@ -301,13 +302,31 @@ void ompl::base::AtlasStateSpace::clear()
     {
         anchor->clear();
 
-        for (AtlasChart *c : charts_)
-            AtlasChart::generateHalfspace(c, anchor);
+        if (separate_)
+            for (AtlasChart *c : charts_)
+                AtlasChart::generateHalfspace(c, anchor);
 
         anchor->setID(charts_.size());
         chartNN_.add(std::make_pair<>(&anchor->getXorigin(), charts_.size()));
         charts_.push_back(anchor);
     }
+}
+
+void ompl::base::AtlasStateSpace::setSeparate(const bool separate)
+{
+    separate_ = separate;
+
+    if (!separate_)
+        for (AtlasChart *c : charts_)
+        {
+            std::vector<NNElement> nearbyCharts;
+            chartNN_.nearestR(std::make_pair(&c->getXorigin(), 0), 2 * rho_, nearbyCharts);
+            for (auto &near : nearbyCharts)
+                AtlasChart::generateHalfspace(charts_[near.second], c);
+        }
+    else
+        for (AtlasChart *c : charts_)
+            c->clear();
 }
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const Eigen::VectorXd &xorigin) const
@@ -339,10 +358,14 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Vecto
 
     // Ensure all charts respect boundaries of the new one, and vice versa, but
     // only look at nearby ones (within 2*rho).
-    std::vector<NNElement> nearbyCharts;
-    chartNN_.nearestR(std::make_pair(&addedC->getXorigin(), 0), 2 * rho_, nearbyCharts);
-    for (auto &near : nearbyCharts)
-        AtlasChart::generateHalfspace(charts_[near.second], addedC);
+
+    if (separate_)
+    {
+        std::vector<NNElement> nearbyCharts;
+        chartNN_.nearestR(std::make_pair(&addedC->getXorigin(), 0), 2 * rho_, nearbyCharts);
+        for (auto &near : nearbyCharts)
+            AtlasChart::generateHalfspace(charts_[near.second], addedC);
+    }
 
     addedC->setID(charts_.size());
     chartNN_.add(std::make_pair<>(&addedC->getXorigin(), charts_.size()));

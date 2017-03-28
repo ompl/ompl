@@ -64,16 +64,21 @@ int main(int argc, char **argv)
     double artificalSleep = 0.0;
     double planningTime = 5.0;
     bool output = false;
+    bool tb = true;
     int iter = 0;
 
     unsigned int links = 5;
 
-    while ((c = getopt(argc, argv, "c:p:s:w:ot:n:i:")) != -1)
+    while ((c = getopt(argc, argv, "c:p:s:w:ot:n:i:a")) != -1)
     {
         switch (c)
         {
             case 'c':
                 problem = optarg;
+                break;
+
+            case 'a':
+                tb = false;
                 break;
 
             case 'i':
@@ -157,6 +162,7 @@ int main(int argc, char **argv)
             atlas->setAlpha(M_PI / 8);
             atlas->setEpsilon(0.2);  // 0.1
             atlas->setMaxChartsPerExtension(200);
+            atlas->setSeparate(tb);
 
             range = atlas->getRho_s();
 

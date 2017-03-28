@@ -247,6 +247,8 @@ namespace ompl
                 lambda_ = lambda;
             }
 
+            void setSeparate(const bool separate);
+
             /** \brief Sometimes manifold traversal creates many charts. This
              * parameter limits the number of charts that can be created during
              * one traversal. Default 200. */
@@ -283,6 +285,12 @@ namespace ompl
             double getLambda() const
             {
                 return lambda_;
+            }
+
+            /** \brief Get the sampling radius. */
+            bool getSeparate() const
+            {
+                return separate_;
             }
 
             /** \brief Get the sampling radius. */
@@ -412,6 +420,9 @@ namespace ompl
             /** \brief Manifold traversal from x to y is stopped if accumulated distance is greater than d(x,y) times
              * this. */
             double lambda_;
+
+            /** \brief Enable or disable halfspace separation of the charts. */
+            bool separate_;
 
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
             mutable double rho_s_;
