@@ -129,7 +129,7 @@ namespace ompl
 
         /** \brief Return a termination condition that will become true as soon as the problem definition has an exact
          * solution */
-        PlannerTerminationCondition exactSolnPlannerTerminationCondition(const ompl::base::ProblemDefinitionPtr& pdef);
+        PlannerTerminationCondition exactSolnPlannerTerminationCondition(const ompl::base::ProblemDefinitionPtr &pdef);
 
         /** \brief A class to run a planner for a specific number of iterations. Casts to a PTC for use with
          * Planner::solve */
@@ -149,6 +149,11 @@ namespace ompl
 
             /** \brief Cast to a PlannerTerminationCondition */
             operator PlannerTerminationCondition();
+
+            unsigned int getTimesCalled() const
+            {
+                return timesCalled_;
+            }
 
         private:
             /** \brief The max number of iterations the condition can be called before returning true. */

@@ -255,7 +255,7 @@ int main(int argc, char **argv)
     ss->setPlanner(planner);
     ss->setup();
 
-    css->setDelta(css->getMaximumExtent() / 1000);
+    css->setDelta(css->getMaximumExtent() / 2000);
 
     if (spaceType == ATLAS)
         css->as<ompl::base::AtlasStateSpace>()->setRho(css->getMaximumExtent() / 100);
@@ -267,6 +267,7 @@ int main(int argc, char **argv)
     {
         ompl::base::IterationTerminationCondition cond(iter);
         stat = planner->solve(cond);
+        std::cout << cond.getTimesCalled() << "/" << iter << " iterations." << std::endl;
     }
     else
         stat = planner->solve(planningTime);
