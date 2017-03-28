@@ -216,11 +216,11 @@ namespace ompl
             /** \brief Exponential mapping. Project chart point \a u onto the
              * manifold and store the result in \a out, which should be
              * allocated to size n_. */
-            void psi(Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
+            bool psi(Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
 
             /** \brief Same as AtlasChart::psi(), except it starts from an
              * ambient space point \a x0. */
-            void psiFromAmbient(Eigen::Ref<const Eigen::VectorXd> x0, Eigen::Ref<Eigen::VectorXd> out) const;
+            bool psiFromAmbient(Eigen::Ref<const Eigen::VectorXd> x0, Eigen::Ref<Eigen::VectorXd> out) const;
 
             /** \brief Logarithmic mapping. Project ambient point \a x onto the
              * chart and store the result in \a out, which should be allocated

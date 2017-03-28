@@ -450,6 +450,12 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         return false;
     }
 
+    Eigen::VectorXd u_j(k_), u_b(k_);
+
+    // Project from and to points onto the chart
+    c->psiInverse(x_j, u_j);
+    c->psiInverse(x_b, u_b);
+
     // Save a copy of the from state.
     if (stateList)
     {
@@ -457,15 +463,9 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         stateList->push_back(si_->cloneState(from));
     }
 
-    Eigen::VectorXd u_j(k_), u_b(k_);
-
     // We will stop if we exit the ball of radius d_0 centered at x_a.
     double d_0 = (x_a - x_b).norm();
     double d = 0;
-
-    // Project from and to points onto the chart
-    c->psiInverse(x_j, u_j);
-    c->psiInverse(x_b, u_b);
 
     Eigen::VectorXd tempx(n_);
     while (((u_b - u_j).squaredNorm() > delta_ * delta_))
@@ -473,7 +473,10 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         // Step by delta toward the target and project.
         // Note the correction to the pseudocode line 13 (Jaillet et al.).
         u_j = u_j + delta_ * (u_b - u_j).normalized();
-        c->psi(u_j, tempx);
+
+        if (!c->psi(u_j, tempx))
+            break;
+
         double d_s = (tempx - x_j).norm();
         x_j = tempx;
         d += d_s;

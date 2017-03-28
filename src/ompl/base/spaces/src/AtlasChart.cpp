@@ -184,15 +184,15 @@ void ompl::base::AtlasChart::phi(Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref
     out = xorigin_ + bigPhi_ * u;
 }
 
-void ompl::base::AtlasChart::psi(Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const
+bool ompl::base::AtlasChart::psi(Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const
 {
     // Initial guess for Newton's method
     Eigen::VectorXd x0(n_);
     phi(u, x0);
-    psiFromAmbient(x0, out);
+    return psiFromAmbient(x0, out);
 }
 
-void ompl::base::AtlasChart::psiFromAmbient(Eigen::Ref<const Eigen::VectorXd> x0, Eigen::Ref<Eigen::VectorXd> out) const
+bool ompl::base::AtlasChart::psiFromAmbient(Eigen::Ref<const Eigen::VectorXd> x0, Eigen::Ref<Eigen::VectorXd> out) const
 {
     // Newton's method.
     out = x0;
@@ -218,6 +218,11 @@ void ompl::base::AtlasChart::psiFromAmbient(Eigen::Ref<const Eigen::VectorXd> x0
         constraint_->function(out, b.head(n_ - k_));
         b.tail(k_) = bigPhi_.transpose() * (out - x0);
     }
+
+    if (iter > constraint_->getProjectionMaxIterations())
+        return false;
+
+    return true;
 }
 
 void ompl::base::AtlasChart::psiInverse(Eigen::Ref<const Eigen::VectorXd> x, Eigen::Ref<Eigen::VectorXd> out) const
