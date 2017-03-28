@@ -808,23 +808,11 @@ void ompl::base::PlannerData::dumpGraph(std::ostream &out, const bool asIs) cons
         const State *source = boost::get(vertex_type, graph, boost::source(edge, graph))->getState();
         const State *target = boost::get(vertex_type, graph, boost::target(edge, graph))->getState();
 
+        unsigned int n = 0;
         if (!asIs)
-        {
-            unsigned int n = si_->getStateSpace()->validSegmentCount(source, target);
-            si_->getMotionStates(source, target, stateList, n, true, true);
-        }
+            n = si_->getStateSpace()->validSegmentCount(source, target);
+        si_->getMotionStates(source, target, stateList, n, true, true);
 
-        if (asIs || stateList.size() == 1)
-        {
-            v << stateToString(source) << "\n";
-            v << stateToString(target) << "\n";
-            v << stateToString(source) << "\n";
-            vcount += 3;
-            f << 3 << " " << vcount - 3 << " " << vcount - 2 << " " << vcount - 1 << "\n";
-            fcount++;
-            si_->freeState(stateList[0]);
-            continue;
-        }
         const State *to, *from = stateList[0];
         v << stateToString(from) << "\n";
         vcount++;

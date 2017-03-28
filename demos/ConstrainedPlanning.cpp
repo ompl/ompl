@@ -64,15 +64,20 @@ int main(int argc, char **argv)
     double artificalSleep = 0.0;
     double planningTime = 5.0;
     bool output = false;
+    int iter = 0;
 
     unsigned int links = 5;
 
-    while ((c = getopt(argc, argv, "c:p:s:w:ot:n:")) != -1)
+    while ((c = getopt(argc, argv, "c:p:s:w:ot:n:i:")) != -1)
     {
         switch (c)
         {
             case 'c':
                 problem = optarg;
+                break;
+
+            case 'i':
+                iter = atoi(optarg);
                 break;
 
             case 'p':
@@ -246,8 +251,20 @@ int main(int argc, char **argv)
 
     css->setDelta(css->getMaximumExtent() / 1000);
 
+    if (spaceType == ATLAS)
+        css->as<ompl::base::AtlasStateSpace>()->setRho(css->getMaximumExtent() / 100);
+
     std::clock_t tstart = std::clock();
-    ompl::base::PlannerStatus stat = planner->solve(planningTime);
+
+    ompl::base::PlannerStatus stat;
+    if (iter)
+    {
+        ompl::base::IterationTerminationCondition cond(iter);
+        stat = planner->solve(cond);
+    }
+    else
+        stat = planner->solve(planningTime);
+
     if (stat)
     {
         const double time = ((double)(std::clock() - tstart)) / CLOCKS_PER_SEC;
@@ -255,10 +272,16 @@ int main(int argc, char **argv)
         ss->simplifySolution();
 
         ompl::geometric::PathGeometric &path = ss->getSolutionPath();
-        path.interpolate();
+
+        if (output)
+        {
+            std::cout << "Interpolating path..." << std::endl;
+            path.interpolate();
+        }
 
         if (x.size() == 3 && output)
         {
+            std::cout << "Dumping path mesh..." << std::endl;
             std::ofstream pathFile("path.ply");
             path.dumpPath(pathFile);
             pathFile.close();
@@ -267,23 +290,27 @@ int main(int argc, char **argv)
         // Extract the full solution path by re-interpolating between the
         // saved states (except for the special planners)
         const std::vector<ompl::base::State *> &waypoints = path.getStates();
+
         double length = 0;
+        for (std::size_t i = 1; i < waypoints.size() - 1; i++)
+            length += css->distance(waypoints[i - 1], waypoints[i]);
 
-        std::ofstream animFile("anim.txt");
-
-        css->setDelta(0.02);
-        for (std::size_t i = 0; i < waypoints.size() - 1; i++)
+        if (output)
         {
-            animFile << waypoints[i]->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView().transpose()
-                     << "\n";
-
-            if (i > 0)
-                length += css->distance(waypoints[i - 1], waypoints[i]);
+            std::cout << "Dumping animation file..." << std::endl;
+            std::ofstream animFile("anim.txt");
+            for (std::size_t i = 0; i < waypoints.size() - 1; i++)
+                animFile << waypoints[i]
+                                ->as<ompl::base::ConstrainedStateSpace::StateType>()
+                                ->constVectorView()
+                                .transpose()
+                         << "\n";
+            animFile.close();
         }
-        animFile.close();
 
         if (stat == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
             std::cout << "Solution is approximate.\n";
+
         std::cout << "Length: " << length << "\n";
         std::cout << "Took " << time << " seconds.\n";
     }
@@ -303,10 +330,9 @@ int main(int argc, char **argv)
         std::cout << css->as<ompl::base::AtlasStateSpace>()->estimateFrontierPercent() << "% open.\n";
     }
 
-
     if (x.size() == 3 && output)
     {
-        css->setDelta(0.5);
+        std::cout << "Dumping graph mesh..." << std::endl;
         std::ofstream graphFile("graph.ply");
         ompl::base::PlannerData pd(si);
         planner->getPlannerData(pd);
@@ -315,6 +341,7 @@ int main(int argc, char **argv)
 
         if (spaceType == ATLAS)
         {
+            std::cout << "Dumping atlas mesh..." << std::endl;
             std::ofstream atlasFile("atlas.ply");
             css->as<ompl::base::AtlasStateSpace>()->dumpMesh(atlasFile);
             atlasFile.close();
