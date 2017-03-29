@@ -216,7 +216,7 @@ protected:
 
 Environment createHornEnvironment(unsigned int d, double eps)
 {
-    std::ofstream envFile("environment.dat");
+    std::ofstream envFile(boost::str(boost::format("environment_%i.dat") % d));
     std::vector<Segment> env;
     double w = 1. / (double)d, x = w, y = -eps, xN, yN, theta = 0.,
         scale = w * (1. + boost::math::constants::pi<double>() * eps);
@@ -290,14 +290,9 @@ int main(int argc, char **argv)
         ss.solve(3600);
         ss.simplifySolution();
 
-        ompl::geometric::PathGeometric path = ss.getSolutionPath();
-        std::vector<double> v;
-        for(unsigned int i = 0; i < path.getStateCount(); ++i)
-        {
-            chain->copyToReals(v, path.getState(i));
-            std::copy(v.begin(), v.end(), std::ostream_iterator<double>(std::cout, " "));
-            std::cout << std::endl;
-        }
+        std::ofstream pathfile(
+                    boost::str(boost::format("kinematic_path_%i.dat") % numLinks).c_str());
+        ss.getSolutionPath().printAsMatrix(pathfile);
         exit(0);
     }
 
