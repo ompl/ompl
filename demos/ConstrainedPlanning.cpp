@@ -158,10 +158,10 @@ int main(int argc, char **argv)
                 new ompl::base::AtlasStateSpace(constraint->getAmbientSpace(), constraint));
 
             atlas->setExploration(0.5);
-            atlas->setRho(0.5);  // 0.2
             atlas->setAlpha(M_PI / 8);
-            atlas->setEpsilon(0.2);  // 0.1
             atlas->setMaxChartsPerExtension(200);
+            atlas->setRho(0.5);
+            atlas->setEpsilon(0.2);
             atlas->setSeparate(tb);
 
             range = atlas->getRho_s();
@@ -255,10 +255,21 @@ int main(int argc, char **argv)
     ss->setPlanner(planner);
     ss->setup();
 
-    css->setDelta(css->getMaximumExtent() / 2000);
+    css->setDelta(css->getMaximumExtent() / 1000);
 
     if (spaceType == ATLAS)
-        css->as<ompl::base::AtlasStateSpace>()->setRho(css->getMaximumExtent() / 100);
+    {
+        if (css->getAmbientDimension() > 40)
+            css->as<ompl::base::AtlasStateSpace>()->setExploration(0.9);
+        else if (css->getAmbientDimension() > 30)
+            css->as<ompl::base::AtlasStateSpace>()->setExploration(0.85);
+        else if (css->getAmbientDimension() > 20)
+            css->as<ompl::base::AtlasStateSpace>()->setExploration(0.8);
+
+        css->as<ompl::base::AtlasStateSpace>()->setRho(css->getMaximumExtent() / 500);
+        css->as<ompl::base::AtlasStateSpace>()->setEpsilon(css->getMaximumExtent() / 100);
+        css->as<ompl::base::AtlasStateSpace>()->setMaxChartsPerExtension(css->getMaximumExtent() * 10);
+    }
 
     std::clock_t tstart = std::clock();
 
