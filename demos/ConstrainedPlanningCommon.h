@@ -168,12 +168,11 @@ public:
 };
 
 /** Kinematic chain manifold. */
-class ChainConstraint : public ompl::base::Constraint, public ompl::base::ProjectionEvaluator
+class ChainConstraint : public ompl::base::Constraint
 {
 public:
     ChainConstraint(ompl::base::StateSpace *space, unsigned int dim, unsigned int links)
       : ompl::base::Constraint(space, (dim - 1) * links - 1)
-      , ompl::base::ProjectionEvaluator(space)
       , dim_(dim)
       , links_(links)
       , length_(1.0)
@@ -249,30 +248,6 @@ public:
         return true;
     }
 
-    unsigned int getDimension(void) const
-    {
-        return 3;
-    }
-
-    void defaultCellSizes(void)
-    {
-        cellSizes_.resize(3);
-        cellSizes_[0] = 1;
-        cellSizes_[1] = 1;
-        cellSizes_[2] = 1;
-    }
-
-    void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
-    {
-        Eigen::Ref<const Eigen::VectorXd> x =
-            state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
-
-        unsigned int s = dim_ * (links_ - 1);
-        projection(0) = x[s];
-        projection(1) = x[s + 1];
-        projection(2) = x[s + 2];
-    }
-
 private:
     const unsigned int dim_;    // Workspace dimension.
     const unsigned int links_;  // Number of chain links.
@@ -280,6 +255,44 @@ private:
     const double radius_;       // Radius of the sphere that the end effector is constrained to.
     const double jointSize_;    // Size of joints
 };
+
+class ChainProjection : public ompl::base::ProjectionEvaluator
+{
+public:
+    ChainProjection(ompl::base::StateSpacePtr space, unsigned int dim, unsigned int links)
+      : ompl::base::ProjectionEvaluator(space), dim_(dim), links_(links), radius_((links - 4) + 2)
+    {
+    }
+
+    virtual unsigned int getDimension(void) const
+    {
+        return 2;
+    }
+
+    virtual void defaultCellSizes(void)
+    {
+        cellSizes_.resize(2);
+        cellSizes_[0] = 0.1;
+        cellSizes_[1] = 0.1;
+    }
+
+    virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
+    {
+        Eigen::Ref<const Eigen::VectorXd> x =
+            state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
+
+        unsigned int s = dim_ * (links_ - 1);
+
+        projection(0) = atan2(x[s + 1], x[s]);
+        projection(1) = acos(x[s + 2] / radius_);
+    }
+
+private:
+    const unsigned int dim_;    // Workspace dimension.
+    const unsigned int links_;  // Number of chain links.
+    double radius_;
+};
+
 
 /**
  * State validity checking functions implicitly define the free space where they return true.
@@ -467,7 +480,6 @@ ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
     ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(dim);
     ChainConstraint *atlas = new ChainConstraint(space, 3, links);
     isValid = std::bind(&ChainConstraint::isValid, atlas, sleep, std::placeholders::_1);
-    space->registerDefaultProjection(ompl::base::ProjectionEvaluatorPtr(atlas));
     return atlas;
 }
 

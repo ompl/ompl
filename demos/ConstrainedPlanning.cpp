@@ -164,7 +164,7 @@ int main(int argc, char **argv)
             atlas->setEpsilon(0.2);
             atlas->setSeparate(tb);
 
-            range = atlas->getRho_s();
+            // range = atlas->getRho_s();
 
             ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(atlas));
             si = ss->getSpaceInformation();
@@ -233,16 +233,8 @@ int main(int argc, char **argv)
         }
     }
 
+
     ss->setStateValidityChecker(isValid);
-
-    // Bounds
-    int bound = 20;
-
-    ompl::base::RealVectorBounds bounds(css->getAmbientDimension());
-    bounds.setLow(-bound);
-    bounds.setHigh(bound);
-
-    css->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
 
     // Choose the planner.
     ompl::base::PlannerPtr planner(parsePlanner(plannerName, si, range));
@@ -253,22 +245,37 @@ int main(int argc, char **argv)
     }
 
     ss->setPlanner(planner);
+
+
+    // Bounds
+    double bound = 20;
+    if (strcmp(problem, "chain") == 0)
+    {
+        bound = links;
+
+        if (strcmp(plannerName, "KPIECE1") == 0)
+        {
+            css->registerProjection("chain", ompl::base::ProjectionEvaluatorPtr(new ChainProjection(css, 3, links)));
+            planner->as<ompl::geometric::KPIECE1>()->setProjectionEvaluator("chain");
+        }
+    }
+
+    ompl::base::RealVectorBounds bounds(css->getAmbientDimension());
+    bounds.setLow(-bound);
+    bounds.setHigh(bound);
+
+    css->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
+
     ss->setup();
 
-    css->setDelta(css->getMaximumExtent() / 1000);
+    css->setDelta(0.02);
 
     if (spaceType == ATLAS)
     {
-        if (css->getAmbientDimension() > 40)
-            css->as<ompl::base::AtlasStateSpace>()->setExploration(0.9);
-        else if (css->getAmbientDimension() > 30)
-            css->as<ompl::base::AtlasStateSpace>()->setExploration(0.85);
-        else if (css->getAmbientDimension() > 20)
-            css->as<ompl::base::AtlasStateSpace>()->setExploration(0.8);
-
-        css->as<ompl::base::AtlasStateSpace>()->setRho(css->getMaximumExtent() / 500);
-        css->as<ompl::base::AtlasStateSpace>()->setEpsilon(css->getMaximumExtent() / 100);
-        css->as<ompl::base::AtlasStateSpace>()->setMaxChartsPerExtension(css->getMaximumExtent() * 10);
+        css->as<ompl::base::AtlasStateSpace>()->setExploration(0.90);
+        // css->as<ompl::base::AtlasStateSpace>()->setRho(css->getMaximumExtent() / 500);
+        // css->as<ompl::base::AtlasStateSpace>()->setEpsilon(css->getMaximumExtent() / 500);
+        // css->as<ompl::base::AtlasStateSpace>()->setMaxChartsPerExtension(css->getMaximumExtent() * 100);
     }
 
     std::clock_t tstart = std::clock();
