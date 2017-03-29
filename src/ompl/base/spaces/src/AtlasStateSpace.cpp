@@ -51,15 +51,12 @@
 /// Public
 
 ompl::base::AtlasStateSampler::AtlasStateSampler(const SpaceInformation *si)
-  : StateSampler(si->getStateSpace().get())
-  , atlas_(*si->getStateSpace()->as<AtlasStateSpace>())
+  : StateSampler(si->getStateSpace().get()), atlas_(*si->getStateSpace()->as<AtlasStateSpace>())
 {
     AtlasStateSpace::checkSpace(si);
 }
 
-ompl::base::AtlasStateSampler::AtlasStateSampler(const AtlasStateSpace &atlas)
-    : StateSampler(&atlas)
-    , atlas_(atlas)
+ompl::base::AtlasStateSampler::AtlasStateSampler(const AtlasStateSpace &atlas) : StateSampler(&atlas), atlas_(atlas)
 {
 }
 
@@ -86,13 +83,10 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
             for (int i = 0; i < ru.size(); i++)
                 ru[i] = rng_.gaussian01();
             ru *= atlas_.getRho_s() * std::pow(rng_.uniform01(), 1.0 / ru.size()) / ru.norm();
-            tries--;
-        } while (tries > 0 && !c->inPolytope(ru));
+        } while (tries-- > 0 && !c->inPolytope(ru));
 
         // Project. Will need to try again if this fails.
-        c->psi(ru, rx);
-    } while (tries > 0 && !atlas_.getConstraint()->isSatisfied(rx));
-
+    } while (tries > 0 && !c->psi(ru, rx));
 
     if (tries == 0)
     {
@@ -134,17 +128,19 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
 
     // Sample a point from the starting chart.
     c->psiInverse(n, ru);
+
     int tries = 100;
+    Eigen::VectorXd uoffset(atlas_.getManifoldDimension());
+
     do
     {
-        tries--;
         // Sample within distance
-        Eigen::VectorXd uoffset(atlas_.getManifoldDimension());
-        for (int i = 0; i < uoffset.size(); i++)
-            uoffset[i] = rng_.gaussian01();
+        for (int i = 0; i < uoffset.size(); ++i)
+            uoffset[i] = ru[i] + rng_.gaussian01();
+
         uoffset *= distance * std::pow(rng_.uniform01(), 1.0 / uoffset.size()) / uoffset.norm();
-        c->phi(ru + uoffset, rx);
-    } while (tries > 0 && !atlas_.getConstraint()->project(rx));  // Try again if we can't project.
+
+    } while (tries-- > 0 && !c->psi(uoffset, rx));  // Try again if we can't project.
 
     if (tries == 0)
     {
@@ -189,15 +185,13 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
 
     // Sample a point in a normal distribution on the starting chart.
     int tries = 100;
+    Eigen::VectorXd rand(k);
+    const double s = stdDev / std::sqrt(k);
     do
     {
-        tries--;
-        Eigen::VectorXd rand(k);
-        const double s = stdDev / std::sqrt(k);
         for (std::size_t i = 0; i < k; i++)
-            rand[i] = rng_.gaussian(0, s);
-        c->phi(ru + rand, rx);
-    } while (tries > 0 && !atlas_.getConstraint()->project(rx));  // Try again if we can't project.
+            rand[i] = ru[i] + rng_.gaussian(0, s);
+    } while (tries-- > 0 && !c->psi(rand, rx));  // Try again if we can't project.
 
     if (tries == 0)
     {
@@ -414,7 +408,7 @@ std::size_t ompl::base::AtlasStateSpace::getChartCount() const
 }
 
 bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
-                                                std::vector<ompl::base::State *> *stateList) const
+                                                   std::vector<ompl::base::State *> *stateList) const
 {
     const StateType *fromT = from->as<StateType>();
     const StateType *toT = to->as<StateType>();
@@ -544,7 +538,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
 }
 
 unsigned int ompl::base::AtlasStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList, const double t,
-                                                       State *state) const
+                                                               State *state) const
 {
     unsigned int i = ConstrainedStateSpace::piecewiseInterpolate(stateList, t, state);
 
