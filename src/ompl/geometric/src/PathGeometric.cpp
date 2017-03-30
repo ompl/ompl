@@ -532,25 +532,31 @@ void ompl::geometric::PathGeometric::clear()
     states_.clear();
 }
 
-void ompl::geometric::PathGeometric::dumpPath(std::ostream &out) const
+void ompl::geometric::PathGeometric::printPLY(std::ostream &out) const
 {
+    const base::StateSpace *space(si_->getStateSpace().get());
+
+    unsigned int dim = space->getDimension();
+    if (dim > 3)
+        throw Exception("Cannot output mesh of path in more than 3 dimensions!");
+
+    std::vector<double> reals;
     std::stringstream v, f;
     std::size_t vcount = 1;
     std::size_t fcount = 0;
 
-    auto stateToString = [&](const ompl::base::State *state) {
-        std::string out;
-        for (unsigned int i = 0; i < si_->getStateDimension(); ++i)
-            out += (i != 0u ? " " : "") + std::to_string(*si_->getStateSpace()->getValueAddressAtIndex(state, i));
-
-        return out;
+    auto stateOutput = [&](const ompl::base::State *state) {
+        space->copyToReals(reals, state);
+        std::copy(reals.begin(), reals.end(), std::ostream_iterator<double>(v, " "));
+        v << std::endl;
     };
 
-    v << stateToString(states_[0]) << "\n";
+    stateOutput(states_[0]);
     for (std::size_t i = 1; i < states_.size(); i++)
     {
-        v << stateToString(states_[i]) << "\n";
-        v << stateToString(states_[i - 1]) << "\n";
+        stateOutput(states_[i]);
+        stateOutput(states_[i - 1]);
+
         vcount += 2;
         f << 3 << " " << vcount - 3 << " " << vcount - 2 << " " << vcount - 1 << "\n";
         fcount++;
@@ -560,8 +566,13 @@ void ompl::geometric::PathGeometric::dumpPath(std::ostream &out) const
     out << "format ascii 1.0\n";
     out << "element vertex " << vcount << "\n";
     out << "property float x\n";
-    out << "property float y\n";
-    out << "property float z\n";
+
+    if (dim > 1)
+        out << "property float y\n";
+
+    if (dim > 2)
+        out << "property float z\n";
+
     out << "element face " << fcount << "\n";
     out << "property list uint uint vertex_index\n";
     out << "end_header\n";

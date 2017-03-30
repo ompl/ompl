@@ -137,6 +137,9 @@ namespace ompl
                 ompl::base::StateSpace::copyToReals. */
             virtual void printAsMatrix(std::ostream &out) const;
 
+            /** \brief Print the path as a PLY file mesh to a stream */
+            void printPLY(std::ostream &out) const;
+
             /** @name Path operations
                 @{ */
 
@@ -253,10 +256,6 @@ namespace ompl
 
             /** \brief Remove all states and clear memory */
             void clear();
-
-            /** \brief Write a mesh of a path on the atlas to stream. Insert
-             * additional vertices if \a asIs == true. */
-            void dumpPath(std::ostream &out) const;
 
             /** @} */
 

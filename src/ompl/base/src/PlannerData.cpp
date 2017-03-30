@@ -786,21 +786,26 @@ bool ompl::base::PlannerData::hasControls() const
     return false;
 }
 
-void ompl::base::PlannerData::dumpGraph(std::ostream &out, const bool asIs) const
+void ompl::base::PlannerData::printPLY(std::ostream &out, const bool asIs) const
 {
+    const base::StateSpace *space(si_->getStateSpace().get());
+
+    unsigned int dim = space->getDimension();
+    if (dim > 3)
+        throw Exception("Cannot output mesh of path in more than 3 dimensions!");
+
+    std::vector<double> reals;
     std::stringstream v, f;
     std::size_t vcount = 0;
     std::size_t fcount = 0;
 
-    const Graph &graph = toBoostGraph();
-
-    auto stateToString = [&](const ompl::base::State *state) {
-        std::string out;
-        for (unsigned int i = 0; i < si_->getStateDimension(); ++i)
-            out += (i != 0u ? " " : "") + std::to_string(*si_->getStateSpace()->getValueAddressAtIndex(state, i));
-
-        return out;
+    auto stateOutput = [&](const ompl::base::State *state) {
+        space->copyToReals(reals, state);
+        std::copy(reals.begin(), reals.end(), std::ostream_iterator<double>(v, " "));
+        v << std::endl;
     };
+
+    const Graph &graph = toBoostGraph();
 
     BGL_FORALL_EDGES(edge, graph, PlannerData::Graph)
     {
@@ -813,21 +818,16 @@ void ompl::base::PlannerData::dumpGraph(std::ostream &out, const bool asIs) cons
             n = si_->getStateSpace()->validSegmentCount(source, target);
         si_->getMotionStates(source, target, stateList, n, true, true);
 
-        const State *to, *from = stateList[0];
-        v << stateToString(from) << "\n";
+        stateOutput(stateList[0]);
         vcount++;
-        bool reset = true;
         for (std::size_t i = 1; i < stateList.size(); i++)
         {
-            to = stateList[i];
-            from = stateList[i - 1];
-            v << stateToString(to) << "\n";
-            v << stateToString(from) << "\n";
+            stateOutput(stateList[i]);
+            stateOutput(stateList[i - 1]);
             vcount += 2;
-            f << 3 << " " << (reset ? vcount - 3 : vcount - 4) << " " << vcount - 2 << " " << vcount - 1 << "\n";
+            f << 3 << " " << vcount - 3 << " " << vcount - 2 << " " << vcount - 1 << "\n";
             fcount++;
             si_->freeState(stateList[i - 1]);
-            reset = false;
         }
         si_->freeState(stateList.back());
     }
@@ -836,8 +836,13 @@ void ompl::base::PlannerData::dumpGraph(std::ostream &out, const bool asIs) cons
     out << "format ascii 1.0\n";
     out << "element vertex " << vcount << "\n";
     out << "property float x\n";
-    out << "property float y\n";
-    out << "property float z\n";
+
+    if (dim > 1)
+        out << "property float y\n";
+
+    if (dim > 2)
+        out << "property float z\n";
+
     out << "element face " << fcount << "\n";
     out << "property list uint uint vertex_index\n";
     out << "end_header\n";
