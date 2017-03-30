@@ -73,31 +73,46 @@ bool ompl::base::NullspaceStateSpace::traverseManifold(const State *from, const 
         return true;
 
     if (!constraint_->isSatisfied(from))
+    {
+        // This happens too many times so just ignore it
+        // OMPL_DEBUG("ompl::base::ProjectedStateSpace::traverseManifold(): "
+        //            "'from' state not valid!");
         return false;
+    }
 
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
     double dist = distance(from, to);
+
+    StateType *previous = cloneState(from)->as<StateType>();
+    StateType *scratch = allocState()->as<StateType>();
 
     Eigen::VectorXd f(n_ - k_);
     Eigen::MatrixXd j(n_ - k_, n_);
 
     Eigen::VectorXd toV = to->as<StateType>()->constVectorView();
-    StateType *scratch = cloneState(from)->as<StateType>();
 
     bool there = false;
     while (!(there = dist < (delta_ + std::numeric_limits<double>::epsilon())))
     {
         // Compute the parameterization for interpolation
         double t = delta_ / dist;
+        RealVectorStateSpace::interpolate(previous, to, t, scratch);
 
-        constraint_->function(scratch->constVectorView(), f);
-        constraint_->jacobian(scratch->constVectorView(), j);
+        Eigen::Map<const Eigen::VectorXd> pV = previous->constVectorView();
+
+        constraint_->function(pV, f);
+        constraint_->jacobian(pV, j);
 
         Eigen::FullPivLU<Eigen::MatrixXd> lu = j.fullPivLu();
-        scratch->vectorView() += lu.solve(-f) + (lu.kernel().rowwise().reverse() * (toV - scratch->constVectorView())) * t;
+        scratch->vectorView() = pV - lu.solve(f) + lu.kernel().rowwise().reverse() * (scratch->constVectorView() - pV);
 
         // Make sure the new state is valid, or we don't care as we are simply interpolating
-        if (!(interpolate || svc->isValid(scratch)))
+        bool valid = interpolate || svc->isValid(scratch);
+
+        // Check if we have deviated too far from our previous state
+        bool deviated = distance(previous, scratch) > 2.0 * delta_;
+
+        if (!valid || deviated)
             break;
 
         // Store the new state
@@ -111,11 +126,13 @@ bool ompl::base::NullspaceStateSpace::traverseManifold(const State *from, const 
             break;
 
         dist = newDist;
+        copyState(previous, scratch);
     }
 
     if (there && stateList)
-        stateList->push_back(si_->cloneState(to));
+        stateList->push_back(si_->cloneState(to)->as<State>());
 
     freeState(scratch);
+    freeState(previous);
     return there;
 }
