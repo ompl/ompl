@@ -343,7 +343,8 @@ int main(int argc, char **argv)
 
         std::ofstream graphFile("graph.ply");
         ompl::base::PlannerData pd(si);
-        planner->getPlannerData(pd).printPLY(graphFile, false);
+        planner->getPlannerData(pd);
+        pd.printPLY(graphFile, false);
         graphFile.close();
 
         if (spaceType == ATLAS)
