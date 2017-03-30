@@ -69,13 +69,13 @@ namespace ompl
 
                 /** \brief Return whether point \a v on the owning chart
                  * lies within the halfspace. */
-                bool contains(Eigen::Ref<const Eigen::VectorXd> v) const;
+                bool contains(const Eigen::Ref<const Eigen::VectorXd>& v) const;
 
                 /** \brief If point \a v on the owning chart is very close to
                  * the halfspace boundary, the "complementary" halfspace will
                  * extend its boundary so that it also contains \a v when \a v
                  * is projected onto the neighboring chart. */
-                void checkNear(Eigen::Ref<const Eigen::VectorXd> v) const;
+                void checkNear(const Eigen::Ref<const Eigen::VectorXd>& v) const;
 
                 /// @cond IGNORE
 
@@ -84,7 +84,7 @@ namespace ompl
                  * to both \a v1 and \a v2; if two are found, they are stored to
                  * \a v1 and \a v2. If no vertex is found, returns false;
                  * otherwise returns true. */
-                bool circleIntersect(const double r, Eigen::Ref<Eigen::VectorXd> v1,
+                bool circleIntersect(double r, Eigen::Ref<Eigen::VectorXd> v1,
                                      Eigen::Ref<Eigen::VectorXd> v2) const;
 
                 /** \brief Compute the vertex of intersection of two
@@ -136,11 +136,11 @@ namespace ompl
                  * chart and the halfspace boundary as a scalar factor of
                  * \a u_. That is, \a result * \a u_ lies on the halfspace
                  * boundary, and \a v, \a u_, \a result * \a u_ are colinear. */
-                double distanceToPoint(Eigen::Ref<const Eigen::VectorXd> v) const;
+                double distanceToPoint(const Eigen::Ref<const Eigen::VectorXd>& v) const;
 
                 /** \brief Expand the halfspace to include ambient point \a x
                  * when it is projected onto our chart. */
-                void expandToInclude(Eigen::Ref<const Eigen::VectorXd> x);
+                void expandToInclude(const Eigen::Ref<const Eigen::VectorXd>& x);
             };
 
         public:
@@ -151,7 +151,7 @@ namespace ompl
             /** \brief Create a tangent space chart for \a atlas with center at
              * ambient space point \a xorigin.
              * \throws ompl::Exception when manifold seems degenerate here. */
-            AtlasChart(const AtlasStateSpace *atlas, Eigen::Ref<const Eigen::VectorXd> xorigin);
+            AtlasChart(const AtlasStateSpace *atlas, const Eigen::Ref<const Eigen::VectorXd>& xorigin);
 
             /** \brief Destructor. */
             virtual ~AtlasChart();
@@ -211,36 +211,36 @@ namespace ompl
              * and store the result in \a out, which should be allocated to size
              * n_.
              */
-            void phi(Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
+            void phi(const Eigen::Ref<const Eigen::VectorXd>& u, Eigen::Ref<Eigen::VectorXd> out) const;
 
             /** \brief Exponential mapping. Project chart point \a u onto the
              * manifold and store the result in \a out, which should be
              * allocated to size n_. */
-            bool psi(Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const;
+            bool psi(const Eigen::Ref<const Eigen::VectorXd>& u, const Eigen::Ref<Eigen::VectorXd>& out) const;
 
             /** \brief Same as AtlasChart::psi(), except it starts from an
              * ambient space point \a x0. */
-            bool psiFromAmbient(Eigen::Ref<const Eigen::VectorXd> x0, Eigen::Ref<Eigen::VectorXd> out) const;
+            bool psiFromAmbient(const Eigen::Ref<const Eigen::VectorXd>& x0, Eigen::Ref<Eigen::VectorXd> out) const;
 
             /** \brief Logarithmic mapping. Project ambient point \a x onto the
              * chart and store the result in \a out, which should be allocated
              * to size k_. */
-            void psiInverse(Eigen::Ref<const Eigen::VectorXd> x, Eigen::Ref<Eigen::VectorXd> out) const;
+            void psiInverse(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const;
 
             /** \brief Check if a point \a u on the chart lies within its
              * polytope boundary. Can ignore up to 2 of the halfspaces if
              * specified in \a ignore1 and \a ignore2. */
-            bool inPolytope(Eigen::Ref<const Eigen::VectorXd> u, const Halfspace *const ignore1 = nullptr,
-                            const Halfspace *const ignore2 = nullptr) const;
+            bool inPolytope(const Eigen::Ref<const Eigen::VectorXd>& u, const Halfspace *ignore1 = nullptr,
+                            const Halfspace *ignore2 = nullptr) const;
 
             /** \brief Check if chart point \a v lies very close to any part of
              * the boundary. Wherever it does, expand the neighboring chart's
              * boundary to include. */
-            void borderCheck(Eigen::Ref<const Eigen::VectorXd> v) const;
+            void borderCheck(const Eigen::Ref<const Eigen::VectorXd>& v) const;
 
             /** \brief Try to find an owner for ambient point \x from among the
              * neighbors of this chart. Returns nullptr if none found.*/
-            const AtlasChart *owningNeighbor(Eigen::Ref<const Eigen::VectorXd> x) const;
+            const AtlasChart *owningNeighbor(const Eigen::Ref<const Eigen::VectorXd>& x) const;
 
             /// @cond IGNORE
             /** \brief For manifolds of dimension 2, return in order in \a

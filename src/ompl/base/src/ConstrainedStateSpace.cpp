@@ -159,7 +159,7 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
     // on rare occasions, and I don't know why. This makes stateList empty.
     if (stateList.empty())
     {
-        if (lastValid.first)
+        if (lastValid.first != nullptr)
             ss_.copyState(lastValid.first, as1);
         lastValid.second = 0;
         return false;
@@ -173,7 +173,7 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
         ss_.freeState(stateList[i]);
     }
 
-    if (!reached && lastValid.first)
+    if (!reached && (lastValid.first != nullptr))
     {
         // Check if manifold traversal stopped early and set its final state as
         // lastValid.
@@ -192,7 +192,7 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
 void ompl::base::ConstrainedStateSpace::setSpaceInformation(const SpaceInformationPtr &si)
 {
     // Check that the object is valid
-    if (!si.get())
+    if (si.get() == nullptr)
         throw ompl::Exception("ompl::base::ProjectedStateSpace::setSpaceInformation(): "
                              "si is nullptr.");
     if (si->getStateSpace().get() != this)
@@ -206,7 +206,7 @@ void ompl::base::ConstrainedStateSpace::setSpaceInformation(const SpaceInformati
 
 void ompl::base::ConstrainedStateSpace::checkSpace(const SpaceInformation *si)
 {
-    if (!dynamic_cast<ConstrainedStateSpace *>(si->getStateSpace().get()))
+    if (dynamic_cast<ConstrainedStateSpace *>(si->getStateSpace().get()) == nullptr)
         throw ompl::Exception("ompl::base::ConstrainedStateSpace(): "
                              "si needs to use an ProjectedStateSpace!");
 }

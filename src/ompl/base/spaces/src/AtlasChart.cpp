@@ -52,12 +52,12 @@ ompl::base::AtlasChart::Halfspace::Halfspace(const AtlasChart *owner, const Atla
     setU(1.05 * u);
 }
 
-bool ompl::base::AtlasChart::Halfspace::contains(Eigen::Ref<const Eigen::VectorXd> v) const
+bool ompl::base::AtlasChart::Halfspace::contains(const Eigen::Ref<const Eigen::VectorXd>& v) const
 {
     return v.dot(u_) <= rhs_;
 }
 
-void ompl::base::AtlasChart::Halfspace::checkNear(Eigen::Ref<const Eigen::VectorXd> v) const
+void ompl::base::AtlasChart::Halfspace::checkNear(const Eigen::Ref<const Eigen::VectorXd>& v) const
 {
     // Threshold is 10% of the distance from the boundary to the origin.
     if (distanceToPoint(v) < 1.0 / 20)
@@ -121,13 +121,13 @@ void ompl::base::AtlasChart::Halfspace::setU(const Eigen::VectorXd &u)
     rhs_ = u_.squaredNorm() / 2;
 }
 
-double ompl::base::AtlasChart::Halfspace::distanceToPoint(Eigen::Ref<const Eigen::VectorXd> v) const
+double ompl::base::AtlasChart::Halfspace::distanceToPoint(const Eigen::Ref<const Eigen::VectorXd>& v) const
 {
     // Result is a scalar factor of u_.
     return (0.5 - v.dot(u_) / u_.squaredNorm());
 }
 
-void ompl::base::AtlasChart::Halfspace::expandToInclude(Eigen::Ref<const Eigen::VectorXd> x)
+void ompl::base::AtlasChart::Halfspace::expandToInclude(const Eigen::Ref<const Eigen::VectorXd>& x)
 {
     // Compute how far v = psiInverse(x) lies past the boundary, if at all.
     Eigen::VectorXd v(owner_->k_);
@@ -143,7 +143,7 @@ void ompl::base::AtlasChart::Halfspace::expandToInclude(Eigen::Ref<const Eigen::
 
 /// Public
 
-ompl::base::AtlasChart::AtlasChart(const AtlasStateSpace *atlas, Eigen::Ref<const Eigen::VectorXd> xorigin)
+ompl::base::AtlasChart::AtlasChart(const AtlasStateSpace *atlas, const Eigen::Ref<const Eigen::VectorXd>& xorigin)
   : atlas_(atlas)
   , constraint_(atlas->getConstraint())
   , n_(atlas_->getAmbientDimension())
@@ -179,12 +179,12 @@ void ompl::base::AtlasChart::clear()
     polytope_.clear();
 }
 
-void ompl::base::AtlasChart::phi(Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const
+void ompl::base::AtlasChart::phi(const Eigen::Ref<const Eigen::VectorXd>& u, Eigen::Ref<Eigen::VectorXd> out) const
 {
     out = xorigin_ + bigPhi_ * u;
 }
 
-bool ompl::base::AtlasChart::psi(Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref<Eigen::VectorXd> out) const
+bool ompl::base::AtlasChart::psi(const Eigen::Ref<const Eigen::VectorXd>& u, const Eigen::Ref<Eigen::VectorXd>& out) const
 {
     // Initial guess for Newton's method
     Eigen::VectorXd x0(n_);
@@ -192,7 +192,7 @@ bool ompl::base::AtlasChart::psi(Eigen::Ref<const Eigen::VectorXd> u, Eigen::Ref
     return psiFromAmbient(x0, out);
 }
 
-bool ompl::base::AtlasChart::psiFromAmbient(Eigen::Ref<const Eigen::VectorXd> x0, Eigen::Ref<Eigen::VectorXd> out) const
+bool ompl::base::AtlasChart::psiFromAmbient(const Eigen::Ref<const Eigen::VectorXd>& x0, Eigen::Ref<Eigen::VectorXd> out) const
 {
     // Newton's method.
     out = x0;
@@ -219,18 +219,15 @@ bool ompl::base::AtlasChart::psiFromAmbient(Eigen::Ref<const Eigen::VectorXd> x0
         b.tail(k_) = bigPhi_.transpose() * (out - x0);
     }
 
-    if (iter > constraint_->getProjectionMaxIterations())
-        return false;
-
-    return true;
+    return iter <= constraint_->getProjectionMaxIterations();
 }
 
-void ompl::base::AtlasChart::psiInverse(Eigen::Ref<const Eigen::VectorXd> x, Eigen::Ref<Eigen::VectorXd> out) const
+void ompl::base::AtlasChart::psiInverse(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const
 {
     out = bigPhi_.transpose() * (x - xorigin_);
 }
 
-bool ompl::base::AtlasChart::inPolytope(Eigen::Ref<const Eigen::VectorXd> u, const Halfspace *const ignore1,
+bool ompl::base::AtlasChart::inPolytope(const Eigen::Ref<const Eigen::VectorXd>& u, const Halfspace *const ignore1,
                                         const Halfspace *const ignore2) const
 {
     for (Halfspace *h : polytope_)
@@ -244,13 +241,13 @@ bool ompl::base::AtlasChart::inPolytope(Eigen::Ref<const Eigen::VectorXd> u, con
     return true;
 }
 
-void ompl::base::AtlasChart::borderCheck(Eigen::Ref<const Eigen::VectorXd> v) const
+void ompl::base::AtlasChart::borderCheck(const Eigen::Ref<const Eigen::VectorXd>& v) const
 {
     for (Halfspace *h : polytope_)
         h->checkNear(v);
 }
 
-const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor(Eigen::Ref<const Eigen::VectorXd> x) const
+const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
     Eigen::VectorXd projx(n_), proju(k_);
     for (Halfspace *h : polytope_)

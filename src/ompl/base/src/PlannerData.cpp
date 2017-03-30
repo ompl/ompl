@@ -795,9 +795,9 @@ void ompl::base::PlannerData::dumpGraph(std::ostream &out, const bool asIs) cons
     const Graph &graph = toBoostGraph();
 
     auto stateToString = [&](const ompl::base::State *state) {
-        std::string out = "";
+        std::string out;
         for (unsigned int i = 0; i < si_->getStateDimension(); ++i)
-            out += (i ? " " : "") + std::to_string(*si_->getStateSpace()->getValueAddressAtIndex(state, i));
+            out += (i != 0u ? " " : "") + std::to_string(*si_->getStateSpace()->getValueAddressAtIndex(state, i));
 
         return out;
     };

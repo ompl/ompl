@@ -51,7 +51,7 @@
 
 void ompl::base::NullspaceStateSpace::checkSpace(const SpaceInformation *si)
 {
-    if (!dynamic_cast<NullspaceStateSpace *>(si->getStateSpace().get()))
+    if (dynamic_cast<NullspaceStateSpace *>(si->getStateSpace().get()) == nullptr)
         throw ompl::Exception("ompl::base::NullspaceStateSpace(): "
                               "si needs to use an NullspaceStateSpace!");
 }
@@ -63,7 +63,7 @@ bool ompl::base::NullspaceStateSpace::traverseManifold(const State *from, const 
     int n = validSegmentCount(from, to);
 
     // Save a copy of the from state.
-    if (stateList)
+    if (stateList != nullptr)
     {
         stateList->clear();
         stateList->push_back(si_->cloneState(from)->as<State>());
@@ -116,7 +116,7 @@ bool ompl::base::NullspaceStateSpace::traverseManifold(const State *from, const 
             break;
 
         // Store the new state
-        if (stateList)
+        if (stateList != nullptr)
             stateList->push_back(si_->cloneState(scratch)->as<State>());
 
         // Check for divergence. Divergence is declared if we are no closer than
@@ -129,7 +129,7 @@ bool ompl::base::NullspaceStateSpace::traverseManifold(const State *from, const 
         copyState(previous, scratch);
     }
 
-    if (there && stateList)
+    if (there && (stateList != nullptr))
         stateList->push_back(si_->cloneState(to)->as<State>());
 
     freeState(scratch);

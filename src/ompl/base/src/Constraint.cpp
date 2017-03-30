@@ -37,12 +37,12 @@
 #include "ompl/base/Constraint.h"
 #include "ompl/base/ConstrainedStateSpace.h"
 
-void ompl::base::Constraint::function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const
+void ompl::base::Constraint::function(const State *state, const Eigen::Ref<Eigen::VectorXd>& out) const
 {
     function(state->as<ConstrainedStateSpace::StateType>()->constVectorView(), out);
 }
 
-void ompl::base::Constraint::jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const
+void ompl::base::Constraint::jacobian(const State *state, const Eigen::Ref<Eigen::MatrixXd>& out) const
 {
     jacobian(state->as<ConstrainedStateSpace::StateType>()->constVectorView(), out);
 }
@@ -115,10 +115,7 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
         function(x, f);
     }
 
-    if (iter > projectionMaxIterations_)
-        return false;
-
-    return true;
+    return iter <= projectionMaxIterations_;
 }
 
 double ompl::base::Constraint::distance(const Eigen::VectorXd &x) const

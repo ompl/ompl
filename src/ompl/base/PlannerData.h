@@ -395,7 +395,7 @@ namespace ompl
 
             /** \brief Write a mesh of the planner graph to a stream. Insert
              * additional vertices if \a asIs == true. */
-            void dumpGraph(std::ostream &out, const bool asIs = false) const;
+            void dumpGraph(std::ostream &out, bool asIs = false) const;
 
             /// \}
 

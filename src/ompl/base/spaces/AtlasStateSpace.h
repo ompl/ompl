@@ -83,11 +83,11 @@ namespace ompl
             /** \brief Sample a state uniformly from the ball with center \a
              * near and radius \a distance. Return sample in \a state.
              * \note rho_s_ is a good choice for \a distance. */
-            virtual void sampleUniformNear(State *state, const State *near, const double distance);
+            virtual void sampleUniformNear(State *state, const State *near, double distance);
 
             /** \brief Sample a state uniformly from a normal distribution with
                 given \a mean and \a stdDev. Return sample in \a state. */
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+            virtual void sampleGaussian(State *state, const State *mean, double stdDev);
 
         private:
             /** \brief Atlas on which to sample. */
@@ -112,7 +112,7 @@ namespace ompl
             /** \brief Sample a valid state uniformly from the ball with center
              * \a near and radius \a distance. Return sample in \a state.
              * \note rho_s_ is a good choice for \a distance. */
-            virtual bool sampleNear(State *state, const State *near, const double distance);
+            virtual bool sampleNear(State *state, const State *near, double distance);
 
         private:
             /** \brief Underlying ordinary atlas state sampler. */
@@ -247,7 +247,7 @@ namespace ompl
                 lambda_ = lambda;
             }
 
-            void setSeparate(const bool separate);
+            void setSeparate(bool separate);
 
             /** \brief Sometimes manifold traversal creates many charts. This
              * parameter limits the number of charts that can be created during
@@ -340,7 +340,7 @@ namespace ompl
              * including a copy of \a from, as well as the final state, which is
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. */
-            bool traverseManifold(const State *from, const State*to, const bool interpolate = false,
+            bool traverseManifold(const State *from, const State*to, bool interpolate = false,
                                   std::vector<State *> *stateList = nullptr) const;
 
             /** @} */
@@ -354,7 +354,7 @@ namespace ompl
              * 'from' and 'to' states are the first and last elements \a
              * stateList. Assumes \a stateList contains at least two
              * elements. */
-            unsigned int piecewiseInterpolate(const std::vector<State *> &stateList, const double t, State *state) const;
+            unsigned int piecewiseInterpolate(const std::vector<State *> &stateList, double t, State *state) const;
 
             /** \brief Return an instance of the AtlasStateSampler. */
             StateSamplerPtr allocDefaultStateSampler(void) const;

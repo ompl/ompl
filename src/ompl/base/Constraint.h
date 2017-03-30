@@ -87,14 +87,14 @@ namespace ompl
 
             /** \brief Compute the constraint function at \a state. Result is
              * returned in \a out, which should be allocated to size n_. */
-            void function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const;
+            void function(const State *state, const Eigen::Ref<Eigen::VectorXd>& out) const;
 
             /** \brief Compute the Jacobian of the constraint function at \a
              * state. Result is returned in \a out, which should be allocated to
              * size (n_ - k_) by n_. Default implementation performs the
              * differentiation numerically, which may be slower and/or more
              * inaccurate than an explicit formula. */
-            void jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const;
+            void jacobian(const State *state, const Eigen::Ref<Eigen::MatrixXd>& out) const;
 
             /** \brief Project a state \a state given the constraints. If a valid
              * projection cannot be found, this method will return false. */

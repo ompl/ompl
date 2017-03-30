@@ -73,11 +73,11 @@ namespace ompl
             /** \brief Sample a state uniformly from the ball with center \a
              * near and radius \a distance. Return sample in \a state.
              * \note rho_s_ is a good choice for \a distance. */
-            virtual void sampleUniformNear(State *state, const State *near, const double distance);
+            virtual void sampleUniformNear(State *state, const State *near, double distance);
 
             /** \brief Sample a state uniformly from a normal distribution with
                 given \a mean and \a stdDev. Return sample in \a state. */
-            virtual void sampleGaussian(State *state, const State *mean, const double stdDev);
+            virtual void sampleGaussian(State *state, const State *mean, double stdDev);
 
         private:
             /** \brief Space on which to sample. */
@@ -102,7 +102,7 @@ namespace ompl
             /** \brief Sample a valid state uniformly from the ball with center
              * \a near and radius \a distance. Return sample in \a state.
              * \note rho_s_ is a good choice for \a distance. */
-            virtual bool sampleNear(State *state, const State *near, const double distance);
+            virtual bool sampleNear(State *state, const State *near, double distance);
 
         private:
             /** \brief Underlying ordinary atlas state sampler. */
@@ -153,7 +153,7 @@ namespace ompl
             {
             public:
                 /** \brief Construct state of size \a n. */
-                StateType(const unsigned int &n) : RealVectorStateSpace::StateType(), n_(n)
+                StateType(const unsigned int &n) : n_(n)
                 {
                     // Do what RealVectorStateSpace::allocState() would have done.
                     values = new double[n_];
@@ -229,7 +229,7 @@ namespace ompl
                 if (setup_)
                     return;
 
-                if (!si_)
+                if (si_ == nullptr)
                     throw ompl::Exception("ompl::base::ConstrainedStateSpace::setup(): "
                                          "Must associate a SpaceInformation object to the ConstrainedStateSpace via "
                                          "setStateInformation() before use.");
@@ -297,14 +297,14 @@ namespace ompl
              * including a copy of \a from, as well as the final state, which is
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. */
-            virtual bool traverseManifold(const State *from, const State *to, const bool interpolate = false,
+            virtual bool traverseManifold(const State *from, const State *to, bool interpolate = false,
                                           std::vector<State *> *stateList = nullptr) const = 0;
 
             /** \brief Find the state between \a from and \a to at time \a t,
              * where \a t = 0 is \a from, and \a t = 1 is the final state
              * reached by followManifold(\a from, \a to, true, ...), which may
              * not be \a to. State returned in \a state. */
-            void interpolate(const State *from, const State *to, const double t, State *state) const;
+            void interpolate(const State *from, const State *to, double t, State *state) const;
 
             /** \brief Like interpolate(...), but uses the information about
              * intermediate states already supplied in \a stateList from a
@@ -312,7 +312,7 @@ namespace ompl
              * 'from' and 'to' states are the first and last elements \a
              * stateList. Assumes \a stateList contains at least two
              * elements. */
-            unsigned int piecewiseInterpolate(const std::vector<State *> &stateList, const double t, State *state) const;
+            unsigned int piecewiseInterpolate(const std::vector<State *> &stateList, double t, State *state) const;
 
             StateSamplerPtr allocDefaultStateSampler() const
             {

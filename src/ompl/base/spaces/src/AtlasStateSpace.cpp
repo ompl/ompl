@@ -111,12 +111,12 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     Eigen::Ref<const Eigen::VectorXd> n = anear->constVectorView();
     Eigen::VectorXd rx(atlas_.getAmbientDimension()), ru(atlas_.getManifoldDimension());
     AtlasChart *c = anear->getChart();
-    if (!c)
+    if (c == nullptr)
     {
         c = atlas_.owningChart(n);
-        if (!c)
+        if (c == nullptr)
             c = atlas_.newChart(n);
-        if (!c)
+        if (c == nullptr)
         {
             OMPL_ERROR("ompl::base::AtlasStateSpace::sampleUniformNear(): "
                        "Sampling failed because chart creation failed! Falling back to uniform sample.");
@@ -167,12 +167,12 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
     const std::size_t k = atlas_.getManifoldDimension();
     Eigen::VectorXd rx(atlas_.getAmbientDimension()), ru(k);
     AtlasChart *c = amean->getChart();
-    if (!c)
+    if (c == nullptr)
     {
         c = atlas_.owningChart(m);
-        if (!c)
+        if (c == nullptr)
             c = atlas_.newChart(m);
-        if (!c)
+        if (c == nullptr)
         {
             OMPL_ERROR("ompl::base::AtlasStateSpace::sampleGaussian(): "
                        "Sampling failed because chart creation failed! Falling back to uniform sample.");
@@ -271,7 +271,7 @@ ompl::base::AtlasStateSpace::~AtlasStateSpace()
 /// Static.
 void ompl::base::AtlasStateSpace::checkSpace(const SpaceInformation *si)
 {
-    if (!dynamic_cast<AtlasStateSpace *>(si->getStateSpace().get()))
+    if (dynamic_cast<AtlasStateSpace *>(si->getStateSpace().get()) == nullptr)
         throw ompl::Exception("ompl::base::AtlasStateSpace(): "
                               "si needs to use an AtlasStateSpace!");
 }
@@ -327,7 +327,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const Eigen::Ve
 {
     // This could fail with an exception. We cannot recover if that happens.
     AtlasChart *c = newChart(xorigin);
-    if (!c)
+    if (c == nullptr)
     {
         throw ompl::Exception("ompl::base::AtlasStateSpace::anchorChart(): "
                               "Initial chart creation failed. Cannot proceed.");
@@ -417,12 +417,12 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     Eigen::VectorXd x_b = toT->constVectorView();
     Eigen::Ref<const Eigen::VectorXd> x_a = fromT->constVectorView();
     AtlasChart *c = fromT->getChart();
-    if (!c)
+    if (c == nullptr)
     {
         c = owningChart(x_a);
-        if (!c)
+        if (c == nullptr)
             c = newChart(x_a);
-        if (!c)
+        if (c == nullptr)
         {
             OMPL_DEBUG("ompl::base::AtlasStateSpace::traverseManifold(): "
                        "'from' state has no chart!");
@@ -451,7 +451,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     c->psiInverse(x_b, u_b);
 
     // Save a copy of the from state.
-    if (stateList)
+    if (stateList != nullptr)
     {
         stateList->clear();
         stateList->push_back(si_->cloneState(from));
@@ -492,12 +492,12 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         {
             // Find or make a new chart.
             c = owningChart(x_j);
-            if (!c)
+            if (c == nullptr)
             {
                 c = newChart(x_j);
                 chartsCreated++;
             }
-            if (!c)
+            if (c == nullptr)
             {
                 // Pretend like we hit an obstacle.
                 OMPL_ERROR("ompl::base::AtlasStateSpace::traverseManifold(): "
@@ -511,7 +511,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         }
 
         // Keep the state in a list, if requested.
-        if (stateList)
+        if (stateList != nullptr)
             stateList->push_back(si_->cloneState(currentState));
     }
 
@@ -525,10 +525,10 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     const bool reached = ((x_b - x_j).squaredNorm() <= delta_ * delta_) && currentValid && goalValid;
 
     // Append a copy of the target state, since we're within delta, but didn't hit it exactly.
-    if (reached && stateList)
+    if (reached && (stateList != nullptr))
     {
         State *scratch = si_->cloneState(to);
-        if (!toT->getChart())
+        if (toT->getChart() == nullptr)
             scratch->as<StateType>()->setChart(c);
         stateList->push_back(scratch);
     }
@@ -555,7 +555,7 @@ unsigned int ompl::base::AtlasStateSpace::piecewiseInterpolate(const std::vector
     else
     {
         AtlasChart *c = owningChart(x);
-        if (!c)
+        if (c == nullptr)
             c = newChart(x);
         astate->setChart(c);
     }
@@ -572,7 +572,7 @@ int ompl::base::AtlasStateSpace::estimateFrontierPercent() const
 {
     int frontier = 0;
     for (AtlasChart *c : charts_)
-        frontier += c->estimateIsFrontier();
+        frontier += static_cast<int>(c->estimateIsFrontier());
     return (100 * frontier) / charts_.size();
 }
 
