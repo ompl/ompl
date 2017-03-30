@@ -34,170 +34,14 @@
 
 /* Author: Zachary Kingston */
 
-#include <thread>
 #include <ompl/tools/benchmark/Benchmark.h>
-
 #include "ConstrainedPlanningCommon.h"
-
-// const char *planners[] = {"EST", "PRM", "RRT", "RRTConnect", "KPIECE1"};
-// const char *planners[] = {"RRTConnect"};
-
-/** Print usage information. Does not return. */
-void usage(const char *const progname)
-{
-    std::cout << "Usage: " << progname << " <problem> <timelimit> <runcount>\n";
-    printProblems();
-    exit(0);
-}
-
-// void atlasBench(int argc, char **argv)
-// {
-//     // Initialize the atlas
-//     Eigen::VectorXd x, y;
-//     ompl::base::StateValidityCheckerFn isValid;
-
-//     ompl::base::Constraint *constraint = parseProblem(argv[1], x, y, isValid);
-//     ompl::base::AtlasStateSpacePtr atlas(new ompl::base::AtlasStateSpace(constraint->getAmbientSpace(), constraint));
-//     if (!atlas)
-//         usage(argv[0]);
-
-//     // All the 'Constrained' classes are loose wrappers for the normal
-//     // classes. No effect except on the two special planners.
-//     ompl::geometric::SimpleSetup ss(atlas);
-//     ompl::base::SpaceInformationPtr si = ss.getSpaceInformation();
-//     atlas->setSpaceInformation(si);
-//     ss.setStateValidityChecker(isValid);
-//     si->setValidStateSamplerAllocator(avssa);
-
-//     // Atlas parameters
-//     atlas->setExploration(0.5);
-//     atlas->setRho(0.5);  // 0.2
-//     atlas->setAlpha(M_PI / 8);
-//     atlas->setEpsilon(0.2);  // 0.1
-//     atlas->setDelta(0.02);
-//     atlas->setMaxChartsPerExtension(200);
-
-//     // The atlas needs some place to start sampling from, so we manually seed
-//     // charts at the start and goal.
-//     {
-//         ompl::base::AtlasChart *startChart = atlas->anchorChart(x);
-//         ompl::base::AtlasChart *goalChart = atlas->anchorChart(y);
-//         ompl::base::ScopedState<> start(atlas);
-//         ompl::base::ScopedState<> goal(atlas);
-//         start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
-//         goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
-//         ss.setStartAndGoalStates(start, goal);
-//     }
-
-//     // Bounds
-//     ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());
-//     bounds.setLow(-10);
-//     bounds.setHigh(10);
-//     atlas->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
-//     atlas->setup();
-
-//     // Set up the benchmark for all the planners
-//     ompl::tools::Benchmark bench(ss, argv[1]);
-//     const double runtime_limit = std::atof(argv[2]);
-//     if (runtime_limit <= 0)
-//         usage(argv[0]);
-//     const double memory_limit = 2048;
-//     const int run_count = std::atoi(argv[3]);
-//     if (run_count < 1)
-//         usage(argv[0]);
-//     const double update_interval = 0.05;
-//     const bool progress = true;
-//     const bool save_output = false;
-//     const bool use_threads = true;
-//     const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
-//                                                   save_output, use_threads, false);
-//     for (auto &planner : planners)
-//     {
-//         ompl::base::PlannerPtr pptr(parsePlanner(planner, si, atlas->getRho_s()));
-//         pptr->setName(pptr->getName() + "+A");
-//         bench.addPlanner(pptr);
-//     }
-//     bench.setPreRunEvent([](const ompl::base::PlannerPtr &planner) {
-//         ompl::base::AtlasStateSpace *ss =
-//             planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>();
-//         ss->clear();
-//     });
-//     // Execute
-//     bench.benchmark(request);
-//     bench.saveResultsToFile("atlas.log");
-// }
-
-// void projBench(int argc, char **argv)
-// {
-//     // Initialize the atlas
-//     Eigen::VectorXd x, y;
-//     ompl::base::StateValidityCheckerFn isValid;
-
-//     ompl::base::Constraint *constraint = parseProblem(argv[1], x, y, isValid);
-//     ompl::base::ProjectedStateSpacePtr proj(
-//         new ompl::base::ProjectedStateSpace(constraint->getAmbientSpace(), constraint));
-//     if (!proj)
-//         usage(argv[0]);
-
-//     // All the 'Constrained' classes are loose wrappers for the normal
-//     // classes. No effect except on the two special planners.
-//     ompl::geometric::SimpleSetup ss(proj);
-//     ompl::base::SpaceInformationPtr si = ss.getSpaceInformation();
-//     proj->setSpaceInformation(si);
-//     ss.setStateValidityChecker(isValid);
-//     si->setValidStateSamplerAllocator(pvssa);
-
-//     // The proj needs some place to start sampling from, so we manually seed
-//     // charts at the start and goal.
-//     {
-//         ompl::base::ScopedState<> start(proj);
-//         ompl::base::ScopedState<> goal(proj);
-//         start->as<ompl::base::ProjectedStateSpace::StateType>()->setRealState(x);
-//         goal->as<ompl::base::ProjectedStateSpace::StateType>()->setRealState(y);
-//         ss.setStartAndGoalStates(start, goal);
-//     }
-
-//     // Bounds
-//     ompl::base::RealVectorBounds bounds(proj->getAmbientDimension());
-//     bounds.setLow(-10);
-//     bounds.setHigh(10);
-//     proj->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
-//     proj->setup();
-
-//     // Set up the benchmark for all the planners
-//     ompl::tools::Benchmark bench(ss, argv[1]);
-//     const double runtime_limit = std::atof(argv[2]);
-//     if (runtime_limit <= 0)
-//         usage(argv[0]);
-//     const double memory_limit = 2048;
-//     const int run_count = std::atoi(argv[3]);
-//     if (run_count < 1)
-//         usage(argv[0]);
-//     const double update_interval = 0.05;
-//     const bool progress = true;
-//     const bool save_output = false;
-//     const bool use_threads = true;
-//     const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
-//                                                   save_output, use_threads, false);
-//     for (auto &planner : planners)
-//     {
-//         ompl::base::PlannerPtr pptr(parsePlanner(planner, si, 0.707));
-//         pptr->setName(pptr->getName() + "+P");
-//         bench.addPlanner(pptr);
-//     }
-//     bench.setPreRunEvent([](const ompl::base::PlannerPtr &planner) {
-//         ompl::base::ProjectedStateSpace *ss =
-//             planner->getSpaceInformation()->getStateSpace()->as<ompl::base::ProjectedStateSpace>();
-//         ss->clear();
-//     });
-
-//     // Execute
-//     bench.benchmark(request);
-//     bench.saveResultsToFile("proj.log");
-// }
 
 void projectedChainBench(int links, double sleep, const char *planner)
 {
+    std::cout << "Beginning benchmark for ProjectedStateSpace with " + std::string(planner) << std::endl;
+    std::cout << "  " + std::to_string(links) + " links & " + std::to_string(sleep) + "s artificial sleep" << std::endl;
+
     // Initialize the atlas
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
@@ -207,48 +51,43 @@ void projectedChainBench(int links, double sleep, const char *planner)
     ompl::base::ProjectedStateSpacePtr projected(
         new ompl::base::ProjectedStateSpace(constraint->getAmbientSpace(), constraint));
 
-    // All the 'Constrained' classes are loose wrappers for the normal
-    // classes. No effect except on the two special planners.
-    ompl::geometric::SimpleSetup ss(projected);
-    ompl::base::SpaceInformationPtr si = ss.getSpaceInformation();
-
-    projected->setSpaceInformation(si);
-    ss.setStateValidityChecker(isValid);
-    si->setValidStateSamplerAllocator(pvssa);
-
     projected->setDelta(0.02);
 
-    // The atlas needs some place to start sampling from, so we manually seed
-    // charts at the start and goal.
+    ompl::geometric::SimpleSetup ss(projected);
+    ss.setStateValidityChecker(isValid);
+
+    ompl::base::SpaceInformationPtr si = ss.getSpaceInformation();
+    projected->setSpaceInformation(si);
+    si->setValidStateSamplerAllocator(pvssa);
+
     {
         ompl::base::ScopedState<> start(projected);
         ompl::base::ScopedState<> goal(projected);
         start->as<ompl::base::ProjectedStateSpace::StateType>()->setRealState(x);
         goal->as<ompl::base::ProjectedStateSpace::StateType>()->setRealState(y);
+
         ss.setStartAndGoalStates(start, goal);
     }
 
-    // Bounds
     ompl::base::RealVectorBounds bounds(projected->getAmbientDimension());
     bounds.setLow(-links);
     bounds.setHigh(links);
-
     projected->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
-    projected->registerProjection("chain", ompl::base::ProjectionEvaluatorPtr(new ChainProjection(projected, 3, links)));
+
+    projected->registerDefaultProjection(ompl::base::ProjectionEvaluatorPtr(new ChainProjection(projected, 3, links)));
 
     projected->setup();
 
-    // Set up the benchmark for all the planners
     ompl::tools::Benchmark bench(ss, "chain");
 
-    bench.addExperimentParameter("number_dofs", "INTEGER", std::to_string(links));
+    bench.addExperimentParameter("number_dofs", "INTEGER", std::to_string(3 * links));
     bench.addExperimentParameter("collision_check_time", "REAL", std::to_string(sleep));
     bench.addExperimentParameter("delta", "REAL", std::to_string(projected->getDelta()));
 
-    const double runtime_limit = 60;
+    const double runtime_limit = 30;
     const double memory_limit = 2048;
-    const int run_count = 100;
-    const double update_interval = 0.05;
+    const int run_count = 10;
+    const double update_interval = 1;
     const bool progress = false;
     const bool save_output = false;
     const bool use_threads = true;
@@ -259,9 +98,6 @@ void projectedChainBench(int links, double sleep, const char *planner)
     ompl::base::PlannerPtr pptr(parsePlanner(planner, si, 0.707));
     pptr->setName(pptr->getName() + "+P");
 
-    if (strcmp(planner, "KPIECE1") == 0)
-        pptr->as<ompl::geometric::KPIECE1>()->setProjectionEvaluator("chain");
-
     bench.addPlanner(pptr);
 
     bench.setPreRunEvent([](const ompl::base::PlannerPtr &planner) {
@@ -269,45 +105,35 @@ void projectedChainBench(int links, double sleep, const char *planner)
         static unsigned int run = 0;
         if (currentPlanner != planner->getName())
         {
-            // The planner has changed.
             run = 0;
             currentPlanner = planner->getName();
         }
         std::cout << currentPlanner << " run " << run++ << "\n";
 
-        planner->clear();
-
         ompl::base::ProjectedStateSpace *ss =
             planner->getSpaceInformation()->getStateSpace()->as<ompl::base::ProjectedStateSpace>();
+
+        planner->clear();
         ss->clear();
     });
 
-    // Execute
     bench.benchmark(request);
+
     std::string file = std::string(planner) + "+P_" + std::to_string(links) + "_" + std::to_string(sleep) + ".log";
     bench.saveResultsToFile(file.c_str());
 }
 
 void atlasChainBench(int links, double sleep, const char *planner)
 {
-    // Initialize the atlas
+    std::cout << "Beginning benchmark for AtlasStateSpace with " + std::string(planner) << std::endl;
+    std::cout << "  " + std::to_string(links) + " links & " + std::to_string(sleep) + "s artificial sleep" << std::endl;
+
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
 
     ompl::base::Constraint *constraint = initChainProblem(x, y, isValid, sleep, links);
-
     ompl::base::AtlasStateSpacePtr atlas(new ompl::base::AtlasStateSpace(constraint->getAmbientSpace(), constraint));
 
-    // All the 'Constrained' classes are loose wrappers for the normal
-    // classes. No effect except on the two special planners.
-    ompl::geometric::SimpleSetup ss(atlas);
-    ompl::base::SpaceInformationPtr si = ss.getSpaceInformation();
-
-    atlas->setSpaceInformation(si);
-    ss.setStateValidityChecker(isValid);
-    si->setValidStateSamplerAllocator(avssa);
-
-    // Atlas parameters
     atlas->setExploration(0.8);
     atlas->setRho(0.5);  // 0.2
     atlas->setAlpha(M_PI / 8);
@@ -315,8 +141,13 @@ void atlasChainBench(int links, double sleep, const char *planner)
     atlas->setDelta(0.02);
     atlas->setMaxChartsPerExtension(200);
 
-    // The atlas needs some place to start sampling from, so we manually seed
-    // charts at the start and goal.
+    ompl::geometric::SimpleSetup ss(atlas);
+    ss.setStateValidityChecker(isValid);
+
+    ompl::base::SpaceInformationPtr si = ss.getSpaceInformation();
+    atlas->setSpaceInformation(si);
+    si->setValidStateSamplerAllocator(avssa);
+
     {
         ompl::base::AtlasChart *startChart = atlas->anchorChart(x);
         ompl::base::AtlasChart *goalChart = atlas->anchorChart(y);
@@ -327,39 +158,34 @@ void atlasChainBench(int links, double sleep, const char *planner)
         ss.setStartAndGoalStates(start, goal);
     }
 
-    // Bounds
     ompl::base::RealVectorBounds bounds(atlas->getAmbientDimension());
     bounds.setLow(-links);
     bounds.setHigh(links);
-
     atlas->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
-    atlas->registerProjection("chain", ompl::base::ProjectionEvaluatorPtr(new ChainProjection(atlas, 3, links)));
+
+    atlas->registerDefaultProjection(ompl::base::ProjectionEvaluatorPtr(new ChainProjection(atlas, 3, links)));
 
     atlas->setup();
 
-    // Set up the benchmark for all the planners
     ompl::tools::Benchmark bench(ss, "chain");
 
-    bench.addExperimentParameter("number_dofs", "INTEGER", std::to_string(links));
+    bench.addExperimentParameter("number_dofs", "INTEGER", std::to_string(3 * links));
     bench.addExperimentParameter("collision_check_time", "REAL", std::to_string(sleep));
     bench.addExperimentParameter("delta", "REAL", std::to_string(atlas->getDelta()));
 
-    const double runtime_limit = 1;
-    const double memory_limit = 4096;
-    const int run_count = 100;
+    const double runtime_limit = 30;
+    const double memory_limit = 2048;
+    const int run_count = 10;
     const double update_interval = 0.05;
     const bool progress = false;
     const bool save_output = false;
-    const bool use_threads = false;
+    const bool use_threads = true;
     const bool simplify = true;
     const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
                                                   save_output, use_threads, simplify);
 
     ompl::base::PlannerPtr pptr(parsePlanner(planner, si, 0.707));
     pptr->setName(pptr->getName() + "+A");
-
-    if (strcmp(planner, "KPIECE1") == 0)
-        pptr->as<ompl::geometric::KPIECE1>()->setProjectionEvaluator("chain");
 
     bench.addPlanner(pptr);
 
@@ -368,23 +194,29 @@ void atlasChainBench(int links, double sleep, const char *planner)
         static unsigned int run = 0;
         if (currentPlanner != planner->getName())
         {
-            // The planner has changed.
             run = 0;
             currentPlanner = planner->getName();
         }
         std::cout << currentPlanner << " run " << run++ << "\n";
 
-        planner->clear();
-
         ompl::base::AtlasStateSpace *ss =
             planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>();
+
+        planner->clear();
         ss->clear();
     });
 
-    // Execute
     bench.benchmark(request);
+
     std::string file = std::string(planner) + "+A_" + std::to_string(links) + "_" + std::to_string(sleep) + ".log";
     bench.saveResultsToFile(file.c_str());
+}
+
+void usage()
+{
+    std::cout << "Invalid parameters." << std::endl;
+    std::cout << "  ConstrainedBenchmark <n links> <sleep> <planner> <projected/atlas>" << std::endl;
+    printPlanners();
 }
 
 int main(int argc, char **argv)
@@ -392,6 +224,9 @@ int main(int argc, char **argv)
     int links = atoi(argv[1]);
     double sleep = atof(argv[2]);
 
-    // projectedChainBench(links, sleep, argv[3]);
-    atlasChainBench(links, sleep, argv[3]);
+    if (strcmp(argv[4], "atlas") == 0)
+        atlasChainBench(links, sleep, argv[3]);
+
+    else if (strcmp(argv[4], "projected") == 0)
+        projectedChainBench(links, sleep, argv[3]);
 }

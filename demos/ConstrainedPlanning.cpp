@@ -233,7 +233,6 @@ int main(int argc, char **argv)
         }
     }
 
-
     ss->setStateValidityChecker(isValid);
 
     // Choose the planner.
