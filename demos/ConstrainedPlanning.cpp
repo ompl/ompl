@@ -148,7 +148,7 @@ int main(int argc, char **argv)
     ompl::geometric::SimpleSetupPtr ss;
     ompl::base::SpaceInformationPtr si;
 
-    double range = 0.707;
+    double range = 1;
 
     switch (spaceType)
     {
@@ -157,14 +157,12 @@ int main(int argc, char **argv)
             ompl::base::AtlasStateSpacePtr atlas(
                 new ompl::base::AtlasStateSpace(constraint->getAmbientSpace(), constraint));
 
-            atlas->setExploration(0.5);
+            atlas->setExploration(0.9);
             atlas->setAlpha(M_PI / 8);
             atlas->setMaxChartsPerExtension(200);
             atlas->setRho(0.5);
             atlas->setEpsilon(0.2);
             atlas->setSeparate(tb);
-
-            // range = atlas->getRho_s();
 
             ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(atlas));
             si = ss->getSpaceInformation();
@@ -267,16 +265,6 @@ int main(int argc, char **argv)
 
     ss->setup();
 
-    css->setDelta(0.02);
-
-    if (spaceType == ATLAS)
-    {
-        css->as<ompl::base::AtlasStateSpace>()->setExploration(0.90);
-        // css->as<ompl::base::AtlasStateSpace>()->setRho(css->getMaximumExtent() / 500);
-        // css->as<ompl::base::AtlasStateSpace>()->setEpsilon(css->getMaximumExtent() / 500);
-        // css->as<ompl::base::AtlasStateSpace>()->setMaxChartsPerExtension(css->getMaximumExtent() * 100);
-    }
-
     std::clock_t tstart = std::clock();
 
     ompl::base::PlannerStatus stat;
@@ -307,7 +295,7 @@ int main(int argc, char **argv)
         {
             std::cout << "Dumping path mesh..." << std::endl;
             std::ofstream pathFile("path.ply");
-            path.dumpPath(pathFile);
+            path.printPLY(pathFile);
             pathFile.close();
         }
 
@@ -323,12 +311,7 @@ int main(int argc, char **argv)
         {
             std::cout << "Dumping animation file..." << std::endl;
             std::ofstream animFile("anim.txt");
-            for (std::size_t i = 0; i < waypoints.size() - 1; i++)
-                animFile << waypoints[i]
-                                ->as<ompl::base::ConstrainedStateSpace::StateType>()
-                                ->constVectorView()
-                                .transpose()
-                         << "\n";
+            path.printAsMatrix(animFile);
             animFile.close();
         }
 
@@ -357,10 +340,10 @@ int main(int argc, char **argv)
     if (x.size() == 3 && output)
     {
         std::cout << "Dumping graph mesh..." << std::endl;
+
         std::ofstream graphFile("graph.ply");
         ompl::base::PlannerData pd(si);
-        planner->getPlannerData(pd);
-        pd.dumpGraph(graphFile, false);
+        planner->getPlannerData(pd).printPLY(graphFile, false);
         graphFile.close();
 
         if (spaceType == ATLAS)

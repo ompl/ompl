@@ -264,19 +264,19 @@ public:
     {
     }
 
-    virtual unsigned int getDimension(void) const
+    unsigned int getDimension(void) const
     {
         return 2;
     }
 
-    virtual void defaultCellSizes(void)
+    void defaultCellSizes(void)
     {
         cellSizes_.resize(2);
         cellSizes_[0] = 0.1;
         cellSizes_[1] = 0.1;
     }
 
-    virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
+    void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
     {
         Eigen::Ref<const Eigen::VectorXd> x =
             state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
