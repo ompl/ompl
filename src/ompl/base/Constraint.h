@@ -126,7 +126,7 @@ namespace ompl
             {
                 if (k <= 0)
                     throw ompl::Exception("ompl::base::Constraint(): "
-                                         "Space is over constrained!");
+                                          "Space is over constrained!");
                 k_ = k;
             }
 
@@ -263,10 +263,77 @@ namespace ompl
             void addConstraint(Constraint *constraint)
             {
                 if (constraint->getAmbientSpace() != ambientSpace_)
-                    throw ompl::Exception("ompl::base::CompoundConstraint(): "
+                    throw ompl::Exception("ompl::base::ConstraintIntersection(): "
                                           "Constraint spaces must be the same.");
 
                 setManifoldDimension(k_ - constraint->getCoDimension());
+                constraints_.push_back(constraint);
+            }
+
+            std::vector<Constraint *> constraints_;
+        };
+
+        /** \brief Definition of a constraint on (a portion of) the state space. */
+        class ConstraintUnion : public Constraint
+        {
+        public:
+            /** \brief Constructor. If constraints is empty assume it will be filled later. */
+            ConstraintUnion(StateSpace *ambientSpace, std::initializer_list<Constraint *> constraints)
+              : Constraint(ambientSpace, ambientSpace->getDimension())
+            {
+                for (auto constraint : constraints)
+                    addConstraint(constraint);
+            }
+
+            ~ConstraintUnion()
+            {
+                for (auto constraint : constraints_)
+                    delete constraint;
+            }
+
+            const Constraint *closest(const Eigen::VectorXd &x) const
+            {
+                Eigen::VectorXd f(n_ - k_);
+
+                Constraint *c = nullptr;
+                double min = std::numeric_limits<double>::max();
+
+                for (auto constraint : constraints_)
+                {
+                    double v = constraint->distance(x);
+                    if (v < min)
+                    {
+                        c = constraint;
+                        min = v;
+                    }
+                }
+
+                return c;
+            }
+
+            void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+            {
+                closest(x)->function(x, out);
+            }
+
+            void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+            {
+                closest(x)->jacobian(x, out);
+            }
+
+        private:
+            void addConstraint(Constraint *constraint)
+            {
+                if (constraint->getAmbientSpace() != ambientSpace_)
+                    throw ompl::Exception("ompl::base::ConstraintUnion(): "
+                                          "Constraint spaces must be the same.");
+
+                if (k_ == n_)
+                    setManifoldDimension(constraint->getManifoldDimension());
+                else if (k_ != constraint->getManifoldDimension())
+                    throw ompl::Exception("ompl::base::ConstraintUnion(): "
+                                          "Manifold Dimensions must be the same.");
+
                 constraints_.push_back(constraint);
             }
 

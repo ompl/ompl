@@ -92,8 +92,8 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
     {
         // Consider decreasing rho and/or the exploration paramter if this
         // becomes a problem.
-        // OMPL_WARN("ompl::base::AtlasStateSpace::sampleUniform(): "
-        //           "Took too long; returning center of a random chart.");
+        OMPL_WARN("ompl::base::AtlasStateSpace::sampleUniform(): "
+                  "Took too long; returning center of a random chart.");
         rx = c->getXorigin();
     }
 
