@@ -65,10 +65,6 @@ namespace ompl
         class Constraint
         {
         public:
-            // non-copyable
-            Constraint(const Constraint &) = delete;
-            Constraint &operator=(const Constraint &) = delete;
-
             /** \brief Constructor. */
             Constraint(const StateSpace *ambientSpace, const unsigned int manifoldDimension)
               : ambientSpace_(ambientSpace)
@@ -77,12 +73,9 @@ namespace ompl
               , projectionTolerance_(magic::CONSTRAINT_PROJECTION_TOLERANCE)
               , projectionMaxIterations_(magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS)
             {
-                // if (n_ <= 0 || k_ <= 0)
-                //     throw ompl::Exception("ompl::base::Constraint(): "
-                //                           "Ambient and manifold dimensions must be positive.");
-                // if (n_ <= k_)
-                //     throw ompl::Exception("ompl::base::Constraint(): "
-                //                           "Manifold dimension must be less than ambient dimension.");
+                if (n_ <= 0 || k_ <= 0)
+                    throw ompl::Exception("ompl::base::Constraint(): "
+                                          "Ambient and manifold dimensions must be positive.");
             }
 
             virtual ~Constraint()
