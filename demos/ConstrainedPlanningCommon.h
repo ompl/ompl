@@ -368,7 +368,7 @@ ompl::base::Constraint *initPlaneSphereProblem(Eigen::VectorXd &x, Eigen::Vector
     // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is
     // faster)
     ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
-    return new ompl::base::CompoundConstraint(space, {new PlaneConstraint(space), new SphereConstraint(space)});
+    return new ompl::base::ConstraintIntersection(space, {new PlaneConstraint(space), new SphereConstraint(space)});
 }
 
 ompl::base::Constraint *initPlaneProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,

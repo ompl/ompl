@@ -346,7 +346,7 @@ int main(int argc, char **argv)
         pd.printPLY(graphFile, false);
         graphFile.close();
 
-        if (spaceType == ATLAS)
+        if (constraint->getManifoldDimension() == 2 && spaceType == ATLAS)
         {
             std::cout << "Dumping atlas mesh..." << std::endl;
             std::ofstream atlasFile("atlas.ply");

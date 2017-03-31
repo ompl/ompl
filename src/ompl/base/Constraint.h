@@ -85,6 +85,10 @@ namespace ompl
                 //                           "Manifold dimension must be less than ambient dimension.");
             }
 
+            virtual ~Constraint()
+            {
+            }
+
             /** \brief Compute the constraint function at \a state. Result is
              * returned in \a out, which should be allocated to size n_. */
             void function(const State *state, const Eigen::Ref<Eigen::VectorXd> &out) const;
@@ -116,6 +120,14 @@ namespace ompl
             unsigned int getManifoldDimension() const
             {
                 return k_;
+            }
+
+            void setManifoldDimension(unsigned int k)
+            {
+                if (k <= 0)
+                    throw ompl::Exception("ompl::base::Constraint(): "
+                                         "Space is over constrained!");
+                k_ = k;
             }
 
             /** \brief Returns the dimension of the manifold. */
@@ -209,25 +221,27 @@ namespace ompl
         /// @endcond
 
         /** \brief Definition of a constraint on (a portion of) the state space. */
-        class CompoundConstraint : public Constraint
+        class ConstraintIntersection : public Constraint
         {
         public:
             /** \brief Constructor. If constraints is empty assume it will be filled later. */
-            CompoundConstraint(StateSpace *ambientSpace, std::initializer_list<Constraint *> constraints)
+            ConstraintIntersection(StateSpace *ambientSpace, std::initializer_list<Constraint *> constraints)
               : Constraint(ambientSpace, ambientSpace->getDimension())
             {
                 for (auto constraint : constraints)
                     addConstraint(constraint);
             }
 
-            ~CompoundConstraint()
+            ~ConstraintIntersection()
             {
+                for (auto constraint : constraints_)
+                    delete constraint;
             }
 
             void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
             {
                 unsigned int i = 0;
-                for (Constraint *constraint : constraints_)
+                for (auto constraint : constraints_)
                 {
                     unsigned int j = i + constraint->getCoDimension();
                     constraint->function(x, out.segment(i, j));
@@ -238,7 +252,7 @@ namespace ompl
             void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
             {
                 unsigned int i = 0;
-                for (Constraint *constraint : constraints_)
+                for (auto constraint : constraints_)
                 {
                     constraint->jacobian(x, out.block(i, 0, constraint->getCoDimension(), n_));
                     i += constraint->getCoDimension();
@@ -252,13 +266,7 @@ namespace ompl
                     throw ompl::Exception("ompl::base::CompoundConstraint(): "
                                           "Constraint spaces must be the same.");
 
-                const unsigned int k = k_ - constraint->getCoDimension();
-
-                if (k <= 0)
-                    throw ompl::Exception("ompl::base::CompoundConstraint(): "
-                                          "Space is over constrained!");
-
-                k_ = k;
+                setManifoldDimension(k_ - constraint->getCoDimension());
                 constraints_.push_back(constraint);
             }
 
