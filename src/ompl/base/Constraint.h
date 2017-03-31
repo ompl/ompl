@@ -77,24 +77,24 @@ namespace ompl
               , projectionTolerance_(magic::CONSTRAINT_PROJECTION_TOLERANCE)
               , projectionMaxIterations_(magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS)
             {
-                if (n_ <= 0 || k_ <= 0)
-                    throw ompl::Exception("ompl::base::Constraint(): "
-                                          "Ambient and manifold dimensions must be positive.");
-                if (n_ <= k_)
-                    throw ompl::Exception("ompl::base::Constraint(): "
-                                          "Manifold dimension must be less than ambient dimension.");
+                // if (n_ <= 0 || k_ <= 0)
+                //     throw ompl::Exception("ompl::base::Constraint(): "
+                //                           "Ambient and manifold dimensions must be positive.");
+                // if (n_ <= k_)
+                //     throw ompl::Exception("ompl::base::Constraint(): "
+                //                           "Manifold dimension must be less than ambient dimension.");
             }
 
             /** \brief Compute the constraint function at \a state. Result is
              * returned in \a out, which should be allocated to size n_. */
-            void function(const State *state, const Eigen::Ref<Eigen::VectorXd>& out) const;
+            void function(const State *state, const Eigen::Ref<Eigen::VectorXd> &out) const;
 
             /** \brief Compute the Jacobian of the constraint function at \a
              * state. Result is returned in \a out, which should be allocated to
              * size (n_ - k_) by n_. Default implementation performs the
              * differentiation numerically, which may be slower and/or more
              * inaccurate than an explicit formula. */
-            void jacobian(const State *state, const Eigen::Ref<Eigen::MatrixXd>& out) const;
+            void jacobian(const State *state, const Eigen::Ref<Eigen::MatrixXd> &out) const;
 
             /** \brief Project a state \a state given the constraints. If a valid
              * projection cannot be found, this method will return false. */
@@ -116,6 +116,12 @@ namespace ompl
             unsigned int getManifoldDimension() const
             {
                 return k_;
+            }
+
+            /** \brief Returns the dimension of the manifold. */
+            unsigned int getCoDimension() const
+            {
+                return n_ - k_;
             }
 
             /** \brief Returns the tolerance of the projection routine. */
@@ -189,14 +195,75 @@ namespace ompl
             const unsigned int n_;
 
             /** \brief Manifold dimension. */
-            const unsigned int k_;
+            unsigned int k_;
 
             /** \brief Tolerance for Newton method used in projection onto manifold. */
             double projectionTolerance_;
 
             /** \brief Maximum number of iterations for Newton method used in projection onto manifold. */
             unsigned int projectionMaxIterations_;
-       };
+        };
+
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(Constraint);
+        /// @endcond
+
+        /** \brief Definition of a constraint on (a portion of) the state space. */
+        class CompoundConstraint : public Constraint
+        {
+        public:
+            /** \brief Constructor. If constraints is empty assume it will be filled later. */
+            CompoundConstraint(StateSpace *ambientSpace, std::initializer_list<Constraint *> constraints)
+              : Constraint(ambientSpace, ambientSpace->getDimension())
+            {
+                for (auto constraint : constraints)
+                    addConstraint(constraint);
+            }
+
+            ~CompoundConstraint()
+            {
+            }
+
+            void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+            {
+                unsigned int i = 0;
+                for (Constraint *constraint : constraints_)
+                {
+                    unsigned int j = i + constraint->getCoDimension();
+                    constraint->function(x, out.segment(i, j));
+                    i = j;
+                }
+            }
+
+            void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+            {
+                unsigned int i = 0;
+                for (Constraint *constraint : constraints_)
+                {
+                    constraint->jacobian(x, out.block(i, 0, constraint->getCoDimension(), n_));
+                    i += constraint->getCoDimension();
+                }
+            }
+
+        private:
+            void addConstraint(Constraint *constraint)
+            {
+                if (constraint->getAmbientSpace() != ambientSpace_)
+                    throw ompl::Exception("ompl::base::CompoundConstraint(): "
+                                          "Constraint spaces must be the same.");
+
+                const unsigned int k = k_ - constraint->getCoDimension();
+
+                if (k <= 0)
+                    throw ompl::Exception("ompl::base::CompoundConstraint(): "
+                                          "Space is over constrained!");
+
+                k_ = k;
+                constraints_.push_back(constraint);
+            }
+
+            std::vector<Constraint *> constraints_;
+        };
     }
 }
 

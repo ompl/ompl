@@ -350,6 +350,27 @@ bool unreachable(double sleep, const ompl::base::State *state, const Eigen::Vect
  * and the validity checker \a isValid.
  */
 
+/** Initialize the atlas for the sphere problem and store the start and goal vectors. */
+ompl::base::Constraint *initPlaneSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                          ompl::base::StateValidityCheckerFn &isValid, double sleep)
+{
+    const std::size_t dim = 3;
+
+    // Start and goal points
+    x = Eigen::VectorXd(dim);
+    x << 1, 0, 0;
+    y = Eigen::VectorXd(dim);
+    y << -1, 0, 0;
+
+    // Validity checker
+    isValid = std::bind(&always, sleep, std::placeholders::_1);
+
+    // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is
+    // faster)
+    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
+    return new ompl::base::CompoundConstraint(space, {new PlaneConstraint(space), new SphereConstraint(space)});
+}
+
 ompl::base::Constraint *initPlaneProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
                                          ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
@@ -499,7 +520,7 @@ ompl::base::ValidStateSamplerPtr pvssa(const ompl::base::SpaceInformation *si)
 void printProblems(void)
 {
     std::cout << "Available problems:\n";
-    std::cout << "    plane sphere torus klein chain\n";
+    std::cout << "    plane sphere circle torus klein chain\n";
 }
 
 /** Print usage information. */
@@ -520,12 +541,15 @@ ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd 
         return initPlaneProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "sphere") == 0)
         return initSphereProblem(x, y, isValid, sleep);
+    else if (std::strcmp(problem, "circle") == 0)
+        return initPlaneSphereProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "torus") == 0)
         return initTorusProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "klein") == 0)
         return initKleinProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "chain") == 0)
         return initChainProblem(x, y, isValid, sleep, links);
+
     else
         return NULL;
 }
