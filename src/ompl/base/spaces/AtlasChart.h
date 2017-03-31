@@ -111,6 +111,11 @@ namespace ompl
                     return owner_;
                 }
 
+                Eigen::Ref<const Eigen::VectorXd> getU() const
+                {
+                    return u_;
+                }
+
                 /// @endcond
 
             private:
