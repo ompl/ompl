@@ -269,7 +269,7 @@ namespace ompl
             /** \brief The constraint function that defines the manifold. */
             const Constraint *constraint_;
 
-            /** \brief Set of halfsaces defining the polytope boundary. */
+            /** \brief Set of halfspaces defining the polytope boundary. */
             std::vector<Halfspace *> polytope_;
 
             /** \brief Introduce a new \a halfspace to the chart's bounding
@@ -288,20 +288,20 @@ namespace ompl
             /** \brief Origin of the chart in ambient space coordinates. */
             const Eigen::VectorXd xorigin_;
 
+            /** \brief Basis for the chart space. */
+            const Eigen::MatrixXd bigPhi_;
+
             /** \brief Maximum valid radius of this chart. */
-            double radius_;
+            const double radius_;
 
             /** \brief Maximum valid distance to manifold from this chart. */
-            double epsilon_;
+            const double epsilon_;
 
             /** \brief Whether this chart is an anchor chart in the atlas. */
             bool isAnchor_ = false;
 
             /** \brief Unique ID in the atlas. Must be manually set. */
             unsigned int id_ = 0;
-
-            /** \brief Basis for the chart space. */
-            Eigen::MatrixXd bigPhi_;
         };
     }
 }
