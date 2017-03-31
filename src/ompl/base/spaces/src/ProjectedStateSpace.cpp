@@ -73,12 +73,7 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
         return true;
 
     if (!constraint_->isSatisfied(from))
-    {
-        // This happens too many times so just ignore it
-        // OMPL_DEBUG("ompl::base::ProjectedStateSpace::traverseManifold(): "
-        //            "'from' state not valid!");
         return false;
-    }
 
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
     double dist = distance(from, to);
@@ -94,14 +89,9 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
         RealVectorStateSpace::interpolate(previous, to, t, scratch);
 
         // Project new state onto constraint manifold
-        bool onManifold = constraint_->project(scratch);
-
-        // Make sure the new state is valid, or we don't care as we are simply interpolating
-        bool valid = interpolate || svc->isValid(scratch);
-
-        // Check if we have deviated too far from our previous state
-        bool deviated = distance(previous, scratch) > 2.0 * delta_;
-
+        const bool onManifold = constraint_->project(scratch);
+        const bool valid = interpolate || svc->isValid(scratch);
+        const bool deviated = distance(previous, scratch) > 2.0 * delta_;
         if (!onManifold || !valid || deviated)
             break;
 

@@ -157,11 +157,10 @@ int main(int argc, char **argv)
             ompl::base::AtlasStateSpacePtr atlas(
                 new ompl::base::AtlasStateSpace(constraint->getAmbientSpace(), constraint));
 
-            atlas->setExploration(0.9);
-            atlas->setAlpha(M_PI / 8);
-            atlas->setMaxChartsPerExtension(200);
-            atlas->setRho(0.5);
-            atlas->setEpsilon(0.2);
+            // atlas->setExploration(0.6);
+            atlas->setRho(0.5);         // default is 0.1
+            atlas->setAlpha(M_PI / 8);  // default is pi/16
+            atlas->setEpsilon(0.2);     // default is 0.2
             atlas->setSeparate(tb);
 
             ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(atlas));
@@ -351,7 +350,7 @@ int main(int argc, char **argv)
         {
             std::cout << "Dumping atlas mesh..." << std::endl;
             std::ofstream atlasFile("atlas.ply");
-            css->as<ompl::base::AtlasStateSpace>()->dumpMesh(atlasFile);
+            css->as<ompl::base::AtlasStateSpace>()->printPLY(atlasFile);
             atlasFile.close();
         }
     }

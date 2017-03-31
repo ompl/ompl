@@ -325,6 +325,10 @@ namespace ompl
              * no chart found. Assumes \a x is already on the manifold. */
             AtlasChart *owningChart(const Eigen::VectorXd &x) const;
 
+            /** \brief Wrapper to return chart \a state belongs to. Will attempt
+             * to initialize new chart if \a state does not belong to one. */
+            AtlasChart *getChart(const StateType *state) const;
+
             /** Compute the distance between two charts represented by
              * nearest-neighbor elements. */
             static double chartNNDistanceFunction(const NNElement &e1, const NNElement &e2);
@@ -388,10 +392,10 @@ namespace ompl
             /** \brief Estimate what percentage of atlas charts do not have
              * fully formed polytope boundaries, and are therefore on the
              * frontier. */
-            int estimateFrontierPercent() const;
+            double estimateFrontierPercent() const;
 
             /** \brief Write a mesh representation of the atlas to a stream. */
-            void dumpMesh(std::ostream &out) const;
+            void printPLY(std::ostream &out) const;
 
             /** @} */
 
