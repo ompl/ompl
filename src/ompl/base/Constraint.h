@@ -252,7 +252,7 @@ namespace ompl
                 }
             }
 
-        private:
+        protected:
             void addConstraint(Constraint *constraint)
             {
                 if (constraint->getAmbientSpace() != ambientSpace_)
@@ -314,7 +314,7 @@ namespace ompl
                 closest(x)->jacobian(x, out);
             }
 
-        private:
+        protected:
             void addConstraint(Constraint *constraint)
             {
                 if (constraint->getAmbientSpace() != ambientSpace_)

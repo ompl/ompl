@@ -66,8 +66,6 @@
 #include <ompl/geometric/planners/sbl/SBL.h>
 #include <ompl/geometric/planners/stride/STRIDE.h>
 
-
-
 /** Simple manifold example: the unit sphere. */
 class SphereConstraint : public ompl::base::Constraint
 {
@@ -167,55 +165,228 @@ public:
     }
 };
 
-/** Kinematic chain manifold. */
-class ChainConstraint : public ompl::base::Constraint
+class StewartChain : public ompl::base::Constraint
 {
 public:
-    ChainConstraint(ompl::base::StateSpace *space, unsigned int dim, unsigned int links)
-      : ompl::base::Constraint(space, (dim - 1) * links - 1)
-      , dim_(dim)
+    StewartChain(ompl::base::StateSpace *space, Eigen::VectorXd offset, unsigned int links, unsigned int id,
+                 double length = 1, double jointSize = 0.2)
+      : ompl::base::Constraint(space, 2 * links)
+      , offset_(offset)
       , links_(links)
-      , length_(1.0)
-      , radius_((links - 4) + 2)
-      , jointSize_(0.2)
+      , id_(id)
+      , length_(length)
+      , jointSize_(jointSize)
     {
-        std::cout << "Ambient dimension: " << getAmbientDimension() << "\n";
-        std::cout << "Manifold dimension: " << getManifoldDimension() << "\n";
+        if (links % 2 == 0)
+            throw ompl::Exception("Number of links must be odd!");
+    }
+
+    void getStart(Eigen::Ref<Eigen::VectorXd> x)
+    {
+        unsigned int offset = 3 * links_ * id_;
+        for (unsigned int i = 0; i < links_; ++i)
+            x.segment(3 * i + offset, 3) = offset_ + Eigen::Vector3d::UnitZ() * i;
+    }
+
+    void getGoal(Eigen::Ref<Eigen::VectorXd> x)
+    {
+        unsigned int offset = 3 * links_ * id_;
+
+        for (unsigned int i = 0; i < links_; ++i)
+            x.segment(3 * i + offset, 3) = offset_ + Eigen::Vector3d::UnitZ() * i;
     }
 
     void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
-        // Consecutive joints must be a fixed distance apart.
-        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(dim_);
-        for (unsigned int i = 0; i < links_; i++)
-        {
-            const Eigen::VectorXd joint2 = x.segment(dim_ * i, dim_);
-            out[i] = (joint1 - joint2).norm() - length_;
-            joint1 = joint2;
-        }
+        Eigen::VectorXd j1 = offset_;
+        unsigned int offset = 3 * links_ * id_;
 
-        out[links_] = x.tail(dim_).norm() - radius_;
+        for (unsigned int i = 0; i < links_; ++i)
+        {
+            const Eigen::VectorXd j2 = x.segment(3 * i + offset, 3);
+            out[i] = (j1 - j2).norm() - length_;
+            j1 = j2;
+        }
     }
 
     void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         out.setZero();
-        Eigen::VectorXd plus(dim_ * (links_ + 1));
-        plus.head(dim_ * links_) = x;
-        plus.tail(dim_) = Eigen::VectorXd::Zero(dim_);
+        Eigen::VectorXd plus(3 * (links_ + 1));
+        plus.head(3 * links_) = x;
+        plus.tail(3) = Eigen::VectorXd::Zero(3);
 
-        Eigen::VectorXd minus(dim_ * (links_ + 1));
-        minus.head(dim_) = Eigen::VectorXd::Zero(dim_);
-        minus.tail(dim_ * links_) = x;
+        Eigen::VectorXd minus(3 * (links_ + 1));
+        minus.head(3) = Eigen::VectorXd::Zero(3);
+        minus.tail(3 * links_) = x;
 
         const Eigen::VectorXd diagonal = plus - minus;
 
         for (unsigned int i = 0; i < links_; i++)
-            out.row(i).segment(dim_ * i, dim_) = diagonal.segment(dim_ * i, dim_).normalized();
+            out.row(i).segment(3 * i, 3) = diagonal.segment(3 * i, 3).normalized();
 
-        out.block(1, 0, links_, dim_ * (links_ - 1)) -= out.block(1, dim_, links_, dim_ * (links_ - 1));
+        out.block(1, 0, links_, 3 * (links_ - 1)) -= out.block(1, 3, links_, 3 * (links_ - 1));
+    }
 
-        out.row(links_).tail(dim_) = -diagonal.tail(dim_).normalized().transpose();
+private:
+    const Eigen::VectorXd offset_;
+    const unsigned int links_;
+    const unsigned int id_;
+    const double length_;
+    const double jointSize_;
+};
+
+class StewartPlatform : public ompl::base::Constraint
+{
+public:
+    StewartPlatform(ompl::base::StateSpace *space, unsigned int chains, unsigned int links, double radius = 1)
+      : ompl::base::Constraint(space, space->getDimension() - (chains / 2 + chains))
+      , chains_(chains)
+      , links_(links)
+      , radius_(radius)
+    {
+    }
+
+    void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    {
+        unsigned int idx = 0;
+        unsigned int chainOffsets[chains_];
+
+        for (unsigned int i = 0; i < chains_; ++i)
+            chainOffsets[i] = 3 * links_ * i;
+
+        for (unsigned int i = 0; i < chains_ / 2; ++i)
+            out[idx++] =
+                (x.segment(chainOffsets[i], 3) - x.segment(chainOffsets[i + chains_ / 2], 3)).norm() - radius_ * 2;
+
+        double d = sqrt(2) * radius_;
+        for (unsigned int i = 0; i < chains_ - 1; ++i)
+            out[idx++] = (x.segment(chainOffsets[i], 3) - x.segment(chainOffsets[i + 1], 3)).norm() - d;
+    }
+
+private:
+    const unsigned int chains_;
+    const unsigned int links_;
+    const double radius_;
+};
+
+class StewartConstraint : public ompl::base::ConstraintIntersection
+{
+public:
+    StewartConstraint(ompl::base::StateSpace *space, unsigned int chains, unsigned int links, double radius = 1,
+                      double length = 1, double jointSize = 0.2)
+      : ompl::base::ConstraintIntersection(space, {})
+      , chains_(chains)
+      , links_(links)
+      , radius_(radius)
+      , length_(length)
+      , jointSize_(jointSize)
+    {
+        if (chains % 2)
+            throw ompl::Exception("Number of chains must be even!");
+
+        Eigen::VectorXd offset = Eigen::Vector3d::UnitX();
+        for (unsigned int i = 0; i < chains_; ++i)
+        {
+            addConstraint(new StewartChain(space, offset, links, i, length, jointSize));
+            offset = Eigen::AngleAxisd(2 * M_PI / static_cast<double>(chains), Eigen::Vector3d::UnitZ()) * offset;
+        }
+
+        addConstraint(new StewartPlatform(space, chains, links, radius));
+    }
+
+    void getStart(Eigen::Ref<Eigen::VectorXd> x)
+    {
+        for (auto constraint : constraints_)
+            dynamic_cast<StewartChain *>(constraint)->getStart(x);
+    }
+
+    void getGoal(Eigen::Ref<Eigen::VectorXd> x)
+    {
+        for (auto constraint : constraints_)
+            dynamic_cast<StewartChain *>(constraint)->getGoal(x);
+    }
+
+    bool isValid(const ompl::base::State *state)
+    {
+        Eigen::Ref<const Eigen::VectorXd> x =
+            state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
+
+        for (unsigned int i = 0; i < links_; ++i)
+        {
+            if (x.segment(3 * i, 3)[2] < 0)
+                return false;
+        }
+
+        for (unsigned int i = 0; i < links_ - 1; ++i)
+        {
+            if (x.segment(3 * i, 3).cwiseAbs().maxCoeff() < jointSize_)
+                return false;
+
+            for (unsigned int j = i + 1; j < links_; ++j)
+                if ((x.segment(3 * i, 3) - x.segment(3 * j, 3)).cwiseAbs().maxCoeff() < jointSize_)
+                    return false;
+        }
+
+        return true;
+    }
+
+private:
+    const unsigned int chains_;
+    const unsigned int links_;
+    const double radius_;
+    const double length_;
+    const double jointSize_;
+};
+
+/** Kinematic chain manifold. */
+class ChainConstraint : public ompl::base::Constraint
+{
+public:
+    ChainConstraint(ompl::base::StateSpace *space, unsigned int links)
+      : ompl::base::Constraint(space, 2 * links - 1)
+      , links_(links)
+      , length_(1.0)
+      , radius_((links - 4) + 2)
+      , jointSize_(0.2)
+    {
+        std::cout << "Ambient dimension: " << getAmbientDimension() << std::endl;
+        std::cout << "Manifold dimension: " << getManifoldDimension() << std::endl;
+    }
+
+    void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    {
+        // Consecutive joints must be a fixed distance apart.
+        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(3);
+        for (unsigned int i = 0; i < links_; i++)
+        {
+            const Eigen::VectorXd joint2 = x.segment(3 * i, 3);
+            out[i] = (joint1 - joint2).norm() - length_;
+            joint1 = joint2;
+        }
+
+        out[links_] = x.tail(3).norm() - radius_;
+    }
+
+    void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    {
+        out.setZero();
+        Eigen::VectorXd plus(3 * (links_ + 1));
+        plus.head(3 * links_) = x;
+        plus.tail(3) = Eigen::VectorXd::Zero(3);
+
+        Eigen::VectorXd minus(3 * (links_ + 1));
+        minus.head(3) = Eigen::VectorXd::Zero(3);
+        minus.tail(3 * links_) = x;
+
+        const Eigen::VectorXd diagonal = plus - minus;
+
+        for (unsigned int i = 0; i < links_; i++)
+            out.row(i).segment(3 * i, 3) = diagonal.segment(3 * i, 3).normalized();
+
+        out.block(1, 0, links_, 3 * (links_ - 1)) -= out.block(1, 3, links_, 3 * (links_ - 1));
+
+        out.row(links_).tail(3) = -diagonal.tail(3).normalized().transpose();
     }
 
     /** Joints may not get touch each other. If \a tough == true, then the end
@@ -225,22 +396,23 @@ public:
     {
         std::this_thread::sleep_for(ompl::time::seconds(sleep));
 
-        Eigen::Ref<const Eigen::VectorXd> x = state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
+        Eigen::Ref<const Eigen::VectorXd> x =
+            state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
 
         for (unsigned int i = 0; i < links_; i++)
         {
-            if (x.segment(dim_ * i, dim_)[2] < 0)
+            if (x.segment(3 * i, 3)[2] < 0)
                 return false;
         }
 
         for (unsigned int i = 0; i < links_ - 1; i++)
         {
-            if (x.segment(dim_ * i, dim_).cwiseAbs().maxCoeff() < jointSize_)
+            if (x.segment(3 * i, 3).cwiseAbs().maxCoeff() < jointSize_)
                 return false;
 
             for (unsigned int j = i + 1; j < links_; j++)
             {
-                if ((x.segment(dim_ * i, dim_) - x.segment(dim_ * j, dim_)).cwiseAbs().maxCoeff() < jointSize_)
+                if ((x.segment(3 * i, 3) - x.segment(3 * j, 3)).cwiseAbs().maxCoeff() < jointSize_)
                     return false;
             }
         }
@@ -249,7 +421,6 @@ public:
     }
 
 private:
-    const unsigned int dim_;    // Workspace dimension.
     const unsigned int links_;  // Number of chain links.
     const double length_;       // Length of one link.
     const double radius_;       // Radius of the sphere that the end effector is constrained to.
@@ -284,7 +455,6 @@ public:
         projection(1) = acos(x[2]);
     }
 };
-
 
 class ChainProjection : public ompl::base::ProjectionEvaluator
 {
@@ -322,7 +492,6 @@ private:
     const unsigned int links_;  // Number of chain links.
     double radius_;
 };
-
 
 /**
  * State validity checking functions implicitly define the free space where they return true.
@@ -382,7 +551,7 @@ bool unreachable(double sleep, const ompl::base::State *state, const Eigen::Vect
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
 ompl::base::Constraint *initPlaneSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                          ompl::base::StateValidityCheckerFn &isValid, double sleep)
+                                               ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
     const std::size_t dim = 3;
 
@@ -478,8 +647,7 @@ ompl::base::Constraint *initKleinProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
 
 /** Initialize the atlas for the kinematic chain problem. */
 ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                         ompl::base::StateValidityCheckerFn &isValid, double sleep,
-                                         int links = 20)
+                                         ompl::base::StateValidityCheckerFn &isValid, double sleep, int links = 20)
 {
     const std::size_t dim = 3 * links;
 
@@ -491,47 +659,67 @@ ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
     int i = 0;
     for (; i < links - 3; ++i)
     {
-        x[3 * i    ] = i + 1;
+        x[3 * i] = i + 1;
         x[3 * i + 1] = 0;
         x[3 * i + 2] = 0;
 
-        y[3 * i    ] = -(i + 1);
+        y[3 * i] = -(i + 1);
         y[3 * i + 1] = 0;
         y[3 * i + 2] = 0;
     }
 
-    x[3 * i    ] = i;
+    x[3 * i] = i;
     x[3 * i + 1] = -1;
     x[3 * i + 2] = 0;
 
-    y[3 * i    ] = -i;
+    y[3 * i] = -i;
     y[3 * i + 1] = 1;
     y[3 * i + 2] = 0;
 
     i++;
 
-    x[3 * i    ] = i;
+    x[3 * i] = i;
     x[3 * i + 1] = -1;
     x[3 * i + 2] = 0;
 
-    y[3 * i    ] = -i;
+    y[3 * i] = -i;
     y[3 * i + 1] = 1;
     y[3 * i + 2] = 0;
 
     i++;
 
-    x[3 * i    ] = i - 1;
+    x[3 * i] = i - 1;
     x[3 * i + 1] = 0;
     x[3 * i + 2] = 0;
 
-    y[3 * i    ] = -(i - 1);
+    y[3 * i] = -(i - 1);
     y[3 * i + 1] = 0;
     y[3 * i + 2] = 0;
 
     ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(dim);
-    ChainConstraint *atlas = new ChainConstraint(space, 3, links);
+    ChainConstraint *atlas = new ChainConstraint(space, links);
     isValid = std::bind(&ChainConstraint::isValid, atlas, sleep, std::placeholders::_1);
     return atlas;
+}
+
+/** Initialize the atlas for the kinematic chain problem. */
+ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                           ompl::base::StateValidityCheckerFn &isValid, double sleep,
+                                           unsigned int links = 3, unsigned int chains = 2)
+{
+    unsigned int dim = 3 * links * chains;
+    x = Eigen::VectorXd(dim);
+    y = Eigen::VectorXd(dim);
+
+    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(dim);
+    StewartConstraint *constraint = new StewartConstraint(space, chains, links);
+
+    constraint->getStart(x);
+    constraint->getGoal(y);
+
+    isValid = std::bind(&StewartConstraint::isValid, constraint, std::placeholders::_1);
+
+    return constraint;
 }
 
 /** Allocator function for a sampler for the atlas that only returns valid points. */
@@ -550,7 +738,7 @@ ompl::base::ValidStateSamplerPtr pvssa(const ompl::base::SpaceInformation *si)
 void printProblems(void)
 {
     std::cout << "Available problems:\n";
-    std::cout << "    plane sphere circle torus klein chain\n";
+    std::cout << "    plane sphere circle torus klein chain stewart\n";
 }
 
 /** Print usage information. */
@@ -565,7 +753,8 @@ void printPlanners(void)
 
 /** Initialize the problem specified in the string. */
 ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                   ompl::base::StateValidityCheckerFn &isValid, double sleep = 0, unsigned int links = 5)
+                                     ompl::base::StateValidityCheckerFn &isValid, double sleep = 0,
+                                     unsigned int links = 5)
 {
     if (std::strcmp(problem, "plane") == 0)
         return initPlaneProblem(x, y, isValid, sleep);
@@ -579,7 +768,8 @@ ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd 
         return initKleinProblem(x, y, isValid, sleep);
     else if (std::strcmp(problem, "chain") == 0)
         return initChainProblem(x, y, isValid, sleep, links);
-
+    else if (std::strcmp(problem, "stewart") == 0)
+        return initStewartProblem(x, y, isValid, sleep);
     else
         return NULL;
 }
