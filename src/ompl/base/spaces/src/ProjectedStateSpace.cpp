@@ -59,21 +59,20 @@ void ompl::base::ProjectedStateSpace::checkSpace(const SpaceInformation *si)
 bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
                                                        std::vector<State *> *stateList) const
 {
-    // number of discrete steps between a and b in the state space
-    int n = validSegmentCount(from, to);
+    // We can move along the manifold if we were never there in the first place
+    if (!constraint_->isSatisfied(from))
+        return false;
 
     // Save a copy of the from state.
     if (stateList != nullptr)
     {
         stateList->clear();
-        stateList->push_back(si_->cloneState(from)->as<State>());
+        stateList->push_back(si_->cloneState(from));
     }
 
-    if (n == 0)  // don't divide by zero
+    // No need to traverse the manifold if we are already there
+    if (validSegmentCount(from, to) == 0)
         return true;
-
-    if (!constraint_->isSatisfied(from))
-        return false;
 
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
     double dist = distance(from, to);
@@ -85,8 +84,7 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
     while (!(there = dist < (delta_ + std::numeric_limits<double>::epsilon())))
     {
         // Compute the parameterization for interpolation
-        double t = delta_ / dist;
-        RealVectorStateSpace::interpolate(previous, to, t, scratch);
+        RealVectorStateSpace::interpolate(previous, to, delta_ / dist, scratch);
 
         // Project new state onto constraint manifold
         const bool onManifold = constraint_->project(scratch);
@@ -95,22 +93,22 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
         if (!onManifold || !valid || deviated)
             break;
 
-        // Store the new state
-        if (stateList != nullptr)
-            stateList->push_back(si_->cloneState(scratch)->as<State>());
-
-        // Check for divergence. Divergence is declared if we are no closer than
-        // before projection
-        double newDist = distance(scratch, to);
+        // Check if we are no closer than before
+        const double newDist = distance(scratch, to);
         if (newDist >= dist)
             break;
 
         dist = newDist;
         copyState(previous, scratch);
+
+        // Store the new state
+        if (stateList != nullptr)
+            stateList->push_back(si_->cloneState(scratch));
     }
 
+    // If we managed to get close, append the final state.
     if (there && (stateList != nullptr))
-        stateList->push_back(si_->cloneState(to)->as<State>());
+        stateList->push_back(si_->cloneState(to));
 
     freeState(scratch);
     freeState(previous);

@@ -242,17 +242,33 @@ int main(int argc, char **argv)
 
     ss->setPlanner(planner);
 
+    css->registerProjection("sphere", ompl::base::ProjectionEvaluatorPtr(new SphereProjection(css)));
+    css->registerProjection("chain", ompl::base::ProjectionEvaluatorPtr(new ChainProjection(css, 3, links)));
+
     // Bounds
     double bound = 20;
     if (strcmp(problem, "chain") == 0)
-    {
         bound = links;
 
+    try
+    {
         if (strcmp(plannerName, "KPIECE1") == 0)
-        {
-            css->registerProjection("chain", ompl::base::ProjectionEvaluatorPtr(new ChainProjection(css, 3, links)));
-            planner->as<ompl::geometric::KPIECE1>()->setProjectionEvaluator("chain");
-        }
+            planner->as<ompl::geometric::KPIECE1>()->setProjectionEvaluator(problem);
+        else if (strcmp(plannerName, "BKPIECE1") == 0)
+            planner->as<ompl::geometric::BKPIECE1>()->setProjectionEvaluator(problem);
+        else if (strcmp(plannerName, "LBKPIECE1") == 0)
+            planner->as<ompl::geometric::LBKPIECE1>()->setProjectionEvaluator(problem);
+        else if (strcmp(plannerName, "ProjEST") == 0)
+            planner->as<ompl::geometric::ProjEST>()->setProjectionEvaluator(problem);
+        else if (strcmp(plannerName, "PDST") == 0)
+            planner->as<ompl::geometric::PDST>()->setProjectionEvaluator(problem);
+        else if (strcmp(plannerName, "SBL") == 0)
+            planner->as<ompl::geometric::SBL>()->setProjectionEvaluator(problem);
+        else if (strcmp(plannerName, "STRIDE") == 0)
+            planner->as<ompl::geometric::STRIDE>()->setProjectionEvaluator(problem);
+    }
+    catch (std::exception &e)
+    {
     }
 
     ompl::base::RealVectorBounds bounds(css->getAmbientDimension());
@@ -289,7 +305,7 @@ int main(int argc, char **argv)
         if (output)
         {
             std::cout << "Interpolating path..." << std::endl;
-            path.interpolate(100);
+            path.interpolate(500);
 
             std::cout << "Dumping animation file..." << std::endl;
             std::ofstream animFile("anim.txt");
@@ -311,14 +327,14 @@ int main(int argc, char **argv)
                 std::ofstream graphFile("graph.ply");
                 data.printPLY(graphFile, false);
                 graphFile.close();
+            }
 
-                if (constraint->getManifoldDimension() == 2 && spaceType == ATLAS)
-                {
-                    std::cout << "Dumping atlas mesh..." << std::endl;
-                    std::ofstream atlasFile("atlas.ply");
-                    css->as<ompl::base::AtlasStateSpace>()->printPLY(atlasFile);
-                    atlasFile.close();
-                }
+            if (constraint->getManifoldDimension() == 2 && spaceType == ATLAS)
+            {
+                std::cout << "Dumping atlas mesh..." << std::endl;
+                std::ofstream atlasFile("atlas.ply");
+                css->as<ompl::base::AtlasStateSpace>()->printPLY(atlasFile);
+                atlasFile.close();
             }
         }
 

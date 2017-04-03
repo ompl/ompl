@@ -256,6 +256,36 @@ private:
     const double jointSize_;    // Size of joints
 };
 
+class SphereProjection : public ompl::base::ProjectionEvaluator
+{
+public:
+    SphereProjection(ompl::base::StateSpacePtr space) : ompl::base::ProjectionEvaluator(space)
+    {
+    }
+
+    unsigned int getDimension(void) const
+    {
+        return 2;
+    }
+
+    void defaultCellSizes(void)
+    {
+        cellSizes_.resize(2);
+        cellSizes_[0] = 0.1;
+        cellSizes_[1] = 0.1;
+    }
+
+    void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
+    {
+        Eigen::Ref<const Eigen::VectorXd> x =
+            state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
+
+        projection(0) = atan2(x[1], x[0]);
+        projection(1) = acos(x[2]);
+    }
+};
+
+
 class ChainProjection : public ompl::base::ProjectionEvaluator
 {
 public:
