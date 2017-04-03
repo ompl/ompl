@@ -34,8 +34,8 @@
 
 /* Author: Zachary Kingston, Ryan Luna */
 
-#ifndef OMPL_GEOMETRIC_CONSTRAINTS_CONSTRAINT_
-#define OMPL_GEOMETRIC_CONSTRAINTS_CONSTRAINT_
+#ifndef OMPL_BASE_CONSTRAINTS_CONSTRAINT_
+#define OMPL_BASE_CONSTRAINTS_CONSTRAINT_
 
 #include "ompl/base/StateSpace.h"
 #include "ompl/util/ClassForward.h"
@@ -210,7 +210,7 @@ namespace ompl
         };
 
         /// @cond IGNORE
-        OMPL_CLASS_FORWARD(Constraint);
+        OMPL_CLASS_FORWARD(ConstraintIntersection);
         /// @endcond
 
         /** \brief Definition of a constraint on (a portion of) the state space. */
@@ -236,9 +236,8 @@ namespace ompl
                 unsigned int i = 0;
                 for (auto constraint : constraints_)
                 {
-                    unsigned int j = i + constraint->getCoDimension();
-                    constraint->function(x, out.segment(i, j));
-                    i = j;
+                    constraint->function(x, out.segment(i, constraint->getCoDimension()));
+                    i += constraint->getCoDimension();
                 }
             }
 
