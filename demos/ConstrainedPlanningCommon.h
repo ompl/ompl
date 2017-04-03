@@ -170,7 +170,7 @@ class StewartChain : public ompl::base::Constraint
 public:
     StewartChain(ompl::base::StateSpace *space, Eigen::VectorXd offset, unsigned int links, unsigned int id,
                  double length = 1, double jointSize = 0.2)
-      : ompl::base::Constraint(space, 2 * links)
+      : ompl::base::Constraint(space, space->getDimension() - links)
       , offset_(offset)
       , links_(links)
       , id_(id)
@@ -181,19 +181,31 @@ public:
             throw ompl::Exception("Number of links must be odd!");
     }
 
-    void getStart(Eigen::Ref<Eigen::VectorXd> x)
+    void getStart(Eigen::VectorXd &x)
     {
         unsigned int offset = 3 * links_ * id_;
-        for (unsigned int i = 0; i < links_; ++i)
-            x.segment(3 * i + offset, 3) = offset_ + Eigen::Vector3d::UnitZ() * i;
+
+        const Eigen::VectorXd step = Eigen::Vector3d::UnitZ() * length_;
+        Eigen::VectorXd joint = offset_ + step;
+
+        for (unsigned int i = 0; i < links_; ++i, joint += step)
+            x.segment(3 * i + offset, 3) = joint;
     }
 
-    void getGoal(Eigen::Ref<Eigen::VectorXd> x)
+    void getGoal(Eigen::VectorXd &x)
     {
         unsigned int offset = 3 * links_ * id_;
 
-        for (unsigned int i = 0; i < links_; ++i)
-            x.segment(3 * i + offset, 3) = offset_ + Eigen::Vector3d::UnitZ() * i;
+        Eigen::VectorXd step = offset_ * length_;
+        Eigen::VectorXd joint = offset_ + step;
+
+        unsigned int i = 0;
+        for (; i < links_ / 2; ++i, joint += step)
+            x.segment(3 * i + offset, 3) = joint;
+
+        joint += Eigen::Vector3d::UnitZ() * length_ - step;
+        for (; i < links_; ++i, joint -= step)
+            x.segment(3 * i + offset, 3) = joint;
     }
 
     void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
@@ -209,25 +221,6 @@ public:
         }
     }
 
-    void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
-    {
-        out.setZero();
-        Eigen::VectorXd plus(3 * (links_ + 1));
-        plus.head(3 * links_) = x;
-        plus.tail(3) = Eigen::VectorXd::Zero(3);
-
-        Eigen::VectorXd minus(3 * (links_ + 1));
-        minus.head(3) = Eigen::VectorXd::Zero(3);
-        minus.tail(3 * links_) = x;
-
-        const Eigen::VectorXd diagonal = plus - minus;
-
-        for (unsigned int i = 0; i < links_; i++)
-            out.row(i).segment(3 * i, 3) = diagonal.segment(3 * i, 3).normalized();
-
-        out.block(1, 0, links_, 3 * (links_ - 1)) -= out.block(1, 3, links_, 3 * (links_ - 1));
-    }
-
 private:
     const Eigen::VectorXd offset_;
     const unsigned int links_;
@@ -240,11 +233,13 @@ class StewartPlatform : public ompl::base::Constraint
 {
 public:
     StewartPlatform(ompl::base::StateSpace *space, unsigned int chains, unsigned int links, double radius = 1)
-      : ompl::base::Constraint(space, space->getDimension() - (chains / 2 + chains))
+      : ompl::base::Constraint(space, space->getDimension() - (chains / 2 + chains - 1))
       , chains_(chains)
       , links_(links)
       , radius_(radius)
     {
+        if (chains == 2)
+            setManifoldDimension(space->getDimension() - 2);
     }
 
     void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
@@ -292,19 +287,23 @@ public:
             offset = Eigen::AngleAxisd(2 * M_PI / static_cast<double>(chains), Eigen::Vector3d::UnitZ()) * offset;
         }
 
-        addConstraint(new StewartPlatform(space, chains, links, radius));
+        // addConstraint(new StewartPlatform(space, chains, links, radius));
     }
 
-    void getStart(Eigen::Ref<Eigen::VectorXd> x)
+    void getStart(Eigen::VectorXd &x)
     {
-        for (auto constraint : constraints_)
-            dynamic_cast<StewartChain *>(constraint)->getStart(x);
+        for (unsigned int i = 0; i < constraints_.size(); ++i)
+            static_cast<StewartChain *>(constraints_[i])->getStart(x);
+        // for (unsigned int i = 0; i < constraints_.size() - 1; ++i)
+        //     static_cast<StewartChain *>(constraints_[i])->getStart(x);
     }
 
-    void getGoal(Eigen::Ref<Eigen::VectorXd> x)
+    void getGoal(Eigen::VectorXd &x)
     {
-        for (auto constraint : constraints_)
-            dynamic_cast<StewartChain *>(constraint)->getGoal(x);
+        for (unsigned int i = 0; i < constraints_.size(); ++i)
+            static_cast<StewartChain *>(constraints_[i])->getGoal(x);
+        // for (unsigned int i = 0; i < constraints_.size() - 1; ++i)
+        //     static_cast<StewartChain *>(constraints_[i])->getGoal(x);
     }
 
     bool isValid(const ompl::base::State *state)
@@ -705,7 +704,7 @@ ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
 /** Initialize the atlas for the kinematic chain problem. */
 ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
                                            ompl::base::StateValidityCheckerFn &isValid, double sleep,
-                                           unsigned int links = 3, unsigned int chains = 2)
+                                           unsigned int links = 3, unsigned int chains = 4)
 {
     unsigned int dim = 3 * links * chains;
     x = Eigen::VectorXd(dim);

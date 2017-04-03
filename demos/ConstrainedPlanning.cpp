@@ -141,8 +141,10 @@ int main(int argc, char **argv)
 
     printf("Constrained Planning Testing: \n"
            "  Planning with in `%s' state space with `%s' for `%s' problem.\n"
+           "  Ambient Dimension: %u   CoDimension: %u\n"
            "  Timeout: %3.2fs   Artifical Delay: %3.2fs\n",
-           space, plannerName, problem, planningTime, artificalSleep);
+           space, plannerName, problem, constraint->getAmbientDimension(), constraint->getCoDimension(), planningTime,
+           artificalSleep);
 
     ompl::base::ConstrainedStateSpacePtr css;
     ompl::geometric::SimpleSetupPtr ss;
@@ -305,7 +307,7 @@ int main(int argc, char **argv)
         if (output)
         {
             std::cout << "Interpolating path..." << std::endl;
-            path.interpolate(500);
+            path.interpolate(100);
 
             std::cout << "Dumping animation file..." << std::endl;
             std::ofstream animFile("anim.txt");
