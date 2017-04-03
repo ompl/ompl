@@ -115,18 +115,18 @@ namespace ompl
                 return k_;
             }
 
+            /** \brief Returns the dimension of the manifold. */
+            unsigned int getCoDimension() const
+            {
+                return n_ - k_;
+            }
+
             void setManifoldDimension(unsigned int k)
             {
                 if (k <= 0)
                     throw ompl::Exception("ompl::base::Constraint(): "
                                           "Space is over constrained!");
                 k_ = k;
-            }
-
-            /** \brief Returns the dimension of the manifold. */
-            unsigned int getCoDimension() const
-            {
-                return n_ - k_;
             }
 
             /** \brief Returns the tolerance of the projection routine. */

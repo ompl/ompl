@@ -66,8 +66,8 @@ void ompl::base::Constraint::jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen
 {
     Eigen::VectorXd y1 = x;
     Eigen::VectorXd y2 = x;
-    Eigen::VectorXd t1(n_ - k_);
-    Eigen::VectorXd t2(n_ - k_);
+    Eigen::VectorXd t1(getCoDimension());
+    Eigen::VectorXd t2(getCoDimension());
 
     // Use a 7-point central difference stencil on each column.
     for (std::size_t j = 0; j < n_; j++)
@@ -103,15 +103,15 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
 {
     // Newton's method
     unsigned int iter = 0;
-    Eigen::VectorXd f(n_ - k_);
-    Eigen::MatrixXd j(n_ - k_, n_);
+    Eigen::VectorXd f(getCoDimension());
+    Eigen::MatrixXd j(getCoDimension(), n_);
 
     function(x, f);
     while (f.norm() > projectionTolerance_ && iter++ < projectionMaxIterations_)
     {
         // Compute pseudoinverse of Jacobian
         jacobian(x, j);
-        x -= j.colPivHouseholderQr().solve(f);
+        x -= j.fullPivLu().solve(f);
         function(x, f);
     }
 
@@ -120,7 +120,7 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
 
 double ompl::base::Constraint::distance(const Eigen::VectorXd &x) const
 {
-    Eigen::VectorXd f(n_ - k_);
+    Eigen::VectorXd f(getCoDimension());
     function(x, f);
     return f.norm();
 }
