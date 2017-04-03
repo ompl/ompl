@@ -242,7 +242,6 @@ int main(int argc, char **argv)
 
     ss->setPlanner(planner);
 
-
     // Bounds
     double bound = 20;
     if (strcmp(problem, "chain") == 0)
@@ -279,80 +278,63 @@ int main(int argc, char **argv)
     if (stat)
     {
         const double time = ((double)(std::clock() - tstart)) / CLOCKS_PER_SEC;
-
-        ss->simplifySolution();
+        std::cout << "Took " << time << " seconds." << std::endl;
 
         ompl::geometric::PathGeometric &path = ss->getSolutionPath();
+
+        double originalLength = path.length();
+        ss->simplifySolution();
+        std::cout << "Path Length " << originalLength << " -> " << path.length() << std::endl;
 
         if (output)
         {
             std::cout << "Interpolating path..." << std::endl;
-            path.interpolate();
-        }
+            path.interpolate(100);
 
-        if (x.size() == 3 && output)
-        {
-            std::cout << "Dumping path mesh..." << std::endl;
-            std::ofstream pathFile("path.ply");
-            path.printPLY(pathFile);
-            pathFile.close();
-        }
-
-        // Extract the full solution path by re-interpolating between the
-        // saved states (except for the special planners)
-        const std::vector<ompl::base::State *> &waypoints = path.getStates();
-
-        double length = 0;
-        for (std::size_t i = 1; i < waypoints.size() - 1; i++)
-            length += css->distance(waypoints[i - 1], waypoints[i]);
-
-        if (output)
-        {
             std::cout << "Dumping animation file..." << std::endl;
             std::ofstream animFile("anim.txt");
             path.printAsMatrix(animFile);
             animFile.close();
+
+            if (x.size() == 3)
+            {
+                std::cout << "Dumping path mesh..." << std::endl;
+                std::ofstream pathFile("path.ply");
+                path.printPLY(pathFile);
+                pathFile.close();
+
+                std::cout << "Dumping graph mesh..." << std::endl;
+
+                ompl::base::PlannerData data(si);
+                planner->getPlannerData(data);
+
+                std::ofstream graphFile("graph.ply");
+                data.printPLY(graphFile, false);
+                graphFile.close();
+
+                if (constraint->getManifoldDimension() == 2 && spaceType == ATLAS)
+                {
+                    std::cout << "Dumping atlas mesh..." << std::endl;
+                    std::ofstream atlasFile("atlas.ply");
+                    css->as<ompl::base::AtlasStateSpace>()->printPLY(atlasFile);
+                    atlasFile.close();
+                }
+            }
         }
 
         if (stat == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
-            std::cout << "Solution is approximate.\n";
-
-        std::cout << "Length: " << length << "\n";
-        std::cout << "Took " << time << " seconds.\n";
+            std::cout << "Solution is approximate." << std::endl;
     }
     else
     {
-        std::cout << "No solution found.\n";
+        std::cout << "No solution found." << std::endl;
     }
-
-    ompl::base::PlannerData data(si);
-    planner->getPlannerData(data);
-    if (data.properties.find("approx goal distance REAL") != data.properties.end())
-        std::cout << "Approx goal distance: " << data.properties["approx goal distance REAL"] << "\n";
 
     if (spaceType == ATLAS)
     {
-        std::cout << "Atlas created " << css->as<ompl::base::AtlasStateSpace>()->getChartCount() << " charts.\n";
-        std::cout << css->as<ompl::base::AtlasStateSpace>()->estimateFrontierPercent() << "% open.\n";
-    }
-
-    if (x.size() == 3 && output)
-    {
-        std::cout << "Dumping graph mesh..." << std::endl;
-
-        std::ofstream graphFile("graph.ply");
-        ompl::base::PlannerData pd(si);
-        planner->getPlannerData(pd);
-        pd.printPLY(graphFile, false);
-        graphFile.close();
-
-        if (constraint->getManifoldDimension() == 2 && spaceType == ATLAS)
-        {
-            std::cout << "Dumping atlas mesh..." << std::endl;
-            std::ofstream atlasFile("atlas.ply");
-            css->as<ompl::base::AtlasStateSpace>()->printPLY(atlasFile);
-            atlasFile.close();
-        }
+        std::cout << "Atlas created " << css->as<ompl::base::AtlasStateSpace>()->getChartCount() << " charts."
+                  << std::endl;
+        std::cout << css->as<ompl::base::AtlasStateSpace>()->estimateFrontierPercent() << "% open." << std::endl;
     }
 
     return 0;
