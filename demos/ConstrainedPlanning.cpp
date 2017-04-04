@@ -68,13 +68,18 @@ int main(int argc, char **argv)
     int iter = 0;
 
     unsigned int links = 5;
+    unsigned int chains = 2;
 
-    while ((c = getopt(argc, argv, "c:p:s:w:ot:n:i:a")) != -1)
+    while ((c = getopt(argc, argv, "gc:p:s:w:ot:n:i:a")) != -1)
     {
         switch (c)
         {
             case 'c':
                 problem = optarg;
+                break;
+
+            case 'g':
+                chains = atoi(optarg);
                 break;
 
             case 'a':
@@ -131,7 +136,7 @@ int main(int argc, char **argv)
 
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
-    ompl::base::Constraint *constraint = parseProblem(problem, x, y, isValid, artificalSleep, links);
+    ompl::base::Constraint *constraint = parseProblem(problem, x, y, isValid, artificalSleep, links, chains);
 
     if (!constraint)
     {
@@ -246,6 +251,7 @@ int main(int argc, char **argv)
 
     css->registerProjection("sphere", ompl::base::ProjectionEvaluatorPtr(new SphereProjection(css)));
     css->registerProjection("chain", ompl::base::ProjectionEvaluatorPtr(new ChainProjection(css, 3, links)));
+    css->registerProjection("stewart", ompl::base::ProjectionEvaluatorPtr(new StewartProjection(css, links, chains)));
 
     // Bounds
     double bound = 20;

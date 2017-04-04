@@ -149,7 +149,7 @@ ompl::base::AtlasChart::AtlasChart(const AtlasStateSpace *atlas, const Eigen::Re
   , n_(atlas_->getAmbientDimension())
   , k_(atlas_->getManifoldDimension())
   , xorigin_(xorigin)
-  , bigPhi_([&]() {
+  , bigPhi_([&]() -> const Eigen::MatrixXd {
       Eigen::MatrixXd j(n_ - k_, n_);
       constraint_->jacobian(xorigin_, j);
 
