@@ -237,27 +237,26 @@ public:
         }
     }
 
-    // void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
-    // {
-    //     unsigned int offset = 3 * links_ * id_;
-    //     const Eigen::VectorXd xc = x.segment(offset, 3 * (links_ - 1));
+    void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    {
+        unsigned int offset = 3 * links_ * id_;
+        out.setZero();
 
-    //     out.setZero();
-    //     Eigen::VectorXd plus(3 * (links_ + 1));
-    //     plus.head(3 * links_) = xc;
-    //     plus.tail(3) = Eigen::VectorXd::Zero(3);
+        Eigen::VectorXd plus(3 * (links_ + 1));
+        plus.head(3 * links_) = x.segment(offset, 3 * links_);
+        plus.tail(3) = Eigen::VectorXd::Zero(3);
 
-    //     Eigen::VectorXd minus(3 * (links_ + 1));
-    //     minus.head(3) = Eigen::VectorXd::Zero(3);
-    //     minus.tail(3 * links_) = xc;
+        Eigen::VectorXd minus(3 * (links_ + 1));
+        minus.head(3) = offset_;
+        minus.tail(3 * links_) = x.segment(offset, 3 * links_);
 
-    //     const Eigen::VectorXd diagonal = plus - minus;
+        const Eigen::VectorXd diagonal = plus - minus;
 
-    //     for (unsigned int i = 0; i < links_; i++)
-    //         out.row(i).segment(3 * i + offset, 3) = diagonal.segment(3 * i + offset, 3).normalized();
+        for (unsigned int i = 0; i < links_; i++)
+            out.row(i).segment(3 * i + offset, 3) = diagonal.segment(3 * i, 3).normalized();
 
-    //     out.block(1, offset, links_, 3 * (links_ - 1)) -= out.block(1, offset + 3, links_, 3 * (links_ - 1));
-    // }
+        out.block(1, offset, links_, 3 * (links_ - 1)) -= out.block(1, offset + 3, links_, 3 * (links_ - 1));
+    }
 
 private:
     const Eigen::VectorXd offset_;
@@ -337,7 +336,7 @@ public:
             offset = Eigen::AngleAxisd(2 * M_PI / static_cast<double>(chains), Eigen::Vector3d::UnitZ()) * offset;
         }
 
-        addConstraint(new StewartPlatform(space, chains, links, radius));
+        // addConstraint(new StewartPlatform(space, chains, links, radius));
     }
 
     void getStart(Eigen::VectorXd &x)
@@ -570,9 +569,9 @@ public:
         // }
 
         for (unsigned int i = 0; i < chains_; ++i)
-            projection(i) = x[3 * (i + 1) * links_ - 1];
+            projection(0) = x[3 * (i + 1) * links_ - 1];
 
-        projection(i) /= chains_;
+        projection(0) /= chains_;
     }
 
 private:
