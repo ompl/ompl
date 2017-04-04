@@ -192,12 +192,20 @@ public:
     {
         unsigned int offset = 3 * links_ * id_;
 
+        const Eigen::VectorXd axis = Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_;
+
         const Eigen::VectorXd step = Eigen::Vector3d::UnitZ() * length_;
-        Eigen::VectorXd joint = offset_ + step;
+        Eigen::VectorXd joint = offset_ + Eigen::AngleAxisd(M_PI / 16, axis) * step;
 
-        for (unsigned int i = 0; i < links_; ++i, joint += step)
+        unsigned int i = 0;
+        for (; i < links_; ++i)
+        {
             x.segment(3 * i + offset, 3) = joint;
-
+            if (i < links_ - 2)
+                joint += step;
+            else
+                joint += Eigen::AngleAxisd(-M_PI / 16, axis) * step;
+        }
     }
 
     void getGoal(Eigen::VectorXd &x)
@@ -214,7 +222,6 @@ public:
         joint += Eigen::Vector3d::UnitZ() * length_ - step;
         for (; i < links_; ++i, joint -= step)
             x.segment(3 * i + offset, 3) = joint;
-
     }
 
     void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
@@ -266,36 +273,43 @@ public:
     StewartPlatform(ompl::base::StateSpace *space, unsigned int chains, unsigned int links, double radius = 1)
       : ompl::base::Constraint(space, space->getDimension() - chains), chains_(chains), links_(links), radius_(radius)
     {
+        if (chains >= 4)
+            setManifoldDimension(k_ - (chains - 3));
+    }
+
+    Eigen::Ref<const Eigen::VectorXd> getTip(const Eigen::VectorXd &x, unsigned int id) const
+    {
+        return x.segment(3 * links_ * ((id % chains_) + 1) - 3, 3);
     }
 
     void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
-        Eigen::VectorXd p = x.segment(3 * links_ * chains_, 6);
+        unsigned int idx = 0;
 
-        Eigen::Vector3d offset = Eigen::Vector3d::UnitX();
+        Eigen::VectorXd centroid = Eigen::VectorXd::Zero(3);
         for (unsigned int i = 0; i < chains_; ++i)
-        {
-            Eigen::Vector3d point = Eigen::AngleAxisd(p[5], Eigen::Vector3d::UnitX()) *
-                                        Eigen::AngleAxisd(p[4], Eigen::Vector3d::UnitY()) *
-                                        Eigen::AngleAxisd(p[3], Eigen::Vector3d::UnitZ()) * offset +
-                                    p.segment(0, 3);
-            Eigen::Vector3d joint = x.segment(3 * links_ * (i + 1) - 3, 3);
-            out[i] = (point - joint).norm();
+            centroid += getTip(x, i);
+        centroid /= chains_;
 
-            offset = Eigen::AngleAxisd(2 * M_PI / static_cast<double>(chains_), Eigen::Vector3d::UnitZ()) * offset;
+        for (unsigned int i = 0; i < chains_; ++i)
+            out[idx++] = (centroid - getTip(x, i)).norm() - radius_;
+
+        for (int i = 0; i < static_cast<int>(chains_) - 3; ++i)
+        {
+            Eigen::Ref<const Eigen::Vector3d> ab = getTip(x, i + 1) - getTip(x, i);
+            Eigen::Ref<const Eigen::Vector3d> ac = getTip(x, i + 2) - getTip(x, i);
+            Eigen::Ref<const Eigen::Vector3d> ad = getTip(x, i + 3) - getTip(x, i);
+
+            out[idx++] = ad.dot(ab.cross(ac));
         }
     }
 
     void getStart(Eigen::VectorXd &x)
     {
-        unsigned int offset = 3 * links_ * chains_;
-        x.segment(offset, 6) << 0, 0, links_, 0, 0, 0;
     }
 
     void getGoal(Eigen::VectorXd &x)
     {
-        unsigned int offset = 3 * links_ * chains_;
-        x.segment(offset, 6) << 0, 0, 1, 0, 0, 0;
     }
 
 private:
@@ -534,15 +548,15 @@ public:
 
     unsigned int getDimension(void) const
     {
-        return 3;
+        return 1;
     }
 
     void defaultCellSizes(void)
     {
-        cellSizes_.resize(3);
+        cellSizes_.resize(1);
         cellSizes_[0] = 0.1;
-        cellSizes_[1] = 0.1;
-        cellSizes_[2] = 0.1;
+        // cellSizes_[1] = 0.1;
+        // cellSizes_[2] = 0.1;
     }
 
     void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
@@ -550,11 +564,15 @@ public:
         Eigen::Ref<const Eigen::VectorXd> x =
             state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
 
-        for (unsigned int i = 0; i < 3; ++i)
-        {
-            projection(i) = x[3 * chains_ * links_ + i];
-        }
+        // for (unsigned int i = 0; i < 3; ++i)
+        // {
+        //     projection(i) = x[3 * chains_ * links_ + i];
+        // }
 
+        for (unsigned int i = 0; i < chains_; ++i)
+            projection(i) = x[3 * (i + 1) * links_ - 1];
+
+        projection(i) /= chains_;
     }
 
 private:
@@ -776,7 +794,7 @@ ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &
                                            ompl::base::StateValidityCheckerFn &isValid, double sleep,
                                            unsigned int links = 3, unsigned int chains = 4)
 {
-    unsigned int dim = 3 * links * chains + 6;
+    unsigned int dim = 3 * links * chains;
     x = Eigen::VectorXd(dim);
     y = Eigen::VectorXd(dim);
 

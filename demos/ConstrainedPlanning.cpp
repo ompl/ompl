@@ -70,7 +70,7 @@ int main(int argc, char **argv)
     unsigned int links = 5;
     unsigned int chains = 2;
 
-    while ((c = getopt(argc, argv, "gc:p:s:w:ot:n:i:a")) != -1)
+    while ((c = getopt(argc, argv, "g:c:p:s:w:ot:n:i:a")) != -1)
     {
         switch (c)
         {
