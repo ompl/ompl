@@ -276,6 +276,9 @@ public:
     StewartPlatform(ompl::base::StateSpace *space, unsigned int chains, unsigned int links, double radius = 1)
       : ompl::base::Constraint(space, space->getDimension() - chains), chains_(chains), links_(links), radius_(radius)
     {
+        if (chains == 2)
+            setManifoldDimension(k_ + 1);
+
         if (chains >= 4)
             setManifoldDimension(k_ - (chains - 3));
     }
@@ -287,6 +290,12 @@ public:
 
     void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
+        if (chains_ == 2)
+        {
+            out[0] = (getTip(x, 0) - getTip(x, 1)).norm() - radius_ * 2;
+            return;
+        }
+
         unsigned int idx = 0;
 
         Eigen::VectorXd centroid = Eigen::VectorXd::Zero(3);
