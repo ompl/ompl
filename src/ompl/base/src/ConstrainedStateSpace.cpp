@@ -230,7 +230,7 @@ unsigned int ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const std::
                                                            State *state) const
 {
     std::size_t n = stateList.size();
-    auto d = new double[n];
+    double d[n];
 
     // Compute partial sums of distances between intermediate states.
     d[0] = 0;
@@ -255,7 +255,6 @@ unsigned int ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const std::
 
     // Linearly interpolate between these two states.
     RealVectorStateSpace::interpolate(stateList[i > 0 ? i - 1 : 0], stateList[i], tt, state);
-    delete[] d;
 
     return i;
 }
