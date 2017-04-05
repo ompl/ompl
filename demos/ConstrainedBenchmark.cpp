@@ -39,11 +39,11 @@
 
 const double runtime_limit = 1;
 const double memory_limit = 2048;
-const int run_count = 10;
+const int run_count = 1;
 const double update_interval = 0.05;
 const bool progress = false;
 const bool save_output = false;
-const bool use_threads = true;
+const bool use_threads = false;
 const bool simplify = false;
 
 void projectedChainBench(int links, double sleep, const char *planner)
@@ -93,11 +93,14 @@ void projectedChainBench(int links, double sleep, const char *planner)
     bench.addExperimentParameter("collision_check_time", "REAL", std::to_string(sleep));
     bench.addExperimentParameter("delta", "REAL", std::to_string(projected->getDelta()));
 
-    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
-                                                  save_output, use_threads, simplify);
-
     ompl::base::PlannerPtr pptr(parsePlanner(planner, si, 0.707));
     pptr->setName(pptr->getName() + "+P");
+    ss.setPlanner(pptr);
+    ss.setup();
+    ss.print(std::cout);
+
+    const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
+                                                  save_output, use_threads, simplify);
 
     bench.addPlanner(pptr);
 

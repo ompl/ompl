@@ -68,16 +68,16 @@ namespace ompl
 
             /** \brief Sample a state uniformly from the charted regions of the
              * manifold. Return sample in \a state. */
-            virtual void sampleUniform(State *state);
+            void sampleUniform(State *state) override;
 
             /** \brief Sample a state uniformly from the ball with center \a
              * near and radius \a distance. Return sample in \a state.
              * \note rho_s_ is a good choice for \a distance. */
-            virtual void sampleUniformNear(State *state, const State *near, double distance);
+            void sampleUniformNear(State *state, const State *near, double distance) override;
 
             /** \brief Sample a state uniformly from a normal distribution with
                 given \a mean and \a stdDev. Return sample in \a state. */
-            virtual void sampleGaussian(State *state, const State *mean, double stdDev);
+            void sampleGaussian(State *state, const State *mean, double stdDev) override;
 
         private:
             /** \brief Space on which to sample. */
@@ -97,12 +97,12 @@ namespace ompl
 
             /** \brief Sample a valid state uniformly from the charted regions
              * of the manifold. Return sample in \a state. */
-            virtual bool sample(State *state);
+            bool sample(State *state) override;
 
             /** \brief Sample a valid state uniformly from the ball with center
              * \a near and radius \a distance. Return sample in \a state.
              * \note rho_s_ is a good choice for \a distance. */
-            virtual bool sampleNear(State *state, const State *near, double distance);
+            bool sampleNear(State *state, const State *near, double distance) override;
 
         private:
             /** \brief Underlying ordinary atlas state sampler. */
@@ -127,7 +127,7 @@ namespace ompl
 
             /** \brief Return whether we can step from \a s1 to \a s2 along the
              * manifold without collision. */
-            bool checkMotion(const State *s1, const State *s2) const;
+            bool checkMotion(const State *s1, const State *s2) const override;
 
             /** \brief Return whether we can step from \a s1 to \a s2 along the
              * manifold without collision. If not, return the last valid state
@@ -136,7 +136,7 @@ namespace ompl
              * last valid state if used in interpolation since the distance
              * between the last valid state and \a s2 is estimated using the
              * ambient metric. */
-            bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const;
+            bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
 
         private:
             /** \brief Space in which we check motion. */
@@ -153,7 +153,7 @@ namespace ompl
             {
             public:
                 /** \brief Construct state of size \a n. */
-                StateType(const unsigned int &n) : n_(n)
+                StateType(const unsigned int n) : n_(n)
                 {
                     // Do what RealVectorStateSpace::allocState() would have done.
                     values = new double[n_];
@@ -196,7 +196,7 @@ namespace ompl
 
             protected:
                 /** \brief Dimension of the real vector. */
-                const unsigned int &n_;
+                const unsigned int n_;
             };
 
             /** \brief Construct an atlas with the specified dimensions. */
@@ -224,7 +224,7 @@ namespace ompl
             }
 
             /** \brief Final setup for the space. */
-            void setup()
+            void setup() override
             {
                 if (setup_)
                     return;
@@ -304,7 +304,7 @@ namespace ompl
              * where \a t = 0 is \a from, and \a t = 1 is the final state
              * reached by followManifold(\a from, \a to, true, ...), which may
              * not be \a to. State returned in \a state. */
-            void interpolate(const State *from, const State *to, double t, State *state) const;
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
 
             /** \brief Like interpolate(...), but uses the information about
              * intermediate states already supplied in \a stateList from a
@@ -314,18 +314,18 @@ namespace ompl
              * elements. */
             unsigned int piecewiseInterpolate(const std::vector<State *> &stateList, double t, State *state) const;
 
-            StateSamplerPtr allocDefaultStateSampler() const
+            StateSamplerPtr allocDefaultStateSampler() const override
             {
                 return StateSamplerPtr(new ConstrainedStateSampler(*this));
             }
 
             /** \brief Whether interpolation is symmetric. (Yes.) */
-            bool hasSymmetricInterpolate() const
+            bool hasSymmetricInterpolate() const override
             {
                 return true;
             }
 
-            void copyState(State *destination, const State *source) const
+            void copyState(State *destination, const State *source) const override
             {
                 StateType *adest = destination->as<StateType>();
                 const StateType *asrc = source->as<StateType>();
@@ -333,14 +333,14 @@ namespace ompl
             }
 
             /** \brief Allocate a new state in this space. */
-            State *allocState() const
+            State *allocState() const override
             {
                 return new StateType(n_);
             }
 
             /** \brief Free \a state. Assumes \a state is of type
              * AtlasStateSpace::StateType. state. */
-            void freeState(State *state) const
+            void freeState(State *state) const override
             {
                 StateType *const astate = state->as<StateType>();
                 delete astate;
