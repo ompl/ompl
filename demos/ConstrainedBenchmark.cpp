@@ -69,6 +69,7 @@ int main(int argc, char **argv)
     const char *plannerName = "RRTConnect";
     const char *problem = "sphere";
     const char *space = "projected";
+    char *output = nullptr;
 
     double artificalSleep = 0.0;
     double planningTime = 5.0;
@@ -79,10 +80,13 @@ int main(int argc, char **argv)
     unsigned int links = 5;
     unsigned int chains = 2;
 
-    while ((c = getopt(argc, argv, "yg:c:r:p:s:w:ot:n:i:ax:")) != -1)
+    while ((c = getopt(argc, argv, "yg:c:r:p:s:w:ot:n:i:ax:f:")) != -1)
     {
         switch (c)
         {
+            case 'f':
+                output = optarg;
+                break;
             case 'r':
                 runs = atoi(optarg);
                 break;
@@ -165,6 +169,7 @@ int main(int argc, char **argv)
 
     double range = 1;
 
+    std::string newName = "+";
     switch (spaceType)
     {
         case ATLAS:
@@ -194,6 +199,7 @@ int main(int argc, char **argv)
             goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
 
             ss->setStartAndGoalStates(start, goal);
+            newName += "A";
 
             css = atlas;
             break;
@@ -216,6 +222,7 @@ int main(int argc, char **argv)
             start->as<ompl::base::ProjectedStateSpace::StateType>()->setRealState(x);
             goal->as<ompl::base::ProjectedStateSpace::StateType>()->setRealState(y);
             ss->setStartAndGoalStates(start, goal);
+            newName += "P";
 
             css = proj;
             break;
@@ -239,6 +246,7 @@ int main(int argc, char **argv)
             start->as<ompl::base::NullspaceStateSpace::StateType>()->setRealState(x);
             goal->as<ompl::base::NullspaceStateSpace::StateType>()->setRealState(y);
             ss->setStartAndGoalStates(start, goal);
+            newName += "N";
 
             css = proj;
             break;
@@ -255,6 +263,7 @@ int main(int argc, char **argv)
         usage(argv[0]);
     }
 
+    planner->setName(planner->getName() + newName);
     ss->setPlanner(planner);
 
     css->registerProjection("sphere", ompl::base::ProjectionEvaluatorPtr(new SphereProjection(css)));
@@ -305,6 +314,16 @@ int main(int argc, char **argv)
     bench.addExperimentParameter("co_dimension", "INTEGER", std::to_string(constraint->getCoDimension()));
     bench.addExperimentParameter("collision_check_time", "REAL", std::to_string(artificalSleep));
 
+    if (strcmp(problem, "chain") == 0)
+    {
+        bench.addExperimentParameter("links", "INTEGER", std::to_string(links));
+    }
+    else if (strcmp(problem, "stewart") == 0)
+    {
+        bench.addExperimentParameter("links", "INTEGER", std::to_string(links));
+        bench.addExperimentParameter("chains", "INTEGER", std::to_string(chains));
+    }
+
     const ompl::tools::Benchmark::Request request(planningTime, memory_limit, runs, update_interval, progress,
                                                   save_output, use_threads, simplify);
 
@@ -324,6 +343,11 @@ int main(int argc, char **argv)
 
     bench.benchmark(request);
 
-    std::string file = "test.log";
-    bench.saveResultsToFile(file.c_str());
+    if (output == nullptr)
+    {
+        std::string file = planner->getName() + "_on_" + std::string(problem) + ".log";
+        bench.saveResultsToFile(file.c_str());
+    }
+    else
+        bench.saveResultsToFile(output);
 }
