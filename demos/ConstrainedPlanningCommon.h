@@ -407,8 +407,6 @@ public:
       , radius_((links - 4) + 2)
       , jointSize_(0.2)
     {
-        std::cout << "Ambient dimension: " << getAmbientDimension() << std::endl;
-        std::cout << "Manifold dimension: " << getManifoldDimension() << std::endl;
     }
 
     void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
@@ -451,7 +449,8 @@ public:
     * obstacles. */
     bool isValid(double sleep, const ompl::base::State *state)
     {
-        std::this_thread::sleep_for(ompl::time::seconds(sleep));
+        ompl::time::point wait = ompl::time::now() + ompl::time::seconds(sleep);
+        while (ompl::time::now() < wait) {};
 
         Eigen::Ref<const Eigen::VectorXd> x =
             state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
