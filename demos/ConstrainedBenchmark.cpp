@@ -37,6 +37,15 @@
 #include <ompl/tools/benchmark/Benchmark.h>
 #include "ConstrainedPlanningCommon.h"
 
+const double runtime_limit = 1;
+const double memory_limit = 2048;
+const int run_count = 10;
+const double update_interval = 0.05;
+const bool progress = false;
+const bool save_output = false;
+const bool use_threads = true;
+const bool simplify = false;
+
 void projectedChainBench(int links, double sleep, const char *planner)
 {
     std::cout << "Beginning benchmark for ProjectedStateSpace with " + std::string(planner) << std::endl;
@@ -84,14 +93,6 @@ void projectedChainBench(int links, double sleep, const char *planner)
     bench.addExperimentParameter("collision_check_time", "REAL", std::to_string(sleep));
     bench.addExperimentParameter("delta", "REAL", std::to_string(projected->getDelta()));
 
-    const double runtime_limit = 30;
-    const double memory_limit = 2048;
-    const int run_count = 10;
-    const double update_interval = 1;
-    const bool progress = false;
-    const bool save_output = false;
-    const bool use_threads = true;
-    const bool simplify = true;
     const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
                                                   save_output, use_threads, simplify);
 
@@ -172,15 +173,6 @@ void atlasChainBench(int links, double sleep, const char *planner)
     bench.addExperimentParameter("number_dofs", "INTEGER", std::to_string(3 * links));
     bench.addExperimentParameter("collision_check_time", "REAL", std::to_string(sleep));
     bench.addExperimentParameter("delta", "REAL", std::to_string(atlas->getDelta()));
-
-    const double runtime_limit = 30;
-    const double memory_limit = 2048;
-    const int run_count = 10;
-    const double update_interval = 0.05;
-    const bool progress = false;
-    const bool save_output = false;
-    const bool use_threads = true;
-    const bool simplify = true;
     const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
                                                   save_output, use_threads, simplify);
 

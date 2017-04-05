@@ -69,13 +69,18 @@ int main(int argc, char **argv)
 
     unsigned int links = 5;
     unsigned int chains = 2;
+    unsigned int simp = 1;
 
-    while ((c = getopt(argc, argv, "g:c:p:s:w:ot:n:i:a")) != -1)
+    while ((c = getopt(argc, argv, "g:c:p:s:w:ot:n:i:ax:")) != -1)
     {
         switch (c)
         {
             case 'c':
                 problem = optarg;
+                break;
+
+            case 'x':
+                simp = atoi(optarg);
                 break;
 
             case 'g':
@@ -307,7 +312,8 @@ int main(int argc, char **argv)
         ompl::geometric::PathGeometric &path = ss->getSolutionPath();
 
         double originalLength = path.length();
-        ss->simplifySolution();
+        for (unsigned int i = 0; i < simp; ++i)
+            ss->simplifySolution();
         std::cout << "Path Length " << originalLength << " -> " << path.length() << std::endl;
 
         if (output)

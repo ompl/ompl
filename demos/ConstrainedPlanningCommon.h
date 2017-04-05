@@ -188,14 +188,13 @@ public:
             throw ompl::Exception("Number of links must be odd!");
     }
 
-    void getStart(Eigen::VectorXd &x)
+    void getConfiguration(Eigen::VectorXd &x, double angle)
     {
         unsigned int offset = 3 * links_ * id_;
-
         const Eigen::VectorXd axis = Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_;
 
         const Eigen::VectorXd step = Eigen::Vector3d::UnitZ() * length_;
-        Eigen::VectorXd joint = offset_ + Eigen::AngleAxisd(M_PI / 16, axis) * step;
+        Eigen::VectorXd joint = offset_ + Eigen::AngleAxisd(angle, axis) * step;
 
         unsigned int i = 0;
         for (; i < links_; ++i)
@@ -204,8 +203,13 @@ public:
             if (i < links_ - 2)
                 joint += step;
             else
-                joint += Eigen::AngleAxisd(-M_PI / 16, axis) * step;
+                joint += Eigen::AngleAxisd(-angle, axis) * step;
         }
+    }
+
+    void getStart(Eigen::VectorXd &x)
+    {
+        getConfiguration(x, M_PI / 16);
     }
 
     void getGoal(Eigen::VectorXd &x)
@@ -336,7 +340,7 @@ public:
             offset = Eigen::AngleAxisd(2 * M_PI / static_cast<double>(chains), Eigen::Vector3d::UnitZ()) * offset;
         }
 
-        // addConstraint(new StewartPlatform(space, chains, links, radius));
+        addConstraint(new StewartPlatform(space, chains, links, radius));
     }
 
     void getStart(Eigen::VectorXd &x)
