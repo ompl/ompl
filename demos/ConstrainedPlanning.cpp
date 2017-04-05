@@ -65,16 +65,21 @@ int main(int argc, char **argv)
     double planningTime = 5.0;
     bool output = false;
     bool tb = true;
+    bool printSpace = false;
     int iter = 0;
 
     unsigned int links = 5;
     unsigned int chains = 2;
     unsigned int simp = 1;
 
-    while ((c = getopt(argc, argv, "g:c:p:s:w:ot:n:i:ax:")) != -1)
+    while ((c = getopt(argc, argv, "yg:c:p:s:w:ot:n:i:ax:")) != -1)
     {
         switch (c)
         {
+            case 'y':
+                printSpace = true;
+                break;
+
             case 'c':
                 problem = optarg;
                 break;
@@ -291,7 +296,9 @@ int main(int argc, char **argv)
     css->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
 
     ss->setup();
-    ss->print(std::cout);
+
+    if (printSpace)
+        ss->print(std::cout);
 
     std::clock_t tstart = std::clock();
 

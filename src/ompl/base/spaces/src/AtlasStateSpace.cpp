@@ -127,15 +127,16 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     int tries = 100;
     Eigen::VectorXd uoffset(atlas_.getManifoldDimension());
 
+    // TODO: Is this a hack or is this theoretically sound? Find out more after the break.
+    const double distanceClamped = std::min(distance, atlas_.getRho_s() * 2);
     do
     {
         // Sample within distance
         for (int i = 0; i < uoffset.size(); ++i)
             uoffset[i] = ru[i] + rng_.gaussian01();
 
-        uoffset *= distance * std::pow(rng_.uniform01(), 1.0 / uoffset.size()) / uoffset.norm();
-
-    } while (tries-- > 0 && !c->psi(uoffset, rx));  // Try again if we can't project.
+        uoffset *= distanceClamped * std::pow(rng_.uniform01(), 1.0 / uoffset.size()) / uoffset.norm();
+    } while (--tries > 0 && !c->psi(uoffset, rx));  // Try again if we can't project.
 
     if (tries == 0)
     {
@@ -178,12 +179,14 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
     // Sample a point in a normal distribution on the starting chart.
     int tries = 100;
     Eigen::VectorXd rand(k);
-    const double s = stdDev / std::sqrt(k);
+
+    const double stdDevClamped = std::min(stdDev, atlas_.getRho_s() * 2);
     do
     {
+        const double s = stdDevClamped / std::sqrt(k);
         for (std::size_t i = 0; i < k; i++)
             rand[i] = ru[i] + rng_.gaussian(0, s);
-    } while (tries-- > 0 && !c->psi(rand, rx));  // Try again if we can't project.
+    } while (--tries > 0 && !c->psi(rand, rx));  // Try again if we can't project.
 
     if (tries == 0)
     {
@@ -369,7 +372,6 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::sampleChart() const
 
     return charts_[rng_.uniformInt(0, charts_.size() - 1)];
 }
-
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::getChart(const StateType *state) const
 {
