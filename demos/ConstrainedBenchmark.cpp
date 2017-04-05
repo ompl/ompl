@@ -39,8 +39,8 @@
 
 const double runtime_limit = 1;
 const double memory_limit = 2048;
-const int run_count = 1;
-const double update_interval = 0.05;
+const int run_count = 10;
+const double update_interval = 1;
 const bool progress = false;
 const bool save_output = false;
 const bool use_threads = false;
@@ -85,19 +85,20 @@ void projectedChainBench(int links, double sleep, const char *planner)
 
     projected->registerDefaultProjection(ompl::base::ProjectionEvaluatorPtr(new ChainProjection(projected, 3, links)));
 
-    projected->setup();
+    ompl::base::PlannerPtr pptr(parsePlanner(planner, si, 0.707));
+    pptr->setName(pptr->getName() + "+P");
+    ss.setPlanner(pptr);
+    ss.setup();
+    ss.print(std::cout);
+
+    // Test once
+    // ompl::base::PlannerStatus stat = pptr->solve(runtime_limit);
 
     ompl::tools::Benchmark bench(ss, "chain");
 
     bench.addExperimentParameter("number_dofs", "INTEGER", std::to_string(3 * links));
     bench.addExperimentParameter("collision_check_time", "REAL", std::to_string(sleep));
     bench.addExperimentParameter("delta", "REAL", std::to_string(projected->getDelta()));
-
-    ompl::base::PlannerPtr pptr(parsePlanner(planner, si, 0.707));
-    pptr->setName(pptr->getName() + "+P");
-    ss.setPlanner(pptr);
-    ss.setup();
-    ss.print(std::cout);
 
     const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
                                                   save_output, use_threads, simplify);
@@ -169,7 +170,11 @@ void atlasChainBench(int links, double sleep, const char *planner)
 
     atlas->registerDefaultProjection(ompl::base::ProjectionEvaluatorPtr(new ChainProjection(atlas, 3, links)));
 
-    atlas->setup();
+    ompl::base::PlannerPtr pptr(parsePlanner(planner, si, 0.707));
+    pptr->setName(pptr->getName() + "+A");
+    ss.setPlanner(pptr);
+    ss.setup();
+    ss.print(std::cout);
 
     ompl::tools::Benchmark bench(ss, "chain");
 
@@ -178,9 +183,6 @@ void atlasChainBench(int links, double sleep, const char *planner)
     bench.addExperimentParameter("delta", "REAL", std::to_string(atlas->getDelta()));
     const ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, update_interval, progress,
                                                   save_output, use_threads, simplify);
-
-    ompl::base::PlannerPtr pptr(parsePlanner(planner, si, 0.707));
-    pptr->setName(pptr->getName() + "+A");
 
     bench.addPlanner(pptr);
 
