@@ -80,8 +80,8 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
     State *previous = cloneState(from);
     State *scratch = allocState();
 
-    bool there = false;
-    while (!(there = dist < (delta_ + std::numeric_limits<double>::epsilon())))
+    const double tolerance = delta_ + std::numeric_limits<double>::epsilon();
+    do
     {
         // Compute the parameterization for interpolation
         RealVectorStateSpace::interpolate(previous, to, delta_ / dist, scratch);
@@ -104,13 +104,11 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
         // Store the new state
         if (stateList != nullptr)
             stateList->push_back(si_->cloneState(scratch));
-    }
 
-    // If we managed to get close, append the final state.
-    if (there && (stateList != nullptr))
-        stateList->push_back(si_->cloneState(to));
+    } while (dist > tolerance);
 
     freeState(scratch);
     freeState(previous);
-    return there;
+
+    return dist < tolerance;
 }
