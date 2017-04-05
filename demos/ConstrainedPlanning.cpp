@@ -291,6 +291,7 @@ int main(int argc, char **argv)
     css->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
 
     ss->setup();
+    ss->print(std::cout);
 
     std::clock_t tstart = std::clock();
 
