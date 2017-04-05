@@ -369,18 +369,18 @@ public:
         Eigen::Ref<const Eigen::VectorXd> x =
             state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
 
-        for (unsigned int i = 0; i < links_; ++i)
+        for (unsigned int i = 0; i < links_ * chains_; ++i)
         {
             if (x.segment(3 * i, 3)[2] < 0)
                 return false;
         }
 
-        for (unsigned int i = 0; i < links_ - 1; ++i)
+        for (unsigned int i = 0; i < links_ * chains_ - 1; ++i)
         {
             if (x.segment(3 * i, 3).cwiseAbs().maxCoeff() < jointSize_)
                 return false;
 
-            for (unsigned int j = i + 1; j < links_; ++j)
+            for (unsigned int j = i + 1; j < links_ * chains_; ++j)
                 if ((x.segment(3 * i, 3) - x.segment(3 * j, 3)).cwiseAbs().maxCoeff() < jointSize_)
                     return false;
         }
