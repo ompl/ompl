@@ -176,13 +176,14 @@ class StewartChain : public ompl::base::Constraint, public StewartBase
 {
 public:
     StewartChain(ompl::base::StateSpace *space, Eigen::VectorXd offset, unsigned int links, unsigned int id,
-                 double length = 1, double jointSize = 0.2)
+                 double length = 1, double jointSize = 0.2, unsigned int extra = 0)
       : ompl::base::Constraint(space, space->getDimension() - links)
       , offset_(offset)
       , links_(links)
       , id_(id)
       , length_(length)
       , jointSize_(jointSize)
+      , extra_(extra)
     {
         if (links % 2 == 0)
             throw ompl::Exception("Number of links must be odd!");
@@ -228,22 +229,28 @@ public:
             x.segment(3 * i + offset, 3) = joint;
     }
 
+    Eigen::Ref<const Eigen::VectorXd> getLink(const Eigen::VectorXd &x, const unsigned int idx) const
+    {
+        const unsigned int offset = 3 * links_ * id_;
+        return x.segment(offset + 3 * idx, 3);
+    }
+
     void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
     {
-        Eigen::VectorXd j1 = offset_;
-        unsigned int offset = 3 * links_ * id_;
+        unsigned int idx = 0;
 
+        Eigen::VectorXd j1 = offset_;
         for (unsigned int i = 0; i < links_; ++i)
         {
-            const Eigen::VectorXd j2 = x.segment(3 * i + offset, 3);
-            out[i] = (j1 - j2).norm() - length_;
+            const Eigen::VectorXd j2 = getLink(x, i);
+            out[idx++] = (j1 - j2).norm() - length_;
             j1 = j2;
         }
     }
 
     void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
-        unsigned int offset = 3 * links_ * id_;
+        const unsigned int offset = 3 * links_ * id_;
         out.setZero();
 
         Eigen::VectorXd plus(3 * (links_ + 1));
@@ -268,6 +275,7 @@ private:
     const unsigned int id_;
     const double length_;
     const double jointSize_;
+    const unsigned int extra_;
 };
 
 class StewartPlatform : public ompl::base::Constraint, public StewartBase
@@ -333,7 +341,7 @@ private:
 class StewartConstraint : public ompl::base::ConstraintIntersection
 {
 public:
-    StewartConstraint(ompl::base::StateSpace *space, unsigned int chains, unsigned int links, double radius = 1,
+    StewartConstraint(ompl::base::StateSpace *space, unsigned int chains, unsigned int links, unsigned int extra = 0, double radius = 1,
                       double length = 1, double jointSize = 0.2)
       : ompl::base::ConstraintIntersection(space, {})
       , chains_(chains)
@@ -345,7 +353,7 @@ public:
         Eigen::VectorXd offset = Eigen::Vector3d::UnitX();
         for (unsigned int i = 0; i < chains_; ++i)
         {
-            addConstraint(new StewartChain(space, offset, links, i, length, jointSize));
+            addConstraint(new StewartChain(space, offset, links, i, length, jointSize, extra));
             offset = Eigen::AngleAxisd(2 * M_PI / static_cast<double>(chains), Eigen::Vector3d::UnitZ()) * offset;
         }
 
@@ -450,7 +458,9 @@ public:
     bool isValid(double sleep, const ompl::base::State *state)
     {
         ompl::time::point wait = ompl::time::now() + ompl::time::seconds(sleep);
-        while (ompl::time::now() < wait) {};
+        while (ompl::time::now() < wait)
+        {
+        };
 
         Eigen::Ref<const Eigen::VectorXd> x =
             state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
@@ -574,11 +584,6 @@ public:
     {
         Eigen::Ref<const Eigen::VectorXd> x =
             state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
-
-        // for (unsigned int i = 0; i < 3; ++i)
-        // {
-        //     projection(i) = x[3 * chains_ * links_ + i];
-        // }
 
         for (unsigned int i = 0; i < chains_; ++i)
             projection(0) = x[3 * (i + 1) * links_ - 1];
@@ -803,14 +808,14 @@ ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
 /** Initialize the atlas for the kinematic chain problem. */
 ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
                                            ompl::base::StateValidityCheckerFn &isValid, double sleep,
-                                           unsigned int links = 3, unsigned int chains = 4)
+                                         unsigned int links = 3, unsigned int chains = 4, unsigned int extra = 0)
 {
     unsigned int dim = 3 * links * chains;
     x = Eigen::VectorXd(dim);
     y = Eigen::VectorXd(dim);
 
     ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(dim);
-    StewartConstraint *constraint = new StewartConstraint(space, chains, links);
+    StewartConstraint *constraint = new StewartConstraint(space, chains, links, extra);
 
     constraint->getStart(x);
     constraint->getGoal(y);
@@ -855,7 +860,7 @@ void printPlanners(void)
 /** Initialize the problem specified in the string. */
 ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
                                      ompl::base::StateValidityCheckerFn &isValid, double sleep = 0,
-                                     unsigned int links = 5, unsigned int chains = 2)
+                                     unsigned int links = 5, unsigned int chains = 2, unsigned int extra = 0)
 {
     if (std::strcmp(problem, "plane") == 0)
         return initPlaneProblem(x, y, isValid, sleep);
@@ -870,7 +875,7 @@ ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd 
     else if (std::strcmp(problem, "chain") == 0)
         return initChainProblem(x, y, isValid, sleep, links);
     else if (std::strcmp(problem, "stewart") == 0)
-        return initStewartProblem(x, y, isValid, sleep, links, chains);
+        return initStewartProblem(x, y, isValid, sleep, links, chains, extra);
     else
         return NULL;
 }

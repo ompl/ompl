@@ -71,8 +71,9 @@ int main(int argc, char **argv)
     unsigned int links = 5;
     unsigned int chains = 2;
     unsigned int simp = 1;
+    unsigned int extra = 0;
 
-    while ((c = getopt(argc, argv, "yg:c:p:s:w:ot:n:i:ax:")) != -1)
+    while ((c = getopt(argc, argv, "yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
     {
         switch (c)
         {
@@ -82,6 +83,10 @@ int main(int argc, char **argv)
 
             case 'c':
                 problem = optarg;
+                break;
+
+            case 'e':
+                extra = atoi(optarg);
                 break;
 
             case 'x':
@@ -146,7 +151,7 @@ int main(int argc, char **argv)
 
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
-    ompl::base::Constraint *constraint = parseProblem(problem, x, y, isValid, artificalSleep, links, chains);
+    ompl::base::Constraint *constraint = parseProblem(problem, x, y, isValid, artificalSleep, links, chains, extra);
 
     if (!constraint)
     {
