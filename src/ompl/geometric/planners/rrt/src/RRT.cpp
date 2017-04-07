@@ -47,6 +47,8 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, bool addIntermedi
 
     Planner::declareParam<double>("range", this, &RRT::setRange, &RRT::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias, "0.:.05:1.");
+
+    addIntermediateStates_ = addIntermediateStates;
 }
 
 ompl::geometric::RRT::~RRT()
