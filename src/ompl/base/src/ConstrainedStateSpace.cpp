@@ -218,7 +218,7 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
     std::vector<State *> stateList;
 
     if (!traverseManifold(from, to, true, &stateList))
-        stateList.push_back(si_->cloneState(to)->as<State>());
+        stateList.push_back(cloneState(to));
 
     piecewiseInterpolate(stateList, t, state);
 

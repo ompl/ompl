@@ -67,7 +67,7 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
     if (stateList != nullptr)
     {
         stateList->clear();
-        stateList->push_back(si_->cloneState(from));
+        stateList->push_back(cloneState(from));
     }
 
     // No need to traverse the manifold if we are already there
@@ -103,7 +103,7 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
 
         // Store the new state
         if (stateList != nullptr)
-            stateList->push_back(si_->cloneState(scratch));
+            stateList->push_back(cloneState(scratch));
 
     } while (dist > tolerance);
 

@@ -428,12 +428,8 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     const StateType *fromT = from->as<StateType>();
     const StateType *toT = to->as<StateType>();
 
-    // Save a copy of the from state.
-    if (stateList != nullptr)
-    {
-        stateList->clear();
-        stateList->push_back(si_->cloneState(from));
-    }
+    if (!constraint_->isSatisfied(from))
+        return false;
 
     AtlasChart *c = getChart(fromT);
     if (c == nullptr)
@@ -443,23 +439,26 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         return false;
     }
 
-    const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
+    // Save a copy of the from state.
+    if (stateList != nullptr)
+    {
+        stateList->clear();
+        stateList->push_back(cloneState(from));
+    }
+
+    // No need to traverse the manifold if we are already there
+    if (validSegmentCount(from, to) == 0)
+        return true;
 
     unsigned int chartsCreated = 0;
     Eigen::Ref<const Eigen::VectorXd> x_a = fromT->constVectorView();
     Eigen::Ref<const Eigen::VectorXd> x_b = toT->constVectorView();
 
-    // Collision check unless interpolating.
-    if (!interpolate && (!x_a.allFinite() || !svc->isValid(from)))
-    {
-        OMPL_DEBUG("ompl::base::AtlasStateSpace::traverseManifold(): "
-                   "'from' state not valid!");
-        return false;
-    }
+    const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
 
     Eigen::VectorXd u_j(k_), u_b(k_);
 
-    StateType *scratch = cloneState(fromT)->as<StateType>();
+    StateType *scratch = cloneState(from)->as<StateType>();
     Eigen::Ref<Eigen::VectorXd> x_j = scratch->vectorView();
 
     // Project from and to points onto the chart
@@ -467,7 +466,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     c->psiInverse(x_b, u_b);
 
     // We will stop if we exit the ball of radius distance_max centered at x_a.
-    double distance_max = (x_a - x_b).norm();
+    const double distance_max = (x_a - x_b).norm();
     double distance = 0;
 
     Eigen::VectorXd tempx(n_);
@@ -481,14 +480,14 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         if (!c->psi(u_j, tempx))
             break;
 
-        double distance_step = (tempx - x_j).norm();
+        const double distance_step = (tempx - x_j).norm();
         distance += distance_step;
 
         // Update state
         x_j = tempx;
+        scratch->setChart(c);
 
         // Collision check unless interpolating.
-        scratch->setChart(c);
         if (!interpolate && (!x_j.allFinite() || !svc->isValid(scratch)))
             break;
 
@@ -505,9 +504,10 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         const bool exceedsEpsilon = (x_j - tempx).squaredNorm() > (epsilon_ * epsilon_);
         const bool exceedsAngle = delta_ / distance_step < cos_alpha_;
         const bool exceedsRadius = u_j.squaredNorm() > (rho_ * rho_);
+        const bool outsidePolytope = !c->inPolytope(u_j);
 
         // Find or make a new chart if new state is off of current chart
-        if (exceedsEpsilon || exceedsAngle || exceedsRadius || !c->inPolytope(u_j))
+        if (exceedsEpsilon || exceedsAngle || exceedsRadius || outsidePolytope)
         {
             c = owningChart(x_j);
             if (c == nullptr)
@@ -531,7 +531,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
 
         // Keep the state in a list, if requested.
         if (stateList != nullptr)
-            stateList->push_back(si_->cloneState(scratch));
+            stateList->push_back(cloneState(scratch));
     }
 
     if (chartsCreated > maxChartsPerExtension_)
@@ -546,7 +546,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     // Append a copy of the target state, since we're within delta, but didn't hit it exactly.
     if (reached && (stateList != nullptr))
     {
-        State *scratch = si_->cloneState(to);
+        State *scratch = cloneState(to);
         if (toT->getChart() == nullptr)
             scratch->as<StateType>()->setChart(c);
         stateList->push_back(scratch);
