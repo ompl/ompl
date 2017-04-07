@@ -259,7 +259,7 @@ public:
         for (unsigned int i = 0; i < links_; i++)
             out.row(i).segment(3 * i + offset, 3) = diagonal.segment(3 * i, 3).normalized();
 
-        out.block(1, offset, links_, 3 * (links_ - 1)) -= out.block(1, offset + 3, links_, 3 * (links_ - 1));
+        out.block(1, offset, links_ - 1, 3 * links_ - 3) -= out.block(1, offset + 3, links_ - 1, 3 * links_ - 3);
     }
 
 private:
