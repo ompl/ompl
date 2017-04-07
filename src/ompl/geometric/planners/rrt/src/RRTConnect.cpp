@@ -47,6 +47,7 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, boo
     Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange, "0.:1.:10000.");
     connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
+    addIntermediateStates_ = addIntermediateStates;
 }
 
 ompl::geometric::RRTConnect::~RRTConnect()
