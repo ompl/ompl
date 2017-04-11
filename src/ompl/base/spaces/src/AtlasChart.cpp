@@ -47,6 +47,7 @@ ompl::base::AtlasChart::Halfspace::Halfspace(const AtlasChart *owner, const Atla
     // Project neighbor's chart center onto our chart.
     Eigen::VectorXd u(owner_->k_);
     owner_->psiInverse(neighbor->getXorigin(), u);
+
     // Compute the halfspace equation, which is the perpendicular bisector
     // between 0 and u (plus 5% to reduce cracks, see Jaillet et al.).
     setU(1.05 * u);
@@ -76,7 +77,7 @@ bool ompl::base::AtlasChart::Halfspace::circleIntersect(const double r, Eigen::R
                               "Only works on 2D manifolds.");
 
     // Check if there will be no solutions.
-    double discr = 4 * r * r - u_.squaredNorm();
+    double discr = 4 * r * r - usqnorm_;
     if (discr < 0)
         return false;
     discr = std::sqrt(discr);
@@ -117,14 +118,18 @@ void ompl::base::AtlasChart::Halfspace::intersect(const Halfspace &l1, const Hal
 void ompl::base::AtlasChart::Halfspace::setU(const Eigen::VectorXd &u)
 {
     u_ = u;
+
+    // Precompute the squared norm of u.
+    usqnorm_ = u_.squaredNorm();
+
     // Precompute the right-hand side of the linear inequality.
-    rhs_ = u_.squaredNorm() / 2;
+    rhs_ = usqnorm_ / 2;
 }
 
 double ompl::base::AtlasChart::Halfspace::distanceToPoint(const Eigen::Ref<const Eigen::VectorXd> &v) const
 {
     // Result is a scalar factor of u_.
-    return (0.5 - v.dot(u_) / u_.squaredNorm());
+    return (0.5 - v.dot(u_)) / usqnorm_;
 }
 
 void ompl::base::AtlasChart::Halfspace::expandToInclude(const Eigen::Ref<const Eigen::VectorXd> &x)
@@ -262,8 +267,13 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor(const Eigen
         const AtlasChart *c = h->getComplement()->getOwner();
         c->psiInverse(x, proju);
         c->phi(proju, projx);
+
         // Check if it's within the validity region and polytope boundary.
-        if ((projx - x).norm() < epsilon_ && proju.norm() < radius_ && c->inPolytope(proju))
+        const bool withinRadius = proju.norm() < radius_;
+        const bool withinTolerance = (projx - x).norm();
+        const bool inPolytope = c->inPolytope(proju);
+
+        if (withinRadius && withinTolerance && inPolytope)
             return c;
     }
 
@@ -382,8 +392,8 @@ void ompl::base::AtlasChart::addBoundary(Halfspace *halfspace)
     polytope_.push_back(halfspace);
 
     // Sort halfspaces so that closer ones come first (cut out more of the space)
-    // std::sort(polytope_.begin(), polytope_.end(),
-    //          [](const Halfspace *h1, const Halfspace *h2) -> bool {
-    //              return h1->getU().norm() < h2->getU().norm();
-    //          });
+    std::sort(polytope_.begin(), polytope_.end(),
+             [](const Halfspace *h1, const Halfspace *h2) -> bool {
+                 return h1->getU().norm() < h2->getU().norm();
+             });
 }

@@ -37,12 +37,12 @@
 #include "ompl/base/Constraint.h"
 #include "ompl/base/ConstrainedStateSpace.h"
 
-void ompl::base::Constraint::function(const State *state, const Eigen::Ref<Eigen::VectorXd>& out) const
+void ompl::base::Constraint::function(const State *state, const Eigen::Ref<Eigen::VectorXd> &out) const
 {
     function(state->as<ConstrainedStateSpace::StateType>()->constVectorView(), out);
 }
 
-void ompl::base::Constraint::jacobian(const State *state, const Eigen::Ref<Eigen::MatrixXd>& out) const
+void ompl::base::Constraint::jacobian(const State *state, const Eigen::Ref<Eigen::MatrixXd> &out) const
 {
     jacobian(state->as<ConstrainedStateSpace::StateType>()->constVectorView(), out);
 }
@@ -109,7 +109,6 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
     function(x, f);
     while (f.norm() > projectionTolerance_ && iter++ < projectionMaxIterations_)
     {
-        // Compute pseudoinverse of Jacobian
         jacobian(x, j);
         x -= j.fullPivLu().solve(f);
         function(x, f);

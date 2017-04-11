@@ -255,7 +255,8 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpace *ambientSpace, con
     setRho(0.1);
     setAlpha(M_PI / 16);
 
-    chartNN_.setDistanceFunction(&chartNNDistanceFunction);
+    chartNN_.setDistanceFunction(
+        [](const NNElement &e1, const NNElement &e2) -> double { return (*e1.first - *e2.first).norm(); });
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace()
@@ -411,12 +412,6 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const Eigen::Ve
     return nullptr;
 }
 
-// Static
-double ompl::base::AtlasStateSpace::chartNNDistanceFunction(const NNElement &e1, const NNElement &e2)
-{
-    return (*e1.first - *e2.first).norm();
-}
-
 std::size_t ompl::base::AtlasStateSpace::getChartCount() const
 {
     return charts_.size();
@@ -425,13 +420,14 @@ std::size_t ompl::base::AtlasStateSpace::getChartCount() const
 bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
                                                    std::vector<ompl::base::State *> *stateList) const
 {
-    const StateType *fromT = from->as<StateType>();
-    const StateType *toT = to->as<StateType>();
+    const StateType *fromAsType = from->as<StateType>(), *toAsType = to->as<StateType>();
 
+    // We can't traverse the manifold if we don't start on it.
     if (!constraint_->isSatisfied(from))
         return false;
 
-    AtlasChart *c = getChart(fromT);
+    // Try to get starting chart from `from` state.
+    AtlasChart *c = getChart(fromAsType);
     if (c == nullptr)
     {
         OMPL_DEBUG("ompl::base::AtlasStateSpace::traverseManifold(): "
@@ -450,45 +446,44 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     if (validSegmentCount(from, to) == 0)
         return true;
 
-    unsigned int chartsCreated = 0;
-    Eigen::Ref<const Eigen::VectorXd> x_a = fromT->constVectorView();
-    Eigen::Ref<const Eigen::VectorXd> x_b = toT->constVectorView();
-
-    const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
-
-    Eigen::VectorXd u_j(k_), u_b(k_);
+    Eigen::Ref<const Eigen::VectorXd> x_a = fromAsType->constVectorView(), x_b = toAsType->constVectorView();
 
     StateType *scratch = cloneState(from)->as<StateType>();
     Eigen::Ref<Eigen::VectorXd> x_j = scratch->vectorView();
 
     // Project from and to points onto the chart
+    Eigen::VectorXd u_j(k_), u_b(k_);
     c->psiInverse(x_j, u_j);
     c->psiInverse(x_b, u_b);
+
+    const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
+    bool valid = false;
+
+    unsigned int chartsCreated = 0;
 
     // We will stop if we exit the ball of radius distance_max centered at x_a.
     const double distance_max = (x_a - x_b).norm();
     double distance = 0;
 
-    Eigen::VectorXd tempx(n_);
-    while (((u_b - u_j).squaredNorm() > delta_ * delta_))
+    Eigen::VectorXd x_t(n_);
+    do
     {
-        // Step by delta toward the target and project.
-        // Note the correction to the pseudocode line 13 (Jaillet et al.).
+        // Take a step towards the final state
         u_j += delta_ * (u_b - u_j).normalized();
 
-        // Project state onto manifold
-        if (!c->psi(u_j, tempx))
+        // Project new state onto manifold
+        if (!(valid = c->psi(u_j, x_t)))
             break;
 
-        const double distance_step = (tempx - x_j).norm();
+        const double distance_step = (x_t - x_j).norm();
         distance += distance_step;
 
         // Update state
-        x_j = tempx;
+        x_j = x_t;
         scratch->setChart(c);
 
         // Collision check unless interpolating.
-        if (!interpolate && (!x_j.allFinite() || !svc->isValid(scratch)))
+        if (!(valid = interpolate || (x_j.allFinite() && svc->isValid(scratch))))
             break;
 
         const bool exceedMaxDistance = (x_j - x_a).squaredNorm() > (distance_max * distance_max);
@@ -499,9 +494,9 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             break;
 
         // Check if we left the validity region or polytope of the chart.
-        c->phi(u_j, tempx);
+        c->phi(u_j, x_t);
 
-        const bool exceedsEpsilon = (x_j - tempx).squaredNorm() > (epsilon_ * epsilon_);
+        const bool exceedsEpsilon = (x_j - x_t).squaredNorm() > (epsilon_ * epsilon_);
         const bool exceedsAngle = delta_ / distance_step < cos_alpha_;
         const bool exceedsRadius = u_j.squaredNorm() > (rho_ * rho_);
         const bool outsidePolytope = !c->inPolytope(u_j);
@@ -532,28 +527,13 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         // Keep the state in a list, if requested.
         if (stateList != nullptr)
             stateList->push_back(cloneState(scratch));
-    }
 
-    if (chartsCreated > maxChartsPerExtension_)
-        OMPL_WARN("ompl::base::AtlasStateSpace::traverseManifold(): "
-                  "Too many new charts. Stopping extension early.");
+    } while ((u_b - u_j).squaredNorm() > delta_ * delta_);
 
-    // Reached goal if final point is within delta and both current and goal are valid.
-    const bool currentValid = interpolate || (x_j.allFinite() && svc->isValid(scratch));
-    const bool goalValid = interpolate || svc->isValid(to);
-    const bool reached = ((x_b - x_j).squaredNorm() <= delta_ * delta_) && currentValid && goalValid;
-
-    // Append a copy of the target state, since we're within delta, but didn't hit it exactly.
-    if (reached && (stateList != nullptr))
-    {
-        State *scratch = cloneState(to);
-        if (toT->getChart() == nullptr)
-            scratch->as<StateType>()->setChart(c);
-        stateList->push_back(scratch);
-    }
-
+    const bool ret = valid && (x_b - x_j).squaredNorm() <= delta_ * delta_;
     freeState(scratch);
-    return reached;
+
+    return ret;
 }
 
 unsigned int ompl::base::AtlasStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList, const double t,
@@ -570,20 +550,17 @@ unsigned int ompl::base::AtlasStateSpace::piecewiseInterpolate(const std::vector
     AtlasChart *c1 = stateList[i > 0 ? i - 1 : 0]->as<StateType>()->getChart();
     AtlasChart *c2 = stateList[i]->as<StateType>()->getChart();
 
+    // Check first neighboring chart
     if (c1->psiInverse(x, u), c1->inPolytope(u))
         astate->setChart(c1);
 
-    else if (c2->psiInverse(x, u), c2->inPolytope(u))
+    // Check second neighboring chart if different
+    else if (c1 != c2 && (c2->psiInverse(x, u), c2->inPolytope(u)))
         astate->setChart(c2);
 
+    // Find or create new chart
     else
-    {
-        AtlasChart *c = owningChart(x);
-        if (c == nullptr)
-            c = newChart(x);
-
-        astate->setChart(c);
-    }
+        getChart(astate);
 
     return i;
 }
