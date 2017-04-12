@@ -313,10 +313,6 @@ namespace ompl
              * to initialize new chart if \a state does not belong to one. */
             AtlasChart *getChart(const StateType *state) const;
 
-            /** Compute the distance between two charts represented by
-             * nearest-neighbor elements. */
-            static double chartNNDistanceFunction(const NNElement &e1, const NNElement &e2);
-
             /** \brief Return the number of charts currently in the atlas. */
             std::size_t getChartCount(void) const;
 
@@ -328,7 +324,7 @@ namespace ompl
              * including a copy of \a from, as well as the final state, which is
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. */
-            bool traverseManifold(const State *from, const State*to, bool interpolate = false,
+            bool traverseManifold(const State *from, const State *to, bool interpolate = false,
                                   std::vector<State *> *stateList = nullptr) const;
 
             /** @} */
@@ -385,7 +381,6 @@ namespace ompl
             /** @} */
 
         protected:
-
             /** \brief Set of charts, sampleable by weight. */
             mutable std::vector<AtlasChart *> charts_;
 

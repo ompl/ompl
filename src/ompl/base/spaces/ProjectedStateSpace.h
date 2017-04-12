@@ -61,7 +61,6 @@ namespace ompl
          * \brief A boost shared pointer wrapper for
          * ompl::base::ProjectedStateSpace. */
 
-
         /** \brief State space encapsulating a planner-agnostic algorithm for
          * planning on a constraint manifold. */
         class ProjectedStateSpace : public ConstrainedStateSpace
@@ -89,7 +88,7 @@ namespace ompl
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. */
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                  std::vector<State*> *stateList = nullptr) const;
+                                  std::vector<State *> *stateList = nullptr) const;
         };
     }
 }

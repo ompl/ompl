@@ -36,14 +36,7 @@
 
 #include "ompl/base/spaces/ProjectedStateSpace.h"
 
-#include "ompl/base/PlannerDataGraph.h"
-#include "ompl/base/SpaceInformation.h"
-#include "ompl/util/Exception.h"
-
-#include <boost/graph/iteration_macros.hpp>
-
 #include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/Geometry>
 
 /// ProjectedStateSpace
 
