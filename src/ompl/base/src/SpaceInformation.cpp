@@ -39,8 +39,8 @@
 #include <queue>
 #include <utility>
 #include "ompl/base/DiscreteMotionValidator.h"
+#include "ompl/base/ConstrainedStateSpace.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
-#include "ompl/base/spaces/AtlasStateSpace.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/tools/config/MagicConstants.h"
@@ -457,9 +457,7 @@ void ompl::base::SpaceInformation::printProperties(std::ostream &out) const
         bool result = true;
         try
         {
-            // TODO (cav2):
-            if (!stateSpace_->as<AtlasStateSpace>())
-                stateSpace_->sanityChecks();
+            stateSpace_->sanityChecks();
         }
         catch (Exception &e)
         {

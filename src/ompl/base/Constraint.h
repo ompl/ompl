@@ -66,21 +66,18 @@ namespace ompl
         {
         public:
             /** \brief Constructor. */
-            Constraint(const StateSpace *ambientSpace, const unsigned int manifoldDimension)
-              : ambientSpace_(ambientSpace)
-              , n_(ambientSpace_->getDimension())
-              , k_(manifoldDimension)
-              , projectionTolerance_(magic::CONSTRAINT_PROJECTION_TOLERANCE)
-              , projectionMaxIterations_(magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS)
+            Constraint(const unsigned int ambientDim, const unsigned int manifoldDim)
+              : n_(ambientDim)
+              , k_(manifoldDim)
+              , tolerance_(magic::CONSTRAINT_PROJECTION_TOLERANCE)
+              , maxIterations_(magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS)
             {
                 if (n_ <= 0 || k_ <= 0)
                     throw ompl::Exception("ompl::base::Constraint(): "
                                           "Ambient and manifold dimensions must be positive.");
             }
 
-            virtual ~Constraint()
-            {
-            }
+            virtual ~Constraint() {};
 
             /** \brief Compute the constraint function at \a state. Result is
              * returned in \a out, which should be allocated to size n_. */
@@ -130,39 +127,33 @@ namespace ompl
             }
 
             /** \brief Returns the tolerance of the projection routine. */
-            double getProjectionTolerance() const
+            double getTolerance() const
             {
-                return projectionTolerance_;
+                return tolerance_;
             }
 
             /** \brief Returns the maximum number of allowed iterations in the projection routine. */
-            unsigned int getProjectionMaxIterations() const
+            unsigned int getMaxIterations() const
             {
-                return projectionMaxIterations_;
-            }
-
-            /** \brief Returns the maximum number of allowed iterations in the projection routine. */
-            const StateSpace *getAmbientSpace() const
-            {
-                return ambientSpace_;
+                return maxIterations_;
             }
 
             /** \brief Sets the projection tolerance. */
-            void setProjectionTolerance(const double tolerance)
+            void setTolerance(const double tolerance)
             {
                 if (tolerance <= 0)
                     throw ompl::Exception("ompl::base::Constraint::setProjectionTolerance(): "
                                           "tolerance must be positive.");
-                projectionTolerance_ = tolerance;
+                tolerance_ = tolerance;
             }
 
             /** \brief Sets the maximum number of iterations in the projection routine. */
-            void setProjectionMaxIterations(const unsigned int iterations)
+            void setMaxIterations(const unsigned int iterations)
             {
                 if (iterations == 0)
                     throw ompl::Exception("ompl::base::Constraint::setProjectionMaxIterations(): "
                                           "iterations must be positive.");
-                projectionMaxIterations_ = iterations;
+                maxIterations_ = iterations;
             }
 
             // /** \brief Translates a state from the ambient space into an Eigen vector. */
@@ -193,9 +184,6 @@ namespace ompl
             virtual bool isSatisfied(const Eigen::VectorXd &x) const;
 
         protected:
-            /** \brief Ambient state space of constraint function. */
-            const StateSpace *ambientSpace_;
-
             /** \brief Ambient space dimension. */
             const unsigned int n_;
 
@@ -203,10 +191,10 @@ namespace ompl
             unsigned int k_;
 
             /** \brief Tolerance for Newton method used in projection onto manifold. */
-            double projectionTolerance_;
+            double tolerance_;
 
             /** \brief Maximum number of iterations for Newton method used in projection onto manifold. */
-            unsigned int projectionMaxIterations_;
+            unsigned int maxIterations_;
         };
 
         /// @cond IGNORE
@@ -218,8 +206,8 @@ namespace ompl
         {
         public:
             /** \brief Constructor. If constraints is empty assume it will be filled later. */
-            ConstraintIntersection(StateSpace *ambientSpace, std::initializer_list<Constraint *> constraints)
-              : Constraint(ambientSpace, ambientSpace->getDimension())
+            ConstraintIntersection(const unsigned int ambientDim, std::initializer_list<Constraint *> constraints)
+              : Constraint(ambientDim, ambientDim)
             {
                 for (auto constraint : constraints)
                     addConstraint(constraint);
@@ -254,10 +242,6 @@ namespace ompl
         protected:
             void addConstraint(Constraint *constraint)
             {
-                if (constraint->getAmbientSpace() != ambientSpace_)
-                    throw ompl::Exception("ompl::base::ConstraintIntersection(): "
-                                          "Constraint spaces must be the same.");
-
                 setManifoldDimension(k_ - constraint->getCoDimension());
                 constraints_.push_back(constraint);
             }
@@ -270,8 +254,8 @@ namespace ompl
         {
         public:
             /** \brief Constructor. If constraints is empty assume it will be filled later. */
-            ConstraintUnion(StateSpace *ambientSpace, std::initializer_list<Constraint *> constraints)
-              : Constraint(ambientSpace, ambientSpace->getDimension())
+            ConstraintUnion(const unsigned int ambientDim, std::initializer_list<Constraint *> constraints)
+              : Constraint(ambientDim, ambientDim)
             {
                 for (auto constraint : constraints)
                     addConstraint(constraint);
@@ -316,10 +300,6 @@ namespace ompl
         protected:
             void addConstraint(Constraint *constraint)
             {
-                if (constraint->getAmbientSpace() != ambientSpace_)
-                    throw ompl::Exception("ompl::base::ConstraintUnion(): "
-                                          "Constraint spaces must be the same.");
-
                 if (k_ == n_)
                     setManifoldDimension(constraint->getManifoldDimension());
                 else if (k_ != constraint->getManifoldDimension())

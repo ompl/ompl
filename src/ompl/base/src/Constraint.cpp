@@ -107,14 +107,14 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
     Eigen::MatrixXd j(getCoDimension(), n_);
 
     function(x, f);
-    while (f.norm() > projectionTolerance_ && iter++ < projectionMaxIterations_)
+    while (f.norm() > tolerance_ && iter++ < maxIterations_)
     {
         jacobian(x, j);
         x -= j.fullPivLu().solve(f);
         function(x, f);
     }
 
-    return iter <= projectionMaxIterations_;
+    return iter <= maxIterations_;
 }
 
 double ompl::base::Constraint::distance(const Eigen::VectorXd &x) const
@@ -126,5 +126,5 @@ double ompl::base::Constraint::distance(const Eigen::VectorXd &x) const
 
 bool ompl::base::Constraint::isSatisfied(const Eigen::VectorXd &x) const
 {
-    return x.allFinite() && distance(x) <= projectionTolerance_;
+    return x.allFinite() && distance(x) <= tolerance_;
 }
