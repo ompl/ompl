@@ -274,7 +274,7 @@ namespace ompl
             const AtlasStateSpace *atlas_;
 
             /** \brief The constraint function that defines the manifold. */
-            const Constraint *constraint_;
+            const ConstraintPtr constraint_;
 
             /** \brief Set of halfspaces defining the polytope boundary. */
             std::vector<Halfspace *> polytope_;

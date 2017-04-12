@@ -38,15 +38,12 @@
 #define OMPL_BASE_SPACES_ATLAS_STATE_SPACE_
 
 #include "ompl/base/MotionValidator.h"
-#include "ompl/base/PlannerData.h"
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/ValidStateSampler.h"
 #include "ompl/base/Constraint.h"
-#include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
-#include "ompl/geometric/PathGeometric.h"
 
-#include "ompl/base/ConstrainedStateSpace.h"
+#include "ompl/base/spaces/ConstrainedStateSpace.h"
 
 #include <eigen3/Eigen/Core>
 
@@ -69,12 +66,7 @@ namespace ompl
         class AtlasStateSampler : public StateSampler
         {
         public:
-            /** \brief Create a sampler for the specified space information.
-             * \note The underlying state space must be an AtlasStateSpace. */
-            AtlasStateSampler(const SpaceInformation *si);
-
-            /** \brief Create a sampler for the specified \a atlas space. */
-            AtlasStateSampler(const AtlasStateSpace &atlas);
+            AtlasStateSampler(const AtlasStateSpace *space);
 
             /** \brief Sample a state uniformly from the charted regions of the
              * manifold. Return sample in \a state. */
@@ -91,7 +83,7 @@ namespace ompl
 
         private:
             /** \brief Atlas on which to sample. */
-            const AtlasStateSpace &atlas_;
+            const AtlasStateSpace *atlas_;
 
             /** \brief Random number generator. */
             mutable RNG rng_;
@@ -130,7 +122,7 @@ namespace ompl
             {
             public:
                 /** \brief Construct state of size \a n. */
-                StateType(const unsigned int &n) : ConstrainedStateSpace::StateType(n)
+                StateType(const unsigned int n) : ConstrainedStateSpace::StateType(n)
                 {
                 }
 
@@ -155,10 +147,10 @@ namespace ompl
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
 
             /** \brief Construct an atlas with the specified dimensions. */
-            AtlasStateSpace(const StateSpace *ambientSpace, const Constraint *constraint);
+            AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint);
 
             /** \brief Destructor. */
-            virtual ~AtlasStateSpace(void);
+            virtual ~AtlasStateSpace();
 
             /** @name Setup and tuning of atlas parameters
              * @{ */
@@ -345,25 +337,27 @@ namespace ompl
 
             void copyState(State *destination, const State *source) const
             {
-                StateType *adest = destination->as<StateType>();
-                const StateType *asrc = source->as<StateType>();
-                adest->vectorView() = asrc->constVectorView();
-                adest->setChart(asrc->getChart());
+                ConstrainedStateSpace::copyState(destination, source);
+                destination->as<StateType>()->setChart(source->as<StateType>()->getChart());
             }
 
             /** \brief Allocate a new state in this space. */
             State *allocState() const
             {
-                return new StateType(n_);
+                StateType *state = new StateType(n_);
+                state->setState(space_->allocState());
+                state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
+
+                return state;
             }
 
             /** \brief Free \a state. Assumes \a state is of type
              * AtlasStateSpace::StateType. state. */
-            void freeState(State *state) const
-            {
-                StateType *const astate = state->as<StateType>();
-                delete astate;
-            }
+            // void freeState(State *state) const
+            // {
+            //     StateType *const astate = state->as<StateType>();
+            //     delete astate;
+            // }
 
             /** @} */
 

@@ -215,7 +215,7 @@ bool ompl::base::AtlasChart::psiFromAmbient(const Eigen::Ref<const Eigen::Vector
     constraint_->function(out, b.head(n_ - k_));
     b.tail(k_).setZero();
 
-    while (b.norm() > constraint_->getProjectionTolerance() && iter++ < constraint_->getProjectionMaxIterations())
+    while (b.norm() > constraint_->getTolerance() && iter++ < constraint_->getMaxIterations())
     {
         // Recompute the Jacobian at the new guess.
         constraint_->jacobian(out, A.block(0, 0, n_ - k_, n_));
@@ -229,7 +229,7 @@ bool ompl::base::AtlasChart::psiFromAmbient(const Eigen::Ref<const Eigen::Vector
         b.tail(k_) = bigPhi_.transpose() * (out - x0);
     }
 
-    return iter <= constraint_->getProjectionMaxIterations();
+    return iter <= constraint_->getMaxIterations();
 }
 
 void ompl::base::AtlasChart::psiInverse(const Eigen::Ref<const Eigen::VectorXd> &x,
