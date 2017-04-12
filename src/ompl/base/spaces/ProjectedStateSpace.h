@@ -44,7 +44,7 @@
 #include "ompl/base/Constraint.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/geometric/PathGeometric.h"
-#include "ompl/base/ConstrainedStateSpace.h"
+#include "ompl/base/spaces/ConstrainedStateSpace.h"
 
 #include <eigen3/Eigen/Core>
 

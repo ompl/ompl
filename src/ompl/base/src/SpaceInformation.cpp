@@ -39,10 +39,10 @@
 #include <queue>
 #include <utility>
 #include "ompl/base/DiscreteMotionValidator.h"
-#include "ompl/base/ConstrainedStateSpace.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
+#include "ompl/base/spaces/ConstrainedStateSpace.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Time.h"
