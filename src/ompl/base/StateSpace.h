@@ -401,10 +401,10 @@ namespace ompl
 
             /** \brief Copy all the real values from a state \e source to the array \e reals using
              * getValueAddressAtLocation() */
-            void copyToReals(std::vector<double> &reals, const State *source) const;
+            virtual void copyToReals(std::vector<double> &reals, const State *source) const;
 
             /** \brief Copy the values from \e reals to the state \e destination using getValueAddressAtLocation() */
-            void copyFromReals(State *destination, const std::vector<double> &reals) const;
+            virtual void copyFromReals(State *destination, const std::vector<double> &reals) const;
 
             /** @} */
 

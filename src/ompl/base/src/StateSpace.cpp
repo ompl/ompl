@@ -339,16 +339,18 @@ ompl::base::StateSpace::getValueLocationsByName() const
 
 void ompl::base::StateSpace::copyToReals(std::vector<double> &reals, const State *source) const
 {
-    reals.resize(valueLocationsInOrder_.size());
-    for (std::size_t i = 0; i < valueLocationsInOrder_.size(); ++i)
-        reals[i] = *getValueAddressAtLocation(source, valueLocationsInOrder_[i]);
+    auto locations = getValueLocations();
+    reals.resize(locations.size());
+    for (std::size_t i = 0; i < locations.size(); ++i)
+        reals[i] = *getValueAddressAtLocation(source, locations[i]);
 }
 
 void ompl::base::StateSpace::copyFromReals(State *destination, const std::vector<double> &reals) const
 {
-    assert(reals.size() == valueLocationsInOrder_.size());
+    auto locations = getValueLocations();
+    assert(reals.size() == locations.size());
     for (std::size_t i = 0; i < reals.size(); ++i)
-        *getValueAddressAtLocation(destination, valueLocationsInOrder_[i]) = reals[i];
+        *getValueAddressAtLocation(destination, locations[i]) = reals[i];
 }
 
 double *ompl::base::StateSpace::getValueAddressAtLocation(State *state, const ValueLocation &loc) const
@@ -369,14 +371,16 @@ const double *ompl::base::StateSpace::getValueAddressAtLocation(const State *sta
 
 double *ompl::base::StateSpace::getValueAddressAtName(State *state, const std::string &name) const
 {
-    auto it = valueLocationsByName_.find(name);
-    return (it != valueLocationsByName_.end()) ? getValueAddressAtLocation(state, it->second) : nullptr;
+    auto locations = getValueLocationsByName();
+    auto it = locations.find(name);
+    return (it != locations.end()) ? getValueAddressAtLocation(state, it->second) : nullptr;
 }
 
 const double *ompl::base::StateSpace::getValueAddressAtName(const State *state, const std::string &name) const
 {
-    auto it = valueLocationsByName_.find(name);
-    return (it != valueLocationsByName_.end()) ? getValueAddressAtLocation(state, it->second) : nullptr;
+    auto locations = getValueLocationsByName();
+    auto it = locations.find(name);
+    return (it != locations.end()) ? getValueAddressAtLocation(state, it->second) : nullptr;
 }
 
 unsigned int ompl::base::StateSpace::getSerializationLength() const
