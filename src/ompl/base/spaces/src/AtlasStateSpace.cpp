@@ -46,15 +46,15 @@
 
 /// Public
 
-ompl::base::AtlasStateSampler::AtlasStateSampler(const AtlasStateSpace *space) : StateSampler(space), atlas_(space)
+ompl::base::AtlasStateSampler::AtlasStateSampler(const AtlasStateSpace &space) : StateSampler(&space), atlas_(space)
 {
 }
 
 void ompl::base::AtlasStateSampler::sampleUniform(State *state)
 {
     Eigen::Ref<Eigen::VectorXd> rx = state->as<AtlasStateSpace::StateType>()->vectorView();
-    Eigen::VectorXd ry(atlas_->getAmbientDimension());
-    Eigen::VectorXd ru(atlas_->getManifoldDimension());
+    Eigen::VectorXd ry(atlas_.getAmbientDimension());
+    Eigen::VectorXd ru(atlas_.getManifoldDimension());
     AtlasChart *c;
 
     // Sampling a point on the manifold.
@@ -65,14 +65,14 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
         do
         {
             // Pick a chart.
-            c = atlas_->sampleChart();
+            c = atlas_.sampleChart();
 
             // Sample a point within rho_s of the center. This is done by
             // sampling uniformly on the surface and multiplying by a distance
             // whose distribution is biased according to spherical volume.
             for (int i = 0; i < ru.size(); i++)
                 ru[i] = rng_.gaussian01();
-            ru *= atlas_->getRho_s() * std::pow(rng_.uniform01(), 1.0 / ru.size()) / ru.norm();
+            ru *= atlas_.getRho_s() * std::pow(rng_.uniform01(), 1.0 / ru.size()) / ru.norm();
         } while (tries-- > 0 && !c->inPolytope(ru));
 
         // Project. Will need to try again if this fails.
@@ -90,7 +90,7 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
     // Extend polytope of neighboring chart wherever point is near the border.
     c->psiInverse(rx, ru);
     c->borderCheck(ru);
-    state->as<AtlasStateSpace::StateType>()->setChart(atlas_->owningChart(rx));
+    state->as<AtlasStateSpace::StateType>()->setChart(atlas_.owningChart(rx));
 }
 
 void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
@@ -100,9 +100,9 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     const AtlasStateSpace::StateType *anear = near->as<AtlasStateSpace::StateType>();
 
     Eigen::Ref<const Eigen::VectorXd> n = anear->constVectorView();
-    Eigen::VectorXd rx(atlas_->getAmbientDimension()), ru(atlas_->getManifoldDimension());
+    Eigen::VectorXd rx(atlas_.getAmbientDimension()), ru(atlas_.getManifoldDimension());
 
-    AtlasChart *c = atlas_->getChart(anear);
+    AtlasChart *c = atlas_.getChart(anear);
     if (c == nullptr)
     {
         OMPL_ERROR("ompl::base::AtlasStateSpace::sampleUniformNear(): "
@@ -115,10 +115,10 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     c->psiInverse(n, ru);
 
     int tries = 100;
-    Eigen::VectorXd uoffset(atlas_->getManifoldDimension());
+    Eigen::VectorXd uoffset(atlas_.getManifoldDimension());
 
     // TODO: Is this a hack or is this theoretically sound? Find out more after the break.
-    const double distanceClamped = std::min(distance, atlas_->getRho_s());
+    const double distanceClamped = std::min(distance, atlas_.getRho_s());
     do
     {
         // Sample within distance
@@ -153,10 +153,10 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
     const AtlasStateSpace::StateType *amean = mean->as<AtlasStateSpace::StateType>();
 
     Eigen::Ref<const Eigen::VectorXd> m = amean->constVectorView();
-    const std::size_t k = atlas_->getManifoldDimension();
-    Eigen::VectorXd rx(atlas_->getAmbientDimension()), ru(k);
+    const std::size_t k = atlas_.getManifoldDimension();
+    Eigen::VectorXd rx(atlas_.getAmbientDimension()), ru(k);
 
-    AtlasChart *c = atlas_->getChart(amean);
+    AtlasChart *c = atlas_.getChart(amean);
     if (c == nullptr)
     {
         OMPL_ERROR("ompl::base::AtlasStateSpace::sampleGaussian(): "
@@ -171,7 +171,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
     int tries = 100;
     Eigen::VectorXd rand(k);
 
-    const double stdDevClamped = std::min(stdDev, atlas_->getRho_s());
+    const double stdDevClamped = std::min(stdDev, atlas_.getRho_s());
     do
     {
         const double s = stdDevClamped / std::sqrt(k);
@@ -201,7 +201,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
 /// Public
 
 ompl::base::AtlasValidStateSampler::AtlasValidStateSampler(const SpaceInformation *si)
-    : ValidStateSampler(si), sampler_(si->getStateSpace().get()->as<ompl::base::AtlasStateSpace>())
+    : ValidStateSampler(si), sampler_(*si->getStateSpace().get()->as<ompl::base::AtlasStateSpace>())
 {
     AtlasStateSpace::checkSpace(si);
 }
@@ -237,7 +237,6 @@ bool ompl::base::AtlasValidStateSampler::sampleNear(State *state, const State *n
 ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint)
   : ConstrainedStateSpace(ambientSpace, constraint)
   , epsilon_(0.2)
-  , exploration_(0.5)
   , lambda_(2)
   , separate_(true)
   , maxChartsPerExtension_(200)
@@ -246,6 +245,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, c
 
     setRho(0.5);
     setAlpha(M_PI / 8);
+    setExploration(0.5);
 
     chartNN_.setDistanceFunction(
         [](const NNElement &e1, const NNElement &e2) -> double { return (*e1.first - *e2.first).norm(); });
@@ -557,11 +557,6 @@ unsigned int ompl::base::AtlasStateSpace::piecewiseInterpolate(const std::vector
         getChart(astate);
 
     return i;
-}
-
-ompl::base::StateSamplerPtr ompl::base::AtlasStateSpace::allocDefaultStateSampler() const
-{
-    return StateSamplerPtr(new AtlasStateSampler(this));
 }
 
 double ompl::base::AtlasStateSpace::estimateFrontierPercent() const

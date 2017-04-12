@@ -180,9 +180,9 @@ namespace ompl
               , constraint_(std::move(constraint))
               , n_(ambientSpace->getDimension())
               , k_(constraint_->getManifoldDimension())
-              , delta_(0.02)
               , setup_(false)
             {
+                setDelta(0.02);
             }
 
             /** \brief Check that the space referred to by the space information
@@ -207,10 +207,10 @@ namespace ompl
                                          "Must associate a SpaceInformation object to the ConstrainedStateSpace via "
                                          "setStateInformation() before use.");
 
+                WrapperStateSpace::setup();
+
                 setup_ = true;
                 setDelta(delta_);  // This makes some setup-related calls
-
-                WrapperStateSpace::setup();
             }
 
             void clear()
@@ -227,9 +227,7 @@ namespace ompl
                 delta_ = delta;
 
                 if (setup_)
-                {
                     setLongestValidSegmentFraction(delta_ / getMaximumExtent());
-                }
             }
 
             /** \brief Get delta. */
@@ -271,7 +269,7 @@ namespace ompl
              * where \a t = 0 is \a from, and \a t = 1 is the final state
              * reached by followManifold(\a from, \a to, true, ...), which may
              * not be \a to. State returned in \a state. */
-            void interpolate(const State *from, const State *to, double t, State *state) const override;
+            void interpolate(const State *from, const State *to, double t, State *state) const;
 
             /** \brief Like interpolate(...), but uses the information about
              * intermediate states already supplied in \a stateList from a
@@ -294,9 +292,6 @@ namespace ompl
             void copyState(State *destination, const State *source) const override
             {
                 WrapperStateSpace::copyState(destination, source);
-
-                StateType *state = destination->as<StateType>();
-                state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
             }
 
             /** \brief Allocate a new state in this space. */

@@ -66,7 +66,7 @@ namespace ompl
         class AtlasStateSampler : public StateSampler
         {
         public:
-            AtlasStateSampler(const AtlasStateSpace *space);
+            AtlasStateSampler(const AtlasStateSpace &space);
 
             /** \brief Sample a state uniformly from the charted regions of the
              * manifold. Return sample in \a state. */
@@ -83,7 +83,7 @@ namespace ompl
 
         private:
             /** \brief Atlas on which to sample. */
-            const AtlasStateSpace *atlas_;
+            const AtlasStateSpace &atlas_;
 
             /** \brief Random number generator. */
             mutable RNG rng_;
@@ -333,7 +333,10 @@ namespace ompl
             unsigned int piecewiseInterpolate(const std::vector<State *> &stateList, double t, State *state) const;
 
             /** \brief Return an instance of the AtlasStateSampler. */
-            StateSamplerPtr allocDefaultStateSampler(void) const;
+            StateSamplerPtr allocDefaultStateSampler() const
+            {
+                return StateSamplerPtr(new AtlasStateSampler(*this));
+            }
 
             void copyState(State *destination, const State *source) const
             {
