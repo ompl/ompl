@@ -347,12 +347,12 @@ namespace ompl
                 return space_->getValueAddressAtName(state->as<StateType>()->getState(), name);
             }
 
-            void copyToReals(std::vector<double> &reals, const State *source) const
+            virtual void copyToReals(std::vector<double> &reals, const State *source) const override
             {
                 space_->copyToReals(reals, source->as<StateType>()->getState());
             }
 
-            void copyFromReals(State *destination, const std::vector<double> &reals) const
+            virtual void copyFromReals(State *destination, const std::vector<double> &reals) const override
             {
                 space_->copyFromReals(destination->as<StateType>()->getState(), reals);
             }
