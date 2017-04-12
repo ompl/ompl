@@ -77,7 +77,7 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
     do
     {
         // Compute the parameterization for interpolation
-        RealVectorStateSpace::interpolate(previous, to, delta_ / dist, scratch);
+        WrapperStateSpace::interpolate(previous, to, delta_ / dist, scratch);
 
         // Project new state onto constraint manifold
         const bool onManifold = constraint_->project(scratch);

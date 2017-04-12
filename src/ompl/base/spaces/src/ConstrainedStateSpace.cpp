@@ -46,32 +46,32 @@
 /// Public
 
 ompl::base::ConstrainedStateSampler::ConstrainedStateSampler(const SpaceInformation *si)
-  : RealVectorStateSampler(si->getStateSpace().get()), ss_(*si->getStateSpace()->as<ConstrainedStateSpace>())
+    : WrapperStateSampler(si->getStateSpace().get(), si->getStateSpace().get()->allocStateSampler())
 {
     ConstrainedStateSpace::checkSpace(si);
 }
 
 ompl::base::ConstrainedStateSampler::ConstrainedStateSampler(const ConstrainedStateSpace &ss)
-  : RealVectorStateSampler(&ss), ss_(ss)
+  : WrapperStateSampler(&ss, ss.allocStateSampler())
 {
 }
 
 void ompl::base::ConstrainedStateSampler::sampleUniform(State *state)
 {
-    RealVectorStateSampler::sampleUniform(state);
-    ss_.getConstraint()->project(state);
+    WrapperStateSampler::sampleUniform(state);
+    space_->as<ompl::base::ConstrainedStateSpace>()->getConstraint()->project(state);
 }
 
 void ompl::base::ConstrainedStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
-    RealVectorStateSampler::sampleUniformNear(state, near, distance);
-    ss_.getConstraint()->project(state);
+    WrapperStateSampler::sampleUniformNear(state, near, distance);
+    space_->as<ompl::base::ConstrainedStateSpace>()->getConstraint()->project(state);
 }
 
 void ompl::base::ConstrainedStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
 {
-    RealVectorStateSampler::sampleGaussian(state, mean, stdDev);
-    ss_.getConstraint()->project(state);
+    WrapperStateSampler::sampleGaussian(state, mean, stdDev);
+    space_->as<ompl::base::ConstrainedStateSpace>()->getConstraint()->project(state);
 }
 
 /// ConstrainedValidStateSampler
@@ -147,8 +147,6 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
 {
     // Invoke the manifold-traversing algorithm to save intermediate states
     std::vector<ompl::base::State *> stateList;
-    const ConstrainedStateSpace::StateType *const as1 = s1->as<ConstrainedStateSpace::StateType>();
-    const ConstrainedStateSpace::StateType *const as2 = s2->as<ConstrainedStateSpace::StateType>();
     bool reached = ss_.traverseManifold(s1, s2, false, &stateList);
 
     // We are supposed to be able to assume that s1 is valid. However, it's not
@@ -156,7 +154,7 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
     if (stateList.empty())
     {
         if (lastValid.first != nullptr)
-            ss_.copyState(lastValid.first, as1);
+            ss_.copyState(lastValid.first, s1);
         lastValid.second = 0;
         return false;
     }
@@ -177,7 +175,7 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
         // Compute the interpolation parameter of the last valid
         // state. (Although if you then interpolate, you probably won't get this
         // exact state back.)
-        double approxDistanceRemaining = ss_.distance(lastValid.first, as2);
+        double approxDistanceRemaining = ss_.distance(lastValid.first, s2);
         lastValid.second = distanceTraveled / (distanceTraveled + approxDistanceRemaining);
     }
 
@@ -250,7 +248,7 @@ unsigned int ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const std::
     }
 
     // Linearly interpolate between these two states.
-    RealVectorStateSpace::interpolate(stateList[i > 0 ? i - 1 : 0], stateList[i], tt, state);
+    WrapperStateSpace::interpolate(stateList[i > 0 ? i - 1 : 0], stateList[i], tt, state);
 
     return i;
 }

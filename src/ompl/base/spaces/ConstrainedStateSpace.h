@@ -42,7 +42,7 @@
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/ValidStateSampler.h"
 #include "ompl/base/Constraint.h"
-#include "ompl/base/spaces/RealVectorStateSpace.h"
+#include "ompl/base/spaces/WrapperStateSpace.h"
 #include "ompl/geometric/PathGeometric.h"
 
 #include <eigen3/Eigen/Core>
@@ -56,7 +56,7 @@ namespace ompl
         OMPL_CLASS_FORWARD(ConstrainedStateSpace);
 
         /** \brief StateSampler for use on an atlas. */
-        class ConstrainedStateSampler : public RealVectorStateSampler
+        class ConstrainedStateSampler : public WrapperStateSampler
         {
         public:
             /** \brief Create a sampler for the specified space information.
@@ -78,10 +78,6 @@ namespace ompl
             /** \brief Sample a state uniformly from a normal distribution with
                 given \a mean and \a stdDev. Return sample in \a state. */
             void sampleGaussian(State *state, const State *mean, double stdDev) override;
-
-        private:
-            /** \brief Space on which to sample. */
-            const ConstrainedStateSpace &ss_;
         };
 
         /** \brief ValidStateSampler for use on an atlas. */
@@ -144,26 +140,22 @@ namespace ompl
         };
         /// @endcond
 
-        class ConstrainedStateSpace : public RealVectorStateSpace
+        class ConstrainedStateSpace : public WrapperStateSpace
         {
         public:
             /** \brief A state in an atlas represented as a real vector in
              * ambient space and a chart that it belongs to. */
-            class StateType : public RealVectorStateSpace::StateType
+            class StateType : public WrapperStateSpace::StateType
             {
             public:
                 /** \brief Construct state of size \a n. */
-                StateType(const unsigned int n) : n_(n)
+                StateType(unsigned int n) : n_(n)
                 {
-                    // Do what RealVectorStateSpace::allocState() would have done.
-                    values = new double[n_];
                 }
 
-                /** \brief Destructor. */
-                virtual ~StateType(void)
+                void setValues(double *location)
                 {
-                    // Do what RealVectorStateSpace::freeState() would have done.
-                    delete[] values;
+                    values = location;
                 }
 
                 /** \brief View this state as a vector. */
@@ -179,15 +171,14 @@ namespace ompl
                 }
 
             protected:
-                /** \brief Dimension of the real vector. */
+                double *values;
                 const unsigned int n_;
             };
 
             /** \brief Construct an atlas with the specified dimensions. */
             ConstrainedStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint)
-              : RealVectorStateSpace(ambientSpace->getDimension())
+              : WrapperStateSpace(ambientSpace)
               , si_(nullptr)
-              , ss_(std::move(ambientSpace))
               , constraint_(std::move(constraint))
               , n_(ambientSpace->getDimension())
               , k_(constraint_->getManifoldDimension())
@@ -221,7 +212,7 @@ namespace ompl
                 setup_ = true;
                 setDelta(delta_);  // This makes some setup-related calls
 
-                RealVectorStateSpace::setup();
+                WrapperStateSpace::setup();
             }
 
             void clear()
@@ -297,31 +288,22 @@ namespace ompl
                 return StateSamplerPtr(new ConstrainedStateSampler(*this));
             }
 
-            /** \brief Whether interpolation is symmetric. (Yes.) */
-            bool hasSymmetricInterpolate() const override
-            {
-                return true;
-            }
-
             void copyState(State *destination, const State *source) const override
             {
-                StateType *adest = destination->as<StateType>();
-                const StateType *asrc = source->as<StateType>();
-                adest->vectorView() = asrc->constVectorView();
+                WrapperStateSpace::copyState(destination, source);
+
+                StateType *state = destination->as<StateType>();
+                state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
             }
 
             /** \brief Allocate a new state in this space. */
             State *allocState() const override
             {
-                return new StateType(n_);
-            }
+                StateType *state = new StateType(n_);
+                state->setState(space_->allocState());
+                state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
 
-            /** \brief Free \a state. Assumes \a state is of type
-             * AtlasStateSpace::StateType. state. */
-            void freeState(State *state) const override
-            {
-                StateType *const astate = state->as<StateType>();
-                delete astate;
+                return state;
             }
 
             /** @} */
@@ -334,9 +316,6 @@ namespace ompl
         protected:
             /** \brief SpaceInformation associated with this space. */
             SpaceInformation *si_;
-
-            /** \brief Ambient state space associated with this space. */
-            const StateSpacePtr ss_;
 
             /** \brief Constraint function that defines the manifold. */
             const ConstraintPtr constraint_;
