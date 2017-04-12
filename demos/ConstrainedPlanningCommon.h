@@ -67,6 +67,25 @@
 #include <ompl/geometric/planners/stride/STRIDE.h>
 
 /** Simple manifold example: the unit sphere. */
+class EmptyConstraint : public ompl::base::Constraint
+{
+public:
+    EmptyConstraint(const ompl::base::StateSpace *space) : ompl::base::Constraint(space, space->getDimension())
+    {
+    }
+
+    void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+    {
+        out.setZero();
+    }
+
+    void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+    {
+        out.setZero();
+    }
+};
+
+/** Simple manifold example: the unit sphere. */
 class SphereConstraint : public ompl::base::Constraint
 {
 public:
@@ -673,6 +692,24 @@ ompl::base::Constraint *initPlaneSphereProblem(Eigen::VectorXd &x, Eigen::Vector
     return new ompl::base::ConstraintIntersection(space, {new PlaneConstraint(space), new SphereConstraint(space)});
 }
 
+
+ompl::base::Constraint *initEmptyProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
+                                         ompl::base::StateValidityCheckerFn &isValid, double sleep)
+{
+    const std::size_t dim = 3;
+
+    x = Eigen::VectorXd(dim);
+    x << 4, 4, 0;
+    y = Eigen::VectorXd(dim);
+    y << -4, -4, 0;
+
+    isValid = std::bind(&always, sleep, std::placeholders::_1);
+
+    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
+    return new EmptyConstraint(space);
+}
+
+
 ompl::base::Constraint *initPlaneProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
                                          ompl::base::StateValidityCheckerFn &isValid, double sleep)
 {
@@ -844,7 +881,7 @@ ompl::base::ValidStateSamplerPtr pvssa(const ompl::base::SpaceInformation *si)
 void printProblems(void)
 {
     std::cout << "Available problems:\n";
-    std::cout << "    plane sphere circle torus klein chain stewart\n";
+    std::cout << "    empty plane sphere circle torus klein chain stewart\n";
 }
 
 /** Print usage information. */
@@ -876,6 +913,8 @@ ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd 
         return initChainProblem(x, y, isValid, sleep, links);
     else if (std::strcmp(problem, "stewart") == 0)
         return initStewartProblem(x, y, isValid, sleep, links, chains, extra);
+    if (std::strcmp(problem, "empty") == 0)
+        return initEmptyProblem(x, y, isValid, sleep);
     else
         return NULL;
 }
