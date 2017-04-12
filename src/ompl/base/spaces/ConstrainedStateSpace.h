@@ -84,7 +84,7 @@ namespace ompl
         public:
             /** \brief Create a valid state sampler for the specifed space
              * information \a si. */
-            ConstrainedValidStateSampler(const ConstrainedStateSpace *space, const SpaceInformation *si);
+            ConstrainedValidStateSampler(const SpaceInformation *si);
 
             /** \brief Destructor. */
             ~ConstrainedValidStateSampler();

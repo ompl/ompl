@@ -69,7 +69,7 @@
 class EmptyConstraint : public ompl::base::Constraint
 {
 public:
-    EmptyConstraint(const ompl::base::StateSpace *space) : ompl::base::Constraint(space, space->getDimension())
+    EmptyConstraint(const unsigned int n) : ompl::base::Constraint(n, n)
     {
     }
 
@@ -88,7 +88,7 @@ public:
 class SphereConstraint : public ompl::base::Constraint
 {
 public:
-    SphereConstraint(const ompl::base::StateSpace *space) : ompl::base::Constraint(space, 2)
+    SphereConstraint() : ompl::base::Constraint(3, 2)
     {
     }
 
@@ -107,7 +107,7 @@ public:
 class PlaneConstraint : public ompl::base::Constraint
 {
 public:
-    PlaneConstraint(const ompl::base::StateSpace *space) : ompl::base::Constraint(space, 2)
+    PlaneConstraint() : ompl::base::Constraint(3, 2)
     {
     }
 
@@ -131,8 +131,7 @@ public:
     const double R1;
     const double R2;
 
-    TorusConstraint(const ompl::base::StateSpace *space, const double r1, const double r2)
-      : ompl::base::Constraint(space, 2), R1(r1), R2(r2)
+    TorusConstraint(const double r1, const double r2) : ompl::base::Constraint(3, 2), R1(r1), R2(r2)
     {
     }
 
@@ -158,7 +157,7 @@ public:
 class KleinConstraint : public ompl::base::Constraint
 {
 public:
-    KleinConstraint(const ompl::base::StateSpace *space) : ompl::base::Constraint(space, 2)
+    KleinConstraint() : ompl::base::Constraint(3, 2)
     {
     }
 
@@ -193,9 +192,9 @@ public:
 class StewartChain : public ompl::base::Constraint, public StewartBase
 {
 public:
-    StewartChain(ompl::base::StateSpace *space, Eigen::VectorXd offset, unsigned int links, unsigned int id,
-                 double length = 1, double jointSize = 0.2, unsigned int extra = 0)
-      : ompl::base::Constraint(space, space->getDimension() - links)
+    StewartChain(const unsigned int n, Eigen::VectorXd offset, unsigned int links, unsigned int id, double length = 1,
+                 double jointSize = 0.2, unsigned int extra = 0)
+      : ompl::base::Constraint(n, n - links)
       , offset_(offset)
       , links_(links)
       , id_(id)
@@ -299,8 +298,8 @@ private:
 class StewartPlatform : public ompl::base::Constraint, public StewartBase
 {
 public:
-    StewartPlatform(ompl::base::StateSpace *space, unsigned int chains, unsigned int links, double radius = 1)
-      : ompl::base::Constraint(space, space->getDimension() - chains), chains_(chains), links_(links), radius_(radius)
+    StewartPlatform(const unsigned int n, unsigned int chains, unsigned int links, double radius = 1)
+      : ompl::base::Constraint(n, n - chains), chains_(chains), links_(links), radius_(radius)
     {
         if (chains == 2)
             setManifoldDimension(k_ + 1);
@@ -359,23 +358,24 @@ private:
 class StewartConstraint : public ompl::base::ConstraintIntersection
 {
 public:
-    StewartConstraint(ompl::base::StateSpace *space, unsigned int chains, unsigned int links, unsigned int extra = 0, double radius = 1,
+    StewartConstraint(unsigned int chains, unsigned int links, unsigned int extra = 0, double radius = 1,
                       double length = 1, double jointSize = 0.2)
-      : ompl::base::ConstraintIntersection(space, {})
+      : ompl::base::ConstraintIntersection(chains * links * 3, {})
       , chains_(chains)
       , links_(links)
       , radius_(radius)
       , length_(length)
       , jointSize_(jointSize)
     {
+        const unsigned int dof = chains * links * 3;
         Eigen::VectorXd offset = Eigen::Vector3d::UnitX();
         for (unsigned int i = 0; i < chains_; ++i)
         {
-            addConstraint(new StewartChain(space, offset, links, i, length, jointSize, extra));
+            addConstraint(new StewartChain(dof, offset, links, i, length, jointSize, extra));
             offset = Eigen::AngleAxisd(2 * M_PI / static_cast<double>(chains), Eigen::Vector3d::UnitZ()) * offset;
         }
 
-        addConstraint(new StewartPlatform(space, chains, links, radius));
+        addConstraint(new StewartPlatform(dof, chains, links, radius));
     }
 
     void getStart(Eigen::VectorXd &x)
@@ -426,8 +426,8 @@ private:
 class ChainConstraint : public ompl::base::Constraint
 {
 public:
-    ChainConstraint(ompl::base::StateSpace *space, unsigned int links)
-      : ompl::base::Constraint(space, 2 * links - 1)
+    ChainConstraint(unsigned int links)
+      : ompl::base::Constraint(3 * links, 2 * links - 1)
       , links_(links)
       , length_(1.0)
       , radius_((links - 4) + 2)
@@ -619,7 +619,7 @@ private:
  */
 
 /** 3 ring-shaped obstacles on latitudinal lines, with a small gap in each. */
-bool sphereValid_helper(const double *x)
+bool sphereValid_helper(const Eigen::Ref<const Eigen::VectorXd> x)
 {
     if (-0.75 < x[2] && x[2] < -0.60)
     {
@@ -646,7 +646,7 @@ bool sphereValid_helper(const double *x)
 bool sphereValid(double sleep, const ompl::base::State *state)
 {
     std::this_thread::sleep_for(ompl::time::seconds(sleep));
-    return sphereValid_helper(state->as<ompl::base::RealVectorStateSpace::StateType>()->values);
+    return sphereValid_helper(state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView());
 }
 
 /** Every state is valid. */
@@ -672,7 +672,8 @@ bool unreachable(double sleep, const ompl::base::State *state, const Eigen::Vect
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
 ompl::base::Constraint *initPlaneSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                               ompl::base::StateValidityCheckerFn &isValid, double sleep)
+                                               ompl::base::StateValidityCheckerFn &isValid,
+                                               ompl::base::RealVectorBounds &bounds, double sleep)
 {
     const std::size_t dim = 3;
 
@@ -687,13 +688,12 @@ ompl::base::Constraint *initPlaneSphereProblem(Eigen::VectorXd &x, Eigen::Vector
 
     // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is
     // faster)
-    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
-    return new ompl::base::ConstraintIntersection(space, {new PlaneConstraint(space), new SphereConstraint(space)});
+    return new ompl::base::ConstraintIntersection(3, {new PlaneConstraint(), new SphereConstraint()});
 }
-
 
 ompl::base::Constraint *initEmptyProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                         ompl::base::StateValidityCheckerFn &isValid, double sleep)
+                                         ompl::base::StateValidityCheckerFn &isValid,
+                                         ompl::base::RealVectorBounds &bounds, double sleep)
 {
     const std::size_t dim = 3;
 
@@ -704,13 +704,16 @@ ompl::base::Constraint *initEmptyProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
 
     isValid = std::bind(&always, sleep, std::placeholders::_1);
 
-    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
-    return new EmptyConstraint(space);
+    bounds.resize(dim);
+    bounds.setLow(-4);
+    bounds.setLow(4);
+
+    return new EmptyConstraint(3);
 }
 
-
 ompl::base::Constraint *initPlaneProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                         ompl::base::StateValidityCheckerFn &isValid, double sleep)
+                                         ompl::base::StateValidityCheckerFn &isValid,
+                                         ompl::base::RealVectorBounds &bounds, double sleep)
 {
     const std::size_t dim = 3;
 
@@ -721,13 +724,17 @@ ompl::base::Constraint *initPlaneProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
 
     isValid = std::bind(&always, sleep, std::placeholders::_1);
 
-    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
-    return new PlaneConstraint(space);
+    bounds.resize(dim);
+    bounds.setLow(-4);
+    bounds.setHigh(4);
+
+    return new PlaneConstraint();
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
 ompl::base::Constraint *initSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                          ompl::base::StateValidityCheckerFn &isValid, double sleep)
+                                          ompl::base::StateValidityCheckerFn &isValid,
+                                          ompl::base::RealVectorBounds &bounds, double sleep)
 {
     const std::size_t dim = 3;
 
@@ -740,15 +747,17 @@ ompl::base::Constraint *initSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y
     // Validity checker
     isValid = std::bind(&sphereValid, sleep, std::placeholders::_1);
 
-    // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is
-    // faster)
-    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
-    return new SphereConstraint(space);
+    bounds.resize(dim);
+    bounds.setLow(-1);
+    bounds.setHigh(1);
+
+    return new SphereConstraint();
 }
 
 /** Initialize the atlas for the torus problem and store the start and goal vectors. */
 ompl::base::Constraint *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                         ompl::base::StateValidityCheckerFn &isValid, double sleep)
+                                         ompl::base::StateValidityCheckerFn &isValid,
+                                         ompl::base::RealVectorBounds &bounds, double sleep)
 {
     const std::size_t dim = 3;
 
@@ -761,13 +770,21 @@ ompl::base::Constraint *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
     // Validity checker
     isValid = std::bind(&always, sleep, std::placeholders::_1);
 
-    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
-    return new TorusConstraint(space, 3, 1);
+    bounds.resize(dim);
+    bounds.setLow(0, -4);
+    bounds.setHigh(0, 4);
+    bounds.setLow(1, -4);
+    bounds.setHigh(1, 4);
+    bounds.setLow(2, -2);
+    bounds.setHigh(2, 2);
+
+    return new TorusConstraint(3, 1);
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
 ompl::base::Constraint *initKleinProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                         ompl::base::StateValidityCheckerFn &isValid, double sleep)
+                                         ompl::base::StateValidityCheckerFn &isValid,
+                                         ompl::base::RealVectorBounds &bounds, double sleep)
 {
     const std::size_t dim = 3;
 
@@ -780,13 +797,17 @@ ompl::base::Constraint *initKleinProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
     // Validity checker
     isValid = std::bind(&always, sleep, std::placeholders::_1);
 
-    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(3);
-    return new KleinConstraint(space);
+    bounds.resize(dim);
+    bounds.setLow(-5);
+    bounds.setHigh(5);
+
+    return new KleinConstraint();
 }
 
 /** Initialize the atlas for the kinematic chain problem. */
 ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                         ompl::base::StateValidityCheckerFn &isValid, double sleep, int links = 20)
+                                         ompl::base::StateValidityCheckerFn &isValid,
+                                         ompl::base::RealVectorBounds &bounds, double sleep, int links = 20)
 {
     const std::size_t dim = 3 * links;
 
@@ -835,31 +856,54 @@ ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
     y[3 * i + 1] = 0;
     y[3 * i + 2] = 0;
 
-    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(dim);
-    ChainConstraint *atlas = new ChainConstraint(space, links);
+    ChainConstraint *atlas = new ChainConstraint(links);
     isValid = std::bind(&ChainConstraint::isValid, atlas, sleep, std::placeholders::_1);
+
+    bounds.resize(dim);
+    for (unsigned int i = 0; i < links; ++i)
+    {
+        bounds.setLow(3 * i + 0, -i - 1);
+        bounds.setHigh(3 * i + 0, i + 1);
+        bounds.setLow(3 * i + 1, -i - 1);
+        bounds.setHigh(3 * i + 1, i + 1);
+        bounds.setLow(3 * i + 2, 0);
+        bounds.setHigh(3 * i + 2, i + 1);
+    }
+
     return atlas;
 }
 
 /** Initialize the atlas for the kinematic chain problem. */
 ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                           ompl::base::StateValidityCheckerFn &isValid, double sleep,
-                                         unsigned int links = 3, unsigned int chains = 4, unsigned int extra = 0)
+                                           ompl::base::StateValidityCheckerFn &isValid,
+                                           ompl::base::RealVectorBounds &bounds, double sleep, unsigned int links = 3,
+                                           unsigned int chains = 4, unsigned int extra = 0)
 {
     unsigned int dim = 3 * links * chains;
     x = Eigen::VectorXd(dim);
     y = Eigen::VectorXd(dim);
 
-    ompl::base::StateSpace *space = new ompl::base::RealVectorStateSpace(dim);
-    StewartConstraint *constraint = new StewartConstraint(space, chains, links, extra);
+    StewartConstraint *constraint = new StewartConstraint(chains, links, extra);
 
     constraint->getStart(x);
     constraint->getGoal(y);
 
-    // std::cout << x.transpose() << std::endl;
-    // std::cout << y.transpose() << std::endl;
-
     isValid = std::bind(&StewartConstraint::isValid, constraint, std::placeholders::_1);
+
+    bounds.resize(dim);
+    for (unsigned int c = 0; c < chains; ++c)
+    {
+        const unsigned int o = 3 * c;
+        for (unsigned int i = 0; i < links; ++i)
+        {
+            bounds.setLow(o + 3 * i + 0, -i - 2);
+            bounds.setHigh(o + 3 * i + 0, i + 2);
+            bounds.setLow(o + 3 * i + 1, -i - 2);
+            bounds.setHigh(o + 3 * i + 1, i + 2);
+            bounds.setLow(o + 3 * i + 2, 0);
+            bounds.setHigh(o + 3 * i + 2, i + 1);
+        }
+    }
 
     return constraint;
 }
@@ -895,131 +939,96 @@ void printPlanners(void)
 
 /** Initialize the problem specified in the string. */
 ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                     ompl::base::StateValidityCheckerFn &isValid, double sleep = 0,
-                                     unsigned int links = 5, unsigned int chains = 2, unsigned int extra = 0)
+                                     ompl::base::StateValidityCheckerFn &isValid, ompl::base::RealVectorBounds &bounds,
+                                     double sleep = 0, unsigned int links = 5, unsigned int chains = 2,
+                                     unsigned int extra = 0)
 {
     if (std::strcmp(problem, "plane") == 0)
-        return initPlaneProblem(x, y, isValid, sleep);
+        return initPlaneProblem(x, y, isValid, bounds, sleep);
     else if (std::strcmp(problem, "sphere") == 0)
-        return initSphereProblem(x, y, isValid, sleep);
+        return initSphereProblem(x, y, isValid, bounds, sleep);
     else if (std::strcmp(problem, "circle") == 0)
-        return initPlaneSphereProblem(x, y, isValid, sleep);
+        return initPlaneSphereProblem(x, y, isValid, bounds, sleep);
     else if (std::strcmp(problem, "torus") == 0)
-        return initTorusProblem(x, y, isValid, sleep);
+        return initTorusProblem(x, y, isValid, bounds, sleep);
     else if (std::strcmp(problem, "klein") == 0)
-        return initKleinProblem(x, y, isValid, sleep);
+        return initKleinProblem(x, y, isValid, bounds, sleep);
     else if (std::strcmp(problem, "chain") == 0)
-        return initChainProblem(x, y, isValid, sleep, links);
+        return initChainProblem(x, y, isValid, bounds, sleep, links);
     else if (std::strcmp(problem, "stewart") == 0)
-        return initStewartProblem(x, y, isValid, sleep, links, chains, extra);
+        return initStewartProblem(x, y, isValid, bounds, sleep, links, chains, extra);
     if (std::strcmp(problem, "empty") == 0)
-        return initEmptyProblem(x, y, isValid, sleep);
+        return initEmptyProblem(x, y, isValid, bounds, sleep);
     else
         return NULL;
 }
 
 /** Initialize the planner specified in the string. */
-ompl::base::Planner *parsePlanner(const char *const planner, const ompl::base::SpaceInformationPtr &si,
-                                  const double range)
+ompl::base::Planner *parsePlanner(const char *const planner, const ompl::base::SpaceInformationPtr &si)
 {
     if (std::strcmp(planner, "EST") == 0)
-    {
-        ompl::geometric::EST *est = new ompl::geometric::EST(si);
-        est->setRange(range);
-        return est;
-    }
+        return new ompl::geometric::EST(si);
+
     else if (std::strcmp(planner, "BiEST") == 0)
-    {
-        ompl::geometric::BiEST *est = new ompl::geometric::BiEST(si);
-        est->setRange(range);
-        return est;
-    }
+        return new ompl::geometric::BiEST(si);
+
     else if (std::strcmp(planner, "ProjEST") == 0)
-    {
-        ompl::geometric::ProjEST *est = new ompl::geometric::ProjEST(si);
-        est->setRange(range);
-        return est;
-    }
+        return new ompl::geometric::ProjEST(si);
+
     else if (std::strcmp(planner, "RRT") == 0)
-    {
-        ompl::geometric::RRT *rrt = new ompl::geometric::RRT(si);
-        return rrt;
-    }
+        return new ompl::geometric::RRT(si);
+
     else if (std::strcmp(planner, "RRTintermediate") == 0)
-    {
-        ompl::geometric::RRT *rrt = new ompl::geometric::RRT(si, true);
-        return rrt;
-    }
+        return new ompl::geometric::RRT(si, true);
+
     else if (std::strcmp(planner, "RRTConnect") == 0)
-    {
-        ompl::geometric::RRTConnect *rrtconnect = new ompl::geometric::RRTConnect(si);
-        return rrtconnect;
-    }
+        return new ompl::geometric::RRTConnect(si);
+
     else if (std::strcmp(planner, "RRTConnectIntermediate") == 0)
-    {
-        ompl::geometric::RRTConnect *rrtconnectintermediate = new ompl::geometric::RRTConnect(si, true);
-        return rrtconnectintermediate;
-    }
+        return new ompl::geometric::RRTConnect(si, true);
+
     else if (std::strcmp(planner, "RRTstar") == 0)
-    {
-        ompl::geometric::RRTstar *rrtstar = new ompl::geometric::RRTstar(si);
-        return rrtstar;
-    }
+        return new ompl::geometric::RRTstar(si);
+
     else if (std::strcmp(planner, "LazyRRT") == 0)
-    {
-        ompl::geometric::LazyRRT *lazyrrt = new ompl::geometric::LazyRRT(si);
-        return lazyrrt;
-    }
+        return new ompl::geometric::LazyRRT(si);
+
     else if (std::strcmp(planner, "TRRT") == 0)
-    {
-        ompl::geometric::TRRT *trrt = new ompl::geometric::TRRT(si);
-        return trrt;
-    }
+        return new ompl::geometric::TRRT(si);
+
     else if (std::strcmp(planner, "LBTRRT") == 0)
-    {
-        ompl::geometric::LBTRRT *lbtrrt = new ompl::geometric::LBTRRT(si);
-        return lbtrrt;
-    }
+        return new ompl::geometric::LBTRRT(si);
+
     else if (std::strcmp(planner, "KPIECE1") == 0)
-    {
-        ompl::geometric::KPIECE1 *kpiece1 = new ompl::geometric::KPIECE1(si);
-        kpiece1->setRange(range);
-        return kpiece1;
-    }
+        return new ompl::geometric::KPIECE1(si);
+
     else if (std::strcmp(planner, "BKPIECE1") == 0)
-    {
-        ompl::geometric::BKPIECE1 *bkpiece1 = new ompl::geometric::BKPIECE1(si);
-        bkpiece1->setRange(range);
-        return bkpiece1;
-    }
+        return new ompl::geometric::BKPIECE1(si);
+
     else if (std::strcmp(planner, "LBKPIECE1") == 0)
-    {
-        ompl::geometric::LBKPIECE1 *lbkpiece1 = new ompl::geometric::LBKPIECE1(si);
-        lbkpiece1->setRange(range);
-        return lbkpiece1;
-    }
+        return new ompl::geometric::LBKPIECE1(si);
+
     else if (std::strcmp(planner, "PDST") == 0)
         return new ompl::geometric::PDST(si);
+
     else if (std::strcmp(planner, "PRM") == 0)
         return new ompl::geometric::PRM(si);
+
     else if (std::strcmp(planner, "PRMstar") == 0)
         return new ompl::geometric::PRMstar(si);
+
     else if (std::strcmp(planner, "SBL") == 0)
-    {
-        ompl::geometric::SBL *sbl = new ompl::geometric::SBL(si);
-        sbl->setRange(range);
-        return sbl;
-    }
+        return new ompl::geometric::SBL(si);
+
     else if (std::strcmp(planner, "SPARS") == 0)
         return new ompl::geometric::SPARS(si);
+
     else if (std::strcmp(planner, "SPARStwo") == 0)
         return new ompl::geometric::SPARStwo(si);
+
     else if (std::strcmp(planner, "STRIDE") == 0)
-    {
-        ompl::geometric::STRIDE *stride = new ompl::geometric::STRIDE(si);
-        stride->setRange(range);
-        return stride;
-    }
+        return new ompl::geometric::STRIDE(si);
+
     else
         return NULL;
 }

@@ -72,10 +72,11 @@ void ompl::base::ConstrainedStateSampler::sampleGaussian(State *state, const Sta
 
 /// Public
 
-ompl::base::ConstrainedValidStateSampler::ConstrainedValidStateSampler(const ConstrainedStateSpace *space, const SpaceInformation *si)
+ompl::base::ConstrainedValidStateSampler::ConstrainedValidStateSampler(const SpaceInformation *si)
   : ValidStateSampler(si)
-  , sampler_(space, space->allocDefaultStateSampler())
-  , constraint_(space->getConstraint())
+  , sampler_(si->getStateSpace().get()->as<ompl::base::ConstrainedStateSpace>(),
+             si->getStateSpace()->allocDefaultStateSampler())
+  , constraint_(si->getStateSpace()->as<ompl::base::ConstrainedStateSpace>()->getConstraint())
   , scratch_(si->allocState())
 {
     ConstrainedStateSpace::checkSpace(si);

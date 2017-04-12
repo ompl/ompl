@@ -150,7 +150,9 @@ int main(int argc, char **argv)
 
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
-    ompl::base::Constraint *constraint = parseProblem(problem, x, y, isValid, artificalSleep, links, chains, extra);
+
+    ompl::base::RealVectorBounds bounds(0);
+    ompl::base::ConstraintPtr constraint(parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra));
 
     if (!constraint)
     {
@@ -165,6 +167,10 @@ int main(int argc, char **argv)
            space, plannerName, problem, constraint->getAmbientDimension(), constraint->getCoDimension(), planningTime,
            artificalSleep);
 
+
+    ompl::base::StateSpacePtr rvss(new ompl::base::RealVectorStateSpace(constraint->getAmbientDimension()));
+    rvss->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
+
     ompl::base::ConstrainedStateSpacePtr css;
     ompl::geometric::SimpleSetupPtr ss;
     ompl::base::SpaceInformationPtr si;
@@ -175,13 +181,8 @@ int main(int argc, char **argv)
     {
         case ATLAS:
         {
-            ompl::base::AtlasStateSpacePtr atlas(
-                new ompl::base::AtlasStateSpace(constraint->getAmbientSpace(), constraint));
+            ompl::base::AtlasStateSpacePtr atlas(new ompl::base::AtlasStateSpace(rvss, constraint));
 
-            // atlas->setExploration(0.6);
-            atlas->setRho(0.5);         // default is 0.1
-            atlas->setAlpha(M_PI / 8);  // default is pi/16
-            atlas->setEpsilon(0.2);     // default is 0.2
             atlas->setSeparate(tb);
 
             ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(atlas));
@@ -209,8 +210,7 @@ int main(int argc, char **argv)
 
         case PROJECTED:
         {
-            ompl::base::ProjectedStateSpacePtr proj(
-                new ompl::base::ProjectedStateSpace(constraint->getAmbientSpace(), constraint));
+            ompl::base::ProjectedStateSpacePtr proj(new ompl::base::ProjectedStateSpace(rvss, constraint));
             ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(proj));
             si = ss->getSpaceInformation();
             si->setValidStateSamplerAllocator(pvssa);
@@ -228,35 +228,12 @@ int main(int argc, char **argv)
             css = proj;
             break;
         }
-
-        // case NULLSPACE:
-        // {
-        //     ompl::base::NullspaceStateSpacePtr proj(
-        //         new ompl::base::NullspaceStateSpace(constraint->getAmbientSpace(), constraint));
-
-        //     ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(proj));
-        //     si = ss->getSpaceInformation();
-        //     si->setValidStateSamplerAllocator(pvssa);
-
-        //     proj->setSpaceInformation(si);
-
-        //     // The proj needs some place to start sampling from. We will make start
-        //     // and goal charts.
-        //     ompl::base::ScopedState<> start(proj);
-        //     ompl::base::ScopedState<> goal(proj);
-        //     start->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = x;
-        //     goal->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = y;
-        //     ss->setStartAndGoalStates(start, goal);
-
-        //     css = proj;
-        //     break;
-        // }
     }
 
     ss->setStateValidityChecker(isValid);
 
     // Choose the planner.
-    ompl::base::PlannerPtr planner(parsePlanner(plannerName, si, range));
+    ompl::base::PlannerPtr planner(parsePlanner(plannerName, si));
     if (!planner)
     {
         std::cout << "Invalid planner." << std::endl;
@@ -294,12 +271,6 @@ int main(int argc, char **argv)
     catch (std::exception &e)
     {
     }
-
-    ompl::base::RealVectorBounds bounds(css->getAmbientDimension());
-    bounds.setLow(-bound);
-    bounds.setHigh(bound);
-
-    css->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
 
     ss->setup();
 
