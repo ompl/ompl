@@ -134,22 +134,6 @@ namespace ompl
                 {
                 }
 
-                /** \brief Set this state to be identical to \a source.
-                 * \note Assumes source has the same size as this state. */
-                void copyFrom(const StateType *source)
-                {
-                    ConstrainedStateSpace::StateType::copyFrom(source);
-                    chart_ = source->chart_;
-                }
-
-                /** \brief Set this state to \a x and make it belong to \a c.
-                 * \note Assumes \a x has the same size as the state. */
-                void setRealState(const Eigen::VectorXd &x, AtlasChart *c)
-                {
-                    ConstrainedStateSpace::StateType::setRealState(x);
-                    chart_ = c;
-                }
-
                 /** \brief Get the chart this state is on. */
                 AtlasChart *getChart(void) const
                 {
@@ -367,7 +351,8 @@ namespace ompl
             {
                 StateType *adest = destination->as<StateType>();
                 const StateType *asrc = source->as<StateType>();
-                adest->copyFrom(asrc);
+                adest->vectorView() = asrc->constVectorView();
+                adest->setChart(asrc->getChart());
             }
 
             /** \brief Allocate a new state in this space. */

@@ -166,22 +166,6 @@ namespace ompl
                     delete[] values;
                 }
 
-                /** \brief Set this state to be identical to \a source.
-                 * \note Assumes source has the same size as this state. */
-                void copyFrom(const StateType *source)
-                {
-                    for (unsigned int i = 0; i < n_; ++i)
-                        (*this)[i] = (*source)[i];
-                }
-
-                /** \brief Set this state to \a x and make it belong to \a c.
-                 * \note Assumes \a x has the same size as the state. */
-                void setRealState(const Eigen::VectorXd &x)
-                {
-                    for (std::size_t i = 0; i < n_; i++)
-                        (*this)[i] = x[i];
-                }
-
                 /** \brief View this state as a vector. */
                 Eigen::Map<Eigen::VectorXd> vectorView(void) const
                 {
@@ -329,7 +313,7 @@ namespace ompl
             {
                 StateType *adest = destination->as<StateType>();
                 const StateType *asrc = source->as<StateType>();
-                adest->copyFrom(asrc);
+                adest->vectorView() = asrc->constVectorView();
             }
 
             /** \brief Allocate a new state in this space. */

@@ -57,8 +57,7 @@ void usage(const char *const progname)
 enum SPACE
 {
     ATLAS,
-    PROJECTED,
-    NULLSPACE
+    PROJECTED
 };
 
 int main(int argc, char **argv)
@@ -138,8 +137,8 @@ int main(int argc, char **argv)
         spaceType = ATLAS;
     else if (std::strcmp("projected", space) == 0)
         spaceType = PROJECTED;
-    else if (std::strcmp("null", space) == 0)
-        spaceType = NULLSPACE;
+    // else if (std::strcmp("null", space) == 0)
+    //     spaceType = NULLSPACE;
     else
     {
         std::cout << "Invalid constrained state space." << std::endl;
@@ -195,8 +194,10 @@ int main(int argc, char **argv)
 
             ompl::base::ScopedState<> start(atlas);
             ompl::base::ScopedState<> goal(atlas);
-            start->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(x, startChart);
-            goal->as<ompl::base::AtlasStateSpace::StateType>()->setRealState(y, goalChart);
+            start->as<ompl::base::AtlasStateSpace::StateType>()->vectorView() = x;
+            start->as<ompl::base::AtlasStateSpace::StateType>()->setChart(startChart);
+            goal->as<ompl::base::AtlasStateSpace::StateType>()->vectorView() = y;
+            goal->as<ompl::base::AtlasStateSpace::StateType>()->setChart(goalChart);
 
             ss->setStartAndGoalStates(start, goal);
             newName += "A";
@@ -219,34 +220,10 @@ int main(int argc, char **argv)
             // and goal charts.
             ompl::base::ScopedState<> start(proj);
             ompl::base::ScopedState<> goal(proj);
-            start->as<ompl::base::ProjectedStateSpace::StateType>()->setRealState(x);
-            goal->as<ompl::base::ProjectedStateSpace::StateType>()->setRealState(y);
+            start->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = x;
+            goal->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = y;
             ss->setStartAndGoalStates(start, goal);
             newName += "P";
-
-            css = proj;
-            break;
-        }
-
-        case NULLSPACE:
-        {
-            ompl::base::NullspaceStateSpacePtr proj(
-                new ompl::base::NullspaceStateSpace(constraint->getAmbientSpace(), constraint));
-
-            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(proj));
-            si = ss->getSpaceInformation();
-            si->setValidStateSamplerAllocator(pvssa);
-
-            proj->setSpaceInformation(si);
-
-            // The proj needs some place to start sampling from. We will make start
-            // and goal charts.
-            ompl::base::ScopedState<> start(proj);
-            ompl::base::ScopedState<> goal(proj);
-            start->as<ompl::base::NullspaceStateSpace::StateType>()->setRealState(x);
-            goal->as<ompl::base::NullspaceStateSpace::StateType>()->setRealState(y);
-            ss->setStartAndGoalStates(start, goal);
-            newName += "N";
 
             css = proj;
             break;

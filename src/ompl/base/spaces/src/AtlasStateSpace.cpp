@@ -153,7 +153,8 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     else
         c->borderCheck(ru);
 
-    astate->setRealState(rx, c);
+    astate->vectorView() = rx;
+    astate->setChart(c);
 }
 
 void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
@@ -201,7 +202,8 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
     else
         c->borderCheck(ru);
 
-    astate->setRealState(rx, c);
+    astate->vectorView() = rx;
+    astate->setChart(c);
 }
 
 /// AtlasValidStateSampler
