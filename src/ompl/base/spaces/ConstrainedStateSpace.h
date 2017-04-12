@@ -59,25 +59,23 @@ namespace ompl
         class ConstrainedStateSampler : public WrapperStateSampler
         {
         public:
-            /** \brief Create a sampler for the specified space information.
-             * \note The underlying state space must be an AtlasStateSpace. */
-            ConstrainedStateSampler(const SpaceInformation *si);
-
-            /** \brief Create a sampler for the specified \a atlas space. */
-            ConstrainedStateSampler(const ConstrainedStateSpace &ss);
+            ConstrainedStateSampler(const ConstrainedStateSpace *space, StateSamplerPtr sampler);
 
             /** \brief Sample a state uniformly from the charted regions of the
              * manifold. Return sample in \a state. */
-            void sampleUniform(State *state) override;
+            void sampleUniform(State *state);
 
             /** \brief Sample a state uniformly from the ball with center \a
              * near and radius \a distance. Return sample in \a state.
              * \note rho_s_ is a good choice for \a distance. */
-            void sampleUniformNear(State *state, const State *near, double distance) override;
+            void sampleUniformNear(State *state, const State *near, double distance);
 
             /** \brief Sample a state uniformly from a normal distribution with
                 given \a mean and \a stdDev. Return sample in \a state. */
-            void sampleGaussian(State *state, const State *mean, double stdDev) override;
+            void sampleGaussian(State *state, const State *mean, double stdDev);
+
+        protected:
+            const ConstraintPtr constraint_;
         };
 
         /** \brief ValidStateSampler for use on an atlas. */
@@ -86,7 +84,7 @@ namespace ompl
         public:
             /** \brief Create a valid state sampler for the specifed space
              * information \a si. */
-            ConstrainedValidStateSampler(const SpaceInformation *si);
+            ConstrainedValidStateSampler(const ConstrainedStateSpace *space, const SpaceInformation *si);
 
             /** \brief Destructor. */
             ~ConstrainedValidStateSampler();
@@ -285,7 +283,12 @@ namespace ompl
 
             StateSamplerPtr allocDefaultStateSampler() const override
             {
-                return StateSamplerPtr(new ConstrainedStateSampler(*this));
+                return StateSamplerPtr(new ConstrainedStateSampler(this, space_->allocDefaultStateSampler()));
+            }
+
+            StateSamplerPtr allocStateSampler() const override
+            {
+                return StateSamplerPtr(new ConstrainedStateSampler(this, space_->allocStateSampler()));
             }
 
             void copyState(State *destination, const State *source) const override

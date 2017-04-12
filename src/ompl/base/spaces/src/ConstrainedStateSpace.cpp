@@ -45,43 +45,37 @@
 
 /// Public
 
-ompl::base::ConstrainedStateSampler::ConstrainedStateSampler(const SpaceInformation *si)
-    : WrapperStateSampler(si->getStateSpace().get(), si->getStateSpace().get()->allocStateSampler())
-{
-    ConstrainedStateSpace::checkSpace(si);
-}
-
-ompl::base::ConstrainedStateSampler::ConstrainedStateSampler(const ConstrainedStateSpace &ss)
-  : WrapperStateSampler(&ss, ss.allocStateSampler())
+ompl::base::ConstrainedStateSampler::ConstrainedStateSampler(const ConstrainedStateSpace *space, StateSamplerPtr sampler)
+    : WrapperStateSampler(space, sampler), constraint_(space->getConstraint())
 {
 }
 
 void ompl::base::ConstrainedStateSampler::sampleUniform(State *state)
 {
     WrapperStateSampler::sampleUniform(state);
-    space_->as<ompl::base::ConstrainedStateSpace>()->getConstraint()->project(state);
+    constraint_->project(state);
 }
 
 void ompl::base::ConstrainedStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
     WrapperStateSampler::sampleUniformNear(state, near, distance);
-    space_->as<ompl::base::ConstrainedStateSpace>()->getConstraint()->project(state);
+    constraint_->project(state);
 }
 
 void ompl::base::ConstrainedStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
 {
     WrapperStateSampler::sampleGaussian(state, mean, stdDev);
-    space_->as<ompl::base::ConstrainedStateSpace>()->getConstraint()->project(state);
+    constraint_->project(state);
 }
 
 /// ConstrainedValidStateSampler
 
 /// Public
 
-ompl::base::ConstrainedValidStateSampler::ConstrainedValidStateSampler(const SpaceInformation *si)
+ompl::base::ConstrainedValidStateSampler::ConstrainedValidStateSampler(const ConstrainedStateSpace *space, const SpaceInformation *si)
   : ValidStateSampler(si)
-  , sampler_(si)
-  , constraint_(si->getStateSpace()->as<ompl::base::ConstrainedStateSpace>()->getConstraint())
+  , sampler_(space, space->allocDefaultStateSampler())
+  , constraint_(space->getConstraint())
   , scratch_(si->allocState())
 {
     ConstrainedStateSpace::checkSpace(si);
