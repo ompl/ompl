@@ -109,7 +109,7 @@ namespace ompl
             ConstrainedStateSampler sampler_;
 
             /** \brief Constraint function. */
-            const Constraint *constraint_;
+            const ConstraintPtr constraint_;
 
             /** \brief Scratch state used in sampling. */
             State *scratch_;
@@ -184,11 +184,11 @@ namespace ompl
             };
 
             /** \brief Construct an atlas with the specified dimensions. */
-            ConstrainedStateSpace(const StateSpace *ambientSpace, const Constraint *constraint)
+            ConstrainedStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint)
               : RealVectorStateSpace(ambientSpace->getDimension())
               , si_(nullptr)
-              , ss_(ambientSpace)
-              , constraint_(constraint)
+              , ss_(std::move(ambientSpace))
+              , constraint_(std::move(constraint))
               , n_(ambientSpace->getDimension())
               , k_(constraint_->getManifoldDimension())
               , delta_(0.02)
@@ -262,15 +262,9 @@ namespace ompl
             }
 
             /** \brief Returns the constraint that defines the underlying manifold. */
-            const Constraint *getConstraint() const
+            const ConstraintPtr getConstraint() const
             {
                 return constraint_;
-            }
-
-            /** \brief Returns the constraint that defines the underlying manifold. */
-            const StateSpace *getAmbientSpace() const
-            {
-                return ss_;
             }
 
             /** \brief Traverse the manifold from \a from toward \a to. Returns
@@ -342,10 +336,10 @@ namespace ompl
             SpaceInformation *si_;
 
             /** \brief Ambient state space associated with this space. */
-            const StateSpace *ss_;
+            const StateSpacePtr ss_;
 
             /** \brief Constraint function that defines the manifold. */
-            const Constraint *constraint_;
+            const ConstraintPtr constraint_;
 
             /** \brief Ambient space dimension. */
             const unsigned int n_;

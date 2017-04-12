@@ -67,7 +67,7 @@ namespace ompl
         {
         public:
             /** \brief Construct an atlas with the specified dimensions. */
-            ProjectedStateSpace(const StateSpace *ambientSpace, const Constraint *constraint)
+            ProjectedStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint)
               : ConstrainedStateSpace(ambientSpace, constraint)
             {
             }
