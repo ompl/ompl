@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Caleb Voss */
+/* Author: Zachary Kingston, Caleb Voss */
 
 #include "ompl/base/spaces/AtlasStateSpace.h"
 #include "ompl/base/spaces/AtlasChart.h"
@@ -58,7 +58,7 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
     AtlasChart *c;
 
     // Sampling a point on the manifold.
-    int tries = 100;
+    unsigned int tries = ompl::magic::ATLAS_STATE_SAMPLER_TRIES;
     do
     {
         // Rejection sampling to find a point inside a chart's polytope.
@@ -114,7 +114,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     // Sample a point from the starting chart.
     c->psiInverse(n, ru);
 
-    int tries = 100;
+    unsigned int tries = ompl::magic::ATLAS_STATE_SAMPLER_TRIES;
     Eigen::VectorXd uoffset(atlas_.getManifoldDimension());
 
     // TODO: Is this a hack or is this theoretically sound? Find out more after the break.
@@ -168,7 +168,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
     c->psiInverse(m, ru);
 
     // Sample a point in a normal distribution on the starting chart.
-    int tries = 100;
+    unsigned int tries = ompl::magic::ATLAS_STATE_SAMPLER_TRIES;
     Eigen::VectorXd rand(k);
 
     const double stdDevClamped = std::min(stdDev, atlas_.getRho_s());
@@ -236,16 +236,16 @@ bool ompl::base::AtlasValidStateSampler::sampleNear(State *state, const State *n
 
 ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint)
   : ConstrainedStateSpace(ambientSpace, constraint)
-  , epsilon_(0.2)
-  , lambda_(2)
+  , epsilon_(ompl::magic::ATLAS_STATE_SPACE_EPSILON)
+  , lambda_(ompl::magic::ATLAS_STATE_SPACE_LAMBDA)
   , separate_(true)
-  , maxChartsPerExtension_(200)
+  , maxChartsPerExtension_(ompl::magic::ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION)
 {
-    setName("Atlas" + space_->getName());
+    setRho(ompl::magic::ATLAS_STATE_SPACE_RHO);
+    setAlpha(ompl::magic::ATLAS_STATE_SPACE_ALPHA);
+    setExploration(ompl::magic::ATLAS_STATE_SPACE_EXPLORATION);
 
-    setRho(0.5);
-    setAlpha(M_PI / 8);
-    setExploration(0.5);
+    setName("Atlas" + space_->getName());
 
     chartNN_.setDistanceFunction(
         [](const NNElement &e1, const NNElement &e2) -> double { return (*e1.first - *e2.first).norm(); });

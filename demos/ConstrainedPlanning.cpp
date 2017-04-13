@@ -171,7 +171,7 @@ int main(int argc, char **argv)
     ompl::base::StateSpacePtr rvss(new ompl::base::RealVectorStateSpace(constraint->getAmbientDimension()));
     rvss->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
 
-    ompl::base::ConstrainedStateSpacePtr css;
+    ompl::base::StateSpacePtr css;
     ompl::geometric::SimpleSetupPtr ss;
     ompl::base::SpaceInformationPtr si;
 
@@ -179,11 +179,12 @@ int main(int argc, char **argv)
     {
         case ATLAS:
         {
-            ompl::base::AtlasStateSpacePtr atlas(new ompl::base::AtlasStateSpace(rvss, constraint));
+            ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint);
+            css = ompl::base::StateSpacePtr(atlas);
 
             atlas->setSeparate(tb);
 
-            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(atlas));
+            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(css));
             si = ss->getSpaceInformation();
             si->setValidStateSamplerAllocator(avssa);
 
@@ -193,37 +194,33 @@ int main(int argc, char **argv)
             ompl::base::AtlasChart *startChart = atlas->anchorChart(x);
             ompl::base::AtlasChart *goalChart = atlas->anchorChart(y);
 
-            ompl::base::ScopedState<> start(atlas);
-            ompl::base::ScopedState<> goal(atlas);
+            ompl::base::ScopedState<> start(css);
+            ompl::base::ScopedState<> goal(css);
             start->as<ompl::base::AtlasStateSpace::StateType>()->vectorView() = x;
             start->as<ompl::base::AtlasStateSpace::StateType>()->setChart(startChart);
             goal->as<ompl::base::AtlasStateSpace::StateType>()->vectorView() = y;
             goal->as<ompl::base::AtlasStateSpace::StateType>()->setChart(goalChart);
 
             ss->setStartAndGoalStates(start, goal);
-
-            css = atlas;
             break;
         }
 
         case PROJECTED:
         {
-            ompl::base::ProjectedStateSpacePtr proj(new ompl::base::ProjectedStateSpace(rvss, constraint));
-            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(proj));
+            ompl::base::ProjectedStateSpace *proj = new ompl::base::ProjectedStateSpace(rvss, constraint);
+            css = ompl::base::StateSpacePtr(proj);
+
+            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(css));
             si = ss->getSpaceInformation();
             si->setValidStateSamplerAllocator(pvssa);
 
             proj->setSpaceInformation(si);
 
-            // The proj needs some place to start sampling from. We will make start
-            // and goal charts.
-            ompl::base::ScopedState<> start(proj);
-            ompl::base::ScopedState<> goal(proj);
+            ompl::base::ScopedState<> start(css);
+            ompl::base::ScopedState<> goal(css);
             start->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = x;
             goal->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = y;
             ss->setStartAndGoalStates(start, goal);
-
-            css = proj;
             break;
         }
     }

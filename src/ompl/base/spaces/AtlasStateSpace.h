@@ -49,18 +49,21 @@
 
 namespace ompl
 {
+    namespace magic
+    {
+        static const unsigned int ATLAS_STATE_SAMPLER_TRIES = 100;
+        static const double ATLAS_STATE_SPACE_EPSILON = 0.2;
+        static const double ATLAS_STATE_SPACE_LAMBDA = 2.0;
+        static const double ATLAS_STATE_SPACE_RHO = 0.5;
+        static const double ATLAS_STATE_SPACE_ALPHA = M_PI / 8.0;
+        static const double ATLAS_STATE_SPACE_EXPLORATION = 0.5;
+        static const unsigned int ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION = 200;
+    }
+
     namespace base
     {
-        /// @cond IGNORE
-        /** \brief Forward declaration of ompl::base::AtlasChart and
-         * ompl::base::AtlasStateSpace. */
         class AtlasChart;
-        OMPL_CLASS_FORWARD(AtlasStateSpace);
-        /// @endcond
-
-        /** \class ompl::base::AtlasStateSpacePtr
-         * \brief A boost shared pointer wrapper for
-         * ompl::base::AtlasStateSpace. */
+        class AtlasStateSpace;
 
         /** \brief StateSampler for use on an atlas. */
         class AtlasStateSampler : public StateSampler
@@ -70,16 +73,16 @@ namespace ompl
 
             /** \brief Sample a state uniformly from the charted regions of the
              * manifold. Return sample in \a state. */
-            virtual void sampleUniform(State *state);
+            virtual void sampleUniform(State *state) override;
 
             /** \brief Sample a state uniformly from the ball with center \a
              * near and radius \a distance. Return sample in \a state.
              * \note rho_s_ is a good choice for \a distance. */
-            virtual void sampleUniformNear(State *state, const State *near, double distance);
+            virtual void sampleUniformNear(State *state, const State *near, double distance) override;
 
             /** \brief Sample a state uniformly from a normal distribution with
                 given \a mean and \a stdDev. Return sample in \a state. */
-            virtual void sampleGaussian(State *state, const State *mean, double stdDev);
+            virtual void sampleGaussian(State *state, const State *mean, double stdDev) override;
 
         private:
             /** \brief Atlas on which to sample. */
@@ -99,12 +102,12 @@ namespace ompl
 
             /** \brief Sample a valid state uniformly from the charted regions
              * of the manifold. Return sample in \a state. */
-            virtual bool sample(State *state);
+            virtual bool sample(State *state) override;
 
             /** \brief Sample a valid state uniformly from the ball with center
              * \a near and radius \a distance. Return sample in \a state.
              * \note rho_s_ is a good choice for \a distance. */
-            virtual bool sampleNear(State *state, const State *near, double distance);
+            virtual bool sampleNear(State *state, const State *near, double distance) override;
 
         private:
             /** \brief Underlying ordinary atlas state sampler. */
@@ -122,7 +125,7 @@ namespace ompl
             {
             public:
                 /** \brief Construct state of size \a n. */
-                StateType(const unsigned int n) : ConstrainedStateSpace::StateType(n)
+                StateType(State *state, const unsigned int n) : ConstrainedStateSpace::StateType(state, n)
                 {
                 }
 
@@ -347,20 +350,10 @@ namespace ompl
             /** \brief Allocate a new state in this space. */
             State *allocState() const
             {
-                StateType *state = new StateType(n_);
-                state->setState(space_->allocState());
-                state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
-
-                return state;
+              StateType *state = new StateType(space_->allocState(), n_);
+              state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
+              return state;
             }
-
-            /** \brief Free \a state. Assumes \a state is of type
-             * AtlasStateSpace::StateType. state. */
-            // void freeState(State *state) const
-            // {
-            //     StateType *const astate = state->as<StateType>();
-            //     delete astate;
-            // }
 
             /** @} */
 

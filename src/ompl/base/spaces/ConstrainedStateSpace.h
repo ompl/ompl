@@ -49,11 +49,14 @@
 
 namespace ompl
 {
+    namespace magic
+    {
+        static const double CONSTRAINED_STATE_SPACE_DELTA = 0.02;
+    }
+
     namespace base
     {
-        /// @cond IGNORE
-        /** \brief Forward declaration of ompl::base::ConstrainedStateSpace. */
-        OMPL_CLASS_FORWARD(ConstrainedStateSpace);
+        class ConstrainedStateSpace;
 
         /** \brief StateSampler for use on an atlas. */
         class ConstrainedStateSampler : public WrapperStateSampler
@@ -147,7 +150,7 @@ namespace ompl
             {
             public:
                 /** \brief Construct state of size \a n. */
-                StateType(unsigned int n) : n_(n)
+                StateType(State *state, unsigned int n) : WrapperStateSpace::StateType(state), n_(n)
                 {
                 }
 
@@ -157,20 +160,20 @@ namespace ompl
                 }
 
                 /** \brief View this state as a vector. */
-                Eigen::Map<Eigen::VectorXd> vectorView(void) const
+                Eigen::Map<Eigen::VectorXd> vectorView() const
                 {
                     return Eigen::Map<Eigen::VectorXd>(values, n_);
                 }
 
                 /** \brief View this state as a const vector. */
-                Eigen::Map<const Eigen::VectorXd> constVectorView(void) const
+                Eigen::Map<const Eigen::VectorXd> constVectorView() const
                 {
                     return Eigen::Map<const Eigen::VectorXd>(values, n_);
                 }
 
             protected:
-                double *values;
                 const unsigned int n_;
+                double *values;
             };
 
             /** \brief Construct an atlas with the specified dimensions. */
@@ -182,13 +185,15 @@ namespace ompl
               , k_(constraint_->getManifoldDimension())
               , setup_(false)
             {
-                setDelta(0.02);
+                setDelta(magic::CONSTRAINED_STATE_SPACE_DELTA);
             }
 
             /** \brief Check that the space referred to by the space information
              * \a si is, in fact, an AtlasStateSpace. */
             static void checkSpace(const SpaceInformation *si);
 
+            /** \brief Sets the space information for this state space. Required for collision checking in manifold
+             * traversal. */
             void setSpaceInformation(const SpaceInformationPtr &si);
 
             bool isMetricSpace() const override
@@ -213,7 +218,8 @@ namespace ompl
                 setDelta(delta_);  // This makes some setup-related calls
             }
 
-            void clear()
+            /** \brief Clear any allocated memory from the state space. */
+            virtual void clear()
             {
             }
 
@@ -267,7 +273,7 @@ namespace ompl
 
             /** \brief Find the state between \a from and \a to at time \a t,
              * where \a t = 0 is \a from, and \a t = 1 is the final state
-             * reached by followManifold(\a from, \a to, true, ...), which may
+             * reached by traverseManifold(\a from, \a to, true, ...), which may
              * not be \a to. State returned in \a state. */
             void interpolate(const State *from, const State *to, double t, State *state) const;
 
@@ -279,40 +285,31 @@ namespace ompl
              * elements. */
             unsigned int piecewiseInterpolate(const std::vector<State *> &stateList, double t, State *state) const;
 
+            /** \brief Allocate the default state sampler for this space. */
             StateSamplerPtr allocDefaultStateSampler() const override
             {
                 return StateSamplerPtr(new ConstrainedStateSampler(this, space_->allocDefaultStateSampler()));
             }
 
+            /** \brief Allocate the previously set state sampler for this space. */
             StateSamplerPtr allocStateSampler() const override
             {
                 return StateSamplerPtr(new ConstrainedStateSampler(this, space_->allocStateSampler()));
             }
 
-            void copyState(State *destination, const State *source) const override
-            {
-                WrapperStateSpace::copyState(destination, source);
-            }
-
             /** \brief Allocate a new state in this space. */
             State *allocState() const override
             {
-                StateType *state = new StateType(n_);
-                state->setState(space_->allocState());
+                StateType *state = new StateType(space_->allocState(), n_);
                 state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
-
                 return state;
             }
 
             /** @} */
 
-            /** @name Visualization and debug
-             * @{ */
-
-            /** @} */
-
         protected:
-            /** \brief SpaceInformation associated with this space. */
+            /** \brief SpaceInformation associated with this space. Required
+             * for early collision checking in manifold traversal. */
             SpaceInformation *si_;
 
             /** \brief Constraint function that defines the manifold. */

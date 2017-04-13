@@ -52,15 +52,6 @@ namespace ompl
 {
     namespace base
     {
-        /// @cond IGNORE
-        /** \brief Forward declaration of ompl::base::ProjectedStateSpace. */
-        OMPL_CLASS_FORWARD(ProjectedStateSpace);
-        /// @endcond
-
-        /** \class ompl::base::ProjectedStateSpacePtr
-         * \brief A boost shared pointer wrapper for
-         * ompl::base::ProjectedStateSpace. */
-
         /** \brief State space encapsulating a planner-agnostic algorithm for
          * planning on a constraint manifold. */
         class ProjectedStateSpace : public ConstrainedStateSpace
@@ -70,6 +61,7 @@ namespace ompl
             ProjectedStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint)
               : ConstrainedStateSpace(ambientSpace, constraint)
             {
+                setName("Projected" + space_->getName());
             }
 
             /** \brief Destructor. */
