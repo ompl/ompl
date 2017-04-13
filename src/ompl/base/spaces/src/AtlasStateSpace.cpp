@@ -247,8 +247,10 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, c
 
     setName("Atlas" + space_->getName());
 
-    chartNN_.setDistanceFunction(
-        [](const NNElement &e1, const NNElement &e2) -> double { return (*e1.first - *e2.first).norm(); });
+    chartNN_.setDistanceFunction([](const NNElement &e1, const NNElement &e2) -> double
+                                 {
+                                     return (*e1.first - *e2.first).norm();
+                                 });
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace()
@@ -389,17 +391,23 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::getChart(const StateType *s
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const Eigen::VectorXd &x) const
 {
-    // Search through all nearby charts for a match
+    Eigen::VectorXd x_t(n_), u_t(k_);
+
     std::vector<NNElement> nearbyCharts;
     chartNN_.nearestR(std::make_pair(&x, 0), rho_, nearbyCharts);
-    Eigen::VectorXd tempx(n_), tempu(k_);
+
     for (auto &near : nearbyCharts)
     {
         // The point must lie in the chart's validity region and polytope
         AtlasChart *c = charts_[near.second];
-        c->psiInverse(x, tempu);
-        c->phi(tempu, tempx);
-        if ((tempx - x).norm() < epsilon_ && tempu.norm() < rho_ && c->inPolytope(tempu))
+        c->psiInverse(x, u_t);
+        c->phi(u_t, x_t);
+
+        const bool withinEpsilon = (x_t - x).squaredNorm() < (epsilon_ * epsilon_);
+        const bool withinRho = u_t.squaredNorm() < (rho_ * rho_);
+        const bool inPolytope = c->inPolytope(u_t);
+
+        if (withinEpsilon && withinRho && inPolytope)
             return c;
     }
 

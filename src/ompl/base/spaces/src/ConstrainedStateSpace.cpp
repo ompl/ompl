@@ -35,13 +35,9 @@
 /* Author: Zachary Kingston */
 
 #include "ompl/base/spaces/ConstrainedStateSpace.h"
-
-#include "ompl/base/SpaceInformation.h"
 #include "ompl/util/Exception.h"
 
-#include <eigen3/Eigen/Core>
-
-/// ProjectedStateSampler
+/// ConstrainedStateSampler
 
 /// Public
 
@@ -178,30 +174,61 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
     return reached;
 }
 
+ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr space, const ConstraintPtr constraint)
+  : WrapperStateSpace(space)
+  , si_(nullptr)
+  , constraint_(std::move(constraint))
+  , n_(space->getDimension())
+  , k_(constraint_->getManifoldDimension())
+  , setup_(false)
+{
+    setDelta(magic::CONSTRAINED_STATE_SPACE_DELTA);
+}
+
+void ompl::base::ConstrainedStateSpace::checkSpace(const SpaceInformation *si)
+{
+  if (dynamic_cast<ConstrainedStateSpace *>(si->getStateSpace().get()) == nullptr)
+    throw ompl::Exception("ompl::base::ConstrainedStateSpace(): "
+                          "si needs to use an ConstrainedStateSpace!");
+}
+
 void ompl::base::ConstrainedStateSpace::setSpaceInformation(const SpaceInformationPtr &si)
 {
     // Check that the object is valid
     if (si.get() == nullptr)
-        throw ompl::Exception("ompl::base::ProjectedStateSpace::setSpaceInformation(): "
+        throw ompl::Exception("ompl::base::ConstrainedStateSpace::setSpaceInformation(): "
                              "si is nullptr.");
     if (si->getStateSpace().get() != this)
-        throw ompl::Exception("ompl::base::ProjectedStateSpace::setSpaceInformation(): "
-                             "si for ProjectedStateSpace must be constructed from the same state space object.");
+        throw ompl::Exception("ompl::base::ConstrainedStateSpace::setSpaceInformation(): "
+                             "si for ConstrainedStateSpace must be constructed from the same state space object.");
 
     // Save only a raw pointer to prevent a cycle
     si_ = si.get();
     si_->setStateValidityCheckingResolution(delta_);
 }
 
-void ompl::base::ConstrainedStateSpace::checkSpace(const SpaceInformation *si)
+void ompl::base::ConstrainedStateSpace::setup()
 {
-    if (dynamic_cast<ConstrainedStateSpace *>(si->getStateSpace().get()) == nullptr)
-        throw ompl::Exception("ompl::base::ConstrainedStateSpace(): "
-                             "si needs to use an ProjectedStateSpace!");
+  if (setup_)
+    return;
+
+  if (si_ == nullptr)
+    throw ompl::Exception("ompl::base::ConstrainedStateSpace::setup(): "
+                          "Must associate a SpaceInformation object to the ConstrainedStateSpace via "
+                          "setStateInformation() before use.");
+
+  WrapperStateSpace::setup();
+
+  setup_ = true;
+  setDelta(delta_);  // This makes some setup-related calls
+}
+
+void ompl::base::ConstrainedStateSpace::clear()
+{
 }
 
 void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const State *to, const double t,
-                                                  State *state) const
+                                                    State *state) const
 {
     // Get the list of intermediate states along the manifold.
     std::vector<State *> stateList;
@@ -248,3 +275,9 @@ unsigned int ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const std::
     return i;
 }
 
+ompl::base::State *ompl::base::ConstrainedStateSpace::allocState() const
+{
+    StateType *state = new StateType(space_->allocState(), n_);
+    state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
+    return state;
+}

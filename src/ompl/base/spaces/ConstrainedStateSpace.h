@@ -37,13 +37,12 @@
 #ifndef OMPL_BASE_SPACES_CONSTRAINED_STATE_SPACE_
 #define OMPL_BASE_SPACES_CONSTRAINED_STATE_SPACE_
 
-#include "ompl/base/MotionValidator.h"
-#include "ompl/base/PlannerData.h"
+#include "ompl/base/Constraint.h"
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/ValidStateSampler.h"
-#include "ompl/base/Constraint.h"
+#include "ompl/base/MotionValidator.h"
 #include "ompl/base/spaces/WrapperStateSpace.h"
-#include "ompl/geometric/PathGeometric.h"
+#include "ompl/base/SpaceInformation.h"
 
 #include <eigen3/Eigen/Core>
 
@@ -177,15 +176,11 @@ namespace ompl
             };
 
             /** \brief Construct an atlas with the specified dimensions. */
-            ConstrainedStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint)
-              : WrapperStateSpace(ambientSpace)
-              , si_(nullptr)
-              , constraint_(std::move(constraint))
-              , n_(ambientSpace->getDimension())
-              , k_(constraint_->getManifoldDimension())
-              , setup_(false)
+            ConstrainedStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint);
+
+            bool isMetricSpace() const override
             {
-                setDelta(magic::CONSTRAINED_STATE_SPACE_DELTA);
+              return false;
             }
 
             /** \brief Check that the space referred to by the space information
@@ -196,31 +191,50 @@ namespace ompl
              * traversal. */
             void setSpaceInformation(const SpaceInformationPtr &si);
 
-            bool isMetricSpace() const override
-            {
-                return false;
-            }
-
             /** \brief Final setup for the space. */
-            void setup() override
-            {
-                if (setup_)
-                    return;
-
-                if (si_ == nullptr)
-                    throw ompl::Exception("ompl::base::ConstrainedStateSpace::setup(): "
-                                         "Must associate a SpaceInformation object to the ConstrainedStateSpace via "
-                                         "setStateInformation() before use.");
-
-                WrapperStateSpace::setup();
-
-                setup_ = true;
-                setDelta(delta_);  // This makes some setup-related calls
-            }
+            void setup() override;
 
             /** \brief Clear any allocated memory from the state space. */
-            virtual void clear()
+            void clear();
+
+            /** \brief Traverse the manifold from \a from toward \a to. Returns
+             * true if we reached \a to, and false if we stopped early for any
+             * reason, such as a collision or traveling too far. No collision
+             * checking is performed if \a interpolate is true. If \a stateList
+             * is not nullptr, the sequence of intermediates is saved to it,
+             * including a copy of \a from, as well as the final state, which is
+             * a copy of \a to if we reached \a to. Caller is responsible for
+             * freeing states returned in \a stateList. */
+            virtual bool traverseManifold(const State *from, const State *to, bool interpolate = false,
+                                          std::vector<State *> *stateList = nullptr) const = 0;
+
+            /** \brief Find the state between \a from and \a to at time \a t,
+             * where \a t = 0 is \a from, and \a t = 1 is the final state
+             * reached by traverseManifold(\a from, \a to, true, ...), which may
+             * not be \a to. State returned in \a state. */
+            void interpolate(const State *from, const State *to, double t, State *state) const;
+
+            /** \brief Like interpolate(...), but uses the information about
+             * intermediate states already supplied in \a stateList from a
+             * previous call to followManifold(..., true, \a stateList). The
+             * 'from' and 'to' states are the first and last elements \a
+             * stateList. Assumes \a stateList contains at least two
+             * elements. */
+            unsigned int piecewiseInterpolate(const std::vector<State *> &stateList, double t, State *state) const;
+
+            /** \brief Allocate a new state in this space. */
+            State *allocState() const override;
+
+            /** \brief Allocate the default state sampler for this space. */
+            StateSamplerPtr allocDefaultStateSampler() const override
             {
+                return StateSamplerPtr(new ConstrainedStateSampler(this, space_->allocDefaultStateSampler()));
+            }
+
+            /** \brief Allocate the previously set state sampler for this space. */
+            StateSamplerPtr allocStateSampler() const override
+            {
+                return StateSamplerPtr(new ConstrainedStateSampler(this, space_->allocStateSampler()));
             }
 
             /** \brief Set \a delta, the step size for traversing the manifold
@@ -258,51 +272,6 @@ namespace ompl
             const ConstraintPtr getConstraint() const
             {
                 return constraint_;
-            }
-
-            /** \brief Traverse the manifold from \a from toward \a to. Returns
-             * true if we reached \a to, and false if we stopped early for any
-             * reason, such as a collision or traveling too far. No collision
-             * checking is performed if \a interpolate is true. If \a stateList
-             * is not nullptr, the sequence of intermediates is saved to it,
-             * including a copy of \a from, as well as the final state, which is
-             * a copy of \a to if we reached \a to. Caller is responsible for
-             * freeing states returned in \a stateList. */
-            virtual bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                          std::vector<State *> *stateList = nullptr) const = 0;
-
-            /** \brief Find the state between \a from and \a to at time \a t,
-             * where \a t = 0 is \a from, and \a t = 1 is the final state
-             * reached by traverseManifold(\a from, \a to, true, ...), which may
-             * not be \a to. State returned in \a state. */
-            void interpolate(const State *from, const State *to, double t, State *state) const;
-
-            /** \brief Like interpolate(...), but uses the information about
-             * intermediate states already supplied in \a stateList from a
-             * previous call to followManifold(..., true, \a stateList). The
-             * 'from' and 'to' states are the first and last elements \a
-             * stateList. Assumes \a stateList contains at least two
-             * elements. */
-            unsigned int piecewiseInterpolate(const std::vector<State *> &stateList, double t, State *state) const;
-
-            /** \brief Allocate the default state sampler for this space. */
-            StateSamplerPtr allocDefaultStateSampler() const override
-            {
-                return StateSamplerPtr(new ConstrainedStateSampler(this, space_->allocDefaultStateSampler()));
-            }
-
-            /** \brief Allocate the previously set state sampler for this space. */
-            StateSamplerPtr allocStateSampler() const override
-            {
-                return StateSamplerPtr(new ConstrainedStateSampler(this, space_->allocStateSampler()));
-            }
-
-            /** \brief Allocate a new state in this space. */
-            State *allocState() const override
-            {
-                StateType *state = new StateType(space_->allocState(), n_);
-                state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
-                return state;
             }
 
             /** @} */
