@@ -860,12 +860,14 @@ ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
     isValid = std::bind(&ChainConstraint::isValid, atlas, sleep, std::placeholders::_1);
 
     bounds.resize(dim);
-    for (unsigned int i = 0; i < links; ++i)
+    for (int i = 0; i < links; ++i)
     {
         bounds.setLow(3 * i + 0, -i - 1);
         bounds.setHigh(3 * i + 0, i + 1);
+
         bounds.setLow(3 * i + 1, -i - 1);
         bounds.setHigh(3 * i + 1, i + 1);
+
         bounds.setLow(3 * i + 2, 0);
         bounds.setHigh(3 * i + 2, i + 1);
     }
@@ -893,13 +895,15 @@ ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &
     bounds.resize(dim);
     for (unsigned int c = 0; c < chains; ++c)
     {
-        const unsigned int o = 3 * c;
-        for (unsigned int i = 0; i < links; ++i)
+        const unsigned int o = 3 * c * links;
+        for (int i = 0; i < links; ++i)
         {
             bounds.setLow(o + 3 * i + 0, -i - 2);
             bounds.setHigh(o + 3 * i + 0, i + 2);
+
             bounds.setLow(o + 3 * i + 1, -i - 2);
             bounds.setHigh(o + 3 * i + 1, i + 2);
+
             bounds.setLow(o + 3 * i + 2, 0);
             bounds.setHigh(o + 3 * i + 2, i + 1);
         }
