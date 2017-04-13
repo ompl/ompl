@@ -175,8 +175,6 @@ int main(int argc, char **argv)
     ompl::geometric::SimpleSetupPtr ss;
     ompl::base::SpaceInformationPtr si;
 
-    double range = 1;
-
     switch (spaceType)
     {
         case ATLAS:
@@ -245,11 +243,6 @@ int main(int argc, char **argv)
     css->registerProjection("sphere", ompl::base::ProjectionEvaluatorPtr(new SphereProjection(css)));
     css->registerProjection("chain", ompl::base::ProjectionEvaluatorPtr(new ChainProjection(css, 3, links)));
     css->registerProjection("stewart", ompl::base::ProjectionEvaluatorPtr(new StewartProjection(css, links, chains)));
-
-    // Bounds
-    double bound = 20;
-    if (strcmp(problem, "chain") == 0)
-        bound = links;
 
     try
     {

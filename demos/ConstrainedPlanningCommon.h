@@ -896,7 +896,7 @@ ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &
     for (unsigned int c = 0; c < chains; ++c)
     {
         const unsigned int o = 3 * c * links;
-        for (int i = 0; i < links; ++i)
+        for (int i = 0; i < (int) links; ++i)
         {
             bounds.setLow(o + 3 * i + 0, -i - 2);
             bounds.setHigh(o + 3 * i + 0, i + 2);
