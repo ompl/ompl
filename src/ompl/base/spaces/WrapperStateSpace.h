@@ -283,6 +283,11 @@ namespace ompl
                 space_->setup();
             }
 
+            const StateSpacePtr &getSpace() const
+            {
+                return space_;
+            }
+
         protected:
             const StateSpacePtr space_;
         };
