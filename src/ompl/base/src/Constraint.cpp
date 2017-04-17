@@ -106,11 +106,18 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
     Eigen::VectorXd f(getCoDimension());
     Eigen::MatrixXd j(getCoDimension(), n_);
 
+    double norm;
     function(x, f);
-    while (f.norm() > tolerance_ && iter++ < maxIterations_)
+
+    while ((norm = f.norm()) > tolerance_ && iter++ < maxIterations_)
     {
         jacobian(x, j);
-        x -= j.fullPivLu().solve(f);
+
+        if (norm < svdThreshold_)
+            x -= j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(f);
+        else
+            x -= j.fullPivLu().solve(f);
+
         function(x, f);
     }
 
