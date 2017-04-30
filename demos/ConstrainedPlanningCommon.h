@@ -487,7 +487,7 @@ public:
         double current = -radius_ + step;
         for (unsigned int i = 0; i < obstacles_; i++)
         {
-            walls_.emplace_back(Wall(current, 0.25, 0.5, i % 2));
+            walls_.emplace_back(Wall(current, radius_ / 8, 0.5, i % 2));
             current += step;
         }
     }
@@ -503,8 +503,18 @@ public:
             joint1 = joint2;
         }
 
+
         if (extra_ >= 1)
             out[links_] = x.tail(3).norm() - radius_;
+
+        unsigned int o = links_ - 5;
+
+        if (extra_ >= 2)
+            out[links_ + 1] = x[(o + 0) * 3 + 2] - x[(o + 1) * 3 + 2];
+        if (extra_ >= 3)
+            out[links_ + 2] = x[(o + 1) * 3 + 0] - x[(o + 2) * 3 + 0];
+        if (extra_ >= 4)
+            out[links_ + 3] = x[(o + 2) * 3 + 2] - x[(o + 3) * 3 + 2];
     }
 
     void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
@@ -528,6 +538,24 @@ public:
 
         if (extra_ >= 1)
             out.row(links_).tail(3) = -diagonal.tail(3).normalized().transpose();
+
+        unsigned int o = links_ - 5;
+
+        if (extra_ >= 2)
+        {
+            out(links_ + 1, (o + 0) * 3 + 2) = 1;
+            out(links_ + 1, (o + 1) * 3 + 2) = -1;
+        }
+        if (extra_ >= 3)
+        {
+            out(links_ + 2, (o + 1) * 3 + 0) = 1;
+            out(links_ + 2, (o + 2) * 3 + 0) = -1;
+        }
+        if (extra_ >= 4)
+        {
+            out(links_ + 3, (o + 2) * 3 + 2) = 1;
+            out(links_ + 3, (o + 3) * 3 + 2) = -1;
+        }
     }
 
     bool isValid(const ompl::base::State *state)

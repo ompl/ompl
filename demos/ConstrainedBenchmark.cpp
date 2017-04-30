@@ -41,7 +41,7 @@ const double memory_limit = 2048;
 const double update_interval = 0.1;
 const bool progress = false;
 const bool save_output = false;
-const bool use_threads = false;
+const bool use_threads = true;
 const bool simplify = true;
 
 /** Print usage information. Does not return. */
@@ -74,27 +74,44 @@ int main(int argc, char **argv)
     double planningTime = 5.0;
     bool tb = true;
     bool printSpace = false;
-    unsigned int runs = 100;
 
+    unsigned int runs = 50;
     unsigned int links = 5;
     unsigned int chains = 2;
+    unsigned int simp = 1;
+    unsigned int extra = 0;
+    unsigned int obstacles = 0;
 
-    while ((c = getopt(argc, argv, "yg:c:r:p:s:w:ot:n:i:ax:f:")) != -1)
+    while ((c = getopt(argc, argv, "r:f:h:yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
     {
         switch (c)
         {
-            case 'f':
-                output = optarg;
-                break;
             case 'r':
                 runs = atoi(optarg);
                 break;
+
+            case 'f':
+                output = optarg;
+                break;
+
             case 'y':
                 printSpace = true;
                 break;
 
             case 'c':
                 problem = optarg;
+                break;
+
+            case 'h':
+                obstacles = atoi(optarg);
+                break;
+
+            case 'e':
+                extra = atoi(optarg);
+                break;
+
+            case 'x':
+                simp = atoi(optarg);
                 break;
 
             case 'g':
@@ -147,7 +164,9 @@ int main(int argc, char **argv)
 
     Eigen::VectorXd x, y;
     ompl::base::StateValidityCheckerFn isValid;
-    ompl::base::Constraint *constraint = parseProblem(problem, x, y, isValid, artificalSleep, links, chains);
+
+    ompl::base::RealVectorBounds bounds(0);
+    ompl::base::ConstraintPtr constraint(parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles));
 
     if (!constraint)
     {
@@ -155,34 +174,32 @@ int main(int argc, char **argv)
         usage(argv[0]);
     }
 
-    printf("Constrained Planning Benchmarking: \n"
-           "  Benchmarking in `%s' state space with `%s' for `%s' problem.\n"
+    printf("Constrained Planning Testing: \n"
+           "  Planning with in `%s' state space with `%s' for `%s' problem.\n"
            "  Ambient Dimension: %u   CoDimension: %u\n"
            "  Timeout: %3.2fs   Artifical Delay: %3.2fs\n",
            space, plannerName, problem, constraint->getAmbientDimension(), constraint->getCoDimension(), planningTime,
            artificalSleep);
 
-    ompl::base::ConstrainedStateSpacePtr css;
+
+    ompl::base::StateSpacePtr rvss(new ompl::base::RealVectorStateSpace(constraint->getAmbientDimension()));
+    rvss->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
+    // rvss->setValidSegmentCountFactor(3);
+
+    ompl::base::StateSpacePtr css;
     ompl::geometric::SimpleSetupPtr ss;
     ompl::base::SpaceInformationPtr si;
 
-    double range = 1;
-
-    std::string newName = "+";
     switch (spaceType)
     {
         case ATLAS:
         {
-            ompl::base::AtlasStateSpacePtr atlas(
-                new ompl::base::AtlasStateSpace(constraint->getAmbientSpace(), constraint));
+            ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint);
+            css = ompl::base::StateSpacePtr(atlas);
 
-            // atlas->setExploration(0.6);
-            atlas->setRho(0.5);         // default is 0.1
-            atlas->setAlpha(M_PI / 8);  // default is pi/16
-            atlas->setEpsilon(0.2);     // default is 0.2
             atlas->setSeparate(tb);
 
-            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(atlas));
+            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(css));
             si = ss->getSpaceInformation();
             si->setValidStateSamplerAllocator(avssa);
 
@@ -192,40 +209,33 @@ int main(int argc, char **argv)
             ompl::base::AtlasChart *startChart = atlas->anchorChart(x);
             ompl::base::AtlasChart *goalChart = atlas->anchorChart(y);
 
-            ompl::base::ScopedState<> start(atlas);
-            ompl::base::ScopedState<> goal(atlas);
+            ompl::base::ScopedState<> start(css);
+            ompl::base::ScopedState<> goal(css);
             start->as<ompl::base::AtlasStateSpace::StateType>()->vectorView() = x;
             start->as<ompl::base::AtlasStateSpace::StateType>()->setChart(startChart);
             goal->as<ompl::base::AtlasStateSpace::StateType>()->vectorView() = y;
             goal->as<ompl::base::AtlasStateSpace::StateType>()->setChart(goalChart);
 
             ss->setStartAndGoalStates(start, goal);
-            newName += "A";
-
-            css = atlas;
             break;
         }
 
         case PROJECTED:
         {
-            ompl::base::ProjectedStateSpacePtr proj(
-                new ompl::base::ProjectedStateSpace(constraint->getAmbientSpace(), constraint));
-            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(proj));
+            ompl::base::ProjectedStateSpace *proj = new ompl::base::ProjectedStateSpace(rvss, constraint);
+            css = ompl::base::StateSpacePtr(proj);
+
+            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(css));
             si = ss->getSpaceInformation();
             si->setValidStateSamplerAllocator(pvssa);
 
             proj->setSpaceInformation(si);
 
-            // The proj needs some place to start sampling from. We will make start
-            // and goal charts.
-            ompl::base::ScopedState<> start(proj);
-            ompl::base::ScopedState<> goal(proj);
+            ompl::base::ScopedState<> start(css);
+            ompl::base::ScopedState<> goal(css);
             start->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = x;
             goal->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = y;
             ss->setStartAndGoalStates(start, goal);
-            newName += "P";
-
-            css = proj;
             break;
         }
     }
@@ -233,24 +243,18 @@ int main(int argc, char **argv)
     ss->setStateValidityChecker(isValid);
 
     // Choose the planner.
-    ompl::base::PlannerPtr planner(parsePlanner(plannerName, si, range));
+    ompl::base::PlannerPtr planner(parsePlanner(plannerName, si));
     if (!planner)
     {
         std::cout << "Invalid planner." << std::endl;
         usage(argv[0]);
     }
 
-    planner->setName(planner->getName() + newName);
     ss->setPlanner(planner);
 
     css->registerProjection("sphere", ompl::base::ProjectionEvaluatorPtr(new SphereProjection(css)));
     css->registerProjection("chain", ompl::base::ProjectionEvaluatorPtr(new ChainProjection(css, 3, links)));
     css->registerProjection("stewart", ompl::base::ProjectionEvaluatorPtr(new StewartProjection(css, links, chains)));
-
-    // Bounds
-    double bound = 20;
-    if (strcmp(problem, "chain") == 0)
-        bound = links;
 
     try
     {
@@ -273,12 +277,6 @@ int main(int argc, char **argv)
     {
     }
 
-    ompl::base::RealVectorBounds bounds(css->getAmbientDimension());
-    bounds.setLow(-bound);
-    bounds.setHigh(bound);
-
-    css->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
-
     ss->setup();
 
     if (printSpace)
@@ -286,14 +284,15 @@ int main(int argc, char **argv)
 
     ompl::tools::Benchmark bench(*ss, problem);
 
-    bench.addExperimentParameter("ambient_dimension", "INTEGER", std::to_string(css->getAmbientDimension()));
-    bench.addExperimentParameter("manifold_dimension", "INTEGER", std::to_string(css->getManifoldDimension()));
+    bench.addExperimentParameter("ambient_dimension", "INTEGER", std::to_string(constraint->getAmbientDimension()));
+    bench.addExperimentParameter("manifold_dimension", "INTEGER", std::to_string(constraint->getManifoldDimension()));
     bench.addExperimentParameter("co_dimension", "INTEGER", std::to_string(constraint->getCoDimension()));
-    bench.addExperimentParameter("collision_check_time", "REAL", std::to_string(artificalSleep));
 
     if (strcmp(problem, "chain") == 0)
     {
         bench.addExperimentParameter("links", "INTEGER", std::to_string(links));
+        bench.addExperimentParameter("extra", "INTEGER", std::to_string(extra));
+        bench.addExperimentParameter("obstacles", "INTEGER", std::to_string(obstacles));
     }
     else if (strcmp(problem, "stewart") == 0)
     {
