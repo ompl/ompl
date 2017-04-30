@@ -422,17 +422,74 @@ private:
     const double jointSize_;
 };
 
+class Wall
+{
+public:
+    Wall(double offset, double thickness, double width, unsigned int type)
+      : offset_(offset), thickness_(thickness + 0.2), width_(width + 0.2), type_(type)
+    {
+    }
+
+    bool within(double x) const
+    {
+        if (x < (offset_ - thickness_) || x > (offset_ + thickness_))
+            return false;
+        return true;
+    }
+
+    bool checkLink(const Eigen::VectorXd &v) const
+    {
+        double x = v[0], y = v[1], z = v[2];
+
+        if (!within(x))
+            return true;
+
+        if (z <= width_)
+        {
+            switch (type_)
+            {
+            case 0:
+                if (y < 0)
+                    return true;
+                break;
+
+            case 1:
+                if (y > 0)
+                    return true;
+                break;
+            }
+        }
+
+        return false;
+    }
+
+private:
+    const double offset_;
+    const double thickness_;
+    const double width_;
+    const unsigned int type_;
+};
+
 /** Kinematic chain manifold. */
 class ChainConstraint : public ompl::base::Constraint
 {
 public:
-    ChainConstraint(unsigned int links)
-      : ompl::base::Constraint(3 * links, 2 * links - 1)
+    ChainConstraint(unsigned int links, unsigned int obstacles = 0, unsigned int extra = 1)
+      : ompl::base::Constraint(3 * links, 2 * links - extra)
       , links_(links)
       , length_(1.0)
-      , radius_((links - 4) + 2)
+      , radius_(links - 2)
       , jointSize_(0.2)
+      , obstacles_(obstacles)
+      , extra_(extra)
     {
+        double step = 2 * radius_ / (double)(obstacles_ + 1);
+        double current = -radius_ + step;
+        for (unsigned int i = 0; i < obstacles_; i++)
+        {
+            walls_.emplace_back(Wall(current, 0.25, 0.5, i % 2));
+            current += step;
+        }
     }
 
     void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
@@ -446,47 +503,49 @@ public:
             joint1 = joint2;
         }
 
-        out[links_] = x.tail(3).norm() - radius_;
+        if (extra_ >= 1)
+            out[links_] = x.tail(3).norm() - radius_;
     }
 
     void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         out.setZero();
+
         Eigen::VectorXd plus(3 * (links_ + 1));
-        plus.head(3 * links_) = x;
+        plus.head(3 * links_) = x.segment(0, 3 * links_);
         plus.tail(3) = Eigen::VectorXd::Zero(3);
 
         Eigen::VectorXd minus(3 * (links_ + 1));
         minus.head(3) = Eigen::VectorXd::Zero(3);
-        minus.tail(3 * links_) = x;
+        minus.tail(3 * links_) = x.segment(0, 3 * links_);
 
         const Eigen::VectorXd diagonal = plus - minus;
 
         for (unsigned int i = 0; i < links_; i++)
-            out.row(i).segment(3 * i, 3) = diagonal.segment(3 * i, 3).normalized();
+            out.row(i).segment(3 * i + 0, 3) = diagonal.segment(3 * i, 3).normalized();
 
-        out.block(1, 0, links_, 3 * (links_ - 1)) -= out.block(1, 3, links_, 3 * (links_ - 1));
+        out.block(1, 0, links_ - 1, 3 * links_ - 3) -= out.block(1, 3, links_ - 1, 3 * links_ - 3);
 
-        out.row(links_).tail(3) = -diagonal.tail(3).normalized().transpose();
+        if (extra_ >= 1)
+            out.row(links_).tail(3) = -diagonal.tail(3).normalized().transpose();
     }
 
-    /** Joints may not get touch each other. If \a tough == true, then the end
-    * effector may not occupy states on the sphere similar to the sphereValid()
-    * obstacles. */
-    bool isValid(double sleep, const ompl::base::State *state)
+    bool isValid(const ompl::base::State *state)
     {
-        ompl::time::point wait = ompl::time::now() + ompl::time::seconds(sleep);
-        while (ompl::time::now() < wait)
-        {
-        };
-
         Eigen::Ref<const Eigen::VectorXd> x =
             state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
 
+
         for (unsigned int i = 0; i < links_; i++)
         {
-            if (x.segment(3 * i, 3)[2] < 0)
+            const Eigen::VectorXd &link = x.segment(3 * i, 3);
+            if (link[2] < 0)
                 return false;
+
+            if (link.norm() >= radius_)
+                for (auto wall : walls_)
+                    if (!wall.checkLink(link))
+                        return false;
         }
 
         for (unsigned int i = 0; i < links_ - 1; i++)
@@ -509,6 +568,9 @@ private:
     const double length_;       // Length of one link.
     const double radius_;       // Radius of the sphere that the end effector is constrained to.
     const double jointSize_;    // Size of joints
+    const unsigned int obstacles_;
+    const unsigned int extra_;
+    std::vector<Wall> walls_;
 };
 
 class SphereProjection : public ompl::base::ProjectionEvaluator
@@ -807,7 +869,7 @@ ompl::base::Constraint *initKleinProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
 /** Initialize the atlas for the kinematic chain problem. */
 ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
                                          ompl::base::StateValidityCheckerFn &isValid,
-                                         ompl::base::RealVectorBounds &bounds, double sleep, int links = 20)
+                                         ompl::base::RealVectorBounds &bounds, double sleep, int links = 20, unsigned int extra = 0, unsigned int obstacles = 0)
 {
     const std::size_t dim = 3 * links;
 
@@ -856,8 +918,8 @@ ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
     y[3 * i + 1] = 0;
     y[3 * i + 2] = 0;
 
-    ChainConstraint *atlas = new ChainConstraint(links);
-    isValid = std::bind(&ChainConstraint::isValid, atlas, sleep, std::placeholders::_1);
+    ChainConstraint *constraint = new ChainConstraint(links, obstacles, extra);
+    isValid = std::bind(&ChainConstraint::isValid, constraint, std::placeholders::_1);
 
     bounds.resize(dim);
     for (int i = 0; i < links; ++i)
@@ -872,10 +934,10 @@ ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
         bounds.setHigh(3 * i + 2, i + 1);
     }
 
-    return atlas;
+    return constraint;
 }
 
-/** Initialize the atlas for the kinematic chain problem. */
+/** Initialize the constraint for the kinematic chain problem. */
 ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
                                            ompl::base::StateValidityCheckerFn &isValid,
                                            ompl::base::RealVectorBounds &bounds, double sleep, unsigned int links = 3,
@@ -896,7 +958,7 @@ ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &
     for (unsigned int c = 0; c < chains; ++c)
     {
         const unsigned int o = 3 * c * links;
-        for (int i = 0; i < (int) links; ++i)
+        for (int i = 0; i < (int)links; ++i)
         {
             bounds.setLow(o + 3 * i + 0, -i - 2);
             bounds.setHigh(o + 3 * i + 0, i + 2);
@@ -945,7 +1007,7 @@ void printPlanners(void)
 ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
                                      ompl::base::StateValidityCheckerFn &isValid, ompl::base::RealVectorBounds &bounds,
                                      double sleep = 0, unsigned int links = 5, unsigned int chains = 2,
-                                     unsigned int extra = 0)
+                                     unsigned int extra = 0, unsigned int obstacles = 0)
 {
     if (std::strcmp(problem, "plane") == 0)
         return initPlaneProblem(x, y, isValid, bounds, sleep);
@@ -958,7 +1020,7 @@ ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd 
     else if (std::strcmp(problem, "klein") == 0)
         return initKleinProblem(x, y, isValid, bounds, sleep);
     else if (std::strcmp(problem, "chain") == 0)
-        return initChainProblem(x, y, isValid, bounds, sleep, links);
+        return initChainProblem(x, y, isValid, bounds, sleep, links, extra, obstacles);
     else if (std::strcmp(problem, "stewart") == 0)
         return initStewartProblem(x, y, isValid, bounds, sleep, links, chains, extra);
     if (std::strcmp(problem, "empty") == 0)

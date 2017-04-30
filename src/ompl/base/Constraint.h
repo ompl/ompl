@@ -49,7 +49,7 @@ namespace ompl
     namespace magic
     {
         /** \brief Default projection tolerance of a constraint unless otherwise specified. */
-        static const double CONSTRAINT_PROJECTION_TOLERANCE = 1e-3;
+        static const double CONSTRAINT_PROJECTION_TOLERANCE = 1e-4;
 
         /** \brief Maximum number of iterations in projection routine until giving up. */
         static const unsigned int CONSTRAINT_PROJECTION_MAX_ITERATIONS = 50;

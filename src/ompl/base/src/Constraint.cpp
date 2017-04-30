@@ -113,9 +113,9 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
     {
         jacobian(x, j);
 
-        if (norm < svdThreshold_)
-            x -= j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(f);
-        else
+        // if (norm < svdThreshold_)
+        //     x -= j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(f);
+        // else
             x -= j.fullPivLu().solve(f);
 
         function(x, f);

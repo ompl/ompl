@@ -71,8 +71,9 @@ int main(int argc, char **argv)
     unsigned int chains = 2;
     unsigned int simp = 1;
     unsigned int extra = 0;
+    unsigned int obstacles = 0;
 
-    while ((c = getopt(argc, argv, "yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
+    while ((c = getopt(argc, argv, "h:yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
     {
         switch (c)
         {
@@ -82,6 +83,10 @@ int main(int argc, char **argv)
 
             case 'c':
                 problem = optarg;
+                break;
+
+            case 'h':
+                obstacles = atoi(optarg);
                 break;
 
             case 'e':
@@ -152,7 +157,7 @@ int main(int argc, char **argv)
     ompl::base::StateValidityCheckerFn isValid;
 
     ompl::base::RealVectorBounds bounds(0);
-    ompl::base::ConstraintPtr constraint(parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra));
+    ompl::base::ConstraintPtr constraint(parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles));
 
     if (!constraint)
     {
@@ -294,7 +299,7 @@ int main(int argc, char **argv)
         if (output)
         {
             std::cout << "Interpolating path..." << std::endl;
-            path.interpolate(100);
+            path.interpolate();
 
             std::cout << "Dumping animation file..." << std::endl;
             std::ofstream animFile("anim.txt");
