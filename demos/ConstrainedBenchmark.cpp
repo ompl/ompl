@@ -250,6 +250,18 @@ int main(int argc, char **argv)
         usage(argv[0]);
     }
 
+    std::string tag = "+";
+    switch (spaceType)
+    {
+        case ATLAS:
+            tag += "A";
+            break;
+        case PROJECTED:
+            tag += "P";
+            break;
+    }
+    planner->setName(planner->getName() + tag);
+
     ss->setPlanner(planner);
 
     css->registerProjection("sphere", ompl::base::ProjectionEvaluatorPtr(new SphereProjection(css)));
