@@ -103,19 +103,18 @@ namespace ompl
                 return maxDistance_;
             }
 
-            /** \brief Set the maximum number of samples in each subsearch.
+            /** \brief Set the maximum amount of time to spend per subsearch, in seconds
 
-                This parameter greatly influences the runtime of the
-                algorithm. */
-            void setMaxSamples(int maxSamples)
+                This parameter influences the performance of the planner. */
+            void setSubsearchBound(double subsearchBound)
             {
-                maxSamples_ = maxSamples;
+                subsearchBound_ = subsearchBound;
             }
 
-            /** \brief Get the maximum number of samples in each subsearch */
-            double getMaxSamples() const
+            /** \brief Get The maximum amount of time to spend per subsearch, in seconds */
+            double getSubsearchBound() const
             {
-                return maxSamples_;
+                return subsearchBound_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
@@ -244,8 +243,8 @@ namespace ompl
             /** \brief The maximum length of a motion to be added to a tree */
             double maxDistance_;
 
-            /** \brief The maximum number of samples in each subsearch */
-            int maxSamples_;
+            /** \brief The maximum amount of time to spend per subsearch, in seconds */
+            double subsearchBound_;
 
             /** \brief The random number generator */
             RNG rng_;
