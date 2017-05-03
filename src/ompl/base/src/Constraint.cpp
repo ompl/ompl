@@ -103,25 +103,21 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
 {
     // Newton's method
     unsigned int iter = 0;
+    double norm = 0;
     Eigen::VectorXd f(getCoDimension());
     Eigen::MatrixXd j(getCoDimension(), n_);
 
-    double norm;
-    function(x, f);
+    const double squaredTolerance = tolerance_ * tolerance_ + std::numeric_limits<double>::epsilon();
 
-    while ((norm = f.norm()) > tolerance_ && iter++ < maxIterations_)
+    function(x, f);
+    while ((norm = f.squaredNorm()) > squaredTolerance && iter++ < maxIterations_)
     {
         jacobian(x, j);
-
-        // if (norm < svdThreshold_)
-        //     x -= j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(f);
-        // else
-            x -= j.fullPivLu().solve(f);
-
+        x -= j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(f);
         function(x, f);
     }
 
-    return iter <= maxIterations_;
+    return norm < squaredTolerance;
 }
 
 double ompl::base::Constraint::distance(const Eigen::VectorXd &x) const
@@ -133,5 +129,8 @@ double ompl::base::Constraint::distance(const Eigen::VectorXd &x) const
 
 bool ompl::base::Constraint::isSatisfied(const Eigen::VectorXd &x) const
 {
-    return x.allFinite() && distance(x) <= tolerance_;
+    Eigen::VectorXd f(getCoDimension());
+    function(x, f);
+
+    return f.allFinite() && f.squaredNorm() <= tolerance_ * tolerance_;
 }

@@ -130,7 +130,7 @@ ompl::base::ConstrainedMotionValidator::ConstrainedMotionValidator(const SpaceIn
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2) const
 {
-    return ss_.traverseManifold(s1, s2);
+    return ss_.getConstraint()->isSatisfied(s1) && ss_.getConstraint()->isSatisfied(s2) && ss_.traverseManifold(s1, s2);
 }
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2,
@@ -171,7 +171,8 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
     }
 
     ss_.freeState(stateList.back());
-    return reached;
+
+    return ss_.getConstraint()->isSatisfied(s1) && ss_.getConstraint()->isSatisfied(s2) && reached;
 }
 
 ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr space, const ConstraintPtr constraint)
@@ -233,10 +234,11 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
     // Get the list of intermediate states along the manifold.
     std::vector<State *> stateList;
 
-    if (!traverseManifold(from, to, true, &stateList))
-        stateList.push_back(cloneState(to));
+    if (traverseManifold(from, to, true, &stateList))
+        piecewiseInterpolate(stateList, t, state);
 
-    piecewiseInterpolate(stateList, t, state);
+    else
+        copyState(state, from);
 
     for (State *state : stateList)
         freeState(state);

@@ -52,7 +52,7 @@ void ompl::base::ProjectedStateSpace::checkSpace(const SpaceInformation *si)
 bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
                                                        std::vector<State *> *stateList) const
 {
-    // We can move along the manifold if we were never there in the first place
+    // We can't move along the manifold if we were never there in the first place
     if (!constraint_->isSatisfied(from))
         return false;
 
@@ -63,8 +63,10 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
         stateList->push_back(cloneState(from));
     }
 
+    const double tolerance = delta_ + std::numeric_limits<double>::epsilon();
+
     // No need to traverse the manifold if we are already there
-    if (validSegmentCount(from, to) == 0)
+    if (distance(from, to) < tolerance)
         return true;
 
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
@@ -73,7 +75,6 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
     State *previous = cloneState(from);
     State *scratch = allocState();
 
-    const double tolerance = delta_ + std::numeric_limits<double>::epsilon();
     do
     {
         // Compute the parameterization for interpolation

@@ -202,8 +202,12 @@ bool ompl::base::AtlasChart::psiFromAmbient(const Eigen::Ref<const Eigen::Vector
 {
     // Newton-Raphson to solve Ax = b
     unsigned int iter = 0;
+    double norm = 0;
     Eigen::MatrixXd A(n_, n_);
     Eigen::VectorXd b(n_);
+
+    const double tolerance = constraint_->getTolerance();
+    const double squaredTolerance = tolerance * tolerance + std::numeric_limits<double>::epsilon();
 
     // Initialize output to initial guess
     out = x0;
@@ -215,7 +219,7 @@ bool ompl::base::AtlasChart::psiFromAmbient(const Eigen::Ref<const Eigen::Vector
     constraint_->function(out, b.head(n_ - k_));
     b.tail(k_).setZero();
 
-    while (b.norm() > constraint_->getTolerance() && iter++ < constraint_->getMaxIterations())
+    while ((norm = b.squaredNorm()) > squaredTolerance && iter++ < constraint_->getMaxIterations())
     {
         // Recompute the Jacobian at the new guess.
         constraint_->jacobian(out, A.block(0, 0, n_ - k_, n_));
@@ -229,7 +233,7 @@ bool ompl::base::AtlasChart::psiFromAmbient(const Eigen::Ref<const Eigen::Vector
         b.tail(k_) = bigPhi_.transpose() * (out - x0);
     }
 
-    return iter <= constraint_->getMaxIterations();
+    return norm < squaredTolerance;
 }
 
 void ompl::base::AtlasChart::psiInverse(const Eigen::Ref<const Eigen::VectorXd> &x,

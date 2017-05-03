@@ -53,9 +53,6 @@ namespace ompl
 
         /** \brief Maximum number of iterations in projection routine until giving up. */
         static const unsigned int CONSTRAINT_PROJECTION_MAX_ITERATIONS = 50;
-
-        /** \brief Default tolerance of when to switch from less precise LU decomposition to SVD in projection. */
-        static const double CONSTRAINT_SVD_THRESHOLD = 1e-1;
     }
 
     namespace base
@@ -73,7 +70,6 @@ namespace ompl
               : n_(ambientDim)
               , k_(manifoldDim)
               , tolerance_(magic::CONSTRAINT_PROJECTION_TOLERANCE)
-              , svdThreshold_(magic::CONSTRAINT_SVD_THRESHOLD)
               , maxIterations_(magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS)
             {
                 if (n_ <= 0 || k_ <= 0)
@@ -142,11 +138,6 @@ namespace ompl
                 return maxIterations_;
             }
 
-            double getSVDThreshold() const
-            {
-                return svdThreshold_;
-            }
-
             /** \brief Sets the projection tolerance. */
             void setTolerance(const double tolerance)
             {
@@ -163,16 +154,6 @@ namespace ompl
                     throw ompl::Exception("ompl::base::Constraint::setProjectionMaxIterations(): "
                                           "iterations must be positive.");
                 maxIterations_ = iterations;
-            }
-
-            /** \brief Sets the projection tolerance. */
-            void setSVDThreshold(const double svdThreshold)
-            {
-                if (svdThreshold <= 0)
-                    throw ompl::Exception("ompl::base::Constraint::setSVDThreshold(): "
-                                          "threshold must be positive.");
-
-                svdThreshold_ = svdThreshold;
             }
  
             /** \brief Compute the constraint function at \a x. Result is returned
@@ -205,9 +186,6 @@ namespace ompl
 
             /** \brief Tolerance for Newton method used in projection onto manifold. */
             double tolerance_;
-
-            /** \brief Threshold of function norm that switches from LU decomposition to SVD in projection. */
-            double svdThreshold_;
 
             /** \brief Maximum number of iterations for Newton method used in projection onto manifold. */
             unsigned int maxIterations_;
