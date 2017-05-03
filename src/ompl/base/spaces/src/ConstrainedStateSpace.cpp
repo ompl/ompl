@@ -254,22 +254,23 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const
     for (std::size_t i = 1; i < n; i++)
         d[i] = d[i - 1] + distance(stateList[i - 1], stateList[i]);
 
-    const double dm = d[n - 1];
-
     // Find the two adjacent states that t lies between.
-    if (dm == 0)
+    unsigned int i = 0;
+    if (d[n - 1] == 0)
         return stateList[0];
 
     else
     {
-        unsigned int i = 0;
-        while (i < n - 1 && (d[i] /= dm) <= t)
+        while (i < n - 1 && d[i] / d[n - 1] <= t)
             i++;
 
-        const double t1 = d[i] - t;
-        const double t2 = (i < n - 1) ? d[i + 1] - t : 1;
+        const double t1 = d[i] / d[n - 1] - t;
+        const double t2 = (i <= n - 2) ? d[i + 1] / d[n - 1] - t : 1;
 
-        return (t1 < t2) ? stateList[i] : stateList[i + 1];
+        if (t1 < t2)
+            return stateList[i];
+        else
+            return stateList[i + 1];
     }
 }
 
