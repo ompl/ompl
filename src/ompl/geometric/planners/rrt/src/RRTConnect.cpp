@@ -124,6 +124,11 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
     if (d > maxDistance_)
     {
         si_->getStateSpace()->interpolate(nmotion->state, rmotion->state, maxDistance_ / d, tgi.xstate);
+
+        /* check if we have moved at all */
+        if (si_->distance(nmotion->state, tgi.xstate) < std::numeric_limits<double>::epsilon())
+            return TRAPPED;
+
         dstate = tgi.xstate;
         reach = false;
     }
