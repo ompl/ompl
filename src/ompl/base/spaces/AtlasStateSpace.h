@@ -327,14 +327,6 @@ namespace ompl
             /** @name Interpolation and state management
              * @{ */
 
-            /** \brief Like interpolate(...), but uses the information about
-             * intermediate states already supplied in \a stateList from a
-             * previous call to followManifold(..., true, \a stateList). The
-             * 'from' and 'to' states are the first and last elements \a
-             * stateList. Assumes \a stateList contains at least two
-             * elements. */
-            unsigned int piecewiseInterpolate(const std::vector<State *> &stateList, double t, State *state) const;
-
             /** \brief Return an instance of the AtlasStateSampler. */
             StateSamplerPtr allocDefaultStateSampler() const
             {

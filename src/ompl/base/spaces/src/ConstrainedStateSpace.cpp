@@ -235,7 +235,7 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
     std::vector<State *> stateList;
 
     if (traverseManifold(from, to, true, &stateList))
-        piecewiseInterpolate(stateList, t, state);
+        copyState(state, piecewiseInterpolate(stateList, t));
 
     else
         copyState(state, from);
@@ -244,10 +244,9 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
         freeState(state);
 }
 
-unsigned int ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList, const double t,
-                                                           State *state) const
+ompl::base::State *ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList, const double t) const
 {
-    std::size_t n = stateList.size();
+    const std::size_t n = stateList.size();
     double d[n];
 
     // Compute partial sums of distances between intermediate states.
@@ -257,24 +256,22 @@ unsigned int ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const std::
 
     // Find the two adjacent states that t lies between.
     unsigned int i = 0;
-    double tt;
     if (d[n - 1] == 0)
-    {
-        // Corner case where total distance is 0.
-        i = n - 1;
-        tt = t;
-    }
+        return stateList[0];
+
     else
     {
         while (i < n - 1 && d[i] / d[n - 1] <= t)
             i++;
-        tt = t - d[i - 1] / d[n - 1];
+
+        const double t1 = d[i] / d[n - 1] - t;
+        const double t2 = (i <= n - 2) ? d[i + 1] / d[n - 1] - t : 1;
+
+        if (t1 < t2)
+            return stateList[i];
+        else
+            return stateList[i + 1];
     }
-
-    // Linearly interpolate between these two states.
-    WrapperStateSpace::interpolate(stateList[i > 0 ? i - 1 : 0], stateList[i], tt, state);
-
-    return i;
 }
 
 ompl::base::State *ompl::base::ConstrainedStateSpace::allocState() const

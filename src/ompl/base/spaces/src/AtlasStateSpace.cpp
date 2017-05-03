@@ -538,35 +538,6 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     return ret;
 }
 
-unsigned int ompl::base::AtlasStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList, const double t,
-                                                               State *state) const
-{
-    unsigned int i = ConstrainedStateSpace::piecewiseInterpolate(stateList, t, state);
-
-    // Set the correct chart, guessing it might be one of the adjacent charts.
-    StateType *astate = state->as<StateType>();
-
-    Eigen::Ref<const Eigen::VectorXd> x = astate->constVectorView();
-    Eigen::VectorXd u(k_);
-
-    AtlasChart *c1 = stateList[i > 0 ? i - 1 : 0]->as<StateType>()->getChart();
-    AtlasChart *c2 = stateList[i]->as<StateType>()->getChart();
-
-    // Check first neighboring chart
-    if (c1->psiInverse(x, u), c1->inPolytope(u))
-        astate->setChart(c1);
-
-    // Check second neighboring chart if different
-    else if (c1 != c2 && (c2->psiInverse(x, u), c2->inPolytope(u)))
-        astate->setChart(c2);
-
-    // Find or create new chart
-    else
-        getChart(astate);
-
-    return i;
-}
-
 double ompl::base::AtlasStateSpace::estimateFrontierPercent() const
 {
     double frontier = 0;
