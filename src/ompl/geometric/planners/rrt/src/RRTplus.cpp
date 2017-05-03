@@ -37,6 +37,9 @@
 #include "ompl/geometric/planners/rrt/RRTplus.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
+#include "ompl/util/Exception.h"
+#include <chrono>
+#include <cmath>
 #include <limits>
 
 ompl::geometric::RRTPlus::RRTPlus(const base::SpaceInformationPtr &si) : base::Planner(si, "RRT+")
@@ -52,8 +55,7 @@ ompl::geometric::RRTPlus::RRTPlus(const base::SpaceInformationPtr &si) : base::P
     Planner::declareParam<double>("goal_bias", this, &RRTPlus::setGoalBias, &RRTPlus::getGoalBias, "0.:.05:1.");
     // The paper describes that this parameter was specified by indicating the total desired time for the subsearch
     // instead of the max number of samples...
-    // also the getter/setter and the protected field should be defined in the header file
-    Planner::declareParam<int>("max_samples", this, &RRTPlus::setMaxSamples, &RRTPlus::getMaxSamples, "");
+    Planner::declareParam<double>("subsearch_bound", this, &RRTPlus::setSubsearchBound, &RRTPlus::getSubsearchBound, "");
 }
 
 ompl::geometric::RRTPlus::~RRTPlus()
@@ -76,6 +78,13 @@ void ompl::geometric::RRTPlus::setup()
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
+
+    // Try to dynamic_cast to CompoundStateSpace.
+    // auto *test = dynamic_cast<ompl::base::CompoundStateSpace>(si_->getStateSpace());
+    // if (test == NULL)
+    //     throw new Exception("Failed to cast state space to a ompl::base::CompoundStateSpace.");
+    if (!si_->getStateSpace()->isCompound())
+        throw new Exception("State space is not a ompl::base::CompoundStateSpace.");
 
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
@@ -108,6 +117,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
     // don't need goal biasing for v1.0
 //    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
+    // Note that the state space in si_->getStateSpace() must be a
+    // CompoundStateSpace due to the check in setup().
+
     while (const base::State *st = pis_.nextStart())
     {
         auto *motion = new Motion(si_);
@@ -123,6 +135,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
 
     si_->getStateSpace()->setStateSamplerAllocator(ConstrainedSubspaceStateSampler::allocConstrainedSubspaceStateSampler);
     sampler_ = si_->getStateSpace()->allocStateSampler();
+    sampler_->constrainAllComponents();
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
@@ -132,61 +145,69 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
     auto *rmotion = new Motion(si_); // how to get the inital state to be along the line btwn q_init and q_goal?
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
+    unsigned int n = 1;
+    base:State *q_init = getPlannerData()->getStartVertex(0)->getState();
+    base:State *q_goal = getPlannerData()->getGoalVertex(0)->getState();
 
-    while (ptc == false)
+    while (ptc == false && n <= si_->getStateSpace()->getDimension())
     {
-        // TODO implement subsearch loop
-        // TODO look into the planner termination condition for limiting # of samples for each subsearch
+        double subsearch_duration = pow(exp(log(getSubsearchBound()) / n), n);
+        std::chrono::high_resolution_clock::time_point start, end;
+        start = std::chrono::high_resolution_clock::now();
+        while (std::chrono::high_resolution_clock::now() - start < subsearch_duration) {
+            // note for improvements: look into the planner termination condition for limiting # of samples for each subsearch
 
-        // don't need goal biasing for v1.0
-//        /* sample random state (with goal biasing) */
-//        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
-//            goal_s->sampleGoal(rstate);
-//        else
-//            sampler_->sampleUniform(rstate);
+            // don't need goal biasing for v1.0
+            // /* sample random state (with goal biasing) */
+            // if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+            //     goal_s->sampleGoal(rstate);
+            // else
+            //     sampler_->sampleUniform(rstate);
 
-        // TODO for prioritized sampling, we need an initial state on the line between q_init and q_goal
+            // For prioritized sampling, we need a state on the line between q_init and q_goal
+            si_->getStateSpace()->interpolate(q_init, q_goal, ((double) rand() / (RAND_MAX)), rstate);
 
-        // TODO for prioritized sampling, only need to cast the sampled state to a CompoundState
-        // e.g. for a ompl::base::State *state
-        // state-><ompl::base::CompoundStateSpace::StateType>as()
-        // but this is implemented with a static_cast, which doesn't check at run-time.
+            // For prioritized sampling, only need to cast the sampled state to a CompoundState
+            // auto *xstate = xstate-><ompl::base:CompoundStateSpace::StateType>as();
 
-        sampler_->sampleUniform(rstate);
+            sampler_->sampleUniform(rstate);
 
-        /* find closest state in the tree */
-        Motion *nmotion = nn_->nearest(rmotion);
-        base::State *dstate = rstate;
+            /* find closest state in the tree */
+            Motion *nmotion = nn_->nearest(rmotion);
+            base::State *dstate = rstate;
 
-        /* find state to add */
-        double d = si_->distance(nmotion->state, rstate);
-        if (d > maxDistance_)
-        {
-            si_->getStateSpace()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
-            dstate = xstate;
-        }
-
-        if (si_->checkMotion(nmotion->state, dstate))
-        {
-            /* create a motion */
-            auto *motion = new Motion(si_);
-            si_->copyState(motion->state, dstate);
-            motion->parent = nmotion;
-
-            nn_->add(motion);
-            double dist = 0.0;
-            bool sat = goal->isSatisfied(motion->state, &dist);
-            if (sat)
+            /* find state to add */
+            double d = si_->distance(nmotion->state, rstate);
+            if (d > maxDistance_)
             {
-                approxdif = dist;
-                solution = motion;
-                break;
+                si_->getStateSpace()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
+                dstate = xstate;
             }
-            if (dist < approxdif)
+
+            if (si_->checkMotion(nmotion->state, dstate))
             {
-                approxdif = dist;
-                approxsol = motion;
+                /* create a motion */
+                auto *motion = new Motion(si_);
+                si_->copyState(motion->state, dstate);
+                motion->parent = nmotion;
+
+                nn_->add(motion);
+                double dist = 0.0;
+                bool sat = goal->isSatisfied(motion->state, &dist);
+                if (sat)
+                {
+                    approxdif = dist;
+                    solution = motion;
+                    break;
+                }
+                if (dist < approxdif)
+                {
+                    approxdif = dist;
+                    approxsol = motion;
+                }
             }
+            sampler_->unconstrainComponent(n-1);
+            n++;
         }
     }
 
