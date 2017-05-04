@@ -280,3 +280,18 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::allocState() const
     state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
     return state;
 }
+
+bool ompl::base::ConstrainedStateSpace::checkPath(ompl::geometric::PathGeometric &path, std::vector<unsigned int> *indices) const
+{
+    bool valid = true;
+    auto states = path.getStates();
+    for (unsigned int i = 0; i < states.size(); ++i)
+        if (!constraint_->isSatisfied(states[i]))
+        {
+            valid = false;
+            if (indices != nullptr)
+                indices->push_back(i);
+        }
+
+    return valid;
+}

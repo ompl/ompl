@@ -157,7 +157,8 @@ int main(int argc, char **argv)
     ompl::base::StateValidityCheckerFn isValid;
 
     ompl::base::RealVectorBounds bounds(0);
-    ompl::base::ConstraintPtr constraint(parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles));
+    ompl::base::ConstraintPtr constraint(
+        parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles));
 
     if (!constraint)
     {
@@ -172,10 +173,8 @@ int main(int argc, char **argv)
            space, plannerName, problem, constraint->getAmbientDimension(), constraint->getCoDimension(), planningTime,
            artificalSleep);
 
-
     ompl::base::StateSpacePtr rvss(new ompl::base::RealVectorStateSpace(constraint->getAmbientDimension()));
     rvss->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
-    // rvss->setValidSegmentCountFactor(3);
 
     ompl::base::StateSpacePtr css;
     ompl::geometric::SimpleSetupPtr ss;
@@ -291,19 +290,32 @@ int main(int argc, char **argv)
         std::cout << "Took " << time << " seconds." << std::endl;
 
         ompl::geometric::PathGeometric &path = ss->getSolutionPath();
+        if (!css->as<ompl::base::ConstrainedStateSpace>()->checkPath(path))
+            std::cout << "Path does not satisfy constraints!" << std::endl;
+
+        std::cout << "Dumping animation file..." << std::endl;
+        std::ofstream animFile("anim_long.txt");
+        path.printAsMatrix(animFile);
+        animFile.close();
 
         double originalLength = path.length();
         for (unsigned int i = 0; i < simp; ++i)
             ss->simplifySolution();
         std::cout << "Path Length " << originalLength << " -> " << path.length() << std::endl;
 
+        if (!css->as<ompl::base::ConstrainedStateSpace>()->checkPath(path))
+            std::cout << "Simplified path does not satisfy constraints!" << std::endl;
+
         if (output)
         {
             std::cout << "Interpolating path..." << std::endl;
             path.interpolate();
 
+            if (!css->as<ompl::base::ConstrainedStateSpace>()->checkPath(path))
+                std::cout << "Interpolated path does not satisfy constraints!" << std::endl;
+
             std::cout << "Dumping animation file..." << std::endl;
-            std::ofstream animFile("anim.txt");
+            std::ofstream animFile("anim_short.txt");
             path.printAsMatrix(animFile);
             animFile.close();
 
@@ -313,23 +325,6 @@ int main(int argc, char **argv)
                 std::ofstream pathFile("path.ply");
                 path.printPLY(pathFile);
                 pathFile.close();
-
-                std::cout << "Dumping graph mesh..." << std::endl;
-
-                ompl::base::PlannerData data(si);
-                planner->getPlannerData(data);
-
-                std::ofstream graphFile("graph.ply");
-                data.printPLY(graphFile, false);
-                graphFile.close();
-            }
-
-            if (constraint->getManifoldDimension() == 2 && spaceType == ATLAS)
-            {
-                std::cout << "Dumping atlas mesh..." << std::endl;
-                std::ofstream atlasFile("atlas.ply");
-                css->as<ompl::base::AtlasStateSpace>()->printPLY(atlasFile);
-                atlasFile.close();
             }
         }
 
@@ -339,6 +334,25 @@ int main(int argc, char **argv)
     else
     {
         std::cout << "No solution found." << std::endl;
+    }
+
+    if (output && x.size() == 3)
+    {
+        std::cout << "Dumping graph mesh..." << std::endl;
+        ompl::base::PlannerData data(si);
+        planner->getPlannerData(data);
+
+        std::ofstream graphFile("graph.ply");
+        data.printPLY(graphFile, false);
+        graphFile.close();
+    }
+
+    if (constraint->getManifoldDimension() == 2 && spaceType == ATLAS)
+    {
+        std::cout << "Dumping atlas mesh..." << std::endl;
+        std::ofstream atlasFile("atlas.ply");
+        css->as<ompl::base::AtlasStateSpace>()->printPLY(atlasFile);
+        atlasFile.close();
     }
 
     if (spaceType == ATLAS)
