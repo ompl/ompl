@@ -417,9 +417,129 @@ std::size_t ompl::base::AtlasStateSpace::getChartCount() const
     return charts_.size();
 }
 
+bool ompl::base::AtlasStateSpace::traverseManifoldSeparate(const State *from, const State *to, const bool interpolate,
+                                                           std::vector<ompl::base::State *> *stateList) const
+{
+    // We can't traverse the manifold if we don't start on it.
+    if (!constraint_->isSatisfied(from))
+        return false;
+
+    const StateType *fromAsType = from->as<StateType>();
+    const StateType *toAsType = to->as<StateType>();
+
+    // Try to get starting chart from `from` state.
+    AtlasChart *c = getChart(fromAsType);
+    if (c == nullptr)
+        return false;
+
+    // Save a copy of the from state.
+    if (stateList != nullptr)
+    {
+        stateList->clear();
+        stateList->push_back(cloneState(from));
+    }
+
+    // No need to traverse the manifold if we are already there
+    const double tolerance = delta_ + std::numeric_limits<double>::epsilon();
+    if (distance(from, to) < tolerance)
+        return true;
+
+    const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
+
+    // Get vector representations
+    Eigen::Ref<const Eigen::VectorXd> x_from = fromAsType->constVectorView();
+    Eigen::Ref<const Eigen::VectorXd> x_to = toAsType->constVectorView();
+
+    // Traversal stops if the ball of radius distMax centered at x_from is left
+    const double distMax = (x_from - x_to).norm();
+
+    // Create a scratch state to use for movement.
+    StateType *scratch = cloneState(from)->as<StateType>();
+    Eigen::Ref<Eigen::VectorXd> x_scratch = scratch->vectorView();
+    Eigen::VectorXd x_temp(n_);
+    Eigen::VectorXd x_prev(n_);
+    x_prev = x_from;
+
+    // Project from and to points onto the chart
+    Eigen::VectorXd u_j(k_), u_b(k_);
+    c->psiInverse(x_scratch, u_j);
+    c->psiInverse(x_to, u_b);
+
+    bool done = false;
+    unsigned int chartsCreated = 0;
+    double dist = 0;
+
+    do
+    {
+        // Take a step towards the final state
+        u_j += delta_ * (u_b - u_j).normalized();
+        c->phi(u_j, x_temp);
+
+        dist += (x_temp - x_prev).norm();
+
+        const bool valid = interpolate || svc->isValid(scratch);
+        const bool exceedMaxDist = (x_temp - x_from).norm() > distMax;
+        const bool exceedWandering = dist > (lambda_ * distMax);
+        const bool exceedChartLimit = chartsCreated > maxChartsPerExtension_;
+        if (!valid || exceedMaxDist || exceedWandering || exceedChartLimit)
+            break;
+
+        const bool exceedsRadius = u_j.squaredNorm() > (rho_ * rho_);
+        const bool toFarFromManifold = constraint_->distance(x_temp) > epsilon_;
+
+        done = (u_b - u_j).squaredNorm() <= delta_ * delta_;
+
+        // Find or make a new chart if new state is off of current chart
+        if (exceedsRadius || toFarFromManifold || done)
+        {
+            const bool onManifold = c->psi(u_j, x_temp);
+            if (!onManifold)
+                break;
+
+            x_scratch = x_temp;
+            scratch->setChart(c);
+
+            c = owningChart(x_scratch);
+            if (c == nullptr)
+            {
+                c = newChart(x_scratch);
+                if (c == nullptr)
+                {
+                    // Pretend like we hit an obstacle.
+                    OMPL_ERROR("ompl::base::AtlasStateSpace::traverseManifold(): "
+                               "Treating singularity as an obstacle.");
+                    break;
+                }
+
+                chartsCreated++;
+            }
+
+            // Re-project onto the next chart.
+            c->psiInverse(x_scratch, u_j);
+            c->psiInverse(x_to, u_b);
+
+            done = (u_b - u_j).squaredNorm() <= delta_ * delta_;
+        }
+
+        // Keep the state in a list, if requested.
+        if (stateList != nullptr)
+            stateList->push_back(cloneState(scratch));
+
+        x_prev = x_temp;
+    } while (!done);
+
+    const bool ret = done && (x_to - x_scratch).squaredNorm() <= delta_ * delta_;
+    freeState(scratch);
+
+    return ret;
+}
+
 bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
                                                    std::vector<ompl::base::State *> *stateList) const
 {
+    if (!separate_)
+        return traverseManifoldSeparate(from, to, interpolate, stateList);
+
     // We can't traverse the manifold if we don't start on it.
     if (!constraint_->isSatisfied(from))
         return false;
@@ -467,6 +587,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     unsigned int chartsCreated = 0;
     double dist = 0;
     double factor = 1;
+
     do
     {
         if (factor < delta_)
@@ -480,8 +601,8 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             break;
 
         const double step = (x_temp - x_scratch).norm();
-        const bool exceedStepSize = step >= lambda_ * delta_;
 
+        const bool exceedStepSize = step >= lambda_ * delta_;
         if (exceedStepSize)
         {
             factor *= 0.5;
@@ -516,15 +637,15 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             if (c == nullptr)
             {
                 c = newChart(x_scratch);
-                chartsCreated++;
-            }
+                if (c == nullptr)
+                {
+                    // Pretend like we hit an obstacle.
+                    OMPL_ERROR("ompl::base::AtlasStateSpace::traverseManifold(): "
+                               "Treating singularity as an obstacle.");
+                    break;
+                }
 
-            if (c == nullptr)
-            {
-                // Pretend like we hit an obstacle.
-                OMPL_ERROR("ompl::base::AtlasStateSpace::traverseManifold(): "
-                           "Treating singularity as an obstacle.");
-                break;
+                chartsCreated++;
             }
 
             // Re-project onto the next chart.

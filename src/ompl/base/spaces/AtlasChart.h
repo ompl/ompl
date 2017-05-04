@@ -214,6 +214,11 @@ namespace ompl
                 return k_;
             }
 
+            unsigned int numNeighbors() const
+            {
+                return polytope_.size();
+            }
+
             /** \brief Rewrite a chart point \a u in ambient space coordinates
              * and store the result in \a out, which should be allocated to size
              * n_.

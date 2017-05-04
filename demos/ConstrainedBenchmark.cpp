@@ -78,14 +78,19 @@ int main(int argc, char **argv)
     unsigned int runs = 50;
     unsigned int links = 5;
     unsigned int chains = 2;
-    unsigned int simp = 1;
     unsigned int extra = 0;
     unsigned int obstacles = 0;
 
-    while ((c = getopt(argc, argv, "r:f:h:yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
+    std::string addOn = "";
+
+    while ((c = getopt(argc, argv, "u:r:f:h:yg:c:p:s:w:ot:n:i:ae:")) != -1)
     {
         switch (c)
         {
+            case 'u':
+                addOn = std::string(optarg);
+                break;
+
             case 'r':
                 runs = atoi(optarg);
                 break;
@@ -108,10 +113,6 @@ int main(int argc, char **argv)
 
             case 'e':
                 extra = atoi(optarg);
-                break;
-
-            case 'x':
-                simp = atoi(optarg);
                 break;
 
             case 'g':
@@ -250,7 +251,7 @@ int main(int argc, char **argv)
         usage(argv[0]);
     }
 
-    std::string tag = "+";
+    std::string tag = "+" + addOn;
     switch (spaceType)
     {
         case ATLAS:
