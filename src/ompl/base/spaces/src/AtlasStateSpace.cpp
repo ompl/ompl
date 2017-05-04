@@ -466,16 +466,28 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     bool done = false;
     unsigned int chartsCreated = 0;
     double dist = 0;
+    double factor = 1;
     do
     {
+        if (factor < delta_)
+            break;
+
         // Take a step towards the final state
-        u_j += delta_ * (u_b - u_j).normalized();
+        u_j += factor * delta_ * (u_b - u_j).normalized();
 
         const bool onManifold = c->psi(u_j, x_temp);
         if (!onManifold)
             break;
 
         const double step = (x_temp - x_scratch).norm();
+        const bool exceedStepSize = step >= lambda_ * delta_;
+
+        if (exceedStepSize)
+        {
+            factor *= 0.5;
+            continue;
+        }
+
         dist += step;
 
         // Update state
@@ -525,6 +537,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             stateList->push_back(cloneState(scratch));
 
         done = (u_b - u_j).squaredNorm() <= delta_ * delta_;
+        factor = 1;
     } while (!done);
 
     const bool ret = done && (x_to - x_scratch).squaredNorm() <= delta_ * delta_;
