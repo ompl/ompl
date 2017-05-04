@@ -417,8 +417,14 @@ std::size_t ompl::base::AtlasStateSpace::getChartCount() const
     return charts_.size();
 }
 
-bool ompl::base::AtlasStateSpace::traverseManifoldSeparate(const State *from, const State *to, const bool interpolate,
-                                                           std::vector<ompl::base::State *> *stateList) const
+bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
+                                                   std::vector<ompl::base::State *> *stateList) const
+{
+    return (separate_) ? traverseAtlas(from, to, interpolate, stateList) : traverseTangentBundle(from, to, interpolate, stateList);
+}
+
+bool ompl::base::AtlasStateSpace::traverseTangentBundle(const State *from, const State *to, const bool interpolate,
+                                                        std::vector<ompl::base::State *> *stateList) const
 {
     // We can't traverse the manifold if we don't start on it.
     if (!constraint_->isSatisfied(from))
@@ -475,7 +481,8 @@ bool ompl::base::AtlasStateSpace::traverseManifoldSeparate(const State *from, co
         u_j += delta_ * (u_b - u_j).normalized();
         c->phi(u_j, x_temp);
 
-        dist += (x_temp - x_prev).norm();
+        const double step = (x_temp - x_prev).norm();
+        dist += step;
 
         const bool valid = interpolate || svc->isValid(scratch);
         const bool exceedMaxDist = (x_temp - x_from).norm() > distMax;
@@ -534,12 +541,9 @@ bool ompl::base::AtlasStateSpace::traverseManifoldSeparate(const State *from, co
     return ret;
 }
 
-bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
-                                                   std::vector<ompl::base::State *> *stateList) const
+bool ompl::base::AtlasStateSpace::traverseAtlas(const State *from, const State *to, const bool interpolate,
+                                                std::vector<ompl::base::State *> *stateList) const
 {
-    if (!separate_)
-        return traverseManifoldSeparate(from, to, interpolate, stateList);
-
     // We can't traverse the manifold if we don't start on it.
     if (!constraint_->isSatisfied(from))
         return false;

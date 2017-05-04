@@ -321,8 +321,10 @@ namespace ompl
              * freeing states returned in \a stateList. */
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
                                   std::vector<State *> *stateList = nullptr) const;
-            bool traverseManifoldSeparate(const State *from, const State *to, bool interpolate = false,
-                                  std::vector<State *> *stateList = nullptr) const;
+            bool traverseAtlas(const State *from, const State *to, bool interpolate = false,
+                               std::vector<State *> *stateList = nullptr) const;
+            bool traverseTangentBundle(const State *from, const State *to, bool interpolate = false,
+                                       std::vector<State *> *stateList = nullptr) const;
             /** @} */
 
             /** @name Interpolation and state management

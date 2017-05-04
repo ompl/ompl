@@ -113,7 +113,8 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
     while ((norm = f.squaredNorm()) > squaredTolerance && iter++ < maxIterations_)
     {
         jacobian(x, j);
-        x -= j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(f);
+        // x -= j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(f);
+        x -= j.fullPivLu().solve(f);
         function(x, f);
     }
 
