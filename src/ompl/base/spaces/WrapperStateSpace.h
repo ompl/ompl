@@ -203,12 +203,7 @@ namespace ompl
 
             virtual StateSamplerPtr allocDefaultStateSampler() const override
             {
-                return StateSamplerPtr(new WrapperStateSampler(this, space_->allocDefaultStateSampler()));
-            }
-
-            virtual StateSamplerPtr allocStateSampler() const override
-            {
-                return StateSamplerPtr(new WrapperStateSampler(this, space_->allocStateSampler()));
+                return std::make_shared<WrapperStateSampler>(this, space_->allocDefaultStateSampler());
             }
 
             virtual State *allocState() const override

@@ -342,9 +342,9 @@ namespace ompl
             /** \brief Allocate a new state in this space. */
             State *allocState() const
             {
-              StateType *state = new StateType(space_->allocState(), n_);
-              state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
-              return state;
+                StateType *state = new StateType(space_->allocState(), n_);
+                state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
+                return state;
             }
 
             /** @} */

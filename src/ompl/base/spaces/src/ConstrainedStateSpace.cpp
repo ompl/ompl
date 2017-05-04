@@ -71,7 +71,7 @@ void ompl::base::ConstrainedStateSampler::sampleGaussian(State *state, const Sta
 ompl::base::ConstrainedValidStateSampler::ConstrainedValidStateSampler(const SpaceInformation *si)
   : ValidStateSampler(si)
   , sampler_(si->getStateSpace().get()->as<ompl::base::ConstrainedStateSpace>(),
-             si->getStateSpace()->allocDefaultStateSampler())
+             si->getStateSpace().get()->as<ompl::base::ConstrainedStateSpace>()->getSpace()->allocDefaultStateSampler())
   , constraint_(si->getStateSpace()->as<ompl::base::ConstrainedStateSpace>()->getConstraint())
   , scratch_(si->allocState())
 {
@@ -88,14 +88,10 @@ bool ompl::base::ConstrainedValidStateSampler::sample(State *state)
     // Rejection sample for at most attempts_ tries.
     unsigned int tries = 0;
     bool valid;
-    si_->copyState(scratch_, state);
-    double dist = si_->getSpaceMeasure();
 
     do
-    {
-        sampler_.sampleUniformNear(state, scratch_, dist);
-        dist *= 0.9;
-    } while (!(valid = si_->isValid(state) && constraint_->isSatisfied(state)) && ++tries < attempts_);
+        sampler_.sampleUniform(state);
+    while (!(valid = si_->isValid(state) && constraint_->isSatisfied(state)) && ++tries < attempts_);
 
     return valid;
 }

@@ -43,6 +43,7 @@
 #include "ompl/base/MotionValidator.h"
 #include "ompl/base/spaces/WrapperStateSpace.h"
 #include "ompl/base/SpaceInformation.h"
+#include "ompl/geometric/PathGeometric.h"
 
 #include <eigen3/Eigen/Core>
 
@@ -70,11 +71,11 @@ namespace ompl
             /** \brief Sample a state uniformly from the ball with center \a
              * near and radius \a distance. Return sample in \a state.
              * \note rho_s_ is a good choice for \a distance. */
-            void sampleUniformNear(State *state, const State *near, double distance);
+            void sampleUniformNear(State *state, const State *near, double distance) override;
 
             /** \brief Sample a state uniformly from a normal distribution with
                 given \a mean and \a stdDev. Return sample in \a state. */
-            void sampleGaussian(State *state, const State *mean, double stdDev);
+            void sampleGaussian(State *state, const State *mean, double stdDev) override;
 
         protected:
             const ConstraintPtr constraint_;
@@ -170,9 +171,10 @@ namespace ompl
                     return Eigen::Map<const Eigen::VectorXd>(values, n_);
                 }
 
+                double *values;
+
             protected:
                 const unsigned int n_;
-                double *values;
             };
 
             /** \brief Construct an atlas with the specified dimensions. */
@@ -180,7 +182,7 @@ namespace ompl
 
             bool isMetricSpace() const override
             {
-              return false;
+                return false;
             }
 
             /** \brief Check that the space referred to by the space information
@@ -273,6 +275,8 @@ namespace ompl
             {
                 return constraint_;
             }
+
+            bool checkPath(geometric::PathGeometric &path, std::vector<unsigned int> *indices = nullptr) const;
 
             /** @} */
 
