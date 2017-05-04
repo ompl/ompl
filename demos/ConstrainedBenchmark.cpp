@@ -72,7 +72,8 @@ int main(int argc, char **argv)
 
     double artificalSleep = 0.0;
     double planningTime = 5.0;
-    bool tb = true;
+    bool tb = false;
+    bool bi = false;
     bool printSpace = false;
 
     unsigned int runs = 50;
@@ -83,10 +84,14 @@ int main(int argc, char **argv)
 
     std::string addOn = "";
 
-    while ((c = getopt(argc, argv, "u:r:f:h:yg:c:p:s:w:ot:n:i:ae:")) != -1)
+    while ((c = getopt(argc, argv, "bu:r:f:h:yg:c:p:s:w:ot:n:i:ae:")) != -1)
     {
         switch (c)
         {
+            case 'b':
+                bi = true;
+                break;
+
             case 'u':
                 addOn = std::string(optarg);
                 break;
@@ -195,10 +200,8 @@ int main(int argc, char **argv)
     {
         case ATLAS:
         {
-            ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint);
+            ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint, tb, bi);
             css = ompl::base::StateSpacePtr(atlas);
-
-            atlas->setSeparate(tb);
 
             ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(css));
             si = ss->getSpaceInformation();

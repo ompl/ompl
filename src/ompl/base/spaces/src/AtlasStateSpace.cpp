@@ -234,11 +234,12 @@ bool ompl::base::AtlasValidStateSampler::sampleNear(State *state, const State *n
 
 /// Public
 
-ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint)
+ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint, bool lazy, bool bias)
   : ConstrainedStateSpace(ambientSpace, constraint)
   , epsilon_(ompl::magic::ATLAS_STATE_SPACE_EPSILON)
   , lambda_(ompl::magic::ATLAS_STATE_SPACE_LAMBDA)
-  , separate_(true)
+  , lazy_(lazy)
+  , bias_(bias)
   , maxChartsPerExtension_(ompl::magic::ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION)
 {
     setRho(ompl::magic::ATLAS_STATE_SPACE_RHO);
@@ -285,7 +286,7 @@ void ompl::base::AtlasStateSpace::clear()
     {
         anchor->clear();
 
-        if (separate_)
+        if (!lazy_)
             for (AtlasChart *c : charts_)
                 AtlasChart::generateHalfspace(c, anchor);
 
@@ -295,23 +296,6 @@ void ompl::base::AtlasStateSpace::clear()
     }
 
     ConstrainedStateSpace::clear();
-}
-
-void ompl::base::AtlasStateSpace::setSeparate(const bool separate)
-{
-    separate_ = separate;
-
-    if (!separate_)
-        for (AtlasChart *c : charts_)
-        {
-            std::vector<NNElement> nearbyCharts;
-            chartNN_.nearestR(std::make_pair(&c->getXorigin(), 0), 2 * rho_, nearbyCharts);
-            for (auto &near : nearbyCharts)
-                AtlasChart::generateHalfspace(charts_[near.second], c);
-        }
-    else
-        for (AtlasChart *c : charts_)
-            c->clear();
 }
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const Eigen::VectorXd &xorigin) const
@@ -344,7 +328,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Vecto
     // Ensure all charts respect boundaries of the new one, and vice versa, but
     // only look at nearby ones (within 2*rho).
 
-    if (separate_)
+    if (!lazy_)
     {
         std::vector<NNElement> nearbyCharts;
         chartNN_.nearestR(std::make_pair(&addedC->getXorigin(), 0), 2 * rho_, nearbyCharts);
@@ -420,7 +404,7 @@ std::size_t ompl::base::AtlasStateSpace::getChartCount() const
 bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
                                                    std::vector<ompl::base::State *> *stateList) const
 {
-    return (separate_) ? traverseAtlas(from, to, interpolate, stateList) : traverseTangentBundle(from, to, interpolate, stateList);
+    return (lazy_) ? traverseTangentBundle(from, to, interpolate, stateList) : traverseAtlas(from, to, interpolate, stateList) ;
 }
 
 bool ompl::base::AtlasStateSpace::traverseTangentBundle(const State *from, const State *to, const bool interpolate,

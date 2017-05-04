@@ -42,6 +42,7 @@
 #include "ompl/base/ValidStateSampler.h"
 #include "ompl/base/Constraint.h"
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
+#include "ompl/datastructures/PDF.h"
 
 #include "ompl/base/spaces/ConstrainedStateSpace.h"
 
@@ -150,7 +151,7 @@ namespace ompl
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
 
             /** \brief Construct an atlas with the specified dimensions. */
-            AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint);
+            AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint, bool lazy = false, bool biased = false);
 
             /** \brief Destructor. */
             virtual ~AtlasStateSpace();
@@ -226,8 +227,6 @@ namespace ompl
                 lambda_ = lambda;
             }
 
-            void setSeparate(bool separate);
-
             /** \brief Sometimes manifold traversal creates many charts. This
              * parameter limits the number of charts that can be created during
              * one traversal. Default 200. */
@@ -264,12 +263,6 @@ namespace ompl
             double getLambda() const
             {
                 return lambda_;
-            }
-
-            /** \brief Get the sampling radius. */
-            bool getSeparate() const
-            {
-                return separate_;
             }
 
             /** \brief Get the sampling radius. */
@@ -391,7 +384,10 @@ namespace ompl
             double lambda_;
 
             /** \brief Enable or disable halfspace separation of the charts. */
-            bool separate_;
+            const bool lazy_;
+
+            /** \brief Enable or disable halfspace separation of the charts. */
+            const bool bias_;
 
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
             mutable double rho_s_;

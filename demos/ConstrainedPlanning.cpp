@@ -63,7 +63,8 @@ int main(int argc, char **argv)
     double artificalSleep = 0.0;
     double planningTime = 5.0;
     bool output = false;
-    bool tb = true;
+    bool tb = false;
+    bool bi = false;
     bool printSpace = false;
     int iter = 0;
 
@@ -73,7 +74,7 @@ int main(int argc, char **argv)
     unsigned int extra = 0;
     unsigned int obstacles = 0;
 
-    while ((c = getopt(argc, argv, "h:yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
+    while ((c = getopt(argc, argv, "bh:yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
     {
         switch (c)
         {
@@ -102,7 +103,11 @@ int main(int argc, char **argv)
                 break;
 
             case 'a':
-                tb = false;
+                tb = true;
+                break;
+
+            case 'b':
+                bi = true;
                 break;
 
             case 'i':
@@ -184,10 +189,8 @@ int main(int argc, char **argv)
     {
         case ATLAS:
         {
-            ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint);
+            ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint, tb, bi);
             css = ompl::base::StateSpacePtr(atlas);
-
-            atlas->setSeparate(tb);
 
             ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(css));
             si = ss->getSpaceInformation();
