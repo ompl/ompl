@@ -299,18 +299,10 @@ int main(int argc, char **argv)
     bench.addExperimentParameter("ambient_dimension", "INTEGER", std::to_string(constraint->getAmbientDimension()));
     bench.addExperimentParameter("manifold_dimension", "INTEGER", std::to_string(constraint->getManifoldDimension()));
     bench.addExperimentParameter("co_dimension", "INTEGER", std::to_string(constraint->getCoDimension()));
-
-    if (strcmp(problem, "chain") == 0)
-    {
-        bench.addExperimentParameter("links", "INTEGER", std::to_string(links));
-        bench.addExperimentParameter("extra", "INTEGER", std::to_string(extra));
-        bench.addExperimentParameter("obstacles", "INTEGER", std::to_string(obstacles));
-    }
-    else if (strcmp(problem, "stewart") == 0)
-    {
-        bench.addExperimentParameter("links", "INTEGER", std::to_string(links));
-        bench.addExperimentParameter("chains", "INTEGER", std::to_string(chains));
-    }
+    bench.addExperimentParameter("links", "INTEGER", std::to_string(links));
+    bench.addExperimentParameter("extra", "INTEGER", std::to_string(extra));
+    bench.addExperimentParameter("obstacles", "INTEGER", std::to_string(obstacles));
+    bench.addExperimentParameter("chains", "INTEGER", std::to_string(chains));
 
     const ompl::tools::Benchmark::Request request(planningTime, memory_limit, runs, update_interval, progress,
                                                   save_output, use_threads, simplify);
