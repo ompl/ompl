@@ -234,13 +234,18 @@ bool ompl::base::AtlasValidStateSampler::sampleNear(State *state, const State *n
 
 /// Public
 
-ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint, bool lazy, bool bias)
+ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint,
+                                             bool lazy, bool bias)
   : ConstrainedStateSpace(ambientSpace, constraint)
   , epsilon_(ompl::magic::ATLAS_STATE_SPACE_EPSILON)
   , lambda_(ompl::magic::ATLAS_STATE_SPACE_LAMBDA)
   , lazy_(lazy)
   , bias_(bias)
   , maxChartsPerExtension_(ompl::magic::ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION)
+  , biasFunction_([&](AtlasChart *c) -> double
+                  {
+                      return c->getNeighborCount() + 1;
+                  })
 {
     setRho(ompl::magic::ATLAS_STATE_SPACE_RHO);
     setAlpha(ompl::magic::ATLAS_STATE_SPACE_ALPHA);
@@ -248,12 +253,15 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, c
 
     setName("Atlas" + space_->getName());
 
-    chartNN_.setDistanceFunction(
-        [](const NNElement &e1, const NNElement &e2) -> double { return (*e1.first - *e2.first).norm(); });
+    chartNN_.setDistanceFunction([](const NNElement &e1, const NNElement &e2) -> double
+                                 {
+                                     return (*e1.first - *e2.first).norm();
+                                 });
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace()
 {
+    clear();
     for (AtlasChart *c : charts_)
         delete c;
 }
@@ -280,6 +288,7 @@ void ompl::base::AtlasStateSpace::clear()
 
     charts_.clear();
     chartNN_.clear();
+    chartPDF_.clear();
 
     // Reinstate the anchor charts
     for (AtlasChart *anchor : anchorCharts)
@@ -293,6 +302,9 @@ void ompl::base::AtlasStateSpace::clear()
         anchor->setID(charts_.size());
         chartNN_.add(std::make_pair<>(&anchor->getXorigin(), charts_.size()));
         charts_.push_back(anchor);
+
+        if (bias_)
+            anchor->setPDFElement(chartPDF_.add(anchor, biasFunction_(anchor)));
     }
 
     ConstrainedStateSpace::clear();
@@ -333,12 +345,21 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Vecto
         std::vector<NNElement> nearbyCharts;
         chartNN_.nearestR(std::make_pair(&addedC->getXorigin(), 0), 2 * rho_, nearbyCharts);
         for (auto &near : nearbyCharts)
-            AtlasChart::generateHalfspace(charts_[near.second], addedC);
+        {
+            AtlasChart *c = charts_[near.second];
+            AtlasChart::generateHalfspace(c, addedC);
+
+            if (bias_)
+                chartPDF_.update(c->getPDFElement(), biasFunction_(c));
+        }
     }
 
     addedC->setID(charts_.size());
     chartNN_.add(std::make_pair<>(&addedC->getXorigin(), charts_.size()));
     charts_.push_back(addedC);
+
+    if (bias_)
+        addedC->setPDFElement(chartPDF_.add(addedC, biasFunction_(addedC)));
 
     return addedC;
 }
@@ -349,7 +370,10 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::sampleChart() const
         throw ompl::Exception("ompl::base::AtlasStateSpace::sampleChart(): "
                               "Atlas sampled before any charts were made. Use AtlasStateSpace::anchorChart() first.");
 
-    return charts_[rng_.uniformInt(0, charts_.size() - 1)];
+    if (bias_)
+        return chartPDF_.sample(rng_.uniform01());
+    else
+        return charts_[rng_.uniformInt(0, charts_.size() - 1)];
 }
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::getChart(const StateType *state) const
@@ -404,7 +428,8 @@ std::size_t ompl::base::AtlasStateSpace::getChartCount() const
 bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
                                                    std::vector<ompl::base::State *> *stateList) const
 {
-    return (lazy_) ? traverseTangentBundle(from, to, interpolate, stateList) : traverseAtlas(from, to, interpolate, stateList) ;
+    return (lazy_) ? traverseTangentBundle(from, to, interpolate, stateList) :
+                     traverseAtlas(from, to, interpolate, stateList);
 }
 
 bool ompl::base::AtlasStateSpace::traverseTangentBundle(const State *from, const State *to, const bool interpolate,

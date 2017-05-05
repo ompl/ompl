@@ -38,10 +38,10 @@
 #define OMPL_BASE_SPACES_ATLAS_CHART_
 
 #include "ompl/base/spaces/AtlasStateSpace.h"
+#include "ompl/datastructures/PDF.h"
 
 #include <vector>
-
-#include <eigen3/Eigen/LU>
+#include <eigen3/Eigen/Core>
 
 namespace ompl
 {
@@ -214,11 +214,6 @@ namespace ompl
                 return k_;
             }
 
-            unsigned int numNeighbors() const
-            {
-                return polytope_.size();
-            }
-
             /** \brief Rewrite a chart point \a u in ambient space coordinates
              * and store the result in \a out, which should be allocated to size
              * n_.
@@ -262,6 +257,11 @@ namespace ompl
              * included. */
             bool toPolygon(std::vector<Eigen::VectorXd> &vertices) const;
 
+            std::size_t getNeighborCount() const
+            {
+                return polytope_.size();
+            }
+
             /** \brief Use sampling to make a quick estimate as to whether this
              * chart's polytope boundary is completely defined by its
              * halfspaces. */
@@ -273,6 +273,17 @@ namespace ompl
              * polytopes boundaries.
              * \note Charts must be different charts from the same atlas. */
             static void generateHalfspace(AtlasChart *c1, AtlasChart *c2);
+
+            void setPDFElement(PDF<AtlasChart *>::Element *element)
+            {
+                element_ = element;
+            }
+
+            PDF<AtlasChart *>::Element *getPDFElement() const
+            {
+                return element_;
+            }
+
 
         protected:
             /** \brief Atlas to which this chart belongs. */
@@ -314,6 +325,8 @@ namespace ompl
 
             /** \brief Unique ID in the atlas. Must be manually set. */
             unsigned int id_ = 0;
+
+            PDF<AtlasChart *>::Element *element_;
         };
     }
 }

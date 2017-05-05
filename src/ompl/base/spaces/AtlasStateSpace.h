@@ -66,6 +66,8 @@ namespace ompl
         class AtlasChart;
         class AtlasStateSpace;
 
+        typedef std::function<double(AtlasChart *)> AtlasChartBiasFunction;
+
         /** \brief StateSampler for use on an atlas. */
         class AtlasStateSampler : public StateSampler
         {
@@ -151,7 +153,7 @@ namespace ompl
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
 
             /** \brief Construct an atlas with the specified dimensions. */
-            AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint, bool lazy = false, bool biased = false);
+            AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint, bool lazy = false, bool bias = false);
 
             /** \brief Destructor. */
             virtual ~AtlasStateSpace();
@@ -356,6 +358,11 @@ namespace ompl
             /** \brief Write a mesh representation of the atlas to a stream. */
             void printPLY(std::ostream &out) const;
 
+            void setBiasFunction(const AtlasChartBiasFunction &biasFunction)
+            {
+                biasFunction_ = biasFunction;
+            }
+
             /** @} */
 
         protected:
@@ -365,6 +372,8 @@ namespace ompl
             /** \brief Set of chart centers and indices, accessible by
              * nearest-neighbor queries to the chart centers. */
             mutable NearestNeighborsGNAT<NNElement> chartNN_;
+
+            mutable PDF<AtlasChart *> chartPDF_;
 
         private:
             /** \brief Maximum distance between a chart and the manifold inside its validity region. */
@@ -386,7 +395,6 @@ namespace ompl
             /** \brief Enable or disable halfspace separation of the charts. */
             const bool lazy_;
 
-            /** \brief Enable or disable halfspace separation of the charts. */
             const bool bias_;
 
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
@@ -397,6 +405,8 @@ namespace ompl
 
             /** \brief Random number generator. */
             mutable RNG rng_;
+
+            AtlasChartBiasFunction biasFunction_;
         };
     }
 }
