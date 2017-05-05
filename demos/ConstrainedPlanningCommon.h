@@ -45,23 +45,30 @@
 #include <ompl/base/spaces/ProjectedStateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/PathGeometric.h>
+
 #include <ompl/geometric/planners/est/BiEST.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/est/ProjEST.h>
+
 #include <ompl/geometric/planners/kpiece/BKPIECE1.h>
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
+
 #include <ompl/geometric/planners/pdst/PDST.h>
 #include <ompl/geometric/planners/prm/PRM.h>
+#include <ompl/geometric/planners/prm/LazyPRM.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
+#include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
+
 #include <ompl/geometric/planners/rrt/LBTRRT.h>
 #include <ompl/geometric/planners/rrt/LazyRRT.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/rrt/TRRT.h>
+
 #include <ompl/geometric/planners/sbl/SBL.h>
 #include <ompl/geometric/planners/stride/STRIDE.h>
 
@@ -1026,9 +1033,9 @@ void printPlanners(void)
 {
     std::cout << "Available planners:\n";
     std::cout << "    EST RealEST BiRealEST SBL STRIDE\n";
-    std::cout << "    RRT RRTintermediate RRTConnect RRTConnectIntermediate RRTstar LazyRRT TRRT\n";
+    std::cout << "    RRT RRTIntermediate RRTConnect RRTConnectIntermediate RRTstar LazyRRT TRRT\n";
     std::cout << "    LBTRRT KPIECE1 BKPIECE1 LBKPIECE1 PDST\n";
-    std::cout << "    PRM PRMstar SPARS SPARStwo\n";
+    std::cout << "    PRM PRMstar LazyPRM LazyPRMstar SPARS SPARStwo\n";
 }
 
 /** Initialize the problem specified in the string. */
@@ -1110,6 +1117,12 @@ ompl::base::Planner *parsePlanner(const char *const planner, const ompl::base::S
 
     else if (std::strcmp(planner, "PRMstar") == 0)
         return new ompl::geometric::PRMstar(si);
+
+    else if (std::strcmp(planner, "LazyPRM") == 0)
+        return new ompl::geometric::LazyPRM(si);
+
+    else if (std::strcmp(planner, "LazyPRMstar") == 0)
+        return new ompl::geometric::LazyPRMstar(si);
 
     else if (std::strcmp(planner, "SBL") == 0)
         return new ompl::geometric::SBL(si);
