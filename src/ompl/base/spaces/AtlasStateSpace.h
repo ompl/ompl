@@ -301,7 +301,7 @@ namespace ompl
 
             /** \brief Wrapper to return chart \a state belongs to. Will attempt
              * to initialize new chart if \a state does not belong to one. */
-            AtlasChart *getChart(const StateType *state) const;
+            AtlasChart *getChart(const StateType *state, bool force = false, bool *created = nullptr) const;
 
             /** \brief Return the number of charts currently in the atlas. */
             std::size_t getChartCount(void) const;
@@ -316,10 +316,9 @@ namespace ompl
              * freeing states returned in \a stateList. */
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
                                   std::vector<State *> *stateList = nullptr) const;
-            bool traverseAtlas(const State *from, const State *to, bool interpolate = false,
-                               std::vector<State *> *stateList = nullptr) const;
-            bool traverseTangentBundle(const State *from, const State *to, bool interpolate = false,
-                                       std::vector<State *> *stateList = nullptr) const;
+
+
+            State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const override;
             /** @} */
 
             /** @name Interpolation and state management

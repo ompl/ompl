@@ -222,7 +222,7 @@ namespace ompl
              * 'from' and 'to' states are the first and last elements \a
              * stateList. Assumes \a stateList contains at least two
              * elements. */
-            State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const;
+            virtual State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const;
 
             /** \brief Allocate a new state in this space. */
             State *allocState() const override;

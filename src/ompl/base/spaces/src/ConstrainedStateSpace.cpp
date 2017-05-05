@@ -41,8 +41,9 @@
 
 /// Public
 
-ompl::base::ConstrainedStateSampler::ConstrainedStateSampler(const ConstrainedStateSpace *space, StateSamplerPtr sampler)
-    : WrapperStateSampler(space, sampler), constraint_(space->getConstraint())
+ompl::base::ConstrainedStateSampler::ConstrainedStateSampler(const ConstrainedStateSpace *space,
+                                                             StateSamplerPtr sampler)
+  : WrapperStateSampler(space, sampler), constraint_(space->getConstraint())
 {
 }
 
@@ -130,7 +131,7 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
 }
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2,
-                                                       std::pair<State *, double> &lastValid) const
+                                                         std::pair<State *, double> &lastValid) const
 {
     // Invoke the manifold-traversing algorithm to save intermediate states
     std::vector<ompl::base::State *> stateList;
@@ -184,9 +185,9 @@ ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr spa
 
 void ompl::base::ConstrainedStateSpace::checkSpace(const SpaceInformation *si)
 {
-  if (dynamic_cast<ConstrainedStateSpace *>(si->getStateSpace().get()) == nullptr)
-    throw ompl::Exception("ompl::base::ConstrainedStateSpace(): "
-                          "si needs to use an ConstrainedStateSpace!");
+    if (dynamic_cast<ConstrainedStateSpace *>(si->getStateSpace().get()) == nullptr)
+        throw ompl::Exception("ompl::base::ConstrainedStateSpace(): "
+                              "si needs to use an ConstrainedStateSpace!");
 }
 
 void ompl::base::ConstrainedStateSpace::setSpaceInformation(const SpaceInformationPtr &si)
@@ -194,10 +195,10 @@ void ompl::base::ConstrainedStateSpace::setSpaceInformation(const SpaceInformati
     // Check that the object is valid
     if (si.get() == nullptr)
         throw ompl::Exception("ompl::base::ConstrainedStateSpace::setSpaceInformation(): "
-                             "si is nullptr.");
+                              "si is nullptr.");
     if (si->getStateSpace().get() != this)
         throw ompl::Exception("ompl::base::ConstrainedStateSpace::setSpaceInformation(): "
-                             "si for ConstrainedStateSpace must be constructed from the same state space object.");
+                              "si for ConstrainedStateSpace must be constructed from the same state space object.");
 
     // Save only a raw pointer to prevent a cycle
     si_ = si.get();
@@ -206,18 +207,18 @@ void ompl::base::ConstrainedStateSpace::setSpaceInformation(const SpaceInformati
 
 void ompl::base::ConstrainedStateSpace::setup()
 {
-  if (setup_)
-    return;
+    if (setup_)
+        return;
 
-  if (si_ == nullptr)
-    throw ompl::Exception("ompl::base::ConstrainedStateSpace::setup(): "
-                          "Must associate a SpaceInformation object to the ConstrainedStateSpace via "
-                          "setStateInformation() before use.");
+    if (si_ == nullptr)
+        throw ompl::Exception("ompl::base::ConstrainedStateSpace::setup(): "
+                              "Must associate a SpaceInformation object to the ConstrainedStateSpace via "
+                              "setStateInformation() before use.");
 
-  WrapperStateSpace::setup();
+    WrapperStateSpace::setup();
 
-  setup_ = true;
-  setDelta(delta_);  // This makes some setup-related calls
+    setup_ = true;
+    setDelta(delta_);  // This makes some setup-related calls
 }
 
 void ompl::base::ConstrainedStateSpace::clear()
@@ -229,18 +230,22 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
 {
     // Get the list of intermediate states along the manifold.
     std::vector<State *> stateList;
+    const State *newState = from;
 
     if (traverseManifold(from, to, true, &stateList))
-        copyState(state, piecewiseInterpolate(stateList, t));
+    {
+        newState = piecewiseInterpolate(stateList, t);
+        newState = (newState == nullptr) ? from : newState;
+    }
 
-    else
-        copyState(state, from);
+    copyState(state, newState);
 
     for (State *state : stateList)
         freeState(state);
 }
 
-ompl::base::State *ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList, const double t) const
+ompl::base::State *ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList,
+                                                                           const double t) const
 {
     const std::size_t n = stateList.size();
     double d[n];
@@ -277,7 +282,8 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::allocState() const
     return state;
 }
 
-bool ompl::base::ConstrainedStateSpace::checkPath(ompl::geometric::PathGeometric &path, std::vector<unsigned int> *indices) const
+bool ompl::base::ConstrainedStateSpace::checkPath(ompl::geometric::PathGeometric &path,
+                                                  std::vector<unsigned int> *indices) const
 {
     bool valid = true;
     auto states = path.getStates();

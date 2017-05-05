@@ -243,10 +243,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, c
   , bias_(bias)
   , separate_(separate)
   , maxChartsPerExtension_(ompl::magic::ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION)
-  , biasFunction_([&](AtlasChart *c) -> double
-                  {
-                      return (getChartCount() - c->getNeighborCount()) + 1;
-                  })
+  , biasFunction_([&](AtlasChart *c) -> double { return (getChartCount() - c->getNeighborCount()) + 1; })
 {
     setRho(ompl::magic::ATLAS_STATE_SPACE_RHO);
     setAlpha(ompl::magic::ATLAS_STATE_SPACE_ALPHA);
@@ -254,11 +251,8 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, c
 
     setName("Atlas" + space_->getName());
 
-    chartNN_.setDistanceFunction([](const NNElement &e1, const NNElement &e2) -> double
-                                 {
-                                     return (*e1.first - *e2.first).norm();
-                                 });
-
+    chartNN_.setDistanceFunction(
+        [](const NNElement &e1, const NNElement &e2) -> double { return (*e1.first - *e2.first).norm(); });
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace()
@@ -340,7 +334,6 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Vecto
 
     // Ensure all charts respect boundaries of the new one, and vice versa, but
     // only look at nearby ones (within 2*rho).
-
     if (separate_)
     {
         std::vector<NNElement> nearbyCharts;
@@ -377,17 +370,21 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::sampleChart() const
         return charts_[rng_.uniformInt(0, charts_.size() - 1)];
 }
 
-ompl::base::AtlasChart *ompl::base::AtlasStateSpace::getChart(const StateType *state) const
+ompl::base::AtlasChart *ompl::base::AtlasStateSpace::getChart(const StateType *state, bool force, bool *created) const
 {
     AtlasChart *c = state->getChart();
     Eigen::Ref<const Eigen::VectorXd> n = state->constVectorView();
 
-    if (c == nullptr)
+    if (c == nullptr || force)
     {
         c = owningChart(n);
 
         if (c == nullptr)
+        {
             c = newChart(n);
+            if (created != nullptr)
+                *created = true;
+        }
 
         if (c != nullptr)
             state->setChart(c);
@@ -429,13 +426,6 @@ std::size_t ompl::base::AtlasStateSpace::getChartCount() const
 bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
                                                    std::vector<ompl::base::State *> *stateList) const
 {
-    return (lazy_) ? traverseTangentBundle(from, to, interpolate, stateList) :
-                     traverseAtlas(from, to, interpolate, stateList);
-}
-
-bool ompl::base::AtlasStateSpace::traverseTangentBundle(const State *from, const State *to, const bool interpolate,
-                                                        std::vector<ompl::base::State *> *stateList) const
-{
     // We can't traverse the manifold if we don't start on it.
     if (!constraint_->isSatisfied(from))
         return false;
@@ -473,8 +463,6 @@ bool ompl::base::AtlasStateSpace::traverseTangentBundle(const State *from, const
     StateType *scratch = cloneState(from)->as<StateType>();
     Eigen::Ref<Eigen::VectorXd> x_scratch = scratch->vectorView();
     Eigen::VectorXd x_temp(n_);
-    Eigen::VectorXd x_prev(n_);
-    x_prev = x_from;
 
     // Project from and to points onto the chart
     Eigen::VectorXd u_j(k_), u_b(k_);
@@ -485,65 +473,130 @@ bool ompl::base::AtlasStateSpace::traverseTangentBundle(const State *from, const
     unsigned int chartsCreated = 0;
     double dist = 0;
 
-    do
+    if (lazy_)
     {
-        // Take a step towards the final state
-        u_j += delta_ * (u_b - u_j).normalized();
-        c->phi(u_j, x_temp);
-
-        const double step = (x_temp - x_prev).norm();
-        dist += step;
-
-        const bool valid = interpolate || svc->isValid(scratch);
-        const bool exceedMaxDist = (x_temp - x_from).norm() > distMax;
-        const bool exceedWandering = dist > (lambda_ * distMax);
-        const bool exceedChartLimit = chartsCreated > maxChartsPerExtension_;
-        if (!valid || exceedMaxDist || exceedWandering || exceedChartLimit)
-            break;
-
-        const bool exceedsRadius = u_j.squaredNorm() > (rho_ * rho_);
-        const bool toFarFromManifold = constraint_->distance(x_temp) > epsilon_;
-
-        done = (u_b - u_j).squaredNorm() <= delta_ * delta_;
-
-        // Find or make a new chart if new state is off of current chart
-        if (exceedsRadius || toFarFromManifold || done)
+        do
         {
+            // Take a step towards the final state
+            u_j += delta_ * (u_b - u_j).normalized();
+            c->phi(u_j, x_temp);
+
+            const double step = (x_temp - x_scratch).norm();
+            dist += step;
+
+            const bool valid = interpolate || svc->isValid(scratch);
+            const bool exceedMaxDist = (x_temp - x_from).norm() > distMax;
+            const bool exceedWandering = dist > (lambda_ * distMax);
+            const bool exceedChartLimit = chartsCreated > maxChartsPerExtension_;
+            if (!valid || exceedMaxDist || exceedWandering || exceedChartLimit)
+                break;
+
+            const bool exceedsRadius = u_j.squaredNorm() > (rho_ * rho_);
+            const bool toFarFromManifold = constraint_->distance(x_temp) > epsilon_;
+
+            done = (u_b - u_j).squaredNorm() <= delta_ * delta_;
+
+            // Find or make a new chart if new state is off of current chart
+            if (exceedsRadius || toFarFromManifold || done)
+            {
+                const bool onManifold = c->psi(u_j, x_temp);
+                if (!onManifold)
+                    break;
+                x_scratch = x_temp;
+
+                bool created = false;
+                if ((c = getChart(scratch, true, &created)) == nullptr)
+                {
+                    OMPL_ERROR("ompl::base::AtlasStateSpace::traverseManifold(): Treating singularity as an obstacle.");
+                    break;
+                }
+                chartsCreated += created;
+
+                // Re-project onto the next chart.
+                c->psiInverse(x_scratch, u_j);
+                c->psiInverse(x_to, u_b);
+
+                done = (u_b - u_j).squaredNorm() <= delta_ * delta_;
+            }
+
+            x_scratch = x_temp;
+
+            // Keep the state in a list, if requested.
+            if (stateList != nullptr)
+                stateList->push_back(cloneState(scratch));
+
+        } while (!done);
+    }
+    else
+    {
+        double factor = 1;
+
+        do
+        {
+            if (factor < delta_)
+                break;
+
+            // Take a step towards the final state
+            u_j += factor * delta_ * (u_b - u_j).normalized();
+
             const bool onManifold = c->psi(u_j, x_temp);
             if (!onManifold)
                 break;
 
+            const double step = (x_temp - x_scratch).norm();
+
+            const bool exceedStepSize = step >= lambda_ * delta_;
+            if (exceedStepSize)
+            {
+                factor *= 0.5;
+                continue;
+            }
+
+            dist += step;
+
+            // Update state
             x_scratch = x_temp;
             scratch->setChart(c);
 
-            c = owningChart(x_scratch);
-            if (c == nullptr)
+            const bool valid = interpolate || svc->isValid(scratch);
+            const bool exceedMaxDist = (x_scratch - x_from).norm() > distMax;
+            const bool exceedWandering = dist > (lambda_ * distMax);
+            const bool exceedChartLimit = chartsCreated > maxChartsPerExtension_;
+            if (!valid || exceedMaxDist || exceedWandering || exceedChartLimit)
+                break;
+
+            // Check if we left the validity region or polytope of the chart.
+            c->phi(u_j, x_temp);
+
+            const bool exceedsEpsilon = (x_scratch - x_temp).squaredNorm() > (epsilon_ * epsilon_);
+            const bool exceedsAngle = delta_ / step < cos_alpha_;
+            const bool exceedsRadius = u_j.squaredNorm() > (rho_ * rho_);
+            const bool outsidePolytope = !c->inPolytope(u_j);
+
+            // Find or make a new chart if new state is off of current chart
+            if (exceedsEpsilon || exceedsAngle || exceedsRadius || outsidePolytope)
             {
-                c = newChart(x_scratch);
-                if (c == nullptr)
+                bool created = false;
+                if ((c = getChart(scratch, true, &created)) == nullptr)
                 {
-                    // Pretend like we hit an obstacle.
-                    OMPL_ERROR("ompl::base::AtlasStateSpace::traverseManifold(): "
-                               "Treating singularity as an obstacle.");
+                    OMPL_ERROR("ompl::base::AtlasStateSpace::traverseManifold(): Treating singularity as an obstacle.");
                     break;
                 }
+                chartsCreated += created;
 
-                chartsCreated++;
+                // Re-project onto the next chart.
+                c->psiInverse(x_scratch, u_j);
+                c->psiInverse(x_to, u_b);
             }
 
-            // Re-project onto the next chart.
-            c->psiInverse(x_scratch, u_j);
-            c->psiInverse(x_to, u_b);
+            // Keep the state in a list, if requested.
+            if (stateList != nullptr)
+                stateList->push_back(cloneState(scratch));
 
             done = (u_b - u_j).squaredNorm() <= delta_ * delta_;
-        }
-
-        // Keep the state in a list, if requested.
-        if (stateList != nullptr)
-            stateList->push_back(cloneState(scratch));
-
-        x_prev = x_temp;
-    } while (!done);
+            factor = 1;
+        } while (!done);
+    }
 
     const bool ret = done && (x_to - x_scratch).squaredNorm() <= delta_ * delta_;
     freeState(scratch);
@@ -551,134 +604,23 @@ bool ompl::base::AtlasStateSpace::traverseTangentBundle(const State *from, const
     return ret;
 }
 
-bool ompl::base::AtlasStateSpace::traverseAtlas(const State *from, const State *to, const bool interpolate,
-                                                std::vector<ompl::base::State *> *stateList) const
+ompl::base::State *ompl::base::AtlasStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList,
+                                                                     const double t) const
 {
-    // We can't traverse the manifold if we don't start on it.
-    if (!constraint_->isSatisfied(from))
-        return false;
+    StateType *state = ConstrainedStateSpace::piecewiseInterpolate(stateList, t)->as<StateType>();
 
-    const StateType *fromAsType = from->as<StateType>();
-    const StateType *toAsType = to->as<StateType>();
-
-    // Try to get starting chart from `from` state.
-    AtlasChart *c = getChart(fromAsType);
-    if (c == nullptr)
-        return false;
-
-    // Save a copy of the from state.
-    if (stateList != nullptr)
+    // Project to manifold if lazy evaluation was done
+    if (lazy_)
     {
-        stateList->clear();
-        stateList->push_back(cloneState(from));
+        Eigen::VectorXd u(k_);
+        AtlasChart *c = state->getChart();
+        c->psiInverse(state->constVectorView(), u);
+
+        if (!c->psi(u, state->vectorView()))
+            return nullptr;
     }
 
-    // No need to traverse the manifold if we are already there
-    const double tolerance = delta_ + std::numeric_limits<double>::epsilon();
-    if (distance(from, to) < tolerance)
-        return true;
-
-    const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
-
-    // Get vector representations
-    Eigen::Ref<const Eigen::VectorXd> x_from = fromAsType->constVectorView();
-    Eigen::Ref<const Eigen::VectorXd> x_to = toAsType->constVectorView();
-
-    // Traversal stops if the ball of radius distMax centered at x_from is left
-    const double distMax = (x_from - x_to).norm();
-
-    // Create a scratch state to use for movement.
-    StateType *scratch = cloneState(from)->as<StateType>();
-    Eigen::Ref<Eigen::VectorXd> x_scratch = scratch->vectorView();
-    Eigen::VectorXd x_temp(n_);
-
-    // Project from and to points onto the chart
-    Eigen::VectorXd u_j(k_), u_b(k_);
-    c->psiInverse(x_scratch, u_j);
-    c->psiInverse(x_to, u_b);
-
-    bool done = false;
-    unsigned int chartsCreated = 0;
-    double dist = 0;
-    double factor = 1;
-
-    do
-    {
-        if (factor < delta_)
-            break;
-
-        // Take a step towards the final state
-        u_j += factor * delta_ * (u_b - u_j).normalized();
-
-        const bool onManifold = c->psi(u_j, x_temp);
-        if (!onManifold)
-            break;
-
-        const double step = (x_temp - x_scratch).norm();
-
-        const bool exceedStepSize = step >= lambda_ * delta_;
-        if (exceedStepSize)
-        {
-            factor *= 0.5;
-            continue;
-        }
-
-        dist += step;
-
-        // Update state
-        x_scratch = x_temp;
-        scratch->setChart(c);
-
-        const bool valid = interpolate || svc->isValid(scratch);
-        const bool exceedMaxDist = (x_scratch - x_from).norm() > distMax;
-        const bool exceedWandering = dist > (lambda_ * distMax);
-        const bool exceedChartLimit = chartsCreated > maxChartsPerExtension_;
-        if (!valid || exceedMaxDist || exceedWandering || exceedChartLimit)
-            break;
-
-        // Check if we left the validity region or polytope of the chart.
-        c->phi(u_j, x_temp);
-
-        const bool exceedsEpsilon = (x_scratch - x_temp).squaredNorm() > (epsilon_ * epsilon_);
-        const bool exceedsAngle = delta_ / step < cos_alpha_;
-        const bool exceedsRadius = u_j.squaredNorm() > (rho_ * rho_);
-        const bool outsidePolytope = !c->inPolytope(u_j);
-
-        // Find or make a new chart if new state is off of current chart
-        if (exceedsEpsilon || exceedsAngle || exceedsRadius || outsidePolytope)
-        {
-            c = owningChart(x_scratch);
-            if (c == nullptr)
-            {
-                c = newChart(x_scratch);
-                if (c == nullptr)
-                {
-                    // Pretend like we hit an obstacle.
-                    OMPL_ERROR("ompl::base::AtlasStateSpace::traverseManifold(): "
-                               "Treating singularity as an obstacle.");
-                    break;
-                }
-
-                chartsCreated++;
-            }
-
-            // Re-project onto the next chart.
-            c->psiInverse(x_scratch, u_j);
-            c->psiInverse(x_to, u_b);
-        }
-
-        // Keep the state in a list, if requested.
-        if (stateList != nullptr)
-            stateList->push_back(cloneState(scratch));
-
-        done = (u_b - u_j).squaredNorm() <= delta_ * delta_;
-        factor = 1;
-    } while (!done);
-
-    const bool ret = done && (x_to - x_scratch).squaredNorm() <= delta_ * delta_;
-    freeState(scratch);
-
-    return ret;
+    return state;
 }
 
 double ompl::base::AtlasStateSpace::estimateFrontierPercent() const
