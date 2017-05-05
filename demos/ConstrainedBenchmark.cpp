@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 
     std::string addOn = "";
 
-    while ((c = getopt(argc, argv, "1qbu:r:f:h:yg:c:p:s:w:ot:n:i:ae:")) != -1)
+    while ((c = getopt(argc, argv, "q1qbu:r:f:h:yg:c:p:s:w:ot:n:i:ae:")) != -1)
     {
         switch (c)
         {
@@ -139,6 +139,10 @@ int main(int argc, char **argv)
 
             case 's':
                 space = optarg;
+                break;
+
+            case 'q':
+                sp = false;
                 break;
 
             case 'w':
