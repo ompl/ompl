@@ -38,6 +38,7 @@
 #define OMPL_BASE_CONSTRAINTS_CONSTRAINT_
 
 #include "ompl/base/StateSpace.h"
+#include "ompl/base/OptimizationObjective.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/Exception.h"
 
@@ -77,7 +78,7 @@ namespace ompl
                                           "Ambient and manifold dimensions must be positive.");
             }
 
-            virtual ~Constraint() {};
+            virtual ~Constraint(){};
 
             /** \brief Compute the constraint function at \a state. Result is
              * returned in \a out, which should be allocated to size n_. */
@@ -155,7 +156,7 @@ namespace ompl
                                           "iterations must be positive.");
                 maxIterations_ = iterations;
             }
- 
+
             /** \brief Compute the constraint function at \a x. Result is returned
              * in \a out, which should be allocated to size n_. */
             virtual void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const = 0;
@@ -304,6 +305,30 @@ namespace ompl
             }
 
             std::vector<Constraint *> constraints_;
+        };
+
+        class ConstraintObjective : public OptimizationObjective
+        {
+        public:
+            ConstraintObjective(ConstraintPtr constraint, SpaceInformationPtr si)
+              : OptimizationObjective(si), constraint_(std::move(constraint))
+            {
+            }
+
+            /** \brief Evaluate a cost map defined on the state space at a state \e s. */
+            virtual Cost stateCost(const State *s) const
+            {
+                return Cost(constraint_->distance(s));
+            }
+
+            /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
+            virtual Cost motionCost(const State *s1, const State *s2) const
+            {
+                return Cost(fabs(constraint_->distance(s1) - constraint_->distance(s2)));
+            }
+
+        protected:
+            ConstraintPtr constraint_;
         };
     }
 }
