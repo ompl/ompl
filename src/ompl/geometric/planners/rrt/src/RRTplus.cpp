@@ -38,7 +38,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/util/Exception.h"
-#include <chrono>
+#include "ompl/util/Time.h"
 #include <cmath>
 #include <limits>
 
@@ -133,8 +133,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
         return base::PlannerStatus::INVALID_START;
     }
 
-    si_->getStateSpace()->setStateSamplerAllocator(ConstrainedSubspaceStateSampler::allocConstrainedSubspaceStateSampler);
-    sampler_ = si_->getStateSpace()->allocStateSampler();
+    // si_->getStateSpace()->setStateSamplerAllocator(ConstrainedSubspaceStateSampler::allocConstrainedSubspaceStateSampler);
+    // sampler_ = si_->getStateSpace()->allocStateSampler();
+    sampler_ = ConstrainedSubspaceStateSampler::allocConstrainedSubspaceStateSampler(si_->getStateSpace().get());
     sampler_->constrainAllComponents();
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
@@ -146,15 +147,16 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
     unsigned int n = 1;
-    base:State *q_init = getPlannerData()->getStartVertex(0)->getState();
-    base:State *q_goal = getPlannerData()->getGoalVertex(0)->getState();
+    base::PlannerData plannerData(si_);
+    getPlannerData(plannerData);
+    const base::State *q_init = plannerData.getStartVertex(0).getState();
+    const base::State *q_goal = plannerData.getGoalVertex(0).getState();
 
     while (ptc == false && n <= si_->getStateSpace()->getDimension())
     {
         double subsearch_duration = pow(exp(log(getSubsearchBound()) / n), n);
-        std::chrono::high_resolution_clock::time_point start, end;
-        start = std::chrono::high_resolution_clock::now();
-        while (std::chrono::high_resolution_clock::now() - start < subsearch_duration) {
+        time::point end = time::now() + time::seconds(subsearch_duration);
+        while (time::now() < end) {
             // note for improvements: look into the planner termination condition for limiting # of samples for each subsearch
 
             // don't need goal biasing for v1.0

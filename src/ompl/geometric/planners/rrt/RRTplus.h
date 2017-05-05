@@ -165,8 +165,13 @@ namespace ompl
                 return si_->distance(a->state, b->state);
             }
 
-            /** \brief State sampler */
-            base::StateSamplerPtr sampler_;
+            /// @cond IGNORE
+            /** \brief Forward declaration of ConstrainedSubspaceStateSampler */
+            OMPL_CLASS_FORWARD(ConstrainedSubspaceStateSampler);
+            /// @endcond
+
+            /** \brief Constrained subspace state sampler */
+            ConstrainedSubspaceStateSamplerPtr sampler_;
 
             /** \brief This is a problem-specific state sampler that only samples unconstrained
                 components of a CompoundStateSpace. */
@@ -218,7 +223,7 @@ namespace ompl
                 }
 
                 // should this be static? should it be here or as a protected method of RRTPlus?
-                static base::StateSamplerPtr allocConstrainedSubspaceStateSampler(const base::StateSpace *ss)
+                static ConstrainedSubspaceStateSamplerPtr allocConstrainedSubspaceStateSampler(const base::StateSpace *ss)
                 {
                     return std::make_shared<ConstrainedSubspaceStateSampler>(ss);
                 }
