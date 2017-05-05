@@ -65,6 +65,8 @@ int main(int argc, char **argv)
     bool output = false;
     bool tb = false;
     bool bi = false;
+    bool sp = true;
+    bool other = false;
     bool printSpace = false;
     int iter = 0;
 
@@ -74,10 +76,17 @@ int main(int argc, char **argv)
     unsigned int extra = 0;
     unsigned int obstacles = 0;
 
-    while ((c = getopt(argc, argv, "bh:yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
+    while ((c = getopt(argc, argv, "1qbh:yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
     {
         switch (c)
         {
+            case '1':
+                other = true;
+                break;
+            case 'q':
+                sp = false;
+                break;
+
             case 'y':
                 printSpace = true;
                 break;
@@ -189,7 +198,7 @@ int main(int argc, char **argv)
     {
         case ATLAS:
         {
-            ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint, tb, bi);
+            ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint, tb, bi, sp);
             css = ompl::base::StateSpacePtr(atlas);
 
             ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(css));
@@ -208,6 +217,9 @@ int main(int argc, char **argv)
             start->as<ompl::base::AtlasStateSpace::StateType>()->setChart(startChart);
             goal->as<ompl::base::AtlasStateSpace::StateType>()->vectorView() = y;
             goal->as<ompl::base::AtlasStateSpace::StateType>()->setChart(goalChart);
+
+            if (other)
+                atlas->setBiasFunction([x](ompl::base::AtlasChart *c) -> double { return (x - c->getXorigin()).norm(); });
 
             ss->setStartAndGoalStates(start, goal);
             break;

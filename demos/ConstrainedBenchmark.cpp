@@ -53,7 +53,6 @@ void usage(const char *const progname)
     exit(0);
 }
 
-
 enum SPACE
 {
     ATLAS,
@@ -74,6 +73,8 @@ int main(int argc, char **argv)
     double planningTime = 5.0;
     bool tb = false;
     bool bi = false;
+    bool sp = true;
+    bool other = false;
     bool printSpace = false;
 
     unsigned int runs = 50;
@@ -84,10 +85,14 @@ int main(int argc, char **argv)
 
     std::string addOn = "";
 
-    while ((c = getopt(argc, argv, "bu:r:f:h:yg:c:p:s:w:ot:n:i:ae:")) != -1)
+    while ((c = getopt(argc, argv, "1qbu:r:f:h:yg:c:p:s:w:ot:n:i:ae:")) != -1)
     {
         switch (c)
         {
+            case '1':
+                other = true;
+                break;
+
             case 'b':
                 bi = true;
                 break;
@@ -172,7 +177,8 @@ int main(int argc, char **argv)
     ompl::base::StateValidityCheckerFn isValid;
 
     ompl::base::RealVectorBounds bounds(0);
-    ompl::base::ConstraintPtr constraint(parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles));
+    ompl::base::ConstraintPtr constraint(
+        parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles));
 
     if (!constraint)
     {
@@ -187,7 +193,6 @@ int main(int argc, char **argv)
            space, plannerName, problem, constraint->getAmbientDimension(), constraint->getCoDimension(), planningTime,
            artificalSleep);
 
-
     ompl::base::StateSpacePtr rvss(new ompl::base::RealVectorStateSpace(constraint->getAmbientDimension()));
     rvss->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
     // rvss->setValidSegmentCountFactor(3);
@@ -200,7 +205,7 @@ int main(int argc, char **argv)
     {
         case ATLAS:
         {
-            ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint, tb, bi);
+            ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint, tb, bi, sp);
             css = ompl::base::StateSpacePtr(atlas);
 
             ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(css));
@@ -219,6 +224,9 @@ int main(int argc, char **argv)
             start->as<ompl::base::AtlasStateSpace::StateType>()->setChart(startChart);
             goal->as<ompl::base::AtlasStateSpace::StateType>()->vectorView() = y;
             goal->as<ompl::base::AtlasStateSpace::StateType>()->setChart(goalChart);
+
+            if (other)
+                atlas->setBiasFunction([x](ompl::base::AtlasChart *c) -> double { return (x - c->getXorigin()).norm(); });
 
             ss->setStartAndGoalStates(start, goal);
             break;

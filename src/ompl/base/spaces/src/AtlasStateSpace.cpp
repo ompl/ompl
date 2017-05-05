@@ -235,16 +235,17 @@ bool ompl::base::AtlasValidStateSampler::sampleNear(State *state, const State *n
 /// Public
 
 ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint,
-                                             bool lazy, bool bias)
+                                             bool lazy, bool bias, bool separate)
   : ConstrainedStateSpace(ambientSpace, constraint)
   , epsilon_(ompl::magic::ATLAS_STATE_SPACE_EPSILON)
   , lambda_(ompl::magic::ATLAS_STATE_SPACE_LAMBDA)
   , lazy_(lazy)
   , bias_(bias)
+  , separate_(separate)
   , maxChartsPerExtension_(ompl::magic::ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION)
   , biasFunction_([&](AtlasChart *c) -> double
                   {
-                      return c->getNeighborCount() + 1;
+                      return (getChartCount() - c->getNeighborCount()) + 1;
                   })
 {
     setRho(ompl::magic::ATLAS_STATE_SPACE_RHO);
@@ -257,6 +258,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, c
                                  {
                                      return (*e1.first - *e2.first).norm();
                                  });
+
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace()
@@ -295,7 +297,7 @@ void ompl::base::AtlasStateSpace::clear()
     {
         anchor->clear();
 
-        if (!lazy_)
+        if (separate_)
             for (AtlasChart *c : charts_)
                 AtlasChart::generateHalfspace(c, anchor);
 
@@ -315,10 +317,9 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const Eigen::Ve
     // This could fail with an exception. We cannot recover if that happens.
     AtlasChart *c = newChart(xorigin);
     if (c == nullptr)
-    {
         throw ompl::Exception("ompl::base::AtlasStateSpace::anchorChart(): "
                               "Initial chart creation failed. Cannot proceed.");
-    }
+
     c->makeAnchor();
     return c;
 }
@@ -340,7 +341,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Vecto
     // Ensure all charts respect boundaries of the new one, and vice versa, but
     // only look at nearby ones (within 2*rho).
 
-    if (!lazy_)
+    if (separate_)
     {
         std::vector<NNElement> nearbyCharts;
         chartNN_.nearestR(std::make_pair(&addedC->getXorigin(), 0), 2 * rho_, nearbyCharts);

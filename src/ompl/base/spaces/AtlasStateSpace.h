@@ -153,7 +153,7 @@ namespace ompl
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
 
             /** \brief Construct an atlas with the specified dimensions. */
-            AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint, bool lazy = false, bool bias = false);
+            AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint, bool lazy = false, bool bias = false, bool separate = true);
 
             /** \brief Destructor. */
             virtual ~AtlasStateSpace();
@@ -396,6 +396,8 @@ namespace ompl
             const bool lazy_;
 
             const bool bias_;
+
+            const bool separate_;
 
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
             mutable double rho_s_;
