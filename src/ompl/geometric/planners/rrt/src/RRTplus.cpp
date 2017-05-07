@@ -38,11 +38,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/util/Exception.h"
-<<<<<<< HEAD
-#include <chrono>
-=======
 #include "ompl/util/Time.h"
->>>>>>> 864c6839b03729ce569519ae8de92573a6953522
 #include <cmath>
 #include <limits>
 
@@ -137,14 +133,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
         return base::PlannerStatus::INVALID_START;
     }
 
-<<<<<<< HEAD
-    si_->getStateSpace()->setStateSamplerAllocator(ConstrainedSubspaceStateSampler::allocConstrainedSubspaceStateSampler);
-    sampler_ = si_->getStateSpace()->allocStateSampler();
-=======
     // si_->getStateSpace()->setStateSamplerAllocator(ConstrainedSubspaceStateSampler::allocConstrainedSubspaceStateSampler);
     // sampler_ = si_->getStateSpace()->allocStateSampler();
     sampler_ = ConstrainedSubspaceStateSampler::allocConstrainedSubspaceStateSampler(si_->getStateSpace().get());
->>>>>>> 864c6839b03729ce569519ae8de92573a6953522
     sampler_->constrainAllComponents();
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
