@@ -1,8 +1,6 @@
 #!/bin/bash
 
-if [ `lsb_release -rs` == "14.04" ]; then
-    export TRUSTY=1
-fi
+ubuntu_version=`lsb_release -rs | sed 's/\.//'`
 
 install_common_dependencies()
 {
@@ -16,7 +14,7 @@ install_common_dependencies()
     # needed because we depend on system-installed libraries built with g++ and linked
     # against libstdc++. In case `c++` corresponds to `clang++`, code will not build, even
     # if we would pass the flag `-stdlib=libstdc++` to `clang++`.
-    if [ -z $TRUSTY ]; then
+    if [[ $ubuntu_version > 1410 ]]; then
         sudo apt-get -y install cmake libboost-all-dev libeigen3-dev libode-dev
         export CXX=g++
     else
@@ -36,7 +34,7 @@ install_python_binding_dependencies()
     # install additional python dependencies via pip
     sudo -H pip install -vU pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.7.0.tar.gz
     # install castxml
-    if [ -z $TRUSTY ]; then
+    if [[ $ubuntu_version > 1410 ]]; then
         sudo apt-get -y install castxml
     else
         wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf - -C $HOME
@@ -47,7 +45,7 @@ install_python_binding_dependencies()
 install_app_dependencies()
 {
     # We prefer PyQt5, but PyQt4 also still works.
-    if [ -z $TRUSTY ]; then
+    if [[ $ubuntu_version > 1410 ]]; then
         sudo apt-get -y install python-pyqt5.qtopengl
     else
         sudo apt-get -y install python-qt4-dev python-qt4-gl
@@ -56,15 +54,19 @@ install_app_dependencies()
     # install additional python dependencies via pip
     sudo -H pip install -vU PyOpenGL-accelerate
     # install libccd
-    if [ -z $TRUSTY ]; then
+    if [[ $ubuntu_version > 1410 ]]; then
         sudo apt-get -y install libccd-dev
     else
         wget -O - https://github.com/danfis/libccd/archive/v2.0.tar.gz | tar zxf -
         cd libccd-2.0; cmake .; sudo -E make install; cd ..
     fi
     # install fcl
-    wget -O - https://github.com/flexible-collision-library/fcl/archive/0.5.0.tar.gz | tar zxf -
-    cd fcl-0.5.0; cmake .; sudo -E make install; cd ..
+    if [[ $ubuntu_version > 1604 ]]; then
+        sudo apt-get -y install libfcl-dev
+    else
+        wget -O - https://github.com/flexible-collision-library/fcl/archive/0.5.0.tar.gz | tar zxf -
+        cd fcl-0.5.0; cmake .; sudo -E make install; cd ..
+    fi
 }
 
 install_ompl()
@@ -108,10 +110,10 @@ esac
 done
 
 
-if [[ ! -z $PYTHON && ! -z $TRUSTY && `uname -m` == "i386" ]]; then
-    echo "There is no pre-built binary of CastXML available for 32-bit Ubuntu 14.04"
+if [[ ! -z $PYTHON && $ubuntu_version < 1510 && `uname -m` == "i386" ]]; then
+    echo "There is no pre-built binary of CastXML available for 32-bit Ubuntu 15.04 or older"
     echo "To generate the Python bindings, you first need to compile CastXML from source."
-    echo "Alternatively, you could change your OS to either a newer version of Ubuntu or 64-bit Ubuntu 14.04."
+    echo "Alternatively, you could change your OS to either a newer version of Ubuntu or 64-bit Ubuntu."
     exit 1
 fi
 
