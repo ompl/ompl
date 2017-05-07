@@ -111,7 +111,7 @@ namespace ompl
                 subsearchBound_ = subsearchBound;
             }
 
-            /** \brief Get The maximum amount of time to spend per subsearch, in seconds */
+            /** \brief Get the maximum amount of time to spend per subsearch, in seconds */
             double getSubsearchBound() const
             {
                 return subsearchBound_;

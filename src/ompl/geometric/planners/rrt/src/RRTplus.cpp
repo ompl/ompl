@@ -53,9 +53,7 @@ ompl::geometric::RRTPlus::RRTPlus(const base::SpaceInformationPtr &si) : base::P
 
     Planner::declareParam<double>("range", this, &RRTPlus::setRange, &RRTPlus::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTPlus::setGoalBias, &RRTPlus::getGoalBias, "0.:.05:1.");
-    // The paper describes that this parameter was specified by indicating the total desired time for the subsearch
-    // instead of the max number of samples...
-    Planner::declareParam<double>("subsearch_bound", this, &RRTPlus::setSubsearchBound, &RRTPlus::getSubsearchBound, "");
+    Planner::declareParam<double>("subsearch_bound", this, &RRTPlus::setSubsearchBound, &RRTPlus::getSubsearchBound, "0.:10.:3600.");
 }
 
 ompl::geometric::RRTPlus::~RRTPlus()
@@ -79,10 +77,6 @@ void ompl::geometric::RRTPlus::setup()
     tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
 
-    // Try to dynamic_cast to CompoundStateSpace.
-    // auto *test = dynamic_cast<ompl::base::CompoundStateSpace>(si_->getStateSpace());
-    // if (test == NULL)
-    //     throw new Exception("Failed to cast state space to a ompl::base::CompoundStateSpace.");
     if (!si_->getStateSpace()->isCompound())
         throw new Exception("State space is not a ompl::base::CompoundStateSpace.");
 
@@ -168,9 +162,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
 
             // For prioritized sampling, we need a state on the line between q_init and q_goal
             si_->getStateSpace()->interpolate(q_init, q_goal, ((double) rand() / (RAND_MAX)), rstate);
-
-            // For prioritized sampling, only need to cast the sampled state to a CompoundState
-            // auto *xstate = xstate-><ompl::base:CompoundStateSpace::StateType>as();
 
             sampler_->sampleUniform(rstate);
 

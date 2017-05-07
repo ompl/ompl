@@ -36,6 +36,7 @@
 
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
+#include <ompl/geometric/planners/rrt/RRTplus.h>
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/prm/PRM.h>
@@ -307,6 +308,7 @@ int main(int argc, char **argv)
     b.addPlanner(std::make_shared<ompl::geometric::EST>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::KPIECE1>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::RRT>(ss.getSpaceInformation()));
+    b.addPlanner(std::make_shared<ompl::geometric::RRTPlus>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::PRM>(ss.getSpaceInformation()));
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("kinematic_%i.log") % numLinks).c_str());
