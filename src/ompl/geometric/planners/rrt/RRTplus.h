@@ -187,10 +187,9 @@ namespace ompl
 
                 void sampleUniform(base::State *state) override
                 {
-                    base::State **comps = state->as<base::CompoundState>()->components;
                     for (unsigned int i = 0; i < samplerCount_; ++i)
                         if (unconstrainedComponents_[i])
-                            samplers_[i]->sampleUniform(comps[i]);
+                            samplers_[i]->sampleUniform(state->as<base::CompoundState>()->components[i]);
                 }
 
                 // We don't need these for RRT+.

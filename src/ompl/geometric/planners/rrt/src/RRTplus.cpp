@@ -36,6 +36,7 @@
 
 #include "ompl/geometric/planners/rrt/RRTplus.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
+#include "ompl/base/goals/GoalState.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Time.h"
@@ -53,7 +54,7 @@ ompl::geometric::RRTPlus::RRTPlus(const base::SpaceInformationPtr &si) : base::P
 
     Planner::declareParam<double>("range", this, &RRTPlus::setRange, &RRTPlus::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRTPlus::setGoalBias, &RRTPlus::getGoalBias, "0.:.05:1.");
-    Planner::declareParam<double>("subsearch_bound", this, &RRTPlus::setSubsearchBound, &RRTPlus::getSubsearchBound, "0.:10.:3600.");
+    Planner::declareParam<double>("subsearch_bound", this, &RRTPlus::setSubsearchBound, &RRTPlus::getSubsearchBound, "0.:.1:3600.");
 }
 
 ompl::geometric::RRTPlus::~RRTPlus()
@@ -109,7 +110,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
     checkValidity();
     base::Goal *goal = pdef_->getGoal().get();
     // don't need goal biasing for v1.0
-//    base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    // base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
     // Note that the state space in si_->getStateSpace() must be a
     // CompoundStateSpace due to the check in setup().
@@ -136,21 +137,34 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
 
     Motion *solution = nullptr;
     Motion *approxsol = nullptr;
-    double approxdif = std::numeric_limits<double>::infinity(); // what is this for?
-    auto *rmotion = new Motion(si_); // how to get the inital state to be along the line btwn q_init and q_goal?
+    double approxdif = std::numeric_limits<double>::infinity();
+    auto *rmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
     unsigned int n = 1;
-    base::PlannerData plannerData(si_);
-    getPlannerData(plannerData);
-    const base::State *q_init = plannerData.getStartVertex(0).getState();
-    const base::State *q_goal = plannerData.getGoalVertex(0).getState();
+    const base::State *q_init, *q_goal;
+    // base::PlannerData plannerData(si_);
+    // getPlannerData(plannerData);
+    // q_init = plannerData.getStartVertex(0).getState();
+    // q_goal = plannerData.getGoalVertex(0).getState();
+
+    base::ProblemDefinitionPtr pdef = getProblemDefinition(); // cast to remove const modifier
+    if (pdef->getStartStateCount() > 0)
+        q_init = pdef->getStartState(0);
+    else
+        throw new Exception("q_init is null");
+
+    if (goal->hasType(base::GoalType::GOAL_STATE))
+        q_goal = goal->as<base::GoalState>()->getState();
+    else
+        throw new Exception("q_goal is null");
 
     while (ptc == false && n <= si_->getStateSpace()->getDimension())
     {
         double subsearch_duration = pow(exp(log(getSubsearchBound()) / n), n);
         time::point end = time::now() + time::seconds(subsearch_duration);
         while (time::now() < end) {
+            OMPL_INFORM("%s: Starting subsearch", getName().c_str());
             // note for improvements: look into the planner termination condition for limiting # of samples for each subsearch
 
             // don't need goal biasing for v1.0
@@ -163,7 +177,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
             // For prioritized sampling, we need a state on the line between q_init and q_goal
             si_->getStateSpace()->interpolate(q_init, q_goal, ((double) rand() / (RAND_MAX)), rstate);
 
+            OMPL_INFORM("%s: finished interpolate", getName().c_str());
+
+            // Adjust the state by sampling from the unconstrained components in the compound state space.
             sampler_->sampleUniform(rstate);
+
+            OMPL_INFORM("%s: finished sampling", getName().c_str());
 
             /* find closest state in the tree */
             Motion *nmotion = nn_->nearest(rmotion);
@@ -176,6 +195,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
                 si_->getStateSpace()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
                 dstate = xstate;
             }
+
+            OMPL_INFORM("%s: set dstate", getName().c_str());
 
             if (si_->checkMotion(nmotion->state, dstate))
             {
@@ -199,10 +220,13 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
                     approxsol = motion;
                 }
             }
+            OMPL_INFORM("%s: checked motion", getName().c_str());
             sampler_->unconstrainComponent(n-1);
             n++;
         }
     }
+
+    OMPL_INFORM("%s: finished search", getName().c_str());
 
     bool solved = false;
     bool approximate = false;
