@@ -131,7 +131,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
     // si_->getStateSpace()->setStateSamplerAllocator(ConstrainedSubspaceStateSampler::allocConstrainedSubspaceStateSampler);
     // sampler_ = si_->getStateSpace()->allocStateSampler();
     sampler_ = ConstrainedSubspaceStateSampler::allocConstrainedSubspaceStateSampler(si_->getStateSpace().get());
-    sampler_->constrainAllComponents();
 
     OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
@@ -159,14 +158,13 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
     else
         throw new Exception("q_goal is null");
 
-    while (ptc == false && n <= si_->getStateSpace()->getDimension())
+    while (ptc == false && n <= si_->getStateSpace()->as<base::CompoundStateSpace>()->getSubspaceCount())
     {
+        // note for improvements: look into the planner termination condition for limiting # of samples for each subsearch
+        // OMPL_INFORM("%s: Starting subsearch for n = %d", getName().c_str(), n);
         double subsearch_duration = pow(exp(log(getSubsearchBound()) / n), n);
         time::point end = time::now() + time::seconds(subsearch_duration);
         while (time::now() < end) {
-            OMPL_INFORM("%s: Starting subsearch", getName().c_str());
-            // note for improvements: look into the planner termination condition for limiting # of samples for each subsearch
-
             // don't need goal biasing for v1.0
             // /* sample random state (with goal biasing) */
             // if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
@@ -177,12 +175,12 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
             // For prioritized sampling, we need a state on the line between q_init and q_goal
             si_->getStateSpace()->interpolate(q_init, q_goal, ((double) rand() / (RAND_MAX)), rstate);
 
-            OMPL_INFORM("%s: finished interpolate", getName().c_str());
+            // OMPL_INFORM("%s: finished interpolate", getName().c_str());
 
             // Adjust the state by sampling from the unconstrained components in the compound state space.
             sampler_->sampleUniform(rstate);
 
-            OMPL_INFORM("%s: finished sampling", getName().c_str());
+            // OMPL_INFORM("%s: finished sampling", getName().c_str());
 
             /* find closest state in the tree */
             Motion *nmotion = nn_->nearest(rmotion);
@@ -196,7 +194,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
                 dstate = xstate;
             }
 
-            OMPL_INFORM("%s: set dstate", getName().c_str());
+            // OMPL_INFORM("%s: set dstate", getName().c_str());
 
             if (si_->checkMotion(nmotion->state, dstate))
             {
@@ -220,13 +218,14 @@ ompl::base::PlannerStatus ompl::geometric::RRTPlus::solve(const base::PlannerTer
                     approxsol = motion;
                 }
             }
-            OMPL_INFORM("%s: checked motion", getName().c_str());
-            sampler_->unconstrainComponent(n-1);
-            n++;
+            // OMPL_INFORM("%s: checked motion", getName().c_str());
         }
+        sampler_->unconstrainComponent(n-1);
+        // OMPL_INFORM("%s: constrained component", getName().c_str());
+        n++;
     }
 
-    OMPL_INFORM("%s: finished search", getName().c_str());
+    // OMPL_INFORM("%s: finished search", getName().c_str());
 
     bool solved = false;
     bool approximate = false;

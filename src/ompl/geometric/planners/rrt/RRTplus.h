@@ -181,13 +181,18 @@ namespace ompl
                 ConstrainedSubspaceStateSampler(const base::StateSpace *ss) : CompoundStateSampler(ss)
                 {
                     name_ = "Constrained Subspace State Sampler";
-                    this->constrainAllComponents();
-                    samplerCount_ = samplers_.size();
+                    samplerCount_ = ss->as<base::CompoundStateSpace>()->getSubspaceCount();
+                    for (unsigned int i = 0; i < samplerCount_; i++) {
+                        addSampler(ss->as<base::CompoundStateSpace>()->getSubspace(i)->allocStateSampler(), 1.0);
+                    }
+                    unconstrainedComponents_.assign(samplerCount_, false);
+                    // OMPL_INFORM("Created new constrained sampler with %d samplers", samplerCount_);
+                    assert(samplers_.size() == samplerCount_);
                 }
 
                 void sampleUniform(base::State *state) override
                 {
-                    for (unsigned int i = 0; i < samplerCount_; ++i)
+                    for (unsigned int i = 0; i < samplerCount_; i++)
                         if (unconstrainedComponents_[i])
                             samplers_[i]->sampleUniform(state->as<base::CompoundState>()->components[i]);
                 }
@@ -208,9 +213,7 @@ namespace ompl
                     Used to initialize the vector of unconstrained components. */
                 void constrainAllComponents()
                 {
-                    unconstrainedComponents_.clear();
-                    for (unsigned int i = 0; i < samplerCount_; ++i)
-                        unconstrainedComponents_.push_back(false);
+                    unconstrainedComponents_.assign(samplerCount_, false);
                     assert(unconstrainedComponents_.size() == samplerCount_);
                 }
 
