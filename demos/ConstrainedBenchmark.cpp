@@ -76,6 +76,7 @@ int main(int argc, char **argv)
     bool sp = true;
     bool other = false;
     bool printSpace = false;
+    bool caching = true;
 
     unsigned int runs = 50;
     unsigned int links = 5;
@@ -85,10 +86,14 @@ int main(int argc, char **argv)
 
     std::string addOn = "";
 
-    while ((c = getopt(argc, argv, "q1qbu:r:f:h:yg:c:p:s:w:ot:n:i:ae:")) != -1)
+    while ((c = getopt(argc, argv, "kq1qbu:r:f:h:yg:c:p:s:w:ot:n:i:ae:")) != -1)
     {
         switch (c)
         {
+            case 'k':
+                caching = false;
+                break;
+
             case '1':
                 other = true;
                 break;
@@ -283,6 +288,8 @@ int main(int argc, char **argv)
     css->registerProjection("sphere", ompl::base::ProjectionEvaluatorPtr(new SphereProjection(css)));
     css->registerProjection("chain", ompl::base::ProjectionEvaluatorPtr(new ChainProjection(css, 3, links)));
     css->registerProjection("stewart", ompl::base::ProjectionEvaluatorPtr(new StewartProjection(css, links, chains)));
+
+    css->as<ompl::base::ConstrainedStateSpace>()->setCaching(caching);
 
     try
     {

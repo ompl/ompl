@@ -69,6 +69,7 @@ int main(int argc, char **argv)
     bool sp = true;
     bool other = false;
     bool printSpace = false;
+    bool caching = true;
     int iter = 0;
 
     unsigned int links = 5;
@@ -77,10 +78,13 @@ int main(int argc, char **argv)
     unsigned int extra = 0;
     unsigned int obstacles = 0;
 
-    while ((c = getopt(argc, argv, "1qbh:yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
+    while ((c = getopt(argc, argv, "k1qbh:yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
     {
         switch (c)
         {
+            case 'k':
+                caching = false;
+                break;
             case '1':
                 other = true;
                 break;
@@ -276,6 +280,8 @@ int main(int argc, char **argv)
     }
 
     ss->setPlanner(planner);
+
+    css->as<ompl::base::ConstrainedStateSpace>()->setCaching(caching);
 
     css->registerProjection("sphere", ompl::base::ProjectionEvaluatorPtr(new SphereProjection(css)));
     css->registerProjection("chain", ompl::base::ProjectionEvaluatorPtr(new ChainProjection(css, 3, links)));
