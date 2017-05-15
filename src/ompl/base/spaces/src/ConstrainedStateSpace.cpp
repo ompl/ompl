@@ -128,12 +128,11 @@ ompl::base::ConstrainedMotionValidator::ConstrainedMotionValidator(const SpaceIn
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2) const
 {
     const ConstrainedStateSpace::StateType *s1AsType = s1->as<ConstrainedStateSpace::StateType>();
-    const bool cached =
-        ss_.getCaching() && s1AsType->cache && ss_.distance(s1AsType->cache->back(), s2) < ss_.getDelta();
-    if (cached)
-        std::cout << "Yeah!" << std::endl;
-    return (cached || ss_.traverseManifold(s1, s2)) && ss_.getConstraint()->isSatisfied(s1) &&
-           ss_.getConstraint()->isSatisfied(s2);
+
+    if (s1AsType->isCached(s2, &ss_))
+        return true;
+
+    return ss_.traverseManifold(s1, s2) && ss_.getConstraint()->isSatisfied(s1) && ss_.getConstraint()->isSatisfied(s2);
 }
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2,
@@ -241,16 +240,7 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::allocState() const
 
 void ompl::base::ConstrainedStateSpace::freeState(State *state) const
 {
-    StateType *wstate = state->as<StateType>();
-
-    if (wstate->cache != nullptr)
-    {
-        for (State *state : *wstate->cache)
-            freeState(state);
-
-        delete wstate->cache;
-    }
-
+    state->as<StateType>()->clearCache(this);
     WrapperStateSpace::freeState(state);
 }
 
@@ -261,18 +251,17 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
     std::vector<State *> *stateList = nullptr;
     const State *newState = from;
     bool ret = true;
-    bool cached = true;
 
     StateType *fromAsType = const_cast<StateType *>(from->as<StateType>());
 
-    if (caching_ && fromAsType->cache && distance(fromAsType->cache->back(), to) < delta_)
-        stateList = fromAsType->cache;
-
+    if (caching_ && fromAsType->isCached(to, this))
+    {
+        stateList = fromAsType->getCached(to);
+    }
     else
     {
         stateList = new std::vector<State *>();
         ret = traverseManifold(from, to, true, stateList);
-        cached = false;
     }
 
     if (ret)
@@ -280,18 +269,8 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
         newState = piecewiseInterpolate(*stateList, t);
         newState = (newState == nullptr) ? from : newState;
 
-        if (caching_ && !cached)
-        {
-            if (fromAsType->cache != nullptr)
-            {
-                for (State *state : *fromAsType->cache)
-                    freeState(state);
-
-                delete fromAsType->cache;
-            }
-
-            fromAsType->cache = stateList;
-        }
+        if (caching_)
+            fromAsType->setCached(stateList);
     }
 
     copyState(state, newState);

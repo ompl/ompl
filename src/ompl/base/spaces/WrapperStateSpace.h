@@ -127,6 +127,16 @@ namespace ompl
                 space_->setLongestValidSegmentFraction(segmentFraction);
             }
 
+            void setValidSegmentCountFactor(unsigned int factor)
+            {
+                space_->setValidSegmentCountFactor(factor);
+            }
+
+            unsigned int getValidSegmentCountFactor() const
+            {
+                return space_->getValidSegmentCountFactor();
+            }
+
             virtual unsigned int validSegmentCount(const State *state1, const State *state2) const override
             {
                 return space_->validSegmentCount(state1->as<StateType>()->getState(),

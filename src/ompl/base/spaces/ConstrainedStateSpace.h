@@ -171,6 +171,33 @@ namespace ompl
                     return Eigen::Map<const Eigen::VectorXd>(values, n_);
                 }
 
+                bool isCached(const State *to, const ConstrainedStateSpace *ss) const
+                {
+                    return cache != nullptr && ss->distance(cache->back(), to) < ss->getDelta();
+                }
+
+                std::vector<State *> *getCached(const State *to) const
+                {
+                    return cache;
+                }
+
+                void setCached(std::vector<State *> *toCache)
+                {
+                    cache = toCache;
+                }
+
+                void clearCache(const ConstrainedStateSpace *ss)
+                {
+                    if (cache != nullptr)
+                    {
+                        for (State *state : *cache)
+                            ss->freeState(state);
+
+                        delete cache;
+                        cache = nullptr;
+                    }
+                }
+
                 double *values;
                 std::vector<State *> *cache;
 
