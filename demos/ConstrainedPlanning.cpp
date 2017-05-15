@@ -48,7 +48,8 @@ void usage(const char *const progname)
 enum SPACE
 {
     ATLAS,
-    PROJECTED
+    PROJECTED,
+    NULLSPACE
 };
 
 int main(int argc, char **argv)
@@ -157,10 +158,10 @@ int main(int argc, char **argv)
 
     if (std::strcmp("atlas", space) == 0)
         spaceType = ATLAS;
-    else if (std::strcmp("projected", space) == 0)
+    else if (std::strcmp("proj", space) == 0)
         spaceType = PROJECTED;
-    // else if (std::strcmp("null", space) == 0)
-    //     spaceType = NULLSPACE;
+    else if (std::strcmp("null", space) == 0)
+        spaceType = NULLSPACE;
     else
     {
         std::cout << "Invalid constrained state space." << std::endl;
@@ -221,6 +222,25 @@ int main(int argc, char **argv)
             if (other)
                 atlas->setBiasFunction([x](ompl::base::AtlasChart *c) -> double { return (x - c->getXorigin()).norm(); });
 
+            ss->setStartAndGoalStates(start, goal);
+            break;
+        }
+
+        case NULLSPACE:
+        {
+            ompl::base::NullspaceStateSpace *proj = new ompl::base::NullspaceStateSpace(rvss, constraint);
+            css = ompl::base::StateSpacePtr(proj);
+
+            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(css));
+            si = ss->getSpaceInformation();
+            si->setValidStateSamplerAllocator(pvssa);
+
+            proj->setSpaceInformation(si);
+
+            ompl::base::ScopedState<> start(css);
+            ompl::base::ScopedState<> goal(css);
+            start->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = x;
+            goal->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = y;
             ss->setStartAndGoalStates(start, goal);
             break;
         }
