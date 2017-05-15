@@ -225,23 +225,68 @@ void ompl::base::ConstrainedStateSpace::clear()
 {
 }
 
+ompl::base::State *ompl::base::ConstrainedStateSpace::allocState() const
+{
+    StateType *state = new StateType(space_->allocState(), n_);
+    state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
+    return state;
+}
+
+void ompl::base::ConstrainedStateSpace::freeState(State *state) const
+{
+    StateType *wstate = state->as<StateType>();
+    if (wstate->cache != nullptr)
+    {
+        for (State *state : *wstate->cache)
+            freeState(state);
+
+        delete wstate->cache;
+    }
+
+    WrapperStateSpace::freeState(state);
+}
+
 void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const State *to, const double t,
                                                     State *state) const
 {
     // Get the list of intermediate states along the manifold.
-    std::vector<State *> stateList;
+    std::vector<State *> *stateList = nullptr;
     const State *newState = from;
+    bool ret = true;
+    bool cached = true;
 
-    if (traverseManifold(from, to, true, &stateList))
+    StateType *fromAsType = const_cast<StateType *>(from->as<StateType>());
+
+    if (fromAsType->isCached(to))
+        stateList = fromAsType->cache;
+
+    else
     {
-        newState = piecewiseInterpolate(stateList, t);
+        stateList = new std::vector<State *>();
+        ret = traverseManifold(from, to, true, stateList);
+        cached = false;
+    }
+
+    if (ret)
+    {
+        newState = piecewiseInterpolate(*stateList, t);
         newState = (newState == nullptr) ? from : newState;
     }
 
     copyState(state, newState);
 
-    for (State *state : stateList)
-        freeState(state);
+    if (!cached)
+    {
+        if (fromAsType->cache != nullptr)
+        {
+            for (State *state : *fromAsType->cache)
+                freeState(state);
+
+            delete fromAsType->cache;
+        }
+
+        fromAsType->cache = stateList;
+    }
 }
 
 ompl::base::State *ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList,
@@ -273,13 +318,6 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const
         else
             return stateList[i + 1];
     }
-}
-
-ompl::base::State *ompl::base::ConstrainedStateSpace::allocState() const
-{
-    StateType *state = new StateType(space_->allocState(), n_);
-    state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
-    return state;
 }
 
 bool ompl::base::ConstrainedStateSpace::checkPath(ompl::geometric::PathGeometric &path,

@@ -91,10 +91,10 @@ bool ompl::base::NullspaceStateSpace::traverseManifold(const State *from, const 
     Eigen::Map<Eigen::VectorXd> x_scratch = scratch->as<StateType>()->vectorView();
 
     Eigen::MatrixXd j(n_ - k_, n_);
-kj
+
     do
     {
-        WrapperStateSpace::interpolate(previous, to, delta_ / dist, scratch);
+        WrapperStateSpace::interpolate(previous, to, delta_ / distToGo, scratch);
         constraint_->jacobian(x_prev, j);
 
         Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeFullV);
@@ -104,14 +104,13 @@ kj
 
         const bool valid = interpolate || svc->isValid(scratch);
         const bool deviated = step > 2.0 * delta_;
-        const bool wandering = (distTravled += step) > 2.0 * distMax;
-        const bool 
+        const bool wandering = (distTraveled += step) > 2.0 * distMax;
         if (!valid || deviated || wandering)
             break;
 
         // Check if we are no closer than before
         double newDist = distance(scratch, to);
-        if (newDist >= dist)
+        if (newDist >= distToGo)
             break;
 
         const bool toFarFromManifold = constraint_->distance(x_scratch) > epsilon_;
@@ -131,12 +130,12 @@ kj
         if (stateList != nullptr)
             stateList->push_back(cloneState(scratch));
 
-    } while (dist > tolerance);
+    } while (distToGo > tolerance);
 
     freeState(scratch);
     freeState(previous);
 
-    return dist < tolerance;
+    return distToGo < tolerance;
 }
 
 ompl::base::State *ompl::base::NullspaceStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList,

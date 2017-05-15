@@ -150,7 +150,7 @@ namespace ompl
             {
             public:
                 /** \brief Construct state of size \a n. */
-                StateType(State *state, unsigned int n) : WrapperStateSpace::StateType(state), n_(n)
+                StateType(State *state, unsigned int n) : WrapperStateSpace::StateType(state), n_(n), cache(nullptr)
                 {
                 }
 
@@ -171,7 +171,17 @@ namespace ompl
                     return Eigen::Map<const Eigen::VectorXd>(values, n_);
                 }
 
+                bool isCached(const State *state) const
+                {
+                    if (cache != nullptr)
+                        if (cache->back() == state)
+                            return true;
+
+                    return false;
+                }
+
                 double *values;
+                std::vector<State *> *cache;
 
             protected:
                 const unsigned int n_;
@@ -225,7 +235,8 @@ namespace ompl
             virtual State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const;
 
             /** \brief Allocate a new state in this space. */
-            State *allocState() const override;
+            virtual State *allocState() const override;
+            virtual void freeState(State *state) const override;
 
             /** \brief Allocate the default state sampler for this space. */
             StateSamplerPtr allocDefaultStateSampler() const override
