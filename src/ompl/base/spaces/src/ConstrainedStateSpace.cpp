@@ -127,7 +127,13 @@ ompl::base::ConstrainedMotionValidator::ConstrainedMotionValidator(const SpaceIn
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2) const
 {
-    return ss_.getConstraint()->isSatisfied(s1) && ss_.getConstraint()->isSatisfied(s2) && ss_.traverseManifold(s1, s2);
+    const ConstrainedStateSpace::StateType *s1AsType = s1->as<ConstrainedStateSpace::StateType>();
+    const bool cached =
+        ss_.getCaching() && s1AsType->cache && ss_.distance(s1AsType->cache->back(), s2) < ss_.getDelta();
+    if (cached)
+        std::cout << "Yeah!" << std::endl;
+    return (cached || ss_.traverseManifold(s1, s2)) && ss_.getConstraint()->isSatisfied(s1) &&
+           ss_.getConstraint()->isSatisfied(s2);
 }
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2,
@@ -179,6 +185,7 @@ ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr spa
   , n_(space->getDimension())
   , k_(constraint_->getManifoldDimension())
   , setup_(false)
+  , caching_(true)
 {
     setDelta(magic::CONSTRAINED_STATE_SPACE_DELTA);
 }
@@ -235,6 +242,7 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::allocState() const
 void ompl::base::ConstrainedStateSpace::freeState(State *state) const
 {
     StateType *wstate = state->as<StateType>();
+
     if (wstate->cache != nullptr)
     {
         for (State *state : *wstate->cache)
@@ -257,7 +265,7 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
 
     StateType *fromAsType = const_cast<StateType *>(from->as<StateType>());
 
-    if (fromAsType->isCached(to))
+    if (caching_ && fromAsType->cache && distance(fromAsType->cache->back(), to) < delta_)
         stateList = fromAsType->cache;
 
     else
@@ -271,21 +279,29 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
     {
         newState = piecewiseInterpolate(*stateList, t);
         newState = (newState == nullptr) ? from : newState;
+
+        if (caching_ && !cached)
+        {
+            if (fromAsType->cache != nullptr)
+            {
+                for (State *state : *fromAsType->cache)
+                    freeState(state);
+
+                delete fromAsType->cache;
+            }
+
+            fromAsType->cache = stateList;
+        }
     }
 
     copyState(state, newState);
 
-    if (!cached)
+    if (!caching_)
     {
-        if (fromAsType->cache != nullptr)
-        {
-            for (State *state : *fromAsType->cache)
-                freeState(state);
+        for (State *state : *stateList)
+            freeState(state);
 
-            delete fromAsType->cache;
-        }
-
-        fromAsType->cache = stateList;
+        delete stateList;
     }
 }
 
@@ -313,10 +329,7 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const
         const double t1 = d[i] / d[n - 1] - t;
         const double t2 = (i <= n - 2) ? d[i + 1] / d[n - 1] - t : 1;
 
-        if (t1 < t2)
-            return stateList[i];
-        else
-            return stateList[i + 1];
+        return (t1 < t2) ? stateList[i] : stateList[i + 1];
     }
 }
 
@@ -331,6 +344,8 @@ bool ompl::base::ConstrainedStateSpace::checkPath(ompl::geometric::PathGeometric
             valid = false;
             if (indices != nullptr)
                 indices->push_back(i);
+            else
+                break;
         }
 
     return valid;

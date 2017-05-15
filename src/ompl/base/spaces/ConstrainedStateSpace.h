@@ -150,7 +150,7 @@ namespace ompl
             {
             public:
                 /** \brief Construct state of size \a n. */
-                StateType(State *state, unsigned int n) : WrapperStateSpace::StateType(state), n_(n), cache(nullptr)
+                StateType(State *state, unsigned int n) : WrapperStateSpace::StateType(state), cache(nullptr), n_(n)
                 {
                 }
 
@@ -169,15 +169,6 @@ namespace ompl
                 Eigen::Map<const Eigen::VectorXd> constVectorView() const
                 {
                     return Eigen::Map<const Eigen::VectorXd>(values, n_);
-                }
-
-                bool isCached(const State *state) const
-                {
-                    if (cache != nullptr)
-                        if (cache->back() == state)
-                            return true;
-
-                    return false;
                 }
 
                 double *values;
@@ -287,6 +278,16 @@ namespace ompl
                 return constraint_;
             }
 
+            void setCaching(bool caching)
+            {
+                caching_ = caching;
+            }
+
+            bool getCaching() const
+            {
+                return caching_;
+            }
+
             bool checkPath(geometric::PathGeometric &path, std::vector<unsigned int> *indices = nullptr) const;
 
             /** @} */
@@ -310,6 +311,8 @@ namespace ompl
 
             /** \brief Whether setup() has been called. */
             bool setup_;
+
+            bool caching_;
         };
     }
 }
