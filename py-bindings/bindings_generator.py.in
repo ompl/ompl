@@ -43,7 +43,6 @@ import time
 import threading
 import sys
 from pygccxml import declarations, parser
-from pygccxml.utils import xml_generator
 from pyplusplus import module_builder, messages
 from pyplusplus.module_builder import call_policies
 from pyplusplus.decl_wrappers import print_declarations
