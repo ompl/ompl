@@ -127,12 +127,7 @@ ompl::base::ConstrainedMotionValidator::ConstrainedMotionValidator(const SpaceIn
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2) const
 {
-    const ConstrainedStateSpace::StateType *s1AsType = s1->as<ConstrainedStateSpace::StateType>();
-
-    if (s1AsType->isCached(s2, &ss_))
-        return true;
-
-    return ss_.traverseManifold(s1, s2) && ss_.getConstraint()->isSatisfied(s1) && ss_.getConstraint()->isSatisfied(s2);
+    return ss_.getConstraint()->isSatisfied(s1) && ss_.getConstraint()->isSatisfied(s2) && ss_.traverseManifold(s1, s2);
 }
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2,
@@ -238,50 +233,23 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::allocState() const
     return state;
 }
 
-void ompl::base::ConstrainedStateSpace::freeState(State *state) const
-{
-    state->as<StateType>()->clearCache(this);
-    WrapperStateSpace::freeState(state);
-}
-
 void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const State *to, const double t,
                                                     State *state) const
 {
     // Get the list of intermediate states along the manifold.
-    std::vector<State *> *stateList = nullptr;
+    std::vector<State *> stateList;
     const State *newState = from;
-    bool ret = true;
 
-    StateType *fromAsType = const_cast<StateType *>(from->as<StateType>());
-
-    if (caching_ && fromAsType->isCached(to, this))
+    if (traverseManifold(from, to, true, &stateList))
     {
-        stateList = fromAsType->getCached(to);
-    }
-    else
-    {
-        stateList = new std::vector<State *>();
-        ret = traverseManifold(from, to, true, stateList);
-    }
-
-    if (ret)
-    {
-        newState = piecewiseInterpolate(*stateList, t);
+        newState = piecewiseInterpolate(stateList, t);
         newState = (newState == nullptr) ? from : newState;
-
-        if (caching_)
-            fromAsType->setCached(stateList);
     }
 
     copyState(state, newState);
 
-    if (!caching_)
-    {
-        for (State *state : *stateList)
-            freeState(state);
-
-        delete stateList;
-    }
+    for (State *state : stateList)
+        freeState(state);
 }
 
 ompl::base::State *ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList,

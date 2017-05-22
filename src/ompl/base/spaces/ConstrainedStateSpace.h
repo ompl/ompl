@@ -150,7 +150,7 @@ namespace ompl
             {
             public:
                 /** \brief Construct state of size \a n. */
-                StateType(State *state, unsigned int n) : WrapperStateSpace::StateType(state), cache(nullptr), n_(n)
+                StateType(State *state, unsigned int n) : WrapperStateSpace::StateType(state), n_(n)
                 {
                 }
 
@@ -171,35 +171,7 @@ namespace ompl
                     return Eigen::Map<const Eigen::VectorXd>(values, n_);
                 }
 
-                bool isCached(const State *to, const ConstrainedStateSpace *ss) const
-                {
-                    return cache != nullptr && ss->distance(cache->back(), to) < ss->getDelta();
-                }
-
-                std::vector<State *> *getCached(const State *to) const
-                {
-                    return cache;
-                }
-
-                void setCached(std::vector<State *> *toCache)
-                {
-                    cache = toCache;
-                }
-
-                void clearCache(const ConstrainedStateSpace *ss)
-                {
-                    if (cache != nullptr)
-                    {
-                        for (State *state : *cache)
-                            ss->freeState(state);
-
-                        delete cache;
-                        cache = nullptr;
-                    }
-                }
-
                 double *values;
-                std::vector<State *> *cache;
 
             protected:
                 const unsigned int n_;
@@ -254,7 +226,6 @@ namespace ompl
 
             /** \brief Allocate a new state in this space. */
             virtual State *allocState() const override;
-            virtual void freeState(State *state) const override;
 
             /** \brief Allocate the default state sampler for this space. */
             StateSamplerPtr allocDefaultStateSampler() const override
