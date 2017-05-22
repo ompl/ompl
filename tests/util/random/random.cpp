@@ -36,6 +36,7 @@
 
 #define BOOST_TEST_MODULE "Random"
 #include <boost/test/unit_test.hpp>
+#include <boost/version.hpp>
 
 #include "ompl/config.h"
 #include "ompl/util/RandomNumbers.h"
@@ -206,7 +207,7 @@ BOOST_AUTO_TEST_CASE(NormalReals)
     BOOST_OMPL_EXPECT_NEAR(avgNormalReals(10.0, 1.0), 10.0, errNormal(1.0));
 }
 
-
+#if BOOST_VERSION >= 106100
 BOOST_AUTO_TEST_CASE(SampleUnitSphere)
 {
     // Variables
@@ -247,6 +248,7 @@ BOOST_AUTO_TEST_CASE(SampleUnitSphere)
         }
     }
 }
+#endif // BOOST_VERSION >= 106100
 
 BOOST_AUTO_TEST_CASE(SampleBall)
 {
@@ -295,7 +297,7 @@ BOOST_AUTO_TEST_CASE(SampleBall)
 }
 
 #if OMPL_HAVE_EIGEN3
-
+#if BOOST_VERSION >= 106100
 BOOST_AUTO_TEST_CASE(SamplePhsSurface)
 {
     // Variables
@@ -351,7 +353,7 @@ BOOST_AUTO_TEST_CASE(SamplePhsSurface)
         }
     }
 }
-
+#endif // BOOST_VERSION >= 106100
 
 BOOST_AUTO_TEST_CASE(SampleInPhs)
 {
