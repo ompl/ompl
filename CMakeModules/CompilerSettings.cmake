@@ -47,11 +47,14 @@ if((CMAKE_COMPILER_IS_GNUCXX OR IS_ICPC) AND NOT MINGW)
     add_definitions(-fPIC)
 endif((CMAKE_COMPILER_IS_GNUCXX OR IS_ICPC) AND NOT MINGW)
 
-# Set rpath http://www.paraview.org/Wiki/CMake_RPATH_handling
-set(CMAKE_SKIP_BUILD_RPATH FALSE)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+option(OMPL_SKIP_RPATH "Don't set RPATH to the OMPL library" OFF)
+if(NOT OMPL_SKIP_RPATH)
+    # Set rpath http://www.paraview.org/Wiki/CMake_RPATH_handling
+    set(CMAKE_SKIP_BUILD_RPATH FALSE)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
 
 # no prefix needed for python modules
 set(CMAKE_SHARED_MODULE_PREFIX "")
