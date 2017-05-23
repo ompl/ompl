@@ -70,7 +70,7 @@ else(IS_ICPC)
 endif(IS_ICPC)
 
 find_package(Boost 1.54 COMPONENTS serialization filesystem system program_options REQUIRED)
-include_directories(SYSTEM ${Boost_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIR})
 
 # on OS X we need to check whether to use libc++ or libstdc++ with clang++
 if(APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
