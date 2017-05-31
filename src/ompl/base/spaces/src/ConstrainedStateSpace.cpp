@@ -191,18 +191,17 @@ void ompl::base::ConstrainedStateSpace::checkSpace(const SpaceInformation *si)
                               "si needs to use an ConstrainedStateSpace!");
 }
 
-void ompl::base::ConstrainedStateSpace::setSpaceInformation(const SpaceInformationPtr &si)
+void ompl::base::ConstrainedStateSpace::setSpaceInformation(SpaceInformation *si)
 {
     // Check that the object is valid
-    if (si.get() == nullptr)
+    if (si == nullptr)
         throw ompl::Exception("ompl::base::ConstrainedStateSpace::setSpaceInformation(): "
                               "si is nullptr.");
     if (si->getStateSpace().get() != this)
         throw ompl::Exception("ompl::base::ConstrainedStateSpace::setSpaceInformation(): "
                               "si for ConstrainedStateSpace must be constructed from the same state space object.");
 
-    // Save only a raw pointer to prevent a cycle
-    si_ = si.get();
+    si_ = si;
     si_->setStateValidityCheckingResolution(delta_);
 }
 

@@ -119,7 +119,7 @@ namespace ompl
 
             const std::string &getName() const
             {
-              return "Wrapped" + space_->getName();
+              return space_->getName();
             }
 
             void setName(const std::string &name)

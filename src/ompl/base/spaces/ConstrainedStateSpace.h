@@ -191,7 +191,7 @@ namespace ompl
 
             /** \brief Sets the space information for this state space. Required for collision checking in manifold
              * traversal. */
-            void setSpaceInformation(const SpaceInformationPtr &si);
+            void setSpaceInformation(SpaceInformation *si);
 
             /** \brief Final setup for the space. */
             void setup() override;
@@ -248,8 +248,8 @@ namespace ompl
                                           "delta must be positive.");
                 delta_ = delta;
 
-                if (setup_)
-                    setLongestValidSegmentFraction(delta_ / getMaximumExtent());
+                /* if (setup_) */
+                /*     setLongestValidSegmentFraction(delta_ / getMaximumExtent()); */
             }
 
             /** \brief Get delta. */
