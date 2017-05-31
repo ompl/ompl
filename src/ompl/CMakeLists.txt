@@ -10,7 +10,53 @@ configure_file("${VERSION_DIR}/config.h.in" "${VERSION_DIR}/config.h")
 # recursively find all *.cpp files that     #
 # correspond to the basic ompl library      #
 #############################################
-file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp geometric/*.cpp control/*.cpp tools/*.cpp)
+file(GLOB_RECURSE OMPL_SOURCE_CODE
+    datastructures/*.cpp
+    util/*.cpp
+    base/*.cpp
+    geometric/*.cpp
+    control/*.cpp
+    tools/*.cpp
+    #trajopt/*.cpp
+)
+
+set(TRAJOPT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/trajopt/src)
+
+set(SCO_SOURCE_FILES
+    ${TRAJOPT_SOURCE_DIR}/solver_interface.cpp
+	${TRAJOPT_SOURCE_DIR}/modeling.cpp
+	${TRAJOPT_SOURCE_DIR}/expr_ops.cpp
+	${TRAJOPT_SOURCE_DIR}/expr_vec_ops.cpp
+    ${TRAJOPT_SOURCE_DIR}/logging.cpp
+    ${TRAJOPT_SOURCE_DIR}/optimizers.cpp
+	${TRAJOPT_SOURCE_DIR}/modeling_utils.cpp
+	${TRAJOPT_SOURCE_DIR}/num_diff.cpp
+    ${TRAJOPT_SOURCE_DIR}/stl_to_string.cpp
+    ${TRAJOPT_SOURCE_DIR}/utils.cpp
+)
+
+# The BPMPD link only works on Linux.
+if (NOT APPLE AND OMPL_HAVE_EIGEN3)
+  add_executable(bpmpd_caller ${TRAJOPT_SOURCE_DIR}/bpmpd_caller.cpp)
+
+  if( CMAKE_SIZEOF_VOID_P EQUAL 8 ) # 64 bits
+  	set(BPMPD_LIBRARY "${CMAKE_SOURCE_DIR}/3rdpartylib/bpmpd_linux64.a")
+  else()
+  	set(BPMPD_LIBRARY "${CMAKE_SOURCE_DIR}/3rdpartylib/bpmpd_linux32.a")
+  endif()
+
+  target_link_libraries(bpmpd_caller ${BPMPD_LIBRARY})
+  list(APPEND SCO_SOURCE_FILES ${TRAJOPT_SOURCE_DIR}/bpmpd_interface.cpp)
+  set_property(SOURCE ${TRAJOPT_SOURCE_DIR}/bpmpd_interface.cpp APPEND PROPERTY COMPILE_DEFINITIONS BPMPD_CALLER="\\\"${CMAKE_BINARY_DIR}/bin/bpmpd_caller\\\"")
+
+  set(BPMPD_WORKING_DIR ${CMAKE_CURRENT_BINARY_DIR})
+  set_property(SOURCE ${TRAJOPT_SOURCE_DIR}/bpmpd_caller.cpp APPEND PROPERTY COMPILE_DEFINITIONS BPMPD_WORKING_DIR="${BPMPD_WORKING_DIR}")
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/trajopt/bpmpd.par DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+  set_property(SOURCE ${TRAJOPT_SOURCE_DIR}/solver_interface.cpp APPEND PROPERTY COMPILE_DEFINITIONS HAVE_BPMPD )
+  add_library(sco ${SCO_SOURCE_FILES})
+  target_link_libraries(sco ${BPMPD_LIBRARY})
+endif()
 
 if(NOT OMPL_HAVE_EIGEN3)
     list(REMOVE_ITEM OMPL_SOURCE_CODE
@@ -67,7 +113,8 @@ target_link_libraries(ompl
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_CHRONO_LIBRARY}
-  ${CMAKE_THREAD_LIBS_INIT})
+  ${CMAKE_THREAD_LIBS_INIT}
+  sco)
 
 if(MSVC)
   set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")

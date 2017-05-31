@@ -1,0 +1,189 @@
+!  Parameter file for multiply predictor - corrector method
+
+MPS and Input/Output definitions
+
+BEGIN_PROB                ! Begin marker
+NAME      =  default      ! Problem name, max. 36 characters
+STARTSOL  =               ! Warm start solution file name
+MAXMN     =  250000.      ! Upper bound for M+N
+MINMAX    =  1.           !  =1. (mininmize)        =-1. (maximize)
+OUTPUT    =  1.           ! Output level 0 :only statistic, 1 :solution
+OBJNAM    =               ! Objective function name  (first N type row)
+RHSNAM    =               ! RHS   name   (first)
+BNDNAM    =               ! BOUND name   (first)
+RNGNAM    =               ! RANGE name   (first)
+EXPLSLACK =  1.           ! Include slack as variables
+BIGBOUND  = 1.0d+15       ! Skip bounds and ranges exceeding this limit
+SMALLVAL  = 1.0d-12       ! Skip matrix (and bound) values under this limit
+ITERLOG   =  3.           ! 0:no report, 1: stdout, 2: logfile, 3:both
+                          ! 4:advanced debug info   8: debug on steplengths
+                          ! 256: generating bpmpd.qps at start
+END_PROB
+
+
+Optimization parameter section
+
+
+BEGIN_OPT
+
+! Supernode parameters
+
+PSUPNODE  =     4.        ! Primer supernode length
+SSUPNODE  =     4.        ! Secunder supernode length
+CACHESIZ  =   256.        ! Size of the cache in kilobytes
+PUSHFACT  =     2.        ! 0: pull Cholesky
+                          ! 1: single-pass push Cholesky
+                          ! 2: multi-pass push Cholesky
+
+! Density handling and factorization type parameters
+
+MAXDENSE  = 0.20          ! maximal dense columns rate
+DENSGAP   = 3.50          ! density gap parameter
+DENSLEN   = 10.           ! Value for the possibily dense columns
+SUPDENS   = 350.          ! 'Super' dense column length
+SETLAM    =  0.           !  0 : density gap heuristic, ( AAT )
+                          ! -1 : use LAM, ( AAT )
+
+! Pivot and factorization parameters
+
+TPIV1     = 1.0D-03       ! First  threshold pivot tolerance
+TPIV2     = 1.0D-08       ! Second threshold pivot tolerance
+TABS      = 1.0D-12       ! Abs. pivot tolerance for the first factorization
+TRABS     = 1.0D-15       ! Abs. pivot tolerance during the algorithm
+LAM       = 1.0D-05       ! Minimum value of lambda
+TFIND     = 25.           ! Pivot search loop count
+ORDERING  =  0.           !  0 : Selected automatically
+                          !  1 : Minimum degree
+                          !  2 : Minimum local fill-in
+                          !  3 : Nested dissection (METIS at the moment)
+                          ! -1 : No ordering
+
+! Stopping criterion parameters
+
+TOPT1     = 1.0D-08       ! Relative duality gap tolerance
+TOPT2     = 1.0D-25       ! Average complementary gap tolerance
+TFEAS1    = 1.0D-07       ! Relative primal feasibility tolerance
+TFEAS2    = 1.0D-07       ! Relative dual   feasibility tolerance
+INFTOL    = 1.0D+04       ! Infeasibility check tolerance
+TSDIR     = 1.0D-16       ! Search direction maximum norm tolerance
+MAXITER   = 99.           ! Iteration limit
+
+! Numerical tolerances
+
+TPLUS     = 1.0D-10       ! Relative addition tolerance
+TZER      = 1.0D-35       ! Relative zero tolerance
+
+! Iterative refinement tolerances
+
+TRESX     = 1.0D-10       ! Acceptable residual in the primal space
+TRESY     = 1.0D-10       ! Acceptable residual in the dual space
+MAXREF    =  5.           ! Maximal number of refinement
+REFMET    =  3.           ! Refinement method: 1: Iterative improvement
+                          !                    2: Preconditioned QMR
+                          !                    4: Preconditioned CGM
+
+! Scaling parameters      ! Scaling methods:
+                          !  0. : No scaling
+                          !  1. : Simple scaling to rowmax=1, colmax=1
+                          !  2. : Geometric mean scaling + simple scaling
+                          !  3. : Curtis-Reid's algorithm + simple scaling
+                          !  4. : Geometric mean scaling only
+                          !  5. : Curtis-Reid's algorithm only
+OBJNORM   = 1.0D+02       ! Scaling the objective to this max. norm
+RHSNORM   = 0.0D+00       ! Scaling the rhs to this max. norm
+SIGNORE   = 1.0D-12       ! Ignore values during scaling under this parameter
+                          ! BEFORE AGGREGATOR
+SPASSES1   = 5.           ! Maximum number of passes ( <128 )
+SMETHOD1   = 2.           ! Scaling method
+                          ! AFTER AGGREGATOR
+SPASSES2   = 0.           ! Maximum number of passes ( <128 )
+SMETHOD2   = 0.           ! Scaling method
+
+! Complementary gap ballancing
+
+MINSTEP   = 5.0d-01       ! Minimum stepsize
+COMPLMIN  = 1.0d-03       ! Min/Max complementarity component threshold
+
+! Predictor-corrector and barrier parameters
+
+STOPCOR   = 1.00D-03      ! Correction stop parameter
+BARSET    = 2.00D-01      ! Barrier set-up limit
+BARGROW   = 1.00D+03      ! Barrier grow controll
+BARMIN    = 1.00D-15      ! Minimum barrier threshold
+MINCORR   = -1.           ! Number of the minimum corrections
+MAXCORR   =  1.           ! Number of the maximum corrections
+INIBARR   = 0.0d+0        ! Use initial barrier parameter
+
+! Centrality corrections parameters
+
+TARGET    = 9.00D-02      ! Trial steplength improvement
+TSMALL    = 2.00D-01      ! Small complementarity bound
+TLARGE    = 2.00D+01      ! Large compelmentarity bound
+CENTER    = 5.00D+00      ! Centrality force
+CORSTOP   = 1.01D+00      ! Correction stop parameter
+MINCCORR  = 0.            ! Number of the minimum corrections
+MAXCCORR  = 9.            ! Number of the maximum corrections
+
+! Steplenth parameters
+
+PRDARE    = 0.999D+00     ! Maximal primal steplength
+DUDARE    = 0.999D+00     ! Maximal dual   steplength
+
+! Variable fixing tolerances
+
+TFIXVAR   = 1.0D-20       ! Variable reset parameter
+TFIXSLACK = 1.0D-20       ! Slack reset parameter
+DSLACKLIM = 1.0D-20       ! Dual slack variable limit
+
+! Starting point paramerers
+
+PRMIN     =   150.00      ! Minimum initial variable value
+UPMAX     = 50000.00      ! Maximum initial variable value
+DUMIN     =   150.00      ! Minimum initial slack value
+LSQWEIGHT =    10.00      ! LSQ weight over quadratic objective
+SMETHOD   =  2.           ! Starting method  (1. or 2.)
+SAFEMET   = -3.           ! Safe method  (1. 2. or 3.)
+
+!
+! Presolv parameters
+!
+
+PRESOLV   = 2047.         !    1 : singleton row check         (895)
+                          !    2 : singleton column check
+                          !    4 : min/max row value check
+                          !    8 : cheap dual tests
+                          !   16 : dual check
+                          !   32 : primal bound check and relaxation
+                          !   64 : search identical variables
+                          !  128 : setting vars free in row doubletons
+                          !  256 : elimination of free variables
+                          !  512 : linear dependency check
+                          ! 1024 : sparser
+                          ! 2048 : Restore original bounds after elimination
+                          ! 4096 : extended dual tests
+
+BNDLOOP   =      5.       ! Maximum loops in bound check
+DULOOP    =     10.       ! Maximum loops in dual check
+PRIMALBND =   1000.       ! Maximal upper bound allowed during bndcheck
+DUALBND   =  10000.       ! Maximal upper bound allowed during ducheck
+PRESFEAS  =  1.0d-8       ! Feasibility tolerance during presolve
+PIVRTOL   =  1.0D-2       ! Relative pivot tolerance in aggragation
+PIVATOL   =  1.0D-4       ! Absolute pivot tolerance in aggregation
+PIVXTOL   =  1.0D-8       ! Absolute pivot tolerance in linear dep. check
+FILLTOL   =      4.       ! Fill-in controll during aggregation
+
+!
+! Regularization parameters
+!
+
+SOFTREG   = 1.0D-12       ! Soft regularization parameter
+HARDREG   = 1.0D-16       ! Hard regularization parameter
+SCFREE    = 1.0D-06       ! Regularization for free variables
+REGULARIZE= 27.           ! Regularization method
+                          !  1. Pre-regularize free variables
+                          !  2. Pre-regularize equalities, AS
+                          !  4. Pre-regularize equalities, NE
+                          !  8. Post-regularize free variables
+                          ! 16. Post-regularize equalities, AS
+                          ! 32. Post-regularize equalities, NE
+END_OPT
