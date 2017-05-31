@@ -78,10 +78,23 @@ int main(int argc, char **argv)
     unsigned int extra = 0;
     unsigned int obstacles = 0;
 
-    while ((c = getopt(argc, argv, "k1qbh:yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
+    double ir = 1;
+    double outr = 3;
+    double bb = 4;
+
+    while ((c = getopt(argc, argv, "5:6:7:k1qbh:yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
     {
         switch (c)
         {
+            case '5':
+                ir = atof(optarg);
+                break;
+            case '6':
+                outr = atof(optarg);
+                break;
+            case '7':
+                bb = atof(optarg);
+                break;
             case 'k':
                 caching = false;
                 break;
@@ -177,7 +190,7 @@ int main(int argc, char **argv)
 
     ompl::base::RealVectorBounds bounds(0);
     ompl::base::ConstraintPtr constraint(
-        parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles));
+        parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles, ir, outr, bb));
 
     if (!constraint)
     {

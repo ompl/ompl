@@ -855,28 +855,28 @@ ompl::base::Constraint *initSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y
 /** Initialize the atlas for the torus problem and store the start and goal vectors. */
 ompl::base::Constraint *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
                                          ompl::base::StateValidityCheckerFn &isValid,
-                                         ompl::base::RealVectorBounds &bounds, double sleep)
+                                         ompl::base::RealVectorBounds &bounds, double sleep, double ir = 1, double outr = 3, double bb = 4)
 {
     const std::size_t dim = 3;
 
     // Start and goal points
     x = Eigen::VectorXd(dim);
-    x << -3, 0, -1;
+    x << -outr, 0, -ir;
     y = Eigen::VectorXd(dim);
-    y << 3, 0, 1;
+    y << outr, 0, ir;
 
     // Validity checker
     isValid = std::bind(&always, sleep, std::placeholders::_1);
 
     bounds.resize(dim);
-    bounds.setLow(0, -4);
-    bounds.setHigh(0, 4);
-    bounds.setLow(1, -4);
-    bounds.setHigh(1, 4);
-    bounds.setLow(2, -2);
-    bounds.setHigh(2, 2);
+    bounds.setLow(0, -bb);
+    bounds.setHigh(0, bb);
+    bounds.setLow(1, -bb);
+    bounds.setHigh(1, bb);
+    bounds.setLow(2, -bb);
+    bounds.setHigh(2, bb);
 
-    return new TorusConstraint(3, 1);
+    return new TorusConstraint(outr, ir);
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
@@ -1043,7 +1043,7 @@ void printPlanners(void)
 ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
                                      ompl::base::StateValidityCheckerFn &isValid, ompl::base::RealVectorBounds &bounds,
                                      double sleep = 0, unsigned int links = 5, unsigned int chains = 2,
-                                     unsigned int extra = 0, unsigned int obstacles = 0)
+                                     unsigned int extra = 0, unsigned int obstacles = 0, double outr = 3, double ir = 1, double bb = 4)
 {
     if (std::strcmp(problem, "plane") == 0)
         return initPlaneProblem(x, y, isValid, bounds, sleep);
@@ -1052,7 +1052,7 @@ ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd 
     else if (std::strcmp(problem, "circle") == 0)
         return initPlaneSphereProblem(x, y, isValid, bounds, sleep);
     else if (std::strcmp(problem, "torus") == 0)
-        return initTorusProblem(x, y, isValid, bounds, sleep);
+        return initTorusProblem(x, y, isValid, bounds, sleep, ir, outr, bb);
     else if (std::strcmp(problem, "klein") == 0)
         return initKleinProblem(x, y, isValid, bounds, sleep);
     else if (std::strcmp(problem, "chain") == 0)
