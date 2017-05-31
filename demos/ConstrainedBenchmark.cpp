@@ -86,10 +86,23 @@ int main(int argc, char **argv)
 
     std::string addOn = "";
 
-    while ((c = getopt(argc, argv, "kq1qbu:r:f:h:yg:c:p:s:w:ot:n:i:ae:")) != -1)
+    double ir = 1;
+    double outr = 3;
+    double bb = 4;
+
+    while ((c = getopt(argc, argv, "5:6:7:kq1qbu:r:f:h:yg:c:p:s:w:ot:n:i:ea:")) != -1)
     {
         switch (c)
         {
+            case '5':
+                ir = atof(optarg);
+                break;
+            case '6':
+                outr = atof(optarg);
+                break;
+            case '7':
+                bb = atof(optarg);
+                break;
             case 'k':
                 caching = false;
                 break;
@@ -187,7 +200,7 @@ int main(int argc, char **argv)
 
     ompl::base::RealVectorBounds bounds(0);
     ompl::base::ConstraintPtr constraint(
-        parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles));
+        parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles, ir, outr, bb));
 
     if (!constraint)
     {
@@ -282,6 +295,12 @@ int main(int argc, char **argv)
             break;
     }
     planner->setName(planner->getName() + tag);
+
+    if (strcmp(problem, "torus") == 0)
+        try
+        {
+            planner->as<ompl::geometric::RRTConnect>()->setRange(10);
+        } catch(std::exception &e) {}
 
     ss->setPlanner(planner);
 

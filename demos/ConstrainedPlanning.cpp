@@ -177,7 +177,7 @@ int main(int argc, char **argv)
 
     ompl::base::RealVectorBounds bounds(0);
     ompl::base::ConstraintPtr constraint(
-        parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles));
+        parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles, 10, 9, 1000));
 
     if (!constraint)
     {
