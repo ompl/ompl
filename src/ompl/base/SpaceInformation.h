@@ -378,8 +378,8 @@ namespace ompl
                 \param endpoints flag indicating whether \e s1 and \e s2 are to be included in states
                 \param alloc flag indicating whether memory is to be allocated automatically
             */
-            unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State *> &states,
-                                         unsigned int count, bool endpoints, bool alloc) const;
+            virtual unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State *> &states,
+                                                 unsigned int count, bool endpoints, bool alloc) const;
 
             /** \brief Get the total number of motion segments checked by the MotionValidator so far */
             unsigned int getCheckedMotionCount() const

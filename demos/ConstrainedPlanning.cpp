@@ -238,7 +238,7 @@ int main(int argc, char **argv)
                 atlas->setBiasFunction(
                     [x](ompl::base::AtlasChart *c) -> double { return (x - c->getXorigin()).norm(); });
 
-            ss->setStartAndGoalStates(start, goal);
+            ss->setStartAndGoalStates(start, goal, atlas->getDelta());
             break;
         }
 
@@ -256,7 +256,7 @@ int main(int argc, char **argv)
             ompl::base::ScopedState<> goal(css);
             start->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = x;
             goal->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = y;
-            ss->setStartAndGoalStates(start, goal);
+            ss->setStartAndGoalStates(start, goal, proj->getDelta());
             break;
         }
 
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
             ompl::base::ScopedState<> goal(css);
             start->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = x;
             goal->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = y;
-            ss->setStartAndGoalStates(start, goal);
+            ss->setStartAndGoalStates(start, goal, proj->getDelta());
             break;
         }
     }
