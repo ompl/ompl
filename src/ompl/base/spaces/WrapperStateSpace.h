@@ -90,57 +90,113 @@ namespace ompl
             virtual bool isCompound() const override
             {
                 return space_->isCompound();
-            };
+            }
 
             virtual bool isDiscrete() const override
             {
                 return space_->isDiscrete();
-            };
+            }
 
             virtual bool isHybrid() const override
             {
                 return space_->isHybrid();
-            };
+            }
 
             virtual bool isMetricSpace() const override
             {
                 return space_->isMetricSpace();
-            };
+            }
 
             virtual bool hasSymmetricDistance() const override
             {
                 return space_->hasSymmetricDistance();
-            };
+            }
 
             virtual bool hasSymmetricInterpolate() const override
             {
                 return space_->hasSymmetricInterpolate();
-            };
-
-            virtual double getLongestValidSegmentFraction() const override
-            {
-                return space_->getLongestValidSegmentFraction();
             }
 
-            virtual void setLongestValidSegmentFraction(double segmentFraction) override
+            const std::string &getName() const
             {
-                space_->setLongestValidSegmentFraction(segmentFraction);
+              return "Wrapped" + space_->getName();
+            }
+
+            void setName(const std::string &name)
+            {
+              space_->setName(name);
+            }
+
+            int getType() const
+            {
+              return space_->getType();
+            }
+
+            bool includes(const StateSpacePtr &other) const
+            {
+              return space_->includes(other);
+            }
+
+            bool includes(const StateSpace *other) const
+            {
+              return space_->includes(other);
+            }
+
+            bool covers(const StateSpacePtr &other) const
+            {
+              return space_->covers(other);
+            }
+
+            bool covers(const StateSpace *other) const
+            {
+              return space_->covers(other);
+            }
+
+            ParamSet &params()
+            {
+              return space_->params();
+            }
+
+            /** \brief Get the parameters for this space */
+            const ParamSet &params() const
+            {
+              return space_->params();
+            }
+
+            virtual double getLongestValidSegmentFraction() const
+            {
+              return space_->getLongestValidSegmentFraction();
+            }
+
+            virtual void setLongestValidSegmentFraction(double segmentFraction)
+            {
+              space_->setLongestValidSegmentFraction(segmentFraction);
+            }
+
+            virtual unsigned int validSegmentCount(const State *state1, const State *state2) const
+            {
+                return space_->validSegmentCount(state1->as<StateType>()->getState(),
+                                                 state2->as<StateType>()->getState());
             }
 
             void setValidSegmentCountFactor(unsigned int factor)
             {
-                space_->setValidSegmentCountFactor(factor);
+              space_->setValidSegmentCountFactor(factor);
             }
 
             unsigned int getValidSegmentCountFactor() const
             {
-                return space_->getValidSegmentCountFactor();
+              return space_->getValidSegmentCountFactor();
             }
 
-            virtual unsigned int validSegmentCount(const State *state1, const State *state2) const override
+            double getLongestValidSegmentLength() const
             {
-                return space_->validSegmentCount(state1->as<StateType>()->getState(),
-                                                 state2->as<StateType>()->getState());
+              return space_->getLongestValidSegmentLength();
+            }
+
+            void computeSignature(std::vector<int> &signature) const
+            {
+              space_->computeSignature(signature);
             }
 
             virtual unsigned int getDimension() const override
@@ -231,6 +287,41 @@ namespace ompl
             virtual double *getValueAddressAtIndex(State *state, unsigned int index) const override
             {
                 return space_->getValueAddressAtIndex(state->as<StateType>()->getState(), index);
+            }
+
+            const double *getValueAddressAtIndex(const State *state, unsigned int index) const
+            {
+              return space_->getValueAddressAtIndex(state->as<StateType>()->getState(), index);
+            }
+
+            const std::vector<ValueLocation> &getValueLocations() const
+            {
+              return space_->getValueLocations();
+            }
+
+            const std::map<std::string, ValueLocation> &getValueLocationsByName() const
+              {
+                return space_->getValueLocationsByName();
+              }
+
+            double *getValueAddressAtLocation(State *state, const ValueLocation &loc) const
+            {
+              return space_->getValueAddressAtLocation(state->as<StateType>()->getState(), loc);
+            }
+
+            const double *getValueAddressAtLocation(const State *state, const ValueLocation &loc) const
+            {
+              return space_->getValueAddressAtLocation(state->as<StateType>()->getState(), loc);
+            }
+
+            double *getValueAddressAtName(State *state, const std::string &name) const
+            {
+              return space_->getValueAddressAtName(state->as<StateType>()->getState(), name);
+            }
+
+            const double *getValueAddressAtName(const State *state, const std::string &name) const
+            {
+                return space_->getValueAddressAtName(state->as<StateType>()->getState(), name);
             }
 
             virtual void copyToReals(std::vector<double> &reals, const State *source) const override

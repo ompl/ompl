@@ -194,6 +194,7 @@ int main(int argc, char **argv)
 
     ompl::base::StateSpacePtr rvss(new ompl::base::RealVectorStateSpace(constraint->getAmbientDimension()));
     rvss->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
+    rvss->setup();
 
     ompl::base::StateSpacePtr css;
     ompl::geometric::SimpleSetupPtr ss;
