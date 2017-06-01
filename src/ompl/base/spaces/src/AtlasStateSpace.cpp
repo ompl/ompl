@@ -120,7 +120,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     Eigen::VectorXd uoffset(atlas_.getManifoldDimension());
 
     // TODO: Is this a hack or is this theoretically sound? Find out more after the break.
-    const double distClamped = std::min(dist, atlas_.getRho_s());
+    const double distClamped = std::min(dist, atlas_.getRho_s() - ru.norm());
     do
     {
         // Sample within dist
@@ -224,7 +224,7 @@ bool ompl::base::AtlasValidStateSampler::sampleNear(State *state, const State *n
 {
     // Rejection sample for at most attempts_ tries.
     unsigned int tries = 0;
-    bool valid;
+    bool valid = false;
     do
         sampler_.sampleUniformNear(state, near, dist);
     while (!(valid = si_->isValid(state)) && ++tries < attempts_);
@@ -448,12 +448,12 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         stateList->push_back(cloneState(from));
     }
 
+    const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
+
     // No need to traverse the manifold if we are already there
     const double tolerance = delta_ + std::numeric_limits<double>::epsilon();
     if (distance(from, to) < tolerance)
         return true;
-
-    const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
 
     // Get vector representations
     Eigen::Ref<const Eigen::VectorXd> x_from = fromAsType->constVectorView();
@@ -494,18 +494,20 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             if (!valid || exceedMaxDist || exceedWandering || exceedChartLimit)
                 break;
 
-            const bool exceedsRadius = u_j.squaredNorm() > (rho_ * rho_);
+            const bool outsidePolytope = !c->inPolytope(u_j);
             const bool toFarFromManifold = constraint_->distance(x_temp) > epsilon_;
 
             done = (u_b - u_j).squaredNorm() <= delta_ * delta_;
 
             // Find or make a new chart if new state is off of current chart
-            if (exceedsRadius || toFarFromManifold || done)
+            if (outsidePolytope || toFarFromManifold || done)
             {
                 const bool onManifold = c->psi(u_j, x_temp);
                 if (!onManifold)
                     break;
+
                 x_scratch = x_temp;
+                scratch->setChart(c);
 
                 bool created = false;
                 if ((c = getChart(scratch, true, &created)) == nullptr)
@@ -573,11 +575,10 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
 
             const bool exceedsEpsilon = (x_scratch - x_temp).squaredNorm() > (epsilon_ * epsilon_);
             const bool exceedsAngle = delta_ / step < cos_alpha_;
-            const bool exceedsRadius = u_j.squaredNorm() > (rho_ * rho_);
             const bool outsidePolytope = !c->inPolytope(u_j);
 
             // Find or make a new chart if new state is off of current chart
-            if (exceedsEpsilon || exceedsAngle || exceedsRadius || outsidePolytope)
+            if (exceedsEpsilon || exceedsAngle || outsidePolytope)
             {
                 bool created = false;
                 if ((c = getChart(scratch, true, &created)) == nullptr)

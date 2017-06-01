@@ -111,7 +111,29 @@ namespace ompl
 
                 return states.size();
             }
+
+            bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override
+            {
+                bool valid = motionValidator_->checkMotion(s1, s2, lastValid);
+
+                AtlasStateSpace *atlas = stateSpace_->as<AtlasStateSpace>();
+                if (atlas->getLazy())
+                {
+                  auto stateT = lastValid.first->as<AtlasStateSpace::StateType>();
+
+                  Eigen::VectorXd u(atlas->getManifoldDimension());
+                  AtlasChart *c = atlas->getChart(stateT);
+                  c->psiInverse(stateT->constVectorView(), u);
+
+                  if (!c->psi(u, stateT->vectorView()))
+                    valid = false;
+                }
+
+                return valid;
+            }
         };
+
+
     }
 }
 

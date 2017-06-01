@@ -342,14 +342,14 @@ namespace ompl
                 \param lastValid first: storage for the last valid state (may be nullptr); this need not be different
                from \e s1 or \e s2. second: the time (between 0 and 1) of  the last valid state, on the motion from \e
                s1 to \e s2 */
-            bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const
+            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const
             {
                 return motionValidator_->checkMotion(s1, s2, lastValid);
             }
 
             /** \brief Check if the path between two states (from \e s1 to \e s2) is valid, using the MotionValidator.
              * This function assumes \e s1 is valid. */
-            bool checkMotion(const State *s1, const State *s2) const
+            virtual bool checkMotion(const State *s1, const State *s2) const
             {
                 return motionValidator_->checkMotion(s1, s2);
             }

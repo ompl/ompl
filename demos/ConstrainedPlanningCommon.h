@@ -625,8 +625,8 @@ public:
     void defaultCellSizes(void)
     {
         cellSizes_.resize(2);
-        cellSizes_[0] = 0.1;
-        cellSizes_[1] = 0.1;
+        cellSizes_[0] = 0.2;
+        cellSizes_[1] = 0.2;
     }
 
     void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
@@ -1081,7 +1081,7 @@ ompl::base::Planner *parsePlanner(const char *const planner, const ompl::base::S
     else if (std::strcmp(planner, "RRT") == 0)
         return new ompl::geometric::RRT(si);
 
-    else if (std::strcmp(planner, "RRTintermediate") == 0)
+    else if (std::strcmp(planner, "RRTIntermediate") == 0)
         return new ompl::geometric::RRT(si, true);
 
     else if (std::strcmp(planner, "RRTConnect") == 0)

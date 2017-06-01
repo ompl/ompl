@@ -281,7 +281,6 @@ int main(int argc, char **argv)
     }
 
     ss->setStateValidityChecker(isValid);
-    si->setStateValidityCheckingResolution(0.01);
 
     // Choose the planner.
     ompl::base::PlannerPtr planner(parsePlanner(plannerName, si));
