@@ -117,7 +117,7 @@ namespace ompl
                 bool valid = motionValidator_->checkMotion(s1, s2, lastValid);
 
                 AtlasStateSpace *atlas = stateSpace_->as<AtlasStateSpace>();
-                if (atlas->getLazy())
+                if (atlas->getLazy() && lastValid.first)
                 {
                   auto stateT = lastValid.first->as<AtlasStateSpace::StateType>();
 
