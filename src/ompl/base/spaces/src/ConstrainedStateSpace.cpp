@@ -241,6 +241,8 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
 
     if (traverseManifold(from, to, true, &stateList))
     {
+        stateList.push_back(cloneState(to));
+
         newState = piecewiseInterpolate(stateList, t);
         newState = (newState == nullptr) ? from : newState;
     }

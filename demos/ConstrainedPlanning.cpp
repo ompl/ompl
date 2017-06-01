@@ -217,8 +217,9 @@ int main(int argc, char **argv)
         case ATLAS:
         {
             ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint, tb, bi, sp);
+
             css = ompl::base::StateSpacePtr(atlas);
-            si = ompl::base::ConstrainedSpaceInformationPtr(new ompl::base::ConstrainedSpaceInformation(css));
+            si = ompl::base::ConstrainedSpaceInformationPtr(new ompl::base::AtlasSpaceInformation(css));
 
             ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(si));
             si->setValidStateSamplerAllocator(avssa);
@@ -345,14 +346,16 @@ int main(int argc, char **argv)
         if (!css->as<ompl::base::ConstrainedStateSpace>()->checkPath(path))
             std::cout << "Path does not satisfy constraints!" << std::endl;
 
-        std::cout << "Dumping animation file..." << std::endl;
-        std::ofstream animFile("anim_long.txt");
-        path.printAsMatrix(animFile);
-        animFile.close();
+        // std::cout << "Dumping animation file..." << std::endl;
+        // std::ofstream animFile("anim_long.txt");
+        // path.printAsMatrix(animFile);
+        // animFile.close();
 
+        std::cout << "Simplifying solution..." << std::endl;
         double originalLength = path.length();
         for (unsigned int i = 0; i < simp; ++i)
             ss->simplifySolution();
+
         std::cout << "Path Length " << originalLength << " -> " << path.length() << std::endl;
 
         if (!css->as<ompl::base::ConstrainedStateSpace>()->checkPath(path))
@@ -395,7 +398,7 @@ int main(int argc, char **argv)
         planner->getPlannerData(data);
 
         std::ofstream graphFile("graph.ply");
-        data.printPLY(graphFile, false);
+        data.printPLY(graphFile, true);
         graphFile.close();
     }
 

@@ -39,6 +39,8 @@
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/spaces/ConstrainedStateSpace.h"
+#include "ompl/base/spaces/AtlasChart.h"
+#include "ompl/base/spaces/AtlasStateSpace.h"
 
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/Console.h"
@@ -62,6 +64,51 @@ namespace ompl
                                          unsigned int count, bool endpoints, bool alloc) const override
             {
                 bool success = stateSpace_->as<ConstrainedStateSpace>()->traverseManifold(s1, s2, false, &states);
+
+                if (!success && states.size() == 0)
+                    states.push_back(cloneState(s1));
+
+                return states.size();
+            }
+        };
+
+        class AtlasSpaceInformation : public ConstrainedSpaceInformation
+        {
+        public:
+            AtlasSpaceInformation(StateSpacePtr space) : ConstrainedSpaceInformation(space)
+            {
+            }
+
+            unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State *> &states,
+                                         unsigned int count, bool endpoints, bool alloc) const override
+            {
+                AtlasStateSpace *atlas = stateSpace_->as<AtlasStateSpace>();
+                bool success = atlas->traverseManifold(s1, s2, false, &states);
+
+                if (!success && states.size() == 0)
+                    states.push_back(cloneState(s1));
+
+                if (atlas->getLazy())
+                {
+                    auto it = states.begin();
+                    for (; it != states.end(); ++it)
+                    {
+                        auto stateT = (*it)->as<AtlasStateSpace::StateType>();
+                        Eigen::VectorXd u(atlas->getManifoldDimension());
+                        AtlasChart *c = stateT->getChart();
+                        c->psiInverse(stateT->constVectorView(), u);
+
+                        if (!c->psi(u, stateT->vectorView()))
+                            break;
+                    }
+
+                    while (it != states.end())
+                    {
+                        freeState(*it);
+                        it = states.erase(it);
+                    }
+                }
+
                 return states.size();
             }
         };
