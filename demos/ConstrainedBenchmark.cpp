@@ -153,7 +153,7 @@ int main(int argc, char **argv)
                 break;
 
             case 'a':
-                tb = false;
+                tb = true;
                 break;
 
             case 'p':
@@ -292,10 +292,13 @@ int main(int argc, char **argv)
     switch (spaceType)
     {
         case ATLAS:
+        {
             tag = 2;
             if (tb)
-              tag = 1;
+                tag = 1;
+
             break;
+        }
         case PROJECTED:
             tag = 0;
             break;
