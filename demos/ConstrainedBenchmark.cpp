@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 
     double delta = 0.02;
 
-    while ((c = getopt(argc, argv, "5:6:7:kq1qbu:r:f:h:yg:c:p:s:w:ot:n:i:ea:d:")) != -1)
+    while ((c = getopt(argc, argv, "5:6:7:kq1qbu:r:f:h:yg:c:p:s:w:ot:n:i:e:ad:")) != -1)
     {
         switch (c)
         {
@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 
     if (std::strcmp("atlas", space) == 0)
         spaceType = ATLAS;
-    else if (std::strcmp("projected", space) == 0)
+    else if (std::strcmp("proj", space) == 0)
         spaceType = PROJECTED;
     // else if (std::strcmp("null", space) == 0)
     //     spaceType = NULLSPACE;
@@ -205,7 +205,7 @@ int main(int argc, char **argv)
 
     ompl::base::RealVectorBounds bounds(0);
     ompl::base::ConstraintPtr constraint(
-        parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles, ir, outr, bb));
+        parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles, outr, ir, bb));
 
     if (!constraint)
     {
@@ -222,9 +222,8 @@ int main(int argc, char **argv)
 
     ompl::base::StateSpacePtr rvss(new ompl::base::RealVectorStateSpace(constraint->getAmbientDimension()));
     rvss->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
-    // rvss->setValidSegmentCountFactor(3);
 
-   ompl::base::StateSpacePtr css;
+    ompl::base::StateSpacePtr css;
     ompl::geometric::SimpleSetupPtr ss;
     ompl::base::ConstrainedSpaceInformationPtr si;
 
@@ -318,7 +317,6 @@ int main(int argc, char **argv)
     css->registerProjection("stewart", ompl::base::ProjectionEvaluatorPtr(new StewartProjection(css, links, chains)));
 
     css->as<ompl::base::ConstrainedStateSpace>()->setCaching(caching);
-    css->as<ompl::base::ConstrainedStateSpace>()->setDelta(delta);
 
     try
     {
