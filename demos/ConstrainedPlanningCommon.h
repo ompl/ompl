@@ -625,8 +625,8 @@ public:
     void defaultCellSizes(void)
     {
         cellSizes_.resize(2);
-        cellSizes_[0] = 0.2;
-        cellSizes_[1] = 0.2;
+        cellSizes_[0] = 0.1;
+        cellSizes_[1] = 0.1;
     }
 
     void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
