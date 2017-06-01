@@ -90,10 +90,15 @@ int main(int argc, char **argv)
     double outr = 3;
     double bb = 4;
 
-    while ((c = getopt(argc, argv, "5:6:7:kq1qbu:r:f:h:yg:c:p:s:w:ot:n:i:ea:")) != -1)
+    double delta = 0.02;
+
+    while ((c = getopt(argc, argv, "5:6:7:kq1qbu:r:f:h:yg:c:p:s:w:ot:n:i:ea:d:")) != -1)
     {
         switch (c)
         {
+            case 'd':
+                delta = atof(optarg);
+                break;
             case '5':
                 ir = atof(optarg);
                 break;
@@ -282,23 +287,26 @@ int main(int argc, char **argv)
         usage(argv[0]);
     }
 
-    std::string tag = "+" + addOn;
+    // std::string tag = "+" + addOn;
+    int tag = 0;
     switch (spaceType)
     {
         case ATLAS:
-            tag += "A";
+            tag = 2;
+            if (tb)
+              tag = 1;
             break;
         case PROJECTED:
-            tag += "P";
+            tag = 0;
             break;
     }
-    planner->setName(planner->getName() + tag);
+    // planner->setName(planner->getName() + tag);
 
-    if (strcmp(problem, "torus") == 0)
-        try
-        {
-            planner->as<ompl::geometric::RRTConnect>()->setRange(10);
-        } catch(std::exception &e) {}
+    // if (strcmp(problem, "torus") == 0)
+    //     try
+    //     {
+    //         planner->as<ompl::geometric::RRTConnect>()->setRange(10);
+    //     } catch(std::exception &e) {}
 
     ss->setPlanner(planner);
 
@@ -307,6 +315,7 @@ int main(int argc, char **argv)
     css->registerProjection("stewart", ompl::base::ProjectionEvaluatorPtr(new StewartProjection(css, links, chains)));
 
     css->as<ompl::base::ConstrainedStateSpace>()->setCaching(caching);
+    css->as<ompl::base::ConstrainedStateSpace>()->setDelta(delta);
 
     try
     {
@@ -343,6 +352,7 @@ int main(int argc, char **argv)
     bench.addExperimentParameter("extra", "INTEGER", std::to_string(extra));
     bench.addExperimentParameter("obstacles", "INTEGER", std::to_string(obstacles));
     bench.addExperimentParameter("chains", "INTEGER", std::to_string(chains));
+    bench.addExperimentParameter("space", "INTEGER", std::to_string(tag));
 
     const ompl::tools::Benchmark::Request request(planningTime, memory_limit, runs, update_interval, progress,
                                                   save_output, use_threads, simplify);
