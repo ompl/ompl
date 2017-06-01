@@ -40,6 +40,7 @@
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/Constraint.h>
 #include <ompl/base/StateSpace.h>
+#include <ompl/base/ConstrainedSpaceInformation.h>
 #include <ompl/base/spaces/AtlasChart.h>
 #include <ompl/base/spaces/AtlasStateSpace.h>
 #include <ompl/base/spaces/ProjectedStateSpace.h>
@@ -1080,7 +1081,7 @@ ompl::base::Planner *parsePlanner(const char *const planner, const ompl::base::S
     else if (std::strcmp(planner, "RRT") == 0)
         return new ompl::geometric::RRT(si);
 
-    else if (std::strcmp(planner, "RRTintermediate") == 0)
+    else if (std::strcmp(planner, "RRTIntermediate") == 0)
         return new ompl::geometric::RRT(si, true);
 
     else if (std::strcmp(planner, "RRTConnect") == 0)

@@ -237,6 +237,11 @@ namespace ompl
                 maxChartsPerExtension_ = charts;
             }
 
+            bool getLazy() const
+            {
+                return lazy_;
+            }
+
             /** \brief Get epsilon. */
             double getEpsilon() const
             {

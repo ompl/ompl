@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 
     ompl::base::RealVectorBounds bounds(0);
     ompl::base::ConstraintPtr constraint(
-        parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles, ir, outr, bb));
+        parseProblem(problem, x, y, isValid, bounds, artificalSleep, links, chains, extra, obstacles, outr, ir, bb));
 
     if (!constraint)
     {
@@ -210,20 +210,19 @@ int main(int argc, char **argv)
 
     ompl::base::StateSpacePtr css;
     ompl::geometric::SimpleSetupPtr ss;
-    ompl::base::SpaceInformationPtr si;
+    ompl::base::ConstrainedSpaceInformationPtr si;
 
     switch (spaceType)
     {
         case ATLAS:
         {
             ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint, tb, bi, sp);
+
             css = ompl::base::StateSpacePtr(atlas);
+            si = ompl::base::ConstrainedSpaceInformationPtr(new ompl::base::AtlasSpaceInformation(css));
 
-            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(css));
-            si = ss->getSpaceInformation();
+            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(si));
             si->setValidStateSamplerAllocator(avssa);
-
-            atlas->setSpaceInformation(si);
 
             // The atlas needs some place to start sampling from. We will make start and goal charts.
             ompl::base::AtlasChart *startChart = atlas->anchorChart(x);
@@ -237,9 +236,10 @@ int main(int argc, char **argv)
             goal->as<ompl::base::AtlasStateSpace::StateType>()->setChart(goalChart);
 
             if (other)
-                atlas->setBiasFunction([x](ompl::base::AtlasChart *c) -> double { return (x - c->getXorigin()).norm(); });
+                atlas->setBiasFunction(
+                    [x](ompl::base::AtlasChart *c) -> double { return (x - c->getXorigin()).norm(); });
 
-            ss->setStartAndGoalStates(start, goal);
+            ss->setStartAndGoalStates(start, goal, atlas->getDelta());
             break;
         }
 
@@ -248,17 +248,16 @@ int main(int argc, char **argv)
             ompl::base::NullspaceStateSpace *proj = new ompl::base::NullspaceStateSpace(rvss, constraint);
             css = ompl::base::StateSpacePtr(proj);
 
-            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(css));
-            si = ss->getSpaceInformation();
-            si->setValidStateSamplerAllocator(pvssa);
+            si = ompl::base::ConstrainedSpaceInformationPtr(new ompl::base::ConstrainedSpaceInformation(css));
 
-            proj->setSpaceInformation(si);
+            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(si));
+            si->setValidStateSamplerAllocator(pvssa);
 
             ompl::base::ScopedState<> start(css);
             ompl::base::ScopedState<> goal(css);
             start->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = x;
             goal->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = y;
-            ss->setStartAndGoalStates(start, goal);
+            ss->setStartAndGoalStates(start, goal, proj->getDelta());
             break;
         }
 
@@ -267,17 +266,16 @@ int main(int argc, char **argv)
             ompl::base::ProjectedStateSpace *proj = new ompl::base::ProjectedStateSpace(rvss, constraint);
             css = ompl::base::StateSpacePtr(proj);
 
-            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(css));
-            si = ss->getSpaceInformation();
-            si->setValidStateSamplerAllocator(pvssa);
+            si = ompl::base::ConstrainedSpaceInformationPtr(new ompl::base::ConstrainedSpaceInformation(css));
 
-            proj->setSpaceInformation(si);
+            ss = ompl::geometric::SimpleSetupPtr(new ompl::geometric::SimpleSetup(si));
+            si->setValidStateSamplerAllocator(pvssa);
 
             ompl::base::ScopedState<> start(css);
             ompl::base::ScopedState<> goal(css);
             start->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = x;
             goal->as<ompl::base::ProjectedStateSpace::StateType>()->vectorView() = y;
-            ss->setStartAndGoalStates(start, goal);
+            ss->setStartAndGoalStates(start, goal, proj->getDelta());
             break;
         }
     }
@@ -347,14 +345,16 @@ int main(int argc, char **argv)
         if (!css->as<ompl::base::ConstrainedStateSpace>()->checkPath(path))
             std::cout << "Path does not satisfy constraints!" << std::endl;
 
-        std::cout << "Dumping animation file..." << std::endl;
-        std::ofstream animFile("anim_long.txt");
-        path.printAsMatrix(animFile);
-        animFile.close();
+        // std::cout << "Dumping animation file..." << std::endl;
+        // std::ofstream animFile("anim_long.txt");
+        // path.printAsMatrix(animFile);
+        // animFile.close();
 
+        std::cout << "Simplifying solution..." << std::endl;
         double originalLength = path.length();
         for (unsigned int i = 0; i < simp; ++i)
-            ss->simplifySolution();
+            ss->simplifySolution(5.);
+
         std::cout << "Path Length " << originalLength << " -> " << path.length() << std::endl;
 
         if (!css->as<ompl::base::ConstrainedStateSpace>()->checkPath(path))
@@ -397,7 +397,7 @@ int main(int argc, char **argv)
         planner->getPlannerData(data);
 
         std::ofstream graphFile("graph.ply");
-        data.printPLY(graphFile, false);
+        data.printPLY(graphFile, true);
         graphFile.close();
     }
 

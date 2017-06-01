@@ -245,6 +245,9 @@ void ompl::base::AtlasChart::psiInverse(const Eigen::Ref<const Eigen::VectorXd> 
 bool ompl::base::AtlasChart::inPolytope(const Eigen::Ref<const Eigen::VectorXd> &u, const Halfspace *const ignore1,
                                         const Halfspace *const ignore2) const
 {
+    if (u.norm() > radius_)
+        return false;
+
     for (Halfspace *h : polytope_)
     {
         if (h == ignore1 || h == ignore2)
@@ -253,6 +256,7 @@ bool ompl::base::AtlasChart::inPolytope(const Eigen::Ref<const Eigen::VectorXd> 
         if (!h->contains(u))
             return false;
     }
+
     return true;
 }
 
@@ -273,11 +277,10 @@ const ompl::base::AtlasChart *ompl::base::AtlasChart::owningNeighbor(const Eigen
         c->phi(proju, projx);
 
         // Check if it's within the validity region and polytope boundary.
-        const bool withinRadius = proju.norm() < radius_;
         const bool withinTolerance = (projx - x).norm();
         const bool inPolytope = c->inPolytope(proju);
 
-        if (withinRadius && withinTolerance && inPolytope)
+        if (withinTolerance && inPolytope)
             return c;
     }
 
@@ -301,7 +304,7 @@ bool ompl::base::AtlasChart::toPolygon(std::vector<Eigen::VectorXd> &vertices) c
             // within the circle.
             Halfspace::intersect(*polytope_[i], *polytope_[j], v);
             phi(v, intersection);
-            if (v.norm() <= radius_ && inPolytope(v, polytope_[i], polytope_[j]))
+            if (inPolytope(v, polytope_[i], polytope_[j]))
                 vertices.push_back(intersection);
         }
 
