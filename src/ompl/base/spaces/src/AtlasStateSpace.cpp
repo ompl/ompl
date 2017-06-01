@@ -42,6 +42,8 @@
 
 #include <eigen3/Eigen/Core>
 
+#include <math.h>
+
 /// AtlasStateSampler
 
 /// Public
@@ -373,10 +375,11 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::sampleChart() const
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::getChart(const StateType *state, bool force, bool *created) const
 {
     AtlasChart *c = state->getChart();
-    Eigen::Ref<const Eigen::VectorXd> n = state->constVectorView();
 
     if (c == nullptr || force)
     {
+        Eigen::Ref<const Eigen::VectorXd> n = state->constVectorView();
+
         c = owningChart(n);
 
         if (c == nullptr)
@@ -485,7 +488,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             dist += step;
 
             const bool valid = interpolate || svc->isValid(scratch);
-            const bool exceedMaxDist = (x_temp - x_from).norm() > distMax;
+            const bool exceedMaxDist = (x_temp - x_from).norm() > distMax || !std::isfinite(dist);
             const bool exceedWandering = dist > (lambda_ * distMax);
             const bool exceedChartLimit = chartsCreated > maxChartsPerExtension_;
             if (!valid || exceedMaxDist || exceedWandering || exceedChartLimit)
@@ -613,7 +616,7 @@ ompl::base::State *ompl::base::AtlasStateSpace::piecewiseInterpolate(const std::
     if (lazy_)
     {
         Eigen::VectorXd u(k_);
-        AtlasChart *c = state->getChart();
+        AtlasChart *c = getChart(state);
         c->psiInverse(state->constVectorView(), u);
 
         if (!c->psi(u, state->vectorView()))

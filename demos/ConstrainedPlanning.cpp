@@ -354,7 +354,7 @@ int main(int argc, char **argv)
         std::cout << "Simplifying solution..." << std::endl;
         double originalLength = path.length();
         for (unsigned int i = 0; i < simp; ++i)
-            ss->simplifySolution();
+            ss->simplifySolution(5.);
 
         std::cout << "Path Length " << originalLength << " -> " << path.length() << std::endl;
 
