@@ -95,16 +95,16 @@ int main(int argc, char **argv)
     double exploration = 0.5;
     double epsilon = 0.2;
 
-    while ((c = getopt(argc, argv, "u:m:5:6:7:kq1qbu:r:f:h:yg:c:p:s:w:ot:n:i:e:ad:")) != -1)
+    while ((c = getopt(argc, argv, "z:m:5:6:7:kq1qbu:r:f:h:yg:c:p:s:w:ot:n:i:e:ad:")) != -1)
     {
         switch (c)
         {
-        case 'm':
-          exploration = atof(optarg);
-          break;
-        case 'u':
-          epsilon = atof(optarg);
-          break;
+            case 'm':
+                exploration = atof(optarg);
+                break;
+            case 'z':
+                epsilon = atof(optarg);
+                break;
             case 'd':
                 delta = atof(optarg);
                 break;
@@ -241,6 +241,8 @@ int main(int argc, char **argv)
         case ATLAS:
         {
             ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint, tb, bi, sp);
+            atlas->setExploration(exploration);
+            atlas->setEpsilon(epsilon);
 
             css = ompl::base::StateSpacePtr(atlas);
             si = ompl::base::ConstrainedSpaceInformationPtr(new ompl::base::AtlasSpaceInformation(css));
