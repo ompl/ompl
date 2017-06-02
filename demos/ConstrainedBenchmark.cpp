@@ -90,12 +90,21 @@ int main(int argc, char **argv)
     double outr = 3;
     double bb = 4;
 
-    double delta = 0.02;
+    double delta = 0.2;
 
-    while ((c = getopt(argc, argv, "5:6:7:kq1qbu:r:f:h:yg:c:p:s:w:ot:n:i:e:ad:")) != -1)
+    double exploration = 0.5;
+    double epsilon = 0.2;
+
+    while ((c = getopt(argc, argv, "u:m:5:6:7:kq1qbu:r:f:h:yg:c:p:s:w:ot:n:i:e:ad:")) != -1)
     {
         switch (c)
         {
+        case 'm':
+          exploration = atof(optarg);
+          break;
+        case 'u':
+          epsilon = atof(optarg);
+          break;
             case 'd':
                 delta = atof(optarg);
                 break;

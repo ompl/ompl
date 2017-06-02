@@ -82,10 +82,24 @@ int main(int argc, char **argv)
     double outr = 3;
     double bb = 4;
 
-    while ((c = getopt(argc, argv, "5:6:7:k1qbh:yg:c:p:s:w:ot:n:i:ax:e:")) != -1)
+    double delta = 0.2;
+
+    double exploration = 0.5;
+    double epsilon = 0.2;
+
+    while ((c = getopt(argc, argv, "5:6:7:k1qbh:yg:c:p:s:w:ot:n:i:ax:e:d:2:u:r:")) != -1)
     {
         switch (c)
         {
+            case 'r':
+                exploration = atof(optarg);
+                break;
+            case 'u':
+                epsilon = atof(optarg);
+                break;
+            case 'd':
+                delta = atof(optarg);
+                break;
             case '5':
                 ir = atof(optarg);
                 break;
@@ -217,6 +231,8 @@ int main(int argc, char **argv)
         case ATLAS:
         {
             ompl::base::AtlasStateSpace *atlas = new ompl::base::AtlasStateSpace(rvss, constraint, tb, bi, sp);
+            atlas->setExploration(exploration);
+            atlas->setEpsilon(epsilon);
 
             css = ompl::base::StateSpacePtr(atlas);
             si = ompl::base::ConstrainedSpaceInformationPtr(new ompl::base::AtlasSpaceInformation(css));
@@ -293,6 +309,7 @@ int main(int argc, char **argv)
     ss->setPlanner(planner);
 
     css->as<ompl::base::ConstrainedStateSpace>()->setCaching(caching);
+    css->as<ompl::base::ConstrainedStateSpace>()->setDelta(delta);
 
     css->registerProjection("sphere", ompl::base::ProjectionEvaluatorPtr(new SphereProjection(css)));
     css->registerProjection("chain", ompl::base::ProjectionEvaluatorPtr(new ChainProjection(css, 3, links)));
