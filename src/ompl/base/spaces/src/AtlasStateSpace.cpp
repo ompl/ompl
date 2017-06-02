@@ -120,7 +120,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     Eigen::VectorXd uoffset(atlas_.getManifoldDimension());
 
     // TODO: Is this a hack or is this theoretically sound? Find out more after the break.
-    const double distClamped = std::min(dist, atlas_.getRho_s() - ru.norm());
+    const double distClamped = std::min(dist, atlas_.getRho_s());
     do
     {
         // Sample within dist
