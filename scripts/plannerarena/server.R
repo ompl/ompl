@@ -467,7 +467,7 @@ shinyServer(function(input, output, session) {
                         else
                             lims <- c(NA, NA)
                     } else {
-                        p <- ggplot(data, aes(x = planner, y = attr, group = grouping, color = grouping, fill = grouping)) +
+                        p <- ggplot(data, aes(x = planner, y = attr, color = grouping, fill = grouping)) +
                             # labels
                             ylab(dispAttr) +
                             theme(legend.title = element_blank(), text = fontSelection()) +
