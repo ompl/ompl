@@ -270,7 +270,9 @@ shinyServer(function(input, output, session) {
                 div(class="well well-light",
                     checkboxInput("perfShowAsCDF", label = "Show as cumulative distribution function"),
                     checkboxInput("perfShowSimplified", label = "Include results after simplification"),
-                    checkboxInput("perfShowParameterizedBoxPlots", label = "Show box plots for parametrized benchmarks")
+                    checkboxInput("perfShowParameterizedBoxPlots", label = "Show box plots for parametrized benchmarks"),
+                    checkboxInput("perfHideOutliers", label = "Hide outliers in box plots"),
+                    checkboxInput("perfYLogScale", label = "Use log scale for Y-axis")
                 )
             )
         )
@@ -393,6 +395,10 @@ shinyServer(function(input, output, session) {
         }
         else
         {
+            if (input$perfHideOutliers)
+                outlier.shape <- NA
+            else
+                outlier.shape <- 16
             if (includeSimplifiedAttr)
             {
                 # the "all (separate)" case is not handled here
@@ -410,15 +416,25 @@ shinyServer(function(input, output, session) {
                         stat_ecdf(size = 1) +
                         scale_linetype_discrete(name = "", labels = c("before simplification", "after simplification"))
                 else
+                {
                     p <- ggplot(data, aes(x=planner, y=value, color=key, fill=key)) +
                         # labels
                         ylab(dispAttr) +
                         theme(legend.title = element_blank(), text = fontSelection()) +
-                        geom_boxplot() +
+                        geom_boxplot(outlier.shape = outlier.shape) +
                         scale_fill_manual(values = c("#99c9eb", "#ebc999"),
                             labels = c("before simplification", "after simplification")) +
                         scale_color_manual(values =c("#3073ba", "#ba7330"),
                             labels = c("before simplification", "after simplification"))
+                    if (input$perfHideOutliers)
+                        lims <- quantile(data$value, c(0.2, 0.8))
+                    else
+                        lims <- c(NA, NA)
+                    if (input$perfYLogScale)
+                        p <- p + scale_y_log10(limits = lims)
+                    else
+                        p <- p + scale_y_continuous(limits = lims)
+                }
             }
             else
             {
@@ -443,18 +459,29 @@ shinyServer(function(input, output, session) {
                             ylab(dispAttr) +
                             theme(legend.position = "none", text = fontSelection()) +
                             # box plots for boolean, integer, and real-valued attributes
-                            geom_boxplot(color = I("#3073ba"), fill = I("#99c9eb"))
+                            geom_boxplot(color = I("#3073ba"), fill = I("#99c9eb"), outlier.shape = outlier.shape)
                         if (!is.null(grouping))
                             p <- p + facet_grid(. ~ grouping)
+                        if (input$perfHideOutliers)
+                            lims <- quantile(data$value, c(0.2, 0.8))
+                        else
+                            lims <- c(NA, NA)
                     } else {
-                        p <- ggplot(data, aes(x = grouping, y = attr, group = planner, color = planner, fill = planner)) +
+                        p <- ggplot(data, aes(x = planner, y = attr, group = grouping, color = grouping, fill = grouping)) +
                             # labels
-                            xlab(gsub('_', ' ', grouping)) +
                             ylab(dispAttr) +
                             theme(legend.title = element_blank(), text = fontSelection()) +
-                            geom_smooth(method = "loess") +
+                            geom_boxplot(position = "dodge", outlier.shape = outlier.shape) +
                             scale_x_discrete(expand=c(0.05,0))
+                            if (input$perfHideOutliers)
+                                lims <- quantile(data$attr, c(0.2, 0.8))
+                            else
+                                lims <- c(NA, NA)
                     }
+                    if (input$perfYLogScale)
+                        p <- p + scale_y_log10(limits = lims)
+                    else
+                        p <- p + scale_y_continuous(limits = lims)
                 }
             }
         }
