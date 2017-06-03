@@ -414,7 +414,7 @@ int main(int argc, char **argv)
         planner->getPlannerData(data);
 
         std::ofstream graphFile("graph.ply");
-        data.printPLY(graphFile, true);
+        data.printPLY(graphFile, false);
         graphFile.close();
     }
 

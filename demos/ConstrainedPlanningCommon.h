@@ -73,6 +73,7 @@
 
 #include <ompl/geometric/planners/sbl/SBL.h>
 #include <ompl/geometric/planners/stride/STRIDE.h>
+#include <ompl/geometric/planners/bitstar/BITstar.h>
 
 /** Simple manifold example: the unit sphere. */
 class EmptyConstraint : public ompl::base::Constraint
@@ -160,6 +161,25 @@ public:
         out(0, 0) = x[0] * c;
         out(0, 1) = x[1] * c;
         out(0, 2) = x[2] / denom;
+    }
+
+    bool isValid(const ompl::base::State *state)
+    {
+      Eigen::Ref<const Eigen::VectorXd> v =
+        state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
+
+      double x = v[0], y = v[1], z = v[2];
+
+      if (abs(x) < (R1 - R2) / 3.)
+      {
+        if (abs(z) > R2 / 8.)
+          return false;
+
+        if (y > R2 - R1)
+          return false;
+      }
+
+      return true;
     }
 };
 
@@ -866,9 +886,6 @@ ompl::base::Constraint *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
     y = Eigen::VectorXd(dim);
     y << outr, 0, ir;
 
-    // Validity checker
-    isValid = std::bind(&always, sleep, std::placeholders::_1);
-
     bounds.resize(dim);
     bounds.setLow(0, -bb);
     bounds.setHigh(0, bb);
@@ -877,7 +894,10 @@ ompl::base::Constraint *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
     bounds.setLow(2, -bb);
     bounds.setHigh(2, bb);
 
-    return new TorusConstraint(outr, ir);
+    auto torus = new TorusConstraint(outr, ir);
+    isValid = std::bind(&TorusConstraint::isValid, torus, std::placeholders::_1);
+
+    return torus;
 }
 
 /** Initialize the atlas for the sphere problem and store the start and goal vectors. */
@@ -1137,6 +1157,9 @@ ompl::base::Planner *parsePlanner(const char *const planner, const ompl::base::S
 
     else if (std::strcmp(planner, "STRIDE") == 0)
         return new ompl::geometric::STRIDE(si);
+
+    else if (std::strcmp(planner, "BITstar") == 0)
+      return new ompl::geometric::BITstar(si);
 
     else
         return NULL;

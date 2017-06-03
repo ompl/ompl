@@ -90,68 +90,71 @@ namespace ompl
                                 "the informed sampler is created.");
             }
 
-            // Check that the provided statespace is compatible and extract the necessary indices.
-            // The statespace must either be R^n or SE(2) or SE(3)
-            if (!InformedSampler::space_->isCompound())
-            {
-                if (InformedSampler::space_->getType() == STATE_SPACE_REAL_VECTOR)
-                {
-                    informedIdx_ = 0u;
-                    uninformedIdx_ = 0u;
-                }
-                else
-                {
-                    throw Exception("PathLengthDirectInfSampler only supports RealVector, SE2 and SE3 StateSpaces.");
-                }
-            }
-            else if (InformedSampler::space_->isCompound())
-            {
-                // Check that it is SE2 or SE3
-                if (InformedSampler::space_->getType() == STATE_SPACE_SE2 ||
-                    InformedSampler::space_->getType() == STATE_SPACE_SE3)
-                {
-                    // Variable:
-                    // An ease of use upcasted pointer to the space as a compound space
-                    const CompoundStateSpace *compoundSpace = InformedSampler::space_->as<CompoundStateSpace>();
 
-                    // Sanity check
-                    if (compoundSpace->getSubspaceCount() != 2u)
-                    {
-                        // Pout
-                        throw Exception("The provided compound StateSpace is SE(2) or SE(3) but does not have exactly "
-                                        "2 subspaces.");
-                    }
+            informedIdx_ = 0u;
+            uninformedIdx_ = 0u;
+            // // Check that the provided statespace is compatible and extract the necessary indices.
+            // // The statespace must either be R^n or SE(2) or SE(3)
+            // if (!InformedSampler::space_->isCompound())
+            // {
+            //     if (InformedSampler::space_->getType() == STATE_SPACE_REAL_VECTOR)
+            //     {
+            //         informedIdx_ = 0u;
+            //         uninformedIdx_ = 0u;
+            //     }
+            //     else
+            //     {
+            //         throw Exception("PathLengthDirectInfSampler only supports RealVector, SE2 and SE3 StateSpaces.");
+            //     }
+            // }
+            // else if (InformedSampler::space_->isCompound())
+            // {
+            //     // Check that it is SE2 or SE3
+            //     if (InformedSampler::space_->getType() == STATE_SPACE_SE2 ||
+            //         InformedSampler::space_->getType() == STATE_SPACE_SE3)
+            //     {
+            //         // Variable:
+            //         // An ease of use upcasted pointer to the space as a compound space
+            //         const CompoundStateSpace *compoundSpace = InformedSampler::space_->as<CompoundStateSpace>();
 
-                    // Iterate over the state spaces, finding the real vector and SO components.
-                    for (unsigned int idx = 0u;
-                         idx < InformedSampler::space_->as<CompoundStateSpace>()->getSubspaceCount(); ++idx)
-                    {
-                        // Check if the space is real-vectored, SO2 or SO3
-                        if (compoundSpace->getSubspace(idx)->getType() == STATE_SPACE_REAL_VECTOR)
-                        {
-                            informedIdx_ = idx;
-                        }
-                        else if (compoundSpace->getSubspace(idx)->getType() == STATE_SPACE_SO2)
-                        {
-                            uninformedIdx_ = idx;
-                        }
-                        else if (compoundSpace->getSubspace(idx)->getType() == STATE_SPACE_SO3)
-                        {
-                            uninformedIdx_ = idx;
-                        }
-                        else
-                        {
-                            // Pout
-                            throw Exception("The provided compound StateSpace is SE(2) or SE(3) but contains a "
-                                            "subspace that is not R^2, R^3, SO(2), or SO(3).");
-                        }
-                    }
-                }
-                else
-                {
-                    throw Exception("PathLengthDirectInfSampler only supports RealVector, SE2 and SE3 statespaces.");
-                }
-            }
+            //         // Sanity check
+            //         if (compoundSpace->getSubspaceCount() != 2u)
+            //         {
+            //             // Pout
+            //             throw Exception("The provided compound StateSpace is SE(2) or SE(3) but does not have exactly "
+            //                             "2 subspaces.");
+            //         }
+
+            //         // Iterate over the state spaces, finding the real vector and SO components.
+            //         for (unsigned int idx = 0u;
+            //              idx < InformedSampler::space_->as<CompoundStateSpace>()->getSubspaceCount(); ++idx)
+            //         {
+            //             // Check if the space is real-vectored, SO2 or SO3
+            //             if (compoundSpace->getSubspace(idx)->getType() == STATE_SPACE_REAL_VECTOR)
+            //             {
+            //                 informedIdx_ = idx;
+            //             }
+            //             else if (compoundSpace->getSubspace(idx)->getType() == STATE_SPACE_SO2)
+            //             {
+            //                 uninformedIdx_ = idx;
+            //             }
+            //             else if (compoundSpace->getSubspace(idx)->getType() == STATE_SPACE_SO3)
+            //             {
+            //                 uninformedIdx_ = idx;
+            //             }
+            //             else
+            //             {
+            //                 // Pout
+            //                 throw Exception("The provided compound StateSpace is SE(2) or SE(3) but contains a "
+            //                                 "subspace that is not R^2, R^3, SO(2), or SO(3).");
+            //             }
+            //         }
+            //     }
+            //     else
+            //     {
+            //         throw Exception("PathLengthDirectInfSampler only supports RealVector, SE2 and SE3 statespaces.");
+            //     }
+            // }
 
             // Create a sampler for the whole space that we can use if we have no information
             baseSampler_ = InformedSampler::space_->allocDefaultStateSampler();
