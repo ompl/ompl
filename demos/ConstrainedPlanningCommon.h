@@ -138,10 +138,10 @@ public:
 class TorusConstraint : public ompl::base::Constraint
 {
 public:
-    const double R1;
-    const double R2;
+    const double outer_radius;
+    const double inner_radius;
 
-    TorusConstraint(const double r1, const double r2) : ompl::base::Constraint(3, 2), R1(r1), R2(r2)
+    TorusConstraint(const double r1, const double r2) : ompl::base::Constraint(3, 2), outer_radius(r1), inner_radius(r2)
     {
     }
 
@@ -149,15 +149,15 @@ public:
     {
         Eigen::VectorXd c(3);
         c << x[0], x[1], 0;
-        out[0] = (x - R1 * c.normalized()).norm() - R2;
+        out[0] = (x - outer_radius * c.normalized()).norm() - inner_radius;
     }
 
     void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
     {
         const double xySquaredNorm = x[0] * x[0] + x[1] * x[1];
         const double xyNorm = std::sqrt(xySquaredNorm);
-        const double denom = std::sqrt(x[2] * x[2] + (xyNorm - R1) * (xyNorm - R1));
-        const double c = (xyNorm - R1) * (xyNorm * xySquaredNorm) / (xySquaredNorm * xySquaredNorm * denom);
+        const double denom = std::sqrt(x[2] * x[2] + (xyNorm - outer_radius) * (xyNorm - outer_radius));
+        const double c = (xyNorm - outer_radius) * (xyNorm * xySquaredNorm) / (xySquaredNorm * xySquaredNorm * denom);
         out(0, 0) = x[0] * c;
         out(0, 1) = x[1] * c;
         out(0, 2) = x[2] / denom;
@@ -165,21 +165,20 @@ public:
 
     bool isValid(const ompl::base::State *state)
     {
-      Eigen::Ref<const Eigen::VectorXd> v =
-        state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
+        Eigen::Ref<const Eigen::VectorXd> v =
+            state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
 
-      double x = v[0], y = v[1], z = v[2];
+        const double x = v[0], y = v[1], z = v[2];
 
-      if (abs(x) < (R1 - R2) / 3.)
-      {
-        if (abs(z) > R2 / 8.)
-          return false;
+        if (abs(x) < 1)
+        {
+            if (abs(y) < 3 && abs(z) < 0.1)
+                return true;
 
-        if (y > R2 - R1)
-          return false;
-      }
+            return false;
+        }
 
-      return true;
+        return true;
     }
 };
 
@@ -263,16 +262,21 @@ public:
     {
         unsigned int offset = 3 * links_ * id_;
 
-        Eigen::VectorXd step = offset_ * length_;
-        Eigen::VectorXd joint = offset_ + step;
+        Eigen::VectorXd goal = Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_;
+        goal[2] = 2 * length_;
 
-        unsigned int i = 0;
-        for (; i < links_ / 2; ++i, joint += step)
-            x.segment(3 * i + offset, 3) = joint;
+        x.segment(3 * (links_ - 1) + offset, 3) = goal;
 
-        joint += Eigen::Vector3d::UnitZ() * length_ - step;
-        for (; i < links_; ++i, joint -= step)
-            x.segment(3 * i + offset, 3) = joint;
+        /* Eigen::VectorXd step = offset_ * length_; */
+        /* Eigen::VectorXd joint = offset_ + step; */
+
+        /* unsigned int i = 0; */
+        /* for (; i < links_ / 2; ++i, joint += step) */
+        /*     x.segment(3 * i + offset, 3) = joint; */
+
+        /* joint += Eigen::Vector3d::UnitZ() * length_ - step; */
+        /* for (; i < links_; ++i, joint -= step) */
+        /*     x.segment(3 * i + offset, 3) = joint; */
     }
 
     Eigen::Ref<const Eigen::VectorXd> getLink(const Eigen::VectorXd &x, const unsigned int idx) const
@@ -882,17 +886,20 @@ ompl::base::Constraint *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
 
     // Start and goal points
     x = Eigen::VectorXd(dim);
-    x << -outr, 0, -ir;
+    x << -outr - ir, 0, 0;
     y = Eigen::VectorXd(dim);
     y << outr, 0, ir;
 
     bounds.resize(dim);
+
     bounds.setLow(0, -bb);
     bounds.setHigh(0, bb);
+
     bounds.setLow(1, -bb);
     bounds.setHigh(1, bb);
-    bounds.setLow(2, -bb);
-    bounds.setHigh(2, bb);
+
+    bounds.setLow(2, -ir - 1);
+    bounds.setHigh(2, ir + 1);
 
     auto torus = new TorusConstraint(outr, ir);
     isValid = std::bind(&TorusConstraint::isValid, torus, std::placeholders::_1);
@@ -994,6 +1001,47 @@ ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
     return constraint;
 }
 
+// TODO
+class EndEffectorGoal : public ob::GoalLazySamples
+{
+public:
+    EndEffectorGoal(const ob::SpaceInformationPtr &si, const ob::GoalSamplingFn &sampler,
+                    og::EndEffectorConstraintPtr ee)
+      : ob::GoalLazySamples(si, sampler), ee_(std::move(ee))
+    {
+    }
+
+    ~EndEffectorGoal() override
+    {
+        // Very important.  Goal sampling thread may be running when
+        // this object gets destroyed, causing a seg fault when accessing
+        // the ee_ object.
+        ee_.reset();
+    }
+
+    bool isSatisfied(const ob::State *state) const override
+    {
+        return ee_->isSatisfied(state);
+    }
+
+    double distanceGoal(const ob::State *state) const override
+    {
+        OMPL_WARN("%s: NOT IMPLEMENTED", __FUNCTION__);
+        return std::numeric_limits<double>::max();
+    }
+
+    static bool goalStateSampler(const ob::GoalLazySamples *gls, ob::State *state)
+    {
+        const EndEffectorGoal *thisObj = static_cast<const EndEffectorGoal *>(gls);
+        while (thisObj->ee_ && !thisObj->ee_->sample(state))
+            ;
+        return true;
+    }
+
+protected:
+    og::EndEffectorConstraintPtr ee_;
+};
+
 /** Initialize the constraint for the kinematic chain problem. */
 ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
                                            ompl::base::StateValidityCheckerFn &isValid,
@@ -1007,7 +1055,13 @@ ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &
     StewartConstraint *constraint = new StewartConstraint(chains, links, extra);
 
     constraint->getStart(x);
-    constraint->getGoal(y);
+
+    for (unsigned int i = 0; i < 1000; ++i)
+    {
+        constraint->getGoal(y);
+        if (constraint->project(y))
+            break;
+    }
 
     isValid = std::bind(&StewartConstraint::isValid, constraint, std::placeholders::_1);
 
@@ -1105,7 +1159,11 @@ ompl::base::Planner *parsePlanner(const char *const planner, const ompl::base::S
         return new ompl::geometric::RRT(si, true);
 
     else if (std::strcmp(planner, "RRTConnect") == 0)
-        return new ompl::geometric::RRTConnect(si);
+    {
+        auto planner = new ompl::geometric::RRTConnect(si);
+        planner->setRange(1);
+        return planner;
+    }
 
     else if (std::strcmp(planner, "RRTConnectIntermediate") == 0)
         return new ompl::geometric::RRTConnect(si, true);

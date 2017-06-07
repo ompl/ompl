@@ -95,10 +95,15 @@ int main(int argc, char **argv)
     double exploration = 0.5;
     double epsilon = 0.2;
 
-    while ((c = getopt(argc, argv, "z:m:5:6:7:kq1qbu:r:f:h:yg:c:p:s:w:ot:n:i:e:ad:")) != -1)
+    int extraTag = -1;
+
+    while ((c = getopt(argc, argv, "z:m:5:6:7:kq1qbu:r:f:h:yg:c:p:s:w:ot:n:i:e:ad:9:")) != -1)
     {
         switch (c)
         {
+            case '9':
+                extraTag = atoi(optarg);
+                break;
             case 'm':
                 exploration = atof(optarg);
                 break;
@@ -328,6 +333,7 @@ int main(int argc, char **argv)
     css->registerProjection("stewart", ompl::base::ProjectionEvaluatorPtr(new StewartProjection(css, links, chains)));
 
     css->as<ompl::base::ConstrainedStateSpace>()->setCaching(caching);
+    css->as<ompl::base::ConstrainedStateSpace>()->setDelta(delta);
 
     try
     {
@@ -365,6 +371,7 @@ int main(int argc, char **argv)
     bench.addExperimentParameter("obstacles", "INTEGER", std::to_string(obstacles));
     bench.addExperimentParameter("chains", "INTEGER", std::to_string(chains));
     bench.addExperimentParameter("space", "INTEGER", std::to_string(tag));
+    bench.addExperimentParameter("tag", "INTEGER", std::to_string(extraTag));
 
     const ompl::tools::Benchmark::Request request(planningTime, memory_limit, runs, update_interval, progress,
                                                   save_output, use_threads, simplify);
