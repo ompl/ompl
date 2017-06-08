@@ -262,21 +262,30 @@ public:
     {
         unsigned int offset = 3 * links_ * id_;
 
-        Eigen::VectorXd goal = Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_;
-        goal[2] = 2 * length_;
+        Eigen::VectorXd nstep = offset_ * length_;
+        Eigen::VectorXd estep = Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_ * length_;
+        Eigen::VectorXd sstep = Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()) * offset_ * length_;
+        Eigen::VectorXd wstep = Eigen::AngleAxisd(3 * M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_ * length_;
 
-        x.segment(3 * (links_ - 1) + offset, 3) = goal;
 
-        /* Eigen::VectorXd step = offset_ * length_; */
-        /* Eigen::VectorXd joint = offset_ + step; */
+        Eigen::VectorXd joint = offset_ + nstep;
+        x.segment(3 * 0 + offset, 3) = joint;
+        x.segment(3 * 1 + offset, 3) = x.segment(3 * 0 + offset, 3) + estep;
+        x.segment(3 * 2 + offset, 3) = x.segment(3 * 1 + offset, 3) + estep;
+        x.segment(3 * 3 + offset, 3) = x.segment(3 * 2 + offset, 3) + Eigen::Vector3d::UnitZ() * length_;
+        x.segment(3 * 4 + offset, 3) = x.segment(3 * 3 + offset, 3) + sstep;
+        x.segment(3 * 5 + offset, 3) = x.segment(3 * 4 + offset, 3) + sstep;
+        x.segment(3 * 6 + offset, 3) = x.segment(3 * 5 + offset, 3) + wstep;
 
-        /* unsigned int i = 0; */
-        /* for (; i < links_ / 2; ++i, joint += step) */
-        /*     x.segment(3 * i + offset, 3) = joint; */
+    /*     Eigen::VectorXd joint = offset_ + step; */
 
-        /* joint += Eigen::Vector3d::UnitZ() * length_ - step; */
-        /* for (; i < links_; ++i, joint -= step) */
-        /*     x.segment(3 * i + offset, 3) = joint; */
+    /*     unsigned int i = 0; */
+    /*     for (; i < links_ / 2; ++i, joint += step) */
+    /*         x.segment(3 * i + offset, 3) = joint; */
+
+    /*     joint += Eigen::Vector3d::UnitZ() * length_ - step; */
+    /*     for (; i < links_; ++i, joint -= step) */
+    /*         x.segment(3 * i + offset, 3) = joint; */
     }
 
     Eigen::Ref<const Eigen::VectorXd> getLink(const Eigen::VectorXd &x, const unsigned int idx) const
@@ -898,8 +907,8 @@ ompl::base::Constraint *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
     bounds.setLow(1, -bb);
     bounds.setHigh(1, bb);
 
-    bounds.setLow(2, -ir - 1);
-    bounds.setHigh(2, ir + 1);
+    bounds.setLow(2, -ir);
+    bounds.setHigh(2, ir);
 
     auto torus = new TorusConstraint(outr, ir);
     isValid = std::bind(&TorusConstraint::isValid, torus, std::placeholders::_1);
@@ -1002,45 +1011,33 @@ ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
 }
 
 // TODO
-class EndEffectorGoal : public ob::GoalLazySamples
-{
-public:
-    EndEffectorGoal(const ob::SpaceInformationPtr &si, const ob::GoalSamplingFn &sampler,
-                    og::EndEffectorConstraintPtr ee)
-      : ob::GoalLazySamples(si, sampler), ee_(std::move(ee))
-    {
-    }
+/* class EndEffectorGoal : public ompl::base::GoalLazySamples */
+/* { */
+/* public: */
+/*     EndEffectorGoal(const ompl::base::SpaceInformationPtr &si, const ompl::base::GoalSamplingFn &sampler) */
+/*       : ompl::base::GoalLazySamples(si, sampler) */
+/*     { */
+/*     } */
 
-    ~EndEffectorGoal() override
-    {
-        // Very important.  Goal sampling thread may be running when
-        // this object gets destroyed, causing a seg fault when accessing
-        // the ee_ object.
-        ee_.reset();
-    }
+/*     ~EndEffectorGoal() override */
+/*     { */
+/*     } */
 
-    bool isSatisfied(const ob::State *state) const override
-    {
-        return ee_->isSatisfied(state);
-    }
+/*     bool isSatisfied(const ompl::base::State *state) const override */
+/*     { */
+/*     } */
 
-    double distanceGoal(const ob::State *state) const override
-    {
-        OMPL_WARN("%s: NOT IMPLEMENTED", __FUNCTION__);
-        return std::numeric_limits<double>::max();
-    }
+/*     double distanceGoal(const ompl::base::State *state) const override */
+/*     { */
+/*     } */
 
-    static bool goalStateSampler(const ob::GoalLazySamples *gls, ob::State *state)
-    {
-        const EndEffectorGoal *thisObj = static_cast<const EndEffectorGoal *>(gls);
-        while (thisObj->ee_ && !thisObj->ee_->sample(state))
-            ;
-        return true;
-    }
+/*     static bool goalStateSampler(const ompl::base::GoalLazySamples *gls, ompl::base::State *state) */
+/*     { */
+/*     } */
 
-protected:
-    og::EndEffectorConstraintPtr ee_;
-};
+/* protected: */
+/*     og::EndEffectorConstraintPtr ee_; */
+/* }; */
 
 /** Initialize the constraint for the kinematic chain problem. */
 ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
@@ -1054,14 +1051,14 @@ ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &
 
     StewartConstraint *constraint = new StewartConstraint(chains, links, extra);
 
-    constraint->getStart(x);
+    constraint->getStart(y);
+    constraint->getGoal(x);
 
-    for (unsigned int i = 0; i < 1000; ++i)
-    {
-        constraint->getGoal(y);
-        if (constraint->project(y))
-            break;
-    }
+    /* for (unsigned int i = 0; i < 100; ++i) */
+    /* { */
+    /*     if (constraint->project(y)) */
+    /*       break; */
+    /* } */
 
     isValid = std::bind(&StewartConstraint::isValid, constraint, std::placeholders::_1);
 
@@ -1071,14 +1068,14 @@ ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &
         const unsigned int o = 3 * c * links;
         for (int i = 0; i < (int)links; ++i)
         {
-            bounds.setLow(o + 3 * i + 0, -i - 2);
-            bounds.setHigh(o + 3 * i + 0, i + 2);
+            bounds.setLow(o + 3 * i + 0, -10);
+            bounds.setHigh(o + 3 * i + 0, 10);
 
-            bounds.setLow(o + 3 * i + 1, -i - 2);
-            bounds.setHigh(o + 3 * i + 1, i + 2);
+            bounds.setLow(o + 3 * i + 1, -10);
+            bounds.setHigh(o + 3 * i + 1, 10);
 
-            bounds.setLow(o + 3 * i + 2, 0);
-            bounds.setHigh(o + 3 * i + 2, i + 1);
+            bounds.setLow(o + 3 * i + 2, -10);
+            bounds.setHigh(o + 3 * i + 2, 10);
         }
     }
 
