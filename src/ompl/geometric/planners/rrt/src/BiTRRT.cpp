@@ -235,7 +235,10 @@ ompl::geometric::BiTRRT::GrowResult ompl::geometric::BiTRRT::extendTree(Motion *
     // Truncate the random state to be no more than maxDistance_ from nearest neighbor
     if (d > maxDistance_)
     {
-        si_->getStateSpace()->interpolate(nearest->state, toMotion->state, maxDistance_ / d, toMotion->state);
+        if (tree == tStart_)
+            si_->getStateSpace()->interpolate(nearest->state, toMotion->state, maxDistance_ / d, toMotion->state);
+        else
+            si_->getStateSpace()->interpolate(toMotion->state, nearest->state, maxDistance_ / d, toMotion->state);
         d = maxDistance_;
         reach = false;
     }
@@ -248,7 +251,9 @@ ompl::geometric::BiTRRT::GrowResult ompl::geometric::BiTRRT::extendTree(Motion *
     bool validMotion =
         (tree == tStart_ ? si_->checkMotion(nearest->state, toMotion->state) :
                            si_->isValid(toMotion->state) && si_->checkMotion(toMotion->state, nearest->state)) &&
-        transitionTest(opt_->motionCost(nearest->state, toMotion->state)) && minExpansionControl(d);
+                               transitionTest(tree == tStart_ ? opt_->motionCost(nearest->state, toMotion->state)
+                                                              : opt_->motionCost(toMotion->state, nearest->state)) &&
+                               minExpansionControl(d);
 
     if (validMotion)
     {
