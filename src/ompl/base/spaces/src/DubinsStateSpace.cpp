@@ -52,7 +52,9 @@ namespace
     {
         if (x < 0 && x > DUBINS_ZERO)
             return 0;
-        return x - twopi * floor(x / twopi);
+        double xm = x - twopi * floor(x / twopi);
+        if (twopi - xm < .5 * DUBINS_EPS) xm = 0.;
+        return xm;
     }
 
     DubinsStateSpace::DubinsPath dubinsLSL(double d, double alpha, double beta)
