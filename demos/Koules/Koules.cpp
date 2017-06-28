@@ -162,7 +162,7 @@ int main(int argc, char **argv)
             ("numruns", po::value<unsigned int>(&numRuns)->default_value(10),
                 "number of runs for each planner in benchmarking mode")
             ("planner", po::value<std::string>(&plannerName)->default_value("kpiece"),
-                "planning algorithm to use (pdst, kpiece, rrt, or est)")
+                "planning algorithm to use (pdst, kpiece, sst, rrt, est, sycloprrt, or syclopest)")
             ("velocity", po::value<double>(&kouleVel)->default_value(0.),
                 "initial velocity of each koule")
         ;

@@ -70,13 +70,40 @@ public:
         unsigned int numKoules = (numDimensions_ - 3) / 2;
         projection[0] = x[0];
         projection[1] = x[1];
-        projection[2] = x[2];
+        projection[2] = numDimensions_ == 3 ? distanceGoal(state) : x[2];
         for (unsigned int i = 0; i < numKoules; ++i)
         {
             projection[2 * i + 3] = x[4 * i + 5];
             projection[2 * i + 4] = x[4 * i + 6];
         }
     }
+
+    // distance to goal is used as a projection coordinate in 3D projections.
+    //
+    // This distance definition is adapted from the KoulesGoal class
+    double distanceGoal(const ompl::base::State *st) const
+    {
+        double minX, minY;
+        const double* v = st->as<KoulesStateSpace::StateType>()->values;
+        std::size_t numKoules = (space_->getDimension() - 5) / 4, liveKoules = numKoules;
+        double minDist = sideLength;
+
+        for (std::size_t i = 1, j = 5; i <= numKoules; ++i, j += 4)
+        {
+            if (space_->as<KoulesStateSpace>()->isDead(st, i))
+                liveKoules--;
+            else
+            {
+                minX = std::min(v[j    ], sideLength - v[j    ]);
+                minY = std::min(v[j + 1], sideLength - v[j + 1]);
+                minDist = std::min(minDist, std::min(minX, minY) - kouleRadius);
+            }
+        }
+        if (minDist < 0 || liveKoules == 0)
+            minDist = 0;
+       return .5 * sideLength * (double) liveKoules + minDist;
+    }
+
 protected:
     unsigned int numDimensions_;
 };
