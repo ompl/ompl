@@ -58,6 +58,9 @@ namespace ompl
 
             Subclasses handle the differences between a cost or a constraint.
         */
+
+        OMPL_CLASS_FORWARD(ConvexifiableOptimization);
+
         class ConvexifiableOptimization : public OptimizationObjective
         {
         public:
@@ -66,18 +69,46 @@ namespace ompl
             virtual void addToProblem(sco::OptProbPtr problem) = 0;
         };
 
+        OMPL_CLASS_FORWARD(MultiConvexifiableOptimization);
+
         /** \brief A composed version of a convexifiable optimization. */
-        class MultiConvexifiableOptimization : public ConvexifiableOptimization, public MultiOptimizationObjective
+        class MultiConvexifiableOptimization : public ConvexifiableOptimization
         {
         public:
+
+            MultiConvexifiableOptimization(const SpaceInformationPtr &si) : ConvexifiableOptimization(si) {}
+
+            ompl::base::Cost stateCost(const ompl::base::State* state) const {
+                Cost c = identityCost();
+                for (ConvexifiableOptimizationPtr opt : components_) {
+                    c = Cost(c.value() + opt->stateCost(state).value());
+                }
+                return c;
+            }
+
+            ompl::base::Cost motionCost(const State *s1, const State *s2) const {
+                Cost c = identityCost();
+                for (ConvexifiableOptimizationPtr opt : components_) {
+                    c = Cost(c.value() + opt->motionCost(s1, s2).value());
+                }
+                return c;
+            }
+
+            /** \brief Adds a new objective for this multiobjective. A weight must also be specified for specifying
+             * importance of this objective in planning. */
+            void addObjective(const ConvexifiableOptimizationPtr &objective)
+            {
+                components_.push_back(objective);
+            }
+
             void addToProblem(sco::OptProbPtr problem)
             {
-                // TODO: ignores weights, as most weights should be incorperated into the constraints
-                // and costs themselves.
-                for (Component c : components_) {
-                    ((ConvexifiableOptimization*)&c)->addToProblem(problem);
+                for (ConvexifiableOptimizationPtr c : components_) {
+                    c->addToProblem(problem);
                 }
             }
+        private:
+            std::vector<ConvexifiableOptimizationPtr> components_;
         };
     }
 }

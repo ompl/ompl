@@ -134,8 +134,8 @@ namespace ompl
             /** \brief The starting size of the trust region. */
             double initTrustBoxSize_{0.1};
 
-            double minApproxImproveFrac_;
-            double maxIter_;
+            double minApproxImproveFrac_{0.001};
+            double maxIter_{40};
 
             sco::BasicTrustRegionSQP *sqpOptimizer;
 

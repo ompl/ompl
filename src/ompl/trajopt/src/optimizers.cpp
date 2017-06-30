@@ -153,7 +153,7 @@ BasicTrustRegionSQP::BasicTrustRegionSQP(OptProbPtr prob) {
   setProblem(prob);
 }
 
-// TODO: follow the rest of OMPL and move these to be initialized in optimizers.hpp.
+// TODO: All these are initialized in hpp, get rid of this function.
 void BasicTrustRegionSQP::initParameters() {
     improve_ratio_threshold_ = .25;
     minTrustBoxSize_ = 1e-4;
@@ -210,7 +210,7 @@ OptStatus BasicTrustRegionSQP::optimize() {
 
   /* merit adjustment loop */
   for (int merit_increases=0; merit_increases < max_merit_coeff_increases_; ++merit_increases) {
-    for (int iter=1; ; ++iter) { /* sqp loop */
+    for (int iter = 1; ; ++iter) { /* sqp loop */
       callCallbacks(x_);
 
       LOG_DEBUG("current iterate: %s", CSTR(x_));
@@ -309,7 +309,7 @@ OptStatus BasicTrustRegionSQP::optimize() {
           results_.cost_vals = new_cost_vals;
           results_.cnt_viols = new_cnt_viols;
           adjustTrustRegion(trust_expand_ratio_);
-          LOG_INFO("expanded trust region. new box size: %.4f",trust_box_size_);
+          LOG_INFO("expanded trust region. niterew box size: %.4f",trust_box_size_);
           break;
         }
       }
@@ -319,7 +319,7 @@ OptStatus BasicTrustRegionSQP::optimize() {
         retval = OPT_CONVERGED;
         goto penaltyadjustment;
       } else if (iter >= maxIter_) {
-        LOG_INFO("iteration limit");
+        LOG_INFO("iteration limit: iter %d, maxIter_ %f", iter, maxIter_);
         return cleanup(OPT_SCO_ITERATION_LIMIT, x_);
       }
     }
